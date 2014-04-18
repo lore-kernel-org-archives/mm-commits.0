@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + printk-shrink-too-long-messages.patch added to -mm tree
-Date: Fri, 18 Apr 2014 12:03:50 -0700
-Message-ID: <53517716.gXofViSxMIdqEhSV%akpm@linux-foundation.org>
+Subject: + printk-return-really-stored-message-length.patch added to -mm
+ tree
+Date: Fri, 18 Apr 2014 12:03:51 -0700
+Message-ID: <53517717.evMsNcBUMAUek/PR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41820 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41823 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885AbaDRTDv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 15:03:51 -0400
+	with ESMTP id S1752461AbaDRTDw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 15:03:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, kay@vrfy.org, jkosina@suse.cz, jack@suse.cz, pmladek@suse.cz
 
-Subject: + printk-shrink-too-long-messages.patch added to -mm tree
+Subject: + printk-return-really-stored-message-length.patch added to -mm tree
 To: pmladek@suse.cz,jack@suse.cz,jkosina@suse.cz,kay@vrfy.org
 From: akpm@linux-foundation.org
-Date: Fri, 18 Apr 2014 12:03:50 -0700
+Date: Fri, 18 Apr 2014 12:03:51 -0700
 
 
 The patch titled
-     Subject: printk: shrink too long messages
+     Subject: printk: return really stored message length
 has been added to the -mm tree.  Its filename is
-     printk-shrink-too-long-messages.patch
+     printk-return-really-stored-message-length.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-shrink-too-long-messages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-return-really-stored-message-length.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-shrink-too-long-messages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-return-really-stored-message-length.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,18 +45,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Petr Mladek <pmladek@suse.cz>
-Subject: printk: shrink too long messages
+Subject: printk: return really stored message length
 
-We might want to print at least part of too long messages and add some
-warning for debugging purpose.
+I wonder if anyone uses printk return value but it is there and should be
+counted correctly.
 
-The question is how long the shrunken message should be.  If we use the
-whole buffer, it might get rotated too soon.  Let's try to use only 1/4 of
-the buffer for now.
+This patch modifies log_store() to return the number of really stored
+bytes from the 'text' part.  Also it handles the return value in
+vprintk_emit().
 
-Also shrink the whole dictionary.  We do not want to parse it or break it
-in the middle of some pair of values.  It would not cause any real harm
-but still.
+Note that log_store() is used also in cont_flush() but we could ignore the
+return value there.  The function works with characters that were already
+counted earlier.  In addition, the store could newer fail here because the
+length of the printed text is limited by the "cont" buffer and "dict" is
+NULL.
 
 Signed-off-by: Petr Mladek <pmladek@suse.cz>
 Cc: Jan Kara <jack@suse.cz>
@@ -64,79 +67,92 @@ Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   42 ++++++++++++++++++++++++++++++++++++---
- 1 file changed, 39 insertions(+), 3 deletions(-)
+ kernel/printk/printk.c |   36 +++++++++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 15 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-shrink-too-long-messages kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-shrink-too-long-messages
+diff -puN kernel/printk/printk.c~printk-return-really-stored-message-length kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-return-really-stored-message-length
 +++ a/kernel/printk/printk.c
-@@ -351,6 +351,32 @@ static u32 msg_used_size(u16 text_len, u
- 	return size;
+@@ -378,10 +378,10 @@ static u32 truncate_msg(u16 *text_len, u
  }
  
-+/*
-+ * Define how much of the log buffer we could take at maximum. The value
-+ * must be greater than two. Note that only half of the buffer is available
-+ * when the index points to the middle.
-+ */
-+#define MAX_LOG_TAKE_PART 4
-+static const char trunc_msg[] = "<truncated>";
-+
-+static u32 truncate_msg(u16 *text_len, u16 *trunc_msg_len,
-+			u16 *dict_len, u32 *pad_len)
-+{
-+	/*
-+	 * The message should not take the whole buffer. Otherwise, it might
-+	 * get removed too soon.
-+	 */
-+	u32 max_text_len = log_buf_len / MAX_LOG_TAKE_PART;
-+	if (*text_len > max_text_len)
-+		*text_len = max_text_len;
-+	/* enable the warning message */
-+	*trunc_msg_len = strlen(trunc_msg);
-+	/* disable the "dict" completely */
-+	*dict_len = 0;
-+	/* compute the size again, count also the warning message */
-+	return msg_used_size(*text_len + *trunc_msg_len, 0, pad_len);
-+}
-+
  /* insert record into the buffer, discard old ones, update heads */
- static void log_store(int facility, int level,
- 		      enum log_flags flags, u64 ts_nsec,
-@@ -359,13 +385,19 @@ static void log_store(int facility, int
+-static void log_store(int facility, int level,
+-		      enum log_flags flags, u64 ts_nsec,
+-		      const char *dict, u16 dict_len,
+-		      const char *text, u16 text_len)
++static int log_store(int facility, int level,
++		     enum log_flags flags, u64 ts_nsec,
++		     const char *dict, u16 dict_len,
++		     const char *text, u16 text_len)
  {
  	struct printk_log *msg;
  	u32 size, pad_len;
-+	u16 trunc_msg_len = 0;
- 
- 	/* number of '\0' padding bytes to next message */
- 	size = msg_used_size(text_len, dict_len, &pad_len);
- 
--	/* if message does not fit empty log buffer, ignore it */
--	if (log_make_free_space(size))
--		return;
-+	if (log_make_free_space(size)) {
-+		/* truncate the message if it is too long for empty buffer */
-+		size = truncate_msg(&text_len, &trunc_msg_len,
-+				    &dict_len, &pad_len);
-+		/* survive when the log buffer is too small for trunc_msg */
-+		if (log_make_free_space(size))
-+			return;
-+	}
+@@ -396,7 +396,7 @@ static void log_store(int facility, int
+ 				    &dict_len, &pad_len);
+ 		/* survive when the log buffer is too small for trunc_msg */
+ 		if (log_make_free_space(size))
+-			return;
++			return 0;
+ 	}
  
  	if (log_next_idx + size + sizeof(struct printk_log) > log_buf_len) {
- 		/*
-@@ -381,6 +413,10 @@ static void log_store(int facility, int
- 	msg = (struct printk_log *)(log_buf + log_next_idx);
- 	memcpy(log_text(msg), text, text_len);
- 	msg->text_len = text_len;
-+	if (trunc_msg_len) {
-+		memcpy(log_text(msg) + text_len, trunc_msg, trunc_msg_len);
-+		msg->text_len += trunc_msg_len;
-+	}
- 	memcpy(log_dict(msg), dict, dict_len);
- 	msg->dict_len = dict_len;
- 	msg->facility = facility;
+@@ -432,6 +432,8 @@ static void log_store(int facility, int
+ 	/* insert message */
+ 	log_next_idx += msg->len;
+ 	log_next_seq++;
++
++	return msg->text_len;
+ }
+ 
+ #ifdef CONFIG_SECURITY_DMESG_RESTRICT
+@@ -1606,10 +1608,10 @@ asmlinkage int vprintk_emit(int facility
+ 			"BUG: recent printk recursion!";
+ 
+ 		recursion_bug = 0;
+-		printed_len += strlen(recursion_msg);
++		text_len = strlen(recursion_msg);
+ 		/* emit KERN_CRIT message */
+-		log_store(0, 2, LOG_PREFIX|LOG_NEWLINE, 0,
+-			  NULL, 0, recursion_msg, printed_len);
++		printed_len += log_store(0, 2, LOG_PREFIX|LOG_NEWLINE, 0,
++					 NULL, 0, recursion_msg, text_len);
+ 	}
+ 
+ 	/*
+@@ -1662,9 +1664,12 @@ asmlinkage int vprintk_emit(int facility
+ 			cont_flush(LOG_NEWLINE);
+ 
+ 		/* buffer line if possible, otherwise store it right away */
+-		if (!cont_add(facility, level, text, text_len))
+-			log_store(facility, level, lflags | LOG_CONT, 0,
+-				  dict, dictlen, text, text_len);
++		if (cont_add(facility, level, text, text_len))
++			printed_len += text_len;
++		else
++			printed_len += log_store(facility, level,
++						 lflags | LOG_CONT, 0,
++						 dict, dictlen, text, text_len);
+ 	} else {
+ 		bool stored = false;
+ 
+@@ -1683,11 +1688,12 @@ asmlinkage int vprintk_emit(int facility
+ 			cont_flush(LOG_NEWLINE);
+ 		}
+ 
+-		if (!stored)
+-			log_store(facility, level, lflags, 0,
+-				  dict, dictlen, text, text_len);
++		if (stored)
++			printed_len += text_len;
++		else
++			printed_len += log_store(facility, level, lflags, 0,
++						 dict, dictlen, text, text_len);
+ 	}
+-	printed_len += text_len;
+ 
+ 	/*
+ 	 * Try to acquire and then immediately release the console semaphore.
 _
 
 Patches currently in -mm which might be from pmladek@suse.cz are
