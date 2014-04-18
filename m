@@ -1,112 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mips-export-flush_icache_range-fix.patch removed
- from -mm tree
-Date: Fri, 18 Apr 2014 15:04:38 -0700
-Message-ID: <5351a176.DQ8HlOFyetql53hj%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+ added to -mm tree
+Date: Fri, 18 Apr 2014 15:10:49 -0700
+Message-ID: <5351a2e9.njX8wC0nyN6wpJEH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43053 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43183 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753068AbaDRWEj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 18:04:39 -0400
+	with ESMTP id S1754232AbaDRWKv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 18:10:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sergei.shtylyov@cogentembedded.com, sanjayl@kymasys.com, ralf@linux-mips.org, paul.gortmaker@windriver.com, keescook@chromium.org, blogic@openwrt.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, ytk.lee@samsung.com, riel@redhat.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, m.szyprowski@samsung.com, kosaki.motohiro@jp.fujitsu.com, iamjoonsoo.kim@lge.com, hughd@google.com, b.zolnierkie@samsung.com, vbabka@suse.cz
 
-Subject: [folded-merged] mips-export-flush_icache_range-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,blogic@openwrt.org,keescook@chromium.org,paul.gortmaker@windriver.com,ralf@linux-mips.org,sanjayl@kymasys.com,sergei.shtylyov@cogentembedded.com,mm-commits@vger.kernel.org
+Subject: + mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch added to -mm tree
+To: vbabka@suse.cz,b.zolnierkie@samsung.com,hughd@google.com,iamjoonsoo.kim@lge.com,kosaki.motohiro@jp.fujitsu.com,m.szyprowski@samsung.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,riel@redhat.com,ytk.lee@samsung.com
 From: akpm@linux-foundation.org
-Date: Fri, 18 Apr 2014 15:04:38 -0700
+Date: Fri, 18 Apr 2014 15:10:49 -0700
 
 
 The patch titled
-     Subject: mips-export-flush_icache_range-fix
-has been removed from the -mm tree.  Its filename was
-     mips-export-flush_icache_range-fix.patch
+     Subject: mm/page_alloc: prevent MIGRATE_RESERVE pages from being misplaced
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
 
-This patch was dropped because it was folded into mips-export-flush_icache_range.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mips-export-flush_icache_range-fix
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm/page_alloc: prevent MIGRATE_RESERVE pages from being misplaced
 
-relocate export sites
+For the MIGRATE_RESERVE pages, it is important they do not get misplaced
+on free_list of other migratetype, otherwise the whole MIGRATE_RESERVE
+pageblock might be changed to other migratetype in
+try_to_steal_freepages().
 
-Cc: John Crispin <blogic@openwrt.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Sanjay Lal <sanjayl@kymasys.com>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Currently, it is however possible for this to happen when MIGRATE_RESERVE
+page is allocated on pcplist through rmqueue_bulk() as a fallback for
+other desired migratetype, and then later freed back through
+free_pcppages_bulk() without being actually used.  This happens because
+free_pcppages_bulk() uses get_freepage_migratetype() to choose the
+free_list, and rmqueue_bulk() calls set_freepage_migratetype() with the
+*desired* migratetype and not the page's original MIGRATE_RESERVE
+migratetype.
+
+This patch fixes the problem by moving the call to
+set_freepage_migratetype() from rmqueue_bulk() down to
+__rmqueue_smallest() and __rmqueue_fallback() where the actual page's
+migratetype (e.g.  from which free_list the page is taken from) is used. 
+Note that this migratetype might be different from the pageblock's
+migratetype due to freepage stealing decisions.  This is OK, as page
+stealing never uses MIGRATE_RESERVE as a fallback, and also takes care to
+leave all MIGRATE_CMA pages on the correct freelist.
+
+Therefore, as an additional benefit, the call to
+get_pageblock_migratetype() from rmqueue_bulk() when CMA is enabled, can
+be removed completely.  This relies on the fact that MIGRATE_CMA
+pageblocks are created only during system init, and the above.  The
+related is_migrate_isolate() check is also unnecessary, as memory
+isolation has other ways to move pages between freelists, and drain pcp
+lists containing pages that should be isolated.  The buffered_rmqueue()
+can also benefit from calling get_freepage_migratetype() instead of
+get_pageblock_migratetype().
+
+A separate patch will add VM_BUG_ON checks for the invariant that for
+MIGRATE_RESERVE and MIGRATE_CMA pageblocks, freepage_migratetype must
+equal to pageblock_migratetype so that these pages always go to the
+correct free_list.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Yong-Taek Lee <ytk.lee@samsung.com>
+Reported-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Suggested-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Suggested-by: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/cache.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN arch/mips/mm/cache.c~mips-export-flush_icache_range-fix arch/mips/mm/cache.c
---- a/arch/mips/mm/cache.c~mips-export-flush_icache_range-fix
-+++ a/arch/mips/mm/cache.c
-@@ -29,16 +29,15 @@ void (*flush_cache_range)(struct vm_area
- void (*flush_cache_page)(struct vm_area_struct *vma, unsigned long page,
- 	unsigned long pfn);
- void (*flush_icache_range)(unsigned long start, unsigned long end);
-+EXPORT_SYMBOL_GPL(flush_icache_range);
- void (*local_flush_icache_range)(unsigned long start, unsigned long end);
+diff -puN mm/page_alloc.c~mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced
++++ a/mm/page_alloc.c
+@@ -931,6 +931,7 @@ struct page *__rmqueue_smallest(struct z
+ 		rmv_page_order(page);
+ 		area->nr_free--;
+ 		expand(zone, page, order, current_order, area, migratetype);
++		set_freepage_migratetype(page, migratetype);
+ 		return page;
+ 	}
  
- void (*__flush_cache_vmap)(void);
- void (*__flush_cache_vunmap)(void);
+@@ -1057,7 +1058,9 @@ static int try_to_steal_freepages(struct
  
- void (*__flush_kernel_vmap_range)(unsigned long vaddr, int size);
--void (*__invalidate_kernel_vmap_range)(unsigned long vaddr, int size);
--
- EXPORT_SYMBOL_GPL(__flush_kernel_vmap_range);
--EXPORT_SYMBOL_GPL(flush_icache_range);
-+void (*__invalidate_kernel_vmap_range)(unsigned long vaddr, int size);
+ 	/*
+ 	 * When borrowing from MIGRATE_CMA, we need to release the excess
+-	 * buddy pages to CMA itself.
++	 * buddy pages to CMA itself. We also ensure the freepage_migratetype
++	 * is set to CMA so it is returned to the correct freelist in case
++	 * the page ends up being not actually allocated from the pcp lists.
+ 	 */
+ 	if (is_migrate_cma(fallback_type))
+ 		return fallback_type;
+@@ -1125,6 +1128,12 @@ __rmqueue_fallback(struct zone *zone, in
  
- /* MIPS specific cache operations */
- void (*flush_cache_sigtramp)(unsigned long addr);
+ 			expand(zone, page, order, current_order, area,
+ 			       new_type);
++			/* The freepage_migratetype may differ from pageblock's
++			 * migratetype depending on the decisions in
++			 * try_to_steal_freepages. This is OK as long as it does
++			 * not differ for MIGRATE_CMA type.
++			 */
++			set_freepage_migratetype(page, new_type);
+ 
+ 			trace_mm_page_alloc_extfrag(page, order, current_order,
+ 				start_migratetype, migratetype, new_type);
+@@ -1175,7 +1184,7 @@ static int rmqueue_bulk(struct zone *zon
+ 			unsigned long count, struct list_head *list,
+ 			int migratetype, int cold)
+ {
+-	int mt = migratetype, i;
++	int i;
+ 
+ 	spin_lock(&zone->lock);
+ 	for (i = 0; i < count; ++i) {
+@@ -1196,14 +1205,8 @@ static int rmqueue_bulk(struct zone *zon
+ 			list_add(&page->lru, list);
+ 		else
+ 			list_add_tail(&page->lru, list);
+-		if (IS_ENABLED(CONFIG_CMA)) {
+-			mt = get_pageblock_migratetype(page);
+-			if (!is_migrate_cma(mt) && !is_migrate_isolate(mt))
+-				mt = migratetype;
+-		}
+-		set_freepage_migratetype(page, mt);
+ 		list = &page->lru;
+-		if (is_migrate_cma(mt))
++		if (is_migrate_cma(get_freepage_migratetype(page)))
+ 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
+ 					      -(1 << order));
+ 	}
+@@ -1572,7 +1575,7 @@ again:
+ 		if (!page)
+ 			goto failed;
+ 		__mod_zone_freepage_state(zone, -(1 << order),
+-					  get_pageblock_migratetype(page));
++					  get_freepage_migratetype(page));
+ 	}
+ 
+ 	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write.patch
-wait-explain-the-shadowing-and-type-inconsistencies.patch
-mips-export-flush_icache_range.patch
-drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b-fix.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+thp-close-race-between-split-and-zap-huge-pages.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
 
