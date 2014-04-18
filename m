@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch added to -mm tree
-Date: Fri, 18 Apr 2014 13:38:44 -0700
-Message-ID: <53518d54.F+HoxL6jHoKfCWpY%akpm@linux-foundation.org>
+ hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch added to -mm tree
+Date: Fri, 18 Apr 2014 13:38:42 -0700
+Message-ID: <53518d52.hvuX9AQkp0JcJKkv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42487 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42480 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482AbaDRUip (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 16:38:45 -0400
+	with ESMTP id S1752189AbaDRUin (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 16:38:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, nacc@linux.vnet.ibm.com, mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, nacc@linux.vnet.ibm.com
 
-Subject: + hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,aneesh.kumar@linux.vnet.ibm.com,mgorman@suse.de,nacc@linux.vnet.ibm.com
+Subject: + hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch added to -mm tree
+To: nacc@linux.vnet.ibm.com,aneesh.kumar@linux.vnet.ibm.com,mgorman@suse.de
 From: akpm@linux-foundation.org
-Date: Fri, 18 Apr 2014 13:38:44 -0700
+Date: Fri, 18 Apr 2014 13:38:42 -0700
 
 
 The patch titled
-     Subject: hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix
+     Subject: hugetlb: ensure hugepage access is denied if hugepages are not supported
 has been added to the -mm tree.  Its filename is
-     hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+     hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,69 +44,152 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix
+From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Subject: hugetlb: ensure hugepage access is denied if hugepages are not supported
 
-use pr_info(), per Mel
+Currently, I am seeing the following when I `mount -t hugetlbfs /none
+/dev/hugetlbfs`, and then simply do a `ls /dev/hugetlbfs`.  I think it's
+related to the fact that hugetlbfs is properly not correctly setting
+itself up in this state?:
 
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Unable to handle kernel paging request for data at address 0x00000031
+Faulting instruction address: 0xc000000000245710
+Oops: Kernel access of bad area, sig: 11 [#1]
+SMP NR_CPUS=2048 NUMA pSeries
+....
+									
+
+In KVM guests on Power, in a guest not backed by hugepages, we see the
+following:
+
+AnonHugePages:         0 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:         64 kB
+
+HPAGE_SHIFT == 0 in this configuration, which indicates that hugepages
+are not supported at boot-time, but this is only checked in
+hugetlb_init(). Extract the check to a helper function, and use it in a
+few relevant places.
+
+This does make hugetlbfs not supported (not registered at all) in this
+environment. I believe this is fine, as there are no valid hugepages and
+that won't change at runtime.
+
+Signed-off-by: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c    |    5 +++++
+ include/linux/hugetlb.h |   10 ++++++++++
+ mm/hugetlb.c            |   19 ++++++++++++++-----
+ 3 files changed, 29 insertions(+), 5 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix
+diff -puN fs/hugetlbfs/inode.c~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported
 +++ a/fs/hugetlbfs/inode.c
-@@ -1031,7 +1031,7 @@ static int __init init_hugetlbfs_fs(void
+@@ -1030,6 +1030,11 @@ static int __init init_hugetlbfs_fs(void
+ 	int error;
  	int i;
  
- 	if (!hugepages_supported()) {
--		printk(KERN_ERR "hugetlbfs: Disabling because there are no supported hugepage sizes\n");
-+		pr_info("hugetlbfs: disabling because there are no supported hugepage sizes\n");
- 		return -ENOTSUPP;
- 	}
++	if (!hugepages_supported()) {
++		printk(KERN_ERR "hugetlbfs: Disabling because there are no supported hugepage sizes\n");
++		return -ENOTSUPP;
++	}
++
+ 	error = bdi_init(&hugetlbfs_backing_dev_info);
+ 	if (error)
+ 		return error;
+diff -puN include/linux/hugetlb.h~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported
++++ a/include/linux/hugetlb.h
+@@ -460,4 +460,14 @@ static inline spinlock_t *huge_pte_lock(
+ 	return ptl;
+ }
  
++static inline bool hugepages_supported(void)
++{
++	/*
++	 * Some platform decide whether they support huge pages at boot
++	 * time. On these, such as powerpc, HPAGE_SHIFT is set to 0 when
++	 * there is no such support
++	 */
++	return HPAGE_SHIFT != 0;
++}
++
+ #endif /* _LINUX_HUGETLB_H */
+diff -puN mm/hugetlb.c~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported
++++ a/mm/hugetlb.c
+@@ -1981,11 +1981,7 @@ static int __init hugetlb_init(void)
+ {
+ 	int i;
+ 
+-	/* Some platform decide whether they support huge pages at boot
+-	 * time. On these, such as powerpc, HPAGE_SHIFT is set to 0 when
+-	 * there is no such support
+-	 */
+-	if (HPAGE_SHIFT == 0)
++	if (!hugepages_supported())
+ 		return 0;
+ 
+ 	if (!size_to_hstate(default_hstate_size)) {
+@@ -2112,6 +2108,9 @@ static int hugetlb_sysctl_handler_common
+ 	unsigned long tmp;
+ 	int ret;
+ 
++	if (!hugepages_supported())
++		return -ENOTSUPP;
++
+ 	tmp = h->max_huge_pages;
+ 
+ 	if (write && h->order >= MAX_ORDER)
+@@ -2165,6 +2164,9 @@ int hugetlb_overcommit_handler(struct ct
+ 	unsigned long tmp;
+ 	int ret;
+ 
++	if (!hugepages_supported())
++		return -ENOTSUPP;
++
+ 	tmp = h->nr_overcommit_huge_pages;
+ 
+ 	if (write && h->order >= MAX_ORDER)
+@@ -2190,6 +2192,8 @@ out:
+ void hugetlb_report_meminfo(struct seq_file *m)
+ {
+ 	struct hstate *h = &default_hstate;
++	if (!hugepages_supported())
++		return;
+ 	seq_printf(m,
+ 			"HugePages_Total:   %5lu\n"
+ 			"HugePages_Free:    %5lu\n"
+@@ -2206,6 +2210,8 @@ void hugetlb_report_meminfo(struct seq_f
+ int hugetlb_report_node_meminfo(int nid, char *buf)
+ {
+ 	struct hstate *h = &default_hstate;
++	if (!hugepages_supported())
++		return 0;
+ 	return sprintf(buf,
+ 		"Node %d HugePages_Total: %5u\n"
+ 		"Node %d HugePages_Free:  %5u\n"
+@@ -2220,6 +2226,9 @@ void hugetlb_show_meminfo(void)
+ 	struct hstate *h;
+ 	int nid;
+ 
++	if (!hugepages_supported())
++		return;
++
+ 	for_each_node_state(nid, N_MEMORY)
+ 		for_each_hstate(h)
+ 			pr_info("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nacc@linux.vnet.ibm.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write.patch
-wait-explain-the-shadowing-and-type-inconsistencies.patch
-mips-export-flush_icache_range-fix.patch
-drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b-fix.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch
 hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
