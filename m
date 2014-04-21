@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-gupc-tweaks-fix.patch added to -mm tree
-Date: Mon, 21 Apr 2014 16:11:49 -0700
-Message-ID: <5355a5b5.5ZwnbL4Zvv7Te2gI%akpm@linux-foundation.org>
+Subject: +
+ mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch added to -mm tree
+Date: Mon, 21 Apr 2014 16:35:45 -0700
+Message-ID: <5355ab51.l6RrLD2Z6EAYGp+5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37575 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37687 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754569AbaDUXLu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 19:11:50 -0400
+	with ESMTP id S1752808AbaDUXfq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 19:35:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
 
-Subject: + mm-gupc-tweaks-fix.patch added to -mm tree
+Subject: + mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch added to -mm tree
 To: akpm@linux-foundation.org,kirill.shutemov@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 16:11:49 -0700
+Date: Mon, 21 Apr 2014 16:35:45 -0700
 
 
 The patch titled
-     Subject: mm-gupc-tweaks-fix
+     Subject: mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix
 has been added to the -mm tree.  Its filename is
-     mm-gupc-tweaks-fix.patch
+     mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gupc-tweaks-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gupc-tweaks-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,35 +45,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-gupc-tweaks-fix
+Subject: mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix
 
-fix x86_64 allnoconfig build
+s/BUILD_BUG/BUG/
 
-mm/gup.c: In function 'follow_page_pte':
-mm/gup.c:100: error: implicit declaration of function 'trylock_page'
-mm/gup.c:109: error: implicit declaration of function 'unlock_page'
-mm/gup.c: In function '__get_user_pages':
-mm/gup.c:467: error: implicit declaration of function 'flush_anon_page'
-mm/gup.c:468: error: implicit declaration of function 'flush_dcache_page'
-
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/gup.c~mm-gupc-tweaks-fix mm/gup.c
---- a/mm/gup.c~mm-gupc-tweaks-fix
+diff -puN mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix mm/gup.c
+--- a/mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix
 +++ a/mm/gup.c
-@@ -5,6 +5,7 @@
- 
- #include <linux/hugetlb.h>
- #include <linux/mm.h>
-+#include <linux/pagemap.h>
- #include <linux/rmap.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
+@@ -453,7 +453,7 @@ long __get_user_pages(struct task_struct
+ 				case -ENOENT:
+ 					goto next_page;
+ 				default:
+-					BUILD_BUG();
++					BUG();
+ 				}
+ 				cond_resched();
+ 			}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +93,7 @@ mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
 hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
 mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
 fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch
 mm-gupc-tweaks.patch
 mm-gupc-tweaks-fix.patch
 mm-compaction-cleanup-isolate_freepages-fix.patch
