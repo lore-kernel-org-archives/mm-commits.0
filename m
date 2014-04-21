@@ -1,195 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-close-race-between-split-and-zap-huge-pages.patch
- removed from -mm tree
-Date: Mon, 21 Apr 2014 11:11:15 -0700
-Message-ID: <53555f43.Ur9UvcuVYzvFxwSG%akpm@linux-foundation.org>
+Subject: + ocfs2-limit-printk-when-journal-is-aborted-fix.patch added to
+ -mm tree
+Date: Mon, 21 Apr 2014 12:18:32 -0700
+Message-ID: <53556f08.1XOgZwH3VlCTRqaF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35690 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36500 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753328AbaDUSLQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 14:11:16 -0400
+	with ESMTP id S1750891AbaDUTSd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 15:18:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, vbabka@suse.cz, stable@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, mgorman@suse.de, lliubbo@gmail.com, davej@redhat.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, akpm@linux-foundation.org
 
-Subject: [merged] thp-close-race-between-split-and-zap-huge-pages.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,aarcange@redhat.com,davej@redhat.com,lliubbo@gmail.com,mgorman@suse.de,riel@redhat.com,sasha.levin@oracle.com,stable@vger.kernel.org,vbabka@suse.cz,walken@google.com,mm-commits@vger.kernel.org
+Subject: + ocfs2-limit-printk-when-journal-is-aborted-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 11:11:15 -0700
+Date: Mon, 21 Apr 2014 12:18:32 -0700
 
 
 The patch titled
-     Subject: thp: close race between split and zap huge pages
-has been removed from the -mm tree.  Its filename was
-     thp-close-race-between-split-and-zap-huge-pages.patch
+     Subject: ocfs2-limit-printk-when-journal-is-aborted-fix
+has been added to the -mm tree.  Its filename is
+     ocfs2-limit-printk-when-journal-is-aborted-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: close race between split and zap huge pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2-limit-printk-when-journal-is-aborted-fix
 
-Sasha Levin has reported two THP BUGs[1][2].  I believe both of them have
-the same root cause.  Let's look to them one by one.
+document the msleep
 
-The first bug[1] is "kernel BUG at mm/huge_memory.c:1829!".  It's
-BUG_ON(mapcount != page_mapcount(page)) in __split_huge_page().  From my
-testing I see that page_mapcount() is higher than mapcount here.
-
-I think it happens due to race between zap_huge_pmd() and
-page_check_address_pmd().  page_check_address_pmd() misses PMD which is
-under zap:
-
-	CPU0						CPU1
-						zap_huge_pmd()
-						  pmdp_get_and_clear()
-__split_huge_page()
-  anon_vma_interval_tree_foreach()
-    __split_huge_page_splitting()
-      page_check_address_pmd()
-        mm_find_pmd()
-	  /*
-	   * We check if PMD present without taking ptl: no
-	   * serialization against zap_huge_pmd(). We miss this PMD,
-	   * it's not accounted to 'mapcount' in __split_huge_page().
-	   */
-	  pmd_present(pmd) == 0
-
-  BUG_ON(mapcount != page_mapcount(page)) // CRASH!!!
-
-						  page_remove_rmap(page)
-						    atomic_add_negative(-1, &page->_mapcount)
-
-The second bug[2] is "kernel BUG at mm/huge_memory.c:1371!".
-It's VM_BUG_ON_PAGE(!PageHead(page), page) in zap_huge_pmd().
-
-This happens in similar way:
-
-	CPU0						CPU1
-						zap_huge_pmd()
-						  pmdp_get_and_clear()
-						  page_remove_rmap(page)
-						    atomic_add_negative(-1, &page->_mapcount)
-__split_huge_page()
-  anon_vma_interval_tree_foreach()
-    __split_huge_page_splitting()
-      page_check_address_pmd()
-        mm_find_pmd()
-	  pmd_present(pmd) == 0	/* The same comment as above */
-  /*
-   * No crash this time since we already decremented page->_mapcount in
-   * zap_huge_pmd().
-   */
-  BUG_ON(mapcount != page_mapcount(page))
-
-  /*
-   * We split the compound page here into small pages without
-   * serialization against zap_huge_pmd()
-   */
-  __split_huge_page_refcount()
-						VM_BUG_ON_PAGE(!PageHead(page), page); // CRASH!!!
-
-So my understanding the problem is pmd_present() check in mm_find_pmd()
-without taking page table lock.
-
-The bug was introduced by me commit with commit 117b0791ac42. Sorry for
-that. :(
-
-Let's open code mm_find_pmd() in page_check_address_pmd() and do the
-check under page table lock.
-
-Note that __page_check_address() does the same for PTE entires
-if sync != 0.
-
-I've stress tested split and zap code paths for 36+ hours by now and
-don't see crashes with the patch applied. Before it took <20 min to
-trigger the first bug and few hours for second one (if we ignore
-first).
-
-[1] https://lkml.kernel.org/g/<53440991.9090001@oracle.com>
-[2] https://lkml.kernel.org/g/<5310C56C.60709@oracle.com>
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Tested-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Bob Liu <lliubbo@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[3.13+]
-
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ fs/ocfs2/journal.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/huge_memory.c~thp-close-race-between-split-and-zap-huge-pages mm/huge_memory.c
---- a/mm/huge_memory.c~thp-close-race-between-split-and-zap-huge-pages
-+++ a/mm/huge_memory.c
-@@ -1536,16 +1536,23 @@ pmd_t *page_check_address_pmd(struct pag
- 			      enum page_check_address_pmd_flag flag,
- 			      spinlock_t **ptl)
- {
-+	pgd_t *pgd;
-+	pud_t *pud;
- 	pmd_t *pmd;
+diff -puN fs/ocfs2/journal.c~ocfs2-limit-printk-when-journal-is-aborted-fix fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-limit-printk-when-journal-is-aborted-fix
++++ a/fs/ocfs2/journal.c
+@@ -2193,6 +2193,11 @@ static int ocfs2_commit_thread(void *arg
+ 			if (printk_timed_ratelimit(&abort_warn_time, 60*HZ))
+ 				mlog(ML_ERROR, "status = %d, journal is "
+ 						"already aborted.\n", status);
++			/*
++			 * After ocfs2_commit_cache() fails, j_num_trans has a
++			 * non-zero value.  Sleep here to avoid a busy-wait
++			 * loop.
++			 */
+ 			msleep_interruptible(1000);
+ 		}
  
- 	if (address & ~HPAGE_PMD_MASK)
- 		return NULL;
- 
--	pmd = mm_find_pmd(mm, address);
--	if (!pmd)
-+	pgd = pgd_offset(mm, address);
-+	if (!pgd_present(*pgd))
- 		return NULL;
-+	pud = pud_offset(pgd, address);
-+	if (!pud_present(*pud))
-+		return NULL;
-+	pmd = pmd_offset(pud, address);
-+
- 	*ptl = pmd_lock(mm, pmd);
--	if (pmd_none(*pmd))
-+	if (!pmd_present(*pmd))
- 		goto unlock;
- 	if (pmd_page(*pmd) != page)
- 		goto unlock;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-thp-consolidate-assert-checks-in-__split_huge_page.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-pass-vm_bug_on-reason-to-dump_page.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
 mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mm-move-get_user_pages-related-code-to-separate-file.patch
-mm-extract-in_gate_area-case-from-__get_user_pages.patch
-mm-cleanup-follow_page_mask.patch
-mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch
-mm-cleanup-__get_user_pages.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
 mm-gupc-tweaks.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
