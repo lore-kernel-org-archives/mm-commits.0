@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- arch-x86-kernel-pci-dmac-fix-dma_generic_alloc_coherent-when-config_dma_cma-is-enabled.patch added to -mm tree
-Date: Mon, 21 Apr 2014 14:11:08 -0700
-Message-ID: <5355896c.AavMKRT0Q0TeaBGB%akpm@linux-foundation.org>
+Subject: + blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
+ added to -mm tree
+Date: Mon, 21 Apr 2014 14:19:10 -0700
+Message-ID: <53558b4e.Gdw0sycjqaOx7Oos%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37013 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37102 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754473AbaDUVLJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 17:11:09 -0400
+	with ESMTP id S1754670AbaDUVTL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 17:19:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, m.szyprowski@samsung.com, konrad.wilk@oracle.com, hpa@zytor.com, dwmw2@infradead.org, ddutile@redhat.com, andi@firstfloor.org, akinobu.mita@gmail.com
+To: mm-commits@vger.kernel.org, realmz6@gmail.com, davidlohr@hp.com
 
-Subject: + arch-x86-kernel-pci-dmac-fix-dma_generic_alloc_coherent-when-config_dma_cma-is-enabled.patch added to -mm tree
-To: akinobu.mita@gmail.com,andi@firstfloor.org,ddutile@redhat.com,dwmw2@infradead.org,hpa@zytor.com,konrad.wilk@oracle.com,m.szyprowski@samsung.com,mingo@redhat.com,tglx@linutronix.de
+Subject: + blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch added to -mm tree
+To: davidlohr@hp.com,realmz6@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 14:11:08 -0700
+Date: Mon, 21 Apr 2014 14:19:10 -0700
 
 
 The patch titled
-     Subject: arch/x86/kernel/pci-dma.c: fix dma_generic_alloc_coherent() when CONFIG_DMA_CMA is enabled
+     Subject: blackfin/ptrace: call find_vma with the mmap_sem held
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-pci-dmac-fix-dma_generic_alloc_coherent-when-config_dma_cma-is-enabled.patch
+     blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-kernel-pci-dmac-fix-dma_generic_alloc_coherent-when-config_dma_cma-is-enabled.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-kernel-pci-dmac-fix-dma_generic_alloc_coherent-when-config_dma_cma-is-enabled.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,57 +44,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: arch/x86/kernel/pci-dma.c: fix dma_generic_alloc_coherent() when CONFIG_DMA_CMA is enabled
+From: Davidlohr Bueso <davidlohr@hp.com>
+Subject: blackfin/ptrace: call find_vma with the mmap_sem held
 
-dma_generic_alloc_coherent() firstly attempts to allocate by
-dma_alloc_from_contiguous() if CONFIG_DMA_CMA is enabled.  But the memory
-region allocated by it may not fit within the device's DMA mask.  This
-change makes it fall back to usual alloc_pages_node() allocation for such
-cases.
+Performing vma lookups without taking the mm->mmap_sem is asking for
+trouble.  While doing the search, the vma in question can be modified or
+even removed before returning to the caller.  Take the lock (shared) in
+order to avoid races while iterating through the vmacache and/or rbtree.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Don Dutile <ddutile@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Steven Miao <realmz6@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-dma.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/blackfin/kernel/ptrace.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/pci-dma.c~arch-x86-kernel-pci-dmac-fix-dma_generic_alloc_coherent-when-config_dma_cma-is-enabled arch/x86/kernel/pci-dma.c
---- a/arch/x86/kernel/pci-dma.c~arch-x86-kernel-pci-dmac-fix-dma_generic_alloc_coherent-when-config_dma_cma-is-enabled
-+++ a/arch/x86/kernel/pci-dma.c
-@@ -101,8 +101,13 @@ void *dma_generic_alloc_coherent(struct
- again:
- 	page = NULL;
- 	/* CMA can be used only in the context which permits sleeping */
--	if (flag & __GFP_WAIT)
-+	if (flag & __GFP_WAIT) {
- 		page = dma_alloc_from_contiguous(dev, count, get_order(size));
-+		if (page && page_to_phys(page) + size > dma_mask) {
-+			dma_release_from_contiguous(dev, page, count);
-+			page = NULL;
-+		}
-+	}
- 	/* fallback */
- 	if (!page)
- 		page = alloc_pages_node(dev_to_node(dev), flag, get_order(size));
+diff -puN arch/blackfin/kernel/ptrace.c~blackfin-ptrace-call-find_vma-with-the-mmap_sem-held arch/blackfin/kernel/ptrace.c
+--- a/arch/blackfin/kernel/ptrace.c~blackfin-ptrace-call-find_vma-with-the-mmap_sem-held
++++ a/arch/blackfin/kernel/ptrace.c
+@@ -117,6 +117,7 @@ put_reg(struct task_struct *task, unsign
+ int
+ is_user_addr_valid(struct task_struct *child, unsigned long start, unsigned long len)
+ {
++	bool valid;
+ 	struct vm_area_struct *vma;
+ 	struct sram_list_struct *sraml;
+ 
+@@ -124,9 +125,12 @@ is_user_addr_valid(struct task_struct *c
+ 	if (start + len < start)
+ 		return -EIO;
+ 
++	down_read(&child->mm->mmap_sem);
+ 	vma = find_vma(child->mm, start);
+-	if (vma && start >= vma->vm_start && start + len <= vma->vm_end)
+-			return 0;
++	valid = vma && start >= vma->vm_start && start + len <= vma->vm_end;
++	up_read(&child->mm->mmap_sem);
++	if (valid)
++		return 0;
+ 
+ 	for (sraml = child->mm->context.sram_list; sraml; sraml = sraml->next)
+ 		if (start >= (unsigned long)sraml->addr
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from davidlohr@hp.com are
 
-x86-make-dma_alloc_coherent-return-zeroed-memory-if-cma-is-enabled.patch
-x86-make-dma_alloc_coherent-return-zeroed-memory-if-cma-is-enabled-fix.patch
-x86-enable-dma-cma-with-swiotlb.patch
-intel-iommu-integrate-dma-cma.patch
-memblock-introduce-memblock_alloc_range.patch
-cma-add-placement-specifier-for-cma=-kernel-parameter.patch
-arch-x86-kernel-pci-dmac-fix-dma_generic_alloc_coherent-when-config_dma_cma-is-enabled.patch
+mmvmacache-add-debug-data.patch
+mmvmacache-optimize-overflow-system-wide-flushing.patch
+mm-pass-vm_bug_on-reason-to-dump_page.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
+hugetlb-add-hstate_is_gigantic.patch
+hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
+hugetlb-move-helpers-up-in-the-file.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
+blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
+m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
+mips-call-find_vma-with-the-mmap_sem-held.patch
+arc-call-find_vma-with-the-mmap_sem-held.patch
+driverssgi-gru-grufaultc-call-find_vma-with-the-mmap_sem-held.patch
+drm-exynos-call-find_vma-with-the-mmap_sem-held.patch
+ipc-constify-ipc_ops.patch
+linux-next.patch
 
