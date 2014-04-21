@@ -1,81 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b.patch removed
- from -mm tree
-Date: Mon, 21 Apr 2014 11:11:17 -0700
-Message-ID: <53555f45.5+mGm7xRqiktA/Bw%akpm@linux-foundation.org>
+Subject: [merged] mm-use-paravirt-friendly-ops-for-numa-hinting-ptes.patch removed from -mm tree
+Date: Mon, 21 Apr 2014 11:11:09 -0700
+Message-ID: <53555f3d.YhBb7uyftvkmqBki%akpm__36280.0536946908$1398103890$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35696 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35678 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753437AbaDUSLS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 14:11:18 -0400
+	with ESMTP id S1753846AbaDUSLK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 14:11:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, bskeggs@redhat.com, airlied@redhat.com, saproj@gmail.com
+To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, steven@uplinklabs.net, stable@vger.kernel.org, srikar@linux.vnet.ibm.com, riel@redhat.com, peterz@infradead.org, mingo@kernel.org, hpa@zytor.com, gorcunov@gmail.com, fengguang.wu@intel.com, david.vrabel@citrix.com, dave.hansen@intel.com, aarcange@redhat.com, mgorman@suse.de
 
-Subject: [merged] drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b.patch removed from -mm tree
-To: saproj@gmail.com,airlied@redhat.com,bskeggs@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-use-paravirt-friendly-ops-for-numa-hinting-ptes.patch removed from -mm tree
+To: mgorman@suse.de,aarcange@redhat.com,dave.hansen@intel.com,david.vrabel@citrix.com,fengguang.wu@intel.com,gorcunov@gmail.com,hpa@zytor.com,mingo@kernel.org,peterz@infradead.org,riel@redhat.com,srikar@linux.vnet.ibm.com,stable@vger.kernel.org,steven@uplinklabs.net,torvalds@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 11:11:17 -0700
+Date: Mon, 21 Apr 2014 11:11:09 -0700
 
 
 The patch titled
-     Subject: drm/nouveau/bios: fix a bit shift error introduced by 457e77b
+     Subject: mm: use paravirt friendly ops for NUMA hinting ptes
 has been removed from the -mm tree.  Its filename was
-     drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b.patch
+     mm-use-paravirt-friendly-ops-for-numa-hinting-ptes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergei Antonov <saproj@gmail.com>
-Subject: drm/nouveau/bios: fix a bit shift error introduced by 457e77b
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: use paravirt friendly ops for NUMA hinting ptes
 
-457e77b26428ab4a24 ("drm/nouveau/bios: add more checks to PRAMIN image
-fetching") added two checks applied to a value received from nv_rd32(bios,
-0x619f04).  But after this new piece of code is executed, the addr local
-variable does not hold the same value it used to hold before the commit. 
-Here is what is was assigned in the original code:
+David Vrabel identified a regression when using automatic NUMA balancing
+under Xen whereby page table entries were getting corrupted due to the use
+of native PTE operations.  Quoting him
 
-	(u64)(nv_rd32(bios, 0x619f04) & 0xffffff00) << 8
+	Xen PV guest page tables require that their entries use machine
+	addresses if the preset bit (_PAGE_PRESENT) is set, and (for
+	successful migration) non-present PTEs must use pseudo-physical
+	addresses.  This is because on migration MFNs in present PTEs are
+	translated to PFNs (canonicalised) so they may be translated back
+	to the new MFN in the destination domain (uncanonicalised).
 
-in the committed code it ends up with this value:
-	(u64)(nv_rd32(bios, 0x619f04) >> 8) << 8
+	pte_mknonnuma(), pmd_mknonnuma(), pte_mknuma() and pmd_mknuma()
+	set and clear the _PAGE_PRESENT bit using pte_set_flags(),
+	pte_clear_flags(), etc.
 
-These expressions are obviously not equivalent.
+	In a Xen PV guest, these functions must translate MFNs to PFNs
+	when clearing _PAGE_PRESENT and translate PFNs to MFNs when setting
+	_PAGE_PRESENT.
 
-My Nvidia video card does not show anything on the display when I boot a
-kernel containing this commit.
+His suggested fix converted p[te|md]_[set|clear]_flags to using
+paravirt-friendly ops but this is overkill.  He suggested an alternative
+of using p[te|md]_modify in the NUMA page table operations but this is
+does more work than necessary and would require looking up a VMA for
+protections.
 
-The patch fixes the code so that the new checks are still done, but the
-side effect of an incorrect addr value is gone.
+This patch modifies the NUMA page table operations to use paravirt
+friendly operations to set/clear the flags of interest.  Unfortunately
+this will take a performance hit when updating the PTEs on CONFIG_PARAVIRT
+but I do not see a way around it that does not break Xen.
 
-Signed-off-by: Sergei Antonov <saproj@gmail.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: David Vrabel <david.vrabel@citrix.com>
+Tested-by: David Vrabel <david.vrabel@citrix.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Anvin <hpa@zytor.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Steven Noonan <steven@uplinklabs.net>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/core/subdev/bios/base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/pgtable.h |   31 +++++++++++++++++++++++--------
+ 1 file changed, 23 insertions(+), 8 deletions(-)
 
-diff -puN drivers/gpu/drm/nouveau/core/subdev/bios/base.c~drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b drivers/gpu/drm/nouveau/core/subdev/bios/base.c
---- a/drivers/gpu/drm/nouveau/core/subdev/bios/base.c~drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b
-+++ a/drivers/gpu/drm/nouveau/core/subdev/bios/base.c
-@@ -109,7 +109,7 @@ nouveau_bios_shadow_pramin(struct nouvea
- 			return;
- 		}
+diff -puN include/asm-generic/pgtable.h~mm-use-paravirt-friendly-ops-for-numa-hinting-ptes include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-use-paravirt-friendly-ops-for-numa-hinting-ptes
++++ a/include/asm-generic/pgtable.h
+@@ -693,24 +693,35 @@ static inline int pmd_numa(pmd_t pmd)
+ #ifndef pte_mknonnuma
+ static inline pte_t pte_mknonnuma(pte_t pte)
+ {
+-	pte = pte_clear_flags(pte, _PAGE_NUMA);
+-	return pte_set_flags(pte, _PAGE_PRESENT|_PAGE_ACCESSED);
++	pteval_t val = pte_val(pte);
++
++	val &= ~_PAGE_NUMA;
++	val |= (_PAGE_PRESENT|_PAGE_ACCESSED);
++	return __pte(val);
+ }
+ #endif
  
--		addr = (u64)(addr >> 8) << 8;
-+		addr = (u64)(addr & 0xffffff00) << 8;
- 		if (!addr) {
- 			addr  = (u64)nv_rd32(bios, 0x001700) << 16;
- 			addr += 0xf0000;
+ #ifndef pmd_mknonnuma
+ static inline pmd_t pmd_mknonnuma(pmd_t pmd)
+ {
+-	pmd = pmd_clear_flags(pmd, _PAGE_NUMA);
+-	return pmd_set_flags(pmd, _PAGE_PRESENT|_PAGE_ACCESSED);
++	pmdval_t val = pmd_val(pmd);
++
++	val &= ~_PAGE_NUMA;
++	val |= (_PAGE_PRESENT|_PAGE_ACCESSED);
++
++	return __pmd(val);
+ }
+ #endif
+ 
+ #ifndef pte_mknuma
+ static inline pte_t pte_mknuma(pte_t pte)
+ {
+-	pte = pte_set_flags(pte, _PAGE_NUMA);
+-	return pte_clear_flags(pte, _PAGE_PRESENT);
++	pteval_t val = pte_val(pte);
++
++	val &= ~_PAGE_PRESENT;
++	val |= _PAGE_NUMA;
++
++	return __pte(val);
+ }
+ #endif
+ 
+@@ -729,8 +740,12 @@ static inline void ptep_set_numa(struct
+ #ifndef pmd_mknuma
+ static inline pmd_t pmd_mknuma(pmd_t pmd)
+ {
+-	pmd = pmd_set_flags(pmd, _PAGE_NUMA);
+-	return pmd_clear_flags(pmd, _PAGE_PRESENT);
++	pmdval_t val = pmd_val(pmd);
++
++	val &= ~_PAGE_PRESENT;
++	val |= _PAGE_NUMA;
++
++	return __pmd(val);
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from saproj@gmail.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+x86-require-x86-64-for-automatic-numa-balancing.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+mm-disable-zone_reclaim_mode-by-default.patch
+mm-page_alloc-do-not-cache-reclaim-distances.patch
+mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+linux-next.patch
 
