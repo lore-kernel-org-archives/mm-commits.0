@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-m41t80-add-support-for-microcrystal-rv4162.patch added to
- -mm tree
-Date: Mon, 21 Apr 2014 13:08:52 -0700
-Message-ID: <53557ad4.hmwJw5YLxkGw25FI%akpm@linux-foundation.org>
+Subject: +
+ drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days.patch added to -mm tree
+Date: Mon, 21 Apr 2014 13:11:07 -0700
+Message-ID: <53557b5b.glllVdfdwIItkNkt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36705 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36716 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754477AbaDUUIx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 16:08:53 -0400
+	with ESMTP id S1750891AbaDUULI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 16:11:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com, a.zummo@towertech.it, wsa@sang-engineering.com
+To: mm-commits@vger.kernel.org, jlee@suse.com, a.zummo@towertech.it, joeyli.kernel@gmail.com
 
-Subject: + rtc-m41t80-add-support-for-microcrystal-rv4162.patch added to -mm tree
-To: wsa@sang-engineering.com,a.zummo@towertech.it,jg1.han@samsung.com
+Subject: + drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days.patch added to -mm tree
+To: joeyli.kernel@gmail.com,a.zummo@towertech.it,jlee@suse.com
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 13:08:52 -0700
+Date: Mon, 21 Apr 2014 13:11:07 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-m41t80.c: add support for MicroCrystal rv4162
+     Subject: drivers/rtc/rtc-efi.c: avoid subtracting day twice when computing year days
 has been added to the -mm tree.  Its filename is
-     rtc-m41t80-add-support-for-microcrystal-rv4162.patch
+     drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-m41t80-add-support-for-microcrystal-rv4162.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-m41t80-add-support-for-microcrystal-rv4162.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,55 +44,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wolfram Sang <wsa@sang-engineering.com>
-Subject: drivers/rtc/rtc-m41t80.c: add support for MicroCrystal rv4162
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: drivers/rtc/rtc-efi.c: avoid subtracting day twice when computing year days
 
-Signed-off-by: Wolfram Sang <wsa@sang-engineering.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Compared source code of rtc-lib.c::rtc_year_days() with
+efirtc.c::rtc_year_days(), found the code in rtc-efi decreases value of
+day twice when it computing year days.  rtc-lib.c::rtc_year_days() has
+already decrease days and return the year days from 0 to 365.
+
+Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    4 ++--
- drivers/rtc/rtc-m41t80.c |    1 +
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-efi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-m41t80-add-support-for-microcrystal-rv4162 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-m41t80-add-support-for-microcrystal-rv4162
-+++ a/drivers/rtc/Kconfig
-@@ -386,12 +386,12 @@ config RTC_DRV_PCF8583
- 	  will be called rtc-pcf8583.
- 
- config RTC_DRV_M41T80
--	tristate "ST M41T62/65/M41T80/81/82/83/84/85/87"
-+	tristate "ST M41T62/65/M41T80/81/82/83/84/85/87 and compatible"
- 	help
- 	  If you say Y here you will get support for the ST M41T60
- 	  and M41T80 RTC chips series. Currently, the following chips are
- 	  supported: M41T62, M41T65, M41T80, M41T81, M41T82, M41T83, M41ST84,
--	  M41ST85, and M41ST87.
-+	  M41ST85, M41ST87, and MicroCrystal RV4162.
- 
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-m41t80.
-diff -puN drivers/rtc/rtc-m41t80.c~rtc-m41t80-add-support-for-microcrystal-rv4162 drivers/rtc/rtc-m41t80.c
---- a/drivers/rtc/rtc-m41t80.c~rtc-m41t80-add-support-for-microcrystal-rv4162
-+++ a/drivers/rtc/rtc-m41t80.c
-@@ -78,6 +78,7 @@ static const struct i2c_device_id m41t80
- 	{ "m41st84", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
- 	{ "m41st85", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
- 	{ "m41st87", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
-+	{ "rv4162", M41T80_FEATURE_SQ | M41T80_FEATURE_WD | M41T80_FEATURE_SQ_ALT },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, m41t80_id);
+diff -puN drivers/rtc/rtc-efi.c~drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days drivers/rtc/rtc-efi.c
+--- a/drivers/rtc/rtc-efi.c~drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days
++++ a/drivers/rtc/rtc-efi.c
+@@ -35,7 +35,7 @@ static inline int
+ compute_yday(efi_time_t *eft)
+ {
+ 	/* efi_time_t.month is in the [1-12] so, we need -1 */
+-	return rtc_year_days(eft->day - 1, eft->month - 1, eft->year);
++	return rtc_year_days(eft->day, eft->month - 1, eft->year);
+ }
+ /*
+  * returns day of the week [0-6] 0=Sunday
 _
 
-Patches currently in -mm which might be from wsa@sang-engineering.com are
+Patches currently in -mm which might be from joeyli.kernel@gmail.com are
 
-rtc-m41t80-remove-drv_version-macro.patch
-rtc-m41t80-clean-up-error-paths.patch
-rtc-m41t80-propagate-error-value-from-smbus-functions.patch
-rtc-m41t80-add-support-for-microcrystal-rv4162.patch
-linux-next.patch
+drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days.patch
 
