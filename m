@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-memcg-warn-about-incomplete-kmemcg-state.patch
- added to -mm tree
-Date: Mon, 21 Apr 2014 13:38:29 -0700
-Message-ID: <535581c5.SsI8rr4ZHjUDlRH9%akpm@linux-foundation.org>
+Subject: +
+ kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers.patch added to -mm tree
+Date: Mon, 21 Apr 2014 14:06:57 -0700
+Message-ID: <53558871.ZaZoiOHa7mBgLcW2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36833 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36990 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896AbaDUUia (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 16:38:30 -0400
+	with ESMTP id S1754467AbaDUVG7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 17:06:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, yoshihiro.yunomae.ez@hitachi.com, vgoyal@redhat.com, tomoki.sekiyama@hds.com, satoru.moriya.br@hitachi.com, ebiederm@xmission.com, Motohiro.Kosaki@us.fujitsu.com, masami.hiramatsu.pt@hitachi.com
 
-Subject: + documentation-memcg-warn-about-incomplete-kmemcg-state.patch added to -mm tree
-To: vdavydov@parallels.com,hannes@cmpxchg.org,mhocko@suse.cz
+Subject: + kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers.patch added to -mm tree
+To: masami.hiramatsu.pt@hitachi.com,Motohiro.Kosaki@us.fujitsu.com,ebiederm@xmission.com,satoru.moriya.br@hitachi.com,tomoki.sekiyama@hds.com,vgoyal@redhat.com,yoshihiro.yunomae.ez@hitachi.com
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 13:38:29 -0700
+Date: Mon, 21 Apr 2014 14:06:57 -0700
 
 
 The patch titled
-     Subject: Documentation/memcg: warn about incomplete kmemcg state
+     Subject: kernel/panic.c: add "crash_kexec_post_notifiers" option for kdump after panic_notifers
 has been added to the -mm tree.  Its filename is
-     documentation-memcg-warn-about-incomplete-kmemcg-state.patch
+     kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-memcg-warn-about-incomplete-kmemcg-state.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-memcg-warn-about-incomplete-kmemcg-state.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,67 +44,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: Documentation/memcg: warn about incomplete kmemcg state
+From: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Subject: kernel/panic.c: add "crash_kexec_post_notifiers" option for kdump after panic_notifers
 
-Kmemcg is currently under development and lacks some important features. 
-In particular, it does not have support of kmem reclaim on memory pressure
-inside cgroup, which practically makes it unusable in real life.  Let's
-warn about it in both Kconfig and Documentation to prevent complaints
-arising.
+Add a "crash_kexec_post_notifiers" boot option to run kdump after running
+panic_notifiers and dump kmsg.  This can help rare situations where kdump
+fails because of unstable crashed kernel or hardware failure (memory
+corruption on critical data/code), or the 2nd kernel is already broken by
+the 1st kernel (it's a broken behavior, but who can guarantee that the
+"crashed" kernel works correctly?).
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Usage: add "crash_kexec_post_notifiers" to kernel boot option.
+
+Note that this actually increases risks of the failure of kdump.
+This option should be set only if you worry about the rare case
+of kdump failure rather than increasing the chance of success.
+
+Signed-off-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Acked-by: Motohiro Kosaki <Motohiro.Kosaki@us.fujitsu.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Yoshihiro YUNOMAE <yoshihiro.yunomae.ez@hitachi.com>
+Cc: Satoru MORIYA <satoru.moriya.br@hitachi.com>
+Cc: Tomoki Sekiyama <tomoki.sekiyama@hds.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    5 +++++
- init/Kconfig                     |    6 ++++++
- 2 files changed, 11 insertions(+)
+ Documentation/kernel-parameters.txt |    8 ++++++++
+ kernel/panic.c                      |   23 +++++++++++++++++++++--
+ 2 files changed, 29 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~documentation-memcg-warn-about-incomplete-kmemcg-state Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~documentation-memcg-warn-about-incomplete-kmemcg-state
-+++ a/Documentation/cgroups/memory.txt
-@@ -270,6 +270,11 @@ When oom event notifier is registered, e
+diff -puN Documentation/kernel-parameters.txt~kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers
++++ a/Documentation/kernel-parameters.txt
+@@ -2339,6 +2339,14 @@ bytes respectively. Such letter suffixes
+ 			timeout < 0: reboot immediately
+ 			Format: <timeout>
  
- 2.7 Kernel Memory Extension (CONFIG_MEMCG_KMEM)
- 
-+WARNING: Current implementation lacks reclaim support. That means allocation
-+	 attempts will fail when close to the limit even if there are plenty of
-+	 kmem available for reclaim. That makes this option unusable in real
-+	 life so DO NOT SELECT IT unless for development purposes.
++	crash_kexec_post_notifiers
++			Run kdump after running panic-notifiers and dumping
++			kmsg. This only for the users who doubt kdump always
++			succeeds in any situation.
++			Note that this also increases risks of kdump failure,
++			because some panic notifiers can make the crashed
++			kernel more unstable.
 +
- With the Kernel memory extension, the Memory Controller is able to limit
- the amount of kernel memory used by the system. Kernel memory is fundamentally
- different than user memory, since it can't be swapped out, which makes it
-diff -puN init/Kconfig~documentation-memcg-warn-about-incomplete-kmemcg-state init/Kconfig
---- a/init/Kconfig~documentation-memcg-warn-about-incomplete-kmemcg-state
-+++ a/init/Kconfig
-@@ -996,6 +996,12 @@ config MEMCG_KMEM
- 	  the kmem extension can use it to guarantee that no group of processes
- 	  will ever exhaust kernel resources alone.
+ 	parkbd.port=	[HW] Parallel port number the keyboard adapter is
+ 			connected to, default is 0.
+ 			Format: <parport#>
+diff -puN kernel/panic.c~kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers kernel/panic.c
+--- a/kernel/panic.c~kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers
++++ a/kernel/panic.c
+@@ -32,6 +32,7 @@ static unsigned long tainted_mask;
+ static int pause_on_oops;
+ static int pause_on_oops_flag;
+ static DEFINE_SPINLOCK(pause_on_oops_lock);
++static bool crash_kexec_post_notifiers;
  
-+	  WARNING: Current implementation lacks reclaim support. That means
-+	  allocation attempts will fail when close to the limit even if there
-+	  are plenty of kmem available for reclaim. That makes this option
-+	  unusable in real life so DO NOT SELECT IT unless for development
-+	  purposes.
+ int panic_timeout = CONFIG_PANIC_TIMEOUT;
+ EXPORT_SYMBOL_GPL(panic_timeout);
+@@ -112,9 +113,11 @@ void panic(const char *fmt, ...)
+ 	/*
+ 	 * If we have crashed and we have a crash kernel loaded let it handle
+ 	 * everything else.
+-	 * Do we want to call this before we try to display a message?
++	 * If we want to run this after calling panic_notifiers, pass
++	 * the "crash_kexec_post_notifiers" option to the kernel.
+ 	 */
+-	crash_kexec(NULL);
++	if (!crash_kexec_post_notifiers)
++		crash_kexec(NULL);
+ 
+ 	/*
+ 	 * Note smp_send_stop is the usual smp shutdown function, which
+@@ -131,6 +134,15 @@ void panic(const char *fmt, ...)
+ 
+ 	kmsg_dump(KMSG_DUMP_PANIC);
+ 
++	/*
++	 * If you doubt kdump always works fine in any situation,
++	 * "crash_kexec_post_notifiers" offers you a chance to run
++	 * panic_notifiers and dumping kmsg before kdump.
++	 * Note: since some panic_notifiers can make crashed kernel
++	 * more unstable, it can increase risks of the kdump failure too.
++	 */
++	crash_kexec(NULL);
 +
- config CGROUP_HUGETLB
- 	bool "HugeTLB Resource Controller for Control Groups"
- 	depends on RESOURCE_COUNTERS && HUGETLB_PAGE
+ 	bust_spinlocks(0);
+ 
+ 	if (!panic_blink)
+@@ -472,6 +484,13 @@ EXPORT_SYMBOL(__stack_chk_fail);
+ core_param(panic, panic_timeout, int, 0644);
+ core_param(pause_on_oops, pause_on_oops, int, 0644);
+ 
++static int __init setup_crash_kexec_post_notifiers(char *s)
++{
++	crash_kexec_post_notifiers = true;
++	return 0;
++}
++early_param("crash_kexec_post_notifiers", setup_crash_kexec_post_notifiers);
++
+ static int __init oops_setup(char *s)
+ {
+ 	if (!s)
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from masami.hiramatsu.pt@hitachi.com are
 
-slub-fix-memcg_propagate_slab_attrs.patch
-slb-charge-slabs-to-kmemcg-explicitly.patch
-mm-get-rid-of-__gfp_kmemcg.patch
-mm-get-rid-of-__gfp_kmemcg-fix.patch
-slab-document-kmalloc_order.patch
-memcg-un-export-__memcg_kmem_get_cache.patch
-mem-hotplug-implement-get-put_online_mems.patch
-slab-get_online_mems-for-kmem_cache_createdestroyshrink.patch
-documentation-memcg-warn-about-incomplete-kmemcg-state.patch
+kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers.patch
 
