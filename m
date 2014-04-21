@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
- added to -mm tree
-Date: Mon, 21 Apr 2014 12:42:14 -0700
-Message-ID: <53557496.MpIDE8uk3VWmCoWI%akpm__46062.0677950375$1398109346$gmane$org@linux-foundation.org>
+Subject: + fs-notify-markc-trivial-cleanup.patch added to -mm tree
+Date: Mon, 21 Apr 2014 12:58:08 -0700
+Message-ID: <53557850.NT4GvihN/F+cZN/Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36578 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36670 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754463AbaDUTmP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 15:42:15 -0400
+	with ESMTP id S1752896AbaDUT6J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 15:58:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunghwan.yun@samsung.com, stable@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, heesub.shin@samsung.com, d.j.shin@samsung.com, cl@linux.com, b.zolnierkie@samsung.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, jack@suse.cz, david.a.cohen@linux.intel.com
 
-Subject: + mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch added to -mm tree
-To: vbabka@suse.cz,b.zolnierkie@samsung.com,cl@linux.com,d.j.shin@samsung.com,heesub.shin@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,stable@vger.kernel.org,sunghwan.yun@samsung.com
+Subject: + fs-notify-markc-trivial-cleanup.patch added to -mm tree
+To: david.a.cohen@linux.intel.com,jack@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 12:42:14 -0700
+Date: Mon, 21 Apr 2014 12:58:08 -0700
 
 
 The patch titled
-     Subject: mm/compaction: make isolate_freepages start at pageblock boundary
+     Subject: fs/notify/mark.c: trivial cleanup
 has been added to the -mm tree.  Its filename is
-     mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
+     fs-notify-markc-trivial-cleanup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-notify-markc-trivial-cleanup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-notify-markc-trivial-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,110 +43,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/compaction: make isolate_freepages start at pageblock boundary
+From: David Cohen <david.a.cohen@linux.intel.com>
+Subject: fs/notify/mark.c: trivial cleanup
 
-The compaction freepage scanner implementation in isolate_freepages() starts
-by taking the current cc->free_pfn value as the first pfn. In a for loop, it
-scans from this first pfn to the end of the pageblock, and then subtracts
-pageblock_nr_pages from the first pfn to obtain the first pfn for the next
-for loop iteration.
+Do not initialize private_destroy_list twice.  list_replace_init() already
+takes care of initializing private_destroy_list.  We don't need to
+initialize it with LIST_HEAD() beforehand.
 
-This means that when cc->free_pfn starts at offset X rather than being aligned
-on pageblock boundary, the scanner will start at offset X in all scanned
-pageblock, ignoring potentially many free pages. Currently this can happen when
-
-a) zone's end pfn is not pageblock aligned, or
-
-b) through zone->compact_cached_free_pfn with CONFIG_HOLES_IN_ZONE
-   enabled and a hole spanning the beginning of a pageblock
-
-This patch fixes the problem by aligning the initial pfn in
-isolate_freepages() to pageblock boundary.  This also permits replacing
-the end-of-pageblock alignment within the for loop with a simple
-pageblock_nr_pages increment.
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Heesub Shin <heesub.shin@samsung.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Christoph Lameter <cl@linux.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Dongjun Shin <d.j.shin@samsung.com>
-Cc: Sunghwan Yun <sunghwan.yun@samsung.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: David Cohen <david.a.cohen@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ fs/notify/mark.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-make-isolate_freepages-start-at-pageblock-boundary mm/compaction.c
---- a/mm/compaction.c~mm-compaction-make-isolate_freepages-start-at-pageblock-boundary
-+++ a/mm/compaction.c
-@@ -671,16 +671,20 @@ static void isolate_freepages(struct zon
- 				struct compact_control *cc)
+diff -puN fs/notify/mark.c~fs-notify-markc-trivial-cleanup fs/notify/mark.c
+--- a/fs/notify/mark.c~fs-notify-markc-trivial-cleanup
++++ a/fs/notify/mark.c
+@@ -340,7 +340,7 @@ void fsnotify_init_mark(struct fsnotify_
+ static int fsnotify_mark_destroy(void *ignored)
  {
- 	struct page *page;
--	unsigned long high_pfn, low_pfn, pfn, z_end_pfn, end_pfn;
-+	unsigned long high_pfn, low_pfn, pfn, z_end_pfn;
- 	int nr_freepages = cc->nr_freepages;
- 	struct list_head *freelist = &cc->freepages;
+ 	struct fsnotify_mark *mark, *next;
+-	LIST_HEAD(private_destroy_list);
++	struct list_head private_destroy_list;
  
- 	/*
- 	 * Initialise the free scanner. The starting point is where we last
--	 * scanned from (or the end of the zone if starting). The low point
--	 * is the end of the pageblock the migration scanner is using.
-+	 * successfully isolated from, zone-cached value, or the end of the
-+	 * zone when isolating for the first time. We need this aligned to
-+	 * the pageblock boundary, because we do pfn -= pageblock_nr_pages
-+	 * in the for loop.
-+	 * The low boundary is the end of the pageblock the migration scanner
-+	 * is using.
- 	 */
--	pfn = cc->free_pfn;
-+	pfn = cc->free_pfn & ~(pageblock_nr_pages-1);
- 	low_pfn = ALIGN(cc->migrate_pfn + 1, pageblock_nr_pages);
- 
- 	/*
-@@ -700,6 +704,7 @@ static void isolate_freepages(struct zon
- 	for (; pfn >= low_pfn && cc->nr_migratepages > nr_freepages;
- 					pfn -= pageblock_nr_pages) {
- 		unsigned long isolated;
-+		unsigned long end_pfn;
- 
- 		/*
- 		 * This can iterate a massively long zone without finding any
-@@ -734,13 +739,10 @@ static void isolate_freepages(struct zon
- 		isolated = 0;
- 
- 		/*
--		 * As pfn may not start aligned, pfn+pageblock_nr_page
--		 * may cross a MAX_ORDER_NR_PAGES boundary and miss
--		 * a pfn_valid check. Ensure isolate_freepages_block()
--		 * only scans within a pageblock
-+		 * Take care when isolating in last pageblock of a zone which
-+		 * ends in the middle of a pageblock.
- 		 */
--		end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
--		end_pfn = min(end_pfn, z_end_pfn);
-+		end_pfn = min(pfn + pageblock_nr_pages, z_end_pfn);
- 		isolated = isolate_freepages_block(cc, pfn, end_pfn,
- 						   freelist, false);
- 		nr_freepages += isolated;
+ 	for (;;) {
+ 		spin_lock(&destroy_lock);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from david.a.cohen@linux.intel.com are
 
-mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
-mm-compaction-clean-up-unused-code-lines.patch
-mm-compaction-cleanup-isolate_freepages.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
+fs-notify-markc-trivial-cleanup.patch
+linux-next.patch
 
