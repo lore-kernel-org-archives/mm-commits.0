@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-cleanup-isolate_freepages.patch added to -mm tree
-Date: Mon, 21 Apr 2014 12:41:55 -0700
-Message-ID: <53557483.gGjoPudee3mPx8+t%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
+ added to -mm tree
+Date: Mon, 21 Apr 2014 12:42:14 -0700
+Message-ID: <53557496.MpIDE8uk3VWmCoWI%akpm__46062.0677950375$1398109346$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36578 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754455AbaDUTl4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 15:41:56 -0400
+	with ESMTP id S1754463AbaDUTmP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 15:42:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunghwan.yun@samsung.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, d.j.shin@samsung.com, cl@linux.com, b.zolnierkie@samsung.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, sunghwan.yun@samsung.com, stable@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, heesub.shin@samsung.com, d.j.shin@samsung.com, cl@linux.com, b.zolnierkie@samsung.com, vbabka@suse.cz
 
-Subject: + mm-compaction-cleanup-isolate_freepages.patch added to -mm tree
-To: vbabka@suse.cz,b.zolnierkie@samsung.com,cl@linux.com,d.j.shin@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,sunghwan.yun@samsung.com
+Subject: + mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch added to -mm tree
+To: vbabka@suse.cz,b.zolnierkie@samsung.com,cl@linux.com,d.j.shin@samsung.com,heesub.shin@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,stable@vger.kernel.org,sunghwan.yun@samsung.com
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 12:41:55 -0700
+Date: Mon, 21 Apr 2014 12:42:14 -0700
 
 
 The patch titled
-     Subject: mm/compaction: cleanup isolate_freepages()
+     Subject: mm/compaction: make isolate_freepages start at pageblock boundary
 has been added to the -mm tree.  Its filename is
-     mm-compaction-cleanup-isolate_freepages.patch
+     mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-cleanup-isolate_freepages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-cleanup-isolate_freepages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,81 +46,100 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/compaction: cleanup isolate_freepages()
+Subject: mm/compaction: make isolate_freepages start at pageblock boundary
 
-isolate_freepages() is currently somewhat hard to follow thanks to many
-looks like it is related to the 'low_pfn' variable, but in fact it is not.
+The compaction freepage scanner implementation in isolate_freepages() starts
+by taking the current cc->free_pfn value as the first pfn. In a for loop, it
+scans from this first pfn to the end of the pageblock, and then subtracts
+pageblock_nr_pages from the first pfn to obtain the first pfn for the next
+for loop iteration.
 
-This patch renames the 'high_pfn' variable to a hopefully less confusing name,
-and slightly changes its handling without a functional change. A comment made
-obsolete by recent changes is also updated.
+This means that when cc->free_pfn starts at offset X rather than being aligned
+on pageblock boundary, the scanner will start at offset X in all scanned
+pageblock, ignoring potentially many free pages. Currently this can happen when
+
+a) zone's end pfn is not pageblock aligned, or
+
+b) through zone->compact_cached_free_pfn with CONFIG_HOLES_IN_ZONE
+   enabled and a hole spanning the beginning of a pageblock
+
+This patch fixes the problem by aligning the initial pfn in
+isolate_freepages() to pageblock boundary.  This also permits replacing
+the end-of-pageblock alignment within the for loop with a simple
+pageblock_nr_pages increment.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
+Reported-by: Heesub Shin <heesub.shin@samsung.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Cc: Michal Nazarewicz <mina86@mina86.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Dongjun Shin <d.j.shin@samsung.com>
 Cc: Sunghwan Yun <sunghwan.yun@samsung.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ mm/compaction.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-cleanup-isolate_freepages mm/compaction.c
---- a/mm/compaction.c~mm-compaction-cleanup-isolate_freepages
+diff -puN mm/compaction.c~mm-compaction-make-isolate_freepages-start-at-pageblock-boundary mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-make-isolate_freepages-start-at-pageblock-boundary
 +++ a/mm/compaction.c
-@@ -662,7 +662,7 @@ static void isolate_freepages(struct zon
+@@ -671,16 +671,20 @@ static void isolate_freepages(struct zon
  				struct compact_control *cc)
  {
  	struct page *page;
--	unsigned long high_pfn, low_pfn, pfn, z_end_pfn;
-+	unsigned long pfn, low_pfn, next_free_pfn, z_end_pfn;
+-	unsigned long high_pfn, low_pfn, pfn, z_end_pfn, end_pfn;
++	unsigned long high_pfn, low_pfn, pfn, z_end_pfn;
  	int nr_freepages = cc->nr_freepages;
  	struct list_head *freelist = &cc->freepages;
  
-@@ -679,11 +679,10 @@ static void isolate_freepages(struct zon
+ 	/*
+ 	 * Initialise the free scanner. The starting point is where we last
+-	 * scanned from (or the end of the zone if starting). The low point
+-	 * is the end of the pageblock the migration scanner is using.
++	 * successfully isolated from, zone-cached value, or the end of the
++	 * zone when isolating for the first time. We need this aligned to
++	 * the pageblock boundary, because we do pfn -= pageblock_nr_pages
++	 * in the for loop.
++	 * The low boundary is the end of the pageblock the migration scanner
++	 * is using.
+ 	 */
+-	pfn = cc->free_pfn;
++	pfn = cc->free_pfn & ~(pageblock_nr_pages-1);
  	low_pfn = ALIGN(cc->migrate_pfn + 1, pageblock_nr_pages);
  
  	/*
--	 * Take care that if the migration scanner is at the end of the zone
--	 * that the free scanner does not accidentally move to the next zone
--	 * in the next isolation cycle.
-+	 * Seed the value for max(next_free_pfn, pfn) updates. If there are
-+	 * none, the pfn < low_pfn check will kick in.
- 	 */
--	high_pfn = min(low_pfn, pfn);
-+	next_free_pfn = 0;
+@@ -700,6 +704,7 @@ static void isolate_freepages(struct zon
+ 	for (; pfn >= low_pfn && cc->nr_migratepages > nr_freepages;
+ 					pfn -= pageblock_nr_pages) {
+ 		unsigned long isolated;
++		unsigned long end_pfn;
  
- 	z_end_pfn = zone_end_pfn(zone);
+ 		/*
+ 		 * This can iterate a massively long zone without finding any
+@@ -734,13 +739,10 @@ static void isolate_freepages(struct zon
+ 		isolated = 0;
  
-@@ -744,7 +743,7 @@ static void isolate_freepages(struct zon
+ 		/*
+-		 * As pfn may not start aligned, pfn+pageblock_nr_page
+-		 * may cross a MAX_ORDER_NR_PAGES boundary and miss
+-		 * a pfn_valid check. Ensure isolate_freepages_block()
+-		 * only scans within a pageblock
++		 * Take care when isolating in last pageblock of a zone which
++		 * ends in the middle of a pageblock.
  		 */
- 		if (isolated) {
- 			cc->finished_update_free = true;
--			high_pfn = max(high_pfn, pfn);
-+			next_free_pfn = max(next_free_pfn, pfn);
- 		}
- 	}
- 
-@@ -756,9 +755,9 @@ static void isolate_freepages(struct zon
- 	 * so that compact_finished() may detect this
- 	 */
- 	if (pfn < low_pfn)
--		cc->free_pfn = max(pfn, zone->zone_start_pfn);
--	else
--		cc->free_pfn = high_pfn;
-+		next_free_pfn = max(pfn, zone->zone_start_pfn);
-+
-+	cc->free_pfn = next_free_pfn;
- 	cc->nr_freepages = nr_freepages;
- }
- 
+-		end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
+-		end_pfn = min(end_pfn, z_end_pfn);
++		end_pfn = min(pfn + pageblock_nr_pages, z_end_pfn);
+ 		isolated = isolate_freepages_block(cc, pfn, end_pfn,
+ 						   freelist, false);
+ 		nr_freepages += isolated;
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
