@@ -1,69 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hugetlbc-add-cond_resched_lock-in-return_unused_surplus_pages.patch
- removed from -mm tree
-Date: Mon, 21 Apr 2014 11:11:05 -0700
-Message-ID: <53555f39.G5vSbnW/eM8qg+ZB%akpm@linux-foundation.org>
+Subject: [merged] mips-export-flush_icache_range.patch removed from -mm
+ tree
+Date: Mon, 21 Apr 2014 11:11:07 -0700
+Message-ID: <53555f3b.To7d+JIBH8wgOD0r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35658 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35665 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753333AbaDUSLG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 14:11:06 -0400
+	with ESMTP id S1753846AbaDUSLI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 14:11:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, n-horiguchi@ah.jp.nec.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, m.mizuma@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, sergei.shtylyov@cogentembedded.com, sanjayl@kymasys.com, ralf@linux-mips.org, paul.gortmaker@windriver.com, blogic@openwrt.org, keescook@chromium.org
 
-Subject: [merged] mm-hugetlbc-add-cond_resched_lock-in-return_unused_surplus_pages.patch removed from -mm tree
-To: m.mizuma@jp.fujitsu.com,aneesh.kumar@linux.vnet.ibm.com,iamjoonsoo.kim@lge.com,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz,n-horiguchi@ah.jp.nec.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mips-export-flush_icache_range.patch removed from -mm tree
+To: keescook@chromium.org,blogic@openwrt.org,paul.gortmaker@windriver.com,ralf@linux-mips.org,sanjayl@kymasys.com,sergei.shtylyov@cogentembedded.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 11:11:05 -0700
+Date: Mon, 21 Apr 2014 11:11:07 -0700
 
 
 The patch titled
-     Subject: mm/hugetlb.c: add cond_resched_lock() in return_unused_surplus_pages()
+     Subject: mips: export flush_icache_range
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbc-add-cond_resched_lock-in-return_unused_surplus_pages.patch
+     mips-export-flush_icache_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Mizuma, Masayoshi" <m.mizuma@jp.fujitsu.com>
-Subject: mm/hugetlb.c: add cond_resched_lock() in return_unused_surplus_pages()
+From: Kees Cook <keescook@chromium.org>
+Subject: mips: export flush_icache_range
 
-soft lockup in freeing gigantic hugepage fixed in commit 55f67141a892 "mm:
-hugetlb: fix softlockup when a large number of hugepages are freed." can
-happen in return_unused_surplus_pages(), so let's fix it.
+The lkdtm module performs tests against executable memory ranges, so it
+needs to flush the icache for proper behaviors.  Other architectures
+already export this, so do the same for MIPS.
 
-Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: <stable@vger.kernel.org>
+[akpm@linux-foundation.org: relocate export sites]
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Sanjay Lal <sanjayl@kymasys.com>
+Cc: John Crispin <blogic@openwrt.org>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/mips/mm/cache.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-add-cond_resched_lock-in-return_unused_surplus_pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-add-cond_resched_lock-in-return_unused_surplus_pages
-+++ a/mm/hugetlb.c
-@@ -1172,6 +1172,7 @@ static void return_unused_surplus_pages(
- 	while (nr_pages--) {
- 		if (!free_pool_huge_page(h, &node_states[N_MEMORY], 1))
- 			break;
-+		cond_resched_lock(&hugetlb_lock);
- 	}
- }
+diff -puN arch/mips/mm/cache.c~mips-export-flush_icache_range arch/mips/mm/cache.c
+--- a/arch/mips/mm/cache.c~mips-export-flush_icache_range
++++ a/arch/mips/mm/cache.c
+@@ -29,15 +29,15 @@ void (*flush_cache_range)(struct vm_area
+ void (*flush_cache_page)(struct vm_area_struct *vma, unsigned long page,
+ 	unsigned long pfn);
+ void (*flush_icache_range)(unsigned long start, unsigned long end);
++EXPORT_SYMBOL_GPL(flush_icache_range);
+ void (*local_flush_icache_range)(unsigned long start, unsigned long end);
  
-_
-
-Patches currently in -mm which might be from m.mizuma@jp.fujitsu.com are
-
-
+ void (*__flush_cache_vmap)(void);
+ void (*__flush_cache_vunmap)(void);
+ 
+ void (*__flush_kernel_vmap_range)(unsigned long vaddr, int size);
+-void (*__invalidate_kernel_vmap_range)(unsigned long vaddr, int size);
