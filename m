@@ -1,165 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-paravirt-friendly-ops-for-numa-hinting-ptes.patch removed from -mm tree
-Date: Mon, 21 Apr 2014 11:11:09 -0700
-Message-ID: <53555f3d.YhBb7uyftvkmqBki%akpm__36280.0536946908$1398103890$gmane$org@linux-foundation.org>
+Subject: [merged]
+ drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b-fix.patch
+ removed from -mm tree
+Date: Mon, 21 Apr 2014 11:11:19 -0700
+Message-ID: <53555f47.twRzLY2F6KwqrBB2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35678 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35698 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846AbaDUSLK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 14:11:10 -0400
+	with ESMTP id S1753328AbaDUSLU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 14:11:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, steven@uplinklabs.net, stable@vger.kernel.org, srikar@linux.vnet.ibm.com, riel@redhat.com, peterz@infradead.org, mingo@kernel.org, hpa@zytor.com, gorcunov@gmail.com, fengguang.wu@intel.com, david.vrabel@citrix.com, dave.hansen@intel.com, aarcange@redhat.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, saproj@gmail.com, bskeggs@redhat.com, airlied@redhat.com, akpm@linux-foundation.org
 
-Subject: [merged] mm-use-paravirt-friendly-ops-for-numa-hinting-ptes.patch removed from -mm tree
-To: mgorman@suse.de,aarcange@redhat.com,dave.hansen@intel.com,david.vrabel@citrix.com,fengguang.wu@intel.com,gorcunov@gmail.com,hpa@zytor.com,mingo@kernel.org,peterz@infradead.org,riel@redhat.com,srikar@linux.vnet.ibm.com,stable@vger.kernel.org,steven@uplinklabs.net,torvalds@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [merged] drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,airlied@redhat.com,bskeggs@redhat.com,saproj@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 11:11:09 -0700
+Date: Mon, 21 Apr 2014 11:11:19 -0700
 
 
 The patch titled
-     Subject: mm: use paravirt friendly ops for NUMA hinting ptes
+     Subject: drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b-fix
 has been removed from the -mm tree.  Its filename was
-     mm-use-paravirt-friendly-ops-for-numa-hinting-ptes.patch
+     drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: use paravirt friendly ops for NUMA hinting ptes
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b-fix
 
-David Vrabel identified a regression when using automatic NUMA balancing
-under Xen whereby page table entries were getting corrupted due to the use
-of native PTE operations.  Quoting him
+remove cast, per Sergei
 
-	Xen PV guest page tables require that their entries use machine
-	addresses if the preset bit (_PAGE_PRESENT) is set, and (for
-	successful migration) non-present PTEs must use pseudo-physical
-	addresses.  This is because on migration MFNs in present PTEs are
-	translated to PFNs (canonicalised) so they may be translated back
-	to the new MFN in the destination domain (uncanonicalised).
-
-	pte_mknonnuma(), pmd_mknonnuma(), pte_mknuma() and pmd_mknuma()
-	set and clear the _PAGE_PRESENT bit using pte_set_flags(),
-	pte_clear_flags(), etc.
-
-	In a Xen PV guest, these functions must translate MFNs to PFNs
-	when clearing _PAGE_PRESENT and translate PFNs to MFNs when setting
-	_PAGE_PRESENT.
-
-His suggested fix converted p[te|md]_[set|clear]_flags to using
-paravirt-friendly ops but this is overkill.  He suggested an alternative
-of using p[te|md]_modify in the NUMA page table operations but this is
-does more work than necessary and would require looking up a VMA for
-protections.
-
-This patch modifies the NUMA page table operations to use paravirt
-friendly operations to set/clear the flags of interest.  Unfortunately
-this will take a performance hit when updating the PTEs on CONFIG_PARAVIRT
-but I do not see a way around it that does not break Xen.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: David Vrabel <david.vrabel@citrix.com>
-Tested-by: David Vrabel <david.vrabel@citrix.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Anvin <hpa@zytor.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Steven Noonan <steven@uplinklabs.net>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Sergei Antonov <saproj@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   31 +++++++++++++++++++++++--------
- 1 file changed, 23 insertions(+), 8 deletions(-)
+ drivers/gpu/drm/nouveau/core/subdev/bios/base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-use-paravirt-friendly-ops-for-numa-hinting-ptes include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-use-paravirt-friendly-ops-for-numa-hinting-ptes
-+++ a/include/asm-generic/pgtable.h
-@@ -693,24 +693,35 @@ static inline int pmd_numa(pmd_t pmd)
- #ifndef pte_mknonnuma
- static inline pte_t pte_mknonnuma(pte_t pte)
- {
--	pte = pte_clear_flags(pte, _PAGE_NUMA);
--	return pte_set_flags(pte, _PAGE_PRESENT|_PAGE_ACCESSED);
-+	pteval_t val = pte_val(pte);
-+
-+	val &= ~_PAGE_NUMA;
-+	val |= (_PAGE_PRESENT|_PAGE_ACCESSED);
-+	return __pte(val);
- }
- #endif
+diff -puN drivers/gpu/drm/nouveau/core/subdev/bios/base.c~drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b-fix drivers/gpu/drm/nouveau/core/subdev/bios/base.c
+--- a/drivers/gpu/drm/nouveau/core/subdev/bios/base.c~drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b-fix
++++ a/drivers/gpu/drm/nouveau/core/subdev/bios/base.c
+@@ -109,7 +109,7 @@ nouveau_bios_shadow_pramin(struct nouvea
+ 			return;
+ 		}
  
- #ifndef pmd_mknonnuma
- static inline pmd_t pmd_mknonnuma(pmd_t pmd)
- {
--	pmd = pmd_clear_flags(pmd, _PAGE_NUMA);
--	return pmd_set_flags(pmd, _PAGE_PRESENT|_PAGE_ACCESSED);
-+	pmdval_t val = pmd_val(pmd);
-+
-+	val &= ~_PAGE_NUMA;
-+	val |= (_PAGE_PRESENT|_PAGE_ACCESSED);
-+
-+	return __pmd(val);
- }
- #endif
- 
- #ifndef pte_mknuma
- static inline pte_t pte_mknuma(pte_t pte)
- {
--	pte = pte_set_flags(pte, _PAGE_NUMA);
--	return pte_clear_flags(pte, _PAGE_PRESENT);
-+	pteval_t val = pte_val(pte);
-+
-+	val &= ~_PAGE_PRESENT;
-+	val |= _PAGE_NUMA;
-+
-+	return __pte(val);
- }
- #endif
- 
-@@ -729,8 +740,12 @@ static inline void ptep_set_numa(struct
- #ifndef pmd_mknuma
- static inline pmd_t pmd_mknuma(pmd_t pmd)
- {
--	pmd = pmd_set_flags(pmd, _PAGE_NUMA);
--	return pmd_clear_flags(pmd, _PAGE_PRESENT);
-+	pmdval_t val = pmd_val(pmd);
-+
-+	val &= ~_PAGE_PRESENT;
-+	val |= _PAGE_NUMA;
-+
-+	return __pmd(val);
- }
- #endif
- 
+-		addr = (u64)(addr & 0xffffff00) << 8;
++		addr = (addr & 0xffffff00) << 8;
+ 		if (!addr) {
+ 			addr  = (u64)nv_rd32(bios, 0x001700) << 16;
+ 			addr += 0xf0000;
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
 hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-x86-require-x86-64-for-automatic-numa-balancing.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
 mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-disable-zone_reclaim_mode-by-default.patch
-mm-page_alloc-do-not-cache-reclaim-distances.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-gupc-tweaks.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
 linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
