@@ -1,86 +1,99 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- init-kconfig-move-the-trusted-keyring-config-option-to-general-setup.patch
- removed from -mm tree
-Date: Mon, 21 Apr 2014 11:10:53 -0700
-Message-ID: <53555f2d.wOxZFYzt6yCIjiBH%akpm__16621.3270546452$1398103869$gmane$org@linux-foundation.org>
+ wait-explain-the-shadowing-and-type-inconsistencies.patch removed from -mm
+ tree
+Date: Mon, 21 Apr 2014 11:11:03 -0700
+Message-ID: <53555f37.xgFc7IcHXQXvFtZ0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35627 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35652 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752775AbaDUSKy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 14:10:54 -0400
+	with ESMTP id S1753837AbaDUSLD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 14:11:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, dhowells@redhat.com, pefoley2@pefoley.com
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org, peterz@infradead.org
 
-Subject: [merged] init-kconfig-move-the-trusted-keyring-config-option-to-general-setup.patch removed from -mm tree
-To: pefoley2@pefoley.com,dhowells@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] wait-explain-the-shadowing-and-type-inconsistencies.patch removed from -mm tree
+To: peterz@infradead.org,akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 11:10:53 -0700
+Date: Mon, 21 Apr 2014 11:11:03 -0700
 
 
 The patch titled
-     Subject: init/Kconfig: move the trusted keyring config option to general setup
+     Subject: wait: explain the shadowing and type inconsistencies
 has been removed from the -mm tree.  Its filename was
-     init-kconfig-move-the-trusted-keyring-config-option-to-general-setup.patch
+     wait-explain-the-shadowing-and-type-inconsistencies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Foley <pefoley2@pefoley.com>
-Subject: init/Kconfig: move the trusted keyring config option to general setup
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: wait: explain the shadowing and type inconsistencies
 
-The SYSTEM_TRUSTED_KEYRING config option is not in any menu, causing it to
-show up in the toplevel of the kernel configuration.  Fix this by moving
-it under the General Setup menu.
+Stick in a comment before someone else tries to fix the sparse warning
+this generates.
 
-Signed-off-by: Peter Foley <pefoley2@pefoley.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: <stable@vger.kernel.org>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+Link: http://lkml.kernel.org/n/tip-o2ro6f3vkxklni0bc8f7m68s@git.kernel.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ include/linux/wait.h |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN init/Kconfig~init-kconfig-move-the-trusted-keyring-config-option-to-general-setup init/Kconfig
---- a/init/Kconfig~init-kconfig-move-the-trusted-keyring-config-option-to-general-setup
-+++ a/init/Kconfig
-@@ -1646,6 +1646,18 @@ config MMAP_ALLOW_UNINITIALIZED
+diff -puN include/linux/wait.h~wait-explain-the-shadowing-and-type-inconsistencies include/linux/wait.h
+--- a/include/linux/wait.h~wait-explain-the-shadowing-and-type-inconsistencies
++++ a/include/linux/wait.h
+@@ -191,11 +191,23 @@ wait_queue_head_t *bit_waitqueue(void *,
+ 	(!__builtin_constant_p(state) ||				\
+ 		state == TASK_INTERRUPTIBLE || state == TASK_KILLABLE)	\
  
- 	  See Documentation/nommu-mmap.txt for more information.
- 
-+config SYSTEM_TRUSTED_KEYRING
-+	bool "Provide system-wide ring of trusted keys"
-+	depends on KEYS
-+	help
-+	  Provide a system keyring to which trusted keys can be added.  Keys in
-+	  the keyring are considered to be trusted.  Keys may be added at will
-+	  by the kernel from compiled-in data and from hardware key stores, but
-+	  userspace may only add extra keys if those keys can be verified by
-+	  keys already in the keyring.
++/*
++ * The below macro ___wait_event() has an explicit shadow of the __ret
++ * variable when used from the wait_event_*() macros.
++ *
++ * This is so that both can use the ___wait_cond_timeout() construct
++ * to wrap the condition.
++ *
++ * The type inconsistency of the wait_event_*() __ret variable is also
++ * on purpose; we use long where we can return timeout values and int
++ * otherwise.
++ */
 +
-+	  Keys in this keyring are used by module signature checking.
-+
- config PROFILING
- 	bool "Profiling support"
- 	help
-@@ -1681,18 +1693,6 @@ config BASE_SMALL
- 	default 0 if BASE_FULL
- 	default 1 if !BASE_FULL
- 
--config SYSTEM_TRUSTED_KEYRING
--	bool "Provide system-wide ring of trusted keys"
--	depends on KEYS
--	help
--	  Provide a system keyring to which trusted keys can be added.  Keys in
--	  the keyring are considered to be trusted.  Keys may be added at will
--	  by the kernel from compiled-in data and from hardware key stores, but
--	  userspace may only add extra keys if those keys can be verified by
--	  keys already in the keyring.
--
--	  Keys in this keyring are used by module signature checking.
+ #define ___wait_event(wq, condition, state, exclusive, ret, cmd)	\
+ ({									\
+ 	__label__ __out;						\
+ 	wait_queue_t __wait;						\
+-	long __ret = ret;						\
++	long __ret = ret;	/* explicit shadow */			\
+ 									\
+ 	INIT_LIST_HEAD(&__wait.task_list);				\
+ 	if (exclusive)							\
+_
+
+Patches currently in -mm which might be from peterz@infradead.org are
+
+x86-require-x86-64-for-automatic-numa-balancing.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
+init-mainc-add-initcall_blacklist-kernel-parameter.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch
+signals-kill-sigfindinword.patch
+signals-s-siginitset-sigemptyset-in-do_sigtimedwait.patch
+signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
+signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
+signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
+signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
+signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch
+signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch
+signals-disallow_signal-should-flush-the-potentially-pending-signal.patch
+signals-introduce-kernel_sigaction.patch
+signals-change-wait_for_helper-to-use-kernel_sigaction.patch
+linux-next.patch
+
