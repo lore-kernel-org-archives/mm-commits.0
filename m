@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-do-not-cache-reclaim-distances-fix.patch added to -mm tree
-Date: Mon, 21 Apr 2014 16:09:39 -0700
-Message-ID: <5355a533.ktc9LH6nzWp5iFJL%akpm@linux-foundation.org>
+Subject: + mm-gupc-tweaks-fix.patch added to -mm tree
+Date: Mon, 21 Apr 2014 16:11:49 -0700
+Message-ID: <5355a5b5.5ZwnbL4Zvv7Te2gI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37575 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754569AbaDUXJk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 19:09:40 -0400
+	with ESMTP id S1754569AbaDUXLu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 19:11:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mhocko@suse.cz, mgorman@suse.de, hannes@cmpxchg.org, cl@linux.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
 
-Subject: + mm-page_alloc-do-not-cache-reclaim-distances-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,cl@linux.com,hannes@cmpxchg.org,mgorman@suse.de,mhocko@suse.cz,zhangyanfei@cn.fujitsu.com
+Subject: + mm-gupc-tweaks-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,kirill.shutemov@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 16:09:39 -0700
+Date: Mon, 21 Apr 2014 16:11:49 -0700
 
 
 The patch titled
-     Subject: mm-page_alloc-do-not-cache-reclaim-distances-fix
+     Subject: mm-gupc-tweaks-fix
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+     mm-gupc-tweaks-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gupc-tweaks-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gupc-tweaks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,33 +44,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-do-not-cache-reclaim-distances-fix
+Subject: mm-gupc-tweaks-fix
 
-restore a hunk which got rejected and not fixed
+fix x86_64 allnoconfig build
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+mm/gup.c: In function 'follow_page_pte':
+mm/gup.c:100: error: implicit declaration of function 'trylock_page'
+mm/gup.c:109: error: implicit declaration of function 'unlock_page'
+mm/gup.c: In function '__get_user_pages':
+mm/gup.c:467: error: implicit declaration of function 'flush_anon_page'
+mm/gup.c:468: error: implicit declaration of function 'flush_dcache_page'
+
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/gup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-do-not-cache-reclaim-distances-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-do-not-cache-reclaim-distances-fix
-+++ a/mm/page_alloc.c
-@@ -4922,8 +4922,6 @@ void __paginginit free_area_init_node(in
+diff -puN mm/gup.c~mm-gupc-tweaks-fix mm/gup.c
+--- a/mm/gup.c~mm-gupc-tweaks-fix
++++ a/mm/gup.c
+@@ -5,6 +5,7 @@
  
- 	pgdat->node_id = nid;
- 	pgdat->node_start_pfn = node_start_pfn;
--	if (node_state(nid, N_MEMORY))
--		init_zone_allows_reclaim(nid);
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
- #endif
+ #include <linux/hugetlb.h>
+ #include <linux/mm.h>
++#include <linux/pagemap.h>
+ #include <linux/rmap.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +99,7 @@ hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.pat
 mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
 fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
 mm-gupc-tweaks.patch
+mm-gupc-tweaks-fix.patch
 mm-compaction-cleanup-isolate_freepages-fix.patch
 mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
