@@ -1,118 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write.patch removed
- from -mm tree
-Date: Mon, 21 Apr 2014 11:10:55 -0700
-Message-ID: <53555f2f.SmzjM3MOjODHDa9Z%akpm@linux-foundation.org>
+ init-kconfig-move-the-trusted-keyring-config-option-to-general-setup.patch
+ removed from -mm tree
+Date: Mon, 21 Apr 2014 11:10:53 -0700
+Message-ID: <53555f2d.wOxZFYzt6yCIjiBH%akpm__16621.3270546452$1398103869$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35634 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35627 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752775AbaDUSK4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 14:10:56 -0400
+	with ESMTP id S1752775AbaDUSKy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 14:10:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, robert.moore@intel.com, rafael.j.wysocki@intel.com, lv.zheng@intel.com, luis.henriques@canonical.com, lenb@kernel.org, eric.piel@tremplin-utc.net, cl@linux.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, dhowells@redhat.com, pefoley2@pefoley.com
 
-Subject: [merged] kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write.patch removed from -mm tree
-To: akpm@linux-foundation.org,cl@linux.com,eric.piel@tremplin-utc.net,lenb@kernel.org,luis.henriques@canonical.com,lv.zheng@intel.com,rafael.j.wysocki@intel.com,robert.moore@intel.com,mm-commits@vger.kernel.org
+Subject: [merged] init-kconfig-move-the-trusted-keyring-config-option-to-general-setup.patch removed from -mm tree
+To: pefoley2@pefoley.com,dhowells@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 11:10:55 -0700
+Date: Mon, 21 Apr 2014 11:10:53 -0700
 
 
 The patch titled
-     Subject: kernel/watchdog.c:touch_softlockup_watchdog(): use raw_cpu_write()
+     Subject: init/Kconfig: move the trusted keyring config option to general setup
 has been removed from the -mm tree.  Its filename was
-     kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write.patch
+     init-kconfig-move-the-trusted-keyring-config-option-to-general-setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/watchdog.c:touch_softlockup_watchdog(): use raw_cpu_write()
+From: Peter Foley <pefoley2@pefoley.com>
+Subject: init/Kconfig: move the trusted keyring config option to general setup
 
-BUG: using __this_cpu_write() in preemptible [00000000] code: systemd-udevd/497
-caller is __this_cpu_preempt_check+0x13/0x20
-CPU: 3 PID: 497 Comm: systemd-udevd Tainted: G        W     3.15.0-rc1 #9
-Hardware name: Hewlett-Packard HP EliteBook 8470p/179B, BIOS 68ICF Ver. F.02 04/27/2012
- ffffffff81a14db5 ffff88022c80b8e0 ffffffff81604ba4 0000000000000003
- ffff88022c80b908 ffffffff81313431 0000000000000000 0000000000000032
- 00000000000003e8 ffff88022c80b918 ffffffff81313473 ffff88022c80b928
-Call Trace:
- [<ffffffff81604ba4>] dump_stack+0x4e/0x7a
- [<ffffffff81313431>] check_preemption_disabled+0xe1/0xf0
- [<ffffffff81313473>] __this_cpu_preempt_check+0x13/0x20
- [<ffffffff810e4eb8>] touch_nmi_watchdog+0x28/0x40
+The SYSTEM_TRUSTED_KEYRING config option is not in any menu, causing it to
+show up in the toplevel of the kernel configuration.  Fix this by moving
+it under the General Setup menu.
 
-Reported-by: Luis Henriques <luis.henriques@canonical.com>
-Tested-by: Luis Henriques <luis.henriques@canonical.com>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Peter Foley <pefoley2@pefoley.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ init/Kconfig |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN kernel/watchdog.c~kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write
-+++ a/kernel/watchdog.c
-@@ -138,7 +138,11 @@ static void __touch_watchdog(void)
+diff -puN init/Kconfig~init-kconfig-move-the-trusted-keyring-config-option-to-general-setup init/Kconfig
+--- a/init/Kconfig~init-kconfig-move-the-trusted-keyring-config-option-to-general-setup
++++ a/init/Kconfig
+@@ -1646,6 +1646,18 @@ config MMAP_ALLOW_UNINITIALIZED
  
- void touch_softlockup_watchdog(void)
- {
--	__this_cpu_write(watchdog_touch_ts, 0);
-+	/*
-+	 * Preemption can be enabled.  It doesn't matter which CPU's timestamp
-+	 * gets zeroed here, so use the raw_ operation.
-+	 */
-+	raw_cpu_write(watchdog_touch_ts, 0);
- }
- EXPORT_SYMBOL(touch_softlockup_watchdog);
+ 	  See Documentation/nommu-mmap.txt for more information.
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-gupc-tweaks.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
++config SYSTEM_TRUSTED_KEYRING
++	bool "Provide system-wide ring of trusted keys"
++	depends on KEYS
++	help
++	  Provide a system keyring to which trusted keys can be added.  Keys in
++	  the keyring are considered to be trusted.  Keys may be added at will
++	  by the kernel from compiled-in data and from hardware key stores, but
++	  userspace may only add extra keys if those keys can be verified by
++	  keys already in the keyring.
++
++	  Keys in this keyring are used by module signature checking.
++
+ config PROFILING
+ 	bool "Profiling support"
+ 	help
+@@ -1681,18 +1693,6 @@ config BASE_SMALL
+ 	default 0 if BASE_FULL
+ 	default 1 if !BASE_FULL
+ 
+-config SYSTEM_TRUSTED_KEYRING
+-	bool "Provide system-wide ring of trusted keys"
+-	depends on KEYS
+-	help
+-	  Provide a system keyring to which trusted keys can be added.  Keys in
+-	  the keyring are considered to be trusted.  Keys may be added at will
+-	  by the kernel from compiled-in data and from hardware key stores, but
+-	  userspace may only add extra keys if those keys can be verified by
+-	  keys already in the keyring.
+-
+-	  Keys in this keyring are used by module signature checking.
