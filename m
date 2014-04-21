@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-limit-printk-when-journal-is-aborted-fix.patch added to
- -mm tree
-Date: Mon, 21 Apr 2014 12:18:32 -0700
-Message-ID: <53556f08.1XOgZwH3VlCTRqaF%akpm@linux-foundation.org>
+Subject: + mm-compaction-cleanup-isolate_freepages-fix.patch added to -mm
+ tree
+Date: Mon, 21 Apr 2014 12:41:56 -0700
+Message-ID: <53557484.Rks46BJEswRPEXzD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36567 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891AbaDUTSd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 15:18:33 -0400
+	with ESMTP id S1754456AbaDUTl6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Apr 2014 15:41:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, sunghwan.yun@samsung.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, d.j.shin@samsung.com, cl@linux.com, b.zolnierkie@samsung.com, akpm@linux-foundation.org
 
-Subject: + ocfs2-limit-printk-when-journal-is-aborted-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com
+Subject: + mm-compaction-cleanup-isolate_freepages-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,b.zolnierkie@samsung.com,cl@linux.com,d.j.shin@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,sunghwan.yun@samsung.com,vbabka@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 21 Apr 2014 12:18:32 -0700
+Date: Mon, 21 Apr 2014 12:41:56 -0700
 
 
 The patch titled
-     Subject: ocfs2-limit-printk-when-journal-is-aborted-fix
+     Subject: mm-compaction-cleanup-isolate_freepages-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+     mm-compaction-cleanup-isolate_freepages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-cleanup-isolate_freepages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-cleanup-isolate_freepages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,33 +45,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-limit-printk-when-journal-is-aborted-fix
+Subject: mm-compaction-cleanup-isolate_freepages-fix
 
-document the msleep
+comment fixes, per Minchan
 
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dongjun Shin <d.j.shin@samsung.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Sunghwan Yun <sunghwan.yun@samsung.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/compaction.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-limit-printk-when-journal-is-aborted-fix fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-limit-printk-when-journal-is-aborted-fix
-+++ a/fs/ocfs2/journal.c
-@@ -2193,6 +2193,11 @@ static int ocfs2_commit_thread(void *arg
- 			if (printk_timed_ratelimit(&abort_warn_time, 60*HZ))
- 				mlog(ML_ERROR, "status = %d, journal is "
- 						"already aborted.\n", status);
-+			/*
-+			 * After ocfs2_commit_cache() fails, j_num_trans has a
-+			 * non-zero value.  Sleep here to avoid a busy-wait
-+			 * loop.
-+			 */
- 			msleep_interruptible(1000);
- 		}
+diff -puN mm/compaction.c~mm-compaction-cleanup-isolate_freepages-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-cleanup-isolate_freepages-fix
++++ a/mm/compaction.c
+@@ -662,7 +662,10 @@ static void isolate_freepages(struct zon
+ 				struct compact_control *cc)
+ {
+ 	struct page *page;
+-	unsigned long pfn, low_pfn, next_free_pfn, z_end_pfn;
++	unsigned long pfn;	     /* scanning cursor */
++	unsigned long low_pfn;	     /* lowest pfn scanner is able to scan */
++	unsigned long next_free_pfn; /* start pfn for scaning at next round */
++	unsigned long z_end_pfn;     /* zone's end pfn */
+ 	int nr_freepages = cc->nr_freepages;
+ 	struct list_head *freelist = &cc->freepages;
+ 
+@@ -679,8 +682,8 @@ static void isolate_freepages(struct zon
+ 	low_pfn = ALIGN(cc->migrate_pfn + 1, pageblock_nr_pages);
+ 
+ 	/*
+-	 * Seed the value for max(next_free_pfn, pfn) updates. If there are
+-	 * none, the pfn < low_pfn check will kick in.
++	 * Seed the value for max(next_free_pfn, pfn) updates. If no pages are
++	 * isolated, the pfn < low_pfn check will kick in.
+ 	 */
+ 	next_free_pfn = 0;
  
 _
 
@@ -98,6 +117,7 @@ mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
 hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
 fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
 mm-gupc-tweaks.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 init-mainc-dont-use-pr_debug.patch
 init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
