@@ -1,189 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-kill-config_mm_owner.patch added to -mm tree
-Date: Tue, 22 Apr 2014 11:57:51 -0700
-Message-ID: <5356bbaf.1M5q6M7lLeM+csDY%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter.patch
+ removed from -mm tree
+Date: Tue, 22 Apr 2014 11:58:26 -0700
+Message-ID: <5356bbd2.YrY1Tl1kQO2GGnWo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48326 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48331 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751275AbaDVS5w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 14:57:52 -0400
+	with ESMTP id S1754254AbaDVS61 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 14:58:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, oleg@redhat.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, bsingharora@gmail.com, nasa4836@gmail.com
 
-Subject: + memcg-kill-config_mm_owner.patch added to -mm tree
-To: oleg@redhat.com,hannes@cmpxchg.org,mhocko@suse.cz
+Subject: [withdrawn] mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter.patch removed from -mm tree
+To: nasa4836@gmail.com,bsingharora@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 22 Apr 2014 11:57:51 -0700
+Date: Tue, 22 Apr 2014 11:58:26 -0700
 
 
 The patch titled
-     Subject: memcg: kill CONFIG_MM_OWNER
-has been added to the -mm tree.  Its filename is
-     memcg-kill-config_mm_owner.patch
+     Subject: mm/memcontrol.c: remove meaningless while loop in mem_cgroup_iter()
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-kill-config_mm_owner.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-kill-config_mm_owner.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: memcg: kill CONFIG_MM_OWNER
+From: Jianyu Zhan <nasa4836@gmail.com>
+Subject: mm/memcontrol.c: remove meaningless while loop in mem_cgroup_iter()
 
-CONFIG_MM_OWNER makes no sense.  It is not user-selectable, it is only
-selected by CONFIG_MEMCG automatically.  So we can kill this option in
-init/Kconfig and do s/CONFIG_MM_OWNER/CONFIG_MEMCG/ globally.
+Currently, the iteration job in mem_cgroup_iter() delegates to
+__mem_cgroup_iter_next(), which will skip dead nodes.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Thus, the outer while loop in mem_cgroup_iter() is meaningless.
+It could be proven by this:
+
+1. memcg != NULL
+    we are done, no loop needed.
+2. memcg == NULL
+   2.1 prev != NULL, a round-trip is done, break out, no loop.
+   2.2 prev == NULL, this is impossible, since prev==NULL means
+       the initial interation, it will returns memcg==root.
+
+So remove this meaningless while loop.
+
+Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    2 +-
- include/linux/sched.h    |    4 ++--
- init/Kconfig             |    7 -------
- kernel/exit.c            |    4 ++--
- kernel/fork.c            |    4 ++--
- 5 files changed, 7 insertions(+), 14 deletions(-)
+ mm/memcontrol.c |   53 ++++++++++++++++++++--------------------------
+ 1 file changed, 24 insertions(+), 29 deletions(-)
 
-diff -puN include/linux/mm_types.h~memcg-kill-config_mm_owner include/linux/mm_types.h
---- a/include/linux/mm_types.h~memcg-kill-config_mm_owner
-+++ a/include/linux/mm_types.h
-@@ -406,7 +406,7 @@ struct mm_struct {
- 	spinlock_t			ioctx_lock;
- 	struct kioctx_table __rcu	*ioctx_table;
- #endif
--#ifdef CONFIG_MM_OWNER
-+#ifdef CONFIG_MEMCG
- 	/*
- 	 * "owner" points to a task that is regarded as the canonical
- 	 * user/owner of this mm. All of the following must be true in
-diff -puN include/linux/sched.h~memcg-kill-config_mm_owner include/linux/sched.h
---- a/include/linux/sched.h~memcg-kill-config_mm_owner
-+++ a/include/linux/sched.h
-@@ -2956,7 +2956,7 @@ static inline void inc_syscw(struct task
- #define TASK_SIZE_OF(tsk)	TASK_SIZE
- #endif
- 
--#ifdef CONFIG_MM_OWNER
-+#ifdef CONFIG_MEMCG
- extern void mm_update_next_owner(struct mm_struct *mm);
- extern void mm_init_owner(struct mm_struct *mm, struct task_struct *p);
- #else
-@@ -2967,7 +2967,7 @@ static inline void mm_update_next_owner(
- static inline void mm_init_owner(struct mm_struct *mm, struct task_struct *p)
+diff -puN mm/memcontrol.c~mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter
++++ a/mm/memcontrol.c
+@@ -1212,6 +1212,8 @@ struct mem_cgroup *mem_cgroup_iter(struc
  {
- }
--#endif /* CONFIG_MM_OWNER */
-+#endif /* CONFIG_MEMCG */
+ 	struct mem_cgroup *memcg = NULL;
+ 	struct mem_cgroup *last_visited = NULL;
++	struct mem_cgroup_reclaim_iter *uninitialized_var(iter);
++	int uninitialized_var(seq);
  
- static inline unsigned long task_rlimit(const struct task_struct *tsk,
- 		unsigned int limit)
-diff -puN init/Kconfig~memcg-kill-config_mm_owner init/Kconfig
---- a/init/Kconfig~memcg-kill-config_mm_owner
-+++ a/init/Kconfig
-@@ -933,7 +933,6 @@ config RESOURCE_COUNTERS
- config MEMCG
- 	bool "Memory Resource Controller for Control Groups"
- 	depends on RESOURCE_COUNTERS
--	select MM_OWNER
- 	select EVENTFD
- 	help
- 	  Provides a memory resource controller that manages both anonymous
-@@ -951,9 +950,6 @@ config MEMCG
- 	  disable memory resource controller and you can avoid overheads.
- 	  (and lose benefits of memory resource controller)
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+@@ -1229,40 +1231,33 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 	}
  
--	  This config option also selects MM_OWNER config option, which
--	  could in turn add some fork/exit overhead.
+ 	rcu_read_lock();
+-	while (!memcg) {
+-		struct mem_cgroup_reclaim_iter *uninitialized_var(iter);
+-		int uninitialized_var(seq);
 -
- config MEMCG_SWAP
- 	bool "Memory Resource Controller Swap Extension"
- 	depends on MEMCG && SWAP
-@@ -1179,9 +1175,6 @@ config SCHED_AUTOGROUP
- 	  desktop applications.  Task group autogeneration is currently based
- 	  upon task session.
- 
--config MM_OWNER
--	bool
+-		if (reclaim) {
+-			int nid = zone_to_nid(reclaim->zone);
+-			int zid = zone_idx(reclaim->zone);
+-			struct mem_cgroup_per_zone *mz;
 -
- config SYSFS_DEPRECATED
- 	bool "Enable deprecated sysfs features to support old userspace tools"
- 	depends on SYSFS
-diff -puN kernel/exit.c~memcg-kill-config_mm_owner kernel/exit.c
---- a/kernel/exit.c~memcg-kill-config_mm_owner
-+++ a/kernel/exit.c
-@@ -352,7 +352,7 @@ int disallow_signal(int sig)
+-			mz = mem_cgroup_zoneinfo(root, nid, zid);
+-			iter = &mz->reclaim_iter[reclaim->priority];
+-			if (prev && reclaim->generation != iter->generation) {
+-				iter->last_visited = NULL;
+-				goto out_unlock;
+-			}
+-
+-			last_visited = mem_cgroup_iter_load(iter, root, &seq);
++	if (reclaim) {
++		int nid = zone_to_nid(reclaim->zone);
++		int zid = zone_idx(reclaim->zone);
++		struct mem_cgroup_per_zone *mz;
++
++		mz = mem_cgroup_zoneinfo(root, nid, zid);
++		iter = &mz->reclaim_iter[reclaim->priority];
++		if (prev && reclaim->generation != iter->generation) {
++			iter->last_visited = NULL;
++			goto out_unlock;
+ 		}
  
- EXPORT_SYMBOL(disallow_signal);
+-		memcg = __mem_cgroup_iter_next(root, last_visited);
++		last_visited = mem_cgroup_iter_load(iter, root, &seq);
++	}
  
--#ifdef CONFIG_MM_OWNER
-+#ifdef CONFIG_MEMCG
- /*
-  * A task is exiting.   If it owned this mm, find a new owner for the mm.
-  */
-@@ -434,7 +434,7 @@ assign_new_owner:
- 	task_unlock(c);
- 	put_task_struct(c);
- }
--#endif /* CONFIG_MM_OWNER */
-+#endif /* CONFIG_MEMCG */
+-		if (reclaim) {
+-			mem_cgroup_iter_update(iter, last_visited, memcg, root,
+-					seq);
+-
+-			if (!memcg)
+-				iter->generation++;
+-			else if (!prev && memcg)
+-				reclaim->generation = iter->generation;
+-		}
++	memcg = __mem_cgroup_iter_next(root, last_visited);
  
- /*
-  * Turn us into a lazy TLB process if we
-diff -puN kernel/fork.c~memcg-kill-config_mm_owner kernel/fork.c
---- a/kernel/fork.c~memcg-kill-config_mm_owner
-+++ a/kernel/fork.c
-@@ -1099,12 +1099,12 @@ static void rt_mutex_init_task(struct ta
- #endif
- }
- 
--#ifdef CONFIG_MM_OWNER
-+#ifdef CONFIG_MEMCG
- void mm_init_owner(struct mm_struct *mm, struct task_struct *p)
- {
- 	mm->owner = p;
- }
--#endif /* CONFIG_MM_OWNER */
-+#endif /* CONFIG_MEMCG */
- 
- /*
-  * Initialize POSIX timer handling for a single task.
+-		if (prev && !memcg)
+-			goto out_unlock;
++	if (reclaim) {
++		mem_cgroup_iter_update(iter, last_visited, memcg, root,
++				seq);
++
++		if (!memcg)
++			iter->generation++;
++		else if (!prev && memcg)
++			reclaim->generation = iter->generation;
+ 	}
++
+ out_unlock:
+ 	rcu_read_unlock();
+ out_css_put:
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from nasa4836@gmail.com are
 
-mmvmacache-optimize-overflow-system-wide-flushing.patch
-memcg-kill-config_mm_owner.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch
-signals-kill-sigfindinword.patch
-signals-s-siginitset-sigemptyset-in-do_sigtimedwait.patch
-signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
-signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
-signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
-signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
-signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch
-signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch
-signals-disallow_signal-should-flush-the-potentially-pending-signal.patch
-signals-introduce-kernel_sigaction.patch
-signals-change-wait_for_helper-to-use-kernel_sigaction.patch
+mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch
+mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
+mm-swapc-clean-up-lru_cache_add-functions.patch
 linux-next.patch
 
