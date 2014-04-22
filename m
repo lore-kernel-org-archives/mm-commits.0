@@ -1,147 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter.patch
- removed from -mm tree
-Date: Tue, 22 Apr 2014 11:58:26 -0700
-Message-ID: <5356bbd2.YrY1Tl1kQO2GGnWo%akpm@linux-foundation.org>
+Subject: +
+ mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch added to -mm tree
+Date: Tue, 22 Apr 2014 12:32:03 -0700
+Message-ID: <5356c3b3.i/WvY1axt77Mq8M6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48331 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48640 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754254AbaDVS61 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 14:58:27 -0400
+	with ESMTP id S1750897AbaDVTcE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 15:32:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, bsingharora@gmail.com, nasa4836@gmail.com
+To: mm-commits@vger.kernel.org, mgorman@suse.de
 
-Subject: [withdrawn] mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter.patch removed from -mm tree
-To: nasa4836@gmail.com,bsingharora@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: + mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch added to -mm tree
+To: mgorman@suse.de
 From: akpm@linux-foundation.org
-Date: Tue, 22 Apr 2014 11:58:26 -0700
+Date: Tue, 22 Apr 2014 12:32:03 -0700
 
 
 The patch titled
-     Subject: mm/memcontrol.c: remove meaningless while loop in mem_cgroup_iter()
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter.patch
+     Subject: mm: vmscan: do not throttle based on pfmemalloc reserves if node has no ZONE_NORMAL
+has been added to the -mm tree.  Its filename is
+     mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Jianyu Zhan <nasa4836@gmail.com>
-Subject: mm/memcontrol.c: remove meaningless while loop in mem_cgroup_iter()
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: vmscan: do not throttle based on pfmemalloc reserves if node has no ZONE_NORMAL
 
-Currently, the iteration job in mem_cgroup_iter() delegates to
-__mem_cgroup_iter_next(), which will skip dead nodes.
+throttle_direct_reclaim() is meant to trigger during swap-over-network
+during which the min watermark is treated as a pfmemalloc reserve.  It
+throttes on the first node in the zonelist but this is flawed.
 
-Thus, the outer while loop in mem_cgroup_iter() is meaningless.
-It could be proven by this:
+On a NUMA machine running a 32-bit kernel (I know) allocation requests
+freom CPUs on node 1 would detect no pfmemalloc reserves and the process
+gets throttled.  This patch adjusts throttling of direct reclaim to
+throttle based on the first node in the zonelist that has a usable
+ZONE_NORMAL or lower zone.
 
-1. memcg != NULL
-    we are done, no loop needed.
-2. memcg == NULL
-   2.1 prev != NULL, a round-trip is done, break out, no loop.
-   2.2 prev == NULL, this is impossible, since prev==NULL means
-       the initial interation, it will returns memcg==root.
-
-So remove this meaningless while loop.
-
-Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Jianyu Zhan <nasa4836@gmail.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   53 ++++++++++++++++++++--------------------------
- 1 file changed, 24 insertions(+), 29 deletions(-)
+ mm/vmscan.c |   33 +++++++++++++++++++++++++++------
+ 1 file changed, 27 insertions(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter
-+++ a/mm/memcontrol.c
-@@ -1212,6 +1212,8 @@ struct mem_cgroup *mem_cgroup_iter(struc
+diff -puN mm/vmscan.c~mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal
++++ a/mm/vmscan.c
+@@ -2522,10 +2522,17 @@ static bool pfmemalloc_watermark_ok(pg_d
+ 
+ 	for (i = 0; i <= ZONE_NORMAL; i++) {
+ 		zone = &pgdat->node_zones[i];
++		if (!populated_zone(zone))
++			continue;
++
+ 		pfmemalloc_reserve += min_wmark_pages(zone);
+ 		free_pages += zone_page_state(zone, NR_FREE_PAGES);
+ 	}
+ 
++	/* If there are no reserves (unexpected config) then do not throttle */
++	if (!pfmemalloc_reserve)
++		return true;
++
+ 	wmark_ok = free_pages > pfmemalloc_reserve / 2;
+ 
+ 	/* kswapd must be awake if processes are being throttled */
+@@ -2550,9 +2557,9 @@ static bool pfmemalloc_watermark_ok(pg_d
+ static bool throttle_direct_reclaim(gfp_t gfp_mask, struct zonelist *zonelist,
+ 					nodemask_t *nodemask)
  {
- 	struct mem_cgroup *memcg = NULL;
- 	struct mem_cgroup *last_visited = NULL;
-+	struct mem_cgroup_reclaim_iter *uninitialized_var(iter);
-+	int uninitialized_var(seq);
++	struct zoneref *z;
+ 	struct zone *zone;
+-	int high_zoneidx = gfp_zone(gfp_mask);
+-	pg_data_t *pgdat;
++	pg_data_t *pgdat = NULL;
  
- 	if (mem_cgroup_disabled())
- 		return NULL;
-@@ -1229,40 +1231,33 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 	}
+ 	/*
+ 	 * Kernel threads should not be throttled as they may be indirectly
+@@ -2571,10 +2578,24 @@ static bool throttle_direct_reclaim(gfp_
+ 	if (fatal_signal_pending(current))
+ 		goto out;
  
- 	rcu_read_lock();
--	while (!memcg) {
--		struct mem_cgroup_reclaim_iter *uninitialized_var(iter);
--		int uninitialized_var(seq);
--
--		if (reclaim) {
--			int nid = zone_to_nid(reclaim->zone);
--			int zid = zone_idx(reclaim->zone);
--			struct mem_cgroup_per_zone *mz;
--
--			mz = mem_cgroup_zoneinfo(root, nid, zid);
--			iter = &mz->reclaim_iter[reclaim->priority];
--			if (prev && reclaim->generation != iter->generation) {
--				iter->last_visited = NULL;
--				goto out_unlock;
--			}
--
--			last_visited = mem_cgroup_iter_load(iter, root, &seq);
-+	if (reclaim) {
-+		int nid = zone_to_nid(reclaim->zone);
-+		int zid = zone_idx(reclaim->zone);
-+		struct mem_cgroup_per_zone *mz;
+-	/* Check if the pfmemalloc reserves are ok */
+-	first_zones_zonelist(zonelist, high_zoneidx, NULL, &zone);
+-	pgdat = zone->zone_pgdat;
+-	if (pfmemalloc_watermark_ok(pgdat))
++	/*
++	 * Check if the pfmemalloc reserves are ok by finding the first node
++	 * with a usable ZONE_NORMAL or lower zone
++	 */
++        for_each_zone_zonelist_nodemask(zone, z, zonelist,
++                                        gfp_mask, nodemask) {
++		if (zone_idx(zone) > ZONE_NORMAL)
++			continue;
 +
-+		mz = mem_cgroup_zoneinfo(root, nid, zid);
-+		iter = &mz->reclaim_iter[reclaim->priority];
-+		if (prev && reclaim->generation != iter->generation) {
-+			iter->last_visited = NULL;
-+			goto out_unlock;
- 		}
- 
--		memcg = __mem_cgroup_iter_next(root, last_visited);
-+		last_visited = mem_cgroup_iter_load(iter, root, &seq);
++		/* Throttle based on the first usable node */
++		pgdat = zone->zone_pgdat;
++		if (pfmemalloc_watermark_ok(pgdat))
++			goto out;
++		break;
 +	}
- 
--		if (reclaim) {
--			mem_cgroup_iter_update(iter, last_visited, memcg, root,
--					seq);
--
--			if (!memcg)
--				iter->generation++;
--			else if (!prev && memcg)
--				reclaim->generation = iter->generation;
--		}
-+	memcg = __mem_cgroup_iter_next(root, last_visited);
- 
--		if (prev && !memcg)
--			goto out_unlock;
-+	if (reclaim) {
-+		mem_cgroup_iter_update(iter, last_visited, memcg, root,
-+				seq);
 +
-+		if (!memcg)
-+			iter->generation++;
-+		else if (!prev && memcg)
-+			reclaim->generation = iter->generation;
- 	}
-+
- out_unlock:
- 	rcu_read_unlock();
- out_css_put:
++	/* If no zone was usable by the allocation flags then do not throttle */
++	if (!pgdat)
+ 		goto out;
+ 
+ 	/* Account for the throttling */
 _
 
-Patches currently in -mm which might be from nasa4836@gmail.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch
-mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
+x86-require-x86-64-for-automatic-numa-balancing.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+mm-disable-zone_reclaim_mode-by-default.patch
+mm-page_alloc-do-not-cache-reclaim-distances.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
+mm-compaction-clean-up-unused-code-lines.patch
+mm-compaction-cleanup-isolate_freepages.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
 mm-swapc-clean-up-lru_cache_add-functions.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
 
