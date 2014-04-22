@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- idr-fix-unexpected-id-removal-when-idr_removeunallocated_id.patch added to
- -mm tree
-Date: Tue, 22 Apr 2014 12:40:44 -0700
-Message-ID: <5356c5bc.oOkdK4FPoIOIIAaF%akpm@linux-foundation.org>
+Subject: + idr-dont-need-to-shink-the-free-list-when-idr_remove.patch
+ added to -mm tree
+Date: Tue, 22 Apr 2014 12:40:47 -0700
+Message-ID: <5356c5bf.Li3m9N2pvdh9Pm7c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48662 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48671 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755684AbaDVTkp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 15:40:45 -0400
+	with ESMTP id S1755684AbaDVTks (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 15:40:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tj@kernel.org, laijs@cn.fujitsu.com
 
-Subject: + idr-fix-unexpected-id-removal-when-idr_removeunallocated_id.patch added to -mm tree
+Subject: + idr-dont-need-to-shink-the-free-list-when-idr_remove.patch added to -mm tree
 To: laijs@cn.fujitsu.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 22 Apr 2014 12:40:44 -0700
+Date: Tue, 22 Apr 2014 12:40:47 -0700
 
 
 The patch titled
-     Subject: idr: fix unexpected ID-removal when idr_remove(unallocated_id)
+     Subject: idr: don't need to shink the free list when idr_remove()
 has been added to the -mm tree.  Its filename is
-     idr-fix-unexpected-id-removal-when-idr_removeunallocated_id.patch
+     idr-dont-need-to-shink-the-free-list-when-idr_remove.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/idr-fix-unexpected-id-removal-when-idr_removeunallocated_id.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/idr-dont-need-to-shink-the-free-list-when-idr_remove.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/idr-fix-unexpected-id-removal-when-idr_removeunallocated_id.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/idr-dont-need-to-shink-the-free-list-when-idr_remove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,66 +45,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: idr: fix unexpected ID-removal when idr_remove(unallocated_id)
+Subject: idr: don't need to shink the free list when idr_remove()
 
-If unallocated_id = (ANY * idr_max(idp->layers) + existing_id) is passed
-to idr_remove().  The existing_id will be removed unexpectedly.
-
-The following test shows this unexpected id-removal:
-
-static void test4(void)
-{
-	int id;
-	DEFINE_IDR(test_idr);
-
-	printk(KERN_INFO "Start test4\n");
-	id = idr_alloc(&test_idr, (void *)1, 42, 43, GFP_KERNEL);
-	BUG_ON(id != 42);
-	idr_remove(&test_idr, 42 + IDR_SIZE);
-	TEST_BUG_ON(idr_find(&test_idr, 42) != (void *)1);
-	idr_destroy(&test_idr);
-	printk(KERN_INFO "End of test4\n");
-}
-
-ida_remove() shares the similar problem.
-
-It happens only when the caller tries to free an unallocated ID which is
-the caller's fault.  It is not a bug.  But it is better to add the proper
-check and complain rather than removing an existing_id silently.
+After idr subsystem is changed to RCU-awared, the free layer will not go
+to the free list.  The free list will not be filled up when idr_remove(). 
+So we don't need to shink it too.
 
 Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
 Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ lib/idr.c |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff -puN lib/idr.c~idr-fix-unexpected-id-removal-when-idr_removeunallocated_id lib/idr.c
---- a/lib/idr.c~idr-fix-unexpected-id-removal-when-idr_removeunallocated_id
+diff -puN lib/idr.c~idr-dont-need-to-shink-the-free-list-when-idr_remove lib/idr.c
+--- a/lib/idr.c~idr-dont-need-to-shink-the-free-list-when-idr_remove
 +++ a/lib/idr.c
-@@ -562,6 +562,11 @@ void idr_remove(struct idr *idp, int id)
- 	if (id < 0)
- 		return;
+@@ -18,12 +18,6 @@
+  * pointer or what ever, we treat it as a (void *).  You can pass this
+  * id to a user for him to pass back at a later time.  You then pass
+  * that id to this code and it returns your pointer.
+-
+- * You can release ids at any time. When all ids are released, most of
+- * the memory is returned (we keep MAX_IDR_FREE) in a local pool so we
+- * don't need to go to the memory "store" during an id allocate, just
+- * so you don't need to be too concerned about locking and conflicts
+- * with the slab allocator.
+  */
  
-+	if (id > idr_max(idp->layers)) {
-+		idr_remove_warning(id);
-+		return;
-+	}
-+
- 	sub_remove(idp, (idp->layers - 1) * IDR_BITS, id);
- 	if (idp->top && idp->top->count == 1 && (idp->layers > 1) &&
- 	    idp->top->ary[0]) {
-@@ -1025,6 +1030,9 @@ void ida_remove(struct ida *ida, int id)
- 	int n;
- 	struct ida_bitmap *bitmap;
+ #ifndef TEST                        // to test in user space...
+@@ -584,16 +578,6 @@ void idr_remove(struct idr *idp, int id)
+ 		bitmap_clear(to_free->bitmap, 0, IDR_SIZE);
+ 		free_layer(idp, to_free);
+ 	}
+-	while (idp->id_free_cnt >= MAX_IDR_FREE) {
+-		p = get_from_free_list(idp);
+-		/*
+-		 * Note: we don't call the rcu callback here, since the only
+-		 * layers that fall into the freelist are those that have been
+-		 * preallocated.
+-		 */
+-		kmem_cache_free(idr_layer_cache, p);
+-	}
+-	return;
+ }
+ EXPORT_SYMBOL(idr_remove);
  
-+	if (idr_id > idr_max(ida->idr.layers))
-+		goto err;
-+
- 	/* clear full bits while looking up the leaf idr_layer */
- 	while ((shift > 0) && p) {
- 		n = (idr_id >> shift) & IDR_MASK;
 _
 
 Patches currently in -mm which might be from laijs@cn.fujitsu.com are
