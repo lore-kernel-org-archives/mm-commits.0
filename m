@@ -1,96 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-cleanup-isolate_freepages-fix-2.patch added to
- -mm tree
-Date: Tue, 22 Apr 2014 12:59:16 -0700
-Message-ID: <5356ca14.znZIOLyibEm9Rbjw%akpm@linux-foundation.org>
+Subject: [to-be-updated] idr-proper-invalid-argument-handling.patch
+ removed from -mm tree
+Date: Tue, 22 Apr 2014 13:00:13 -0700
+Message-ID: <5356ca4d.EwA+wjHP8CSKM4W8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49032 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49040 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580AbaDVT7R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 15:59:17 -0400
+	with ESMTP id S1756003AbaDVUAO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 16:00:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunghwan.yun@samsung.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, d.j.shin@samsung.com, cl@linux.com, b.zolnierkie@samsung.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, tj@kernel.org, laijs@cn.fujitsu.com
 
-Subject: + mm-compaction-cleanup-isolate_freepages-fix-2.patch added to -mm tree
-To: vbabka@suse.cz,b.zolnierkie@samsung.com,cl@linux.com,d.j.shin@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,sunghwan.yun@samsung.com
+Subject: [to-be-updated] idr-proper-invalid-argument-handling.patch removed from -mm tree
+To: laijs@cn.fujitsu.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 22 Apr 2014 12:59:16 -0700
+Date: Tue, 22 Apr 2014 13:00:13 -0700
 
 
 The patch titled
-     Subject: mm-compaction-cleanup-isolate_freepages-fix 2
-has been added to the -mm tree.  Its filename is
-     mm-compaction-cleanup-isolate_freepages-fix-2.patch
+     Subject: idr: proper invalid argument handling
+has been removed from the -mm tree.  Its filename was
+     idr-proper-invalid-argument-handling.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-cleanup-isolate_freepages-fix-2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-cleanup-isolate_freepages-fix-2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-compaction-cleanup-isolate_freepages-fix 2
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: idr: proper invalid argument handling
 
-Cleanup detection of compaction scanners crossing in isolate_freepages(). 
-To make sure compact_finished() observes scanners crossing, we can just
-set free_pfn to migrate_pfn instead of confusing max() construct.
+When the arguments passed by the caller are invalid, WARN_ON_ONCE() is
+better than BUG_ON() which may crash the kernel.
 
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Dongjun Shin <d.j.shin@samsung.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sunghwan Yun <sunghwan.yun@samsung.com>
+ida_remove()/idr_remove(): add checks for "id < 0".
+
+BUG_ON() in ida_simple_remove() is simply removed, due to
+ida_remove() already checking for "id < 0".
+
+In idr_alloc(), it still returns -ENOSPC when "start == end", but it
+returns -EINVAL when "max < start" while old code returns -ENOSPC. 
+-EINVAL is proper here, the caller must passed wrong arguments.
+
+ida_simple_get()'s argument-checks are changed as the same as idr_alloc().
+
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/idr.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-cleanup-isolate_freepages-fix-2 mm/compaction.c
---- a/mm/compaction.c~mm-compaction-cleanup-isolate_freepages-fix-2
-+++ a/mm/compaction.c
-@@ -758,7 +758,7 @@ static void isolate_freepages(struct zon
- 	 * so that compact_finished() may detect this
- 	 */
- 	if (pfn < low_pfn)
--		next_free_pfn = max(pfn, zone->zone_start_pfn);
-+		next_free_pfn = cc->migrate_pfn;
+diff -puN lib/idr.c~idr-proper-invalid-argument-handling lib/idr.c
+--- a/lib/idr.c~idr-proper-invalid-argument-handling
++++ a/lib/idr.c
+@@ -459,8 +459,10 @@ int idr_alloc(struct idr *idr, void *ptr
+ 	/* sanity checks */
+ 	if (WARN_ON_ONCE(start < 0))
+ 		return -EINVAL;
+-	if (unlikely(max < start))
++	if (unlikely(end > 0 && start == end))
+ 		return -ENOSPC;
++	if (WARN_ON_ONCE(max < start))
++		return -EINVAL;
  
- 	cc->free_pfn = next_free_pfn;
- 	cc->nr_freepages = nr_freepages;
+ 	/* allocate id */
+ 	id = idr_get_empty_slot(idr, start, pa, gfp_mask, NULL);
+@@ -553,10 +555,7 @@ void idr_remove(struct idr *idp, int id)
+ 	struct idr_layer *p;
+ 	struct idr_layer *to_free;
+ 
+-	if (id < 0)
+-		return;
+-
+-	if (id > idr_max(idp->layers)) {
++	if (id < 0 || id > idr_max(idp->layers)) {
+ 		idr_remove_warning(id);
+ 		return;
+ 	}
+@@ -1014,7 +1013,7 @@ void ida_remove(struct ida *ida, int id)
+ 	int n;
+ 	struct ida_bitmap *bitmap;
+ 
+-	if (idr_id > idr_max(ida->idr.layers))
++	if (id < 0 || idr_id > idr_max(ida->idr.layers))
+ 		goto err;
+ 
+ 	/* clear full bits while looking up the leaf idr_layer */
+@@ -1080,14 +1079,17 @@ int ida_simple_get(struct ida *ida, unsi
+ 	unsigned int max;
+ 	unsigned long flags;
+ 
+-	BUG_ON((int)start < 0);
+-	BUG_ON((int)end < 0);
++	if (WARN_ON_ONCE((int)start < 0))
++		return -EINVAL;
+ 
+-	if (end == 0)
+-		max = 0x80000000;
++	if ((int)end <= 0)
++		max = INT_MAX;
+ 	else {
+-		BUG_ON(end < start);
+ 		max = end - 1;
++		if (unlikely(start == end))
++			return -ENOSPC;
++		if (WARN_ON_ONCE(max < start))
++			return -EINVAL;
+ 	}
+ 
+ again:
+@@ -1122,7 +1124,6 @@ void ida_simple_remove(struct ida *ida,
+ {
+ 	unsigned long flags;
+ 
+-	BUG_ON((int)id < 0);
+ 	spin_lock_irqsave(&simple_ida_lock, flags);
+ 	ida_remove(ida, id);
+ 	spin_unlock_irqrestore(&simple_ida_lock, flags);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
-mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
-mm-compaction-clean-up-unused-code-lines.patch
-mm-compaction-cleanup-isolate_freepages.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix-2.patch
+mem-hotplug-implement-get-put_online_mems.patch
+slab-get_online_mems-for-kmem_cache_createdestroyshrink.patch
+idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height.patch
+idr-fix-unexpected-id-removal-when-idr_removeunallocated_id.patch
+idr-fix-null-pointer-dereference-when-ida_removeunallocated_id.patch
+idr-fix-idr_replaces-returned-error-code.patch
+idr-dont-need-to-shink-the-free-list-when-idr_remove.patch
+idr-reduce-the-unneeded-check-in-free_layer.patch
+idr-reduce-the-number-of-max_idr_free.patch
+ida-in-place-ida-allocation.patch
+idr-reorder-the-fields.patch
+linux-next.patch
 
