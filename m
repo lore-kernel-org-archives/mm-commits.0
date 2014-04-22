@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: +
  hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch added to -mm tree
-Date: Tue, 22 Apr 2014 13:46:20 -0700
-Message-ID: <5356d51c.2ySw7L76/j09PS2L%akpm@linux-foundation.org>
+Date: Tue, 22 Apr 2014 13:46:34 -0700
+Message-ID: <5356d52a.dHG8Bfq7keac+rz9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49802 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49808 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758202AbaDVUqV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 16:46:21 -0400
+	with ESMTP id S1756153AbaDVUqf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 16:46:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, sougata@tuxera.com, slava@dubeyko.com, htl10@users.sourceforge.net, hch@infradead.org, anton@tuxera.com, akpm@linux-foundation.org
@@ -19,7 +19,7 @@ To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, sougata@tuxera.com, sla
 Subject: + hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch added to -mm tree
 To: akpm@linux-foundation.org,anton@tuxera.com,hch@infradead.org,htl10@users.sourceforge.net,slava@dubeyko.com,sougata@tuxera.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 22 Apr 2014 13:46:20 -0700
+Date: Tue, 22 Apr 2014 13:46:34 -0700
 
 
 The patch titled
@@ -72,7 +72,7 @@ diff -puN fs/hfsplus/xattr_trusted.c~hfsplus-correct-usage-of-hfsplus_attr_max_s
   * Handler for trusted extended attributes.
   */
  
-+#Include <linux/nls.h>
++#include <linux/nls.h>
 +
  #include "hfsplus_fs.h"
  #include "xattr.h"
