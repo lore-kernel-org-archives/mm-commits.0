@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch added to -mm tree
-Date: Tue, 22 Apr 2014 13:44:37 -0700
-Message-ID: <5356d4b5.v/3epq4KLqBrwv60%akpm@linux-foundation.org>
+ hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch added to -mm tree
+Date: Tue, 22 Apr 2014 13:46:20 -0700
+Message-ID: <5356d51c.2ySw7L76/j09PS2L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49792 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49802 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757521AbaDVUoi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 16:44:38 -0400
+	with ESMTP id S1758202AbaDVUqV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 16:46:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, sougata@tuxera.com, slava@dubeyko.com, htl10@users.sourceforge.net, hch@infradead.org, anton@tuxera.com, akpm@linux-foundation.org
 
-Subject: + hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch added to -mm tree
+Subject: + hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch added to -mm tree
 To: akpm@linux-foundation.org,anton@tuxera.com,hch@infradead.org,htl10@users.sourceforge.net,slava@dubeyko.com,sougata@tuxera.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 22 Apr 2014 13:44:37 -0700
+Date: Tue, 22 Apr 2014 13:46:20 -0700
 
 
 The patch titled
-     Subject: hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix
+     Subject: hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2
 has been added to the -mm tree.  Its filename is
-     hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+     hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,13 +45,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix
+Subject: hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2
 
 fix build
 
-fs/hfsplus/xattr_user.c: In function 'hfsplus_user_getxattr':
-fs/hfsplus/xattr_user.c:21: error: 'NLS_MAX_CHARSET_SIZE' undeclared (first use in this function)
-fs/hfsplus/xattr_user.c:21: error: (Each undeclared identifier is reported only once
+fs/hfsplus/xattr_security.c: In function 'hfsplus_security_getxattr':
+fs/hfsplus/xattr_security.c:23: error: 'NLS_MAX_CHARSET_SIZE' undeclared (first use in this function)
+fs/hfsplus/xattr_security.c:23: error: (Each undeclared identifier is reported o
 
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Anton Altaparmakov <anton@tuxera.com>
@@ -62,17 +62,17 @@ Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/xattr_user.c |    2 ++
+ fs/hfsplus/xattr_trusted.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN fs/hfsplus/xattr_user.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix fs/hfsplus/xattr_user.c
---- a/fs/hfsplus/xattr_user.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix
-+++ a/fs/hfsplus/xattr_user.c
+diff -puN fs/hfsplus/xattr_trusted.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2 fs/hfsplus/xattr_trusted.c
+--- a/fs/hfsplus/xattr_trusted.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2
++++ a/fs/hfsplus/xattr_trusted.c
 @@ -6,6 +6,8 @@
-  * Handler for user extended attributes.
+  * Handler for trusted extended attributes.
   */
  
-+#include <linux/nls.h>
++#Include <linux/nls.h>
 +
  #include "hfsplus_fs.h"
  #include "xattr.h"
@@ -115,6 +115,7 @@ init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
 rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
 hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
 hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
 linux-next.patch
 linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
