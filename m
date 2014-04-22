@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
- added to -mm tree
-Date: Tue, 22 Apr 2014 11:54:17 -0700
-Message-ID: <5356bad9.7YqJABI7fQayGTpj%akpm@linux-foundation.org>
+Subject: + memcg-kill-config_mm_owner.patch added to -mm tree
+Date: Tue, 22 Apr 2014 11:57:51 -0700
+Message-ID: <5356bbaf.1M5q6M7lLeM+csDY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48317 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48326 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238AbaDVSyS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 14:54:18 -0400
+	with ESMTP id S1751275AbaDVS5w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 14:57:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hughd@google.com, davej@redhat.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, oleg@redhat.com
 
-Subject: + mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch added to -mm tree
-To: hannes@cmpxchg.org,davej@redhat.com,hughd@google.com
+Subject: + memcg-kill-config_mm_owner.patch added to -mm tree
+To: oleg@redhat.com,hannes@cmpxchg.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 22 Apr 2014 11:54:17 -0700
+Date: Tue, 22 Apr 2014 11:57:51 -0700
 
 
 The patch titled
-     Subject: mm: filemap: update find_get_pages_tag() to deal with shadow entries
+     Subject: memcg: kill CONFIG_MM_OWNER
 has been added to the -mm tree.  Its filename is
-     mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
+     memcg-kill-config_mm_owner.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-kill-config_mm_owner.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-kill-config_mm_owner.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,256 +43,147 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: filemap: update find_get_pages_tag() to deal with shadow entries
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: memcg: kill CONFIG_MM_OWNER
 
-Dave Jones reports the following crash when find_get_pages_tag() runs into
-an exceptional entry:
+CONFIG_MM_OWNER makes no sense.  It is not user-selectable, it is only
+selected by CONFIG_MEMCG automatically.  So we can kill this option in
+init/Kconfig and do s/CONFIG_MM_OWNER/CONFIG_MEMCG/ globally.
 
-kernel BUG at mm/filemap.c:1347!
-RIP: 0010:[<ffffffffb815aeab>]  [<ffffffffb815aeab>] find_get_pages_tag+0x1cb/0x220
-Call Trace:
- [<ffffffffb815ad16>] ? find_get_pages_tag+0x36/0x220
- [<ffffffffb8168511>] pagevec_lookup_tag+0x21/0x30
- [<ffffffffb81595de>] filemap_fdatawait_range+0xbe/0x1e0
- [<ffffffffb8159727>] filemap_fdatawait+0x27/0x30
- [<ffffffffb81f2fa4>] sync_inodes_sb+0x204/0x2a0
- [<ffffffffb874d98f>] ? wait_for_completion+0xff/0x130
- [<ffffffffb81fa5b0>] ? vfs_fsync+0x40/0x40
- [<ffffffffb81fa5c9>] sync_inodes_one_sb+0x19/0x20
- [<ffffffffb81caab2>] iterate_supers+0xb2/0x110
- [<ffffffffb81fa864>] sys_sync+0x44/0xb0
- [<ffffffffb875c4a9>] ia32_do_call+0x13/0x13
-
-1343                         /*
-1344                          * This function is never used on a shmem/tmpfs
-1345                          * mapping, so a swap entry won't be found here.
-1346                          */
-1347                         BUG();
-
-After 0cd6144aadd2 ("mm + fs: prepare for non-page entries in page cache
-radix trees") this comment and BUG() are out of date because exceptional
-entries can now appear in all mappings - as shadows of recently evicted
-pages.
-
-However, as Hugh Dickins notes,
-
-  "it is truly surprising for a PAGECACHE_TAG_WRITEBACK (and probably
-   any other PAGECACHE_TAG_*) to appear on an exceptional entry.
-
-   I expect it comes down to an occasional race in RCU lookup of the
-   radix_tree: lacking absolute synchronization, we might sometimes
-   catch an exceptional entry, with the tag which really belongs with
-   the unexceptional entry which was there an instant before."
-
-And indeed, not only is the tree walk lockless, the tags are also read in
-chunks, one radix tree node at a time.  There is plenty of time for page
-reclaim to swoop in and replace a page that was already looked up as
-tagged with a shadow entry.
-
-Remove the BUG() and update the comment.  While reviewing all other lookup
-sites for whether they properly deal with shadow entries of evicted pages,
-update all the comments and fix memcg file charge moving to not miss
-shmem/tmpfs swapcache pages.
-
-Fixes: 0cd6144aadd2 ("mm + fs: prepare for non-page entries in page cache radix trees")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Dave Jones <davej@redhat.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c    |   49 ++++++++++++++++++++++++++--------------------
- mm/memcontrol.c |   20 +++++++++++-------
- mm/truncate.c   |    8 -------
- 3 files changed, 40 insertions(+), 37 deletions(-)
+ include/linux/mm_types.h |    2 +-
+ include/linux/sched.h    |    4 ++--
+ init/Kconfig             |    7 -------
+ kernel/exit.c            |    4 ++--
+ kernel/fork.c            |    4 ++--
+ 5 files changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN mm/filemap.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries mm/filemap.c
---- a/mm/filemap.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries
-+++ a/mm/filemap.c
-@@ -906,8 +906,8 @@ EXPORT_SYMBOL(page_cache_prev_hole);
-  * Looks up the page cache slot at @mapping & @offset.  If there is a
-  * page cache page, it is returned with an increased refcount.
-  *
-- * If the slot holds a shadow entry of a previously evicted page, it
-- * is returned.
-+ * If the slot holds a shadow entry of a previously evicted page, or a
-+ * swap entry from shmem/tmpfs, it is returned.
-  *
-  * Otherwise, %NULL is returned.
-  */
-@@ -928,9 +928,9 @@ repeat:
- 			if (radix_tree_deref_retry(page))
- 				goto repeat;
- 			/*
--			 * Otherwise, shmem/tmpfs must be storing a swap entry
--			 * here as an exceptional entry: so return it without
--			 * attempting to raise page count.
-+			 * A shadow entry of a recently evicted page,
-+			 * or a swap entry from shmem/tmpfs.  Return
-+			 * it without attempting to raise page count.
- 			 */
- 			goto out;
- 		}
-@@ -983,8 +983,8 @@ EXPORT_SYMBOL(find_get_page);
-  * page cache page, it is returned locked and with an increased
-  * refcount.
-  *
-- * If the slot holds a shadow entry of a previously evicted page, it
-- * is returned.
-+ * If the slot holds a shadow entry of a previously evicted page, or a
-+ * swap entry from shmem/tmpfs, it is returned.
-  *
-  * Otherwise, %NULL is returned.
-  *
-@@ -1099,8 +1099,8 @@ EXPORT_SYMBOL(find_or_create_page);
-  * with ascending indexes.  There may be holes in the indices due to
-  * not-present pages.
-  *
-- * Any shadow entries of evicted pages are included in the returned
-- * array.
-+ * Any shadow entries of evicted pages, or swap entries from
-+ * shmem/tmpfs, are included in the returned array.
-  *
-  * find_get_entries() returns the number of pages and shadow entries
-  * which were found.
-@@ -1128,9 +1128,9 @@ repeat:
- 			if (radix_tree_deref_retry(page))
- 				goto restart;
- 			/*
--			 * Otherwise, we must be storing a swap entry
--			 * here as an exceptional entry: so return it
--			 * without attempting to raise page count.
-+			 * A shadow entry of a recently evicted page,
-+			 * or a swap entry from shmem/tmpfs.  Return
-+			 * it without attempting to raise page count.
- 			 */
- 			goto export;
- 		}
-@@ -1198,9 +1198,9 @@ repeat:
- 				goto restart;
- 			}
- 			/*
--			 * Otherwise, shmem/tmpfs must be storing a swap entry
--			 * here as an exceptional entry: so skip over it -
--			 * we only reach this from invalidate_mapping_pages().
-+			 * A shadow entry of a recently evicted page,
-+			 * or a swap entry from shmem/tmpfs.  Skip
-+			 * over it.
- 			 */
- 			continue;
- 		}
-@@ -1265,9 +1265,9 @@ repeat:
- 				goto restart;
- 			}
- 			/*
--			 * Otherwise, shmem/tmpfs must be storing a swap entry
--			 * here as an exceptional entry: so stop looking for
--			 * contiguous pages.
-+			 * A shadow entry of a recently evicted page,
-+			 * or a swap entry from shmem/tmpfs.  Stop
-+			 * looking for contiguous pages.
- 			 */
- 			break;
- 		}
-@@ -1341,10 +1341,17 @@ repeat:
- 				goto restart;
- 			}
- 			/*
--			 * This function is never used on a shmem/tmpfs
--			 * mapping, so a swap entry won't be found here.
-+			 * A shadow entry of a recently evicted page.
-+			 *
-+			 * Those entries should never be tagged, but
-+			 * this tree walk is lockless and the tags are
-+			 * looked up in bulk, one radix tree node at a
-+			 * time, so there is a sizable window for page
-+			 * reclaim to evict a page we saw tagged.
-+			 *
-+			 * Skip over it.
- 			 */
--			BUG();
-+			continue;
- 		}
- 
- 		if (!page_cache_get_speculative(page))
-diff -puN mm/memcontrol.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries mm/memcontrol.c
---- a/mm/memcontrol.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries
-+++ a/mm/memcontrol.c
-@@ -6671,16 +6671,20 @@ static struct page *mc_handle_file_pte(s
- 		pgoff = pte_to_pgoff(ptent);
- 
- 	/* page is moved even if it's not RSS of this task(page-faulted). */
--	page = find_get_page(mapping, pgoff);
--
- #ifdef CONFIG_SWAP
- 	/* shmem/tmpfs may report page out on swap: account for that too. */
--	if (radix_tree_exceptional_entry(page)) {
--		swp_entry_t swap = radix_to_swp_entry(page);
--		if (do_swap_account)
--			*entry = swap;
--		page = find_get_page(swap_address_space(swap), swap.val);
--	}
-+	if (shmem_mapping(mapping)) {
-+		page = find_get_entry(mapping, pgoff);
-+		if (radix_tree_exceptional_entry(page)) {
-+			swp_entry_t swp = radix_to_swp_entry(page);
-+			if (do_swap_account)
-+				*entry = swp;
-+			page = find_get_page(swap_address_space(swp), swp.val);
-+		}
-+	} else
-+		page = find_get_page(mapping, pgoff);
-+#else
-+	page = find_get_page(mapping, pgoff);
+diff -puN include/linux/mm_types.h~memcg-kill-config_mm_owner include/linux/mm_types.h
+--- a/include/linux/mm_types.h~memcg-kill-config_mm_owner
++++ a/include/linux/mm_types.h
+@@ -406,7 +406,7 @@ struct mm_struct {
+ 	spinlock_t			ioctx_lock;
+ 	struct kioctx_table __rcu	*ioctx_table;
  #endif
- 	return page;
- }
-diff -puN mm/truncate.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries mm/truncate.c
---- a/mm/truncate.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries
-+++ a/mm/truncate.c
-@@ -484,14 +484,6 @@ unsigned long invalidate_mapping_pages(s
- 	unsigned long count = 0;
- 	int i;
+-#ifdef CONFIG_MM_OWNER
++#ifdef CONFIG_MEMCG
+ 	/*
+ 	 * "owner" points to a task that is regarded as the canonical
+ 	 * user/owner of this mm. All of the following must be true in
+diff -puN include/linux/sched.h~memcg-kill-config_mm_owner include/linux/sched.h
+--- a/include/linux/sched.h~memcg-kill-config_mm_owner
++++ a/include/linux/sched.h
+@@ -2956,7 +2956,7 @@ static inline void inc_syscw(struct task
+ #define TASK_SIZE_OF(tsk)	TASK_SIZE
+ #endif
  
--	/*
--	 * Note: this function may get called on a shmem/tmpfs mapping:
--	 * pagevec_lookup() might then return 0 prematurely (because it
--	 * got a gangful of swap entries); but it's hardly worth worrying
--	 * about - it can rarely have anything to free from such a mapping
--	 * (most pages are dirty), and already skips over any difficulties.
--	 */
+-#ifdef CONFIG_MM_OWNER
++#ifdef CONFIG_MEMCG
+ extern void mm_update_next_owner(struct mm_struct *mm);
+ extern void mm_init_owner(struct mm_struct *mm, struct task_struct *p);
+ #else
+@@ -2967,7 +2967,7 @@ static inline void mm_update_next_owner(
+ static inline void mm_init_owner(struct mm_struct *mm, struct task_struct *p)
+ {
+ }
+-#endif /* CONFIG_MM_OWNER */
++#endif /* CONFIG_MEMCG */
+ 
+ static inline unsigned long task_rlimit(const struct task_struct *tsk,
+ 		unsigned int limit)
+diff -puN init/Kconfig~memcg-kill-config_mm_owner init/Kconfig
+--- a/init/Kconfig~memcg-kill-config_mm_owner
++++ a/init/Kconfig
+@@ -933,7 +933,6 @@ config RESOURCE_COUNTERS
+ config MEMCG
+ 	bool "Memory Resource Controller for Control Groups"
+ 	depends on RESOURCE_COUNTERS
+-	select MM_OWNER
+ 	select EVENTFD
+ 	help
+ 	  Provides a memory resource controller that manages both anonymous
+@@ -951,9 +950,6 @@ config MEMCG
+ 	  disable memory resource controller and you can avoid overheads.
+ 	  (and lose benefits of memory resource controller)
+ 
+-	  This config option also selects MM_OWNER config option, which
+-	  could in turn add some fork/exit overhead.
 -
- 	pagevec_init(&pvec, 0);
- 	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
+ config MEMCG_SWAP
+ 	bool "Memory Resource Controller Swap Extension"
+ 	depends on MEMCG && SWAP
+@@ -1179,9 +1175,6 @@ config SCHED_AUTOGROUP
+ 	  desktop applications.  Task group autogeneration is currently based
+ 	  upon task session.
+ 
+-config MM_OWNER
+-	bool
+-
+ config SYSFS_DEPRECATED
+ 	bool "Enable deprecated sysfs features to support old userspace tools"
+ 	depends on SYSFS
+diff -puN kernel/exit.c~memcg-kill-config_mm_owner kernel/exit.c
+--- a/kernel/exit.c~memcg-kill-config_mm_owner
++++ a/kernel/exit.c
+@@ -352,7 +352,7 @@ int disallow_signal(int sig)
+ 
+ EXPORT_SYMBOL(disallow_signal);
+ 
+-#ifdef CONFIG_MM_OWNER
++#ifdef CONFIG_MEMCG
+ /*
+  * A task is exiting.   If it owned this mm, find a new owner for the mm.
+  */
+@@ -434,7 +434,7 @@ assign_new_owner:
+ 	task_unlock(c);
+ 	put_task_struct(c);
+ }
+-#endif /* CONFIG_MM_OWNER */
++#endif /* CONFIG_MEMCG */
+ 
+ /*
+  * Turn us into a lazy TLB process if we
+diff -puN kernel/fork.c~memcg-kill-config_mm_owner kernel/fork.c
+--- a/kernel/fork.c~memcg-kill-config_mm_owner
++++ a/kernel/fork.c
+@@ -1099,12 +1099,12 @@ static void rt_mutex_init_task(struct ta
+ #endif
+ }
+ 
+-#ifdef CONFIG_MM_OWNER
++#ifdef CONFIG_MEMCG
+ void mm_init_owner(struct mm_struct *mm, struct task_struct *p)
+ {
+ 	mm->owner = p;
+ }
+-#endif /* CONFIG_MM_OWNER */
++#endif /* CONFIG_MEMCG */
+ 
+ /*
+  * Initialize POSIX timer handling for a single task.
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-slub-fix-memcg_propagate_slab_attrs.patch
-mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
-slb-charge-slabs-to-kmemcg-explicitly.patch
-mm-get-rid-of-__gfp_kmemcg.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
-mm-disable-zone_reclaim_mode-by-default.patch
-mm-page_alloc-do-not-cache-reclaim-distances.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-documentation-memcg-warn-about-incomplete-kmemcg-state.patch
-mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter.patch
-mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch
-mm-swapc-clean-up-lru_cache_add-functions.patch
+mmvmacache-optimize-overflow-system-wide-flushing.patch
+memcg-kill-config_mm_owner.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch
+signals-kill-sigfindinword.patch
+signals-s-siginitset-sigemptyset-in-do_sigtimedwait.patch
+signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
+signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
+signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
+signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
+signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch
+signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch
+signals-disallow_signal-should-flush-the-potentially-pending-signal.patch
+signals-introduce-kernel_sigaction.patch
+signals-change-wait_for_helper-to-use-kernel_sigaction.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
 
