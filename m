@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + arc-call-find_vma-with-the-mmap_sem-held-fix.patch added to -mm tree
-Date: Tue, 22 Apr 2014 11:14:21 -0700
-Message-ID: <5356b17d.I8KKF0apV2V42ZD0%akpm@linux-foundation.org>
+Subject: +
+ mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
+ added to -mm tree
+Date: Tue, 22 Apr 2014 11:54:17 -0700
+Message-ID: <5356bad9.7YqJABI7fQayGTpj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48317 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbaDVSOW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 14:14:22 -0400
+	with ESMTP id S1751238AbaDVSyS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 14:54:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgupta@synopsys.com, davidlohr@hp.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, hughd@google.com, davej@redhat.com, hannes@cmpxchg.org
 
-Subject: + arc-call-find_vma-with-the-mmap_sem-held-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,davidlohr@hp.com,vgupta@synopsys.com
+Subject: + mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch added to -mm tree
+To: hannes@cmpxchg.org,davej@redhat.com,hughd@google.com
 From: akpm@linux-foundation.org
-Date: Tue, 22 Apr 2014 11:14:21 -0700
+Date: Tue, 22 Apr 2014 11:54:17 -0700
 
 
 The patch titled
-     Subject: arc-call-find_vma-with-the-mmap_sem-held-fix
+     Subject: mm: filemap: update find_get_pages_tag() to deal with shadow entries
 has been added to the -mm tree.  Its filename is
-     arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+     mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,91 +45,256 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arc-call-find_vma-with-the-mmap_sem-held-fix
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: filemap: update find_get_pages_tag() to deal with shadow entries
 
-CSE current->active_mm, per Vineet
+Dave Jones reports the following crash when find_get_pages_tag() runs into
+an exceptional entry:
 
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
+kernel BUG at mm/filemap.c:1347!
+RIP: 0010:[<ffffffffb815aeab>]  [<ffffffffb815aeab>] find_get_pages_tag+0x1cb/0x220
+Call Trace:
+ [<ffffffffb815ad16>] ? find_get_pages_tag+0x36/0x220
+ [<ffffffffb8168511>] pagevec_lookup_tag+0x21/0x30
+ [<ffffffffb81595de>] filemap_fdatawait_range+0xbe/0x1e0
+ [<ffffffffb8159727>] filemap_fdatawait+0x27/0x30
+ [<ffffffffb81f2fa4>] sync_inodes_sb+0x204/0x2a0
+ [<ffffffffb874d98f>] ? wait_for_completion+0xff/0x130
+ [<ffffffffb81fa5b0>] ? vfs_fsync+0x40/0x40
+ [<ffffffffb81fa5c9>] sync_inodes_one_sb+0x19/0x20
+ [<ffffffffb81caab2>] iterate_supers+0xb2/0x110
+ [<ffffffffb81fa864>] sys_sync+0x44/0xb0
+ [<ffffffffb875c4a9>] ia32_do_call+0x13/0x13
+
+1343                         /*
+1344                          * This function is never used on a shmem/tmpfs
+1345                          * mapping, so a swap entry won't be found here.
+1346                          */
+1347                         BUG();
+
+After 0cd6144aadd2 ("mm + fs: prepare for non-page entries in page cache
+radix trees") this comment and BUG() are out of date because exceptional
+entries can now appear in all mappings - as shadows of recently evicted
+pages.
+
+However, as Hugh Dickins notes,
+
+  "it is truly surprising for a PAGECACHE_TAG_WRITEBACK (and probably
+   any other PAGECACHE_TAG_*) to appear on an exceptional entry.
+
+   I expect it comes down to an occasional race in RCU lookup of the
+   radix_tree: lacking absolute synchronization, we might sometimes
+   catch an exceptional entry, with the tag which really belongs with
+   the unexceptional entry which was there an instant before."
+
+And indeed, not only is the tree walk lockless, the tags are also read in
+chunks, one radix tree node at a time.  There is plenty of time for page
+reclaim to swoop in and replace a page that was already looked up as
+tagged with a shadow entry.
+
+Remove the BUG() and update the comment.  While reviewing all other lookup
+sites for whether they properly deal with shadow entries of evicted pages,
+update all the comments and fix memcg file charge moving to not miss
+shmem/tmpfs swapcache pages.
+
+Fixes: 0cd6144aadd2 ("mm + fs: prepare for non-page entries in page cache radix trees")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Dave Jones <davej@redhat.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/troubleshoot.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/filemap.c    |   49 ++++++++++++++++++++++++++--------------------
+ mm/memcontrol.c |   20 +++++++++++-------
+ mm/truncate.c   |    8 -------
+ 3 files changed, 40 insertions(+), 37 deletions(-)
 
-diff -puN arch/arc/kernel/troubleshoot.c~arc-call-find_vma-with-the-mmap_sem-held-fix arch/arc/kernel/troubleshoot.c
---- a/arch/arc/kernel/troubleshoot.c~arc-call-find_vma-with-the-mmap_sem-held-fix
-+++ a/arch/arc/kernel/troubleshoot.c
-@@ -86,12 +86,13 @@ static void show_faulting_vma(unsigned l
- 	unsigned long ino = 0;
- 	dev_t dev = 0;
- 	char *nm = buf;
-+	struct mm_struct *active_mm = current->active_mm;
+diff -puN mm/filemap.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries mm/filemap.c
+--- a/mm/filemap.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries
++++ a/mm/filemap.c
+@@ -906,8 +906,8 @@ EXPORT_SYMBOL(page_cache_prev_hole);
+  * Looks up the page cache slot at @mapping & @offset.  If there is a
+  * page cache page, it is returned with an increased refcount.
+  *
+- * If the slot holds a shadow entry of a previously evicted page, it
+- * is returned.
++ * If the slot holds a shadow entry of a previously evicted page, or a
++ * swap entry from shmem/tmpfs, it is returned.
+  *
+  * Otherwise, %NULL is returned.
+  */
+@@ -928,9 +928,9 @@ repeat:
+ 			if (radix_tree_deref_retry(page))
+ 				goto repeat;
+ 			/*
+-			 * Otherwise, shmem/tmpfs must be storing a swap entry
+-			 * here as an exceptional entry: so return it without
+-			 * attempting to raise page count.
++			 * A shadow entry of a recently evicted page,
++			 * or a swap entry from shmem/tmpfs.  Return
++			 * it without attempting to raise page count.
+ 			 */
+ 			goto out;
+ 		}
+@@ -983,8 +983,8 @@ EXPORT_SYMBOL(find_get_page);
+  * page cache page, it is returned locked and with an increased
+  * refcount.
+  *
+- * If the slot holds a shadow entry of a previously evicted page, it
+- * is returned.
++ * If the slot holds a shadow entry of a previously evicted page, or a
++ * swap entry from shmem/tmpfs, it is returned.
+  *
+  * Otherwise, %NULL is returned.
+  *
+@@ -1099,8 +1099,8 @@ EXPORT_SYMBOL(find_or_create_page);
+  * with ascending indexes.  There may be holes in the indices due to
+  * not-present pages.
+  *
+- * Any shadow entries of evicted pages are included in the returned
+- * array.
++ * Any shadow entries of evicted pages, or swap entries from
++ * shmem/tmpfs, are included in the returned array.
+  *
+  * find_get_entries() returns the number of pages and shadow entries
+  * which were found.
+@@ -1128,9 +1128,9 @@ repeat:
+ 			if (radix_tree_deref_retry(page))
+ 				goto restart;
+ 			/*
+-			 * Otherwise, we must be storing a swap entry
+-			 * here as an exceptional entry: so return it
+-			 * without attempting to raise page count.
++			 * A shadow entry of a recently evicted page,
++			 * or a swap entry from shmem/tmpfs.  Return
++			 * it without attempting to raise page count.
+ 			 */
+ 			goto export;
+ 		}
+@@ -1198,9 +1198,9 @@ repeat:
+ 				goto restart;
+ 			}
+ 			/*
+-			 * Otherwise, shmem/tmpfs must be storing a swap entry
+-			 * here as an exceptional entry: so skip over it -
+-			 * we only reach this from invalidate_mapping_pages().
++			 * A shadow entry of a recently evicted page,
++			 * or a swap entry from shmem/tmpfs.  Skip
++			 * over it.
+ 			 */
+ 			continue;
+ 		}
+@@ -1265,9 +1265,9 @@ repeat:
+ 				goto restart;
+ 			}
+ 			/*
+-			 * Otherwise, shmem/tmpfs must be storing a swap entry
+-			 * here as an exceptional entry: so stop looking for
+-			 * contiguous pages.
++			 * A shadow entry of a recently evicted page,
++			 * or a swap entry from shmem/tmpfs.  Stop
++			 * looking for contiguous pages.
+ 			 */
+ 			break;
+ 		}
+@@ -1341,10 +1341,17 @@ repeat:
+ 				goto restart;
+ 			}
+ 			/*
+-			 * This function is never used on a shmem/tmpfs
+-			 * mapping, so a swap entry won't be found here.
++			 * A shadow entry of a recently evicted page.
++			 *
++			 * Those entries should never be tagged, but
++			 * this tree walk is lockless and the tags are
++			 * looked up in bulk, one radix tree node at a
++			 * time, so there is a sizable window for page
++			 * reclaim to evict a page we saw tagged.
++			 *
++			 * Skip over it.
+ 			 */
+-			BUG();
++			continue;
+ 		}
  
- 	/* can't use print_vma_addr() yet as it doesn't check for
- 	 * non-inclusive vma
- 	 */
--	down_read(&current->active_mm->mmap_sem);
--	vma = find_vma(current->active_mm, address);
-+	down_read(&active_mm->mmap_sem);
-+	vma = find_vma(active_mm, address);
+ 		if (!page_cache_get_speculative(page))
+diff -puN mm/memcontrol.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries
++++ a/mm/memcontrol.c
+@@ -6671,16 +6671,20 @@ static struct page *mc_handle_file_pte(s
+ 		pgoff = pte_to_pgoff(ptent);
  
- 	/* check against the find_vma( ) behaviour which returns the next VMA
- 	 * if the container VMA is not found
-@@ -113,7 +114,7 @@ static void show_faulting_vma(unsigned l
- 	} else
- 		pr_info("    @No matching VMA found\n");
- 
--	up_read(&current->active_mm->mmap_sem);
-+	up_read(&active_mm->mmap_sem);
+ 	/* page is moved even if it's not RSS of this task(page-faulted). */
+-	page = find_get_page(mapping, pgoff);
+-
+ #ifdef CONFIG_SWAP
+ 	/* shmem/tmpfs may report page out on swap: account for that too. */
+-	if (radix_tree_exceptional_entry(page)) {
+-		swp_entry_t swap = radix_to_swp_entry(page);
+-		if (do_swap_account)
+-			*entry = swap;
+-		page = find_get_page(swap_address_space(swap), swap.val);
+-	}
++	if (shmem_mapping(mapping)) {
++		page = find_get_entry(mapping, pgoff);
++		if (radix_tree_exceptional_entry(page)) {
++			swp_entry_t swp = radix_to_swp_entry(page);
++			if (do_swap_account)
++				*entry = swp;
++			page = find_get_page(swap_address_space(swp), swp.val);
++		}
++	} else
++		page = find_get_page(mapping, pgoff);
++#else
++	page = find_get_page(mapping, pgoff);
+ #endif
+ 	return page;
  }
+diff -puN mm/truncate.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries mm/truncate.c
+--- a/mm/truncate.c~mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries
++++ a/mm/truncate.c
+@@ -484,14 +484,6 @@ unsigned long invalidate_mapping_pages(s
+ 	unsigned long count = 0;
+ 	int i;
  
- static void show_ecr_verbose(struct pt_regs *regs)
+-	/*
+-	 * Note: this function may get called on a shmem/tmpfs mapping:
+-	 * pagevec_lookup() might then return 0 prematurely (because it
+-	 * got a gangful of swap entries); but it's hardly worth worrying
+-	 * about - it can rarely have anything to free from such a mapping
+-	 * (most pages are dirty), and already skips over any difficulties.
+-	 */
+-
+ 	pagevec_init(&pvec, 0);
+ 	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
+ 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+slub-fix-memcg_propagate_slab_attrs.patch
+mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
+slb-charge-slabs-to-kmemcg-explicitly.patch
+mm-get-rid-of-__gfp_kmemcg.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
+mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
+mm-disable-zone_reclaim_mode-by-default.patch
+mm-page_alloc-do-not-cache-reclaim-distances.patch
 mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch
-mm-gupc-tweaks.patch
-mm-gupc-tweaks-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+documentation-memcg-warn-about-incomplete-kmemcg-state.patch
+mm-memcontrolc-remove-meaningless-while-loop-in-mem_cgroup_iter.patch
+mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch
+mm-swapc-clean-up-lru_cache_add-functions.patch
 linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
 debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
