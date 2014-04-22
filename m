@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 22 Apr 2014 12:32:41 -0700
-Message-ID: <5356c3d9.rn9IQDgeNb13u+4j%akpm@linux-foundation.org>
+ idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height.patch
+ added to -mm tree
+Date: Tue, 22 Apr 2014 12:40:43 -0700
+Message-ID: <5356c5bb.lK8Lfz6ttWnhcbqV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48642 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48658 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751534AbaDVTcm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 15:32:42 -0400
+	with ESMTP id S1755663AbaDVTko (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 15:40:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mgorman@suse.de, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tj@kernel.org, stable@vger.kernel.org, laijs@cn.fujitsu.com
 
-Subject: + mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,mgorman@suse.de
+Subject: + idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height.patch added to -mm tree
+To: laijs@cn.fujitsu.com,stable@vger.kernel.org,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 22 Apr 2014 12:32:41 -0700
+Date: Tue, 22 Apr 2014 12:40:43 -0700
 
 
 The patch titled
-     Subject: mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes
+     Subject: idr: fix overflow bug during maximum ID calculation at maximum height
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+     idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,105 +45,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: idr: fix overflow bug during maximum ID calculation at maximum height
 
-Cc: Mel Gorman <mgorman@suse.de>
+idr_replace() open-codes the logic to calculate the maximum valid ID given
+the height of the idr tree; unfortunately, the open-coded logic doesn't
+account for the fact that the top layer may have unused slots and
+over-shifts the limit to zero when the tree is at its maximum height.
 
-ERROR: code indent should use tabs where possible
-#66: FILE: mm/vmscan.c:2585:
-+        for_each_zone_zonelist_nodemask(zone, z, zonelist,$
+The following test code shows it fails to replace the value for
+id=((1<<27)+42):
 
-WARNING: please, no spaces at the start of a line
-#66: FILE: mm/vmscan.c:2585:
-+        for_each_zone_zonelist_nodemask(zone, z, zonelist,$
+static void test5(void)
+{
+	int id;
+	DEFINE_IDR(test_idr);
+#define TEST5_START ((1<<27)+42) /* use the highest layer */
 
-ERROR: code indent should use tabs where possible
-#67: FILE: mm/vmscan.c:2586:
-+                                        gfp_mask, nodemask) {$
+	printk(KERN_INFO "Start test5\n");
+	id = idr_alloc(&test_idr, (void *)1, TEST5_START, 0, GFP_KERNEL);
+	BUG_ON(id != TEST5_START);
+	TEST_BUG_ON(idr_replace(&test_idr, (void *)2, TEST5_START) != (void *)1);
+	idr_destroy(&test_idr);
+	printk(KERN_INFO "End of test5\n");
+}
 
-WARNING: please, no spaces at the start of a line
-#67: FILE: mm/vmscan.c:2586:
-+                                        gfp_mask, nodemask) {$
+Fix the bug by using idr_max() which correctly takes into account the
+maximum allowed shift.
 
-total: 2 errors, 2 warnings, 56 lines checked
+sub_alloc() shares the same problem and may incorrectly fail with -EAGAIN;
+however, this bug doesn't affect correct operation because
+idr_get_empty_slot(), which already uses idr_max(), retries with the
+increased @id in such cases.
 
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Mel Gorman <mgorman@suse.de>
+[tj@kernel.org: Updated patch description.]
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/idr.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes
-+++ a/mm/vmscan.c
-@@ -2582,8 +2582,8 @@ static bool throttle_direct_reclaim(gfp_
- 	 * Check if the pfmemalloc reserves are ok by finding the first node
- 	 * with a usable ZONE_NORMAL or lower zone
- 	 */
--        for_each_zone_zonelist_nodemask(zone, z, zonelist,
--                                        gfp_mask, nodemask) {
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist,
-+					gfp_mask, nodemask) {
- 		if (zone_idx(zone) > ZONE_NORMAL)
- 			continue;
+diff -puN lib/idr.c~idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height lib/idr.c
+--- a/lib/idr.c~idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height
++++ a/lib/idr.c
+@@ -249,7 +249,7 @@ static int sub_alloc(struct idr *idp, in
+ 			id = (id | ((1 << (IDR_BITS * l)) - 1)) + 1;
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch
-mm-gupc-tweaks.patch
-mm-gupc-tweaks-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+ 			/* if already at the top layer, we need to grow */
+-			if (id >= 1 << (idp->layers * IDR_BITS)) {
++			if (id > idr_max(idp->layers)) {
+ 				*starting_id = id;
+ 				return -EAGAIN;
+ 			}
+@@ -811,12 +811,10 @@ void *idr_replace(struct idr *idp, void
+ 	if (!p)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	n = (p->layer+1) * IDR_BITS;
