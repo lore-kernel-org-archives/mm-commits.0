@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: +
  hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch added to -mm tree
-Date: Tue, 22 Apr 2014 13:46:34 -0700
-Message-ID: <5356d52a.dHG8Bfq7keac+rz9%akpm@linux-foundation.org>
+Date: Tue, 22 Apr 2014 13:47:26 -0700
+Message-ID: <5356d55e.N67k37LHLItXkb4o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49808 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49813 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756153AbaDVUqf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 16:46:35 -0400
+	with ESMTP id S1758241AbaDVUr2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Apr 2014 16:47:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, sougata@tuxera.com, slava@dubeyko.com, htl10@users.sourceforge.net, hch@infradead.org, anton@tuxera.com, akpm@linux-foundation.org
@@ -19,7 +19,7 @@ To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, sougata@tuxera.com, sla
 Subject: + hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch added to -mm tree
 To: akpm@linux-foundation.org,anton@tuxera.com,hch@infradead.org,htl10@users.sourceforge.net,slava@dubeyko.com,sougata@tuxera.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 22 Apr 2014 13:46:34 -0700
+Date: Tue, 22 Apr 2014 13:47:26 -0700
 
 
 The patch titled
@@ -62,8 +62,9 @@ Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/xattr_trusted.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/hfsplus/xattr_security.c |    2 ++
+ fs/hfsplus/xattr_trusted.c  |    2 ++
+ 2 files changed, 4 insertions(+)
 
 diff -puN fs/hfsplus/xattr_trusted.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2 fs/hfsplus/xattr_trusted.c
 --- a/fs/hfsplus/xattr_trusted.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2
@@ -77,6 +78,18 @@ diff -puN fs/hfsplus/xattr_trusted.c~hfsplus-correct-usage-of-hfsplus_attr_max_s
  #include "hfsplus_fs.h"
  #include "xattr.h"
  
+diff -puN fs/hfsplus/xattr_security.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2 fs/hfsplus/xattr_security.c
+--- a/fs/hfsplus/xattr_security.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2
++++ a/fs/hfsplus/xattr_security.c
+@@ -7,6 +7,8 @@
+  */
+ 
+ #include <linux/security.h>
++#include <linux/nls.h>
++
+ #include "hfsplus_fs.h"
+ #include "xattr.h"
+ #include "acl.h"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
