@@ -1,247 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-cleanup-__get_user_pages.patch removed from
- -mm tree
-Date: Wed, 23 Apr 2014 13:21:03 -0700
-Message-ID: <535820af.f5BZvGApJ6XNHPFw%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch removed
+ from -mm tree
+Date: Wed, 23 Apr 2014 13:21:01 -0700
+Message-ID: <535820ad.cHsCEv3scg1a0088%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59099 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59097 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757725AbaDWUVE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 16:21:04 -0400
+	with ESMTP id S1757602AbaDWUVC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 16:21:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
 
-Subject: [to-be-updated] mm-cleanup-__get_user_pages.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [to-be-updated] mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 23 Apr 2014 13:21:03 -0700
+Date: Wed, 23 Apr 2014 13:21:01 -0700
 
 
 The patch titled
-     Subject: mm: cleanup __get_user_pages()
+     Subject: mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix
 has been removed from the -mm tree.  Its filename was
-     mm-cleanup-__get_user_pages.patch
+     mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: cleanup __get_user_pages()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix
 
-Get rid of two nested loops over nr_pages and other random cleanups.
+s/BUILD_BUG/BUG/
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  150 +++++++++++++++++++++++++----------------------------
- 1 file changed, 73 insertions(+), 77 deletions(-)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/gup.c~mm-cleanup-__get_user_pages mm/gup.c
---- a/mm/gup.c~mm-cleanup-__get_user_pages
+diff -puN mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix mm/gup.c
+--- a/mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix
 +++ a/mm/gup.c
-@@ -370,9 +370,10 @@ long __get_user_pages(struct task_struct
- 		unsigned int gup_flags, struct page **pages,
- 		struct vm_area_struct **vmas, int *nonblocking)
- {
--	long i;
-+	long i = 0;
- 	unsigned long vm_flags;
- 	unsigned int page_mask;
-+	struct vm_area_struct *vma = NULL;
- 
- 	if (!nr_pages)
- 		return 0;
-@@ -396,88 +397,83 @@ long __get_user_pages(struct task_struct
- 	if (!(gup_flags & FOLL_FORCE))
- 		gup_flags |= FOLL_NUMA;
- 
--	i = 0;
--
- 	do {
--		struct vm_area_struct *vma;
--
--		vma = find_extend_vma(mm, start);
--		if (!vma && in_gate_area(mm, start)) {
--			int ret;
--			ret = get_gate_page(mm, start & PAGE_MASK, gup_flags,
--					&vma, pages ? &pages[i] : NULL);
--			if (ret)
--				return i ? : ret;
--			page_mask = 0;
--			goto next_page;
--		}
--
--		if (!vma ||
--		    (vma->vm_flags & (VM_IO | VM_PFNMAP)) ||
--		    !(vm_flags & vma->vm_flags))
--			return i ? : -EFAULT;
--
--		if (is_vm_hugetlb_page(vma)) {
--			i = follow_hugetlb_page(mm, vma, pages, vmas,
--					&start, &nr_pages, i, gup_flags);
--			continue;
--		}
--
--		do {
--			struct page *page;
--			unsigned int foll_flags = gup_flags;
--			unsigned int page_increm;
--
--			/*
--			 * If we have a pending SIGKILL, don't keep faulting
--			 * pages and potentially allocating memory.
--			 */
--			if (unlikely(fatal_signal_pending(current)))
--				return i ? i : -ERESTARTSYS;
--
--			cond_resched();
--			while (!(page = follow_page_mask(vma, start,
--						foll_flags, &page_mask))) {
-+		struct page *page;
-+		unsigned int foll_flags = gup_flags;
-+		unsigned int page_increm;
-+
-+		/* first iteration or cross vma bound */
-+		if (!vma || start >= vma->vm_end) {
-+			vma = find_extend_vma(mm, start);
-+			if (!vma && in_gate_area(mm, start)) {
- 				int ret;
--				ret = faultin_page(tsk, vma, start, &foll_flags,
--						nonblocking);
--				switch (ret) {
--				case 0:
--					break;
--				case -EFAULT:
--				case -ENOMEM:
--				case -EHWPOISON:
--					return i ? i : ret;
--				case -EBUSY:
--					return i;
--				case -ENOENT:
--					goto next_page;
--				default:
--					BUG();
--				}
--				cond_resched();
-+				ret = get_gate_page(mm, start & PAGE_MASK,
-+						gup_flags, &vma,
-+						pages ? &pages[i] : NULL);
-+				if (ret)
-+					return i ? : ret;
-+				page_mask = 0;
-+				goto next_page;
+@@ -453,7 +453,7 @@ long __get_user_pages(struct task_struct
+ 				case -ENOENT:
+ 					goto next_page;
+ 				default:
+-					BUILD_BUG();
++					BUG();
+ 				}
+ 				cond_resched();
  			}
--			if (IS_ERR(page))
--				return i ? i : PTR_ERR(page);
--			if (pages) {
--				pages[i] = page;
- 
--				flush_anon_page(vma, page, start);
--				flush_dcache_page(page);
--				page_mask = 0;
-+			if (!vma || (vma->vm_flags & (VM_IO | VM_PFNMAP)) ||
-+					!(vm_flags & vma->vm_flags))
-+				return i ? : -EFAULT;
-+
-+			if (is_vm_hugetlb_page(vma)) {
-+				i = follow_hugetlb_page(mm, vma, pages, vmas,
-+						&start, &nr_pages, i,
-+						gup_flags);
-+				continue;
- 			}
--next_page:
--			if (vmas) {
--				vmas[i] = vma;
--				page_mask = 0;
-+		}
-+
-+		/*
-+		 * If we have a pending SIGKILL, don't keep faulting pages and
-+		 * potentially allocating memory.
-+		 */
-+		if (unlikely(fatal_signal_pending(current)))
-+			return i ? i : -ERESTARTSYS;
-+retry:
-+		cond_resched();
-+		page = follow_page_mask(vma, start, foll_flags, &page_mask);
-+		if (!page) {
-+			int ret;
-+			ret = faultin_page(tsk, vma, start, &foll_flags,
-+					nonblocking);
-+			switch (ret) {
-+			case 0:
-+				goto retry;
-+			case -EFAULT:
-+			case -ENOMEM:
-+			case -EHWPOISON:
-+				return i ? i : ret;
-+			case -EBUSY:
-+				return i;
-+			case -ENOENT:
-+				goto next_page;
- 			}
--			page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
--			if (page_increm > nr_pages)
--				page_increm = nr_pages;
--			i += page_increm;
--			start += page_increm * PAGE_SIZE;
--			nr_pages -= page_increm;
--		} while (nr_pages && start < vma->vm_end);
-+			BUG();
-+		}
-+		if (IS_ERR(page))
-+			return i ? i : PTR_ERR(page);
-+		if (pages) {
-+			pages[i] = page;
-+			flush_anon_page(vma, page, start);
-+			flush_dcache_page(page);
-+			page_mask = 0;
-+		}
-+next_page:
-+		if (vmas) {
-+			vmas[i] = vma;
-+			page_mask = 0;
-+		}
-+		page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
-+		if (page_increm > nr_pages)
-+			page_increm = nr_pages;
-+		i += page_increm;
-+		start += page_increm * PAGE_SIZE;
-+		nr_pages -= page_increm;
- 	} while (nr_pages);
- 	return i;
- }
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-thp-consolidate-assert-checks-in-__split_huge_page.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-pass-vm_bug_on-reason-to-dump_page.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
 mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
 mm-gupc-tweaks.patch
 mm-gupc-tweaks-fix.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
