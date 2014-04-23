@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + sysrq-rcu-ify-__handle_sysrq.patch added to -mm tree
-Date: Wed, 23 Apr 2014 14:02:07 -0700
-Message-ID: <53582a4f.LIMjpM/DtIlMY9j/%akpm@linux-foundation.org>
+Subject: +
+ kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch added
+ to -mm tree
+Date: Wed, 23 Apr 2014 14:14:13 -0700
+Message-ID: <53582d25.60Ns8UySsqpbWbEY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59381 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59414 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932546AbaDWVCI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 17:02:08 -0400
+	with ESMTP id S1757486AbaDWVOO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 17:14:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peterz@infradead.org, jslaby@suse.cz, joern@logfs.org, gregkh@linuxfoundation.org, cxie@redhat.com, riel@redhat.com
+To: mm-commits@vger.kernel.org, oleg@redhat.com, mguzik@redhat.com, dzickus@redhat.com, davem@davemloft.net, atomlin@redhat.com
 
-Subject: + sysrq-rcu-ify-__handle_sysrq.patch added to -mm tree
-To: riel@redhat.com,cxie@redhat.com,gregkh@linuxfoundation.org,joern@logfs.org,jslaby@suse.cz,peterz@infradead.org
+Subject: + kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch added to -mm tree
+To: atomlin@redhat.com,davem@davemloft.net,dzickus@redhat.com,mguzik@redhat.com,oleg@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 23 Apr 2014 14:02:07 -0700
+Date: Wed, 23 Apr 2014 14:14:13 -0700
 
 
 The patch titled
-     Subject: sysrq: rcu-ify __handle_sysrq
+     Subject: kernel/watchdog.c: print traces for all cpus on lockup detection
 has been added to the -mm tree.  Its filename is
-     sysrq-rcu-ify-__handle_sysrq.patch
+     kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysrq-rcu-ify-__handle_sysrq.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysrq-rcu-ify-__handle_sysrq.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,137 +45,211 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: sysrq: rcu-ify __handle_sysrq
+From: Aaron Tomlin <atomlin@redhat.com>
+Subject: kernel/watchdog.c: print traces for all cpus on lockup detection
 
-Echoing values into /proc/sysrq-trigger seems to be a popular way to get
-information out of the kernel.  However, dumping information about
-thousands of processes, or hundreds of CPUs to serial console can result
-in IRQs being blocked for minutes, resulting in various kinds of cascade
-failures.
+A 'softlockup' is defined as a bug that causes the kernel to loop in
+kernel mode for more than a predefined period to time, without giving
+other tasks a chance to run.
 
-The most common failure is due to interrupts being blocked for a very long
-time.  This can lead to things like failed IO requests, and other things
-the system cannot easily recover from.
+Currently, upon detection of this condition by the per-cpu watchdog task,
+debug information (including a stack trace) is sent to the system log.
 
-This problem is easily fixable by making __handle_sysrq use RCU instead of
-spin_lock_irqsave.
+On some occasions, we have observed that the "victim" rather than the
+actual "culprit" (i.e.  the owner/holder of the contended resource) is
+reported to the user.  Often this information has proven to be
+insufficient to assist debugging efforts.
 
-This leaves the warning that RCU grace periods have not elapsed for a long
-time, but the system will come back from that automatically.
+To avoid loss of useful debug information, for architectures which support
+NMI, this patch makes it possible to improve soft lockup reporting.  This
+is accomplished by issuing an NMI to each cpu to obtain a stack trace.
 
-It also leaves sysrq-from-irq-context when the sysrq keys are pressed, but
-that is probably desired since people want that to work in situations
-where the system is already hosed.
+If NMI is not supported we just revert back to the old method.  A sysctl
+and boot-time parameter is available to toggle this feature.
 
-The callers of register_sysrq_key and unregister_sysrq_key appear to be
-capable of sleeping.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Madper Xie <cxie@redhat.com>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Madper Xie <cxie@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.cz>
+[dzickus@redhat.com: add CONFIG_SMP in certain areas]
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Mateusz Guzik <mguzik@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ Documentation/kernel-parameters.txt |    5 +++
+ Documentation/sysctl/kernel.txt     |   17 +++++++++++++
+ include/linux/nmi.h                 |    3 ++
+ kernel/sysctl.c                     |   11 ++++++++
+ kernel/watchdog.c                   |   34 ++++++++++++++++++++++++++
+ 5 files changed, 70 insertions(+)
 
-diff -puN drivers/tty/sysrq.c~sysrq-rcu-ify-__handle_sysrq drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~sysrq-rcu-ify-__handle_sysrq
-+++ a/drivers/tty/sysrq.c
-@@ -510,9 +510,8 @@ void __handle_sysrq(int key, bool check_
- 	struct sysrq_key_op *op_p;
- 	int orig_log_level;
- 	int i;
--	unsigned long flags;
+diff -puN Documentation/kernel-parameters.txt~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection
++++ a/Documentation/kernel-parameters.txt
+@@ -3070,6 +3070,11 @@ bytes respectively. Such letter suffixes
+ 			[KNL] Should the soft-lockup detector generate panics.
+ 			Format: <integer>
  
--	spin_lock_irqsave(&sysrq_key_table_lock, flags);
-+	rcu_read_lock();
- 	/*
- 	 * Raise the apparent loglevel to maximum so that the sysrq header
- 	 * is shown to provide the user with positive feedback.  We do not
-@@ -554,7 +553,7 @@ void __handle_sysrq(int key, bool check_
- 		printk("\n");
- 		console_loglevel = orig_log_level;
- 	}
--	spin_unlock_irqrestore(&sysrq_key_table_lock, flags);
-+	rcu_read_unlock();
- }
- 
- void handle_sysrq(int key)
-@@ -1043,16 +1042,23 @@ static int __sysrq_swap_key_ops(int key,
-                                 struct sysrq_key_op *remove_op_p)
- {
- 	int retval;
--	unsigned long flags;
- 
--	spin_lock_irqsave(&sysrq_key_table_lock, flags);
-+	spin_lock(&sysrq_key_table_lock);
- 	if (__sysrq_get_key_op(key) == remove_op_p) {
- 		__sysrq_put_key_op(key, insert_op_p);
- 		retval = 0;
- 	} else {
- 		retval = -1;
- 	}
--	spin_unlock_irqrestore(&sysrq_key_table_lock, flags);
-+	spin_unlock(&sysrq_key_table_lock);
++	softlockup_all_cpu_backtrace=
++			[KNL] Should the soft-lockup detector generate
++			backtraces on all cpus.
++			Format: <integer>
 +
-+	/*
-+	 * A concurrent __handle_sysrq eitehr got the old op or the new op.
-+	 * Wait for it to go away before returning, so the code for an old
-+	 * op is not freed (eg. on module unload) while it is in use.
-+	 */
-+	synchronize_rcu();
-+
- 	return retval;
- }
+ 	sonypi.*=	[HW] Sony Programmable I/O Control Device driver
+ 			See Documentation/laptops/sonypi.txt
  
+diff -puN Documentation/sysctl/kernel.txt~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection
++++ a/Documentation/sysctl/kernel.txt
+@@ -75,6 +75,7 @@ show up in /proc/sys/kernel:
+ - shmall
+ - shmmax                      [ sysv ipc ]
+ - shmmni
++- softlockup_all_cpu_backtrace
+ - stop-a                      [ SPARC only ]
+ - sysrq                       ==> Documentation/sysrq.txt
+ - tainted
+@@ -762,6 +763,22 @@ without users and with a dead originativ
+ 
+ ==============================================================
+ 
++softlockup_all_cpu_backtrace:
++
++This value controls the soft lockup detector thread's behavior
++when a soft lockup condition is detected as to whether or not
++to gather further debug information. If enabled, each cpu will
++be issued an NMI and instructed to capture stack trace.
++
++This feature is only applicable for architectures which support
++NMI.
++
++0: do nothing. This is the default behavior.
++
++1: on detection capture more debug information.
++
++==============================================================
++
+ tainted:
+ 
+ Non-zero if the kernel has been tainted.  Numeric values, which
+diff -puN include/linux/nmi.h~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection include/linux/nmi.h
+--- a/include/linux/nmi.h~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection
++++ a/include/linux/nmi.h
+@@ -57,6 +57,9 @@ int hw_nmi_is_cpu_stuck(struct pt_regs *
+ u64 hw_nmi_get_sample_period(int watchdog_thresh);
+ extern int watchdog_user_enabled;
+ extern int watchdog_thresh;
++#ifdef CONFIG_SMP
++extern int sysctl_softlockup_all_cpu_backtrace;
++#endif
+ struct ctl_table;
+ extern int proc_dowatchdog(struct ctl_table *, int ,
+ 			   void __user *, size_t *, loff_t *);
+diff -puN kernel/sysctl.c~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection kernel/sysctl.c
+--- a/kernel/sysctl.c~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection
++++ a/kernel/sysctl.c
+@@ -849,6 +849,17 @@ static struct ctl_table kern_table[] = {
+ 		.extra1		= &zero,
+ 		.extra2		= &one,
+ 	},
++#ifdef CONFIG_SMP
++	{
++		.procname	= "softlockup_all_cpu_backtrace",
++		.data		= &sysctl_softlockup_all_cpu_backtrace,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
++#endif /* CONFIG_SMP */
+ 	{
+ 		.procname       = "nmi_watchdog",
+ 		.data           = &watchdog_user_enabled,
+diff -puN kernel/watchdog.c~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection kernel/watchdog.c
+--- a/kernel/watchdog.c~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection
++++ a/kernel/watchdog.c
+@@ -31,6 +31,7 @@
+ 
+ int watchdog_user_enabled = 1;
+ int __read_mostly watchdog_thresh = 10;
++int __read_mostly sysctl_softlockup_all_cpu_backtrace;
+ static int __read_mostly watchdog_running;
+ static u64 __read_mostly sample_period;
+ 
+@@ -47,6 +48,7 @@ static DEFINE_PER_CPU(bool, watchdog_nmi
+ static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
+ static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
+ #endif
++static unsigned long soft_lockup_nmi_warn;
+ 
+ /* boot commands */
+ /*
+@@ -95,6 +97,15 @@ static int __init nosoftlockup_setup(cha
+ }
+ __setup("nosoftlockup", nosoftlockup_setup);
+ /*  */
++#ifdef CONFIG_SMP
++static int __init softlockup_all_cpu_backtrace_setup(char *str)
++{
++	sysctl_softlockup_all_cpu_backtrace =
++		!!simple_strtol(str, NULL, 0);
++	return 1;
++}
++__setup("softlockup_all_cpu_backtrace=", softlockup_all_cpu_backtrace_setup);
++#endif
+ 
+ /*
+  * Hard-lockup warnings should be triggered after just a few seconds. Soft-
+@@ -271,6 +282,7 @@ static enum hrtimer_restart watchdog_tim
+ 	unsigned long touch_ts = __this_cpu_read(watchdog_touch_ts);
+ 	struct pt_regs *regs = get_irq_regs();
+ 	int duration;
++	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
+ 
+ 	/* kick the hardlockup detector */
+ 	watchdog_interrupt_count();
+@@ -317,6 +329,17 @@ static enum hrtimer_restart watchdog_tim
+ 		if (__this_cpu_read(soft_watchdog_warn) == true)
+ 			return HRTIMER_RESTART;
+ 
++		if (softlockup_all_cpu_backtrace) {
++			/* Prevent multiple soft-lockup reports if one cpu is already
++			 * engaged in dumping cpu back traces
++			 */
++			if (test_and_set_bit(0, &soft_lockup_nmi_warn)) {
++				/* Someone else will report us. Let's give up */
++				__this_cpu_write(soft_watchdog_warn, true);
++				return HRTIMER_RESTART;
++			}
++		}
++
+ 		printk(KERN_EMERG "BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
+ 			smp_processor_id(), duration,
+ 			current->comm, task_pid_nr(current));
+@@ -327,6 +350,17 @@ static enum hrtimer_restart watchdog_tim
+ 		else
+ 			dump_stack();
+ 
++		if (softlockup_all_cpu_backtrace) {
++			/* Avoid generating two back traces for current
++			 * given that one is already made above
++			 */
++			trigger_allbutself_cpu_backtrace();
++
++			clear_bit(0, &soft_lockup_nmi_warn);
++			/* Barrier to sync with other cpus */
++			smp_mb__after_clear_bit();
++		}
++
+ 		if (softlockup_panic)
+ 			panic("softlockup: hung tasks");
+ 		__this_cpu_write(soft_watchdog_warn, true);
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from atomlin@redhat.com are
 
-mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
-x86-require-x86-64-for-automatic-numa-balancing.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-rmap-dont-try-to-add-an-unevictable-page-to-lru-list.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
-mm-compaction-clean-up-unused-code-lines.patch
-mm-compaction-cleanup-isolate_freepages.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix-2.patch
-mm-swapc-clean-up-lru_cache_add-functions.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-sysrq-rcu-ify-__handle_sysrq.patch
-sysrq-rcu-ify-__handle_sysrq-fix.patch
-linux-next.patch
+nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
 
