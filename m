@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-shmc-check-for-ulong-overflows-in-shmat.patch added to -mm
- tree
-Date: Wed, 23 Apr 2014 15:38:32 -0700
-Message-ID: <535840e8.x1SVMJRN1mB0ypkK%akpm@linux-foundation.org>
+Subject: + ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch added to -mm tree
+Date: Wed, 23 Apr 2014 15:38:35 -0700
+Message-ID: <535840eb.Bp3fCsJo5U2FgkP1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60034 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60048 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751817AbaDWWid (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 18:38:33 -0400
+	with ESMTP id S1751817AbaDWWig (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 18:38:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, kosaki.motohiro@jp.fujitsu.com, davidlohr@hp.com, manfred@colorfullife.com
 
-Subject: + ipc-shmc-check-for-ulong-overflows-in-shmat.patch added to -mm tree
+Subject: + ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch added to -mm tree
 To: manfred@colorfullife.com,davidlohr@hp.com,kosaki.motohiro@jp.fujitsu.com,mtk.manpages@gmail.com
 From: akpm@linux-foundation.org
-Date: Wed, 23 Apr 2014 15:38:32 -0700
+Date: Wed, 23 Apr 2014 15:38:35 -0700
 
 
 The patch titled
-     Subject: ipc/shm.c: check for ulong overflows in shmat
+     Subject: ipc/shm.c: increase the defaults for SHMALL, SHMMAX
 has been added to the -mm tree.  Its filename is
-     ipc-shmc-check-for-ulong-overflows-in-shmat.patch
+     ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shmc-check-for-ulong-overflows-in-shmat.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shmc-check-for-ulong-overflows-in-shmat.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,81 +44,103 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/shm.c: check for ulong overflows in shmat
+Subject: ipc/shm.c: increase the defaults for SHMALL, SHMMAX
 
-The increase of SHMMAX/SHMALL is a 4 patch series.
+System V shared memory
 
-The change itself is trivial, the only problem are interger overflows. 
-The overflows are not new, but if we make huge values the default, then
-the code should be free from overflows.
+a) can be abused to trigger out-of-memory conditions and the standard
+   measures against out-of-memory do not work:
 
-SHMMAX:
+    - it is not possible to use setrlimit to limit the size of shm segments.
 
-- shmmem_file_setup places a hard limit on the segment size:
-  MAX_LFS_FILESIZE.
+    - segments can exist without association with any processes, thus
+      the oom-killer is unable to free that memory.
 
-  On 32-bit, the limit is > 1 TB, i.e. 4 GB-1 byte segments are
-  possible. Rounded up to full pages the actual allocated size
-  is 0. --> must be fixed, patch 3
+b) is typically used for shared information - today often multiple GB.
+   (e.g. database shared buffers)
 
-- shmat:
-  - find_vma_intersection does not handle overflows properly.
-    --> must be fixed, patch 1
+The current default is a maximum segment size of 32 MB and a maximum total
+size of 8 GB. This is often too much for a) and not enough for b), which
+means that lots of users must change the defaults.
 
-  - the rest is fine, do_mmap_pgoff limits mappings to TASK_SIZE
-    and checks for overflows (i.e.: map 2 GB, starting from
-    addr=2.5GB fails).
+This patch increases the default limits (nearly) to the maximum, which is
+perfect for case b). The defaults are used after boot and as the initial
+value for each new namespace.
 
-SHMALL:
-- after creating 8192 segments size (1L<<63)-1, shm_tot overflows and
-  returns 0.  --> must be fixed, patch 2.
+Admins/distros that need a protection against a) should reduce the limits
+and/or enable shm_rmid_forced.
 
-Userspace:
-- Obviously, there could be overflows in userspace. There is nothing
-  we can do, only use values smaller than ULONG_MAX.
-  I ended with "ULONG_MAX - 1L<<24":
+Unix has historically required setting these limits for shared memory, and
+Linux inherited such behavior.  The consequence of this is added
+complexity for users and administrators.  One very common example are
+Database setup/installation documents and scripts, where users must
+manually calculate the values for these limits.  This also requires (some)
+knowledge of how the underlying memory management works, thus causing, in
+many occasions, the limits to just be flat out wrong.  Disabling these
+limits sooner could have saved companies a lot of time, headaches and
+money for support.  But it's never too late, simplify users life now.
 
-  - TASK_SIZE cannot be used because it is the size of the current
-    task. Could be 4G if it's a 32-bit task on a 64-bit kernel.
+Further notes:
+- The patch only changes default, overrides behave as before:
+        # sysctl kernel.shmall=33554432
+  would recreate the previous limit for SHMMAX (for the current namespace).
 
-  - The maximum size is not standardized across archs:
-    I found TASK_MAX_SIZE, TASK_SIZE_MAX and TASK_SIZE_64.
+- Disabling sysv shm allocation is possible with:
+        # sysctl kernel.shmall=0
+  (not a new feature, also per-namespace)
 
-  - Just in case some arch revives a 4G/4G split, nearly
-    ULONG_MAX is a valid segment size.
-
-  - Using "0" as a magic value for infinity is even worse, because
-    right now 0 means 0, i.e. fail all allocations.
-
-
-This patch (of 4):
-
-find_vma_intersection() does not work as intended if addr+size overflows. 
-The patch adds a manual check before the call to find_vma_intersection.
+- The limits are intentionally set to a value slightly less than ULONG_MAX,
+  to avoid triggering overflows in user space apps.
+  [not unreasonable, see http://marc.info/?l=linux-mm&m=139638334330127]
 
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: Davidlohr Bueso <davidlohr@hp.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Reported-by: Davidlohr Bueso <davidlohr@hp.com>
 Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/shm.h      |    3 +--
+ include/uapi/linux/shm.h |    8 +++-----
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN ipc/shm.c~ipc-shmc-check-for-ulong-overflows-in-shmat ipc/shm.c
---- a/ipc/shm.c~ipc-shmc-check-for-ulong-overflows-in-shmat
-+++ a/ipc/shm.c
-@@ -1160,6 +1160,9 @@ long do_shmat(int shmid, char __user *sh
- 	down_write(&current->mm->mmap_sem);
- 	if (addr && !(shmflg & SHM_REMAP)) {
- 		err = -EINVAL;
-+		if (addr + size < addr)
-+			goto invalid;
+diff -puN include/linux/shm.h~ipc-shmc-increase-the-defaults-for-shmall-shmmax include/linux/shm.h
+--- a/include/linux/shm.h~ipc-shmc-increase-the-defaults-for-shmall-shmmax
++++ a/include/linux/shm.h
+@@ -3,9 +3,8 @@
+ 
+ #include <asm/page.h>
+ #include <uapi/linux/shm.h>
+-
+-#define SHMALL (SHMMAX/PAGE_SIZE*(SHMMNI/16)) /* max shm system wide (pages) */
+ #include <asm/shmparam.h>
 +
- 		if (find_vma_intersection(current->mm, addr, addr + size))
- 			goto invalid;
- 		/*
+ struct shmid_kernel /* private to the kernel */
+ {	
+ 	struct kern_ipc_perm	shm_perm;
+diff -puN include/uapi/linux/shm.h~ipc-shmc-increase-the-defaults-for-shmall-shmmax include/uapi/linux/shm.h
+--- a/include/uapi/linux/shm.h~ipc-shmc-increase-the-defaults-for-shmall-shmmax
++++ a/include/uapi/linux/shm.h
+@@ -9,15 +9,13 @@
+ 
+ /*
+  * SHMMAX, SHMMNI and SHMALL are upper limits are defaults which can
+- * be increased by sysctl
++ * be modified by sysctl.
+  */
+ 
+-#define SHMMAX 0x2000000		 /* max shared seg size (bytes) */
+ #define SHMMIN 1			 /* min shared seg size (bytes) */
+ #define SHMMNI 4096			 /* max num of segs system wide */
+-#ifndef __KERNEL__
+-#define SHMALL (SHMMAX/getpagesize()*(SHMMNI/16))
+-#endif
++#define SHMMAX (ULONG_MAX - (1L<<24))	 /* max shared seg size (bytes) */
++#define SHMALL (ULONG_MAX - (1L<<24))	 /* max shm system wide (pages) */
+ #define SHMSEG SHMMNI			 /* max shared segs per process */
+ 
+ 
 _
 
 Patches currently in -mm which might be from manfred@colorfullife.com are
