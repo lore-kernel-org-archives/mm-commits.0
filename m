@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch added to -mm tree
-Date: Wed, 23 Apr 2014 13:58:51 -0700
-Message-ID: <5358298b.4jvInWawojK6AIGY%akpm@linux-foundation.org>
+ printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+ added to -mm tree
+Date: Wed, 23 Apr 2014 13:58:52 -0700
+Message-ID: <5358298c.TSDYTnZd1/zVwgvO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59360 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59361 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754970AbaDWU6w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 16:58:52 -0400
+	with ESMTP id S1755272AbaDWU6x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 16:58:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jack@suse.cz, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, jack@suse.cz
 
-Subject: + printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,jack@suse.cz
+Subject: + printk-enable-interrupts-before-calling-console_trylock_for_printk.patch added to -mm tree
+To: jack@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 23 Apr 2014 13:58:51 -0700
+Date: Wed, 23 Apr 2014 13:58:52 -0700
 
 
 The patch titled
-     Subject: printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix
+     Subject: printk: enable interrupts before calling console_trylock_for_printk()
 has been added to the -mm tree.  Its filename is
-     printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+     printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,78 +45,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix
+From: Jan Kara <jack@suse.cz>
+Subject: printk: enable interrupts before calling console_trylock_for_printk()
 
-fix have_callable_console() comment
+We need interrupts disabled when calling console_trylock_for_printk() only
+so that cpu id we pass to can_use_console() remains valid (for other
+things console_sem provides all the exclusion we need and deadlocks on
+console_sem due to interrupts are impossible because we use
+down_trylock()).  However if we are rescheduled, we are guaranteed to run
+on an online cpu so we can easily just get the cpu id in
+can_use_console().
 
-Cc: Jan Kara <jack@suse.cz>
+We can lose a bit of performance when we enable interrupts in
+vprintk_emit() and then disable them again in console_unlock() but OTOH it
+can somewhat reduce interrupt latency caused by console_unlock()
+especially since later in the patch series we will want to spin on
+console_sem in console_trylock_for_printk().
+
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/printk/printk.c |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix
+diff -puN kernel/printk/printk.c~printk-enable-interrupts-before-calling-console_trylock_for_printk kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-enable-interrupts-before-calling-console_trylock_for_printk
 +++ a/kernel/printk/printk.c
-@@ -1377,7 +1377,9 @@ static void zap_locks(void)
- 	sema_init(&console_sem, 1);
- }
- 
--/* Check if we have any console registered that can be called early in boot. */
-+/*
-+ * Check if we have any console registered.  Requires console_sem.
-+ */
- static int have_callable_console(void)
+@@ -1394,10 +1394,9 @@ static int have_callable_console(void)
+ /*
+  * Can we actually use the console at this time on this cpu?
+  *
+- * Console drivers may assume that per-cpu resources have
+- * been allocated. So unless they're explicitly marked as
+- * being able to cope (CON_ANYTIME) don't call them until
+- * this CPU is officially up.
++ * Console drivers may assume that per-cpu resources have been allocated. So
++ * unless they're explicitly marked as being able to cope (CON_ANYTIME) don't
++ * call them until this CPU is officially up.
+  */
+ static inline int can_use_console(unsigned int cpu)
  {
- 	struct console *con;
+@@ -1410,8 +1409,10 @@ static inline int can_use_console(unsign
+  * console_lock held, and 'console_locked' set) if it
+  * is successful, false otherwise.
+  */
+-static int console_trylock_for_printk(unsigned int cpu)
++static int console_trylock_for_printk(void)
+ {
++	unsigned int cpu = smp_processor_id();
++
+ 	if (!console_trylock())
+ 		return 0;
+ 	/*
+@@ -1581,7 +1582,8 @@ asmlinkage int vprintk_emit(int facility
+ 		 */
+ 		if (!oops_in_progress && !lockdep_recursing(current)) {
+ 			recursion_bug = 1;
+-			goto out_restore_irqs;
++			local_irq_restore(flags);
++			return 0;
+ 		}
+ 		zap_locks();
+ 	}
+@@ -1684,17 +1686,22 @@ asmlinkage int vprintk_emit(int facility
+ 
+ 	logbuf_cpu = UINT_MAX;
+ 	raw_spin_unlock(&logbuf_lock);
++	lockdep_on();
++	local_irq_restore(flags);
++
++	/*
++	 * Disable preemption to avoid being preempted while holding
++	 * console_sem which would prevent anyone from printing to console
++	 */
++	preempt_disable();
+ 	/*
+ 	 * Try to acquire and then immediately release the console semaphore.
+ 	 * The release will print out buffers and wake up /dev/kmsg and syslog()
+ 	 * users.
+ 	 */
+-	if (console_trylock_for_printk(this_cpu))
++	if (console_trylock_for_printk())
+ 		console_unlock();
+-
+-	lockdep_on();
+-out_restore_irqs:
+-	local_irq_restore(flags);
++	preempt_enable();
+ 
+ 	return printed_len;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+origin.patch
+fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch
+fanotify-create-fan_access-event-for-readdir.patch
+fs-notify-markc-trivial-cleanup.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+printk-split-code-for-making-free-space-in-the-log-buffer.patch
+printk-ignore-too-long-messages.patch
+printk-split-message-size-computation.patch
+printk-shrink-too-long-messages.patch
+printk-return-really-stored-message-length.patch
+printk-remove-outdated-comment.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch
 printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+printk-remove-separate-printk_sched-buffers-and-use-printk-buf-instead.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-add-strictlimit-knob-v2.patch
 
