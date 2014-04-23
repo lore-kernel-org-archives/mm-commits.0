@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
- added to -mm tree
-Date: Wed, 23 Apr 2014 14:14:15 -0700
-Message-ID: <53582d27.pFCDt5RkOQroUp0+%akpm@linux-foundation.org>
+ nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch added to -mm tree
+Date: Wed, 23 Apr 2014 14:14:12 -0700
+Message-ID: <53582d24.lJEDS61QxlzPs1ql%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59418 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59412 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754038AbaDWVOQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 17:14:16 -0400
+	with ESMTP id S1754038AbaDWVON (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 17:14:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, oleg@redhat.com, mguzik@redhat.com, dzickus@redhat.com, davem@davemloft.net, atomlin@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, oleg@redhat.com, mguzik@redhat.com, dzickus@redhat.com, davem@davemloft.net, atomlin@redhat.com
 
-Subject: + kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,atomlin@redhat.com,davem@davemloft.net,dzickus@redhat.com,mguzik@redhat.com,oleg@redhat.com
+Subject: + nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch added to -mm tree
+To: atomlin@redhat.com,davem@davemloft.net,dzickus@redhat.com,mguzik@redhat.com,oleg@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 23 Apr 2014 14:14:15 -0700
+Date: Wed, 23 Apr 2014 14:14:12 -0700
 
 
 The patch titled
-     Subject: kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix
+     Subject: nmi: provide the option to issue an NMI back trace to every cpu but current
 has been added to the -mm tree.  Its filename is
-     kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+     nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,100 +44,186 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix
+From: Aaron Tomlin <atomlin@redhat.com>
+Subject: nmi: provide the option to issue an NMI back trace to every cpu but current
 
-additional CONFIG_SMP=n optimisations
+Sometimes it is preferred not to use the trigger_all_cpu_backtrace()
+routine when one wants to avoid capturing a back trace for current.  For
+instance if one was previously captured recently.
 
-Cc: Aaron Tomlin <atomlin@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Don Zickus <dzickus@redhat.com>
+This patch provides a new routine namely
+trigger_allbutself_cpu_backtrace() which offers the flexibility to issue
+an NMI to every cpu but current and capture a back trace accordingly.
+
+Patch x86 and sparc to support new routine.
+
+[dzickus@redhat.com: add stub in #else clause]
+[dzickus@redhat.com: don't print message in single processor case, wrap with get/put_cpu based on Oleg's suggestion]
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 Cc: Mateusz Guzik <mguzik@redhat.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h |    2 --
- kernel/watchdog.c   |    5 +++++
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/irq_64.h |    2 +-
+ arch/sparc/kernel/process_64.c  |   14 +++++++++-----
+ arch/x86/include/asm/irq.h      |    2 +-
+ arch/x86/kernel/apic/hw_nmi.c   |   17 +++++++++++++----
+ include/linux/nmi.h             |   11 ++++++++++-
+ 5 files changed, 34 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/nmi.h~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix include/linux/nmi.h
---- a/include/linux/nmi.h~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix
-+++ a/include/linux/nmi.h
-@@ -57,9 +57,7 @@ int hw_nmi_is_cpu_stuck(struct pt_regs *
- u64 hw_nmi_get_sample_period(int watchdog_thresh);
- extern int watchdog_user_enabled;
- extern int watchdog_thresh;
--#ifdef CONFIG_SMP
- extern int sysctl_softlockup_all_cpu_backtrace;
--#endif
- struct ctl_table;
- extern int proc_dowatchdog(struct ctl_table *, int ,
- 			   void __user *, size_t *, loff_t *);
-diff -puN kernel/watchdog.c~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix
-+++ a/kernel/watchdog.c
-@@ -31,7 +31,12 @@
+diff -puN arch/sparc/include/asm/irq_64.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current arch/sparc/include/asm/irq_64.h
+--- a/arch/sparc/include/asm/irq_64.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current
++++ a/arch/sparc/include/asm/irq_64.h
+@@ -89,7 +89,7 @@ static inline unsigned long get_softint(
+ 	return retval;
+ }
  
- int watchdog_user_enabled = 1;
- int __read_mostly watchdog_thresh = 10;
-+#ifdef CONFIG_SMP
- int __read_mostly sysctl_softlockup_all_cpu_backtrace;
-+#else
-+#define sysctl_softlockup_all_cpu_backtrace 0
-+#endif
+-void arch_trigger_all_cpu_backtrace(void);
++void arch_trigger_all_cpu_backtrace(bool);
+ #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
+ 
+ extern void *hardirq_stack[NR_CPUS];
+diff -puN arch/sparc/kernel/process_64.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current arch/sparc/kernel/process_64.c
+--- a/arch/sparc/kernel/process_64.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current
++++ a/arch/sparc/kernel/process_64.c
+@@ -239,7 +239,7 @@ static void __global_reg_poll(struct glo
+ 	}
+ }
+ 
+-void arch_trigger_all_cpu_backtrace(void)
++void arch_trigger_all_cpu_backtrace(bool include_self)
+ {
+ 	struct thread_info *tp = current_thread_info();
+ 	struct pt_regs *regs = get_irq_regs();
+@@ -251,15 +251,19 @@ void arch_trigger_all_cpu_backtrace(void
+ 
+ 	spin_lock_irqsave(&global_cpu_snapshot_lock, flags);
+ 
+-	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
+-
+ 	this_cpu = raw_smp_processor_id();
+ 
+-	__global_reg_self(tp, regs, this_cpu);
++	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
 +
- static int __read_mostly watchdog_running;
- static u64 __read_mostly sample_period;
++	if (include_self)
++		__global_reg_self(tp, regs, this_cpu);
  
+ 	smp_fetch_global_regs();
+ 
+ 	for_each_online_cpu(cpu) {
++		if (!include_self && cpu == this_cpu)
++			continue;
++
+ 		struct global_reg_snapshot *gp = &global_cpu_snapshot[cpu].reg;
+ 
+ 		__global_reg_poll(gp);
+@@ -292,7 +296,7 @@ void arch_trigger_all_cpu_backtrace(void
+ 
+ static void sysrq_handle_globreg(int key)
+ {
+-	arch_trigger_all_cpu_backtrace();
++	arch_trigger_all_cpu_backtrace(true);
+ }
+ 
+ static struct sysrq_key_op sparc_globalreg_op = {
+diff -puN arch/x86/include/asm/irq.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current arch/x86/include/asm/irq.h
+--- a/arch/x86/include/asm/irq.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current
++++ a/arch/x86/include/asm/irq.h
+@@ -43,7 +43,7 @@ extern int vector_used_by_percpu_irq(uns
+ extern void init_ISA_irqs(void);
+ 
+ #ifdef CONFIG_X86_LOCAL_APIC
+-void arch_trigger_all_cpu_backtrace(void);
++void arch_trigger_all_cpu_backtrace(bool);
+ #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
+ #endif
+ 
+diff -puN arch/x86/kernel/apic/hw_nmi.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current arch/x86/kernel/apic/hw_nmi.c
+--- a/arch/x86/kernel/apic/hw_nmi.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current
++++ a/arch/x86/kernel/apic/hw_nmi.c
+@@ -33,31 +33,40 @@ static DECLARE_BITMAP(backtrace_mask, NR
+ /* "in progress" flag of arch_trigger_all_cpu_backtrace */
+ static unsigned long backtrace_flag;
+ 
+-void arch_trigger_all_cpu_backtrace(void)
++void arch_trigger_all_cpu_backtrace(bool include_self)
+ {
+ 	int i;
++	int cpu = get_cpu();
+ 
+-	if (test_and_set_bit(0, &backtrace_flag))
++	if (test_and_set_bit(0, &backtrace_flag)) {
+ 		/*
+ 		 * If there is already a trigger_all_cpu_backtrace() in progress
+ 		 * (backtrace_flag == 1), don't output double cpu dump infos.
+ 		 */
++		put_cpu();
+ 		return;
++	}
+ 
+ 	cpumask_copy(to_cpumask(backtrace_mask), cpu_online_mask);
++	if (!include_self)
++		cpumask_clear_cpu(cpu, to_cpumask(backtrace_mask));
+ 
+-	printk(KERN_INFO "sending NMI to all CPUs:\n");
+-	apic->send_IPI_all(NMI_VECTOR);
++	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
++		pr_info("sending NMI to %s CPUs:\n", (include_self ? "all" : "other"));
++		apic->send_IPI_mask(to_cpumask(backtrace_mask), NMI_VECTOR);
++	}
+ 
+ 	/* Wait for up to 10 seconds for all CPUs to do the backtrace */
+ 	for (i = 0; i < 10 * 1000; i++) {
+ 		if (cpumask_empty(to_cpumask(backtrace_mask)))
+ 			break;
+ 		mdelay(1);
++		touch_softlockup_watchdog();
+ 	}
+ 
+ 	clear_bit(0, &backtrace_flag);
+ 	smp_mb__after_clear_bit();
++	put_cpu();
+ }
+ 
+ static int __kprobes
+diff -puN include/linux/nmi.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current include/linux/nmi.h
+--- a/include/linux/nmi.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current
++++ a/include/linux/nmi.h
+@@ -32,15 +32,24 @@ static inline void touch_nmi_watchdog(vo
+ #ifdef arch_trigger_all_cpu_backtrace
+ static inline bool trigger_all_cpu_backtrace(void)
+ {
+-	arch_trigger_all_cpu_backtrace();
++	arch_trigger_all_cpu_backtrace(true);
+ 
+ 	return true;
+ }
++static inline bool trigger_allbutself_cpu_backtrace(void)
++{
++	arch_trigger_all_cpu_backtrace(false);
++	return true;
++}
+ #else
+ static inline bool trigger_all_cpu_backtrace(void)
+ {
+ 	return false;
+ }
++static inline bool trigger_allbutself_cpu_backtrace(void)
++{
++	return false;
++}
+ #endif
+ 
+ #ifdef CONFIG_LOCKUP_DETECTOR
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from atomlin@redhat.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
 kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-sysrq-rcu-ify-__handle_sysrq-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
