@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-fix-lockref-lookup.patch added to -mm tree
-Date: Wed, 23 Apr 2014 14:46:46 -0700
-Message-ID: <535834c6.WIFVamdQFXe7b8qZ%akpm@linux-foundation.org>
+Subject: + fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch added to -mm
+ tree
+Date: Wed, 23 Apr 2014 15:09:20 -0700
+Message-ID: <53583a10.peoj9pTLibm52Opn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59615 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59735 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751540AbaDWVqr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 17:46:47 -0400
+	with ESMTP id S1751288AbaDWWJV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 18:09:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, torvalds@linux-foundation.org, raven@themaw.net
+To: mm-commits@vger.kernel.org, rminnich@sandia.gov, ericvh@gmail.com, fabf@skynet.be
 
-Subject: + autofs-fix-lockref-lookup.patch added to -mm tree
-To: raven@themaw.net,torvalds@linux-foundation.org,viro@zeniv.linux.org.uk
+Subject: + fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch added to -mm tree
+To: fabf@skynet.be,ericvh@gmail.com,rminnich@sandia.gov
 From: akpm@linux-foundation.org
-Date: Wed, 23 Apr 2014 14:46:46 -0700
+Date: Wed, 23 Apr 2014 15:09:20 -0700
 
 
 The patch titled
-     Subject: autofs: fix lockref lookup
+     Subject: fs/9p/v9fs.c: add __init to v9fs_sysfs_init
 has been added to the -mm tree.  Its filename is
-     autofs-fix-lockref-lookup.patch
+     fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-fix-lockref-lookup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-fix-lockref-lookup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,56 +44,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ian Kent <raven@themaw.net>
-Subject: autofs: fix lockref lookup
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/9p/v9fs.c: add __init to v9fs_sysfs_init
 
-autofs needs to be able to see private data dentry flags for its dentrys
-that are being created but not yet hashed and for its dentrys that have
-been rmdir()ed but not yet freed.  It needs to do this so it can block
-processes in these states until a status has been returned to indicate the
-given operation is complete.
+v9fs_sysfs_init is only called by __init init_v9fs
 
-It does this by keeping two lists, active and expring, of dentrys in this
-state and uses ->d_release() to keep them stable while it checks the
-reference count to determine if they should be used.
-
-But with the recent lockref changes dentrys being freed sometimes don't
-transition to a reference count of 0 before being freed so autofs can
-occassionally use a dentry that is invalid which can lead to a panic.
-
-Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/9p/v9fs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/root.c~autofs-fix-lockref-lookup fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs-fix-lockref-lookup
-+++ a/fs/autofs4/root.c
-@@ -179,7 +179,7 @@ static struct dentry *autofs4_lookup_act
- 		spin_lock(&active->d_lock);
+diff -puN fs/9p/v9fs.c~fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init fs/9p/v9fs.c
+--- a/fs/9p/v9fs.c~fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init
++++ a/fs/9p/v9fs.c
+@@ -537,7 +537,7 @@ static struct attribute_group v9fs_attr_
+  *
+  */
  
- 		/* Already gone? */
--		if (!d_count(active))
-+		if ((int) d_count(active) <= 0)
- 			goto next;
- 
- 		qstr = &active->d_name;
-@@ -230,7 +230,7 @@ static struct dentry *autofs4_lookup_exp
- 
- 		spin_lock(&expiring->d_lock);
- 
--		/* Bad luck, we've already been dentry_iput */
-+		/* We've already been dentry_iput or unlinked */
- 		if (!expiring->d_inode)
- 			goto next;
- 
+-static int v9fs_sysfs_init(void)
++static int __init v9fs_sysfs_init(void)
+ {
+ 	v9fs_kobj = kobject_create_and_add("9p", fs_kobj);
+ 	if (!v9fs_kobj)
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-autofs-fix-lockref-lookup.patch
+ntfs-remove-null-value-assignments.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+linux-next.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-isofs-logging-clean-up.patch
 
