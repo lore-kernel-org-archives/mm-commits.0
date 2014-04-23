@@ -1,60 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch removed
- from -mm tree
-Date: Wed, 23 Apr 2014 13:21:01 -0700
-Message-ID: <535820ad.cHsCEv3scg1a0088%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-gupc-tweaks.patch removed from -mm tree
+Date: Wed, 23 Apr 2014 13:21:05 -0700
+Message-ID: <535820b1.lJ1HQJELfP2lX7JV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59097 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59102 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757602AbaDWUVC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 16:21:02 -0400
+	with ESMTP id S1757602AbaDWUVG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 16:21:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
 
-Subject: [to-be-updated] mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch removed from -mm tree
+Subject: [to-be-updated] mm-gupc-tweaks.patch removed from -mm tree
 To: akpm@linux-foundation.org,kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 23 Apr 2014 13:21:01 -0700
+Date: Wed, 23 Apr 2014 13:21:05 -0700
 
 
 The patch titled
-     Subject: mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix
+     Subject: mm/gup.c: tweaks
 has been removed from the -mm tree.  Its filename was
-     mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix.patch
+     mm-gupc-tweaks.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix
+Subject: mm/gup.c: tweaks
 
-s/BUILD_BUG/BUG/
+- include some more header files, but many are still missed
+- fix some 80-col overflows by removing unneeded `inline'
 
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix mm/gup.c
---- a/mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages-fix
+diff -puN mm/gup.c~mm-gupc-tweaks mm/gup.c
+--- a/mm/gup.c~mm-gupc-tweaks
 +++ a/mm/gup.c
-@@ -453,7 +453,7 @@ long __get_user_pages(struct task_struct
- 				case -ENOENT:
- 					goto next_page;
- 				default:
--					BUILD_BUG();
-+					BUG();
- 				}
- 				cond_resched();
- 			}
+@@ -1,3 +1,8 @@
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/err.h>
++#include <linux/spinlock.h>
++
+ #include <linux/hugetlb.h>
+ #include <linux/mm.h>
+ #include <linux/rmap.h>
+@@ -6,8 +11,8 @@
+ 
+ #include "internal.h"
+ 
+-static inline struct page *no_page_table(struct vm_area_struct *vma,
+-		unsigned int flags)
++static struct page *no_page_table(struct vm_area_struct *vma,
++				  unsigned int flags)
+ {
+ 	/*
+ 	 * When core dumping an enormous anonymous area that nobody
+@@ -208,7 +213,7 @@ struct page *follow_page_mask(struct vm_
+ 	return follow_page_pte(vma, address, pmd, flags);
+ }
+ 
+-static inline int stack_guard_page(struct vm_area_struct *vma, unsigned long addr)
++static int stack_guard_page(struct vm_area_struct *vma, unsigned long addr)
+ {
+ 	return stack_guard_page_start(vma, addr) ||
+ 	       stack_guard_page_end(vma, addr+PAGE_SIZE);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +100,6 @@ mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
 hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
 mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
 fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-gupc-tweaks.patch
 mm-gupc-tweaks-fix.patch
 mm-compaction-cleanup-isolate_freepages-fix.patch
 arc-call-find_vma-with-the-mmap_sem-held-fix.patch
