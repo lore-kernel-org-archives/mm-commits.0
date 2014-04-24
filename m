@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage.patch
- added to -mm tree
-Date: Thu, 24 Apr 2014 11:17:58 -0700
-Message-ID: <53595556.i759dfQgkWsRJ1s9%akpm@linux-foundation.org>
+Subject: + brd-add-support-for-rw_page.patch added to -mm tree
+Date: Thu, 24 Apr 2014 11:18:02 -0700
+Message-ID: <5359555a.f+2HLB2vu2DdA6Xy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38236 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758790AbaDXSR7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 14:17:59 -0400
+	with ESMTP id S1758842AbaDXSSD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 14:18:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, hughd@google.com, dheeraj.reddy@intel.com, david@fromorbit.com, matthew.r.wilcox@intel.com
 
-Subject: + fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage.patch added to -mm tree
+Subject: + brd-add-support-for-rw_page.patch added to -mm tree
 To: matthew.r.wilcox@intel.com,david@fromorbit.com,dheeraj.reddy@intel.com,hughd@google.com
 From: akpm@linux-foundation.org
-Date: Thu, 24 Apr 2014 11:17:58 -0700
+Date: Thu, 24 Apr 2014 11:18:02 -0700
 
 
 The patch titled
-     Subject: fs/mpage.c: factor clean_buffers() out of __mpage_writepage()
+     Subject: brd: add support for rw_page()
 has been added to the -mm tree.  Its filename is
-     fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage.patch
+     brd-add-support-for-rw_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/brd-add-support-for-rw_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/brd-add-support-for-rw_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,12 +44,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: fs/mpage.c: factor clean_buffers() out of __mpage_writepage()
-
-__mpage_writepage() is over 200 lines long, has 20 local variables, four
-goto labels and could desperately use simplification.  Splitting
-clean_buffers() into a helper function improves matters a little, removing
-20+ lines from it.
+Subject: brd: add support for rw_page()
 
 Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
@@ -59,80 +53,36 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |   54 ++++++++++++++++++++++++++++-----------------------
- 1 file changed, 30 insertions(+), 24 deletions(-)
+ drivers/block/brd.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/mpage.c~fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage fs/mpage.c
---- a/fs/mpage.c~fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage
-+++ a/fs/mpage.c
-@@ -439,6 +439,35 @@ struct mpage_data {
- 	unsigned use_writepage;
- };
+diff -puN drivers/block/brd.c~brd-add-support-for-rw_page drivers/block/brd.c
+--- a/drivers/block/brd.c~brd-add-support-for-rw_page
++++ a/drivers/block/brd.c
+@@ -360,6 +360,15 @@ out:
+ 	bio_endio(bio, err);
+ }
  
-+/*
-+ * We have our BIO, so we can now mark the buffers clean.  Make
-+ * sure to only clean buffers which we know we'll be writing.
-+ */
-+static void clean_buffers(struct page *page, unsigned first_unmapped)
++static int brd_rw_page(struct block_device *bdev, sector_t sector,
++		       struct page *page, int rw)
 +{
-+	unsigned buffer_counter = 0;
-+	struct buffer_head *bh, *head;
-+	if (!page_has_buffers(page))
-+		return;
-+	head = page_buffers(page);
-+	bh = head;
-+
-+	do {
-+		if (buffer_counter++ == first_unmapped)
-+			break;
-+		clear_buffer_dirty(bh);
-+		bh = bh->b_this_page;
-+	} while (bh != head);
-+
-+	/*
-+	 * we cannot drop the bh if the page is not uptodate or a concurrent
-+	 * readpage would fail to serialize with the bh and it would read from
-+	 * disk before we reach the platter.
-+	 */
-+	if (buffer_heads_over_limit && PageUptodate(page))
-+		try_to_free_buffers(page);
++	struct brd_device *brd = bdev->bd_disk->private_data;
++	int err = brd_do_bvec(brd, page, PAGE_CACHE_SIZE, 0, rw, sector);
++	page_endio(page, rw & WRITE, err);
++	return err;
 +}
 +
- static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
- 		      void *data)
- {
-@@ -592,30 +621,7 @@ alloc_new:
- 		goto alloc_new;
- 	}
+ #ifdef CONFIG_BLK_DEV_XIP
+ static int brd_direct_access(struct block_device *bdev, sector_t sector,
+ 			void **kaddr, unsigned long *pfn)
+@@ -419,6 +428,7 @@ static int brd_ioctl(struct block_device
  
--	/*
--	 * OK, we have our BIO, so we can now mark the buffers clean.  Make
--	 * sure to only clean buffers which we know we'll be writing.
--	 */
--	if (page_has_buffers(page)) {
--		struct buffer_head *head = page_buffers(page);
--		struct buffer_head *bh = head;
--		unsigned buffer_counter = 0;
--
--		do {
--			if (buffer_counter++ == first_unmapped)
--				break;
--			clear_buffer_dirty(bh);
--			bh = bh->b_this_page;
--		} while (bh != head);
--
--		/*
--		 * we cannot drop the bh if the page is not uptodate
--		 * or a concurrent readpage would fail to serialize with the bh
--		 * and it would read from disk before we reach the platter.
--		 */
--		if (buffer_heads_over_limit && PageUptodate(page))
--			try_to_free_buffers(page);
--	}
-+	clean_buffers(page, first_unmapped);
- 
- 	BUG_ON(PageWriteback(page));
- 	set_page_writeback(page);
+ static const struct block_device_operations brd_fops = {
+ 	.owner =		THIS_MODULE,
++	.rw_page =		brd_rw_page,
+ 	.ioctl =		brd_ioctl,
+ #ifdef CONFIG_BLK_DEV_XIP
+ 	.direct_access =	brd_direct_access,
 _
 
 Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
