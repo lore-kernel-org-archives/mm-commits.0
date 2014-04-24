@@ -1,109 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] arm-use-generic-fixmaph.patch removed from -mm tree
-Date: Thu, 24 Apr 2014 10:07:57 -0700
-Message-ID: <535944ed.4VlsckzvB/u1scEZ%akpm@linux-foundation.org>
+Subject: +
+ printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch added to -mm tree
+Date: Thu, 24 Apr 2014 10:10:25 -0700
+Message-ID: <53594581.OYDpboL7nA2+I/Np%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37800 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37804 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758695AbaDXRH6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 13:07:58 -0400
+	with ESMTP id S1758750AbaDXRK0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 13:10:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux@arm.linux.org.uk, msalter@redhat.com
+To: mm-commits@vger.kernel.org, jack@suse.cz, akpm@linux-foundation.org
 
-Subject: [withdrawn] arm-use-generic-fixmaph.patch removed from -mm tree
-To: msalter@redhat.com,linux@arm.linux.org.uk,mm-commits@vger.kernel.org
+Subject: + printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,jack@suse.cz
 From: akpm@linux-foundation.org
-Date: Thu, 24 Apr 2014 10:07:57 -0700
+Date: Thu, 24 Apr 2014 10:10:25 -0700
 
 
 The patch titled
-     Subject: arm: use generic fixmap.h
-has been removed from the -mm tree.  Its filename was
-     arm-use-generic-fixmaph.patch
+     Subject: printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix
+has been added to the -mm tree.  Its filename is
+     printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Mark Salter <msalter@redhat.com>
-Subject: arm: use generic fixmap.h
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix
 
-ARM is different from other architectures in that fixmap pages are indexed
-with a positive offset from FIXADDR_START.  Other architectures index with
-a negative offset from FIXADDR_TOP.  In order to use the generic fixmap.h
-definitions, this patch redefines FIXADDR_TOP to be inclusive of the
-useable range.  That is, FIXADDR_TOP is the virtual address of the topmost
-fixed page.  The newly defined FIXADDR_END is the first virtual address
-past the fixed mappings.
+fix have_callable_console() comment
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/fixmap.h |   29 ++++++++---------------------
- arch/arm/mm/init.c            |    2 +-
- 2 files changed, 9 insertions(+), 22 deletions(-)
+ kernel/printk/printk.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/include/asm/fixmap.h~arm-use-generic-fixmaph arch/arm/include/asm/fixmap.h
---- a/arch/arm/include/asm/fixmap.h~arm-use-generic-fixmaph
-+++ a/arch/arm/include/asm/fixmap.h
-@@ -14,28 +14,15 @@
-  */
+diff -puN kernel/printk/printk.c~printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix
++++ a/kernel/printk/printk.c
+@@ -1377,7 +1377,10 @@ static void zap_locks(void)
+ 	sema_init(&console_sem, 1);
+ }
  
- #define FIXADDR_START		0xfff00000UL
--#define FIXADDR_TOP		0xfffe0000UL
--#define FIXADDR_SIZE		(FIXADDR_TOP - FIXADDR_START)
-+#define FIXADDR_END		0xfffe0000UL
-+#define FIXADDR_TOP		(FIXADDR_END - PAGE_SIZE)
- 
--#define FIX_KMAP_BEGIN		0
--#define FIX_KMAP_END		(FIXADDR_SIZE >> PAGE_SHIFT)
-+enum fixed_addresses {
-+	FIX_KMAP_BEGIN,
-+	FIX_KMAP_END = (FIXADDR_TOP - FIXADDR_START) >> PAGE_SHIFT,
-+	__end_of_fixed_addresses
-+};
- 
--#define __fix_to_virt(x)	(FIXADDR_START + ((x) << PAGE_SHIFT))
--#define __virt_to_fix(x)	(((x) - FIXADDR_START) >> PAGE_SHIFT)
--
--extern void __this_fixmap_does_not_exist(void);
--
--static inline unsigned long fix_to_virt(const unsigned int idx)
--{
--	if (idx >= FIX_KMAP_END)
--		__this_fixmap_does_not_exist();
--	return __fix_to_virt(idx);
--}
--
--static inline unsigned int virt_to_fix(const unsigned long vaddr)
--{
--	BUG_ON(vaddr >= FIXADDR_TOP || vaddr < FIXADDR_START);
--	return __virt_to_fix(vaddr);
--}
-+#include <asm-generic/fixmap.h>
- 
- #endif
-diff -puN arch/arm/mm/init.c~arm-use-generic-fixmaph arch/arm/mm/init.c
---- a/arch/arm/mm/init.c~arm-use-generic-fixmaph
-+++ a/arch/arm/mm/init.c
-@@ -578,7 +578,7 @@ void __init mem_init(void)
- 			MLK(DTCM_OFFSET, (unsigned long) dtcm_end),
- 			MLK(ITCM_OFFSET, (unsigned long) itcm_end),
- #endif
--			MLK(FIXADDR_START, FIXADDR_TOP),
-+			MLK(FIXADDR_START, FIXADDR_END),
- 			MLM(VMALLOC_START, VMALLOC_END),
- 			MLM(PAGE_OFFSET, (unsigned long)high_memory),
- #ifdef CONFIG_HIGHMEM
+-/* Check if we have any console registered that can be called early in boot. */
++/*
++ * Check if we have any console that is capable of printing while cpu is
++ * booting or shutting down. Requires console_sem.
++ */
+ static int have_callable_console(void)
+ {
+ 	struct console *con;
 _
 
-Patches currently in -mm which might be from msalter@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+sysrq-rcu-ify-__handle_sysrq-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
