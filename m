@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + brd-add-support-for-rw_page.patch added to -mm tree
-Date: Thu, 24 Apr 2014 11:18:02 -0700
-Message-ID: <5359555a.f+2HLB2vu2DdA6Xy%akpm@linux-foundation.org>
+Subject: + mm-page_ioc-work-around-gcc-bug.patch added to -mm tree
+Date: Thu, 24 Apr 2014 11:47:29 -0700
+Message-ID: <53595c41.Zhle5zEWYRn7qXLj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38236 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38589 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758842AbaDXSSD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 14:18:03 -0400
+	with ESMTP id S932330AbaDXSr3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 14:47:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hughd@google.com, dheeraj.reddy@intel.com, david@fromorbit.com, matthew.r.wilcox@intel.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, akpm@linux-foundation.org
 
-Subject: + brd-add-support-for-rw_page.patch added to -mm tree
-To: matthew.r.wilcox@intel.com,david@fromorbit.com,dheeraj.reddy@intel.com,hughd@google.com
+Subject: + mm-page_ioc-work-around-gcc-bug.patch added to -mm tree
+To: akpm@linux-foundation.org,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 24 Apr 2014 11:18:02 -0700
+Date: Thu, 24 Apr 2014 11:47:29 -0700
 
 
 The patch titled
-     Subject: brd: add support for rw_page()
+     Subject: mm/page_io.c: work around gcc bug
 has been added to the -mm tree.  Its filename is
-     brd-add-support-for-rw_page.patch
+     mm-page_ioc-work-around-gcc-bug.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/brd-add-support-for-rw_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_ioc-work-around-gcc-bug.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/brd-add-support-for-rw_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_ioc-work-around-gcc-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,59 +43,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: brd: add support for rw_page()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/page_io.c: work around gcc bug
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dheeraj Reddy <dheeraj.reddy@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+gcc-4.4.4 (at least) screws up this initialization.
+
+mm/page_io.c: In function '__swap_writepage':
+mm/page_io.c:277: error: unknown field 'bvec' specified in initializer
+mm/page_io.c:278: warning: excess elements in struct initializer
+mm/page_io.c:278: warning: (near initialization for 'from')
+
+Fixes f990bbc9bfa3cbd2d ("bio_vec-backed iov_iter").
+
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/brd.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/page_io.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/brd.c~brd-add-support-for-rw_page drivers/block/brd.c
---- a/drivers/block/brd.c~brd-add-support-for-rw_page
-+++ a/drivers/block/brd.c
-@@ -360,6 +360,15 @@ out:
- 	bio_endio(bio, err);
- }
+diff -puN mm/page_io.c~mm-page_ioc-work-around-gcc-bug mm/page_io.c
+--- a/mm/page_io.c~mm-page_ioc-work-around-gcc-bug
++++ a/mm/page_io.c
+@@ -274,9 +274,10 @@ int __swap_writepage(struct page *page,
+ 			.count = PAGE_SIZE,
+ 			.iov_offset = 0,
+ 			.nr_segs = 1,
+-			.bvec = &bv
+ 		};
  
-+static int brd_rw_page(struct block_device *bdev, sector_t sector,
-+		       struct page *page, int rw)
-+{
-+	struct brd_device *brd = bdev->bd_disk->private_data;
-+	int err = brd_do_bvec(brd, page, PAGE_CACHE_SIZE, 0, rw, sector);
-+	page_endio(page, rw & WRITE, err);
-+	return err;
-+}
++		from.bvec = &bv;
 +
- #ifdef CONFIG_BLK_DEV_XIP
- static int brd_direct_access(struct block_device *bdev, sector_t sector,
- 			void **kaddr, unsigned long *pfn)
-@@ -419,6 +428,7 @@ static int brd_ioctl(struct block_device
- 
- static const struct block_device_operations brd_fops = {
- 	.owner =		THIS_MODULE,
-+	.rw_page =		brd_rw_page,
- 	.ioctl =		brd_ioctl,
- #ifdef CONFIG_BLK_DEV_XIP
- 	.direct_access =	brd_direct_access,
+ 		init_sync_kiocb(&kiocb, swap_file);
+ 		kiocb.ki_pos = page_file_offset(page);
+ 		kiocb.ki_nbytes = PAGE_SIZE;
 _
 
-Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-fs-bufferc-remove-block_write_full_page_endio.patch
-fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage.patch
-fs-mpagec-factor-page_endio-out-of-mpage_end_io.patch
-fs-block_devc-add-bdev_read_page-and-bdev_write_page.patch
-swap-use-bdev_read_page-bdev_write_page.patch
-brd-add-support-for-rw_page.patch
-brd-return-enospc-rather-than-enomem-on-page-allocation-failure.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+fs-pstore-logging-clean-up-fix.patch
+sysrq-rcu-ify-__handle_sysrq-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
