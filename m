@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + slab-fix-the-type-of-the-index-on-freelist-index-accessor.patch added to -mm tree
-Date: Thu, 24 Apr 2014 10:23:40 -0700
-Message-ID: <5359489c.FY9XcnwNhc5e8iWg%akpm@linux-foundation.org>
+Subject: + fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+ added to -mm tree
+Date: Thu, 24 Apr 2014 10:47:11 -0700
+Message-ID: <53594e1f.rXJY0if3Z7IDvJcK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38037 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754765AbaDXRXl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 13:23:41 -0400
+	with ESMTP id S1754688AbaDXRrM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 13:47:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sfking@fdwdc.com, penberg@kernel.org, james.hogan@imgtec.com, cl@linux.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, dushistov@mail.ru, fabf@skynet.be
 
-Subject: + slab-fix-the-type-of-the-index-on-freelist-index-accessor.patch added to -mm tree
-To: iamjoonsoo.kim@lge.com,cl@linux.com,james.hogan@imgtec.com,penberg@kernel.org,sfking@fdwdc.com
+Subject: + fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch added to -mm tree
+To: fabf@skynet.be,dushistov@mail.ru
 From: akpm@linux-foundation.org
-Date: Thu, 24 Apr 2014 10:23:40 -0700
+Date: Thu, 24 Apr 2014 10:47:11 -0700
 
 
 The patch titled
-     Subject: slab: fix the type of the index on freelist index accessor
+     Subject: fs/ufs/balloc.c: remove err parameter in ufs_add_fragments
 has been added to the -mm tree.  Its filename is
-     slab-fix-the-type-of-the-index-on-freelist-index-accessor.patch
+     fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-fix-the-type-of-the-index-on-freelist-index-accessor.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-fix-the-type-of-the-index-on-freelist-index-accessor.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,79 +44,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: slab: fix the type of the index on freelist index accessor
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/ufs/balloc.c: remove err parameter in ufs_add_fragments
 
-commit a41adfaa23dfe58d ("slab: introduce byte sized index for the
-freelist of a slab") changes the size of freelist index and also changes
-prototype of accessor function to freelist index.  And there was a
-mistake.
+err is used in ufs_new_fragments (ufs_add_fragments only callsite)
+not in ufs_add_fragments.
 
-The mistake is that although it changes the size of freelist index
-correctly, it changes the size of the index of freelist index incorrectly.
- With patch, freelist index can be 1 byte or 2 bytes, that means that num
-of object on on a slab can be more than 255.  So we need more than 1 byte
-for the index to find the index of free object on freelist.  But, above
-patch makes this index type 1 byte, so slab which have more than 255
-objects cannot work properly and in consequence of it, the system cannot
-boot.
-
-This issue was reported by Steven King on m68knommu which would use 2
-bytes freelist index.  Please refer following link.
-
-https://lkml.org/lkml/2014/4/16/433
-
-To fix it is so easy.  To change the type of the index of freelist index
-on accessor functions is enough to fix this bug.  Although 2 bytes is
-enough, I use 4 bytes since it have no bad effect and make things more
-easier.  This fix was suggested and tested by Steven in his original
-report.
-
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Steven King <sfking@fdwdc.com>
-Acked-by: Steven King <sfking@fdwdc.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Tested-by: James Hogan <james.hogan@imgtec.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ufs/balloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab.c~slab-fix-the-type-of-the-index-on-freelist-index-accessor mm/slab.c
---- a/mm/slab.c~slab-fix-the-type-of-the-index-on-freelist-index-accessor
-+++ a/mm/slab.c
-@@ -2572,13 +2572,13 @@ static void *alloc_slabmgmt(struct kmem_
- 	return freelist;
- }
+diff -puN fs/ufs/balloc.c~fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments fs/ufs/balloc.c
+--- a/fs/ufs/balloc.c~fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments
++++ a/fs/ufs/balloc.c
+@@ -24,7 +24,7 @@
  
--static inline freelist_idx_t get_free_obj(struct page *page, unsigned char idx)
-+static inline freelist_idx_t get_free_obj(struct page *page, unsigned int idx)
- {
- 	return ((freelist_idx_t *)page->freelist)[idx];
- }
+ #define INVBLOCK ((u64)-1L)
  
- static inline void set_free_obj(struct page *page,
--					unsigned char idx, freelist_idx_t val)
-+					unsigned int idx, freelist_idx_t val)
+-static u64 ufs_add_fragments(struct inode *, u64, unsigned, unsigned, int *);
++static u64 ufs_add_fragments(struct inode *, u64, unsigned, unsigned);
+ static u64 ufs_alloc_fragments(struct inode *, unsigned, u64, unsigned, int *);
+ static u64 ufs_alloccg_block(struct inode *, struct ufs_cg_private_info *, u64, int *);
+ static u64 ufs_bitmap_search (struct super_block *, struct ufs_cg_private_info *, u64, unsigned);
+@@ -432,7 +432,7 @@ u64 ufs_new_fragments(struct inode *inod
+ 	/*
+ 	 * resize block
+ 	 */
+-	result = ufs_add_fragments (inode, tmp, oldcount, newcount, err);
++	result = ufs_add_fragments(inode, tmp, oldcount, newcount);
+ 	if (result) {
+ 		*err = 0;
+ 		UFS_I(inode)->i_lastfrag = max(UFS_I(inode)->i_lastfrag,
+@@ -491,7 +491,7 @@ u64 ufs_new_fragments(struct inode *inod
+ }		
+ 
+ static u64 ufs_add_fragments(struct inode *inode, u64 fragment,
+-			     unsigned oldcount, unsigned newcount, int *err)
++			     unsigned oldcount, unsigned newcount)
  {
- 	((freelist_idx_t *)(page->freelist))[idx] = val;
- }
+ 	struct super_block * sb;
+ 	struct ufs_sb_private_info * uspi;
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
-slab-fix-the-type-of-the-index-on-freelist-index-accessor.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
-mm-compaction-clean-up-unused-code-lines.patch
-mm-compaction-cleanup-isolate_freepages.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix-2.patch
-mm-swapc-clean-up-lru_cache_add-functions.patch
-zram-correct-offset-usage-in-zram_bio_discard.patch
-page-owners-correct-page-order-when-to-free-page.patch
+ntfs-remove-null-value-assignments.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-isofs-logging-clean-up.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+linux-next.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
