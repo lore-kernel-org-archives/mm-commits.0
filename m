@@ -1,90 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-shmc-check-for-integer-overflow-during-shmget.patch added
- to -mm tree
-Date: Wed, 23 Apr 2014 15:38:34 -0700
-Message-ID: <535840ea.iAnWYc77S1wFWA0V%akpm@linux-foundation.org>
+Subject: [withdrawn] arm-use-generic-fixmaph.patch removed from -mm tree
+Date: Thu, 24 Apr 2014 10:07:57 -0700
+Message-ID: <535944ed.4VlsckzvB/u1scEZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37800 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751817AbaDWWif (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Apr 2014 18:38:35 -0400
+	with ESMTP id S1758695AbaDXRH6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 13:07:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, kosaki.motohiro@jp.fujitsu.com, davidlohr@hp.com, manfred@colorfullife.com
+To: mm-commits@vger.kernel.org, linux@arm.linux.org.uk, msalter@redhat.com
 
-Subject: + ipc-shmc-check-for-integer-overflow-during-shmget.patch added to -mm tree
-To: manfred@colorfullife.com,davidlohr@hp.com,kosaki.motohiro@jp.fujitsu.com,mtk.manpages@gmail.com
+Subject: [withdrawn] arm-use-generic-fixmaph.patch removed from -mm tree
+To: msalter@redhat.com,linux@arm.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 23 Apr 2014 15:38:34 -0700
+Date: Thu, 24 Apr 2014 10:07:57 -0700
 
 
 The patch titled
-     Subject: ipc/shm.c: check for integer overflow during shmget.
-has been added to the -mm tree.  Its filename is
-     ipc-shmc-check-for-integer-overflow-during-shmget.patch
+     Subject: arm: use generic fixmap.h
+has been removed from the -mm tree.  Its filename was
+     arm-use-generic-fixmaph.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shmc-check-for-integer-overflow-during-shmget.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shmc-check-for-integer-overflow-during-shmget.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/shm.c: check for integer overflow during shmget.
+From: Mark Salter <msalter@redhat.com>
+Subject: arm: use generic fixmap.h
 
-SHMMAX is the upper limit for the size of a shared memory segment, counted
-in bytes.  The actual allocation is that size, rounded up to the next full
-page.
+ARM is different from other architectures in that fixmap pages are indexed
+with a positive offset from FIXADDR_START.  Other architectures index with
+a negative offset from FIXADDR_TOP.  In order to use the generic fixmap.h
+definitions, this patch redefines FIXADDR_TOP to be inclusive of the
+useable range.  That is, FIXADDR_TOP is the virtual address of the topmost
+fixed page.  The newly defined FIXADDR_END is the first virtual address
+past the fixed mappings.
 
-Add a check that prevents the creation of segments where the rounded up
-size causes an integer overflow.
-
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: Davidlohr Bueso <davidlohr@hp.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Signed-off-by: Mark Salter <msalter@redhat.com>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/include/asm/fixmap.h |   29 ++++++++---------------------
+ arch/arm/mm/init.c            |    2 +-
+ 2 files changed, 9 insertions(+), 22 deletions(-)
 
-diff -puN ipc/shm.c~ipc-shmc-check-for-integer-overflow-during-shmget ipc/shm.c
---- a/ipc/shm.c~ipc-shmc-check-for-integer-overflow-during-shmget
-+++ a/ipc/shm.c
-@@ -493,6 +493,9 @@ static int newseg(struct ipc_namespace *
- 	if (size < SHMMIN || size > ns->shm_ctlmax)
- 		return -EINVAL;
+diff -puN arch/arm/include/asm/fixmap.h~arm-use-generic-fixmaph arch/arm/include/asm/fixmap.h
+--- a/arch/arm/include/asm/fixmap.h~arm-use-generic-fixmaph
++++ a/arch/arm/include/asm/fixmap.h
+@@ -14,28 +14,15 @@
+  */
  
-+	if (numpages << PAGE_SHIFT < size)
-+		return -ENOSPC;
-+
- 	if (ns->shm_tot + numpages < ns->shm_tot ||
- 			ns->shm_tot + numpages > ns->shm_ctlall)
- 		return -ENOSPC;
+ #define FIXADDR_START		0xfff00000UL
+-#define FIXADDR_TOP		0xfffe0000UL
+-#define FIXADDR_SIZE		(FIXADDR_TOP - FIXADDR_START)
++#define FIXADDR_END		0xfffe0000UL
++#define FIXADDR_TOP		(FIXADDR_END - PAGE_SIZE)
+ 
+-#define FIX_KMAP_BEGIN		0
+-#define FIX_KMAP_END		(FIXADDR_SIZE >> PAGE_SHIFT)
++enum fixed_addresses {
++	FIX_KMAP_BEGIN,
++	FIX_KMAP_END = (FIXADDR_TOP - FIXADDR_START) >> PAGE_SHIFT,
++	__end_of_fixed_addresses
++};
+ 
+-#define __fix_to_virt(x)	(FIXADDR_START + ((x) << PAGE_SHIFT))
+-#define __virt_to_fix(x)	(((x) - FIXADDR_START) >> PAGE_SHIFT)
+-
+-extern void __this_fixmap_does_not_exist(void);
+-
+-static inline unsigned long fix_to_virt(const unsigned int idx)
+-{
+-	if (idx >= FIX_KMAP_END)
+-		__this_fixmap_does_not_exist();
+-	return __fix_to_virt(idx);
+-}
+-
+-static inline unsigned int virt_to_fix(const unsigned long vaddr)
+-{
+-	BUG_ON(vaddr >= FIXADDR_TOP || vaddr < FIXADDR_START);
+-	return __virt_to_fix(vaddr);
+-}
++#include <asm-generic/fixmap.h>
+ 
+ #endif
+diff -puN arch/arm/mm/init.c~arm-use-generic-fixmaph arch/arm/mm/init.c
+--- a/arch/arm/mm/init.c~arm-use-generic-fixmaph
++++ a/arch/arm/mm/init.c
+@@ -578,7 +578,7 @@ void __init mem_init(void)
+ 			MLK(DTCM_OFFSET, (unsigned long) dtcm_end),
+ 			MLK(ITCM_OFFSET, (unsigned long) itcm_end),
+ #endif
+-			MLK(FIXADDR_START, FIXADDR_TOP),
++			MLK(FIXADDR_START, FIXADDR_END),
+ 			MLM(VMALLOC_START, VMALLOC_END),
+ 			MLM(PAGE_OFFSET, (unsigned long)high_memory),
+ #ifdef CONFIG_HIGHMEM
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from msalter@redhat.com are
 
-ipc-constify-ipc_ops.patch
-ipc-shmc-check-for-ulong-overflows-in-shmat.patch
-ipc-shmc-check-for-overflows-of-shm_tot.patch
-ipc-shmc-check-for-integer-overflow-during-shmget.patch
-ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
-slab-leaks3-default-y.patch
+linux-next.patch
 
