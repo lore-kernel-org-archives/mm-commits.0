@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_ioc-work-around-gcc-bug.patch added to -mm tree
-Date: Thu, 24 Apr 2014 11:47:29 -0700
-Message-ID: <53595c41.Zhle5zEWYRn7qXLj%akpm@linux-foundation.org>
+Subject: + swap-use-bdev_read_page-bdev_write_page-fix.patch added to -mm
+ tree
+Date: Thu, 24 Apr 2014 11:50:37 -0700
+Message-ID: <53595cfd.Lc7XCvaa9kOg9jMK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38589 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38595 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932330AbaDXSr3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 14:47:29 -0400
+	with ESMTP id S1757520AbaDXSui (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 14:50:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, matthew.r.wilcox@intel.com, hughd@google.com, dheeraj.reddy@intel.com, david@fromorbit.com, akpm@linux-foundation.org
 
-Subject: + mm-page_ioc-work-around-gcc-bug.patch added to -mm tree
-To: akpm@linux-foundation.org,viro@zeniv.linux.org.uk
+Subject: + swap-use-bdev_read_page-bdev_write_page-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,david@fromorbit.com,dheeraj.reddy@intel.com,hughd@google.com,matthew.r.wilcox@intel.com
 From: akpm@linux-foundation.org
-Date: Thu, 24 Apr 2014 11:47:29 -0700
+Date: Thu, 24 Apr 2014 11:50:37 -0700
 
 
 The patch titled
-     Subject: mm/page_io.c: work around gcc bug
+     Subject: swap-use-bdev_read_page-bdev_write_page-fix
 has been added to the -mm tree.  Its filename is
-     mm-page_ioc-work-around-gcc-bug.patch
+     swap-use-bdev_read_page-bdev_write_page-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_ioc-work-around-gcc-bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/swap-use-bdev_read_page-bdev_write_page-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_ioc-work-around-gcc-bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/swap-use-bdev_read_page-bdev_write_page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,39 +45,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/page_io.c: work around gcc bug
+Subject: swap-use-bdev_read_page-bdev_write_page-fix
 
-gcc-4.4.4 (at least) screws up this initialization.
+fix used-uninitialized bug
 
-mm/page_io.c: In function '__swap_writepage':
-mm/page_io.c:277: error: unknown field 'bvec' specified in initializer
-mm/page_io.c:278: warning: excess elements in struct initializer
-mm/page_io.c:278: warning: (near initialization for 'from')
+mm/page_io.c: In function 'swap_readpage':
+mm/page_io.c:332: warning: 'ret' may be used uninitialized in this function
 
-Fixes f990bbc9bfa3cbd2d ("bio_vec-backed iov_iter").
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dheeraj Reddy <dheeraj.reddy@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_io.c~mm-page_ioc-work-around-gcc-bug mm/page_io.c
---- a/mm/page_io.c~mm-page_ioc-work-around-gcc-bug
+diff -puN mm/page_io.c~swap-use-bdev_read_page-bdev_write_page-fix mm/page_io.c
+--- a/mm/page_io.c~swap-use-bdev_read_page-bdev_write_page-fix
 +++ a/mm/page_io.c
-@@ -274,9 +274,10 @@ int __swap_writepage(struct page *page,
- 			.count = PAGE_SIZE,
- 			.iov_offset = 0,
- 			.nr_segs = 1,
--			.bvec = &bv
- 		};
+@@ -329,7 +329,7 @@ out:
+ int swap_readpage(struct page *page)
+ {
+ 	struct bio *bio;
+-	int ret;
++	int ret = 0;
+ 	struct swap_info_struct *sis = page_swap_info(page);
  
-+		from.bvec = &bv;
-+
- 		init_sync_kiocb(&kiocb, swap_file);
- 		kiocb.ki_pos = page_file_offset(page);
- 		kiocb.ki_nbytes = PAGE_SIZE;
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,6 +106,7 @@ mm-compaction-cleanup-isolate_freepages-fix.patch
 arc-call-find_vma-with-the-mmap_sem-held-fix.patch
 mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
 mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
 init-mainc-dont-use-pr_debug.patch
