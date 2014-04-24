@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
+Subject: + mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch
  added to -mm tree
-Date: Thu, 24 Apr 2014 11:06:06 -0700
-Message-ID: <5359528e.tfXAebo/atL6HtSz%akpm@linux-foundation.org>
+Date: Thu, 24 Apr 2014 11:09:47 -0700
+Message-ID: <5359536b.3KPR4QaYRlzzMAdz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38171 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38190 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757915AbaDXSGH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 14:06:07 -0400
+	with ESMTP id S1757656AbaDXSJs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Apr 2014 14:09:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peterz@infradead.org, paulmck@linux.vnet.ibm.com, jslaby@suse.cz, joern@logfs.org, jkosina@suse.cz, gregkh@linuxfoundation.org, cxie@redhat.com, riel@redhat.com
+To: mm-commits@vger.kernel.org, mel@csn.ul.ie, hannes@cmpxchg.org, neilb@suse.de
 
-Subject: + sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch added to -mm tree
-To: riel@redhat.com,cxie@redhat.com,gregkh@linuxfoundation.org,jkosina@suse.cz,joern@logfs.org,jslaby@suse.cz,paulmck@linux.vnet.ibm.com,peterz@infradead.org
+Subject: + mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch added to -mm tree
+To: neilb@suse.de,hannes@cmpxchg.org,mel@csn.ul.ie
 From: akpm@linux-foundation.org
-Date: Thu, 24 Apr 2014 11:06:06 -0700
+Date: Thu, 24 Apr 2014 11:09:47 -0700
 
 
 The patch titled
-     Subject: sysrq,rcu: suppress RCU stall warnings while sysrq runs
+     Subject: mm/vmscan.c: avoid throttling reclaim for loop-back nfsd threads
 has been added to the -mm tree.  Its filename is
-     sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
+     mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,129 +44,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: sysrq,rcu: suppress RCU stall warnings while sysrq runs
+From: NeilBrown <neilb@suse.de>
+Subject: mm/vmscan.c: avoid throttling reclaim for loop-back nfsd threads
 
-Some sysrq handlers can run for a long time, because they dump a lot
-of data onto a serial console. Having RCU stall warnings pop up in
-the middle of them only makes the problem worse.
+When a loopback NFS mount is active and the backing device for the NFS
+mount becomes congested, that can impose throttling delays on the nfsd
+threads.
 
-This patch temporarily disables RCU stall warnings while a sysrq
-request is handled.
+These delays significantly reduce throughput and so the NFS mount remains
+congested.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Suggested-by: Paul McKenney <paulmck@linux.vnet.ibm.com>
-Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Madper Xie <cxie@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+This results in a livelock and the reduced throughput persists.
+
+This livelock has been found in testing with the 'wait_iff_congested'
+call, and could possibly be caused by the 'congestion_wait' call.
+
+This livelock is similar to the deadlock which justified the introduction
+of PF_LESS_THROTTLE, and the same flag can be used to remove this
+livelock.
+
+To minimise the impact of the change, we still throttle nfsd when the
+filesystem it is writing to is congested, but not when some separate
+filesystem (e.g.  the NFS filesystem) is congested.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c      |    2 ++
- include/linux/rcupdate.h |    2 ++
- kernel/rcu/update.c      |   11 +++++++++++
- 3 files changed, 15 insertions(+)
+ mm/vmscan.c |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN drivers/tty/sysrq.c~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs
-+++ a/drivers/tty/sysrq.c
-@@ -511,6 +511,7 @@ void __handle_sysrq(int key, bool check_
- 	int orig_log_level;
- 	int i;
+diff -puN mm/vmscan.c~mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads mm/vmscan.c
+--- a/mm/vmscan.c~mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads
++++ a/mm/vmscan.c
+@@ -1442,6 +1442,19 @@ putback_inactive_pages(struct lruvec *lr
+ }
  
-+	rcu_sysrq_start();
- 	rcu_read_lock();
- 	/*
- 	 * Raise the apparent loglevel to maximum so that the sysrq header
-@@ -554,6 +555,7 @@ void __handle_sysrq(int key, bool check_
- 		console_loglevel = orig_log_level;
+ /*
++ * If a kernel thread (such as nfsd for loop-back mounts) services
++ * a backing device by writing to the page cache it sets PF_LESS_THROTTLE.
++ * In that case we should only throttle if the backing device it is
++ * writing to is congested.  In other cases it is safe to throttle.
++ */
++static int current_may_throttle(void)
++{
++	return !(current->flags & PF_LESS_THROTTLE) ||
++		current->backing_dev_info == NULL ||
++		bdi_write_congested(current->backing_dev_info);
++}
++
++/*
+  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
+  * of reclaimed pages
+  */
+@@ -1569,7 +1582,8 @@ shrink_inactive_list(unsigned long nr_to
+ 		 * implies that pages are cycling through the LRU faster than
+ 		 * they are written so also forcibly stall.
+ 		 */
+-		if (nr_unqueued_dirty == nr_taken || nr_immediate)
++		if ((nr_unqueued_dirty == nr_taken || nr_immediate) &&
++		    current_may_throttle())
+ 			congestion_wait(BLK_RW_ASYNC, HZ/10);
  	}
- 	rcu_read_unlock();
-+	rcu_sysrq_end();
- }
  
- void handle_sysrq(int key)
-diff -puN include/linux/rcupdate.h~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs include/linux/rcupdate.h
---- a/include/linux/rcupdate.h~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs
-+++ a/include/linux/rcupdate.h
-@@ -227,6 +227,8 @@ void rcu_idle_enter(void);
- void rcu_idle_exit(void);
- void rcu_irq_enter(void);
- void rcu_irq_exit(void);
-+void rcu_sysrq_start(void);
-+void rcu_sysrq_end(void);
+@@ -1578,7 +1592,8 @@ shrink_inactive_list(unsigned long nr_to
+ 	 * is congested. Allow kswapd to continue until it starts encountering
+ 	 * unqueued dirty pages or cycling through the LRU too quickly.
+ 	 */
+-	if (!sc->hibernation_mode && !current_is_kswapd())
++	if (!sc->hibernation_mode && !current_is_kswapd() &&
++	    current_may_throttle())
+ 		wait_iff_congested(zone, BLK_RW_ASYNC, HZ/10);
  
- #ifdef CONFIG_RCU_USER_QS
- void rcu_user_enter(void);
-diff -puN kernel/rcu/update.c~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs kernel/rcu/update.c
---- a/kernel/rcu/update.c~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs
-+++ a/kernel/rcu/update.c
-@@ -320,6 +320,17 @@ int rcu_jiffies_till_stall_check(void)
- 	return till_stall_check * HZ + RCU_STALL_DELAY_DELTA;
- }
- 
-+void rcu_sysrq_start(void)
-+{
-+	rcu_cpu_stall_suppress = 2;
-+}
-+
-+void rcu_sysrq_end(void)
-+{
-+	if (rcu_cpu_stall_suppress == 2)
-+		rcu_cpu_stall_suppress = 0;
-+}
-+
- static int rcu_panic(struct notifier_block *this, unsigned long ev, void *ptr)
- {
- 	rcu_cpu_stall_suppress = 1;
+ 	trace_mm_vmscan_lru_shrink_inactive(zone->zone_pgdat->node_id,
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
-mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
-revert-mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch
-x86-require-x86-64-for-automatic-numa-balancing.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
-mm-compaction-clean-up-unused-code-lines.patch
-mm-compaction-cleanup-isolate_freepages.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix-2.patch
-mm-swapc-clean-up-lru_cache_add-functions.patch
-mm-numa-add-migrated-transhuge-pages-to-lru-the-same-way-as-base-pages.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-sysrq-rcu-ify-__handle_sysrq.patch
-sysrq-rcu-ify-__handle_sysrq-fix.patch
-sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
+mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch
 linux-next.patch
 
