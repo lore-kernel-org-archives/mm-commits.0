@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch added to
+Subject: + memcg-mm_update_next_owner-should-skip-kthreads.patch added to
  -mm tree
-Date: Mon, 28 Apr 2014 15:04:06 -0700
-Message-ID: <535ed056.U+x8G9DZKfkPHfhX%akpm@linux-foundation.org>
+Date: Mon, 28 Apr 2014 15:58:05 -0700
+Message-ID: <535edcfd.cfKDFgF/2XZ+PRws%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50550 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50831 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933179AbaD1WEH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Apr 2014 18:04:07 -0400
+	with ESMTP id S1755242AbaD1W6G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Apr 2014 18:58:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, pawel@osciak.com, m.szyprowski@samsung.com, m.chehab@samsung.com, kyungmin.park@samsung.com, davidlohr@hp.com
+To: mm-commits@vger.kernel.org, pchiang@nvidia.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, bsingharora@gmail.com, oleg@redhat.com
 
-Subject: + media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch added to -mm tree
-To: davidlohr@hp.com,kyungmin.park@samsung.com,m.chehab@samsung.com,m.szyprowski@samsung.com,pawel@osciak.com
+Subject: + memcg-mm_update_next_owner-should-skip-kthreads.patch added to -mm tree
+To: oleg@redhat.com,bsingharora@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,pchiang@nvidia.com
 From: akpm@linux-foundation.org
-Date: Mon, 28 Apr 2014 15:04:06 -0700
+Date: Mon, 28 Apr 2014 15:58:05 -0700
 
 
 The patch titled
-     Subject: drivers/media/v4l2-core/videobuf2-dma-sg.c: call find_vma with the mmap_sem held
+     Subject: memcg: mm_update_next_owner() should skip kthreads
 has been added to the -mm tree.  Its filename is
-     media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch
+     memcg-mm_update_next_owner-should-skip-kthreads.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-mm_update_next_owner-should-skip-kthreads.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-mm_update_next_owner-should-skip-kthreads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,108 +44,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: drivers/media/v4l2-core/videobuf2-dma-sg.c: call find_vma with the mmap_sem held
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: memcg: mm_update_next_owner() should skip kthreads
 
-Performing vma lookups without taking the mm->mmap_sem is asking for
-trouble.  While doing the search, the vma in question can be modified or
-even removed before returning to the caller.  Take the lock in order to
-avoid races while iterating through the vmacache and/or rbtree.
+"Search through everything else" in mm_update_next_owner() can hit a
+kthread which adopted this "mm" via use_mm(), it should not be used as
+mm->owner.  Add the PF_KTHREAD check.
 
-Also do some very minor cleanup changes.
+While at it, change this code to use for_each_process_thread()
+instead of deprecated do_each_thread/while_each_thread.
 
-Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Peter Chiang <pchiang@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/v4l2-core/videobuf2-dma-sg.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ kernel/exit.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/media/v4l2-core/videobuf2-dma-sg.c~media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held drivers/media/v4l2-core/videobuf2-dma-sg.c
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c~media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held
-+++ a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -168,8 +168,9 @@ static void *vb2_dma_sg_get_userptr(void
- 	unsigned long first, last;
- 	int num_pages_from_user;
- 	struct vm_area_struct *vma;
-+	struct mm_struct *mm = current->mm;
+diff -puN kernel/exit.c~memcg-mm_update_next_owner-should-skip-kthreads kernel/exit.c
+--- a/kernel/exit.c~memcg-mm_update_next_owner-should-skip-kthreads
++++ a/kernel/exit.c
+@@ -395,14 +395,12 @@ retry:
+ 	}
  
--	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-+	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
- 	if (!buf)
- 		return NULL;
- 
-@@ -178,7 +179,7 @@ static void *vb2_dma_sg_get_userptr(void
- 	buf->offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 
--	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
-+	first = (vaddr & PAGE_MASK) >> PAGE_SHIFT;
- 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
- 	buf->num_pages = last - first + 1;
- 
-@@ -187,7 +188,8 @@ static void *vb2_dma_sg_get_userptr(void
- 	if (!buf->pages)
- 		goto userptr_fail_alloc_pages;
- 
--	vma = find_vma(current->mm, vaddr);
-+	down_write(&mm->mmap_sem);
-+	vma = find_vma(mm, vaddr);
- 	if (!vma) {
- 		dprintk(1, "no vma for address %lu\n", vaddr);
- 		goto userptr_fail_find_vma;
-@@ -218,7 +220,7 @@ static void *vb2_dma_sg_get_userptr(void
- 			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
- 		}
- 	} else
--		num_pages_from_user = get_user_pages(current, current->mm,
-+		num_pages_from_user = get_user_pages(current, mm,
- 					     vaddr & PAGE_MASK,
- 					     buf->num_pages,
- 					     write,
-@@ -233,6 +235,7 @@ static void *vb2_dma_sg_get_userptr(void
- 			buf->num_pages, buf->offset, size, 0))
- 		goto userptr_fail_alloc_table_from_pages;
- 
-+	up_write(&mm->mmap_sem);
- 	return buf;
- 
- userptr_fail_alloc_table_from_pages:
-@@ -244,6 +247,7 @@ userptr_fail_get_user_pages:
- 			put_page(buf->pages[num_pages_from_user]);
- 	vb2_put_vma(buf->vma);
- userptr_fail_find_vma:
-+	up_write(&mm->mmap_sem);
- 	kfree(buf->pages);
- userptr_fail_alloc_pages:
- 	kfree(buf);
+ 	/*
+-	 * Search through everything else. We should not get
+-	 * here often
++	 * Search through everything else, we should not get here often.
+ 	 */
+-	do_each_thread(g, c) {
+-		if (c->mm == mm)
++	for_each_process_thread(g, c) {
++		if (!(c->flags & PF_KTHREAD) && c->mm == mm)
+ 			goto assign_new_owner;
+-	} while_each_thread(g, c);
+-
++	}
+ 	read_unlock(&tasklist_lock);
+ 	/*
+ 	 * We found no owner yet mm_users > 1: this implies that we are
 _
 
-Patches currently in -mm which might be from davidlohr@hp.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mmvmacache-add-debug-data.patch
+nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
 mmvmacache-optimize-overflow-system-wide-flushing.patch
-mm-pass-vm_bug_on-reason-to-dump_page.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
-mips-call-find_vma-with-the-mmap_sem-held.patch
-arc-call-find_vma-with-the-mmap_sem-held.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-drm-exynos-call-find_vma-with-the-mmap_sem-held.patch
-media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch
-ipc-constify-ipc_ops.patch
-ipc-shmc-check-for-ulong-overflows-in-shmat.patch
-ipc-shmc-check-for-overflows-of-shm_tot.patch
-ipc-shmc-check-for-integer-overflow-during-shmget.patch
-ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
-blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
+memcg-kill-config_mm_owner.patch
+memcg-mm_update_next_owner-should-skip-kthreads.patch
+memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner.patch
+memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch
+signals-kill-sigfindinword.patch
+signals-s-siginitset-sigemptyset-in-do_sigtimedwait.patch
+signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
+signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
+signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
+signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
+signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch
+signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch
+signals-disallow_signal-should-flush-the-potentially-pending-signal.patch
+signals-introduce-kernel_sigaction.patch
+signals-change-wait_for_helper-to-use-kernel_sigaction.patch
+linux-next.patch
 
