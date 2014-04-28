@@ -1,167 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sysrq-rcu-ify-__handle_sysrq.patch removed from
- -mm tree
-Date: Mon, 28 Apr 2014 16:05:18 -0700
-Message-ID: <535edeae.teoq0+bLBXJTp6XJ%akpm@linux-foundation.org>
+Subject: [to-be-updated] sysrq-rcu-ify-__handle_sysrq-fix.patch removed
+ from -mm tree
+Date: Mon, 28 Apr 2014 16:05:20 -0700
+Message-ID: <535edeb0.zlAw9rXKaruuvh/o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50868 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751016AbaD1XFT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Apr 2014 19:05:19 -0400
+	with ESMTP id S1756752AbaD1XFU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Apr 2014 19:05:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peterz@infradead.org, jslaby@suse.cz, joern@logfs.org, gregkh@linuxfoundation.org, cxie@redhat.com, riel@redhat.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, akpm@linux-foundation.org
 
-Subject: [to-be-updated] sysrq-rcu-ify-__handle_sysrq.patch removed from -mm tree
-To: riel@redhat.com,cxie@redhat.com,gregkh@linuxfoundation.org,joern@logfs.org,jslaby@suse.cz,peterz@infradead.org,mm-commits@vger.kernel.org
+Subject: [to-be-updated] sysrq-rcu-ify-__handle_sysrq-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 28 Apr 2014 16:05:18 -0700
+Date: Mon, 28 Apr 2014 16:05:20 -0700
 
 
 The patch titled
-     Subject: sysrq: rcu-ify __handle_sysrq
+     Subject: sysrq-rcu-ify-__handle_sysrq-fix
 has been removed from the -mm tree.  Its filename was
-     sysrq-rcu-ify-__handle_sysrq.patch
+     sysrq-rcu-ify-__handle_sysrq-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: sysrq: rcu-ify __handle_sysrq
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sysrq-rcu-ify-__handle_sysrq-fix
 
-Echoing values into /proc/sysrq-trigger seems to be a popular way to get
-information out of the kernel.  However, dumping information about
-thousands of processes, or hundreds of CPUs to serial console can result
-in IRQs being blocked for minutes, resulting in various kinds of cascade
-failures.
+fix typo
 
-The most common failure is due to interrupts being blocked for a very long
-time.  This can lead to things like failed IO requests, and other things
-the system cannot easily recover from.
-
-This problem is easily fixable by making __handle_sysrq use RCU instead of
-spin_lock_irqsave.
-
-This leaves the warning that RCU grace periods have not elapsed for a long
-time, but the system will come back from that automatically.
-
-It also leaves sysrq-from-irq-context when the sysrq keys are pressed, but
-that is probably desired since people want that to work in situations
-where the system is already hosed.
-
-The callers of register_sysrq_key and unregister_sysrq_key appear to be
-capable of sleeping.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Madper Xie <cxie@redhat.com>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Madper Xie <cxie@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ drivers/tty/sysrq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/tty/sysrq.c~sysrq-rcu-ify-__handle_sysrq drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~sysrq-rcu-ify-__handle_sysrq
+diff -puN drivers/tty/sysrq.c~sysrq-rcu-ify-__handle_sysrq-fix drivers/tty/sysrq.c
+--- a/drivers/tty/sysrq.c~sysrq-rcu-ify-__handle_sysrq-fix
 +++ a/drivers/tty/sysrq.c
-@@ -510,9 +510,8 @@ void __handle_sysrq(int key, bool check_
- 	struct sysrq_key_op *op_p;
- 	int orig_log_level;
- 	int i;
--	unsigned long flags;
+@@ -1053,7 +1053,7 @@ static int __sysrq_swap_key_ops(int key,
+ 	spin_unlock(&sysrq_key_table_lock);
  
--	spin_lock_irqsave(&sysrq_key_table_lock, flags);
-+	rcu_read_lock();
  	/*
- 	 * Raise the apparent loglevel to maximum so that the sysrq header
- 	 * is shown to provide the user with positive feedback.  We do not
-@@ -554,7 +553,7 @@ void __handle_sysrq(int key, bool check_
- 		printk("\n");
- 		console_loglevel = orig_log_level;
- 	}
--	spin_unlock_irqrestore(&sysrq_key_table_lock, flags);
-+	rcu_read_unlock();
- }
- 
- void handle_sysrq(int key)
-@@ -1043,16 +1042,23 @@ static int __sysrq_swap_key_ops(int key,
-                                 struct sysrq_key_op *remove_op_p)
- {
- 	int retval;
--	unsigned long flags;
- 
--	spin_lock_irqsave(&sysrq_key_table_lock, flags);
-+	spin_lock(&sysrq_key_table_lock);
- 	if (__sysrq_get_key_op(key) == remove_op_p) {
- 		__sysrq_put_key_op(key, insert_op_p);
- 		retval = 0;
- 	} else {
- 		retval = -1;
- 	}
--	spin_unlock_irqrestore(&sysrq_key_table_lock, flags);
-+	spin_unlock(&sysrq_key_table_lock);
-+
-+	/*
-+	 * A concurrent __handle_sysrq eitehr got the old op or the new op.
-+	 * Wait for it to go away before returning, so the code for an old
-+	 * op is not freed (eg. on module unload) while it is in use.
-+	 */
-+	synchronize_rcu();
-+
- 	return retval;
- }
- 
+-	 * A concurrent __handle_sysrq eitehr got the old op or the new op.
++	 * A concurrent __handle_sysrq either got the old op or the new op.
+ 	 * Wait for it to go away before returning, so the code for an old
+ 	 * op is not freed (eg. on module unload) while it is in use.
+ 	 */
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
-revert-mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch
-x86-require-x86-64-for-automatic-numa-balancing.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+mm.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
-mm-compaction-clean-up-unused-code-lines.patch
-mm-compaction-cleanup-isolate_freepages.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
 mm-compaction-cleanup-isolate_freepages-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix-2.patch
-mm-swapc-clean-up-lru_cache_add-functions.patch
-mm-numa-add-migrated-transhuge-pages-to-lru-the-same-way-as-base-pages.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-sysrq-rcu-ify-__handle_sysrq-fix.patch
-sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
