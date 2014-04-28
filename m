@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblockc-use-pfn_down.patch added to -mm tree
-Date: Mon, 28 Apr 2014 14:48:17 -0700
-Message-ID: <535ecca1.BNNZbe3qtXsQFDRB%akpm@linux-foundation.org>
+Subject: +
+ media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch added to
+ -mm tree
+Date: Mon, 28 Apr 2014 15:04:06 -0700
+Message-ID: <535ed056.U+x8G9DZKfkPHfhX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50529 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50550 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753024AbaD1VsR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Apr 2014 17:48:17 -0400
+	with ESMTP id S933179AbaD1WEH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Apr 2014 18:04:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, pawel@osciak.com, m.szyprowski@samsung.com, m.chehab@samsung.com, kyungmin.park@samsung.com, davidlohr@hp.com
 
-Subject: + mm-memblockc-use-pfn_down.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch added to -mm tree
+To: davidlohr@hp.com,kyungmin.park@samsung.com,m.chehab@samsung.com,m.szyprowski@samsung.com,pawel@osciak.com
 From: akpm@linux-foundation.org
-Date: Mon, 28 Apr 2014 14:48:17 -0700
+Date: Mon, 28 Apr 2014 15:04:06 -0700
 
 
 The patch titled
-     Subject: mm/memblock.c: use PFN_DOWN
+     Subject: drivers/media/v4l2-core/videobuf2-dma-sg.c: call find_vma with the mmap_sem held
 has been added to the -mm tree.  Its filename is
-     mm-memblockc-use-pfn_down.patch
+     media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblockc-use-pfn_down.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblockc-use-pfn_down.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,58 +45,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: mm/memblock.c: use PFN_DOWN
+From: Davidlohr Bueso <davidlohr@hp.com>
+Subject: drivers/media/v4l2-core/videobuf2-dma-sg.c: call find_vma with the mmap_sem held
 
-Replace ((x) >> PAGE_SHIFT) with the pfn macro.
+Performing vma lookups without taking the mm->mmap_sem is asking for
+trouble.  While doing the search, the vma in question can be modified or
+even removed before returning to the caller.  Take the lock in order to
+avoid races while iterating through the vmacache and/or rbtree.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Also do some very minor cleanup changes.
+
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/media/v4l2-core/videobuf2-dma-sg.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN mm/memblock.c~mm-memblockc-use-pfn_down mm/memblock.c
---- a/mm/memblock.c~mm-memblockc-use-pfn_down
-+++ a/mm/memblock.c
-@@ -1342,9 +1342,8 @@ int __init_memblock memblock_search_pfn_
- 	if (mid == -1)
- 		return -1;
+diff -puN drivers/media/v4l2-core/videobuf2-dma-sg.c~media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held drivers/media/v4l2-core/videobuf2-dma-sg.c
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c~media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held
++++ a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -168,8 +168,9 @@ static void *vb2_dma_sg_get_userptr(void
+ 	unsigned long first, last;
+ 	int num_pages_from_user;
+ 	struct vm_area_struct *vma;
++	struct mm_struct *mm = current->mm;
  
--	*start_pfn = type->regions[mid].base >> PAGE_SHIFT;
--	*end_pfn = (type->regions[mid].base + type->regions[mid].size)
--			>> PAGE_SHIFT;
-+	*start_pfn = PFN_DOWN(type->regions[mid].base);
-+	*end_pfn = PFN_DOWN(type->regions[mid].base + type->regions[mid].size);
+-	buf = kzalloc(sizeof *buf, GFP_KERNEL);
++	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+ 		return NULL;
  
- 	return type->regions[mid].nid;
- }
+@@ -178,7 +179,7 @@ static void *vb2_dma_sg_get_userptr(void
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 
+-	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
++	first = (vaddr & PAGE_MASK) >> PAGE_SHIFT;
+ 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+ 	buf->num_pages = last - first + 1;
+ 
+@@ -187,7 +188,8 @@ static void *vb2_dma_sg_get_userptr(void
+ 	if (!buf->pages)
+ 		goto userptr_fail_alloc_pages;
+ 
+-	vma = find_vma(current->mm, vaddr);
++	down_write(&mm->mmap_sem);
++	vma = find_vma(mm, vaddr);
+ 	if (!vma) {
+ 		dprintk(1, "no vma for address %lu\n", vaddr);
+ 		goto userptr_fail_find_vma;
+@@ -218,7 +220,7 @@ static void *vb2_dma_sg_get_userptr(void
+ 			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
+ 		}
+ 	} else
+-		num_pages_from_user = get_user_pages(current, current->mm,
++		num_pages_from_user = get_user_pages(current, mm,
+ 					     vaddr & PAGE_MASK,
+ 					     buf->num_pages,
+ 					     write,
+@@ -233,6 +235,7 @@ static void *vb2_dma_sg_get_userptr(void
+ 			buf->num_pages, buf->offset, size, 0))
+ 		goto userptr_fail_alloc_table_from_pages;
+ 
++	up_write(&mm->mmap_sem);
+ 	return buf;
+ 
+ userptr_fail_alloc_table_from_pages:
+@@ -244,6 +247,7 @@ userptr_fail_get_user_pages:
+ 			put_page(buf->pages[num_pages_from_user]);
+ 	vb2_put_vma(buf->vma);
+ userptr_fail_find_vma:
++	up_write(&mm->mmap_sem);
+ 	kfree(buf->pages);
+ userptr_fail_alloc_pages:
+ 	kfree(buf);
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from davidlohr@hp.com are
 
-ntfs-remove-null-value-assignments.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
-mm-memory_hotplugc-use-pfn_down.patch
-mm-memblockc-use-pfn_down.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-linux-next.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
+mmvmacache-add-debug-data.patch
+mmvmacache-optimize-overflow-system-wide-flushing.patch
+mm-pass-vm_bug_on-reason-to-dump_page.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
+hugetlb-add-hstate_is_gigantic.patch
+hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
+hugetlb-move-helpers-up-in-the-file.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
+m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
+mips-call-find_vma-with-the-mmap_sem-held.patch
+arc-call-find_vma-with-the-mmap_sem-held.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+drm-exynos-call-find_vma-with-the-mmap_sem-held.patch
+media-videobuf2-dma-sg-call-find_vma-with-the-mmap_sem-held.patch
+ipc-constify-ipc_ops.patch
+ipc-shmc-check-for-ulong-overflows-in-shmat.patch
+ipc-shmc-check-for-overflows-of-shm_tot.patch
+ipc-shmc-check-for-integer-overflow-during-shmget.patch
+ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
+blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
 
