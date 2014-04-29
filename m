@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + sysrq-rcu-ify-__handle_sysrq.patch added to -mm tree
-Date: Tue, 29 Apr 2014 16:25:30 -0700
-Message-ID: <536034ea.UkUTRh8TZBbxbHRb%akpm@linux-foundation.org>
+Subject: + sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
+ added to -mm tree
+Date: Tue, 29 Apr 2014 16:25:31 -0700
+Message-ID: <536034eb.b0W02xI9DMVvmAv3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36369 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbaD2XZb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Apr 2014 19:25:31 -0400
+	with ESMTP id S1751599AbaD2XZc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Apr 2014 19:25:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, richard@nod.at, rdunlap@infradead.org, paulmck@linux.vnet.ibm.com, cxie@redhat.com, riel@redhat.com
 
-Subject: + sysrq-rcu-ify-__handle_sysrq.patch added to -mm tree
+Subject: + sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch added to -mm tree
 To: riel@redhat.com,cxie@redhat.com,paulmck@linux.vnet.ibm.com,rdunlap@infradead.org,richard@nod.at
 From: akpm@linux-foundation.org
-Date: Tue, 29 Apr 2014 16:25:30 -0700
+Date: Tue, 29 Apr 2014 16:25:31 -0700
 
 
 The patch titled
-     Subject: sysrq: rcu-ify __handle_sysrq
+     Subject: sysrq,rcu: suppress RCU stall warnings while sysrq runs
 has been added to the -mm tree.  Its filename is
-     sysrq-rcu-ify-__handle_sysrq.patch
+     sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysrq-rcu-ify-__handle_sysrq.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysrq-rcu-ify-__handle_sysrq.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,92 +45,101 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rik van Riel <riel@redhat.com>
-Subject: sysrq: rcu-ify __handle_sysrq
+Subject: sysrq,rcu: suppress RCU stall warnings while sysrq runs
 
-Echoing values into /proc/sysrq-trigger seems to be a popular way to get
-information out of the kernel.  However, dumping information about
-thousands of processes, or hundreds of CPUs to serial console can result
-in IRQs being blocked for minutes, resulting in various kinds of cascade
-failures.
+Some sysrq handlers can run for a long time, because they dump a lot of
+data onto a serial console.  Having RCU stall warnings pop up in the
+middle of them only makes the problem worse.
 
-The most common failure is due to interrupts being blocked for a very long
-time.  This can lead to things like failed IO requests, and other things
-the system cannot easily recover from.
+This patch temporarily disables RCU stall warnings while a sysrq request
+is handled.
 
-This problem is easily fixable by making __handle_sysrq use RCU instead of
-spin_lock_irqsave.
-
-This leaves the warning that RCU grace periods have not elapsed for a long
-time, but the system will come back from that automatically.
-
-It also leaves sysrq-from-irq-context when the sysrq keys are pressed, but
-that is probably desired since people want that to work in situations
-where the system is already hosed.
-
-The callers of register_sysrq_key and unregister_sysrq_key appear to be
-capable of sleeping.
-
+[paulmck@linux.vnet.ibm.com: fix TINY_RCU build error]
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Madper Xie <cxie@redhat.com>
+Suggested-by: Paul McKenney <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Madper Xie <cxie@redhat.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Richard Weinberger <richard@nod.at>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ drivers/tty/sysrq.c      |    3 +++
+ include/linux/rcupdate.h |   12 ++++++++++++
+ kernel/rcu/update.c      |   12 ++++++++++++
+ 3 files changed, 27 insertions(+)
 
-diff -puN drivers/tty/sysrq.c~sysrq-rcu-ify-__handle_sysrq drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~sysrq-rcu-ify-__handle_sysrq
+diff -puN drivers/tty/sysrq.c~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs drivers/tty/sysrq.c
+--- a/drivers/tty/sysrq.c~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs
 +++ a/drivers/tty/sysrq.c
-@@ -510,9 +510,8 @@ void __handle_sysrq(int key, bool check_
- 	struct sysrq_key_op *op_p;
+@@ -46,6 +46,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/syscalls.h>
+ #include <linux/of.h>
++#include <linux/rcupdate.h>
+ 
+ #include <asm/ptrace.h>
+ #include <asm/irq_regs.h>
+@@ -511,6 +512,7 @@ void __handle_sysrq(int key, bool check_
  	int orig_log_level;
  	int i;
--	unsigned long flags;
  
--	spin_lock_irqsave(&sysrq_key_table_lock, flags);
-+	rcu_read_lock();
++	rcu_sysrq_start();
+ 	rcu_read_lock();
  	/*
  	 * Raise the apparent loglevel to maximum so that the sysrq header
- 	 * is shown to provide the user with positive feedback.  We do not
-@@ -554,7 +553,7 @@ void __handle_sysrq(int key, bool check_
- 		printk("\n");
+@@ -554,6 +556,7 @@ void __handle_sysrq(int key, bool check_
  		console_loglevel = orig_log_level;
  	}
--	spin_unlock_irqrestore(&sysrq_key_table_lock, flags);
-+	rcu_read_unlock();
+ 	rcu_read_unlock();
++	rcu_sysrq_end();
  }
  
  void handle_sysrq(int key)
-@@ -1043,16 +1042,23 @@ static int __sysrq_swap_key_ops(int key,
-                                 struct sysrq_key_op *remove_op_p)
- {
- 	int retval;
--	unsigned long flags;
+diff -puN include/linux/rcupdate.h~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs include/linux/rcupdate.h
+--- a/include/linux/rcupdate.h~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs
++++ a/include/linux/rcupdate.h
+@@ -228,6 +228,18 @@ void rcu_idle_exit(void);
+ void rcu_irq_enter(void);
+ void rcu_irq_exit(void);
  
--	spin_lock_irqsave(&sysrq_key_table_lock, flags);
-+	spin_lock(&sysrq_key_table_lock);
- 	if (__sysrq_get_key_op(key) == remove_op_p) {
- 		__sysrq_put_key_op(key, insert_op_p);
- 		retval = 0;
- 	} else {
- 		retval = -1;
- 	}
--	spin_unlock_irqrestore(&sysrq_key_table_lock, flags);
-+	spin_unlock(&sysrq_key_table_lock);
++#ifdef CONFIG_RCU_STALL_COMMON
++void rcu_sysrq_start(void);
++void rcu_sysrq_end(void);
++#else /* #ifdef CONFIG_RCU_STALL_COMMON */
++static inline void rcu_sysrq_start(void)
++{
++}
++static inline void rcu_sysrq_end(void)
++{
++}
++#endif /* #else #ifdef CONFIG_RCU_STALL_COMMON */
 +
-+	/*
-+	 * A concurrent __handle_sysrq either got the old op or the new op.
-+	 * Wait for it to go away before returning, so the code for an old
-+	 * op is not freed (eg. on module unload) while it is in use.
-+	 */
-+	synchronize_rcu();
-+
- 	return retval;
+ #ifdef CONFIG_RCU_USER_QS
+ void rcu_user_enter(void);
+ void rcu_user_exit(void);
+diff -puN kernel/rcu/update.c~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs kernel/rcu/update.c
+--- a/kernel/rcu/update.c~sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs
++++ a/kernel/rcu/update.c
+@@ -320,6 +320,18 @@ int rcu_jiffies_till_stall_check(void)
+ 	return till_stall_check * HZ + RCU_STALL_DELAY_DELTA;
  }
  
++void rcu_sysrq_start(void)
++{
++	if (!rcu_cpu_stall_suppress)
++		rcu_cpu_stall_suppress = 2;
++}
++
++void rcu_sysrq_end(void)
++{
++	if (rcu_cpu_stall_suppress == 2)
++		rcu_cpu_stall_suppress = 0;
++}
++
+ static int rcu_panic(struct notifier_block *this, unsigned long ev, void *ptr)
+ {
+ 	rcu_cpu_stall_suppress = 1;
 _
 
 Patches currently in -mm which might be from riel@redhat.com are
