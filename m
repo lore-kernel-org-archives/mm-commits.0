@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch added to -mm tree
-Date: Tue, 29 Apr 2014 15:04:32 -0700
-Message-ID: <536021f0.GELvsQmErqJIh2WJ%akpm@linux-foundation.org>
+ mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom-fix.patch added
+ to -mm tree
+Date: Tue, 29 Apr 2014 15:39:47 -0700
+Message-ID: <53602a33.XXSiP5dOZNdIFFya%akpm__30829.7917283655$1398811200$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35096 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35484 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933881AbaD2WEd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Apr 2014 18:04:33 -0400
+	with ESMTP id S1757974AbaD2Wjs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Apr 2014 18:39:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, oleg@redhat.com, mguzik@redhat.com, dzickus@redhat.com, davem@davemloft.net, atomlin@redhat.com, sfr@canb.auug.org.au
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, sandeen@redhat.com, riel@redhat.com, mpatlasov@parallels.com, mhocko@suse.cz, jweiner@redhat.com, fengguang.wu@intel.com, Kosaki.motohiro@jp.fujitsu.com, akpm@linux-foundation.org
 
-Subject: + nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch added to -mm tree
-To: sfr@canb.auug.org.au,atomlin@redhat.com,davem@davemloft.net,dzickus@redhat.com,mguzik@redhat.com,oleg@redhat.com
+Subject: + mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,Kosaki.motohiro@jp.fujitsu.com,fengguang.wu@intel.com,jweiner@redhat.com,mhocko@suse.cz,mpatlasov@parallels.com,riel@redhat.com,sandeen@redhat.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 29 Apr 2014 15:04:32 -0700
+Date: Tue, 29 Apr 2014 15:39:47 -0700
 
 
 The patch titled
-     Subject: nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix
+     Subject: mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom-fix
 has been added to the -mm tree.  Its filename is
-     nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch
+     mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,47 +45,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom-fix
 
-undo C99ism
+make `divisor' ulong
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Aaron Tomlin <atomlin@redhat.com>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Mateusz Guzik <mguzik@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@vger.kernel.org>
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: KOSAKI Motohiro <Kosaki.motohiro@jp.fujitsu.com>
+Cc: Maxim Patlasov <mpatlasov@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/process_64.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/page-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/sparc/kernel/process_64.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix arch/sparc/kernel/process_64.c
---- a/arch/sparc/kernel/process_64.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix
-+++ a/arch/sparc/kernel/process_64.c
-@@ -261,10 +261,12 @@ void arch_trigger_all_cpu_backtrace(bool
- 	smp_fetch_global_regs();
+diff -puN mm/page-writeback.c~mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom-fix
++++ a/mm/page-writeback.c
+@@ -597,13 +597,13 @@ static inline long long pos_ratio_polyno
+ 					  unsigned long dirty,
+ 					  unsigned long limit)
+ {
+-	unsigned int divisor;
++	unsigned long divisor;
+ 	long long pos_ratio;
+ 	long x;
  
- 	for_each_online_cpu(cpu) {
-+		struct global_reg_snapshot *gp;
-+
- 		if (!include_self && cpu == this_cpu)
- 			continue;
+ 	divisor = limit - setpoint;
+ 	if (!divisor)
+-		divisor = 1;
++		divisor = 1;	/* Avoid div-by-zero */
  
--		struct global_reg_snapshot *gp = &global_cpu_snapshot[cpu].reg;
-+		gp = &global_cpu_snapshot[cpu].reg;
- 
- 		__global_reg_poll(gp);
- 
+ 	x = div_s64(((s64)setpoint - (s64)dirty) << RATELIMIT_CALC_SHIFT,
+ 		    divisor);
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch
-mm-get-rid-of-__gfp_kmemcg-fix.patch
-lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-3.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
+mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
