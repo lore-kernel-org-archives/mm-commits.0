@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introdule-compound_head_by_tail.patch added to -mm tree
-Date: Wed, 30 Apr 2014 13:36:07 -0700
-Message-ID: <53615eb7.ARSSk75q9fY4rek0%akpm@linux-foundation.org>
+Subject: + lib-vsprintfc-fix-comparison-to-bool.patch added to -mm tree
+Date: Wed, 30 Apr 2014 14:05:50 -0700
+Message-ID: <536165ae.DMNPAigzCjeaJgLf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50223 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50334 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759493AbaD3UgI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 16:36:08 -0400
+	with ESMTP id S965178AbaD3VFv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 17:05:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, peterz@infradead.org, mgorman@suse.de, liwanp@linux.vnet.ibm.com, liuj97@gmail.com, kirill.shutemov@linux.intel.com, hughd@google.com, hannes@cmpxchg.org, aarcange@redhat.com, nasa4836@gmail.com
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + mm-introdule-compound_head_by_tail.patch added to -mm tree
-To: nasa4836@gmail.com,aarcange@redhat.com,hannes@cmpxchg.org,hughd@google.com,kirill.shutemov@linux.intel.com,liuj97@gmail.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,peterz@infradead.org,riel@redhat.com,sasha.levin@oracle.com
+Subject: + lib-vsprintfc-fix-comparison-to-bool.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Wed, 30 Apr 2014 13:36:07 -0700
+Date: Wed, 30 Apr 2014 14:05:50 -0700
 
 
 The patch titled
-     Subject: mm: introdule compound_head_by_tail()
+     Subject: lib/vsprintf.c: fix comparison to bool
 has been added to the -mm tree.  Its filename is
-     mm-introdule-compound_head_by_tail.patch
+     lib-vsprintfc-fix-comparison-to-bool.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introdule-compound_head_by_tail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-fix-comparison-to-bool.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introdule-compound_head_by_tail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-fix-comparison-to-bool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,149 +43,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jianyu Zhan <nasa4836@gmail.com>
-Subject: mm: introdule compound_head_by_tail()
+From: Fabian Frederick <fabf@skynet.be>
+Subject: lib/vsprintf.c: fix comparison to bool
 
-Currently, in put_compound_page(), we have
+Fixing 2 coccinelle warnings:
+lib/vsprintf.c:2350:2-9: WARNING: Assignment of bool to 0/1
+lib/vsprintf.c:2389:3-10: WARNING: Assignment of bool to 0/1
 
-======
-if (likely(!PageTail(page))) {                  <------  (1)
-        if (put_page_testzero(page)) {
-                 /*
-                 ¦* By the time all refcounts have been released
-                 ¦* split_huge_page cannot run anymore from under us.
-                 ¦*/
-                 if (PageHead(page))
-                         __put_compound_page(page);
-                 else
-                         __put_single_page(page);
-         }
-         return;
-}
-
-/* __split_huge_page_refcount can run under us */
-page_head = compound_head(page);        <------------ (2)
-======
-
-if at (1) ,  we fail the check, this means page is *likely* a tail page.
-
-Then at (2), as compoud_head(page) is inlined, it is :
-
-======
-static inline struct page *compound_head(struct page *page)
-{
-          if (unlikely(PageTail(page))) {           <----------- (3)
-              struct page *head = page->first_page;
-
-                smp_rmb();
-                if (likely(PageTail(page)))
-                        return head;
-        }
-        return page;
-}
-======
-
-here, the (3) unlikely in the case is a negative hint, because it is
-*likely* a tail page.  So the check (3) in this case is not good, so I
-introduce a helper for this case.
-
-So this patch introduces compound_head_by_tail() which deals with a
-possible tail page(though it could be spilt by a racy thread), and make
-compound_head() a wrapper on it.
-
-This patch has no functional change, and it reduces the object
-size slightly:
-   text    data     bss     dec     hex  filename
-  11003    1328      16   12347    303b  mm/swap.o.orig
-  10971    1328      16   12315    301b  mm/swap.o.patched
-
-I've ran "perf top -e branch-miss" to observe branch-miss in this case. 
-As Michael points out, it's a slow path, so only very few times this case
-happens.  But I grep'ed the code base, and found there still are some
-other call sites could be benifited from this helper.  And given that it
-only bloating up the source by only 5 lines, but with a reduced object
-size.  I still believe this helper deserves to exsit.
-
-Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   29 +++++++++++++++++------------
- mm/swap.c          |    2 +-
- 2 files changed, 18 insertions(+), 13 deletions(-)
+ lib/vsprintf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-introdule-compound_head_by_tail include/linux/mm.h
---- a/include/linux/mm.h~mm-introdule-compound_head_by_tail
-+++ a/include/linux/mm.h
-@@ -424,20 +424,25 @@ static inline void compound_unlock_irqre
- #endif
- }
+diff -puN lib/vsprintf.c~lib-vsprintfc-fix-comparison-to-bool lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-fix-comparison-to-bool
++++ a/lib/vsprintf.c
+@@ -2365,7 +2365,7 @@ int vsscanf(const char *buf, const char
+ 			break;
  
--static inline struct page *compound_head(struct page *page)
-+static inline struct page *compound_head_by_tail(struct page *tail)
- {
--	if (unlikely(PageTail(page))) {
--		struct page *head = page->first_page;
-+	struct page *head = tail->first_page;
-+
-+	/*
-+	 * page->first_page may be a dangling pointer to an old
-+	 * compound page, so recheck that it is still a tail
-+	 * page before returning.
-+	 */
-+	smp_rmb();
-+	if (likely(PageTail(tail)))
-+		return head;
-+	return tail;
-+}
+ 		base = 10;
+-		is_sign = 0;
++		is_sign = false;
  
--		/*
--		 * page->first_page may be a dangling pointer to an old
--		 * compound page, so recheck that it is still a tail
--		 * page before returning.
--		 */
--		smp_rmb();
--		if (likely(PageTail(page)))
--			return head;
--	}
-+static inline struct page *compound_head(struct page *page)
-+{
-+	if (unlikely(PageTail(page)))
-+		return compound_head_by_tail(page);
- 	return page;
- }
- 
-diff -puN mm/swap.c~mm-introdule-compound_head_by_tail mm/swap.c
---- a/mm/swap.c~mm-introdule-compound_head_by_tail
-+++ a/mm/swap.c
-@@ -253,7 +253,7 @@ static void put_compound_page(struct pag
- 	 *  Case 3 is possible, as we may race with
- 	 *  __split_huge_page_refcount tearing down a THP page.
- 	 */
--	page_head = compound_head(page);
-+	page_head = compound_head_by_tail(page);
- 	if (!__compound_tail_refcounted(page_head))
- 		put_unrefcounted_compound_page(page_head, page);
- 	else
+ 		switch (*fmt++) {
+ 		case 'c':
+@@ -2404,7 +2404,7 @@ int vsscanf(const char *buf, const char
+ 		case 'i':
+ 			base = 0;
+ 		case 'd':
+-			is_sign = 1;
++			is_sign = true;
+ 		case 'u':
+ 			break;
+ 		case '%':
 _
 
-Patches currently in -mm which might be from nasa4836@gmail.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch
-mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
-mm-swapc-clean-up-lru_cache_add-functions.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
+ntfs-remove-null-value-assignments.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
