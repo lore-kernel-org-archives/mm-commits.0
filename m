@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrolc-remove-null-assignment-on-static.patch added to
- -mm tree
-Date: Wed, 30 Apr 2014 15:34:04 -0700
-Message-ID: <53617a5c.+woN3JPQxl9jmTzf%akpm@linux-foundation.org>
+Subject: + fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch added to -mm tree
+Date: Wed, 30 Apr 2014 15:34:02 -0700
+Message-ID: <53617a5a.Zy18l3oz9EbirQts%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50801 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50794 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759646AbaD3WeF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 18:34:05 -0400
+	with ESMTP id S1759641AbaD3WeD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 18:34:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, shaggy@kernel.org, fabf@skynet.be
 
-Subject: + mm-memcontrolc-remove-null-assignment-on-static.patch added to -mm tree
-To: fabf@skynet.be,hannes@cmpxchg.org
+Subject: + fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch added to -mm tree
+To: fabf@skynet.be,shaggy@kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 30 Apr 2014 15:34:04 -0700
+Date: Wed, 30 Apr 2014 15:34:02 -0700
 
 
 The patch titled
-     Subject: mm/memcontrol.c: remove NULL assignment on static
+     Subject: fs/jfs/jfs_logmgr.c: remove NULL assignment on static
 has been added to the -mm tree.  Its filename is
-     mm-memcontrolc-remove-null-assignment-on-static.patch
+     fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrolc-remove-null-assignment-on-static.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrolc-remove-null-assignment-on-static.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,39 +44,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: mm/memcontrol.c: remove NULL assignment on static
+Subject: fs/jfs/jfs_logmgr.c: remove NULL assignment on static
 
-static values are automatically initialized to NULL
+Static values are automatically initialized to NULL
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dave Kleikamp <shaggy@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/jfs/jfs_logmgr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrolc-remove-null-assignment-on-static mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrolc-remove-null-assignment-on-static
-+++ a/mm/memcontrol.c
-@@ -80,7 +80,7 @@ int do_swap_account __read_mostly;
- #ifdef CONFIG_MEMCG_SWAP_ENABLED
- static int really_do_swap_account __initdata = 1;
- #else
--static int really_do_swap_account __initdata = 0;
-+static int really_do_swap_account __initdata;
- #endif
+diff -puN fs/jfs/jfs_logmgr.c~fs-jfs-jfs_logmgrc-remove-null-assignment-on-static fs/jfs/jfs_logmgr.c
+--- a/fs/jfs/jfs_logmgr.c~fs-jfs-jfs_logmgrc-remove-null-assignment-on-static
++++ a/fs/jfs/jfs_logmgr.c
+@@ -167,7 +167,7 @@ do {						\
+  * Global list of active external journals
+  */
+ static LIST_HEAD(jfs_external_logs);
+-static struct jfs_log *dummy_log = NULL;
++static struct jfs_log *dummy_log;
+ static DEFINE_MUTEX(jfs_log_mutex);
  
- #else
-@@ -3132,7 +3132,7 @@ int memcg_update_cache_size(struct kmem_
- char *memcg_create_cache_name(struct mem_cgroup *memcg,
- 			      struct kmem_cache *root_cache)
- {
--	static char *buf = NULL;
-+	static char *buf;
- 
- 	/*
- 	 * We need a mutex here to protect the shared buffer. Since this is
+ /*
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
