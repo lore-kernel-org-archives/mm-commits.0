@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- include-linux-bootmemh-cleanup-the-comment-for-bootmem_-flags.patch added
- to -mm tree
-Date: Wed, 30 Apr 2014 14:07:06 -0700
-Message-ID: <536165fa.4wOWuWsRcNCI9iK/%akpm@linux-foundation.org>
+ mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch
+ added to -mm tree
+Date: Wed, 30 Apr 2014 14:19:29 -0700
+Message-ID: <536168e1.OGFfMuuJofo0Qhsg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50341 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50432 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946053AbaD3VHG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 17:07:06 -0400
+	with ESMTP id S1753734AbaD3VT3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 17:19:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shhuiw@gmail.com
+To: mm-commits@vger.kernel.org, daeseok.youn@gmail.com
 
-Subject: + include-linux-bootmemh-cleanup-the-comment-for-bootmem_-flags.patch added to -mm tree
-To: shhuiw@gmail.com
+Subject: + mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch added to -mm tree
+To: daeseok.youn@gmail.com
 From: akpm@linux-foundation.org
-Date: Wed, 30 Apr 2014 14:07:06 -0700
+Date: Wed, 30 Apr 2014 14:19:29 -0700
 
 
 The patch titled
-     Subject: include/linux/bootmem.h: cleanup the comment for BOOTMEM_ flags
+     Subject: mm/dmapool.c: remove redundant NULL check for dev in dma_pool_create()
 has been added to the -mm tree.  Its filename is
-     include-linux-bootmemh-cleanup-the-comment-for-bootmem_-flags.patch
+     mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-bootmemh-cleanup-the-comment-for-bootmem_-flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-bootmemh-cleanup-the-comment-for-bootmem_-flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,37 +45,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wang Sheng-Hui <shhuiw@gmail.com>
-Subject: include/linux/bootmem.h: cleanup the comment for BOOTMEM_ flags
+From: Daeseok Youn <daeseok.youn@gmail.com>
+Subject: mm/dmapool.c: remove redundant NULL check for dev in dma_pool_create()
 
-Use BOOTMEM_DEFAULT instead of 0 in the comment.
+"dev" cannot be NULL because it is already checked before calling
+dma_pool_create().
 
-Signed-off-by: Wang Sheng-Hui <shhuiw@gmail.com>
+If dev ever was NULL, the code would oops in dev_to_node() after enabling
+CONFIG_NUMA.
+
+It is possible that some driver is using dev==NULL and has never been run
+on a NUMA machine.  Such a driver is probably outdated, possibly buggy and
+will need some attention if it starts triggering NULL derefs.
+
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/dmapool.c |   24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/bootmem.h~include-linux-bootmemh-cleanup-the-comment-for-bootmem_-flags include/linux/bootmem.h
---- a/include/linux/bootmem.h~include-linux-bootmemh-cleanup-the-comment-for-bootmem_-flags
-+++ a/include/linux/bootmem.h
-@@ -58,9 +58,9 @@ extern void free_bootmem_late(unsigned l
-  * Flags for reserve_bootmem (also if CONFIG_HAVE_ARCH_BOOTMEM_NODE,
-  * the architecture-specific code should honor this).
-  *
-- * If flags is 0, then the return value is always 0 (success). If
-- * flags contains BOOTMEM_EXCLUSIVE, then -EBUSY is returned if the
-- * memory already was reserved.
-+ * If flags is BOOTMEM_DEFAULT, then the return value is always 0 (success).
-+ * If flags contains BOOTMEM_EXCLUSIVE, then -EBUSY is returned if the memory
-+ * already was reserved.
-  */
- #define BOOTMEM_DEFAULT		0
- #define BOOTMEM_EXCLUSIVE	(1<<0)
+diff -puN mm/dmapool.c~mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create mm/dmapool.c
+--- a/mm/dmapool.c~mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create
++++ a/mm/dmapool.c
+@@ -170,24 +170,16 @@ struct dma_pool *dma_pool_create(const c
+ 	retval->boundary = boundary;
+ 	retval->allocation = allocation;
+ 
+-	if (dev) {
+-		int ret;
++	INIT_LIST_HEAD(&retval->pools);
+ 
+-		mutex_lock(&pools_lock);
+-		if (list_empty(&dev->dma_pools))
+-			ret = device_create_file(dev, &dev_attr_pools);
+-		else
+-			ret = 0;
+-		/* note:  not currently insisting "name" be unique */
+-		if (!ret)
+-			list_add(&retval->pools, &dev->dma_pools);
+-		else {
+-			kfree(retval);
+-			retval = NULL;
+-		}
+-		mutex_unlock(&pools_lock);
++	mutex_lock(&pools_lock);
++	if (list_empty(&dev->dma_pools) &&
++	    device_create_file(dev, &dev_attr_pools)) {
++		kfree(retval);
++		return NULL;
+ 	} else
+-		INIT_LIST_HEAD(&retval->pools);
++		list_add(&retval->pools, &dev->dma_pools);
++	mutex_unlock(&pools_lock);
+ 
+ 	return retval;
+ }
 _
 
-Patches currently in -mm which might be from shhuiw@gmail.com are
+Patches currently in -mm which might be from daeseok.youn@gmail.com are
 
-include-linux-bootmemh-cleanup-the-comment-for-bootmem_-flags.patch
+mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch
+linux-next.patch
 
