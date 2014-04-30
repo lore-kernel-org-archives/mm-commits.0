@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmallocc-replace-seq_printf-by-seq_puts.patch added to -mm
- tree
-Date: Wed, 30 Apr 2014 15:34:05 -0700
-Message-ID: <53617a5d.qRQL2p6LUErFpsbL%akpm@linux-foundation.org>
+Subject: + mm-memcontrolc-remove-null-assignment-on-static.patch added to
+ -mm tree
+Date: Wed, 30 Apr 2014 15:34:04 -0700
+Message-ID: <53617a5c.+woN3JPQxl9jmTzf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50803 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50801 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759647AbaD3WeG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 18:34:06 -0400
+	with ESMTP id S1759646AbaD3WeF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 18:34:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, fabf@skynet.be
 
-Subject: + mm-vmallocc-replace-seq_printf-by-seq_puts.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + mm-memcontrolc-remove-null-assignment-on-static.patch added to -mm tree
+To: fabf@skynet.be,hannes@cmpxchg.org
 From: akpm@linux-foundation.org
-Date: Wed, 30 Apr 2014 15:34:05 -0700
+Date: Wed, 30 Apr 2014 15:34:04 -0700
 
 
 The patch titled
-     Subject: mm/vmalloc.c: replace seq_printf by seq_puts
+     Subject: mm/memcontrol.c: remove NULL assignment on static
 has been added to the -mm tree.  Its filename is
-     mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+     mm-memcontrolc-remove-null-assignment-on-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrolc-remove-null-assignment-on-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrolc-remove-null-assignment-on-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,45 +45,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: mm/vmalloc.c: replace seq_printf by seq_puts
+Subject: mm/memcontrol.c: remove NULL assignment on static
 
-Replace seq_printf where possible
+static values are automatically initialized to NULL
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-replace-seq_printf-by-seq_puts mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-replace-seq_printf-by-seq_puts
-+++ a/mm/vmalloc.c
-@@ -2619,19 +2619,19 @@ static int s_show(struct seq_file *m, vo
- 		seq_printf(m, " phys=%llx", (unsigned long long)v->phys_addr);
+diff -puN mm/memcontrol.c~mm-memcontrolc-remove-null-assignment-on-static mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrolc-remove-null-assignment-on-static
++++ a/mm/memcontrol.c
+@@ -80,7 +80,7 @@ int do_swap_account __read_mostly;
+ #ifdef CONFIG_MEMCG_SWAP_ENABLED
+ static int really_do_swap_account __initdata = 1;
+ #else
+-static int really_do_swap_account __initdata = 0;
++static int really_do_swap_account __initdata;
+ #endif
  
- 	if (v->flags & VM_IOREMAP)
--		seq_printf(m, " ioremap");
-+		seq_puts(m, " ioremap");
+ #else
+@@ -3132,7 +3132,7 @@ int memcg_update_cache_size(struct kmem_
+ char *memcg_create_cache_name(struct mem_cgroup *memcg,
+ 			      struct kmem_cache *root_cache)
+ {
+-	static char *buf = NULL;
++	static char *buf;
  
- 	if (v->flags & VM_ALLOC)
--		seq_printf(m, " vmalloc");
-+		seq_puts(m, " vmalloc");
- 
- 	if (v->flags & VM_MAP)
--		seq_printf(m, " vmap");
-+		seq_puts(m, " vmap");
- 
- 	if (v->flags & VM_USERMAP)
--		seq_printf(m, " user");
-+		seq_puts(m, " user");
- 
- 	if (v->flags & VM_VPAGES)
--		seq_printf(m, " vpages");
-+		seq_puts(m, " vpages");
- 
- 	show_numa_info(m, v);
- 	seq_putc(m, '\n');
+ 	/*
+ 	 * We need a mutex here to protect the shared buffer. Since this is
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
