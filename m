@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch added to
- -mm tree
-Date: Wed, 30 Apr 2014 15:34:03 -0700
-Message-ID: <53617a5b.G2bj3HY22UiFtU4w%akpm@linux-foundation.org>
+Subject: + mm-vmallocc-replace-seq_printf-by-seq_puts.patch added to -mm
+ tree
+Date: Wed, 30 Apr 2014 15:34:05 -0700
+Message-ID: <53617a5d.qRQL2p6LUErFpsbL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50798 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50803 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759644AbaD3WeE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 18:34:04 -0400
+	with ESMTP id S1759647AbaD3WeG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 18:34:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shaggy@kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch added to -mm tree
-To: fabf@skynet.be,shaggy@kernel.org
+Subject: + mm-vmallocc-replace-seq_printf-by-seq_puts.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Wed, 30 Apr 2014 15:34:03 -0700
+Date: Wed, 30 Apr 2014 15:34:05 -0700
 
 
 The patch titled
-     Subject: fs/jfs/super.c: remove 0 assignement to static + code clean-up
+     Subject: mm/vmalloc.c: replace seq_printf by seq_puts
 has been added to the -mm tree.  Its filename is
-     fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+     mm-vmallocc-replace-seq_printf-by-seq_puts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmallocc-replace-seq_printf-by-seq_puts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmallocc-replace-seq_printf-by-seq_puts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,166 +45,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/jfs/super.c: remove 0 assignement to static + code clean-up
+Subject: mm/vmalloc.c: replace seq_printf by seq_puts
 
--Static values are automatically initialized to NULL
--Coalesce format fragments
--Remove unnecessary {}
--Small typo fixes
--Fix lines > 80 characters
+Replace seq_printf where possible
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Dave Kleikamp <shaggy@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/super.c |   45 +++++++++++++++++++--------------------------
- 1 file changed, 19 insertions(+), 26 deletions(-)
+ mm/vmalloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/jfs/super.c~fs-jfs-superc-remove-0-assignement-to-static-code-clean-up fs/jfs/super.c
---- a/fs/jfs/super.c~fs-jfs-superc-remove-0-assignement-to-static-code-clean-up
-+++ a/fs/jfs/super.c
-@@ -50,14 +50,14 @@ MODULE_DESCRIPTION("The Journaled Filesy
- MODULE_AUTHOR("Steve Best/Dave Kleikamp/Barry Arndt, IBM");
- MODULE_LICENSE("GPL");
+diff -puN mm/vmalloc.c~mm-vmallocc-replace-seq_printf-by-seq_puts mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-replace-seq_printf-by-seq_puts
++++ a/mm/vmalloc.c
+@@ -2619,19 +2619,19 @@ static int s_show(struct seq_file *m, vo
+ 		seq_printf(m, " phys=%llx", (unsigned long long)v->phys_addr);
  
--static struct kmem_cache * jfs_inode_cachep;
-+static struct kmem_cache *jfs_inode_cachep;
+ 	if (v->flags & VM_IOREMAP)
+-		seq_printf(m, " ioremap");
++		seq_puts(m, " ioremap");
  
- static const struct super_operations jfs_super_operations;
- static const struct export_operations jfs_export_operations;
- static struct file_system_type jfs_fs_type;
+ 	if (v->flags & VM_ALLOC)
+-		seq_printf(m, " vmalloc");
++		seq_puts(m, " vmalloc");
  
- #define MAX_COMMIT_THREADS 64
--static int commit_threads = 0;
-+static int commit_threads;
- module_param(commit_threads, int, 0);
- MODULE_PARM_DESC(commit_threads, "Number of commit threads");
+ 	if (v->flags & VM_MAP)
+-		seq_printf(m, " vmap");
++		seq_puts(m, " vmap");
  
-@@ -84,8 +84,7 @@ static void jfs_handle_error(struct supe
- 		panic("JFS (device %s): panic forced after error\n",
- 			sb->s_id);
- 	else if (sbi->flag & JFS_ERR_REMOUNT_RO) {
--		jfs_err("ERROR: (device %s): remounting filesystem "
--			"as read-only\n",
-+		jfs_err("ERROR: (device %s): remounting filesystem as read-only\n",
- 			sb->s_id);
- 		sb->s_flags |= MS_RDONLY;
- 	}
-@@ -363,12 +362,10 @@ static int parse_options(char *options,
- 			 * -> user has more control over the online trimming
- 			 */
- 			sbi->minblks_trim = 64;
--			if (blk_queue_discard(q)) {
-+			if (blk_queue_discard(q))
- 				*flag |= JFS_DISCARD;
--			} else {
--				pr_err("JFS: discard option " \
--					"not supported on device\n");
--			}
-+			else
-+				pr_err("JFS: discard option not supported on device\n");
- 			break;
- 		}
+ 	if (v->flags & VM_USERMAP)
+-		seq_printf(m, " user");
++		seq_puts(m, " user");
  
-@@ -385,15 +382,14 @@ static int parse_options(char *options,
- 				sbi->minblks_trim = simple_strtoull(
- 					minblks_trim, &minblks_trim, 0);
- 			} else {
--				pr_err("JFS: discard option " \
--					"not supported on device\n");
-+				pr_err("JFS: discard option not supported on device\n");
- 			}
- 			break;
- 		}
+ 	if (v->flags & VM_VPAGES)
+-		seq_printf(m, " vpages");
++		seq_puts(m, " vpages");
  
- 		default:
--			printk("jfs: Unrecognized mount option \"%s\" "
--					" or missing value\n", p);
-+			printk("jfs: Unrecognized mount option \"%s\" or missing value\n",
-+			       p);
- 			goto cleanup;
- 		}
- 	}
-@@ -419,14 +415,12 @@ static int jfs_remount(struct super_bloc
- 	int ret;
- 
- 	sync_filesystem(sb);
--	if (!parse_options(data, sb, &newLVSize, &flag)) {
-+	if (!parse_options(data, sb, &newLVSize, &flag))
- 		return -EINVAL;
--	}
- 
- 	if (newLVSize) {
- 		if (sb->s_flags & MS_RDONLY) {
--			pr_err("JFS: resize requires volume" \
--				" to be mounted read-write\n");
-+			pr_err("JFS: resize requires volume to be mounted read-write\n");
- 			return -EROFS;
- 		}
- 		rc = jfs_extendfs(sb, newLVSize, 0);
-@@ -452,9 +446,8 @@ static int jfs_remount(struct super_bloc
- 	}
- 	if ((!(sb->s_flags & MS_RDONLY)) && (*flags & MS_RDONLY)) {
- 		rc = dquot_suspend(sb, -1);
--		if (rc < 0) {
-+		if (rc < 0)
- 			return rc;
--		}
- 		rc = jfs_umount_rw(sb);
- 		JFS_SBI(sb)->flag = flag;
- 		return rc;
-@@ -487,7 +480,7 @@ static int jfs_fill_super(struct super_b
- 	if (!new_valid_dev(sb->s_bdev->bd_dev))
- 		return -EOVERFLOW;
- 
--	sbi = kzalloc(sizeof (struct jfs_sb_info), GFP_KERNEL);
-+	sbi = kzalloc(sizeof(struct jfs_sb_info), GFP_KERNEL);
- 	if (!sbi)
- 		return -ENOMEM;
- 
-@@ -548,9 +541,8 @@ static int jfs_fill_super(struct super_b
- 
- 	rc = jfs_mount(sb);
- 	if (rc) {
--		if (!silent) {
-+		if (!silent)
- 			jfs_err("jfs_mount failed w/return code = %d", rc);
--		}
- 		goto out_mount_failed;
- 	}
- 	if (sb->s_flags & MS_RDONLY)
-@@ -587,7 +579,8 @@ static int jfs_fill_super(struct super_b
- 	 * Page cache is indexed by long.
- 	 * I would use MAX_LFS_FILESIZE, but it's only half as big
- 	 */
--	sb->s_maxbytes = min(((u64) PAGE_CACHE_SIZE << 32) - 1, (u64)sb->s_maxbytes);
-+	sb->s_maxbytes = min(((u64) PAGE_CACHE_SIZE << 32) - 1,
-+			     (u64)sb->s_maxbytes);
- #endif
- 	sb->s_time_gran = 1;
- 	return 0;
-@@ -597,9 +590,8 @@ out_no_root:
- 
- out_no_rw:
- 	rc = jfs_umount(sb);
--	if (rc) {
-+	if (rc)
- 		jfs_err("jfs_umount failed with return code %d", rc);
--	}
- out_mount_failed:
- 	filemap_write_and_wait(sbi->direct_inode->i_mapping);
- 	truncate_inode_pages(sbi->direct_inode->i_mapping, 0);
-@@ -924,7 +916,8 @@ static int __init init_jfs_fs(void)
- 		commit_threads = MAX_COMMIT_THREADS;
- 
- 	for (i = 0; i < commit_threads; i++) {
--		jfsCommitThread[i] = kthread_run(jfs_lazycommit, NULL, "jfsCommit");
-+		jfsCommitThread[i] = kthread_run(jfs_lazycommit, NULL,
-+						 "jfsCommit");
- 		if (IS_ERR(jfsCommitThread[i])) {
- 			rc = PTR_ERR(jfsCommitThread[i]);
- 			jfs_err("init_jfs_fs: fork failed w/rc = %d", rc);
+ 	show_numa_info(m, v);
+ 	seq_putc(m, '\n');
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
