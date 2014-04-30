@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-doc-clarify-global-vs-limit-reclaims.patch added to -mm
- tree
-Date: Wed, 30 Apr 2014 14:56:45 -0700
-Message-ID: <5361719d.Fw8BVQsbSRMKrhl0%akpm@linux-foundation.org>
+Subject: + memcg-document-memorylow_limit_in_bytes.patch added to -mm tree
+Date: Wed, 30 Apr 2014 14:56:46 -0700
+Message-ID: <5361719e.yyNdmH0GBJVh/zzI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50653 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50664 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965227AbaD3V4q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 17:56:46 -0400
+	with ESMTP id S965228AbaD3V4r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 17:56:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walken@google.com, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, klamm@yandex-team.ru, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz
 
-Subject: + memcg-doc-clarify-global-vs-limit-reclaims.patch added to -mm tree
+Subject: + memcg-document-memorylow_limit_in_bytes.patch added to -mm tree
 To: mhocko@suse.cz,gthelen@google.com,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,klamm@yandex-team.ru,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,walken@google.com
 From: akpm@linux-foundation.org
-Date: Wed, 30 Apr 2014 14:56:45 -0700
+Date: Wed, 30 Apr 2014 14:56:46 -0700
 
 
 The patch titled
-     Subject: memcg, doc: clarify global vs. limit reclaims
+     Subject: memcg: document memory.low_limit_in_bytes
 has been added to the -mm tree.  Its filename is
-     memcg-doc-clarify-global-vs-limit-reclaims.patch
+     memcg-document-memorylow_limit_in_bytes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-doc-clarify-global-vs-limit-reclaims.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-document-memorylow_limit_in_bytes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-doc-clarify-global-vs-limit-reclaims.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-document-memorylow_limit_in_bytes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,9 +44,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg, doc: clarify global vs. limit reclaims
+Subject: memcg: document memory.low_limit_in_bytes
 
-Be explicit about global and hard limit reclaims in our documentation.
+Describe low_limit_in_bytes and its effect.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -61,51 +60,34 @@ Cc: Roman Gushchin <klamm@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ Documentation/cgroups/memory.txt |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-doc-clarify-global-vs-limit-reclaims Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-doc-clarify-global-vs-limit-reclaims
+diff -puN Documentation/cgroups/memory.txt~memcg-document-memorylow_limit_in_bytes Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-document-memorylow_limit_in_bytes
 +++ a/Documentation/cgroups/memory.txt
-@@ -236,23 +236,26 @@ it by cgroup.
- 2.5 Reclaim
+@@ -57,6 +57,7 @@ Brief summary of control files.
+  memory.memsw.usage_in_bytes	 # show current res_counter usage for memory+Swap
+ 				 (See 5.5 for details)
+  memory.limit_in_bytes		 # set/show limit of memory usage
++ memory.low_limit_in_bytes	 # set/show low limit for memory reclaim
+  memory.memsw.limit_in_bytes	 # set/show limit of memory+Swap usage
+  memory.failcnt			 # show the number of memory usage hits limits
+  memory.memsw.failcnt		 # show the number of memory+Swap hits limits
+@@ -249,6 +250,14 @@ is the objective of the reclaim. The glo
+ zones' watermarks while the limit reclaim frees some memory to allow new
+ charges.
  
- Each cgroup maintains a per cgroup LRU which has the same structure as
--global VM. When a cgroup goes over its limit, we first try
--to reclaim memory from the cgroup so as to make space for the new
--pages that the cgroup has touched. If the reclaim is unsuccessful,
--an OOM routine is invoked to select and kill the bulkiest task in the
--cgroup. (See 10. OOM Control below.)
--
--The reclaim algorithm has not been modified for cgroups, except that
--pages that are selected for reclaiming come from the per-cgroup LRU
--list.
-+global VM. Cgroups can get reclaimed basically under two conditions
-+ - under global memory pressure when all cgroups are reclaimed
-+   proportionally wrt. their LRU size in a round robin fashion
-+ - when a cgroup or its hierarchical parent (see 6. Hierarchical support)
-+   hits hard limit. If the reclaim is unsuccessful, an OOM routine is invoked
-+   to select and kill the bulkiest task in the cgroup. (See 10. OOM Control
-+   below.)
++Groups might be also protected from both global and limit reclaim by
++low_limit_in_bytes knob. If the limit is non-zero the reclaim logic
++doesn't include groups (and their subgroups - see 6. Hierarchy support)
++which are bellow the low limit if there is other eligible cgroup in the
++reclaimed hierarchy. If all groups which participate reclaim are under
++their low limits then all of them are reclaimed and the low limit is
++ignored.
 +
-+Global and hard-limit reclaims share the same code the only difference
-+is the objective of the reclaim. The global reclaim aims at balancing
-+zones' watermarks while the limit reclaim frees some memory to allow new
-+charges.
- 
--NOTE: Reclaim does not work for the root cgroup, since we cannot set any
--limits on the root cgroup.
-+NOTE: Hard limit reclaim does not work for the root cgroup, since we cannot set
-+any limits on the root cgroup.
- 
- Note2: When panic_on_oom is set to "2", the whole system will panic.
- 
--When oom event notifier is registered, event will be delivered.
--(See oom_control section)
-+When oom event notifier is registered, event will be delivered to the root
-+of the memory pressure which cannot be handled (See oom_control section)
- 
- 2.6 Locking
+ NOTE: Hard limit reclaim does not work for the root cgroup, since we cannot set
+ any limits on the root cgroup.
  
 _
 
