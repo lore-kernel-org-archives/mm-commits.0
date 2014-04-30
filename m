@@ -1,82 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom.patch removed
- from -mm tree
-Date: Wed, 30 Apr 2014 14:29:32 -0700
-Message-ID: <53616b3c.PEE25cEdkVH1qg2f%akpm__2290.09096879071$1398893383$gmane$org@linux-foundation.org>
+Subject: + mmwriteback-fix-divide-by-zero-in-pos_ratio_polynom.patch added to -mm tree
+Date: Wed, 30 Apr 2014 14:33:04 -0700
+Message-ID: <53616c10.eFuSItzkqBQ1KjD1%akpm__18979.265788994$1398893614$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50483 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50510 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422675AbaD3V3d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 17:29:33 -0400
+	with ESMTP id S964975AbaD3VdF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 17:33:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, sandeen@redhat.com, mpatlasov@parallels.com, mhocko@suse.cz, jweiner@redhat.com, fengguang.wu@intel.com, Kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, nacc@linux.vnet.ibm.com, mgorman@suse.de, m.mizuma@jp.fujitsu.com, lcapitulino@redhat.com, aneesh.kumar@linux.vnet.ibm.com, riel@redhat.com
 
-Subject: [to-be-updated] mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom.patch removed from -mm tree
-To: riel@redhat.com,Kosaki.motohiro@jp.fujitsu.com,fengguang.wu@intel.com,jweiner@redhat.com,mhocko@suse.cz,mpatlasov@parallels.com,sandeen@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: + mmwriteback-fix-divide-by-zero-in-pos_ratio_polynom.patch added to -mm tree
+To: riel@redhat.com,aneesh.kumar@linux.vnet.ibm.com,lcapitulino@redhat.com,m.mizuma@jp.fujitsu.com,mgorman@suse.de,nacc@linux.vnet.ibm.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 30 Apr 2014 14:29:32 -0700
+Date: Wed, 30 Apr 2014 14:33:04 -0700
 
 
 The patch titled
-     Subject: mm/page-writeback.c: fix divide by zero in pos_ratio_polynom()
-has been removed from the -mm tree.  Its filename was
-     mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom.patch
+     Subject: mm/page-writeback.c: fix divide by zero in pos_ratio_polynom
+has been added to the -mm tree.  Its filename is
+     mmwriteback-fix-divide-by-zero-in-pos_ratio_polynom.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mmwriteback-fix-divide-by-zero-in-pos_ratio_polynom.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmwriteback-fix-divide-by-zero-in-pos_ratio_polynom.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Rik van Riel <riel@redhat.com>
-Subject: mm/page-writeback.c: fix divide by zero in pos_ratio_polynom()
+Subject: mm/page-writeback.c: fix divide by zero in pos_ratio_polynom
 
-It is possible for "limit - setpoint + 1" to equal zero, leading to a
-divide by zero error.  Blindly adding 1 to "limit - setpoint" is not
-working, so we need to actually test the divisor before calling div64.
+It is possible for "limit - setpoint + 1" to equal zero, after getting
+truncated to a 32 bit variable, and resulting in a divide by zero error.
+
+Using the fully 64 bit divide functions avoids this problem.  It also will
+cause pos_ratio_polynom() to return the correct value when (setpoint -
+limit) exceeds 2^32.
+
+Also uninline pos_ratio_polynom, at Andrew's request.
 
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Acked-by: KOSAKI Motohiro <Kosaki.motohiro@jp.fujitsu.com>
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Maxim Patlasov <mpatlasov@parallels.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/page-writeback.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom mm/page-writeback.c
---- a/mm/page-writeback.c~mm-page-writebackc-fix-divide-by-zero-in-pos_ratio_polynom
+diff -puN mm/page-writeback.c~mmwriteback-fix-divide-by-zero-in-pos_ratio_polynom mm/page-writeback.c
+--- a/mm/page-writeback.c~mmwriteback-fix-divide-by-zero-in-pos_ratio_polynom
 +++ a/mm/page-writeback.c
-@@ -597,11 +597,16 @@ static inline long long pos_ratio_polyno
+@@ -593,14 +593,14 @@ unsigned long bdi_dirty_limit(struct bac
+  * (5) the closer to setpoint, the smaller |df/dx| (and the reverse)
+  *     => fast response on large errors; small oscillation near setpoint
+  */
+-static inline long long pos_ratio_polynom(unsigned long setpoint,
++static long long pos_ratio_polynom(unsigned long setpoint,
  					  unsigned long dirty,
  					  unsigned long limit)
  {
-+	unsigned int divisor;
  	long long pos_ratio;
  	long x;
  
-+	divisor = limit - setpoint;
-+	if (!divisor)
-+		divisor = 1;	/* Avoid div-by-zero */
-+
- 	x = div_s64(((s64)setpoint - (s64)dirty) << RATELIMIT_CALC_SHIFT,
--		    limit - setpoint + 1);
-+		    divisor);
+-	x = div_s64(((s64)setpoint - (s64)dirty) << RATELIMIT_CALC_SHIFT,
++	x = div64_s64(((s64)setpoint - (s64)dirty) << RATELIMIT_CALC_SHIFT,
+ 		    limit - setpoint + 1);
  	pos_ratio = x;
  	pos_ratio = pos_ratio * x >> RATELIMIT_CALC_SHIFT;
- 	pos_ratio = pos_ratio * x >> RATELIMIT_CALC_SHIFT;
+@@ -842,7 +842,7 @@ static unsigned long bdi_position_ratio(
+ 	x_intercept = bdi_setpoint + span;
+ 
+ 	if (bdi_dirty < x_intercept - span / 4) {
+-		pos_ratio = div_u64(pos_ratio * (x_intercept - bdi_dirty),
++		pos_ratio = div64_u64(pos_ratio * (x_intercept - bdi_dirty),
+ 				    x_intercept - bdi_setpoint + 1);
+ 	} else
+ 		pos_ratio /= 4;
 _
 
 Patches currently in -mm which might be from riel@redhat.com are
 
+mmwriteback-fix-divide-by-zero-in-pos_ratio_polynom.patch
 mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
 revert-mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch
 x86-require-x86-64-for-automatic-numa-balancing.patch
