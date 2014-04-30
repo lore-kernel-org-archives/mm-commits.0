@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-9p-kerneldoc-fixes.patch added to -mm tree
-Date: Wed, 30 Apr 2014 13:07:49 -0700
-Message-ID: <53615815.PVZGv4itU3HPX4d8%akpm@linux-foundation.org>
+Subject: +
+ bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch added to -mm tree
+Date: Wed, 30 Apr 2014 13:10:48 -0700
+Message-ID: <536158c8.+R1LJ0DeMK6+EDD1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50059 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50068 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752888AbaD3UHv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 16:07:51 -0400
+	with ESMTP id S965025AbaD3UKt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Apr 2014 16:10:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, ericvh@gmail.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, kmo@daterainc.com, hch@lst.de, axboe@kernel.dk, mlombard@redhat.com
 
-Subject: + fs-9p-kerneldoc-fixes.patch added to -mm tree
-To: fabf@skynet.be,ericvh@gmail.com,rdunlap@infradead.org
+Subject: + bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch added to -mm tree
+To: mlombard@redhat.com,axboe@kernel.dk,hch@lst.de,kmo@daterainc.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 30 Apr 2014 13:07:49 -0700
+Date: Wed, 30 Apr 2014 13:10:48 -0700
 
 
 The patch titled
-     Subject: fs/9p: kerneldoc fixes
+     Subject: bio: modify __bio_add_page() to accept pages that don't start a new segment
 has been added to the -mm tree.  Its filename is
-     fs-9p-kerneldoc-fixes.patch
+     bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-9p-kerneldoc-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-9p-kerneldoc-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,153 +44,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/9p: kerneldoc fixes
+From: Maurizio Lombardi <mlombard@redhat.com>
+Subject: bio: modify __bio_add_page() to accept pages that don't start a new segment
 
-Function parameters comment fixing.
+The original behaviour is to refuse to add a new page if the maximum
+number of segments has been reached, regardless of the fact the page we
+are going to add can be merged into the last segment or not.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Unfortunately, when the system runs under heavy memory fragmentation
+conditions, a driver may try to add multiple pages to the last segment. 
+The original code won't accept them and EBUSY will be reported to
+userspace.
+
+This patch modifies the function so it refuses to add a page only in case
+the latter starts a new segment and the maximum number of segments has
+already been reached.
+
+The bug can be easily reproduced with the st driver:
+
+1) set CONFIG_SCSI_MPT2SAS_MAX_SGE or CONFIG_SCSI_MPT3SAS_MAX_SGE  to 16
+2) modprobe st buffer_kbs=1024
+3) #dd if=/dev/zero of=/dev/st0 bs=1M count=10
+   dd: error writing `/dev/st0': Device or resource busy
+
+Signed-off-by: Maurizio Lombardi <mlombard@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Kent Overstreet <kmo@daterainc.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/vfs_dir.c        |    1 -
- fs/9p/vfs_file.c       |    4 ++--
- fs/9p/vfs_inode.c      |    6 +++---
- fs/9p/vfs_inode_dotl.c |    7 +++----
- 4 files changed, 8 insertions(+), 10 deletions(-)
+ fs/bio.c |   51 +++++++++++++++++++++++++++++----------------------
+ 1 file changed, 29 insertions(+), 22 deletions(-)
 
-diff -puN fs/9p/vfs_dir.c~fs-9p-kerneldoc-fixes fs/9p/vfs_dir.c
---- a/fs/9p/vfs_dir.c~fs-9p-kerneldoc-fixes
-+++ a/fs/9p/vfs_dir.c
-@@ -42,7 +42,6 @@
+diff -puN fs/bio.c~bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment fs/bio.c
+--- a/fs/bio.c~bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment
++++ a/fs/bio.c
+@@ -699,6 +699,7 @@ static int __bio_add_page(struct request
+ 			  unsigned int max_sectors)
+ {
+ 	int retried_segments = 0;
++	unsigned int bi_phys_segments_orig;
+ 	struct bio_vec *bvec;
+ 
+ 	/*
+@@ -750,29 +751,32 @@ static int __bio_add_page(struct request
+ 		return 0;
+ 
+ 	/*
+-	 * we might lose a segment or two here, but rather that than
+-	 * make this too complex.
++	 * setup the new entry, we might clear it again later if we
++	 * cannot add the page
++	 */
++	bvec = &bio->bi_io_vec[bio->bi_vcnt];
++	bvec->bv_page = page;
++	bvec->bv_len = len;
++	bvec->bv_offset = offset;
++	bio->bi_vcnt++;
++	bi_phys_segments_orig = bio->bi_phys_segments;
++	bio->bi_phys_segments++;
++
++	/*
++	 * Perform a recount if the number of segments is greater
++	 * than queue_max_segments(q).
+ 	 */
+ 
+-	while (bio->bi_phys_segments >= queue_max_segments(q)) {
++	while (bio->bi_phys_segments > queue_max_segments(q)) {
+ 
+ 		if (retried_segments)
+-			return 0;
++			goto failed;
+ 
+ 		retried_segments = 1;
+ 		blk_recount_segments(q, bio);
+ 	}
+ 
+ 	/*
+-	 * setup the new entry, we might clear it again later if we
+-	 * cannot add the page
+-	 */
+-	bvec = &bio->bi_io_vec[bio->bi_vcnt];
+-	bvec->bv_page = page;
+-	bvec->bv_len = len;
+-	bvec->bv_offset = offset;
+-
+-	/*
+ 	 * if queue has other restrictions (eg varying max sector size
+ 	 * depending on offset), it can specify a merge_bvec_fn in the
+ 	 * queue to get further control
+@@ -789,23 +793,26 @@ static int __bio_add_page(struct request
+ 		 * merge_bvec_fn() returns number of bytes it can accept
+ 		 * at this offset
+ 		 */
+-		if (q->merge_bvec_fn(q, &bvm, bvec) < bvec->bv_len) {
+-			bvec->bv_page = NULL;
+-			bvec->bv_len = 0;
+-			bvec->bv_offset = 0;
+-			return 0;
+-		}
++		if (q->merge_bvec_fn(q, &bvm, bvec) < bvec->bv_len)
++			goto failed;
+ 	}
+ 
+ 	/* If we may be able to merge these biovecs, force a recount */
+-	if (bio->bi_vcnt && (BIOVEC_PHYS_MERGEABLE(bvec-1, bvec)))
++	if (bio->bi_vcnt > 1 && (BIOVEC_PHYS_MERGEABLE(bvec-1, bvec)))
+ 		bio->bi_flags &= ~(1 << BIO_SEG_VALID);
+ 
+-	bio->bi_vcnt++;
+-	bio->bi_phys_segments++;
+  done:
+ 	bio->bi_iter.bi_size += len;
+ 	return len;
++
++ failed:
++	bvec->bv_page = NULL;
++	bvec->bv_len = 0;
++	bvec->bv_offset = 0;
++	bio->bi_vcnt--;
++	bio->bi_phys_segments = bi_phys_segments_orig;
++
++	return 0;
+ }
  
  /**
-  * struct p9_rdir - readdir accounting
-- * @mutex: mutex protecting readdir
-  * @head: start offset of current dirread buffer
-  * @tail: end offset of current dirread buffer
-  * @buf: dirread buffer
-diff -puN fs/9p/vfs_file.c~fs-9p-kerneldoc-fixes fs/9p/vfs_file.c
---- a/fs/9p/vfs_file.c~fs-9p-kerneldoc-fixes
-+++ a/fs/9p/vfs_file.c
-@@ -684,7 +684,7 @@ v9fs_direct_read(struct file *filp, char
- /**
-  * v9fs_cached_file_read - read from a file
-  * @filp: file pointer to read
-- * @udata: user data buffer to read data into
-+ * @data: user data buffer to read data into
-  * @count: size of buffer
-  * @offset: offset at which to read data
-  *
-@@ -701,7 +701,7 @@ v9fs_cached_file_read(struct file *filp,
- /**
-  * v9fs_mmap_file_read - read from a file
-  * @filp: file pointer to read
-- * @udata: user data buffer to read data into
-+ * @data: user data buffer to read data into
-  * @count: size of buffer
-  * @offset: offset at which to read data
-  *
-diff -puN fs/9p/vfs_inode.c~fs-9p-kerneldoc-fixes fs/9p/vfs_inode.c
---- a/fs/9p/vfs_inode.c~fs-9p-kerneldoc-fixes
-+++ a/fs/9p/vfs_inode.c
-@@ -580,7 +580,7 @@ static int v9fs_at_to_dotl_flags(int fla
-  * v9fs_remove - helper function to remove files and directories
-  * @dir: directory inode that is being deleted
-  * @dentry:  dentry that is being deleted
-- * @rmdir: removing a directory
-+ * @flags: removing a directory
-  *
-  */
- 
-@@ -778,7 +778,7 @@ static int v9fs_vfs_mkdir(struct inode *
-  * v9fs_vfs_lookup - VFS lookup hook to "walk" to a new inode
-  * @dir:  inode that is being walked from
-  * @dentry: dentry that is being walked to?
-- * @nameidata: path data
-+ * @flags: lookup flags (unused)
-  *
-  */
- 
-@@ -1324,7 +1324,7 @@ v9fs_vfs_put_link(struct dentry *dentry,
-  * v9fs_vfs_mkspecial - create a special file
-  * @dir: inode to create special file in
-  * @dentry: dentry to create
-- * @mode: mode to create special file
-+ * @perm: mode to create special file
-  * @extension: 9p2000.u format extension string representing special file
-  *
-  */
-diff -puN fs/9p/vfs_inode_dotl.c~fs-9p-kerneldoc-fixes fs/9p/vfs_inode_dotl.c
---- a/fs/9p/vfs_inode_dotl.c~fs-9p-kerneldoc-fixes
-+++ a/fs/9p/vfs_inode_dotl.c
-@@ -226,7 +226,7 @@ int v9fs_open_to_dotl_flags(int flags)
-  * v9fs_vfs_create_dotl - VFS hook to create files for 9P2000.L protocol.
-  * @dir: directory inode that is being created
-  * @dentry:  dentry that is being deleted
-- * @mode: create permissions
-+ * @omode: create permissions
-  *
-  */
- 
-@@ -375,7 +375,7 @@ err_clunk_old_fid:
-  * v9fs_vfs_mkdir_dotl - VFS mkdir hook to create a directory
-  * @dir:  inode that is being unlinked
-  * @dentry: dentry that is being unlinked
-- * @mode: mode for new directory
-+ * @omode: mode for new directory
-  *
-  */
- 
-@@ -607,7 +607,6 @@ int v9fs_vfs_setattr_dotl(struct dentry
-  * v9fs_stat2inode_dotl - populate an inode structure with stat info
-  * @stat: stat structure
-  * @inode: inode to populate
-- * @sb: superblock of filesystem
-  *
-  */
- 
-@@ -808,7 +807,7 @@ v9fs_vfs_link_dotl(struct dentry *old_de
-  * v9fs_vfs_mknod_dotl - create a special file
-  * @dir: inode destination for new link
-  * @dentry: dentry for file
-- * @mode: mode for creation
-+ * @omode: mode for creation
-  * @rdev: device associated with special file
-  *
-  */
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from mlombard@redhat.com are
 
-ntfs-remove-null-value-assignments.patch
-fs-configs-itemc-kernel-doc-fixes-clean-up.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
-fs-9p-kerneldoc-fixes.patch
-mm-slubc-convert-printk-to-pr_foo.patch
-mm-slubc-convert-vnsprintf-static-to-va_format.patch
-mm-memory_hotplugc-use-pfn_down.patch
-mm-memblockc-use-pfn_down.patch
-mm-zbudc-make-size-unsigned-like-unique-callsite.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-linux-next.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
+bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch
 
