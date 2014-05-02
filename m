@@ -1,137 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 02 May 2014 14:58:16 -0700
-Message-ID: <536414f8.qyzhhrzqDyWAiLN8%akpm@linux-foundation.org>
+Subject: [nacked]
+ mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch removed from -mm tree
+Date: Fri, 02 May 2014 15:05:48 -0700
+Message-ID: <536416bc.wLXdSrTZLwaStlRe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49001 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49122 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752109AbaEBV6R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 17:58:17 -0400
+	with ESMTP id S1752569AbaEBWFt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 18:05:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, nasa4836@gmail.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, bsingharora@gmail.com, nasa4836@gmail.com
 
-Subject: [folded-merged] mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,nasa4836@gmail.com,mm-commits@vger.kernel.org
+Subject: [nacked] mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch removed from -mm tree
+To: nasa4836@gmail.com,bsingharora@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 02 May 2014 14:58:16 -0700
+Date: Fri, 02 May 2014 15:05:48 -0700
 
 
 The patch titled
-     Subject: mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes
+     Subject: mm/memcontrol.c: introduce helper mem_cgroup_zoneinfo_zone()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
+     mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch
 
-This patch was dropped because it was folded into mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes
+From: Jianyu Zhan <nasa4836@gmail.com>
+Subject: mm/memcontrol.c: introduce helper mem_cgroup_zoneinfo_zone()
 
-WARNING: please, no spaces at the start of a line
-#29: FILE: mm/memcontrol.c:689:
-+       int nid = zone_to_nid(zone);$
+Introduce helper mem_cgroup_zoneinfo_zone().  This makes mem_cgroup_iter()
+code more compact.
 
-WARNING: please, no spaces at the start of a line
-#30: FILE: mm/memcontrol.c:690:
-+       int zid = zone_idx(zone);$
-
-WARNING: please, no spaces at the start of a line
-#32: FILE: mm/memcontrol.c:692:
-+       return mem_cgroup_zoneinfo(memcg, nid, zid);$
-
-total: 0 errors, 3 warnings, 35 lines checked
-
-./patches/mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes
+diff -puN mm/memcontrol.c~mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone
 +++ a/mm/memcontrol.c
-@@ -686,10 +686,10 @@ mem_cgroup_zoneinfo(struct mem_cgroup *m
- static struct mem_cgroup_per_zone *
- mem_cgroup_zoneinfo_zone(struct mem_cgroup *memcg, struct zone *zone)
- {
--       int nid = zone_to_nid(zone);
--       int zid = zone_idx(zone);
-+	int nid = zone_to_nid(zone);
-+	int zid = zone_idx(zone);
- 
--       return mem_cgroup_zoneinfo(memcg, nid, zid);
-+	return mem_cgroup_zoneinfo(memcg, nid, zid);
+@@ -683,6 +683,15 @@ mem_cgroup_zoneinfo(struct mem_cgroup *m
+ 	return &memcg->nodeinfo[nid]->zoneinfo[zid];
  }
  
++static struct mem_cgroup_per_zone *
++mem_cgroup_zoneinfo_zone(struct mem_cgroup *memcg, struct zone *zone)
++{
++	int nid = zone_to_nid(zone);
++	int zid = zone_idx(zone);
++
++	return mem_cgroup_zoneinfo(memcg, nid, zid);
++}
++
  struct cgroup_subsys_state *mem_cgroup_css(struct mem_cgroup *memcg)
+ {
+ 	return &memcg->css;
+@@ -1234,11 +1243,9 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 		int uninitialized_var(seq);
+ 
+ 		if (reclaim) {
+-			int nid = zone_to_nid(reclaim->zone);
+-			int zid = zone_idx(reclaim->zone);
+ 			struct mem_cgroup_per_zone *mz;
+ 
+-			mz = mem_cgroup_zoneinfo(root, nid, zid);
++			mz = mem_cgroup_zoneinfo_zone(root, reclaim->zone);
+ 			iter = &mz->reclaim_iter[reclaim->priority];
+ 			if (prev && reclaim->generation != iter->generation) {
+ 				iter->last_visited = NULL;
+@@ -1345,7 +1352,7 @@ struct lruvec *mem_cgroup_zone_lruvec(st
+ 		goto out;
+ 	}
+ 
+-	mz = mem_cgroup_zoneinfo(memcg, zone_to_nid(zone), zone_idx(zone));
++	mz = mem_cgroup_zoneinfo_zone(memcg, zone);
+ 	lruvec = &mz->lruvec;
+ out:
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nasa4836@gmail.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
-slub-use-sysfses-release-mechanism-for-kmem_cache-fix.patch
-slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-fs-pstore-logging-clean-up-fix.patch
+mm-swapc-clean-up-lru_cache_add-functions.patch
+mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
+mm-swapc-split-put_compound_page-function.patch
+mm-introdule-compound_head_by_tail.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
