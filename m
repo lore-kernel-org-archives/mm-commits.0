@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + printk-re-add-irqsave-restore-in-printk_sched.patch added to
+Subject: + printk-rename-printk_sched-to-printk_deferred.patch added to
  -mm tree
-Date: Fri, 02 May 2014 16:05:55 -0700
-Message-ID: <536424d3.JzlsYc/5X0iLbRl0%akpm@linux-foundation.org>
+Date: Fri, 02 May 2014 16:05:56 -0700
+Message-ID: <536424d4.Ajk/ytbIftYJcT3T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49671 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49678 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752485AbaEBXF4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 19:05:56 -0400
+	with ESMTP id S1753111AbaEBXF5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 19:05:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tglx@linutronix.de, rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com, jbohac@suse.cz, jack@suse.cz, john.stultz@linaro.org
 
-Subject: + printk-re-add-irqsave-restore-in-printk_sched.patch added to -mm tree
+Subject: + printk-rename-printk_sched-to-printk_deferred.patch added to -mm tree
 To: john.stultz@linaro.org,jack@suse.cz,jbohac@suse.cz,mingo@redhat.com,peterz@infradead.org,rostedt@goodmis.org,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Fri, 02 May 2014 16:05:55 -0700
+Date: Fri, 02 May 2014 16:05:56 -0700
 
 
 The patch titled
-     Subject: printk: re-add irqsave/restore in printk_sched
+     Subject: printk: rename printk_sched to printk_deferred
 has been added to the -mm tree.  Its filename is
-     printk-re-add-irqsave-restore-in-printk_sched.patch
+     printk-rename-printk_sched-to-printk_deferred.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-re-add-irqsave-restore-in-printk_sched.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-rename-printk_sched-to-printk_deferred.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-re-add-irqsave-restore-in-printk_sched.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-rename-printk_sched-to-printk_deferred.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,38 +45,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: John Stultz <john.stultz@linaro.org>
-Subject: printk: re-add irqsave/restore in printk_sched
+Subject: printk: rename printk_sched to printk_deferred
 
-Recently, Jiri pointed out a potential deadlock when calling printk while
-holding the timekeeping seqlock.
+After learning we'll need some sort of deferred printk functionality in
+the timekeeping core, Peter suggested we rename the printk_sched function
+so it can be reused by needed subsystems.
 
-Annoyingly, the seqlock lockdep enablement doesn't catch this, as printk
-disables lockdep.
-
-When looking for possible solutions, one idea was to use a local buffer
-and defer the printk to later.  Ends up there is already similar
-functionality in printk_sched() to avoid similar style deadlocks w/ the
-scheduler.
-
-Thus this patchset renames printk_sched to printk_deferred and then moves
-the affected timekeeping printks to make use of it.
-
-There were some points in the discussion between Jan and Peter that made
-it seem that there may still be problems lurking in the console layer, and
-I'm not sure I fully understand their point, so this solution may be
-incomplete.
-
-Additionally, the same issue likely affects any WARN_ONs as well, but I
-wanted to get some thoughts on this approach before trying to remove or
-convert affected WARN_ONS.
-
-
-This patch (of 4)
-
-A commit in akpm's tree (printk: remove separate printk_sched buffers...),
-removed the printk_sched irqsave/restore lines since it was safe for
-current users.  Since we may be expanding usage of printk_sched(), re-add
-the irqsave/restore logic to make the functionality more generally safe.
+This only changes the function name and name of the associated buffer.  No
+logic changes.
 
 Signed-off-by: John Stultz <john.stultz@linaro.org>
 Cc: Jan Kara <jack@suse.cz>
@@ -88,31 +64,85 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/printk.h  |    6 +++---
+ kernel/printk/printk.c  |    2 +-
+ kernel/sched/core.c     |    2 +-
+ kernel/sched/deadline.c |    2 +-
+ kernel/sched/rt.c       |    2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-re-add-irqsave-restore-in-printk_sched kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-re-add-irqsave-restore-in-printk_sched
-+++ a/kernel/printk/printk.c
-@@ -2586,15 +2586,18 @@ void wake_up_klogd(void)
+diff -puN include/linux/printk.h~printk-rename-printk_sched-to-printk_deferred include/linux/printk.h
+--- a/include/linux/printk.h~printk-rename-printk_sched-to-printk_deferred
++++ a/include/linux/printk.h
+@@ -128,9 +128,9 @@ asmlinkage __printf(1, 2) __cold
+ int printk(const char *fmt, ...);
  
- int printk_sched(const char *fmt, ...)
- {
-+	unsigned long flags;
- 	va_list args;
- 	int r;
+ /*
+- * Special printk facility for scheduler use only, _DO_NOT_USE_ !
++ * Special printk facility for scheduler/timekeeping use only, _DO_NOT_USE_ !
+  */
+-__printf(1, 2) __cold int printk_sched(const char *fmt, ...);
++__printf(1, 2) __cold int printk_deferred(const char *fmt, ...);
  
-+	local_irq_save(flags);
- 	va_start(args, fmt);
- 	r = vprintk_emit(0, SCHED_MESSAGE_LOGLEVEL, NULL, 0, fmt, args);
- 	va_end(args);
- 
- 	__this_cpu_or(printk_pending, PRINTK_PENDING_OUTPUT);
- 	irq_work_queue(&__get_cpu_var(wake_up_klogd_work));
-+	local_irq_restore(flags);
- 
- 	return r;
+ /*
+  * Please don't use printk_ratelimit(), because it shares ratelimiting state
+@@ -165,7 +165,7 @@ int printk(const char *s, ...)
+ 	return 0;
  }
+ static inline __printf(1, 2) __cold
+-int printk_sched(const char *s, ...)
++int printk_deferred(const char *s, ...)
+ {
+ 	return 0;
+ }
+diff -puN kernel/printk/printk.c~printk-rename-printk_sched-to-printk_deferred kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/printk/printk.c
+@@ -2584,7 +2584,7 @@ void wake_up_klogd(void)
+ 	preempt_enable();
+ }
+ 
+-int printk_sched(const char *fmt, ...)
++int printk_deferred(const char *fmt, ...)
+ {
+ 	unsigned long flags;
+ 	va_list args;
+diff -puN kernel/sched/core.c~printk-rename-printk_sched-to-printk_deferred kernel/sched/core.c
+--- a/kernel/sched/core.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/sched/core.c
+@@ -1320,7 +1320,7 @@ out:
+ 		 * leave kernel.
+ 		 */
+ 		if (p->mm && printk_ratelimit()) {
+-			printk_sched("process %d (%s) no longer affine to cpu%d\n",
++			printk_deferred("process %d (%s) no longer affine to cpu%d\n",
+ 					task_pid_nr(p), p->comm, cpu);
+ 		}
+ 	}
+diff -puN kernel/sched/deadline.c~printk-rename-printk_sched-to-printk_deferred kernel/sched/deadline.c
+--- a/kernel/sched/deadline.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/sched/deadline.c
+@@ -352,7 +352,7 @@ static void replenish_dl_entity(struct s
+ 
+ 		if (!lag_once) {
+ 			lag_once = true;
+-			printk_sched("sched: DL replenish lagged to much\n");
++			printk_deferred("sched: DL replenish lagged to much\n");
+ 		}
+ 		dl_se->deadline = rq_clock(rq) + pi_se->dl_deadline;
+ 		dl_se->runtime = pi_se->dl_runtime;
+diff -puN kernel/sched/rt.c~printk-rename-printk_sched-to-printk_deferred kernel/sched/rt.c
+--- a/kernel/sched/rt.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/sched/rt.c
+@@ -857,7 +857,7 @@ static int sched_rt_runtime_exceeded(str
+ 
+ 			if (!once) {
+ 				once = true;
+-				printk_sched("sched: RT throttling activated\n");
++				printk_deferred("sched: RT throttling activated\n");
+ 			}
+ 		} else {
+ 			/*
 _
 
 Patches currently in -mm which might be from john.stultz@linaro.org are
