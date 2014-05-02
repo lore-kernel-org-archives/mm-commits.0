@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
- added to -mm tree
-Date: Fri, 02 May 2014 14:12:11 -0700
-Message-ID: <53640a2b.iA8KywpUA7gyjgaA%akpm@linux-foundation.org>
+Subject: + mm-compaction-cleanup-isolate_freepages-fix3.patch added to -mm tree
+Date: Fri, 02 May 2014 14:15:46 -0700
+Message-ID: <53640b02.QiFqi1g4OvINZSS/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47381 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47518 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752197AbaEBVMM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 17:12:12 -0400
+	with ESMTP id S1752193AbaEBVPr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 17:15:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, torvalds@linux-foundation.org, steven@uplinklabs.net, riel@redhat.com, peterz@infradead.org, mingo@kernel.org, mgorman@suse.de, hpa@zytor.com, david.vrabel@citrix.com, gorcunov@openvz.org
+To: mm-commits@vger.kernel.org, vbabka@suse.de, sunghwan.yun@samsung.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, d.j.shin@samsung.com, cl@linux.com, b.zolnierkie@samsung.com, iamjoonsoo.kim@lge.com
 
-Subject: + mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch added to -mm tree
-To: gorcunov@openvz.org,david.vrabel@citrix.com,hpa@zytor.com,mgorman@suse.de,mingo@kernel.org,peterz@infradead.org,riel@redhat.com,steven@uplinklabs.net,torvalds@linux-foundation.org,xemul@parallels.com
+Subject: + mm-compaction-cleanup-isolate_freepages-fix3.patch added to -mm tree
+To: iamjoonsoo.kim@lge.com,b.zolnierkie@samsung.com,cl@linux.com,d.j.shin@samsung.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,sunghwan.yun@samsung.com,vbabka@suse.de
 From: akpm@linux-foundation.org
-Date: Fri, 02 May 2014 14:12:11 -0700
+Date: Fri, 02 May 2014 14:15:46 -0700
 
 
 The patch titled
-     Subject: mm: x86 pgtable: require X86_64 for soft-dirty tracker
+     Subject: mm-compaction-cleanup-isolate_freepages-fix3
 has been added to the -mm tree.  Its filename is
-     mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
+     mm-compaction-cleanup-isolate_freepages-fix3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-cleanup-isolate_freepages-fix3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-cleanup-isolate_freepages-fix3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,111 +43,170 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: mm: x86 pgtable: require X86_64 for soft-dirty tracker
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm-compaction-cleanup-isolate_freepages-fix3
 
-Tracking dirty status on 2 level pages requires very ugly macros and
-taking into account how old the machines who can operate without PAE mode
-only are, lets drop soft dirty tracker from them for code simplicity (note
-I can't drop all the macros from 2 level pages by now since
-_PAGE_BIT_PROTNONE and _PAGE_BIT_FILE are still used even without
-tracker).
+What I did here is taking end_pfn out of the loop and considering zone
+boundary once.  After then, we can just set previous pfn to end_pfn on
+every iteration to move scanning window.  With this change, we can remove
+local variable, z_end_pfn.
 
-Linus proposed to completely rip off softdirty support on x86-32 (even
-with PAE) and since for CRIU we're not planning to support native x86-32
-mode, lets do that.
+Another things I did are removing max() operation and un-needed assignment
+to isolate variable.
 
-(Softdirty tracker is relatively new feature which is mostly used by CRIU
-so I don't expect if such API change would cause problems for userspace).
+In addition, I change both the variable names, from pfn and end_pfn to
+block_start_pfn and block_end_pfn, respectively.  They represent their
+meaning perfectly.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Vlastimil Babka <vbabka@suse.de>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Steven Noonan <steven@uplinklabs.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Dongjun Shin <d.j.shin@samsung.com>
+Cc: Sunghwan Yun <sunghwan.yun@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                      |    2 
- arch/x86/include/asm/pgtable-2level.h |   49 ------------------------
- 2 files changed, 1 insertion(+), 50 deletions(-)
+ mm/compaction.c |   46 +++++++++++++++++++++-------------------------
+ 1 file changed, 21 insertions(+), 25 deletions(-)
 
-diff -puN arch/x86/Kconfig~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker
-+++ a/arch/x86/Kconfig
-@@ -105,7 +105,7 @@ config X86
- 	select HAVE_ARCH_SECCOMP_FILTER
- 	select BUILDTIME_EXTABLE_SORT
- 	select GENERIC_CMOS_UPDATE
--	select HAVE_ARCH_SOFT_DIRTY
-+	select HAVE_ARCH_SOFT_DIRTY if X86_64
- 	select CLOCKSOURCE_WATCHDOG
- 	select GENERIC_CLOCKEVENTS
- 	select ARCH_CLOCKSOURCE_DATA
-diff -puN arch/x86/include/asm/pgtable-2level.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker arch/x86/include/asm/pgtable-2level.h
---- a/arch/x86/include/asm/pgtable-2level.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker
-+++ a/arch/x86/include/asm/pgtable-2level.h
-@@ -62,53 +62,6 @@ static inline unsigned long pte_bitop(un
- 	return ((value >> rightshift) & mask) << leftshift;
- }
+diff -puN mm/compaction.c~mm-compaction-cleanup-isolate_freepages-fix3 mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-cleanup-isolate_freepages-fix3
++++ a/mm/compaction.c
+@@ -662,10 +662,10 @@ static void isolate_freepages(struct zon
+ 				struct compact_control *cc)
+ {
+ 	struct page *page;
+-	unsigned long pfn;	     /* scanning cursor */
++	unsigned long block_start_pfn;	/* start of current pageblock */
++	unsigned long block_end_pfn;	/* end of current pageblock */
+ 	unsigned long low_pfn;	     /* lowest pfn scanner is able to scan */
+ 	unsigned long next_free_pfn; /* start pfn for scaning at next round */
+-	unsigned long z_end_pfn;     /* zone's end pfn */
+ 	int nr_freepages = cc->nr_freepages;
+ 	struct list_head *freelist = &cc->freepages;
  
--#ifdef CONFIG_MEM_SOFT_DIRTY
--
--/*
-- * Bits _PAGE_BIT_PRESENT, _PAGE_BIT_FILE, _PAGE_BIT_SOFT_DIRTY and
-- * _PAGE_BIT_PROTNONE are taken, split up the 28 bits of offset
-- * into this range.
-- */
--#define PTE_FILE_MAX_BITS	28
--#define PTE_FILE_SHIFT1		(_PAGE_BIT_PRESENT + 1)
--#define PTE_FILE_SHIFT2		(_PAGE_BIT_FILE + 1)
--#define PTE_FILE_SHIFT3		(_PAGE_BIT_PROTNONE + 1)
--#define PTE_FILE_SHIFT4		(_PAGE_BIT_SOFT_DIRTY + 1)
--#define PTE_FILE_BITS1		(PTE_FILE_SHIFT2 - PTE_FILE_SHIFT1 - 1)
--#define PTE_FILE_BITS2		(PTE_FILE_SHIFT3 - PTE_FILE_SHIFT2 - 1)
--#define PTE_FILE_BITS3		(PTE_FILE_SHIFT4 - PTE_FILE_SHIFT3 - 1)
--
--#define PTE_FILE_MASK1		((1U << PTE_FILE_BITS1) - 1)
--#define PTE_FILE_MASK2		((1U << PTE_FILE_BITS2) - 1)
--#define PTE_FILE_MASK3		((1U << PTE_FILE_BITS3) - 1)
--
--#define PTE_FILE_LSHIFT2	(PTE_FILE_BITS1)
--#define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
--#define PTE_FILE_LSHIFT4	(PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3)
--
--static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
--{
--	return (pgoff_t)
--		(pte_bitop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		    +
--		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
--		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT3, PTE_FILE_MASK3,  PTE_FILE_LSHIFT3) +
--		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT4,           -1UL,  PTE_FILE_LSHIFT4));
--}
--
--static __always_inline pte_t pgoff_to_pte(pgoff_t off)
--{
--	return (pte_t){
--		.pte_low =
--			pte_bitop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
--			pte_bitop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
--			pte_bitop(off, PTE_FILE_LSHIFT3, PTE_FILE_MASK3,  PTE_FILE_SHIFT3) +
--			pte_bitop(off, PTE_FILE_LSHIFT4,           -1UL,  PTE_FILE_SHIFT4) +
--			_PAGE_FILE,
--	};
--}
--
--#else /* CONFIG_MEM_SOFT_DIRTY */
--
- /*
-  * Bits _PAGE_BIT_PRESENT, _PAGE_BIT_FILE and _PAGE_BIT_PROTNONE are taken,
-  * split up the 29 bits of offset into this range.
-@@ -145,8 +98,6 @@ static __always_inline pte_t pgoff_to_pt
- 	};
- }
+@@ -673,31 +673,33 @@ static void isolate_freepages(struct zon
+ 	 * Initialise the free scanner. The starting point is where we last
+ 	 * successfully isolated from, zone-cached value, or the end of the
+ 	 * zone when isolating for the first time. We need this aligned to
+-	 * the pageblock boundary, because we do pfn -= pageblock_nr_pages
+-	 * in the for loop.
++	 * the pageblock boundary, because we do
++	 * block_start_pfn -= pageblock_nr_pages in the for loop.
++	 * For ending point, take care when isolating in last pageblock of a
++	 * a zone which ends in the middle of a pageblock.
+ 	 * The low boundary is the end of the pageblock the migration scanner
+ 	 * is using.
+ 	 */
+-	pfn = cc->free_pfn & ~(pageblock_nr_pages-1);
++	block_start_pfn = cc->free_pfn & ~(pageblock_nr_pages-1);
++	block_end_pfn = min(block_start_pfn + pageblock_nr_pages,
++						zone_end_pfn(zone));
+ 	low_pfn = ALIGN(cc->migrate_pfn + 1, pageblock_nr_pages);
  
--#endif /* CONFIG_MEM_SOFT_DIRTY */
+ 	/*
+-	 * Seed the value for max(next_free_pfn, pfn) updates. If no pages are
+-	 * isolated, the pfn < low_pfn check will kick in.
++	 * If no pages are isolated, the block_start_pfn < low_pfn check
++	 * will kick in.
+ 	 */
+ 	next_free_pfn = 0;
+ 
+-	z_end_pfn = zone_end_pfn(zone);
+-
+ 	/*
+ 	 * Isolate free pages until enough are available to migrate the
+ 	 * pages on cc->migratepages. We stop searching if the migrate
+ 	 * and free page scanners meet or enough free pages are isolated.
+ 	 */
+-	for (; pfn >= low_pfn && cc->nr_migratepages > nr_freepages;
+-					pfn -= pageblock_nr_pages) {
++	for (;block_start_pfn >= low_pfn && cc->nr_migratepages > nr_freepages;
++				block_end_pfn = block_start_pfn,
++				block_start_pfn -= pageblock_nr_pages) {
+ 		unsigned long isolated;
+-		unsigned long end_pfn;
+ 
+ 		/*
+ 		 * This can iterate a massively long zone without finding any
+@@ -706,7 +708,7 @@ static void isolate_freepages(struct zon
+ 		 */
+ 		cond_resched();
+ 
+-		if (!pfn_valid(pfn))
++		if (!pfn_valid(block_start_pfn))
+ 			continue;
+ 
+ 		/*
+@@ -716,7 +718,7 @@ static void isolate_freepages(struct zon
+ 		 * i.e. it's possible that all pages within a zones range of
+ 		 * pages do not belong to a single zone.
+ 		 */
+-		page = pfn_to_page(pfn);
++		page = pfn_to_page(block_start_pfn);
+ 		if (page_zone(page) != zone)
+ 			continue;
+ 
+@@ -729,14 +731,8 @@ static void isolate_freepages(struct zon
+ 			continue;
+ 
+ 		/* Found a block suitable for isolating free pages from */
+-
+-		/*
+-		 * Take care when isolating in last pageblock of a zone which
+-		 * ends in the middle of a pageblock.
+-		 */
+-		end_pfn = min(pfn + pageblock_nr_pages, z_end_pfn);
+-		isolated = isolate_freepages_block(cc, pfn, end_pfn,
+-						   freelist, false);
++		isolated = isolate_freepages_block(cc, block_start_pfn,
++					block_end_pfn, freelist, false);
+ 		nr_freepages += isolated;
+ 
+ 		/*
+@@ -744,9 +740,9 @@ static void isolate_freepages(struct zon
+ 		 * looking for free pages, the search will restart here as
+ 		 * page migration may have returned some pages to the allocator
+ 		 */
+-		if (isolated) {
++		if (isolated && next_free_pfn == 0) {
+ 			cc->finished_update_free = true;
+-			next_free_pfn = max(next_free_pfn, pfn);
++			next_free_pfn = block_start_pfn;
+ 		}
+ 	}
+ 
+@@ -757,7 +753,7 @@ static void isolate_freepages(struct zon
+ 	 * If we crossed the migrate scanner, we want to keep it that way
+ 	 * so that compact_finished() may detect this
+ 	 */
+-	if (pfn < low_pfn)
++	if (block_start_pfn < low_pfn)
+ 		next_free_pfn = cc->migrate_pfn;
+ 
+ 	cc->free_pfn = next_free_pfn;
+_
+
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+
+mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
+slab-fix-the-type-of-the-index-on-freelist-index-accessor.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
+mm-compaction-clean-up-unused-code-lines.patch
+mm-compaction-cleanup-isolate_freepages.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+mm-compaction-cleanup-isolate_freepages-fix-2.patch
+mm-compaction-cleanup-isolate_freepages-fix3.patch
+mm-swapc-clean-up-lru_cache_add-functions.patch
+zram-correct-offset-usage-in-zram_bio_discard.patch
+page-owners-correct-page-order-when-to-free-page.patch
+
