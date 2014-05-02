@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + printk-add-printk_once_deferred.patch added to -mm tree
-Date: Fri, 02 May 2014 16:05:57 -0700
-Message-ID: <536424d5.qr48ZWlnAxW5gOgr%akpm@linux-foundation.org>
+Subject: +
+ timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+ added to -mm tree
+Date: Fri, 02 May 2014 16:05:58 -0700
+Message-ID: <536424d6.3hHHkX3Obv8xEgu/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49685 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49692 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753111AbaEBXF6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 19:05:58 -0400
+	with ESMTP id S1752860AbaEBXF7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 19:05:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tglx@linutronix.de, rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com, jbohac@suse.cz, jack@suse.cz, john.stultz@linaro.org
 
-Subject: + printk-add-printk_once_deferred.patch added to -mm tree
+Subject: + timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch added to -mm tree
 To: john.stultz@linaro.org,jack@suse.cz,jbohac@suse.cz,mingo@redhat.com,peterz@infradead.org,rostedt@goodmis.org,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Fri, 02 May 2014 16:05:57 -0700
+Date: Fri, 02 May 2014 16:05:58 -0700
 
 
 The patch titled
-     Subject: printk: add printk_once_deferred()
+     Subject: timekeeping: use printk_deferred() when holding timekeeping seqlock
 has been added to the -mm tree.  Its filename is
-     printk-add-printk_once_deferred.patch
+     timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-add-printk_once_deferred.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-add-printk_once_deferred.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,74 +46,128 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: John Stultz <john.stultz@linaro.org>
-Subject: printk: add printk_once_deferred()
+Subject: timekeeping: use printk_deferred() when holding timekeeping seqlock
 
-Two of the three prink_deferred uses are really printk_once style uses, so
-add a printk_once_deferred macro to simplify those call sites.
+Jiri Bohac pointed out that there are rare but potential deadlock
+possibilities when calling printk while holding the timekeeping seqlock.
+
+This is due to printk() triggering console sem wakeup, which can cause
+scheduling code to trigger hrtimers which may try to read the time.
+
+Specifically, as Jiri pointed out, that path is:
+  printk
+    vprintk_emit
+      console_unlock
+        up(&console_sem)
+          __up
+	    wake_up_process
+	      try_to_wake_up
+	        ttwu_do_activate
+		  ttwu_activate
+		    activate_task
+		      enqueue_task
+		        enqueue_task_fair
+			  hrtick_update
+			    hrtick_start_fair
+			      hrtick_start_fair
+			        get_time
+				  ktime_get
+				    --> endless loop on
+				    read_seqcount_retry(&timekeeper_seq, ...)
+
+This patch tries to avoid this issue by using printk_deferred (previously
+named printk_sched) which should defer printing via a irq_work_queue.
 
 Signed-off-by: John Stultz <john.stultz@linaro.org>
+Reported-by: Jiri Bohac <jbohac@suse.cz>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Jiri Bohac <jbohac@suse.cz>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h  |   11 +++++++++++
- kernel/sched/deadline.c |    7 +------
- kernel/sched/rt.c       |    8 +-------
- 3 files changed, 13 insertions(+), 13 deletions(-)
+ kernel/time/ntp.c         |   15 +++++++++------
+ kernel/time/timekeeping.c |    7 ++++---
+ 2 files changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/printk.h~printk-add-printk_once_deferred include/linux/printk.h
---- a/include/linux/printk.h~printk-add-printk_once_deferred
-+++ a/include/linux/printk.h
-@@ -266,9 +266,20 @@ extern asmlinkage void dump_stack(void)
- 		printk(fmt, ##__VA_ARGS__);			\
- 	}							\
- })
-+#define printk_once_deferred(fmt, ...)				\
-+({								\
-+	static bool __print_once __read_mostly;			\
-+								\
-+	if (!__print_once) {					\
-+		__print_once = true;				\
-+		printk_deferred(fmt, ##__VA_ARGS__);		\
-+	}							\
-+})
- #else
- #define printk_once(fmt, ...)					\
- 	no_printk(fmt, ##__VA_ARGS__)
-+#define printk_once_deferred(fmt, ...)				\
-+	no_printk(fmt, ##__VA_ARGS__)
- #endif
- 
- #define pr_emerg_once(fmt, ...)					\
-diff -puN kernel/sched/deadline.c~printk-add-printk_once_deferred kernel/sched/deadline.c
---- a/kernel/sched/deadline.c~printk-add-printk_once_deferred
-+++ a/kernel/sched/deadline.c
-@@ -348,12 +348,7 @@ static void replenish_dl_entity(struct s
- 	 * entity.
- 	 */
- 	if (dl_time_before(dl_se->deadline, rq_clock(rq))) {
--		static bool lag_once = false;
--
--		if (!lag_once) {
--			lag_once = true;
--			printk_deferred("sched: DL replenish lagged to much\n");
--		}
-+		printk_once_deferred("sched: DL replenish lagged to much\n");
- 		dl_se->deadline = rq_clock(rq) + pi_se->dl_deadline;
- 		dl_se->runtime = pi_se->dl_runtime;
+diff -puN kernel/time/ntp.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock kernel/time/ntp.c
+--- a/kernel/time/ntp.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock
++++ a/kernel/time/ntp.c
+@@ -786,8 +786,9 @@ static long hardpps_update_freq(struct p
+ 		time_status |= STA_PPSERROR;
+ 		pps_errcnt++;
+ 		pps_dec_freq_interval();
+-		pr_err("hardpps: PPSERROR: interval too long - %ld s\n",
+-				freq_norm.sec);
++		printk_deferred(KERN_ERR
++			"hardpps: PPSERROR: interval too long - %ld s\n",
++			freq_norm.sec);
+ 		return 0;
  	}
-diff -puN kernel/sched/rt.c~printk-add-printk_once_deferred kernel/sched/rt.c
---- a/kernel/sched/rt.c~printk-add-printk_once_deferred
-+++ a/kernel/sched/rt.c
-@@ -851,14 +851,8 @@ static int sched_rt_runtime_exceeded(str
- 		 * but accrue some time due to boosting.
- 		 */
- 		if (likely(rt_b->rt_runtime)) {
--			static bool once = false;
--
- 			rt_rq->rt_throttled = 1;
+ 
+@@ -800,7 +801,8 @@ static long hardpps_update_freq(struct p
+ 	delta = shift_right(ftemp - pps_freq, NTP_SCALE_SHIFT);
+ 	pps_freq = ftemp;
+ 	if (delta > PPS_MAXWANDER || delta < -PPS_MAXWANDER) {
+-		pr_warning("hardpps: PPSWANDER: change=%ld\n", delta);
++		printk_deferred(KERN_WARNING
++				"hardpps: PPSWANDER: change=%ld\n", delta);
+ 		time_status |= STA_PPSWANDER;
+ 		pps_stbcnt++;
+ 		pps_dec_freq_interval();
+@@ -844,8 +846,9 @@ static void hardpps_update_phase(long er
+ 	 * the time offset is updated.
+ 	 */
+ 	if (jitter > (pps_jitter << PPS_POPCORN)) {
+-		pr_warning("hardpps: PPSJITTER: jitter=%ld, limit=%ld\n",
+-		       jitter, (pps_jitter << PPS_POPCORN));
++		printk_deferred(KERN_WARNING
++				"hardpps: PPSJITTER: jitter=%ld, limit=%ld\n",
++				jitter, (pps_jitter << PPS_POPCORN));
+ 		time_status |= STA_PPSJITTER;
+ 		pps_jitcnt++;
+ 	} else if (time_status & STA_PPSTIME) {
+@@ -902,7 +905,7 @@ void __hardpps(const struct timespec *ph
+ 		time_status |= STA_PPSJITTER;
+ 		/* restart the frequency calibration interval */
+ 		pps_fbase = *raw_ts;
+-		pr_err("hardpps: PPSJITTER: bad pulse\n");
++		printk_deferred(KERN_ERR "hardpps: PPSJITTER: bad pulse\n");
+ 		return;
+ 	}
+ 
+diff -puN kernel/time/timekeeping.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock
++++ a/kernel/time/timekeeping.c
+@@ -852,8 +852,9 @@ static void __timekeeping_inject_sleepti
+ 							struct timespec *delta)
+ {
+ 	if (!timespec_valid_strict(delta)) {
+-		printk(KERN_WARNING "__timekeeping_inject_sleeptime: Invalid "
+-					"sleep delta value!\n");
++		printk_deferred(KERN_WARNING
++				"__timekeeping_inject_sleeptime: Invalid "
++				"sleep delta value!\n");
+ 		return;
+ 	}
+ 	tk_xtime_add(tk, delta);
+@@ -1157,7 +1158,7 @@ static void timekeeping_adjust(struct ti
+ 
+ 	if (unlikely(tk->clock->maxadj &&
+ 		(tk->mult + adj > tk->clock->mult + tk->clock->maxadj))) {
+-		printk_once(KERN_WARNING
++		printk_once_deferred(KERN_WARNING
+ 			"Adjusting %s more than 11%% (%ld vs %ld)\n",
+ 			tk->clock->name, (long)tk->mult + adj,
+ 			(long)tk->clock->mult + tk->clock->maxadj);
+_
+
+Patches currently in -mm which might be from john.stultz@linaro.org are
+
+printk-re-add-irqsave-restore-in-printk_sched.patch
+printk-rename-printk_sched-to-printk_deferred.patch
+printk-add-printk_once_deferred.patch
+timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+
