@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-call-kmemleak-directly-from-memblock_allocfree.patch added
- to -mm tree
-Date: Fri, 02 May 2014 15:49:17 -0700
-Message-ID: <536420ed.8oLz/bTtmqr5LCYc%akpm@linux-foundation.org>
+Subject: + mm-postpone-the-disabling-of-kmemleak-early-logging.patch added to -mm tree
+Date: Fri, 02 May 2014 15:49:18 -0700
+Message-ID: <536420ee.nrKsw6+hmTPazNJ4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49551 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49553 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751366AbaEBWtS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 18:49:18 -0400
+	with ESMTP id S1752976AbaEBWtT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 18:49:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org, catalin.marinas@arm.com
+To: mm-commits@vger.kernel.org, catalin.marinas@arm.com
 
-Subject: + mm-call-kmemleak-directly-from-memblock_allocfree.patch added to -mm tree
-To: catalin.marinas@arm.com,akpm@linux-foundation.org
+Subject: + mm-postpone-the-disabling-of-kmemleak-early-logging.patch added to -mm tree
+To: catalin.marinas@arm.com
 From: akpm@linux-foundation.org
-Date: Fri, 02 May 2014 15:49:17 -0700
+Date: Fri, 02 May 2014 15:49:18 -0700
 
 
 The patch titled
-     Subject: mm/memblock.c: call kmemleak directly from memblock_(alloc|free)
+     Subject: mm/kmemleak.c: postpone the disabling of kmemleak early logging
 has been added to the -mm tree.  Its filename is
-     mm-call-kmemleak-directly-from-memblock_allocfree.patch
+     mm-postpone-the-disabling-of-kmemleak-early-logging.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-call-kmemleak-directly-from-memblock_allocfree.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-postpone-the-disabling-of-kmemleak-early-logging.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-call-kmemleak-directly-from-memblock_allocfree.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-postpone-the-disabling-of-kmemleak-early-logging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,70 +44,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: mm/memblock.c: call kmemleak directly from memblock_(alloc|free)
+Subject: mm/kmemleak.c: postpone the disabling of kmemleak early logging
 
-Kmemleak could ignore memory blocks allocated via memblock_alloc() leading
-to false positives during scanning.  This patch adds the corresponding
-callbacks and removes kmemleak_free_* calls in mm/nobootmem.c to avoid
-duplication.  The kmemleak_alloc() in mm/nobootmem.c is kept since
-__alloc_memory_core_early() does not use memblock_alloc() directly.
+Currently, kmemleak_early_log is disabled at the beginning of the
+kmemleak_init() function, before the full kmemleak tracing is actually
+enabled.  In this small window, kmem_cache_create() is called by kmemleak
+which triggers additional memory allocation that are not traced.  This
+patch moves the kmemleak_early_log disabling further down and at the same
+time with full kmemleak enabling.
 
 Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c  |   10 ++++++++--
- mm/nobootmem.c |    2 --
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ mm/kmemleak.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/memblock.c~mm-call-kmemleak-directly-from-memblock_allocfree mm/memblock.c
---- a/mm/memblock.c~mm-call-kmemleak-directly-from-memblock_allocfree
-+++ a/mm/memblock.c
-@@ -681,6 +681,7 @@ int __init_memblock memblock_free(phys_a
- 		     (unsigned long long)base + size - 1,
- 		     (void *)_RET_IP_);
+diff -puN mm/kmemleak.c~mm-postpone-the-disabling-of-kmemleak-early-logging mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-postpone-the-disabling-of-kmemleak-early-logging
++++ a/mm/kmemleak.c
+@@ -1809,8 +1809,6 @@ void __init kmemleak_init(void)
+ 	int i;
+ 	unsigned long flags;
  
-+	kmemleak_free_part(__va(base), size);
- 	return __memblock_remove(&memblock.reserved, base, size);
- }
- 
-@@ -985,9 +986,14 @@ static phys_addr_t __init memblock_alloc
- 		align = SMP_CACHE_BYTES;
- 
- 	found = memblock_find_in_range_node(size, align, start, end, nid);
--	if (found && !memblock_reserve(found, size))
-+	if (found && !memblock_reserve(found, size)) {
-+		/*
-+		 * The min_count is set to 0 so that memblock allocations are
-+		 * never reported as leaks.
-+		 */
-+		kmemleak_alloc(__va(found), size, 0, 0);
- 		return found;
+-	kmemleak_early_log = 0;
 -
+ #ifdef CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF
+ 	if (!kmemleak_skip_disable) {
+ 		kmemleak_disable();
+@@ -1833,8 +1831,9 @@ void __init kmemleak_init(void)
+ 	if (kmemleak_error) {
+ 		local_irq_restore(flags);
+ 		return;
+-	} else
+-		kmemleak_enabled = 1;
 +	}
- 	return 0;
- }
++	kmemleak_early_log = 0;
++	kmemleak_enabled = 1;
+ 	local_irq_restore(flags);
  
-diff -puN mm/nobootmem.c~mm-call-kmemleak-directly-from-memblock_allocfree mm/nobootmem.c
---- a/mm/nobootmem.c~mm-call-kmemleak-directly-from-memblock_allocfree
-+++ a/mm/nobootmem.c
-@@ -197,7 +197,6 @@ unsigned long __init free_all_bootmem(vo
- void __init free_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
- 			      unsigned long size)
- {
--	kmemleak_free_part(__va(physaddr), size);
- 	memblock_free(physaddr, size);
- }
- 
-@@ -212,7 +211,6 @@ void __init free_bootmem_node(pg_data_t
-  */
- void __init free_bootmem(unsigned long addr, unsigned long size)
- {
--	kmemleak_free_part(__va(addr), size);
- 	memblock_free(addr, size);
- }
- 
+ 	/*
 _
 
 Patches currently in -mm which might be from catalin.marinas@arm.com are
