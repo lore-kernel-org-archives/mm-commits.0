@@ -1,102 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch removed from -mm tree
-Date: Fri, 02 May 2014 15:05:48 -0700
-Message-ID: <536416bc.wLXdSrTZLwaStlRe%akpm@linux-foundation.org>
+Subject: +
+ fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch
+ added to -mm tree
+Date: Fri, 02 May 2014 15:08:21 -0700
+Message-ID: <53641755.zzw2eNsTDWKBWb2Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49122 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49142 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569AbaEBWFt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 18:05:49 -0400
+	with ESMTP id S1752332AbaEBWIW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 18:08:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, bsingharora@gmail.com, nasa4836@gmail.com
+To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, jack@suse.cz, xypron.glpk@gmx.de
 
-Subject: [nacked] mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch removed from -mm tree
-To: nasa4836@gmail.com,bsingharora@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: + fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch added to -mm tree
+To: xypron.glpk@gmx.de,jack@suse.cz,mtk.manpages@gmail.com
 From: akpm@linux-foundation.org
-Date: Fri, 02 May 2014 15:05:48 -0700
+Date: Fri, 02 May 2014 15:08:21 -0700
 
 
 The patch titled
-     Subject: mm/memcontrol.c: introduce helper mem_cgroup_zoneinfo_zone()
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch
+     Subject: fs/notify/fanotify/fanotify_user.c: fix FAN_MARK_FLUSH flag checking
+has been added to the -mm tree.  Its filename is
+     fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Jianyu Zhan <nasa4836@gmail.com>
-Subject: mm/memcontrol.c: introduce helper mem_cgroup_zoneinfo_zone()
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: fs/notify/fanotify/fanotify_user.c: fix FAN_MARK_FLUSH flag checking
 
-Introduce helper mem_cgroup_zoneinfo_zone().  This makes mem_cgroup_iter()
-code more compact.
+If fanotify_mark is called with illegal value of arguments flags and marks
+it usually returns EINVAL.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Jianyu Zhan <nasa4836@gmail.com>
+When fanotify_mark is called with FAN_MARK_FLUSH the argument flags is not
+checked for irrelevant flags like FAN_MARK_IGNORED_MASK.
+
+The patch removes this inconsistency.
+
+If an irrelevant flag is set error EINVAL is returned.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ fs/notify/fanotify/fanotify_user.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/memcontrol.c~mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone
-+++ a/mm/memcontrol.c
-@@ -683,6 +683,15 @@ mem_cgroup_zoneinfo(struct mem_cgroup *m
- 	return &memcg->nodeinfo[nid]->zoneinfo[zid];
- }
- 
-+static struct mem_cgroup_per_zone *
-+mem_cgroup_zoneinfo_zone(struct mem_cgroup *memcg, struct zone *zone)
-+{
-+	int nid = zone_to_nid(zone);
-+	int zid = zone_idx(zone);
-+
-+	return mem_cgroup_zoneinfo(memcg, nid, zid);
-+}
-+
- struct cgroup_subsys_state *mem_cgroup_css(struct mem_cgroup *memcg)
- {
- 	return &memcg->css;
-@@ -1234,11 +1243,9 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		int uninitialized_var(seq);
- 
- 		if (reclaim) {
--			int nid = zone_to_nid(reclaim->zone);
--			int zid = zone_idx(reclaim->zone);
- 			struct mem_cgroup_per_zone *mz;
- 
--			mz = mem_cgroup_zoneinfo(root, nid, zid);
-+			mz = mem_cgroup_zoneinfo_zone(root, reclaim->zone);
- 			iter = &mz->reclaim_iter[reclaim->priority];
- 			if (prev && reclaim->generation != iter->generation) {
- 				iter->last_visited = NULL;
-@@ -1345,7 +1352,7 @@ struct lruvec *mem_cgroup_zone_lruvec(st
- 		goto out;
- 	}
- 
--	mz = mem_cgroup_zoneinfo(memcg, zone_to_nid(zone), zone_idx(zone));
-+	mz = mem_cgroup_zoneinfo_zone(memcg, zone);
- 	lruvec = &mz->lruvec;
- out:
- 	/*
+diff -puN fs/notify/fanotify/fanotify_user.c~fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -776,7 +776,10 @@ SYSCALL_DEFINE5(fanotify_mark, int, fano
+ 	case FAN_MARK_REMOVE:
+ 		if (!mask)
+ 			return -EINVAL;
++		break;
+ 	case FAN_MARK_FLUSH:
++		if (flags & ~(FAN_MARK_MOUNT | FAN_MARK_FLUSH))
++			return -EINVAL;
+ 		break;
+ 	default:
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from nasa4836@gmail.com are
+Patches currently in -mm which might be from xypron.glpk@gmx.de are
 
-mm-swapc-clean-up-lru_cache_add-functions.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-linux-next.patch
+fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch
+fanotify-create-fan_access-event-for-readdir.patch
+fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch
 
