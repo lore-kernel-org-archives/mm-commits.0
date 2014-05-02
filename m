@@ -1,432 +1,375 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2014-05-01-14-50 uploaded
-Date: Thu, 01 May 2014 14:51:51 -0700
-Message-ID: <20140501215151.BDBEF5A4241__38408.7020800964$1398981142$gmane$org@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-da9052c-alarm-causes-interrupt-storm.patch
+ added to -mm tree
+Date: Fri, 02 May 2014 13:09:46 -0700
+Message-ID: <5363fb8a.0hRV9T+QLuzhmBmD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:51984 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751990AbaEAVvx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2014 17:51:53 -0400
-Received: by mail-pd0-f201.google.com with SMTP id fp1so600372pdb.4
-        for <mm-commits@vger.kernel.org>; Thu, 01 May 2014 14:51:52 -0700 (PDT)
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45270 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753041AbaEBUJr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 16:09:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org
+To: mm-commits@vger.kernel.org, dchen@diasemi.com, a.zummo@towertech.it, anthony.olech.opensource@diasemi.com
 
-The mm-of-the-moment snapshot 2014-05-01-14-50 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (3.x
-or 3.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+Subject: + drivers-rtc-rtc-da9052c-alarm-causes-interrupt-storm.patch added to -mm tree
+To: anthony.olech.opensource@diasemi.com,a.zummo@towertech.it,dchen@diasemi.com
+From: akpm@linux-foundation.org
+Date: Fri, 02 May 2014 13:09:46 -0700
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: drivers/rtc/rtc-da9052.c: ALARM causes interrupt storm
+has been added to the -mm tree.  Its filename is
+     drivers-rtc-rtc-da9052c-alarm-causes-interrupt-storm.patch
 
-http://git.cmpxchg.org/?p=linux-mmotm.git;a=summary
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-da9052c-alarm-causes-interrupt-storm.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-da9052c-alarm-causes-interrupt-storm.patch
 
-To develop on top of mmotm git:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-To rebase a branch with older patches to a new mmotm release:
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+------------------------------------------------------
+From: Anthony Olech <anthony.olech.opensource@diasemi.com>
+Subject: drivers/rtc/rtc-da9052.c: ALARM causes interrupt storm
+
+Setting the alarm to a time not on a minute boundary results in repeated
+interrupts being generated by the DA9052/3 PMIC device until the kernel
+RTC core sees that the alarm has rung.  Sometimes the number and frequency
+of interrupts can cause the kernel to disable the IRQ line used by the
+DA9052/3 PMIC with disasterous consequences.  This patch fixes the
+problem.
+
+Even though the DA9052/3 PMIC is capable generating periodic interrupts,
+ie TICKS, the method used to distinguish RTC_AF from RTC_PF events was
+flawed and can not work in conjunction with the regmap_irq kernel core. 
+Thus that flawed detection has also been removed by the DA9052/3 PMIC RTC
+driver's irq handler, so that it no longer reports the wrong type of event
+to the kernel RTC core.
+
+The internal static functions within the DA9052/3 PMIC RTC driver have
+been changed to pass the 'da9052_rtc' structure instead of the 'da9052'
+because there is no backwards pointer from the 'da9052' structure.
 
 
+This patch fixes the three issues described above.  The first is serious
+because usiing the RTC alarm set to a non minute boundary will eventually
+cause all component drivers that depend on the interrupt line to fail. 
+The solution adopted is to round up to alarm time to the next highest
+minute.
 
+The second bug, reporting a RTC_PF event instead of an RTC_AF event turns
+out to not matter with the current implementation of the kernel RTC core
+as it seems to ignore the event type.  However, should that change in the
+future it is better to fix the issue now and not have 'problems waiting to
+happen'
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+The third set of changes are to make the da9052_rtc structure available to
+all the local internal functions in the driver.  This was done during
+testing so that diagnostic data could be stored there.  Should the
+solution to the first issue be found not acceptable, then the alternative
+of using the TICKS interrupt at the fixed one second interval in order to
+step to the exact second of the requested alarm requires an extra (alarm
+time) piece of data to be stored.  In devices that use the alarm function
+to wake up from sleep, accuracy to the second will result in the device
+being awake for up to nearly a minute longer than expected.
 
-A git copy of this tree is available at
+Signed-off-by: Anthony Olech <anthony.olech.opensource@diasemi.com>
+Cc: David Dajun Chen <dchen@diasemi.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-	http://git.cmpxchg.org/?p=linux-mmots.git;a=summary
+ drivers/rtc/rtc-da9052.c |  122 ++++++++++++++++++++-----------------
+ 1 file changed, 66 insertions(+), 56 deletions(-)
 
-and use of this tree is similar to
-http://git.cmpxchg.org/?p=linux-mmotm.git, described above.
+diff -puN drivers/rtc/rtc-da9052.c~drivers-rtc-rtc-da9052c-alarm-causes-interrupt-storm drivers/rtc/rtc-da9052.c
+--- a/drivers/rtc/rtc-da9052.c~drivers-rtc-rtc-da9052c-alarm-causes-interrupt-storm
++++ a/drivers/rtc/rtc-da9052.c
+@@ -20,28 +20,28 @@
+ #include <linux/mfd/da9052/da9052.h>
+ #include <linux/mfd/da9052/reg.h>
+ 
+-#define rtc_err(da9052, fmt, ...) \
+-		dev_err(da9052->dev, "%s: " fmt, __func__, ##__VA_ARGS__)
++#define rtc_err(rtc, fmt, ...) \
++		dev_err(rtc->da9052->dev, "%s: " fmt, __func__, ##__VA_ARGS__)
+ 
+ struct da9052_rtc {
+ 	struct rtc_device *rtc;
+ 	struct da9052 *da9052;
+ };
+ 
+-static int da9052_rtc_enable_alarm(struct da9052 *da9052, bool enable)
++static int da9052_rtc_enable_alarm(struct da9052_rtc *rtc, bool enable)
+ {
+ 	int ret;
+ 	if (enable) {
+-		ret = da9052_reg_update(da9052, DA9052_ALARM_Y_REG,
+-					DA9052_ALARM_Y_ALARM_ON,
+-					DA9052_ALARM_Y_ALARM_ON);
++		ret = da9052_reg_update(rtc->da9052, DA9052_ALARM_Y_REG,
++				DA9052_ALARM_Y_ALARM_ON|DA9052_ALARM_Y_TICK_ON,
++				DA9052_ALARM_Y_ALARM_ON);
+ 		if (ret != 0)
+-			rtc_err(da9052, "Failed to enable ALM: %d\n", ret);
++			rtc_err(rtc, "Failed to enable ALM: %d\n", ret);
+ 	} else {
+-		ret = da9052_reg_update(da9052, DA9052_ALARM_Y_REG,
+-					DA9052_ALARM_Y_ALARM_ON, 0);
++		ret = da9052_reg_update(rtc->da9052, DA9052_ALARM_Y_REG,
++			DA9052_ALARM_Y_ALARM_ON|DA9052_ALARM_Y_TICK_ON, 0);
+ 		if (ret != 0)
+-			rtc_err(da9052, "Write error: %d\n", ret);
++			rtc_err(rtc, "Write error: %d\n", ret);
+ 	}
+ 	return ret;
+ }
+@@ -49,31 +49,20 @@ static int da9052_rtc_enable_alarm(struc
+ static irqreturn_t da9052_rtc_irq(int irq, void *data)
+ {
+ 	struct da9052_rtc *rtc = data;
+-	int ret;
+ 
+-	ret = da9052_reg_read(rtc->da9052, DA9052_ALARM_MI_REG);
+-	if (ret < 0) {
+-		rtc_err(rtc->da9052, "Read error: %d\n", ret);
+-		return IRQ_NONE;
+-	}
+-
+-	if (ret & DA9052_ALARMMI_ALARMTYPE) {
+-		da9052_rtc_enable_alarm(rtc->da9052, 0);
+-		rtc_update_irq(rtc->rtc, 1, RTC_IRQF | RTC_AF);
+-	} else
+-		rtc_update_irq(rtc->rtc, 1, RTC_IRQF | RTC_PF);
++	rtc_update_irq(rtc->rtc, 1, RTC_IRQF | RTC_AF);
+ 
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int da9052_read_alarm(struct da9052 *da9052, struct rtc_time *rtc_tm)
++static int da9052_read_alarm(struct da9052_rtc *rtc, struct rtc_time *rtc_tm)
+ {
+ 	int ret;
+ 	uint8_t v[5];
+ 
+-	ret = da9052_group_read(da9052, DA9052_ALARM_MI_REG, 5, v);
++	ret = da9052_group_read(rtc->da9052, DA9052_ALARM_MI_REG, 5, v);
+ 	if (ret != 0) {
+-		rtc_err(da9052, "Failed to group read ALM: %d\n", ret);
++		rtc_err(rtc, "Failed to group read ALM: %d\n", ret);
+ 		return ret;
+ 	}
+ 
+@@ -84,23 +73,33 @@ static int da9052_read_alarm(struct da90
+ 	rtc_tm->tm_min  = v[0] & DA9052_RTC_MIN;
+ 
+ 	ret = rtc_valid_tm(rtc_tm);
+-	if (ret != 0)
+-		return ret;
+ 	return ret;
+ }
+ 
+-static int da9052_set_alarm(struct da9052 *da9052, struct rtc_time *rtc_tm)
++static int da9052_set_alarm(struct da9052_rtc *rtc, struct rtc_time *rtc_tm)
+ {
++	struct da9052 *da9052 = rtc->da9052;
++	unsigned long alm_time;
+ 	int ret;
+ 	uint8_t v[3];
+ 
++	ret = rtc_tm_to_time(rtc_tm, &alm_time);
++	if (ret != 0)
++		return ret;
++
++	if (rtc_tm->tm_sec > 0) {
++		alm_time += 60 - rtc_tm->tm_sec;
++		rtc_time_to_tm(alm_time, rtc_tm);
++	}
++	BUG_ON(rtc_tm->tm_sec); /* it will cause repeated irqs if not zero */
++
+ 	rtc_tm->tm_year -= 100;
+ 	rtc_tm->tm_mon += 1;
+ 
+ 	ret = da9052_reg_update(da9052, DA9052_ALARM_MI_REG,
+ 				DA9052_RTC_MIN, rtc_tm->tm_min);
+ 	if (ret != 0) {
+-		rtc_err(da9052, "Failed to write ALRM MIN: %d\n", ret);
++		rtc_err(rtc, "Failed to write ALRM MIN: %d\n", ret);
+ 		return ret;
+ 	}
+ 
+@@ -115,22 +114,22 @@ static int da9052_set_alarm(struct da905
+ 	ret = da9052_reg_update(da9052, DA9052_ALARM_Y_REG,
+ 				DA9052_RTC_YEAR, rtc_tm->tm_year);
+ 	if (ret != 0)
+-		rtc_err(da9052, "Failed to write ALRM YEAR: %d\n", ret);
++		rtc_err(rtc, "Failed to write ALRM YEAR: %d\n", ret);
+ 
+ 	return ret;
+ }
+ 
+-static int da9052_rtc_get_alarm_status(struct da9052 *da9052)
++static int da9052_rtc_get_alarm_status(struct da9052_rtc *rtc)
+ {
+ 	int ret;
+ 
+-	ret = da9052_reg_read(da9052, DA9052_ALARM_Y_REG);
++	ret = da9052_reg_read(rtc->da9052, DA9052_ALARM_Y_REG);
+ 	if (ret < 0) {
+-		rtc_err(da9052, "Failed to read ALM: %d\n", ret);
++		rtc_err(rtc, "Failed to read ALM: %d\n", ret);
+ 		return ret;
+ 	}
+-	ret &= DA9052_ALARM_Y_ALARM_ON;
+-	return (ret > 0) ? 1 : 0;
++
++	return !!(ret&DA9052_ALARM_Y_ALARM_ON);
+ }
+ 
+ static int da9052_rtc_read_time(struct device *dev, struct rtc_time *rtc_tm)
+@@ -141,7 +140,7 @@ static int da9052_rtc_read_time(struct d
+ 
+ 	ret = da9052_group_read(rtc->da9052, DA9052_COUNT_S_REG, 6, v);
+ 	if (ret < 0) {
+-		rtc_err(rtc->da9052, "Failed to read RTC time : %d\n", ret);
++		rtc_err(rtc, "Failed to read RTC time : %d\n", ret);
+ 		return ret;
+ 	}
+ 
+@@ -153,18 +152,14 @@ static int da9052_rtc_read_time(struct d
+ 	rtc_tm->tm_sec  = v[0] & DA9052_RTC_SEC;
+ 
+ 	ret = rtc_valid_tm(rtc_tm);
+-	if (ret != 0) {
+-		rtc_err(rtc->da9052, "rtc_valid_tm failed: %d\n", ret);
+-		return ret;
+-	}
+-
+-	return 0;
++	return ret;
+ }
+ 
+ static int da9052_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	struct da9052_rtc *rtc;
+ 	uint8_t v[6];
++	int ret;
+ 
+ 	rtc = dev_get_drvdata(dev);
+ 
+@@ -175,7 +170,10 @@ static int da9052_rtc_set_time(struct de
+ 	v[4] = tm->tm_mon + 1;
+ 	v[5] = tm->tm_year - 100;
+ 
+-	return da9052_group_write(rtc->da9052, DA9052_COUNT_S_REG, 6, v);
++	ret = da9052_group_write(rtc->da9052, DA9052_COUNT_S_REG, 6, v);
++	if (ret < 0)
++		rtc_err(rtc, "failed to set RTC time: %d\n", ret);
++	return ret;
+ }
+ 
+ static int da9052_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
+@@ -184,13 +182,13 @@ static int da9052_rtc_read_alarm(struct
+ 	struct rtc_time *tm = &alrm->time;
+ 	struct da9052_rtc *rtc = dev_get_drvdata(dev);
+ 
+-	ret = da9052_read_alarm(rtc->da9052, tm);
+-
+-	if (ret)
++	ret = da9052_read_alarm(rtc, tm);
++	if (ret < 0) {
++		rtc_err(rtc, "failed to read RTC alarm: %d\n", ret);
+ 		return ret;
++	}
+ 
+-	alrm->enabled = da9052_rtc_get_alarm_status(rtc->da9052);
+-
++	alrm->enabled = da9052_rtc_get_alarm_status(rtc);
+ 	return 0;
+ }
+ 
+@@ -200,16 +198,15 @@ static int da9052_rtc_set_alarm(struct d
+ 	struct rtc_time *tm = &alrm->time;
+ 	struct da9052_rtc *rtc = dev_get_drvdata(dev);
+ 
+-	ret = da9052_rtc_enable_alarm(rtc->da9052, 0);
++	ret = da9052_rtc_enable_alarm(rtc, 0);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = da9052_set_alarm(rtc->da9052, tm);
+-	if (ret)
++	ret = da9052_set_alarm(rtc, tm);
++	if (ret < 0)
+ 		return ret;
+ 
+-	ret = da9052_rtc_enable_alarm(rtc->da9052, 1);
+-
++	ret = da9052_rtc_enable_alarm(rtc, 1);
+ 	return ret;
+ }
+ 
+@@ -217,7 +214,7 @@ static int da9052_rtc_alarm_irq_enable(s
+ {
+ 	struct da9052_rtc *rtc = dev_get_drvdata(dev);
+ 
+-	return da9052_rtc_enable_alarm(rtc->da9052, enabled);
++	return da9052_rtc_enable_alarm(rtc, enabled);
+ }
+ 
+ static const struct rtc_class_ops da9052_rtc_ops = {
+@@ -239,10 +236,23 @@ static int da9052_rtc_probe(struct platf
+ 
+ 	rtc->da9052 = dev_get_drvdata(pdev->dev.parent);
+ 	platform_set_drvdata(pdev, rtc);
++
++	ret = da9052_reg_write(rtc->da9052, DA9052_BBAT_CONT_REG, 0xFE);
++	if (ret < 0) {
++		rtc_err(rtc,
++			"Failed to setup RTC battery charging: %d\n", ret);
++		return ret;
++	}
++
++	ret = da9052_reg_update(rtc->da9052, DA9052_ALARM_Y_REG,
++				DA9052_ALARM_Y_TICK_ON, 0);
++	if (ret != 0)
++		rtc_err(rtc, "Failed to disable TICKS: %d\n", ret);
++
+ 	ret = da9052_request_irq(rtc->da9052, DA9052_IRQ_ALARM, "ALM",
+ 				da9052_rtc_irq, rtc);
+ 	if (ret != 0) {
+-		rtc_err(rtc->da9052, "irq registration failed: %d\n", ret);
++		rtc_err(rtc, "irq registration failed: %d\n", ret);
+ 		return ret;
+ 	}
+ 
+@@ -261,7 +271,7 @@ static struct platform_driver da9052_rtc
+ 
+ module_platform_driver(da9052_rtc_driver);
+ 
+-MODULE_AUTHOR("David Dajun Chen <dchen@diasemi.com>");
++MODULE_AUTHOR("Anthony Olech <Anthony.Olech@diasemi.com>");
+ MODULE_DESCRIPTION("RTC driver for Dialog DA9052 PMIC");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("platform:da9052-rtc");
+_
 
+Patches currently in -mm which might be from anthony.olech.opensource@diasemi.com are
 
-This mmotm tree contains the following patches against 3.15-rc3:
-(patches marked "*" will be included in linux-next)
+drivers-rtc-rtc-da9052c-alarm-causes-interrupt-storm.patch
 
-  origin.patch
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-  i-need-old-gcc.patch
-  maintainers-akpm-maintenance.patch
-* drivers-rtc-rtc-pcf8523c-fix-month-definition.patch
-* slub-fix-memcg_propagate_slab_attrs.patch
-* hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch
-* hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-* hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
-* mmwriteback-fix-divide-by-zero-in-pos_ratio_polynom.patch
-* linux-interrupth-fix-new-kernel-doc-warnings.patch
-* mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
-* mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
-* autofs-fix-lockref-lookup.patch
-* revert-mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch
-* slub-use-sysfses-release-mechanism-for-kmem_cache.patch
-* slub-use-sysfses-release-mechanism-for-kmem_cache-fix.patch
-* slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix.patch
-* slab-fix-the-type-of-the-index-on-freelist-index-accessor.patch
-* x86-require-x86-64-for-automatic-numa-balancing.patch
-* x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
-* x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
-* x86-mm-probe-memory-block-size-for-generic-x86-64bit.patch
-* fs-ceph-replace-pr_warning-by-pr_warn.patch
-* fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
-* fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
-* fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch
-* fanotify-create-fan_access-event-for-readdir.patch
-* fs-notify-markc-trivial-cleanup.patch
-* sched_clock-document-4mhz-vs-1mhz-decision.patch
-* input-route-kbd-leds-through-the-generic-leds-layer.patch
-* input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-* ntfs-remove-null-value-assignments.patch
-* fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
-* fs-configs-itemc-kernel-doc-fixes-clean-up.patch
-* drivers-net-irda-donauboe-convert-to-module_pci_driver.patch
-* ocfs2-remove-null-assignments-on-static.patch
-* fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-* ocfs2-limit-printk-when-journal-is-aborted.patch
-* ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-* ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename.patch
-* ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
-* ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-ivalid-one-orabug-17489469.patch
-* ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
-* ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-* ocfs2-manually-do-the-iput-once-ocfs2_add_entry-failed-in-ocfs2_symlink-and-ocfs2_mknod.patch
-* maintainers-update-ibm-serveraid-raid-info.patch
-* bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch
-* bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment-v3.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
-* fs-9p-kerneldoc-fixes.patch
-* nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
-* nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch
-* kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
-* kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-* watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
-* mm-slubc-convert-printk-to-pr_foo.patch
-* mm-slubc-convert-vnsprintf-static-to-va_format.patch
-  mm.patch
-* slb-charge-slabs-to-kmemcg-explicitly.patch
-* mm-get-rid-of-__gfp_kmemcg.patch
-* mm-get-rid-of-__gfp_kmemcg-fix.patch
-* mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-* mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-* mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
-* mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-* pagewalk-update-page-table-walker-core.patch
-* pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch
-* pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-* pagewalk-add-walk_page_vma.patch
-* smaps-redefine-callback-functions-for-page-table-walker.patch
-* clear_refs-redefine-callback-functions-for-page-table-walker.patch
-* pagemap-redefine-callback-functions-for-page-table-walker.patch
-* pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-* numa_maps-redefine-callback-functions-for-page-table-walker.patch
-* memcg-redefine-callback-functions-for-page-table-walker.patch
-* arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-* pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-* pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
-* pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-* mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-* mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
-* mm-pagewalkc-move-pte-null-check.patch
-* mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally.patch
-* mm-softdirty-dont-forget-to-save-file-map-softdiry-bit-on-unmap.patch
-* mm-softdirty-clear-vm_softdirty-flag-inside-clear_refs_write-instead-of-clear_soft_dirty.patch
-* mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-* mm-compactionc-isolate_freepages_block-small-tuneup.patch
-* fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-* mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
-* mmvmacache-add-debug-data.patch
-* mmvmacache-optimize-overflow-system-wide-flushing.patch
-* x86-make-dma_alloc_coherent-return-zeroed-memory-if-cma-is-enabled.patch
-* x86-make-dma_alloc_coherent-return-zeroed-memory-if-cma-is-enabled-fix.patch
-* x86-enable-dma-cma-with-swiotlb.patch
-* intel-iommu-integrate-dma-cma.patch
-* intel-iommu-integrate-dma-cma-fix.patch
-* memblock-introduce-memblock_alloc_range.patch
-* cma-add-placement-specifier-for-cma=-kernel-parameter.patch
-* arch-x86-kernel-pci-dmac-fix-dma_generic_alloc_coherent-when-config_dma_cma-is-enabled.patch
-* thp-consolidate-assert-checks-in-__split_huge_page.patch
-* mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-* mm-convert-some-level-less-printks-to-pr_.patch
-* include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-* mm-mempool-warn-about-__gfp_zero-usage.patch
-* mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-* mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
-* mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
-* mm-pass-vm_bug_on-reason-to-dump_page.patch
-* mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-* memory-hotplug-update-documentation-to-hide-information-about-sections-and-remove-end_phys_index.patch
-* slab-document-kmalloc_order.patch
-* mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero.patch
-* hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-* hugetlb-add-hstate_is_gigantic.patch
-* hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-* hugetlb-move-helpers-up-in-the-file.patch
-* hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-* hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-* mm-disable-zone_reclaim_mode-by-default.patch
-* mm-page_alloc-do-not-cache-reclaim-distances.patch
-* mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-* memcg-un-export-__memcg_kmem_get_cache.patch
-* mem-hotplug-implement-get-put_online_mems.patch
-* slab-get_online_mems-for-kmem_cache_createdestroyshrink.patch
-* fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-* mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-* mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
-* mm-compaction-clean-up-unused-code-lines.patch
-* mm-compaction-cleanup-isolate_freepages.patch
-* mm-compaction-cleanup-isolate_freepages-fix.patch
-* mm-compaction-cleanup-isolate_freepages-fix-2.patch
-* mm-debug-make-bad_range-output-more-usable-and-readable.patch
-* documentation-memcg-warn-about-incomplete-kmemcg-state.patch
-* m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
-* mips-call-find_vma-with-the-mmap_sem-held.patch
-* arc-call-find_vma-with-the-mmap_sem-held.patch
-* arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-* drm-exynos-call-find_vma-with-the-mmap_sem-held.patch
-* mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone.patch
-* mm-memcontrolc-introduce-helper-mem_cgroup_zoneinfo_zone-checkpatch-fixes.patch
-* mm-swapc-clean-up-lru_cache_add-functions.patch
-* mm-mmap-remove-the-first-mapping-check.patch
-* memcg-kill-config_mm_owner.patch
-* mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
-* mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-* mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-fix.patch
-* memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-* memcg-slab-do-not-schedule-cache-destruction-when-last-page-goes-away.patch
-* memcg-slab-merge-memcg_bindrelease_pages-to-memcg_uncharge_slab.patch
-* memcg-slab-simplify-synchronization-scheme.patch
-* mm-numa-add-migrated-transhuge-pages-to-lru-the-same-way-as-base-pages.patch
-* mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch
-* fs-bufferc-remove-block_write_full_page_endio.patch
-* fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage.patch
-* fs-mpagec-factor-page_endio-out-of-mpage_end_io.patch
-* fs-block_devc-add-bdev_read_page-and-bdev_write_page.patch
-* swap-use-bdev_read_page-bdev_write_page.patch
-* swap-use-bdev_read_page-bdev_write_page-fix.patch
-* brd-add-support-for-rw_page.patch
-* brd-return-enospc-rather-than-enomem-on-page-allocation-failure.patch
-* mm-memory_hotplugc-use-pfn_down.patch
-* mm-memblockc-use-pfn_down.patch
-* memcg-mm_update_next_owner-should-skip-kthreads.patch
-* memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner.patch
-* memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
-* mm-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch
-* mm-constify-nmask-argument-to-mbind.patch
-* mm-constify-nmask-argument-to-set_mempolicy.patch
-* mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-* mm-swapc-split-put_compound_page-function.patch
-* mm-introdule-compound_head_by_tail.patch
-* include-linux-bootmemh-cleanup-the-comment-for-bootmem_-flags.patch
-* mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch
-* memcg-mm-introduce-lowlimit-reclaim.patch
-* memcg-allow-setting-low_limit.patch
-* memcg-doc-clarify-global-vs-limit-reclaims.patch
-* memcg-document-memorylow_limit_in_bytes.patch
-* mm-shrinker-trace-points-fix-negatives.patch
-* mm-shrinker-add-nid-to-tracepoint-output.patch
-* mm-memcontrolc-remove-null-assignment-on-static.patch
-* mm-vmallocc-replace-seq_printf-by-seq_puts.patch
-* zram-correct-offset-usage-in-zram_bio_discard.patch
-* mm-zbudc-make-size-unsigned-like-unique-callsite.patch
-* do_shared_fault-check-that-mmap_sem-is-held.patch
-* sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-* drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check.patch
-* printk-split-code-for-making-free-space-in-the-log-buffer.patch
-* printk-ignore-too-long-messages.patch
-* printk-split-message-size-computation.patch
-* printk-shrink-too-long-messages.patch
-* printk-return-really-stored-message-length.patch
-* printk-remove-outdated-comment.patch
-* printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch
-* printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-* printk-fix-lockdep-instrumentation-of-console_sem.patch
-* printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
-* printk-remove-separate-printk_sched-buffers-and-use-printk-buf-instead.patch
-* lib-vsprintf-add-%pt-format-specifier.patch
-* drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
-* lib-stringc-use-the-name-c-string-in-comments.patch
-* lib-xz-add-comments-for-the-intentionally-missing-break-statements.patch
-* lib-xz-enable-all-filters-by-default-in-kconfig.patch
-* lib-libcrc32cc-use-ptr_err_or_zero.patch
-* lib-vsprintfc-fix-comparison-to-bool.patch
-* mm-utilc-add-kstrimdup.patch
-* lib-add-crc64-ecma-module.patch
-* checkpatch-fix-wildcard-dt-compatible-string-checking.patch
-* checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
-* checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
-* checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
-* fs-binfmt_elfc-fix-bool-assignements.patch
-* fs-binfmt_flatc-make-old_reloc-static.patch
-* binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-* init-mainc-dont-use-pr_debug.patch
-* init-mainc-add-initcall_blacklist-kernel-parameter.patch
-* init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-* kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch
-* fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
-* drivers-rtc-interfacec-fix-infinite-loop-in-initializing-the-alarm.patch
-* documentation-devicetree-bindings-add-documentation-for-the-apm-x-gene-soc-rtc-dts-binding.patch
-* drivers-rtc-add-apm-x-gene-soc-rtc-driver.patch
-* arm64-add-apm-x-gene-soc-rtc-dts-entry.patch
-* rtc-m41t80-remove-drv_version-macro.patch
-* rtc-m41t80-clean-up-error-paths.patch
-* rtc-m41t80-propagate-error-value-from-smbus-functions.patch
-* rtc-m41t80-add-support-for-microcrystal-rv4162.patch
-* drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days.patch
-* rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support.patch
-* rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-* dec-switch-decstation-systems-to-rtc-cmos.patch
-* drivers-rtc-rtc-88pm860xc-use-of_get_child_by_name.patch
-* drivers-rtc-rtc-88pm860xc-add-missing-of_node_put.patch
-* fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-* fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-* fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-* fs-befs-kernel-doc-fixes.patch
-* fs-isofs-logging-clean-up.patch
-* hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch
-* hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-* hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes.patch
-* hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-* hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-* hfsplus-remove-unused-routine-hfsplus_attr_build_key_uni.patch
-* hfsplus-fix-longname-handling.patch
-* fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-* fs-reiserfs-bitmapc-coding-style-fixes.patch
-* fs-fat-add-support-for-dos-1x-formatted-volumes.patch
-* fat-add-i_disksize-to-represent-uninitialized-size-v4.patch
-* fat-add-fat_fallocate-operation-v4.patch
-* fat-zero-out-seek-range-on-_fat_get_block-v4.patch
-* fat-fallback-to-buffered-write-in-case-of-fallocated-region-on-direct-io-v4.patch
-* fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region-v4.patch
-* documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate-v4.patch
-* documentation-submittingpatches-describe-the-fixes-tag.patch
-* ptrace-fix-fork-event-messages-across-pid-namespaces.patch
-* signals-kill-sigfindinword.patch
-* signals-s-siginitset-sigemptyset-in-do_sigtimedwait.patch
-* signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
-* signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
-* signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
-* signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
-* signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch
-* signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch
-* signals-disallow_signal-should-flush-the-potentially-pending-signal.patch
-* signals-introduce-kernel_sigaction.patch
-* signals-change-wait_for_helper-to-use-kernel_sigaction.patch
-* kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers.patch
-* kexec-save-pg_head_mask-in-vmcoreinfo.patch
-* idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height.patch
-* idr-fix-unexpected-id-removal-when-idr_removeunallocated_id.patch
-* idr-fix-null-pointer-dereference-when-ida_removeunallocated_id.patch
-* idr-fix-idr_replaces-returned-error-code.patch
-* idr-dont-need-to-shink-the-free-list-when-idr_remove.patch
-* idr-reduce-the-unneeded-check-in-free_layer.patch
-* idr-reorder-the-fields.patch
-* fs-affs-filec-remove-unnecessary-function-parameters.patch
-* fs-affs-convert-printk-to-pr_foo.patch
-* fs-affs-pr_debug-cleanup.patch
-* fs-pstore-logging-clean-up.patch
-* fs-pstore-logging-clean-up-fix.patch
-* initramfs-remove-compression-mode-choice.patch
-* ipc-constify-ipc_ops.patch
-* ipc-kernel-use-linux-headers.patch
-* ipc-kernel-clear-whitespace.patch
-* ipc-shmc-check-for-ulong-overflows-in-shmat.patch
-* ipc-shmc-check-for-overflows-of-shm_tot.patch
-* ipc-shmc-check-for-integer-overflow-during-shmget.patch
-* ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
-* lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
-* lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix.patch
-* lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2.patch
-* lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-3.patch
-* lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
-* sysrq-rcu-ify-__handle_sysrq.patch
-* sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
-  linux-next.patch
-  linux-next-rejects.patch
-* drivers-gpio-gpio-zevioc-fix-build.patch
-* mm-page_ioc-work-around-gcc-bug.patch
-* arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* tile-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* parport-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* scsi-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* ntfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* ipc-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* mm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-* mfd-rtc-sec-s5m-rename-sec-symbols-to-s5m.patch
-* rtc-s5m-remove-undocumented-time-init-on-first-boot.patch
-* rtc-s5m-use-shorter-time-of-register-update.patch
-* rtc-s5m-support-different-register-layout.patch
-* rtc-s5m-add-support-for-s2mps14-rtc.patch
-* rtc-s5m-consolidate-two-device-type-switch-statements.patch
-* blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
-* w1-call-put_device-if-device_register-fails.patch
-* arm-move-arm_dma_limit-to-setup_dma_zone.patch
-* ufs-sb-mutex-merge-mutex_destroy.patch
-* mm-add-strictlimit-knob-v2.patch
-  debugging-keep-track-of-page-owners.patch
-  page-owners-correct-page-order-when-to-free-page.patch
-  make-sure-nobodys-leaking-resources.patch
-  journal_add_journal_head-debug.patch
-  journal_add_journal_head-debug-fix.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  put_bh-debug.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
-  single_open-seq_release-leak-diagnostics.patch
