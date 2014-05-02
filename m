@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch
- added to -mm tree
-Date: Fri, 02 May 2014 15:08:21 -0700
-Message-ID: <53641755.zzw2eNsTDWKBWb2Z%akpm@linux-foundation.org>
+ mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix.patch added to -mm tree
+Date: Fri, 02 May 2014 15:19:15 -0700
+Message-ID: <536419e3.mesaglqm35TGLQ7V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49142 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49255 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752332AbaEBWIW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 18:08:22 -0400
+	with ESMTP id S1752485AbaEBWTQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 18:19:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, jack@suse.cz, xypron.glpk@gmx.de
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, vbabka@suse.cz
 
-Subject: + fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch added to -mm tree
-To: xypron.glpk@gmx.de,jack@suse.cz,mtk.manpages@gmail.com
+Subject: + mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix.patch added to -mm tree
+To: vbabka@suse.cz,sasha.levin@oracle.com
 From: akpm@linux-foundation.org
-Date: Fri, 02 May 2014 15:08:21 -0700
+Date: Fri, 02 May 2014 15:19:15 -0700
 
 
 The patch titled
-     Subject: fs/notify/fanotify/fanotify_user.c: fix FAN_MARK_FLUSH flag checking
+     Subject: mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix
 has been added to the -mm tree.  Its filename is
-     fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch
+     mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,47 +44,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Subject: fs/notify/fanotify/fanotify_user.c: fix FAN_MARK_FLUSH flag checking
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix
 
-If fanotify_mark is called with illegal value of arguments flags and marks
-it usually returns EINVAL.
+Use VM_BUG_ON_PAGE instead of VM_BUG_ON as suggested by Sasha Levin.
 
-When fanotify_mark is called with FAN_MARK_FLUSH the argument flags is not
-checked for irrelevant flags like FAN_MARK_IGNORED_MASK.
-
-The patch removes this inconsistency.
-
-If an irrelevant flag is set error EINVAL is returned.
-
-Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Acked-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify_user.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/notify/fanotify/fanotify_user.c~fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking
-+++ a/fs/notify/fanotify/fanotify_user.c
-@@ -776,7 +776,10 @@ SYSCALL_DEFINE5(fanotify_mark, int, fano
- 	case FAN_MARK_REMOVE:
- 		if (!mask)
- 			return -EINVAL;
-+		break;
- 	case FAN_MARK_FLUSH:
-+		if (flags & ~(FAN_MARK_MOUNT | FAN_MARK_FLUSH))
-+			return -EINVAL;
- 		break;
- 	default:
- 		return -EINVAL;
+diff -puN mm/page_alloc.c~mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix
++++ a/mm/page_alloc.c
+@@ -699,7 +699,7 @@ static void free_pcppages_bulk(struct zo
+ 			/* must delete as __free_one_page list manipulates */
+ 			list_del(&page->lru);
+ 
+-			VM_BUG_ON(!check_freepage_migratetype(page));
++			VM_BUG_ON_PAGE(!check_freepage_migratetype(page), page);
+ 			mt = get_freepage_migratetype(page);
+ 			/* MIGRATE_MOVABLE list may include MIGRATE_RESERVEs */
+ 			__free_one_page(page, zone, 0, mt);
+@@ -1193,7 +1193,7 @@ static int rmqueue_bulk(struct zone *zon
+ 		struct page *page = __rmqueue(zone, order, migratetype);
+ 		if (unlikely(page == NULL))
+ 			break;
+-		VM_BUG_ON(!check_freepage_migratetype(page));
++		VM_BUG_ON_PAGE(!check_freepage_migratetype(page), page);
+ 
+ 		/*
+ 		 * Split buddy pages returned by expand() are received here
 _
 
-Patches currently in -mm which might be from xypron.glpk@gmx.de are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch
-fanotify-create-fan_access-event-for-readdir.patch
-fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch
+mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
+mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix.patch
+mm-compaction-clean-up-unused-code-lines.patch
+mm-compaction-cleanup-isolate_freepages.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+mm-compaction-cleanup-isolate_freepages-fix-2.patch
 
