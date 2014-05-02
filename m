@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + printk-report-dropping-of-messages-from-logbuf.patch added to
- -mm tree
-Date: Fri, 02 May 2014 14:22:21 -0700
-Message-ID: <53640c8d.Z9EILRhjDc7p0jF/%akpm@linux-foundation.org>
+Subject: +
+ printk-print-initial-logbuf-contents-before-re-enabling-interrupts.patch
+ added to -mm tree
+Date: Fri, 02 May 2014 14:22:20 -0700
+Message-ID: <53640c8c.5++0zeO0pmfqKMwm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47966 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752719AbaEBVWW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 17:22:22 -0400
+	with ESMTP id S1751501AbaEBVWV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 17:22:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, peterz@infradead.org, kay@vrfy.org, jack@suse.cz, will.deacon@arm.com
 
-Subject: + printk-report-dropping-of-messages-from-logbuf.patch added to -mm tree
+Subject: + printk-print-initial-logbuf-contents-before-re-enabling-interrupts.patch added to -mm tree
 To: will.deacon@arm.com,jack@suse.cz,kay@vrfy.org,peterz@infradead.org
 From: akpm@linux-foundation.org
-Date: Fri, 02 May 2014 14:22:21 -0700
+Date: Fri, 02 May 2014 14:22:20 -0700
 
 
 The patch titled
-     Subject: printk: report dropping of messages from logbuf
+     Subject: printk: print initial logbuf contents before re-enabling interrupts
 has been added to the -mm tree.  Its filename is
-     printk-report-dropping-of-messages-from-logbuf.patch
+     printk-print-initial-logbuf-contents-before-re-enabling-interrupts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-report-dropping-of-messages-from-logbuf.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-print-initial-logbuf-contents-before-re-enabling-interrupts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-report-dropping-of-messages-from-logbuf.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-print-initial-logbuf-contents-before-re-enabling-interrupts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,18 +46,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Will Deacon <will.deacon@arm.com>
-Subject: printk: report dropping of messages from logbuf
+Subject: printk: print initial logbuf contents before re-enabling interrupts
 
-If the log ring buffer becomes full, we silently overwrite old messages
-with new data.  console_unlock will detect this case and fast-forward the
-console_* pointers to skip over the corrupted data, but nothing will be
-reported to the user.
+When running on a hideously slow system (~10Mhz FPGA) with a bunch of
+debug printk invocations on the timer interrupt path, we end up filling
+the log buffer faster than we can drain it.
 
-This patch hijacks the first valid log message after detecting that we
-dropped messages and prefixes it with a note detailing how many messages
-were dropped.  For long (~1000 char) messages, this will result in some
-truncation of the real message, but given that we're dropping things
-anyway, that doesn't seem to be the end of the world.
+The reason is that console_unlock (which is responsible for moving
+messages out of logbuf to hand over to the console driver) removes one
+message at a time, briefly re-enabling interrupts between each of them. 
+If the interrupt path prints more than a single message, then we can
+easily generate more messages than we can print for a regular, recurring
+interrupt (e.g.  a 1khz timer).  This results in messages getting silently
+dropped, leading to counter-intuitive, incomplete printk traces on the
+console.
+
+Rather than run the console_unlock loop with interrupts disabled (which
+has obvious latency problems), this patch records the sequence number of
+the last message in the log buffer after taking the logbuf_lock.  We can
+then print this fixed amount of work before re-enabling interrupts again,
+making sure we keep up with ourself.  Other CPUs could still potentially
+flood the buffer, but there's little that we can do to protect against
+that.
 
 Signed-off-by: Will Deacon <will.deacon@arm.com>
 Acked-by: Peter Zijlstra <peterz@infradead.org>
@@ -65,39 +76,39 @@ Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ kernel/printk/printk.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN kernel/printk/printk.c~printk-report-dropping-of-messages-from-logbuf kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-report-dropping-of-messages-from-logbuf
+diff -puN kernel/printk/printk.c~printk-print-initial-logbuf-contents-before-re-enabling-interrupts kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-print-initial-logbuf-contents-before-re-enabling-interrupts
 +++ a/kernel/printk/printk.c
-@@ -2160,10 +2160,15 @@ again_noirq:
- 		}
+@@ -2147,10 +2147,13 @@ void console_unlock(void)
+ again:
+ 	for (;;) {
+ 		struct printk_log *msg;
++		u64 console_end_seq;
+ 		size_t len;
+ 		int level;
  
- 		if (console_seq < log_first_seq) {
-+			len = sprintf(text, "** %u printk messages dropped ** ",
-+				      (unsigned)(log_first_seq - console_seq));
+ 		raw_spin_lock_irqsave(&logbuf_lock, flags);
++		console_end_seq = log_next_seq;
++again_noirq:
+ 		if (seen_seq != log_next_seq) {
+ 			wake_klogd = true;
+ 			seen_seq = log_next_seq;
+@@ -2195,6 +2198,12 @@ skip:
+ 		stop_critical_timings();	/* don't trace print latency */
+ 		call_console_drivers(level, text, len);
+ 		start_critical_timings();
 +
- 			/* messages are gone, move to first one */
- 			console_seq = log_first_seq;
- 			console_idx = log_first_idx;
- 			console_prev = 0;
-+		} else {
-+			len = 0;
- 		}
- skip:
- 		if (console_seq == log_next_seq)
-@@ -2188,8 +2193,8 @@ skip:
- 		}
- 
- 		level = msg->level;
--		len = msg_print_text(msg, console_prev, false,
--				     text, sizeof(text));
-+		len += msg_print_text(msg, console_prev, false,
-+				      text + len, sizeof(text) - len);
- 		console_idx = log_next(console_idx);
- 		console_seq++;
- 		console_prev = msg->flags;
++		if (console_seq < console_end_seq) {
++			raw_spin_lock(&logbuf_lock);
++			goto again_noirq;
++		}
++
+ 		local_irq_restore(flags);
+ 	}
+ 	console_locked = 0;
 _
 
 Patches currently in -mm which might be from will.deacon@arm.com are
