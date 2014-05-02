@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-postpone-the-disabling-of-kmemleak-early-logging.patch added to -mm tree
-Date: Fri, 02 May 2014 15:49:18 -0700
-Message-ID: <536420ee.nrKsw6+hmTPazNJ4%akpm@linux-foundation.org>
+Subject: +
+ lib-update-the-kmemleak-stack-trace-for-radix-tree-allocations.patch added
+ to -mm tree
+Date: Fri, 02 May 2014 15:49:15 -0700
+Message-ID: <536420eb.1u4XXMhF1XZscURu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49553 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49548 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752976AbaEBWtT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 18:49:19 -0400
+	with ESMTP id S1751366AbaEBWtQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 18:49:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, catalin.marinas@arm.com
+To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, catalin.marinas@arm.com
 
-Subject: + mm-postpone-the-disabling-of-kmemleak-early-logging.patch added to -mm tree
-To: catalin.marinas@arm.com
+Subject: + lib-update-the-kmemleak-stack-trace-for-radix-tree-allocations.patch added to -mm tree
+To: catalin.marinas@arm.com,hannes@cmpxchg.org
 From: akpm@linux-foundation.org
-Date: Fri, 02 May 2014 15:49:18 -0700
+Date: Fri, 02 May 2014 15:49:15 -0700
 
 
 The patch titled
-     Subject: mm/kmemleak.c: postpone the disabling of kmemleak early logging
+     Subject: lib/radix-tree.c: update the kmemleak stack trace for radix tree allocations
 has been added to the -mm tree.  Its filename is
-     mm-postpone-the-disabling-of-kmemleak-early-logging.patch
+     lib-update-the-kmemleak-stack-trace-for-radix-tree-allocations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-postpone-the-disabling-of-kmemleak-early-logging.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-update-the-kmemleak-stack-trace-for-radix-tree-allocations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-postpone-the-disabling-of-kmemleak-early-logging.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-update-the-kmemleak-stack-trace-for-radix-tree-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,46 +46,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: mm/kmemleak.c: postpone the disabling of kmemleak early logging
+Subject: lib/radix-tree.c: update the kmemleak stack trace for radix tree allocations
 
-Currently, kmemleak_early_log is disabled at the beginning of the
-kmemleak_init() function, before the full kmemleak tracing is actually
-enabled.  In this small window, kmem_cache_create() is called by kmemleak
-which triggers additional memory allocation that are not traced.  This
-patch moves the kmemleak_early_log disabling further down and at the same
-time with full kmemleak enabling.
+Since radix_tree_preload() stack trace is not always useful for debugging
+an actual radix tree memory leak, this patch updates the kmemleak
+allocation stack trace in the radix_tree_node_alloc() function.
 
 Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ lib/radix-tree.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/kmemleak.c~mm-postpone-the-disabling-of-kmemleak-early-logging mm/kmemleak.c
---- a/mm/kmemleak.c~mm-postpone-the-disabling-of-kmemleak-early-logging
-+++ a/mm/kmemleak.c
-@@ -1809,8 +1809,6 @@ void __init kmemleak_init(void)
- 	int i;
- 	unsigned long flags;
- 
--	kmemleak_early_log = 0;
--
- #ifdef CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF
- 	if (!kmemleak_skip_disable) {
- 		kmemleak_disable();
-@@ -1833,8 +1831,9 @@ void __init kmemleak_init(void)
- 	if (kmemleak_error) {
- 		local_irq_restore(flags);
- 		return;
--	} else
--		kmemleak_enabled = 1;
-+	}
-+	kmemleak_early_log = 0;
-+	kmemleak_enabled = 1;
- 	local_irq_restore(flags);
- 
- 	/*
+diff -puN lib/radix-tree.c~lib-update-the-kmemleak-stack-trace-for-radix-tree-allocations lib/radix-tree.c
+--- a/lib/radix-tree.c~lib-update-the-kmemleak-stack-trace-for-radix-tree-allocations
++++ a/lib/radix-tree.c
+@@ -27,6 +27,7 @@
+ #include <linux/radix-tree.h>
+ #include <linux/percpu.h>
+ #include <linux/slab.h>
++#include <linux/kmemleak.h>
+ #include <linux/notifier.h>
+ #include <linux/cpu.h>
+ #include <linux/string.h>
+@@ -200,6 +201,11 @@ radix_tree_node_alloc(struct radix_tree_
+ 			rtp->nodes[rtp->nr - 1] = NULL;
+ 			rtp->nr--;
+ 		}
++		/*
++		 * Update the allocation stack trace as this is more useful
++		 * for debugging.
++		 */
++		kmemleak_update_trace(ret);
+ 	}
+ 	if (ret == NULL)
+ 		ret = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
 _
 
 Patches currently in -mm which might be from catalin.marinas@arm.com are
