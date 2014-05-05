@@ -1,112 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch removed from -mm tree
-Date: Mon, 05 May 2014 15:09:07 -0700
-Message-ID: <53680c03.0t+dlYHW4BQumYnJ%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ printk-rename-printk_sched-to-printk_deferred.patch removed from -mm tree
+Date: Mon, 05 May 2014 15:05:00 -0700
+Message-ID: <53680b0c.KQCUvv6uCZC7rE9n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52079 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51915 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932331AbaEEWJI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:09:08 -0400
+	with ESMTP id S1756762AbaEEWFB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:05:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com, jbohac@suse.cz, jack@suse.cz, john.stultz@linaro.org
 
-Subject: [folded-merged] checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch removed from -mm tree
-To: joe@perches.com,mm-commits@vger.kernel.org
+Subject: [to-be-updated] printk-rename-printk_sched-to-printk_deferred.patch removed from -mm tree
+To: john.stultz@linaro.org,jack@suse.cz,jbohac@suse.cz,mingo@redhat.com,peterz@infradead.org,rostedt@goodmis.org,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 15:09:07 -0700
+Date: Mon, 05 May 2014 15:05:00 -0700
 
 
 The patch titled
-     Subject: checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix
+     Subject: printk: rename printk_sched to printk_deferred
 has been removed from the -mm tree.  Its filename was
-     checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+     printk-rename-printk_sched-to-printk_deferred.patch
 
-This patch was dropped because it was folded into checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix
+From: John Stultz <john.stultz@linaro.org>
+Subject: printk: rename printk_sched to printk_deferred
 
-"struct foo *bar" does not match the regex "$Declare\s+$Ident"
-$Declare matches "struct foo *" but there is no required space
-between the pointer "*" and the $Ident.
+After learning we'll need some sort of deferred printk functionality in
+the timekeeping core, Peter suggested we rename the printk_sched function
+so it can be reused by needed subsystems.
 
-Also it ends in a pointer, the $Declare variable also contains all
-trailing spaces after the declaration so there is no space between
-$Declare and $Ident.
+This only changes the function name and name of the associated buffer.  No
+logic changes.
 
-ie:	"struct foo * bar" does not match "$Declare\s+$Ident"
-
-So, change the \s+ to \s* to have this regex match any of
-"struct foo bar", "struct foo *bar", and "struct foo * bar"
-	
-Signed-off-by: Joe Perches <joe@perches.com>	
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Jiri Bohac <jbohac@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/printk.h  |    6 +++---
+ kernel/printk/printk.c  |    2 +-
+ kernel/sched/core.c     |    2 +-
+ kernel/sched/deadline.c |    2 +-
+ kernel/sched/rt.c       |    2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix
-+++ a/scripts/checkpatch.pl
-@@ -2275,7 +2275,7 @@ sub process {
- # check for missing blank lines after declarations
- 		if ($sline =~ /^\+\s+\S/ &&			#Not at char 1
- 			# actual declarations
--		    ($prevline =~ /^\+\s+$Declare\s+$Ident\s*[=,;\[]/ ||
-+		    ($prevline =~ /^\+\s+$Declare\s*$Ident\s*[=,;\[]/ ||
- 			# foo bar; where foo is some local typedef or #define
- 		     $prevline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
- 			# known declaration macros
-@@ -2287,7 +2287,7 @@ sub process {
- 			# not starting a section or a macro "\" extended line
- 		      $prevline =~ /(?:\{\s*|\\)$/) &&
- 			# looks like a declaration
--		    !($sline =~ /^\+\s+$Declare/ ||
-+		    !($sline =~ /^\+\s+$Declare\s*$Ident\s*[=,;\[]/ ||
- 			# foo bar; where foo is some local typedef or #define
- 		      $sline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
- 			# known declaration macros
+diff -puN include/linux/printk.h~printk-rename-printk_sched-to-printk_deferred include/linux/printk.h
+--- a/include/linux/printk.h~printk-rename-printk_sched-to-printk_deferred
++++ a/include/linux/printk.h
+@@ -128,9 +128,9 @@ asmlinkage __printf(1, 2) __cold
+ int printk(const char *fmt, ...);
+ 
+ /*
+- * Special printk facility for scheduler use only, _DO_NOT_USE_ !
++ * Special printk facility for scheduler/timekeeping use only, _DO_NOT_USE_ !
+  */
+-__printf(1, 2) __cold int printk_sched(const char *fmt, ...);
++__printf(1, 2) __cold int printk_deferred(const char *fmt, ...);
+ 
+ /*
+  * Please don't use printk_ratelimit(), because it shares ratelimiting state
+@@ -165,7 +165,7 @@ int printk(const char *s, ...)
+ 	return 0;
+ }
+ static inline __printf(1, 2) __cold
+-int printk_sched(const char *s, ...)
++int printk_deferred(const char *s, ...)
+ {
+ 	return 0;
+ }
+diff -puN kernel/printk/printk.c~printk-rename-printk_sched-to-printk_deferred kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/printk/printk.c
+@@ -2584,7 +2584,7 @@ void wake_up_klogd(void)
+ 	preempt_enable();
+ }
+ 
+-int printk_sched(const char *fmt, ...)
++int printk_deferred(const char *fmt, ...)
+ {
+ 	unsigned long flags;
+ 	va_list args;
+diff -puN kernel/sched/core.c~printk-rename-printk_sched-to-printk_deferred kernel/sched/core.c
+--- a/kernel/sched/core.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/sched/core.c
+@@ -1320,7 +1320,7 @@ out:
+ 		 * leave kernel.
+ 		 */
+ 		if (p->mm && printk_ratelimit()) {
+-			printk_sched("process %d (%s) no longer affine to cpu%d\n",
++			printk_deferred("process %d (%s) no longer affine to cpu%d\n",
+ 					task_pid_nr(p), p->comm, cpu);
+ 		}
+ 	}
+diff -puN kernel/sched/deadline.c~printk-rename-printk_sched-to-printk_deferred kernel/sched/deadline.c
+--- a/kernel/sched/deadline.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/sched/deadline.c
+@@ -352,7 +352,7 @@ static void replenish_dl_entity(struct s
+ 
+ 		if (!lag_once) {
+ 			lag_once = true;
+-			printk_sched("sched: DL replenish lagged to much\n");
++			printk_deferred("sched: DL replenish lagged to much\n");
+ 		}
+ 		dl_se->deadline = rq_clock(rq) + pi_se->dl_deadline;
+ 		dl_se->runtime = pi_se->dl_runtime;
+diff -puN kernel/sched/rt.c~printk-rename-printk_sched-to-printk_deferred kernel/sched/rt.c
+--- a/kernel/sched/rt.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/sched/rt.c
+@@ -857,7 +857,7 @@ static int sched_rt_runtime_exceeded(str
+ 
+ 			if (!once) {
+ 				once = true;
+-				printk_sched("sched: RT throttling activated\n");
++				printk_deferred("sched: RT throttling activated\n");
+ 			}
+ 		} else {
+ 			/*
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from john.stultz@linaro.org are
 
-mm-slubc-convert-printk-to-pr_foo.patch
-mm-slubc-convert-vnsprintf-static-to-va_format.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-fix-wildcard-dt-compatible-string-checking.patch
-checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
-checkpatch-improve-missing-blank-line-after-declarations-test.patch
-init-mainc-dont-use-pr_debug.patch
-fs-isofs-logging-clean-up.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-linux-next.patch
-arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-tile-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-parport-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-scsi-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-ntfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-ipc-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-mm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+printk-add-printk_once_deferred.patch
+timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
 
