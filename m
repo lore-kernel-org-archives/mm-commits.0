@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-compatc-use-sizeof-instead-of-sizeof.patch added to -mm
+Subject: + fs-fscache-replace-seq_printf-by-seq_puts.patch added to -mm
  tree
-Date: Mon, 05 May 2014 13:14:03 -0700
-Message-ID: <5367f10b.voGHIU4FLIJdnfYq%akpm@linux-foundation.org>
+Date: Mon, 05 May 2014 14:04:54 -0700
+Message-ID: <5367fcf6.C0/5Z5Yib0MgjHid%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50717 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51054 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752275AbaEEUOE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 16:14:04 -0400
+	with ESMTP id S1755066AbaEEVEy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 17:04:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hpa@zytor.com, arnd@arndb.de, fabf@skynet.be
+To: mm-commits@vger.kernel.org, dhowells@redhat.com, fabf@skynet.be
 
-Subject: + kernel-compatc-use-sizeof-instead-of-sizeof.patch added to -mm tree
-To: fabf@skynet.be,arnd@arndb.de,hpa@zytor.com
+Subject: + fs-fscache-replace-seq_printf-by-seq_puts.patch added to -mm tree
+To: fabf@skynet.be,dhowells@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 13:14:03 -0700
+Date: Mon, 05 May 2014 14:04:54 -0700
 
 
 The patch titled
-     Subject: kernel/compat.c: use sizeof() instead of sizeof
+     Subject: fs/fscache: replace seq_printf by seq_puts
 has been added to the -mm tree.  Its filename is
-     kernel-compatc-use-sizeof-instead-of-sizeof.patch
+     fs-fscache-replace-seq_printf-by-seq_puts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-compatc-use-sizeof-instead-of-sizeof.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-fscache-replace-seq_printf-by-seq_puts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-compatc-use-sizeof-instead-of-sizeof.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-fscache-replace-seq_printf-by-seq_puts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,66 +45,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/compat.c: use sizeof() instead of sizeof
+Subject: fs/fscache: replace seq_printf by seq_puts
 
-Fix 4 checkpatch warnings
-WARNING: sizeof *tv should be sizeof(*tv)
+Replace seq_printf where possible + coalesce formats from 2 existing
+seq_puts
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/compat.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/fscache/histogram.c   |    6 ++----
+ fs/fscache/object-list.c |    8 ++++----
+ 2 files changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN kernel/compat.c~kernel-compatc-use-sizeof-instead-of-sizeof kernel/compat.c
---- a/kernel/compat.c~kernel-compatc-use-sizeof-instead-of-sizeof
-+++ a/kernel/compat.c
-@@ -157,7 +157,7 @@ static int __compat_put_timespec(const s
- int compat_get_timeval(struct timeval *tv, const void __user *utv)
- {
- 	if (COMPAT_USE_64BIT_TIME)
--		return copy_from_user(tv, utv, sizeof *tv) ? -EFAULT : 0;
-+		return copy_from_user(tv, utv, sizeof(*tv)) ? -EFAULT : 0;
- 	else
- 		return __compat_get_timeval(tv, utv);
- }
-@@ -166,7 +166,7 @@ EXPORT_SYMBOL_GPL(compat_get_timeval);
- int compat_put_timeval(const struct timeval *tv, void __user *utv)
- {
- 	if (COMPAT_USE_64BIT_TIME)
--		return copy_to_user(utv, tv, sizeof *tv) ? -EFAULT : 0;
-+		return copy_to_user(utv, tv, sizeof(*tv)) ? -EFAULT : 0;
- 	else
- 		return __compat_put_timeval(tv, utv);
- }
-@@ -175,7 +175,7 @@ EXPORT_SYMBOL_GPL(compat_put_timeval);
- int compat_get_timespec(struct timespec *ts, const void __user *uts)
- {
- 	if (COMPAT_USE_64BIT_TIME)
--		return copy_from_user(ts, uts, sizeof *ts) ? -EFAULT : 0;
-+		return copy_from_user(ts, uts, sizeof(*ts)) ? -EFAULT : 0;
- 	else
- 		return __compat_get_timespec(ts, uts);
- }
-@@ -184,7 +184,7 @@ EXPORT_SYMBOL_GPL(compat_get_timespec);
- int compat_put_timespec(const struct timespec *ts, void __user *uts)
- {
- 	if (COMPAT_USE_64BIT_TIME)
--		return copy_to_user(uts, ts, sizeof *ts) ? -EFAULT : 0;
-+		return copy_to_user(uts, ts, sizeof(*ts)) ? -EFAULT : 0;
- 	else
- 		return __compat_put_timespec(ts, uts);
+diff -puN fs/fscache/histogram.c~fs-fscache-replace-seq_printf-by-seq_puts fs/fscache/histogram.c
+--- a/fs/fscache/histogram.c~fs-fscache-replace-seq_printf-by-seq_puts
++++ a/fs/fscache/histogram.c
+@@ -31,12 +31,10 @@ static int fscache_histogram_show(struct
+ 
+ 	switch ((unsigned long) v) {
+ 	case 1:
+-		seq_puts(m, "JIFS  SECS  OBJ INST  OP RUNS   OBJ RUNS "
+-			 " RETRV DLY RETRIEVLS\n");
++		seq_puts(m, "JIFS  SECS  OBJ INST  OP RUNS   OBJ RUNS  RETRV DLY RETRIEVLS\n");
+ 		return 0;
+ 	case 2:
+-		seq_puts(m, "===== ===== ========= ========= ========="
+-			 " ========= =========\n");
++		seq_puts(m, "===== ===== ========= ========= ========= ========= =========\n");
+ 		return 0;
+ 	default:
+ 		index = (unsigned long) v - 3;
+diff -puN fs/fscache/object-list.c~fs-fscache-replace-seq_printf-by-seq_puts fs/fscache/object-list.c
+--- a/fs/fscache/object-list.c~fs-fscache-replace-seq_printf-by-seq_puts
++++ a/fs/fscache/object-list.c
+@@ -285,20 +285,20 @@ static int fscache_objlist_show(struct s
+ 		fscache_unuse_cookie(obj);
+ 
+ 		if (keylen > 0 || auxlen > 0) {
+-			seq_printf(m, " ");
++			seq_puts(m, " ");
+ 			for (p = buf; keylen > 0; keylen--)
+ 				seq_printf(m, "%02x", *p++);
+ 			if (auxlen > 0) {
+ 				if (config & FSCACHE_OBJLIST_CONFIG_KEY)
+-					seq_printf(m, ", ");
++					seq_puts(m, ", ");
+ 				for (; auxlen > 0; auxlen--)
+ 					seq_printf(m, "%02x", *p++);
+ 			}
+ 		}
+ 
+-		seq_printf(m, "\n");
++		seq_puts(m, "\n");
+ 	} else {
+-		seq_printf(m, "<no_netfs>\n");
++		seq_puts(m, "<no_netfs>\n");
+ 	}
+ 	return 0;
  }
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
 
+fs-affs-superc-bugfix-double-free.patch
 fs-ceph-replace-pr_warning-by-pr_warn.patch
 fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
 fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+fs-fscache-replace-seq_printf-by-seq_puts.patch
 ntfs-remove-null-value-assignments.patch
 fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
 fs-configs-itemc-kernel-doc-fixes-clean-up.patch
@@ -118,10 +128,16 @@ mm-memory_hotplugc-use-pfn_down.patch
 mm-memblockc-use-pfn_down.patch
 mm-memcontrolc-remove-null-assignment-on-static.patch
 mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
 mm-zbudc-make-size-unsigned-like-unique-callsite.patch
 sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
 lib-libcrc32cc-use-ptr_err_or_zero.patch
 lib-vsprintfc-fix-comparison-to-bool.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
 fs-binfmt_elfc-fix-bool-assignements.patch
 fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
 fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
@@ -131,6 +147,10 @@ fs-befs-kernel-doc-fixes.patch
 fs-isofs-logging-clean-up.patch
 fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
 fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-cpusetc-kernel-doc-fixes.patch
+kernel-cpusetc-convert-printk-to-pr_foo.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
 fs-affs-filec-remove-unnecessary-function-parameters.patch
 fs-affs-convert-printk-to-pr_foo.patch
 fs-affs-pr_debug-cleanup.patch
@@ -139,12 +159,4 @@ fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
 init-mainc-code-clean-up.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
-kernel-cpuc-convert-printk-to-pr_foo.patch
-kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
-kernel-capabilityc-code-clean-up.patch
-kernel-compatc-use-sizeof-instead-of-sizeof.patch
-kernel-exec_domainc-code-clean-up.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-cpusetc-kernel-doc-fixes.patch
-kernel-cpusetc-convert-printk-to-pr_foo.patch
 
