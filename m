@@ -1,144 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-cpusetc-kernel-doc-fixes.patch added to -mm tree
-Date: Mon, 05 May 2014 13:14:08 -0700
-Message-ID: <5367f110.aVeZSLPQK0USANF/%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+ removed from -mm tree
+Date: Mon, 05 May 2014 15:05:04 -0700
+Message-ID: <53680b10.mnoCp/THmdn45PDC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50727 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51931 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739AbaEEUOJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 16:14:09 -0400
+	with ESMTP id S1756784AbaEEWFF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:05:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com, jbohac@suse.cz, jack@suse.cz, john.stultz@linaro.org
 
-Subject: + kernel-cpusetc-kernel-doc-fixes.patch added to -mm tree
-To: fabf@skynet.be,lizefan@huawei.com,tj@kernel.org
+Subject: [to-be-updated] timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch removed from -mm tree
+To: john.stultz@linaro.org,jack@suse.cz,jbohac@suse.cz,mingo@redhat.com,peterz@infradead.org,rostedt@goodmis.org,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 13:14:08 -0700
+Date: Mon, 05 May 2014 15:05:04 -0700
 
 
 The patch titled
-     Subject: kernel/cpuset.c: kernel-doc fixes
-has been added to the -mm tree.  Its filename is
-     kernel-cpusetc-kernel-doc-fixes.patch
+     Subject: timekeeping: use printk_deferred() when holding timekeeping seqlock
+has been removed from the -mm tree.  Its filename was
+     timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-cpusetc-kernel-doc-fixes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-cpusetc-kernel-doc-fixes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/cpuset.c: kernel-doc fixes
+From: John Stultz <john.stultz@linaro.org>
+Subject: timekeeping: use printk_deferred() when holding timekeeping seqlock
 
-This patch also converts seq_printf to seq_puts
+Jiri Bohac pointed out that there are rare but potential deadlock
+possibilities when calling printk while holding the timekeeping seqlock.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Tejun Heo <tj@kernel.org>
+This is due to printk() triggering console sem wakeup, which can cause
+scheduling code to trigger hrtimers which may try to read the time.
+
+Specifically, as Jiri pointed out, that path is:
+  printk
+    vprintk_emit
+      console_unlock
+        up(&console_sem)
+          __up
+	    wake_up_process
+	      try_to_wake_up
+	        ttwu_do_activate
+		  ttwu_activate
+		    activate_task
+		      enqueue_task
+		        enqueue_task_fair
+			  hrtick_update
+			    hrtick_start_fair
+			      hrtick_start_fair
+			        get_time
+				  ktime_get
+				    --> endless loop on
+				    read_seqcount_retry(&timekeeper_seq, ...)
+
+This patch tries to avoid this issue by using printk_deferred (previously
+named printk_sched) which should defer printing via a irq_work_queue.
+
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Reported-by: Jiri Bohac <jbohac@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ kernel/time/ntp.c         |   15 +++++++++------
+ kernel/time/timekeeping.c |    7 ++++---
+ 2 files changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN kernel/cpuset.c~kernel-cpusetc-kernel-doc-fixes kernel/cpuset.c
---- a/kernel/cpuset.c~kernel-cpusetc-kernel-doc-fixes
-+++ a/kernel/cpuset.c
-@@ -890,6 +890,7 @@ static void update_tasks_cpumask_hier(st
- /**
-  * update_cpumask - update the cpus_allowed mask of a cpuset and all tasks in it
-  * @cs: the cpuset to consider
-+ * @trialcs: trial cpuset
-  * @buf: buffer of cpu numbers written to this cpuset
-  */
- static int update_cpumask(struct cpuset *cs, struct cpuset *trialcs,
-@@ -2536,7 +2537,7 @@ int cpuset_mems_allowed_intersects(const
+diff -puN kernel/time/ntp.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock kernel/time/ntp.c
+--- a/kernel/time/ntp.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock
++++ a/kernel/time/ntp.c
+@@ -786,8 +786,9 @@ static long hardpps_update_freq(struct p
+ 		time_status |= STA_PPSERROR;
+ 		pps_errcnt++;
+ 		pps_dec_freq_interval();
+-		pr_err("hardpps: PPSERROR: interval too long - %ld s\n",
+-				freq_norm.sec);
++		printk_deferred(KERN_ERR
++			"hardpps: PPSERROR: interval too long - %ld s\n",
++			freq_norm.sec);
+ 		return 0;
+ 	}
  
- /**
-  * cpuset_print_task_mems_allowed - prints task's cpuset and mems_allowed
-- * @task: pointer to task_struct of some task.
-+ * @tsk: pointer to task_struct of some task.
-  *
-  * Description: Prints @task's name, cpuset name, and cached copy of its
-  * mems_allowed to the kernel log.
-@@ -2646,10 +2647,10 @@ out:
- /* Display task mems_allowed in /proc/<pid>/status file. */
- void cpuset_task_status_allowed(struct seq_file *m, struct task_struct *task)
+@@ -800,7 +801,8 @@ static long hardpps_update_freq(struct p
+ 	delta = shift_right(ftemp - pps_freq, NTP_SCALE_SHIFT);
+ 	pps_freq = ftemp;
+ 	if (delta > PPS_MAXWANDER || delta < -PPS_MAXWANDER) {
+-		pr_warning("hardpps: PPSWANDER: change=%ld\n", delta);
++		printk_deferred(KERN_WARNING
++				"hardpps: PPSWANDER: change=%ld\n", delta);
+ 		time_status |= STA_PPSWANDER;
+ 		pps_stbcnt++;
+ 		pps_dec_freq_interval();
+@@ -844,8 +846,9 @@ static void hardpps_update_phase(long er
+ 	 * the time offset is updated.
+ 	 */
+ 	if (jitter > (pps_jitter << PPS_POPCORN)) {
+-		pr_warning("hardpps: PPSJITTER: jitter=%ld, limit=%ld\n",
+-		       jitter, (pps_jitter << PPS_POPCORN));
++		printk_deferred(KERN_WARNING
++				"hardpps: PPSJITTER: jitter=%ld, limit=%ld\n",
++				jitter, (pps_jitter << PPS_POPCORN));
+ 		time_status |= STA_PPSJITTER;
+ 		pps_jitcnt++;
+ 	} else if (time_status & STA_PPSTIME) {
+@@ -902,7 +905,7 @@ void __hardpps(const struct timespec *ph
+ 		time_status |= STA_PPSJITTER;
+ 		/* restart the frequency calibration interval */
+ 		pps_fbase = *raw_ts;
+-		pr_err("hardpps: PPSJITTER: bad pulse\n");
++		printk_deferred(KERN_ERR "hardpps: PPSJITTER: bad pulse\n");
+ 		return;
+ 	}
+ 
+diff -puN kernel/time/timekeeping.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock
++++ a/kernel/time/timekeeping.c
+@@ -852,8 +852,9 @@ static void __timekeeping_inject_sleepti
+ 							struct timespec *delta)
  {
--	seq_printf(m, "Mems_allowed:\t");
-+	seq_puts(m, "Mems_allowed:\t");
- 	seq_nodemask(m, &task->mems_allowed);
--	seq_printf(m, "\n");
--	seq_printf(m, "Mems_allowed_list:\t");
-+	seq_puts(m, "\n");
-+	seq_puts(m, "Mems_allowed_list:\t");
- 	seq_nodemask_list(m, &task->mems_allowed);
--	seq_printf(m, "\n");
-+	seq_puts(m, "\n");
- }
+ 	if (!timespec_valid_strict(delta)) {
+-		printk(KERN_WARNING "__timekeeping_inject_sleeptime: Invalid "
+-					"sleep delta value!\n");
++		printk_deferred(KERN_WARNING
++				"__timekeeping_inject_sleeptime: Invalid "
++				"sleep delta value!\n");
+ 		return;
+ 	}
+ 	tk_xtime_add(tk, delta);
+@@ -1157,7 +1158,7 @@ static void timekeeping_adjust(struct ti
+ 
+ 	if (unlikely(tk->clock->maxadj &&
+ 		(tk->mult + adj > tk->clock->mult + tk->clock->maxadj))) {
+-		printk_once(KERN_WARNING
++		printk_once_deferred(KERN_WARNING
+ 			"Adjusting %s more than 11%% (%ld vs %ld)\n",
+ 			tk->clock->name, (long)tk->mult + adj,
+ 			(long)tk->clock->mult + tk->clock->maxadj);
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from john.stultz@linaro.org are
 
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
-fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
-ntfs-remove-null-value-assignments.patch
-fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
-fs-configs-itemc-kernel-doc-fixes-clean-up.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
-fs-9p-kerneldoc-fixes.patch
-mm-slubc-convert-printk-to-pr_foo.patch
-mm-slubc-convert-vnsprintf-static-to-va_format.patch
-mm-memory_hotplugc-use-pfn_down.patch
-mm-memblockc-use-pfn_down.patch
-mm-memcontrolc-remove-null-assignment-on-static.patch
-mm-vmallocc-replace-seq_printf-by-seq_puts.patch
-mm-zbudc-make-size-unsigned-like-unique-callsite.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-lib-libcrc32cc-use-ptr_err_or_zero.patch
-lib-vsprintfc-fix-comparison-to-bool.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-linux-next.patch
-init-mainc-code-clean-up.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-kernel-cpuc-convert-printk-to-pr_foo.patch
-kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
-kernel-capabilityc-code-clean-up.patch
-kernel-compatc-use-sizeof-instead-of-sizeof.patch
-kernel-exec_domainc-code-clean-up.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-cpusetc-kernel-doc-fixes.patch
-kernel-cpusetc-convert-printk-to-pr_foo.patch
 
