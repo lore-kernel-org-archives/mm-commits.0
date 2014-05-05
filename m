@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch added to -mm tree
-Date: Mon, 05 May 2014 15:00:29 -0700
-Message-ID: <536809fd.KBCYexgujORGsqnE%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch added to -mm tree
+Date: Mon, 05 May 2014 14:37:06 -0700
+Message-ID: <53680482.eBlEvE1KDpk+691I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51886 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51302 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756357AbaEEWAa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:00:30 -0400
+	with ESMTP id S1756696AbaEEVhH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 17:37:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, keescook@chromium.org
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, nasa4836@gmail.com
 
-Subject: + tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch added to -mm tree
-To: keescook@chromium.org,rdunlap@infradead.org
+Subject: + mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch added to -mm tree
+To: nasa4836@gmail.com,hannes@cmpxchg.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 15:00:29 -0700
+Date: Mon, 05 May 2014 14:37:06 -0700
 
 
 The patch titled
-     Subject: tools/testing/selftests/sysctl: validate sysctl_writes_strict
+     Subject: mm: memcontrol: clean up memcg zoneinfo lookup
 has been added to the -mm tree.  Its filename is
-     tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch
+     mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,336 +43,227 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: tools/testing/selftests/sysctl: validate sysctl_writes_strict
+From: Jianyu Zhan <nasa4836@gmail.com>
+Subject: mm: memcontrol: clean up memcg zoneinfo lookup
 
-This adds several behavioral tests to sysctl string and number writing to
-detect unexpected cases that behaved differently when the sysctl
-kernel.sysctl_writes_strict != 1.
+Memcg zoneinfo lookup sites have either the page, the zone, or the node id
+and zone index, but sites that only have the zone have to look up the node
+id and zone index themselves, whereas sites that already have those two
+integers use a function for a simple pointer chase.
 
-[ original ]
-root@localhost:~# make test_num
-== Testing sysctl behavior against /proc/sys/kernel/domainname ==
-Writing test file ... ok
-Checking sysctl is not set to test value ... ok
-Writing sysctl from shell ... ok
-Resetting sysctl to original value ... ok
-Writing entire sysctl in single write ... ok
-Writing middle of sysctl after synchronized seek ... FAIL
-Writing beyond end of sysctl ... FAIL
-Writing sysctl with multiple long writes ... FAIL
-Writing entire sysctl in short writes ... FAIL
-Writing middle of sysctl after unsynchronized seek ... ok
-Checking sysctl maxlen is at least 65 ... ok
-Checking sysctl keeps original string on overflow append ... FAIL
-Checking sysctl stays NULL terminated on write ... ok
-Checking sysctl stays NULL terminated on overwrite ... ok
-make: *** [test_num] Error 1
-root@localhost:~# make test_string
-== Testing sysctl behavior against /proc/sys/vm/swappiness ==
-Writing test file ... ok
-Checking sysctl is not set to test value ... ok
-Writing sysctl from shell ... ok
-Resetting sysctl to original value ... ok
-Writing entire sysctl in single write ... ok
-Writing middle of sysctl after synchronized seek ... FAIL
-Writing beyond end of sysctl ... FAIL
-Writing sysctl with multiple long writes ... ok
-make: *** [test_string] Error 1
+Provide mem_cgroup_zone_zoneinfo() that takes a zone pointer and let sites
+that already have node id and zone index - all for each node, for each
+zone iterators - use &memcg->nodeinfo[nid]->zoneinfo[zid].
 
-[ with CONFIG_PROC_SYSCTL_STRICT_WRITES ]
-root@localhost:~# make run_tests
-== Testing sysctl behavior against /proc/sys/kernel/domainname ==
-Writing test file ... ok
-Checking sysctl is not set to test value ... ok
-Writing sysctl from shell ... ok
-Resetting sysctl to original value ... ok
-Writing entire sysctl in single write ... ok
-Writing middle of sysctl after synchronized seek ... ok
-Writing beyond end of sysctl ... ok
-Writing sysctl with multiple long writes ... ok
-Writing entire sysctl in short writes ... ok
-Writing middle of sysctl after unsynchronized seek ... ok
-Checking sysctl maxlen is at least 65 ... ok
-Checking sysctl keeps original string on overflow append ... ok
-Checking sysctl stays NULL terminated on write ... ok
-Checking sysctl stays NULL terminated on overwrite ... ok
-== Testing sysctl behavior against /proc/sys/vm/swappiness ==
-Writing test file ... ok
-Checking sysctl is not set to test value ... ok
-Writing sysctl from shell ... ok
-Resetting sysctl to original value ... ok
-Writing entire sysctl in single write ... ok
-Writing middle of sysctl after synchronized seek ... ok
-Writing beyond end of sysctl ... ok
-Writing sysctl with multiple long writes ... ok
+Rename page_cgroup_zoneinfo() to mem_cgroup_page_zoneinfo() to match.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile                |    1 
- tools/testing/selftests/sysctl/Makefile         |   19 ++
- tools/testing/selftests/sysctl/common_tests     |  109 ++++++++++++++
- tools/testing/selftests/sysctl/run_numerictests |   10 +
- tools/testing/selftests/sysctl/run_stringtests  |   77 +++++++++
- 5 files changed, 216 insertions(+)
+ mm/memcontrol.c |   89 ++++++++++++++++++++--------------------------
+ 1 file changed, 39 insertions(+), 50 deletions(-)
 
-diff -puN tools/testing/selftests/Makefile~tools-testing-selftests-sysctl-validate-sysctl_writes_strict tools/testing/selftests/Makefile
---- a/tools/testing/selftests/Makefile~tools-testing-selftests-sysctl-validate-sysctl_writes_strict
-+++ a/tools/testing/selftests/Makefile
-@@ -10,6 +10,7 @@ TARGETS += timers
- TARGETS += vm
- TARGETS += powerpc
- TARGETS += user
-+TARGETS += sysctl
+diff -puN mm/memcontrol.c~mm-memcontrol-clean-up-memcg-zoneinfo-lookup mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-clean-up-memcg-zoneinfo-lookup
++++ a/mm/memcontrol.c
+@@ -676,9 +676,11 @@ static void disarm_static_keys(struct me
+ static void drain_all_stock_async(struct mem_cgroup *memcg);
  
- all:
- 	for TARGET in $(TARGETS); do \
-diff -puN /dev/null tools/testing/selftests/sysctl/Makefile
---- /dev/null
-+++ a/tools/testing/selftests/sysctl/Makefile
-@@ -0,0 +1,19 @@
-+# Makefile for sysctl selftests.
-+# Expects kernel.sysctl_writes_strict=1.
+ static struct mem_cgroup_per_zone *
+-mem_cgroup_zoneinfo(struct mem_cgroup *memcg, int nid, int zid)
++mem_cgroup_zone_zoneinfo(struct mem_cgroup *memcg, struct zone *zone)
+ {
+-	VM_BUG_ON((unsigned)nid >= nr_node_ids);
++	int nid = zone_to_nid(zone);
++	int zid = zone_idx(zone);
 +
-+# No binaries, but make sure arg-less "make" doesn't trigger "run_tests".
-+all:
+ 	return &memcg->nodeinfo[nid]->zoneinfo[zid];
+ }
+ 
+@@ -688,12 +690,12 @@ struct cgroup_subsys_state *mem_cgroup_c
+ }
+ 
+ static struct mem_cgroup_per_zone *
+-page_cgroup_zoneinfo(struct mem_cgroup *memcg, struct page *page)
++mem_cgroup_page_zoneinfo(struct mem_cgroup *memcg, struct page *page)
+ {
+ 	int nid = page_to_nid(page);
+ 	int zid = page_zonenum(page);
+ 
+-	return mem_cgroup_zoneinfo(memcg, nid, zid);
++	return &memcg->nodeinfo[nid]->zoneinfo[zid];
+ }
+ 
+ static struct mem_cgroup_tree_per_zone *
+@@ -772,16 +774,14 @@ static void mem_cgroup_update_tree(struc
+ 	unsigned long long excess;
+ 	struct mem_cgroup_per_zone *mz;
+ 	struct mem_cgroup_tree_per_zone *mctz;
+-	int nid = page_to_nid(page);
+-	int zid = page_zonenum(page);
+-	mctz = soft_limit_tree_from_page(page);
+ 
++	mctz = soft_limit_tree_from_page(page);
+ 	/*
+ 	 * Necessary to update all ancestors when hierarchy is used.
+ 	 * because their event counter is not touched.
+ 	 */
+ 	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
+-		mz = mem_cgroup_zoneinfo(memcg, nid, zid);
++		mz = mem_cgroup_page_zoneinfo(memcg, page);
+ 		excess = res_counter_soft_limit_excess(&memcg->res);
+ 		/*
+ 		 * We have to update the tree if mz is on RB-tree or
+@@ -804,14 +804,14 @@ static void mem_cgroup_update_tree(struc
+ 
+ static void mem_cgroup_remove_from_trees(struct mem_cgroup *memcg)
+ {
+-	int node, zone;
+-	struct mem_cgroup_per_zone *mz;
+ 	struct mem_cgroup_tree_per_zone *mctz;
++	struct mem_cgroup_per_zone *mz;
++	int nid, zid;
+ 
+-	for_each_node(node) {
+-		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
+-			mz = mem_cgroup_zoneinfo(memcg, node, zone);
+-			mctz = soft_limit_tree_node_zone(node, zone);
++	for_each_node(nid) {
++		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
++			mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
++			mctz = soft_limit_tree_node_zone(nid, zid);
+ 			mem_cgroup_remove_exceeded(memcg, mz, mctz);
+ 		}
+ 	}
+@@ -946,8 +946,7 @@ static void mem_cgroup_charge_statistics
+ 	__this_cpu_add(memcg->stat->nr_page_events, nr_pages);
+ }
+ 
+-unsigned long
+-mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
++unsigned long mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
+ {
+ 	struct mem_cgroup_per_zone *mz;
+ 
+@@ -955,46 +954,38 @@ mem_cgroup_get_lru_size(struct lruvec *l
+ 	return mz->lru_size[lru];
+ }
+ 
+-static unsigned long
+-mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, int nid, int zid,
+-			unsigned int lru_mask)
+-{
+-	struct mem_cgroup_per_zone *mz;
+-	enum lru_list lru;
+-	unsigned long ret = 0;
+-
+-	mz = mem_cgroup_zoneinfo(memcg, nid, zid);
+-
+-	for_each_lru(lru) {
+-		if (BIT(lru) & lru_mask)
+-			ret += mz->lru_size[lru];
+-	}
+-	return ret;
+-}
+-
+-static unsigned long
+-mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
+-			int nid, unsigned int lru_mask)
++static unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
++						  int nid,
++						  unsigned int lru_mask)
+ {
+-	u64 total = 0;
++	unsigned long nr = 0;
+ 	int zid;
+ 
+-	for (zid = 0; zid < MAX_NR_ZONES; zid++)
+-		total += mem_cgroup_zone_nr_lru_pages(memcg,
+-						nid, zid, lru_mask);
++	VM_BUG_ON((unsigned)nid >= nr_node_ids);
+ 
+-	return total;
++	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
++		struct mem_cgroup_per_zone *mz;
++		enum lru_list lru;
 +
-+# Allow specific tests to be selected.
-+test_num:
-+	@/bin/sh ./run_numerictests
-+
-+test_string:
-+	@/bin/sh ./run_stringtests
-+
-+run_tests: all test_num test_string
-+
-+# Nothing to clean up.
-+clean:
-+
-+.PHONY: all run_tests clean test_num test_string
-diff -puN /dev/null tools/testing/selftests/sysctl/common_tests
---- /dev/null
-+++ a/tools/testing/selftests/sysctl/common_tests
-@@ -0,0 +1,109 @@
-+#!/bin/sh
-+
-+TEST_FILE=$(mktemp)
-+
-+echo "== Testing sysctl behavior against ${TARGET} =="
-+
-+set_orig()
-+{
-+	echo "${ORIG}" > "${TARGET}"
-+}
-+
-+set_test()
-+{
-+	echo "${TEST_STR}" > "${TARGET}"
-+}
-+
-+verify()
-+{
-+	local seen
-+	seen=$(cat "$1")
-+	if [ "${seen}" != "${TEST_STR}" ]; then
-+		return 1
-+	fi
-+	return 0
-+}
-+
-+trap 'set_orig; rm -f "${TEST_FILE}"' EXIT
-+
-+rc=0
-+
-+echo -n "Writing test file ... "
-+echo "${TEST_STR}" > "${TEST_FILE}"
-+if ! verify "${TEST_FILE}"; then
-+	echo "FAIL" >&2
-+	exit 1
-+else
-+	echo "ok"
-+fi
-+
-+echo -n "Checking sysctl is not set to test value ... "
-+if verify "${TARGET}"; then
-+	echo "FAIL" >&2
-+	exit 1
-+else
-+	echo "ok"
-+fi
-+
-+echo -n "Writing sysctl from shell ... "
-+set_test
-+if ! verify "${TARGET}"; then
-+	echo "FAIL" >&2
-+	exit 1
-+else
-+	echo "ok"
-+fi
-+
-+echo -n "Resetting sysctl to original value ... "
-+set_orig
-+if verify "${TARGET}"; then
-+	echo "FAIL" >&2
-+	exit 1
-+else
-+	echo "ok"
-+fi
-+
-+# Now that we've validated the sanity of "set_test" and "set_orig",
-+# we can use those functions to set starting states before running
-+# specific behavioral tests.
-+
-+echo -n "Writing entire sysctl in single write ... "
-+set_orig
-+dd if="${TEST_FILE}" of="${TARGET}" bs=4096 2>/dev/null
-+if ! verify "${TARGET}"; then
-+	echo "FAIL" >&2
-+	rc=1
-+else
-+	echo "ok"
-+fi
-+
-+echo -n "Writing middle of sysctl after synchronized seek ... "
-+set_test
-+dd if="${TEST_FILE}" of="${TARGET}" bs=1 seek=1 skip=1 2>/dev/null
-+if ! verify "${TARGET}"; then
-+	echo "FAIL" >&2
-+	rc=1
-+else
-+	echo "ok"
-+fi
-+
-+echo -n "Writing beyond end of sysctl ... "
-+set_orig
-+dd if="${TEST_FILE}" of="${TARGET}" bs=20 seek=2 2>/dev/null
-+if verify "${TARGET}"; then
-+        echo "FAIL" >&2
-+        rc=1
-+else
-+        echo "ok"
-+fi
-+
-+echo -n "Writing sysctl with multiple long writes ... "
-+set_orig
-+(perl -e 'print "A" x 50;'; echo "${TEST_STR}") | \
-+	dd of="${TARGET}" bs=50 2>/dev/null
-+if verify "${TARGET}"; then
-+	echo "FAIL" >&2
-+	rc=1
-+else
-+	echo "ok"
-+fi
-diff -puN /dev/null tools/testing/selftests/sysctl/run_numerictests
---- /dev/null
-+++ a/tools/testing/selftests/sysctl/run_numerictests
-@@ -0,0 +1,10 @@
-+#!/bin/sh
-+
-+SYSCTL="/proc/sys"
-+TARGET="${SYSCTL}/vm/swappiness"
-+ORIG=$(cat "${TARGET}")
-+TEST_STR=$(( $ORIG + 1 ))
-+
-+. ./common_tests
-+
-+exit $rc
-diff -puN /dev/null tools/testing/selftests/sysctl/run_stringtests
---- /dev/null
-+++ a/tools/testing/selftests/sysctl/run_stringtests
-@@ -0,0 +1,77 @@
-+#!/bin/sh
-+
-+SYSCTL="/proc/sys"
-+TARGET="${SYSCTL}/kernel/domainname"
-+ORIG=$(cat "${TARGET}")
-+TEST_STR="Testing sysctl"
-+
-+. ./common_tests
-+
-+# Only string sysctls support seeking/appending.
-+MAXLEN=65
-+
-+echo -n "Writing entire sysctl in short writes ... "
-+set_orig
-+dd if="${TEST_FILE}" of="${TARGET}" bs=1 2>/dev/null
-+if ! verify "${TARGET}"; then
-+	echo "FAIL" >&2
-+	rc=1
-+else
-+	echo "ok"
-+fi
-+
-+echo -n "Writing middle of sysctl after unsynchronized seek ... "
-+set_test
-+dd if="${TEST_FILE}" of="${TARGET}" bs=1 seek=1 2>/dev/null
-+if verify "${TARGET}"; then
-+	echo "FAIL" >&2
-+	rc=1
-+else
-+	echo "ok"
-+fi
-+
-+echo -n "Checking sysctl maxlen is at least $MAXLEN ... "
-+set_orig
-+perl -e 'print "A" x ('"${MAXLEN}"'-2), "B";' | \
-+	dd of="${TARGET}" bs="${MAXLEN}" 2>/dev/null
-+if ! grep -q B "${TARGET}"; then
-+	echo "FAIL" >&2
-+	rc=1
-+else
-+	echo "ok"
-+fi
-+
-+echo -n "Checking sysctl keeps original string on overflow append ... "
-+set_orig
-+perl -e 'print "A" x ('"${MAXLEN}"'-1), "B";' | \
-+	dd of="${TARGET}" bs=$(( MAXLEN - 1 )) 2>/dev/null
-+if grep -q B "${TARGET}"; then
-+	echo "FAIL" >&2
-+	rc=1
-+else
-+	echo "ok"
-+fi
-+
-+echo -n "Checking sysctl stays NULL terminated on write ... "
-+set_orig
-+perl -e 'print "A" x ('"${MAXLEN}"'-1), "B";' | \
-+	dd of="${TARGET}" bs="${MAXLEN}" 2>/dev/null
-+if grep -q B "${TARGET}"; then
-+	echo "FAIL" >&2
-+	rc=1
-+else
-+	echo "ok"
-+fi
-+
-+echo -n "Checking sysctl stays NULL terminated on overwrite ... "
-+set_orig
-+perl -e 'print "A" x ('"${MAXLEN}"'-1), "BB";' | \
-+	dd of="${TARGET}" bs=$(( $MAXLEN + 1 )) 2>/dev/null
-+if grep -q B "${TARGET}"; then
-+	echo "FAIL" >&2
-+	rc=1
-+else
-+	echo "ok"
-+fi
-+
-+exit $rc
++		for_each_lru(lru) {
++			if (!(BIT(lru) & lru_mask))
++				continue;
++			mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
++			nr += mz->lru_size[lru];
++		}
++	}
++	return nr;
+ }
+ 
+ static unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *memcg,
+ 			unsigned int lru_mask)
+ {
++	unsigned long nr = 0;
+ 	int nid;
+-	u64 total = 0;
+ 
+ 	for_each_node_state(nid, N_MEMORY)
+-		total += mem_cgroup_node_nr_lru_pages(memcg, nid, lru_mask);
+-	return total;
++		nr += mem_cgroup_node_nr_lru_pages(memcg, nid, lru_mask);
++	return nr;
+ }
+ 
+ static bool mem_cgroup_event_ratelimit(struct mem_cgroup *memcg,
+@@ -1233,11 +1224,9 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 		int uninitialized_var(seq);
+ 
+ 		if (reclaim) {
+-			int nid = zone_to_nid(reclaim->zone);
+-			int zid = zone_idx(reclaim->zone);
+ 			struct mem_cgroup_per_zone *mz;
+ 
+-			mz = mem_cgroup_zoneinfo(root, nid, zid);
++			mz = mem_cgroup_zone_zoneinfo(root, reclaim->zone);
+ 			iter = &mz->reclaim_iter[reclaim->priority];
+ 			if (prev && reclaim->generation != iter->generation) {
+ 				iter->last_visited = NULL;
+@@ -1344,7 +1333,7 @@ struct lruvec *mem_cgroup_zone_lruvec(st
+ 		goto out;
+ 	}
+ 
+-	mz = mem_cgroup_zoneinfo(memcg, zone_to_nid(zone), zone_idx(zone));
++	mz = mem_cgroup_zone_zoneinfo(memcg, zone);
+ 	lruvec = &mz->lruvec;
+ out:
+ 	/*
+@@ -1403,7 +1392,7 @@ struct lruvec *mem_cgroup_page_lruvec(st
+ 	if (!PageLRU(page) && !PageCgroupUsed(pc) && memcg != root_mem_cgroup)
+ 		pc->mem_cgroup = memcg = root_mem_cgroup;
+ 
+-	mz = page_cgroup_zoneinfo(memcg, page);
++	mz = mem_cgroup_page_zoneinfo(memcg, page);
+ 	lruvec = &mz->lruvec;
+ out:
+ 	/*
+@@ -5382,7 +5371,7 @@ static int memcg_stat_show(struct seq_fi
+ 
+ 		for_each_online_node(nid)
+ 			for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+-				mz = mem_cgroup_zoneinfo(memcg, nid, zid);
++				mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
+ 				rstat = &mz->lruvec.reclaim_stat;
+ 
+ 				recent_rotated[0] += rstat->recent_rotated[0];
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from nasa4836@gmail.com are
 
-lib-vsprintf-add-%pt-format-specifier.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-ptrace-fix-fork-event-messages-across-pid-namespaces.patch
-sysctl-clean-up-char-buffer-arguments.patch
-sysctl-refactor-sysctl-string-writing-logic.patch
-sysctl-allow-for-strict-write-position-handling.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch
-tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
+mm-swapc-clean-up-lru_cache_add-functions.patch
+mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
+mm-swapc-split-put_compound_page-function.patch
+mm-introdule-compound_head_by_tail.patch
+mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
+mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
 linux-next.patch
 
