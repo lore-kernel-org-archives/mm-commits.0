@@ -1,130 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: +
- tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
- added to -mm tree
-Date: Mon, 05 May 2014 15:00:31 -0700
-Message-ID: <536809ff.sqCmXSCXAWlMuGaw%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ printk-re-add-irqsave-restore-in-printk_sched.patch removed from -mm tree
+Date: Mon, 05 May 2014 15:04:58 -0700
+Message-ID: <53680b0a.wHZ/5rsdwnpPb2gE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51888 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51906 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756694AbaEEWAc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:00:32 -0400
+	with ESMTP id S1756762AbaEEWE7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:04:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, keescook@chromium.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com, jbohac@suse.cz, jack@suse.cz, john.stultz@linaro.org
 
-Subject: + tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,keescook@chromium.org,rdunlap@infradead.org
+Subject: [to-be-updated] printk-re-add-irqsave-restore-in-printk_sched.patch removed from -mm tree
+To: john.stultz@linaro.org,jack@suse.cz,jbohac@suse.cz,mingo@redhat.com,peterz@infradead.org,rostedt@goodmis.org,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 15:00:31 -0700
+Date: Mon, 05 May 2014 15:04:58 -0700
 
 
 The patch titled
-     Subject: tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix
-has been added to the -mm tree.  Its filename is
-     tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
+     Subject: printk: re-add irqsave/restore in printk_sched
+has been removed from the -mm tree.  Its filename was
+     printk-re-add-irqsave-restore-in-printk_sched.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix
+From: John Stultz <john.stultz@linaro.org>
+Subject: printk: re-add irqsave/restore in printk_sched
 
-remove misplaced hunk, per Randy
+Recently, Jiri pointed out a potential deadlock when calling printk while
+holding the timekeeping seqlock.
 
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Annoyingly, the seqlock lockdep enablement doesn't catch this, as printk
+disables lockdep.
+
+When looking for possible solutions, one idea was to use a local buffer
+and defer the printk to later.  Ends up there is already similar
+functionality in printk_sched() to avoid similar style deadlocks w/ the
+scheduler.
+
+Thus this patchset renames printk_sched to printk_deferred and then moves
+the affected timekeeping printks to make use of it.
+
+There were some points in the discussion between Jan and Peter that made
+it seem that there may still be problems lurking in the console layer, and
+I'm not sure I fully understand their point, so this solution may be
+incomplete.
+
+Additionally, the same issue likely affects any WARN_ONs as well, but I
+wanted to get some thoughts on this approach before trying to remove or
+convert affected WARN_ONS.
+
+
+This patch (of 4)
+
+A commit in akpm's tree (printk: remove separate printk_sched buffers...),
+removed the printk_sched irqsave/restore lines since it was safe for
+current users.  Since we may be expanding usage of printk_sched(), re-add
+the irqsave/restore logic to make the functionality more generally safe.
+
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Jiri Bohac <jbohac@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/printk/printk.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/sysctl.c~tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix kernel/sysctl.c
---- a/kernel/sysctl.c~tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix
-+++ a/kernel/sysctl.c
-@@ -1783,8 +1783,8 @@ static int _proc_do_string(char *data, i
+diff -puN kernel/printk/printk.c~printk-re-add-irqsave-restore-in-printk_sched kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-re-add-irqsave-restore-in-printk_sched
++++ a/kernel/printk/printk.c
+@@ -2586,15 +2586,18 @@ void wake_up_klogd(void)
  
- static void warn_sysctl_write(struct ctl_table *table)
+ int printk_sched(const char *fmt, ...)
  {
--	pr_warn("write to %s by %s used a non-zero file position!\n",
--		table->procname, current->comm);
-+	pr_warn("%s wrote to %s when file position was not 0!\n",
-+		current->task_comm, table->procname);
- 	pr_warn("This will not be supported in the future.\n");
- 	pr_warn("To silence warning, set kernel.sysctl_writes_strict = -1\n");
++	unsigned long flags;
+ 	va_list args;
+ 	int r;
+ 
++	local_irq_save(flags);
+ 	va_start(args, fmt);
+ 	r = vprintk_emit(0, SCHED_MESSAGE_LOGLEVEL, NULL, 0, fmt, args);
+ 	va_end(args);
+ 
+ 	__this_cpu_or(printk_pending, PRINTK_PENDING_OUTPUT);
+ 	irq_work_queue(&__get_cpu_var(wake_up_klogd_work));
++	local_irq_restore(flags);
+ 
+ 	return r;
  }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from john.stultz@linaro.org are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
-slub-use-sysfses-release-mechanism-for-kmem_cache.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
-fs-pstore-logging-clean-up-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+printk-rename-printk_sched-to-printk_deferred.patch
+printk-add-printk_once_deferred.patch
+timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
 
