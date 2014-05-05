@@ -1,104 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] printk-add-printk_once_deferred.patch removed
- from -mm tree
-Date: Mon, 05 May 2014 15:05:02 -0700
-Message-ID: <53680b0e.ZKEK5GVBlEDeSvrC%akpm@linux-foundation.org>
+Subject: + lib-plistc-replace-pr_debug-with-printk-in-plist_test.patch
+ added to -mm tree
+Date: Mon, 05 May 2014 13:35:36 -0700
+Message-ID: <5367f618.DJi9r8JWhhPMj84C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51924 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50769 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756784AbaEEWFD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:05:03 -0400
+	with ESMTP id S1755775AbaEEUfg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 16:35:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com, jbohac@suse.cz, jack@suse.cz, john.stultz@linaro.org
+To: mm-commits@vger.kernel.org, rostedt@goodmis.org, ddstreet@ieee.org
 
-Subject: [to-be-updated] printk-add-printk_once_deferred.patch removed from -mm tree
-To: john.stultz@linaro.org,jack@suse.cz,jbohac@suse.cz,mingo@redhat.com,peterz@infradead.org,rostedt@goodmis.org,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: + lib-plistc-replace-pr_debug-with-printk-in-plist_test.patch added to -mm tree
+To: ddstreet@ieee.org,rostedt@goodmis.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 15:05:02 -0700
+Date: Mon, 05 May 2014 13:35:36 -0700
 
 
 The patch titled
-     Subject: printk: add printk_once_deferred()
-has been removed from the -mm tree.  Its filename was
-     printk-add-printk_once_deferred.patch
+     Subject: lib/plist.c: replace pr_debug with printk in plist_test()
+has been added to the -mm tree.  Its filename is
+     lib-plistc-replace-pr_debug-with-printk-in-plist_test.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-plistc-replace-pr_debug-with-printk-in-plist_test.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-plistc-replace-pr_debug-with-printk-in-plist_test.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: John Stultz <john.stultz@linaro.org>
-Subject: printk: add printk_once_deferred()
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: lib/plist.c: replace pr_debug with printk in plist_test()
 
-Two of the three prink_deferred uses are really printk_once style uses, so
-add a printk_once_deferred macro to simplify those call sites.
+Replace pr_debug() in lib/plist.c test function plist_test() with
+printk(KERN_DEBUG ...).
 
-Signed-off-by: John Stultz <john.stultz@linaro.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Without DEBUG defined, pr_debug() is complied out, but the entire
+plist_test() function is already inside CONFIG_DEBUG_PI_LIST, so printk
+should just be used directly.
+
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h  |   11 +++++++++++
- kernel/sched/deadline.c |    7 +------
- kernel/sched/rt.c       |    8 +-------
- 3 files changed, 13 insertions(+), 13 deletions(-)
+ lib/plist.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/printk.h~printk-add-printk_once_deferred include/linux/printk.h
---- a/include/linux/printk.h~printk-add-printk_once_deferred
-+++ a/include/linux/printk.h
-@@ -266,9 +266,20 @@ extern asmlinkage void dump_stack(void)
- 		printk(fmt, ##__VA_ARGS__);			\
- 	}							\
- })
-+#define printk_once_deferred(fmt, ...)				\
-+({								\
-+	static bool __print_once __read_mostly;			\
-+								\
-+	if (!__print_once) {					\
-+		__print_once = true;				\
-+		printk_deferred(fmt, ##__VA_ARGS__);		\
-+	}							\
-+})
- #else
- #define printk_once(fmt, ...)					\
- 	no_printk(fmt, ##__VA_ARGS__)
-+#define printk_once_deferred(fmt, ...)				\
-+	no_printk(fmt, ##__VA_ARGS__)
- #endif
+diff -puN lib/plist.c~lib-plistc-replace-pr_debug-with-printk-in-plist_test lib/plist.c
+--- a/lib/plist.c~lib-plistc-replace-pr_debug-with-printk-in-plist_test
++++ a/lib/plist.c
+@@ -175,7 +175,7 @@ static int  __init plist_test(void)
+ 	int nr_expect = 0, i, loop;
+ 	unsigned int r = local_clock();
  
- #define pr_emerg_once(fmt, ...)					\
-diff -puN kernel/sched/deadline.c~printk-add-printk_once_deferred kernel/sched/deadline.c
---- a/kernel/sched/deadline.c~printk-add-printk_once_deferred
-+++ a/kernel/sched/deadline.c
-@@ -348,12 +348,7 @@ static void replenish_dl_entity(struct s
- 	 * entity.
- 	 */
- 	if (dl_time_before(dl_se->deadline, rq_clock(rq))) {
--		static bool lag_once = false;
--
--		if (!lag_once) {
--			lag_once = true;
--			printk_deferred("sched: DL replenish lagged to much\n");
--		}
-+		printk_once_deferred("sched: DL replenish lagged to much\n");
- 		dl_se->deadline = rq_clock(rq) + pi_se->dl_deadline;
- 		dl_se->runtime = pi_se->dl_runtime;
+-	pr_debug("start plist test\n");
++	printk(KERN_DEBUG "start plist test\n");
+ 	plist_head_init(&test_head);
+ 	for (i = 0; i < ARRAY_SIZE(test_node); i++)
+ 		plist_node_init(test_node + i, 0);
+@@ -203,7 +203,7 @@ static int  __init plist_test(void)
+ 		plist_test_check(nr_expect);
  	}
-diff -puN kernel/sched/rt.c~printk-add-printk_once_deferred kernel/sched/rt.c
---- a/kernel/sched/rt.c~printk-add-printk_once_deferred
-+++ a/kernel/sched/rt.c
-@@ -851,14 +851,8 @@ static int sched_rt_runtime_exceeded(str
- 		 * but accrue some time due to boosting.
- 		 */
- 		if (likely(rt_b->rt_runtime)) {
--			static bool once = false;
--
- 			rt_rq->rt_throttled = 1;
+ 
+-	pr_debug("end plist test\n");
++	printk(KERN_DEBUG "end plist test\n");
+ 	return 0;
+ }
+ 
+_
+
+Patches currently in -mm which might be from ddstreet@ieee.org are
+
+lib-plistc-replace-pr_debug-with-printk-in-plist_test.patch
+
