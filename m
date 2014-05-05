@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + printk-disable-preemption-for-printk_sched.patch added to -mm
- tree
-Date: Mon, 05 May 2014 15:07:12 -0700
-Message-ID: <53680b90.9dlgLgQcC06ywc69%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-improve-missing-blank-line-after-declarations-test.patch added
+ to -mm tree
+Date: Mon, 05 May 2014 15:08:22 -0700
+Message-ID: <53680bd6.eHfrMRWGrykRsP7t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51939 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52061 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756782AbaEEWHN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:07:13 -0400
+	with ESMTP id S1756808AbaEEWIW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:08:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com, jbohac@suse.cz, jack@suse.cz, john.stultz@linaro.org
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + printk-disable-preemption-for-printk_sched.patch added to -mm tree
-To: john.stultz@linaro.org,jack@suse.cz,jbohac@suse.cz,mingo@redhat.com,peterz@infradead.org,rostedt@goodmis.org,tglx@linutronix.de
+Subject: + checkpatch-improve-missing-blank-line-after-declarations-test.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 15:07:12 -0700
+Date: Mon, 05 May 2014 15:08:22 -0700
 
 
 The patch titled
-     Subject: printk: disable preemption for printk_sched
+     Subject: checkpatch: improve missing blank line after declarations test
 has been added to the -mm tree.  Its filename is
-     printk-disable-preemption-for-printk_sched.patch
+     checkpatch-improve-missing-blank-line-after-declarations-test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-disable-preemption-for-printk_sched.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-missing-blank-line-after-declarations-test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-disable-preemption-for-printk_sched.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-missing-blank-line-after-declarations-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,52 +45,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Stultz <john.stultz@linaro.org>
-Subject: printk: disable preemption for printk_sched
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve missing blank line after declarations test
 
-An earlier change in -mm (printk: remove separate printk_sched
-buffers...), removed the printk_sched irqsave/restore lines since it was
-safe for current users.  Since we may be expanding usage of
-printk_sched(), disable preepmtion for this function to make it more
-generally safe to call.
+A couple more modifications to the declarations tests.
 
-Signed-off-by: John Stultz <john.stultz@linaro.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+o Declarations can also be bitfields so exclude things with a colon
+o Make sure the current and previous lines are indented the same
+  to avoid matching some macro where a struct type is passed on
+  the previous line like:
+
+		next = list_entry(buffer->entry.next,
+				  struct binder_buffer, entry);
+		if (buffer_start_page(next) == buffer_end_page(buffer))
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    2 ++
- 1 file changed, 2 insertions(+)
+ scripts/checkpatch.pl |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-disable-preemption-for-printk_sched kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-disable-preemption-for-printk_sched
-+++ a/kernel/printk/printk.c
-@@ -2589,12 +2589,14 @@ int printk_sched(const char *fmt, ...)
- 	va_list args;
- 	int r;
- 
-+	preempt_disable();
- 	va_start(args, fmt);
- 	r = vprintk_emit(0, SCHED_MESSAGE_LOGLEVEL, NULL, 0, fmt, args);
- 	va_end(args);
- 
- 	__this_cpu_or(printk_pending, PRINTK_PENDING_OUTPUT);
- 	irq_work_queue(&__get_cpu_var(wake_up_klogd_work));
-+	preempt_enable();
- 
- 	return r;
- }
+diff -puN scripts/checkpatch.pl~checkpatch-improve-missing-blank-line-after-declarations-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-missing-blank-line-after-declarations-test
++++ a/scripts/checkpatch.pl
+@@ -2275,7 +2275,7 @@ sub process {
+ # check for missing blank lines after declarations
+ 		if ($sline =~ /^\+\s+\S/ &&			#Not at char 1
+ 			# actual declarations
+-		    ($prevline =~ /^\+\s+$Declare\s*$Ident\s*[=,;\[]/ ||
++		    ($prevline =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
+ 			# foo bar; where foo is some local typedef or #define
+ 		     $prevline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
+ 			# known declaration macros
+@@ -2287,7 +2287,7 @@ sub process {
+ 			# not starting a section or a macro "\" extended line
+ 		      $prevline =~ /(?:\{\s*|\\)$/) &&
+ 			# looks like a declaration
+-		    !($sline =~ /^\+\s+$Declare\s*$Ident\s*[=,;\[]/ ||
++		    !($sline =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
+ 			# foo bar; where foo is some local typedef or #define
+ 		      $sline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
+ 			# known declaration macros
+@@ -2299,7 +2299,9 @@ sub process {
+ 			# bitfield continuation
+ 		      $sline =~ /^\+\s+$Ident\s*:\s*\d+\s*[,;]/ ||
+ 			# other possible extensions of declaration lines
+-		      $sline =~ /^\+\s+\(?\s*(?:$Compare|$Assignment|$Operators)/)) {
++		      $sline =~ /^\+\s+\(?\s*(?:$Compare|$Assignment|$Operators)/) &&
++			# indentation of previous and current line are the same
++		    (($prevline =~ /\+(\s+)\S/) && $sline =~ /^\+$1\S/)) {
+ 			WARN("SPACING",
+ 			     "Missing a blank line after declarations\n" . $hereprev);
+ 		}
 _
 
-Patches currently in -mm which might be from john.stultz@linaro.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-printk-disable-preemption-for-printk_sched.patch
-printk-rename-printk_sched-to-printk_deferred.patch
-printk-add-printk_deferred_once.patch
-timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-fix-wildcard-dt-compatible-string-checking.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+checkpatch-improve-missing-blank-line-after-declarations-test.patch
+init-mainc-dont-use-pr_debug.patch
+fs-isofs-logging-clean-up.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+linux-next.patch
+arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+tile-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+parport-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+scsi-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ntfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ipc-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+mm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
