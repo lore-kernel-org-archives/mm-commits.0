@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
- added to -mm tree
-Date: Fri, 02 May 2014 16:05:58 -0700
-Message-ID: <536424d6.3hHHkX3Obv8xEgu/%akpm@linux-foundation.org>
+Subject: + sysctl-clean-up-char-buffer-arguments.patch added to -mm tree
+Date: Mon, 05 May 2014 15:00:25 -0700
+Message-ID: <536809f9.mELwwof68aW52ZF0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49692 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51874 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752860AbaEBXF7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2014 19:05:59 -0400
+	with ESMTP id S1756316AbaEEWA0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:00:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com, jbohac@suse.cz, jack@suse.cz, john.stultz@linaro.org
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, keescook@chromium.org
 
-Subject: + timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch added to -mm tree
-To: john.stultz@linaro.org,jack@suse.cz,jbohac@suse.cz,mingo@redhat.com,peterz@infradead.org,rostedt@goodmis.org,tglx@linutronix.de
+Subject: + sysctl-clean-up-char-buffer-arguments.patch added to -mm tree
+To: keescook@chromium.org,rdunlap@infradead.org
 From: akpm@linux-foundation.org
-Date: Fri, 02 May 2014 16:05:58 -0700
+Date: Mon, 05 May 2014 15:00:25 -0700
 
 
 The patch titled
-     Subject: timekeeping: use printk_deferred() when holding timekeeping seqlock
+     Subject: sysctl: clean up char buffer arguments
 has been added to the -mm tree.  Its filename is
-     timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+     sysctl-clean-up-char-buffer-arguments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-clean-up-char-buffer-arguments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-clean-up-char-buffer-arguments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,129 +43,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Stultz <john.stultz@linaro.org>
-Subject: timekeeping: use printk_deferred() when holding timekeeping seqlock
+From: Kees Cook <keescook@chromium.org>
+Subject: sysctl: clean up char buffer arguments
 
-Jiri Bohac pointed out that there are rare but potential deadlock
-possibilities when calling printk while holding the timekeeping seqlock.
+When writing to a sysctl string, each write, regardless of VFS position,
+began writing the string from the start. This meant the contents of
+the last write to the sysctl controlled the string contents instead of
+the first.
 
-This is due to printk() triggering console sem wakeup, which can cause
-scheduling code to trigger hrtimers which may try to read the time.
+This misbehavior was featured in an exploit against Chrome OS. While it's
+not in itself a vulnerability, it's a weirdness that isn't on the mind
+of most auditors: "This filter looks correct, the first line written
+would not be meaningful to sysctl" doesn't apply here, since the size
+of the write and the contents of the final write are what matter when
+writing to sysctls.
 
-Specifically, as Jiri pointed out, that path is:
-  printk
-    vprintk_emit
-      console_unlock
-        up(&console_sem)
-          __up
-	    wake_up_process
-	      try_to_wake_up
-	        ttwu_do_activate
-		  ttwu_activate
-		    activate_task
-		      enqueue_task
-		        enqueue_task_fair
-			  hrtick_update
-			    hrtick_start_fair
-			      hrtick_start_fair
-			        get_time
-				  ktime_get
-				    --> endless loop on
-				    read_seqcount_retry(&timekeeper_seq, ...)
+This adds the sysctl kernel.sysctl_writes_strict to control the write
+behavior. The default (0) reports when VFS position is non-0 on a write,
+but retains legacy behavior, -1 disables the warning, and 1 enables the
+position-respecting behavior.
 
-This patch tries to avoid this issue by using printk_deferred (previously
-named printk_sched) which should defer printing via a irq_work_queue.
+The long-term plan here is to wait for userspace to be fixed in response
+to the new warning and to then switch the default kernel behavior to the
+new position-respecting behavior.
 
-Signed-off-by: John Stultz <john.stultz@linaro.org>
-Reported-by: Jiri Bohac <jbohac@suse.cz>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+
+
+This patch (of 4):
+
+The char buffer arguments are needlessly cast in weird places. Clean it up
+so things are easier to read.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/ntp.c         |   15 +++++++++------
- kernel/time/timekeeping.c |    7 ++++---
- 2 files changed, 13 insertions(+), 9 deletions(-)
+ kernel/sysctl.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/time/ntp.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock kernel/time/ntp.c
---- a/kernel/time/ntp.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock
-+++ a/kernel/time/ntp.c
-@@ -786,8 +786,9 @@ static long hardpps_update_freq(struct p
- 		time_status |= STA_PPSERROR;
- 		pps_errcnt++;
- 		pps_dec_freq_interval();
--		pr_err("hardpps: PPSERROR: interval too long - %ld s\n",
--				freq_norm.sec);
-+		printk_deferred(KERN_ERR
-+			"hardpps: PPSERROR: interval too long - %ld s\n",
-+			freq_norm.sec);
- 		return 0;
- 	}
+diff -puN kernel/sysctl.c~sysctl-clean-up-char-buffer-arguments kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-clean-up-char-buffer-arguments
++++ a/kernel/sysctl.c
+@@ -1698,8 +1698,8 @@ int __init sysctl_init(void)
  
-@@ -800,7 +801,8 @@ static long hardpps_update_freq(struct p
- 	delta = shift_right(ftemp - pps_freq, NTP_SCALE_SHIFT);
- 	pps_freq = ftemp;
- 	if (delta > PPS_MAXWANDER || delta < -PPS_MAXWANDER) {
--		pr_warning("hardpps: PPSWANDER: change=%ld\n", delta);
-+		printk_deferred(KERN_WARNING
-+				"hardpps: PPSWANDER: change=%ld\n", delta);
- 		time_status |= STA_PPSWANDER;
- 		pps_stbcnt++;
- 		pps_dec_freq_interval();
-@@ -844,8 +846,9 @@ static void hardpps_update_phase(long er
- 	 * the time offset is updated.
- 	 */
- 	if (jitter > (pps_jitter << PPS_POPCORN)) {
--		pr_warning("hardpps: PPSJITTER: jitter=%ld, limit=%ld\n",
--		       jitter, (pps_jitter << PPS_POPCORN));
-+		printk_deferred(KERN_WARNING
-+				"hardpps: PPSJITTER: jitter=%ld, limit=%ld\n",
-+				jitter, (pps_jitter << PPS_POPCORN));
- 		time_status |= STA_PPSJITTER;
- 		pps_jitcnt++;
- 	} else if (time_status & STA_PPSTIME) {
-@@ -902,7 +905,7 @@ void __hardpps(const struct timespec *ph
- 		time_status |= STA_PPSJITTER;
- 		/* restart the frequency calibration interval */
- 		pps_fbase = *raw_ts;
--		pr_err("hardpps: PPSJITTER: bad pulse\n");
-+		printk_deferred(KERN_ERR "hardpps: PPSJITTER: bad pulse\n");
- 		return;
- 	}
+ #ifdef CONFIG_PROC_SYSCTL
  
-diff -puN kernel/time/timekeeping.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock
-+++ a/kernel/time/timekeeping.c
-@@ -852,8 +852,9 @@ static void __timekeeping_inject_sleepti
- 							struct timespec *delta)
+-static int _proc_do_string(void* data, int maxlen, int write,
+-			   void __user *buffer,
++static int _proc_do_string(char *data, int maxlen, int write,
++			   char __user *buffer,
+ 			   size_t *lenp, loff_t *ppos)
  {
- 	if (!timespec_valid_strict(delta)) {
--		printk(KERN_WARNING "__timekeeping_inject_sleeptime: Invalid "
--					"sleep delta value!\n");
-+		printk_deferred(KERN_WARNING
-+				"__timekeeping_inject_sleeptime: Invalid "
-+				"sleep delta value!\n");
- 		return;
- 	}
- 	tk_xtime_add(tk, delta);
-@@ -1157,7 +1158,7 @@ static void timekeeping_adjust(struct ti
+ 	size_t len;
+@@ -1725,7 +1725,7 @@ static int _proc_do_string(void* data, i
+ 			len = maxlen-1;
+ 		if(copy_from_user(data, buffer, len))
+ 			return -EFAULT;
+-		((char *) data)[len] = 0;
++		data[len] = 0;
+ 		*ppos += *lenp;
+ 	} else {
+ 		len = strlen(data);
+@@ -1743,10 +1743,10 @@ static int _proc_do_string(void* data, i
+ 		if (len > *lenp)
+ 			len = *lenp;
+ 		if (len)
+-			if(copy_to_user(buffer, data, len))
++			if (copy_to_user(buffer, data, len))
+ 				return -EFAULT;
+ 		if (len < *lenp) {
+-			if(put_user('\n', ((char __user *) buffer) + len))
++			if (put_user('\n', buffer + len))
+ 				return -EFAULT;
+ 			len++;
+ 		}
+@@ -1776,8 +1776,8 @@ static int _proc_do_string(void* data, i
+ int proc_dostring(struct ctl_table *table, int write,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+-	return _proc_do_string(table->data, table->maxlen, write,
+-			       buffer, lenp, ppos);
++	return _proc_do_string((char *)(table->data), table->maxlen, write,
++			       (char __user *)buffer, lenp, ppos);
+ }
  
- 	if (unlikely(tk->clock->maxadj &&
- 		(tk->mult + adj > tk->clock->mult + tk->clock->maxadj))) {
--		printk_once(KERN_WARNING
-+		printk_once_deferred(KERN_WARNING
- 			"Adjusting %s more than 11%% (%ld vs %ld)\n",
- 			tk->clock->name, (long)tk->mult + adj,
- 			(long)tk->clock->mult + tk->clock->maxadj);
+ static size_t proc_skip_spaces(char **buf)
 _
 
-Patches currently in -mm which might be from john.stultz@linaro.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-printk-re-add-irqsave-restore-in-printk_sched.patch
-printk-rename-printk_sched-to-printk_deferred.patch
-printk-add-printk_once_deferred.patch
-timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+lib-vsprintf-add-%pt-format-specifier.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+ptrace-fix-fork-event-messages-across-pid-namespaces.patch
+sysctl-clean-up-char-buffer-arguments.patch
+sysctl-refactor-sysctl-string-writing-logic.patch
+sysctl-allow-for-strict-write-position-handling.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch
+tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
+linux-next.patch
 
