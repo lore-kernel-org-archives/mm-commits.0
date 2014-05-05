@@ -1,146 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix.patch removed
- from -mm tree
-Date: Mon, 05 May 2014 13:48:49 -0700
-Message-ID: <5367f931.hBs+GNr6Y71ojrIe%akpm@linux-foundation.org>
+Subject: + printk-rename-printk_sched-to-printk_deferred.patch added to
+ -mm tree
+Date: Mon, 05 May 2014 15:07:13 -0700
+Message-ID: <53680b91.RLOx3m3fvj+erbw9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50906 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51945 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756588AbaEEUsu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 16:48:50 -0400
+	with ESMTP id S1756782AbaEEWHO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:07:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tglx@linutronix.de, sasha.levin@oracle.com, rmk@arm.linux.org.uk, penberg@kernel.org, greg@kroah.com, cl@linux.com, bvanassche@acm.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com, jbohac@suse.cz, jack@suse.cz, john.stultz@linaro.org
 
-Subject: [folded-merged] slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,bvanassche@acm.org,cl@linux.com,greg@kroah.com,penberg@kernel.org,rmk@arm.linux.org.uk,sasha.levin@oracle.com,tglx@linutronix.de,viro@ZenIV.linux.org.uk,mm-commits@vger.kernel.org
+Subject: + printk-rename-printk_sched-to-printk_deferred.patch added to -mm tree
+To: john.stultz@linaro.org,jack@suse.cz,jbohac@suse.cz,mingo@redhat.com,peterz@infradead.org,rostedt@goodmis.org,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 13:48:49 -0700
+Date: Mon, 05 May 2014 15:07:13 -0700
 
 
 The patch titled
-     Subject: slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix
-has been removed from the -mm tree.  Its filename was
-     slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix.patch
+     Subject: printk: rename printk_sched to printk_deferred
+has been added to the -mm tree.  Its filename is
+     printk-rename-printk_sched-to-printk_deferred.patch
 
-This patch was dropped because it was folded into slub-use-sysfses-release-mechanism-for-kmem_cache.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-rename-printk_sched-to-printk_deferred.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-rename-printk_sched-to-printk_deferred.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix
+From: John Stultz <john.stultz@linaro.org>
+Subject: printk: rename printk_sched to printk_deferred
 
-fix CONFIG_SYSFS=n build even more
+After learning we'll need some sort of deferred printk functionality in
+the timekeeping core, Peter suggested we rename the printk_sched function
+so it can be reused by needed subsystems.
 
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+This only changes the function name. No logic changes.
+
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Jiri Bohac <jbohac@suse.cz>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    5 +++++
- mm/slab.h                |    1 -
- mm/slub.c                |    2 --
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ include/linux/printk.h  |    6 +++---
+ kernel/printk/printk.c  |    2 +-
+ kernel/sched/core.c     |    2 +-
+ kernel/sched/deadline.c |    2 +-
+ kernel/sched/rt.c       |    2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/slub_def.h~slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix
-+++ a/include/linux/slub_def.h
-@@ -103,6 +103,11 @@ struct kmem_cache {
+diff -puN include/linux/printk.h~printk-rename-printk_sched-to-printk_deferred include/linux/printk.h
+--- a/include/linux/printk.h~printk-rename-printk_sched-to-printk_deferred
++++ a/include/linux/printk.h
+@@ -128,9 +128,9 @@ asmlinkage __printf(1, 2) __cold
+ int printk(const char *fmt, ...);
  
- #ifdef CONFIG_SYSFS
- #define SLAB_SUPPORTS_SYSFS
-+void sysfs_slab_remove(struct kmem_cache *);
-+#else
-+static inline void sysfs_slab_remove(struct kmem_cache *s)
-+{
-+}
- #endif
+ /*
+- * Special printk facility for scheduler use only, _DO_NOT_USE_ !
++ * Special printk facility for scheduler/timekeeping use only, _DO_NOT_USE_ !
+  */
+-__printf(1, 2) __cold int printk_sched(const char *fmt, ...);
++__printf(1, 2) __cold int printk_deferred(const char *fmt, ...);
  
- #endif /* _LINUX_SLUB_DEF_H */
-diff -puN mm/slab.h~slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix mm/slab.h
---- a/mm/slab.h~slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix
-+++ a/mm/slab.h
-@@ -57,7 +57,6 @@ struct mem_cgroup;
- struct kmem_cache *
- __kmem_cache_alias(const char *name, size_t size, size_t align,
- 		   unsigned long flags, void (*ctor)(void *));
--void sysfs_slab_remove(struct kmem_cache *);
- #else
- static inline struct kmem_cache *
- __kmem_cache_alias(const char *name, size_t size, size_t align,
-diff -puN mm/slub.c~slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix mm/slub.c
---- a/mm/slub.c~slub-use-sysfses-release-mechanism-for-kmem_cache-fix-fix
-+++ a/mm/slub.c
-@@ -215,8 +215,6 @@ static void memcg_propagate_slab_attrs(s
- static inline int sysfs_slab_add(struct kmem_cache *s) { return 0; }
- static inline int sysfs_slab_alias(struct kmem_cache *s, const char *p)
- 							{ return 0; }
--static inline void sysfs_slab_remove(struct kmem_cache *s) { }
--
- static inline void memcg_propagate_slab_attrs(struct kmem_cache *s) { }
- #endif
+ /*
+  * Please don't use printk_ratelimit(), because it shares ratelimiting state
+@@ -165,7 +165,7 @@ int printk(const char *s, ...)
+ 	return 0;
+ }
+ static inline __printf(1, 2) __cold
+-int printk_sched(const char *s, ...)
++int printk_deferred(const char *s, ...)
+ {
+ 	return 0;
+ }
+diff -puN kernel/printk/printk.c~printk-rename-printk_sched-to-printk_deferred kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/printk/printk.c
+@@ -2584,7 +2584,7 @@ void wake_up_klogd(void)
+ 	preempt_enable();
+ }
  
+-int printk_sched(const char *fmt, ...)
++int printk_deferred(const char *fmt, ...)
+ {
+ 	va_list args;
+ 	int r;
+diff -puN kernel/sched/core.c~printk-rename-printk_sched-to-printk_deferred kernel/sched/core.c
+--- a/kernel/sched/core.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/sched/core.c
+@@ -1320,7 +1320,7 @@ out:
+ 		 * leave kernel.
+ 		 */
+ 		if (p->mm && printk_ratelimit()) {
+-			printk_sched("process %d (%s) no longer affine to cpu%d\n",
++			printk_deferred("process %d (%s) no longer affine to cpu%d\n",
+ 					task_pid_nr(p), p->comm, cpu);
+ 		}
+ 	}
+diff -puN kernel/sched/deadline.c~printk-rename-printk_sched-to-printk_deferred kernel/sched/deadline.c
+--- a/kernel/sched/deadline.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/sched/deadline.c
+@@ -352,7 +352,7 @@ static void replenish_dl_entity(struct s
+ 
+ 		if (!lag_once) {
+ 			lag_once = true;
+-			printk_sched("sched: DL replenish lagged to much\n");
++			printk_deferred("sched: DL replenish lagged to much\n");
+ 		}
+ 		dl_se->deadline = rq_clock(rq) + pi_se->dl_deadline;
+ 		dl_se->runtime = pi_se->dl_runtime;
+diff -puN kernel/sched/rt.c~printk-rename-printk_sched-to-printk_deferred kernel/sched/rt.c
+--- a/kernel/sched/rt.c~printk-rename-printk_sched-to-printk_deferred
++++ a/kernel/sched/rt.c
+@@ -857,7 +857,7 @@ static int sched_rt_runtime_exceeded(str
+ 
+ 			if (!once) {
+ 				once = true;
+-				printk_sched("sched: RT throttling activated\n");
++				printk_deferred("sched: RT throttling activated\n");
+ 			}
+ 		} else {
+ 			/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from john.stultz@linaro.org are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
-slub-use-sysfses-release-mechanism-for-kmem_cache.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-fs-pstore-logging-clean-up-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+printk-disable-preemption-for-printk_sched.patch
+printk-rename-printk_sched-to-printk_deferred.patch
+printk-add-printk_deferred_once.patch
+timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
 
