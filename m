@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fscache-convert-printk-to-pr_foo.patch added to -mm tree
-Date: Mon, 05 May 2014 13:58:37 -0700
-Message-ID: <5367fb7d.vZKxKHJw6Vkb5Jqk%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch added to -mm tree
+Date: Mon, 05 May 2014 14:37:07 -0700
+Message-ID: <53680483.NYKkVXfMOD+xnVZF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51033 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51307 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755649AbaEEU6i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 16:58:38 -0400
+	with ESMTP id S1756698AbaEEVhI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 17:37:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dhowells@redhat.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, nasa4836@gmail.com, mhocko@suse.cz, hannes@cmpxchg.org
 
-Subject: + fs-fscache-convert-printk-to-pr_foo.patch added to -mm tree
-To: fabf@skynet.be,dhowells@redhat.com
+Subject: + mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch added to -mm tree
+To: hannes@cmpxchg.org,mhocko@suse.cz,nasa4836@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 13:58:37 -0700
+Date: Mon, 05 May 2014 14:37:07 -0700
 
 
 The patch titled
-     Subject: fs/fscache: convert printk to pr_foo()
+     Subject: mm: memcontrol: remove unnecessary memcg argument from soft limit functions
 has been added to the -mm tree.  Its filename is
-     fs-fscache-convert-printk-to-pr_foo.patch
+     mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-fscache-convert-printk-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-fscache-convert-printk-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,281 +44,165 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/fscache: convert printk to pr_foo()
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: remove unnecessary memcg argument from soft limit functions
 
--All printk converted to pr_foo() except internal.h: printk(KERN_DEBUG
-
--Coalesce formats.
-
--Add pr_fmt
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fscache/cache.c     |   13 ++++++-------
- fs/fscache/cookie.c    |    2 +-
- fs/fscache/internal.h  |   26 ++++++++++++++++----------
- fs/fscache/main.c      |    7 +++----
- fs/fscache/netfs.c     |    7 +++----
- fs/fscache/operation.c |    3 +--
- fs/fscache/page.c      |    6 ++----
- 7 files changed, 32 insertions(+), 32 deletions(-)
+ mm/memcontrol.c |   34 ++++++++++++++--------------------
+ 1 file changed, 14 insertions(+), 20 deletions(-)
 
-diff -puN fs/fscache/cache.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/cache.c
---- a/fs/fscache/cache.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/cache.c
-@@ -280,15 +280,15 @@ int fscache_add_cache(struct fscache_cac
- 	spin_unlock(&fscache_fsdef_index.lock);
- 	up_write(&fscache_addremove_sem);
+diff -puN mm/memcontrol.c~mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions
++++ a/mm/memcontrol.c
+@@ -713,11 +713,9 @@ soft_limit_tree_from_page(struct page *p
+ 	return &soft_limit_tree.rb_tree_per_node[nid]->rb_tree_per_zone[zid];
+ }
  
--	printk(KERN_NOTICE "FS-Cache: Cache \"%s\" added (type %s)\n",
--	       cache->tag->name, cache->ops->name);
-+	pr_notice("Cache \"%s\" added (type %s)\n",
-+		  cache->tag->name, cache->ops->name);
- 	kobject_uevent(cache->kobj, KOBJ_ADD);
- 
- 	_leave(" = 0 [%s]", cache->identifier);
- 	return 0;
- 
- tag_in_use:
--	printk(KERN_ERR "FS-Cache: Cache tag '%s' already in use\n", tagname);
-+	pr_err("Cache tag '%s' already in use\n", tagname);
- 	__fscache_release_cache_tag(tag);
- 	_leave(" = -EXIST");
- 	return -EEXIST;
-@@ -317,8 +317,7 @@ EXPORT_SYMBOL(fscache_add_cache);
- void fscache_io_error(struct fscache_cache *cache)
+-static void
+-__mem_cgroup_insert_exceeded(struct mem_cgroup *memcg,
+-				struct mem_cgroup_per_zone *mz,
+-				struct mem_cgroup_tree_per_zone *mctz,
+-				unsigned long long new_usage_in_excess)
++static void __mem_cgroup_insert_exceeded(struct mem_cgroup_per_zone *mz,
++					 struct mem_cgroup_tree_per_zone *mctz,
++					 unsigned long long new_usage_in_excess)
  {
- 	if (!test_and_set_bit(FSCACHE_IOERROR, &cache->flags))
--		printk(KERN_ERR "FS-Cache:"
--		       " Cache '%s' stopped due to I/O error\n",
-+		pr_err("Cache '%s' stopped due to I/O error\n",
- 		       cache->ops->name);
- }
- EXPORT_SYMBOL(fscache_io_error);
-@@ -369,8 +368,8 @@ void fscache_withdraw_cache(struct fscac
- 
- 	_enter("");
- 
--	printk(KERN_NOTICE "FS-Cache: Withdrawing cache \"%s\"\n",
--	       cache->tag->name);
-+	pr_notice("Withdrawing cache \"%s\"\n",
-+		  cache->tag->name);
- 
- 	/* make the cache unavailable for cookie acquisition */
- 	if (test_and_set_bit(FSCACHE_CACHE_WITHDRAWN, &cache->flags))
-diff -puN fs/fscache/cookie.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/cookie.c
---- a/fs/fscache/cookie.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/cookie.c
-@@ -519,7 +519,7 @@ void __fscache_disable_cookie(struct fsc
- 	ASSERTCMP(atomic_read(&cookie->n_active), >, 0);
- 
- 	if (atomic_read(&cookie->n_children) != 0) {
--		printk(KERN_ERR "FS-Cache: Cookie '%s' still has children\n",
-+		pr_err("Cookie '%s' still has children\n",
- 		       cookie->def->name);
- 		BUG();
- 	}
-diff -puN fs/fscache/internal.h~fs-fscache-convert-printk-to-pr_foo fs/fscache/internal.h
---- a/fs/fscache/internal.h~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/internal.h
-@@ -22,6 +22,12 @@
-  *
-  */
- 
-+#ifdef pr_fmt
-+#undef pr_fmt
-+#endif
-+
-+#define pr_fmt(fmt) "FS-Cache: " fmt
-+
- #include <linux/fscache-cache.h>
- #include <linux/sched.h>
- 
-@@ -413,8 +419,8 @@ do {						\
- #define ASSERT(X)							\
- do {									\
- 	if (unlikely(!(X))) {						\
--		printk(KERN_ERR "\n");					\
--		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
-+		pr_err("\n");					\
-+		pr_err("Assertion failed\n");	\
- 		BUG();							\
- 	}								\
- } while (0)
-@@ -422,9 +428,9 @@ do {									\
- #define ASSERTCMP(X, OP, Y)						\
- do {									\
- 	if (unlikely(!((X) OP (Y)))) {					\
--		printk(KERN_ERR "\n");					\
--		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
--		printk(KERN_ERR "%lx " #OP " %lx is false\n",		\
-+		pr_err("\n");					\
-+		pr_err("Assertion failed\n");	\
-+		pr_err("%lx " #OP " %lx is false\n",		\
- 		       (unsigned long)(X), (unsigned long)(Y));		\
- 		BUG();							\
- 	}								\
-@@ -433,8 +439,8 @@ do {									\
- #define ASSERTIF(C, X)							\
- do {									\
- 	if (unlikely((C) && !(X))) {					\
--		printk(KERN_ERR "\n");					\
--		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
-+		pr_err("\n");					\
-+		pr_err("Assertion failed\n");	\
- 		BUG();							\
- 	}								\
- } while (0)
-@@ -442,9 +448,9 @@ do {									\
- #define ASSERTIFCMP(C, X, OP, Y)					\
- do {									\
- 	if (unlikely((C) && !((X) OP (Y)))) {				\
--		printk(KERN_ERR "\n");					\
--		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
--		printk(KERN_ERR "%lx " #OP " %lx is false\n",		\
-+		pr_err("\n");					\
-+		pr_err("Assertion failed\n");	\
-+		pr_err("%lx " #OP " %lx is false\n",		\
- 		       (unsigned long)(X), (unsigned long)(Y));		\
- 		BUG();							\
- 	}								\
-diff -puN fs/fscache/main.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/main.c
---- a/fs/fscache/main.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/main.c
-@@ -146,8 +146,7 @@ static int __init fscache_init(void)
- 					       0,
- 					       fscache_cookie_init_once);
- 	if (!fscache_cookie_jar) {
--		printk(KERN_NOTICE
--		       "FS-Cache: Failed to allocate a cookie jar\n");
-+		pr_notice("Failed to allocate a cookie jar\n");
- 		ret = -ENOMEM;
- 		goto error_cookie_jar;
- 	}
-@@ -156,7 +155,7 @@ static int __init fscache_init(void)
- 	if (!fscache_root)
- 		goto error_kobj;
- 
--	printk(KERN_NOTICE "FS-Cache: Loaded\n");
-+	pr_notice("Loaded\n");
- 	return 0;
- 
- error_kobj:
-@@ -192,7 +191,7 @@ static void __exit fscache_exit(void)
- 	fscache_proc_cleanup();
- 	destroy_workqueue(fscache_op_wq);
- 	destroy_workqueue(fscache_object_wq);
--	printk(KERN_NOTICE "FS-Cache: Unloaded\n");
-+	pr_notice("Unloaded\n");
+ 	struct rb_node **p = &mctz->rb_root.rb_node;
+ 	struct rb_node *parent = NULL;
+@@ -747,10 +745,8 @@ __mem_cgroup_insert_exceeded(struct mem_
+ 	mz->on_tree = true;
  }
  
- module_exit(fscache_exit);
-diff -puN fs/fscache/netfs.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/netfs.c
---- a/fs/fscache/netfs.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/netfs.c
-@@ -65,8 +65,7 @@ int __fscache_register_netfs(struct fsca
- 	list_add(&netfs->link, &fscache_netfs_list);
- 	ret = 0;
- 
--	printk(KERN_NOTICE "FS-Cache: Netfs '%s' registered for caching\n",
--	       netfs->name);
-+	pr_notice("Netfs '%s' registered for caching\n", netfs->name);
- 
- already_registered:
- 	up_write(&fscache_addremove_sem);
-@@ -97,8 +96,8 @@ void __fscache_unregister_netfs(struct f
- 
- 	up_write(&fscache_addremove_sem);
- 
--	printk(KERN_NOTICE "FS-Cache: Netfs '%s' unregistered from caching\n",
--	       netfs->name);
-+	pr_notice("Netfs '%s' unregistered from caching\n",
-+		  netfs->name);
- 
- 	_leave("");
+-static void
+-__mem_cgroup_remove_exceeded(struct mem_cgroup *memcg,
+-				struct mem_cgroup_per_zone *mz,
+-				struct mem_cgroup_tree_per_zone *mctz)
++static void __mem_cgroup_remove_exceeded(struct mem_cgroup_per_zone *mz,
++					 struct mem_cgroup_tree_per_zone *mctz)
+ {
+ 	if (!mz->on_tree)
+ 		return;
+@@ -758,13 +754,11 @@ __mem_cgroup_remove_exceeded(struct mem_
+ 	mz->on_tree = false;
  }
-diff -puN fs/fscache/operation.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/operation.c
---- a/fs/fscache/operation.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/operation.c
-@@ -51,8 +51,7 @@ void fscache_enqueue_operation(struct fs
- 		_debug("queue for caller's attention");
- 		break;
- 	default:
--		printk(KERN_ERR "FS-Cache: Unexpected op type %lx",
--		       op->flags);
-+		pr_err("Unexpected op type %lx", op->flags);
- 		BUG();
- 		break;
- 	}
-diff -puN fs/fscache/page.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/page.c
---- a/fs/fscache/page.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/page.c
-@@ -1108,10 +1108,8 @@ void fscache_mark_page_cached(struct fsc
- 		static bool once_only;
- 		if (!once_only) {
- 			once_only = true;
--			printk(KERN_WARNING "FS-Cache:"
--			       " Cookie type %s marked page %lx"
--			       " multiple times\n",
--			       cookie->def->name, page->index);
-+			pr_warn("Cookie type %s marked page %lx multiple times\n",
-+				cookie->def->name, page->index);
+ 
+-static void
+-mem_cgroup_remove_exceeded(struct mem_cgroup *memcg,
+-				struct mem_cgroup_per_zone *mz,
+-				struct mem_cgroup_tree_per_zone *mctz)
++static void mem_cgroup_remove_exceeded(struct mem_cgroup_per_zone *mz,
++				       struct mem_cgroup_tree_per_zone *mctz)
+ {
+ 	spin_lock(&mctz->lock);
+-	__mem_cgroup_remove_exceeded(memcg, mz, mctz);
++	__mem_cgroup_remove_exceeded(mz, mctz);
+ 	spin_unlock(&mctz->lock);
+ }
+ 
+@@ -791,12 +785,12 @@ static void mem_cgroup_update_tree(struc
+ 			spin_lock(&mctz->lock);
+ 			/* if on-tree, remove it */
+ 			if (mz->on_tree)
+-				__mem_cgroup_remove_exceeded(memcg, mz, mctz);
++				__mem_cgroup_remove_exceeded(mz, mctz);
+ 			/*
+ 			 * Insert again. mz->usage_in_excess will be updated.
+ 			 * If excess is 0, no tree ops.
+ 			 */
+-			__mem_cgroup_insert_exceeded(memcg, mz, mctz, excess);
++			__mem_cgroup_insert_exceeded(mz, mctz, excess);
+ 			spin_unlock(&mctz->lock);
  		}
  	}
- 
+@@ -812,7 +806,7 @@ static void mem_cgroup_remove_from_trees
+ 		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+ 			mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
+ 			mctz = soft_limit_tree_node_zone(nid, zid);
+-			mem_cgroup_remove_exceeded(memcg, mz, mctz);
++			mem_cgroup_remove_exceeded(mz, mctz);
+ 		}
+ 	}
+ }
+@@ -835,7 +829,7 @@ retry:
+ 	 * we will to add it back at the end of reclaim to its correct
+ 	 * position in the tree.
+ 	 */
+-	__mem_cgroup_remove_exceeded(mz->memcg, mz, mctz);
++	__mem_cgroup_remove_exceeded(mz, mctz);
+ 	if (!res_counter_soft_limit_excess(&mz->memcg->res) ||
+ 		!css_tryget(&mz->memcg->css))
+ 		goto retry;
+@@ -4645,7 +4639,7 @@ unsigned long mem_cgroup_soft_limit_recl
+ 					break;
+ 			} while (1);
+ 		}
+-		__mem_cgroup_remove_exceeded(mz->memcg, mz, mctz);
++		__mem_cgroup_remove_exceeded(mz, mctz);
+ 		excess = res_counter_soft_limit_excess(&mz->memcg->res);
+ 		/*
+ 		 * One school of thought says that we should not add
+@@ -4656,7 +4650,7 @@ unsigned long mem_cgroup_soft_limit_recl
+ 		 * term TODO.
+ 		 */
+ 		/* If excess == 0, no tree ops */
+-		__mem_cgroup_insert_exceeded(mz->memcg, mz, mctz, excess);
++		__mem_cgroup_insert_exceeded(mz, mctz, excess);
+ 		spin_unlock(&mctz->lock);
+ 		css_put(&mz->memcg->css);
+ 		loop++;
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-fs-affs-superc-bugfix-double-free.patch
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
-fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
-fs-fscache-convert-printk-to-pr_foo.patch
-ntfs-remove-null-value-assignments.patch
-fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
-fs-configs-itemc-kernel-doc-fixes-clean-up.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
-fs-9p-kerneldoc-fixes.patch
-mm-slubc-convert-printk-to-pr_foo.patch
-mm-slubc-convert-vnsprintf-static-to-va_format.patch
-mm-memory_hotplugc-use-pfn_down.patch
-mm-memblockc-use-pfn_down.patch
+slub-fix-memcg_propagate_slab_attrs.patch
+mm-filemap-update-find_get_pages_tag-to-deal-with-shadow-entries.patch
+revert-mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch
+slb-charge-slabs-to-kmemcg-explicitly.patch
+mm-get-rid-of-__gfp_kmemcg.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
+mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
+mm-disable-zone_reclaim_mode-by-default.patch
+mm-page_alloc-do-not-cache-reclaim-distances.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+documentation-memcg-warn-about-incomplete-kmemcg-state.patch
+mm-swapc-clean-up-lru_cache_add-functions.patch
+memcg-kill-config_mm_owner.patch
+memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
+memcg-slab-do-not-schedule-cache-destruction-when-last-page-goes-away.patch
+memcg-slab-merge-memcg_bindrelease_pages-to-memcg_uncharge_slab.patch
+memcg-slab-simplify-synchronization-scheme.patch
+mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch
+memcg-mm_update_next_owner-should-skip-kthreads.patch
+memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner.patch
+memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
+mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
+mm-swapc-split-put_compound_page-function.patch
+mm-introdule-compound_head_by_tail.patch
+memcg-mm-introduce-lowlimit-reclaim.patch
+memcg-allow-setting-low_limit.patch
+memcg-doc-clarify-global-vs-limit-reclaims.patch
+memcg-document-memorylow_limit_in_bytes.patch
 mm-memcontrolc-remove-null-assignment-on-static.patch
-mm-vmallocc-replace-seq_printf-by-seq_puts.patch
-mm-zbudc-make-size-unsigned-like-unique-callsite.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-kernel-cpuc-convert-printk-to-pr_foo.patch
-kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
-kernel-capabilityc-code-clean-up.patch
-kernel-exec_domainc-code-clean-up.patch
-lib-libcrc32cc-use-ptr_err_or_zero.patch
-lib-vsprintfc-fix-comparison-to-bool.patch
-kernel-compatc-use-sizeof-instead-of-sizeof.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-kernel-cpusetc-kernel-doc-fixes.patch
-kernel-cpusetc-convert-printk-to-pr_foo.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
+vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-oom_control.patch
+mm-introduce-kmemleak_update_trace.patch
+lib-update-the-kmemleak-stack-trace-for-radix-tree-allocations.patch
+mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
+mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
 linux-next.patch
-init-mainc-code-clean-up.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
 
