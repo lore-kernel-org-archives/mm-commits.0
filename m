@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-clean-up-char-buffer-arguments.patch added to -mm tree
-Date: Mon, 05 May 2014 15:00:25 -0700
-Message-ID: <536809f9.mELwwof68aW52ZF0%akpm@linux-foundation.org>
+Subject: + kernel-capabilityc-code-clean-up.patch added to -mm tree
+Date: Mon, 05 May 2014 13:14:02 -0700
+Message-ID: <5367f10a.d0Tc+P8np1y3TA/r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51874 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50714 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756316AbaEEWA0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:00:26 -0400
+	with ESMTP id S1752065AbaEEUOD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 16:14:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, keescook@chromium.org
+To: mm-commits@vger.kernel.org, serge.hallyn@canonical.com, fabf@skynet.be
 
-Subject: + sysctl-clean-up-char-buffer-arguments.patch added to -mm tree
-To: keescook@chromium.org,rdunlap@infradead.org
+Subject: + kernel-capabilityc-code-clean-up.patch added to -mm tree
+To: fabf@skynet.be,serge.hallyn@canonical.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 15:00:25 -0700
+Date: Mon, 05 May 2014 13:14:02 -0700
 
 
 The patch titled
-     Subject: sysctl: clean up char buffer arguments
+     Subject: kernel/capability.c: code clean-up
 has been added to the -mm tree.  Its filename is
-     sysctl-clean-up-char-buffer-arguments.patch
+     kernel-capabilityc-code-clean-up.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-clean-up-char-buffer-arguments.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-capabilityc-code-clean-up.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-clean-up-char-buffer-arguments.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-capabilityc-code-clean-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,104 +43,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: sysctl: clean up char buffer arguments
+From: Fabian Frederick <fabf@skynet.be>
+Subject: kernel/capability.c: code clean-up
 
-When writing to a sysctl string, each write, regardless of VFS position,
-began writing the string from the start. This meant the contents of
-the last write to the sysctl controlled the string contents instead of
-the first.
+-EXPORT_SYMBOL
+-typo: unexpectidly->unexpectedly
+-function prototype over 80 characters
 
-This misbehavior was featured in an exploit against Chrome OS. While it's
-not in itself a vulnerability, it's a weirdness that isn't on the mind
-of most auditors: "This filter looks correct, the first line written
-would not be meaningful to sysctl" doesn't apply here, since the size
-of the write and the contents of the final write are what matter when
-writing to sysctls.
-
-This adds the sysctl kernel.sysctl_writes_strict to control the write
-behavior. The default (0) reports when VFS position is non-0 on a write,
-but retains legacy behavior, -1 disables the warning, and 1 enables the
-position-respecting behavior.
-
-The long-term plan here is to wait for userspace to be fixed in response
-to the new warning and to then switch the default kernel behavior to the
-new position-respecting behavior.
-
-
-
-This patch (of 4):
-
-The char buffer arguments are needlessly cast in weird places. Clean it up
-so things are easier to read.
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ kernel/capability.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-clean-up-char-buffer-arguments kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-clean-up-char-buffer-arguments
-+++ a/kernel/sysctl.c
-@@ -1698,8 +1698,8 @@ int __init sysctl_init(void)
+diff -puN kernel/capability.c~kernel-capabilityc-code-clean-up kernel/capability.c
+--- a/kernel/capability.c~kernel-capabilityc-code-clean-up
++++ a/kernel/capability.c
+@@ -24,7 +24,6 @@
+  */
  
- #ifdef CONFIG_PROC_SYSCTL
+ const kernel_cap_t __cap_empty_set = CAP_EMPTY_SET;
+-
+ EXPORT_SYMBOL(__cap_empty_set);
  
--static int _proc_do_string(void* data, int maxlen, int write,
--			   void __user *buffer,
-+static int _proc_do_string(char *data, int maxlen, int write,
-+			   char __user *buffer,
- 			   size_t *lenp, loff_t *ppos)
+ int file_caps_enabled = 1;
+@@ -189,7 +188,7 @@ SYSCALL_DEFINE2(capget, cap_user_header_
+ 		 *
+ 		 * An alternative would be to return an error here
+ 		 * (-ERANGE), but that causes legacy applications to
+-		 * unexpectidly fail; the capget/modify/capset aborts
++		 * unexpectedly fail; the capget/modify/capset aborts
+ 		 * before modification is attempted and the application
+ 		 * fails.
+ 		 */
+@@ -395,7 +394,8 @@ EXPORT_SYMBOL(ns_capable);
+  * This does not set PF_SUPERPRIV because the caller may not
+  * actually be privileged.
+  */
+-bool file_ns_capable(const struct file *file, struct user_namespace *ns, int cap)
++bool file_ns_capable(const struct file *file, struct user_namespace *ns,
++		     int cap)
  {
- 	size_t len;
-@@ -1725,7 +1725,7 @@ static int _proc_do_string(void* data, i
- 			len = maxlen-1;
- 		if(copy_from_user(data, buffer, len))
- 			return -EFAULT;
--		((char *) data)[len] = 0;
-+		data[len] = 0;
- 		*ppos += *lenp;
- 	} else {
- 		len = strlen(data);
-@@ -1743,10 +1743,10 @@ static int _proc_do_string(void* data, i
- 		if (len > *lenp)
- 			len = *lenp;
- 		if (len)
--			if(copy_to_user(buffer, data, len))
-+			if (copy_to_user(buffer, data, len))
- 				return -EFAULT;
- 		if (len < *lenp) {
--			if(put_user('\n', ((char __user *) buffer) + len))
-+			if (put_user('\n', buffer + len))
- 				return -EFAULT;
- 			len++;
- 		}
-@@ -1776,8 +1776,8 @@ static int _proc_do_string(void* data, i
- int proc_dostring(struct ctl_table *table, int write,
- 		  void __user *buffer, size_t *lenp, loff_t *ppos)
- {
--	return _proc_do_string(table->data, table->maxlen, write,
--			       buffer, lenp, ppos);
-+	return _proc_do_string((char *)(table->data), table->maxlen, write,
-+			       (char __user *)buffer, lenp, ppos);
- }
- 
- static size_t proc_skip_spaces(char **buf)
+ 	if (WARN_ON_ONCE(!cap_valid(cap)))
+ 		return false;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-lib-vsprintf-add-%pt-format-specifier.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-ptrace-fix-fork-event-messages-across-pid-namespaces.patch
-sysctl-clean-up-char-buffer-arguments.patch
-sysctl-refactor-sysctl-string-writing-logic.patch
-sysctl-allow-for-strict-write-position-handling.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch
-tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
+init-mainc-code-clean-up.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+kernel-exec_domainc-code-clean-up.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-cpusetc-kernel-doc-fixes.patch
+kernel-cpusetc-convert-printk-to-pr_foo.patch
 
