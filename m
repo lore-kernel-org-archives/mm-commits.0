@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
- added to -mm tree
-Date: Mon, 05 May 2014 13:14:01 -0700
-Message-ID: <5367f109.v4yauxaCuWOZ62fn%akpm@linux-foundation.org>
+Subject: + kernel-compatc-use-sizeof-instead-of-sizeof.patch added to -mm
+ tree
+Date: Mon, 05 May 2014 13:14:03 -0700
+Message-ID: <5367f10b.voGHIU4FLIJdnfYq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50711 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752247AbaEEUOC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 16:14:02 -0400
+	with ESMTP id S1752275AbaEEUOE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 16:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, hpa@zytor.com, arnd@arndb.de, fabf@skynet.be
 
-Subject: + kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + kernel-compatc-use-sizeof-instead-of-sizeof.patch added to -mm tree
+To: fabf@skynet.be,arnd@arndb.de,hpa@zytor.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 13:14:01 -0700
+Date: Mon, 05 May 2014 13:14:03 -0700
 
 
 The patch titled
-     Subject: kernel/backtracetest.c: replace no level printk by pr_info()
+     Subject: kernel/compat.c: use sizeof() instead of sizeof
 has been added to the -mm tree.  Its filename is
-     kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+     kernel-compatc-use-sizeof-instead-of-sizeof.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-compatc-use-sizeof-instead-of-sizeof.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-compatc-use-sizeof-instead-of-sizeof.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,74 +45,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/backtracetest.c: replace no level printk by pr_info()
+Subject: kernel/compat.c: use sizeof() instead of sizeof
+
+Fix 4 checkpatch warnings
+WARNING: sizeof *tv should be sizeof(*tv)
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/backtracetest.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ kernel/compat.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/backtracetest.c~kernel-backtracetestc-replace-no-level-printk-by-pr_info kernel/backtracetest.c
---- a/kernel/backtracetest.c~kernel-backtracetestc-replace-no-level-printk-by-pr_info
-+++ a/kernel/backtracetest.c
-@@ -19,8 +19,8 @@
- 
- static void backtrace_test_normal(void)
+diff -puN kernel/compat.c~kernel-compatc-use-sizeof-instead-of-sizeof kernel/compat.c
+--- a/kernel/compat.c~kernel-compatc-use-sizeof-instead-of-sizeof
++++ a/kernel/compat.c
+@@ -157,7 +157,7 @@ static int __compat_put_timespec(const s
+ int compat_get_timeval(struct timeval *tv, const void __user *utv)
  {
--	printk("Testing a backtrace from process context.\n");
--	printk("The following trace is a kernel self test and not a bug!\n");
-+	pr_info("Testing a backtrace from process context.\n");
-+	pr_info("The following trace is a kernel self test and not a bug!\n");
- 
- 	dump_stack();
+ 	if (COMPAT_USE_64BIT_TIME)
+-		return copy_from_user(tv, utv, sizeof *tv) ? -EFAULT : 0;
++		return copy_from_user(tv, utv, sizeof(*tv)) ? -EFAULT : 0;
+ 	else
+ 		return __compat_get_timeval(tv, utv);
  }
-@@ -37,8 +37,8 @@ static DECLARE_TASKLET(backtrace_tasklet
- 
- static void backtrace_test_irq(void)
+@@ -166,7 +166,7 @@ EXPORT_SYMBOL_GPL(compat_get_timeval);
+ int compat_put_timeval(const struct timeval *tv, void __user *utv)
  {
--	printk("Testing a backtrace from irq context.\n");
--	printk("The following trace is a kernel self test and not a bug!\n");
-+	pr_info("Testing a backtrace from irq context.\n");
-+	pr_info("The following trace is a kernel self test and not a bug!\n");
- 
- 	init_completion(&backtrace_work);
- 	tasklet_schedule(&backtrace_tasklet);
-@@ -51,8 +51,8 @@ static void backtrace_test_saved(void)
- 	struct stack_trace trace;
- 	unsigned long entries[8];
- 
--	printk("Testing a saved backtrace.\n");
--	printk("The following trace is a kernel self test and not a bug!\n");
-+	pr_info("Testing a saved backtrace.\n");
-+	pr_info("The following trace is a kernel self test and not a bug!\n");
- 
- 	trace.nr_entries = 0;
- 	trace.max_entries = ARRAY_SIZE(entries);
-@@ -65,19 +65,19 @@ static void backtrace_test_saved(void)
- #else
- static void backtrace_test_saved(void)
- {
--	printk("Saved backtrace test skipped.\n");
-+	pr_info("Saved backtrace test skipped.\n");
+ 	if (COMPAT_USE_64BIT_TIME)
+-		return copy_to_user(utv, tv, sizeof *tv) ? -EFAULT : 0;
++		return copy_to_user(utv, tv, sizeof(*tv)) ? -EFAULT : 0;
+ 	else
+ 		return __compat_put_timeval(tv, utv);
  }
- #endif
- 
- static int backtrace_regression_test(void)
+@@ -175,7 +175,7 @@ EXPORT_SYMBOL_GPL(compat_put_timeval);
+ int compat_get_timespec(struct timespec *ts, const void __user *uts)
  {
--	printk("====[ backtrace testing ]===========\n");
-+	pr_info("====[ backtrace testing ]===========\n");
- 
- 	backtrace_test_normal();
- 	backtrace_test_irq();
- 	backtrace_test_saved();
- 
--	printk("====[ end of backtrace testing ]====\n");
-+	pr_info("====[ end of backtrace testing ]====\n");
- 	return 0;
+ 	if (COMPAT_USE_64BIT_TIME)
+-		return copy_from_user(ts, uts, sizeof *ts) ? -EFAULT : 0;
++		return copy_from_user(ts, uts, sizeof(*ts)) ? -EFAULT : 0;
+ 	else
+ 		return __compat_get_timespec(ts, uts);
  }
- 
+@@ -184,7 +184,7 @@ EXPORT_SYMBOL_GPL(compat_get_timespec);
+ int compat_put_timespec(const struct timespec *ts, void __user *uts)
+ {
+ 	if (COMPAT_USE_64BIT_TIME)
+-		return copy_to_user(uts, ts, sizeof *ts) ? -EFAULT : 0;
++		return copy_to_user(uts, ts, sizeof(*ts)) ? -EFAULT : 0;
+ 	else
+ 		return __compat_put_timespec(ts, uts);
+ }
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
