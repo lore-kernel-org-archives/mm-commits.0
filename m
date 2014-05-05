@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-allow-for-strict-write-position-handling.patch added to
- -mm tree
-Date: Mon, 05 May 2014 15:00:27 -0700
-Message-ID: <536809fb.eG49eSa21nPSpOU9%akpm@linux-foundation.org>
+Subject: +
+ tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch added to -mm tree
+Date: Mon, 05 May 2014 15:00:29 -0700
+Message-ID: <536809fd.KBCYexgujORGsqnE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51880 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51886 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756316AbaEEWA2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:00:28 -0400
+	with ESMTP id S1756357AbaEEWAa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:00:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rdunlap@infradead.org, keescook@chromium.org
 
-Subject: + sysctl-allow-for-strict-write-position-handling.patch added to -mm tree
+Subject: + tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch added to -mm tree
 To: keescook@chromium.org,rdunlap@infradead.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 15:00:27 -0700
+Date: Mon, 05 May 2014 15:00:29 -0700
 
 
 The patch titled
-     Subject: sysctl: allow for strict write position handling
+     Subject: tools/testing/selftests/sysctl: validate sysctl_writes_strict
 has been added to the -mm tree.  Its filename is
-     sysctl-allow-for-strict-write-position-handling.patch
+     tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-allow-for-strict-write-position-handling.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-allow-for-strict-write-position-handling.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,223 +45,323 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: sysctl: allow for strict write position handling
+Subject: tools/testing/selftests/sysctl: validate sysctl_writes_strict
 
-When writing to a sysctl string, each write, regardless of VFS position,
-begins writing the string from the start.  This means the contents of the
-last write to the sysctl controls the string contents instead of the
-first:
+This adds several behavioral tests to sysctl string and number writing to
+detect unexpected cases that behaved differently when the sysctl
+kernel.sysctl_writes_strict != 1.
 
-open("/proc/sys/kernel/modprobe", O_WRONLY)   = 1
-write(1, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"..., 4096) = 4096
-write(1, "/bin/true", 9)                = 9
-close(1)                                = 0
+[ original ]
+root@localhost:~# make test_num
+== Testing sysctl behavior against /proc/sys/kernel/domainname ==
+Writing test file ... ok
+Checking sysctl is not set to test value ... ok
+Writing sysctl from shell ... ok
+Resetting sysctl to original value ... ok
+Writing entire sysctl in single write ... ok
+Writing middle of sysctl after synchronized seek ... FAIL
+Writing beyond end of sysctl ... FAIL
+Writing sysctl with multiple long writes ... FAIL
+Writing entire sysctl in short writes ... FAIL
+Writing middle of sysctl after unsynchronized seek ... ok
+Checking sysctl maxlen is at least 65 ... ok
+Checking sysctl keeps original string on overflow append ... FAIL
+Checking sysctl stays NULL terminated on write ... ok
+Checking sysctl stays NULL terminated on overwrite ... ok
+make: *** [test_num] Error 1
+root@localhost:~# make test_string
+== Testing sysctl behavior against /proc/sys/vm/swappiness ==
+Writing test file ... ok
+Checking sysctl is not set to test value ... ok
+Writing sysctl from shell ... ok
+Resetting sysctl to original value ... ok
+Writing entire sysctl in single write ... ok
+Writing middle of sysctl after synchronized seek ... FAIL
+Writing beyond end of sysctl ... FAIL
+Writing sysctl with multiple long writes ... ok
+make: *** [test_string] Error 1
 
-$ cat /proc/sys/kernel/modprobe
-/bin/true
-
-Expected behaviour would be to have the sysctl be "AAAA..." capped at
-maxlen (in this case KMOD_PATH_LEN: 256), instead of truncating to the
-contents of the second write.  Similarly, multiple short writes would not
-append to the sysctl.
-
-The old behavior is unlike regular POSIX files enough that doing audits of
-software that interact with sysctls can end up in unexpected or dangerous
-situations.  For example, "as long as the input starts with a trusted
-path" turns out to be an insufficient filter, as what must also happen is
-for the input to be entirely contained in a single write syscall -- not a
-common consideration, especially for high level tools.
-
-This provides kernel.sysctl_writes_strict as a way to make this behavior
-act in a less surprising manner for strings, and disallows non-zero file
-position when writing numeric sysctls (similar to what is already done
-when reading from non-zero file positions).  For now, the default (0) is
-to warn about non-zero file position use, but retain the legacy behavior. 
-Setting this to -1 disables the warning, and setting this to 1 enables the
-file position respecting behavior.
+[ with CONFIG_PROC_SYSCTL_STRICT_WRITES ]
+root@localhost:~# make run_tests
+== Testing sysctl behavior against /proc/sys/kernel/domainname ==
+Writing test file ... ok
+Checking sysctl is not set to test value ... ok
+Writing sysctl from shell ... ok
+Resetting sysctl to original value ... ok
+Writing entire sysctl in single write ... ok
+Writing middle of sysctl after synchronized seek ... ok
+Writing beyond end of sysctl ... ok
+Writing sysctl with multiple long writes ... ok
+Writing entire sysctl in short writes ... ok
+Writing middle of sysctl after unsynchronized seek ... ok
+Checking sysctl maxlen is at least 65 ... ok
+Checking sysctl keeps original string on overflow append ... ok
+Checking sysctl stays NULL terminated on write ... ok
+Checking sysctl stays NULL terminated on overwrite ... ok
+== Testing sysctl behavior against /proc/sys/vm/swappiness ==
+Writing test file ... ok
+Checking sysctl is not set to test value ... ok
+Writing sysctl from shell ... ok
+Resetting sysctl to original value ... ok
+Writing entire sysctl in single write ... ok
+Writing middle of sysctl after synchronized seek ... ok
+Writing beyond end of sysctl ... ok
+Writing sysctl with multiple long writes ... ok
 
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |   21 +++++++++
- kernel/sysctl.c                 |   69 +++++++++++++++++++++++++++++-
- 2 files changed, 88 insertions(+), 2 deletions(-)
+ tools/testing/selftests/Makefile                |    1 
+ tools/testing/selftests/sysctl/Makefile         |   19 ++
+ tools/testing/selftests/sysctl/common_tests     |  109 ++++++++++++++
+ tools/testing/selftests/sysctl/run_numerictests |   10 +
+ tools/testing/selftests/sysctl/run_stringtests  |   77 +++++++++
+ 5 files changed, 216 insertions(+)
 
-diff -puN Documentation/sysctl/kernel.txt~sysctl-allow-for-strict-write-position-handling Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~sysctl-allow-for-strict-write-position-handling
-+++ a/Documentation/sysctl/kernel.txt
-@@ -77,6 +77,7 @@ show up in /proc/sys/kernel:
- - shmmni
- - stop-a                      [ SPARC only ]
- - sysrq                       ==> Documentation/sysrq.txt
-+- sysctl_writes_strict
- - tainted
- - threads-max
- - unknown_nmi_panic
-@@ -762,6 +763,26 @@ without users and with a dead originativ
+diff -puN tools/testing/selftests/Makefile~tools-testing-selftests-sysctl-validate-sysctl_writes_strict tools/testing/selftests/Makefile
+--- a/tools/testing/selftests/Makefile~tools-testing-selftests-sysctl-validate-sysctl_writes_strict
++++ a/tools/testing/selftests/Makefile
+@@ -10,6 +10,7 @@ TARGETS += timers
+ TARGETS += vm
+ TARGETS += powerpc
+ TARGETS += user
++TARGETS += sysctl
  
- ==============================================================
- 
-+sysctl_writes_strict:
+ all:
+ 	for TARGET in $(TARGETS); do \
+diff -puN /dev/null tools/testing/selftests/sysctl/Makefile
+--- /dev/null
++++ a/tools/testing/selftests/sysctl/Makefile
+@@ -0,0 +1,19 @@
++# Makefile for sysctl selftests.
++# Expects kernel.sysctl_writes_strict=1.
 +
-+Control how file position affects the behavior of updating sysctl values
-+via the /proc/sys interface:
++# No binaries, but make sure arg-less "make" doesn't trigger "run_tests".
++all:
 +
-+  -1 - Legacy per-write sysctl value handling, with no printk warnings.
-+       Each write syscall must fully contain the sysctl value to be
-+       written, and multiple writes on the same sysctl file descriptor
-+       will rewrite the sysctl value, regardless of file position.
-+   0 - (default) Same behavior as above, but warn about processes that
-+       perform writes to a sysctl file descriptor when the file position
-+       is not 0.
-+   1 - Respect file position when writing sysctl strings. Multiple writes
-+       will append to the sysctl value buffer. Anything past the max length
-+       of the sysctl value buffer will be ignored. Writes to numeric sysctl
-+       entries must always be at file position 0 and the value must be
-+       fully contained in the buffer sent in the write syscall.
++# Allow specific tests to be selected.
++test_num:
++	@/bin/sh ./run_numerictests
 +
-+==============================================================
++test_string:
++	@/bin/sh ./run_stringtests
 +
- tainted:
- 
- Non-zero if the kernel has been tainted.  Numeric values, which
-diff -puN kernel/sysctl.c~sysctl-allow-for-strict-write-position-handling kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-allow-for-strict-write-position-handling
-+++ a/kernel/sysctl.c
-@@ -173,6 +173,13 @@ extern int no_unaligned_warning;
- #endif
- 
- #ifdef CONFIG_PROC_SYSCTL
++run_tests: all test_num test_string
 +
-+#define SYSCTL_WRITES_LEGACY	-1
-+#define SYSCTL_WRITES_WARN	 0
-+#define SYSCTL_WRITES_STRICT	 1
++# Nothing to clean up.
++clean:
 +
-+static int sysctl_writes_strict = SYSCTL_WRITES_WARN;
++.PHONY: all run_tests clean test_num test_string
+diff -puN /dev/null tools/testing/selftests/sysctl/common_tests
+--- /dev/null
++++ a/tools/testing/selftests/sysctl/common_tests
+@@ -0,0 +1,109 @@
++#!/bin/sh
 +
- static int proc_do_cad_pid(struct ctl_table *table, int write,
- 		  void __user *buffer, size_t *lenp, loff_t *ppos);
- static int proc_taint(struct ctl_table *table, int write,
-@@ -495,6 +502,15 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_taint,
- 	},
-+	{
-+		.procname	= "sysctl_writes_strict",
-+		.data		= &sysctl_writes_strict,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &neg_one,
-+		.extra2		= &one,
-+	},
- #endif
- #ifdef CONFIG_LATENCYTOP
- 	{
-@@ -1712,8 +1728,20 @@ static int _proc_do_string(char *data, i
- 	}
- 
- 	if (write) {
--		/* Start writing from beginning of buffer. */
--		len = 0;
-+		if (sysctl_writes_strict == SYSCTL_WRITES_STRICT) {
-+			/* Only continue writes not past the end of buffer. */
-+			len = strlen(data);
-+			if (len > maxlen - 1)
-+				len = maxlen - 1;
++TEST_FILE=$(mktemp)
 +
-+			if (*ppos > len)
-+				return 0;
-+			len = *ppos;
-+		} else {
-+			/* Start writing from beginning of buffer. */
-+			len = 0;
-+		}
++echo "== Testing sysctl behavior against ${TARGET} =="
 +
- 		*ppos += *lenp;
- 		p = buffer;
- 		while ((p - buffer) < *lenp && len < maxlen - 1) {
-@@ -1753,6 +1781,14 @@ static int _proc_do_string(char *data, i
- 	return 0;
- }
- 
-+static void warn_sysctl_write(struct ctl_table *table)
++set_orig()
 +{
-+	pr_warn("%s wrote to %s when file position was not 0!\n",
-+		current->task_comm, table->procname);
-+	pr_warn("This will not be supported in the future.\n");
-+	pr_warn("To silence warning, set kernel.sysctl_writes_strict = -1\n");
++	echo "${ORIG}" > "${TARGET}"
 +}
 +
- /**
-  * proc_dostring - read a string sysctl
-  * @table: the sysctl table
-@@ -1773,6 +1809,9 @@ static int _proc_do_string(char *data, i
- int proc_dostring(struct ctl_table *table, int write,
- 		  void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-+	if (write && *ppos && sysctl_writes_strict == SYSCTL_WRITES_WARN)
-+		warn_sysctl_write(table);
++set_test()
++{
++	echo "${TEST_STR}" > "${TARGET}"
++}
 +
- 	return _proc_do_string((char *)(table->data), table->maxlen, write,
- 			       (char __user *)buffer, lenp, ppos);
- }
-@@ -1948,6 +1987,18 @@ static int __do_proc_dointvec(void *tbl_
- 		conv = do_proc_dointvec_conv;
- 
- 	if (write) {
-+		if (*ppos) {
-+			switch (sysctl_writes_strict) {
-+			case SYSCTL_WRITES_STRICT:
-+				goto out;
-+			case SYSCTL_WRITES_WARN:
-+				warn_sysctl_write(table);
-+				break;
-+			default:
-+				break;
-+			}
-+		}
++verify()
++{
++	local seen
++	seen=$(cat "$1")
++	if [ "${seen}" != "${TEST_STR}" ]; then
++		return 1
++	fi
++	return 0
++}
 +
- 		if (left > PAGE_SIZE - 1)
- 			left = PAGE_SIZE - 1;
- 		page = __get_free_page(GFP_TEMPORARY);
-@@ -2005,6 +2056,7 @@ free:
- 			return err ? : -EINVAL;
- 	}
- 	*lenp -= left;
-+out:
- 	*ppos += *lenp;
- 	return err;
- }
-@@ -2197,6 +2249,18 @@ static int __do_proc_doulongvec_minmax(v
- 	left = *lenp;
- 
- 	if (write) {
-+		if (*ppos) {
-+			switch (sysctl_writes_strict) {
-+			case SYSCTL_WRITES_STRICT:
-+				goto out;
-+			case SYSCTL_WRITES_WARN:
-+				warn_sysctl_write(table);
-+				break;
-+			default:
-+				break;
-+			}
-+		}
++trap 'set_orig; rm -f "${TEST_FILE}"' EXIT
 +
- 		if (left > PAGE_SIZE - 1)
- 			left = PAGE_SIZE - 1;
- 		page = __get_free_page(GFP_TEMPORARY);
-@@ -2252,6 +2316,7 @@ free:
- 			return err ? : -EINVAL;
- 	}
- 	*lenp -= left;
-+out:
- 	*ppos += *lenp;
- 	return err;
- }
++rc=0
++
++echo -n "Writing test file ... "
++echo "${TEST_STR}" > "${TEST_FILE}"
++if ! verify "${TEST_FILE}"; then
++	echo "FAIL" >&2
++	exit 1
++else
++	echo "ok"
++fi
++
++echo -n "Checking sysctl is not set to test value ... "
++if verify "${TARGET}"; then
++	echo "FAIL" >&2
++	exit 1
++else
++	echo "ok"
++fi
++
++echo -n "Writing sysctl from shell ... "
++set_test
++if ! verify "${TARGET}"; then
++	echo "FAIL" >&2
++	exit 1
++else
++	echo "ok"
++fi
++
++echo -n "Resetting sysctl to original value ... "
++set_orig
++if verify "${TARGET}"; then
++	echo "FAIL" >&2
++	exit 1
++else
++	echo "ok"
++fi
++
++# Now that we've validated the sanity of "set_test" and "set_orig",
++# we can use those functions to set starting states before running
++# specific behavioral tests.
++
++echo -n "Writing entire sysctl in single write ... "
++set_orig
++dd if="${TEST_FILE}" of="${TARGET}" bs=4096 2>/dev/null
++if ! verify "${TARGET}"; then
++	echo "FAIL" >&2
++	rc=1
++else
++	echo "ok"
++fi
++
++echo -n "Writing middle of sysctl after synchronized seek ... "
++set_test
++dd if="${TEST_FILE}" of="${TARGET}" bs=1 seek=1 skip=1 2>/dev/null
++if ! verify "${TARGET}"; then
++	echo "FAIL" >&2
++	rc=1
++else
++	echo "ok"
++fi
++
++echo -n "Writing beyond end of sysctl ... "
++set_orig
++dd if="${TEST_FILE}" of="${TARGET}" bs=20 seek=2 2>/dev/null
++if verify "${TARGET}"; then
++        echo "FAIL" >&2
++        rc=1
++else
++        echo "ok"
++fi
++
++echo -n "Writing sysctl with multiple long writes ... "
++set_orig
++(perl -e 'print "A" x 50;'; echo "${TEST_STR}") | \
++	dd of="${TARGET}" bs=50 2>/dev/null
++if verify "${TARGET}"; then
++	echo "FAIL" >&2
++	rc=1
++else
++	echo "ok"
++fi
+diff -puN /dev/null tools/testing/selftests/sysctl/run_numerictests
+--- /dev/null
++++ a/tools/testing/selftests/sysctl/run_numerictests
+@@ -0,0 +1,10 @@
++#!/bin/sh
++
++SYSCTL="/proc/sys"
++TARGET="${SYSCTL}/vm/swappiness"
++ORIG=$(cat "${TARGET}")
++TEST_STR=$(( $ORIG + 1 ))
++
++. ./common_tests
++
++exit $rc
+diff -puN /dev/null tools/testing/selftests/sysctl/run_stringtests
+--- /dev/null
++++ a/tools/testing/selftests/sysctl/run_stringtests
+@@ -0,0 +1,77 @@
++#!/bin/sh
++
++SYSCTL="/proc/sys"
++TARGET="${SYSCTL}/kernel/domainname"
++ORIG=$(cat "${TARGET}")
++TEST_STR="Testing sysctl"
++
++. ./common_tests
++
++# Only string sysctls support seeking/appending.
++MAXLEN=65
++
++echo -n "Writing entire sysctl in short writes ... "
++set_orig
++dd if="${TEST_FILE}" of="${TARGET}" bs=1 2>/dev/null
++if ! verify "${TARGET}"; then
++	echo "FAIL" >&2
++	rc=1
++else
++	echo "ok"
++fi
++
++echo -n "Writing middle of sysctl after unsynchronized seek ... "
++set_test
++dd if="${TEST_FILE}" of="${TARGET}" bs=1 seek=1 2>/dev/null
++if verify "${TARGET}"; then
++	echo "FAIL" >&2
++	rc=1
++else
++	echo "ok"
++fi
++
++echo -n "Checking sysctl maxlen is at least $MAXLEN ... "
++set_orig
++perl -e 'print "A" x ('"${MAXLEN}"'-2), "B";' | \
++	dd of="${TARGET}" bs="${MAXLEN}" 2>/dev/null
++if ! grep -q B "${TARGET}"; then
++	echo "FAIL" >&2
++	rc=1
++else
++	echo "ok"
++fi
++
++echo -n "Checking sysctl keeps original string on overflow append ... "
++set_orig
++perl -e 'print "A" x ('"${MAXLEN}"'-1), "B";' | \
++	dd of="${TARGET}" bs=$(( MAXLEN - 1 )) 2>/dev/null
++if grep -q B "${TARGET}"; then
++	echo "FAIL" >&2
++	rc=1
++else
++	echo "ok"
++fi
++
++echo -n "Checking sysctl stays NULL terminated on write ... "
++set_orig
++perl -e 'print "A" x ('"${MAXLEN}"'-1), "B";' | \
++	dd of="${TARGET}" bs="${MAXLEN}" 2>/dev/null
++if grep -q B "${TARGET}"; then
++	echo "FAIL" >&2
++	rc=1
++else
++	echo "ok"
++fi
++
++echo -n "Checking sysctl stays NULL terminated on overwrite ... "
++set_orig
++perl -e 'print "A" x ('"${MAXLEN}"'-1), "BB";' | \
++	dd of="${TARGET}" bs=$(( $MAXLEN + 1 )) 2>/dev/null
++if grep -q B "${TARGET}"; then
++	echo "FAIL" >&2
++	rc=1
++else
++	echo "ok"
++fi
++
++exit $rc
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
