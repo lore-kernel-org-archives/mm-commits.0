@@ -1,118 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: + printk-add-printk_deferred_once.patch added to -mm tree
-Date: Mon, 05 May 2014 15:07:15 -0700
-Message-ID: <53680b93.ZUqpQVw4PVwlW+SR%akpm@linux-foundation.org>
+Subject: [merged] linux-interrupth-fix-new-kernel-doc-warnings.patch
+ removed from -mm tree
+Date: Mon, 05 May 2014 12:28:56 -0700
+Message-ID: <5367e678.dMPuoqJI4yL3ob5e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51953 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50159 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756763AbaEEWHQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:07:16 -0400
+	with ESMTP id S1751749AbaEET26 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 15:28:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com, jbohac@suse.cz, jack@suse.cz, john.stultz@linaro.org
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, rdunlap@infradead.org
 
-Subject: + printk-add-printk_deferred_once.patch added to -mm tree
-To: john.stultz@linaro.org,jack@suse.cz,jbohac@suse.cz,mingo@redhat.com,peterz@infradead.org,rostedt@goodmis.org,tglx@linutronix.de
+Subject: [merged] linux-interrupth-fix-new-kernel-doc-warnings.patch removed from -mm tree
+To: rdunlap@infradead.org,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 15:07:15 -0700
+Date: Mon, 05 May 2014 12:28:56 -0700
 
 
 The patch titled
-     Subject: printk: Add printk_deferred_once
-has been added to the -mm tree.  Its filename is
-     printk-add-printk_deferred_once.patch
+     Subject: linux/interrupt.h: fix new kernel-doc warnings
+has been removed from the -mm tree.  Its filename was
+     linux-interrupth-fix-new-kernel-doc-warnings.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-add-printk_deferred_once.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-add-printk_deferred_once.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Stultz <john.stultz@linaro.org>
-Subject: printk: Add printk_deferred_once
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: linux/interrupt.h: fix new kernel-doc warnings
 
-Two of the three prink_deferred uses are really printk_once style
-uses, so add a printk_deferred_once macro to simplify those call
-sites.
+Fix new kernel-doc warnings in <linux/interrupt.h>:
 
-Signed-off-by: John Stultz <john.stultz@linaro.org>
-Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Jiri Bohac <jbohac@suse.cz>
+Warning(include/linux/interrupt.h:219): No description found for parameter 'cpumask'
+Warning(include/linux/interrupt.h:219): Excess function parameter 'mask' description in 'irq_set_affinity'
+Warning(include/linux/interrupt.h:236): No description found for parameter 'cpumask'
+Warning(include/linux/interrupt.h:236): Excess function parameter 'mask' description in 'irq_force_affinity'
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h  |   11 +++++++++++
- kernel/sched/deadline.c |    7 +------
- kernel/sched/rt.c       |    8 +-------
- 3 files changed, 13 insertions(+), 13 deletions(-)
+ include/linux/interrupt.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/printk.h~printk-add-printk_deferred_once include/linux/printk.h
---- a/include/linux/printk.h~printk-add-printk_deferred_once
-+++ a/include/linux/printk.h
-@@ -266,9 +266,20 @@ extern asmlinkage void dump_stack(void)
- 		printk(fmt, ##__VA_ARGS__);			\
- 	}							\
- })
-+#define printk_deferred_once(fmt, ...)				\
-+({								\
-+	static bool __print_once __read_mostly;			\
-+								\
-+	if (!__print_once) {					\
-+		__print_once = true;				\
-+		printk_deferred(fmt, ##__VA_ARGS__);		\
-+	}							\
-+})
- #else
- #define printk_once(fmt, ...)					\
- 	no_printk(fmt, ##__VA_ARGS__)
-+#define printk_deferred_once(fmt, ...)				\
-+	no_printk(fmt, ##__VA_ARGS__)
- #endif
- 
- #define pr_emerg_once(fmt, ...)					\
-diff -puN kernel/sched/deadline.c~printk-add-printk_deferred_once kernel/sched/deadline.c
---- a/kernel/sched/deadline.c~printk-add-printk_deferred_once
-+++ a/kernel/sched/deadline.c
-@@ -348,12 +348,7 @@ static void replenish_dl_entity(struct s
- 	 * entity.
- 	 */
- 	if (dl_time_before(dl_se->deadline, rq_clock(rq))) {
--		static bool lag_once = false;
--
--		if (!lag_once) {
--			lag_once = true;
--			printk_deferred("sched: DL replenish lagged to much\n");
--		}
-+		printk_deferred_once("sched: DL replenish lagged to much\n");
- 		dl_se->deadline = rq_clock(rq) + pi_se->dl_deadline;
- 		dl_se->runtime = pi_se->dl_runtime;
- 	}
-diff -puN kernel/sched/rt.c~printk-add-printk_deferred_once kernel/sched/rt.c
---- a/kernel/sched/rt.c~printk-add-printk_deferred_once
-+++ a/kernel/sched/rt.c
-@@ -851,14 +851,8 @@ static int sched_rt_runtime_exceeded(str
- 		 * but accrue some time due to boosting.
- 		 */
- 		if (likely(rt_b->rt_runtime)) {
--			static bool once = false;
--
- 			rt_rq->rt_throttled = 1;
+diff -puN include/linux/interrupt.h~linux-interrupth-fix-new-kernel-doc-warnings include/linux/interrupt.h
+--- a/include/linux/interrupt.h~linux-interrupth-fix-new-kernel-doc-warnings
++++ a/include/linux/interrupt.h
+@@ -210,7 +210,7 @@ extern int __irq_set_affinity(unsigned i
+ /**
+  * irq_set_affinity - Set the irq affinity of a given irq
+  * @irq:	Interrupt to set affinity
+- * @mask:	cpumask
++ * @cpumask:	cpumask
+  *
+  * Fails if cpumask does not contain an online CPU
+  */
+@@ -223,7 +223,7 @@ irq_set_affinity(unsigned int irq, const
+ /**
+  * irq_force_affinity - Force the irq affinity of a given irq
+  * @irq:	Interrupt to set affinity
+- * @mask:	cpumask
++ * @cpumask:	cpumask
+  *
+  * Same as irq_set_affinity, but without checking the mask against
+  * online cpus.
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
+fs-9p-kerneldoc-fixes.patch
+fs-befs-kernel-doc-fixes.patch
+documentation-submittingpatches-describe-the-fixes-tag.patch
+sysrq-rcu-ify-__handle_sysrq.patch
+sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
+linux-next.patch
+debugging-keep-track-of-page-owners.patch
+
