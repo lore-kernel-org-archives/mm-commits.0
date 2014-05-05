@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch added to -mm tree
-Date: Mon, 05 May 2014 14:37:06 -0700
-Message-ID: <53680482.eBlEvE1KDpk+691I%akpm@linux-foundation.org>
+Subject: + sysctl-allow-for-strict-write-position-handling-fix-2.patch
+ added to -mm tree
+Date: Mon, 05 May 2014 15:47:43 -0700
+Message-ID: <5368150f.ZPFuXHr+Ed1y0Zsj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51302 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53071 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756696AbaEEVhH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 17:37:07 -0400
+	with ESMTP id S1756905AbaEEWro (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:47:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, nasa4836@gmail.com
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, keescook@chromium.org, akpm@linux-foundation.org
 
-Subject: + mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch added to -mm tree
-To: nasa4836@gmail.com,hannes@cmpxchg.org,mhocko@suse.cz
+Subject: + sysctl-allow-for-strict-write-position-handling-fix-2.patch added to -mm tree
+To: akpm@linux-foundation.org,keescook@chromium.org,rdunlap@infradead.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 14:37:06 -0700
+Date: Mon, 05 May 2014 15:47:43 -0700
 
 
 The patch titled
-     Subject: mm: memcontrol: clean up memcg zoneinfo lookup
+     Subject: sysctl-allow-for-strict-write-position-handling-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
+     sysctl-allow-for-strict-write-position-handling-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-allow-for-strict-write-position-handling-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-allow-for-strict-write-position-handling-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,227 +44,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jianyu Zhan <nasa4836@gmail.com>
-Subject: mm: memcontrol: clean up memcg zoneinfo lookup
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sysctl-allow-for-strict-write-position-handling-fix-2
 
-Memcg zoneinfo lookup sites have either the page, the zone, or the node id
-and zone index, but sites that only have the zone have to look up the node
-id and zone index themselves, whereas sites that already have those two
-integers use a function for a simple pointer chase.
+fix build
 
-Provide mem_cgroup_zone_zoneinfo() that takes a zone pointer and let sites
-that already have node id and zone index - all for each node, for each
-zone iterators - use &memcg->nodeinfo[nid]->zoneinfo[zid].
+kernel/sysctl.c: In function 'warn_sysctl_write':
+kernel/sysctl.c:1786: error: 'struct task_struct' has no member named 'task_comm'
 
-Rename page_cgroup_zoneinfo() to mem_cgroup_page_zoneinfo() to match.
-
-Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   89 ++++++++++++++++++++--------------------------
- 1 file changed, 39 insertions(+), 50 deletions(-)
+ kernel/sysctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-clean-up-memcg-zoneinfo-lookup mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-clean-up-memcg-zoneinfo-lookup
-+++ a/mm/memcontrol.c
-@@ -676,9 +676,11 @@ static void disarm_static_keys(struct me
- static void drain_all_stock_async(struct mem_cgroup *memcg);
- 
- static struct mem_cgroup_per_zone *
--mem_cgroup_zoneinfo(struct mem_cgroup *memcg, int nid, int zid)
-+mem_cgroup_zone_zoneinfo(struct mem_cgroup *memcg, struct zone *zone)
+diff -puN kernel/sysctl.c~sysctl-allow-for-strict-write-position-handling-fix-2 kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-allow-for-strict-write-position-handling-fix-2
++++ a/kernel/sysctl.c
+@@ -1784,7 +1784,7 @@ static int _proc_do_string(char *data, i
+ static void warn_sysctl_write(struct ctl_table *table)
  {
--	VM_BUG_ON((unsigned)nid >= nr_node_ids);
-+	int nid = zone_to_nid(zone);
-+	int zid = zone_idx(zone);
-+
- 	return &memcg->nodeinfo[nid]->zoneinfo[zid];
+ 	pr_warn("%s wrote to %s when file position was not 0!\n",
+-		current->task_comm, table->procname);
++		current->comm, table->procname);
+ 	pr_warn("This will not be supported in the future.\n");
+ 	pr_warn("To silence warning, set kernel.sysctl_writes_strict = -1\n");
  }
- 
-@@ -688,12 +690,12 @@ struct cgroup_subsys_state *mem_cgroup_c
- }
- 
- static struct mem_cgroup_per_zone *
--page_cgroup_zoneinfo(struct mem_cgroup *memcg, struct page *page)
-+mem_cgroup_page_zoneinfo(struct mem_cgroup *memcg, struct page *page)
- {
- 	int nid = page_to_nid(page);
- 	int zid = page_zonenum(page);
- 
--	return mem_cgroup_zoneinfo(memcg, nid, zid);
-+	return &memcg->nodeinfo[nid]->zoneinfo[zid];
- }
- 
- static struct mem_cgroup_tree_per_zone *
-@@ -772,16 +774,14 @@ static void mem_cgroup_update_tree(struc
- 	unsigned long long excess;
- 	struct mem_cgroup_per_zone *mz;
- 	struct mem_cgroup_tree_per_zone *mctz;
--	int nid = page_to_nid(page);
--	int zid = page_zonenum(page);
--	mctz = soft_limit_tree_from_page(page);
- 
-+	mctz = soft_limit_tree_from_page(page);
- 	/*
- 	 * Necessary to update all ancestors when hierarchy is used.
- 	 * because their event counter is not touched.
- 	 */
- 	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
--		mz = mem_cgroup_zoneinfo(memcg, nid, zid);
-+		mz = mem_cgroup_page_zoneinfo(memcg, page);
- 		excess = res_counter_soft_limit_excess(&memcg->res);
- 		/*
- 		 * We have to update the tree if mz is on RB-tree or
-@@ -804,14 +804,14 @@ static void mem_cgroup_update_tree(struc
- 
- static void mem_cgroup_remove_from_trees(struct mem_cgroup *memcg)
- {
--	int node, zone;
--	struct mem_cgroup_per_zone *mz;
- 	struct mem_cgroup_tree_per_zone *mctz;
-+	struct mem_cgroup_per_zone *mz;
-+	int nid, zid;
- 
--	for_each_node(node) {
--		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
--			mz = mem_cgroup_zoneinfo(memcg, node, zone);
--			mctz = soft_limit_tree_node_zone(node, zone);
-+	for_each_node(nid) {
-+		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-+			mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
-+			mctz = soft_limit_tree_node_zone(nid, zid);
- 			mem_cgroup_remove_exceeded(memcg, mz, mctz);
- 		}
- 	}
-@@ -946,8 +946,7 @@ static void mem_cgroup_charge_statistics
- 	__this_cpu_add(memcg->stat->nr_page_events, nr_pages);
- }
- 
--unsigned long
--mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
-+unsigned long mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
- {
- 	struct mem_cgroup_per_zone *mz;
- 
-@@ -955,46 +954,38 @@ mem_cgroup_get_lru_size(struct lruvec *l
- 	return mz->lru_size[lru];
- }
- 
--static unsigned long
--mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, int nid, int zid,
--			unsigned int lru_mask)
--{
--	struct mem_cgroup_per_zone *mz;
--	enum lru_list lru;
--	unsigned long ret = 0;
--
--	mz = mem_cgroup_zoneinfo(memcg, nid, zid);
--
--	for_each_lru(lru) {
--		if (BIT(lru) & lru_mask)
--			ret += mz->lru_size[lru];
--	}
--	return ret;
--}
--
--static unsigned long
--mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
--			int nid, unsigned int lru_mask)
-+static unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
-+						  int nid,
-+						  unsigned int lru_mask)
- {
--	u64 total = 0;
-+	unsigned long nr = 0;
- 	int zid;
- 
--	for (zid = 0; zid < MAX_NR_ZONES; zid++)
--		total += mem_cgroup_zone_nr_lru_pages(memcg,
--						nid, zid, lru_mask);
-+	VM_BUG_ON((unsigned)nid >= nr_node_ids);
- 
--	return total;
-+	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-+		struct mem_cgroup_per_zone *mz;
-+		enum lru_list lru;
-+
-+		for_each_lru(lru) {
-+			if (!(BIT(lru) & lru_mask))
-+				continue;
-+			mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
-+			nr += mz->lru_size[lru];
-+		}
-+	}
-+	return nr;
- }
- 
- static unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *memcg,
- 			unsigned int lru_mask)
- {
-+	unsigned long nr = 0;
- 	int nid;
--	u64 total = 0;
- 
- 	for_each_node_state(nid, N_MEMORY)
--		total += mem_cgroup_node_nr_lru_pages(memcg, nid, lru_mask);
--	return total;
-+		nr += mem_cgroup_node_nr_lru_pages(memcg, nid, lru_mask);
-+	return nr;
- }
- 
- static bool mem_cgroup_event_ratelimit(struct mem_cgroup *memcg,
-@@ -1233,11 +1224,9 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		int uninitialized_var(seq);
- 
- 		if (reclaim) {
--			int nid = zone_to_nid(reclaim->zone);
--			int zid = zone_idx(reclaim->zone);
- 			struct mem_cgroup_per_zone *mz;
- 
--			mz = mem_cgroup_zoneinfo(root, nid, zid);
-+			mz = mem_cgroup_zone_zoneinfo(root, reclaim->zone);
- 			iter = &mz->reclaim_iter[reclaim->priority];
- 			if (prev && reclaim->generation != iter->generation) {
- 				iter->last_visited = NULL;
-@@ -1344,7 +1333,7 @@ struct lruvec *mem_cgroup_zone_lruvec(st
- 		goto out;
- 	}
- 
--	mz = mem_cgroup_zoneinfo(memcg, zone_to_nid(zone), zone_idx(zone));
-+	mz = mem_cgroup_zone_zoneinfo(memcg, zone);
- 	lruvec = &mz->lruvec;
- out:
- 	/*
-@@ -1403,7 +1392,7 @@ struct lruvec *mem_cgroup_page_lruvec(st
- 	if (!PageLRU(page) && !PageCgroupUsed(pc) && memcg != root_mem_cgroup)
- 		pc->mem_cgroup = memcg = root_mem_cgroup;
- 
--	mz = page_cgroup_zoneinfo(memcg, page);
-+	mz = mem_cgroup_page_zoneinfo(memcg, page);
- 	lruvec = &mz->lruvec;
- out:
- 	/*
-@@ -5382,7 +5371,7 @@ static int memcg_stat_show(struct seq_fi
- 
- 		for_each_online_node(nid)
- 			for (zid = 0; zid < MAX_NR_ZONES; zid++) {
--				mz = mem_cgroup_zoneinfo(memcg, nid, zid);
-+				mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
- 				rstat = &mz->lruvec.reclaim_stat;
- 
- 				recent_rotated[0] += rstat->recent_rotated[0];
 _
 
-Patches currently in -mm which might be from nasa4836@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-swapc-clean-up-lru_cache_add-functions.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
-mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
+slub-use-sysfses-release-mechanism-for-kmem_cache.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
