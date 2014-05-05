@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-superc-bugfix-double-free.patch added to -mm tree
-Date: Mon, 05 May 2014 13:56:55 -0700
-Message-ID: <5367fb17.YNcgxycNnGJaDF63%akpm@linux-foundation.org>
+Subject: + sysctl-allow-for-strict-write-position-handling-fix.patch added to -mm tree
+Date: Mon, 05 May 2014 15:00:28 -0700
+Message-ID: <536809fc.W+cZHlm6D5nXBd9N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51883 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756425AbaEEU44 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 16:56:56 -0400
+	with ESMTP id S1756876AbaEEWA3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:00:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, stable@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, keescook@chromium.org, akpm@linux-foundation.org
 
-Subject: + fs-affs-superc-bugfix-double-free.patch added to -mm tree
-To: fabf@skynet.be,stable@vger.kernel.org,viro@zeniv.linux.org.uk
+Subject: + sysctl-allow-for-strict-write-position-handling-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,keescook@chromium.org,rdunlap@infradead.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 13:56:55 -0700
+Date: Mon, 05 May 2014 15:00:28 -0700
 
 
 The patch titled
-     Subject: fs/affs/super.c: bugfix / double free
+     Subject: sysctl-allow-for-strict-write-position-handling-fix
 has been added to the -mm tree.  Its filename is
-     fs-affs-superc-bugfix-double-free.patch
+     sysctl-allow-for-strict-write-position-handling-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-superc-bugfix-double-free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-allow-for-strict-write-position-handling-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-superc-bugfix-double-free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-allow-for-strict-write-position-handling-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,83 +43,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/super.c: bugfix / double free
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sysctl-allow-for-strict-write-position-handling-fix
 
-842a859db26b70 ("affs: use ->kill_sb() to simplify ->put_super() and
-failure exits of ->mount()") adds .kill_sb which frees sbi but doesn't
-remove sbi free in case of parse_options error causing double free+random
-crash.
+mvoe misplaced hunk, per Randy
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>	[3.14.x]
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/super.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/sysctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/affs/super.c~fs-affs-superc-bugfix-double-free fs/affs/super.c
---- a/fs/affs/super.c~fs-affs-superc-bugfix-double-free
-+++ a/fs/affs/super.c
-@@ -340,8 +340,6 @@ static int affs_fill_super(struct super_
- 				&blocksize,&sbi->s_prefix,
- 				sbi->s_volume, &mount_flags)) {
- 		printk(KERN_ERR "AFFS: Error parsing options\n");
--		kfree(sbi->s_prefix);
--		kfree(sbi);
- 		return -EINVAL;
- 	}
- 	/* N.B. after this point s_prefix must be released */
+diff -puN kernel/sysctl.c~sysctl-allow-for-strict-write-position-handling-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-allow-for-strict-write-position-handling-fix
++++ a/kernel/sysctl.c
+@@ -1783,8 +1783,8 @@ static int _proc_do_string(char *data, i
+ 
+ static void warn_sysctl_write(struct ctl_table *table)
+ {
+-	pr_warn("%s wrote to %s when file position was not 0!\n",
+-		current->task_comm, table->procname);
++	pr_warn("write to %s by %s used a non-zero file position!\n",
++		table->procname, current->comm);
+ 	pr_warn("This will not be supported in the future.\n");
+ 	pr_warn("To silence warning, set kernel.sysctl_writes_strict = -1\n");
+ }
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-affs-superc-bugfix-double-free.patch
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
-fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
-ntfs-remove-null-value-assignments.patch
-fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
-fs-configs-itemc-kernel-doc-fixes-clean-up.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
-fs-9p-kerneldoc-fixes.patch
-mm-slubc-convert-printk-to-pr_foo.patch
-mm-slubc-convert-vnsprintf-static-to-va_format.patch
-mm-memory_hotplugc-use-pfn_down.patch
-mm-memblockc-use-pfn_down.patch
-mm-memcontrolc-remove-null-assignment-on-static.patch
-mm-vmallocc-replace-seq_printf-by-seq_puts.patch
-mm-zbudc-make-size-unsigned-like-unique-callsite.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-kernel-cpuc-convert-printk-to-pr_foo.patch
-kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
-kernel-capabilityc-code-clean-up.patch
-kernel-exec_domainc-code-clean-up.patch
-lib-libcrc32cc-use-ptr_err_or_zero.patch
-lib-vsprintfc-fix-comparison-to-bool.patch
-kernel-compatc-use-sizeof-instead-of-sizeof.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-kernel-cpusetc-kernel-doc-fixes.patch
-kernel-cpusetc-convert-printk-to-pr_foo.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-fs-pstore-logging-clean-up.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
+slub-use-sysfses-release-mechanism-for-kmem_cache.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
 fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
-init-mainc-code-clean-up.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
