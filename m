@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
- added to -mm tree
-Date: Mon, 05 May 2014 15:07:16 -0700
-Message-ID: <53680b94.q4LcO5CW2Wd7GLva%akpm@linux-foundation.org>
+Subject: + fs-fscache-convert-printk-to-pr_foo.patch added to -mm tree
+Date: Mon, 05 May 2014 13:58:37 -0700
+Message-ID: <5367fb7d.vZKxKHJw6Vkb5Jqk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51960 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51033 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756763AbaEEWHR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:07:17 -0400
+	with ESMTP id S1755649AbaEEU6i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 16:58:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com, jbohac@suse.cz, jack@suse.cz, john.stultz@linaro.org
+To: mm-commits@vger.kernel.org, dhowells@redhat.com, fabf@skynet.be
 
-Subject: + timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch added to -mm tree
-To: john.stultz@linaro.org,jack@suse.cz,jbohac@suse.cz,mingo@redhat.com,peterz@infradead.org,rostedt@goodmis.org,tglx@linutronix.de
+Subject: + fs-fscache-convert-printk-to-pr_foo.patch added to -mm tree
+To: fabf@skynet.be,dhowells@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 15:07:16 -0700
+Date: Mon, 05 May 2014 13:58:37 -0700
 
 
 The patch titled
-     Subject: timekeeping: use printk_deferred when holding timekeeping seqlock
+     Subject: fs/fscache: convert printk to pr_foo()
 has been added to the -mm tree.  Its filename is
-     timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+     fs-fscache-convert-printk-to-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-fscache-convert-printk-to-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-fscache-convert-printk-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,132 +43,281 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Stultz <john.stultz@linaro.org>
-Subject: timekeeping: use printk_deferred when holding timekeeping seqlock
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/fscache: convert printk to pr_foo()
 
-Jiri Bohac pointed out that there are rare but potential deadlock
-possibilities when calling printk while holding the timekeeping
-seqlock.
+-All printk converted to pr_foo() except internal.h: printk(KERN_DEBUG
 
-This is due to printk() triggering console sem wakeup, which can
-cause scheduling code to trigger hrtimers which may try to read
-the time.
+-Coalesce formats.
 
-Specifically, as Jiri pointed out, that path is:
-  printk
-    vprintk_emit
-      console_unlock
-        up(&console_sem)
-          __up
-	    wake_up_process
-	      try_to_wake_up
-	        ttwu_do_activate
-		  ttwu_activate
-		    activate_task
-		      enqueue_task
-		        enqueue_task_fair
-			  hrtick_update
-			    hrtick_start_fair
-			      hrtick_start_fair
-			        get_time
-				  ktime_get
-				    --> endless loop on
-				    read_seqcount_retry(&timekeeper_seq, ...)
+-Add pr_fmt
 
-This patch tries to avoid this issue by using printk_deferred (previously
-named printk_sched) which should defer printing via a irq_work_queue.
-
-Signed-off-by: John Stultz <john.stultz@linaro.org>
-Reported-by: Jiri Bohac <jbohac@suse.cz>
-Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/ntp.c         |   15 +++++++++------
- kernel/time/timekeeping.c |    7 ++++---
- 2 files changed, 13 insertions(+), 9 deletions(-)
+ fs/fscache/cache.c     |   13 ++++++-------
+ fs/fscache/cookie.c    |    2 +-
+ fs/fscache/internal.h  |   26 ++++++++++++++++----------
+ fs/fscache/main.c      |    7 +++----
+ fs/fscache/netfs.c     |    7 +++----
+ fs/fscache/operation.c |    3 +--
+ fs/fscache/page.c      |    6 ++----
+ 7 files changed, 32 insertions(+), 32 deletions(-)
 
-diff -puN kernel/time/ntp.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock kernel/time/ntp.c
---- a/kernel/time/ntp.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock
-+++ a/kernel/time/ntp.c
-@@ -786,8 +786,9 @@ static long hardpps_update_freq(struct p
- 		time_status |= STA_PPSERROR;
- 		pps_errcnt++;
- 		pps_dec_freq_interval();
--		pr_err("hardpps: PPSERROR: interval too long - %ld s\n",
--				freq_norm.sec);
-+		printk_deferred(KERN_ERR
-+			"hardpps: PPSERROR: interval too long - %ld s\n",
-+			freq_norm.sec);
- 		return 0;
- 	}
+diff -puN fs/fscache/cache.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/cache.c
+--- a/fs/fscache/cache.c~fs-fscache-convert-printk-to-pr_foo
++++ a/fs/fscache/cache.c
+@@ -280,15 +280,15 @@ int fscache_add_cache(struct fscache_cac
+ 	spin_unlock(&fscache_fsdef_index.lock);
+ 	up_write(&fscache_addremove_sem);
  
-@@ -800,7 +801,8 @@ static long hardpps_update_freq(struct p
- 	delta = shift_right(ftemp - pps_freq, NTP_SCALE_SHIFT);
- 	pps_freq = ftemp;
- 	if (delta > PPS_MAXWANDER || delta < -PPS_MAXWANDER) {
--		pr_warning("hardpps: PPSWANDER: change=%ld\n", delta);
-+		printk_deferred(KERN_WARNING
-+				"hardpps: PPSWANDER: change=%ld\n", delta);
- 		time_status |= STA_PPSWANDER;
- 		pps_stbcnt++;
- 		pps_dec_freq_interval();
-@@ -844,8 +846,9 @@ static void hardpps_update_phase(long er
- 	 * the time offset is updated.
- 	 */
- 	if (jitter > (pps_jitter << PPS_POPCORN)) {
--		pr_warning("hardpps: PPSJITTER: jitter=%ld, limit=%ld\n",
--		       jitter, (pps_jitter << PPS_POPCORN));
-+		printk_deferred(KERN_WARNING
-+				"hardpps: PPSJITTER: jitter=%ld, limit=%ld\n",
-+				jitter, (pps_jitter << PPS_POPCORN));
- 		time_status |= STA_PPSJITTER;
- 		pps_jitcnt++;
- 	} else if (time_status & STA_PPSTIME) {
-@@ -902,7 +905,7 @@ void __hardpps(const struct timespec *ph
- 		time_status |= STA_PPSJITTER;
- 		/* restart the frequency calibration interval */
- 		pps_fbase = *raw_ts;
--		pr_err("hardpps: PPSJITTER: bad pulse\n");
-+		printk_deferred(KERN_ERR "hardpps: PPSJITTER: bad pulse\n");
- 		return;
- 	}
+-	printk(KERN_NOTICE "FS-Cache: Cache \"%s\" added (type %s)\n",
+-	       cache->tag->name, cache->ops->name);
++	pr_notice("Cache \"%s\" added (type %s)\n",
++		  cache->tag->name, cache->ops->name);
+ 	kobject_uevent(cache->kobj, KOBJ_ADD);
  
-diff -puN kernel/time/timekeeping.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock
-+++ a/kernel/time/timekeeping.c
-@@ -852,8 +852,9 @@ static void __timekeeping_inject_sleepti
- 							struct timespec *delta)
+ 	_leave(" = 0 [%s]", cache->identifier);
+ 	return 0;
+ 
+ tag_in_use:
+-	printk(KERN_ERR "FS-Cache: Cache tag '%s' already in use\n", tagname);
++	pr_err("Cache tag '%s' already in use\n", tagname);
+ 	__fscache_release_cache_tag(tag);
+ 	_leave(" = -EXIST");
+ 	return -EEXIST;
+@@ -317,8 +317,7 @@ EXPORT_SYMBOL(fscache_add_cache);
+ void fscache_io_error(struct fscache_cache *cache)
  {
- 	if (!timespec_valid_strict(delta)) {
--		printk(KERN_WARNING "__timekeeping_inject_sleeptime: Invalid "
--					"sleep delta value!\n");
-+		printk_deferred(KERN_WARNING
-+				"__timekeeping_inject_sleeptime: Invalid "
-+				"sleep delta value!\n");
- 		return;
- 	}
- 	tk_xtime_add(tk, delta);
-@@ -1157,7 +1158,7 @@ static void timekeeping_adjust(struct ti
+ 	if (!test_and_set_bit(FSCACHE_IOERROR, &cache->flags))
+-		printk(KERN_ERR "FS-Cache:"
+-		       " Cache '%s' stopped due to I/O error\n",
++		pr_err("Cache '%s' stopped due to I/O error\n",
+ 		       cache->ops->name);
+ }
+ EXPORT_SYMBOL(fscache_io_error);
+@@ -369,8 +368,8 @@ void fscache_withdraw_cache(struct fscac
  
- 	if (unlikely(tk->clock->maxadj &&
- 		(tk->mult + adj > tk->clock->mult + tk->clock->maxadj))) {
--		printk_once(KERN_WARNING
-+		printk_deferred_once(KERN_WARNING
- 			"Adjusting %s more than 11%% (%ld vs %ld)\n",
- 			tk->clock->name, (long)tk->mult + adj,
- 			(long)tk->clock->mult + tk->clock->maxadj);
+ 	_enter("");
+ 
+-	printk(KERN_NOTICE "FS-Cache: Withdrawing cache \"%s\"\n",
+-	       cache->tag->name);
++	pr_notice("Withdrawing cache \"%s\"\n",
++		  cache->tag->name);
+ 
+ 	/* make the cache unavailable for cookie acquisition */
+ 	if (test_and_set_bit(FSCACHE_CACHE_WITHDRAWN, &cache->flags))
+diff -puN fs/fscache/cookie.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/cookie.c
+--- a/fs/fscache/cookie.c~fs-fscache-convert-printk-to-pr_foo
++++ a/fs/fscache/cookie.c
+@@ -519,7 +519,7 @@ void __fscache_disable_cookie(struct fsc
+ 	ASSERTCMP(atomic_read(&cookie->n_active), >, 0);
+ 
+ 	if (atomic_read(&cookie->n_children) != 0) {
+-		printk(KERN_ERR "FS-Cache: Cookie '%s' still has children\n",
++		pr_err("Cookie '%s' still has children\n",
+ 		       cookie->def->name);
+ 		BUG();
+ 	}
+diff -puN fs/fscache/internal.h~fs-fscache-convert-printk-to-pr_foo fs/fscache/internal.h
+--- a/fs/fscache/internal.h~fs-fscache-convert-printk-to-pr_foo
++++ a/fs/fscache/internal.h
+@@ -22,6 +22,12 @@
+  *
+  */
+ 
++#ifdef pr_fmt
++#undef pr_fmt
++#endif
++
++#define pr_fmt(fmt) "FS-Cache: " fmt
++
+ #include <linux/fscache-cache.h>
+ #include <linux/sched.h>
+ 
+@@ -413,8 +419,8 @@ do {						\
+ #define ASSERT(X)							\
+ do {									\
+ 	if (unlikely(!(X))) {						\
+-		printk(KERN_ERR "\n");					\
+-		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
++		pr_err("\n");					\
++		pr_err("Assertion failed\n");	\
+ 		BUG();							\
+ 	}								\
+ } while (0)
+@@ -422,9 +428,9 @@ do {									\
+ #define ASSERTCMP(X, OP, Y)						\
+ do {									\
+ 	if (unlikely(!((X) OP (Y)))) {					\
+-		printk(KERN_ERR "\n");					\
+-		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
+-		printk(KERN_ERR "%lx " #OP " %lx is false\n",		\
++		pr_err("\n");					\
++		pr_err("Assertion failed\n");	\
++		pr_err("%lx " #OP " %lx is false\n",		\
+ 		       (unsigned long)(X), (unsigned long)(Y));		\
+ 		BUG();							\
+ 	}								\
+@@ -433,8 +439,8 @@ do {									\
+ #define ASSERTIF(C, X)							\
+ do {									\
+ 	if (unlikely((C) && !(X))) {					\
+-		printk(KERN_ERR "\n");					\
+-		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
++		pr_err("\n");					\
++		pr_err("Assertion failed\n");	\
+ 		BUG();							\
+ 	}								\
+ } while (0)
+@@ -442,9 +448,9 @@ do {									\
+ #define ASSERTIFCMP(C, X, OP, Y)					\
+ do {									\
+ 	if (unlikely((C) && !((X) OP (Y)))) {				\
+-		printk(KERN_ERR "\n");					\
+-		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
+-		printk(KERN_ERR "%lx " #OP " %lx is false\n",		\
++		pr_err("\n");					\
++		pr_err("Assertion failed\n");	\
++		pr_err("%lx " #OP " %lx is false\n",		\
+ 		       (unsigned long)(X), (unsigned long)(Y));		\
+ 		BUG();							\
+ 	}								\
+diff -puN fs/fscache/main.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/main.c
+--- a/fs/fscache/main.c~fs-fscache-convert-printk-to-pr_foo
++++ a/fs/fscache/main.c
+@@ -146,8 +146,7 @@ static int __init fscache_init(void)
+ 					       0,
+ 					       fscache_cookie_init_once);
+ 	if (!fscache_cookie_jar) {
+-		printk(KERN_NOTICE
+-		       "FS-Cache: Failed to allocate a cookie jar\n");
++		pr_notice("Failed to allocate a cookie jar\n");
+ 		ret = -ENOMEM;
+ 		goto error_cookie_jar;
+ 	}
+@@ -156,7 +155,7 @@ static int __init fscache_init(void)
+ 	if (!fscache_root)
+ 		goto error_kobj;
+ 
+-	printk(KERN_NOTICE "FS-Cache: Loaded\n");
++	pr_notice("Loaded\n");
+ 	return 0;
+ 
+ error_kobj:
+@@ -192,7 +191,7 @@ static void __exit fscache_exit(void)
+ 	fscache_proc_cleanup();
+ 	destroy_workqueue(fscache_op_wq);
+ 	destroy_workqueue(fscache_object_wq);
+-	printk(KERN_NOTICE "FS-Cache: Unloaded\n");
++	pr_notice("Unloaded\n");
+ }
+ 
+ module_exit(fscache_exit);
+diff -puN fs/fscache/netfs.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/netfs.c
+--- a/fs/fscache/netfs.c~fs-fscache-convert-printk-to-pr_foo
++++ a/fs/fscache/netfs.c
+@@ -65,8 +65,7 @@ int __fscache_register_netfs(struct fsca
+ 	list_add(&netfs->link, &fscache_netfs_list);
+ 	ret = 0;
+ 
+-	printk(KERN_NOTICE "FS-Cache: Netfs '%s' registered for caching\n",
+-	       netfs->name);
++	pr_notice("Netfs '%s' registered for caching\n", netfs->name);
+ 
+ already_registered:
+ 	up_write(&fscache_addremove_sem);
+@@ -97,8 +96,8 @@ void __fscache_unregister_netfs(struct f
+ 
+ 	up_write(&fscache_addremove_sem);
+ 
+-	printk(KERN_NOTICE "FS-Cache: Netfs '%s' unregistered from caching\n",
+-	       netfs->name);
++	pr_notice("Netfs '%s' unregistered from caching\n",
++		  netfs->name);
+ 
+ 	_leave("");
+ }
+diff -puN fs/fscache/operation.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/operation.c
+--- a/fs/fscache/operation.c~fs-fscache-convert-printk-to-pr_foo
++++ a/fs/fscache/operation.c
+@@ -51,8 +51,7 @@ void fscache_enqueue_operation(struct fs
+ 		_debug("queue for caller's attention");
+ 		break;
+ 	default:
+-		printk(KERN_ERR "FS-Cache: Unexpected op type %lx",
+-		       op->flags);
++		pr_err("Unexpected op type %lx", op->flags);
+ 		BUG();
+ 		break;
+ 	}
+diff -puN fs/fscache/page.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/page.c
+--- a/fs/fscache/page.c~fs-fscache-convert-printk-to-pr_foo
++++ a/fs/fscache/page.c
+@@ -1108,10 +1108,8 @@ void fscache_mark_page_cached(struct fsc
+ 		static bool once_only;
+ 		if (!once_only) {
+ 			once_only = true;
+-			printk(KERN_WARNING "FS-Cache:"
+-			       " Cookie type %s marked page %lx"
+-			       " multiple times\n",
+-			       cookie->def->name, page->index);
++			pr_warn("Cookie type %s marked page %lx multiple times\n",
++				cookie->def->name, page->index);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from john.stultz@linaro.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-printk-disable-preemption-for-printk_sched.patch
-printk-rename-printk_sched-to-printk_deferred.patch
-printk-add-printk_deferred_once.patch
-timekeeping-use-printk_deferred-when-holding-timekeeping-seqlock.patch
+fs-affs-superc-bugfix-double-free.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+kernel-cpusetc-kernel-doc-fixes.patch
+kernel-cpusetc-convert-printk-to-pr_foo.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+linux-next.patch
+init-mainc-code-clean-up.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
