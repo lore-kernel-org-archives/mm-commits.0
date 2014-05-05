@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-reiserfs-streec-remove-obsolete-__constant.patch added to
+Subject: + sysctl-allow-for-strict-write-position-handling.patch added to
  -mm tree
-Date: Mon, 05 May 2014 13:59:46 -0700
-Message-ID: <5367fbc2.KKJYmQv3CqMhAad3%akpm@linux-foundation.org>
+Date: Mon, 05 May 2014 15:00:27 -0700
+Message-ID: <536809fb.eG49eSa21nPSpOU9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51036 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51880 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755558AbaEEU7q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 16:59:46 -0400
+	with ESMTP id S1756316AbaEEWA2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2014 18:00:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jeffm@suse.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, keescook@chromium.org
 
-Subject: + fs-reiserfs-streec-remove-obsolete-__constant.patch added to -mm tree
-To: fabf@skynet.be,jeffm@suse.com
+Subject: + sysctl-allow-for-strict-write-position-handling.patch added to -mm tree
+To: keescook@chromium.org,rdunlap@infradead.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 May 2014 13:59:46 -0700
+Date: Mon, 05 May 2014 15:00:27 -0700
 
 
 The patch titled
-     Subject: fs/reiserfs/stree.c: remove obsolete __constant
+     Subject: sysctl: allow for strict write position handling
 has been added to the -mm tree.  Its filename is
-     fs-reiserfs-streec-remove-obsolete-__constant.patch
+     sysctl-allow-for-strict-write-position-handling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-reiserfs-streec-remove-obsolete-__constant.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-allow-for-strict-write-position-handling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-reiserfs-streec-remove-obsolete-__constant.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-allow-for-strict-write-position-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,87 +44,236 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/reiserfs/stree.c: remove obsolete __constant
+From: Kees Cook <keescook@chromium.org>
+Subject: sysctl: allow for strict write position handling
 
-__constant_cpu_to_le32 converted to cpu_to_le32
+When writing to a sysctl string, each write, regardless of VFS position,
+begins writing the string from the start.  This means the contents of the
+last write to the sysctl controls the string contents instead of the
+first:
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Jeff Mahoney <jeffm@suse.com>
+open("/proc/sys/kernel/modprobe", O_WRONLY)   = 1
+write(1, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"..., 4096) = 4096
+write(1, "/bin/true", 9)                = 9
+close(1)                                = 0
+
+$ cat /proc/sys/kernel/modprobe
+/bin/true
+
+Expected behaviour would be to have the sysctl be "AAAA..." capped at
+maxlen (in this case KMOD_PATH_LEN: 256), instead of truncating to the
+contents of the second write.  Similarly, multiple short writes would not
+append to the sysctl.
+
+The old behavior is unlike regular POSIX files enough that doing audits of
+software that interact with sysctls can end up in unexpected or dangerous
+situations.  For example, "as long as the input starts with a trusted
+path" turns out to be an insufficient filter, as what must also happen is
+for the input to be entirely contained in a single write syscall -- not a
+common consideration, especially for high level tools.
+
+This provides kernel.sysctl_writes_strict as a way to make this behavior
+act in a less surprising manner for strings, and disallows non-zero file
+position when writing numeric sysctls (similar to what is already done
+when reading from non-zero file positions).  For now, the default (0) is
+to warn about non-zero file position use, but retain the legacy behavior. 
+Setting this to -1 disables the warning, and setting this to 1 enables the
+file position respecting behavior.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/stree.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/sysctl/kernel.txt |   21 +++++++++
+ kernel/sysctl.c                 |   69 +++++++++++++++++++++++++++++-
+ 2 files changed, 88 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiserfs/stree.c~fs-reiserfs-streec-remove-obsolete-__constant fs/reiserfs/stree.c
---- a/fs/reiserfs/stree.c~fs-reiserfs-streec-remove-obsolete-__constant
-+++ a/fs/reiserfs/stree.c
-@@ -228,10 +228,10 @@ const struct reiserfs_key MIN_KEY = { 0,
+diff -puN Documentation/sysctl/kernel.txt~sysctl-allow-for-strict-write-position-handling Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~sysctl-allow-for-strict-write-position-handling
++++ a/Documentation/sysctl/kernel.txt
+@@ -77,6 +77,7 @@ show up in /proc/sys/kernel:
+ - shmmni
+ - stop-a                      [ SPARC only ]
+ - sysrq                       ==> Documentation/sysrq.txt
++- sysctl_writes_strict
+ - tainted
+ - threads-max
+ - unknown_nmi_panic
+@@ -762,6 +763,26 @@ without users and with a dead originativ
  
- /* Maximal possible key. It is never in the tree. */
- static const struct reiserfs_key MAX_KEY = {
--	__constant_cpu_to_le32(0xffffffff),
--	__constant_cpu_to_le32(0xffffffff),
--	{{__constant_cpu_to_le32(0xffffffff),
--	  __constant_cpu_to_le32(0xffffffff)},}
-+	cpu_to_le32(0xffffffff),
-+	cpu_to_le32(0xffffffff),
-+	{{cpu_to_le32(0xffffffff),
-+	  cpu_to_le32(0xffffffff)},}
- };
+ ==============================================================
  
- /* Get delimiting key of the buffer by looking for it in the buffers in the path, starting from the bottom
++sysctl_writes_strict:
++
++Control how file position affects the behavior of updating sysctl values
++via the /proc/sys interface:
++
++  -1 - Legacy per-write sysctl value handling, with no printk warnings.
++       Each write syscall must fully contain the sysctl value to be
++       written, and multiple writes on the same sysctl file descriptor
++       will rewrite the sysctl value, regardless of file position.
++   0 - (default) Same behavior as above, but warn about processes that
++       perform writes to a sysctl file descriptor when the file position
++       is not 0.
++   1 - Respect file position when writing sysctl strings. Multiple writes
++       will append to the sysctl value buffer. Anything past the max length
++       of the sysctl value buffer will be ignored. Writes to numeric sysctl
++       entries must always be at file position 0 and the value must be
++       fully contained in the buffer sent in the write syscall.
++
++==============================================================
++
+ tainted:
+ 
+ Non-zero if the kernel has been tainted.  Numeric values, which
+diff -puN kernel/sysctl.c~sysctl-allow-for-strict-write-position-handling kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-allow-for-strict-write-position-handling
++++ a/kernel/sysctl.c
+@@ -173,6 +173,13 @@ extern int no_unaligned_warning;
+ #endif
+ 
+ #ifdef CONFIG_PROC_SYSCTL
++
++#define SYSCTL_WRITES_LEGACY	-1
++#define SYSCTL_WRITES_WARN	 0
++#define SYSCTL_WRITES_STRICT	 1
++
++static int sysctl_writes_strict = SYSCTL_WRITES_WARN;
++
+ static int proc_do_cad_pid(struct ctl_table *table, int write,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos);
+ static int proc_taint(struct ctl_table *table, int write,
+@@ -495,6 +502,15 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_taint,
+ 	},
++	{
++		.procname	= "sysctl_writes_strict",
++		.data		= &sysctl_writes_strict,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &neg_one,
++		.extra2		= &one,
++	},
+ #endif
+ #ifdef CONFIG_LATENCYTOP
+ 	{
+@@ -1712,8 +1728,20 @@ static int _proc_do_string(char *data, i
+ 	}
+ 
+ 	if (write) {
+-		/* Start writing from beginning of buffer. */
+-		len = 0;
++		if (sysctl_writes_strict == SYSCTL_WRITES_STRICT) {
++			/* Only continue writes not past the end of buffer. */
++			len = strlen(data);
++			if (len > maxlen - 1)
++				len = maxlen - 1;
++
++			if (*ppos > len)
++				return 0;
++			len = *ppos;
++		} else {
++			/* Start writing from beginning of buffer. */
++			len = 0;
++		}
++
+ 		*ppos += *lenp;
+ 		p = buffer;
+ 		while ((p - buffer) < *lenp && len < maxlen - 1) {
+@@ -1753,6 +1781,14 @@ static int _proc_do_string(char *data, i
+ 	return 0;
+ }
+ 
++static void warn_sysctl_write(struct ctl_table *table)
++{
++	pr_warn("%s wrote to %s when file position was not 0!\n",
++		current->task_comm, table->procname);
++	pr_warn("This will not be supported in the future.\n");
++	pr_warn("To silence warning, set kernel.sysctl_writes_strict = -1\n");
++}
++
+ /**
+  * proc_dostring - read a string sysctl
+  * @table: the sysctl table
+@@ -1773,6 +1809,9 @@ static int _proc_do_string(char *data, i
+ int proc_dostring(struct ctl_table *table, int write,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
++	if (write && *ppos && sysctl_writes_strict == SYSCTL_WRITES_WARN)
++		warn_sysctl_write(table);
++
+ 	return _proc_do_string((char *)(table->data), table->maxlen, write,
+ 			       (char __user *)buffer, lenp, ppos);
+ }
+@@ -1948,6 +1987,18 @@ static int __do_proc_dointvec(void *tbl_
+ 		conv = do_proc_dointvec_conv;
+ 
+ 	if (write) {
++		if (*ppos) {
++			switch (sysctl_writes_strict) {
++			case SYSCTL_WRITES_STRICT:
++				goto out;
++			case SYSCTL_WRITES_WARN:
++				warn_sysctl_write(table);
++				break;
++			default:
++				break;
++			}
++		}
++
+ 		if (left > PAGE_SIZE - 1)
+ 			left = PAGE_SIZE - 1;
+ 		page = __get_free_page(GFP_TEMPORARY);
+@@ -2005,6 +2056,7 @@ free:
+ 			return err ? : -EINVAL;
+ 	}
+ 	*lenp -= left;
++out:
+ 	*ppos += *lenp;
+ 	return err;
+ }
+@@ -2197,6 +2249,18 @@ static int __do_proc_doulongvec_minmax(v
+ 	left = *lenp;
+ 
+ 	if (write) {
++		if (*ppos) {
++			switch (sysctl_writes_strict) {
++			case SYSCTL_WRITES_STRICT:
++				goto out;
++			case SYSCTL_WRITES_WARN:
++				warn_sysctl_write(table);
++				break;
++			default:
++				break;
++			}
++		}
++
+ 		if (left > PAGE_SIZE - 1)
+ 			left = PAGE_SIZE - 1;
+ 		page = __get_free_page(GFP_TEMPORARY);
+@@ -2252,6 +2316,7 @@ free:
+ 			return err ? : -EINVAL;
+ 	}
+ 	*lenp -= left;
++out:
+ 	*ppos += *lenp;
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-fs-affs-superc-bugfix-double-free.patch
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
-fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
-fs-fscache-convert-printk-to-pr_foo.patch
-ntfs-remove-null-value-assignments.patch
-fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
-fs-configs-itemc-kernel-doc-fixes-clean-up.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
-fs-9p-kerneldoc-fixes.patch
-mm-slubc-convert-printk-to-pr_foo.patch
-mm-slubc-convert-vnsprintf-static-to-va_format.patch
-mm-memory_hotplugc-use-pfn_down.patch
-mm-memblockc-use-pfn_down.patch
-mm-memcontrolc-remove-null-assignment-on-static.patch
-mm-vmallocc-replace-seq_printf-by-seq_puts.patch
-mm-zbudc-make-size-unsigned-like-unique-callsite.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-kernel-cpuc-convert-printk-to-pr_foo.patch
-kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
-kernel-capabilityc-code-clean-up.patch
-kernel-exec_domainc-code-clean-up.patch
-lib-libcrc32cc-use-ptr_err_or_zero.patch
-lib-vsprintfc-fix-comparison-to-bool.patch
-kernel-compatc-use-sizeof-instead-of-sizeof.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-cpusetc-kernel-doc-fixes.patch
-kernel-cpusetc-convert-printk-to-pr_foo.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
+lib-vsprintf-add-%pt-format-specifier.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+ptrace-fix-fork-event-messages-across-pid-namespaces.patch
+sysctl-clean-up-char-buffer-arguments.patch
+sysctl-refactor-sysctl-string-writing-logic.patch
+sysctl-allow-for-strict-write-position-handling.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+tools-testing-selftests-sysctl-validate-sysctl_writes_strict.patch
+tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
 linux-next.patch
-init-mainc-code-clean-up.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
 
