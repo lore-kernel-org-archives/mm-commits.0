@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-mm-introduce-lowlimit-reclaim-fix.patch added to -mm tree
-Date: Tue, 06 May 2014 13:11:35 -0700
-Message-ID: <536941f7.1LQci3OUykAxk1Xb%akpm@linux-foundation.org>
+Subject: +
+ smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch added to -mm tree
+Date: Tue, 06 May 2014 13:41:13 -0700
+Message-ID: <536948e9.sk1ItX3vTVnbkVOB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40070 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40623 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753916AbaEFULg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 16:11:36 -0400
+	with ESMTP id S1752522AbaEFUlP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 16:41:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, klamm@yandex-team.ru, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, rostedt@goodmis.org, rjw@rjwysocki.net, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, mgalbraith@suse.de, hch@infradead.org, fweisbec@gmail.com, ego@linux.vnet.ibm.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com
 
-Subject: + memcg-mm-introduce-lowlimit-reclaim-fix.patch added to -mm tree
-To: mhocko@suse.cz,gthelen@google.com,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,klamm@yandex-team.ru,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,walken@google.com
+Subject: + smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch added to -mm tree
+To: srivatsa.bhat@linux.vnet.ibm.com,bp@suse.de,ego@linux.vnet.ibm.com,fweisbec@gmail.com,hch@infradead.org,mgalbraith@suse.de,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,rjw@rjwysocki.net,rostedt@goodmis.org,rusty@rustcorp.com.au,tglx@linutronix.de,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 06 May 2014 13:11:35 -0700
+Date: Tue, 06 May 2014 13:41:13 -0700
 
 
 The patch titled
-     Subject: memcg-mm-introduce-lowlimit-reclaim-fix
+     Subject: smp: print more useful debug info upon receiving IPI on an offline CPU
 has been added to the -mm tree.  Its filename is
-     memcg-mm-introduce-lowlimit-reclaim-fix.patch
+     smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-mm-introduce-lowlimit-reclaim-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-mm-introduce-lowlimit-reclaim-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,182 +44,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg-mm-introduce-lowlimit-reclaim-fix
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: smp: print more useful debug info upon receiving IPI on an offline CPU
 
-mem_cgroup_reclaim_eligible -> mem_cgroup_within_guarantee
-follow_low_limit -> honor_memcg_guarantee
-and as suggested by Johannes.
+There is a longstanding problem related to CPU hotplug which causes IPIs
+to be delivered to offline CPUs, and the smp-call-function IPI handler
+code prints out a warning whenever this is detected.  Every once in a
+while this (usually harmless) warning gets reported on LKML, but so far it
+has not been completely fixed.  Usually the solution involves finding out
+the IPI sender and fixing it by adding appropriate synchronization with
+CPU hotplug.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Michel Lespinasse <walken@google.com>
+However, while going through one such internal bug reports, I found that
+there is a significant bug in the receiver side itself (more specifically,
+in stop-machine) that can lead to this problem even when the sender code
+is perfectly fine.  This patchset fixes that synchronization problem in
+the CPU hotplug stop-machine code.
+
+Patch 1 adds some additional debug code to the smp-call-function
+framework, to help debug such issues easily.
+
+Patch 2 modifies the stop-machine code to ensure that any IPIs that were
+sent while the target CPU was online, would be noticed and handled by that
+CPU without fail before it goes offline.  Thus, this avoids scenarios
+where IPIs are received on offline CPUs (as long as the sender uses proper
+hotplug synchronization).
+
+
+In fact, I debugged the problem by using Patch 1, and found that the
+payload of the IPI was always the block layer's trigger_softirq()
+function.  But I was not able to find anything wrong with the block layer
+code.  That's when I started looking at the stop-machine code and realized
+that there is a race-window which makes the IPI _receiver_ the culprit,
+not the sender.  Patch 2 fixes that race and hence this should put an end
+to most of the hard-to-debug IPI-to-offline-CPU issues.
+
+
+
+
+This patch (of 2):
+
+Today the smp-call-function code just prints a warning if we get an IPI on
+an offline CPU.  This info is sufficient to let us know that something
+went wrong, but often it is very hard to debug exactly who sent the IPI
+and why, from this info alone.
+
+In most cases, we get the warning about the IPI to an offline CPU,
+immediately after the CPU going offline comes out of the stop-machine
+phase and reenables interrupts.  Since all online CPUs participate in
+stop-machine, the information regarding the sender of the IPI is already
+lost by the time we exit the stop-machine loop.  So even if we dump the
+stack on each CPU at this point, we won't find anything useful since all
+of them will show the stack-trace of the stopper thread.  So we need a
+better way to figure out who sent the IPI and why.
+
+To achieve this, when we detect an IPI targeted to an offline CPU, loop
+through the call-single-data linked list and print out the payload (i.e.,
+the name of the function which was supposed to be executed by the target
+CPU).  This would give us an insight as to who might have sent the IPI and
+help us debug this further.
+
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Roman Gushchin <klamm@yandex-team.ru>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Mike Galbraith <mgalbraith@suse.de>
+Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 +++---
- mm/memcontrol.c            |   15 ++++++++-------
- mm/vmscan.c                |   25 ++++++++++++++++---------
- 3 files changed, 27 insertions(+), 19 deletions(-)
+ kernel/smp.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcg-mm-introduce-lowlimit-reclaim-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-mm-introduce-lowlimit-reclaim-fix
-+++ a/include/linux/memcontrol.h
-@@ -92,7 +92,7 @@ bool __mem_cgroup_same_or_subtree(const
- bool task_in_mem_cgroup(struct task_struct *task,
- 			const struct mem_cgroup *memcg);
- 
--extern bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
-+extern bool mem_cgroup_within_guarantee(struct mem_cgroup *memcg,
- 		struct mem_cgroup *root);
- 
- extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
-@@ -291,10 +291,10 @@ static inline struct lruvec *mem_cgroup_
- 	return &zone->lruvec;
- }
- 
--static inline bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
-+static inline bool mem_cgroup_within_guarantee(struct mem_cgroup *memcg,
- 		struct mem_cgroup *root)
+diff -puN kernel/smp.c~smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu kernel/smp.c
+--- a/kernel/smp.c~smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu
++++ a/kernel/smp.c
+@@ -185,15 +185,28 @@ void generic_smp_call_function_single_in
  {
--	return true;
-+	return false;
- }
+ 	struct llist_node *entry;
+ 	struct call_single_data *csd, *csd_next;
++	int warn = 0;
  
- static inline struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
-diff -puN mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim-fix
-+++ a/mm/memcontrol.c
-@@ -2802,26 +2802,27 @@ static struct mem_cgroup *mem_cgroup_loo
- }
+ 	/*
+ 	 * Shouldn't receive this interrupt on a cpu that is not yet online.
+ 	 */
+-	WARN_ON_ONCE(!cpu_online(smp_processor_id()));
++	if (unlikely(!cpu_online(smp_processor_id()))) {
++		warn = 1;
++		WARN_ON_ONCE(1);
++	}
  
- /**
-- * mem_cgroup_reclaim_eligible - checks whether given memcg is eligible for the
-- * reclaim
-+ * mem_cgroup_within_guarantee - checks whether given memcg is within its
-+ * memory guarantee
-  * @memcg: target memcg for the reclaim
-  * @root: root of the reclaim hierarchy (null for the global reclaim)
-  *
-- * The given group is reclaimable if it is above its low limit and the same
-- * applies for all parents up the hierarchy until root (including).
-+ * The given group is within its reclaim gurantee if it is below its low limit
-+ * or the same applies for any parent up the hierarchy until root (including).
-+ * Such a group might be excluded from the reclaim.
-  */
--bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
-+bool mem_cgroup_within_guarantee(struct mem_cgroup *memcg,
- 		struct mem_cgroup *root)
- {
- 	do {
- 		if (!res_counter_low_limit_excess(&memcg->res))
--			return false;
-+			return true;
- 		if (memcg == root)
- 			break;
+ 	entry = llist_del_all(&__get_cpu_var(call_single_queue));
+ 	entry = llist_reverse_order(entry);
  
- 	} while ((memcg = parent_mem_cgroup(memcg)));
- 
--	return true;
-+	return false;
- }
- 
- struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
-diff -puN mm/vmscan.c~memcg-mm-introduce-lowlimit-reclaim-fix mm/vmscan.c
---- a/mm/vmscan.c~memcg-mm-introduce-lowlimit-reclaim-fix
-+++ a/mm/vmscan.c
-@@ -2233,8 +2233,18 @@ static inline bool should_continue_recla
- 	}
- }
- 
-+/**
-+ * __shrink_zone - shrinks a given zone
-+ *
-+ * @zone: zone to shrink
-+ * @sc: scan control with additional reclaim parameters
-+ * @honor_memcg_guarantee: do not reclaim memcgs which are within their memory
-+ * guarantee
-+ *
-+ * Returns the number of reclaimed memcgs.
-+ */
- static unsigned __shrink_zone(struct zone *zone, struct scan_control *sc,
--		bool follow_low_limit)
-+		bool honor_memcg_guarantee)
- {
- 	unsigned long nr_reclaimed, nr_scanned;
- 	unsigned nr_scanned_groups = 0;
-@@ -2254,12 +2264,9 @@ static unsigned __shrink_zone(struct zon
- 		do {
- 			struct lruvec *lruvec;
- 
--			/*
--			 * Memcg might be under its low limit so we have to
--			 * skip it during the first reclaim round
--			 */
--			if (follow_low_limit &&
--					!mem_cgroup_reclaim_eligible(memcg, root)) {
-+			/* Memcg might be protected from the reclaim */
-+			if (honor_memcg_guarantee &&
-+					mem_cgroup_within_guarantee(memcg, root)) {
- 				/*
- 				 * It would be more optimal to skip the memcg
- 				 * subtree now but we do not have a memcg iter
-@@ -2307,8 +2314,8 @@ static void shrink_zone(struct zone *zon
- 	if (!__shrink_zone(zone, sc, true)) {
- 		/*
- 		 * First round of reclaim didn't find anything to reclaim
--		 * because of low limit protection so try again and ignore
--		 * the low limit this time.
-+		 * because of the memory guantees for all memcgs in the
-+		 * reclaim target so try again and ignore guarantees this time.
- 		 */
- 		__shrink_zone(zone, sc, false);
- 	}
++	if (unlikely(warn)) {
++		/*
++		 * We don't have to use the _safe() variant here
++		 * because we are not invoking the IPI handlers yet.
++		 */
++		llist_for_each_entry(csd, entry, llist)
++			pr_warn("SMP IPI Payload: %pS \n", csd->func);
++	}
++
+ 	llist_for_each_entry_safe(csd, csd_next, entry, llist) {
+ 		csd->func(csd->info);
+ 		csd_unlock(csd);
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
 
-slub-fix-memcg_propagate_slab_attrs.patch
-mmwriteback-fix-divide-by-zero-in-pos_ratio_polynom.patch
-slb-charge-slabs-to-kmemcg-explicitly.patch
-mm-get-rid-of-__gfp_kmemcg.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
-mm-disable-zone_reclaim_mode-by-default.patch
-mm-page_alloc-do-not-cache-reclaim-distances.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-documentation-memcg-warn-about-incomplete-kmemcg-state.patch
-memcg-kill-config_mm_owner.patch
-memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-memcg-slab-do-not-schedule-cache-destruction-when-last-page-goes-away.patch
-memcg-slab-merge-memcg_bindrelease_pages-to-memcg_uncharge_slab.patch
-memcg-slab-simplify-synchronization-scheme.patch
-memcg-mm_update_next_owner-should-skip-kthreads.patch
-memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner.patch
-memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
-memcg-mm-introduce-lowlimit-reclaim.patch
-memcg-mm-introduce-lowlimit-reclaim-fix.patch
-memcg-allow-setting-low_limit.patch
-memcg-doc-clarify-global-vs-limit-reclaims.patch
-memcg-document-memorylow_limit_in_bytes.patch
-vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-oom_control.patch
-mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
-mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
-linux-next.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
 
