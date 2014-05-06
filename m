@@ -1,115 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch removed from -mm tree
-Date: Tue, 06 May 2014 12:47:07 -0700
-Message-ID: <53693c3b.RmXSaiZGaHwVori3%akpm@linux-foundation.org>
+Subject: + memcg-doc-clarify-global-vs-limit-reclaims-fix.patch added to
+ -mm tree
+Date: Tue, 06 May 2014 13:13:03 -0700
+Message-ID: <5369424f.M7/Wu/OsR+R5/bcm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40152 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754024AbaEFTrI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 15:47:08 -0400
+	with ESMTP id S1750982AbaEFUNE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 16:13:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, nacc@linux.vnet.ibm.com, mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, walken@google.com, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, klamm@yandex-team.ru, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz
 
-Subject: [folded-merged] hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,aneesh.kumar@linux.vnet.ibm.com,mgorman@suse.de,nacc@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: + memcg-doc-clarify-global-vs-limit-reclaims-fix.patch added to -mm tree
+To: mhocko@suse.cz,gthelen@google.com,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,klamm@yandex-team.ru,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,walken@google.com
 From: akpm@linux-foundation.org
-Date: Tue, 06 May 2014 12:47:07 -0700
+Date: Tue, 06 May 2014 13:13:03 -0700
 
 
 The patch titled
-     Subject: hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix
-has been removed from the -mm tree.  Its filename was
-     hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+     Subject: memcg-doc-clarify-global-vs-limit-reclaims-fix
+has been added to the -mm tree.  Its filename is
+     memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
 
-This patch was dropped because it was folded into hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg-doc-clarify-global-vs-limit-reclaims-fix
 
-use pr_info(), per Mel
+update doc as per Johannes
 
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Roman Gushchin <klamm@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/cgroups/memory.txt |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -1031,7 +1031,7 @@ static int __init init_hugetlbfs_fs(void
- 	int i;
+diff -puN Documentation/cgroups/memory.txt~memcg-doc-clarify-global-vs-limit-reclaims-fix Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-doc-clarify-global-vs-limit-reclaims-fix
++++ a/Documentation/cgroups/memory.txt
+@@ -241,17 +241,9 @@ global VM. Cgroups can get reclaimed bas
+    proportionally wrt. their LRU size in a round robin fashion
+  - when a cgroup or its hierarchical parent (see 6. Hierarchical support)
+    hits hard limit. If the reclaim is unsuccessful, an OOM routine is invoked
+-   to select and kill the bulkiest task in the cgroup. (See 10. OOM Control
++   to select and kill the bulkiest task in the hiearchy. (See 10. OOM Control
+    below.)
  
- 	if (!hugepages_supported()) {
--		printk(KERN_ERR "hugetlbfs: Disabling because there are no supported hugepage sizes\n");
-+		pr_info("hugetlbfs: disabling because there are no supported hugepage sizes\n");
- 		return -ENOTSUPP;
- 	}
+-Global and hard-limit reclaims share the same code the only difference
+-is the objective of the reclaim. The global reclaim aims at balancing
+-zones' watermarks while the limit reclaim frees some memory to allow new
+-charges.
+-
+-NOTE: Hard limit reclaim does not work for the root cgroup, since we cannot set
+-any limits on the root cgroup.
+-
+ Note2: When panic_on_oom is set to "2", the whole system will panic.
  
+ When oom event notifier is registered, event will be delivered to the root
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported.patch
-hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix-fix.patch
-slub-use-sysfses-release-mechanism-for-kmem_cache.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+slub-fix-memcg_propagate_slab_attrs.patch
+mmwriteback-fix-divide-by-zero-in-pos_ratio_polynom.patch
+slb-charge-slabs-to-kmemcg-explicitly.patch
+mm-get-rid-of-__gfp_kmemcg.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
+mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
+mm-disable-zone_reclaim_mode-by-default.patch
+mm-page_alloc-do-not-cache-reclaim-distances.patch
 mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-sysctl-allow-for-strict-write-position-handling-fix-2.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-tools-testing-selftests-sysctl-validate-sysctl_writes_strict-fix.patch
-fs-pstore-logging-clean-up-fix.patch
+documentation-memcg-warn-about-incomplete-kmemcg-state.patch
+memcg-kill-config_mm_owner.patch
+memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
+memcg-slab-do-not-schedule-cache-destruction-when-last-page-goes-away.patch
+memcg-slab-merge-memcg_bindrelease_pages-to-memcg_uncharge_slab.patch
+memcg-slab-simplify-synchronization-scheme.patch
+memcg-mm_update_next_owner-should-skip-kthreads.patch
+memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner.patch
+memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
+memcg-mm-introduce-lowlimit-reclaim.patch
+memcg-mm-introduce-lowlimit-reclaim-fix.patch
+memcg-allow-setting-low_limit.patch
+memcg-doc-clarify-global-vs-limit-reclaims.patch
+memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
+memcg-document-memorylow_limit_in_bytes.patch
+vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-oom_control.patch
+mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
+mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
