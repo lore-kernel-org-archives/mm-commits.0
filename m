@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch added
- to -mm tree
-Date: Tue, 06 May 2014 13:47:45 -0700
-Message-ID: <53694a71.MPy+oSV6PBZuU3sm%akpm@linux-foundation.org>
+Subject: + kernel-profilec-convert-printk-to-pr_foo.patch added to -mm
+ tree
+Date: Tue, 06 May 2014 13:47:44 -0700
+Message-ID: <53694a70.PgGjWGujGL9uJxD/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40853 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40851 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932084AbaEFUrq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 16:47:46 -0400
+	with ESMTP id S1755370AbaEFUrp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 16:47:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paulmck@us.ibm.com, dipankar@in.ibm.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, fabf@skynet.be
 
-Subject: + kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch added to -mm tree
-To: fabf@skynet.be,dipankar@in.ibm.com,paulmck@us.ibm.com
+Subject: + kernel-profilec-convert-printk-to-pr_foo.patch added to -mm tree
+To: fabf@skynet.be,paul.gortmaker@windriver.com
 From: akpm@linux-foundation.org
-Date: Tue, 06 May 2014 13:47:45 -0700
+Date: Tue, 06 May 2014 13:47:44 -0700
 
 
 The patch titled
-     Subject: kernel/rcu/tree.c: make rcu node arrays static const char * const
+     Subject: kernel/profile.c: convert printk to pr_foo()
 has been added to the -mm tree.  Its filename is
-     kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
+     kernel-profilec-convert-printk-to-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-profilec-convert-printk-to-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-profilec-convert-printk-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,48 +45,60 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/rcu/tree.c: make rcu node arrays static const char * const
-
-Those 2 arrays are being passed to lockdep_init_map with const char *
-and stored in lockdep_map the same way
+Subject: kernel/profile.c: convert printk to pr_foo()
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcu/tree.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ kernel/profile.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN kernel/rcu/tree.c~kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const kernel/rcu/tree.c
---- a/kernel/rcu/tree.c~kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const
-+++ a/kernel/rcu/tree.c
-@@ -3468,14 +3468,16 @@ static void __init rcu_init_levelspread(
- static void __init rcu_init_one(struct rcu_state *rsp,
- 		struct rcu_data __percpu *rda)
- {
--	static char *buf[] = { "rcu_node_0",
--			       "rcu_node_1",
--			       "rcu_node_2",
--			       "rcu_node_3" };  /* Match MAX_RCU_LVLS */
--	static char *fqs[] = { "rcu_node_fqs_0",
--			       "rcu_node_fqs_1",
--			       "rcu_node_fqs_2",
--			       "rcu_node_fqs_3" };  /* Match MAX_RCU_LVLS */
-+	static const char * const buf[] = {
-+		"rcu_node_0",
-+		"rcu_node_1",
-+		"rcu_node_2",
-+		"rcu_node_3" };  /* Match MAX_RCU_LVLS */
-+	static const char * const fqs[] = {
-+		"rcu_node_fqs_0",
-+		"rcu_node_fqs_1",
-+		"rcu_node_fqs_2",
-+		"rcu_node_fqs_3" };  /* Match MAX_RCU_LVLS */
- 	int cpustride = 1;
- 	int i;
- 	int j;
+diff -puN kernel/profile.c~kernel-profilec-convert-printk-to-pr_foo kernel/profile.c
+--- a/kernel/profile.c~kernel-profilec-convert-printk-to-pr_foo
++++ a/kernel/profile.c
+@@ -64,12 +64,10 @@ int profile_setup(char *str)
+ 			str += strlen(sleepstr) + 1;
+ 		if (get_option(&str, &par))
+ 			prof_shift = par;
+-		printk(KERN_INFO
+-			"kernel sleep profiling enabled (shift: %ld)\n",
++		pr_info("kernel sleep profiling enabled (shift: %ld)\n",
+ 			prof_shift);
+ #else
+-		printk(KERN_WARNING
+-			"kernel sleep profiling requires CONFIG_SCHEDSTATS\n");
++		pr_warn("kernel sleep profiling requires CONFIG_SCHEDSTATS\n");
+ #endif /* CONFIG_SCHEDSTATS */
+ 	} else if (!strncmp(str, schedstr, strlen(schedstr))) {
+ 		prof_on = SCHED_PROFILING;
+@@ -77,8 +75,7 @@ int profile_setup(char *str)
+ 			str += strlen(schedstr) + 1;
+ 		if (get_option(&str, &par))
+ 			prof_shift = par;
+-		printk(KERN_INFO
+-			"kernel schedule profiling enabled (shift: %ld)\n",
++		pr_info("kernel schedule profiling enabled (shift: %ld)\n",
+ 			prof_shift);
+ 	} else if (!strncmp(str, kvmstr, strlen(kvmstr))) {
+ 		prof_on = KVM_PROFILING;
+@@ -86,13 +83,12 @@ int profile_setup(char *str)
+ 			str += strlen(kvmstr) + 1;
+ 		if (get_option(&str, &par))
+ 			prof_shift = par;
+-		printk(KERN_INFO
+-			"kernel KVM profiling enabled (shift: %ld)\n",
++		pr_info("kernel KVM profiling enabled (shift: %ld)\n",
+ 			prof_shift);
+ 	} else if (get_option(&str, &par)) {
+ 		prof_shift = par;
+ 		prof_on = CPU_PROFILING;
+-		printk(KERN_INFO "kernel profiling enabled (shift: %ld)\n",
++		pr_info("kernel profiling enabled (shift: %ld)\n",
+ 			prof_shift);
+ 	}
+ 	return 1;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
