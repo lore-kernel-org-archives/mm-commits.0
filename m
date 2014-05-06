@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch added to -mm tree
-Date: Tue, 06 May 2014 14:04:56 -0700
-Message-ID: <53694e78.7MAFvZ2Uy72TmYP2%akpm__37871.2281970822$1399410423$gmane$org@linux-foundation.org>
+Subject: + maintainers-add-linux-api-for-review-of-api-abi-changes.patch
+ added to -mm tree
+Date: Tue, 06 May 2014 14:03:53 -0700
+Message-ID: <53694e39.Y1sbUHY80tSRkM7u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41099 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41091 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754524AbaEFVFB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 17:05:01 -0400
+	with ESMTP id S1754960AbaEFVDy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 17:03:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, a.zummo@towertech.it, heiko@sntech.de
+To: mm-commits@vger.kernel.org, rostedt@goodmis.org, joe@perches.com, gregkh@linuxfoundation.org, davem@davemloft.net, josh@joshtriplett.org
 
-Subject: + drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch added to -mm tree
-To: heiko@sntech.de,a.zummo@towertech.it,stable@vger.kernel.org
+Subject: + maintainers-add-linux-api-for-review-of-api-abi-changes.patch added to -mm tree
+To: josh@joshtriplett.org,davem@davemloft.net,gregkh@linuxfoundation.org,joe@perches.com,rostedt@goodmis.org
 From: akpm@linux-foundation.org
-Date: Tue, 06 May 2014 14:04:56 -0700
+Date: Tue, 06 May 2014 14:03:53 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-hym8563.c: set uie_unsupported
+     Subject: MAINTAINERS: add linux-api for review of API/ABI changes
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch
+     maintainers-add-linux-api-for-review-of-api-abi-changes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-linux-api-for-review-of-api-abi-changes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-linux-api-for-review-of-api-abi-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,41 +44,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heiko Stuebner <heiko@sntech.de>
-Subject: drivers/rtc/rtc-hym8563.c: set uie_unsupported
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: MAINTAINERS: add linux-api for review of API/ABI changes
 
-The alarm of the hym8563 only supports a minute accuracy, while the uie
-wants an alarm one second in the future.  Therefore things like the
-select() syscall will fail with a timeout, because the next alarm will
-happen in a worst case of 60 seconds.
+This makes it more likely that patch submitters will CC API/ABI changes to
+the linux-api list, and tools like get_maintainer.pl will do so
+automatically.
 
-Signed-off-by: Heiko Stuebner <heiko@sntech.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-hym8563.c |    3 +++
- 1 file changed, 3 insertions(+)
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/rtc/rtc-hym8563.c~drivers-rtc-rtc-hym8563c-set-uie_unsupported drivers/rtc/rtc-hym8563.c
---- a/drivers/rtc/rtc-hym8563.c~drivers-rtc-rtc-hym8563c-set-uie_unsupported
-+++ a/drivers/rtc/rtc-hym8563.c
-@@ -569,6 +569,9 @@ static int hym8563_probe(struct i2c_clie
- 	if (IS_ERR(hym8563->rtc))
- 		return PTR_ERR(hym8563->rtc);
+diff -puN MAINTAINERS~maintainers-add-linux-api-for-review-of-api-abi-changes MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-linux-api-for-review-of-api-abi-changes
++++ a/MAINTAINERS
+@@ -210,6 +210,13 @@ S:	Supported
+ F:	Documentation/scsi/aacraid.txt
+ F:	drivers/scsi/aacraid/
  
-+	/* the hym8563 alarm only supports a minute accuracy */
-+	hym8563->rtc->uie_unsupported = 1;
++ABI/API
++L:	linux-api@vger.kernel.org
++F:	Documentation/ABI/
++F:	include/linux/syscalls.h
++F:	include/uapi/
++F:	kernel/sys_ni.c
 +
- #ifdef CONFIG_COMMON_CLK
- 	hym8563_clkout_register_clk(hym8563);
- #endif
+ ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
+ M:	Hans de Goede <hdegoede@redhat.com>
+ L:	lm-sensors@lm-sensors.org
 _
 
-Patches currently in -mm which might be from heiko@sntech.de are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
-origin.patch
-drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch
+maintainers-add-linux-api-for-review-of-api-abi-changes.patch
 linux-next.patch
 
