@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch added to -mm tree
-Date: Tue, 06 May 2014 13:41:16 -0700
-Message-ID: <536948ec.wZfYrhaixM5xvdJa%akpm@linux-foundation.org>
+Subject: + kernel-kprobesc-convert-printk-to-pr_foo.patch added to -mm
+ tree
+Date: Tue, 06 May 2014 13:47:41 -0700
+Message-ID: <53694a6d.+DjOsy755Mp3477w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40647 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40843 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755540AbaEFUlR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 16:41:17 -0400
+	with ESMTP id S1751981AbaEFUrm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 16:47:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, rostedt@goodmis.org, rjw@rjwysocki.net, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, mgalbraith@suse.de, hch@infradead.org, fweisbec@gmail.com, ego@linux.vnet.ibm.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, ananth@in.ibm.com, fabf@skynet.be
 
-Subject: + cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch added to -mm tree
-To: srivatsa.bhat@linux.vnet.ibm.com,bp@suse.de,ego@linux.vnet.ibm.com,fweisbec@gmail.com,hch@infradead.org,mgalbraith@suse.de,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,rjw@rjwysocki.net,rostedt@goodmis.org,rusty@rustcorp.com.au,tglx@linutronix.de,tj@kernel.org
+Subject: + kernel-kprobesc-convert-printk-to-pr_foo.patch added to -mm tree
+To: fabf@skynet.be,ananth@in.ibm.com
 From: akpm@linux-foundation.org
-Date: Tue, 06 May 2014 13:41:16 -0700
+Date: Tue, 06 May 2014 13:47:41 -0700
 
 
 The patch titled
-     Subject: CPU hotplug, stop-machine: plug race-window that leads to "IPI-to-offline-CPU"
+     Subject: kernel/kprobes.c: convert printk to pr_foo()
 has been added to the -mm tree.  Its filename is
-     cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
+     kernel-kprobesc-convert-printk-to-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-kprobesc-convert-printk-to-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-kprobesc-convert-printk-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,162 +44,213 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: CPU hotplug, stop-machine: plug race-window that leads to "IPI-to-offline-CPU"
+From: Fabian Frederick <fabf@skynet.be>
+Subject: kernel/kprobes.c: convert printk to pr_foo()
 
-During CPU offline, stop-machine is used to take control over all the
-online CPUs (via the per-cpu stopper thread) and then run take_cpu_down()
-on the CPU that is to be taken offline.
+Also fixes some checkpatch warnings
+-Static initialization
+-Lines over 80 characters
 
-But stop-machine itself has several stages: _PREPARE, _DISABLE_IRQ, _RUN
-etc.  The important thing to note here is that the _DISABLE_IRQ stage
-comes much later after starting stop-machine, and hence there is a large
-window where other CPUs can send IPIs to the CPU going offline.  As a
-result, we can encounter a scenario as depicted below, which causes IPIs
-to be sent to the CPU going offline, and that CPU notices them *after* it
-has gone offline, triggering the "IPI-to-offline-CPU" warning from the
-smp-call-function code.
-
-              CPU 1                                         CPU 2
-          (Online CPU)                               (CPU going offline)
-
-       Enter _PREPARE stage                          Enter _PREPARE stage
-
-                                                     Enter _DISABLE_IRQ stage
-
-                                                   =
-       Got a device interrupt,                     | Didn't notice the IPI
-       and the interrupt handler                   | since interrupts were
-       called smp_call_function()                  | disabled on this CPU.
-       and sent an IPI to CPU 2.                   |
-                                                   =
-
-       Enter _DISABLE_IRQ stage
-
-       Enter _RUN stage                              Enter _RUN stage
-
-                                  =
-       Busy loop with interrupts  |                  Invoke take_cpu_down()
-       disabled.                  |                  and take CPU 2 offline
-                                  =
-
-       Enter _EXIT stage                             Enter _EXIT stage
-
-       Re-enable interrupts                          Re-enable interrupts
-
-                                                     The pending IPI is noted
-                                                     immediately, but alas,
-                                                     the CPU is offline at
-                                                     this point.
-
-So, as we can observe from this scenario, the IPI was sent when CPU 2 was
-still online, and hence it was perfectly legal.  But unfortunately it was
-noted only after CPU 2 went offline, resulting in the warning from the IPI
-handling code.  In other words, the fault was not at the sender, but at
-the receiver side - and if we look closely, the real bug is in the
-stop-machine sequence itself.
-
-The problem here is that the CPU going offline disabled its local
-interrupts (by entering _DISABLE_IRQ phase) *before* the other CPUs.  And
-that's the reason why it was not able to respond to the IPI before going
-offline.
-
-A simple solution to this problem is to ensure that the CPU going offline
-*follows* all other CPUs while entering each subsequent phase within
-stop-machine.  In particular, all other CPUs will enter the _DISABLE_IRQ
-phase and disable their local interrupts, and only *then*, the CPU going
-offline will follow suit.  Since the other CPUs are executing the
-stop-machine code with interrupts disabled, they won't send any IPIs at
-all, at that point.  And by the time stop-machine ends, the CPU would have
-gone offline and disappeared from the cpu_online_mask, and hence future
-invocations of smp_call_function() and friends will automatically prune
-that CPU out.  Thus, we can guarantee that no CPU will end up
-*inadvertently* sending IPIs to an offline CPU.
-
-We can implement this by introducing a "holding area" for the CPUs marked
-as 'active_cpus', and use this infrastructure to let the other CPUs
-progress from one stage to the next, before allowing the active_cpus to do
-the same thing.
-
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Mike Galbraith <mgalbraith@suse.de>
-Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/stop_machine.c |   22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+ kernel/kprobes.c |   36 +++++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 17 deletions(-)
 
-diff -puN kernel/stop_machine.c~cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu kernel/stop_machine.c
---- a/kernel/stop_machine.c~cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu
-+++ a/kernel/stop_machine.c
-@@ -165,12 +165,21 @@ static void ack_state(struct multi_stop_
- 		set_state(msdata, msdata->state + 1);
+diff -puN kernel/kprobes.c~kernel-kprobesc-convert-printk-to-pr_foo kernel/kprobes.c
+--- a/kernel/kprobes.c~kernel-kprobesc-convert-printk-to-pr_foo
++++ a/kernel/kprobes.c
+@@ -76,7 +76,7 @@ static bool kprobes_all_disarmed;
+ 
+ /* This protects kprobe_table and optimizing_list */
+ static DEFINE_MUTEX(kprobe_mutex);
+-static DEFINE_PER_CPU(struct kprobe *, kprobe_instance) = NULL;
++static DEFINE_PER_CPU(struct kprobe *, kprobe_instance);
+ static struct {
+ 	raw_spinlock_t lock ____cacheline_aligned_in_smp;
+ } kretprobe_table_locks[KPROBE_TABLE_SIZE];
+@@ -297,9 +297,9 @@ static inline void reset_kprobe_instance
+ 
+ /*
+  * This routine is called either:
+- * 	- under the kprobe_mutex - during kprobe_[un]register()
+- * 				OR
+- * 	- with preemption disabled - from arch/xxx/kernel/kprobes.c
++ *	- under the kprobe_mutex - during kprobe_[un]register()
++ *				OR
++ *	- with preemption disabled - from arch/xxx/kernel/kprobes.c
+  */
+ struct kprobe *get_kprobe(void *addr)
+ {
+@@ -567,7 +567,8 @@ static void wait_for_kprobe_optimizer(vo
+ {
+ 	mutex_lock(&kprobe_mutex);
+ 
+-	while (!list_empty(&optimizing_list) || !list_empty(&unoptimizing_list)) {
++	while (!list_empty(&optimizing_list) ||
++	       !list_empty(&unoptimizing_list)) {
+ 		mutex_unlock(&kprobe_mutex);
+ 
+ 		/* this will also make optimizing_work execute immmediately */
+@@ -676,8 +677,8 @@ static void reuse_unused_kprobe(struct k
+ 	 */
+ 	op = container_of(ap, struct optimized_kprobe, kp);
+ 	if (unlikely(list_empty(&op->list)))
+-		printk(KERN_WARNING "Warning: found a stray unused "
+-			"aggrprobe@%p\n", ap->addr);
++		pr_warn("Warning: found a stray unused aggrprobe@%p\n",
++			ap->addr);
+ 	/* Enable the probe again */
+ 	ap->flags &= ~KPROBE_FLAG_DISABLED;
+ 	/* Optimize it again (remove from op->list) */
+@@ -794,7 +795,7 @@ static void optimize_all_kprobes(void)
+ 			if (!kprobe_disabled(p))
+ 				optimize_kprobe(p);
+ 	}
+-	printk(KERN_INFO "Kprobes globally optimized\n");
++	pr_info("Kprobes globally optimized\n");
+ out:
+ 	mutex_unlock(&kprobe_mutex);
+ }
+@@ -824,7 +825,7 @@ static void unoptimize_all_kprobes(void)
+ 
+ 	/* Wait for unoptimizing completion */
+ 	wait_for_kprobe_optimizer();
+-	printk(KERN_INFO "Kprobes globally unoptimized\n");
++	pr_info("Kprobes globally unoptimized\n");
  }
  
-+/* Holding area for active CPUs, to let all the non-active CPUs go first */
-+static void hold_active_cpus(struct multi_stop_data *msdata,
-+			     int num_active_cpus)
-+{
-+	/* Wait until all the non-active threads ack the state */
-+	while (atomic_read(&msdata->thread_ack) > num_active_cpus)
-+		cpu_relax();
-+}
-+
- /* This is the cpu_stop function which stops the CPU. */
- static int multi_cpu_stop(void *data)
+ static DEFINE_MUTEX(kprobe_sysctl_mutex);
+@@ -896,7 +897,7 @@ static void __disarm_kprobe(struct kprob
+ /* There should be no unused kprobes can be reused without optimization */
+ static void reuse_unused_kprobe(struct kprobe *ap)
  {
- 	struct multi_stop_data *msdata = data;
- 	enum multi_stop_state curstate = MULTI_STOP_NONE;
--	int cpu = smp_processor_id(), err = 0;
-+	int cpu = smp_processor_id(), num_active_cpus, err = 0;
- 	unsigned long flags;
- 	bool is_active;
+-	printk(KERN_ERR "Error: There should be no unused kprobe here.\n");
++	pr_err("Error: There should be no unused kprobe here.\n");
+ 	BUG_ON(kprobe_unused(ap));
+ }
  
-@@ -180,15 +189,22 @@ static int multi_cpu_stop(void *data)
- 	 */
- 	local_save_flags(flags);
+@@ -955,7 +956,8 @@ static void disarm_kprobe_ftrace(struct
+ 	}
+ 	ret = ftrace_set_filter_ip(&kprobe_ftrace_ops,
+ 			   (unsigned long)p->addr, 1, 0);
+-	WARN(ret < 0, "Failed to disarm kprobe-ftrace at %p (%d)\n", p->addr, ret);
++	WARN(ret < 0, "Failed to disarm kprobe-ftrace at %p (%d)\n",
++	     p->addr, ret);
+ }
+ #else	/* !CONFIG_KPROBES_ON_FTRACE */
+ #define prepare_kprobe(p)	arch_prepare_kprobe(p)
+@@ -1389,7 +1391,7 @@ static struct kprobe *__get_valid_kprobe
+ 	if (p != ap) {
+ 		list_for_each_entry_rcu(list_p, &ap->list, list)
+ 			if (list_p == p)
+-			/* kprobe p is a valid probe */
++				/* kprobe p is a valid probe */
+ 				goto valid;
+ 		return NULL;
+ 	}
+@@ -2018,8 +2020,8 @@ EXPORT_SYMBOL_GPL(enable_kprobe);
  
--	if (!msdata->active_cpus)
-+	if (!msdata->active_cpus) {
- 		is_active = cpu == cpumask_first(cpu_online_mask);
--	else
-+		num_active_cpus = 1;
-+	} else {
- 		is_active = cpumask_test_cpu(cpu, msdata->active_cpus);
-+		num_active_cpus = cpumask_weight(msdata->active_cpus);
-+	}
+ void dump_kprobe(struct kprobe *kp)
+ {
+-	printk(KERN_WARNING "Dumping kprobe:\n");
+-	printk(KERN_WARNING "Name: %s\nAddress: %p\nOffset: %x\n",
++	pr_warn("Dumping kprobe:\n");
++	pr_warn("Name: %s\nAddress: %p\nOffset: %x\n",
+ 	       kp->symbol_name, kp->addr, kp->offset);
+ }
+ NOKPROBE_SYMBOL(dump_kprobe);
+@@ -2128,7 +2130,7 @@ static int __init init_kprobes(void)
+ 			kprobe_lookup_name(kretprobe_blacklist[i].name,
+ 					   kretprobe_blacklist[i].addr);
+ 			if (!kretprobe_blacklist[i].addr)
+-				printk("kretprobe: lookup failed: %s\n",
++				pr_warn("kretprobe: lookup failed: %s\n",
+ 				       kretprobe_blacklist[i].name);
+ 		}
+ 	}
+@@ -2310,7 +2312,7 @@ static void arm_all_kprobes(void)
+ 	}
  
- 	/* Simple state machine */
- 	do {
- 		/* Chill out and ensure we re-read multi_stop_state. */
- 		cpu_relax();
-+
-+		if (is_active)
-+			hold_active_cpus(msdata, num_active_cpus);
-+
- 		if (msdata->state != curstate) {
- 			curstate = msdata->state;
- 			switch (curstate) {
+ 	kprobes_all_disarmed = false;
+-	printk(KERN_INFO "Kprobes globally enabled\n");
++	pr_info("Kprobes globally enabled\n");
+ 
+ already_enabled:
+ 	mutex_unlock(&kprobe_mutex);
+@@ -2332,7 +2334,7 @@ static void disarm_all_kprobes(void)
+ 	}
+ 
+ 	kprobes_all_disarmed = true;
+-	printk(KERN_INFO "Kprobes globally disabled\n");
++	pr_info("Kprobes globally disabled\n");
+ 
+ 	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
+ 		head = &kprobe_table[i];
 _
 
-Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
+origin.patch
+fs-affs-superc-bugfix-double-free.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+fs-fscache-replace-seq_printf-by-seq_puts.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-cpusetc-kernel-doc-fixes.patch
+kernel-cpusetc-convert-printk-to-pr_foo.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+linux-next.patch
+init-mainc-code-clean-up.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
 
