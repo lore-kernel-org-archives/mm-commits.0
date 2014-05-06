@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-latencytopc-convert-seq_printf-to-seq_puts.patch added
- to -mm tree
-Date: Tue, 06 May 2014 13:47:42 -0700
-Message-ID: <53694a6e.LDig8zCk0Uj/fPvW%akpm@linux-foundation.org>
+Subject: +
+ arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch added to
+ -mm tree
+Date: Tue, 06 May 2014 13:47:39 -0700
+Message-ID: <53694a6b.x1UU2RX7PsxbpDsV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40838 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754820AbaEFUrn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 16:47:43 -0400
+	with ESMTP id S1751981AbaEFUrk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 16:47:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, gxt@mprc.pku.edu.cn, fabf@skynet.be
 
-Subject: + kernel-latencytopc-convert-seq_printf-to-seq_puts.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch added to -mm tree
+To: fabf@skynet.be,gxt@mprc.pku.edu.cn
 From: akpm@linux-foundation.org
-Date: Tue, 06 May 2014 13:47:42 -0700
+Date: Tue, 06 May 2014 13:47:39 -0700
 
 
 The patch titled
-     Subject: kernel/latencytop.c: convert seq_printf to seq_puts
+     Subject: arch/unicore32/mm/ioremap.c: convert printk/warn_on to warn(1
 has been added to the -mm tree.  Its filename is
-     kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+     arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,39 +46,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/latencytop.c: convert seq_printf to seq_puts
+Subject: arch/unicore32/mm/ioremap.c: convert printk/warn_on to warn(1
 
-This patch also fixes one function declaration over 80 characters.
++coalesce formats
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/latencytop.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/unicore32/mm/ioremap.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN kernel/latencytop.c~kernel-latencytopc-convert-seq_printf-to-seq_puts kernel/latencytop.c
---- a/kernel/latencytop.c~kernel-latencytopc-convert-seq_printf-to-seq_puts
-+++ a/kernel/latencytop.c
-@@ -88,7 +88,8 @@ static void clear_global_latency_tracing
- }
+diff -puN arch/unicore32/mm/ioremap.c~arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1 arch/unicore32/mm/ioremap.c
+--- a/arch/unicore32/mm/ioremap.c~arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1
++++ a/arch/unicore32/mm/ioremap.c
+@@ -143,13 +143,8 @@ void __iomem *__uc32_ioremap_pfn_caller(
+ 	/*
+ 	 * Don't allow RAM to be mapped
+ 	 */
+-	if (pfn_valid(pfn)) {
+-		printk(KERN_WARNING "BUG: Your driver calls ioremap() on\n"
+-			"system memory.  This leads to architecturally\n"
+-			"unpredictable behaviour, and ioremap() will fail in\n"
+-			"the next kernel release. Please fix your driver.\n");
+-		WARN_ON(1);
+-	}
++	if (pfn_valid(pfn))
++		WARN(1, "BUG: Your driver calls ioremap() on\nsystem memory.  This leads to architecturally\nunpredictable behaviour, and ioremap() will fail in\nthe next kernel release. Please fix your driver.\n");
  
- static void __sched
--account_global_scheduler_latency(struct task_struct *tsk, struct latency_record *lat)
-+account_global_scheduler_latency(struct task_struct *tsk,
-+				 struct latency_record *lat)
- {
- 	int firstnonnull = MAXLR + 1;
- 	int i;
-@@ -255,7 +256,7 @@ static int lstats_show(struct seq_file *
- 					break;
- 				seq_printf(m, " %ps", (void *)bt);
- 			}
--			seq_printf(m, "\n");
-+			seq_puts(m, "\n");
- 		}
- 	}
- 	return 0;
+ 	type = get_mem_type(mtype);
+ 	if (!type)
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
