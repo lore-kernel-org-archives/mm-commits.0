@@ -1,51 +1,106 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: +
- printk-print-initial-logbuf-contents-before-re-enabling-interrupts.patch
+From: akpm@linux-foundation.org
+Subject: + mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2.patch
  added to -mm tree
-Date: Tue, 6 May 2014 15:05:53 -0700
-Message-ID: <20140506150553.a12959fd71d83eddcb4b325d__37521.0288832479$1399414204$gmane$org@linux-foundation.org>
-References: <53640c8c.5++0zeO0pmfqKMwm%akpm@linux-foundation.org>
-	<20140502224651.GG23636@quack.suse.cz>
-	<20140506120648.GA30234@arm.com>
-	<20140506122958.GG9291@quack.suse.cz>
-	<20140506131234.GD30234@arm.com>
+Date: Tue, 06 May 2014 15:38:39 -0700
+Message-ID: <5369646f.DJyWGG2b/W0dCH16%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42777 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751670AbaEFWFz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 18:05:55 -0400
-In-Reply-To: <20140506131234.GD30234@arm.com>
+	with ESMTP id S1751250AbaEFWik (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 18:38:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Jan Kara <jack@suse.cz>, "mm-commits@vger.kernel.org" <mm-commits@vger.kernel.org>, "peterz@infradead.org" <peterz@infradead.org>, "kay@vrfy.org" <kay@vrfy.org>, LKML <linux-kernel@vger.kernel.org>
+To: mm-commits@vger.kernel.org, gorcunov@openvz.org, gorcunov@gmail.com
 
-On Tue, 6 May 2014 14:12:34 +0100 Will Deacon <will.deacon@arm.com> wrote:
+Subject: + mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2.patch added to -mm tree
+To: gorcunov@gmail.com,gorcunov@openvz.org
+From: akpm@linux-foundation.org
+Date: Tue, 06 May 2014 15:38:39 -0700
 
-> > > > My opinion is that when you are printing from each and every interrupt
-> > > > which happens so often, then you have a problem and disabling IRQs in
-> > > > printk so that your interrupt doesn't happen that often seems like a poor
-> > > > solution to me. You could as well just ratelimit your debug messages,
-> > > > couldn't you?
-> > > 
-> > > My use-case was basically using printk as a debug trace during early boot
-> > > when bringing up Linux on a new CPU core. I don't think ratelimiting would
-> > > be the right thing there, since I really did want as many messages to
-> > > reach the console as possible (which is also why I wrote this patch, not
-> > > just the other one in the series).
-> >   OK, I understand. It just seems wrong to me to throttle all interrupts on
-> > the cpu while doing printing just because someone might be doing debug
-> > printing from the interrupt. Sure it's fine as a debug hack but on a
-> > production machine that seems rather counterproductive.
-> 
-> Perhaps, but the one time I *really* want printk to be reliable is when I'm
-> using it to debug a problem.
 
-If you're debugging a problem, you're able to alter printk!  So perhaps
-one way out of this is some developer-only ifdef to robustify printk
-for particular usage patterns.
+The patch titled
+     Subject: mm: pgtable -- Require X86_64 for soft-dirty tracker, v2
+has been added to the -mm tree.  Its filename is
+     mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2.patch
+
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: mm: pgtable -- Require X86_64 for soft-dirty tracker, v2
+
+v2 (by akpm@):
+ - guard helpers with CONFIG_HAVE_ARCH_SOFT_DIRTY on i386, otherwise
+   it fails to build because we've a generic definitions in
+   asm-generic/pgtable.h
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/x86/include/asm/pgtable.h |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff -puN arch/x86/include/asm/pgtable.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2 arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2
++++ a/arch/x86/include/asm/pgtable.h
+@@ -297,6 +297,7 @@ static inline pmd_t pmd_mknotpresent(pmd
+ 	return pmd_clear_flags(pmd, _PAGE_PRESENT);
+ }
+ 
++#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline int pte_soft_dirty(pte_t pte)
+ {
+ 	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
+@@ -332,6 +333,8 @@ static inline int pte_file_soft_dirty(pt
+ 	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
+ }
+ 
++#endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
++
+ /*
+  * Mask out unsupported bits in a present pgprot.  Non-present pgprots
+  * can use those bits for other purposes, so leave them be.
+@@ -865,6 +868,7 @@ static inline void update_mmu_cache_pmd(
+ {
+ }
+ 
++#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
+ {
+ 	VM_BUG_ON(pte_present_nonuma(pte));
+@@ -882,6 +886,7 @@ static inline pte_t pte_swp_clear_soft_d
+ 	VM_BUG_ON(pte_present_nonuma(pte));
+ 	return pte_clear_flags(pte, _PAGE_SWP_SOFT_DIRTY);
+ }
++#endif
+ 
+ #include <asm-generic/pgtable.h>
+ #endif	/* __ASSEMBLY__ */
+_
+
+Patches currently in -mm which might be from gorcunov@gmail.com are
+
+x86-require-x86-64-for-automatic-numa-balancing.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
+mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2.patch
 
