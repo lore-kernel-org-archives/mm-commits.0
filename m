@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-kprobesc-convert-printk-to-pr_foo.patch added to -mm
- tree
-Date: Tue, 06 May 2014 13:47:41 -0700
-Message-ID: <53694a6d.+DjOsy755Mp3477w%akpm@linux-foundation.org>
+Subject: + kernel-latencytopc-convert-seq_printf-to-seq_puts.patch added
+ to -mm tree
+Date: Tue, 06 May 2014 13:47:42 -0700
+Message-ID: <53694a6e.LDig8zCk0Uj/fPvW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40843 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40846 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981AbaEFUrm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 16:47:42 -0400
+	with ESMTP id S1754820AbaEFUrn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2014 16:47:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ananth@in.ibm.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + kernel-kprobesc-convert-printk-to-pr_foo.patch added to -mm tree
-To: fabf@skynet.be,ananth@in.ibm.com
+Subject: + kernel-latencytopc-convert-seq_printf-to-seq_puts.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Tue, 06 May 2014 13:47:41 -0700
+Date: Tue, 06 May 2014 13:47:42 -0700
 
 
 The patch titled
-     Subject: kernel/kprobes.c: convert printk to pr_foo()
+     Subject: kernel/latencytop.c: convert seq_printf to seq_puts
 has been added to the -mm tree.  Its filename is
-     kernel-kprobesc-convert-printk-to-pr_foo.patch
+     kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-kprobesc-convert-printk-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-kprobesc-convert-printk-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,150 +45,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/kprobes.c: convert printk to pr_foo()
+Subject: kernel/latencytop.c: convert seq_printf to seq_puts
 
-Also fixes some checkpatch warnings
--Static initialization
--Lines over 80 characters
+This patch also fixes one function declaration over 80 characters.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |   36 +++++++++++++++++++-----------------
- 1 file changed, 19 insertions(+), 17 deletions(-)
+ kernel/latencytop.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/kprobes.c~kernel-kprobesc-convert-printk-to-pr_foo kernel/kprobes.c
---- a/kernel/kprobes.c~kernel-kprobesc-convert-printk-to-pr_foo
-+++ a/kernel/kprobes.c
-@@ -76,7 +76,7 @@ static bool kprobes_all_disarmed;
+diff -puN kernel/latencytop.c~kernel-latencytopc-convert-seq_printf-to-seq_puts kernel/latencytop.c
+--- a/kernel/latencytop.c~kernel-latencytopc-convert-seq_printf-to-seq_puts
++++ a/kernel/latencytop.c
+@@ -88,7 +88,8 @@ static void clear_global_latency_tracing
+ }
  
- /* This protects kprobe_table and optimizing_list */
- static DEFINE_MUTEX(kprobe_mutex);
--static DEFINE_PER_CPU(struct kprobe *, kprobe_instance) = NULL;
-+static DEFINE_PER_CPU(struct kprobe *, kprobe_instance);
- static struct {
- 	raw_spinlock_t lock ____cacheline_aligned_in_smp;
- } kretprobe_table_locks[KPROBE_TABLE_SIZE];
-@@ -297,9 +297,9 @@ static inline void reset_kprobe_instance
- 
- /*
-  * This routine is called either:
-- * 	- under the kprobe_mutex - during kprobe_[un]register()
-- * 				OR
-- * 	- with preemption disabled - from arch/xxx/kernel/kprobes.c
-+ *	- under the kprobe_mutex - during kprobe_[un]register()
-+ *				OR
-+ *	- with preemption disabled - from arch/xxx/kernel/kprobes.c
-  */
- struct kprobe *get_kprobe(void *addr)
+ static void __sched
+-account_global_scheduler_latency(struct task_struct *tsk, struct latency_record *lat)
++account_global_scheduler_latency(struct task_struct *tsk,
++				 struct latency_record *lat)
  {
-@@ -567,7 +567,8 @@ static void wait_for_kprobe_optimizer(vo
- {
- 	mutex_lock(&kprobe_mutex);
- 
--	while (!list_empty(&optimizing_list) || !list_empty(&unoptimizing_list)) {
-+	while (!list_empty(&optimizing_list) ||
-+	       !list_empty(&unoptimizing_list)) {
- 		mutex_unlock(&kprobe_mutex);
- 
- 		/* this will also make optimizing_work execute immmediately */
-@@ -676,8 +677,8 @@ static void reuse_unused_kprobe(struct k
- 	 */
- 	op = container_of(ap, struct optimized_kprobe, kp);
- 	if (unlikely(list_empty(&op->list)))
--		printk(KERN_WARNING "Warning: found a stray unused "
--			"aggrprobe@%p\n", ap->addr);
-+		pr_warn("Warning: found a stray unused aggrprobe@%p\n",
-+			ap->addr);
- 	/* Enable the probe again */
- 	ap->flags &= ~KPROBE_FLAG_DISABLED;
- 	/* Optimize it again (remove from op->list) */
-@@ -794,7 +795,7 @@ static void optimize_all_kprobes(void)
- 			if (!kprobe_disabled(p))
- 				optimize_kprobe(p);
- 	}
--	printk(KERN_INFO "Kprobes globally optimized\n");
-+	pr_info("Kprobes globally optimized\n");
- out:
- 	mutex_unlock(&kprobe_mutex);
- }
-@@ -824,7 +825,7 @@ static void unoptimize_all_kprobes(void)
- 
- 	/* Wait for unoptimizing completion */
- 	wait_for_kprobe_optimizer();
--	printk(KERN_INFO "Kprobes globally unoptimized\n");
-+	pr_info("Kprobes globally unoptimized\n");
- }
- 
- static DEFINE_MUTEX(kprobe_sysctl_mutex);
-@@ -896,7 +897,7 @@ static void __disarm_kprobe(struct kprob
- /* There should be no unused kprobes can be reused without optimization */
- static void reuse_unused_kprobe(struct kprobe *ap)
- {
--	printk(KERN_ERR "Error: There should be no unused kprobe here.\n");
-+	pr_err("Error: There should be no unused kprobe here.\n");
- 	BUG_ON(kprobe_unused(ap));
- }
- 
-@@ -955,7 +956,8 @@ static void disarm_kprobe_ftrace(struct
- 	}
- 	ret = ftrace_set_filter_ip(&kprobe_ftrace_ops,
- 			   (unsigned long)p->addr, 1, 0);
--	WARN(ret < 0, "Failed to disarm kprobe-ftrace at %p (%d)\n", p->addr, ret);
-+	WARN(ret < 0, "Failed to disarm kprobe-ftrace at %p (%d)\n",
-+	     p->addr, ret);
- }
- #else	/* !CONFIG_KPROBES_ON_FTRACE */
- #define prepare_kprobe(p)	arch_prepare_kprobe(p)
-@@ -1389,7 +1391,7 @@ static struct kprobe *__get_valid_kprobe
- 	if (p != ap) {
- 		list_for_each_entry_rcu(list_p, &ap->list, list)
- 			if (list_p == p)
--			/* kprobe p is a valid probe */
-+				/* kprobe p is a valid probe */
- 				goto valid;
- 		return NULL;
- 	}
-@@ -2018,8 +2020,8 @@ EXPORT_SYMBOL_GPL(enable_kprobe);
- 
- void dump_kprobe(struct kprobe *kp)
- {
--	printk(KERN_WARNING "Dumping kprobe:\n");
--	printk(KERN_WARNING "Name: %s\nAddress: %p\nOffset: %x\n",
-+	pr_warn("Dumping kprobe:\n");
-+	pr_warn("Name: %s\nAddress: %p\nOffset: %x\n",
- 	       kp->symbol_name, kp->addr, kp->offset);
- }
- NOKPROBE_SYMBOL(dump_kprobe);
-@@ -2128,7 +2130,7 @@ static int __init init_kprobes(void)
- 			kprobe_lookup_name(kretprobe_blacklist[i].name,
- 					   kretprobe_blacklist[i].addr);
- 			if (!kretprobe_blacklist[i].addr)
--				printk("kretprobe: lookup failed: %s\n",
-+				pr_warn("kretprobe: lookup failed: %s\n",
- 				       kretprobe_blacklist[i].name);
+ 	int firstnonnull = MAXLR + 1;
+ 	int i;
+@@ -255,7 +256,7 @@ static int lstats_show(struct seq_file *
+ 					break;
+ 				seq_printf(m, " %ps", (void *)bt);
+ 			}
+-			seq_printf(m, "\n");
++			seq_puts(m, "\n");
  		}
  	}
-@@ -2310,7 +2312,7 @@ static void arm_all_kprobes(void)
- 	}
- 
- 	kprobes_all_disarmed = false;
--	printk(KERN_INFO "Kprobes globally enabled\n");
-+	pr_info("Kprobes globally enabled\n");
- 
- already_enabled:
- 	mutex_unlock(&kprobe_mutex);
-@@ -2332,7 +2334,7 @@ static void disarm_all_kprobes(void)
- 	}
- 
- 	kprobes_all_disarmed = true;
--	printk(KERN_INFO "Kprobes globally disabled\n");
-+	pr_info("Kprobes globally disabled\n");
- 
- 	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
- 		head = &kprobe_table[i];
+ 	return 0;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
