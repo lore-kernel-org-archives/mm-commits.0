@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ipcshm-document-new-limits-in-the-uapi-header-v2.patch added to -mm tree
-Date: Wed, 07 May 2014 12:26:16 -0700
-Message-ID: <536a88d8.uYexqi9r1h1qKNXX%akpm@linux-foundation.org>
+Subject: + hfsplus-emit-proper-file-type-from-readdir.patch added to -mm
+ tree
+Date: Wed, 07 May 2014 12:46:21 -0700
+Message-ID: <536a8d8d.5auQjNCg7byZYJPB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56606 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56866 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750951AbaEGT0R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 15:26:17 -0400
+	with ESMTP id S1751068AbaEGTqX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 15:46:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, manfred@colorfullife.com, davidlohr@hp.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, slava@dubeyko.com, htl10@users.sourceforge.net, hch@infradead.org, aia21@cam.ac.uk, saproj@gmail.com
 
-Subject: + ipcshm-document-new-limits-in-the-uapi-header-v2.patch added to -mm tree
-To: davidlohr@hp.com,manfred@colorfullife.com,mtk.manpages@gmail.com
+Subject: + hfsplus-emit-proper-file-type-from-readdir.patch added to -mm tree
+To: saproj@gmail.com,aia21@cam.ac.uk,hch@infradead.org,htl10@users.sourceforge.net,slava@dubeyko.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 12:26:16 -0700
+Date: Wed, 07 May 2014 12:46:21 -0700
 
 
 The patch titled
-     Subject: ipcshm-document-new-limits-in-the-uapi-header-v2
+     Subject: hfsplus: emit proper file type from readdir
 has been added to the -mm tree.  Its filename is
-     ipcshm-document-new-limits-in-the-uapi-header-v2.patch
+     hfsplus-emit-proper-file-type-from-readdir.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-document-new-limits-in-the-uapi-header-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-emit-proper-file-type-from-readdir.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-document-new-limits-in-the-uapi-header-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-emit-proper-file-type-from-readdir.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,58 +44,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipcshm-document-new-limits-in-the-uapi-header-v2
+From: Sergei Antonov <saproj@gmail.com>
+Subject: hfsplus: emit proper file type from readdir
 
-Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+hfsplus_readdir() incorrectly returned DT_REG for symbolic links and
+special files.  Return DT_REG, DT_LNK, DT_FIFO, DT_CHR, DT_BLK, DT_SOCK,
+or DT_UNKNOWN according to mode field in catalog record.  Programs relying
+on information from readdir will now work correctly with HFS+.
+
+Signed-off-by: Sergei Antonov <saproj@gmail.com>
+Cc: Anton Altaparmakov <aia21@cam.ac.uk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/shm.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/hfsplus/dir.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff -puN include/uapi/linux/shm.h~ipcshm-document-new-limits-in-the-uapi-header-v2 include/uapi/linux/shm.h
---- a/include/uapi/linux/shm.h~ipcshm-document-new-limits-in-the-uapi-header-v2
-+++ a/include/uapi/linux/shm.h
-@@ -12,8 +12,9 @@
-  * modified by sysctl. Both SHMMAX and SHMALL have their default values
-  * to the maximum limit which is as large as it can be without helping
-  * userspace overflow the values. There is really nothing the kernel
-- * can do to avoid this any variables. It is therefore not advised to
-- * make them any larger. This is suitable for both 32 and 64-bit systems.
-+ * can do to avoid this any further. It is therefore not advised to
-+ * make them any larger. These limits are suitable for both 32 and
-+ * 64-bit systems.
-  */
- #define SHMMIN 1			 /* min shared seg size (bytes) */
- #define SHMMNI 4096			 /* max num of segs system wide */
+diff -puN fs/hfsplus/dir.c~hfsplus-emit-proper-file-type-from-readdir fs/hfsplus/dir.c
+--- a/fs/hfsplus/dir.c~hfsplus-emit-proper-file-type-from-readdir
++++ a/fs/hfsplus/dir.c
+@@ -218,13 +218,31 @@ static int hfsplus_readdir(struct file *
+ 				    be32_to_cpu(entry.folder.id), DT_DIR))
+ 				break;
+ 		} else if (type == HFSPLUS_FILE) {
++			u16 mode;
++			unsigned type = DT_UNKNOWN;
++
+ 			if (fd.entrylength < sizeof(struct hfsplus_cat_file)) {
+ 				pr_err("small file entry\n");
+ 				err = -EIO;
+ 				goto out;
+ 			}
++
++			mode = be16_to_cpu(entry.file.permissions.mode);
++			if (S_ISREG(mode))
++				type = DT_REG;
++			else if (S_ISLNK(mode))
++				type = DT_LNK;
++			else if (S_ISFIFO(mode))
++				type = DT_FIFO;
++			else if (S_ISCHR(mode))
++				type = DT_CHR;
++			else if (S_ISBLK(mode))
++				type = DT_BLK;
++			else if (S_ISSOCK(mode))
++				type = DT_SOCK;
++
+ 			if (!dir_emit(ctx, strbuf, len,
+-				    be32_to_cpu(entry.file.id), DT_REG))
++				      be32_to_cpu(entry.file.id), type))
+ 				break;
+ 		} else {
+ 			pr_err("bad catalog entry type\n");
 _
 
-Patches currently in -mm which might be from davidlohr@hp.com are
+Patches currently in -mm which might be from saproj@gmail.com are
 
-mmvmacache-add-debug-data.patch
-mmvmacache-optimize-overflow-system-wide-flushing.patch
-mm-pass-vm_bug_on-reason-to-dump_page.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
-mips-call-find_vma-with-the-mmap_sem-held.patch
-arc-call-find_vma-with-the-mmap_sem-held.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-drm-exynos-call-find_vma-with-the-mmap_sem-held.patch
-ipc-constify-ipc_ops.patch
-ipc-shmc-check-for-ulong-overflows-in-shmat.patch
-ipc-shmc-check-for-overflows-of-shm_tot.patch
-ipc-shmc-check-for-integer-overflow-during-shmget.patch
-ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
-ipcshm-document-new-limits-in-the-uapi-header.patch
-ipcshm-document-new-limits-in-the-uapi-header-v2.patch
-linux-next.patch
-blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
+hfsplus-emit-proper-file-type-from-readdir.patch
 
