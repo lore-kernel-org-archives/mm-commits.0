@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch added
- to -mm tree
-Date: Wed, 07 May 2014 15:08:11 -0700
-Message-ID: <536aaecb.QjCsuWKg4/nVF+AB%akpm@linux-foundation.org>
+ kernel-profilec-use-static-const-char-instead-of-static-char.patch added to -mm tree
+Date: Wed, 07 May 2014 15:31:00 -0700
+Message-ID: <536ab424.V+k5uqi839Hj2uAJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58036 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751510AbaEGWIM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 18:08:12 -0400
+	with ESMTP id S1751029AbaEGWbB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 18:31:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, cl@linux-foundation.org, rientjes@google.com
+To: mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, fabf@skynet.be
 
-Subject: + mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch added to -mm tree
-To: rientjes@google.com,cl@linux-foundation.org,penberg@kernel.org
+Subject: + kernel-profilec-use-static-const-char-instead-of-static-char.patch added to -mm tree
+To: fabf@skynet.be,paul.gortmaker@windriver.com
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 15:08:11 -0700
+Date: Wed, 07 May 2014 15:31:00 -0700
 
 
 The patch titled
-     Subject: mm, slab: suppress out of memory warning unless debug is enabled
+     Subject: kernel/profile.c: use static const char instead of static char
 has been added to the -mm tree.  Its filename is
-     mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
+     kernel-profilec-use-static-const-char-instead-of-static-char.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-profilec-use-static-const-char-instead-of-static-char.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-profilec-use-static-const-char-instead-of-static-char.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,133 +44,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, slab: suppress out of memory warning unless debug is enabled
+From: Fabian Frederick <fabf@skynet.be>
+Subject: kernel/profile.c: use static const char instead of static char
 
-When the slab or slub allocators cannot allocate additional slab pages,
-they emit diagnostic information to the kernel log such as current number
-of slabs, number of objects, active objects, etc.  This is always coupled
-with a page allocation failure warning since it is controlled by
-!__GFP_NOWARN.
+schedstr, sleepstr and kvmstr are only used in strcmp & strlen
 
-Suppress this out of memory warning if the allocator is configured without
-debug supported.  The page allocation failure warning will indicate it is
-a failed slab allocation, the order, and the gfp mask, so this is only
-useful to diagnose allocator issues.
-
-Since CONFIG_SLUB_DEBUG is already enabled by default for the slub
-allocator, there is no functional change with this patch.  If debug is
-disabled, however, the warnings are now suppressed.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   10 ++++++++--
- mm/slub.c |   11 ++++++++---
- 2 files changed, 16 insertions(+), 5 deletions(-)
+ kernel/profile.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled mm/slab.c
---- a/mm/slab.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled
-+++ a/mm/slab.c
-@@ -1621,10 +1621,16 @@ __initcall(cpucache_init);
- static noinline void
- slab_out_of_memory(struct kmem_cache *cachep, gfp_t gfpflags, int nodeid)
+diff -puN kernel/profile.c~kernel-profilec-use-static-const-char-instead-of-static-char kernel/profile.c
+--- a/kernel/profile.c~kernel-profilec-use-static-const-char-instead-of-static-char
++++ a/kernel/profile.c
+@@ -52,9 +52,9 @@ static DEFINE_MUTEX(profile_flip_mutex);
+ 
+ int profile_setup(char *str)
  {
-+#if DEBUG
- 	struct kmem_cache_node *n;
- 	struct page *page;
- 	unsigned long flags;
- 	int node;
-+	static DEFINE_RATELIMIT_STATE(slab_oom_rs, DEFAULT_RATELIMIT_INTERVAL,
-+				      DEFAULT_RATELIMIT_BURST);
-+
-+	if ((gfpflags & __GFP_NOWARN) || !__ratelimit(&slab_oom_rs))
-+		return;
+-	static char schedstr[] = "schedule";
+-	static char sleepstr[] = "sleep";
+-	static char kvmstr[] = "kvm";
++	static const char schedstr[] = "schedule";
++	static const char sleepstr[] = "sleep";
++	static const char kvmstr[] = "kvm";
+ 	int par;
  
- 	printk(KERN_WARNING
- 		"SLAB: Unable to allocate memory on node %d (gfp=0x%x)\n",
-@@ -1662,6 +1668,7 @@ slab_out_of_memory(struct kmem_cache *ca
- 			node, active_slabs, num_slabs, active_objs, num_objs,
- 			free_objects);
- 	}
-+#endif
- }
- 
- /*
-@@ -1683,8 +1690,7 @@ static struct page *kmem_getpages(struct
- 
- 	page = alloc_pages_exact_node(nodeid, flags | __GFP_NOTRACK, cachep->gfporder);
- 	if (!page) {
--		if (!(flags & __GFP_NOWARN) && printk_ratelimit())
--			slab_out_of_memory(cachep, flags, nodeid);
-+		slab_out_of_memory(cachep, flags, nodeid);
- 		return NULL;
- 	}
- 
-diff -puN mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled mm/slub.c
---- a/mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled
-+++ a/mm/slub.c
-@@ -2150,8 +2150,14 @@ static inline unsigned long node_nr_objs
- static noinline void
- slab_out_of_memory(struct kmem_cache *s, gfp_t gfpflags, int nid)
- {
-+#ifdef CONFIG_SLUB_DEBUG
-+	static DEFINE_RATELIMIT_STATE(slub_oom_rs, DEFAULT_RATELIMIT_INTERVAL,
-+				      DEFAULT_RATELIMIT_BURST);
- 	int node;
- 
-+	if ((gfpflags & __GFP_NOWARN) || !__ratelimit(&slub_oom_rs))
-+		return;
-+
- 	pr_warn("SLUB: Unable to allocate memory on node %d (gfp=0x%x)\n",
- 		nid, gfpflags);
- 	pr_warn("  cache: %s, object size: %d, buffer size: %d, default order: %d, min order: %d\n",
-@@ -2178,6 +2184,7 @@ slab_out_of_memory(struct kmem_cache *s,
- 		pr_warn("  node %d: slabs: %ld, objs: %ld, free: %ld\n",
- 			node, nr_slabs, nr_objs, nr_free);
- 	}
-+#endif
- }
- 
- static inline void *new_slab_objects(struct kmem_cache *s, gfp_t flags,
-@@ -2356,9 +2363,7 @@ new_slab:
- 	freelist = new_slab_objects(s, gfpflags, node, &c);
- 
- 	if (unlikely(!freelist)) {
--		if (!(gfpflags & __GFP_NOWARN) && printk_ratelimit())
--			slab_out_of_memory(s, gfpflags, node);
--
-+		slab_out_of_memory(s, gfpflags, node);
- 		local_irq_restore(flags);
- 		return NULL;
- 	}
+ 	if (!strncmp(str, sleepstr, strlen(sleepstr))) {
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mem-hotplug-implement-get-put_online_mems.patch
-slab-get_online_mems-for-kmem_cache_createdestroyshrink.patch
-mm-debug-make-bad_range-output-more-usable-and-readable.patch
-memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-mm-migration-add-destination-page-freeing-callback.patch
-mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
-mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
-mm-compaction-embed-migration-mode-in-compact_control.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault.patch
-mm-compaction-terminate-async-compaction-when-rescheduling.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary.patch
-mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
-mm-utilc-add-kstrimdup.patch
+origin.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+fs-fscache-replace-seq_printf-by-seq_puts.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
+kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+documentation-expand-clarify-debug-documentation.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
+init-mainc-code-clean-up.patch
+kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
