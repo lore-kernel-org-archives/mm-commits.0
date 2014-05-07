@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-close-race-between-mremap-and-split_huge_page.patch
- added to -mm tree
-Date: Wed, 07 May 2014 14:52:06 -0700
-Message-ID: <536aab06.rEHUMng+UDXHSN1Z%akpm__35420.7008764662$1399499537$gmane$org@linux-foundation.org>
+Subject: + rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch added to -mm tree
+Date: Wed, 07 May 2014 14:58:29 -0700
+Message-ID: <536aac85.lEpDng3bbwRJxhED%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57869 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57884 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751899AbaEGVwH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 17:52:07 -0400
+	with ESMTP id S1751351AbaEGV6a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 17:58:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, stable@vger.kernel.org, riel@redhat.com, hannes@cmpxchg.org, davem@davemloft.net, davej@redhat.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, linux@maxim.org.za, bevenson@melinkcorp.com, a.zummo@towertech.it, boris.brezillon@free-electrons.com
 
-Subject: + mm-thp-close-race-between-mremap-and-split_huge_page.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,aarcange@redhat.com,davej@redhat.com,davem@davemloft.net,hannes@cmpxchg.org,riel@redhat.com,stable@vger.kernel.org,walken@google.com
+Subject: + rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch added to -mm tree
+To: boris.brezillon@free-electrons.com,a.zummo@towertech.it,bevenson@melinkcorp.com,linux@maxim.org.za,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 14:52:06 -0700
+Date: Wed, 07 May 2014 14:58:29 -0700
 
 
 The patch titled
-     Subject: mm, thp: close race between mremap() and split_huge_page()
+     Subject: rtc: rtc-at91rm9200: fix infinite wait for ACKUPD irq
 has been added to the -mm tree.  Its filename is
-     mm-thp-close-race-between-mremap-and-split_huge_page.patch
+     rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-close-race-between-mremap-and-split_huge_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-close-race-between-mremap-and-split_huge_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,106 +43,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, thp: close race between mremap() and split_huge_page()
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: rtc: rtc-at91rm9200: fix infinite wait for ACKUPD irq
 
-It's critical for split_huge_page() (and migration) to catch and freeze
-all PMDs on rmap walk.  It gets tricky if there's concurrent fork() or
-mremap() since usually we copy/move page table entries on dup_mm() or
-move_page_tables() without rmap lock taken.  To get it work we rely on
-rmap walk order to not miss any entry.  We expect to see destination VMA
-after source one to work correctly.
+The rtc user must wait at least 1 sec between each time/calandar update
+(see atmel's datasheet chapter "Updating Time/Calendar").
 
-But after switching rmap implementation to interval tree it's not always
-possible to preserve expected walk order.
+Use the 1Hz interrupt to update the at91_rtc_upd_rdy flag and wait for the
+at91_rtc_wait_upd_rdy event if the rtc is not ready.
 
-It works fine for dup_mm() since new VMA has the same vma_start_pgoff() /
-vma_last_pgoff() and explicitly insert dst VMA after src one with
-vma_interval_tree_insert_after().
-
-But on move_vma() destination VMA can be merged into adjacent one and as
-result shifted left in interval tree.  Fortunately, we can detect the
-situation and prevent race with rmap walk by moving page table entries
-under rmap lock.  See commit 38a76013ad80.
-
-Problem is that we miss the lock when we move transhuge PMD.  Most likely
-this bug caused the crash[1].
-
-[1] http://thread.gmane.org/gmane.linux.kernel.mm/96473
-
-Fixes: 108d6642ad81 ("mm anon rmap: remove anon_vma_moveto_tail")
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: David Miller <davem@davemloft.net>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>        [3.7+]
+Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+Reported-by: Bryan Evenson <bevenson@melinkcorp.com>
+Tested-by: Bryan Evenson <bevenson@melinkcorp.com>
+Cc: Andrew Victor <linux@maxim.org.za>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-at91rm9200.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN mm/mremap.c~mm-thp-close-race-between-mremap-and-split_huge_page mm/mremap.c
---- a/mm/mremap.c~mm-thp-close-race-between-mremap-and-split_huge_page
-+++ a/mm/mremap.c
-@@ -194,10 +194,17 @@ unsigned long move_page_tables(struct vm
- 			break;
- 		if (pmd_trans_huge(*old_pmd)) {
- 			int err = 0;
--			if (extent == HPAGE_PMD_SIZE)
-+			if (extent == HPAGE_PMD_SIZE) {
-+				VM_BUG_ON(vma->vm_file || !vma->anon_vma);
-+				/* See comment in move_ptes() */
-+				if (need_rmap_locks)
-+					anon_vma_lock_write(vma->anon_vma);
- 				err = move_huge_pmd(vma, new_vma, old_addr,
- 						    new_addr, old_end,
- 						    old_pmd, new_pmd);
-+				if (need_rmap_locks)
-+					anon_vma_unlock_write(vma->anon_vma);
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -48,11 +48,13 @@ struct at91_rtc_config {
+ 
+ static const struct at91_rtc_config *at91_rtc_config;
+ static DECLARE_COMPLETION(at91_rtc_updated);
++static DECLARE_COMPLETION(at91_rtc_wait_upd_rdy);
+ static unsigned int at91_alarm_year = AT91_RTC_EPOCH;
+ static void __iomem *at91_rtc_regs;
+ static int irq;
+ static DEFINE_SPINLOCK(at91_rtc_lock);
+ static u32 at91_rtc_shadow_imr;
++static bool at91_rtc_upd_rdy;
+ 
+ static void at91_rtc_write_ier(u32 mask)
+ {
+@@ -161,6 +163,8 @@ static int at91_rtc_settime(struct devic
+ 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+ 		tm->tm_hour, tm->tm_min, tm->tm_sec);
+ 
++	wait_for_completion(&at91_rtc_wait_upd_rdy);
++
+ 	/* Stop Time/Calendar from counting */
+ 	cr = at91_rtc_read(AT91_RTC_CR);
+ 	at91_rtc_write(AT91_RTC_CR, cr | AT91_RTC_UPDCAL | AT91_RTC_UPDTIM);
+@@ -183,6 +187,7 @@ static int at91_rtc_settime(struct devic
+ 
+ 	/* Restart Time/Calendar */
+ 	cr = at91_rtc_read(AT91_RTC_CR);
++	at91_rtc_upd_rdy = 0;
+ 	at91_rtc_write(AT91_RTC_CR, cr & ~(AT91_RTC_UPDCAL | AT91_RTC_UPDTIM));
+ 
+ 	return 0;
+@@ -290,8 +295,13 @@ static irqreturn_t at91_rtc_interrupt(in
+ 	if (rtsr) {		/* this interrupt is shared!  Is it ours? */
+ 		if (rtsr & AT91_RTC_ALARM)
+ 			events |= (RTC_AF | RTC_IRQF);
+-		if (rtsr & AT91_RTC_SECEV)
++		if (rtsr & AT91_RTC_SECEV) {
+ 			events |= (RTC_UF | RTC_IRQF);
++			if (!at91_rtc_upd_rdy) {
++				at91_rtc_upd_rdy = 1;
++				complete(&at91_rtc_wait_upd_rdy);
 +			}
- 			if (err > 0) {
- 				need_flush = true;
- 				continue;
++		}
+ 		if (rtsr & AT91_RTC_ACKUPD)
+ 			complete(&at91_rtc_updated);
+ 
+@@ -413,6 +423,8 @@ static int __init at91_rtc_probe(struct
+ 		return PTR_ERR(rtc);
+ 	platform_set_drvdata(pdev, rtc);
+ 
++	/* Enable 1Hz events */
++	at91_rtc_write_ier(AT91_RTC_SECEV);
+ 	dev_info(&pdev->dev, "AT91 Real Time Clock driver.\n");
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from boris.brezillon@free-electrons.com are
 
-mm-thp-close-race-between-mremap-and-split_huge_page.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-thp-consolidate-assert-checks-in-__split_huge_page.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-pass-vm_bug_on-reason-to-dump_page.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-mm-move-get_user_pages-related-code-to-separate-file.patch
-mm-extract-in_gate_area-case-from-__get_user_pages.patch
-mm-cleanup-follow_page_mask.patch
-mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch
-mm-cleanup-__get_user_pages.patch
-mm-rmapc-make-page_referenced_one-and-try_to_unmap_one-static.patch
-mm-update-comment-for-default_max_map_count.patch
-mm-update-comment-for-default_max_map_count-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
+linux-next.patch
 
