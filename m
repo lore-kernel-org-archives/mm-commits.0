@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fold-mem_cgroup_stolen-fix.patch added to -mm tree
-Date: Wed, 07 May 2014 13:32:54 -0700
-Message-ID: <536a9876.pDgkvVhS+Ydz2J/5%akpm@linux-foundation.org>
+Subject: + memcg-get-rid-of-memcg_create_cache_name.patch added to -mm
+ tree
+Date: Wed, 07 May 2014 13:49:51 -0700
+Message-ID: <536a9c6f.5g45dJGk62CQElMq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57120 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57216 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751829AbaEGUc7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 16:32:59 -0400
+	with ESMTP id S1751009AbaEGUtw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 16:49:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, h.huangqiang@huawei.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, vdavydov@parallels.com
 
-Subject: + memcg-fold-mem_cgroup_stolen-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,h.huangqiang@huawei.com,hannes@cmpxchg.org,mhocko@suse.cz
+Subject: + memcg-get-rid-of-memcg_create_cache_name.patch added to -mm tree
+To: vdavydov@parallels.com,hannes@cmpxchg.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 13:32:54 -0700
+Date: Wed, 07 May 2014 13:49:51 -0700
 
 
 The patch titled
-     Subject: memcg-fold-mem_cgroup_stolen-fix
+     Subject: memcg: get rid of memcg_create_cache_name
 has been added to the -mm tree.  Its filename is
-     memcg-fold-mem_cgroup_stolen-fix.patch
+     memcg-get-rid-of-memcg_create_cache_name.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fold-mem_cgroup_stolen-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-get-rid-of-memcg_create_cache_name.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fold-mem_cgroup_stolen-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-get-rid-of-memcg_create_cache_name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,90 +44,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-fold-mem_cgroup_stolen-fix
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: memcg: get rid of memcg_create_cache_name
 
-fix typo, per Michal
+Instead of calling back to memcontrol.c from kmem_cache_create_memcg in
+order to just create the name of a per memcg cache, let's allocate it in
+place.  We only need to pass the memcg name to kmem_cache_create_memcg for
+that - everything else can be done in slab_common.c.
 
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Qiang Huang <h.huangqiang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    2 --
+ include/linux/slab.h       |    3 ++-
+ mm/memcontrol.c            |   33 +++++++++------------------------
+ mm/slab_common.c           |    7 +++++--
+ 4 files changed, 16 insertions(+), 29 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fold-mem_cgroup_stolen-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fold-mem_cgroup_stolen-fix
+diff -puN include/linux/memcontrol.h~memcg-get-rid-of-memcg_create_cache_name include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-get-rid-of-memcg_create_cache_name
++++ a/include/linux/memcontrol.h
+@@ -501,8 +501,6 @@ void __memcg_kmem_uncharge_pages(struct
+ 
+ int memcg_cache_id(struct mem_cgroup *memcg);
+ 
+-char *memcg_create_cache_name(struct mem_cgroup *memcg,
+-			      struct kmem_cache *root_cache);
+ int memcg_alloc_cache_params(struct mem_cgroup *memcg, struct kmem_cache *s,
+ 			     struct kmem_cache *root_cache);
+ void memcg_free_cache_params(struct kmem_cache *s);
+diff -puN include/linux/slab.h~memcg-get-rid-of-memcg_create_cache_name include/linux/slab.h
+--- a/include/linux/slab.h~memcg-get-rid-of-memcg_create_cache_name
++++ a/include/linux/slab.h
+@@ -117,7 +117,8 @@ struct kmem_cache *kmem_cache_create(con
+ 			void (*)(void *));
+ #ifdef CONFIG_MEMCG_KMEM
+ struct kmem_cache *kmem_cache_create_memcg(struct mem_cgroup *,
+-					   struct kmem_cache *);
++					   struct kmem_cache *,
++					   const char *);
+ #endif
+ void kmem_cache_destroy(struct kmem_cache *);
+ int kmem_cache_shrink(struct kmem_cache *);
+diff -puN mm/memcontrol.c~memcg-get-rid-of-memcg_create_cache_name mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-get-rid-of-memcg_create_cache_name
 +++ a/mm/memcontrol.c
-@@ -1571,7 +1571,7 @@ static void mem_cgroup_end_move(struct m
-  * A routine for checking "mem" is under move_account() or not.
+@@ -3094,29 +3094,6 @@ int memcg_update_cache_size(struct kmem_
+ 	return 0;
+ }
+ 
+-char *memcg_create_cache_name(struct mem_cgroup *memcg,
+-			      struct kmem_cache *root_cache)
+-{
+-	static char *buf;
+-
+-	/*
+-	 * We need a mutex here to protect the shared buffer. Since this is
+-	 * expected to be called only on cache creation, we can employ the
+-	 * slab_mutex for that purpose.
+-	 */
+-	lockdep_assert_held(&slab_mutex);
+-
+-	if (!buf) {
+-		buf = kmalloc(NAME_MAX + 1, GFP_KERNEL);
+-		if (!buf)
+-			return NULL;
+-	}
+-
+-	cgroup_name(memcg->css.cgroup, buf, NAME_MAX + 1);
+-	return kasprintf(GFP_KERNEL, "%s(%d:%s)", root_cache->name,
+-			 memcg_cache_id(memcg), buf);
+-}
+-
+ int memcg_alloc_cache_params(struct mem_cgroup *memcg, struct kmem_cache *s,
+ 			     struct kmem_cache *root_cache)
+ {
+@@ -3157,6 +3134,7 @@ void memcg_free_cache_params(struct kmem
+ static void memcg_kmem_create_cache(struct mem_cgroup *memcg,
+ 				    struct kmem_cache *root_cache)
+ {
++	static char *memcg_name_buf;	/* protected by memcg_slab_mutex */
+ 	struct kmem_cache *cachep;
+ 	int id;
+ 
+@@ -3172,7 +3150,14 @@ static void memcg_kmem_create_cache(stru
+ 	if (cache_from_memcg_idx(root_cache, id))
+ 		return;
+ 
+-	cachep = kmem_cache_create_memcg(memcg, root_cache);
++	if (!memcg_name_buf) {
++		memcg_name_buf = kmalloc(NAME_MAX + 1, GFP_KERNEL);
++		if (!memcg_name_buf)
++			return;
++	}
++
++	cgroup_name(memcg->css.cgroup, memcg_name_buf, NAME_MAX + 1);
++	cachep = kmem_cache_create_memcg(memcg, root_cache, memcg_name_buf);
+ 	/*
+ 	 * If we could not create a memcg cache, do not complain, because
+ 	 * that's not critical at all as we can always proceed with the root
+diff -puN mm/slab_common.c~memcg-get-rid-of-memcg_create_cache_name mm/slab_common.c
+--- a/mm/slab_common.c~memcg-get-rid-of-memcg_create_cache_name
++++ a/mm/slab_common.c
+@@ -264,13 +264,15 @@ EXPORT_SYMBOL(kmem_cache_create);
+  * kmem_cache_create_memcg - Create a cache for a memory cgroup.
+  * @memcg: The memory cgroup the new cache is for.
+  * @root_cache: The parent of the new cache.
++ * @memcg_name: The name of the memory cgroup (used for naming the new cache).
   *
-  * Checking a cgroup is mc.from or mc.to or under hierarchy of
-- * moving cgroups. This is for waiting at hith-memory pressure
-+ * moving cgroups. This is for waiting at high-memory pressure
-  * caused by "move".
+  * This function attempts to create a kmem cache that will serve allocation
+  * requests going from @memcg to @root_cache. The new cache inherits properties
+  * from its parent.
   */
- static bool mem_cgroup_under_move(struct mem_cgroup *memcg)
+ struct kmem_cache *kmem_cache_create_memcg(struct mem_cgroup *memcg,
+-					   struct kmem_cache *root_cache)
++					   struct kmem_cache *root_cache,
++					   const char *memcg_name)
+ {
+ 	struct kmem_cache *s = NULL;
+ 	char *cache_name;
+@@ -280,7 +282,8 @@ struct kmem_cache *kmem_cache_create_mem
+ 
+ 	mutex_lock(&slab_mutex);
+ 
+-	cache_name = memcg_create_cache_name(memcg, root_cache);
++	cache_name = kasprintf(GFP_KERNEL, "%s(%d:%s)", root_cache->name,
++			       memcg_cache_id(memcg), memcg_name);
+ 	if (!cache_name)
+ 		goto out_unlock;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-mm-update-comment-for-default_max_map_count-fix.patch
-memcg-fold-mem_cgroup_stolen-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-2.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-3.patch
-fs-pstore-logging-clean-up-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-rtc-da9063-rtc-driver-fix.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+slb-charge-slabs-to-kmemcg-explicitly.patch
+mm-get-rid-of-__gfp_kmemcg.patch
+mm-get-rid-of-__gfp_kmemcg-fix.patch
+slab-document-kmalloc_order.patch
+memcg-un-export-__memcg_kmem_get_cache.patch
+mem-hotplug-implement-get-put_online_mems.patch
+slab-get_online_mems-for-kmem_cache_createdestroyshrink.patch
+documentation-memcg-warn-about-incomplete-kmemcg-state.patch
+memcg-slab-do-not-schedule-cache-destruction-when-last-page-goes-away.patch
+memcg-slab-merge-memcg_bindrelease_pages-to-memcg_uncharge_slab.patch
+memcg-slab-simplify-synchronization-scheme.patch
+memcg-get-rid-of-memcg_create_cache_name.patch
 
