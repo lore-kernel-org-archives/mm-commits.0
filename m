@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-postpone-the-disabling-of-kmemleak-early-logging.patch added to -mm tree
-Date: Wed, 07 May 2014 12:50:10 -0700
-Message-ID: <536a8e72.4U3XuGBASo8KE4jB%akpm@linux-foundation.org>
+Subject: + rtc-da9063-rtc-driver-fix.patch added to -mm tree
+Date: Wed, 07 May 2014 13:01:22 -0700
+Message-ID: <536a9112.fm2zZkFFfe2v7zp0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56875 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56962 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750949AbaEGTuL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 15:50:11 -0400
+	with ESMTP id S1752388AbaEGUBX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 16:01:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, lizefan@huawei.com, catalin.marinas@arm.com
+To: mm-commits@vger.kernel.org, stwiss.opensource@diasemi.com, sameo@linux.intel.com, p.zabel@pengutronix.de, lee.jones@linaro.org, david.chen@diasemi.com, broonie@linaro.org, a.zummo@towertech.it, akpm@linux-foundation.org
 
-Subject: + mm-postpone-the-disabling-of-kmemleak-early-logging.patch added to -mm tree
-To: catalin.marinas@arm.com,lizefan@huawei.com,sasha.levin@oracle.com
+Subject: + rtc-da9063-rtc-driver-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,a.zummo@towertech.it,broonie@linaro.org,david.chen@diasemi.com,lee.jones@linaro.org,p.zabel@pengutronix.de,sameo@linux.intel.com,stwiss.opensource@diasemi.com
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 12:50:10 -0700
+Date: Wed, 07 May 2014 13:01:22 -0700
 
 
 The patch titled
-     Subject: mm: postpone the disabling of kmemleak early logging
+     Subject: rtc-da9063-rtc-driver-fix
 has been added to the -mm tree.  Its filename is
-     mm-postpone-the-disabling-of-kmemleak-early-logging.patch
+     rtc-da9063-rtc-driver-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-postpone-the-disabling-of-kmemleak-early-logging.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-da9063-rtc-driver-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-postpone-the-disabling-of-kmemleak-early-logging.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-da9063-rtc-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,63 +43,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: mm: postpone the disabling of kmemleak early logging
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-da9063-rtc-driver-fix
 
-Commit 8910ae896c8c ("kmemleak: change some global variables to int"), in
-addition to the atomic -> int conversion, moved the kmemleak_early_log
-disabling at the beginning of the kmemleak_init() function, before the
-full kmemleak tracing is actually enabled.  In this small window,
-kmem_cache_create() is called by kmemleak which triggers additional memory
-allocation that are not traced.  This patch restores the original logic
-with kmemleak_early_log disabling when kmemleak is fully functional.
+coding-style tweaks
 
-Fixes: 8910ae896c8c (kmemleak: change some global variables to int)
-
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Li Zefan <lizefan@huawei.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Dajun Chen <david.chen@diasemi.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Mark Brown <broonie@linaro.org>
+Cc: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-da9063.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/kmemleak.c~mm-postpone-the-disabling-of-kmemleak-early-logging mm/kmemleak.c
---- a/mm/kmemleak.c~mm-postpone-the-disabling-of-kmemleak-early-logging
-+++ a/mm/kmemleak.c
-@@ -1775,10 +1775,9 @@ void __init kmemleak_init(void)
- 	int i;
- 	unsigned long flags;
+diff -puN drivers/rtc/rtc-da9063.c~rtc-da9063-rtc-driver-fix drivers/rtc/rtc-da9063.c
+--- a/drivers/rtc/rtc-da9063.c~rtc-da9063-rtc-driver-fix
++++ a/drivers/rtc/rtc-da9063.c
+@@ -82,6 +82,7 @@ static void da9063_tm_to_data(struct rtc
+ static int da9063_rtc_stop_alarm(struct device *dev)
+ {
+ 	struct da9063_rtc *rtc = dev_get_drvdata(dev);
++
+ 	return regmap_update_bits(rtc->hw->regmap, DA9063_REG_ALARM_Y,
+ 				  DA9063_ALARM_ON, 0);
+ }
+@@ -89,6 +90,7 @@ static int da9063_rtc_stop_alarm(struct
+ static int da9063_rtc_start_alarm(struct device *dev)
+ {
+ 	struct da9063_rtc *rtc = dev_get_drvdata(dev);
++
+ 	return regmap_update_bits(rtc->hw->regmap, DA9063_REG_ALARM_Y,
+ 				  DA9063_ALARM_ON, DA9063_ALARM_ON);
+ }
+@@ -115,13 +117,12 @@ static int da9063_rtc_read_time(struct d
  
--	kmemleak_early_log = 0;
--
- #ifdef CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF
- 	if (!kmemleak_skip_disable) {
-+		kmemleak_early_log = 0;
- 		kmemleak_disable();
- 		return;
- 	}
-@@ -1796,6 +1795,7 @@ void __init kmemleak_init(void)
+ 	da9063_data_to_tm(data, tm);
  
- 	/* the kernel is still in UP mode, so disabling the IRQs is enough */
- 	local_irq_save(flags);
-+	kmemleak_early_log = 0;
- 	if (kmemleak_error) {
- 		local_irq_restore(flags);
- 		return;
+-	(void)rtc_tm_to_time(tm, &tm_secs);
+-	(void)rtc_tm_to_time(&rtc->alarm_time, &al_secs);
++	rtc_tm_to_time(tm, &tm_secs);
++	rtc_tm_to_time(&rtc->alarm_time, &al_secs);
+ 
+ 	/* handle the rtc synchronisation delay */
+ 	if (rtc->rtc_sync == true && al_secs - tm_secs == 1)
+-		(void)memcpy((void *)tm, (const void *)&rtc->alarm_time,
+-			     sizeof(struct rtc_time));
++		memcpy(tm, &rtc->alarm_time, sizeof(struct rtc_time));
+ 	else
+ 		rtc->rtc_sync = false;
+ 
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-postpone-the-disabling-of-kmemleak-early-logging.patch
-mm-kmemleakc-use-%u-to-print-checksum.patch
-mm-introduce-kmemleak_update_trace.patch
-lib-update-the-kmemleak-stack-trace-for-radix-tree-allocations.patch
-mm-update-the-kmemleak-stack-trace-for-mempool-allocations.patch
-mm-call-kmemleak-directly-from-memblock_allocfree.patch
-documentation-devicetree-bindings-add-documentation-for-the-apm-x-gene-soc-rtc-dts-binding.patch
-drivers-rtc-add-apm-x-gene-soc-rtc-driver.patch
-arm64-add-apm-x-gene-soc-rtc-dts-entry.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+mm-update-comment-for-default_max_map_count-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+rtc-da9063-rtc-driver-fix.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
