@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch added to -mm tree
-Date: Wed, 07 May 2014 14:58:29 -0700
-Message-ID: <536aac85.lEpDng3bbwRJxhED%akpm@linux-foundation.org>
+Subject: +
+ mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch added
+ to -mm tree
+Date: Wed, 07 May 2014 15:08:11 -0700
+Message-ID: <536aaecb.QjCsuWKg4/nVF+AB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57884 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57914 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351AbaEGV6a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 17:58:30 -0400
+	with ESMTP id S1751510AbaEGWIM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 18:08:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, linux@maxim.org.za, bevenson@melinkcorp.com, a.zummo@towertech.it, boris.brezillon@free-electrons.com
+To: mm-commits@vger.kernel.org, penberg@kernel.org, cl@linux-foundation.org, rientjes@google.com
 
-Subject: + rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch added to -mm tree
-To: boris.brezillon@free-electrons.com,a.zummo@towertech.it,bevenson@melinkcorp.com,linux@maxim.org.za,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com,stable@vger.kernel.org
+Subject: + mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch added to -mm tree
+To: rientjes@google.com,cl@linux-foundation.org,penberg@kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 14:58:29 -0700
+Date: Wed, 07 May 2014 15:08:11 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-at91rm9200: fix infinite wait for ACKUPD irq
+     Subject: mm, slab: suppress out of memory warning unless debug is enabled
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
+     mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,91 +45,133 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: rtc: rtc-at91rm9200: fix infinite wait for ACKUPD irq
+From: David Rientjes <rientjes@google.com>
+Subject: mm, slab: suppress out of memory warning unless debug is enabled
 
-The rtc user must wait at least 1 sec between each time/calandar update
-(see atmel's datasheet chapter "Updating Time/Calendar").
+When the slab or slub allocators cannot allocate additional slab pages,
+they emit diagnostic information to the kernel log such as current number
+of slabs, number of objects, active objects, etc.  This is always coupled
+with a page allocation failure warning since it is controlled by
+!__GFP_NOWARN.
 
-Use the 1Hz interrupt to update the at91_rtc_upd_rdy flag and wait for the
-at91_rtc_wait_upd_rdy event if the rtc is not ready.
+Suppress this out of memory warning if the allocator is configured without
+debug supported.  The page allocation failure warning will indicate it is
+a failed slab allocation, the order, and the gfp mask, so this is only
+useful to diagnose allocator issues.
 
-Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
-Reported-by: Bryan Evenson <bevenson@melinkcorp.com>
-Tested-by: Bryan Evenson <bevenson@melinkcorp.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: <stable@vger.kernel.org>
+Since CONFIG_SLUB_DEBUG is already enabled by default for the slub
+allocator, there is no functional change with this patch.  If debug is
+disabled, however, the warnings are now suppressed.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ mm/slab.c |   10 ++++++++--
+ mm/slub.c |   11 ++++++++---
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -48,11 +48,13 @@ struct at91_rtc_config {
- 
- static const struct at91_rtc_config *at91_rtc_config;
- static DECLARE_COMPLETION(at91_rtc_updated);
-+static DECLARE_COMPLETION(at91_rtc_wait_upd_rdy);
- static unsigned int at91_alarm_year = AT91_RTC_EPOCH;
- static void __iomem *at91_rtc_regs;
- static int irq;
- static DEFINE_SPINLOCK(at91_rtc_lock);
- static u32 at91_rtc_shadow_imr;
-+static bool at91_rtc_upd_rdy;
- 
- static void at91_rtc_write_ier(u32 mask)
+diff -puN mm/slab.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled mm/slab.c
+--- a/mm/slab.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled
++++ a/mm/slab.c
+@@ -1621,10 +1621,16 @@ __initcall(cpucache_init);
+ static noinline void
+ slab_out_of_memory(struct kmem_cache *cachep, gfp_t gfpflags, int nodeid)
  {
-@@ -161,6 +163,8 @@ static int at91_rtc_settime(struct devic
- 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
- 		tm->tm_hour, tm->tm_min, tm->tm_sec);
- 
-+	wait_for_completion(&at91_rtc_wait_upd_rdy);
++#if DEBUG
+ 	struct kmem_cache_node *n;
+ 	struct page *page;
+ 	unsigned long flags;
+ 	int node;
++	static DEFINE_RATELIMIT_STATE(slab_oom_rs, DEFAULT_RATELIMIT_INTERVAL,
++				      DEFAULT_RATELIMIT_BURST);
 +
- 	/* Stop Time/Calendar from counting */
- 	cr = at91_rtc_read(AT91_RTC_CR);
- 	at91_rtc_write(AT91_RTC_CR, cr | AT91_RTC_UPDCAL | AT91_RTC_UPDTIM);
-@@ -183,6 +187,7 @@ static int at91_rtc_settime(struct devic
++	if ((gfpflags & __GFP_NOWARN) || !__ratelimit(&slab_oom_rs))
++		return;
  
- 	/* Restart Time/Calendar */
- 	cr = at91_rtc_read(AT91_RTC_CR);
-+	at91_rtc_upd_rdy = 0;
- 	at91_rtc_write(AT91_RTC_CR, cr & ~(AT91_RTC_UPDCAL | AT91_RTC_UPDTIM));
- 
- 	return 0;
-@@ -290,8 +295,13 @@ static irqreturn_t at91_rtc_interrupt(in
- 	if (rtsr) {		/* this interrupt is shared!  Is it ours? */
- 		if (rtsr & AT91_RTC_ALARM)
- 			events |= (RTC_AF | RTC_IRQF);
--		if (rtsr & AT91_RTC_SECEV)
-+		if (rtsr & AT91_RTC_SECEV) {
- 			events |= (RTC_UF | RTC_IRQF);
-+			if (!at91_rtc_upd_rdy) {
-+				at91_rtc_upd_rdy = 1;
-+				complete(&at91_rtc_wait_upd_rdy);
-+			}
-+		}
- 		if (rtsr & AT91_RTC_ACKUPD)
- 			complete(&at91_rtc_updated);
- 
-@@ -413,6 +423,8 @@ static int __init at91_rtc_probe(struct
- 		return PTR_ERR(rtc);
- 	platform_set_drvdata(pdev, rtc);
- 
-+	/* Enable 1Hz events */
-+	at91_rtc_write_ier(AT91_RTC_SECEV);
- 	dev_info(&pdev->dev, "AT91 Real Time Clock driver.\n");
- 	return 0;
+ 	printk(KERN_WARNING
+ 		"SLAB: Unable to allocate memory on node %d (gfp=0x%x)\n",
+@@ -1662,6 +1668,7 @@ slab_out_of_memory(struct kmem_cache *ca
+ 			node, active_slabs, num_slabs, active_objs, num_objs,
+ 			free_objects);
+ 	}
++#endif
  }
+ 
+ /*
+@@ -1683,8 +1690,7 @@ static struct page *kmem_getpages(struct
+ 
+ 	page = alloc_pages_exact_node(nodeid, flags | __GFP_NOTRACK, cachep->gfporder);
+ 	if (!page) {
+-		if (!(flags & __GFP_NOWARN) && printk_ratelimit())
+-			slab_out_of_memory(cachep, flags, nodeid);
++		slab_out_of_memory(cachep, flags, nodeid);
+ 		return NULL;
+ 	}
+ 
+diff -puN mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled mm/slub.c
+--- a/mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled
++++ a/mm/slub.c
+@@ -2150,8 +2150,14 @@ static inline unsigned long node_nr_objs
+ static noinline void
+ slab_out_of_memory(struct kmem_cache *s, gfp_t gfpflags, int nid)
+ {
++#ifdef CONFIG_SLUB_DEBUG
++	static DEFINE_RATELIMIT_STATE(slub_oom_rs, DEFAULT_RATELIMIT_INTERVAL,
++				      DEFAULT_RATELIMIT_BURST);
+ 	int node;
+ 
++	if ((gfpflags & __GFP_NOWARN) || !__ratelimit(&slub_oom_rs))
++		return;
++
+ 	pr_warn("SLUB: Unable to allocate memory on node %d (gfp=0x%x)\n",
+ 		nid, gfpflags);
+ 	pr_warn("  cache: %s, object size: %d, buffer size: %d, default order: %d, min order: %d\n",
+@@ -2178,6 +2184,7 @@ slab_out_of_memory(struct kmem_cache *s,
+ 		pr_warn("  node %d: slabs: %ld, objs: %ld, free: %ld\n",
+ 			node, nr_slabs, nr_objs, nr_free);
+ 	}
++#endif
+ }
+ 
+ static inline void *new_slab_objects(struct kmem_cache *s, gfp_t flags,
+@@ -2356,9 +2363,7 @@ new_slab:
+ 	freelist = new_slab_objects(s, gfpflags, node, &c);
+ 
+ 	if (unlikely(!freelist)) {
+-		if (!(gfpflags & __GFP_NOWARN) && printk_ratelimit())
+-			slab_out_of_memory(s, gfpflags, node);
+-
++		slab_out_of_memory(s, gfpflags, node);
+ 		local_irq_restore(flags);
+ 		return NULL;
+ 	}
 _
 
-Patches currently in -mm which might be from boris.brezillon@free-electrons.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
+mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
+mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
+mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
+hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
+hugetlb-add-hstate_is_gigantic.patch
+hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
+hugetlb-move-helpers-up-in-the-file.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
+mem-hotplug-implement-get-put_online_mems.patch
+slab-get_online_mems-for-kmem_cache_createdestroyshrink.patch
+mm-debug-make-bad_range-output-more-usable-and-readable.patch
+memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
+mm-migration-add-destination-page-freeing-callback.patch
+mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
+mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
+mm-compaction-embed-migration-mode-in-compact_control.patch
+mm-thp-avoid-excessive-compaction-latency-during-fault.patch
+mm-compaction-terminate-async-compaction-when-rescheduling.patch
+mm-compaction-do-not-count-migratepages-when-unnecessary.patch
+mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
 
