@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds1742-make-of_device_id-array-const.patch added to -mm tree
-Date: Wed, 07 May 2014 13:16:44 -0700
-Message-ID: <536a94ac.B/JKJr1JRwBFfgh7%akpm@linux-foundation.org>
+Subject: + rtc-rtc-hym8563-make-of_device_id-array-const.patch added to
+ -mm tree
+Date: Wed, 07 May 2014 13:16:45 -0700
+Message-ID: <536a94ad.U02QRRIn6FPFXFqn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57079 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57082 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750892AbaEGUQp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 16:16:45 -0400
+	with ESMTP id S1750904AbaEGUQq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 16:16:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, heiko@sntech.de, jg1.han@samsung.com
 
-Subject: + rtc-rtc-ds1742-make-of_device_id-array-const.patch added to -mm tree
-To: jg1.han@samsung.com
+Subject: + rtc-rtc-hym8563-make-of_device_id-array-const.patch added to -mm tree
+To: jg1.han@samsung.com,heiko@sntech.de
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 13:16:44 -0700
+Date: Wed, 07 May 2014 13:16:45 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-ds1742: make of_device_id array const
+     Subject: rtc: rtc-hym8563: make of_device_id array const
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds1742-make-of_device_id-array-const.patch
+     rtc-rtc-hym8563-make-of_device_id-array-const.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-ds1742-make-of_device_id-array-const.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-hym8563-make-of_device_id-array-const.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-ds1742-make-of_device_id-array-const.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-hym8563-make-of_device_id-array-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,29 +45,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ds1742: make of_device_id array const
+Subject: rtc: rtc-hym8563: make of_device_id array const
 
 Make of_device_id array const, because all OF functions handle it as
 const.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Heiko Stbner <heiko@sntech.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1742.c |    2 +-
+ drivers/rtc/rtc-hym8563.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-make-of_device_id-array-const drivers/rtc/rtc-ds1742.c
---- a/drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-make-of_device_id-array-const
-+++ a/drivers/rtc/rtc-ds1742.c
-@@ -219,7 +219,7 @@ static int ds1742_rtc_remove(struct plat
- 	return 0;
- }
+diff -puN drivers/rtc/rtc-hym8563.c~rtc-rtc-hym8563-make-of_device_id-array-const drivers/rtc/rtc-hym8563.c
+--- a/drivers/rtc/rtc-hym8563.c~rtc-rtc-hym8563-make-of_device_id-array-const
++++ a/drivers/rtc/rtc-hym8563.c
+@@ -585,7 +585,7 @@ static const struct i2c_device_id hym856
+ };
+ MODULE_DEVICE_TABLE(i2c, hym8563_id);
  
--static struct of_device_id __maybe_unused ds1742_rtc_of_match[] = {
-+static const struct of_device_id __maybe_unused ds1742_rtc_of_match[] = {
- 	{ .compatible = "maxim,ds1742", },
- 	{ }
+-static struct of_device_id hym8563_dt_idtable[] = {
++static const struct of_device_id hym8563_dt_idtable[] = {
+ 	{ .compatible = "haoyu,hym8563" },
+ 	{},
  };
 _
 
