@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-ensure-blacklist-data-is-aligned.patch added to -mm
- tree
-Date: Wed, 07 May 2014 12:16:39 -0700
-Message-ID: <536a8697.3QCr+FjRMKOHXKDF%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
+ added to -mm tree
+Date: Wed, 07 May 2014 12:20:18 -0700
+Message-ID: <536a8772.XVyCu23QimqoqQJA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56535 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56540 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751486AbaEGTQk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 15:16:40 -0400
+	with ESMTP id S1750911AbaEGTUT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 15:20:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mingo@kernel.org, mingo@elte.hu, masami.hiramatsu.pt@hitachi.com, vgupta@synopsys.com
+To: mm-commits@vger.kernel.org, davem@davemloft.net, apw@canonical.com, joe@perches.com
 
-Subject: + kprobes-ensure-blacklist-data-is-aligned.patch added to -mm tree
-To: vgupta@synopsys.com,masami.hiramatsu.pt@hitachi.com,mingo@elte.hu,mingo@kernel.org
+Subject: + checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch added to -mm tree
+To: joe@perches.com,apw@canonical.com,davem@davemloft.net
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 12:16:39 -0700
+Date: Wed, 07 May 2014 12:20:18 -0700
 
 
 The patch titled
-     Subject: kprobes: ensure blacklist data is aligned
+     Subject: checkpatch: make --strict a default for files in drivers/net and net/
 has been added to the -mm tree.  Its filename is
-     kprobes-ensure-blacklist-data-is-aligned.patch
+     checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kprobes-ensure-blacklist-data-is-aligned.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kprobes-ensure-blacklist-data-is-aligned.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,65 +45,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vineet Gupta <vgupta@synopsys.com>
-Subject: kprobes: ensure blacklist data is aligned
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: make --strict a default for files in drivers/net and net/
 
-ARC Linux (not supporting native unaligned access) was failing to boot
-because __start_kprobe_blacklist was not aligned.
+Networking files are generally more strictly conformant to linux-kernel
+style so make checkpatch more verbose by default for patches to files or
+when checking files in these directories.
 
-This was because per generated vmlinux.lds it was emitted right next to
-.rodata with strings etc hence could be randomly unaligned.
-
-Fix that by ensuring a word alignment.  While 4 would suffice for 32bit
-arches and problem at hand, it is probably better to put 8.
-
-| Path: (null) CPU: 0 PID: 1 Comm: swapper Not tainted
-| 3.15.0-rc3-next-20140430 #2
-| task: 8f044000 ti: 8f01e000 task.ti: 8f01e000
-|
-| [ECR   ]: 0x00230400 => Misaligned r/w from 0x800fb0d3
-| [EFA   ]: 0x800fb0d3
-| [BLINK ]: do_one_initcall+0x86/0x1bc
-| [ERET  ]: init_kprobes+0x52/0x120
-
-Fixes
-
-commit 376e242429bf8539ef39a080ac113c8799840b13
-Author:     Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-AuthorDate: Thu Apr 17 17:17:05 2014 +0900
-Commit:     Ingo Molnar <mingo@kernel.org>
-CommitDate: Thu Apr 24 10:02:56 2014 +0200
-
-    kprobes: Introduce NOKPROBE_SYMBOL() macro to maintain kprobes blacklist
-
-Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
-Acked-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN include/asm-generic/vmlinux.lds.h~kprobes-ensure-blacklist-data-is-aligned include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~kprobes-ensure-blacklist-data-is-aligned
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -110,7 +110,8 @@
- #endif
+diff -puN scripts/checkpatch.pl~checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net
++++ a/scripts/checkpatch.pl
+@@ -24,6 +24,7 @@ my $emacs = 0;
+ my $terse = 0;
+ my $file = 0;
+ my $check = 0;
++my $check_orig = 0;
+ my $summary = 1;
+ my $mailback = 0;
+ my $summary_file = 0;
+@@ -146,6 +147,7 @@ GetOptions(
+ help(0) if ($help);
  
- #ifdef CONFIG_KPROBES
--#define KPROBE_BLACKLIST()	VMLINUX_SYMBOL(__start_kprobe_blacklist) = .; \
-+#define KPROBE_BLACKLIST()	. = ALIGN(8);				      \
-+				VMLINUX_SYMBOL(__start_kprobe_blacklist) = .; \
- 				*(_kprobe_blacklist)			      \
- 				VMLINUX_SYMBOL(__stop_kprobe_blacklist) = .;
- #else
+ $fix = 1 if ($fix_inplace);
++$check_orig = $check;
+ 
+ my $exit = 0;
+ 
+@@ -1813,11 +1815,13 @@ sub process {
+ 		$here = "#$linenr: " if (!$file);
+ 		$here = "#$realline: " if ($file);
+ 
++		my $found_file = 0;
+ 		# extract the filename as it passes
+ 		if ($line =~ /^diff --git.*?(\S+)$/) {
+ 			$realfile = $1;
+ 			$realfile =~ s@^([^/]*)/@@ if (!$file);
+ 			$in_commit_log = 0;
++			$found_file = 1;
+ 		} elsif ($line =~ /^\+\+\+\s+(\S+)/) {
+ 			$realfile = $1;
+ 			$realfile =~ s@^([^/]*)/@@ if (!$file);
+@@ -1834,6 +1838,15 @@ sub process {
+ 				ERROR("MODIFIED_INCLUDE_ASM",
+ 				      "do not modify files in include/asm, change architecture specific files in include/asm-<architecture>\n" . "$here$rawline\n");
+ 			}
++			$found_file = 1;
++		}
++
++		if ($found_file) {
++			if ($realfile =~ m@^(drivers/net/|net/)@) {
++				$check = 1;
++			} else {
++				$check = $check_orig;
++			}
+ 			next;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from vgupta@synopsys.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-arc-call-find_vma-with-the-mmap_sem-held.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+origin.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+documentation-expand-clarify-debug-documentation.patch
+maintainers-add-linux-api-for-review-of-api-abi-changes.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-fix-wildcard-dt-compatible-string-checking.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-improve-missing-blank-line-after-declarations-test.patch
+checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
+init-mainc-dont-use-pr_debug.patch
+fs-isofs-logging-clean-up.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
-kprobes-ensure-blacklist-data-is-aligned.patch
+arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+tile-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+parport-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+scsi-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ntfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ipc-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+mm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
