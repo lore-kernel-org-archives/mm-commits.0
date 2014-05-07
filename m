@@ -1,142 +1,280 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
+Subject: [merged] slub-use-sysfses-release-mechanism-for-kmem_cache.patch
  removed from -mm tree
-Date: Wed, 07 May 2014 12:05:07 -0700
-Message-ID: <536a83e3.WI4n3CEInj5DzKoL%akpm@linux-foundation.org>
+Date: Wed, 07 May 2014 12:05:15 -0700
+Message-ID: <536a83eb.maFY/DwVpjJm2p0v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56136 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56143 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751463AbaEGTFR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 15:05:17 -0400
+	with ESMTP id S1751264AbaEGTFQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 15:05:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunghwan.yun@samsung.com, stable@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, heesub.shin@samsung.com, d.j.shin@samsung.com, cl@linux.com, b.zolnierkie@samsung.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tglx@linutronix.de, sasha.levin@oracle.com, rmk@arm.linux.org.uk, penberg@kernel.org, greg@kroah.com, bvanassche@acm.org, cl@linux.com
 
-Subject: [merged] mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch removed from -mm tree
-To: vbabka@suse.cz,b.zolnierkie@samsung.com,cl@linux.com,d.j.shin@samsung.com,heesub.shin@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,stable@vger.kernel.org,sunghwan.yun@samsung.com,mm-commits@vger.kernel.org
+Subject: [merged] slub-use-sysfses-release-mechanism-for-kmem_cache.patch removed from -mm tree
+To: cl@linux.com,bvanassche@acm.org,greg@kroah.com,penberg@kernel.org,rmk@arm.linux.org.uk,sasha.levin@oracle.com,tglx@linutronix.de,viro@ZenIV.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 12:05:07 -0700
+Date: Wed, 07 May 2014 12:05:15 -0700
 
 
 The patch titled
-     Subject: mm/compaction: make isolate_freepages start at pageblock boundary
+     Subject: slub: use sysfs'es release mechanism for kmem_cache
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-make-isolate_freepages-start-at-pageblock-boundary.patch
+     slub-use-sysfses-release-mechanism-for-kmem_cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/compaction: make isolate_freepages start at pageblock boundary
+From: Christoph Lameter <cl@linux.com>
+Subject: slub: use sysfs'es release mechanism for kmem_cache
 
-The compaction freepage scanner implementation in isolate_freepages() starts
-by taking the current cc->free_pfn value as the first pfn. In a for loop, it
-scans from this first pfn to the end of the pageblock, and then subtracts
-pageblock_nr_pages from the first pfn to obtain the first pfn for the next
-for loop iteration.
+debugobjects warning during netfilter exit:
 
-This means that when cc->free_pfn starts at offset X rather than being aligned
-on pageblock boundary, the scanner will start at offset X in all scanned
-pageblock, ignoring potentially many free pages. Currently this can happen when
+[  418.311956] ------------[ cut here ]------------
+[  418.312449] WARNING: CPU: 6 PID: 4178 at lib/debugobjects.c:260 debug_print_object+0x8d/0xb0()
+[  418.313243] ODEBUG: free active (active state 0) object type: timer_list hint: 
+delayed_work_timer_fn+0x0/0x20
+[  418.314038] Modules linked in:
+[  418.314038] CPU: 6 PID: 4178 Comm: kworker/u16:2 Tainted: G        W 
+3.11.0-next-20130906-sasha #3984
+[  418.314038] Workqueue: netns cleanup_net
+[  418.314038]  0000000000000104 ffff880410371a58 ffffffff841b7815 0000000000000104
+[  418.314038]  ffff880410371aa8 ffff880410371a98 ffffffff8112540c ffff880410371a78
+[  418.314038]  ffffffff853ea0ab ffff8800bdc68b80 ffffffff85a65c00 ffffffff87676658
+[  418.314038] Call Trace:
+[  418.314038]  [<ffffffff841b7815>] dump_stack+0x52/0x87
+[  418.320315]  [<ffffffff8112540c>] warn_slowpath_common+0x8c/0xc0
+[  418.321040]  [<ffffffff811254f6>] warn_slowpath_fmt+0x46/0x50
+[  418.321101]  [<ffffffff81a60ded>] debug_print_object+0x8d/0xb0
+[  418.321101]  [<ffffffff811444e0>] ? __queue_work+0x390/0x390
+[  418.321101]  [<ffffffff81a61605>] __debug_check_no_obj_freed+0xa5/0x220
+[  418.321101]  [<ffffffff81249e76>] ? kmem_cache_destroy+0x86/0xe0
+[  418.321101]  [<ffffffff81a61795>] debug_check_no_obj_freed+0x15/0x20
+[  418.321101]  [<ffffffff812874d7>] kmem_cache_free+0x197/0x340
+[  418.321101]  [<ffffffff81249e76>] kmem_cache_destroy+0x86/0xe0
+[  418.321101]  [<ffffffff83d5d681>] nf_conntrack_cleanup_net_list+0x131/0x170
+[  418.321101]  [<ffffffff83d5ec5d>] nf_conntrack_pernet_exit+0x5d/0x70
+[  418.321101]  [<ffffffff83cda1ce>] ops_exit_list+0x5e/0x70
+[  418.321101]  [<ffffffff83cda80b>] cleanup_net+0xfb/0x1c0
+[  418.321101]  [<ffffffff81145c28>] process_one_work+0x338/0x550
+[  418.321101]  [<ffffffff81145b50>] ? process_one_work+0x260/0x550
+[  418.321883]  [<ffffffff81147605>] worker_thread+0x215/0x350
+[  418.321883]  [<ffffffff811473f0>] ? manage_workers+0x180/0x180
+[  418.321883]  [<ffffffff81150887>] kthread+0xe7/0xf0
+[  418.321883]  [<ffffffff811507a0>] ? __init_kthread_worker+0x70/0x70
+[  418.321883]  [<ffffffff841c7a2c>] ret_from_fork+0x7c/0xb0
+[  418.321883]  [<ffffffff811507a0>] ? __init_kthread_worker+0x70/0x70
 
-a) zone's end pfn is not pageblock aligned, or
+Also during dcookie cleanup:
 
-b) through zone->compact_cached_free_pfn with CONFIG_HOLES_IN_ZONE
-   enabled and a hole spanning the beginning of a pageblock
+[  191.835040] WARNING: CPU: 12 PID: 9725 at lib/debugobjects.c:260 debug_print_object+0x8c/0xb0()
+[  191.838129] ODEBUG: free active (active state 0) object type: timer_list hint: delayed_work_timer_fn+0x0/0x20
+[  191.840545] Modules linked in:
+[  191.841297] CPU: 12 PID: 9725 Comm: trinity-c141 Not tainted 3.15.0-rc2-next-20140423-sasha-00018-gc4ff6c4 #408
+[  191.842479]  0000000000000009 ffff88000a8ebc38 ffffffff975271f2 0000000000000001
+[  191.842479]  ffff88000a8ebc88 ffff88000a8ebc78 ffffffff9415afcc ffff88000a8a3d98
+[  191.842479]  ffff8801b3ad5140 ffffffff98e76200 ffffffff988dc502 ffffffff9b70c870
+[  191.842479] Call Trace:
+[  191.842479] dump_stack (lib/dump_stack.c:52)
+[  191.842479] warn_slowpath_common (kernel/panic.c:430)
+[  191.842479] warn_slowpath_fmt (kernel/panic.c:445)
+[  191.842479] debug_print_object (lib/debugobjects.c:262)
+[  191.842479] ? __queue_work (kernel/workqueue.c:1452)
+[  191.842479] __debug_check_no_obj_freed (lib/debugobjects.c:697)
+[  191.842479] debug_check_no_obj_freed (lib/debugobjects.c:726)
+[  191.842479] kmem_cache_free (mm/slub.c:2689 mm/slub.c:2717)
+[  191.871535] ? kmem_cache_destroy (mm/slab_common.c:363)
+[  191.871535] kmem_cache_destroy (mm/slab_common.c:363)
+[  191.871535] dcookie_unregister (fs/dcookies.c:302 fs/dcookies.c:343)
+[  191.871535] event_buffer_release (arch/x86/oprofile/../../../drivers/oprofile/event_buffer.c:153)
+[  191.871535] __fput (fs/file_table.c:217)
+[  191.871535] ____fput (fs/file_table.c:253)
+[  191.871535] task_work_run (kernel/task_work.c:125 (discriminator 1))
+[  191.871535] do_notify_resume (include/linux/tracehook.h:196 arch/x86/kernel/signal.c:751)
+[  191.871535] int_signal (arch/x86/kernel/entry_64.S:807)
 
-This patch fixes the problem by aligning the initial pfn in
-isolate_freepages() to pageblock boundary.  This also permits replacing
-the end-of-pageblock alignment within the for loop with a simple
-pageblock_nr_pages increment.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Heesub Shin <heesub.shin@samsung.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Christoph Lameter <cl@linux.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Dongjun Shin <d.j.shin@samsung.com>
-Cc: Sunghwan Yun <sunghwan.yun@samsung.com>
-Cc: <stable@vger.kernel.org>
+Sysfs has a release mechanism. Use that to release the kmem_cache structure
+if CONFIG_SYSFS is enabled.
+
+Only slub is changed - slab currently only supports /proc/slabinfo and not
+/sys/kernel/slab/*.  We talked about adding that and someone was working
+on it.
+
+[akpm@linux-foundation.org: fix CONFIG_SYSFS=n build]
+[akpm@linux-foundation.org: fix CONFIG_SYSFS=n build even more]
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Tested-by: Sasha Levin <sasha.levin@oracle.com>
+Acked-by: Greg KH <greg@kroah.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Bart Van Assche <bvanassche@acm.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ include/linux/slub_def.h |    9 +++++++++
+ mm/slab.h                |    1 +
+ mm/slab_common.c         |   13 +++++++++++--
+ mm/slub.c                |   30 ++++++++----------------------
+ 4 files changed, 29 insertions(+), 24 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-make-isolate_freepages-start-at-pageblock-boundary mm/compaction.c
---- a/mm/compaction.c~mm-compaction-make-isolate_freepages-start-at-pageblock-boundary
-+++ a/mm/compaction.c
-@@ -671,16 +671,20 @@ static void isolate_freepages(struct zon
- 				struct compact_control *cc)
+diff -puN include/linux/slub_def.h~slub-use-sysfses-release-mechanism-for-kmem_cache include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-use-sysfses-release-mechanism-for-kmem_cache
++++ a/include/linux/slub_def.h
+@@ -101,4 +101,13 @@ struct kmem_cache {
+ 	struct kmem_cache_node *node[MAX_NUMNODES];
+ };
+ 
++#ifdef CONFIG_SYSFS
++#define SLAB_SUPPORTS_SYSFS
++void sysfs_slab_remove(struct kmem_cache *);
++#else
++static inline void sysfs_slab_remove(struct kmem_cache *s)
++{
++}
++#endif
++
+ #endif /* _LINUX_SLUB_DEF_H */
+diff -puN mm/slab.h~slub-use-sysfses-release-mechanism-for-kmem_cache mm/slab.h
+--- a/mm/slab.h~slub-use-sysfses-release-mechanism-for-kmem_cache
++++ a/mm/slab.h
+@@ -91,6 +91,7 @@ __kmem_cache_alias(const char *name, siz
+ #define CACHE_CREATE_MASK (SLAB_CORE_FLAGS | SLAB_DEBUG_FLAGS | SLAB_CACHE_FLAGS)
+ 
+ int __kmem_cache_shutdown(struct kmem_cache *);
++void slab_kmem_cache_release(struct kmem_cache *);
+ 
+ struct seq_file;
+ struct file;
+diff -puN mm/slab_common.c~slub-use-sysfses-release-mechanism-for-kmem_cache mm/slab_common.c
+--- a/mm/slab_common.c~slub-use-sysfses-release-mechanism-for-kmem_cache
++++ a/mm/slab_common.c
+@@ -323,6 +323,12 @@ static int kmem_cache_destroy_memcg_chil
+ }
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
++void slab_kmem_cache_release(struct kmem_cache *s)
++{
++	kfree(s->name);
++	kmem_cache_free(kmem_cache, s);
++}
++
+ void kmem_cache_destroy(struct kmem_cache *s)
  {
- 	struct page *page;
--	unsigned long high_pfn, low_pfn, pfn, z_end_pfn, end_pfn;
-+	unsigned long high_pfn, low_pfn, pfn, z_end_pfn;
- 	int nr_freepages = cc->nr_freepages;
- 	struct list_head *freelist = &cc->freepages;
+ 	get_online_cpus();
+@@ -352,8 +358,11 @@ void kmem_cache_destroy(struct kmem_cach
+ 		rcu_barrier();
  
- 	/*
- 	 * Initialise the free scanner. The starting point is where we last
--	 * scanned from (or the end of the zone if starting). The low point
--	 * is the end of the pageblock the migration scanner is using.
-+	 * successfully isolated from, zone-cached value, or the end of the
-+	 * zone when isolating for the first time. We need this aligned to
-+	 * the pageblock boundary, because we do pfn -= pageblock_nr_pages
-+	 * in the for loop.
-+	 * The low boundary is the end of the pageblock the migration scanner
-+	 * is using.
- 	 */
--	pfn = cc->free_pfn;
-+	pfn = cc->free_pfn & ~(pageblock_nr_pages-1);
- 	low_pfn = ALIGN(cc->migrate_pfn + 1, pageblock_nr_pages);
+ 	memcg_free_cache_params(s);
+-	kfree(s->name);
+-	kmem_cache_free(kmem_cache, s);
++#ifdef SLAB_SUPPORTS_SYSFS
++	sysfs_slab_remove(s);
++#else
++	slab_kmem_cache_release(s);
++#endif
+ 	goto out_put_cpus;
  
- 	/*
-@@ -700,6 +704,7 @@ static void isolate_freepages(struct zon
- 	for (; pfn >= low_pfn && cc->nr_migratepages > nr_freepages;
- 					pfn -= pageblock_nr_pages) {
- 		unsigned long isolated;
-+		unsigned long end_pfn;
+ out_unlock:
+diff -puN mm/slub.c~slub-use-sysfses-release-mechanism-for-kmem_cache mm/slub.c
+--- a/mm/slub.c~slub-use-sysfses-release-mechanism-for-kmem_cache
++++ a/mm/slub.c
+@@ -210,14 +210,11 @@ enum track_item { TRACK_ALLOC, TRACK_FRE
+ #ifdef CONFIG_SYSFS
+ static int sysfs_slab_add(struct kmem_cache *);
+ static int sysfs_slab_alias(struct kmem_cache *, const char *);
+-static void sysfs_slab_remove(struct kmem_cache *);
+ static void memcg_propagate_slab_attrs(struct kmem_cache *s);
+ #else
+ static inline int sysfs_slab_add(struct kmem_cache *s) { return 0; }
+ static inline int sysfs_slab_alias(struct kmem_cache *s, const char *p)
+ 							{ return 0; }
+-static inline void sysfs_slab_remove(struct kmem_cache *s) { }
+-
+ static inline void memcg_propagate_slab_attrs(struct kmem_cache *s) { }
+ #endif
  
+@@ -3238,24 +3235,7 @@ static inline int kmem_cache_close(struc
+ 
+ int __kmem_cache_shutdown(struct kmem_cache *s)
+ {
+-	int rc = kmem_cache_close(s);
+-
+-	if (!rc) {
+-		/*
+-		 * Since slab_attr_store may take the slab_mutex, we should
+-		 * release the lock while removing the sysfs entry in order to
+-		 * avoid a deadlock. Because this is pretty much the last
+-		 * operation we do and the lock will be released shortly after
+-		 * that in slab_common.c, we could just move sysfs_slab_remove
+-		 * to a later point in common code. We should do that when we
+-		 * have a common sysfs framework for all allocators.
+-		 */
+-		mutex_unlock(&slab_mutex);
+-		sysfs_slab_remove(s);
+-		mutex_lock(&slab_mutex);
+-	}
+-
+-	return rc;
++	return kmem_cache_close(s);
+ }
+ 
+ /********************************************************************
+@@ -5122,6 +5102,11 @@ static void memcg_propagate_slab_attrs(s
+ #endif
+ }
+ 
++static void kmem_cache_release(struct kobject *k)
++{
++	slab_kmem_cache_release(to_slab(k));
++}
++
+ static const struct sysfs_ops slab_sysfs_ops = {
+ 	.show = slab_attr_show,
+ 	.store = slab_attr_store,
+@@ -5129,6 +5114,7 @@ static const struct sysfs_ops slab_sysfs
+ 
+ static struct kobj_type slab_ktype = {
+ 	.sysfs_ops = &slab_sysfs_ops,
++	.release = kmem_cache_release,
+ };
+ 
+ static int uevent_filter(struct kset *kset, struct kobject *kobj)
+@@ -5255,7 +5241,7 @@ out_put_kobj:
+ 	goto out;
+ }
+ 
+-static void sysfs_slab_remove(struct kmem_cache *s)
++void sysfs_slab_remove(struct kmem_cache *s)
+ {
+ 	if (slab_state < FULL)
  		/*
- 		 * This can iterate a massively long zone without finding any
-@@ -734,13 +739,10 @@ static void isolate_freepages(struct zon
- 		isolated = 0;
- 
- 		/*
--		 * As pfn may not start aligned, pfn+pageblock_nr_page
--		 * may cross a MAX_ORDER_NR_PAGES boundary and miss
--		 * a pfn_valid check. Ensure isolate_freepages_block()
--		 * only scans within a pageblock
-+		 * Take care when isolating in last pageblock of a zone which
-+		 * ends in the middle of a pageblock.
- 		 */
--		end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
--		end_pfn = min(end_pfn, z_end_pfn);
-+		end_pfn = min(pfn + pageblock_nr_pages, z_end_pfn);
- 		isolated = isolate_freepages_block(cc, pfn, end_pfn,
- 						   freelist, false);
- 		nr_freepages += isolated;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from cl@linux.com are
 
 origin.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+slab-document-kmalloc_order.patch
+mm-disable-zone_reclaim_mode-by-default.patch
+mm-page_alloc-do-not-cache-reclaim-distances.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+mem-hotplug-implement-get-put_online_mems.patch
+slab-get_online_mems-for-kmem_cache_createdestroyshrink.patch
 mm-compaction-clean-up-unused-code-lines.patch
 mm-compaction-cleanup-isolate_freepages.patch
 mm-compaction-cleanup-isolate_freepages-fix.patch
 mm-compaction-cleanup-isolate_freepages-fix-2.patch
+mm-compaction-cleanup-isolate_freepages-fix3.patch
+mm-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch
+linux-next.patch
 
