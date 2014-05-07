@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-palmas-make-of_device_id-array-const.patch added to -mm tree
-Date: Wed, 07 May 2014 13:16:48 -0700
-Message-ID: <536a94b0.KGX0L4wb+0oOSzLL%akpm@linux-foundation.org>
+Subject: + rtc-isl12057-make-of_device_id-array-const.patch added to -mm
+ tree
+Date: Wed, 07 May 2014 13:16:46 -0700
+Message-ID: <536a94ae.qe9d/taiJ4OfwplM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57089 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57085 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750938AbaEGUQt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 16:16:49 -0400
+	with ESMTP id S1751018AbaEGUQr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 16:16:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + rtc-rtc-palmas-make-of_device_id-array-const.patch added to -mm tree
+Subject: + rtc-isl12057-make-of_device_id-array-const.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 13:16:48 -0700
+Date: Wed, 07 May 2014 13:16:46 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-palmas: make of_device_id array const
+     Subject: rtc: isl12057: make of_device_id array const
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-palmas-make-of_device_id-array-const.patch
+     rtc-isl12057-make-of_device_id-array-const.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-palmas-make-of_device_id-array-const.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-isl12057-make-of_device_id-array-const.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-palmas-make-of_device_id-array-const.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-isl12057-make-of_device_id-array-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-palmas: make of_device_id array const
+Subject: rtc: isl12057: make of_device_id array const
 
 Make of_device_id array const, because all OF functions handle it as
 const.
@@ -53,19 +54,19 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-palmas.c |    2 +-
+ drivers/rtc/rtc-isl12057.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-palmas.c~rtc-rtc-palmas-make-of_device_id-array-const drivers/rtc/rtc-palmas.c
---- a/drivers/rtc/rtc-palmas.c~rtc-rtc-palmas-make-of_device_id-array-const
-+++ a/drivers/rtc/rtc-palmas.c
-@@ -352,7 +352,7 @@ static SIMPLE_DEV_PM_OPS(palmas_rtc_pm_o
- 			 palmas_rtc_resume);
+diff -puN drivers/rtc/rtc-isl12057.c~rtc-isl12057-make-of_device_id-array-const drivers/rtc/rtc-isl12057.c
+--- a/drivers/rtc/rtc-isl12057.c~rtc-isl12057-make-of_device_id-array-const
++++ a/drivers/rtc/rtc-isl12057.c
+@@ -278,7 +278,7 @@ static int isl12057_probe(struct i2c_cli
+ }
  
  #ifdef CONFIG_OF
--static struct of_device_id of_palmas_rtc_match[] = {
-+static const struct of_device_id of_palmas_rtc_match[] = {
- 	{ .compatible = "ti,palmas-rtc"},
+-static struct of_device_id isl12057_dt_match[] = {
++static const struct of_device_id isl12057_dt_match[] = {
+ 	{ .compatible = "isl,isl12057" },
  	{ },
  };
 _
