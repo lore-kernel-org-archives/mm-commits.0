@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-avoid-excessive-compaction-latency-during-fault.patch
- added to -mm tree
-Date: Wed, 07 May 2014 14:20:51 -0700
-Message-ID: <536aa3b3.SnmRplaYl17/80Kd%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-terminate-async-compaction-when-rescheduling.patch added to
+ -mm tree
+Date: Wed, 07 May 2014 14:20:52 -0700
+Message-ID: <536aa3b4.I6vZNl4YkmQ39FL/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57596 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57600 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752411AbaEGVUw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 17:20:52 -0400
+	with ESMTP id S1752415AbaEGVUx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 17:20:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, gthelen@google.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, mgorman@suse.de, rientjes@google.com
 
-Subject: + mm-thp-avoid-excessive-compaction-latency-during-fault.patch added to -mm tree
-To: rientjes@google.com,gthelen@google.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,vbabka@suse.cz
+Subject: + mm-compaction-terminate-async-compaction-when-rescheduling.patch added to -mm tree
+To: rientjes@google.com,mgorman@suse.de,vbabka@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 14:20:51 -0700
+Date: Wed, 07 May 2014 14:20:52 -0700
 
 
 The patch titled
-     Subject: mm, thp: avoid excessive compaction latency during fault
+     Subject: mm, compaction: terminate async compaction when rescheduling
 has been added to the -mm tree.  Its filename is
-     mm-thp-avoid-excessive-compaction-latency-during-fault.patch
+     mm-compaction-terminate-async-compaction-when-rescheduling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-avoid-excessive-compaction-latency-during-fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-terminate-async-compaction-when-rescheduling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-avoid-excessive-compaction-latency-during-fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-terminate-async-compaction-when-rescheduling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,56 +46,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: avoid excessive compaction latency during fault
+Subject: mm, compaction: terminate async compaction when rescheduling
 
-Synchronous memory compaction can be very expensive: it can iterate an
-enormous amount of memory without aborting, constantly rescheduling,
-waiting on page locks and lru_lock, etc, if a pageblock cannot be
-defragmented.
+Async compaction terminates prematurely when need_resched(), see
+compact_checklock_irqsave().  This can never trigger, however, if the
+cond_resched() in isolate_migratepages_range() always takes care of the
+scheduling.
 
-Unfortunately, it's too expensive for transparent hugepage page faults and
-it's much better to simply fallback to pages.  On 128GB machines, we find
-that synchronous memory compaction can take O(seconds) for a single thp
-fault.
-
-Now that async compaction remembers where it left off without strictly
-relying on sync compaction, this makes thp allocations best-effort without
-causing egregious latency during fault.  We still need to retry async
-compaction after reclaim, but this won't stall for seconds.
+If the cond_resched() actually triggers, then terminate this pageblock
+scan for async compaction as well.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ mm/compaction.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-thp-avoid-excessive-compaction-latency-during-fault mm/page_alloc.c
---- a/mm/page_alloc.c~mm-thp-avoid-excessive-compaction-latency-during-fault
-+++ a/mm/page_alloc.c
-@@ -2578,7 +2578,17 @@ rebalance:
- 					&did_some_progress);
- 	if (page)
- 		goto got_pg;
--	migration_mode = MIGRATE_SYNC_LIGHT;
-+
-+	if (gfp_mask & __GFP_NO_KSWAPD) {
-+		/*
-+		 * Khugepaged is allowed to try MIGRATE_SYNC_LIGHT, the latency
-+		 * of this allocation isn't critical.  Everything else, however,
-+		 * should only be allowed to do MIGRATE_ASYNC to avoid excessive
-+		 * stalls during fault.
-+		 */
-+		if ((current->flags & (PF_KTHREAD | PF_KSWAPD)) == PF_KTHREAD)
-+			migration_mode = MIGRATE_SYNC_LIGHT;
-+	}
+diff -puN mm/compaction.c~mm-compaction-terminate-async-compaction-when-rescheduling mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-terminate-async-compaction-when-rescheduling
++++ a/mm/compaction.c
+@@ -491,8 +491,13 @@ isolate_migratepages_range(struct zone *
+ 			return 0;
+ 	}
  
- 	/*
- 	 * If compaction is deferred for high-order allocations, it is because
++	if (cond_resched()) {
++		/* Async terminates prematurely on need_resched() */
++		if (cc->mode == MIGRATE_ASYNC)
++			return 0;
++	}
++
+ 	/* Time to isolate some pages for migration */
+-	cond_resched();
+ 	for (; low_pfn < end_pfn; low_pfn++) {
+ 		/* give a chance to irqs before checking need_resched() */
+ 		if (locked && !(low_pfn % SWAP_CLUSTER_MAX)) {
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
