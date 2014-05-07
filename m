@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fold-mem_cgroup_stolen.patch added to -mm tree
-Date: Wed, 07 May 2014 13:32:53 -0700
-Message-ID: <536a9875.Py6CgNJO1EfH4EGs%akpm@linux-foundation.org>
+Subject: +
+ memcg-correct-comments-for-__mem_cgroup_begin_update_page_stat.patch added
+ to -mm tree
+Date: Wed, 07 May 2014 13:32:55 -0700
+Message-ID: <536a9877.GYWJj2iytAxiVEio%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57114 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57124 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592AbaEGUcy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 16:32:54 -0400
+	with ESMTP id S1751772AbaEGUc4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 16:32:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, h.huangqiang@huawei.com
 
-Subject: + memcg-fold-mem_cgroup_stolen.patch added to -mm tree
+Subject: + memcg-correct-comments-for-__mem_cgroup_begin_update_page_stat.patch added to -mm tree
 To: h.huangqiang@huawei.com,hannes@cmpxchg.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 13:32:53 -0700
+Date: Wed, 07 May 2014 13:32:55 -0700
 
 
 The patch titled
-     Subject: memcg: fold mem_cgroup_stolen
+     Subject: memcg: correct comments for __mem_cgroup_begin_update_page_stat
 has been added to the -mm tree.  Its filename is
-     memcg-fold-mem_cgroup_stolen.patch
+     memcg-correct-comments-for-__mem_cgroup_begin_update_page_stat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fold-mem_cgroup_stolen.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-correct-comments-for-__mem_cgroup_begin_update_page_stat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fold-mem_cgroup_stolen.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-correct-comments-for-__mem_cgroup_begin_update_page_stat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,11 +46,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Qiang Huang <h.huangqiang@huawei.com>
-Subject: memcg: fold mem_cgroup_stolen
-
-It is only used in __mem_cgroup_begin_update_page_stat(), the name is
-confusing and 2 routines for one thing also confuse people, so fold this
-function seems more clear.
+Subject: memcg: correct comments for __mem_cgroup_begin_update_page_stat
 
 Signed-off-by: Qiang Huang <h.huangqiang@huawei.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
@@ -56,61 +54,38 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   25 +++++++------------------
- 1 file changed, 7 insertions(+), 18 deletions(-)
+ mm/memcontrol.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fold-mem_cgroup_stolen mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fold-mem_cgroup_stolen
+diff -puN mm/memcontrol.c~memcg-correct-comments-for-__mem_cgroup_begin_update_page_stat mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-correct-comments-for-__mem_cgroup_begin_update_page_stat
 +++ a/mm/memcontrol.c
-@@ -1568,23 +1568,12 @@ static void mem_cgroup_end_move(struct m
+@@ -2251,12 +2251,11 @@ cleanup:
  }
  
  /*
-- * 2 routines for checking "mem" is under move_account() or not.
-+ * A routine for checking "mem" is under move_account() or not.
+- * Currently used to update mapped file statistics, but the routine can be
+- * generalized to update other statistics as well.
++ * Used to update mapped file or writeback or other statistics.
   *
-- * mem_cgroup_stolen() -  checking whether a cgroup is mc.from or not. This
-- *			  is used for avoiding races in accounting.  If true,
-- *			  pc->mem_cgroup may be overwritten.
-- *
-- * mem_cgroup_under_move() - checking a cgroup is mc.from or mc.to or
-- *			  under hierarchy of moving cgroups. This is for
-- *			  waiting at hith-memory prressure caused by "move".
-+ * Checking a cgroup is mc.from or mc.to or under hierarchy of
-+ * moving cgroups. This is for waiting at hith-memory pressure
-+ * caused by "move".
+  * Notes: Race condition
+  *
+- * We usually use page_cgroup_lock() for accessing page_cgroup member but
++ * We usually use lock_page_cgroup() for accessing page_cgroup member but
+  * it tends to be costly. But considering some conditions, we doesn't need
+  * to do so _always_.
+  *
+@@ -2270,8 +2269,8 @@ cleanup:
+  * by flags.
+  *
+  * Considering "move", this is an only case we see a race. To make the race
+- * small, we check mm->moving_account and detect there are possibility of race
+- * If there is, we take a lock.
++ * small, we check memcg->moving_account and detect there are possibility
++ * of race or not. If there is, we take a lock.
   */
--
--static bool mem_cgroup_stolen(struct mem_cgroup *memcg)
--{
--	VM_BUG_ON(!rcu_read_lock_held());
--	return atomic_read(&memcg->moving_account) > 0;
--}
--
- static bool mem_cgroup_under_move(struct mem_cgroup *memcg)
- {
- 	struct mem_cgroup *from;
-@@ -1627,7 +1616,6 @@ static bool mem_cgroup_wait_acct_move(st
-  * Take this lock when
-  * - a code tries to modify page's memcg while it's USED.
-  * - a code tries to modify page state accounting in a memcg.
-- * see mem_cgroup_stolen(), too.
-  */
- static void move_lock_mem_cgroup(struct mem_cgroup *memcg,
- 				  unsigned long *flags)
-@@ -2301,9 +2289,10 @@ again:
- 	 * If this memory cgroup is not under account moving, we don't
- 	 * need to take move_lock_mem_cgroup(). Because we already hold
- 	 * rcu_read_lock(), any calls to move_account will be delayed until
--	 * rcu_read_unlock() if mem_cgroup_stolen() == true.
-+	 * rcu_read_unlock().
- 	 */
--	if (!mem_cgroup_stolen(memcg))
-+	VM_BUG_ON(!rcu_read_lock_held());
-+	if (atomic_read(&memcg->moving_account) <= 0)
- 		return;
  
- 	move_lock_mem_cgroup(memcg, flags);
+ void __mem_cgroup_begin_update_page_stat(struct page *page,
 _
 
 Patches currently in -mm which might be from h.huangqiang@huawei.com are
