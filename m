@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-add-support-for-maxim-dallas-rtc-ds1343-and-ds1344.patch added
- to -mm tree
-Date: Wed, 07 May 2014 14:42:53 -0700
-Message-ID: <536aa8dd.UKhaooDqiWBVzXIb%akpm@linux-foundation.org>
+Subject: + drivers-rtc-add-support-for-microchip-mcp795.patch added to -mm tree
+Date: Wed, 07 May 2014 14:44:30 -0700
+Message-ID: <536aa93e.KZV2JeKpl5lwuvYx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57774 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100AbaEGVmy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 17:42:54 -0400
+	with ESMTP id S1752101AbaEGVob (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2014 17:44:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com, a.zummo@towertech.it, ravi23ganiga@gmail.com
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com, a.zummo@towertech.it, atx@atx.name
 
-Subject: + drivers-rtc-add-support-for-maxim-dallas-rtc-ds1343-and-ds1344.patch added to -mm tree
-To: ravi23ganiga@gmail.com,a.zummo@towertech.it,jg1.han@samsung.com
+Subject: + drivers-rtc-add-support-for-microchip-mcp795.patch added to -mm tree
+To: atx@atx.name,a.zummo@towertech.it,jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Wed, 07 May 2014 14:42:53 -0700
+Date: Wed, 07 May 2014 14:44:30 -0700
 
 
 The patch titled
-     Subject: drivers/rtc: add support for maxim dallas rtc ds1343 and ds1344
+     Subject: drivers/rtc: add support for Microchip MCP795
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-add-support-for-maxim-dallas-rtc-ds1343-and-ds1344.patch
+     drivers-rtc-add-support-for-microchip-mcp795.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-add-support-for-maxim-dallas-rtc-ds1343-and-ds1344.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-add-support-for-microchip-mcp795.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-add-support-for-maxim-dallas-rtc-ds1343-and-ds1344.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-add-support-for-microchip-mcp795.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,738 +43,258 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Raghavendra Ganiga <ravi23ganiga@gmail.com>
-Subject: drivers/rtc: add support for maxim dallas rtc ds1343 and ds1344
+From: Josef Gajdusek <atx@atx.name>
+Subject: drivers/rtc: add support for Microchip MCP795
 
-Signed-off-by: Raghavendra Chandra Ganiga <ravi23ganiga@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Add driver for SPI RTC Microchip MCP795.  Only supports saving/loading
+time from the chip (i.  e.  no alarms/power events/ID).
+
+Signed-off-by: Josef Gajdusek <atx@atx.name>
 Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |   10 
+ drivers/rtc/Kconfig      |    8 +
  drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-ds1343.c |  679 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 690 insertions(+)
+ drivers/rtc/rtc-mcp795.c |  199 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 208 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~drivers-rtc-add-support-for-maxim-dallas-rtc-ds1343-and-ds1344 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~drivers-rtc-add-support-for-maxim-dallas-rtc-ds1343-and-ds1344
+diff -puN drivers/rtc/Kconfig~drivers-rtc-add-support-for-microchip-mcp795 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~drivers-rtc-add-support-for-microchip-mcp795
 +++ a/drivers/rtc/Kconfig
-@@ -573,6 +573,16 @@ config RTC_DRV_DS1305
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-ds1305.
+@@ -660,6 +660,14 @@ config RTC_DRV_RX4581
+ 	  This driver can also be built as a module. If so the module
+ 	  will be called rtc-rx4581.
  
-+config RTC_DRV_DS1343
-+	tristate "Dallas/Maxim DS1343/DS1344"
++config RTC_DRV_MCP795
++	tristate "Microchip MCP795"
 +	help
-+	  If you say yes here you get support for the
-+	  Dallas/Maxim DS1343 and DS1344 real time clock chips.
-+	  Support for trickle charger, alarm is provided.
++	  If you say yes here you will get support for the Microchip MCP795.
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-ds1343.
++	  This driver can also be built as a module. If so the module
++	  will be called rtc-mcp795.
 +
- config RTC_DRV_DS1347
- 	tristate "Dallas/Maxim DS1347"
- 	help
-diff -puN drivers/rtc/Makefile~drivers-rtc-add-support-for-maxim-dallas-rtc-ds1343-and-ds1344 drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~drivers-rtc-add-support-for-maxim-dallas-rtc-ds1343-and-ds1344
+ endif # SPI_MASTER
+ 
+ comment "Platform RTC drivers"
+diff -puN drivers/rtc/Makefile~drivers-rtc-add-support-for-microchip-mcp795 drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~drivers-rtc-add-support-for-microchip-mcp795
 +++ a/drivers/rtc/Makefile
-@@ -40,6 +40,7 @@ obj-$(CONFIG_RTC_DRV_DS1286)	+= rtc-ds12
- obj-$(CONFIG_RTC_DRV_DS1302)	+= rtc-ds1302.o
- obj-$(CONFIG_RTC_DRV_DS1305)	+= rtc-ds1305.o
- obj-$(CONFIG_RTC_DRV_DS1307)	+= rtc-ds1307.o
-+obj-$(CONFIG_RTC_DRV_DS1343)	+= rtc-ds1343.o
- obj-$(CONFIG_RTC_DRV_DS1347)	+= rtc-ds1347.o
- obj-$(CONFIG_RTC_DRV_DS1374)	+= rtc-ds1374.o
- obj-$(CONFIG_RTC_DRV_DS1390)	+= rtc-ds1390.o
-diff -puN /dev/null drivers/rtc/rtc-ds1343.c
+@@ -81,6 +81,7 @@ obj-$(CONFIG_RTC_DRV_MAX8997)	+= rtc-max
+ obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
+ obj-$(CONFIG_RTC_DRV_MAX77686)	+= rtc-max77686.o
+ obj-$(CONFIG_RTC_DRV_MC13XXX)	+= rtc-mc13xxx.o
++obj-$(CONFIG_RTC_DRV_MCP795)	+= rtc-mcp795.o
+ obj-$(CONFIG_RTC_DRV_MSM6242)	+= rtc-msm6242.o
+ obj-$(CONFIG_RTC_DRV_MPC5121)	+= rtc-mpc5121.o
+ obj-$(CONFIG_RTC_DRV_MV)	+= rtc-mv.o
+diff -puN /dev/null drivers/rtc/rtc-mcp795.c
 --- /dev/null
-+++ a/drivers/rtc/rtc-ds1343.c
-@@ -0,0 +1,679 @@
-+/* rtc-ds1343.c
++++ a/drivers/rtc/rtc-mcp795.c
+@@ -0,0 +1,199 @@
++/*
++ * SPI Driver for Microchip MCP795 RTC
 + *
-+ * Driver for Dallas Semiconductor DS1343 Low Current, SPI Compatible
-+ * Real Time Clock
++ * Copyright (C) Josef Gajdusek <atx@atx.name>
 + *
-+ * Author : Raghavendra Chandra Ganiga <ravi23ganiga@gmail.com>
++ * based on other Linux RTC drivers
++ *
++ * Device datasheet:
++ * http://ww1.microchip.com/downloads/en/DeviceDoc/22280A.pdf
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + *
-+ */
++ * */
 +
-+#include <linux/init.h>
 +#include <linux/module.h>
-+#include <linux/interrupt.h>
++#include <linux/kernel.h>
 +#include <linux/device.h>
++#include <linux/printk.h>
 +#include <linux/spi/spi.h>
-+#include <linux/regmap.h>
 +#include <linux/rtc.h>
-+#include <linux/bcd.h>
-+#include <linux/pm.h>
-+#include <linux/slab.h>
 +
-+#define DS1343_DRV_VERSION	"01.00"
-+#define DALLAS_MAXIM_DS1343	0
-+#define DALLAS_MAXIM_DS1344	1
++/* MCP795 Instructions, see datasheet table 3-1 */
++#define MCP795_EEREAD	0x03
++#define MCP795_EEWRITE	0x02
++#define MCP795_EEWRDI	0x04
++#define MCP795_EEWREN	0x06
++#define MCP795_SRREAD	0x05
++#define MCP795_SRWRITE	0x01
++#define MCP795_READ		0x13
++#define MCP795_WRITE	0x12
++#define MCP795_UNLOCK	0x14
++#define MCP795_IDWRITE	0x32
++#define MCP795_IDREAD	0x33
++#define MCP795_CLRWDT	0x44
++#define MCP795_CLRRAM	0x54
 +
-+/* RTC DS1343 Registers */
-+#define DS1343_SECONDS_REG	0x00
-+#define DS1343_MINUTES_REG	0x01
-+#define DS1343_HOURS_REG	0x02
-+#define DS1343_DAY_REG		0x03
-+#define DS1343_DATE_REG		0x04
-+#define DS1343_MONTH_REG	0x05
-+#define DS1343_YEAR_REG		0x06
-+#define DS1343_ALM0_SEC_REG	0x07
-+#define DS1343_ALM0_MIN_REG	0x08
-+#define DS1343_ALM0_HOUR_REG	0x09
-+#define DS1343_ALM0_DAY_REG	0x0A
-+#define DS1343_ALM1_SEC_REG	0x0B
-+#define DS1343_ALM1_MIN_REG	0x0C
-+#define DS1343_ALM1_HOUR_REG	0x0D
-+#define DS1343_ALM1_DAY_REG	0x0E
-+#define DS1343_CONTROL_REG	0x0F
-+#define DS1343_STATUS_REG	0x10
-+#define DS1343_TRICKLE_REG	0x11
++#define MCP795_ST_BIT	0x80
++#define MCP795_24_BIT	0x40
 +
-+/* DS1343 Control Registers bits */
-+#define DS1343_EOSC		0x80
-+#define DS1343_DOSF		0x20
-+#define DS1343_EGFIL		0x10
-+#define DS1343_SQW		0x08
-+#define DS1343_INTCN		0x04
-+#define DS1343_A1IE		0x02
-+#define DS1343_A0IE		0x01
++static int mcp795_rtcc_read(struct device *dev, u8 addr, u8 *buf, u8 count)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	int ret;
++	u8 tx[2];
 +
-+/* DS1343 Status Registers bits */
-+#define DS1343_OSF		0x80
-+#define DS1343_IRQF1		0x02
-+#define DS1343_IRQF0		0x01
++	tx[0] = MCP795_READ;
++	tx[1] = addr;
++	ret = spi_write_then_read(spi, tx, sizeof(tx), buf, count);
 +
-+/* DS1343 Trickle Charger Registers bits */
-+#define DS1343_TRICKLE_MAGIC	0xa0
-+#define DS1343_TRICKLE_DS1	0x08
-+#define DS1343_TRICKLE_1K	0x01
-+#define DS1343_TRICKLE_2K	0x02
-+#define DS1343_TRICKLE_4K	0x03
++	if (ret)
++		dev_err(dev, "Failed reading %d bytes from address %x.\n",
++					count, addr);
 +
-+static const struct spi_device_id ds1343_id[] = {
-+	{ "ds1343", DALLAS_MAXIM_DS1343 },
-+	{ "ds1344", DALLAS_MAXIM_DS1344 },
-+	{ }
++	return ret;
++}
++
++static int mcp795_rtcc_write(struct device *dev, u8 addr, u8 *data, u8 count)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	int ret;
++	u8 tx[2 + count];
++
++	tx[0] = MCP795_WRITE;
++	tx[1] = addr;
++	memcpy(&tx[2], data, count);
++
++	ret = spi_write(spi, tx, 2 + count);
++
++	if (ret)
++		dev_err(dev, "Failed to write %d bytes to address %x.\n",
++					count, addr);
++
++	return ret;
++}
++
++static int mcp795_rtcc_set_bits(struct device *dev, u8 addr, u8 mask, u8 state)
++{
++	int ret;
++	u8 tmp;
++
++	ret = mcp795_rtcc_read(dev, addr, &tmp, 1);
++	if (ret)
++		return ret;
++
++	if ((tmp & mask) != state) {
++		tmp = (tmp & ~mask) | state;
++		ret = mcp795_rtcc_write(dev, addr, &tmp, 1);
++	}
++
++	return ret;
++}
++
++static int mcp795_set_time(struct device *dev, struct rtc_time *tim)
++{
++	int ret;
++	u8 data[7];
++
++	/* Read first, so we can leave config bits untouched */
++	ret = mcp795_rtcc_read(dev, 0x01, data, sizeof(data));
++
++	if (ret)
++		return ret;
++
++	data[0] = (data[0] & 0x80) | ((tim->tm_sec / 10) << 4) | (tim->tm_sec % 10);
++	data[1] = (data[1] & 0x80) | ((tim->tm_min / 10) << 4) | (tim->tm_min % 10);
++	data[2] = ((tim->tm_hour / 10) << 4) | (tim->tm_hour % 10);
++	data[4] = ((tim->tm_mday / 10) << 4) | ((tim->tm_mday) % 10);
++	data[5] = (data[5] & 0x10) | (tim->tm_mon / 10) | (tim->tm_mon % 10);
++
++	if (tim->tm_year > 100)
++		tim->tm_year -= 100;
++
++	data[6] = ((tim->tm_year / 10) << 4) | (tim->tm_year % 10);
++
++	ret = mcp795_rtcc_write(dev, 0x01, data, sizeof(data));
++
++	if (ret)
++		return ret;
++
++	dev_dbg(dev, "Set mcp795: %04d-%02d-%02d %02d:%02d:%02d\n",
++			tim->tm_year + 1900, tim->tm_mon, tim->tm_mday,
++			tim->tm_hour, tim->tm_min, tim->tm_sec);
++
++	return 0;
++}
++
++static int mcp795_read_time(struct device *dev, struct rtc_time *tim)
++{
++	int ret;
++	u8 data[7];
++
++	ret = mcp795_rtcc_read(dev, 0x01, data, sizeof(data));
++
++	if (ret)
++		return ret;
++
++	tim->tm_sec		= ((data[0] & 0x70) >> 4) * 10 + (data[0] & 0x0f);
++	tim->tm_min		= ((data[1] & 0x70) >> 4) * 10 + (data[1] & 0x0f);
++	tim->tm_hour	= ((data[2] & 0x30) >> 4) * 10 + (data[2] & 0x0f);
++	tim->tm_mday	= ((data[4] & 0x30) >> 4) * 10 + (data[4] & 0x0f);
++	tim->tm_mon		= ((data[5] & 0x10) >> 4) * 10 + (data[5] & 0x0f);
++	tim->tm_year	= ((data[6] & 0xf0) >> 4) * 10 + (data[6] & 0x0f) + 100; /* Assume we are in 20xx */
++
++	dev_dbg(dev, "Read from mcp795: %04d-%02d-%02d %02d:%02d:%02d\n",
++				tim->tm_year + 1900, tim->tm_mon, tim->tm_mday,
++				tim->tm_hour, tim->tm_min, tim->tm_sec);
++
++	return rtc_valid_tm(tim);
++}
++
++static struct rtc_class_ops mcp795_rtc_ops = {
++		.read_time = mcp795_read_time,
++		.set_time = mcp795_set_time
 +};
-+MODULE_DEVICE_TABLE(spi, ds1343_id);
 +
-+struct ds1343_priv {
-+	struct spi_device *spi;
++static int mcp795_probe(struct spi_device *spi)
++{
 +	struct rtc_device *rtc;
-+	struct regmap *map;
-+	struct mutex mutex;
-+	unsigned int irqen;
-+	int alarm_sec;
-+	int alarm_min;
-+	int alarm_hour;
-+	int alarm_mday;
-+};
++	int ret;
 +
-+static int ds1343_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
-+{
-+	switch (cmd) {
-+#ifdef RTC_SET_CHARGE
-+	case RTC_SET_CHARGE:
-+	{
-+		int val;
-+
-+		if (copy_from_user(&val, (int __user *)arg, sizeof(int)))
-+			return -EFAULT;
-+
-+		return regmap_write(priv->map, DS1343_TRICKLE_REG, val);
-+	}
-+	break;
-+#endif
-+	}
-+
-+	return -ENOIOCTLCMD;
-+}
-+
-+static ssize_t ds1343_show_glitchfilter(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+	int glitch_filt_status, data;
-+
-+	regmap_read(priv->map, DS1343_CONTROL_REG, &data);
-+
-+	glitch_filt_status = !!(data & DS1343_EGFIL);
-+
-+	if (glitch_filt_status)
-+		return sprintf(buf, "enabled\n");
-+	else
-+		return sprintf(buf, "disabled\n");
-+}
-+
-+static ssize_t ds1343_store_glitchfilter(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t count)
-+{
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+	int data;
-+
-+	regmap_read(priv->map, DS1343_CONTROL_REG, &data);
-+
-+	if (strncmp(buf, "enabled", 7) == 0)
-+		data |= DS1343_EGFIL;
-+
-+	else if (strncmp(buf, "disabled", 8) == 0)
-+		data &= ~(DS1343_EGFIL);
-+
-+	else
-+		return -EINVAL;
-+
-+	regmap_write(priv->map, DS1343_CONTROL_REG, data);
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(glitch_filter, S_IRUGO | S_IWUSR, ds1343_show_glitchfilter,
-+			ds1343_store_glitchfilter);
-+
-+static ssize_t ds1343_show_alarmstatus(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+	int alarmstatus, data;
-+
-+	regmap_read(priv->map, DS1343_CONTROL_REG, &data);
-+
-+	alarmstatus = !!(data & DS1343_A0IE);
-+
-+	if (alarmstatus)
-+		return sprintf(buf, "enabled\n");
-+	else
-+		return sprintf(buf, "disabled\n");
-+}
-+
-+static DEVICE_ATTR(alarm_status, S_IRUGO, ds1343_show_alarmstatus, NULL);
-+
-+static ssize_t ds1343_show_alarmmode(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+	int alarm_mode, data;
-+	char *alarm_str;
-+
-+	regmap_read(priv->map, DS1343_ALM0_SEC_REG, &data);
-+	alarm_mode = (data & 0x80) >> 4;
-+
-+	regmap_read(priv->map, DS1343_ALM0_MIN_REG, &data);
-+	alarm_mode |= (data & 0x80) >> 5;
-+
-+	regmap_read(priv->map, DS1343_ALM0_HOUR_REG, &data);
-+	alarm_mode |= (data & 0x80) >> 6;
-+
-+	regmap_read(priv->map, DS1343_ALM0_DAY_REG, &data);
-+	alarm_mode |= (data & 0x80) >> 7;
-+
-+	switch (alarm_mode) {
-+	case 15:
-+		alarm_str = "each second";
-+		break;
-+
-+	case 7:
-+		alarm_str = "seconds match";
-+		break;
-+
-+	case 3:
-+		alarm_str = "minutes and seconds match";
-+		break;
-+
-+	case 1:
-+		alarm_str = "hours, minutes and seconds match";
-+		break;
-+
-+	case 0:
-+		alarm_str = "day, hours, minutes and seconds match";
-+		break;
-+
-+	default:
-+		alarm_str = "invalid";
-+		break;
-+	}
-+
-+	return sprintf(buf, "%s\n", alarm_str);
-+}
-+
-+static DEVICE_ATTR(alarm_mode, S_IRUGO, ds1343_show_alarmmode, NULL);
-+
-+static ssize_t ds1343_show_tricklecharger(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+	int data;
-+	char *diodes = "disabled", *resistors = " ";
-+
-+	regmap_read(priv->map, DS1343_TRICKLE_REG, &data);
-+
-+	if ((data & 0xf0) == DS1343_TRICKLE_MAGIC) {
-+		switch (data & 0x0c) {
-+		case DS1343_TRICKLE_DS1:
-+			diodes = "one diode,";
-+			break;
-+
-+		default:
-+			diodes = "no diode,";
-+			break;
-+		}
-+
-+		switch (data & 0x03) {
-+		case DS1343_TRICKLE_1K:
-+			resistors = "1k Ohm";
-+			break;
-+
-+		case DS1343_TRICKLE_2K:
-+			resistors = "2k Ohm";
-+			break;
-+
-+		case DS1343_TRICKLE_4K:
-+			resistors = "4k Ohm";
-+			break;
-+
-+		default:
-+			diodes = "disabled";
-+			break;
-+		}
-+	}
-+
-+	return sprintf(buf, "%s %s\n", diodes, resistors);
-+}
-+
-+static DEVICE_ATTR(trickle_charger, S_IRUGO, ds1343_show_tricklecharger, NULL);
-+
-+static int ds1343_sysfs_register(struct device *dev)
-+{
-+	int err;
-+
-+	err = device_create_file(dev, &dev_attr_glitch_filter);
-+	if (err)
-+		return err;
-+
-+	err = device_create_file(dev, &dev_attr_alarm_status);
-+	if (err)
-+		goto error1;
-+
-+	err = device_create_file(dev, &dev_attr_alarm_mode);
-+	if (err)
-+		goto error2;
-+
-+	err = device_create_file(dev, &dev_attr_trickle_charger);
-+	if (!err)
-+		return err;
-+
-+	device_remove_file(dev, &dev_attr_alarm_mode);
-+
-+error2:
-+	device_remove_file(dev, &dev_attr_alarm_status);
-+
-+error1:
-+	device_remove_file(dev, &dev_attr_glitch_filter);
-+
-+	return err;
-+}
-+
-+static void ds1343_sysfs_unregister(struct device *dev)
-+{
-+	device_remove_file(dev, &dev_attr_glitch_filter);
-+	device_remove_file(dev, &dev_attr_alarm_status);
-+	device_remove_file(dev, &dev_attr_alarm_mode);
-+	device_remove_file(dev, &dev_attr_trickle_charger);
-+}
-+
-+static int ds1343_read_time(struct device *dev, struct rtc_time *dt)
-+{
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+	unsigned char buf[7];
-+	int res;
-+
-+	res = regmap_bulk_read(priv->map, DS1343_SECONDS_REG, buf, 7);
-+	if (res)
-+		return res;
-+
-+	dt->tm_sec	= bcd2bin(buf[0]);
-+	dt->tm_min	= bcd2bin(buf[1]);
-+	dt->tm_hour	= bcd2bin(buf[2] & 0x3F);
-+	dt->tm_wday	= bcd2bin(buf[3]) - 1;
-+	dt->tm_mday	= bcd2bin(buf[4]);
-+	dt->tm_mon	= bcd2bin(buf[5] & 0x1F) - 1;
-+	dt->tm_year	= bcd2bin(buf[6]) + 100; /* year offset from 1900 */
-+
-+	return rtc_valid_tm(dt);
-+}
-+
-+static int ds1343_set_time(struct device *dev, struct rtc_time *dt)
-+{
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+	int res;
-+
-+	res = regmap_write(priv->map, DS1343_SECONDS_REG,
-+				bin2bcd(dt->tm_sec));
-+	if (res)
-+		return res;
-+
-+	res = regmap_write(priv->map, DS1343_MINUTES_REG,
-+				bin2bcd(dt->tm_min));
-+	if (res)
-+		return res;
-+
-+	res = regmap_write(priv->map, DS1343_HOURS_REG,
-+				bin2bcd(dt->tm_hour) & 0x3F);
-+	if (res)
-+		return res;
-+
-+	res = regmap_write(priv->map, DS1343_DAY_REG,
-+				bin2bcd(dt->tm_wday + 1));
-+	if (res)
-+		return res;
-+
-+	res = regmap_write(priv->map, DS1343_DATE_REG,
-+				bin2bcd(dt->tm_mday));
-+	if (res)
-+		return res;
-+
-+	res = regmap_write(priv->map, DS1343_MONTH_REG,
-+				bin2bcd(dt->tm_mon + 1));
-+	if (res)
-+		return res;
-+
-+	dt->tm_year %= 100;
-+
-+	res = regmap_write(priv->map, DS1343_YEAR_REG,
-+				bin2bcd(dt->tm_year));
-+	if (res)
-+		return res;
-+
-+	return 0;
-+}
-+
-+static int ds1343_update_alarm(struct device *dev)
-+{
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+	unsigned int control, stat;
-+	unsigned char buf[4];
-+	int res = 0;
-+
-+	res = regmap_read(priv->map, DS1343_CONTROL_REG, &control);
-+	if (res)
-+		return res;
-+
-+	res = regmap_read(priv->map, DS1343_STATUS_REG, &stat);
-+	if (res)
-+		return res;
-+
-+	control &= ~(DS1343_A0IE);
-+	stat &= ~(DS1343_IRQF0);
-+
-+	res = regmap_write(priv->map, DS1343_CONTROL_REG, control);
-+	if (res)
-+		return res;
-+
-+	res = regmap_write(priv->map, DS1343_STATUS_REG, stat);
-+	if (res)
-+		return res;
-+
-+	buf[0] = priv->alarm_sec < 0 || (priv->irqen & RTC_UF) ?
-+		0x80 : bin2bcd(priv->alarm_sec) & 0x7F;
-+	buf[1] = priv->alarm_min < 0 || (priv->irqen & RTC_UF) ?
-+		0x80 : bin2bcd(priv->alarm_min) & 0x7F;
-+	buf[2] = priv->alarm_hour < 0 || (priv->irqen & RTC_UF) ?
-+		0x80 : bin2bcd(priv->alarm_hour) & 0x3F;
-+	buf[3] = priv->alarm_mday < 0 || (priv->irqen & RTC_UF) ?
-+		0x80 : bin2bcd(priv->alarm_mday) & 0x7F;
-+
-+	res = regmap_bulk_write(priv->map, DS1343_ALM0_SEC_REG, buf, 4);
-+	if (res)
-+		return res;
-+
-+	if (priv->irqen) {
-+		control |= DS1343_A0IE;
-+		res = regmap_write(priv->map, DS1343_CONTROL_REG, control);
-+	}
-+
-+	return res;
-+}
-+
-+static int ds1343_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
-+{
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+	struct spi_device *spi = priv->spi;
-+	int res = 0;
-+	unsigned int stat;
-+
-+	if (spi->irq <= 0)
-+		return -EINVAL;
-+
-+	mutex_lock(&priv->mutex);
-+
-+	res = regmap_read(priv->map, DS1343_STATUS_REG, &stat);
-+	if (res)
-+		goto out;
-+
-+	alarm->enabled = !!(priv->irqen & RTC_AF);
-+	alarm->pending = !!(stat & DS1343_IRQF0);
-+
-+	alarm->time.tm_sec = priv->alarm_sec < 0 ? 0 : priv->alarm_sec;
-+	alarm->time.tm_min = priv->alarm_min < 0 ? 0 : priv->alarm_min;
-+	alarm->time.tm_hour = priv->alarm_hour < 0 ? 0 : priv->alarm_hour;
-+	alarm->time.tm_mday = priv->alarm_mday < 0 ? 0 : priv->alarm_mday;
-+
-+	alarm->time.tm_mon = -1;
-+	alarm->time.tm_year = -1;
-+	alarm->time.tm_wday = -1;
-+	alarm->time.tm_yday = -1;
-+	alarm->time.tm_isdst = -1;
-+
-+out:
-+	mutex_unlock(&priv->mutex);
-+	return res;
-+}
-+
-+static int ds1343_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
-+{
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+	struct spi_device *spi = priv->spi;
-+	int res = 0;
-+
-+	if (spi->irq <= 0)
-+		return -EINVAL;
-+
-+	mutex_lock(&priv->mutex);
-+
-+	priv->alarm_sec = alarm->time.tm_sec;
-+	priv->alarm_min = alarm->time.tm_min;
-+	priv->alarm_hour = alarm->time.tm_hour;
-+	priv->alarm_mday = alarm->time.tm_mday;
-+
-+	if (alarm->enabled)
-+		priv->irqen |= RTC_AF;
-+
-+	res = ds1343_update_alarm(dev);
-+
-+	mutex_unlock(&priv->mutex);
-+
-+	return res;
-+}
-+
-+static int ds1343_alarm_irq_enable(struct device *dev, unsigned int enabled)
-+{
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+	struct spi_device *spi = priv->spi;
-+	int res = 0;
-+
-+	if (spi->irq <= 0)
-+		return -EINVAL;
-+
-+	mutex_lock(&priv->mutex);
-+
-+	if (enabled)
-+		priv->irqen |= RTC_AF;
-+	else
-+		priv->irqen &= ~RTC_AF;
-+
-+	res = ds1343_update_alarm(dev);
-+
-+	mutex_unlock(&priv->mutex);
-+
-+	return res;
-+}
-+
-+static irqreturn_t ds1343_thread(int irq, void *dev_id)
-+{
-+	struct ds1343_priv *priv = dev_id;
-+	unsigned int stat, control;
-+	int res = 0;
-+
-+	mutex_lock(&priv->mutex);
-+
-+	res = regmap_read(priv->map, DS1343_STATUS_REG, &stat);
-+	if (res)
-+		goto out;
-+
-+	if (stat & DS1343_IRQF0) {
-+		stat &= ~DS1343_IRQF0;
-+		regmap_write(priv->map, DS1343_STATUS_REG, stat);
-+
-+		res = regmap_read(priv->map, DS1343_CONTROL_REG, &control);
-+		if (res)
-+			goto out;
-+
-+		control &= ~DS1343_A0IE;
-+		regmap_write(priv->map, DS1343_CONTROL_REG, control);
-+
-+		rtc_update_irq(priv->rtc, 1, RTC_AF | RTC_IRQF);
-+	}
-+
-+out:
-+	mutex_unlock(&priv->mutex);
-+	return IRQ_HANDLED;
-+}
-+
-+static const struct rtc_class_ops ds1343_rtc_ops = {
-+	.ioctl		= ds1343_ioctl,
-+	.read_time	= ds1343_read_time,
-+	.set_time	= ds1343_set_time,
-+	.read_alarm	= ds1343_read_alarm,
-+	.set_alarm	= ds1343_set_alarm,
-+	.alarm_irq_enable = ds1343_alarm_irq_enable,
-+};
-+
-+static int ds1343_probe(struct spi_device *spi)
-+{
-+	struct ds1343_priv *priv;
-+	struct regmap_config config;
-+	unsigned int data;
-+	int res;
-+
-+	memset(&config, 0, sizeof(config));
-+	config.reg_bits = 8;
-+	config.val_bits = 8;
-+	config.write_flag_mask = 0x80;
-+
-+	priv = devm_kzalloc(&spi->dev, sizeof(struct ds1343_priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
-+
-+	priv->spi = spi;
-+	mutex_init(&priv->mutex);
-+
-+	/* RTC DS1347 works in spi mode 3 and
-+	 * its chip select is active high
-+	 */
-+	spi->mode = SPI_MODE_3 | SPI_CS_HIGH;
++	spi->mode = SPI_MODE_0;
 +	spi->bits_per_word = 8;
-+	res = spi_setup(spi);
-+	if (res)
-+		return res;
-+
-+	spi_set_drvdata(spi, priv);
-+
-+	priv->map = devm_regmap_init_spi(spi, &config);
-+
-+	if (IS_ERR(priv->map)) {
-+		dev_err(&spi->dev, "spi regmap init failed for rtc ds1343\n");
-+		return PTR_ERR(priv->map);
++	ret = spi_setup(spi);
++	if (ret) {
++		dev_err(&spi->dev, "Unable to setup SPI\n");
++		return ret;
 +	}
 +
-+	res = regmap_read(priv->map, DS1343_SECONDS_REG, &data);
-+	if (res)
-+		return res;
++	/* Start the oscillator */
++	mcp795_rtcc_set_bits(&spi->dev, 0x01, MCP795_ST_BIT, MCP795_ST_BIT);
++	/* Clear the 12 hour mode flag*/
++	mcp795_rtcc_set_bits(&spi->dev, 0x03, MCP795_24_BIT, 0);
 +
-+	regmap_read(priv->map, DS1343_CONTROL_REG, &data);
-+	data |= DS1343_INTCN;
-+	data &= ~(DS1343_EOSC | DS1343_A1IE | DS1343_A0IE);
-+	regmap_write(priv->map, DS1343_CONTROL_REG, data);
++	rtc = devm_rtc_device_register(&spi->dev, "rtc-mcp795",
++								&mcp795_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
 +
-+	regmap_read(priv->map, DS1343_STATUS_REG, &data);
-+	data &= ~(DS1343_OSF | DS1343_IRQF1 | DS1343_IRQF0);
-+	regmap_write(priv->map, DS1343_STATUS_REG, data);
-+
-+	priv->rtc = devm_rtc_device_register(&spi->dev, "ds1343",
-+					&ds1343_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(priv->rtc)) {
-+		dev_err(&spi->dev, "unable to register rtc ds1343\n");
-+		return PTR_ERR(priv->rtc);
-+	}
-+
-+	if (spi->irq >= 0) {
-+		res = devm_request_threaded_irq(&spi->dev, spi->irq, NULL,
-+						ds1343_thread,
-+						IRQF_NO_SUSPEND | IRQF_ONESHOT,
-+						"ds1343", priv);
-+		if (res) {
-+			dev_err(&spi->dev,
-+				"unable to request irq for rtc ds1343\n");
-+			return res;
-+		}
-+
-+		device_set_wakeup_capable(&spi->dev, 1);
-+	}
-+
-+	res = ds1343_sysfs_register(&spi->dev);
-+	if (res)
-+		dev_err(&spi->dev,
-+			"unable to create sysfs entries for rtc ds1343\n");
++	spi_set_drvdata(spi, rtc);
 +
 +	return 0;
 +}
 +
-+static int ds1343_remove(struct spi_device *spi)
-+{
-+	struct ds1343_priv *priv = spi_get_drvdata(spi);
-+
-+	if (spi->irq) {
-+		mutex_lock(&priv->mutex);
-+		priv->irqen &= ~RTC_AF;
-+		mutex_unlock(&priv->mutex);
-+
-+		devm_free_irq(&spi->dev, spi->irq, priv);
-+	}
-+
-+	spi_set_drvdata(spi, NULL);
-+
-+	ds1343_sysfs_unregister(&spi->dev);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+
-+static int ds1343_suspend(struct device *dev)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+
-+	if (spi->irq >= 0 && device_may_wakeup(dev))
-+		enable_irq_wake(spi->irq);
-+
-+	return 0;
-+}
-+
-+static int ds1343_resume(struct device *dev)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+
-+	if (spi->irq >= 0 && device_may_wakeup(dev))
-+		disable_irq_wake(spi->irq);
-+
-+	return 0;
-+}
-+
-+#endif
-+
-+static SIMPLE_DEV_PM_OPS(ds1343_pm, ds1343_suspend, ds1343_resume);
-+
-+static struct spi_driver ds1343_driver = {
-+	.driver = {
-+		.name = "ds1343",
-+		.owner = THIS_MODULE,
-+		.pm = &ds1343_pm,
-+	},
-+	.probe = ds1343_probe,
-+	.remove = ds1343_remove,
-+	.id_table = ds1343_id,
++static struct spi_driver mcp795_driver = {
++		.driver = {
++				.name = "rtc-mcp795",
++				.owner = THIS_MODULE,
++		},
++		.probe = mcp795_probe,
 +};
 +
-+module_spi_driver(ds1343_driver);
++module_spi_driver(mcp795_driver);
 +
-+MODULE_DESCRIPTION("DS1343 RTC SPI Driver");
-+MODULE_AUTHOR("Raghavendra Chandra Ganiga <ravi23ganiga@gmail.com>");
-+MODULE_LICENSE("GPL v2");
-+MODULE_VERSION(DS1343_DRV_VERSION);
++MODULE_DESCRIPTION("MCP795 RTC SPI Driver");
++MODULE_AUTHOR("Josef Gajdusek <atx@atx.name>");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:mcp795");
 _
 
-Patches currently in -mm which might be from ravi23ganiga@gmail.com are
+Patches currently in -mm which might be from atx@atx.name are
 
-drivers-rtc-add-support-for-maxim-dallas-rtc-ds1343-and-ds1344.patch
-linux-next.patch
+drivers-rtc-add-support-for-microchip-mcp795.patch
 
