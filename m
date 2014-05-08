@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + lib-btreec-fix-leak-of-whole-btree-nodes.patch added to -mm
- tree
-Date: Thu, 08 May 2014 15:45:05 -0700
-Message-ID: <536c08f1.DAMNKKcKge+gBMYu%akpm@linux-foundation.org>
+Subject: + lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch added to -mm tree
+Date: Thu, 08 May 2014 15:45:06 -0700
+Message-ID: <536c08f2.RsoGoU1SkhmAgYVd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42296 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42300 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755776AbaEHWpG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2014 18:45:06 -0400
+	with ESMTP id S1755997AbaEHWpH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2014 18:45:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, johannes@sipsolutions.net, joern@logfs.org, huangminfei@ucloud.cn
+To: mm-commits@vger.kernel.org, johannes@sipsolutions.net, joern@logfs.org, huangminfei@ucloud.cn, akpm@linux-foundation.org
 
-Subject: + lib-btreec-fix-leak-of-whole-btree-nodes.patch added to -mm tree
-To: huangminfei@ucloud.cn,joern@logfs.org,johannes@sipsolutions.net
+Subject: + lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,huangminfei@ucloud.cn,joern@logfs.org,johannes@sipsolutions.net
 From: akpm@linux-foundation.org
-Date: Thu, 08 May 2014 15:45:05 -0700
+Date: Thu, 08 May 2014 15:45:06 -0700
 
 
 The patch titled
-     Subject: lib/btree.c: fix leak of whole btree nodes
+     Subject: lib-btreec-fix-leak-of-whole-btree-nodes-fix
 has been added to the -mm tree.  Its filename is
-     lib-btreec-fix-leak-of-whole-btree-nodes.patch
+     lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-btreec-fix-leak-of-whole-btree-nodes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-btreec-fix-leak-of-whole-btree-nodes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,56 +43,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minfei Huang <huangminfei@ucloud.cn>
-Subject: lib/btree.c: fix leak of whole btree nodes
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-btreec-fix-leak-of-whole-btree-nodes-fix
 
-I use btree from 3.14-rc2 in my own module.  When the btree module is
-removed, a warning arises:
+remove unneeded test of NULL
 
-kmem_cache_destroy btree_node: Slab cache still has objects
-CPU: 13 PID: 9150 Comm: rmmod Tainted: GF          O 3.14.0-rc2 #1
-Hardware name: Inspur NF5270M3/NF5270M3, BIOS CHEETAH_2.1.3 09/10/2013
-ffff881ff8643b18 ffff881ffdc23ea8 ffffffff815a4ecc 0000000000000000
-ffff881ff8643ac0 ffff881ffdc23ec8 ffffffff811610df 0000000000000880
-ffffffffa057da60 ffff881ffdc23ed8 ffffffffa057d57c ffff881ffdc23f78
-Call Trace:
-[<ffffffff815a4ecc>] dump_stack+0x49/0x5d
-[<ffffffff811610df>] kmem_cache_destroy+0xcf/0xe0
-[<ffffffffa057d57c>] btree_module_exit+0x10/0x12 [btree]
-[<ffffffff810d7948>] SyS_delete_module+0x198/0x1f0
-[<ffffffff815aac89>] ? retint_swapgs+0xe/0x13
-[<ffffffff810a561d>] ? trace_hardirqs_on_caller+0xfd/0x1c0
-[<ffffffff812addde>] ? trace_hardirqs_on_thunk+0x3a/0x3f
-[<ffffffff815b3652>] system_call_fastpath+0x16/0x1b
-
-The cause is that it doesn't release the last btree node, when height = 1
-and fill = 1.
-
-Signed-off-by: Minfei Huang <huangminfei@ucloud.cn>
 Cc: Joern Engel <joern@logfs.org>
 Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Minfei Huang <huangminfei@ucloud.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/btree.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/btree.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN lib/btree.c~lib-btreec-fix-leak-of-whole-btree-nodes lib/btree.c
---- a/lib/btree.c~lib-btreec-fix-leak-of-whole-btree-nodes
+diff -puN lib/btree.c~lib-btreec-fix-leak-of-whole-btree-nodes-fix lib/btree.c
+--- a/lib/btree.c~lib-btreec-fix-leak-of-whole-btree-nodes-fix
 +++ a/lib/btree.c
-@@ -198,6 +198,8 @@ EXPORT_SYMBOL_GPL(btree_init);
+@@ -198,8 +198,7 @@ EXPORT_SYMBOL_GPL(btree_init);
  
  void btree_destroy(struct btree_head *head)
  {
-+	if (head->node)
-+		mempool_free(head->node, head->mempool);
+-	if (head->node)
+-		mempool_free(head->node, head->mempool);
++	mempool_free(head->node, head->mempool);
  	mempool_destroy(head->mempool);
  	head->mempool = NULL;
  }
 _
 
-Patches currently in -mm which might be from huangminfei@ucloud.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-btreec-fix-leak-of-whole-btree-nodes.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+mm-update-comment-for-default_max_map_count-fix.patch
+memcg-fold-mem_cgroup_stolen-fix.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
 lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+rtc-da9063-rtc-driver-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
+fs-pstore-logging-clean-up-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
