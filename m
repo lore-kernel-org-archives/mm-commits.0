@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slub-fix-alloc_slowpath-stat.patch added to -mm tree
-Date: Thu, 08 May 2014 15:56:00 -0700
-Message-ID: <536c0b80.vaErYpnLX2bQzAw7%akpm@linux-foundation.org>
+Subject: + mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+ added to -mm tree
+Date: Thu, 08 May 2014 16:52:16 -0700
+Message-ID: <536c18b0.UZqLbV4/OWVdRLwE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42394 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42756 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755776AbaEHW4B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2014 18:56:01 -0400
+	with ESMTP id S1752606AbaEHXwR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2014 19:52:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, cl@linux.com, dave.hansen@linux.intel.com
+To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, peterz@infradead.org, mingo@kernel.org, kirill.shutemov@linux.intel.com, davej@redhat.com, arigo@tunes.org, akpm@linux-foundation.org
 
-Subject: + mm-slub-fix-alloc_slowpath-stat.patch added to -mm tree
-To: dave.hansen@linux.intel.com,cl@linux.com,penberg@kernel.org,rientjes@google.com
+Subject: + mm-replace-remap_file_pages-syscall-with-emulation-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,arigo@tunes.org,davej@redhat.com,kirill.shutemov@linux.intel.com,mingo@kernel.org,peterz@infradead.org,torvalds@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Thu, 08 May 2014 15:56:00 -0700
+Date: Thu, 08 May 2014 16:52:16 -0700
 
 
 The patch titled
-     Subject: mm: slub: fix ALLOC_SLOWPATH stat
+     Subject: mm-replace-remap_file_pages-syscall-with-emulation-fix
 has been added to the -mm tree.  Its filename is
-     mm-slub-fix-alloc_slowpath-stat.patch
+     mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-alloc_slowpath-stat.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-alloc_slowpath-stat.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,59 +44,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm: slub: fix ALLOC_SLOWPATH stat
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-replace-remap_file_pages-syscall-with-emulation-fix
 
-There used to be only one path out of __slab_alloc(), and ALLOC_SLOWPATH
-got bumped in that exit path.  Now there are two, and a bunch of gotos. 
-ALLOC_SLOWPATH can now get set more than once during a single call to
-__slab_alloc() which is pretty bogus.  Here's the sequence:
+fix spello
 
-1. Enter __slab_alloc(), fall through all the way to the
-   stat(s, ALLOC_SLOWPATH);
-2. hit 'if (!freelist)', and bump DEACTIVATE_BYPASS, jump to
-   new_slab (goto #1)
-3. Hit 'if (c->partial)', bump CPU_PARTIAL_ALLOC, goto redo
-   (goto #2)
-4. Fall through in the same path we did before all the way to
-   stat(s, ALLOC_SLOWPATH)
-5. bump ALLOC_REFILL stat, then return
-
-Doing this is obviously bogus.  It keeps us from being able to accurately
-compare ALLOC_SLOWPATH vs.  ALLOC_FASTPATH.  It also means that the total
-number of allocs always exceeds the total number of frees.
-
-This patch moves stat(s, ALLOC_SLOWPATH) to be called from the same place
-that __slab_alloc() is.  This makes it much less likely that
-ALLOC_SLOWPATH will get botched again in the spaghetti-code inside
-__slab_alloc().
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Armin Rigo <arigo@tunes.org>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~mm-slub-fix-alloc_slowpath-stat mm/slub.c
---- a/mm/slub.c~mm-slub-fix-alloc_slowpath-stat
-+++ a/mm/slub.c
-@@ -2326,8 +2326,6 @@ redo:
- 	if (freelist)
- 		goto load_freelist;
+diff -puN mm/mmap.c~mm-replace-remap_file_pages-syscall-with-emulation-fix mm/mmap.c
+--- a/mm/mmap.c~mm-replace-remap_file_pages-syscall-with-emulation-fix
++++ a/mm/mmap.c
+@@ -2594,7 +2594,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	unsigned long populate;
+ 	unsigned long ret = -EINVAL;
  
--	stat(s, ALLOC_SLOWPATH);
--
- 	freelist = get_freelist(s, page);
+-	pr_warn_once("%s (%d) uses depricated remap_file_pages() syscall. "
++	pr_warn_once("%s (%d) uses deprecated remap_file_pages() syscall. "
+ 			"See Documentation/vm/remap_file_pages.txt.\n",
+ 			current->comm, current->pid);
  
- 	if (!freelist) {
-@@ -2432,10 +2430,10 @@ redo:
- 
- 	object = c->freelist;
- 	page = c->page;
--	if (unlikely(!object || !node_match(page, node)))
-+	if (unlikely(!object || !node_match(page, node))) {
- 		object = __slab_alloc(s, gfpflags, node, addr, c);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+mm-update-comment-for-default_max_map_count-fix.patch
+memcg-fold-mem_cgroup_stolen-fix.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+rtc-da9063-rtc-driver-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
+fs-pstore-logging-clean-up-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
