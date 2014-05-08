@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch added to
- -mm tree
-Date: Thu, 08 May 2014 15:36:08 -0700
-Message-ID: <536c06d8.IYnJ6j5+VTkHWWI5%akpm@linux-foundation.org>
+Subject: + lib-btreec-fix-leak-of-whole-btree-nodes.patch added to -mm
+ tree
+Date: Thu, 08 May 2014 15:45:05 -0700
+Message-ID: <536c08f1.DAMNKKcKge+gBMYu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42265 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42296 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755733AbaEHWgJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2014 18:36:09 -0400
+	with ESMTP id S1755776AbaEHWpG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2014 18:45:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, hughd@google.com, gthelen@google.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, johannes@sipsolutions.net, joern@logfs.org, huangminfei@ucloud.cn
 
-Subject: + mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch added to -mm tree
-To: rientjes@google.com,gthelen@google.com,hughd@google.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,vbabka@suse.cz
+Subject: + lib-btreec-fix-leak-of-whole-btree-nodes.patch added to -mm tree
+To: huangminfei@ucloud.cn,joern@logfs.org,johannes@sipsolutions.net
 From: akpm@linux-foundation.org
-Date: Thu, 08 May 2014 15:36:08 -0700
+Date: Thu, 08 May 2014 15:45:05 -0700
 
 
 The patch titled
-     Subject: mm, thp: avoid excessive compaction latency during fault fix
+     Subject: lib/btree.c: fix leak of whole btree nodes
 has been added to the -mm tree.  Its filename is
-     mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
+     lib-btreec-fix-leak-of-whole-btree-nodes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-btreec-fix-leak-of-whole-btree-nodes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-btreec-fix-leak-of-whole-btree-nodes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,82 +44,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: avoid excessive compaction latency during fault fix
+From: Minfei Huang <huangminfei@ucloud.cn>
+Subject: lib/btree.c: fix leak of whole btree nodes
 
-mm-thp-avoid-excessive-compaction-latency-during-fault.patch excludes sync
-compaction for all high order allocations other than thp.  What we really
-want to do is suppress sync compaction for thp, but only during the page
-fault path.
+I use btree from 3.14-rc2 in my own module.  When the btree module is
+removed, a warning arises:
 
-Orders greater than PAGE_ALLOC_COSTLY_ORDER aren't necessarily going to
-loop again so this is the only way to exhaust our capabilities before
-declaring that we can't allocate.
+kmem_cache_destroy btree_node: Slab cache still has objects
+CPU: 13 PID: 9150 Comm: rmmod Tainted: GF          O 3.14.0-rc2 #1
+Hardware name: Inspur NF5270M3/NF5270M3, BIOS CHEETAH_2.1.3 09/10/2013
+ffff881ff8643b18 ffff881ffdc23ea8 ffffffff815a4ecc 0000000000000000
+ffff881ff8643ac0 ffff881ffdc23ec8 ffffffff811610df 0000000000000880
+ffffffffa057da60 ffff881ffdc23ed8 ffffffffa057d57c ffff881ffdc23f78
+Call Trace:
+[<ffffffff815a4ecc>] dump_stack+0x49/0x5d
+[<ffffffff811610df>] kmem_cache_destroy+0xcf/0xe0
+[<ffffffffa057d57c>] btree_module_exit+0x10/0x12 [btree]
+[<ffffffff810d7948>] SyS_delete_module+0x198/0x1f0
+[<ffffffff815aac89>] ? retint_swapgs+0xe/0x13
+[<ffffffff810a561d>] ? trace_hardirqs_on_caller+0xfd/0x1c0
+[<ffffffff812addde>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+[<ffffffff815b3652>] system_call_fastpath+0x16/0x1b
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The cause is that it doesn't release the last btree node, when height = 1
+and fill = 1.
+
+Signed-off-by: Minfei Huang <huangminfei@ucloud.cn>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ lib/btree.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-thp-avoid-excessive-compaction-latency-during-fault-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-thp-avoid-excessive-compaction-latency-during-fault-fix
-+++ a/mm/page_alloc.c
-@@ -2576,16 +2576,13 @@ rebalance:
- 	if (page)
- 		goto got_pg;
+diff -puN lib/btree.c~lib-btreec-fix-leak-of-whole-btree-nodes lib/btree.c
+--- a/lib/btree.c~lib-btreec-fix-leak-of-whole-btree-nodes
++++ a/lib/btree.c
+@@ -198,6 +198,8 @@ EXPORT_SYMBOL_GPL(btree_init);
  
--	if (gfp_mask & __GFP_NO_KSWAPD) {
--		/*
--		 * Khugepaged is allowed to try MIGRATE_SYNC_LIGHT, the latency
--		 * of this allocation isn't critical.  Everything else, however,
--		 * should only be allowed to do MIGRATE_ASYNC to avoid excessive
--		 * stalls during fault.
--		 */
--		if ((current->flags & (PF_KTHREAD | PF_KSWAPD)) == PF_KTHREAD)
--			migration_mode = MIGRATE_SYNC_LIGHT;
--	}
-+	/*
-+	 * It can become very expensive to allocate transparent hugepages at
-+	 * fault, so use asynchronous memory compaction for THP unless it is
-+	 * khugepaged trying to collapse.
-+	 */
-+	if (!(gfp_mask & __GFP_NO_KSWAPD) || (current->flags & PF_KTHREAD))
-+		migration_mode = MIGRATE_SYNC_LIGHT;
- 
- 	/*
- 	 * If compaction is deferred for high-order allocations, it is because
+ void btree_destroy(struct btree_head *head)
+ {
++	if (head->node)
++		mempool_free(head->node, head->mempool);
+ 	mempool_destroy(head->mempool);
+ 	head->mempool = NULL;
+ }
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from huangminfei@ucloud.cn are
 
-mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mem-hotplug-implement-get-put_online_mems.patch
-slab-get_online_mems-for-kmem_cache_createdestroyshrink.patch
-mm-debug-make-bad_range-output-more-usable-and-readable.patch
-memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-mm-migration-add-destination-page-freeing-callback.patch
-mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
-mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
-mm-compaction-embed-migration-mode-in-compact_control.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
-mm-compaction-terminate-async-compaction-when-rescheduling.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary.patch
-mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
-mm-utilc-add-kstrimdup.patch
-linux-next.patch
+lib-btreec-fix-leak-of-whole-btree-nodes.patch
+lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
 
