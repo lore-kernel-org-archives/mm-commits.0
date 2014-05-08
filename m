@@ -1,42 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sh-replace-__get_cpu_var-uses.patch removed from
- -mm tree
-Date: Thu, 08 May 2014 13:37:35 -0700
-Message-ID: <536beb0f.W0oNiX0FsI8D7aiH%akpm@linux-foundation.org>
+Subject: + sh-replace-__get_cpu_var-uses.patch added to -mm tree
+Date: Thu, 08 May 2014 13:38:42 -0700
+Message-ID: <536beb52.zomUphKTsjMJbbdb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41506 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41512 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754600AbaEHUhf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2014 16:37:35 -0400
+	with ESMTP id S1755614AbaEHUin (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2014 16:38:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, lethal@linux-sh.org, cl@linux.com
+To: mm-commits@vger.kernel.org, lethal@linux-sh.org, geert@linux-m68k.org, cl@linux.com
 
-Subject: [to-be-updated] sh-replace-__get_cpu_var-uses.patch removed from -mm tree
-To: cl@linux.com,lethal@linux-sh.org,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: + sh-replace-__get_cpu_var-uses.patch added to -mm tree
+To: cl@linux.com,geert@linux-m68k.org,lethal@linux-sh.org
 From: akpm@linux-foundation.org
-Date: Thu, 08 May 2014 13:37:35 -0700
+Date: Thu, 08 May 2014 13:38:42 -0700
 
 
 The patch titled
-     Subject: sh: replace __get_cpu_var uses
-has been removed from the -mm tree.  Its filename was
+     Subject: sh: Replace __get_cpu_var uses
+has been added to the -mm tree.  Its filename is
      sh-replace-__get_cpu_var-uses.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-replace-__get_cpu_var-uses.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-replace-__get_cpu_var-uses.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: sh: replace __get_cpu_var uses
+Subject: sh: Replace __get_cpu_var uses
 
-__get_cpu_var() is used for multiple purposes in the kernel source. One of
-them is address calculation via the form &__get_cpu_var(x).  This calculates
-the address for the instance of the percpu variable of the current processor
-based on an offset.
+__get_cpu_var() is used for multiple purposes in the kernel source.  One
+of them is address calculation via the form &__get_cpu_var(x).  This
+calculates the address for the instance of the percpu variable of the
+current processor based on an offset.
 
 Other use cases are for storing and retrieving data from the current
 processors percpu area.  __get_cpu_var() can be used as an lvalue when
@@ -46,7 +59,7 @@ __get_cpu_var() is defined as :
 
 #define __get_cpu_var(var) (*this_cpu_ptr(&(var)))
 
-__get_cpu_var() always only does an address determination. However, store
+__get_cpu_var() always only does an address determination.  However, store
 and retrieve operations could use a segment prefix (or global register on
 other platforms) to avoid the address calculation.
 
@@ -56,16 +69,16 @@ variables.
 
 This patch converts __get_cpu_var into either an explicit address
 calculation using this_cpu_ptr() or into a use of this_cpu operations that
-use the offset.  Thereby address calculations are avoided and less registers
-are used when code is generated.
+use the offset.  Thereby address calculations are avoided and less
+registers are used when code is generated.
 
 At the end of the patch set all uses of __get_cpu_var have been removed so
 the macro is removed too.
 
-The patch set includes passes over all arches as well. Once these operations
-are used throughout then specialized macros can be defined in non -x86
-arches as well in order to optimize per cpu access by f.e.  using a global
-register that may be set to the per cpu base.
+The patch set includes passes over all arches as well.  Once these
+operations are used throughout then specialized macros can be defined in
+non -x86 arches as well in order to optimize per cpu access by f.e.  using
+a global register that may be set to the per cpu base.
 
 Transformations done to __get_cpu_var()
 
@@ -125,8 +138,8 @@ variable.
 	__this_cpu_inc(y)
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org> [compilation only]
 Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -249,7 +262,7 @@ diff -puN arch/sh/kernel/kprobes.c~sh-replace-__get_cpu_var-uses arch/sh/kernel/
  
 -		addr = __get_cpu_var(saved_current_opcode).addr;
 -		__get_cpu_var(saved_current_opcode).addr = NULL;
-+		addr = __this_cpu_read(saved_current_opcode).addr;
++		addr = __this_cpu_read(saved_current_opcode.addr);
 +		__this_cpu_write(saved_current_opcode.addr, NULL);
  
  		p = get_kprobe(addr);
@@ -337,6 +350,7 @@ _
 Patches currently in -mm which might be from cl@linux.com are
 
 origin.patch
+sh-replace-__get_cpu_var-uses.patch
 mm-slubc-convert-printk-to-pr_foo.patch
 mm-slubc-convert-vnsprintf-static-to-va_format.patch
 slab-document-kmalloc_order.patch
