@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch added to -mm tree
-Date: Fri, 09 May 2014 12:06:47 -0700
-Message-ID: <536d2747.gY44c0aLyZJw1L5v%akpm@linux-foundation.org>
+Subject: + kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch added
+ to -mm tree
+Date: Fri, 09 May 2014 12:06:45 -0700
+Message-ID: <536d2745.xeZ2FrywCQyzDAkh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55463 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55457 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756826AbaEITGs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 15:06:48 -0400
+	with ESMTP id S1756826AbaEITGq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 15:06:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, john.stultz@linaro.org, fabf@skynet.be
 
-Subject: + kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch added to -mm tree
+To: fabf@skynet.be,john.stultz@linaro.org
 From: akpm@linux-foundation.org
-Date: Fri, 09 May 2014 12:06:47 -0700
+Date: Fri, 09 May 2014 12:06:45 -0700
 
 
 The patch titled
-     Subject: kernel/utsname_sysctl.c: replace obsolete __initcall by device_initcall
+     Subject: kernel/time/ntp.c: convert simple_strtol to kstrtol
 has been added to the -mm tree.  Its filename is
-     kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
+     kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,35 +45,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/utsname_sysctl.c: replace obsolete __initcall by device_initcall
+Subject: kernel/time/ntp.c: convert simple_strtol to kstrtol
 
-Also fixes checkpatch warnings on proc_dostring function parameters
+Replace obsolete function.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/utsname_sysctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/time/ntp.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/utsname_sysctl.c~kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall kernel/utsname_sysctl.c
---- a/kernel/utsname_sysctl.c~kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall
-+++ a/kernel/utsname_sysctl.c
-@@ -51,7 +51,7 @@ static int proc_do_uts_string(struct ctl
- 	int r;
- 	memcpy(&uts_table, table, sizeof(uts_table));
- 	uts_table.data = get_uts(table, write);
--	r = proc_dostring(&uts_table,write,buffer,lenp, ppos);
-+	r = proc_dostring(&uts_table, write, buffer, lenp, ppos);
- 	put_uts(table, write, uts_table.data);
+diff -puN kernel/time/ntp.c~kernel-time-ntpc-convert-simple_strtol-to-kstrtol kernel/time/ntp.c
+--- a/kernel/time/ntp.c~kernel-time-ntpc-convert-simple_strtol-to-kstrtol
++++ a/kernel/time/ntp.c
+@@ -926,7 +926,10 @@ void __hardpps(const struct timespec *ph
  
- 	if (write)
-@@ -135,4 +135,4 @@ static int __init utsname_sysctl_init(vo
- 	return 0;
- }
+ static int __init ntp_tick_adj_setup(char *str)
+ {
+-	ntp_tick_adj = simple_strtol(str, NULL, 0);
++	int rc = kstrtol(str, 0, (long *)&ntp_tick_adj);
++
++	if (rc)
++		return rc;
+ 	ntp_tick_adj <<= NTP_SCALE_SHIFT;
  
--__initcall(utsname_sysctl_init);
-+device_initcall(utsname_sysctl_init);
+ 	return 1;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
