@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + init-mainc-remove-an-ifdef.patch added to -mm tree
-Date: Fri, 09 May 2014 11:57:52 -0700
-Message-ID: <536d2530.swAEhTV0qo7BBlnE%akpm@linux-foundation.org>
+Subject: + kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch added
+ to -mm tree
+Date: Fri, 09 May 2014 12:06:44 -0700
+Message-ID: <536d2744.e7uVHiGRUbL93ixH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55454 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756599AbaEIS5x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 14:57:53 -0400
+	with ESMTP id S1756826AbaEITGp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 15:06:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + init-mainc-remove-an-ifdef.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: + kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Fri, 09 May 2014 11:57:52 -0700
+Date: Fri, 09 May 2014 12:06:44 -0700
 
 
 The patch titled
-     Subject: init/main.c: remove an ifdef
+     Subject: kernel/reboot.c: convert simple_strtoul to kstrtoint
 has been added to the -mm tree.  Its filename is
-     init-mainc-remove-an-ifdef.patch
+     kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-mainc-remove-an-ifdef.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-mainc-remove-an-ifdef.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,106 +44,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: init/main.c: remove an ifdef
+From: Fabian Frederick <fabf@skynet.be>
+Subject: kernel/reboot.c: convert simple_strtoul to kstrtoint
 
+Replace obsolete function.
+kstrtoint is used as reboot_cpu is an integer.
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/proc_fs.h |    4 ++++
- init/main.c             |    2 --
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ kernel/reboot.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/proc_fs.h~init-mainc-remove-an-ifdef include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~init-mainc-remove-an-ifdef
-+++ a/include/linux/proc_fs.h
-@@ -44,6 +44,10 @@ extern int remove_proc_subtree(const cha
+diff -puN kernel/reboot.c~kernel-rebootc-convert-simple_strtoul-to-kstrtoint kernel/reboot.c
+--- a/kernel/reboot.c~kernel-rebootc-convert-simple_strtoul-to-kstrtoint
++++ a/kernel/reboot.c
+@@ -388,15 +388,22 @@ static int __init reboot_setup(char *str
+ 			break;
  
- #else /* CONFIG_PROC_FS */
- 
-+static inline void proc_root_init(void)
-+{
-+}
+ 		case 's':
+-			if (isdigit(*(str+1)))
+-				reboot_cpu = simple_strtoul(str+1, NULL, 0);
+-			else if (str[1] == 'm' && str[2] == 'p' &&
+-							isdigit(*(str+3)))
+-				reboot_cpu = simple_strtoul(str+3, NULL, 0);
+-			else
++		{
++			int rc;
 +
- static inline void proc_flush_task(struct task_struct *task)
- {
- }
-diff -puN init/main.c~init-mainc-remove-an-ifdef init/main.c
---- a/init/main.c~init-mainc-remove-an-ifdef
-+++ a/init/main.c
-@@ -629,9 +629,7 @@ asmlinkage void __init start_kernel(void
- 	signals_init();
- 	/* rootfs populating might need page-writeback */
- 	page_writeback_init();
--#ifdef CONFIG_PROC_FS
- 	proc_root_init();
--#endif
- 	cgroup_init();
- 	cpuset_init();
- 	taskstats_init_early();
++			if (isdigit(*(str+1))) {
++				rc = kstrtoint(str+1, 0, &reboot_cpu);
++				if (rc)
++					return rc;
++			} else if (str[1] == 'm' && str[2] == 'p' &&
++				   isdigit(*(str+3))) {
++				rc = kstrtoint(str+3, 0, &reboot_cpu);
++				if (rc)
++					return rc;
++			} else
+ 				reboot_mode = REBOOT_SOFT;
+ 			break;
+-
++		}
+ 		case 'g':
+ 			reboot_mode = REBOOT_GPIO;
+ 			break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+fs-fscache-replace-seq_printf-by-seq_puts.patch
+kernel-posix-timersc-code-clean-up.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
 arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-mm-update-comment-for-default_max_map_count-fix.patch
-memcg-fold-mem_cgroup_stolen-fix.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
+kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+kernel-stop_machinec-kernel-doc-warning-fix.patch
+kernel-tracepointc-kernel-doc-fixes.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
 kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-init-mainc-remove-an-ifdef.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-rtc-da9063-rtc-driver-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-2.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-3.patch
+documentation-expand-clarify-debug-documentation.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
 fs-pstore-logging-clean-up-fix.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+init-mainc-code-clean-up.patch
+kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch
+kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
 
