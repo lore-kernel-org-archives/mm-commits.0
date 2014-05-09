@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix.patch
- added to -mm tree
-Date: Fri, 09 May 2014 14:47:50 -0700
-Message-ID: <536d4d06.p4v2UzVUXLAjGDOD%akpm@linux-foundation.org>
+Subject: + mm-compaction-embed-migration-mode-in-compact_control-fix.patch added to -mm tree
+Date: Fri, 09 May 2014 15:03:55 -0700
+Message-ID: <536d50cb.GdHz6uEXNTipCf+P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58472 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58576 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757377AbaEIVrv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 17:47:51 -0400
+	with ESMTP id S1757877AbaEIWD4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 18:03:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, cl@linux.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, rientjes@google.com, n-horiguchi@ah.jp.nec.com, gthelen@google.com, akpm@linux-foundation.org
 
-Subject: + mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,cl@linux.com,penberg@kernel.org,rientjes@google.com
+Subject: + mm-compaction-embed-migration-mode-in-compact_control-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,gthelen@google.com,n-horiguchi@ah.jp.nec.com,rientjes@google.com,vbabka@suse.cz
 From: akpm@linux-foundation.org
-Date: Fri, 09 May 2014 14:47:50 -0700
+Date: Fri, 09 May 2014 15:03:55 -0700
 
 
 The patch titled
-     Subject: mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix
+     Subject: mm-compaction-embed-migration-mode-in-compact_control-fix
 has been added to the -mm tree.  Its filename is
-     mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix.patch
+     mm-compaction-embed-migration-mode-in-compact_control-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-embed-migration-mode-in-compact_control-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-embed-migration-mode-in-compact_control-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,54 +44,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix
+Subject: mm-compaction-embed-migration-mode-in-compact_control-fix
 
-fix CONFIG_SLUB=n warnings
+fix build
 
-mm/slub.c:2122: warning: 'count_free' defined but not used
-mm/slub.c:2127: warning: 'count_partial' defined but not used
+mm/page_alloc.c: In function 'alloc_contig_range':
+mm/page_alloc.c:6255: error: unknown field 'sync' specified in initializer
 
-Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix mm/slab.c
-diff -puN mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix mm/slub.c
---- a/mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix
-+++ a/mm/slub.c
-@@ -2119,6 +2119,7 @@ static inline int node_match(struct page
- 	return 1;
- }
- 
-+#ifdef CONFIG_SLUB_DEBUG
- static int count_free(struct page *page)
- {
- 	return page->objects - page->inuse;
-@@ -2140,12 +2141,16 @@ static unsigned long count_partial(struc
- 
- static inline unsigned long node_nr_objs(struct kmem_cache_node *n)
- {
--#ifdef CONFIG_SLUB_DEBUG
- 	return atomic_long_read(&n->total_objects);
--#else
-+}
-+
-+#else	/* CONFIG_SLUB_DEBUG */
-+
-+static inline unsigned long node_nr_objs(struct kmem_cache_node *n)
-+{
- 	return 0;
--#endif
- }
-+#endif	/* CONFIG_SLUB_DEBUG */
- 
- static noinline void
- slab_out_of_memory(struct kmem_cache *s, gfp_t gfpflags, int nid)
+diff -puN mm/page_alloc.c~mm-compaction-embed-migration-mode-in-compact_control-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-embed-migration-mode-in-compact_control-fix
++++ a/mm/page_alloc.c
+@@ -6252,7 +6252,7 @@ int alloc_contig_range(unsigned long sta
+ 		.nr_migratepages = 0,
+ 		.order = -1,
+ 		.zone = page_zone(pfn_to_page(start)),
+-		.sync = MIGRATE_SYNC_LIGHT,
++		.mode = MIGRATE_SYNC_LIGHT,
+ 		.ignore_skip_hint = true,
+ 	};
+ 	INIT_LIST_HEAD(&cc.migratepages);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,6 +107,7 @@ mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_norma
 swap-use-bdev_read_page-bdev_write_page-fix.patch
 mm-update-comment-for-default_max_map_count-fix.patch
 memcg-fold-mem_cgroup_stolen-fix.patch
+mm-compaction-embed-migration-mode-in-compact_control-fix.patch
 mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
 mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
