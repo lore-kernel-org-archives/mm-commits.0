@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch added
- to -mm tree
-Date: Fri, 09 May 2014 12:06:44 -0700
-Message-ID: <536d2744.e7uVHiGRUbL93ixH%akpm@linux-foundation.org>
+Subject: +
+ kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch added to -mm tree
+Date: Fri, 09 May 2014 12:06:47 -0700
+Message-ID: <536d2747.gY44c0aLyZJw1L5v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55463 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756826AbaEITGp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 15:06:45 -0400
+	with ESMTP id S1756826AbaEITGs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 15:06:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch added to -mm tree
+Subject: + kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch added to -mm tree
 To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Fri, 09 May 2014 12:06:44 -0700
+Date: Fri, 09 May 2014 12:06:47 -0700
 
 
 The patch titled
-     Subject: kernel/reboot.c: convert simple_strtoul to kstrtoint
+     Subject: kernel/utsname_sysctl.c: replace obsolete __initcall by device_initcall
 has been added to the -mm tree.  Its filename is
-     kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+     kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,51 +45,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/reboot.c: convert simple_strtoul to kstrtoint
+Subject: kernel/utsname_sysctl.c: replace obsolete __initcall by device_initcall
 
-Replace obsolete function.
-kstrtoint is used as reboot_cpu is an integer.
+Also fixes checkpatch warnings on proc_dostring function parameters
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |   21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ kernel/utsname_sysctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/reboot.c~kernel-rebootc-convert-simple_strtoul-to-kstrtoint kernel/reboot.c
---- a/kernel/reboot.c~kernel-rebootc-convert-simple_strtoul-to-kstrtoint
-+++ a/kernel/reboot.c
-@@ -388,15 +388,22 @@ static int __init reboot_setup(char *str
- 			break;
+diff -puN kernel/utsname_sysctl.c~kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall kernel/utsname_sysctl.c
+--- a/kernel/utsname_sysctl.c~kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall
++++ a/kernel/utsname_sysctl.c
+@@ -51,7 +51,7 @@ static int proc_do_uts_string(struct ctl
+ 	int r;
+ 	memcpy(&uts_table, table, sizeof(uts_table));
+ 	uts_table.data = get_uts(table, write);
+-	r = proc_dostring(&uts_table,write,buffer,lenp, ppos);
++	r = proc_dostring(&uts_table, write, buffer, lenp, ppos);
+ 	put_uts(table, write, uts_table.data);
  
- 		case 's':
--			if (isdigit(*(str+1)))
--				reboot_cpu = simple_strtoul(str+1, NULL, 0);
--			else if (str[1] == 'm' && str[2] == 'p' &&
--							isdigit(*(str+3)))
--				reboot_cpu = simple_strtoul(str+3, NULL, 0);
--			else
-+		{
-+			int rc;
-+
-+			if (isdigit(*(str+1))) {
-+				rc = kstrtoint(str+1, 0, &reboot_cpu);
-+				if (rc)
-+					return rc;
-+			} else if (str[1] == 'm' && str[2] == 'p' &&
-+				   isdigit(*(str+3))) {
-+				rc = kstrtoint(str+3, 0, &reboot_cpu);
-+				if (rc)
-+					return rc;
-+			} else
- 				reboot_mode = REBOOT_SOFT;
- 			break;
--
-+		}
- 		case 'g':
- 			reboot_mode = REBOOT_GPIO;
- 			break;
+ 	if (write)
+@@ -135,4 +135,4 @@ static int __init utsname_sysctl_init(vo
+ 	return 0;
+ }
+ 
+-__initcall(utsname_sysctl_init);
++device_initcall(utsname_sysctl_init);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
