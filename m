@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock.patch added to
- -mm tree
-Date: Fri, 09 May 2014 13:27:54 -0700
-Message-ID: <536d3a4a.ohwNxoNQ1pev7YEL%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-omapc-remove-multiple-device-id-checks.patch
+ added to -mm tree
+Date: Fri, 09 May 2014 13:27:52 -0700
+Message-ID: <536d3a48.gK3bsdBj1Zf7qjgK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56962 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56957 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754063AbaEIU1z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 16:27:55 -0400
+	with ESMTP id S1751056AbaEIU1x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 16:27:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, lokeshvutla@ti.com, a.zummo@towertech.it, nsekhar@ti.com
 
-Subject: + drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock.patch added to -mm tree
+Subject: + drivers-rtc-rtc-omapc-remove-multiple-device-id-checks.patch added to -mm tree
 To: nsekhar@ti.com,a.zummo@towertech.it,lokeshvutla@ti.com
 From: akpm@linux-foundation.org
-Date: Fri, 09 May 2014 13:27:54 -0700
+Date: Fri, 09 May 2014 13:27:52 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-omap.c: add support for enabling 32khz clock
+     Subject: drivers/rtc/rtc-omap.c: remove multiple device id checks
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock.patch
+     drivers-rtc-rtc-omapc-remove-multiple-device-id-checks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-omapc-remove-multiple-device-id-checks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-omapc-remove-multiple-device-id-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,17 +45,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sekhar Nori <nsekhar@ti.com>
-Subject: drivers/rtc/rtc-omap.c: add support for enabling 32khz clock
+Subject: drivers/rtc/rtc-omap.c: remove multiple device id checks
 
-Newer versions of OMAP RTC IP such as those found in AM335x and DRA7x need
-an explicit enable of 32khz functional clock which ticks the RTC.
+Remove multiple superfluous device id checks.  Since an id_table is
+present in the driver probe() should never encounter an empty device id
+entry.  In case of OF style match, of_match_device() returns an matching
+entry.
 
-AM335x support was working so far because of settings done in U-Boot. 
-However, the DRA7x U-Boot does no such enable of 32khz clock and this
-patch is need to get the RTC to work on DRA7x at least.  In general, it is
-better to not depend on settings done in U-Boot.
-
-Thanks to Lokesh Vutla for noticing this.
+For paranoia sake, check for device id entry once and fail probe() if none
+is found.  This is much better than checking for it multiple times.
 
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -64,56 +61,53 @@ Cc: Lokesh Vutla <lokeshvutla@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-omap.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock
+diff -puN drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-remove-multiple-device-id-checks drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-remove-multiple-device-id-checks
 +++ a/drivers/rtc/rtc-omap.c
-@@ -96,6 +96,9 @@
- #define OMAP_RTC_INTERRUPTS_IT_ALARM	BIT(3)
- #define OMAP_RTC_INTERRUPTS_IT_TIMER	BIT(2)
+@@ -352,6 +352,12 @@ static int __init omap_rtc_probe(struct
+ 	if (of_id)
+ 		pdev->id_entry = of_id->data;
  
-+/* OMAP_RTC_OSC_REG bit fields: */
-+#define OMAP_RTC_OSC_32KCLK_EN		BIT(6)
++	id_entry = platform_get_device_id(pdev);
++	if (!id_entry) {
++		dev_err(&pdev->dev, "no matching device entry\n");
++		return -ENODEV;
++	}
 +
- /* OMAP_RTC_IRQWAKEEN bit fields: */
- #define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN	BIT(1)
+ 	omap_rtc_timer = platform_get_irq(pdev, 0);
+ 	if (omap_rtc_timer <= 0) {
+ 		pr_debug("%s: no update irq?\n", pdev->name);
+@@ -373,8 +379,7 @@ static int __init omap_rtc_probe(struct
+ 	pm_runtime_enable(&pdev->dev);
+ 	pm_runtime_get_sync(&pdev->dev);
  
-@@ -111,6 +114,12 @@
-  */
- #define	OMAP_RTC_HAS_IRQWAKEEN		BIT(1)
+-	id_entry = platform_get_device_id(pdev);
+-	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER)) {
++	if (id_entry->driver_data & OMAP_RTC_HAS_KICKER) {
+ 		rtc_writel(KICK0_VALUE, OMAP_RTC_KICK0_REG);
+ 		rtc_writel(KICK1_VALUE, OMAP_RTC_KICK1_REG);
+ 	}
+@@ -452,7 +457,7 @@ static int __init omap_rtc_probe(struct
+ 	return 0;
  
-+/*
-+ * Some RTC IP revisions (like those in AM335x and DRA7x) need
-+ * the 32KHz clock to be explicitly enabled.
-+ */
-+#define OMAP_RTC_HAS_32KCLK_EN		BIT(2)
-+
- static void __iomem	*rtc_base;
- 
- #define rtc_read(addr)		readb(rtc_base + (addr))
-@@ -319,7 +328,8 @@ static struct platform_device_id omap_rt
- 	},
- 	[OMAP_RTC_DATA_AM3352_IDX] = {
- 		.name	= "am3352-rtc",
--		.driver_data = OMAP_RTC_HAS_KICKER | OMAP_RTC_HAS_IRQWAKEEN,
-+		.driver_data = OMAP_RTC_HAS_KICKER | OMAP_RTC_HAS_IRQWAKEEN |
-+			       OMAP_RTC_HAS_32KCLK_EN,
- 	},
- 	[OMAP_RTC_DATA_DA830_IDX] = {
- 		.name	= "da830-rtc",
-@@ -398,6 +408,10 @@ static int __init omap_rtc_probe(struct
- 	 */
+ fail0:
+-	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER))
++	if (id_entry->driver_data & OMAP_RTC_HAS_KICKER)
+ 		rtc_writel(0, OMAP_RTC_KICK0_REG);
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+@@ -469,7 +474,7 @@ static int __exit omap_rtc_remove(struct
+ 	/* leave rtc running, but disable irqs */
  	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
  
-+	/* enable RTC functional clock */
-+	if (id_entry->driver_data & OMAP_RTC_HAS_32KCLK_EN)
-+		rtc_writel(OMAP_RTC_OSC_32KCLK_EN, OMAP_RTC_OSC_REG);
-+
- 	/* clear old status */
- 	reg = rtc_read(OMAP_RTC_STATUS_REG);
- 	if (reg & (u8) OMAP_RTC_STATUS_POWER_UP) {
+-	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER))
++	if (id_entry->driver_data & OMAP_RTC_HAS_KICKER)
+ 		rtc_writel(0, OMAP_RTC_KICK0_REG);
+ 
+ 	/* Disable the clock/module */
 _
 
 Patches currently in -mm which might be from nsekhar@ti.com are
