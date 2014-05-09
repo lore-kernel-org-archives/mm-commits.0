@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch added to
- -mm tree
-Date: Fri, 09 May 2014 12:06:49 -0700
-Message-ID: <536d2749.xWi5tNN4C+N86eOD%akpm@linux-foundation.org>
+Subject: + kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+ added to -mm tree
+Date: Fri, 09 May 2014 12:06:46 -0700
+Message-ID: <536d2746.fuI28ulMCIlZp0es%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55467 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55461 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756950AbaEITGu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 15:06:50 -0400
+	with ESMTP id S1756826AbaEITGr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 15:06:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rjw@rjwysocki.net, fabf@skynet.be
+To: mm-commits@vger.kernel.org, fweisbec@gmail.com, fabf@skynet.be
 
-Subject: + kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch added to -mm tree
-To: fabf@skynet.be,rjw@rjwysocki.net
+Subject: + kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch added to -mm tree
+To: fabf@skynet.be,fweisbec@gmail.com
 From: akpm@linux-foundation.org
-Date: Fri, 09 May 2014 12:06:49 -0700
+Date: Fri, 09 May 2014 12:06:46 -0700
 
 
 The patch titled
-     Subject: kernel/power/hibernate.c: convert simple_strtoul to kstrtoul
+     Subject: kernel/watchdog.c: convert printk/pr_warning to pr_foo()
 has been added to the -mm tree.  Its filename is
-     kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch
+     kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,33 +45,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/power/hibernate.c: convert simple_strtoul to kstrtoul
+Subject: kernel/watchdog.c: convert printk/pr_warning to pr_foo()
 
-Replace obsolete function.
+Replace some obsolete functions.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/hibernate.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/watchdog.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN kernel/power/hibernate.c~kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul kernel/power/hibernate.c
---- a/kernel/power/hibernate.c~kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul
-+++ a/kernel/power/hibernate.c
-@@ -1115,7 +1115,10 @@ static int __init resumewait_setup(char
+diff -puN kernel/watchdog.c~kernel-watchdogc-convert-printk-pr_warning-to-pr_foo kernel/watchdog.c
+--- a/kernel/watchdog.c~kernel-watchdogc-convert-printk-pr_warning-to-pr_foo
++++ a/kernel/watchdog.c
+@@ -260,9 +260,11 @@ static void watchdog_overflow_callback(s
+ 			return;
  
- static int __init resumedelay_setup(char *str)
- {
--	resume_delay = simple_strtoul(str, NULL, 0);
-+	int rc = kstrtoul(str, 0, (unsigned long *)&resume_delay);
-+
-+	if (rc)
-+		return rc;
- 	return 1;
- }
+ 		if (hardlockup_panic)
+-			panic("Watchdog detected hard LOCKUP on cpu %d", this_cpu);
++			panic("Watchdog detected hard LOCKUP on cpu %d",
++			      this_cpu);
+ 		else
+-			WARN(1, "Watchdog detected hard LOCKUP on cpu %d", this_cpu);
++			WARN(1, "Watchdog detected hard LOCKUP on cpu %d",
++			     this_cpu);
  
+ 		__this_cpu_write(hard_watchdog_warn, true);
+ 		return;
+@@ -345,7 +347,7 @@ static enum hrtimer_restart watchdog_tim
+ 			}
+ 		}
+ 
+-		printk(KERN_EMERG "BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
++		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
+ 			smp_processor_id(), duration,
+ 			current->comm, task_pid_nr(current));
+ 		print_modules();
+@@ -484,7 +486,7 @@ static int watchdog_nmi_enable(unsigned
+ 	if (PTR_ERR(event) == -EOPNOTSUPP)
+ 		pr_info("disabled (cpu%i): not supported (no LAPIC?)\n", cpu);
+ 	else if (PTR_ERR(event) == -ENOENT)
+-		pr_warning("disabled (cpu%i): hardware events not enabled\n",
++		pr_warn("disabled (cpu%i): hardware events not enabled\n",
+ 			 cpu);
+ 	else
+ 		pr_err("disabled (cpu%i): unable to create perf event: %ld\n",
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
