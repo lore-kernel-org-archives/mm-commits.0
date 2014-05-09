@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-dev_debug-for-typo-issue.patch added to -mm tree
-Date: Fri, 09 May 2014 14:21:50 -0700
-Message-ID: <536d46ee.pzDYj5SuEK72cokT%akpm@linux-foundation.org>
+Subject: + checkpatch-warn-on-defines-ending-in-semicolon.patch added to
+ -mm tree
+Date: Fri, 09 May 2014 14:41:18 -0700
+Message-ID: <536d4b7e.LSODhpnlZ7W78OXk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58242 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58459 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757092AbaEIVVv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 17:21:51 -0400
+	with ESMTP id S1757368AbaEIVlT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 17:41:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gang.chen.5i5j@gmail.com
+To: mm-commits@vger.kernel.org, bp@suse.de, joe@perches.com
 
-Subject: + drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-dev_debug-for-typo-issue.patch added to -mm tree
-To: gang.chen.5i5j@gmail.com
+Subject: + checkpatch-warn-on-defines-ending-in-semicolon.patch added to -mm tree
+To: joe@perches.com,bp@suse.de
 From: akpm@linux-foundation.org
-Date: Fri, 09 May 2014 14:21:50 -0700
+Date: Fri, 09 May 2014 14:41:18 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-puv3.c: use dev_dbg() instead of dev_debug() for typo issue
+     Subject: checkpatch: warn on #defines ending in semicolon
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-dev_debug-for-typo-issue.patch
+     checkpatch-warn-on-defines-ending-in-semicolon.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-dev_debug-for-typo-issue.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-warn-on-defines-ending-in-semicolon.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-dev_debug-for-typo-issue.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-warn-on-defines-ending-in-semicolon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,43 +44,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen.5i5j@gmail.com>
-Subject: drivers/rtc/rtc-puv3.c: use dev_dbg() instead of dev_debug() for typo issue
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: warn on #defines ending in semicolon
 
-It is only a typo issue, the related commit:
+Using a #define ending in a semicolon is poor style and can lead to
+unexpected code paths being executed.
 
-  "1fbc4c4 drivers/rtc/rtc-puv3.c: use dev_dbg() instead of pr_debug()"
+Warn on uses of these #define types:
 
-The related error (unicore32 with allmodconfig):
+	#define foo[(...)] bar;
+	#define foo[(...)]	\
+		bar;
 
-    CC [M]  drivers/rtc/rtc-puv3.o
-  drivers/rtc/rtc-puv3.c: In function 'puv3_rtc_setpie':
-  drivers/rtc/rtc-puv3.c:74: error: implicit declaration of function 'dev_debug'
+Based on a patch from Borislav Petkov.
 
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-puv3.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN drivers/rtc/rtc-puv3.c~drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-dev_debug-for-typo-issue drivers/rtc/rtc-puv3.c
---- a/drivers/rtc/rtc-puv3.c~drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-dev_debug-for-typo-issue
-+++ a/drivers/rtc/rtc-puv3.c
-@@ -71,7 +71,7 @@ static int puv3_rtc_setpie(struct device
- {
- 	unsigned int tmp;
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-defines-ending-in-semicolon scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-defines-ending-in-semicolon
++++ a/scripts/checkpatch.pl
+@@ -3821,6 +3821,17 @@ sub process {
+ 					WARN("DO_WHILE_MACRO_WITH_TRAILING_SEMICOLON",
+ 					     "do {} while (0) macros should not be semicolon terminated\n" . "$herectx");
+ 				}
++			} elsif ($dstat =~ /^\+\s*#\s*define\s+$Ident.*;\s*$/) {
++				$ctx =~ s/\n*$//;
++				my $cnt = statement_rawlines($ctx);
++				my $herectx = $here . "\n";
++
++				for (my $n = 0; $n < $cnt; $n++) {
++					$herectx .= raw_line($linenr, $n) . "\n";
++				}
++
++				WARN("TRAILING_SEMICOLON",
++				     "macros should not use a trailing semicolon\n" . "$herectx");
+ 			}
+ 		}
  
--	dev_debug(dev, "%s: pie=%d\n", __func__, enabled);
-+	dev_dbg(dev, "%s: pie=%d\n", __func__, enabled);
- 
- 	spin_lock_irq(&puv3_rtc_pie_lock);
- 	tmp = readl(RTC_RTSR) & ~RTC_RTSR_HZE;
 _
 
-Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-dev_debug-for-typo-issue.patch
-drivers-rtc-rtc-puv3c-remove-dev-for-typo-issue.patch
+origin.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+documentation-expand-clarify-debug-documentation.patch
+maintainers-add-linux-api-for-review-of-api-abi-changes.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-fix-wildcard-dt-compatible-string-checking.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-improve-missing-blank-line-after-declarations-test.patch
+checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
+checkpatch-warn-on-defines-ending-in-semicolon.patch
+init-mainc-dont-use-pr_debug.patch
+fs-isofs-logging-clean-up.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
+arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+tile-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+parport-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+scsi-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ntfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ipc-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+mm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
