@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+Subject: + kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
  added to -mm tree
-Date: Fri, 09 May 2014 12:06:46 -0700
-Message-ID: <536d2746.fuI28ulMCIlZp0es%akpm@linux-foundation.org>
+Date: Fri, 09 May 2014 12:06:50 -0700
+Message-ID: <536d274a./LJw9Kgv+DNlrlTW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55461 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55471 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756826AbaEITGr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 15:06:47 -0400
+	with ESMTP id S1756986AbaEITGv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 15:06:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fweisbec@gmail.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, mingo@kernel.org, fabf@skynet.be
 
-Subject: + kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch added to -mm tree
-To: fabf@skynet.be,fweisbec@gmail.com
+Subject: + kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch added to -mm tree
+To: fabf@skynet.be,mingo@kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 09 May 2014 12:06:46 -0700
+Date: Fri, 09 May 2014 12:06:50 -0700
 
 
 The patch titled
-     Subject: kernel/watchdog.c: convert printk/pr_warning to pr_foo()
+     Subject: kernel/hung_task.c: convert simple_strtoul to kstrtouint
 has been added to the -mm tree.  Its filename is
-     kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+     kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,53 +45,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/watchdog.c: convert printk/pr_warning to pr_foo()
+Subject: kernel/hung_task.c: convert simple_strtoul to kstrtouint
 
-Replace some obsolete functions.
+sysctl_hung_task_panic has been changed to unsigned int.  use kstrtouint
+instead of obsolete simple_strtoul
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ kernel/hung_task.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/watchdog.c~kernel-watchdogc-convert-printk-pr_warning-to-pr_foo kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdogc-convert-printk-pr_warning-to-pr_foo
-+++ a/kernel/watchdog.c
-@@ -260,9 +260,11 @@ static void watchdog_overflow_callback(s
- 			return;
+diff -puN kernel/hung_task.c~kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint kernel/hung_task.c
+--- a/kernel/hung_task.c~kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint
++++ a/kernel/hung_task.c
+@@ -52,8 +52,10 @@ unsigned int __read_mostly sysctl_hung_t
  
- 		if (hardlockup_panic)
--			panic("Watchdog detected hard LOCKUP on cpu %d", this_cpu);
-+			panic("Watchdog detected hard LOCKUP on cpu %d",
-+			      this_cpu);
- 		else
--			WARN(1, "Watchdog detected hard LOCKUP on cpu %d", this_cpu);
-+			WARN(1, "Watchdog detected hard LOCKUP on cpu %d",
-+			     this_cpu);
+ static int __init hung_task_panic_setup(char *str)
+ {
+-	sysctl_hung_task_panic = simple_strtoul(str, NULL, 0);
++	int rc = kstrtouint(str, 0, &sysctl_hung_task_panic);
  
- 		__this_cpu_write(hard_watchdog_warn, true);
- 		return;
-@@ -345,7 +347,7 @@ static enum hrtimer_restart watchdog_tim
- 			}
- 		}
- 
--		printk(KERN_EMERG "BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
-+		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
- 			smp_processor_id(), duration,
- 			current->comm, task_pid_nr(current));
- 		print_modules();
-@@ -484,7 +486,7 @@ static int watchdog_nmi_enable(unsigned
- 	if (PTR_ERR(event) == -EOPNOTSUPP)
- 		pr_info("disabled (cpu%i): not supported (no LAPIC?)\n", cpu);
- 	else if (PTR_ERR(event) == -ENOENT)
--		pr_warning("disabled (cpu%i): hardware events not enabled\n",
-+		pr_warn("disabled (cpu%i): hardware events not enabled\n",
- 			 cpu);
- 	else
- 		pr_err("disabled (cpu%i): unable to create perf event: %ld\n",
++	if (rc)
++		return rc;
+ 	return 1;
+ }
+ __setup("hung_task_panic=", hung_task_panic_setup);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
