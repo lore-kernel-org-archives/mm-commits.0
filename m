@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch added
- to -mm tree
-Date: Fri, 09 May 2014 12:06:45 -0700
-Message-ID: <536d2745.xeZ2FrywCQyzDAkh%akpm@linux-foundation.org>
+Subject: +
+ kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch added to
+ -mm tree
+Date: Fri, 09 May 2014 12:06:49 -0700
+Message-ID: <536d2749.xWi5tNN4C+N86eOD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55457 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55467 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756826AbaEITGq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 15:06:46 -0400
+	with ESMTP id S1756950AbaEITGu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2014 15:06:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, john.stultz@linaro.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, rjw@rjwysocki.net, fabf@skynet.be
 
-Subject: + kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch added to -mm tree
-To: fabf@skynet.be,john.stultz@linaro.org
+Subject: + kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch added to -mm tree
+To: fabf@skynet.be,rjw@rjwysocki.net
 From: akpm@linux-foundation.org
-Date: Fri, 09 May 2014 12:06:45 -0700
+Date: Fri, 09 May 2014 12:06:49 -0700
 
 
 The patch titled
-     Subject: kernel/time/ntp.c: convert simple_strtol to kstrtol
+     Subject: kernel/power/hibernate.c: convert simple_strtoul to kstrtoul
 has been added to the -mm tree.  Its filename is
-     kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
+     kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,33 +46,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/time/ntp.c: convert simple_strtol to kstrtol
+Subject: kernel/power/hibernate.c: convert simple_strtoul to kstrtoul
 
 Replace obsolete function.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: John Stultz <john.stultz@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/ntp.c |    5 ++++-
+ kernel/power/hibernate.c |    5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/time/ntp.c~kernel-time-ntpc-convert-simple_strtol-to-kstrtol kernel/time/ntp.c
---- a/kernel/time/ntp.c~kernel-time-ntpc-convert-simple_strtol-to-kstrtol
-+++ a/kernel/time/ntp.c
-@@ -926,7 +926,10 @@ void __hardpps(const struct timespec *ph
+diff -puN kernel/power/hibernate.c~kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul kernel/power/hibernate.c
+--- a/kernel/power/hibernate.c~kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul
++++ a/kernel/power/hibernate.c
+@@ -1115,7 +1115,10 @@ static int __init resumewait_setup(char
  
- static int __init ntp_tick_adj_setup(char *str)
+ static int __init resumedelay_setup(char *str)
  {
--	ntp_tick_adj = simple_strtol(str, NULL, 0);
-+	int rc = kstrtol(str, 0, (long *)&ntp_tick_adj);
+-	resume_delay = simple_strtoul(str, NULL, 0);
++	int rc = kstrtoul(str, 0, (unsigned long *)&resume_delay);
 +
 +	if (rc)
 +		return rc;
- 	ntp_tick_adj <<= NTP_SCALE_SHIFT;
- 
  	return 1;
+ }
+ 
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
