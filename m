@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
- added to -mm tree
-Date: Mon, 12 May 2014 14:01:31 -0700
-Message-ID: <537136ab.F2rRJmg2yC9pPKte%akpm@linux-foundation.org>
+Subject: + plist-add-plist_requeue.patch added to -mm tree
+Date: Mon, 12 May 2014 14:01:29 -0700
+Message-ID: <537136a9.1VKZWZauOUJFXGcj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38662 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38650 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477AbaELVBd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 17:01:33 -0400
+	with ESMTP id S1751477AbaELVBa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 17:01:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, weijieut@gmail.com, tglx@linutronix.de, shli@fusionio.com, rostedt@goodmis.org, riel@redhat.com, peterz@infradead.org, paul.gortmaker@windriver.com, mhocko@suse.cz, mgorman@suse.de, hughd@google.com, hannes@cmpxchg.org, ehrhardt@linux.vnet.ibm.com, bob.liu@oracle.com, ddstreet@ieee.org
 
-Subject: + swap-change-swap_list_head-to-plist-add-swap_avail_head.patch added to -mm tree
+Subject: + plist-add-plist_requeue.patch added to -mm tree
 To: ddstreet@ieee.org,bob.liu@oracle.com,ehrhardt@linux.vnet.ibm.com,hannes@cmpxchg.org,hughd@google.com,mgorman@suse.de,mhocko@suse.cz,paul.gortmaker@windriver.com,peterz@infradead.org,riel@redhat.com,rostedt@goodmis.org,shli@fusionio.com,tglx@linutronix.de,weijieut@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 12 May 2014 14:01:31 -0700
+Date: Mon, 12 May 2014 14:01:29 -0700
 
 
 The patch titled
-     Subject: swap: change swap_list_head to plist, add swap_avail_head
+     Subject: lib/plist: add plist_requeue
 has been added to the -mm tree.  Its filename is
-     swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
+     plist-add-plist_requeue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/plist-add-plist_requeue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/plist-add-plist_requeue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,43 +44,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Streetman <ddstreet@ieee.org>
-Subject: swap: change swap_list_head to plist, add swap_avail_head
+Subject: lib/plist: add plist_requeue
 
-Originally get_swap_page() started iterating through the singly-linked
-list of swap_info_structs using swap_list.next or highest_priority_index,
-which both were intended to point to the highest priority active swap
-target that was not full.  The first patch in this series changed the
-singly-linked list to a doubly-linked list, and removed the logic to start
-at the highest priority non-full entry; it starts scanning at the highest
-priority entry each time, even if the entry is full.
+Add plist_requeue(), which moves the specified plist_node after all other
+same-priority plist_nodes in the list.  This is essentially an optimized
+plist_del() followed by plist_add().
 
-Replace the manually ordered swap_list_head with a plist, swap_active_head.
-Add a new plist, swap_avail_head.  The original swap_active_head plist
-contains all active swap_info_structs, as before, while the new
-swap_avail_head plist contains only swap_info_structs that are active and
-available, i.e. not full.  Add a new spinlock, swap_avail_lock, to protect
-the swap_avail_head list.
+This is needed by swap, which (with the next patch in this set) uses a
+plist of available swap devices.  When a swap device (either a swap
+partition or swap file) are added to the system with swapon(), the device
+is added to a plist, ordered by the swap device's priority.  When swap
+needs to allocate a page from one of the swap devices, it takes the page
+from the first swap device on the plist, which is the highest priority
+swap device.  The swap device is left in the plist until all its pages are
+used, and then removed from the plist when it becomes full.
 
-Mel Gorman suggested using plists since they internally handle ordering
-the list entries based on priority, which is exactly what swap was doing
-manually.  All the ordering code is now removed, and swap_info_struct
-entries and simply added to their corresponding plist and automatically
-ordered correctly.
+However, as described in man 2 swapon, swap must allocate pages from swap
+devices with the same priority in round-robin order; to do this, on each
+swap page allocation, swap uses a page from the first swap device in the
+plist, and then calls plist_requeue() to move that swap device entry to
+after any other same-priority swap devices.  The next swap page allocation
+will again use a page from the first swap device in the plist and requeue
+it, and so on, resulting in round-robin usage of equal-priority swap
+devices.
 
-Using a new plist for available swap_info_structs simplifies and
-optimizes get_swap_page(), which no longer has to iterate over full
-swap_info_structs.  Using a new spinlock for swap_avail_head plist
-allows each swap_info_struct to add or remove themselves from the
-plist when they become full or not-full; previously they could not
-do so because the swap_info_struct->lock is held when they change
-from full<->not-full, and the swap_lock protecting the main
-swap_active_head must be ordered before any swap_info_struct->lock.
+Also add plist_test_requeue() test function, for use by plist_test() to
+test plist_requeue() function.
 
 Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Shaohua Li <shli@fusionio.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Shaohua Li <shli@fusionio.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -90,322 +86,101 @@ Cc: Weijie Yang <weijieut@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Bob Liu <bob.liu@oracle.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h     |    3 
- include/linux/swapfile.h |    2 
- mm/frontswap.c           |    6 -
- mm/swapfile.c            |  145 +++++++++++++++++++++++--------------
- 4 files changed, 97 insertions(+), 59 deletions(-)
+ include/linux/plist.h |    2 +
+ lib/plist.c           |   52 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 54 insertions(+)
 
-diff -puN include/linux/swap.h~swap-change-swap_list_head-to-plist-add-swap_avail_head include/linux/swap.h
---- a/include/linux/swap.h~swap-change-swap_list_head-to-plist-add-swap_avail_head
-+++ a/include/linux/swap.h
-@@ -214,7 +214,8 @@ struct percpu_cluster {
- struct swap_info_struct {
- 	unsigned long	flags;		/* SWP_USED etc: see above */
- 	signed short	prio;		/* swap priority of this type */
--	struct list_head list;		/* entry in swap list */
-+	struct plist_node list;		/* entry in swap_active_head */
-+	struct plist_node avail_list;	/* entry in swap_avail_head */
- 	signed char	type;		/* strange name for an index */
- 	unsigned int	max;		/* extent of the swap_map */
- 	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
-diff -puN include/linux/swapfile.h~swap-change-swap_list_head-to-plist-add-swap_avail_head include/linux/swapfile.h
---- a/include/linux/swapfile.h~swap-change-swap_list_head-to-plist-add-swap_avail_head
-+++ a/include/linux/swapfile.h
-@@ -6,7 +6,7 @@
-  * want to expose them to the dozens of source files that include swap.h
-  */
- extern spinlock_t swap_lock;
--extern struct list_head swap_list_head;
-+extern struct plist_head swap_active_head;
- extern struct swap_info_struct *swap_info[];
- extern int try_to_unuse(unsigned int, bool, unsigned long);
+diff -puN include/linux/plist.h~plist-add-plist_requeue include/linux/plist.h
+--- a/include/linux/plist.h~plist-add-plist_requeue
++++ a/include/linux/plist.h
+@@ -141,6 +141,8 @@ static inline void plist_node_init(struc
+ extern void plist_add(struct plist_node *node, struct plist_head *head);
+ extern void plist_del(struct plist_node *node, struct plist_head *head);
  
-diff -puN mm/frontswap.c~swap-change-swap_list_head-to-plist-add-swap_avail_head mm/frontswap.c
---- a/mm/frontswap.c~swap-change-swap_list_head-to-plist-add-swap_avail_head
-+++ a/mm/frontswap.c
-@@ -331,7 +331,7 @@ static unsigned long __frontswap_curr_pa
- 	struct swap_info_struct *si = NULL;
- 
- 	assert_spin_locked(&swap_lock);
--	list_for_each_entry(si, &swap_list_head, list)
-+	plist_for_each_entry(si, &swap_active_head, list)
- 		totalpages += atomic_read(&si->frontswap_pages);
- 	return totalpages;
- }
-@@ -346,7 +346,7 @@ static int __frontswap_unuse_pages(unsig
- 	unsigned long pages = 0, pages_to_unuse = 0;
- 
- 	assert_spin_locked(&swap_lock);
--	list_for_each_entry(si, &swap_list_head, list) {
-+	plist_for_each_entry(si, &swap_active_head, list) {
- 		si_frontswap_pages = atomic_read(&si->frontswap_pages);
- 		if (total_pages_to_unuse < si_frontswap_pages) {
- 			pages = pages_to_unuse = total_pages_to_unuse;
-@@ -408,7 +408,7 @@ void frontswap_shrink(unsigned long targ
- 	/*
- 	 * we don't want to hold swap_lock while doing a very
- 	 * lengthy try_to_unuse, but swap_list may change
--	 * so restart scan from swap_list_head each time
-+	 * so restart scan from swap_active_head each time
- 	 */
- 	spin_lock(&swap_lock);
- 	ret = __frontswap_shrink(target_pages, &pages_to_unuse, &type);
-diff -puN mm/swapfile.c~swap-change-swap_list_head-to-plist-add-swap_avail_head mm/swapfile.c
---- a/mm/swapfile.c~swap-change-swap_list_head-to-plist-add-swap_avail_head
-+++ a/mm/swapfile.c
-@@ -61,7 +61,22 @@ static const char Unused_offset[] = "Unu
-  * all active swap_info_structs
-  * protected with swap_lock, and ordered by priority.
-  */
--LIST_HEAD(swap_list_head);
-+PLIST_HEAD(swap_active_head);
++extern void plist_requeue(struct plist_node *node, struct plist_head *head);
 +
-+/*
-+ * all available (active, not full) swap_info_structs
-+ * protected with swap_avail_lock, ordered by priority.
-+ * This is used by get_swap_page() instead of swap_active_head
-+ * because swap_active_head includes all swap_info_structs,
-+ * but get_swap_page() doesn't need to look at full ones.
-+ * This uses its own lock instead of swap_lock because when a
-+ * swap_info_struct changes between not-full/full, it needs to
-+ * add/remove itself to/from this list, but the swap_info_struct->lock
-+ * is held and the locking order requires swap_lock to be taken
-+ * before any swap_info_struct->lock.
+ /**
+  * plist_for_each - iterate over the plist
+  * @pos:	the type * to use as a loop counter
+diff -puN lib/plist.c~plist-add-plist_requeue lib/plist.c
+--- a/lib/plist.c~plist-add-plist_requeue
++++ a/lib/plist.c
+@@ -134,6 +134,46 @@ void plist_del(struct plist_node *node,
+ 	plist_check_head(head);
+ }
+ 
++/**
++ * plist_requeue - Requeue @node at end of same-prio entries.
++ *
++ * This is essentially an optimized plist_del() followed by
++ * plist_add().  It moves an entry already in the plist to
++ * after any other same-priority entries.
++ *
++ * @node:	&struct plist_node pointer - entry to be moved
++ * @head:	&struct plist_head pointer - list head
 + */
-+static PLIST_HEAD(swap_avail_head);
-+static DEFINE_SPINLOCK(swap_avail_lock);
- 
- struct swap_info_struct *swap_info[MAX_SWAPFILES];
- 
-@@ -594,6 +609,9 @@ checks:
- 	if (si->inuse_pages == si->pages) {
- 		si->lowest_bit = si->max;
- 		si->highest_bit = 0;
-+		spin_lock(&swap_avail_lock);
-+		plist_del(&si->avail_list, &swap_avail_head);
-+		spin_unlock(&swap_avail_lock);
- 	}
- 	si->swap_map[offset] = usage;
- 	inc_cluster_info_page(si, si->cluster_info, offset);
-@@ -645,57 +663,63 @@ swp_entry_t get_swap_page(void)
- {
- 	struct swap_info_struct *si, *next;
- 	pgoff_t offset;
--	struct list_head *tmp;
- 
--	spin_lock(&swap_lock);
- 	if (atomic_long_read(&nr_swap_pages) <= 0)
- 		goto noswap;
- 	atomic_long_dec(&nr_swap_pages);
- 
--	list_for_each(tmp, &swap_list_head) {
--		si = list_entry(tmp, typeof(*si), list);
-+	spin_lock(&swap_avail_lock);
++void plist_requeue(struct plist_node *node, struct plist_head *head)
++{
++	struct plist_node *iter;
++	struct list_head *node_next = &head->node_list;
 +
-+start_over:
-+	plist_for_each_entry_safe(si, next, &swap_avail_head, avail_list) {
-+		/* requeue si to after same-priority siblings */
-+		plist_requeue(&si->avail_list, &swap_avail_head);
-+		spin_unlock(&swap_avail_lock);
- 		spin_lock(&si->lock);
- 		if (!si->highest_bit || !(si->flags & SWP_WRITEOK)) {
-+			spin_lock(&swap_avail_lock);
-+			if (plist_node_empty(&si->avail_list)) {
-+				spin_unlock(&si->lock);
-+				goto nextsi;
-+			}
-+			WARN(!si->highest_bit,
-+			     "swap_info %d in list but !highest_bit\n",
-+			     si->type);
-+			WARN(!(si->flags & SWP_WRITEOK),
-+			     "swap_info %d in list but !SWP_WRITEOK\n",
-+			     si->type);
-+			plist_del(&si->avail_list, &swap_avail_head);
- 			spin_unlock(&si->lock);
--			continue;
-+			goto nextsi;
- 		}
- 
--		/*
--		 * rotate the current swap_info that we're going to use
--		 * to after any other swap_info that have the same prio,
--		 * so that all equal-priority swap_info get used equally
--		 */
--		next = si;
--		list_for_each_entry_continue(next, &swap_list_head, list) {
--			if (si->prio != next->prio)
--				break;
--			list_rotate_left(&si->list);
--			next = si;
--		}
--
--		spin_unlock(&swap_lock);
- 		/* This is called for allocating swap entry for cache */
- 		offset = scan_swap_map(si, SWAP_HAS_CACHE);
- 		spin_unlock(&si->lock);
- 		if (offset)
- 			return swp_entry(si->type, offset);
--		spin_lock(&swap_lock);
-+		pr_debug("scan_swap_map of si %d failed to find offset\n",
-+		       si->type);
-+		spin_lock(&swap_avail_lock);
-+nextsi:
- 		/*
- 		 * if we got here, it's likely that si was almost full before,
- 		 * and since scan_swap_map() can drop the si->lock, multiple
- 		 * callers probably all tried to get a page from the same si
--		 * and it filled up before we could get one.  So we need to
--		 * try again.  Since we dropped the swap_lock, there may now
--		 * be non-full higher priority swap_infos, and this si may have
--		 * even been removed from the list (although very unlikely).
--		 * Let's start over.
-+		 * and it filled up before we could get one; or, the si filled
-+		 * up between us dropping swap_avail_lock and taking si->lock.
-+		 * Since we dropped the swap_avail_lock, the swap_avail_head
-+		 * list may have been modified; so if next is still in the
-+		 * swap_avail_head list then try it, otherwise start over.
- 		 */
--		tmp = &swap_list_head;
-+		if (plist_node_empty(&next->avail_list))
-+			goto start_over;
- 	}
- 
-+	spin_unlock(&swap_avail_lock);
++	plist_check_head(head);
++	BUG_ON(plist_head_empty(head));
++	BUG_ON(plist_node_empty(node));
 +
- 	atomic_long_inc(&nr_swap_pages);
- noswap:
--	spin_unlock(&swap_lock);
- 	return (swp_entry_t) {0};
- }
- 
-@@ -798,8 +822,18 @@ static unsigned char swap_entry_free(str
- 		dec_cluster_info_page(p, p->cluster_info, offset);
- 		if (offset < p->lowest_bit)
- 			p->lowest_bit = offset;
--		if (offset > p->highest_bit)
-+		if (offset > p->highest_bit) {
-+			bool was_full = !p->highest_bit;
- 			p->highest_bit = offset;
-+			if (was_full && (p->flags & SWP_WRITEOK)) {
-+				spin_lock(&swap_avail_lock);
-+				WARN_ON(!plist_node_empty(&p->avail_list));
-+				if (plist_node_empty(&p->avail_list))
-+					plist_add(&p->avail_list,
-+						  &swap_avail_head);
-+				spin_unlock(&swap_avail_lock);
-+			}
++	if (node == plist_last(head))
++		return;
++
++	iter = plist_next(node);
++
++	if (node->prio != iter->prio)
++		return;
++
++	plist_del(node, head);
++
++	plist_for_each_continue(iter, head) {
++		if (node->prio != iter->prio) {
++			node_next = &iter->node_list;
++			break;
 +		}
- 		atomic_long_inc(&nr_swap_pages);
- 		p->inuse_pages--;
- 		frontswap_invalidate_page(p->type, offset);
-@@ -1734,12 +1768,16 @@ static void _enable_swap_info(struct swa
- 				unsigned char *swap_map,
- 				struct swap_cluster_info *cluster_info)
- {
--	struct swap_info_struct *si;
--
- 	if (prio >= 0)
- 		p->prio = prio;
- 	else
- 		p->prio = --least_priority;
-+	/*
-+	 * the plist prio is negated because plist ordering is
-+	 * low-to-high, while swap ordering is high-to-low
-+	 */
-+	p->list.prio = -p->prio;
-+	p->avail_list.prio = -p->prio;
- 	p->swap_map = swap_map;
- 	p->cluster_info = cluster_info;
- 	p->flags |= SWP_WRITEOK;
-@@ -1747,27 +1785,20 @@ static void _enable_swap_info(struct swa
- 	total_swap_pages += p->pages;
- 
- 	assert_spin_locked(&swap_lock);
--	BUG_ON(!list_empty(&p->list));
--	/*
--	 * insert into swap list; the list is in priority order,
--	 * so that get_swap_page() can get a page from the highest
--	 * priority swap_info_struct with available page(s), and
--	 * swapoff can adjust the auto-assigned (i.e. negative) prio
--	 * values for any lower-priority swap_info_structs when
--	 * removing a negative-prio swap_info_struct
--	 */
--	list_for_each_entry(si, &swap_list_head, list) {
--		if (p->prio >= si->prio) {
--			list_add_tail(&p->list, &si->list);
--			return;
--		}
--	}
- 	/*
--	 * this covers two cases:
--	 * 1) p->prio is less than all existing prio
--	 * 2) the swap list is empty
-+	 * both lists are plists, and thus priority ordered.
-+	 * swap_active_head needs to be priority ordered for swapoff(),
-+	 * which on removal of any swap_info_struct with an auto-assigned
-+	 * (i.e. negative) priority increments the auto-assigned priority
-+	 * of any lower-priority swap_info_structs.
-+	 * swap_avail_head needs to be priority ordered for get_swap_page(),
-+	 * which allocates swap pages from the highest available priority
-+	 * swap_info_struct.
- 	 */
--	list_add_tail(&p->list, &swap_list_head);
-+	plist_add(&p->list, &swap_active_head);
-+	spin_lock(&swap_avail_lock);
-+	plist_add(&p->avail_list, &swap_avail_head);
-+	spin_unlock(&swap_avail_lock);
++	}
++	list_add_tail(&node->node_list, node_next);
++
++	plist_check_head(head);
++}
++
+ #ifdef CONFIG_DEBUG_PI_LIST
+ #include <linux/sched.h>
+ #include <linux/module.h>
+@@ -170,6 +210,14 @@ static void __init plist_test_check(int
+ 	BUG_ON(prio_pos->prio_list.next != &first->prio_list);
  }
  
- static void enable_swap_info(struct swap_info_struct *p, int prio,
-@@ -1821,7 +1852,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 
- 	mapping = victim->f_mapping;
- 	spin_lock(&swap_lock);
--	list_for_each_entry(p, &swap_list_head, list) {
-+	plist_for_each_entry(p, &swap_active_head, list) {
- 		if (p->flags & SWP_WRITEOK) {
- 			if (p->swap_file->f_mapping == mapping) {
- 				found = 1;
-@@ -1841,16 +1872,21 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 		spin_unlock(&swap_lock);
- 		goto out_dput;
- 	}
-+	spin_lock(&swap_avail_lock);
-+	plist_del(&p->avail_list, &swap_avail_head);
-+	spin_unlock(&swap_avail_lock);
- 	spin_lock(&p->lock);
- 	if (p->prio < 0) {
- 		struct swap_info_struct *si = p;
- 
--		list_for_each_entry_continue(si, &swap_list_head, list) {
-+		plist_for_each_entry_continue(si, &swap_active_head, list) {
- 			si->prio++;
-+			si->list.prio--;
-+			si->avail_list.prio--;
++static void __init plist_test_requeue(struct plist_node *node)
++{
++	plist_requeue(node, &test_head);
++
++	if (node != plist_last(&test_head))
++		BUG_ON(node->prio == plist_next(node)->prio);
++}
++
+ static int  __init plist_test(void)
+ {
+ 	int nr_expect = 0, i, loop;
+@@ -193,6 +241,10 @@ static int  __init plist_test(void)
+ 			nr_expect--;
  		}
- 		least_priority++;
+ 		plist_test_check(nr_expect);
++		if (!plist_node_empty(test_node + i)) {
++			plist_test_requeue(test_node + i);
++			plist_test_check(nr_expect);
++		}
  	}
--	list_del_init(&p->list);
-+	plist_del(&p->list, &swap_active_head);
- 	atomic_long_sub(p->pages, &nr_swap_pages);
- 	total_swap_pages -= p->pages;
- 	p->flags &= ~SWP_WRITEOK;
-@@ -2115,7 +2151,8 @@ static struct swap_info_struct *alloc_sw
- 		 */
- 	}
- 	INIT_LIST_HEAD(&p->first_swap_extent.list);
--	INIT_LIST_HEAD(&p->list);
-+	plist_node_init(&p->list, 0);
-+	plist_node_init(&p->avail_list, 0);
- 	p->flags = SWP_USED;
- 	spin_unlock(&swap_lock);
- 	spin_lock_init(&p->lock);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(test_node); i++) {
 _
 
 Patches currently in -mm which might be from ddstreet@ieee.org are
