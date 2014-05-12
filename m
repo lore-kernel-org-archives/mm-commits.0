@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch added to -mm tree
-Date: Mon, 12 May 2014 15:56:24 -0700
-Message-ID: <53715198.5bp8bZ0hOVOjyvKu%akpm@linux-foundation.org>
+ mm-filemapc-avoid-always-dirtying-mapping-flags-on-o_direct.patch added to
+ -mm tree
+Date: Mon, 12 May 2014 16:07:02 -0700
+Message-ID: <53715416.mIcTMnXzzvVkAnAm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39871 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477AbaELW4Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 18:56:25 -0400
+	with ESMTP id S1751301AbaELXHD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 19:07:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, slaoub@gmail.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, jmoyer@redhat.com, axboe@fb.com
 
-Subject: + hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch added to -mm tree
-To: slaoub@gmail.com,ak@linux.intel.com,n-horiguchi@ah.jp.nec.com,stable@vger.kernel.org
+Subject: + mm-filemapc-avoid-always-dirtying-mapping-flags-on-o_direct.patch added to -mm tree
+To: axboe@fb.com,jmoyer@redhat.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Mon, 12 May 2014 15:56:24 -0700
+Date: Mon, 12 May 2014 16:07:02 -0700
 
 
 The patch titled
-     Subject: HWPOSION, hugetlb: lock_page/unlock_page does not match for handling a free hugepage
+     Subject: mm/filemap.c: avoid always dirtying mapping->flags on O_DIRECT
 has been added to the -mm tree.  Its filename is
-     hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch
+     mm-filemapc-avoid-always-dirtying-mapping-flags-on-o_direct.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemapc-avoid-always-dirtying-mapping-flags-on-o_direct.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemapc-avoid-always-dirtying-mapping-flags-on-o_direct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,57 +45,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Yucong <slaoub@gmail.com>
-Subject: HWPOSION, hugetlb: lock_page/unlock_page does not match for handling a free hugepage
+From: Jens Axboe <axboe@fb.com>
+Subject: mm/filemap.c: avoid always dirtying mapping->flags on O_DIRECT
 
-For handling a free hugepage in memory failure, the race will happen if
-another thread hwpoisoned this hugepage concurrently.  So we need to check
-PageHWPoison instead of !PageHWPoison.
+In some testing I ran today (some fio jobs that spread over two nodes), we
+end up spending 40% of the time in filemap_check_errors().  That smells
+fishy.  Looking further, this is basically what happens:
 
-If hwpoison_filter(p) returns true or a race happens, then we need to
-unlock_page(hpage).
+blkdev_aio_read()
+    generic_file_aio_read()
+        filemap_write_and_wait_range()
+            if (!mapping->nr_pages)
+                filemap_check_errors()
 
-Signed-off-by: Chen Yucong <slaoub@gmail.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Tested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
-Cc: <stable@vger.kernel.org>	[2.6.36+]
+and filemap_check_errors() always attempts two test_and_clear_bit() on the
+mapping flags, thus dirtying it for every single invocation.  The patch
+below tests each of these bits before clearing them, avoiding this issue. 
+In my test case (4-socket box), performance went from 1.7M IOPS to 4.0M
+IOPS.
+
+Signed-off-by: Jens Axboe <axboe@fb.com>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ mm/filemap.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage mm/memory-failure.c
---- a/mm/memory-failure.c~hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage
-+++ a/mm/memory-failure.c
-@@ -1081,15 +1081,16 @@ int memory_failure(unsigned long pfn, in
- 			return 0;
- 		} else if (PageHuge(hpage)) {
- 			/*
--			 * Check "just unpoisoned", "filter hit", and
--			 * "race with other subpage."
-+			 * Check "filter hit" and "race with other subpage."
- 			 */
- 			lock_page(hpage);
--			if (!PageHWPoison(hpage)
--			    || (hwpoison_filter(p) && TestClearPageHWPoison(p))
--			    || (p != hpage && TestSetPageHWPoison(hpage))) {
--				atomic_long_sub(nr_pages, &num_poisoned_pages);
--				return 0;
-+			if (PageHWPoison(hpage)) {
-+				if ((hwpoison_filter(p) && TestClearPageHWPoison(p))
-+				    || (p != hpage && TestSetPageHWPoison(hpage))) {
-+					atomic_long_sub(nr_pages, &num_poisoned_pages);
-+					unlock_page(hpage);
-+					return 0;
-+				}
- 			}
- 			set_page_hwpoison_huge_page(hpage);
- 			res = dequeue_hwpoisoned_huge_page(hpage);
+diff -puN mm/filemap.c~mm-filemapc-avoid-always-dirtying-mapping-flags-on-o_direct mm/filemap.c
+--- a/mm/filemap.c~mm-filemapc-avoid-always-dirtying-mapping-flags-on-o_direct
++++ a/mm/filemap.c
+@@ -257,9 +257,11 @@ static int filemap_check_errors(struct a
+ {
+ 	int ret = 0;
+ 	/* Check for outstanding write errors */
+-	if (test_and_clear_bit(AS_ENOSPC, &mapping->flags))
++	if (test_bit(AS_ENOSPC, &mapping->flags) &&
++	    test_and_clear_bit(AS_ENOSPC, &mapping->flags))
+ 		ret = -ENOSPC;
+-	if (test_and_clear_bit(AS_EIO, &mapping->flags))
++	if (test_bit(AS_EIO, &mapping->flags) &&
++	    test_and_clear_bit(AS_EIO, &mapping->flags))
+ 		ret = -EIO;
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from slaoub@gmail.com are
+Patches currently in -mm which might be from axboe@fb.com are
 
-hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch
+mm-filemapc-avoid-always-dirtying-mapping-flags-on-o_direct.patch
+linux-next.patch
 
