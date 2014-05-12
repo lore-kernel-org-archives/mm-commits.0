@@ -1,79 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-maintainership-of-ltp.patch removed
- from -mm tree
-Date: Mon, 12 May 2014 12:30:45 -0700
-Message-ID: <53712165.J6EmVZpFsu6p7/tC%akpm@linux-foundation.org>
+Subject: [merged] drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch
+ removed from -mm tree
+Date: Mon, 12 May 2014 12:30:42 -0700
+Message-ID: <53712162.iU0tkZjR/lv6LPp2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37488 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288AbaELTaq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 15:30:46 -0400
+	with ESMTP id S1751288AbaELTao (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 15:30:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stanislav.kholmanskikh@oracle.com, jstancek@redhat.com, gaowanlong@cn.fujitsu.com, caspar@casparzhang.com, alexey.kodanev@oracle.com, chrubis@suse.cz
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, a.zummo@towertech.it, heiko@sntech.de
 
-Subject: [merged] maintainers-update-maintainership-of-ltp.patch removed from -mm tree
-To: chrubis@suse.cz,alexey.kodanev@oracle.com,caspar@casparzhang.com,gaowanlong@cn.fujitsu.com,jstancek@redhat.com,stanislav.kholmanskikh@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch removed from -mm tree
+To: heiko@sntech.de,a.zummo@towertech.it,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 12 May 2014 12:30:45 -0700
+Date: Mon, 12 May 2014 12:30:42 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: update maintainership of LTP
+     Subject: drivers/rtc/rtc-hym8563.c: set uie_unsupported
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-maintainership-of-ltp.patch
+     drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cyril Hrubis <chrubis@suse.cz>
-Subject: MAINTAINERS: update maintainership of LTP
+From: Heiko Stuebner <heiko@sntech.de>
+Subject: drivers/rtc/rtc-hym8563.c: set uie_unsupported
 
-Also remove sf.net git repo which is no longer available and update link
-to LTP web pages.
+The alarm of the hym8563 only supports a minute accuracy, while the uie
+wants an alarm one second in the future.  Therefore things like the
+select() syscall will fail with a timeout, because the next alarm will
+happen in a worst case of 60 seconds.
 
-Signed-off-by: Cyril Hrubis <chrubis@suse.cz>
-Signed-off-by: Caspar Zhang <caspar@casparzhang.com>
-Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
-Signed-off-by: Jan Stancek <jstancek@redhat.com>
-Signed-off-by: Alexey Kodanev <alexey.kodanev@oracle.com>
-Signed-off-by: Stanislav Kholmanskikh <stanislav.kholmanskikh@oracle.com>
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-hym8563.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-update-maintainership-of-ltp MAINTAINERS
---- a/MAINTAINERS~maintainers-update-maintainership-of-ltp
-+++ a/MAINTAINERS
-@@ -5488,15 +5488,15 @@ F:	Documentation/hwmon/ltc4261
- F:	drivers/hwmon/ltc4261.c
+diff -puN drivers/rtc/rtc-hym8563.c~drivers-rtc-rtc-hym8563c-set-uie_unsupported drivers/rtc/rtc-hym8563.c
+--- a/drivers/rtc/rtc-hym8563.c~drivers-rtc-rtc-hym8563c-set-uie_unsupported
++++ a/drivers/rtc/rtc-hym8563.c
+@@ -569,6 +569,9 @@ static int hym8563_probe(struct i2c_clie
+ 	if (IS_ERR(hym8563->rtc))
+ 		return PTR_ERR(hym8563->rtc);
  
- LTP (Linux Test Project)
--M:	Shubham Goyal <shubham@linux.vnet.ibm.com>
- M:	Mike Frysinger <vapier@gentoo.org>
- M:	Cyril Hrubis <chrubis@suse.cz>
--M:	Caspar Zhang <caspar@casparzhang.com>
- M:	Wanlong Gao <gaowanlong@cn.fujitsu.com>
-+M:	Jan Stancek <jstancek@redhat.com>
-+M:	Stanislav Kholmanskikh <stanislav.kholmanskikh@oracle.com>
-+M:	Alexey Kodanev <alexey.kodanev@oracle.com>
- L:	ltp-list@lists.sourceforge.net (subscribers-only)
--W:	http://ltp.sourceforge.net/
-+W:	http://linux-test-project.github.io/
- T:	git git://github.com/linux-test-project/ltp.git
--T:	git git://ltp.git.sourceforge.net/gitroot/ltp/ltp-dev
- S:	Maintained
- 
- M32R ARCHITECTURE
++	/* the hym8563 alarm only supports a minute accuracy */
++	hym8563->rtc->uie_unsupported = 1;
++
+ #ifdef CONFIG_COMMON_CLK
+ 	hym8563_clkout_register_clk(hym8563);
+ #endif
 _
 
-Patches currently in -mm which might be from chrubis@suse.cz are
+Patches currently in -mm which might be from heiko@sntech.de are
 
 origin.patch
+rtc-rtc-hym8563-make-of_device_id-array-const.patch
+linux-next.patch
 
