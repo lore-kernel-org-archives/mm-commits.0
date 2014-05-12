@@ -1,70 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch
- removed from -mm tree
-Date: Mon, 12 May 2014 12:30:42 -0700
-Message-ID: <53712162.iU0tkZjR/lv6LPp2%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-postpone-the-disabling-of-kmemleak-early-logging.patch removed from -mm
+ tree
+Date: Mon, 12 May 2014 12:30:47 -0700
+Message-ID: <53712167.mCLbOcGZgMoEzBvO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37505 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288AbaELTao (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 15:30:44 -0400
+	with ESMTP id S1751288AbaELTax (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 15:30:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, a.zummo@towertech.it, heiko@sntech.de
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, lizefan@huawei.com, catalin.marinas@arm.com
 
-Subject: [merged] drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch removed from -mm tree
-To: heiko@sntech.de,a.zummo@towertech.it,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-postpone-the-disabling-of-kmemleak-early-logging.patch removed from -mm tree
+To: catalin.marinas@arm.com,lizefan@huawei.com,sasha.levin@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 12 May 2014 12:30:42 -0700
+Date: Mon, 12 May 2014 12:30:47 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-hym8563.c: set uie_unsupported
+     Subject: mm: postpone the disabling of kmemleak early logging
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-hym8563c-set-uie_unsupported.patch
+     mm-postpone-the-disabling-of-kmemleak-early-logging.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Heiko Stuebner <heiko@sntech.de>
-Subject: drivers/rtc/rtc-hym8563.c: set uie_unsupported
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: postpone the disabling of kmemleak early logging
 
-The alarm of the hym8563 only supports a minute accuracy, while the uie
-wants an alarm one second in the future.  Therefore things like the
-select() syscall will fail with a timeout, because the next alarm will
-happen in a worst case of 60 seconds.
+Commit 8910ae896c8c ("kmemleak: change some global variables to int"), in
+addition to the atomic -> int conversion, moved the kmemleak_early_log
+disabling at the beginning of the kmemleak_init() function, before the
+full kmemleak tracing is actually enabled.  In this small window,
+kmem_cache_create() is called by kmemleak which triggers additional memory
+allocation that are not traced.  This patch restores the original logic
+with kmemleak_early_log disabling when kmemleak is fully functional.
 
-Signed-off-by: Heiko Stuebner <heiko@sntech.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: <stable@vger.kernel.org>
+Fixes: 8910ae896c8c (kmemleak: change some global variables to int)
+
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Li Zefan <lizefan@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-hym8563.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/kmemleak.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-hym8563.c~drivers-rtc-rtc-hym8563c-set-uie_unsupported drivers/rtc/rtc-hym8563.c
---- a/drivers/rtc/rtc-hym8563.c~drivers-rtc-rtc-hym8563c-set-uie_unsupported
-+++ a/drivers/rtc/rtc-hym8563.c
-@@ -569,6 +569,9 @@ static int hym8563_probe(struct i2c_clie
- 	if (IS_ERR(hym8563->rtc))
- 		return PTR_ERR(hym8563->rtc);
+diff -puN mm/kmemleak.c~mm-postpone-the-disabling-of-kmemleak-early-logging mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-postpone-the-disabling-of-kmemleak-early-logging
++++ a/mm/kmemleak.c
+@@ -1775,10 +1775,9 @@ void __init kmemleak_init(void)
+ 	int i;
+ 	unsigned long flags;
  
-+	/* the hym8563 alarm only supports a minute accuracy */
-+	hym8563->rtc->uie_unsupported = 1;
-+
- #ifdef CONFIG_COMMON_CLK
- 	hym8563_clkout_register_clk(hym8563);
- #endif
+-	kmemleak_early_log = 0;
+-
+ #ifdef CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF
+ 	if (!kmemleak_skip_disable) {
++		kmemleak_early_log = 0;
+ 		kmemleak_disable();
+ 		return;
+ 	}
+@@ -1796,6 +1795,7 @@ void __init kmemleak_init(void)
+ 
+ 	/* the kernel is still in UP mode, so disabling the IRQs is enough */
+ 	local_irq_save(flags);
++	kmemleak_early_log = 0;
+ 	if (kmemleak_error) {
+ 		local_irq_restore(flags);
+ 		return;
 _
 
-Patches currently in -mm which might be from heiko@sntech.de are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
 origin.patch
-rtc-rtc-hym8563-make-of_device_id-array-const.patch
+mm-kmemleakc-use-%u-to-print-checksum.patch
+mm-introduce-kmemleak_update_trace.patch
+lib-update-the-kmemleak-stack-trace-for-radix-tree-allocations.patch
+mm-update-the-kmemleak-stack-trace-for-mempool-allocations.patch
+mm-call-kmemleak-directly-from-memblock_allocfree.patch
+documentation-devicetree-bindings-add-documentation-for-the-apm-x-gene-soc-rtc-dts-binding.patch
+drivers-rtc-add-apm-x-gene-soc-rtc-driver.patch
+arm64-add-apm-x-gene-soc-rtc-dts-entry.patch
 linux-next.patch
 
