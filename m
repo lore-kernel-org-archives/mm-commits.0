@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-compaction-do-not-count-migratepages-when-unnecessary-fix.patch added to -mm tree
-Date: Mon, 12 May 2014 14:40:27 -0700
-Message-ID: <53713fcb.bAPZwaJP0RFo98CI%akpm@linux-foundation.org>
+ cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch added to -mm tree
+Date: Mon, 12 May 2014 14:58:18 -0700
+Message-ID: <537143fa.qX3tje/5rB7o2fff%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39059 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39107 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752128AbaELVk1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 17:40:27 -0400
+	with ESMTP id S1751100AbaELV6T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 17:58:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mina86@mina86.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, rostedt@goodmis.org, rjw@rjwysocki.net, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, mgalbraith@suse.de, hch@infradead.org, fweisbec@gmail.com, ego@linux.vnet.ibm.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com
 
-Subject: + mm-compaction-do-not-count-migratepages-when-unnecessary-fix.patch added to -mm tree
-To: vbabka@suse.cz,mina86@mina86.com
+Subject: + cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch added to -mm tree
+To: srivatsa.bhat@linux.vnet.ibm.com,bp@suse.de,ego@linux.vnet.ibm.com,fweisbec@gmail.com,hch@infradead.org,mgalbraith@suse.de,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,rjw@rjwysocki.net,rostedt@goodmis.org,rusty@rustcorp.com.au,tglx@linutronix.de,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 12 May 2014 14:40:27 -0700
+Date: Mon, 12 May 2014 14:58:18 -0700
 
 
 The patch titled
-     Subject: mm-compaction-do-not-count-migratepages-when-unnecessary-fix
+     Subject: cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3
 has been added to the -mm tree.  Its filename is
-     mm-compaction-do-not-count-migratepages-when-unnecessary-fix.patch
+     cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-do-not-count-migratepages-when-unnecessary-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-do-not-count-migratepages-when-unnecessary-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,70 +44,125 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-compaction-do-not-count-migratepages-when-unnecessary-fix
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3
 
-list_for_each is enough for counting the list length.  We also avoid
-including struct page definition this way.
-
-Suggested-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Mike Galbraith <mgalbraith@suse.de>
+Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/compaction.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/stop_machine.c |   43 +++++++++++++++++-----------------------
+ 1 file changed, 19 insertions(+), 24 deletions(-)
 
-diff -puN include/trace/events/compaction.h~mm-compaction-do-not-count-migratepages-when-unnecessary-fix include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-compaction-do-not-count-migratepages-when-unnecessary-fix
-+++ a/include/trace/events/compaction.h
-@@ -7,7 +7,6 @@
- #include <linux/types.h>
- #include <linux/list.h>
- #include <linux/tracepoint.h>
--#include <linux/mm_types.h>
- #include <trace/events/gfpflags.h>
+diff -puN kernel/stop_machine.c~cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3 kernel/stop_machine.c
+--- a/kernel/stop_machine.c~cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3
++++ a/kernel/stop_machine.c
+@@ -130,8 +130,10 @@ enum multi_stop_state {
+ 	MULTI_STOP_NONE,
+ 	/* Awaiting everyone to be scheduled. */
+ 	MULTI_STOP_PREPARE,
+-	/* Disable interrupts. */
+-	MULTI_STOP_DISABLE_IRQ,
++	/* Disable interrupts on CPUs not in ->active_cpus mask. */
++	MULTI_STOP_DISABLE_IRQ_INACTIVE,
++	/* Disable interrupts on CPUs in ->active_cpus mask. */
++	MULTI_STOP_DISABLE_IRQ_ACTIVE,
+ 	/* Run the function */
+ 	MULTI_STOP_RUN,
+ 	/* Exit */
+@@ -165,13 +167,12 @@ static void ack_state(struct multi_stop_
+ 		set_state(msdata, msdata->state + 1);
+ }
  
- DECLARE_EVENT_CLASS(mm_compaction_isolate_template,
-@@ -62,7 +61,7 @@ TRACE_EVENT(mm_compaction_migratepages,
+-
+ /* This is the cpu_stop function which stops the CPU. */
+ static int multi_cpu_stop(void *data)
+ {
+ 	struct multi_stop_data *msdata = data;
+ 	enum multi_stop_state curstate = MULTI_STOP_NONE;
+-	int cpu = smp_processor_id(), num_active_cpus, err = 0;
++	int cpu = smp_processor_id(), err = 0;
+ 	unsigned long flags;
+ 	bool is_active;
  
- 	TP_fast_assign(
- 		unsigned long nr_failed = 0;
--		struct page *page;
-+		struct list_head *page_lru;
+@@ -181,13 +182,10 @@ static int multi_cpu_stop(void *data)
+ 	 */
+ 	local_save_flags(flags);
  
+-	if (!msdata->active_cpus) {
++	if (!msdata->active_cpus)
+ 		is_active = cpu == cpumask_first(cpu_online_mask);
+-		num_active_cpus = 1;
+-	} else {
++	else
+ 		is_active = cpumask_test_cpu(cpu, msdata->active_cpus);
+-		num_active_cpus = cpumask_weight(msdata->active_cpus);
+-	}
+ 
+ 	/* Simple state machine */
+ 	do {
+@@ -197,26 +195,23 @@ static int multi_cpu_stop(void *data)
  		/*
- 		 * migrate_pages() returns either a non-negative number
-@@ -73,7 +72,7 @@ TRACE_EVENT(mm_compaction_migratepages,
- 		if (migrate_rc >= 0)
- 			nr_failed = migrate_rc;
- 		else
--			list_for_each_entry(page, migratepages, lru)
-+			list_for_each(page_lru, migratepages)
- 				nr_failed++;
+ 		 * In the case of CPU offline, we don't want the other CPUs to
+ 		 * send IPIs to the active_cpu (the one going offline) after it
+-		 * has entered the _DISABLE_IRQ state (because, then it will
+-		 * notice the IPIs only after it goes offline). So ensure that
+-		 * the active_cpu always follows the others while entering
+-		 * each subsequent state in this state-machine.
+-		 *
+-		 * msdata->thread_ack tracks the number of CPUs that are yet to
+-		 * move to the next state, during each transition. So make the
+-		 * active_cpu(s) wait until ->thread_ack indicates that the
+-		 * active_cpus are the only ones left to complete the transition.
++		 * has disabled interrupts in the _DISABLE_IRQ state (because,
++		 * then it will notice the IPIs only after it goes offline). So
++		 * we split this state into _INACTIVE and _ACTIVE, and thereby
++		 * ensure that the active_cpu disables interrupts only after
++		 * the other CPUs do the same thing.
+ 		 */
+-		if (is_active) {
+-			/* Wait until all the non-active threads ack the state */
+-			while (atomic_read(&msdata->thread_ack) > num_active_cpus)
+-				cpu_relax();
+-		}
  
- 		__entry->nr_migrated = nr_all - nr_failed;
+ 		if (msdata->state != curstate) {
+ 			curstate = msdata->state;
+ 			switch (curstate) {
+-			case MULTI_STOP_DISABLE_IRQ:
++			case MULTI_STOP_DISABLE_IRQ_INACTIVE:
++				if (is_active)
++					break;
++
++				/* Else, fall-through */
++
++			case MULTI_STOP_DISABLE_IRQ_ACTIVE:
+ 				local_irq_disable();
+ 				hard_irq_disable();
+ 				break;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
 
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-compaction-clean-up-unused-code-lines.patch
-mm-compaction-cleanup-isolate_freepages.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix-2.patch
-mm-migration-add-destination-page-freeing-callback.patch
-mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
-mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
-mm-compaction-embed-migration-mode-in-compact_control.patch
-mm-compaction-embed-migration-mode-in-compact_control-fix.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
-mm-compaction-terminate-async-compaction-when-rescheduling.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary-fix.patch
-mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
+cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
+linux-next.patch
 
