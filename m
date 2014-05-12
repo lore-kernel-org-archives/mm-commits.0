@@ -1,141 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-thp-close-race-between-mremap-and-split_huge_page.patch removed from -mm tree
-Date: Mon, 12 May 2014 12:30:48 -0700
-Message-ID: <53712168.YtDSjr2CEYFI3u1L%akpm__1819.35726800493$1399923070$gmane$org@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix.patch
+ removed from -mm tree
+Date: Mon, 12 May 2014 12:42:48 -0700
+Message-ID: <53712438.Qx7mA9IZJIrAJSDu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37604 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288AbaELTat (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 15:30:49 -0400
+	with ESMTP id S1751368AbaELTmu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 15:42:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, stable@vger.kernel.org, riel@redhat.com, hannes@cmpxchg.org, davem@davemloft.net, davej@redhat.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, cl@linux.com, akpm@linux-foundation.org
 
-Subject: [merged] mm-thp-close-race-between-mremap-and-split_huge_page.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,aarcange@redhat.com,davej@redhat.com,davem@davemloft.net,hannes@cmpxchg.org,riel@redhat.com,stable@vger.kernel.org,walken@google.com,mm-commits@vger.kernel.org
+Subject: [to-be-updated] mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,cl@linux.com,penberg@kernel.org,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 12 May 2014 12:30:48 -0700
+Date: Mon, 12 May 2014 12:42:48 -0700
 
 
 The patch titled
-     Subject: mm, thp: close race between mremap() and split_huge_page()
+     Subject: mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix
 has been removed from the -mm tree.  Its filename was
-     mm-thp-close-race-between-mremap-and-split_huge_page.patch
+     mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, thp: close race between mremap() and split_huge_page()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix
 
-It's critical for split_huge_page() (and migration) to catch and freeze
-all PMDs on rmap walk.  It gets tricky if there's concurrent fork() or
-mremap() since usually we copy/move page table entries on dup_mm() or
-move_page_tables() without rmap lock taken.  To get it work we rely on
-rmap walk order to not miss any entry.  We expect to see destination VMA
-after source one to work correctly.
+fix CONFIG_SLUB=n warnings
 
-But after switching rmap implementation to interval tree it's not always
-possible to preserve expected walk order.
+mm/slub.c:2122: warning: 'count_free' defined but not used
+mm/slub.c:2127: warning: 'count_partial' defined but not used
 
-It works fine for dup_mm() since new VMA has the same vma_start_pgoff() /
-vma_last_pgoff() and explicitly insert dst VMA after src one with
-vma_interval_tree_insert_after().
-
-But on move_vma() destination VMA can be merged into adjacent one and as
-result shifted left in interval tree.  Fortunately, we can detect the
-situation and prevent race with rmap walk by moving page table entries
-under rmap lock.  See commit 38a76013ad80.
-
-Problem is that we miss the lock when we move transhuge PMD.  Most likely
-this bug caused the crash[1].
-
-[1] http://thread.gmane.org/gmane.linux.kernel.mm/96473
-
-Fixes: 108d6642ad81 ("mm anon rmap: remove anon_vma_moveto_tail")
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Acked-by: Michel Lespinasse <walken@google.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: David Miller <davem@davemloft.net>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>        [3.7+]
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/slub.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/mremap.c~mm-thp-close-race-between-mremap-and-split_huge_page mm/mremap.c
---- a/mm/mremap.c~mm-thp-close-race-between-mremap-and-split_huge_page
-+++ a/mm/mremap.c
-@@ -194,10 +194,17 @@ unsigned long move_page_tables(struct vm
- 			break;
- 		if (pmd_trans_huge(*old_pmd)) {
- 			int err = 0;
--			if (extent == HPAGE_PMD_SIZE)
-+			if (extent == HPAGE_PMD_SIZE) {
-+				VM_BUG_ON(vma->vm_file || !vma->anon_vma);
-+				/* See comment in move_ptes() */
-+				if (need_rmap_locks)
-+					anon_vma_lock_write(vma->anon_vma);
- 				err = move_huge_pmd(vma, new_vma, old_addr,
- 						    new_addr, old_end,
- 						    old_pmd, new_pmd);
-+				if (need_rmap_locks)
-+					anon_vma_unlock_write(vma->anon_vma);
-+			}
- 			if (err > 0) {
- 				need_flush = true;
- 				continue;
+diff -puN mm/slab.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix mm/slab.c
+diff -puN mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix mm/slub.c
+--- a/mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix
++++ a/mm/slub.c
+@@ -2119,6 +2119,7 @@ static inline int node_match(struct page
+ 	return 1;
+ }
+ 
++#ifdef CONFIG_SLUB_DEBUG
+ static int count_free(struct page *page)
+ {
+ 	return page->objects - page->inuse;
+@@ -2140,12 +2141,16 @@ static unsigned long count_partial(struc
+ 
+ static inline unsigned long node_nr_objs(struct kmem_cache_node *n)
+ {
+-#ifdef CONFIG_SLUB_DEBUG
+ 	return atomic_long_read(&n->total_objects);
+-#else
++}
++
++#else	/* CONFIG_SLUB_DEBUG */
++
++static inline unsigned long node_nr_objs(struct kmem_cache_node *n)
++{
+ 	return 0;
+-#endif
+ }
++#endif	/* CONFIG_SLUB_DEBUG */
+ 
+ static noinline void
+ slab_out_of_memory(struct kmem_cache *s, gfp_t gfpflags, int nid)
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-thp-consolidate-assert-checks-in-__split_huge_page.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-pass-vm_bug_on-reason-to-dump_page.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
 mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-mm-move-get_user_pages-related-code-to-separate-file.patch
-mm-extract-in_gate_area-case-from-__get_user_pages.patch
-mm-cleanup-follow_page_mask.patch
-mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch
-mm-cleanup-__get_user_pages.patch
-mm-rmapc-make-page_referenced_one-and-try_to_unmap_one-static.patch
-mm-update-comment-for-default_max_map_count.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
 mm-update-comment-for-default_max_map_count-fix.patch
-mm-mark-remap_file_pages-syscall-as-deprecated.patch
+memcg-fold-mem_cgroup_stolen-fix.patch
+mm-compaction-embed-migration-mode-in-compact_control-fix.patch
 mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
 mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-userc-drop-unused-field-files-from-user_struct.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+init-mainc-remove-an-ifdef.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+rtc-da9063-rtc-driver-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
