@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix-2.patch
+Subject: + arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
  added to -mm tree
-Date: Mon, 12 May 2014 12:44:14 -0700
-Message-ID: <5371248e.pnNwuh8ttRjIDTqy%akpm@linux-foundation.org>
+Date: Mon, 12 May 2014 13:28:54 -0700
+Message-ID: <53712f06.w9KJfE2nhXApr0q/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37608 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38233 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751937AbaELToP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 15:44:15 -0400
+	with ESMTP id S1752124AbaELU2z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 16:28:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, gxt@mprc.pku.edu.cn, fabf@skynet.be, akpm@linux-foundation.org
 
-Subject: + mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix-2.patch added to -mm tree
-To: rientjes@google.com,fengguang.wu@intel.com
+Subject: + arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch added to -mm tree
+To: akpm@linux-foundation.org,fabf@skynet.be,gxt@mprc.pku.edu.cn
 From: akpm@linux-foundation.org
-Date: Mon, 12 May 2014 12:44:14 -0700
+Date: Mon, 12 May 2014 13:28:54 -0700
 
 
 The patch titled
-     Subject: mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix-2
+     Subject: arch/unicore32/mm/ioremap.c: return NULL on invalid pfn
 has been added to the -mm tree.  Its filename is
-     mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix-2.patch
+     arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,93 +44,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/unicore32/mm/ioremap.c: return NULL on invalid pfn
 
-Only define count_free() when CONFIG_SLUB_DEBUG since that's the only
-context in which it is referenced.  Only define count_partial() when
-CONFIG_SLUB_DEBUG or CONFIG_SYSFS since the sysfs interface still uses it
-for partial slab counts.
+__uc32_ioremap_pfn_caller() should return NULL when the pfn is found to be
+invalid.
 
-Also only define node_nr_objs() when CONFIG_SLUB_DEBUG since that's the
-only context in which it is referenced.
+From a recommendation by Guan Xuetao.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ arch/unicore32/mm/ioremap.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix-2 mm/slub.c
---- a/mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix-2
-+++ a/mm/slub.c
-@@ -2119,11 +2119,19 @@ static inline int node_match(struct page
- 	return 1;
- }
+diff -puN arch/unicore32/mm/ioremap.c~arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn arch/unicore32/mm/ioremap.c
+--- a/arch/unicore32/mm/ioremap.c~arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn
++++ a/arch/unicore32/mm/ioremap.c
+@@ -143,11 +143,13 @@ void __iomem *__uc32_ioremap_pfn_caller(
+ 	/*
+ 	 * Don't allow RAM to be mapped
+ 	 */
+-	if (pfn_valid(pfn))
++	if (pfn_valid(pfn)) {
+ 		WARN(1, "BUG: Your driver calls ioremap() on\n"
+ 			"system memory.  This leads to architecturally\n"
+ 			"unpredictable behaviour, and ioremap() will fail in\n"
+ 			"the next kernel release. Please fix your driver.\n");
++		return NULL;
++	}
  
-+#ifdef CONFIG_SLUB_DEBUG
- static int count_free(struct page *page)
- {
- 	return page->objects - page->inuse;
- }
- 
-+static inline unsigned long node_nr_objs(struct kmem_cache_node *n)
-+{
-+	return atomic_long_read(&n->total_objects);
-+}
-+#endif /* CONFIG_SLUB_DEBUG */
-+
-+#if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SYSFS)
- static unsigned long count_partial(struct kmem_cache_node *n,
- 					int (*get_count)(struct page *))
- {
-@@ -2137,15 +2145,7 @@ static unsigned long count_partial(struc
- 	spin_unlock_irqrestore(&n->list_lock, flags);
- 	return x;
- }
--
--static inline unsigned long node_nr_objs(struct kmem_cache_node *n)
--{
--#ifdef CONFIG_SLUB_DEBUG
--	return atomic_long_read(&n->total_objects);
--#else
--	return 0;
--#endif
--}
-+#endif /* CONFIG_SLUB_DEBUG || CONFIG_SYSFS */
- 
- static noinline void
- slab_out_of_memory(struct kmem_cache *s, gfp_t gfpflags, int nid)
+ 	type = get_mem_type(mtype);
+ 	if (!type)
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
-mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled-fix-2.patch
-mm-slub-fix-alloc_slowpath-stat.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mem-hotplug-implement-get-put_online_mems.patch
-slab-get_online_mems-for-kmem_cache_createdestroyshrink.patch
-mm-debug-make-bad_range-output-more-usable-and-readable.patch
-memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-mm-migration-add-destination-page-freeing-callback.patch
-mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
-mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
-mm-compaction-embed-migration-mode-in-compact_control.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+mm-update-comment-for-default_max_map_count-fix.patch
+memcg-fold-mem_cgroup_stolen-fix.patch
 mm-compaction-embed-migration-mode-in-compact_control-fix.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
-mm-compaction-terminate-async-compaction-when-rescheduling.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary.patch
-mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
-mm-utilc-add-kstrimdup.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+init-mainc-remove-an-ifdef.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+rtc-da9063-rtc-driver-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
