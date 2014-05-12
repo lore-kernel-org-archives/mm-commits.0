@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch added to -mm tree
-Date: Mon, 12 May 2014 14:58:18 -0700
-Message-ID: <537143fa.qX3tje/5rB7o2fff%akpm@linux-foundation.org>
+ hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch added to -mm tree
+Date: Mon, 12 May 2014 15:56:24 -0700
+Message-ID: <53715198.5bp8bZ0hOVOjyvKu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39107 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39770 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100AbaELV6T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 17:58:19 -0400
+	with ESMTP id S1751477AbaELW4Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 18:56:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, rostedt@goodmis.org, rjw@rjwysocki.net, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, mgalbraith@suse.de, hch@infradead.org, fweisbec@gmail.com, ego@linux.vnet.ibm.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, slaoub@gmail.com
 
-Subject: + cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch added to -mm tree
-To: srivatsa.bhat@linux.vnet.ibm.com,bp@suse.de,ego@linux.vnet.ibm.com,fweisbec@gmail.com,hch@infradead.org,mgalbraith@suse.de,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,rjw@rjwysocki.net,rostedt@goodmis.org,rusty@rustcorp.com.au,tglx@linutronix.de,tj@kernel.org
+Subject: + hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch added to -mm tree
+To: slaoub@gmail.com,ak@linux.intel.com,n-horiguchi@ah.jp.nec.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 12 May 2014 14:58:18 -0700
+Date: Mon, 12 May 2014 15:56:24 -0700
 
 
 The patch titled
-     Subject: cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3
+     Subject: HWPOSION, hugetlb: lock_page/unlock_page does not match for handling a free hugepage
 has been added to the -mm tree.  Its filename is
-     cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
+     hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,125 +44,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3
+From: Chen Yucong <slaoub@gmail.com>
+Subject: HWPOSION, hugetlb: lock_page/unlock_page does not match for handling a free hugepage
 
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Mike Galbraith <mgalbraith@suse.de>
-Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+For handling a free hugepage in memory failure, the race will happen if
+another thread hwpoisoned this hugepage concurrently.  So we need to check
+PageHWPoison instead of !PageHWPoison.
+
+If hwpoison_filter(p) returns true or a race happens, then we need to
+unlock_page(hpage).
+
+Signed-off-by: Chen Yucong <slaoub@gmail.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Tested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
+Cc: <stable@vger.kernel.org>	[2.6.36+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/stop_machine.c |   43 +++++++++++++++++-----------------------
- 1 file changed, 19 insertions(+), 24 deletions(-)
+ mm/memory-failure.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN kernel/stop_machine.c~cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3 kernel/stop_machine.c
---- a/kernel/stop_machine.c~cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3
-+++ a/kernel/stop_machine.c
-@@ -130,8 +130,10 @@ enum multi_stop_state {
- 	MULTI_STOP_NONE,
- 	/* Awaiting everyone to be scheduled. */
- 	MULTI_STOP_PREPARE,
--	/* Disable interrupts. */
--	MULTI_STOP_DISABLE_IRQ,
-+	/* Disable interrupts on CPUs not in ->active_cpus mask. */
-+	MULTI_STOP_DISABLE_IRQ_INACTIVE,
-+	/* Disable interrupts on CPUs in ->active_cpus mask. */
-+	MULTI_STOP_DISABLE_IRQ_ACTIVE,
- 	/* Run the function */
- 	MULTI_STOP_RUN,
- 	/* Exit */
-@@ -165,13 +167,12 @@ static void ack_state(struct multi_stop_
- 		set_state(msdata, msdata->state + 1);
- }
- 
--
- /* This is the cpu_stop function which stops the CPU. */
- static int multi_cpu_stop(void *data)
- {
- 	struct multi_stop_data *msdata = data;
- 	enum multi_stop_state curstate = MULTI_STOP_NONE;
--	int cpu = smp_processor_id(), num_active_cpus, err = 0;
-+	int cpu = smp_processor_id(), err = 0;
- 	unsigned long flags;
- 	bool is_active;
- 
-@@ -181,13 +182,10 @@ static int multi_cpu_stop(void *data)
- 	 */
- 	local_save_flags(flags);
- 
--	if (!msdata->active_cpus) {
-+	if (!msdata->active_cpus)
- 		is_active = cpu == cpumask_first(cpu_online_mask);
--		num_active_cpus = 1;
--	} else {
-+	else
- 		is_active = cpumask_test_cpu(cpu, msdata->active_cpus);
--		num_active_cpus = cpumask_weight(msdata->active_cpus);
--	}
- 
- 	/* Simple state machine */
- 	do {
-@@ -197,26 +195,23 @@ static int multi_cpu_stop(void *data)
- 		/*
- 		 * In the case of CPU offline, we don't want the other CPUs to
- 		 * send IPIs to the active_cpu (the one going offline) after it
--		 * has entered the _DISABLE_IRQ state (because, then it will
--		 * notice the IPIs only after it goes offline). So ensure that
--		 * the active_cpu always follows the others while entering
--		 * each subsequent state in this state-machine.
--		 *
--		 * msdata->thread_ack tracks the number of CPUs that are yet to
--		 * move to the next state, during each transition. So make the
--		 * active_cpu(s) wait until ->thread_ack indicates that the
--		 * active_cpus are the only ones left to complete the transition.
-+		 * has disabled interrupts in the _DISABLE_IRQ state (because,
-+		 * then it will notice the IPIs only after it goes offline). So
-+		 * we split this state into _INACTIVE and _ACTIVE, and thereby
-+		 * ensure that the active_cpu disables interrupts only after
-+		 * the other CPUs do the same thing.
- 		 */
--		if (is_active) {
--			/* Wait until all the non-active threads ack the state */
--			while (atomic_read(&msdata->thread_ack) > num_active_cpus)
--				cpu_relax();
--		}
- 
- 		if (msdata->state != curstate) {
- 			curstate = msdata->state;
- 			switch (curstate) {
--			case MULTI_STOP_DISABLE_IRQ:
-+			case MULTI_STOP_DISABLE_IRQ_INACTIVE:
-+				if (is_active)
-+					break;
-+
-+				/* Else, fall-through */
-+
-+			case MULTI_STOP_DISABLE_IRQ_ACTIVE:
- 				local_irq_disable();
- 				hard_irq_disable();
- 				break;
+diff -puN mm/memory-failure.c~hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage mm/memory-failure.c
+--- a/mm/memory-failure.c~hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage
++++ a/mm/memory-failure.c
+@@ -1081,15 +1081,16 @@ int memory_failure(unsigned long pfn, in
+ 			return 0;
+ 		} else if (PageHuge(hpage)) {
+ 			/*
+-			 * Check "just unpoisoned", "filter hit", and
+-			 * "race with other subpage."
++			 * Check "filter hit" and "race with other subpage."
+ 			 */
+ 			lock_page(hpage);
+-			if (!PageHWPoison(hpage)
+-			    || (hwpoison_filter(p) && TestClearPageHWPoison(p))
+-			    || (p != hpage && TestSetPageHWPoison(hpage))) {
+-				atomic_long_sub(nr_pages, &num_poisoned_pages);
+-				return 0;
++			if (PageHWPoison(hpage)) {
++				if ((hwpoison_filter(p) && TestClearPageHWPoison(p))
++				    || (p != hpage && TestSetPageHWPoison(hpage))) {
++					atomic_long_sub(nr_pages, &num_poisoned_pages);
++					unlock_page(hpage);
++					return 0;
++				}
+ 			}
+ 			set_page_hwpoison_huge_page(hpage);
+ 			res = dequeue_hwpoisoned_huge_page(hpage);
 _
 
-Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
+Patches currently in -mm which might be from slaoub@gmail.com are
 
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
-linux-next.patch
+hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch
 
