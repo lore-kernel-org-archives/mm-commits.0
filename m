@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
- added to -mm tree
-Date: Mon, 12 May 2014 13:51:35 -0700
-Message-ID: <53713457.dCbrVQ+V5HfgB7tZ%akpm@linux-foundation.org>
+ mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 12 May 2014 13:52:37 -0700
+Message-ID: <53713495.LuEmkZ7ycV/0BpYC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38483 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38487 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756515AbaELUvg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 16:51:36 -0400
+	with ESMTP id S1752682AbaELUwi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 May 2014 16:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, nasa4836@gmail.com, akpm@linux-foundation.org
 
-Subject: + mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch added to -mm tree
+Subject: + mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch added to -mm tree
 To: akpm@linux-foundation.org,nasa4836@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 12 May 2014 13:51:35 -0700
+Date: Mon, 12 May 2014 13:52:37 -0700
 
 
 The patch titled
-     Subject: mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes
+     Subject: mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
+     mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,15 +45,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes
+Subject: mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes
 
 WARNING: line over 80 characters
-#90: FILE: mm/rmap.c:1040:
+#39: FILE: mm/internal.h:207:
 +		 * pte lock is held(spinlock), which implies preemption disabled.
 
-total: 0 errors, 1 warnings, 69 lines checked
+WARNING: line over 80 characters
+#55: FILE: mm/rmap.c:988:
++		 * pte lock(a spinlock) is held, which implies preemption disabled.
 
-./patches/mm-use-a-light-weight-__mod_zone_page_state-in-mlocked_vma_newpage.patch has style problems, please review.
+total: 0 errors, 2 warnings, 44 lines checked
+
+./patches/mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -65,22 +68,40 @@ Cc: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/internal.h |    6 +++---
+ mm/rmap.c     |    3 ++-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/rmap.c~mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes mm/rmap.c
---- a/mm/rmap.c~mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes
-+++ a/mm/rmap.c
-@@ -1037,7 +1037,8 @@ void page_add_new_anon_rmap(struct page
+diff -puN mm/internal.h~mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes mm/internal.h
+--- a/mm/internal.h~mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes
++++ a/mm/internal.h
+@@ -202,9 +202,9 @@ static inline int mlocked_vma_newpage(st
+ 
+ 	if (!TestSetPageMlocked(page)) {
  		/*
- 		 * We use the irq-unsafe __mod_zone_page_stat because
- 		 * this counter is not modified from interrupt context, and the
+-		 * We use the irq-unsafe __mod_zone_page_stat because
+-		 * this counter is not modified from interrupt context, and the
 -		 * pte lock is held(spinlock), which implies preemption disabled.
-+		 * pte lock is held(spinlock), which implies preemption
-+		 * disabled.
++		 * We use the irq-unsafe __mod_zone_page_stat because this
++		 * counter is not modified from interrupt context, and the pte
++		 * lock is held(spinlock), which implies preemption disabled.
  		 */
  		__mod_zone_page_state(page_zone(page), NR_MLOCK,
  				    hpage_nr_pages(page));
+diff -puN mm/rmap.c~mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes mm/rmap.c
+--- a/mm/rmap.c~mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes
++++ a/mm/rmap.c
+@@ -985,7 +985,8 @@ void do_page_add_anon_rmap(struct page *
+ 		/*
+ 		 * We use the irq-unsafe __{inc|mod}_zone_page_stat because
+ 		 * these counters are not modified from interrupt context, and
+-		 * pte lock(a spinlock) is held, which implies preemption disabled.
++		 * pte lock(a spinlock) is held, which implies preemption
++		 * disabled.
+ 		 */
+ 		if (PageTransHuge(page))
+ 			__inc_zone_page_state(page,
+diff -puN mm/vmstat.c~mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes mm/vmstat.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +140,7 @@ mm-compaction-embed-migration-mode-in-compact_control-fix.patch
 mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
 mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage.patch
+mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch
 mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
 mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
