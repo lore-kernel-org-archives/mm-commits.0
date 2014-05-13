@@ -1,191 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 13 May 2014 11:53:37 -0700
-Message-ID: <53726a31.19PEdwW9/GUzBzG/%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch removed
+ from -mm tree
+Date: Tue, 13 May 2014 11:53:56 -0700
+Message-ID: <53726a44.zcpbNoJ1HBmV+wpE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52565 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52567 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751357AbaEMSxi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 14:53:38 -0400
+	with ESMTP id S1753185AbaEMSx5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 14:53:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rjw@rjwysocki.net, fabf@skynet.be
 
-Subject: + linux-next-git-rejects.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: [merged] kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch removed from -mm tree
+To: fabf@skynet.be,rjw@rjwysocki.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 11:53:37 -0700
+Date: Tue, 13 May 2014 11:53:56 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: kernel/power/hibernate.c: convert simple_strtoul to kstrtoul
+has been removed from the -mm tree.  Its filename was
+     kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Fabian Frederick <fabf@skynet.be>
+Subject: kernel/power/hibernate.c: convert simple_strtoul to kstrtoul
 
+Replace obsolete function.
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/dts/kirkwood-mv88f6281gtw-ge.dts |    3 ---
- arch/arm/boot/dts/kirkwood-t5325.dts           |    3 ---
- drivers/memory/mvebu-devbus.c                  |    9 ---------
- 3 files changed, 15 deletions(-)
+ kernel/power/hibernate.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/boot/dts/kirkwood-mv88f6281gtw-ge.dts~linux-next-git-rejects arch/arm/boot/dts/kirkwood-mv88f6281gtw-ge.dts
---- a/arch/arm/boot/dts/kirkwood-mv88f6281gtw-ge.dts~linux-next-git-rejects
-+++ a/arch/arm/boot/dts/kirkwood-mv88f6281gtw-ge.dts
-@@ -75,13 +75,10 @@
- 		serial@12000 {
- 			status = "okay";
- 		};
--<<<<<<< HEAD
--=======
+diff -puN kernel/power/hibernate.c~kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul kernel/power/hibernate.c
+--- a/kernel/power/hibernate.c~kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul
++++ a/kernel/power/hibernate.c
+@@ -1115,7 +1115,10 @@ static int __init resumewait_setup(char
  
- 		ehci@50000 {
- 			status = "okay";
- 		};
-->>>>>>> linux-next/akpm-base
- 	};
- 
- 	gpio-leds {
-diff -puN arch/arm/boot/dts/kirkwood-t5325.dts~linux-next-git-rejects arch/arm/boot/dts/kirkwood-t5325.dts
---- a/arch/arm/boot/dts/kirkwood-t5325.dts~linux-next-git-rejects
-+++ a/arch/arm/boot/dts/kirkwood-t5325.dts
-@@ -122,8 +122,6 @@
- 
- 		i2c@11000 {
- 			status = "okay";
--<<<<<<< HEAD
--=======
- 
- 			alc5621: alc5621@1a {
- 				compatible = "realtek,alc5621";
-@@ -132,7 +130,6 @@
- 				add-ctrl = <0x3700>;
- 				jack-det-ctrl = <0x4810>;
- 			};
-->>>>>>> linux-next/akpm-base
- 		};
- 
- 		serial@12000 {
-diff -puN drivers/memory/mvebu-devbus.c~linux-next-git-rejects drivers/memory/mvebu-devbus.c
---- a/drivers/memory/mvebu-devbus.c~linux-next-git-rejects
-+++ a/drivers/memory/mvebu-devbus.c
-@@ -136,21 +136,12 @@ static int devbus_get_timing_params(stru
- 	 * The bus width is encoded into the register as 0 for 8 bits,
- 	 * and 1 for 16 bits, so we do the necessary conversion here.
- 	 */
--<<<<<<< HEAD
--	if (r.bus_width == 8)
--		r.bus_width = 0;
--	else if (r.bus_width == 16)
--		r.bus_width = 1;
--	else {
--		dev_err(devbus->dev, "invalid bus width %d\n", r.bus_width);
--=======
- 	if (r->bus_width == 8)
- 		r->bus_width = 0;
- 	else if (r->bus_width == 16)
- 		r->bus_width = 1;
- 	else {
- 		dev_err(devbus->dev, "invalid bus width %d\n", r->bus_width);
-->>>>>>> linux-next/akpm-base
- 		return -EINVAL;
- 	}
+ static int __init resumedelay_setup(char *str)
+ {
+-	resume_delay = simple_strtoul(str, NULL, 0);
++	int rc = kstrtoul(str, 0, (unsigned long *)&resume_delay);
++
++	if (rc)
++		return rc;
+ 	return 1;
+ }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+fs-fscache-replace-seq_printf-by-seq_puts.patch
+kernel-posix-timersc-code-clean-up.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
+kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
 arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
 arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-mm-update-comment-for-default_max_map_count-fix.patch
-memcg-fold-mem_cgroup_stolen-fix.patch
-mm-compaction-embed-migration-mode-in-compact_control-fix.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage.patch
-mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch
-mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
-mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
+kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+kernel-stop_machinec-kernel-doc-warning-fix.patch
+kernel-tracepointc-kernel-doc-fixes.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
 kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-init-mainc-remove-an-ifdef.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-rtc-da9063-rtc-driver-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-2.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-3.patch
+kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
+kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
+documentation-expand-clarify-debug-documentation.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
 fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-linux-next-git-rejects.patch
 
