@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipcmsg-loosen-check-for-full-queue.patch added to -mm tree
-Date: Tue, 13 May 2014 13:39:30 -0700
-Message-ID: <53728302.cptDCiLpX566Duxg%akpm@linux-foundation.org>
+Subject: + ipcmsg-document-volatile-r_msg.patch added to -mm tree
+Date: Tue, 13 May 2014 13:39:29 -0700
+Message-ID: <53728301.ZEXRZHMtyrr9qZbs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53822 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53820 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752861AbaEMUjb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:39:31 -0400
+	with ESMTP id S1752861AbaEMUja (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:39:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, manfred@colorfullife.com, aswin@hp.com, davidlohr@hp.com
 
-Subject: + ipcmsg-loosen-check-for-full-queue.patch added to -mm tree
+Subject: + ipcmsg-document-volatile-r_msg.patch added to -mm tree
 To: davidlohr@hp.com,aswin@hp.com,manfred@colorfullife.com
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 13:39:30 -0700
+Date: Tue, 13 May 2014 13:39:29 -0700
 
 
 The patch titled
-     Subject: ipc,msg: loosen check for full queue
+     Subject: ipc,msg: document volatile r_msg
 has been added to the -mm tree.  Its filename is
-     ipcmsg-loosen-check-for-full-queue.patch
+     ipcmsg-document-volatile-r_msg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-loosen-check-for-full-queue.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-document-volatile-r_msg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-loosen-check-for-full-queue.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-document-volatile-r_msg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,22 +44,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipc,msg: loosen check for full queue
+Subject: ipc,msg: document volatile r_msg
 
-When sending a message, we must guarantee that there will be enough room
-in the queue to add it, otherwise wait until space becomes available --
-which requires blocking the calling task.  Currently, this relies meeting
-both of the following conditions:
-
-(i)  The new msg size + current size is lower than the queue's max size. 
-
-(ii) The current amount of messages in the queue + 1 (this msg) is
-     lower than the queue's max size.
-
-While (i) is obvious and well documented in the msgsnd(2) manpage, the
-second one is far more ambiguous and does not serve the purpose, as we do
-not control the amount of messages in the queue (unlike posix queues do). 
-Thus remove (ii) and loosen how we check for space.
+The need for volatile is not obvious, document it.
 
 Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
 Cc: Manfred Spraul <manfred@colorfullife.com>
@@ -67,25 +54,36 @@ Cc: Aswin Chandramouleeswaran <aswin@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ ipc/msg.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN ipc/msg.c~ipcmsg-loosen-check-for-full-queue ipc/msg.c
---- a/ipc/msg.c~ipcmsg-loosen-check-for-full-queue
+diff -puN ipc/msg.c~ipcmsg-document-volatile-r_msg ipc/msg.c
+--- a/ipc/msg.c~ipcmsg-document-volatile-r_msg
 +++ a/ipc/msg.c
-@@ -658,10 +658,8 @@ long do_msgsnd(int msqid, long mtype, vo
- 		if (err)
- 			goto out_unlock0;
+@@ -42,9 +42,7 @@
+ #include <linux/uaccess.h>
+ #include "util.h"
  
--		if (msgsz + msq->q_cbytes <= msq->q_qbytes &&
--				1 + msq->q_qnum <= msq->q_qbytes) {
--			break;
--		}
-+		if (msgsz + msq->q_cbytes <= msq->q_qbytes)
-+			break; /* there is space in the queue for this msg */
+-/*
+- * one msg_receiver structure for each sleeping receiver:
+- */
++/* one msg_receiver structure for each sleeping receiver */
+ struct msg_receiver {
+ 	struct list_head	r_list;
+ 	struct task_struct	*r_tsk;
+@@ -54,6 +52,12 @@ struct msg_receiver {
+ 	long			r_msgtype;
+ 	long			r_maxsize;
  
- 		/* queue full, wait: */
- 		if (msgflg & IPC_NOWAIT) {
++	/*
++	 * Mark r_msg volatile so that the compiler
++	 * does not try to get smart and optimize
++	 * it. We rely on this for the lockless
++	 * receive algorithm.
++	 */
+ 	struct msg_msg		*volatile r_msg;
+ };
+ 
 _
 
 Patches currently in -mm which might be from davidlohr@hp.com are
