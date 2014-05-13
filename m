@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch added to -mm tree
-Date: Tue, 13 May 2014 15:41:03 -0700
-Message-ID: <53729f7f.FpPhX0Zn8zjGjjvh%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
+ added to -mm tree
+Date: Tue, 13 May 2014 15:41:01 -0700
+Message-ID: <53729f7d.4zb+4kVSvgz8u0kf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56293 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56283 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755165AbaEMWlE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:41:04 -0400
+	with ESMTP id S1755165AbaEMWlC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:41:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vbabka@suse.cz, tytso@mit.edu, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mhocko@suse.cz, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, mgorman@suse.de
 
-Subject: + mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch added to -mm tree
+Subject: + mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch added to -mm tree
 To: mgorman@suse.de,dave.hansen@intel.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,mhocko@suse.cz,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,tytso@mit.edu,vbabka@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 15:41:03 -0700
+Date: Tue, 13 May 2014 15:41:01 -0700
 
 
 The patch titled
-     Subject: mm: page_alloc: convert hot/cold parameter and immediate callers to bool
+     Subject: mm: page_alloc: use unsigned int for order in more places
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
+     mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,11 +45,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: convert hot/cold parameter and immediate callers to bool
+Subject: mm: page_alloc: use unsigned int for order in more places
 
-cold is a bool, make it one.  Make the likely case the "if" part of the
-block instead of the else as according to the optimisation manual this is
-preferred.
+X86 prefers the use of unsigned types for iterators and there is a
+tendency to mix whether a signed or unsigned type if used for page order. 
+This converts a number of sites in mm/page_alloc.c to use unsigned int for
+order where possible.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Rik van Riel <riel@redhat.com>
@@ -66,216 +67,177 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/mm/homecache.c |    2 +-
- fs/fuse/dev.c            |    2 +-
- include/linux/gfp.h      |    4 ++--
- include/linux/pagemap.h  |    2 +-
- include/linux/swap.h     |    2 +-
- mm/page_alloc.c          |   20 ++++++++++----------
- mm/swap.c                |    4 ++--
- mm/swap_state.c          |    2 +-
- mm/vmscan.c              |    6 +++---
- 9 files changed, 22 insertions(+), 22 deletions(-)
+ include/linux/mmzone.h |    8 +++----
+ mm/page_alloc.c        |   43 ++++++++++++++++++++-------------------
+ 2 files changed, 27 insertions(+), 24 deletions(-)
 
-diff -puN arch/tile/mm/homecache.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool arch/tile/mm/homecache.c
---- a/arch/tile/mm/homecache.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool
-+++ a/arch/tile/mm/homecache.c
-@@ -417,7 +417,7 @@ void __homecache_free_pages(struct page
- 	if (put_page_testzero(page)) {
- 		homecache_change_page_home(page, order, PAGE_HOME_HASH);
- 		if (order == 0) {
--			free_hot_cold_page(page, 0);
-+			free_hot_cold_page(page, false);
- 		} else {
- 			init_page_count(page);
- 			__free_pages(page, order);
-diff -puN fs/fuse/dev.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool fs/fuse/dev.c
---- a/fs/fuse/dev.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool
-+++ a/fs/fuse/dev.c
-@@ -1614,7 +1614,7 @@ out_finish:
- 
- static void fuse_retrieve_end(struct fuse_conn *fc, struct fuse_req *req)
- {
--	release_pages(req->pages, req->num_pages, 0);
-+	release_pages(req->pages, req->num_pages, false);
+diff -puN include/linux/mmzone.h~mm-page_alloc-use-unsigned-int-for-order-in-more-places include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-use-unsigned-int-for-order-in-more-places
++++ a/include/linux/mmzone.h
+@@ -817,10 +817,10 @@ static inline bool pgdat_is_empty(pg_dat
+ extern struct mutex zonelists_mutex;
+ void build_all_zonelists(pg_data_t *pgdat, struct zone *zone);
+ void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx);
+-bool zone_watermark_ok(struct zone *z, int order, unsigned long mark,
+-		int classzone_idx, int alloc_flags);
+-bool zone_watermark_ok_safe(struct zone *z, int order, unsigned long mark,
+-		int classzone_idx, int alloc_flags);
++bool zone_watermark_ok(struct zone *z, unsigned int order,
++		unsigned long mark, int classzone_idx, int alloc_flags);
++bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
++		unsigned long mark, int classzone_idx, int alloc_flags);
+ enum memmap_context {
+ 	MEMMAP_EARLY,
+ 	MEMMAP_HOTPLUG,
+diff -puN mm/page_alloc.c~mm-page_alloc-use-unsigned-int-for-order-in-more-places mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-use-unsigned-int-for-order-in-more-places
++++ a/mm/page_alloc.c
+@@ -409,7 +409,8 @@ static int destroy_compound_page(struct
+ 	return bad;
  }
  
- static int fuse_retrieve(struct fuse_conn *fc, struct inode *inode,
-diff -puN include/linux/gfp.h~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool include/linux/gfp.h
---- a/include/linux/gfp.h~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool
-+++ a/include/linux/gfp.h
-@@ -371,8 +371,8 @@ void *alloc_pages_exact_nid(int nid, siz
- 
- extern void __free_pages(struct page *page, unsigned int order);
- extern void free_pages(unsigned long addr, unsigned int order);
--extern void free_hot_cold_page(struct page *page, int cold);
--extern void free_hot_cold_page_list(struct list_head *list, int cold);
-+extern void free_hot_cold_page(struct page *page, bool cold);
-+extern void free_hot_cold_page_list(struct list_head *list, bool cold);
- 
- extern void __free_kmem_pages(struct page *page, unsigned int order);
- extern void free_kmem_pages(unsigned long addr, unsigned int order);
-diff -puN include/linux/pagemap.h~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool
-+++ a/include/linux/pagemap.h
-@@ -110,7 +110,7 @@ static inline void mapping_set_gfp_mask(
- 
- #define page_cache_get(page)		get_page(page)
- #define page_cache_release(page)	put_page(page)
--void release_pages(struct page **pages, int nr, int cold);
-+void release_pages(struct page **pages, int nr, bool cold);
- 
- /*
-  * speculatively take a reference to a page.
-diff -puN include/linux/swap.h~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool include/linux/swap.h
---- a/include/linux/swap.h~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool
-+++ a/include/linux/swap.h
-@@ -477,7 +477,7 @@ mem_cgroup_uncharge_swapcache(struct pag
- #define free_page_and_swap_cache(page) \
- 	page_cache_release(page)
- #define free_pages_and_swap_cache(pages, nr) \
--	release_pages((pages), (nr), 0);
-+	release_pages((pages), (nr), false);
- 
- static inline void show_swap_cache_info(void)
- {
-diff -puN mm/page_alloc.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool
-+++ a/mm/page_alloc.c
-@@ -1199,7 +1199,7 @@ retry_reserve:
-  */
- static int rmqueue_bulk(struct zone *zone, unsigned int order,
- 			unsigned long count, struct list_head *list,
--			int migratetype, int cold)
-+			int migratetype, bool cold)
+-static inline void prep_zero_page(struct page *page, int order, gfp_t gfp_flags)
++static inline void prep_zero_page(struct page *page, unsigned int order,
++							gfp_t gfp_flags)
  {
  	int i;
  
-@@ -1218,7 +1218,7 @@ static int rmqueue_bulk(struct zone *zon
- 		 * merge IO requests if the physical pages are ordered
- 		 * properly.
- 		 */
--		if (likely(cold == 0))
-+		if (likely(!cold))
- 			list_add(&page->lru, list);
- 		else
- 			list_add_tail(&page->lru, list);
-@@ -1379,9 +1379,9 @@ void mark_free_pages(struct zone *zone)
+@@ -453,7 +454,7 @@ static inline void set_page_guard_flag(s
+ static inline void clear_page_guard_flag(struct page *page) { }
+ #endif
  
- /*
-  * Free a 0-order page
-- * cold == 1 ? free a cold page : free a hot page
-+ * cold == true ? free a cold page : free a hot page
-  */
--void free_hot_cold_page(struct page *page, int cold)
-+void free_hot_cold_page(struct page *page, bool cold)
+-static inline void set_page_order(struct page *page, int order)
++static inline void set_page_order(struct page *page, unsigned int order)
  {
- 	struct zone *zone = page_zone(page);
- 	struct per_cpu_pages *pcp;
-@@ -1413,10 +1413,10 @@ void free_hot_cold_page(struct page *pag
- 	}
- 
- 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
--	if (cold)
--		list_add_tail(&page->lru, &pcp->lists[migratetype]);
--	else
-+	if (!cold)
- 		list_add(&page->lru, &pcp->lists[migratetype]);
-+	else
-+		list_add_tail(&page->lru, &pcp->lists[migratetype]);
- 	pcp->count++;
- 	if (pcp->count >= pcp->high) {
- 		unsigned long batch = ACCESS_ONCE(pcp->batch);
-@@ -1431,7 +1431,7 @@ out:
- /*
-  * Free a list of 0-order pages
+ 	set_page_private(page, order);
+ 	__SetPageBuddy(page);
+@@ -504,7 +505,7 @@ __find_buddy_index(unsigned long page_id
+  * For recording page's order, we use page_private(page).
   */
--void free_hot_cold_page_list(struct list_head *list, int cold)
-+void free_hot_cold_page_list(struct list_head *list, bool cold)
+ static inline int page_is_buddy(struct page *page, struct page *buddy,
+-								int order)
++							unsigned int order)
  {
- 	struct page *page, *next;
+ 	if (!pfn_valid_within(page_to_pfn(buddy)))
+ 		return 0;
+@@ -726,7 +727,7 @@ static void free_pcppages_bulk(struct zo
  
-@@ -1548,7 +1548,7 @@ struct page *buffered_rmqueue(struct zon
+ static void free_one_page(struct zone *zone,
+ 				struct page *page, unsigned long pfn,
+-				int order,
++				unsigned int order,
+ 				int migratetype)
+ {
+ 	spin_lock(&zone->lock);
+@@ -897,7 +898,7 @@ static inline int check_new_page(struct
+ 	return 0;
+ }
+ 
+-static int prep_new_page(struct page *page, int order, gfp_t gfp_flags)
++static int prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags)
+ {
+ 	int i;
+ 
+@@ -1108,16 +1109,17 @@ static int try_to_steal_freepages(struct
+ 
+ /* Remove an element from the buddy allocator from the fallback list */
+ static inline struct page *
+-__rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
++__rmqueue_fallback(struct zone *zone, unsigned int order, int start_migratetype)
+ {
+ 	struct free_area *area;
+-	int current_order;
++	unsigned int current_order;
+ 	struct page *page;
+ 	int migratetype, new_type, i;
+ 
+ 	/* Find the largest possible block of pages in the other list */
+-	for (current_order = MAX_ORDER-1; current_order >= order;
+-						--current_order) {
++	for (current_order = MAX_ORDER-1;
++				current_order >= order && current_order <= MAX_ORDER-1;
++				--current_order) {
+ 		for (i = 0;; i++) {
+ 			migratetype = fallbacks[start_migratetype][i];
+ 
+@@ -1345,7 +1347,7 @@ void mark_free_pages(struct zone *zone)
+ {
+ 	unsigned long pfn, max_zone_pfn;
+ 	unsigned long flags;
+-	int order, t;
++	unsigned int order, t;
+ 	struct list_head *curr;
+ 
+ 	if (zone_is_empty(zone))
+@@ -1541,8 +1543,8 @@ int split_free_page(struct page *page)
+  */
+ static inline
+ struct page *buffered_rmqueue(struct zone *preferred_zone,
+-			struct zone *zone, int order, gfp_t gfp_flags,
+-			int migratetype)
++			struct zone *zone, unsigned int order,
++			gfp_t gfp_flags, int migratetype)
  {
  	unsigned long flags;
  	struct page *page;
--	int cold = !!(gfp_flags & __GFP_COLD);
-+	bool cold = ((gfp_flags & __GFP_COLD) != 0);
- 
- again:
- 	if (likely(order == 0)) {
-@@ -2823,7 +2823,7 @@ void __free_pages(struct page *page, uns
- {
- 	if (put_page_testzero(page)) {
- 		if (order == 0)
--			free_hot_cold_page(page, 0);
-+			free_hot_cold_page(page, false);
- 		else
- 			__free_pages_ok(page, order);
- 	}
-diff -puN mm/swap.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool mm/swap.c
---- a/mm/swap.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool
-+++ a/mm/swap.c
-@@ -67,7 +67,7 @@ static void __page_cache_release(struct
- static void __put_single_page(struct page *page)
- {
- 	__page_cache_release(page);
--	free_hot_cold_page(page, 0);
-+	free_hot_cold_page(page, false);
- }
- 
- static void __put_compound_page(struct page *page)
-@@ -860,7 +860,7 @@ void lru_add_drain_all(void)
-  * grabbed the page via the LRU.  If it did, give up: shrink_inactive_list()
-  * will free it.
+@@ -1691,8 +1693,9 @@ static inline bool should_fail_alloc_pag
+  * Return true if free pages are above 'mark'. This takes into account the order
+  * of the allocation.
   */
--void release_pages(struct page **pages, int nr, int cold)
-+void release_pages(struct page **pages, int nr, bool cold)
+-static bool __zone_watermark_ok(struct zone *z, int order, unsigned long mark,
+-		      int classzone_idx, int alloc_flags, long free_pages)
++static bool __zone_watermark_ok(struct zone *z, unsigned int order,
++			unsigned long mark, int classzone_idx, int alloc_flags,
++			long free_pages)
  {
- 	int i;
- 	LIST_HEAD(pages_to_free);
-diff -puN mm/swap_state.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool mm/swap_state.c
---- a/mm/swap_state.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool
-+++ a/mm/swap_state.c
-@@ -270,7 +270,7 @@ void free_pages_and_swap_cache(struct pa
- 
- 		for (i = 0; i < todo; i++)
- 			free_swap_cache(pagep[i]);
--		release_pages(pagep, todo, 0);
-+		release_pages(pagep, todo, false);
- 		pagep += todo;
- 		nr -= todo;
- 	}
-diff -puN mm/vmscan.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool mm/vmscan.c
---- a/mm/vmscan.c~mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool
-+++ a/mm/vmscan.c
-@@ -1127,7 +1127,7 @@ keep:
- 		VM_BUG_ON_PAGE(PageLRU(page) || PageUnevictable(page), page);
- 	}
- 
--	free_hot_cold_page_list(&free_pages, 1);
-+	free_hot_cold_page_list(&free_pages, true);
- 
- 	list_splice(&ret_pages, page_list);
- 	count_vm_events(PGACTIVATE, pgactivate);
-@@ -1538,7 +1538,7 @@ shrink_inactive_list(unsigned long nr_to
- 
- 	spin_unlock_irq(&zone->lru_lock);
- 
--	free_hot_cold_page_list(&page_list, 1);
-+	free_hot_cold_page_list(&page_list, true);
- 
- 	/*
- 	 * If reclaim is isolating dirty pages under writeback, it implies
-@@ -1761,7 +1761,7 @@ static void shrink_active_list(unsigned
- 	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, -nr_taken);
- 	spin_unlock_irq(&zone->lru_lock);
- 
--	free_hot_cold_page_list(&l_hold, 1);
-+	free_hot_cold_page_list(&l_hold, true);
+ 	/* free_pages my go negative - that's OK */
+ 	long min = mark;
+@@ -1726,15 +1729,15 @@ static bool __zone_watermark_ok(struct z
+ 	return true;
  }
  
- #ifdef CONFIG_SWAP
+-bool zone_watermark_ok(struct zone *z, int order, unsigned long mark,
++bool zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
+ 		      int classzone_idx, int alloc_flags)
+ {
+ 	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
+ 					zone_page_state(z, NR_FREE_PAGES));
+ }
+ 
+-bool zone_watermark_ok_safe(struct zone *z, int order, unsigned long mark,
+-		      int classzone_idx, int alloc_flags)
++bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
++			unsigned long mark, int classzone_idx, int alloc_flags)
+ {
+ 	long free_pages = zone_page_state(z, NR_FREE_PAGES);
+ 
+@@ -4121,7 +4124,7 @@ void __meminit memmap_init_zone(unsigned
+ 
+ static void __meminit zone_init_free_lists(struct zone *zone)
+ {
+-	int order, t;
++	unsigned int order, t;
+ 	for_each_migratetype_order(order, t) {
+ 		INIT_LIST_HEAD(&zone->free_area[order].free_list[t]);
+ 		zone->free_area[order].nr_free = 0;
+@@ -6444,7 +6447,7 @@ __offline_isolated_pages(unsigned long s
+ {
+ 	struct page *page;
+ 	struct zone *zone;
+-	int order, i;
++	unsigned int order, i;
+ 	unsigned long pfn;
+ 	unsigned long flags;
+ 	/* find the first valid pfn */
+@@ -6496,7 +6499,7 @@ bool is_free_buddy_page(struct page *pag
+ 	struct zone *zone = page_zone(page);
+ 	unsigned long pfn = page_to_pfn(page);
+ 	unsigned long flags;
+-	int order;
++	unsigned int order;
+ 
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	for (order = 0; order < MAX_ORDER; order++) {
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
