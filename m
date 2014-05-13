@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
- added to -mm tree
-Date: Tue, 13 May 2014 15:40:46 -0700
-Message-ID: <53729f6e.5lKDe3MSTWsjMOoS%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-do-not-treat-a-zone-that-cannot-be-used-for-dirty-pages-as-full.patch added to -mm tree
+Date: Tue, 13 May 2014 15:40:47 -0700
+Message-ID: <53729f6f.ype9OZdHfwH5b1eR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56188 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56193 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753147AbaEMWkr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:40:47 -0400
+	with ESMTP id S1753147AbaEMWks (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:40:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, hannes@cmpxchg.org, mgorman@suse.de
 
-Subject: + mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch added to -mm tree
+Subject: + mm-page_alloc-do-not-treat-a-zone-that-cannot-be-used-for-dirty-pages-as-full.patch added to -mm tree
 To: mgorman@suse.de,hannes@cmpxchg.org,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 15:40:46 -0700
+Date: Tue, 13 May 2014 15:40:47 -0700
 
 
 The patch titled
-     Subject: mm: page_alloc: do not update zlc unless the zlc is active
+     Subject: mm: page_alloc: do not treat a zone that cannot be used for dirty pages as "full"
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
+     mm-page_alloc-do-not-treat-a-zone-that-cannot-be-used-for-dirty-pages-as-full.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-do-not-treat-a-zone-that-cannot-be-used-for-dirty-pages-as-full.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-do-not-treat-a-zone-that-cannot-be-used-for-dirty-pages-as-full.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,13 +45,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: do not update zlc unless the zlc is active
+Subject: mm: page_alloc: do not treat a zone that cannot be used for dirty pages as "full"
 
-The zlc is used on NUMA machines to quickly skip over zones that are full.
- However it is always updated, even for the first zone scanned when the
-zlc might not even be active.  As it's a write to a bitmap that
-potentially bounces cache line it's deceptively expensive and most
-machines will not care.  Only update the zlc if it was active.
+If a zone cannot be used for a dirty page then it gets marked "full" which
+is cached in the zlc and later potentially skipped by allocation requests
+that have nothing to do with dirty zones.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -62,18 +60,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active
+diff -puN mm/page_alloc.c~mm-page_alloc-do-not-treat-a-zone-that-cannot-be-used-for-dirty-pages-as-full mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-treat-a-zone-that-cannot-be-used-for-dirty-pages-as-full
 +++ a/mm/page_alloc.c
-@@ -2035,7 +2035,7 @@ try_this_zone:
- 		if (page)
- 			break;
- this_zone_full:
--		if (IS_ENABLED(CONFIG_NUMA))
-+		if (IS_ENABLED(CONFIG_NUMA) && zlc_active)
- 			zlc_mark_zone_full(zonelist, z);
- 	}
+@@ -1967,7 +1967,7 @@ zonelist_scan:
+ 		 */
+ 		if ((alloc_flags & ALLOC_WMARK_LOW) &&
+ 		    (gfp_mask & __GFP_WRITE) && !zone_dirty_ok(zone))
+-			goto this_zone_full;
++			continue;
  
+ 		mark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
+ 		if (!zone_watermark_ok(zone, order, mark,
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
