@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-configfs-use-pr_fmt.patch added to -mm tree
-Date: Tue, 13 May 2014 13:52:12 -0700
-Message-ID: <537285fc.yg9YoMhm+nY5D83V%akpm@linux-foundation.org>
+Subject: + fs-configfs-convert-printk-to-pr_foo.patch added to -mm tree
+Date: Tue, 13 May 2014 13:52:11 -0700
+Message-ID: <537285fb.0Rzw9EU+uI/zdD1K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54142 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54139 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751998AbaEMUwN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:52:13 -0400
+	with ESMTP id S1751998AbaEMUwM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:52:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jlbec@evilplan.org, fabf@skynet.be
 
-Subject: + fs-configfs-use-pr_fmt.patch added to -mm tree
+Subject: + fs-configfs-convert-printk-to-pr_foo.patch added to -mm tree
 To: fabf@skynet.be,jlbec@evilplan.org
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 13:52:12 -0700
+Date: Tue, 13 May 2014 13:52:11 -0700
 
 
 The patch titled
-     Subject: fs/configfs: use pr_fmt
+     Subject: fs/configfs: convert printk to pr_foo()
 has been added to the -mm tree.  Its filename is
-     fs-configfs-use-pr_fmt.patch
+     fs-configfs-convert-printk-to-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-configfs-use-pr_fmt.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-configfs-convert-printk-to-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-configfs-use-pr_fmt.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-configfs-convert-printk-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,46 +44,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/configfs: use pr_fmt
-
-Add pr_fmt based on module name.
+Subject: fs/configfs: convert printk to pr_foo()
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/configfs_internal.h |    6 ++++++
- fs/configfs/dir.c               |    4 ++--
- fs/configfs/inode.c             |    2 +-
- fs/configfs/mount.c             |    4 ++--
- 4 files changed, 11 insertions(+), 5 deletions(-)
+ fs/configfs/dir.c   |    8 ++++----
+ fs/configfs/inode.c |    5 ++---
+ fs/configfs/mount.c |    2 +-
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN fs/configfs/configfs_internal.h~fs-configfs-use-pr_fmt fs/configfs/configfs_internal.h
---- a/fs/configfs/configfs_internal.h~fs-configfs-use-pr_fmt
-+++ a/fs/configfs/configfs_internal.h
-@@ -24,6 +24,12 @@
-  * configfs Copyright (C) 2005 Oracle.  All rights reserved.
-  */
- 
-+#ifdef pr_fmt
-+#undef pr_fmt
-+#endif
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/slab.h>
- #include <linux/list.h>
- #include <linux/spinlock.h>
-diff -puN fs/configfs/dir.c~fs-configfs-use-pr_fmt fs/configfs/dir.c
---- a/fs/configfs/dir.c~fs-configfs-use-pr_fmt
+diff -puN fs/configfs/dir.c~fs-configfs-convert-printk-to-pr_foo fs/configfs/dir.c
+--- a/fs/configfs/dir.c~fs-configfs-convert-printk-to-pr_foo
 +++ a/fs/configfs/dir.c
+@@ -940,9 +940,9 @@ static void client_drop_item(struct conf
+ #ifdef DEBUG
+ static void configfs_dump_one(struct configfs_dirent *sd, int level)
+ {
+-	printk(KERN_INFO "%*s\"%s\":\n", level, " ", configfs_get_name(sd));
++	pr_info("%*s\"%s\":\n", level, " ", configfs_get_name(sd));
+ 
+-#define type_print(_type) if (sd->s_type & _type) printk(KERN_INFO "%*s %s\n", level, " ", #_type);
++#define type_print(_type) if (sd->s_type & _type) pr_info("%*s %s\n", level, " ", #_type);
+ 	type_print(CONFIGFS_ROOT);
+ 	type_print(CONFIGFS_DIR);
+ 	type_print(CONFIGFS_ITEM_ATTR);
 @@ -1699,7 +1699,7 @@ void configfs_unregister_subsystem(struc
  	struct dentry *root = dentry->d_sb->s_root;
  
  	if (dentry->d_parent != root) {
--		pr_err("configfs: Tried to unregister non-subsystem!\n");
-+		pr_err("Tried to unregister non-subsystem!\n");
+-		printk(KERN_ERR "configfs: Tried to unregister non-subsystem!\n");
++		pr_err("configfs: Tried to unregister non-subsystem!\n");
  		return;
  	}
  
@@ -91,41 +84,35 @@ diff -puN fs/configfs/dir.c~fs-configfs-use-pr_fmt fs/configfs/dir.c
  	mutex_lock(&configfs_symlink_mutex);
  	spin_lock(&configfs_dirent_lock);
  	if (configfs_detach_prep(dentry, NULL)) {
--		pr_err("configfs: Tried to unregister non-empty subsystem!\n");
-+		pr_err("Tried to unregister non-empty subsystem!\n");
+-		printk(KERN_ERR "configfs: Tried to unregister non-empty subsystem!\n");
++		pr_err("configfs: Tried to unregister non-empty subsystem!\n");
  	}
  	spin_unlock(&configfs_dirent_lock);
  	mutex_unlock(&configfs_symlink_mutex);
-diff -puN fs/configfs/inode.c~fs-configfs-use-pr_fmt fs/configfs/inode.c
---- a/fs/configfs/inode.c~fs-configfs-use-pr_fmt
+diff -puN fs/configfs/inode.c~fs-configfs-convert-printk-to-pr_foo fs/configfs/inode.c
+--- a/fs/configfs/inode.c~fs-configfs-convert-printk-to-pr_foo
 +++ a/fs/configfs/inode.c
-@@ -168,7 +168,7 @@ static void configfs_set_inode_lock_clas
+@@ -168,9 +168,8 @@ static void configfs_set_inode_lock_clas
  			 * In practice the maximum level of locking depth is
  			 * already reached. Just inform about possible reasons.
  			 */
--			pr_info("configfs: Too many levels of inodes for the locking correctness validator.\n");
-+			pr_info("Too many levels of inodes for the locking correctness validator.\n");
- 			pr_info("Spurious warnings may appear.\n");
+-			printk(KERN_INFO "configfs: Too many levels of inodes"
+-			       " for the locking correctness validator.\n");
+-			printk(KERN_INFO "Spurious warnings may appear.\n");
++			pr_info("configfs: Too many levels of inodes for the locking correctness validator.\n");
++			pr_info("Spurious warnings may appear.\n");
  		}
  	}
-diff -puN fs/configfs/mount.c~fs-configfs-use-pr_fmt fs/configfs/mount.c
---- a/fs/configfs/mount.c~fs-configfs-use-pr_fmt
+ }
+diff -puN fs/configfs/mount.c~fs-configfs-convert-printk-to-pr_foo fs/configfs/mount.c
+--- a/fs/configfs/mount.c~fs-configfs-convert-printk-to-pr_foo
 +++ a/fs/configfs/mount.c
-@@ -85,7 +85,7 @@ static int configfs_fill_super(struct su
- 		/* directory inodes start off with i_nlink == 2 (for "." entry) */
- 		inc_nlink(inode);
- 	} else {
--		pr_debug("configfs: could not get root inode\n");
-+		pr_debug("could not get root inode\n");
- 		return -ENOMEM;
- 	}
- 
 @@ -155,7 +155,7 @@ static int __init configfs_init(void)
  
  	return 0;
  out4:
--	pr_err("configfs: Unable to register filesystem!\n");
-+	pr_err("Unable to register filesystem!\n");
+-	printk(KERN_ERR "configfs: Unable to register filesystem!\n");
++	pr_err("configfs: Unable to register filesystem!\n");
  	configfs_inode_exit();
  out3:
  	kobject_put(config_kobj);
