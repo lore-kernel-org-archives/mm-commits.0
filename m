@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch added to -mm tree
-Date: Tue, 13 May 2014 15:40:51 -0700
-Message-ID: <53729f73.y430kvtcZe+FA0mr%akpm@linux-foundation.org>
+ mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
+ added to -mm tree
+Date: Tue, 13 May 2014 15:40:52 -0700
+Message-ID: <53729f74.iCqOJQN2aZUghLT3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56220 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56236 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753147AbaEMWkw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:40:52 -0400
+	with ESMTP id S1754961AbaEMWkx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:40:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vbabka@suse.cz, tytso@mit.edu, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mhocko@suse.cz, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, mgorman@suse.de
 
-Subject: + mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch added to -mm tree
+Subject: + mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch added to -mm tree
 To: mgorman@suse.de,dave.hansen@intel.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,mhocko@suse.cz,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,tytso@mit.edu,vbabka@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 15:40:51 -0700
+Date: Tue, 13 May 2014 15:40:52 -0700
 
 
 The patch titled
-     Subject: mm: page_alloc: only check the zone id check if pages are buddies
+     Subject: mm: page_alloc: only check the alloc flags and gfp_mask for dirty once
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
+     mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,16 +46,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: only check the zone id check if pages are buddies
+Subject: mm: page_alloc: only check the alloc flags and gfp_mask for dirty once
 
-A node/zone index is used to check if pages are compatible for merging
-but this happens unconditionally even if the buddy page is not free. Defer
-the calculation as long as possible. Ideally we would check the zone boundary
-but nodes can overlap.
+Currently it's calculated once per zone in the zonelist.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -67,42 +65,31 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies
+diff -puN mm/page_alloc.c~mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once
 +++ a/mm/page_alloc.c
-@@ -509,16 +509,26 @@ static inline int page_is_buddy(struct p
- 	if (!pfn_valid_within(page_to_pfn(buddy)))
- 		return 0;
+@@ -1917,6 +1917,8 @@ get_page_from_freelist(gfp_t gfp_mask, n
+ 	nodemask_t *allowednodes = NULL;/* zonelist_cache approximation */
+ 	int zlc_active = 0;		/* set if using zonelist_cache */
+ 	int did_zlc_setup = 0;		/* just call zlc_setup() one time */
++	bool consider_zone_dirty = (alloc_flags & ALLOC_WMARK_LOW) &&
++				(gfp_mask & __GFP_WRITE);
  
--	if (page_zone_id(page) != page_zone_id(buddy))
--		return 0;
--
- 	if (page_is_guard(buddy) && page_order(buddy) == order) {
- 		VM_BUG_ON_PAGE(page_count(buddy) != 0, buddy);
-+
-+		if (page_zone_id(page) != page_zone_id(buddy))
-+			return 0;
-+
- 		return 1;
- 	}
+ 	classzone_idx = zone_idx(preferred_zone);
+ zonelist_scan:
+@@ -1976,8 +1978,7 @@ zonelist_scan:
+ 		 * will require awareness of zones in the
+ 		 * dirty-throttling and the flusher threads.
+ 		 */
+-		if ((alloc_flags & ALLOC_WMARK_LOW) &&
+-		    (gfp_mask & __GFP_WRITE) && !zone_dirty_ok(zone))
++		if (consider_zone_dirty && !zone_dirty_ok(zone))
+ 			continue;
  
- 	if (PageBuddy(buddy) && page_order(buddy) == order) {
- 		VM_BUG_ON_PAGE(page_count(buddy) != 0, buddy);
-+
-+		/*
-+		 * zone check is done late to avoid uselessly
-+		 * calculating zone/node ids for pages that could
-+		 * never merge.
-+		 */
-+		if (page_zone_id(page) != page_zone_id(buddy))
-+			return 0;
-+
- 		return 1;
- 	}
- 	return 0;
+ 		mark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
