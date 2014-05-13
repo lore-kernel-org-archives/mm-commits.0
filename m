@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-madvise-fix-madv_willneed-on-shmem-swapouts.patch added to
- -mm tree
-Date: Tue, 13 May 2014 15:00:06 -0700
-Message-ID: <537295e6.lp8MNFowwudVebIG%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
+ added to -mm tree
+Date: Tue, 13 May 2014 15:40:46 -0700
+Message-ID: <53729f6e.5lKDe3MSTWsjMOoS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55647 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56188 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991AbaEMWAH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:00:07 -0400
+	with ESMTP id S1753147AbaEMWkr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:40:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hughd@google.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, riel@redhat.com, hannes@cmpxchg.org, mgorman@suse.de
 
-Subject: + mm-madvise-fix-madv_willneed-on-shmem-swapouts.patch added to -mm tree
-To: hannes@cmpxchg.org,hughd@google.com
+Subject: + mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch added to -mm tree
+To: mgorman@suse.de,hannes@cmpxchg.org,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 15:00:06 -0700
+Date: Tue, 13 May 2014 15:40:46 -0700
 
 
 The patch titled
-     Subject: mm: madvise: fix MADV_WILLNEED on shmem swapouts
+     Subject: mm: page_alloc: do not update zlc unless the zlc is active
 has been added to the -mm tree.  Its filename is
-     mm-madvise-fix-madv_willneed-on-shmem-swapouts.patch
+     mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-fix-madv_willneed-on-shmem-swapouts.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-fix-madv_willneed-on-shmem-swapouts.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,101 +44,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: madvise: fix MADV_WILLNEED on shmem swapouts
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: page_alloc: do not update zlc unless the zlc is active
 
-MADV_WILLNEED currently does not read swapped out shmem pages back in.
+The zlc is used on NUMA machines to quickly skip over zones that are full.
+ However it is always updated, even for the first zone scanned when the
+zlc might not even be active.  As it's a write to a bitmap that
+potentially bounces cache line it's deceptively expensive and most
+machines will not care.  Only update the zlc if it was active.
 
-0cd6144aadd2 ("mm + fs: prepare for non-page entries in page cache radix
-trees") made find_get_page() filter exceptional radix tree entries but
-failed to convert all find_get_page() callers that WANT exceptional
-entries over to find_get_entry().  One of them is shmem swap readahead in
-madvise, which now skips over any swap-out records.
-
-Convert it to find_get_entry().
-
-Fixes: 0cd6144aadd2 ("mm + fs: prepare for non-page entries in page cache radix trees")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
+ mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/madvise.c~mm-madvise-fix-madv_willneed-on-shmem-swapouts mm/madvise.c
---- a/mm/madvise.c~mm-madvise-fix-madv_willneed-on-shmem-swapouts
-+++ a/mm/madvise.c
-@@ -195,7 +195,7 @@ static void force_shm_swapin_readahead(s
- 	for (; start < end; start += PAGE_SIZE) {
- 		index = ((start - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
+diff -puN mm/page_alloc.c~mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active
++++ a/mm/page_alloc.c
+@@ -2035,7 +2035,7 @@ try_this_zone:
+ 		if (page)
+ 			break;
+ this_zone_full:
+-		if (IS_ENABLED(CONFIG_NUMA))
++		if (IS_ENABLED(CONFIG_NUMA) && zlc_active)
+ 			zlc_mark_zone_full(zonelist, z);
+ 	}
  
--		page = find_get_page(mapping, index);
-+		page = find_get_entry(mapping, index);
- 		if (!radix_tree_exceptional_entry(page)) {
- 			if (page)
- 				page_cache_release(page);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-origin.patch
-mm-madvise-fix-madv_willneed-on-shmem-swapouts.patch
-slb-charge-slabs-to-kmemcg-explicitly.patch
-mm-get-rid-of-__gfp_kmemcg.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
+x86-require-x86-64-for-automatic-numa-balancing.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
 mm-disable-zone_reclaim_mode-by-default.patch
 mm-page_alloc-do-not-cache-reclaim-distances.patch
 mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-documentation-memcg-warn-about-incomplete-kmemcg-state.patch
+mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+mm-compaction-clean-up-unused-code-lines.patch
+mm-compaction-cleanup-isolate_freepages.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+mm-compaction-cleanup-isolate_freepages-fix-2.patch
+mm-compaction-cleanup-isolate_freepages-fix3.patch
 mm-swapc-clean-up-lru_cache_add-functions.patch
-memcg-kill-config_mm_owner.patch
-memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-memcg-slab-do-not-schedule-cache-destruction-when-last-page-goes-away.patch
-memcg-slab-merge-memcg_bindrelease_pages-to-memcg_uncharge_slab.patch
-memcg-slab-simplify-synchronization-scheme.patch
-mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch
-memcg-mm_update_next_owner-should-skip-kthreads.patch
-memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner.patch
-memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-fix.patch
+mm-numa-add-migrated-transhuge-pages-to-lru-the-same-way-as-base-pages.patch
 mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
 mm-swapc-split-put_compound_page-function.patch
 mm-introdule-compound_head_by_tail.patch
-memcg-mm-introduce-lowlimit-reclaim.patch
-memcg-mm-introduce-lowlimit-reclaim-fix.patch
-memcg-allow-setting-low_limit.patch
-memcg-doc-clarify-global-vs-limit-reclaims.patch
-memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
-memcg-document-memorylow_limit_in_bytes.patch
-mm-memcontrolc-remove-null-assignment-on-static.patch
-vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-oom_control.patch
-mm-introduce-kmemleak_update_trace.patch
-lib-update-the-kmemleak-stack-trace-for-radix-tree-allocations.patch
-mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
-mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
-memcg-fold-mem_cgroup_stolen.patch
-memcg-fold-mem_cgroup_stolen-fix.patch
-memcg-correct-comments-for-__mem_cgroup_begin_update_page_stat.patch
-memcg-get-rid-of-memcg_create_cache_name.patch
-memcg-memcg_kmem_create_cache-make-memcg_name_buf.patch
+mm-x86-pgtable-drop-unneeded-preprocessor-ifdef.patch
+mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
+mm-migration-add-destination-page-freeing-callback.patch
+mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
+mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
+mm-compaction-embed-migration-mode-in-compact_control.patch
+mm-thp-avoid-excessive-compaction-latency-during-fault.patch
+mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
+mm-compaction-terminate-async-compaction-when-rescheduling.patch
+mm-compaction-do-not-count-migratepages-when-unnecessary.patch
+mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
 swap-change-swap_info-singly-linked-list-to-list_head.patch
 plist-add-helper-functions.patch
 plist-add-plist_requeue.patch
 swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
-memcg-deprecate-memoryforce_empty-knob.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-memcg-cleanup-kmem-cache-creation-destruction-functions-naming.patch
+mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
+mm-page_alloc-do-not-treat-a-zone-that-cannot-be-used-for-dirty-pages-as-full.patch
+jump_label-expose-the-reference-count.patch
+mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
+mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
+mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
+mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
+mm-page_alloc-use-word-based-accesses-for-get-set-pageblock-bitmaps.patch
+mm-page_alloc-reduce-number-of-times-page_to_pfn-is-called.patch
+mm-page_alloc-lookup-pageblock-migratetype-with-irqs-enabled-during-free.patch
+mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
+mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
+mm-shmem-avoid-atomic-operation-during-shmem_getpage_gfp.patch
+mm-do-not-use-atomic-operations-when-releasing-pages.patch
+mm-do-not-use-unnecessary-atomic-operations-when-adding-pages-to-the-lru.patch
+fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
+fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
+mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
+mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
+cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
 
