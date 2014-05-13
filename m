@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipcmsg-always-respect-msg_noerror.patch added to -mm tree
-Date: Tue, 13 May 2014 13:39:28 -0700
-Message-ID: <53728300.WZivFf2wMCDXMRrq%akpm@linux-foundation.org>
+Subject: + ipcmsg-loosen-check-for-full-queue.patch added to -mm tree
+Date: Tue, 13 May 2014 13:39:30 -0700
+Message-ID: <53728302.cptDCiLpX566Duxg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53817 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53822 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752538AbaEMUj3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:39:29 -0400
+	with ESMTP id S1752861AbaEMUjb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:39:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, manfred@colorfullife.com, aswin@hp.com, davidlohr@hp.com
 
-Subject: + ipcmsg-always-respect-msg_noerror.patch added to -mm tree
+Subject: + ipcmsg-loosen-check-for-full-queue.patch added to -mm tree
 To: davidlohr@hp.com,aswin@hp.com,manfred@colorfullife.com
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 13:39:28 -0700
+Date: Tue, 13 May 2014 13:39:30 -0700
 
 
 The patch titled
-     Subject: ipc,msg: always respect MSG_NOERROR
+     Subject: ipc,msg: loosen check for full queue
 has been added to the -mm tree.  Its filename is
-     ipcmsg-always-respect-msg_noerror.patch
+     ipcmsg-loosen-check-for-full-queue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-always-respect-msg_noerror.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-loosen-check-for-full-queue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-always-respect-msg_noerror.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-loosen-check-for-full-queue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,18 +44,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipc,msg: always respect MSG_NOERROR
+Subject: ipc,msg: loosen check for full queue
 
-When specifying the MSG_NOERROR flag, receivers can avoid returning error
-(E2BIG) and just truncate the message text, if it is too large.
+When sending a message, we must guarantee that there will be enough room
+in the queue to add it, otherwise wait until space becomes available --
+which requires blocking the calling task.  Currently, this relies meeting
+both of the following conditions:
 
-Currently, this logic is only respected when there are already pending
-messages in the queue.  Fix this for the case when there are only
-receivers waiting for a msg to be sent.  In order for this to work, save
-the flags in the msg_receiver struct as it must be used later when doing
-the pipeline send.
+(i)  The new msg size + current size is lower than the queue's max size. 
 
-Also do some pipeline_send() cleanups while at it.
+(ii) The current amount of messages in the queue + 1 (this msg) is
+     lower than the queue's max size.
+
+While (i) is obvious and well documented in the msgsnd(2) manpage, the
+second one is far more ambiguous and does not serve the purpose, as we do
+not control the amount of messages in the queue (unlike posix queues do). 
+Thus remove (ii) and loosen how we check for space.
 
 Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
 Cc: Manfred Spraul <manfred@colorfullife.com>
@@ -63,104 +67,25 @@ Cc: Aswin Chandramouleeswaran <aswin@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   63 ++++++++++++++++++++++++++++------------------------
- 1 file changed, 35 insertions(+), 28 deletions(-)
+ ipc/msg.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN ipc/msg.c~ipcmsg-always-respect-msg_noerror ipc/msg.c
---- a/ipc/msg.c~ipcmsg-always-respect-msg_noerror
+diff -puN ipc/msg.c~ipcmsg-loosen-check-for-full-queue ipc/msg.c
+--- a/ipc/msg.c~ipcmsg-loosen-check-for-full-queue
 +++ a/ipc/msg.c
-@@ -50,6 +50,7 @@ struct msg_receiver {
- 	struct task_struct	*r_tsk;
+@@ -658,10 +658,8 @@ long do_msgsnd(int msqid, long mtype, vo
+ 		if (err)
+ 			goto out_unlock0;
  
- 	int			r_mode;
-+	int                     r_msgflg;
- 	long			r_msgtype;
- 	long			r_maxsize;
+-		if (msgsz + msq->q_cbytes <= msq->q_qbytes &&
+-				1 + msq->q_qnum <= msq->q_qbytes) {
+-			break;
+-		}
++		if (msgsz + msq->q_cbytes <= msq->q_qbytes)
++			break; /* there is space in the queue for this msg */
  
-@@ -562,42 +563,47 @@ static int testmsg(struct msg_msg *msg,
- 	return 0;
- }
- 
--static inline int pipelined_send(struct msg_queue *msq, struct msg_msg *msg)
-+static inline bool pipelined_send(struct msg_queue *msq, struct msg_msg *msg)
- {
- 	struct msg_receiver *msr, *t;
- 
- 	list_for_each_entry_safe(msr, t, &msq->q_receivers, r_list) {
--		if (testmsg(msg, msr->r_msgtype, msr->r_mode) &&
--		    !security_msg_queue_msgrcv(msq, msg, msr->r_tsk,
--					       msr->r_msgtype, msr->r_mode)) {
--
--			list_del(&msr->r_list);
--			if (msr->r_maxsize < msg->m_ts) {
--				/* initialize pipelined send ordering */
--				msr->r_msg = NULL;
--				wake_up_process(msr->r_tsk);
--				smp_mb(); /* see barrier comment below */
--				msr->r_msg = ERR_PTR(-E2BIG);
--			} else {
--				msr->r_msg = NULL;
--				msq->q_lrpid = task_pid_vnr(msr->r_tsk);
--				msq->q_rtime = get_seconds();
--				wake_up_process(msr->r_tsk);
--				/*
--				 * Ensure that the wakeup is visible before
--				 * setting r_msg, as the receiving end depends
--				 * on it. See lockless receive part 1 and 2 in
--				 * do_msgrcv().
--				 */
--				smp_mb();
--				msr->r_msg = msg;
-+		if (!testmsg(msg, msr->r_msgtype, msr->r_mode))
-+			continue;
-+		if (security_msg_queue_msgrcv(msq, msg, msr->r_tsk,
-+					      msr->r_msgtype, msr->r_mode))
-+			continue;
-+
-+		/* found a suitable receiver, time to dequeue and wake */
-+		list_del(&msr->r_list);
-+
-+		/* initialize pipelined send ordering */
-+		msr->r_msg = NULL;
-+
-+		if (msr->r_maxsize < msg->m_ts &&
-+		    !(msr->r_msgflg & MSG_NOERROR)) {
-+			wake_up_process(msr->r_tsk);
-+			smp_mb(); /* see barrier comment below */
-+			msr->r_msg = ERR_PTR(-E2BIG);
-+		} else {
-+			msq->q_lrpid = task_pid_vnr(msr->r_tsk);
-+			msq->q_rtime = get_seconds();
-+			wake_up_process(msr->r_tsk);
- 
--				return 1;
--			}
-+			/*
-+			 * Ensure that the wakeup is visible before
-+			 * setting r_msg, as the receiving end depends
-+			 * on it. See lockless receive part 1 and 2 in
-+			 * do_msgrcv().
-+			 */
-+			smp_mb();
-+			msr->r_msg = msg;
-+
-+			return true;
- 		}
- 	}
- 
--	return 0;
-+	return false; /* no receivers on the other side */
- }
- 
- long do_msgsnd(int msqid, long mtype, void __user *mtext,
-@@ -901,6 +907,7 @@ long do_msgrcv(int msqid, void __user *b
- 		list_add_tail(&msr_d.r_list, &msq->q_receivers);
- 		msr_d.r_tsk = current;
- 		msr_d.r_msgtype = msgtyp;
-+		msr_d.r_msgflg = msgflg;
- 		msr_d.r_mode = mode;
- 		if (msgflg & MSG_NOERROR)
- 			msr_d.r_maxsize = INT_MAX;
+ 		/* queue full, wait: */
+ 		if (msgflg & IPC_NOWAIT) {
 _
 
 Patches currently in -mm which might be from davidlohr@hp.com are
