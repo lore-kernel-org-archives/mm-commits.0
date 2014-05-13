@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipcmsg-move-some-msgq-ns-code-around.patch added to -mm tree
-Date: Tue, 13 May 2014 13:39:27 -0700
-Message-ID: <537282ff.ibiky4zI4PkBCEzz%akpm@linux-foundation.org>
+Subject: + ipcmsg-always-respect-msg_noerror.patch added to -mm tree
+Date: Tue, 13 May 2014 13:39:28 -0700
+Message-ID: <53728300.WZivFf2wMCDXMRrq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53815 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53817 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752538AbaEMUj2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:39:28 -0400
+	with ESMTP id S1752538AbaEMUj3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:39:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, manfred@colorfullife.com, aswin@hp.com, davidlohr@hp.com
 
-Subject: + ipcmsg-move-some-msgq-ns-code-around.patch added to -mm tree
+Subject: + ipcmsg-always-respect-msg_noerror.patch added to -mm tree
 To: davidlohr@hp.com,aswin@hp.com,manfred@colorfullife.com
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 13:39:27 -0700
+Date: Tue, 13 May 2014 13:39:28 -0700
 
 
 The patch titled
-     Subject: ipc,msg: move some msgq ns code around
+     Subject: ipc,msg: always respect MSG_NOERROR
 has been added to the -mm tree.  Its filename is
-     ipcmsg-move-some-msgq-ns-code-around.patch
+     ipcmsg-always-respect-msg_noerror.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-move-some-msgq-ns-code-around.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-always-respect-msg_noerror.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-move-some-msgq-ns-code-around.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-always-respect-msg_noerror.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,10 +44,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipc,msg: move some msgq ns code around
+Subject: ipc,msg: always respect MSG_NOERROR
 
-Nothing big and no logical changes, just get rid of some redundant
-function declarations.  Move msg_[init/exit]_ns down the end of the file.
+When specifying the MSG_NOERROR flag, receivers can avoid returning error
+(E2BIG) and just truncate the message text, if it is too large.
+
+Currently, this logic is only respected when there are already pending
+messages in the queue.  Fix this for the case when there are only
+receivers waiting for a msg to be sent.  In order for this to work, save
+the flags in the msg_receiver struct as it must be used later when doing
+the pipeline send.
+
+Also do some pipeline_send() cleanups while at it.
 
 Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
 Cc: Manfred Spraul <manfred@colorfullife.com>
@@ -55,162 +63,104 @@ Cc: Aswin Chandramouleeswaran <aswin@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |  132 ++++++++++++++++++++++++----------------------------
- 1 file changed, 63 insertions(+), 69 deletions(-)
+ ipc/msg.c |   63 ++++++++++++++++++++++++++++------------------------
+ 1 file changed, 35 insertions(+), 28 deletions(-)
 
-diff -puN ipc/msg.c~ipcmsg-move-some-msgq-ns-code-around ipc/msg.c
---- a/ipc/msg.c~ipcmsg-move-some-msgq-ns-code-around
+diff -puN ipc/msg.c~ipcmsg-always-respect-msg_noerror ipc/msg.c
+--- a/ipc/msg.c~ipcmsg-always-respect-msg_noerror
 +++ a/ipc/msg.c
-@@ -70,75 +70,6 @@ struct msg_sender {
+@@ -50,6 +50,7 @@ struct msg_receiver {
+ 	struct task_struct	*r_tsk;
  
- #define msg_ids(ns)	((ns)->ids[IPC_MSG_IDS])
+ 	int			r_mode;
++	int                     r_msgflg;
+ 	long			r_msgtype;
+ 	long			r_maxsize;
  
--static void freeque(struct ipc_namespace *, struct kern_ipc_perm *);
--static int newque(struct ipc_namespace *, struct ipc_params *);
--#ifdef CONFIG_PROC_FS
--static int sysvipc_msg_proc_show(struct seq_file *s, void *it);
--#endif
--
--/*
-- * Scale msgmni with the available lowmem size: the memory dedicated to msg
-- * queues should occupy at most 1/MSG_MEM_SCALE of lowmem.
-- * Also take into account the number of nsproxies created so far.
-- * This should be done staying within the (MSGMNI , IPCMNI/nr_ipc_ns) range.
-- */
--void recompute_msgmni(struct ipc_namespace *ns)
--{
--	struct sysinfo i;
--	unsigned long allowed;
--	int nb_ns;
--
--	si_meminfo(&i);
--	allowed = (((i.totalram - i.totalhigh) / MSG_MEM_SCALE) * i.mem_unit)
--		/ MSGMNB;
--	nb_ns = atomic_read(&nr_ipc_ns);
--	allowed /= nb_ns;
--
--	if (allowed < MSGMNI) {
--		ns->msg_ctlmni = MSGMNI;
--		return;
--	}
--
--	if (allowed > IPCMNI / nb_ns) {
--		ns->msg_ctlmni = IPCMNI / nb_ns;
--		return;
--	}
--
--	ns->msg_ctlmni = allowed;
--}
--
--void msg_init_ns(struct ipc_namespace *ns)
--{
--	ns->msg_ctlmax = MSGMAX;
--	ns->msg_ctlmnb = MSGMNB;
--
--	recompute_msgmni(ns);
--
--	atomic_set(&ns->msg_bytes, 0);
--	atomic_set(&ns->msg_hdrs, 0);
--	ipc_init_ids(&ns->ids[IPC_MSG_IDS]);
--}
--
--#ifdef CONFIG_IPC_NS
--void msg_exit_ns(struct ipc_namespace *ns)
--{
--	free_ipcs(ns, &msg_ids(ns), freeque);
--	idr_destroy(&ns->ids[IPC_MSG_IDS].ipcs_idr);
--}
--#endif
--
--void __init msg_init(void)
--{
--	msg_init_ns(&init_ipc_ns);
--
--	printk(KERN_INFO "msgmni has been set to %d\n",
--		init_ipc_ns.msg_ctlmni);
--
--	ipc_init_proc_interface("sysvipc/msg",
--				"       key      msqid perms      cbytes       qnum lspid lrpid   uid   gid  cuid  cgid      stime      rtime      ctime\n",
--				IPC_MSG_IDS, sysvipc_msg_proc_show);
--}
--
- static inline struct msg_queue *msq_obtain_object(struct ipc_namespace *ns, int id)
- {
- 	struct kern_ipc_perm *ipcp = ipc_obtain_object(&msg_ids(ns), id);
-@@ -1054,6 +985,57 @@ SYSCALL_DEFINE5(msgrcv, int, msqid, stru
- 	return do_msgrcv(msqid, msgp, msgsz, msgtyp, msgflg, do_msg_fill);
+@@ -562,42 +563,47 @@ static int testmsg(struct msg_msg *msg,
+ 	return 0;
  }
  
-+/*
-+ * Scale msgmni with the available lowmem size: the memory dedicated to msg
-+ * queues should occupy at most 1/MSG_MEM_SCALE of lowmem.
-+ * Also take into account the number of nsproxies created so far.
-+ * This should be done staying within the (MSGMNI , IPCMNI/nr_ipc_ns) range.
-+ */
-+void recompute_msgmni(struct ipc_namespace *ns)
-+{
-+	struct sysinfo i;
-+	unsigned long allowed;
-+	int nb_ns;
-+
-+	si_meminfo(&i);
-+	allowed = (((i.totalram - i.totalhigh) / MSG_MEM_SCALE) * i.mem_unit)
-+		/ MSGMNB;
-+	nb_ns = atomic_read(&nr_ipc_ns);
-+	allowed /= nb_ns;
-+
-+	if (allowed < MSGMNI) {
-+		ns->msg_ctlmni = MSGMNI;
-+		return;
-+	}
-+
-+	if (allowed > IPCMNI / nb_ns) {
-+		ns->msg_ctlmni = IPCMNI / nb_ns;
-+		return;
-+	}
-+
-+	ns->msg_ctlmni = allowed;
-+}
-+
-+void msg_init_ns(struct ipc_namespace *ns)
-+{
-+	ns->msg_ctlmax = MSGMAX;
-+	ns->msg_ctlmnb = MSGMNB;
-+
-+	recompute_msgmni(ns);
-+
-+	atomic_set(&ns->msg_bytes, 0);
-+	atomic_set(&ns->msg_hdrs, 0);
-+	ipc_init_ids(&ns->ids[IPC_MSG_IDS]);
-+}
-+
-+#ifdef CONFIG_IPC_NS
-+void msg_exit_ns(struct ipc_namespace *ns)
-+{
-+	free_ipcs(ns, &msg_ids(ns), freeque);
-+	idr_destroy(&ns->ids[IPC_MSG_IDS].ipcs_idr);
-+}
-+#endif
-+
- #ifdef CONFIG_PROC_FS
- static int sysvipc_msg_proc_show(struct seq_file *s, void *it)
+-static inline int pipelined_send(struct msg_queue *msq, struct msg_msg *msg)
++static inline bool pipelined_send(struct msg_queue *msq, struct msg_msg *msg)
  {
-@@ -1078,3 +1060,15 @@ static int sysvipc_msg_proc_show(struct
- 			msq->q_ctime);
+ 	struct msg_receiver *msr, *t;
+ 
+ 	list_for_each_entry_safe(msr, t, &msq->q_receivers, r_list) {
+-		if (testmsg(msg, msr->r_msgtype, msr->r_mode) &&
+-		    !security_msg_queue_msgrcv(msq, msg, msr->r_tsk,
+-					       msr->r_msgtype, msr->r_mode)) {
+-
+-			list_del(&msr->r_list);
+-			if (msr->r_maxsize < msg->m_ts) {
+-				/* initialize pipelined send ordering */
+-				msr->r_msg = NULL;
+-				wake_up_process(msr->r_tsk);
+-				smp_mb(); /* see barrier comment below */
+-				msr->r_msg = ERR_PTR(-E2BIG);
+-			} else {
+-				msr->r_msg = NULL;
+-				msq->q_lrpid = task_pid_vnr(msr->r_tsk);
+-				msq->q_rtime = get_seconds();
+-				wake_up_process(msr->r_tsk);
+-				/*
+-				 * Ensure that the wakeup is visible before
+-				 * setting r_msg, as the receiving end depends
+-				 * on it. See lockless receive part 1 and 2 in
+-				 * do_msgrcv().
+-				 */
+-				smp_mb();
+-				msr->r_msg = msg;
++		if (!testmsg(msg, msr->r_msgtype, msr->r_mode))
++			continue;
++		if (security_msg_queue_msgrcv(msq, msg, msr->r_tsk,
++					      msr->r_msgtype, msr->r_mode))
++			continue;
++
++		/* found a suitable receiver, time to dequeue and wake */
++		list_del(&msr->r_list);
++
++		/* initialize pipelined send ordering */
++		msr->r_msg = NULL;
++
++		if (msr->r_maxsize < msg->m_ts &&
++		    !(msr->r_msgflg & MSG_NOERROR)) {
++			wake_up_process(msr->r_tsk);
++			smp_mb(); /* see barrier comment below */
++			msr->r_msg = ERR_PTR(-E2BIG);
++		} else {
++			msq->q_lrpid = task_pid_vnr(msr->r_tsk);
++			msq->q_rtime = get_seconds();
++			wake_up_process(msr->r_tsk);
+ 
+-				return 1;
+-			}
++			/*
++			 * Ensure that the wakeup is visible before
++			 * setting r_msg, as the receiving end depends
++			 * on it. See lockless receive part 1 and 2 in
++			 * do_msgrcv().
++			 */
++			smp_mb();
++			msr->r_msg = msg;
++
++			return true;
+ 		}
+ 	}
+ 
+-	return 0;
++	return false; /* no receivers on the other side */
  }
- #endif
-+
-+void __init msg_init(void)
-+{
-+	msg_init_ns(&init_ipc_ns);
-+
-+	printk(KERN_INFO "msgmni has been set to %d\n",
-+		init_ipc_ns.msg_ctlmni);
-+
-+	ipc_init_proc_interface("sysvipc/msg",
-+				"       key      msqid perms      cbytes       qnum lspid lrpid   uid   gid  cuid  cgid      stime      rtime      ctime\n",
-+				IPC_MSG_IDS, sysvipc_msg_proc_show);
-+}
+ 
+ long do_msgsnd(int msqid, long mtype, void __user *mtext,
+@@ -901,6 +907,7 @@ long do_msgrcv(int msqid, void __user *b
+ 		list_add_tail(&msr_d.r_list, &msq->q_receivers);
+ 		msr_d.r_tsk = current;
+ 		msr_d.r_msgtype = msgtyp;
++		msr_d.r_msgflg = msgflg;
+ 		msr_d.r_mode = mode;
+ 		if (msgflg & MSG_NOERROR)
+ 			msr_d.r_maxsize = INT_MAX;
 _
 
 Patches currently in -mm which might be from davidlohr@hp.com are
