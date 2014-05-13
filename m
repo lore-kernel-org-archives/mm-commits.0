@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-configfs-convert-printk-to-pr_foo.patch added to -mm tree
-Date: Tue, 13 May 2014 13:52:11 -0700
-Message-ID: <537285fb.0Rzw9EU+uI/zdD1K%akpm@linux-foundation.org>
+Subject: + fs-devpts-inodec-convert-printk-to-pr_foo.patch added to -mm
+ tree
+Date: Tue, 13 May 2014 13:55:52 -0700
+Message-ID: <537286d8./AXGTSrRIKpQ7L9f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54139 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54145 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751998AbaEMUwM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:52:12 -0400
+	with ESMTP id S1752089AbaEMUzx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:55:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jlbec@evilplan.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, tytso@mit.edu, joe@perches.com, fabf@skynet.be
 
-Subject: + fs-configfs-convert-printk-to-pr_foo.patch added to -mm tree
-To: fabf@skynet.be,jlbec@evilplan.org
+Subject: + fs-devpts-inodec-convert-printk-to-pr_foo.patch added to -mm tree
+To: fabf@skynet.be,joe@perches.com,tytso@mit.edu
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 13:52:11 -0700
+Date: Tue, 13 May 2014 13:55:52 -0700
 
 
 The patch titled
-     Subject: fs/configfs: convert printk to pr_foo()
+     Subject: fs/devpts/inode.c: convert printk to pr_foo()
 has been added to the -mm tree.  Its filename is
-     fs-configfs-convert-printk-to-pr_foo.patch
+     fs-devpts-inodec-convert-printk-to-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-configfs-convert-printk-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-devpts-inodec-convert-printk-to-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-configfs-convert-printk-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-devpts-inodec-convert-printk-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,78 +45,106 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/configfs: convert printk to pr_foo()
+Subject: fs/devpts/inode.c: convert printk to pr_foo()
+
+Also convert spaces to tabs (checkpatch warnings) if (!dentry) KERN_NOTICE
+converted to pr_err (like if (!inode) error process)
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/dir.c   |    8 ++++----
- fs/configfs/inode.c |    5 ++---
- fs/configfs/mount.c |    2 +-
- 3 files changed, 7 insertions(+), 8 deletions(-)
+ fs/devpts/inode.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN fs/configfs/dir.c~fs-configfs-convert-printk-to-pr_foo fs/configfs/dir.c
---- a/fs/configfs/dir.c~fs-configfs-convert-printk-to-pr_foo
-+++ a/fs/configfs/dir.c
-@@ -940,9 +940,9 @@ static void client_drop_item(struct conf
- #ifdef DEBUG
- static void configfs_dump_one(struct configfs_dirent *sd, int level)
- {
--	printk(KERN_INFO "%*s\"%s\":\n", level, " ", configfs_get_name(sd));
-+	pr_info("%*s\"%s\":\n", level, " ", configfs_get_name(sd));
+diff -puN fs/devpts/inode.c~fs-devpts-inodec-convert-printk-to-pr_foo fs/devpts/inode.c
+--- a/fs/devpts/inode.c~fs-devpts-inodec-convert-printk-to-pr_foo
++++ a/fs/devpts/inode.c
+@@ -10,6 +10,8 @@
+  *
+  * ------------------------------------------------------------------------- */
  
--#define type_print(_type) if (sd->s_type & _type) printk(KERN_INFO "%*s %s\n", level, " ", #_type);
-+#define type_print(_type) if (sd->s_type & _type) pr_info("%*s %s\n", level, " ", #_type);
- 	type_print(CONFIGFS_ROOT);
- 	type_print(CONFIGFS_DIR);
- 	type_print(CONFIGFS_ITEM_ATTR);
-@@ -1699,7 +1699,7 @@ void configfs_unregister_subsystem(struc
- 	struct dentry *root = dentry->d_sb->s_root;
++#define pr_fmt(fmt) "devpts: " fmt
++
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/fs.h>
+@@ -148,10 +150,10 @@ static inline struct super_block *pts_sb
  
- 	if (dentry->d_parent != root) {
--		printk(KERN_ERR "configfs: Tried to unregister non-subsystem!\n");
-+		pr_err("configfs: Tried to unregister non-subsystem!\n");
- 		return;
- 	}
- 
-@@ -1709,7 +1709,7 @@ void configfs_unregister_subsystem(struc
- 	mutex_lock(&configfs_symlink_mutex);
- 	spin_lock(&configfs_dirent_lock);
- 	if (configfs_detach_prep(dentry, NULL)) {
--		printk(KERN_ERR "configfs: Tried to unregister non-empty subsystem!\n");
-+		pr_err("configfs: Tried to unregister non-empty subsystem!\n");
- 	}
- 	spin_unlock(&configfs_dirent_lock);
- 	mutex_unlock(&configfs_symlink_mutex);
-diff -puN fs/configfs/inode.c~fs-configfs-convert-printk-to-pr_foo fs/configfs/inode.c
---- a/fs/configfs/inode.c~fs-configfs-convert-printk-to-pr_foo
-+++ a/fs/configfs/inode.c
-@@ -168,9 +168,8 @@ static void configfs_set_inode_lock_clas
- 			 * In practice the maximum level of locking depth is
- 			 * already reached. Just inform about possible reasons.
- 			 */
--			printk(KERN_INFO "configfs: Too many levels of inodes"
--			       " for the locking correctness validator.\n");
--			printk(KERN_INFO "Spurious warnings may appear.\n");
-+			pr_info("configfs: Too many levels of inodes for the locking correctness validator.\n");
-+			pr_info("Spurious warnings may appear.\n");
+ /*
+  * parse_mount_options():
+- * 	Set @opts to mount options specified in @data. If an option is not
+- * 	specified in @data, set it to its default value. The exception is
+- * 	'newinstance' option which can only be set/cleared on a mount (i.e.
+- * 	cannot be changed during remount).
++ *	Set @opts to mount options specified in @data. If an option is not
++ *	specified in @data, set it to its default value. The exception is
++ *	'newinstance' option which can only be set/cleared on a mount (i.e.
++ *	cannot be changed during remount).
+  *
+  * Note: @data may be NULL (in which case all options are set to default).
+  */
+@@ -225,7 +227,7 @@ static int parse_mount_options(char *dat
+ 			break;
+ #endif
+ 		default:
+-			printk(KERN_ERR "devpts: called with bogus options\n");
++			pr_err("called with bogus options\n");
+ 			return -EINVAL;
  		}
  	}
- }
-diff -puN fs/configfs/mount.c~fs-configfs-convert-printk-to-pr_foo fs/configfs/mount.c
---- a/fs/configfs/mount.c~fs-configfs-convert-printk-to-pr_foo
-+++ a/fs/configfs/mount.c
-@@ -155,7 +155,7 @@ static int __init configfs_init(void)
+@@ -261,7 +263,7 @@ static int mknod_ptmx(struct super_block
  
- 	return 0;
- out4:
--	printk(KERN_ERR "configfs: Unable to register filesystem!\n");
-+	pr_err("configfs: Unable to register filesystem!\n");
- 	configfs_inode_exit();
- out3:
- 	kobject_put(config_kobj);
+ 	dentry = d_alloc_name(root, "ptmx");
+ 	if (!dentry) {
+-		printk(KERN_NOTICE "Unable to alloc dentry for ptmx node\n");
++		pr_err("Unable to alloc dentry for ptmx node\n");
+ 		goto out;
+ 	}
+ 
+@@ -270,7 +272,7 @@ static int mknod_ptmx(struct super_block
+ 	 */
+ 	inode = new_inode(sb);
+ 	if (!inode) {
+-		printk(KERN_ERR "Unable to alloc inode for ptmx node\n");
++		pr_err("Unable to alloc inode for ptmx node\n");
+ 		dput(dentry);
+ 		goto out;
+ 	}
+@@ -303,7 +305,7 @@ static void update_ptmx_mode(struct pts_
+ #else
+ static inline void update_ptmx_mode(struct pts_fs_info *fsi)
+ {
+-       return;
++	return;
+ }
+ #endif
+ 
+@@ -333,9 +335,11 @@ static int devpts_show_options(struct se
+ 	struct pts_mount_opts *opts = &fsi->mount_opts;
+ 
+ 	if (opts->setuid)
+-		seq_printf(seq, ",uid=%u", from_kuid_munged(&init_user_ns, opts->uid));
++		seq_printf(seq, ",uid=%u",
++			   from_kuid_munged(&init_user_ns, opts->uid));
+ 	if (opts->setgid)
+-		seq_printf(seq, ",gid=%u", from_kgid_munged(&init_user_ns, opts->gid));
++		seq_printf(seq, ",gid=%u",
++			   from_kgid_munged(&init_user_ns, opts->gid));
+ 	seq_printf(seq, ",mode=%03o", opts->mode);
+ #ifdef CONFIG_DEVPTS_MULTIPLE_INSTANCES
+ 	seq_printf(seq, ",ptmxmode=%03o", opts->ptmxmode);
+@@ -396,7 +400,7 @@ devpts_fill_super(struct super_block *s,
+ 	if (s->s_root)
+ 		return 0;
+ 
+-	printk(KERN_ERR "devpts: get root dentry failed\n");
++	pr_err("get root dentry failed\n");
+ 
+ fail:
+ 	return -ENOMEM;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -188,6 +217,7 @@ fs-pstore-logging-clean-up.patch
 fs-pstore-logging-clean-up-fix.patch
 fs-cachefiles-convert-printk-to-pr_foo.patch
 fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
 kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
 kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
