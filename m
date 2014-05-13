@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
+ mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
  added to -mm tree
-Date: Tue, 13 May 2014 15:40:49 -0700
-Message-ID: <53729f71.NRu+4/tm7yW17zFM%akpm@linux-foundation.org>
+Date: Tue, 13 May 2014 15:40:54 -0700
+Message-ID: <53729f76.8HzB3k1/Re5FGJdy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56215 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56242 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753147AbaEMWku (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:40:50 -0400
+	with ESMTP id S1755109AbaEMWkz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:40:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vbabka@suse.cz, tytso@mit.edu, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mhocko@suse.cz, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, mgorman@suse.de
 
-Subject: + mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch added to -mm tree
+Subject: + mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch added to -mm tree
 To: mgorman@suse.de,dave.hansen@intel.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,mhocko@suse.cz,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,tytso@mit.edu,vbabka@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 15:40:49 -0700
+Date: Tue, 13 May 2014 15:40:54 -0700
 
 
 The patch titled
-     Subject: mm: page_alloc: use jump labels to avoid checking number_of_cpusets
+     Subject: mm: page_alloc: take the ALLOC_NO_WATERMARK check out of the fast path
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
+     mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,14 +46,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: use jump labels to avoid checking number_of_cpusets
+Subject: mm: page_alloc: take the ALLOC_NO_WATERMARK check out of the fast path
 
-If cpusets are not in use then we still check a global variable on every
-page allocation.  Use jump labels to avoid the overhead.
+ALLOC_NO_WATERMARK is set in a few cases.  Always by kswapd, always for
+__GFP_MEMALLOC, sometimes for swap-over-nfs, tasks etc.  Each of these
+cases are relatively rare events but the ALLOC_NO_WATERMARK check is an
+unlikely branch in the fast path.  This patch moves the check out of the
+fast path and after it has been determined that the watermarks have not
+been met.  This helps the common fast path at the cost of making the slow
+path slower and hitting kswapd with a performance cost.  It's a reasonable
+tradeoff.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -66,133 +72,34 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h |   28 +++++++++++++++++++++++++---
- kernel/cpuset.c        |   14 ++++----------
- mm/page_alloc.c        |    3 ++-
- 3 files changed, 31 insertions(+), 14 deletions(-)
+ mm/page_alloc.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/cpuset.h~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets include/linux/cpuset.h
---- a/include/linux/cpuset.h~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
-+++ a/include/linux/cpuset.h
-@@ -15,7 +15,27 @@
- 
- #ifdef CONFIG_CPUSETS
- 
--extern int number_of_cpusets;	/* How many cpusets are defined in system? */
-+extern struct static_key cpusets_enabled_key;
-+static inline bool cpusets_enabled(void)
-+{
-+	return static_key_false(&cpusets_enabled_key);
-+}
-+
-+static inline int nr_cpusets(void)
-+{
-+	/* jump label reference count + the top-level cpuset */
-+	return static_key_count(&cpusets_enabled_key) + 1;
-+}
-+
-+static inline void cpuset_inc(void)
-+{
-+	static_key_slow_inc(&cpusets_enabled_key);
-+}
-+
-+static inline void cpuset_dec(void)
-+{
-+	static_key_slow_dec(&cpusets_enabled_key);
-+}
- 
- extern int cpuset_init(void);
- extern void cpuset_init_smp(void);
-@@ -32,13 +52,13 @@ extern int __cpuset_node_allowed_hardwal
- 
- static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
- {
--	return number_of_cpusets <= 1 ||
-+	return nr_cpusets() <= 1 ||
- 		__cpuset_node_allowed_softwall(node, gfp_mask);
- }
- 
- static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
- {
--	return number_of_cpusets <= 1 ||
-+	return nr_cpusets() <= 1 ||
- 		__cpuset_node_allowed_hardwall(node, gfp_mask);
- }
- 
-@@ -124,6 +144,8 @@ static inline void set_mems_allowed(node
- 
- #else /* !CONFIG_CPUSETS */
- 
-+static inline bool cpusets_enabled(void) { return false; }
-+
- static inline int cpuset_init(void) { return 0; }
- static inline void cpuset_init_smp(void) {}
- 
-diff -puN kernel/cpuset.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets kernel/cpuset.c
---- a/kernel/cpuset.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
-+++ a/kernel/cpuset.c
-@@ -61,12 +61,7 @@
- #include <linux/cgroup.h>
- #include <linux/wait.h>
- 
--/*
-- * Tracks how many cpusets are currently defined in system.
-- * When there is only one cpuset (the root cpuset) we can
-- * short circuit some hooks.
-- */
--int number_of_cpusets __read_mostly;
-+struct static_key cpusets_enabled_key __read_mostly = STATIC_KEY_INIT_FALSE;
- 
- /* See "Frequency meter" comments, below. */
- 
-@@ -611,7 +606,7 @@ static int generate_sched_domains(cpumas
- 		goto done;
- 	}
- 
--	csa = kmalloc(number_of_cpusets * sizeof(cp), GFP_KERNEL);
-+	csa = kmalloc(nr_cpusets() * sizeof(cp), GFP_KERNEL);
- 	if (!csa)
- 		goto done;
- 	csn = 0;
-@@ -1888,7 +1883,7 @@ static int cpuset_css_online(struct cgro
- 	if (is_spread_slab(parent))
- 		set_bit(CS_SPREAD_SLAB, &cs->flags);
- 
--	number_of_cpusets++;
-+	cpuset_inc();
- 
- 	if (!test_bit(CGRP_CPUSET_CLONE_CHILDREN, &css->cgroup->flags))
- 		goto out_unlock;
-@@ -1939,7 +1934,7 @@ static void cpuset_css_offline(struct cg
- 	if (is_sched_load_balance(cs))
- 		update_flag(CS_SCHED_LOAD_BALANCE, cs, 0);
- 
--	number_of_cpusets--;
-+	cpuset_dec();
- 	clear_bit(CS_ONLINE, &cs->flags);
- 
- 	mutex_unlock(&cpuset_mutex);
-@@ -1992,7 +1987,6 @@ int __init cpuset_init(void)
- 	if (!alloc_cpumask_var(&cpus_attach, GFP_KERNEL))
- 		BUG();
- 
--	number_of_cpusets = 1;
- 	return 0;
- }
- 
-diff -puN mm/page_alloc.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
+diff -puN mm/page_alloc.c~mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path
 +++ a/mm/page_alloc.c
-@@ -1921,7 +1921,8 @@ zonelist_scan:
- 		if (IS_ENABLED(CONFIG_NUMA) && zlc_active &&
- 			!zlc_zone_worth_trying(zonelist, z, allowednodes))
- 				continue;
--		if ((alloc_flags & ALLOC_CPUSET) &&
-+		if (cpusets_enabled() &&
-+			(alloc_flags & ALLOC_CPUSET) &&
+@@ -1937,9 +1937,6 @@ zonelist_scan:
+ 			(alloc_flags & ALLOC_CPUSET) &&
  			!cpuset_zone_allowed_softwall(zone, gfp_mask))
  				continue;
- 		BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
+-		BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
+-		if (unlikely(alloc_flags & ALLOC_NO_WATERMARKS))
+-			goto try_this_zone;
+ 		/*
+ 		 * Distribute pages in proportion to the individual
+ 		 * zone size to ensure fair page aging.  The zone a
+@@ -1986,6 +1983,11 @@ zonelist_scan:
+ 				       classzone_idx, alloc_flags)) {
+ 			int ret;
+ 
++			/* Checked here to keep the fast path fast */
++			BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
++			if (alloc_flags & ALLOC_NO_WATERMARKS)
++				goto try_this_zone;
++
+ 			if (IS_ENABLED(CONFIG_NUMA) &&
+ 					!did_zlc_setup && nr_online_nodes > 1) {
+ 				/*
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
