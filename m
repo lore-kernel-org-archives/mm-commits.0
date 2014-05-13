@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
+ mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
  added to -mm tree
-Date: Tue, 13 May 2014 15:40:52 -0700
-Message-ID: <53729f74.iCqOJQN2aZUghLT3%akpm@linux-foundation.org>
+Date: Tue, 13 May 2014 15:40:49 -0700
+Message-ID: <53729f71.NRu+4/tm7yW17zFM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56236 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56215 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754961AbaEMWkx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:40:53 -0400
+	with ESMTP id S1753147AbaEMWku (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 18:40:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vbabka@suse.cz, tytso@mit.edu, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mhocko@suse.cz, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, mgorman@suse.de
 
-Subject: + mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch added to -mm tree
+Subject: + mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch added to -mm tree
 To: mgorman@suse.de,dave.hansen@intel.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,mhocko@suse.cz,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,tytso@mit.edu,vbabka@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 15:40:52 -0700
+Date: Tue, 13 May 2014 15:40:49 -0700
 
 
 The patch titled
-     Subject: mm: page_alloc: only check the alloc flags and gfp_mask for dirty once
+     Subject: mm: page_alloc: use jump labels to avoid checking number_of_cpusets
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
+     mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,13 +46,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: only check the alloc flags and gfp_mask for dirty once
+Subject: mm: page_alloc: use jump labels to avoid checking number_of_cpusets
 
-Currently it's calculated once per zone in the zonelist.
+If cpusets are not in use then we still check a global variable on every
+page allocation.  Use jump labels to avoid the overhead.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -65,31 +66,133 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/cpuset.h |   28 +++++++++++++++++++++++++---
+ kernel/cpuset.c        |   14 ++++----------
+ mm/page_alloc.c        |    3 ++-
+ 3 files changed, 31 insertions(+), 14 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once
+diff -puN include/linux/cpuset.h~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets include/linux/cpuset.h
+--- a/include/linux/cpuset.h~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
++++ a/include/linux/cpuset.h
+@@ -15,7 +15,27 @@
+ 
+ #ifdef CONFIG_CPUSETS
+ 
+-extern int number_of_cpusets;	/* How many cpusets are defined in system? */
++extern struct static_key cpusets_enabled_key;
++static inline bool cpusets_enabled(void)
++{
++	return static_key_false(&cpusets_enabled_key);
++}
++
++static inline int nr_cpusets(void)
++{
++	/* jump label reference count + the top-level cpuset */
++	return static_key_count(&cpusets_enabled_key) + 1;
++}
++
++static inline void cpuset_inc(void)
++{
++	static_key_slow_inc(&cpusets_enabled_key);
++}
++
++static inline void cpuset_dec(void)
++{
++	static_key_slow_dec(&cpusets_enabled_key);
++}
+ 
+ extern int cpuset_init(void);
+ extern void cpuset_init_smp(void);
+@@ -32,13 +52,13 @@ extern int __cpuset_node_allowed_hardwal
+ 
+ static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
+ {
+-	return number_of_cpusets <= 1 ||
++	return nr_cpusets() <= 1 ||
+ 		__cpuset_node_allowed_softwall(node, gfp_mask);
+ }
+ 
+ static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
+ {
+-	return number_of_cpusets <= 1 ||
++	return nr_cpusets() <= 1 ||
+ 		__cpuset_node_allowed_hardwall(node, gfp_mask);
+ }
+ 
+@@ -124,6 +144,8 @@ static inline void set_mems_allowed(node
+ 
+ #else /* !CONFIG_CPUSETS */
+ 
++static inline bool cpusets_enabled(void) { return false; }
++
+ static inline int cpuset_init(void) { return 0; }
+ static inline void cpuset_init_smp(void) {}
+ 
+diff -puN kernel/cpuset.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets kernel/cpuset.c
+--- a/kernel/cpuset.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
++++ a/kernel/cpuset.c
+@@ -61,12 +61,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/wait.h>
+ 
+-/*
+- * Tracks how many cpusets are currently defined in system.
+- * When there is only one cpuset (the root cpuset) we can
+- * short circuit some hooks.
+- */
+-int number_of_cpusets __read_mostly;
++struct static_key cpusets_enabled_key __read_mostly = STATIC_KEY_INIT_FALSE;
+ 
+ /* See "Frequency meter" comments, below. */
+ 
+@@ -611,7 +606,7 @@ static int generate_sched_domains(cpumas
+ 		goto done;
+ 	}
+ 
+-	csa = kmalloc(number_of_cpusets * sizeof(cp), GFP_KERNEL);
++	csa = kmalloc(nr_cpusets() * sizeof(cp), GFP_KERNEL);
+ 	if (!csa)
+ 		goto done;
+ 	csn = 0;
+@@ -1888,7 +1883,7 @@ static int cpuset_css_online(struct cgro
+ 	if (is_spread_slab(parent))
+ 		set_bit(CS_SPREAD_SLAB, &cs->flags);
+ 
+-	number_of_cpusets++;
++	cpuset_inc();
+ 
+ 	if (!test_bit(CGRP_CPUSET_CLONE_CHILDREN, &css->cgroup->flags))
+ 		goto out_unlock;
+@@ -1939,7 +1934,7 @@ static void cpuset_css_offline(struct cg
+ 	if (is_sched_load_balance(cs))
+ 		update_flag(CS_SCHED_LOAD_BALANCE, cs, 0);
+ 
+-	number_of_cpusets--;
++	cpuset_dec();
+ 	clear_bit(CS_ONLINE, &cs->flags);
+ 
+ 	mutex_unlock(&cpuset_mutex);
+@@ -1992,7 +1987,6 @@ int __init cpuset_init(void)
+ 	if (!alloc_cpumask_var(&cpus_attach, GFP_KERNEL))
+ 		BUG();
+ 
+-	number_of_cpusets = 1;
+ 	return 0;
+ }
+ 
+diff -puN mm/page_alloc.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
 +++ a/mm/page_alloc.c
-@@ -1917,6 +1917,8 @@ get_page_from_freelist(gfp_t gfp_mask, n
- 	nodemask_t *allowednodes = NULL;/* zonelist_cache approximation */
- 	int zlc_active = 0;		/* set if using zonelist_cache */
- 	int did_zlc_setup = 0;		/* just call zlc_setup() one time */
-+	bool consider_zone_dirty = (alloc_flags & ALLOC_WMARK_LOW) &&
-+				(gfp_mask & __GFP_WRITE);
- 
- 	classzone_idx = zone_idx(preferred_zone);
- zonelist_scan:
-@@ -1976,8 +1978,7 @@ zonelist_scan:
- 		 * will require awareness of zones in the
- 		 * dirty-throttling and the flusher threads.
- 		 */
--		if ((alloc_flags & ALLOC_WMARK_LOW) &&
--		    (gfp_mask & __GFP_WRITE) && !zone_dirty_ok(zone))
-+		if (consider_zone_dirty && !zone_dirty_ok(zone))
- 			continue;
- 
- 		mark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
+@@ -1921,7 +1921,8 @@ zonelist_scan:
+ 		if (IS_ENABLED(CONFIG_NUMA) && zlc_active &&
+ 			!zlc_zone_worth_trying(zonelist, z, allowednodes))
+ 				continue;
+-		if ((alloc_flags & ALLOC_CPUSET) &&
++		if (cpusets_enabled() &&
++			(alloc_flags & ALLOC_CPUSET) &&
+ 			!cpuset_zone_allowed_softwall(zone, gfp_mask))
+ 				continue;
+ 		BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
