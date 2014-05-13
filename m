@@ -1,139 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch removed
- from -mm tree
-Date: Tue, 13 May 2014 11:53:56 -0700
-Message-ID: <53726a44.zcpbNoJ1HBmV+wpE%akpm@linux-foundation.org>
+Subject: + ocfs2-remove-some-redundant-casting.patch added to -mm tree
+Date: Tue, 13 May 2014 13:13:02 -0700
+Message-ID: <53727cce.3y2guKaWcic0kh6W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52567 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53543 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753185AbaEMSx5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 14:53:57 -0400
+	with ESMTP id S1751667AbaEMUNE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:13:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rjw@rjwysocki.net, fabf@skynet.be
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, linux@horizon.com
 
-Subject: [merged] kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch removed from -mm tree
-To: fabf@skynet.be,rjw@rjwysocki.net,mm-commits@vger.kernel.org
+Subject: + ocfs2-remove-some-redundant-casting.patch added to -mm tree
+To: linux@horizon.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 11:53:56 -0700
+Date: Tue, 13 May 2014 13:13:02 -0700
 
 
 The patch titled
-     Subject: kernel/power/hibernate.c: convert simple_strtoul to kstrtoul
-has been removed from the -mm tree.  Its filename was
-     kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul.patch
+     Subject: ocfs2: remove some redundant casting
+has been added to the -mm tree.  Its filename is
+     ocfs2-remove-some-redundant-casting.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-some-redundant-casting.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-some-redundant-casting.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/power/hibernate.c: convert simple_strtoul to kstrtoul
+From: "George Spelvin" <linux@horizon.com>
+Subject: ocfs2: remove some redundant casting
 
-Replace obsolete function.
+There are two standard techniques for dereferencing structures pointed
+to by void *: cast to the right type each time they're used, or assign
+to local variables of the right type.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+But there's no need to do *both*.
+
+Signed-off-by: George Spelvin <linux@horizon.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/hibernate.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/ocfs2/refcounttree.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN kernel/power/hibernate.c~kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul kernel/power/hibernate.c
---- a/kernel/power/hibernate.c~kernel-power-hibernatec-convert-simple_strtoul-to-kstrtoul
-+++ a/kernel/power/hibernate.c
-@@ -1115,7 +1115,10 @@ static int __init resumewait_setup(char
- 
- static int __init resumedelay_setup(char *str)
+diff -puN fs/ocfs2/refcounttree.c~ocfs2-remove-some-redundant-casting fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~ocfs2-remove-some-redundant-casting
++++ a/fs/ocfs2/refcounttree.c
+@@ -1408,10 +1408,9 @@ static void swap_refcount_rec(void *a, v
  {
--	resume_delay = simple_strtoul(str, NULL, 0);
-+	int rc = kstrtoul(str, 0, (unsigned long *)&resume_delay);
-+
-+	if (rc)
-+		return rc;
- 	return 1;
+ 	struct ocfs2_refcount_rec *l = a, *r = b, tmp;
+ 
+-	tmp = *(struct ocfs2_refcount_rec *)l;
+-	*(struct ocfs2_refcount_rec *)l =
+-			*(struct ocfs2_refcount_rec *)r;
+-	*(struct ocfs2_refcount_rec *)r = tmp;
++	tmp = *l;
++	*l = *r;
++	*r = tmp;
  }
  
+ /*
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from linux@horizon.com are
 
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
-fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
-fs-fscache-convert-printk-to-pr_foo.patch
-fs-fscache-replace-seq_printf-by-seq_puts.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
-ntfs-remove-null-value-assignments.patch
-fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
-arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
-arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
-arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
-fs-configs-itemc-kernel-doc-fixes-clean-up.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
-fs-9p-kerneldoc-fixes.patch
-mm-slubc-convert-printk-to-pr_foo.patch
-mm-slubc-convert-vnsprintf-static-to-va_format.patch
-mm-memory_hotplugc-use-pfn_down.patch
-mm-memblockc-use-pfn_down.patch
-mm-memcontrolc-remove-null-assignment-on-static.patch
-mm-vmallocc-replace-seq_printf-by-seq_puts.patch
-mm-mempolicyc-parameter-doc-uniformization.patch
-mm-zbudc-make-size-unsigned-like-unique-callsite.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-kernel-cpuc-convert-printk-to-pr_foo.patch
-kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
-kernel-capabilityc-code-clean-up.patch
-kernel-exec_domainc-code-clean-up.patch
-kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
-kernel-stop_machinec-kernel-doc-warning-fix.patch
-kernel-tracepointc-kernel-doc-fixes.patch
-kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
-kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
-kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
-kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
-documentation-expand-clarify-debug-documentation.patch
-lib-libcrc32cc-use-ptr_err_or_zero.patch
-lib-vsprintfc-fix-comparison-to-bool.patch
-kernel-compatc-use-sizeof-instead-of-sizeof.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
-linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
+ocfs2-remove-some-redundant-casting.patch
 
