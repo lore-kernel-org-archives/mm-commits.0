@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-deprecate-memoryforce_empty-knob.patch added to -mm tree
-Date: Tue, 13 May 2014 14:40:05 -0700
-Message-ID: <53729135.GlsPQXA8ntqVbvTH%akpm@linux-foundation.org>
+Subject: + memcg-deprecate-memoryforce_empty-knob-fix.patch added to -mm
+ tree
+Date: Tue, 13 May 2014 14:40:06 -0700
+Message-ID: <53729136.SvJZ7pyxDGDGFHgw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55191 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755133AbaEMVkG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 17:40:06 -0400
+	with ESMTP id S1755138AbaEMVkH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 17:40:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, akpm@linux-foundation.org
 
-Subject: + memcg-deprecate-memoryforce_empty-knob.patch added to -mm tree
-To: mhocko@suse.cz,hannes@cmpxchg.org
+Subject: + memcg-deprecate-memoryforce_empty-knob-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,hannes@cmpxchg.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 14:40:05 -0700
+Date: Tue, 13 May 2014 14:40:06 -0700
 
 
 The patch titled
-     Subject: memcg: deprecate memory.force_empty knob
+     Subject: memcg-deprecate-memoryforce_empty-knob-fix
 has been added to the -mm tree.  Its filename is
-     memcg-deprecate-memoryforce_empty-knob.patch
+     memcg-deprecate-memoryforce_empty-knob-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-deprecate-memoryforce_empty-knob.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-deprecate-memoryforce_empty-knob-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-deprecate-memoryforce_empty-knob.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-deprecate-memoryforce_empty-knob-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,122 +44,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: deprecate memory.force_empty knob
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-deprecate-memoryforce_empty-knob-fix
 
-force_empty has been introduced primarily to drop memory before it gets
-reparented on the group removal.  This alone doesn't sound fully justified
-because reparented pages which are not in use can be reclaimed also later
-when there is a memory pressure on the parent level.
+- s/pr_info/pr_info_once/
+- fix garbled printk text
 
-Mark the knob CFTYPE_INSANE which tells the cgroup core that it shouldn't
-create the knob with the experimental sane_behavior.  Other users will get
-informed about the deprecation and asked to tell us more because I do not
-expect most users will use sane_behavior cgroups mode very soon.
-
-Anyway I expect that most users will be simply cgroup remove handlers
-which do that since ever without having any good reason for it.
-
-If somebody really cares because reparented pages, which would be dropped
-otherwise, push out more important ones then we should fix the reparenting
-code and put pages to the tail.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    3 +++
- mm/memcontrol.c                  |    5 +++++
- 2 files changed, 8 insertions(+)
+ Documentation/cgroups/memory.txt |    2 +-
+ mm/memcontrol.c                  |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-deprecate-memoryforce_empty-knob Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-deprecate-memoryforce_empty-knob
+diff -puN Documentation/cgroups/memory.txt~memcg-deprecate-memoryforce_empty-knob-fix Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-deprecate-memoryforce_empty-knob-fix
 +++ a/Documentation/cgroups/memory.txt
-@@ -481,6 +481,9 @@ About use_hierarchy, see Section 6.
-   write will still return success. In this case, it is expected that
+@@ -482,7 +482,7 @@ About use_hierarchy, see Section 6.
    memory.kmem.usage_in_bytes == memory.usage_in_bytes.
  
-+  Please note that this knob is considered deprecated and will be removed
-+  in future.
-+
+   Please note that this knob is considered deprecated and will be removed
+-  in future.
++  in the future.
+ 
    About use_hierarchy, see Section 6.
  
- 5.2 stat file
-diff -puN mm/memcontrol.c~memcg-deprecate-memoryforce_empty-knob mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-deprecate-memoryforce_empty-knob
+diff -puN mm/memcontrol.c~memcg-deprecate-memoryforce_empty-knob-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-deprecate-memoryforce_empty-knob-fix
 +++ a/mm/memcontrol.c
-@@ -4799,6 +4799,10 @@ static int mem_cgroup_force_empty_write(
+@@ -4799,10 +4799,10 @@ static int mem_cgroup_force_empty_write(
  
  	if (mem_cgroup_is_root(memcg))
  		return -EINVAL;
-+	pr_info("%s (%d): memory.force_empty is deprecated and will be removed.",
-+			current->comm, task_pid_nr(current));
-+	pr_cont(" Let us know if you know if it needed in your usecase at");
-+	pr_cont(" linux-mm@kvack.org\n");
+-	pr_info("%s (%d): memory.force_empty is deprecated and will be removed.",
+-			current->comm, task_pid_nr(current));
+-	pr_cont(" Let us know if you know if it needed in your usecase at");
+-	pr_cont(" linux-mm@kvack.org\n");
++	pr_info_once("%s (%d): memory.force_empty is deprecated and will be "
++		     "removed.  Let us know if it is needed in your usecase at "
++		     "linux-mm@kvack.org\n",
++		     current->comm, task_pid_nr(current));
  	return mem_cgroup_force_empty(memcg);
  }
  
-@@ -6043,6 +6047,7 @@ static struct cftype mem_cgroup_files[]
- 	},
- 	{
- 		.name = "force_empty",
-+		.flags = CFTYPE_INSANE,
- 		.trigger = mem_cgroup_force_empty_write,
- 	},
- 	{
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slb-charge-slabs-to-kmemcg-explicitly.patch
-mm-get-rid-of-__gfp_kmemcg.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
-mm-disable-zone_reclaim_mode-by-default.patch
-mm-page_alloc-do-not-cache-reclaim-distances.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
 mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-documentation-memcg-warn-about-incomplete-kmemcg-state.patch
-memcg-kill-config_mm_owner.patch
-memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-memcg-slab-do-not-schedule-cache-destruction-when-last-page-goes-away.patch
-memcg-slab-merge-memcg_bindrelease_pages-to-memcg_uncharge_slab.patch
-memcg-slab-simplify-synchronization-scheme.patch
-memcg-mm_update_next_owner-should-skip-kthreads.patch
-memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner.patch
-memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
-memcg-mm-introduce-lowlimit-reclaim.patch
-memcg-mm-introduce-lowlimit-reclaim-fix.patch
-memcg-allow-setting-low_limit.patch
-memcg-doc-clarify-global-vs-limit-reclaims.patch
-memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
-memcg-document-memorylow_limit_in_bytes.patch
-vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-oom_control.patch
-mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
-mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
-memcg-fold-mem_cgroup_stolen.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+mm-update-comment-for-default_max_map_count-fix.patch
 memcg-fold-mem_cgroup_stolen-fix.patch
-memcg-correct-comments-for-__mem_cgroup_begin_update_page_stat.patch
-memcg-get-rid-of-memcg_create_cache_name.patch
-memcg-memcg_kmem_create_cache-make-memcg_name_buf.patch
-swap-change-swap_info-singly-linked-list-to-list_head.patch
-plist-add-helper-functions.patch
-plist-add-plist_requeue.patch
-swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
-memcg-deprecate-memoryforce_empty-knob.patch
+mm-compaction-embed-migration-mode-in-compact_control-fix.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage.patch
+mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
 memcg-deprecate-memoryforce_empty-knob-fix.patch
-kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+init-mainc-remove-an-ifdef.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+rtc-da9063-rtc-driver-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
+fs-pstore-logging-clean-up-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
