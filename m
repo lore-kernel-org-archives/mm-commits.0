@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-remove-some-redundant-casting.patch added to -mm tree
-Date: Tue, 13 May 2014 13:13:02 -0700
-Message-ID: <53727cce.3y2guKaWcic0kh6W%akpm@linux-foundation.org>
+Subject: + gcov-add-support-for-gcc-49.patch added to -mm tree
+Date: Tue, 13 May 2014 13:22:16 -0700
+Message-ID: <53727ef8.oU4w/V/UFRbRYr+C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53543 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53675 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667AbaEMUNE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:13:04 -0400
+	with ESMTP id S1754902AbaEMUWR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 May 2014 16:22:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, linux@horizon.com
+To: mm-commits@vger.kernel.org, oberpar@linux.vnet.ibm.com, coolypf@qq.com
 
-Subject: + ocfs2-remove-some-redundant-casting.patch added to -mm tree
-To: linux@horizon.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + gcov-add-support-for-gcc-49.patch added to -mm tree
+To: coolypf@qq.com,oberpar@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Tue, 13 May 2014 13:13:02 -0700
+Date: Tue, 13 May 2014 13:22:16 -0700
 
 
 The patch titled
-     Subject: ocfs2: remove some redundant casting
+     Subject: gcov: add support for GCC 4.9
 has been added to the -mm tree.  Its filename is
-     ocfs2-remove-some-redundant-casting.patch
+     gcov-add-support-for-gcc-49.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-some-redundant-casting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/gcov-add-support-for-gcc-49.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-some-redundant-casting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-add-support-for-gcc-49.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,44 +43,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "George Spelvin" <linux@horizon.com>
-Subject: ocfs2: remove some redundant casting
+From: Yuan Pengfei <coolypf@qq.com>
+Subject: gcov: add support for GCC 4.9
 
-There are two standard techniques for dereferencing structures pointed
-to by void *: cast to the right type each time they're used, or assign
-to local variables of the right type.
+Handle the gcov-related changes in GCC 4.9:
 
-But there's no need to do *both*.
+  A new counter (time profile) is added.
 
-Signed-off-by: George Spelvin <linux@horizon.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+See http://gcc.gnu.org/gcc-4.9/changes.html
+
+Signed-off-by: Yuan Pengfei <coolypf@qq.com>
+Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/gcov/base.c    |    6 ++++++
+ kernel/gcov/gcc_4_7.c |    5 +++++
+ 2 files changed, 11 insertions(+)
 
-diff -puN fs/ocfs2/refcounttree.c~ocfs2-remove-some-redundant-casting fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~ocfs2-remove-some-redundant-casting
-+++ a/fs/ocfs2/refcounttree.c
-@@ -1408,10 +1408,9 @@ static void swap_refcount_rec(void *a, v
- {
- 	struct ocfs2_refcount_rec *l = a, *r = b, tmp;
- 
--	tmp = *(struct ocfs2_refcount_rec *)l;
--	*(struct ocfs2_refcount_rec *)l =
--			*(struct ocfs2_refcount_rec *)r;
--	*(struct ocfs2_refcount_rec *)r = tmp;
-+	tmp = *l;
-+	*l = *r;
-+	*r = tmp;
+diff -puN kernel/gcov/base.c~gcov-add-support-for-gcc-49 kernel/gcov/base.c
+--- a/kernel/gcov/base.c~gcov-add-support-for-gcc-49
++++ a/kernel/gcov/base.c
+@@ -85,6 +85,12 @@ void __gcov_merge_ior(gcov_type *counter
  }
+ EXPORT_SYMBOL(__gcov_merge_ior);
  
- /*
++void __gcov_merge_time_profile(gcov_type *counters, unsigned int n_counters)
++{
++	/* Unused. */
++}
++EXPORT_SYMBOL(__gcov_merge_time_profile);
++
+ /**
+  * gcov_enable_events - enable event reporting through gcov_event()
+  *
+diff -puN kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-49 kernel/gcov/gcc_4_7.c
+--- a/kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-49
++++ a/kernel/gcov/gcc_4_7.c
+@@ -18,7 +18,12 @@
+ #include <linux/vmalloc.h>
+ #include "gcov.h"
+ 
++#if __GNUC__ == 4 && __GNUC_MINOR__ >= 9
++#define GCOV_COUNTERS			9
++#else
+ #define GCOV_COUNTERS			8
++#endif
++
+ #define GCOV_TAG_FUNCTION_LENGTH	3
+ 
+ static struct gcov_info *gcov_info_head;
 _
 
-Patches currently in -mm which might be from linux@horizon.com are
+Patches currently in -mm which might be from coolypf@qq.com are
 
-ocfs2-remove-some-redundant-casting.patch
+gcov-add-support-for-gcc-49.patch
 
