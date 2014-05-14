@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch added to
+Subject: +
+ x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet.patch added to
  -mm tree
-Date: Wed, 14 May 2014 15:32:56 -0700
-Message-ID: <5373ef18.uFyK8LgdrEXbluaj%akpm@linux-foundation.org>
+Date: Wed, 14 May 2014 16:18:33 -0700
+Message-ID: <5373f9c9.Tc8ldHAGeB0kFFMo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48707 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49122 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752694AbaENWc5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 18:32:57 -0400
+	with ESMTP id S1751783AbaENXSe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 19:18:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, stable@vger.kernel.org, sasha.levin@oracle.com, mingo@elte.hu, hpa@linux.intel.com, luto@amacapital.net
 
-Subject: + ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch added to -mm tree
-To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet.patch added to -mm tree
+To: luto@amacapital.net,hpa@linux.intel.com,mingo@elte.hu,sasha.levin@oracle.com,stable@vger.kernel.org,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Wed, 14 May 2014 15:32:56 -0700
+Date: Wed, 14 May 2014 16:18:33 -0700
 
 
 The patch titled
-     Subject: ocfs2: fix double kmem_cache_destroy in dlm_init
+     Subject: x86,vdso: fix an OOPS accessing the hpet mapping w/o an hpet
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch
+     x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,49 +45,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix double kmem_cache_destroy in dlm_init
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: x86,vdso: fix an OOPS accessing the hpet mapping w/o an hpet
 
-In dlm_init, if create dlm_lockname_cache failed in
-dlm_init_master_caches, it will destroy dlm_lockres_cache which created
-before twice.  And this will cause system die when loading modules.
+The access should fail, but it shouldn't oops.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Andy Lutomirski <luto@amacapital.net>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@vger.kernel.org>	[needs rework for 3.15 and earlier]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/x86/vdso/vma.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-fix-double-kmem_cache_destroy-in-dlm_init fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-fix-double-kmem_cache_destroy-in-dlm_init
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -472,11 +472,15 @@ bail:
- 
- void dlm_destroy_master_caches(void)
- {
--	if (dlm_lockname_cache)
-+	if (dlm_lockname_cache) {
- 		kmem_cache_destroy(dlm_lockname_cache);
-+		dlm_lockname_cache = NULL;
-+	}
- 
--	if (dlm_lockres_cache)
-+	if (dlm_lockres_cache) {
- 		kmem_cache_destroy(dlm_lockres_cache);
-+		dlm_lockres_cache = NULL;
-+	}
+diff -puN arch/x86/vdso/vma.c~x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet arch/x86/vdso/vma.c
+--- a/arch/x86/vdso/vma.c~x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet
++++ a/arch/x86/vdso/vma.c
+@@ -84,6 +84,8 @@ static unsigned long vdso_addr(unsigned
+ 	return addr;
  }
  
- static void dlm_lockres_release(struct kref *kref)
++static struct page *no_pages[] = {NULL};
++
+ static int map_vdso(const struct vdso_image *image, bool calculate_addr)
+ {
+ 	struct mm_struct *mm = current->mm;
+@@ -125,7 +127,7 @@ static int map_vdso(const struct vdso_im
+ 				       addr + image->size,
+ 				       image->sym_end_mapping - image->size,
+ 				       VM_READ,
+-				       NULL);
++				       no_pages);
+ 
+ 	if (IS_ERR(vma)) {
+ 		ret = PTR_ERR(vma);
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from luto@amacapital.net are
 
-ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch
-ocfs2-limit-printk-when-journal-is-aborted.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
+linux-next.patch
+x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet.patch
 
