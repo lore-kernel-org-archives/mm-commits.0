@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rwsem-support-optimistic-spinning-checkpatch-fixes.patch added
- to -mm tree
-Date: Wed, 14 May 2014 15:27:13 -0700
-Message-ID: <5373edc1.0OtChuVgN7q8pjwR%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch added to
+ -mm tree
+Date: Wed, 14 May 2014 15:32:56 -0700
+Message-ID: <5373ef18.uFyK8LgdrEXbluaj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48677 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48707 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753142AbaENW1O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 18:27:14 -0400
+	with ESMTP id S1752694AbaENWc5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 18:32:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, davidlohr@hp.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
 
-Subject: + rwsem-support-optimistic-spinning-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,davidlohr@hp.com,tim.c.chen@linux.intel.com
+Subject: + ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch added to -mm tree
+To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Wed, 14 May 2014 15:27:13 -0700
+Date: Wed, 14 May 2014 15:32:56 -0700
 
 
 The patch titled
-     Subject: rwsem-support-optimistic-spinning-checkpatch-fixes
+     Subject: ocfs2: fix double kmem_cache_destroy in dlm_init
 has been added to the -mm tree.  Its filename is
-     rwsem-support-optimistic-spinning-checkpatch-fixes.patch
+     ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rwsem-support-optimistic-spinning-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rwsem-support-optimistic-spinning-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,127 +44,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rwsem-support-optimistic-spinning-checkpatch-fixes
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix double kmem_cache_destroy in dlm_init
 
-WARNING: line over 80 characters
-#205: FILE: kernel/locking/rwsem-xadd.c:275:
-+		old = cmpxchg(&sem->count, count, count + RWSEM_ACTIVE_WRITE_BIAS);
+In dlm_init, if create dlm_lockname_cache failed in
+dlm_init_master_caches, it will destroy dlm_lockres_cache which created
+before twice.  And this will cause system die when loading modules.
 
-WARNING: line over 80 characters
-#376: FILE: kernel/locking/rwsem-xadd.c:434:
-+		 * If there were already threads queued before us and there are no
-
-WARNING: line over 80 characters
-#377: FILE: kernel/locking/rwsem-xadd.c:435:
-+		 * active writers, the lock must be read owned; so we try to wake
-
-total: 0 errors, 3 warnings, 417 lines checked
-
-./patches/rwsem-support-optimistic-spinning.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/locking/rwsem-xadd.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN kernel/locking/rwsem-xadd.c~rwsem-support-optimistic-spinning-checkpatch-fixes kernel/locking/rwsem-xadd.c
---- a/kernel/locking/rwsem-xadd.c~rwsem-support-optimistic-spinning-checkpatch-fixes
-+++ a/kernel/locking/rwsem-xadd.c
-@@ -431,9 +431,9 @@ struct rw_semaphore __sched *rwsem_down_
- 		count = ACCESS_ONCE(sem->count);
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-fix-double-kmem_cache_destroy-in-dlm_init fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-fix-double-kmem_cache_destroy-in-dlm_init
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -472,11 +472,15 @@ bail:
  
- 		/*
--		 * If there were already threads queued before us and there are no
--		 * active writers, the lock must be read owned; so we try to wake
--		 * any read locks that were queued ahead of us.
-+		 * If there were already threads queued before us and there are
-+		 * no active writers, the lock must be read owned; so we try to
-+		 * wake any read locks that were queued ahead of us.
- 		 */
- 		if (count > RWSEM_WAITING_BIAS)
- 			sem = __rwsem_do_wake(sem, RWSEM_WAKE_READERS);
+ void dlm_destroy_master_caches(void)
+ {
+-	if (dlm_lockname_cache)
++	if (dlm_lockname_cache) {
+ 		kmem_cache_destroy(dlm_lockname_cache);
++		dlm_lockname_cache = NULL;
++	}
+ 
+-	if (dlm_lockres_cache)
++	if (dlm_lockres_cache) {
+ 		kmem_cache_destroy(dlm_lockres_cache);
++		dlm_lockres_cache = NULL;
++	}
+ }
+ 
+ static void dlm_lockres_release(struct kref *kref)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
-arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch
+ocfs2-limit-printk-when-journal-is-aborted.patch
 ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-mm-update-comment-for-default_max_map_count-fix.patch
-memcg-fold-mem_cgroup_stolen-fix.patch
-mm-compaction-embed-migration-mode-in-compact_control-fix.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-mm-add-comment-for-__mod_zone_page_stat.patch
-mm-add-comment-for-__mod_zone_page_stat-checkpatch-fixes.patch
-mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
-mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-init-mainc-remove-an-ifdef.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-rtc-da9063-rtc-driver-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-2.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-3.patch
-fs-pstore-logging-clean-up-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-lib-test_bpfc-dont-use-gcc-union-shortcut.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-rwsem-support-optimistic-spinning-checkpatch-fixes.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
 
