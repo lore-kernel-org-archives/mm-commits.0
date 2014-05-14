@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-efs-convert-printkkern_debug-to-pr_debug.patch added to -mm
- tree
-Date: Wed, 14 May 2014 12:30:17 -0700
-Message-ID: <5373c449.h6Q6wpBaDJZM9c6a%akpm@linux-foundation.org>
+Subject: + fs-gfs2-bmapc-kernel-doc-warning-fixes.patch added to -mm tree
+Date: Wed, 14 May 2014 12:35:17 -0700
+Message-ID: <5373c575.46SXUrkREzYqrDed%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45900 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834AbaENTaS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 15:30:18 -0400
+	with ESMTP id S1750910AbaENTfS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 15:35:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, swhiteho@redhat.com, fabf@skynet.be
 
-Subject: + fs-efs-convert-printkkern_debug-to-pr_debug.patch added to -mm tree
-To: fabf@skynet.be,joe@perches.com
+Subject: + fs-gfs2-bmapc-kernel-doc-warning-fixes.patch added to -mm tree
+To: fabf@skynet.be,swhiteho@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 14 May 2014 12:30:17 -0700
+Date: Wed, 14 May 2014 12:35:17 -0700
 
 
 The patch titled
-     Subject: fs/efs: convert printk(KERN_DEBUG to pr_debug
+     Subject: fs/gfs2/bmap.c: kernel-doc warning fixes
 has been added to the -mm tree.  Its filename is
-     fs-efs-convert-printkkern_debug-to-pr_debug.patch
+     fs-gfs2-bmapc-kernel-doc-warning-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-efs-convert-printkkern_debug-to-pr_debug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-gfs2-bmapc-kernel-doc-warning-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-efs-convert-printkkern_debug-to-pr_debug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-gfs2-bmapc-kernel-doc-warning-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,124 +44,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/efs: convert printk(KERN_DEBUG to pr_debug
+Subject: fs/gfs2/bmap.c: kernel-doc warning fixes
 
-All KERN_DEBUG callsites being under #ifdef DEBUG we can safely convert
-everything to pr_debug without changing current behaviour.
-
-Remove #ifdef DEBUG around pr_debugs only (suggested by Joe Perches)
+Fix 2 typos and move one definition which was between function comments
+and function definition (yet another kernel-doc warning)
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Joe Perches <joe@perches.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/dir.c   |    7 +++----
- fs/efs/inode.c |   18 ++++++------------
- fs/efs/super.c |   18 ++++++++----------
- 3 files changed, 17 insertions(+), 26 deletions(-)
+ fs/gfs2/bmap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/efs/dir.c~fs-efs-convert-printkkern_debug-to-pr_debug fs/efs/dir.c
---- a/fs/efs/dir.c~fs-efs-convert-printkkern_debug-to-pr_debug
-+++ a/fs/efs/dir.c
-@@ -71,10 +71,9 @@ static int efs_readdir(struct file *file
- 			inodenum = be32_to_cpu(dirslot->inode);
- 			namelen  = dirslot->namelen;
- 			nameptr  = dirslot->name;
+diff -puN fs/gfs2/bmap.c~fs-gfs2-bmapc-kernel-doc-warning-fixes fs/gfs2/bmap.c
+--- a/fs/gfs2/bmap.c~fs-gfs2-bmapc-kernel-doc-warning-fixes
++++ a/fs/gfs2/bmap.c
+@@ -707,7 +707,7 @@ int gfs2_extent_map(struct inode *inode,
+  * @top: The first pointer in the buffer
+  * @bottom: One more than the last pointer
+  * @height: the height this buffer is at
+- * @data: a pointer to a struct strip_mine
++ * @sm: a pointer to a struct strip_mine
+  *
+  * Returns: errno
+  */
+@@ -992,6 +992,8 @@ unlock:
+ 	return err;
+ }
+ 
++#define GFS2_JTRUNC_REVOKES 8192
++
+ /**
+  * gfs2_journaled_truncate - Wrapper for truncate_pagecache for jdata files
+  * @inode: The inode being truncated
+@@ -1003,8 +1005,6 @@ unlock:
+  * if the number of pages being truncated gets too large.
+  */
+ 
+-#define GFS2_JTRUNC_REVOKES 8192
 -
--#ifdef DEBUG
--			printk(KERN_DEBUG "EFS: readdir(): block %d slot %d/%d: inode %u, name \"%s\", namelen %u\n", block, slot, dirblock->slots-1, inodenum, nameptr, namelen);
--#endif
-+			pr_debug("%s(): block %d slot %d/%d: inode %u, name \"%s\", namelen %u\n",
-+				 __func__, block, slot, dirblock->slots-1,
-+				 inodenum, nameptr, namelen);
- 			if (!namelen)
- 				continue;
- 			/* found the next entry */
-diff -puN fs/efs/inode.c~fs-efs-convert-printkkern_debug-to-pr_debug fs/efs/inode.c
---- a/fs/efs/inode.c~fs-efs-convert-printkkern_debug-to-pr_debug
-+++ a/fs/efs/inode.c
-@@ -138,12 +138,8 @@ struct inode *efs_iget(struct super_bloc
- 	}
- 
- 	brelse(bh);
--   
--#ifdef DEBUG
--	printk(KERN_DEBUG "EFS: efs_iget(): inode %lu, extents %d, mode %o\n",
--		inode->i_ino, in->numextents, inode->i_mode);
--#endif
--
-+	pr_debug("efs_iget(): inode %lu, extents %d, mode %o\n",
-+		 inode->i_ino, in->numextents, inode->i_mode);
- 	switch (inode->i_mode & S_IFMT) {
- 		case S_IFDIR: 
- 			inode->i_op = &efs_dir_inode_operations; 
-@@ -239,9 +235,8 @@ efs_block_t efs_map_block(struct inode *
- 		return 0;
- 	}
- 
--#ifdef DEBUG
--	printk(KERN_DEBUG "EFS: map_block(): indirect search for logical block %u\n", block);
--#endif
-+	pr_debug("%s(): indirect search for logical block %u\n",
-+		 __func__, block);
- 	direxts = in->extents[0].cooked.ex_offset;
- 	indexts = in->numextents;
- 
-@@ -285,9 +280,8 @@ efs_block_t efs_map_block(struct inode *
- 				       __func__, iblock);
- 				return 0;
- 			}
--#ifdef DEBUG
--			printk(KERN_DEBUG "EFS: map_block(): read indirect extent block %d\n", iblock);
--#endif
-+			pr_debug("%s(): read indirect extent block %d\n",
-+				 __func__, iblock);
- 			first = 0;
- 			lastblock = iblock;
- 		}
-diff -puN fs/efs/super.c~fs-efs-convert-printkkern_debug-to-pr_debug fs/efs/super.c
---- a/fs/efs/super.c~fs-efs-convert-printkkern_debug-to-pr_debug
-+++ a/fs/efs/super.c
-@@ -184,7 +184,7 @@ static efs_block_t efs_validate_vh(struc
- 	}
- 
- #ifdef DEBUG
--	printk(KERN_DEBUG "EFS: bf: \"%16s\"\n", vh->vh_bootfile);
-+	pr_debug("bf: \"%16s\"\n", vh->vh_bootfile);
- 
- 	for(i = 0; i < NVDIR; i++) {
- 		int	j;
-@@ -196,9 +196,8 @@ static efs_block_t efs_validate_vh(struc
- 		name[j] = (char) 0;
- 
- 		if (name[0]) {
--			printk(KERN_DEBUG "EFS: vh: %8s block: 0x%08x size: 0x%08x\n",
--				name,
--				(int) be32_to_cpu(vh->vh_vd[i].vd_lbn),
-+			pr_debug("vh: %8s block: 0x%08x size: 0x%08x\n",
-+				name, (int) be32_to_cpu(vh->vh_vd[i].vd_lbn),
- 				(int) be32_to_cpu(vh->vh_vd[i].vd_nbytes));
- 		}
- 	}
-@@ -211,12 +210,11 @@ static efs_block_t efs_validate_vh(struc
- 		}
- #ifdef DEBUG
- 		if (be32_to_cpu(vh->vh_pt[i].pt_nblks)) {
--			printk(KERN_DEBUG "EFS: pt %2d: start: %08d size: %08d type: 0x%02x (%s)\n",
--				i,
--				(int) be32_to_cpu(vh->vh_pt[i].pt_firstlbn),
--				(int) be32_to_cpu(vh->vh_pt[i].pt_nblks),
--				pt_type,
--				(pt_entry->pt_name) ? pt_entry->pt_name : "unknown");
-+			pr_debug("pt %2d: start: %08d size: %08d type: 0x%02x (%s)\n",
-+				 i, (int)be32_to_cpu(vh->vh_pt[i].pt_firstlbn),
-+				 (int)be32_to_cpu(vh->vh_pt[i].pt_nblks),
-+				 pt_type, (pt_entry->pt_name) ?
-+				 pt_entry->pt_name : "unknown");
- 		}
- #endif
- 		if (IS_EFS(pt_type)) {
+ static int gfs2_journaled_truncate(struct inode *inode, u64 oldsize, u64 newsize)
+ {
+ 	struct gfs2_sbd *sdp = GFS2_SB(inode);
+@@ -1348,7 +1348,7 @@ void gfs2_free_journal_extents(struct gf
+  * gfs2_add_jextent - Add or merge a new extent to extent cache
+  * @jd: The journal descriptor
+  * @lblock: The logical block at start of new extent
+- * @pblock: The physical block at start of new extent
++ * @dblock: The physical block at start of new extent
+  * @blocks: Size of extent in fs blocks
+  *
+  * Returns: 0 on success or -ENOMEM
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -249,4 +182,10 @@ init-mainc-code-clean-up.patch
 kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
 kernel-kprobesc-convert-printk-to-pr_foo.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
+fs-gfs2-bmapc-kernel-doc-warning-fixes.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
+fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
 
