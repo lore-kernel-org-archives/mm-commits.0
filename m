@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-gfs2-bmapc-kernel-doc-warning-fixes.patch added to -mm tree
-Date: Wed, 14 May 2014 12:35:17 -0700
-Message-ID: <5373c575.46SXUrkREzYqrDed%akpm@linux-foundation.org>
+Subject: + fs-dlm-configc-convert-simple_str-to-kstr.patch added to -mm
+ tree
+Date: Wed, 14 May 2014 12:35:18 -0700
+Message-ID: <5373c576.njQIuQ9FV+aiseDZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45900 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45905 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910AbaENTfS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 15:35:18 -0400
+	with ESMTP id S1751139AbaENTfT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 15:35:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, swhiteho@redhat.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, ccaulfie@redhat.com, fabf@skynet.be
 
-Subject: + fs-gfs2-bmapc-kernel-doc-warning-fixes.patch added to -mm tree
-To: fabf@skynet.be,swhiteho@redhat.com
+Subject: + fs-dlm-configc-convert-simple_str-to-kstr.patch added to -mm tree
+To: fabf@skynet.be,ccaulfie@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 14 May 2014 12:35:17 -0700
+Date: Wed, 14 May 2014 12:35:18 -0700
 
 
 The patch titled
-     Subject: fs/gfs2/bmap.c: kernel-doc warning fixes
+     Subject: fs/dlm/config.c: convert simple_str to kstr
 has been added to the -mm tree.  Its filename is
-     fs-gfs2-bmapc-kernel-doc-warning-fixes.patch
+     fs-dlm-configc-convert-simple_str-to-kstr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-gfs2-bmapc-kernel-doc-warning-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-dlm-configc-convert-simple_str-to-kstr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-gfs2-bmapc-kernel-doc-warning-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-dlm-configc-convert-simple_str-to-kstr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,58 +45,89 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/gfs2/bmap.c: kernel-doc warning fixes
+Subject: fs/dlm/config.c: convert simple_str to kstr
 
-Fix 2 typos and move one definition which was between function comments
-and function definition (yet another kernel-doc warning)
+Replace obsolete functions
+
+simple_strtoul/kstrtouint
+simple_strtol/kstrtoint
+(kstr __must_check requires the right function to be applied)
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Christine Caulfield <ccaulfie@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/bmap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/dlm/config.c |   26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
-diff -puN fs/gfs2/bmap.c~fs-gfs2-bmapc-kernel-doc-warning-fixes fs/gfs2/bmap.c
---- a/fs/gfs2/bmap.c~fs-gfs2-bmapc-kernel-doc-warning-fixes
-+++ a/fs/gfs2/bmap.c
-@@ -707,7 +707,7 @@ int gfs2_extent_map(struct inode *inode,
-  * @top: The first pointer in the buffer
-  * @bottom: One more than the last pointer
-  * @height: the height this buffer is at
-- * @data: a pointer to a struct strip_mine
-+ * @sm: a pointer to a struct strip_mine
-  *
-  * Returns: errno
-  */
-@@ -992,6 +992,8 @@ unlock:
- 	return err;
+diff -puN fs/dlm/config.c~fs-dlm-configc-convert-simple_str-to-kstr fs/dlm/config.c
+--- a/fs/dlm/config.c~fs-dlm-configc-convert-simple_str-to-kstr
++++ a/fs/dlm/config.c
+@@ -157,11 +157,13 @@ static ssize_t cluster_set(struct dlm_cl
+ 			   const char *buf, size_t len)
+ {
+ 	unsigned int x;
++	int rc;
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+-
+-	x = simple_strtoul(buf, NULL, 0);
++	rc = kstrtouint(buf, 0, &x);
++	if (rc)
++		return rc;
+ 
+ 	if (check_zero && !x)
+ 		return -EINVAL;
+@@ -730,7 +732,10 @@ static ssize_t comm_nodeid_read(struct d
+ static ssize_t comm_nodeid_write(struct dlm_comm *cm, const char *buf,
+ 				 size_t len)
+ {
+-	cm->nodeid = simple_strtol(buf, NULL, 0);
++	int rc = kstrtoint(buf, 0, &cm->nodeid);
++
++	if (rc)
++		return rc;
+ 	return len;
  }
  
-+#define GFS2_JTRUNC_REVOKES 8192
-+
- /**
-  * gfs2_journaled_truncate - Wrapper for truncate_pagecache for jdata files
-  * @inode: The inode being truncated
-@@ -1003,8 +1005,6 @@ unlock:
-  * if the number of pages being truncated gets too large.
-  */
- 
--#define GFS2_JTRUNC_REVOKES 8192
--
- static int gfs2_journaled_truncate(struct inode *inode, u64 oldsize, u64 newsize)
+@@ -742,7 +747,10 @@ static ssize_t comm_local_read(struct dl
+ static ssize_t comm_local_write(struct dlm_comm *cm, const char *buf,
+ 				size_t len)
  {
- 	struct gfs2_sbd *sdp = GFS2_SB(inode);
-@@ -1348,7 +1348,7 @@ void gfs2_free_journal_extents(struct gf
-  * gfs2_add_jextent - Add or merge a new extent to extent cache
-  * @jd: The journal descriptor
-  * @lblock: The logical block at start of new extent
-- * @pblock: The physical block at start of new extent
-+ * @dblock: The physical block at start of new extent
-  * @blocks: Size of extent in fs blocks
-  *
-  * Returns: 0 on success or -ENOMEM
+-	cm->local= simple_strtol(buf, NULL, 0);
++	int rc = kstrtoint(buf, 0, &cm->local);
++
++	if (rc)
++		return rc;
+ 	if (cm->local && !local_comm)
+ 		local_comm = cm;
+ 	return len;
+@@ -846,7 +854,10 @@ static ssize_t node_nodeid_write(struct
+ 				 size_t len)
+ {
+ 	uint32_t seq = 0;
+-	nd->nodeid = simple_strtol(buf, NULL, 0);
++	int rc = kstrtoint(buf, 0, &nd->nodeid);
++
++	if (rc)
++		return rc;
+ 	dlm_comm_seq(nd->nodeid, &seq);
+ 	nd->comm_seq = seq;
+ 	return len;
+@@ -860,7 +871,10 @@ static ssize_t node_weight_read(struct d
+ static ssize_t node_weight_write(struct dlm_node *nd, const char *buf,
+ 				 size_t len)
+ {
+-	nd->weight = simple_strtol(buf, NULL, 0);
++	int rc = kstrtoint(buf, 0, &nd->weight);
++
++	if (rc)
++		return rc;
+ 	return len;
+ }
+ 
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
