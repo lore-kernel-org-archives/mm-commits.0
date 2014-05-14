@@ -1,223 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: + fs-dlm-configc-convert-simple_str-to-kstr.patch added to -mm
- tree
-Date: Wed, 14 May 2014 12:35:18 -0700
-Message-ID: <5373c576.njQIuQ9FV+aiseDZ%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 14 May 2014 13:28:02 -0700
+Message-ID: <5373d1d2.jUo674+Y0LsCoNnF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45905 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46736 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751139AbaENTfT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 15:35:19 -0400
+	with ESMTP id S1752129AbaENU2D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 16:28:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ccaulfie@redhat.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, nasa4836@gmail.com, akpm@linux-foundation.org
 
-Subject: + fs-dlm-configc-convert-simple_str-to-kstr.patch added to -mm tree
-To: fabf@skynet.be,ccaulfie@redhat.com
+Subject: [to-be-updated] mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,nasa4836@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 14 May 2014 12:35:18 -0700
+Date: Wed, 14 May 2014 13:28:02 -0700
 
 
 The patch titled
-     Subject: fs/dlm/config.c: convert simple_str to kstr
-has been added to the -mm tree.  Its filename is
-     fs-dlm-configc-convert-simple_str-to-kstr.patch
+     Subject: mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-dlm-configc-convert-simple_str-to-kstr.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-dlm-configc-convert-simple_str-to-kstr.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/dlm/config.c: convert simple_str to kstr
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes
 
-Replace obsolete functions
+WARNING: line over 80 characters
+#39: FILE: mm/internal.h:207:
++		 * pte lock is held(spinlock), which implies preemption disabled.
 
-simple_strtoul/kstrtouint
-simple_strtol/kstrtoint
-(kstr __must_check requires the right function to be applied)
+WARNING: line over 80 characters
+#55: FILE: mm/rmap.c:988:
++		 * pte lock(a spinlock) is held, which implies preemption disabled.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Christine Caulfield <ccaulfie@redhat.com>
+total: 0 errors, 2 warnings, 44 lines checked
+
+./patches/mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/config.c |   26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ mm/internal.h |    6 +++---
+ mm/rmap.c     |    3 ++-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/dlm/config.c~fs-dlm-configc-convert-simple_str-to-kstr fs/dlm/config.c
---- a/fs/dlm/config.c~fs-dlm-configc-convert-simple_str-to-kstr
-+++ a/fs/dlm/config.c
-@@ -157,11 +157,13 @@ static ssize_t cluster_set(struct dlm_cl
- 			   const char *buf, size_t len)
- {
- 	unsigned int x;
-+	int rc;
+diff -puN mm/internal.h~mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes mm/internal.h
+--- a/mm/internal.h~mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes
++++ a/mm/internal.h
+@@ -202,9 +202,9 @@ static inline int mlocked_vma_newpage(st
  
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
--
--	x = simple_strtoul(buf, NULL, 0);
-+	rc = kstrtouint(buf, 0, &x);
-+	if (rc)
-+		return rc;
- 
- 	if (check_zero && !x)
- 		return -EINVAL;
-@@ -730,7 +732,10 @@ static ssize_t comm_nodeid_read(struct d
- static ssize_t comm_nodeid_write(struct dlm_comm *cm, const char *buf,
- 				 size_t len)
- {
--	cm->nodeid = simple_strtol(buf, NULL, 0);
-+	int rc = kstrtoint(buf, 0, &cm->nodeid);
-+
-+	if (rc)
-+		return rc;
- 	return len;
- }
- 
-@@ -742,7 +747,10 @@ static ssize_t comm_local_read(struct dl
- static ssize_t comm_local_write(struct dlm_comm *cm, const char *buf,
- 				size_t len)
- {
--	cm->local= simple_strtol(buf, NULL, 0);
-+	int rc = kstrtoint(buf, 0, &cm->local);
-+
-+	if (rc)
-+		return rc;
- 	if (cm->local && !local_comm)
- 		local_comm = cm;
- 	return len;
-@@ -846,7 +854,10 @@ static ssize_t node_nodeid_write(struct
- 				 size_t len)
- {
- 	uint32_t seq = 0;
--	nd->nodeid = simple_strtol(buf, NULL, 0);
-+	int rc = kstrtoint(buf, 0, &nd->nodeid);
-+
-+	if (rc)
-+		return rc;
- 	dlm_comm_seq(nd->nodeid, &seq);
- 	nd->comm_seq = seq;
- 	return len;
-@@ -860,7 +871,10 @@ static ssize_t node_weight_read(struct d
- static ssize_t node_weight_write(struct dlm_node *nd, const char *buf,
- 				 size_t len)
- {
--	nd->weight = simple_strtol(buf, NULL, 0);
-+	int rc = kstrtoint(buf, 0, &nd->weight);
-+
-+	if (rc)
-+		return rc;
- 	return len;
- }
- 
+ 	if (!TestSetPageMlocked(page)) {
+ 		/*
+-		 * We use the irq-unsafe __mod_zone_page_stat because
+-		 * this counter is not modified from interrupt context, and the
+-		 * pte lock is held(spinlock), which implies preemption disabled.
++		 * We use the irq-unsafe __mod_zone_page_stat because this
++		 * counter is not modified from interrupt context, and the pte
++		 * lock is held(spinlock), which implies preemption disabled.
+ 		 */
+ 		__mod_zone_page_state(page_zone(page), NR_MLOCK,
+ 				    hpage_nr_pages(page));
+diff -puN mm/rmap.c~mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes mm/rmap.c
+--- a/mm/rmap.c~mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes
++++ a/mm/rmap.c
+@@ -985,7 +985,8 @@ void do_page_add_anon_rmap(struct page *
+ 		/*
+ 		 * We use the irq-unsafe __{inc|mod}_zone_page_stat because
+ 		 * these counters are not modified from interrupt context, and
+-		 * pte lock(a spinlock) is held, which implies preemption disabled.
++		 * pte lock(a spinlock) is held, which implies preemption
++		 * disabled.
+ 		 */
+ 		if (PageTransHuge(page))
+ 			__inc_zone_page_state(page,
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
-fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
-fs-fscache-convert-printk-to-pr_foo.patch
-fs-fscache-replace-seq_printf-by-seq_puts.patch
-kernel-posix-timersc-code-clean-up.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
-ntfs-remove-null-value-assignments.patch
-fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
-arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
 arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
 arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
-fs-configs-itemc-kernel-doc-fixes-clean-up.patch
-fs-configfs-convert-printk-to-pr_foo.patch
-fs-configfs-use-pr_fmt.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
-fs-9p-kerneldoc-fixes.patch
-mm-slubc-convert-printk-to-pr_foo.patch
-mm-slubc-convert-vnsprintf-static-to-va_format.patch
-mm-memory_hotplugc-use-pfn_down.patch
-mm-memblockc-use-pfn_down.patch
-mm-memcontrolc-remove-null-assignment-on-static.patch
-mm-vmallocc-replace-seq_printf-by-seq_puts.patch
-mm-mempolicyc-parameter-doc-uniformization.patch
-mm-zbudc-make-size-unsigned-like-unique-callsite.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-kernel-cpuc-convert-printk-to-pr_foo.patch
-kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
-kernel-capabilityc-code-clean-up.patch
-kernel-exec_domainc-code-clean-up.patch
-kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
-kernel-stop_machinec-kernel-doc-warning-fix.patch
-kernel-tracepointc-kernel-doc-fixes.patch
-kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+mm-update-comment-for-default_max_map_count-fix.patch
+memcg-fold-mem_cgroup_stolen-fix.patch
+mm-compaction-embed-migration-mode-in-compact_control-fix.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
+mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix-2.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
-kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
-kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
-documentation-expand-clarify-debug-documentation.patch
-lib-libcrc32cc-use-ptr_err_or_zero.patch
-lib-vsprintfc-fix-comparison-to-bool.patch
-kernel-compatc-use-sizeof-instead-of-sizeof.patch
-fs-efs-convert-printk-to-pr_foo.patch
-fs-efs-add-pr_fmt-use-__func__.patch
-fs-efs-convert-printkkern_debug-to-pr_debug.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-coda-replace-printk-by-pr_foo.patch
-fs-coda-logging-prefix-uniformization.patch
-fs-coda-use-__func__.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
-fs-pstore-logging-clean-up.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+init-mainc-remove-an-ifdef.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+rtc-da9063-rtc-driver-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
 fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
-fs-devpts-inodec-convert-printk-to-pr_foo.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+lib-test_bpfc-dont-use-gcc-union-shortcut.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
-fs-gfs2-bmapc-kernel-doc-warning-fixes.patch
-fs-dlm-configc-convert-simple_str-to-kstr.patch
-fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
-fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
-fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
-fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
