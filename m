@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch added to
- -mm tree
-Date: Wed, 14 May 2014 16:59:29 -0700
-Message-ID: <53740361.zob9aqH5UmhLBJvC%akpm@linux-foundation.org>
+Subject: + fs-dlm-lockspacec-convert-simple_str-to-kstr.patch added to -mm tree
+Date: Wed, 14 May 2014 16:59:42 -0700
+Message-ID: <5374036e.q5ckIyPgY8cIRNkb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49383 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49387 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750716AbaENX7a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 19:59:30 -0400
+	with ESMTP id S1751081AbaENX7n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 19:59:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, ccaulfie@redhat.com, fabf@skynet.be
 
-Subject: + fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch added to -mm tree
+Subject: + fs-dlm-lockspacec-convert-simple_str-to-kstr.patch added to -mm tree
 To: fabf@skynet.be,ccaulfie@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 14 May 2014 16:59:29 -0700
+Date: Wed, 14 May 2014 16:59:42 -0700
 
 
 The patch titled
-     Subject: fs/dlm/debug_fs.c: replace seq_printf by seq_puts
+     Subject: fs/dlm/lockspace.c: convert simple_str to kstr
 has been added to the -mm tree.  Its filename is
-     fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+     fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,139 +44,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/dlm/debug_fs.c: replace seq_printf by seq_puts
+Subject: fs/dlm/lockspace.c: convert simple_str to kstr
 
-Replace seq_printf where possible.  This patch also fixes the following
-checkpatch warning "unnecessary whitespace before a quoted newline"
+Replace obsolete functions.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Christine Caulfield <ccaulfie@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/debug_fs.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ fs/dlm/lockspace.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN fs/dlm/debug_fs.c~fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts fs/dlm/debug_fs.c
---- a/fs/dlm/debug_fs.c~fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts
-+++ a/fs/dlm/debug_fs.c
-@@ -68,7 +68,7 @@ static int print_format1_lock(struct seq
- 	if (lkb->lkb_wait_type)
- 		seq_printf(s, " wait_type: %d", lkb->lkb_wait_type);
+diff -puN fs/dlm/lockspace.c~fs-dlm-lockspacec-convert-simple_str-to-kstr fs/dlm/lockspace.c
+--- a/fs/dlm/lockspace.c~fs-dlm-lockspacec-convert-simple_str-to-kstr
++++ a/fs/dlm/lockspace.c
+@@ -35,8 +35,11 @@ static struct task_struct *	scand_task;
+ static ssize_t dlm_control_store(struct dlm_ls *ls, const char *buf, size_t len)
+ {
+ 	ssize_t ret = len;
+-	int n = simple_strtol(buf, NULL, 0);
++	int n;
++	int rc = kstrtoint(buf, 0, &n);
  
--	return seq_printf(s, "\n");
-+	return seq_puts(s, "\n");
++	if (rc)
++		return rc;
+ 	ls = dlm_find_lockspace_local(ls->ls_local_handle);
+ 	if (!ls)
+ 		return -EINVAL;
+@@ -57,7 +60,10 @@ static ssize_t dlm_control_store(struct
+ 
+ static ssize_t dlm_event_store(struct dlm_ls *ls, const char *buf, size_t len)
+ {
+-	ls->ls_uevent_result = simple_strtol(buf, NULL, 0);
++	int rc = kstrtoint(buf, 0, &ls->ls_uevent_result);
++
++	if (rc)
++		return rc;
+ 	set_bit(LSFL_UEVENT_WAIT, &ls->ls_flags);
+ 	wake_up(&ls->ls_uevent_wait);
+ 	return len;
+@@ -70,7 +76,10 @@ static ssize_t dlm_id_show(struct dlm_ls
+ 
+ static ssize_t dlm_id_store(struct dlm_ls *ls, const char *buf, size_t len)
+ {
+-	ls->ls_global_id = simple_strtoul(buf, NULL, 0);
++	int rc = kstrtouint(buf, 0, &ls->ls_global_id);
++
++	if (rc)
++		return rc;
+ 	return len;
  }
  
- static int print_format1(struct dlm_rsb *res, struct seq_file *s)
-@@ -92,31 +92,31 @@ static int print_format1(struct dlm_rsb
- 	}
+@@ -81,7 +90,11 @@ static ssize_t dlm_nodir_show(struct dlm
  
- 	if (res->res_nodeid > 0)
--		rv = seq_printf(s, "\"  \nLocal Copy, Master is node %d\n",
-+		rv = seq_printf(s, "\"\nLocal Copy, Master is node %d\n",
- 				res->res_nodeid);
- 	else if (res->res_nodeid == 0)
--		rv = seq_printf(s, "\"  \nMaster Copy\n");
-+		rv = seq_puts(s, "\"\nMaster Copy\n");
- 	else if (res->res_nodeid == -1)
--		rv = seq_printf(s, "\"  \nLooking up master (lkid %x)\n",
-+		rv = seq_printf(s, "\"\nLooking up master (lkid %x)\n",
- 			   	res->res_first_lkid);
- 	else
--		rv = seq_printf(s, "\"  \nInvalid master %d\n",
-+		rv = seq_printf(s, "\"\nInvalid master %d\n",
- 				res->res_nodeid);
- 	if (rv)
- 		goto out;
- 
- 	/* Print the LVB: */
- 	if (res->res_lvbptr) {
--		seq_printf(s, "LVB: ");
-+		seq_puts(s, "LVB: ");
- 		for (i = 0; i < lvblen; i++) {
- 			if (i == lvblen / 2)
--				seq_printf(s, "\n     ");
-+				seq_puts(s, "\n     ");
- 			seq_printf(s, "%02x ",
- 				   (unsigned char) res->res_lvbptr[i]);
- 		}
- 		if (rsb_flag(res, RSB_VALNOTVALID))
--			seq_printf(s, " (INVALID)");
--		rv = seq_printf(s, "\n");
-+			seq_puts(s, " (INVALID)");
-+		rv = seq_puts(s, "\n");
- 		if (rv)
- 			goto out;
- 	}
-@@ -133,21 +133,21 @@ static int print_format1(struct dlm_rsb
- 	}
- 
- 	/* Print the locks attached to this resource */
--	seq_printf(s, "Granted Queue\n");
-+	seq_puts(s, "Granted Queue\n");
- 	list_for_each_entry(lkb, &res->res_grantqueue, lkb_statequeue) {
- 		rv = print_format1_lock(s, lkb, res);
- 		if (rv)
- 			goto out;
- 	}
- 
--	seq_printf(s, "Conversion Queue\n");
-+	seq_puts(s, "Conversion Queue\n");
- 	list_for_each_entry(lkb, &res->res_convertqueue, lkb_statequeue) {
- 		rv = print_format1_lock(s, lkb, res);
- 		if (rv)
- 			goto out;
- 	}
- 
--	seq_printf(s, "Waiting Queue\n");
-+	seq_puts(s, "Waiting Queue\n");
- 	list_for_each_entry(lkb, &res->res_waitqueue, lkb_statequeue) {
- 		rv = print_format1_lock(s, lkb, res);
- 		if (rv)
-@@ -157,13 +157,13 @@ static int print_format1(struct dlm_rsb
- 	if (list_empty(&res->res_lookup))
- 		goto out;
- 
--	seq_printf(s, "Lookup Queue\n");
-+	seq_puts(s, "Lookup Queue\n");
- 	list_for_each_entry(lkb, &res->res_lookup, lkb_rsb_lookup) {
- 		rv = seq_printf(s, "%08x %s", lkb->lkb_id,
- 				print_lockmode(lkb->lkb_rqmode));
- 		if (lkb->lkb_wait_type)
- 			seq_printf(s, " wait_type: %d", lkb->lkb_wait_type);
--		rv = seq_printf(s, "\n");
-+		rv = seq_puts(s, "\n");
- 	}
-  out:
- 	unlock_rsb(res);
-@@ -300,7 +300,7 @@ static int print_format3(struct dlm_rsb
- 		else
- 			seq_printf(s, " %02x", (unsigned char)r->res_name[i]);
- 	}
--	rv = seq_printf(s, "\n");
-+	rv = seq_puts(s, "\n");
- 	if (rv)
- 		goto out;
- 
-@@ -311,7 +311,7 @@ static int print_format3(struct dlm_rsb
- 
- 	for (i = 0; i < lvblen; i++)
- 		seq_printf(s, " %02x", (unsigned char)r->res_lvbptr[i]);
--	rv = seq_printf(s, "\n");
-+	rv = seq_puts(s, "\n");
- 	if (rv)
- 		goto out;
- 
-@@ -377,7 +377,7 @@ static int print_format4(struct dlm_rsb
- 		else
- 			seq_printf(s, " %02x", (unsigned char)r->res_name[i]);
- 	}
--	rv = seq_printf(s, "\n");
-+	rv = seq_puts(s, "\n");
-  out:
- 	unlock_rsb(r);
- 	return rv;
+ static ssize_t dlm_nodir_store(struct dlm_ls *ls, const char *buf, size_t len)
+ {
+-	int val = simple_strtoul(buf, NULL, 0);
++	int val;
++	int rc = kstrtoint(buf, 0, &val);
++
++	if (rc)
++		return rc;
+ 	if (val == 1)
+ 		set_bit(LSFL_NODIR, &ls->ls_flags);
+ 	return len;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
