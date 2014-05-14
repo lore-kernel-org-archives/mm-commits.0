@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory-failurec-move-comment.patch added to -mm tree
-Date: Wed, 14 May 2014 16:56:56 -0700
-Message-ID: <537402c8.jEskD9EZXS1g8sM6%akpm@linux-foundation.org>
+Subject: + fanotify-check-file-flags-passed-in-fanotify_init.patch added
+ to -mm tree
+Date: Wed, 14 May 2014 16:59:01 -0700
+Message-ID: <53740345.XMxBS54RkpnJB93+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49377 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49379 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810AbaENX45 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 19:56:57 -0400
+	with ESMTP id S1751081AbaENX7C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 19:59:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, andi@firstfloor.org, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, jack@suse.cz, Valdis.Kletnieks@vt.edu, xypron.glpk@gmx.de
 
-Subject: + mm-memory-failurec-move-comment.patch added to -mm tree
-To: n-horiguchi@ah.jp.nec.com,andi@firstfloor.org
+Subject: + fanotify-check-file-flags-passed-in-fanotify_init.patch added to -mm tree
+To: xypron.glpk@gmx.de,Valdis.Kletnieks@vt.edu,jack@suse.cz,mtk.manpages@gmail.com
 From: akpm@linux-foundation.org
-Date: Wed, 14 May 2014 16:56:56 -0700
+Date: Wed, 14 May 2014 16:59:01 -0700
 
 
 The patch titled
-     Subject: mm/memory-failure.c: move comment
+     Subject: fanotify: check file flags passed in fanotify_init
 has been added to the -mm tree.  Its filename is
-     mm-memory-failurec-move-comment.patch
+     fanotify-check-file-flags-passed-in-fanotify_init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-move-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fanotify-check-file-flags-passed-in-fanotify_init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-move-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fanotify-check-file-flags-passed-in-fanotify_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,95 +44,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/memory-failure.c: move comment
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: fanotify: check file flags passed in fanotify_init
 
-The comment about pages under writeback is far from the relevant code, so
-let's move it to the right place.
+Without this patch fanotify_init does not validate the value passed in
+event_f_flags.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+When a fanotify event is read from the fanotify file descriptor a new file
+descriptor is created where file.f_flags = event_f_flags.
+
+Internal and external open flags are stored together in field f_flags of
+struct file.  Hence, an application might create file descriptors with
+internal flags like FMODE_EXEC, FMODE_NOCMTIME set.
+
+Jan Kara and Eric Paris both aggreed that this is a bug and the value of
+event_f_flags should be checked:
+https://lkml.org/lkml/2014/4/29/522
+https://lkml.org/lkml/2014/4/29/539
+
+This updated patch version considers the comments by Michael Kerrisk in
+https://lkml.org/lkml/2014/5/4/10
+
+With the patch the value of event_f_flags is checked.
+When specifying an invalid value error EINVAL is returned.
+
+Internal flags are disallowed.
+
+File creation flags are disallowed:
+O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_TRUNC, and O_TTY_INIT.
+
+Flags which do not make sense with fanotify are disallowed:
+__O_TMPFILE, O_PATH, FASYNC, and O_DIRECT.
+
+This leaves us with the following allowed values:
+
+O_RDONLY, O_WRONLY, O_RDWR are basic functionality. The are stored in the
+bits given by O_ACCMODE.
+
+O_APPEND is working as expected. The value might be useful in a logging
+application which appends the current status each time the log is opened.
+
+O_LARGEFILE is needed for files exceeding 4GB on 32bit systems.
+
+O_NONBLOCK may be useful when monitoring slow devices like tapes.
+
+O_NDELAY is equal to O_NONBLOCK except for platform parisc.
+To avoid code breaking on parisc either both flags should be
+allowed or none. The patch allows both.
+
+__O_SYNC and O_DSYNC may be used to avoid data loss on power disruption.
+
+O_NOATIME may be useful to reduce disk activity.
+
+O_CLOEXEC may be useful, if separate processes shall be used to scan files.
+
+Once this patch is accepted, the fanotify_init.2 manpage has to be updated.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/notify/fanotify/fanotify_user.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN mm/memory-failure.c~mm-memory-failurec-move-comment mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failurec-move-comment
-+++ a/mm/memory-failure.c
-@@ -1132,11 +1132,6 @@ int memory_failure(unsigned long pfn, in
- 		}
- 	}
+diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-check-file-flags-passed-in-fanotify_init fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fanotify-check-file-flags-passed-in-fanotify_init
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -25,6 +25,19 @@
+ #define FANOTIFY_DEFAULT_MAX_MARKS	8192
+ #define FANOTIFY_DEFAULT_MAX_LISTENERS	128
  
--	/*
--	 * Lock the page and wait for writeback to finish.
--	 * It's very difficult to mess with pages currently under IO
--	 * and in many cases impossible, so we just avoid it here.
--	 */
- 	lock_page(hpage);
++/*
++ * All flags that may be specified in parameter event_f_flags of fanotify_init.
++ *
++ * Internal and external open flags are stored together in field f_flags of
++ * struct file. Only external open flags shall be allowed in event_f_flags.
++ * Internal flags like FMODE_NONOTIFY, FMODE_EXEC, FMODE_NOCMTIME shall be
++ * excluded.
++ */
++#define	FANOTIFY_INIT_ALL_EVENT_F_BITS				( \
++		O_ACCMODE	| O_APPEND	| O_NONBLOCK	| \
++		__O_SYNC	| O_DSYNC	| O_CLOEXEC     | \
++		O_LARGEFILE	| O_NOATIME	)
++
+ extern const struct fsnotify_ops fanotify_fsnotify_ops;
  
- 	/*
-@@ -1186,6 +1181,10 @@ int memory_failure(unsigned long pfn, in
- 	if (PageHuge(p))
- 		set_page_hwpoison_huge_page(hpage);
+ static struct kmem_cache *fanotify_mark_cache __read_mostly;
+@@ -669,6 +682,18 @@ SYSCALL_DEFINE2(fanotify_init, unsigned
+ 	if (flags & ~FAN_ALL_INIT_FLAGS)
+ 		return -EINVAL;
  
-+	/*
-+	 * It's very difficult to mess with pages currently under IO
-+	 * and in many cases impossible, so we just avoid it here.
-+	 */
- 	wait_on_page_writeback(p);
- 
- 	/*
++	if (event_f_flags & ~FANOTIFY_INIT_ALL_EVENT_F_BITS)
++		return -EINVAL;
++
++	switch (event_f_flags & O_ACCMODE) {
++	case O_RDONLY:
++	case O_RDWR:
++	case O_WRONLY:
++		break;
++	default:
++		return -EINVAL;
++	}
++
+ 	user = get_current_user();
+ 	if (atomic_read(&user->fanotify_listeners) > FANOTIFY_DEFAULT_MAX_LISTENERS) {
+ 		free_uid(user);
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from xypron.glpk@gmx.de are
 
-hwposion-hugetlb-lock_page-unlock_page-does-not-match-for-handling-a-free-hugepage.patch
-mm-memory-failurec-fix-memory-leak-by-race-between-poison-and-unpoison.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
-mm-pagewalkc-move-pte-null-check.patch
-mm-softdirty-clear-vm_softdirty-flag-inside-clear_refs_write-instead-of-clear_soft_dirty.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mm-compaction-clean-up-unused-code-lines.patch
-mm-compaction-cleanup-isolate_freepages.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix-2.patch
-mm-compaction-cleanup-isolate_freepages-fix3.patch
-mm-migration-add-destination-page-freeing-callback.patch
-mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
-mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
-mm-compaction-embed-migration-mode-in-compact_control.patch
-mm-compaction-embed-migration-mode-in-compact_control-fix.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary.patch
-mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
-mm-memory-failurec-move-comment.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-linux-next.patch
+fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch
+fanotify-create-fan_access-event-for-readdir.patch
+fs-notify-fanotify-fanotify_userc-fix-fan_mark_flush-flag-checking.patch
+fanotify-check-file-flags-passed-in-fanotify_init.patch
 
