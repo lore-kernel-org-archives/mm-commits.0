@@ -1,180 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 14 May 2014 12:19:08 -0700
-Message-ID: <5373c1ac.kAWekjMfi7j25T0t%akpm@linux-foundation.org>
+Subject: + maintainers-adi-buildroot-devel-is-moderated.patch added to -mm tree
+Date: Wed, 14 May 2014 12:27:39 -0700
+Message-ID: <5373c3ab.KTdvAbJ0C/W942i8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43969 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45596 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752672AbaENTTK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 15:19:10 -0400
+	with ESMTP id S1752350AbaENT1k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 15:27:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, richard@nod.at
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: + maintainers-adi-buildroot-devel-is-moderated.patch added to -mm tree
+To: richard@nod.at
 From: akpm@linux-foundation.org
-Date: Wed, 14 May 2014 12:19:08 -0700
+Date: Wed, 14 May 2014 12:27:39 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: MAINTAINERS: adi-buildroot-devel is moderated
+has been added to the -mm tree.  Its filename is
+     maintainers-adi-buildroot-devel-is-moderated.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-adi-buildroot-devel-is-moderated.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-adi-buildroot-devel-is-moderated.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Richard Weinberger <richard@nod.at>
+Subject: MAINTAINERS: adi-buildroot-devel is moderated
 
+Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/dts/kirkwood-mv88f6281gtw-ge.dts |    3 ---
- arch/arm/boot/dts/kirkwood-t5325.dts           |    3 ---
- drivers/memory/mvebu-devbus.c                  |    9 ---------
- 3 files changed, 15 deletions(-)
+ MAINTAINERS |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/arm/boot/dts/kirkwood-mv88f6281gtw-ge.dts~linux-next-git-rejects arch/arm/boot/dts/kirkwood-mv88f6281gtw-ge.dts
---- a/arch/arm/boot/dts/kirkwood-mv88f6281gtw-ge.dts~linux-next-git-rejects
-+++ a/arch/arm/boot/dts/kirkwood-mv88f6281gtw-ge.dts
-@@ -75,13 +75,10 @@
- 		serial@12000 {
- 			status = "okay";
- 		};
--<<<<<<< HEAD
--=======
+diff -puN MAINTAINERS~maintainers-adi-buildroot-devel-is-moderated MAINTAINERS
+--- a/MAINTAINERS~maintainers-adi-buildroot-devel-is-moderated
++++ a/MAINTAINERS
+@@ -654,7 +654,7 @@ F:	sound/soc/codecs/ssm*
+ F:	sound/soc/codecs/sigmadsp.*
  
- 		ehci@50000 {
- 			status = "okay";
- 		};
-->>>>>>> linux-next/akpm-base
- 	};
+ ANALOG DEVICES INC ASOC DRIVERS
+-L:	adi-buildroot-devel@lists.sourceforge.net
++L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
+ L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
+ W:	http://blackfin.uclinux.org/
+ S:	Supported
+@@ -1771,54 +1771,54 @@ F:	include/uapi/linux/bfs_fs.h
  
- 	gpio-leds {
-diff -puN arch/arm/boot/dts/kirkwood-t5325.dts~linux-next-git-rejects arch/arm/boot/dts/kirkwood-t5325.dts
---- a/arch/arm/boot/dts/kirkwood-t5325.dts~linux-next-git-rejects
-+++ a/arch/arm/boot/dts/kirkwood-t5325.dts
-@@ -122,8 +122,6 @@
+ BLACKFIN ARCHITECTURE
+ M:	Steven Miao <realmz6@gmail.com>
+-L:	adi-buildroot-devel@lists.sourceforge.net
++L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
+ T:	git git://git.code.sf.net/p/adi-linux/code
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	arch/blackfin/
  
- 		i2c@11000 {
- 			status = "okay";
--<<<<<<< HEAD
--=======
+ BLACKFIN EMAC DRIVER
+-L:	adi-buildroot-devel@lists.sourceforge.net
++L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	drivers/net/ethernet/adi/
  
- 			alc5621: alc5621@1a {
- 				compatible = "realtek,alc5621";
-@@ -132,7 +130,6 @@
- 				add-ctrl = <0x3700>;
- 				jack-det-ctrl = <0x4810>;
- 			};
-->>>>>>> linux-next/akpm-base
- 		};
+ BLACKFIN RTC DRIVER
+-L:	adi-buildroot-devel@lists.sourceforge.net
++L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	drivers/rtc/rtc-bfin.c
  
- 		serial@12000 {
-diff -puN drivers/memory/mvebu-devbus.c~linux-next-git-rejects drivers/memory/mvebu-devbus.c
---- a/drivers/memory/mvebu-devbus.c~linux-next-git-rejects
-+++ a/drivers/memory/mvebu-devbus.c
-@@ -136,21 +136,12 @@ static int devbus_get_timing_params(stru
- 	 * The bus width is encoded into the register as 0 for 8 bits,
- 	 * and 1 for 16 bits, so we do the necessary conversion here.
- 	 */
--<<<<<<< HEAD
--	if (r.bus_width == 8)
--		r.bus_width = 0;
--	else if (r.bus_width == 16)
--		r.bus_width = 1;
--	else {
--		dev_err(devbus->dev, "invalid bus width %d\n", r.bus_width);
--=======
- 	if (r->bus_width == 8)
- 		r->bus_width = 0;
- 	else if (r->bus_width == 16)
- 		r->bus_width = 1;
- 	else {
- 		dev_err(devbus->dev, "invalid bus width %d\n", r->bus_width);
-->>>>>>> linux-next/akpm-base
- 		return -EINVAL;
- 	}
+ BLACKFIN SDH DRIVER
+ M:	Sonic Zhang <sonic.zhang@analog.com>
+-L:	adi-buildroot-devel@lists.sourceforge.net
++L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	drivers/mmc/host/bfin_sdh.c
  
+ BLACKFIN SERIAL DRIVER
+ M:	Sonic Zhang <sonic.zhang@analog.com>
+-L:	adi-buildroot-devel@lists.sourceforge.net
++L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	drivers/tty/serial/bfin_uart.c
+ 
+ BLACKFIN WATCHDOG DRIVER
+-L:	adi-buildroot-devel@lists.sourceforge.net
++L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	drivers/watchdog/bfin_wdt.c
+ 
+ BLACKFIN I2C TWI DRIVER
+ M:	Sonic Zhang <sonic.zhang@analog.com>
+-L:	adi-buildroot-devel@lists.sourceforge.net
++L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
+ W:	http://blackfin.uclinux.org/
+ S:	Supported
+ F:	drivers/i2c/busses/i2c-bfin-twi.c
+ 
+ BLACKFIN MEDIA DRIVER
+ M:	Scott Jiang <scott.jiang.linux@gmail.com>
+-L:	adi-buildroot-devel@lists.sourceforge.net
++L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
+ W:	http://blackfin.uclinux.org/
+ S:	Supported
+ F:	drivers/media/platform/blackfin/
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from richard@nod.at are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
-arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-mm-update-comment-for-default_max_map_count-fix.patch
-memcg-fold-mem_cgroup_stolen-fix.patch
-mm-compaction-embed-migration-mode-in-compact_control-fix.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage.patch
-mm-use-the-light-version-__mod_zone_page_state-in-mlocked_vma_newpage-checkpatch-fixes.patch
-mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
-mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
-mm-page_alloc-debug_vm-checks-for-free_list-placement-of-cma-and-reserve-pages-fix-2.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-init-mainc-remove-an-ifdef.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-rtc-da9063-rtc-driver-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-2.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-3.patch
-fs-pstore-logging-clean-up-fix.patch
+maintainers-adi-buildroot-devel-is-moderated.patch
+signals-kill-sigfindinword.patch
+signals-s-siginitset-sigemptyset-in-do_sigtimedwait.patch
+signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
+signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
+signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
+signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
+signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch
+signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch
+signals-disallow_signal-should-flush-the-potentially-pending-signal.patch
+signals-introduce-kernel_sigaction.patch
+signals-change-wait_for_helper-to-use-kernel_sigaction.patch
+lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2.patch
+sysrq-rcu-ify-__handle_sysrq.patch
+sysrqrcu-suppress-rcu-stall-warnings-while-sysrq-runs.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-lib-test_bpfc-dont-use-gcc-union-shortcut.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
