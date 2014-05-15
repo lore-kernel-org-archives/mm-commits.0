@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path.patch added
- to -mm tree
-Date: Thu, 15 May 2014 15:42:58 -0700
-Message-ID: <537542f2.eEMfFgR8dI+JNEG4%akpm@linux-foundation.org>
+Subject: + fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch added to
+ -mm tree
+Date: Thu, 15 May 2014 15:45:41 -0700
+Message-ID: <53754395.xJyuoj4VSqrpeXKx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39254 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39366 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249AbaEOWm7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 18:42:59 -0400
+	with ESMTP id S1756182AbaEOWpm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 18:45:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, davidlohr@hp.com, nasa4836@gmail.com
+To: mm-commits@vger.kernel.org, tytso@mit.edu, joe@perches.com, fabf@skynet.be, akpm@linux-foundation.org
 
-Subject: + mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path.patch added to -mm tree
-To: nasa4836@gmail.com,davidlohr@hp.com,hannes@cmpxchg.org,mhocko@suse.cz
+Subject: + fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,fabf@skynet.be,joe@perches.com,tytso@mit.edu
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 15:42:58 -0700
+Date: Thu, 15 May 2014 15:45:41 -0700
 
 
 The patch titled
-     Subject: mm, hugetlb: move the error handle logic out of normal code path
+     Subject: fs-devpts-inodec-convert-printk-to-pr_foo-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path.patch
+     fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,86 +44,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jianyu Zhan <nasa4836@gmail.com>
-Subject: mm, hugetlb: move the error handle logic out of normal code path
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-devpts-inodec-convert-printk-to-pr_foo-fix
 
-alloc_huge_page() now mixes normal code path with error handle logic. 
-This patches move out the error handle logic, to make normal code path
-more clean and redue code duplicate.
+use KBUILD_MODNAME, per Joe
 
-Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
-Acked-by: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ fs/devpts/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path
-+++ a/mm/hugetlb.c
-@@ -1387,24 +1387,17 @@ static struct page *alloc_huge_page(stru
- 			return ERR_PTR(-ENOSPC);
+diff -puN fs/devpts/inode.c~fs-devpts-inodec-convert-printk-to-pr_foo-fix fs/devpts/inode.c
+--- a/fs/devpts/inode.c~fs-devpts-inodec-convert-printk-to-pr_foo-fix
++++ a/fs/devpts/inode.c
+@@ -10,7 +10,7 @@
+  *
+  * ------------------------------------------------------------------------- */
  
- 	ret = hugetlb_cgroup_charge_cgroup(idx, pages_per_huge_page(h), &h_cg);
--	if (ret) {
--		if (chg || avoid_reserve)
--			hugepage_subpool_put_pages(spool, 1);
--		return ERR_PTR(-ENOSPC);
--	}
-+	if (ret)
-+		goto out_subpool_put;
-+
- 	spin_lock(&hugetlb_lock);
- 	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve, chg);
- 	if (!page) {
- 		spin_unlock(&hugetlb_lock);
- 		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
--		if (!page) {
--			hugetlb_cgroup_uncharge_cgroup(idx,
--						       pages_per_huge_page(h),
--						       h_cg);
--			if (chg || avoid_reserve)
--				hugepage_subpool_put_pages(spool, 1);
--			return ERR_PTR(-ENOSPC);
--		}
-+		if (!page)
-+			goto out_uncharge_cgroup;
-+
- 		spin_lock(&hugetlb_lock);
- 		list_move(&page->lru, &h->hugepage_activelist);
- 		/* Fall through */
-@@ -1416,6 +1409,13 @@ static struct page *alloc_huge_page(stru
+-#define pr_fmt(fmt) "devpts: " fmt
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
- 	vma_commit_reservation(h, vma, addr);
- 	return page;
-+
-+out_uncharge_cgroup:
-+	hugetlb_cgroup_uncharge_cgroup(idx, pages_per_huge_page(h), h_cg);
-+out_subpool_put:
-+	if (chg || avoid_reserve)
-+		hugepage_subpool_put_pages(spool, 1);
-+	return ERR_PTR(-ENOSPC);
- }
- 
- /*
+ #include <linux/module.h>
+ #include <linux/init.h>
 _
 
-Patches currently in -mm which might be from nasa4836@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-swapc-clean-up-lru_cache_add-functions.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
-mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+fs-add-generic-data-flush-to-fsync-fix.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+mm-update-comment-for-default_max_map_count-fix.patch
+memcg-fold-mem_cgroup_stolen-fix.patch
+mm-compaction-embed-migration-mode-in-compact_control-fix.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 mm-add-comment-for-__mod_zone_page_stat.patch
 mm-add-comment-for-__mod_zone_page_stat-checkpatch-fixes.patch
 mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
 mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
-mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+init-mainc-remove-an-ifdef.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+rtc-da9063-rtc-driver-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+lib-test_bpfc-dont-use-gcc-union-shortcut.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+rwsem-support-optimistic-spinning-checkpatch-fixes.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
