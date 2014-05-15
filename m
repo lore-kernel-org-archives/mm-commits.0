@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipcshm-document-new-limits-in-the-uapi-header-v3.patch added to -mm tree
-Date: Thu, 15 May 2014 16:06:07 -0700
-Message-ID: <5375485f.nhpe5guAU0xLRIql%akpm@linux-foundation.org>
+Subject: + mm-export-unmap_kernel_range.patch added to -mm tree
+Date: Thu, 15 May 2014 16:10:44 -0700
+Message-ID: <53754974.srkGitawbc52k4x1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39500 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbaEOXGI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 19:06:08 -0400
+	with ESMTP id S1752799AbaEOXKp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 19:10:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, manfred@colorfullife.com, davidlohr@hp.com
+To: mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, ngupta@vflare.org, jmarchan@redhat.com, minchan@kernel.org
 
-Subject: + ipcshm-document-new-limits-in-the-uapi-header-v3.patch added to -mm tree
-To: davidlohr@hp.com,manfred@colorfullife.com,mtk.manpages@gmail.com
+Subject: + mm-export-unmap_kernel_range.patch added to -mm tree
+To: minchan@kernel.org,jmarchan@redhat.com,ngupta@vflare.org,sergey.senozhatsky@gmail.com
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 16:06:07 -0700
+Date: Thu, 15 May 2014 16:10:44 -0700
 
 
 The patch titled
-     Subject: ipcshm-document-new-limits-in-the-uapi-header-v3
+     Subject: mm/vmalloc.c: export unmap_kernel_range()
 has been added to the -mm tree.  Its filename is
-     ipcshm-document-new-limits-in-the-uapi-header-v3.patch
+     mm-export-unmap_kernel_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-document-new-limits-in-the-uapi-header-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-export-unmap_kernel_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-document-new-limits-in-the-uapi-header-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-export-unmap_kernel_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,75 +43,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipcshm-document-new-limits-in-the-uapi-header-v3
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm/vmalloc.c: export unmap_kernel_range()
 
-Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+zsmalloc needs exported unmap_kernel_range for building as a module.  See
+https://lkml.org/lkml/2013/1/18/487
+
+I didn't send a patch to make unmap_kernel_range exportable at that time
+because zram was staging stuff and I thought VM function exporting for
+staging stuff makes no sense.
+
+Now zsmalloc was promoted.  If we can't build zsmalloc as module, it means
+we can't build zram as module, either.  Additionally, buddy map_vm_area is
+already exported so let's export unmap_kernel_range to help his buddy.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/shm.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/vmalloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/uapi/linux/shm.h~ipcshm-document-new-limits-in-the-uapi-header-v3 include/uapi/linux/shm.h
---- a/include/uapi/linux/shm.h~ipcshm-document-new-limits-in-the-uapi-header-v3
-+++ a/include/uapi/linux/shm.h
-@@ -8,13 +8,13 @@
- #endif
+diff -puN mm/vmalloc.c~mm-export-unmap_kernel_range mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-export-unmap_kernel_range
++++ a/mm/vmalloc.c
+@@ -1268,6 +1268,7 @@ void unmap_kernel_range(unsigned long ad
+ 	vunmap_page_range(addr, end);
+ 	flush_tlb_kernel_range(addr, end);
+ }
++EXPORT_SYMBOL_GPL(unmap_kernel_range);
  
- /*
-- * SHMMNI, SHMMAX and SHMALL are the default upper limits which can be
-- * modified by sysctl. Both SHMMAX and SHMALL have their default values
-- * to the maximum limit which is as large as it can be without helping
-- * userspace overflow the values. There is really nothing the kernel
-- * can do to avoid this any further. It is therefore not advised to
-- * make them any larger. These limits are suitable for both 32 and
-- * 64-bit systems.
-+ * SHMMNI, SHMMAX and SHMALL are default upper limits which can be
-+ * modified by sysctl. The SHMMAX and SHMALL values have been chosen to
-+ * be as large possible without facilitating scenarios where userspace
-+ * causes overflows when adjusting the limits via operations of the form
-+ * "retrieve current limit; add X; update limit". It is therefore not
-+ * advised to make SHMMAX and SHMALL any larger. These limits are
-+ * suitable for both 32 and 64-bit systems.
-  */
- #define SHMMIN 1			 /* min shared seg size (bytes) */
- #define SHMMNI 4096			 /* max num of segs system wide */
+ int map_vm_area(struct vm_struct *area, pgprot_t prot, struct page ***pages)
+ {
 _
 
-Patches currently in -mm which might be from davidlohr@hp.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mmvmacache-add-debug-data.patch
-mmvmacache-optimize-overflow-system-wide-flushing.patch
-mm-pass-vm_bug_on-reason-to-dump_page.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
-mips-call-find_vma-with-the-mmap_sem-held.patch
-arc-call-find_vma-with-the-mmap_sem-held.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-drm-exynos-call-find_vma-with-the-mmap_sem-held.patch
-mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path.patch
-ipc-constify-ipc_ops.patch
-ipc-shmc-check-for-ulong-overflows-in-shmat.patch
-ipc-shmc-check-for-overflows-of-shm_tot.patch
-ipc-shmc-check-for-integer-overflow-during-shmget.patch
-ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
-ipcshm-document-new-limits-in-the-uapi-header.patch
-ipcshm-document-new-limits-in-the-uapi-header-v2.patch
-ipcshm-document-new-limits-in-the-uapi-header-v3.patch
-ipcmsg-use-current-state-helpers.patch
-ipcmsg-move-some-msgq-ns-code-around.patch
-ipcmsg-always-respect-msg_noerror.patch
-ipcmsg-document-volatile-r_msg.patch
-linux-next.patch
-blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
-rwsem-support-optimistic-spinning.patch
-rwsem-support-optimistic-spinning-checkpatch-fixes.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+mm-compaction-clean-up-unused-code-lines.patch
+mm-compaction-cleanup-isolate_freepages.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+mm-compaction-cleanup-isolate_freepages-fix-2.patch
+mm-compaction-cleanup-isolate_freepages-fix3.patch
+mm-swapc-clean-up-lru_cache_add-functions.patch
+mm-compaction-do-not-count-migratepages-when-unnecessary.patch
+mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
+zram-correct-offset-usage-in-zram_bio_discard.patch
+zsmalloc-fixup-trivial-zs-size-classes-value-in-comments.patch
+mm-export-unmap_kernel_range.patch
+zsmalloc-make-zsmalloc-module-buildable.patch
+debugging-keep-track-of-page-owners.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
