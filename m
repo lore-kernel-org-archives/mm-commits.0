@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch added to
- -mm tree
-Date: Thu, 15 May 2014 13:14:43 -0700
-Message-ID: <53752033.DVmON3E5CownLUKu%akpm@linux-foundation.org>
+Subject: +
+ slab-delete-cache-from-list-after-__kmem_cache_shutdown-succeeds.patch
+ added to -mm tree
+Date: Thu, 15 May 2014 14:06:20 -0700
+Message-ID: <53752c4c.saWi0eahpwASatAf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37236 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38041 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752719AbaEOUOo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 16:14:44 -0400
+	with ESMTP id S1755201AbaEOVGV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 17:06:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, slava@dubeyko.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, penberg@kernel.org, cl@linux-foundation.org, vdavydov@parallels.com
 
-Subject: + fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch added to -mm tree
-To: fabf@skynet.be,slava@dubeyko.com
+Subject: + slab-delete-cache-from-list-after-__kmem_cache_shutdown-succeeds.patch added to -mm tree
+To: vdavydov@parallels.com,cl@linux-foundation.org,penberg@kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 13:14:43 -0700
+Date: Thu, 15 May 2014 14:06:20 -0700
 
 
 The patch titled
-     Subject: fs/hfsplus/bnode.c: replace min/casting by min_t
+     Subject: slab: delete cache from list after __kmem_cache_shutdown succeeds
 has been added to the -mm tree.  Its filename is
-     fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+     slab-delete-cache-from-list-after-__kmem_cache_shutdown-succeeds.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-delete-cache-from-list-after-__kmem_cache_shutdown-succeeds.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-delete-cache-from-list-after-__kmem_cache_shutdown-succeeds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,238 +45,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hfsplus/bnode.c: replace min/casting by min_t
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: slab: delete cache from list after __kmem_cache_shutdown succeeds
 
-Also fixes some pr_ formats
+Currently, on kmem_cache_destroy we delete the cache from the slab_list
+before __kmem_cache_shutdown, inserting it back to the list on failure. 
+Initially, this was done, because we could release the slab_mutex in
+__kmem_cache_shutdown to delete sysfs slub entry, but since commit
+41a212859a4d ("slub: use sysfs'es release mechanism for kmem_cache") we
+remove sysfs entry later in kmem_cache_destroy after dropping the
+slab_mutex, so that no implementation of __kmem_cache_shutdown can ever
+release the lock.  Therefore we can simplify the code a bit by moving
+list_del after __kmem_cache_shutdown.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/bnode.c |   32 +++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ mm/slab_common.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/hfsplus/bnode.c~fs-hfsplus-bnodec-replace-min-casting-by-min_t fs/hfsplus/bnode.c
---- a/fs/hfsplus/bnode.c~fs-hfsplus-bnodec-replace-min-casting-by-min_t
-+++ a/fs/hfsplus/bnode.c
-@@ -27,13 +27,13 @@ void hfs_bnode_read(struct hfs_bnode *no
- 	pagep = node->page + (off >> PAGE_CACHE_SHIFT);
- 	off &= ~PAGE_CACHE_MASK;
+diff -puN mm/slab_common.c~slab-delete-cache-from-list-after-__kmem_cache_shutdown-succeeds mm/slab_common.c
+--- a/mm/slab_common.c~slab-delete-cache-from-list-after-__kmem_cache_shutdown-succeeds
++++ a/mm/slab_common.c
+@@ -346,15 +346,15 @@ void kmem_cache_destroy(struct kmem_cach
+ 	if (memcg_cleanup_cache_params(s) != 0)
+ 		goto out_unlock;
  
--	l = min(len, (int)PAGE_CACHE_SIZE - off);
-+	l = min_t(int, len, PAGE_CACHE_SIZE - off);
- 	memcpy(buf, kmap(*pagep) + off, l);
- 	kunmap(*pagep);
- 
- 	while ((len -= l) != 0) {
- 		buf += l;
--		l = min(len, (int)PAGE_CACHE_SIZE);
-+		l = min_t(int, len, PAGE_CACHE_SIZE);
- 		memcpy(buf, kmap(*++pagep), l);
- 		kunmap(*pagep);
- 	}
-@@ -80,14 +80,14 @@ void hfs_bnode_write(struct hfs_bnode *n
- 	pagep = node->page + (off >> PAGE_CACHE_SHIFT);
- 	off &= ~PAGE_CACHE_MASK;
- 
--	l = min(len, (int)PAGE_CACHE_SIZE - off);
-+	l = min_t(int, len, PAGE_CACHE_SIZE - off);
- 	memcpy(kmap(*pagep) + off, buf, l);
- 	set_page_dirty(*pagep);
- 	kunmap(*pagep);
- 
- 	while ((len -= l) != 0) {
- 		buf += l;
--		l = min(len, (int)PAGE_CACHE_SIZE);
-+		l = min_t(int, len, PAGE_CACHE_SIZE);
- 		memcpy(kmap(*++pagep), buf, l);
- 		set_page_dirty(*pagep);
- 		kunmap(*pagep);
-@@ -110,13 +110,13 @@ void hfs_bnode_clear(struct hfs_bnode *n
- 	pagep = node->page + (off >> PAGE_CACHE_SHIFT);
- 	off &= ~PAGE_CACHE_MASK;
- 
--	l = min(len, (int)PAGE_CACHE_SIZE - off);
-+	l = min_t(int, len, PAGE_CACHE_SIZE - off);
- 	memset(kmap(*pagep) + off, 0, l);
- 	set_page_dirty(*pagep);
- 	kunmap(*pagep);
- 
- 	while ((len -= l) != 0) {
--		l = min(len, (int)PAGE_CACHE_SIZE);
-+		l = min_t(int, len, PAGE_CACHE_SIZE);
- 		memset(kmap(*++pagep), 0, l);
- 		set_page_dirty(*pagep);
- 		kunmap(*pagep);
-@@ -142,14 +142,14 @@ void hfs_bnode_copy(struct hfs_bnode *ds
- 	dst &= ~PAGE_CACHE_MASK;
- 
- 	if (src == dst) {
--		l = min(len, (int)PAGE_CACHE_SIZE - src);
-+		l = min_t(int, len, PAGE_CACHE_SIZE - src);
- 		memcpy(kmap(*dst_page) + src, kmap(*src_page) + src, l);
- 		kunmap(*src_page);
- 		set_page_dirty(*dst_page);
- 		kunmap(*dst_page);
- 
- 		while ((len -= l) != 0) {
--			l = min(len, (int)PAGE_CACHE_SIZE);
-+			l = min_t(int, len, PAGE_CACHE_SIZE);
- 			memcpy(kmap(*++dst_page), kmap(*++src_page), l);
- 			kunmap(*src_page);
- 			set_page_dirty(*dst_page);
-@@ -251,7 +251,7 @@ void hfs_bnode_move(struct hfs_bnode *no
- 		dst &= ~PAGE_CACHE_MASK;
- 
- 		if (src == dst) {
--			l = min(len, (int)PAGE_CACHE_SIZE - src);
-+			l = min_t(int, len, PAGE_CACHE_SIZE - src);
- 			memmove(kmap(*dst_page) + src,
- 				kmap(*src_page) + src, l);
- 			kunmap(*src_page);
-@@ -259,7 +259,7 @@ void hfs_bnode_move(struct hfs_bnode *no
- 			kunmap(*dst_page);
- 
- 			while ((len -= l) != 0) {
--				l = min(len, (int)PAGE_CACHE_SIZE);
-+				l = min_t(int, len, PAGE_CACHE_SIZE);
- 				memmove(kmap(*++dst_page),
- 					kmap(*++src_page), l);
- 				kunmap(*src_page);
-@@ -386,9 +386,8 @@ struct hfs_bnode *hfs_bnode_findhash(str
- 	struct hfs_bnode *node;
- 
- 	if (cnid >= tree->node_count) {
--		pr_err("request for non-existent node "
--				"%d in B*Tree\n",
--			cnid);
-+		pr_err("request for non-existent node %d in B*Tree\n",
-+		       cnid);
- 		return NULL;
+-	list_del(&s->list);
+ 	if (__kmem_cache_shutdown(s) != 0) {
+-		list_add(&s->list, &slab_caches);
+ 		printk(KERN_ERR "kmem_cache_destroy %s: "
+ 		       "Slab cache still has objects\n", s->name);
+ 		dump_stack();
+ 		goto out_unlock;
  	}
  
-@@ -409,9 +408,8 @@ static struct hfs_bnode *__hfs_bnode_cre
- 	loff_t off;
- 
- 	if (cnid >= tree->node_count) {
--		pr_err("request for non-existent node "
--				"%d in B*Tree\n",
--			cnid);
-+		pr_err("request for non-existent node %d in B*Tree\n",
-+		       cnid);
- 		return NULL;
- 	}
- 
-@@ -602,7 +600,7 @@ struct hfs_bnode *hfs_bnode_create(struc
- 
- 	pagep = node->page;
- 	memset(kmap(*pagep) + node->page_offset, 0,
--	       min((int)PAGE_CACHE_SIZE, (int)tree->node_size));
-+	       min_t(int, PAGE_CACHE_SIZE, tree->node_size));
- 	set_page_dirty(*pagep);
- 	kunmap(*pagep);
- 	for (i = 1; i < tree->pages_per_bnode; i++) {
++	list_del(&s->list);
++
+ 	mutex_unlock(&slab_mutex);
+ 	if (s->flags & SLAB_DESTROY_BY_RCU)
+ 		rcu_barrier();
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
-fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
-fs-fscache-convert-printk-to-pr_foo.patch
-fs-fscache-replace-seq_printf-by-seq_puts.patch
-fs-gfs2-bmapc-kernel-doc-warning-fixes.patch
-fs-dlm-configc-convert-simple_str-to-kstr.patch
-fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
-fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
-ntfs-remove-null-value-assignments.patch
-fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
-arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
-arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
-arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
-fs-configs-itemc-kernel-doc-fixes-clean-up.patch
-fs-configfs-convert-printk-to-pr_foo.patch
-fs-configfs-use-pr_fmt.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
-fs-9p-kerneldoc-fixes.patch
-fs-add-generic-data-flush-to-fsync.patch
-fs-add-generic-data-flush-to-fsync-fix.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-mm-slubc-convert-printk-to-pr_foo.patch
-mm-slubc-convert-vnsprintf-static-to-va_format.patch
-mm-memory_hotplugc-use-pfn_down.patch
-mm-memblockc-use-pfn_down.patch
-mm-memcontrolc-remove-null-assignment-on-static.patch
-mm-vmallocc-replace-seq_printf-by-seq_puts.patch
-mm-mempolicyc-parameter-doc-uniformization.patch
-mm-zbudc-make-size-unsigned-like-unique-callsite.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
-fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
-kernel-cpuc-convert-printk-to-pr_foo.patch
-kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
-kernel-capabilityc-code-clean-up.patch
-kernel-exec_domainc-code-clean-up.patch
-kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
-kernel-stop_machinec-kernel-doc-warning-fix.patch
-kernel-tracepointc-kernel-doc-fixes.patch
-kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
-kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
-kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
-kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
-documentation-expand-clarify-debug-documentation.patch
-lib-libcrc32cc-use-ptr_err_or_zero.patch
-lib-vsprintfc-fix-comparison-to-bool.patch
-kernel-compatc-use-sizeof-instead-of-sizeof.patch
-fs-efs-convert-printk-to-pr_foo.patch
-fs-efs-add-pr_fmt-use-__func__.patch
-fs-efs-convert-printkkern_debug-to-pr_debug.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-coda-replace-printk-by-pr_foo.patch
-fs-coda-logging-prefix-uniformization.patch
-fs-coda-use-__func__.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-hpfs-convert-printk-to-pr_foo.patch
-fs-hpfs-use-pr_fmt-for-logging.patch
-fs-hpfs-use-__func__-for-logging.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
-fs-devpts-inodec-convert-printk-to-pr_foo.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
-linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-fs-gfs2-filec-kernel-doc-warning-fixes.patch
-fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
-fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
-fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+slb-charge-slabs-to-kmemcg-explicitly.patch
+mm-get-rid-of-__gfp_kmemcg.patch
+mm-get-rid-of-__gfp_kmemcg-fix.patch
+slab-document-kmalloc_order.patch
+memcg-un-export-__memcg_kmem_get_cache.patch
+mem-hotplug-implement-get-put_online_mems.patch
+slab-get_online_mems-for-kmem_cache_createdestroyshrink.patch
+documentation-memcg-warn-about-incomplete-kmemcg-state.patch
+memcg-slab-do-not-schedule-cache-destruction-when-last-page-goes-away.patch
+memcg-slab-merge-memcg_bindrelease_pages-to-memcg_uncharge_slab.patch
+memcg-slab-simplify-synchronization-scheme.patch
+memcg-get-rid-of-memcg_create_cache_name.patch
+memcg-memcg_kmem_create_cache-make-memcg_name_buf.patch
+memcg-cleanup-kmem-cache-creation-destruction-functions-naming.patch
+slab-delete-cache-from-list-after-__kmem_cache_shutdown-succeeds.patch
 
