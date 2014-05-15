@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hpfs-use-__func__-for-logging.patch added to -mm tree
-Date: Thu, 15 May 2014 12:56:12 -0700
-Message-ID: <53751bdc.5TLXVw6qXgEmVVqT%akpm@linux-foundation.org>
+Subject: + fs-gfs2-filec-kernel-doc-warning-fixes.patch added to -mm tree
+Date: Thu, 15 May 2014 13:14:42 -0700
+Message-ID: <53752032.gGiqXp9uqBgpseUI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37233 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871AbaEOT4N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 15:56:13 -0400
+	with ESMTP id S1752719AbaEOUOn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 16:14:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mikulas@artax.karlin.mff.cuni.cz, fabf@skynet.be
+To: mm-commits@vger.kernel.org, swhiteho@redhat.com, fabf@skynet.be
 
-Subject: + fs-hpfs-use-__func__-for-logging.patch added to -mm tree
-To: fabf@skynet.be,mikulas@artax.karlin.mff.cuni.cz
+Subject: + fs-gfs2-filec-kernel-doc-warning-fixes.patch added to -mm tree
+To: fabf@skynet.be,swhiteho@redhat.com
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 12:56:12 -0700
+Date: Thu, 15 May 2014 13:14:42 -0700
 
 
 The patch titled
-     Subject: fs/hpfs: use __func__ for logging
+     Subject: fs/gfs2/file.c: kernel-doc warning fixes
 has been added to the -mm tree.  Its filename is
-     fs-hpfs-use-__func__-for-logging.patch
+     fs-gfs2-filec-kernel-doc-warning-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-hpfs-use-__func__-for-logging.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-gfs2-filec-kernel-doc-warning-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hpfs-use-__func__-for-logging.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-gfs2-filec-kernel-doc-warning-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,119 +44,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hpfs: use __func__ for logging
+Subject: fs/gfs2/file.c: kernel-doc warning fixes
 
-Normalize function display fx() using __func__
+Related function is not gfs2_set_flags but do_gfs2_set_flags
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/buffer.c |   12 ++++++------
- fs/hpfs/dnode.c  |   12 ++++++------
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ fs/gfs2/file.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/hpfs/buffer.c~fs-hpfs-use-__func__-for-logging fs/hpfs/buffer.c
---- a/fs/hpfs/buffer.c~fs-hpfs-use-__func__-for-logging
-+++ a/fs/hpfs/buffer.c
-@@ -55,7 +55,7 @@ void *hpfs_map_sector(struct super_block
- 	if (bh != NULL)
- 		return bh->b_data;
- 	else {
--		pr_warn("hpfs_map_sector: read error\n");
-+		pr_warn("%s(): read error\n", __func__);
- 		return NULL;
- 	}
- }
-@@ -76,7 +76,7 @@ void *hpfs_get_sector(struct super_block
- 		set_buffer_uptodate(bh);
- 		return bh->b_data;
- 	} else {
--		pr_warn("hpfs_get_sector: getblk failed\n");
-+		pr_warn("%s(): getblk failed\n", __func__);
- 		return NULL;
- 	}
- }
-@@ -93,7 +93,7 @@ void *hpfs_map_4sectors(struct super_blo
- 	cond_resched();
+diff -puN fs/gfs2/file.c~fs-gfs2-filec-kernel-doc-warning-fixes fs/gfs2/file.c
+--- a/fs/gfs2/file.c~fs-gfs2-filec-kernel-doc-warning-fixes
++++ a/fs/gfs2/file.c
+@@ -203,9 +203,9 @@ void gfs2_set_inode_flags(struct inode *
+ 			     GFS2_DIF_INHERIT_JDATA)
  
- 	if (secno & 3) {
--		pr_warn("hpfs_map_4sectors: unaligned read\n");
-+		pr_warn("%s(): unaligned read\n", __func__);
- 		return NULL;
- 	}
+ /**
+- * gfs2_set_flags - set flags on an inode
+- * @inode: The inode
+- * @flags: The flags to set
++ * do_gfs2_set_flags - set flags on an inode
++ * @filp: file pointer
++ * @reqflags: The flags to set
+  * @mask: Indicates which flags are valid
+  *
+  */
+@@ -318,7 +318,7 @@ static long gfs2_ioctl(struct file *filp
  
-@@ -112,7 +112,7 @@ void *hpfs_map_4sectors(struct super_blo
- 
- 	qbh->data = data = kmalloc(2048, GFP_NOFS);
- 	if (!data) {
--		pr_warn("hpfs_map_4sectors: out of memory\n");
-+		pr_warn("%s(): out of memory\n", __func__);
- 		goto bail4;
- 	}
- 
-@@ -145,7 +145,7 @@ void *hpfs_get_4sectors(struct super_blo
- 	hpfs_lock_assert(s);
- 
- 	if (secno & 3) {
--		pr_warn("hpfs_get_4sectors: unaligned read\n");
-+		pr_warn("%s(): unaligned read\n", __func__);
- 		return NULL;
- 	}
- 
-@@ -161,7 +161,7 @@ void *hpfs_get_4sectors(struct super_blo
- 	}
- 
- 	if (!(qbh->data = kmalloc(2048, GFP_NOFS))) {
--		pr_warn("hpfs_get_4sectors: out of memory\n");
-+		pr_warn("%s(): out of memory\n", __func__);
- 		goto bail4;
- 	}
- 	return qbh->data;
-diff -puN fs/hpfs/dnode.c~fs-hpfs-use-__func__-for-logging fs/hpfs/dnode.c
---- a/fs/hpfs/dnode.c~fs-hpfs-use-__func__-for-logging
-+++ a/fs/hpfs/dnode.c
-@@ -17,7 +17,7 @@ static loff_t get_pos(struct dnode *d, s
- 		if (de == fde) return ((loff_t) le32_to_cpu(d->self) << 4) | (loff_t)i;
- 		i++;
- 	}
--	pr_info("get_pos: not_found\n");
-+	pr_info("%s(): not_found\n", __func__);
- 	return ((loff_t)le32_to_cpu(d->self) << 4) | (loff_t)1;
- }
- 
-@@ -94,8 +94,8 @@ static void hpfs_pos_ins(loff_t *p, loff
- 	if ((*p & ~0x3f) == (d & ~0x3f) && (*p & 0x3f) >= (d & 0x3f)) {
- 		int n = (*p & 0x3f) + c;
- 		if (n > 0x3f)
--			pr_warn("hpfs_pos_ins: %08x + %d\n",
--				(int)*p, (int)c >> 8);
-+			pr_warn("%s(): %08x + %d\n",
-+				__func__, (int)*p, (int)c >> 8);
- 		else
- 			*p = (*p & ~0x3f) | n;
- 	}
-@@ -106,8 +106,8 @@ static void hpfs_pos_del(loff_t *p, loff
- 	if ((*p & ~0x3f) == (d & ~0x3f) && (*p & 0x3f) >= (d & 0x3f)) {
- 		int n = (*p & 0x3f) - c;
- 		if (n < 1)
--			pr_warn("hpfs_pos_ins: %08x - %d\n",
--				(int)*p, (int)c >> 8);
-+			pr_warn("%s(): %08x - %d\n",
-+				__func__, (int)*p, (int)c >> 8);
- 		else
- 			*p = (*p & ~0x3f) | n;
- 	}
-@@ -251,7 +251,7 @@ static int hpfs_add_to_dnode(struct inod
- 	}
- 	go_up:
- 	if (namelen >= 256) {
--		hpfs_error(i->i_sb, "hpfs_add_to_dnode: namelen == %d", namelen);
-+		hpfs_error(i->i_sb, "%s(): namelen == %d", __func__, namelen);
- 		kfree(nd);
- 		kfree(nname);
- 		return 1;
+ /**
+  * gfs2_size_hint - Give a hint to the size of a write request
+- * @file: The struct file
++ * @filep: The struct file
+  * @offset: The file offset of the write
+  * @size: The length of the write
+  *
+@@ -371,7 +371,7 @@ static int gfs2_allocate_page_backing(st
+ /**
+  * gfs2_page_mkwrite - Make a shared, mmap()ed, page writable
+  * @vma: The virtual memory area
+- * @page: The page which is about to become writable
++ * @vmf: The virtual memory fault containing the page to become writable
+  *
+  * When the page becomes writable, we need to ensure that we have
+  * blocks allocated on disk to back that page.
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -254,4 +187,8 @@ fs-reiserfs-bitmapc-coding-style-fixes.patch
 fs-reiserfs-streec-remove-obsolete-__constant.patch
 kernel-kprobesc-convert-printk-to-pr_foo.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
+fs-gfs2-filec-kernel-doc-warning-fixes.patch
+fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
 
