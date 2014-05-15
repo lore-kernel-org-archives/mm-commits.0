@@ -1,78 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch removed from -mm tree
-Date: Thu, 15 May 2014 12:22:01 -0700
-Message-ID: <537513d9.lCq5/YfWLPLUQZMg%akpm@linux-foundation.org>
+Subject: + fs-add-generic-data-flush-to-fsync.patch added to -mm tree
+Date: Thu, 15 May 2014 12:52:11 -0700
+Message-ID: <53751aeb.l/5Zha33a85blDAx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36283 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36842 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826AbaEOTWD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 15:22:03 -0400
+	with ESMTP id S1751524AbaEOTwM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 15:52:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paulmck@us.ibm.com, dipankar@in.ibm.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, jack@suse.cz, hch@infradead.org, fabf@skynet.be
 
-Subject: [merged] kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch removed from -mm tree
-To: fabf@skynet.be,dipankar@in.ibm.com,paulmck@us.ibm.com,mm-commits@vger.kernel.org
+Subject: + fs-add-generic-data-flush-to-fsync.patch added to -mm tree
+To: fabf@skynet.be,hch@infradead.org,jack@suse.cz,tytso@mit.edu,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 12:22:01 -0700
+Date: Thu, 15 May 2014 12:52:11 -0700
 
 
 The patch titled
-     Subject: kernel/rcu/tree.c: make rcu node arrays static const char * const
-has been removed from the -mm tree.  Its filename was
-     kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
+     Subject: fs/libfs.c: add generic data flush to fsync
+has been added to the -mm tree.  Its filename is
+     fs-add-generic-data-flush-to-fsync.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-add-generic-data-flush-to-fsync.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-add-generic-data-flush-to-fsync.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/rcu/tree.c: make rcu node arrays static const char * const
+Subject: fs/libfs.c: add generic data flush to fsync
 
-Those 2 arrays are being passed to lockdep_init_map with const char *
-and stored in lockdep_map the same way
+Description by Jan Kara:
+"A lot of older filesystems don't properly flush volatile disk caches
+on fsync(2) which can lead to loss of fsynced data after power failure.
+
+This patch makes generic_file_fsync() issue proper cache flush to fix the
+problem.  Sysadmin can use /sys/devices/.../cache_type to tell the system
+it should not send the cache flush."
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcu/tree.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ fs/libfs.c         |   39 ++++++++++++++++++++++++++++++++++++---
+ include/linux/fs.h |    1 +
+ 2 files changed, 37 insertions(+), 3 deletions(-)
 
-diff -puN kernel/rcu/tree.c~kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const kernel/rcu/tree.c
---- a/kernel/rcu/tree.c~kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const
-+++ a/kernel/rcu/tree.c
-@@ -3468,14 +3468,16 @@ static void __init rcu_init_levelspread(
- static void __init rcu_init_one(struct rcu_state *rsp,
- 		struct rcu_data __percpu *rda)
+diff -puN fs/libfs.c~fs-add-generic-data-flush-to-fsync fs/libfs.c
+--- a/fs/libfs.c~fs-add-generic-data-flush-to-fsync
++++ a/fs/libfs.c
+@@ -3,6 +3,7 @@
+  *	Library for filesystems writers.
+  */
+ 
++#include <linux/blkdev.h>
+ #include <linux/export.h>
+ #include <linux/pagemap.h>
+ #include <linux/slab.h>
+@@ -923,16 +924,19 @@ struct dentry *generic_fh_to_parent(stru
+ EXPORT_SYMBOL_GPL(generic_fh_to_parent);
+ 
+ /**
+- * generic_file_fsync - generic fsync implementation for simple filesystems
++ * __generic_file_fsync - generic fsync implementation for simple filesystems
++ *
+  * @file:	file to synchronize
++ * @start:	start offset in bytes
++ * @end:	end offset in bytes (inclusive)
+  * @datasync:	only synchronize essential metadata if true
+  *
+  * This is a generic implementation of the fsync method for simple
+  * filesystems which track all non-inode metadata in the buffers list
+  * hanging off the address_space structure.
+  */
+-int generic_file_fsync(struct file *file, loff_t start, loff_t end,
+-		       int datasync)
++int __generic_file_fsync(struct file *file, loff_t start, loff_t end,
++				 int datasync)
  {
--	static char *buf[] = { "rcu_node_0",
--			       "rcu_node_1",
--			       "rcu_node_2",
--			       "rcu_node_3" };  /* Match MAX_RCU_LVLS */
--	static char *fqs[] = { "rcu_node_fqs_0",
--			       "rcu_node_fqs_1",
--			       "rcu_node_fqs_2",
--			       "rcu_node_fqs_3" };  /* Match MAX_RCU_LVLS */
-+	static const char * const buf[] = {
-+		"rcu_node_0",
-+		"rcu_node_1",
-+		"rcu_node_2",
-+		"rcu_node_3" };  /* Match MAX_RCU_LVLS */
-+	static const char * const fqs[] = {
-+		"rcu_node_fqs_0",
-+		"rcu_node_fqs_1",
-+		"rcu_node_fqs_2",
-+		"rcu_node_fqs_3" };  /* Match MAX_RCU_LVLS */
- 	int cpustride = 1;
- 	int i;
- 	int j;
+ 	struct inode *inode = file->f_mapping->host;
+ 	int err;
+@@ -952,10 +956,39 @@ int generic_file_fsync(struct file *file
+ 	err = sync_inode_metadata(inode, 1);
+ 	if (ret == 0)
+ 		ret = err;
++
+ out:
+ 	mutex_unlock(&inode->i_mutex);
+ 	return ret;
+ }
++EXPORT_SYMBOL(__generic_file_fsync);
++
++/**
++ * generic_file_fsync - generic fsync implementation for simple filesystems
++ *			with flush
++ * @file:	file to synchronize
++ * @start:	start offset in bytes
++ * @end:	end offset in bytes (inclusive)
++ * @datasync:	only synchronize essential metadata if true
++ *
++ */
++
++int generic_file_fsync(struct file *file, loff_t start, loff_t end,
++		       int datasync)
++{
++	struct inode *inode = file->f_mapping->host;
++	int err;
++
++	err = __generic_file_fsync(file, start, end, datasync);
++	if (err)
++		return err;
++#ifdef CONFIG_BLOCK
++	return blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
++#else
++	return err;
++#endif
++
++}
+ EXPORT_SYMBOL(generic_file_fsync);
+ 
+ /**
+diff -puN include/linux/fs.h~fs-add-generic-data-flush-to-fsync include/linux/fs.h
+--- a/include/linux/fs.h~fs-add-generic-data-flush-to-fsync
++++ a/include/linux/fs.h
+@@ -2590,6 +2590,7 @@ extern ssize_t simple_read_from_buffer(v
+ extern ssize_t simple_write_to_buffer(void *to, size_t available, loff_t *ppos,
+ 		const void __user *from, size_t count);
+ 
++extern int __generic_file_fsync(struct file *, loff_t, loff_t, int);
+ extern int generic_file_fsync(struct file *, loff_t, loff_t, int);
+ 
+ extern int generic_check_addressable(unsigned, u64);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -103,6 +183,9 @@ ocfs2-remove-null-assignments-on-static.patch
 fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
 fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
 fs-9p-kerneldoc-fixes.patch
+fs-add-generic-data-flush-to-fsync.patch
+fs-add-generic-data-flush-to-fsync-fix.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
 mm-slubc-convert-printk-to-pr_foo.patch
 mm-slubc-convert-vnsprintf-static-to-va_format.patch
 mm-memory_hotplugc-use-pfn_down.patch
