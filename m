@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch added to -mm tree
-Date: Thu, 15 May 2014 13:14:45 -0700
-Message-ID: <53752035.i4nvu9GGUdcH8VUO%akpm@linux-foundation.org>
+Subject: + fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch added to
+ -mm tree
+Date: Thu, 15 May 2014 13:14:43 -0700
+Message-ID: <53752033.DVmON3E5CownLUKu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37243 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37236 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754758AbaEOUOq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 16:14:46 -0400
+	with ESMTP id S1752719AbaEOUOo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 16:14:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, slava@dubeyko.com, fabf@skynet.be
 
-Subject: + fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch added to -mm tree
+Subject: + fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch added to -mm tree
 To: fabf@skynet.be,slava@dubeyko.com
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 13:14:45 -0700
+Date: Thu, 15 May 2014 13:14:43 -0700
 
 
 The patch titled
-     Subject: fs/hfsplus/wrapper.c: replace min/casting by min_t
+     Subject: fs/hfsplus/bnode.c: replace min/casting by min_t
 has been added to the -mm tree.  Its filename is
-     fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+     fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,41 +45,138 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hfsplus/wrapper.c: replace min/casting by min_t
+Subject: fs/hfsplus/bnode.c: replace min/casting by min_t
 
-Also add * before function comments (it was not detected by kernel-doc)
+Also fixes some pr_ formats
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/wrapper.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/hfsplus/bnode.c |   32 +++++++++++++++-----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
-diff -puN fs/hfsplus/wrapper.c~fs-hfsplus-wrapperc-replace-min-casting-by-min_t fs/hfsplus/wrapper.c
---- a/fs/hfsplus/wrapper.c~fs-hfsplus-wrapperc-replace-min-casting-by-min_t
-+++ a/fs/hfsplus/wrapper.c
-@@ -24,8 +24,8 @@ struct hfsplus_wd {
- 	u16 embed_count;
- };
+diff -puN fs/hfsplus/bnode.c~fs-hfsplus-bnodec-replace-min-casting-by-min_t fs/hfsplus/bnode.c
+--- a/fs/hfsplus/bnode.c~fs-hfsplus-bnodec-replace-min-casting-by-min_t
++++ a/fs/hfsplus/bnode.c
+@@ -27,13 +27,13 @@ void hfs_bnode_read(struct hfs_bnode *no
+ 	pagep = node->page + (off >> PAGE_CACHE_SHIFT);
+ 	off &= ~PAGE_CACHE_MASK;
  
--/*
-- * hfsplus_submit_bio - Perfrom block I/O
-+/**
-+ * hfsplus_submit_bio - Perform block I/O
-  * @sb: super block of volume for I/O
-  * @sector: block to read or write, for blocks of HFSPLUS_SECTOR_SIZE bytes
-  * @buf: buffer for I/O
-@@ -234,7 +234,7 @@ reread:
- 	sbi->alloc_blksz_shift = 0;
- 	while ((blocksize >>= 1) != 0)
- 		sbi->alloc_blksz_shift++;
--	blocksize = min(sbi->alloc_blksz, (u32)PAGE_SIZE);
-+	blocksize = min_t(u32, sbi->alloc_blksz, PAGE_SIZE);
+-	l = min(len, (int)PAGE_CACHE_SIZE - off);
++	l = min_t(int, len, PAGE_CACHE_SIZE - off);
+ 	memcpy(buf, kmap(*pagep) + off, l);
+ 	kunmap(*pagep);
  
- 	/*
- 	 * Align block size to block offset.
+ 	while ((len -= l) != 0) {
+ 		buf += l;
+-		l = min(len, (int)PAGE_CACHE_SIZE);
++		l = min_t(int, len, PAGE_CACHE_SIZE);
+ 		memcpy(buf, kmap(*++pagep), l);
+ 		kunmap(*pagep);
+ 	}
+@@ -80,14 +80,14 @@ void hfs_bnode_write(struct hfs_bnode *n
+ 	pagep = node->page + (off >> PAGE_CACHE_SHIFT);
+ 	off &= ~PAGE_CACHE_MASK;
+ 
+-	l = min(len, (int)PAGE_CACHE_SIZE - off);
++	l = min_t(int, len, PAGE_CACHE_SIZE - off);
+ 	memcpy(kmap(*pagep) + off, buf, l);
+ 	set_page_dirty(*pagep);
+ 	kunmap(*pagep);
+ 
+ 	while ((len -= l) != 0) {
+ 		buf += l;
+-		l = min(len, (int)PAGE_CACHE_SIZE);
++		l = min_t(int, len, PAGE_CACHE_SIZE);
+ 		memcpy(kmap(*++pagep), buf, l);
+ 		set_page_dirty(*pagep);
+ 		kunmap(*pagep);
+@@ -110,13 +110,13 @@ void hfs_bnode_clear(struct hfs_bnode *n
+ 	pagep = node->page + (off >> PAGE_CACHE_SHIFT);
+ 	off &= ~PAGE_CACHE_MASK;
+ 
+-	l = min(len, (int)PAGE_CACHE_SIZE - off);
++	l = min_t(int, len, PAGE_CACHE_SIZE - off);
+ 	memset(kmap(*pagep) + off, 0, l);
+ 	set_page_dirty(*pagep);
+ 	kunmap(*pagep);
+ 
+ 	while ((len -= l) != 0) {
+-		l = min(len, (int)PAGE_CACHE_SIZE);
++		l = min_t(int, len, PAGE_CACHE_SIZE);
+ 		memset(kmap(*++pagep), 0, l);
+ 		set_page_dirty(*pagep);
+ 		kunmap(*pagep);
+@@ -142,14 +142,14 @@ void hfs_bnode_copy(struct hfs_bnode *ds
+ 	dst &= ~PAGE_CACHE_MASK;
+ 
+ 	if (src == dst) {
+-		l = min(len, (int)PAGE_CACHE_SIZE - src);
++		l = min_t(int, len, PAGE_CACHE_SIZE - src);
+ 		memcpy(kmap(*dst_page) + src, kmap(*src_page) + src, l);
+ 		kunmap(*src_page);
+ 		set_page_dirty(*dst_page);
+ 		kunmap(*dst_page);
+ 
+ 		while ((len -= l) != 0) {
+-			l = min(len, (int)PAGE_CACHE_SIZE);
++			l = min_t(int, len, PAGE_CACHE_SIZE);
+ 			memcpy(kmap(*++dst_page), kmap(*++src_page), l);
+ 			kunmap(*src_page);
+ 			set_page_dirty(*dst_page);
+@@ -251,7 +251,7 @@ void hfs_bnode_move(struct hfs_bnode *no
+ 		dst &= ~PAGE_CACHE_MASK;
+ 
+ 		if (src == dst) {
+-			l = min(len, (int)PAGE_CACHE_SIZE - src);
++			l = min_t(int, len, PAGE_CACHE_SIZE - src);
+ 			memmove(kmap(*dst_page) + src,
+ 				kmap(*src_page) + src, l);
+ 			kunmap(*src_page);
+@@ -259,7 +259,7 @@ void hfs_bnode_move(struct hfs_bnode *no
+ 			kunmap(*dst_page);
+ 
+ 			while ((len -= l) != 0) {
+-				l = min(len, (int)PAGE_CACHE_SIZE);
++				l = min_t(int, len, PAGE_CACHE_SIZE);
+ 				memmove(kmap(*++dst_page),
+ 					kmap(*++src_page), l);
+ 				kunmap(*src_page);
+@@ -386,9 +386,8 @@ struct hfs_bnode *hfs_bnode_findhash(str
+ 	struct hfs_bnode *node;
+ 
+ 	if (cnid >= tree->node_count) {
+-		pr_err("request for non-existent node "
+-				"%d in B*Tree\n",
+-			cnid);
++		pr_err("request for non-existent node %d in B*Tree\n",
++		       cnid);
+ 		return NULL;
+ 	}
+ 
+@@ -409,9 +408,8 @@ static struct hfs_bnode *__hfs_bnode_cre
+ 	loff_t off;
+ 
+ 	if (cnid >= tree->node_count) {
+-		pr_err("request for non-existent node "
+-				"%d in B*Tree\n",
+-			cnid);
++		pr_err("request for non-existent node %d in B*Tree\n",
++		       cnid);
+ 		return NULL;
+ 	}
+ 
+@@ -602,7 +600,7 @@ struct hfs_bnode *hfs_bnode_create(struc
+ 
+ 	pagep = node->page;
+ 	memset(kmap(*pagep) + node->page_offset, 0,
+-	       min((int)PAGE_CACHE_SIZE, (int)tree->node_size));
++	       min_t(int, PAGE_CACHE_SIZE, tree->node_size));
+ 	set_page_dirty(*pagep);
+ 	kunmap(*pagep);
+ 	for (i = 1; i < tree->pages_per_bnode; i++) {
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
