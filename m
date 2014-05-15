@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-add-generic-data-flush-to-fsync-fix.patch added to -mm tree
-Date: Thu, 15 May 2014 12:52:12 -0700
-Message-ID: <53751aec.2zR+bkUIavUv3Ozy%akpm@linux-foundation.org>
+Subject: +
+ fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch added to -mm tree
+Date: Thu, 15 May 2014 12:52:13 -0700
+Message-ID: <53751aed.CcNYnAmiktnYwcbp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36849 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36854 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751524AbaEOTwN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 15:52:13 -0400
+	with ESMTP id S1751580AbaEOTwO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 15:52:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, jack@suse.cz, hch@infradead.org, fabf@skynet.be, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, jack@suse.cz, hch@infradead.org, fabf@skynet.be
 
-Subject: + fs-add-generic-data-flush-to-fsync-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,fabf@skynet.be,hch@infradead.org,jack@suse.cz,tytso@mit.edu,viro@zeniv.linux.org.uk
+Subject: + fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch added to -mm tree
+To: fabf@skynet.be,hch@infradead.org,jack@suse.cz,tytso@mit.edu,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 12:52:12 -0700
+Date: Thu, 15 May 2014 12:52:13 -0700
 
 
 The patch titled
-     Subject: fs-add-generic-data-flush-to-fsync-fix
+     Subject: fs/ext4/fsync.c: generic_file_fsync call based on barrier flag
 has been added to the -mm tree.  Its filename is
-     fs-add-generic-data-flush-to-fsync-fix.patch
+     fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-add-generic-data-flush-to-fsync-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-add-generic-data-flush-to-fsync-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,129 +44,135 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-add-generic-data-flush-to-fsync-fix
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/ext4/fsync.c: generic_file_fsync call based on barrier flag
 
-nuke ifdef
+generic_file_fsync has been updated to issue a flush for older
+filesystems.
 
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Fabian Frederick <fabf@skynet.be>
+This patch tests for barrier flag in ext4 mount flags and calls the right
+function.
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Suggested-by: Jan Kara <jack@suse.cz>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c             |    5 -----
- include/linux/blkdev.h |    6 ++++++
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ fs/ext4/fsync.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/libfs.c~fs-add-generic-data-flush-to-fsync-fix fs/libfs.c
---- a/fs/libfs.c~fs-add-generic-data-flush-to-fsync-fix
-+++ a/fs/libfs.c
-@@ -982,12 +982,7 @@ int generic_file_fsync(struct file *file
- 	err = __generic_file_fsync(file, start, end, datasync);
- 	if (err)
- 		return err;
--#ifdef CONFIG_BLOCK
- 	return blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
--#else
--	return err;
--#endif
--
- }
- EXPORT_SYMBOL(generic_file_fsync);
+diff -puN fs/ext4/fsync.c~fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag fs/ext4/fsync.c
+--- a/fs/ext4/fsync.c~fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag
++++ a/fs/ext4/fsync.c
+@@ -107,7 +107,10 @@ int ext4_sync_file(struct file *file, lo
+ 	}
  
-diff -puN include/linux/blkdev.h~fs-add-generic-data-flush-to-fsync-fix include/linux/blkdev.h
---- a/include/linux/blkdev.h~fs-add-generic-data-flush-to-fsync-fix
-+++ a/include/linux/blkdev.h
-@@ -1624,6 +1624,12 @@ static inline bool blk_needs_flush_plug(
- 	return false;
- }
- 
-+static inline int blkdev_issue_flush(struct block_device *bdev, gfp_t gfp_mask,
-+				     sector_t *error_sector)
-+{
-+	return 0;
-+}
-+
- #endif /* CONFIG_BLOCK */
- 
- #endif
+ 	if (!journal) {
+-		ret = generic_file_fsync(file, start, end, datasync);
++		if (test_opt(inode->i_sb, BARRIER))
++			ret = generic_file_fsync(file, start, end, datasync);
++		else
++			ret = __generic_file_fsync(file, start, end, datasync);
+ 		if (!ret && !hlist_empty(&inode->i_dentry))
+ 			ret = ext4_sync_parent(inode);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+fs-fscache-replace-seq_printf-by-seq_puts.patch
+fs-gfs2-bmapc-kernel-doc-warning-fixes.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+kernel-posix-timersc-code-clean-up.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
+kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
 arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
 arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+fs-configfs-convert-printk-to-pr_foo.patch
+fs-configfs-use-pr_fmt.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+fs-add-generic-data-flush-to-fsync.patch
 fs-add-generic-data-flush-to-fsync-fix.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
-mm-mempool-warn-about-__gfp_zero-usage-fix.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-mm-update-comment-for-default_max_map_count-fix.patch
-memcg-fold-mem_cgroup_stolen-fix.patch
-mm-compaction-embed-migration-mode-in-compact_control-fix.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-mm-add-comment-for-__mod_zone_page_stat.patch
-mm-add-comment-for-__mod_zone_page_stat-checkpatch-fixes.patch
-mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
-mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
+fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
+kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+kernel-stop_machinec-kernel-doc-warning-fix.patch
+kernel-tracepointc-kernel-doc-fixes.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
 kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
-lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
-init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
-init-mainc-remove-an-ifdef.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-rtc-da9063-rtc-driver-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-2.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-3.patch
+kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
+kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
+documentation-expand-clarify-debug-documentation.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+fs-efs-convert-printk-to-pr_foo.patch
+fs-efs-add-pr_fmt-use-__func__.patch
+fs-efs-convert-printkkern_debug-to-pr_debug.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
 fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-lib-test_bpfc-dont-use-gcc-union-shortcut.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-rwsem-support-optimistic-spinning-checkpatch-fixes.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
