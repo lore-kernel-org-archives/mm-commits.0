@@ -1,84 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + fs-exportfs-expfsc-kernel-doc-warning-fixes.patch added to -mm
- tree
-Date: Wed, 14 May 2014 17:00:25 -0700
-Message-ID: <53740399.5zeEgaCQ2+DpDm8t%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch removed from -mm tree
+Date: Thu, 15 May 2014 12:22:01 -0700
+Message-ID: <537513d9.lCq5/YfWLPLUQZMg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49393 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36283 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532AbaEOAA0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 20:00:26 -0400
+	with ESMTP id S1752826AbaEOTWD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 15:22:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, bfields@redhat.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, paulmck@us.ibm.com, dipankar@in.ibm.com, fabf@skynet.be
 
-Subject: + fs-exportfs-expfsc-kernel-doc-warning-fixes.patch added to -mm tree
-To: fabf@skynet.be,bfields@redhat.com,viro@zeniv.linux.org.uk
+Subject: [merged] kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch removed from -mm tree
+To: fabf@skynet.be,dipankar@in.ibm.com,paulmck@us.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 14 May 2014 17:00:25 -0700
+Date: Thu, 15 May 2014 12:22:01 -0700
 
 
 The patch titled
-     Subject: fs/exportfs/expfs.c: kernel-doc warning fixes
-has been added to the -mm tree.  Its filename is
-     fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
+     Subject: kernel/rcu/tree.c: make rcu node arrays static const char * const
+has been removed from the -mm tree.  Its filename was
+     kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/exportfs/expfs.c: kernel-doc warning fixes
+Subject: kernel/rcu/tree.c: make rcu node arrays static const char * const
 
-Fixing 2 typo in function comments.
+Those 2 arrays are being passed to lockdep_init_map with const char *
+and stored in lockdep_map the same way
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "J. Bruce Fields" <bfields@redhat.com>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exportfs/expfs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/rcu/tree.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN fs/exportfs/expfs.c~fs-exportfs-expfsc-kernel-doc-warning-fixes fs/exportfs/expfs.c
---- a/fs/exportfs/expfs.c~fs-exportfs-expfsc-kernel-doc-warning-fixes
-+++ a/fs/exportfs/expfs.c
-@@ -259,7 +259,7 @@ static int filldir_one(void * __buf, con
- 
- /**
-  * get_name - default export_operations->get_name function
-- * @dentry: the directory in which to find a name
-+ * @path:   the directory in which to find a name
-  * @name:   a pointer to a %NAME_MAX+1 char buffer to store the name
-  * @child:  the dentry for the child directory.
-  *
-@@ -337,7 +337,7 @@ out:
- /**
-  * export_encode_fh - default export_operations->encode_fh function
-  * @inode:   the object to encode
-- * @fh:      where to store the file handle fragment
-+ * @fid:     where to store the file handle fragment
-  * @max_len: maximum length to store there
-  * @parent:  parent directory inode, if wanted
-  *
+diff -puN kernel/rcu/tree.c~kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const kernel/rcu/tree.c
+--- a/kernel/rcu/tree.c~kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const
++++ a/kernel/rcu/tree.c
+@@ -3468,14 +3468,16 @@ static void __init rcu_init_levelspread(
+ static void __init rcu_init_one(struct rcu_state *rsp,
+ 		struct rcu_data __percpu *rda)
+ {
+-	static char *buf[] = { "rcu_node_0",
+-			       "rcu_node_1",
+-			       "rcu_node_2",
+-			       "rcu_node_3" };  /* Match MAX_RCU_LVLS */
+-	static char *fqs[] = { "rcu_node_fqs_0",
+-			       "rcu_node_fqs_1",
+-			       "rcu_node_fqs_2",
+-			       "rcu_node_fqs_3" };  /* Match MAX_RCU_LVLS */
++	static const char * const buf[] = {
++		"rcu_node_0",
++		"rcu_node_1",
++		"rcu_node_2",
++		"rcu_node_3" };  /* Match MAX_RCU_LVLS */
++	static const char * const fqs[] = {
++		"rcu_node_fqs_0",
++		"rcu_node_fqs_1",
++		"rcu_node_fqs_2",
++		"rcu_node_fqs_3" };  /* Match MAX_RCU_LVLS */
+ 	int cpustride = 1;
+ 	int i;
+ 	int j;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -166,7 +160,6 @@ kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
 kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
 init-mainc-code-clean-up.patch
-kernel-rcu-treec-make-rcu-node-arrays-static-const-char-const.patch
 fs-reiserfs-bitmapc-coding-style-fixes.patch
 fs-reiserfs-streec-remove-obsolete-__constant.patch
 kernel-kprobesc-convert-printk-to-pr_foo.patch
