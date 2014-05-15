@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-gfs2-filec-kernel-doc-warning-fixes.patch added to -mm tree
-Date: Thu, 15 May 2014 13:14:42 -0700
-Message-ID: <53752032.gGiqXp9uqBgpseUI%akpm@linux-foundation.org>
+Subject: + fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch added
+ to -mm tree
+Date: Thu, 15 May 2014 13:14:44 -0700
+Message-ID: <53752034.gdhnk4v0yKRsdkQ1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37233 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37240 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752719AbaEOUOn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 16:14:43 -0400
+	with ESMTP id S1752719AbaEOUOp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 16:14:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, swhiteho@redhat.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, slava@dubeyko.com, fabf@skynet.be
 
-Subject: + fs-gfs2-filec-kernel-doc-warning-fixes.patch added to -mm tree
-To: fabf@skynet.be,swhiteho@redhat.com
+Subject: + fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch added to -mm tree
+To: fabf@skynet.be,slava@dubeyko.com
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 13:14:42 -0700
+Date: Thu, 15 May 2014 13:14:44 -0700
 
 
 The patch titled
-     Subject: fs/gfs2/file.c: kernel-doc warning fixes
+     Subject: fs/hfsplus/options.c: replace seq_printf by seq_puts
 has been added to the -mm tree.  Its filename is
-     fs-gfs2-filec-kernel-doc-warning-fixes.patch
+     fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-gfs2-filec-kernel-doc-warning-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-gfs2-filec-kernel-doc-warning-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,52 +45,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/gfs2/file.c: kernel-doc warning fixes
+Subject: fs/hfsplus/options.c: replace seq_printf by seq_puts
 
-Related function is not gfs2_set_flags but do_gfs2_set_flags
+Replace seq_printf where possible
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/file.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/hfsplus/options.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/gfs2/file.c~fs-gfs2-filec-kernel-doc-warning-fixes fs/gfs2/file.c
---- a/fs/gfs2/file.c~fs-gfs2-filec-kernel-doc-warning-fixes
-+++ a/fs/gfs2/file.c
-@@ -203,9 +203,9 @@ void gfs2_set_inode_flags(struct inode *
- 			     GFS2_DIF_INHERIT_JDATA)
- 
- /**
-- * gfs2_set_flags - set flags on an inode
-- * @inode: The inode
-- * @flags: The flags to set
-+ * do_gfs2_set_flags - set flags on an inode
-+ * @filp: file pointer
-+ * @reqflags: The flags to set
-  * @mask: Indicates which flags are valid
-  *
-  */
-@@ -318,7 +318,7 @@ static long gfs2_ioctl(struct file *filp
- 
- /**
-  * gfs2_size_hint - Give a hint to the size of a write request
-- * @file: The struct file
-+ * @filep: The struct file
-  * @offset: The file offset of the write
-  * @size: The length of the write
-  *
-@@ -371,7 +371,7 @@ static int gfs2_allocate_page_backing(st
- /**
-  * gfs2_page_mkwrite - Make a shared, mmap()ed, page writable
-  * @vma: The virtual memory area
-- * @page: The page which is about to become writable
-+ * @vmf: The virtual memory fault containing the page to become writable
-  *
-  * When the page becomes writable, we need to ensure that we have
-  * blocks allocated on disk to back that page.
+diff -puN fs/hfsplus/options.c~fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts fs/hfsplus/options.c
+--- a/fs/hfsplus/options.c~fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts
++++ a/fs/hfsplus/options.c
+@@ -173,9 +173,8 @@ int hfsplus_parse_options(char *input, s
+ 			if (p)
+ 				sbi->nls = load_nls(p);
+ 			if (!sbi->nls) {
+-				pr_err("unable to load "
+-						"nls mapping \"%s\"\n",
+-					p);
++				pr_err("unable to load nls mapping \"%s\"\n",
++				       p);
+ 				kfree(p);
+ 				return 0;
+ 			}
+@@ -232,8 +231,8 @@ int hfsplus_show_options(struct seq_file
+ 	if (sbi->nls)
+ 		seq_printf(seq, ",nls=%s", sbi->nls->charset);
+ 	if (test_bit(HFSPLUS_SB_NODECOMPOSE, &sbi->flags))
+-		seq_printf(seq, ",nodecompose");
++		seq_puts(seq, ",nodecompose");
+ 	if (test_bit(HFSPLUS_SB_NOBARRIER, &sbi->flags))
+-		seq_printf(seq, ",nobarrier");
++		seq_puts(seq, ",nobarrier");
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
