@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-efivarfs-superc-use-static-const-for-dentry_operations.patch added to -mm tree
-Date: Wed, 14 May 2014 17:00:14 -0700
-Message-ID: <5374038e.TDyr/4PJBLwtgwdR%akpm@linux-foundation.org>
+Subject: + fs-exportfs-expfsc-kernel-doc-warning-fixes.patch added to -mm
+ tree
+Date: Wed, 14 May 2014 17:00:25 -0700
+Message-ID: <53740399.5zeEgaCQ2+DpDm8t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49390 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49393 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751081AbaEOAAP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 20:00:15 -0400
+	with ESMTP id S1751532AbaEOAA0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 May 2014 20:00:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, matthew.garrett@nebula.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, bfields@redhat.com, fabf@skynet.be
 
-Subject: + fs-efivarfs-superc-use-static-const-for-dentry_operations.patch added to -mm tree
-To: fabf@skynet.be,matthew.garrett@nebula.com
+Subject: + fs-exportfs-expfsc-kernel-doc-warning-fixes.patch added to -mm tree
+To: fabf@skynet.be,bfields@redhat.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 14 May 2014 17:00:14 -0700
+Date: Wed, 14 May 2014 17:00:25 -0700
 
 
 The patch titled
-     Subject: fs/efivarfs/super.c: use static const for dentry_operations
+     Subject: fs/exportfs/expfs.c: kernel-doc warning fixes
 has been added to the -mm tree.  Its filename is
-     fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
+     fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,30 +45,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/efivarfs/super.c: use static const for dentry_operations
+Subject: fs/exportfs/expfs.c: kernel-doc warning fixes
 
-...like other filesystems.
+Fixing 2 typo in function comments.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "J. Bruce Fields" <bfields@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efivarfs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/exportfs/expfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/efivarfs/super.c~fs-efivarfs-superc-use-static-const-for-dentry_operations fs/efivarfs/super.c
---- a/fs/efivarfs/super.c~fs-efivarfs-superc-use-static-const-for-dentry_operations
-+++ a/fs/efivarfs/super.c
-@@ -83,7 +83,7 @@ static int efivarfs_d_hash(const struct
- 	return 0;
- }
+diff -puN fs/exportfs/expfs.c~fs-exportfs-expfsc-kernel-doc-warning-fixes fs/exportfs/expfs.c
+--- a/fs/exportfs/expfs.c~fs-exportfs-expfsc-kernel-doc-warning-fixes
++++ a/fs/exportfs/expfs.c
+@@ -259,7 +259,7 @@ static int filldir_one(void * __buf, con
  
--static struct dentry_operations efivarfs_d_ops = {
-+static const struct dentry_operations efivarfs_d_ops = {
- 	.d_compare = efivarfs_d_compare,
- 	.d_hash = efivarfs_d_hash,
- 	.d_delete = always_delete_dentry,
+ /**
+  * get_name - default export_operations->get_name function
+- * @dentry: the directory in which to find a name
++ * @path:   the directory in which to find a name
+  * @name:   a pointer to a %NAME_MAX+1 char buffer to store the name
+  * @child:  the dentry for the child directory.
+  *
+@@ -337,7 +337,7 @@ out:
+ /**
+  * export_encode_fh - default export_operations->encode_fh function
+  * @inode:   the object to encode
+- * @fh:      where to store the file handle fragment
++ * @fid:     where to store the file handle fragment
+  * @max_len: maximum length to store there
+  * @parent:  parent directory inode, if wanted
+  *
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
