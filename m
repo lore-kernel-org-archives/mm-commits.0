@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch added
- to -mm tree
-Date: Thu, 15 May 2014 13:14:44 -0700
-Message-ID: <53752034.gdhnk4v0yKRsdkQ1%akpm@linux-foundation.org>
+Subject: + fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch added to -mm tree
+Date: Thu, 15 May 2014 13:14:45 -0700
+Message-ID: <53752035.i4nvu9GGUdcH8VUO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37240 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37243 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752719AbaEOUOp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 16:14:45 -0400
+	with ESMTP id S1754758AbaEOUOq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 16:14:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, slava@dubeyko.com, fabf@skynet.be
 
-Subject: + fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch added to -mm tree
+Subject: + fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch added to -mm tree
 To: fabf@skynet.be,slava@dubeyko.com
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 13:14:44 -0700
+Date: Thu, 15 May 2014 13:14:45 -0700
 
 
 The patch titled
-     Subject: fs/hfsplus/options.c: replace seq_printf by seq_puts
+     Subject: fs/hfsplus/wrapper.c: replace min/casting by min_t
 has been added to the -mm tree.  Its filename is
-     fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+     fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,44 +44,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hfsplus/options.c: replace seq_printf by seq_puts
+Subject: fs/hfsplus/wrapper.c: replace min/casting by min_t
 
-Replace seq_printf where possible
+Also add * before function comments (it was not detected by kernel-doc)
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/options.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/hfsplus/wrapper.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/hfsplus/options.c~fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts fs/hfsplus/options.c
---- a/fs/hfsplus/options.c~fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts
-+++ a/fs/hfsplus/options.c
-@@ -173,9 +173,8 @@ int hfsplus_parse_options(char *input, s
- 			if (p)
- 				sbi->nls = load_nls(p);
- 			if (!sbi->nls) {
--				pr_err("unable to load "
--						"nls mapping \"%s\"\n",
--					p);
-+				pr_err("unable to load nls mapping \"%s\"\n",
-+				       p);
- 				kfree(p);
- 				return 0;
- 			}
-@@ -232,8 +231,8 @@ int hfsplus_show_options(struct seq_file
- 	if (sbi->nls)
- 		seq_printf(seq, ",nls=%s", sbi->nls->charset);
- 	if (test_bit(HFSPLUS_SB_NODECOMPOSE, &sbi->flags))
--		seq_printf(seq, ",nodecompose");
-+		seq_puts(seq, ",nodecompose");
- 	if (test_bit(HFSPLUS_SB_NOBARRIER, &sbi->flags))
--		seq_printf(seq, ",nobarrier");
-+		seq_puts(seq, ",nobarrier");
- 	return 0;
- }
+diff -puN fs/hfsplus/wrapper.c~fs-hfsplus-wrapperc-replace-min-casting-by-min_t fs/hfsplus/wrapper.c
+--- a/fs/hfsplus/wrapper.c~fs-hfsplus-wrapperc-replace-min-casting-by-min_t
++++ a/fs/hfsplus/wrapper.c
+@@ -24,8 +24,8 @@ struct hfsplus_wd {
+ 	u16 embed_count;
+ };
+ 
+-/*
+- * hfsplus_submit_bio - Perfrom block I/O
++/**
++ * hfsplus_submit_bio - Perform block I/O
+  * @sb: super block of volume for I/O
+  * @sector: block to read or write, for blocks of HFSPLUS_SECTOR_SIZE bytes
+  * @buf: buffer for I/O
+@@ -234,7 +234,7 @@ reread:
+ 	sbi->alloc_blksz_shift = 0;
+ 	while ((blocksize >>= 1) != 0)
+ 		sbi->alloc_blksz_shift++;
+-	blocksize = min(sbi->alloc_blksz, (u32)PAGE_SIZE);
++	blocksize = min_t(u32, sbi->alloc_blksz, PAGE_SIZE);
+ 
+ 	/*
+ 	 * Align block size to block offset.
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
