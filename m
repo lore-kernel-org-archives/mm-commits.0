@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- compilerh-avoid-sparse-errors-in-__compiletime_error_fallback.patch added
- to -mm tree
-Date: Thu, 15 May 2014 16:03:24 -0700
-Message-ID: <537547bc.BueYSipfAOORLbSo%akpm@linux-foundation.org>
+Subject: + ipcshm-document-new-limits-in-the-uapi-header-v3.patch added to -mm tree
+Date: Thu, 15 May 2014 16:06:07 -0700
+Message-ID: <5375485f.nhpe5guAU0xLRIql%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39478 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39492 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753557AbaEOXDZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 19:03:25 -0400
+	with ESMTP id S1752088AbaEOXGI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 19:06:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peterz@infradead.org, paulmck@linux.vnet.ibm.com, luciano.coelho@intel.com, johannes@sipsolutions.net, johannes.berg@intel.com, daniel.santos@pobox.com, james.hogan@imgtec.com
+To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, manfred@colorfullife.com, davidlohr@hp.com
 
-Subject: + compilerh-avoid-sparse-errors-in-__compiletime_error_fallback.patch added to -mm tree
-To: james.hogan@imgtec.com,daniel.santos@pobox.com,johannes.berg@intel.com,johannes@sipsolutions.net,luciano.coelho@intel.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org
+Subject: + ipcshm-document-new-limits-in-the-uapi-header-v3.patch added to -mm tree
+To: davidlohr@hp.com,manfred@colorfullife.com,mtk.manpages@gmail.com
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 16:03:24 -0700
+Date: Thu, 15 May 2014 16:06:07 -0700
 
 
 The patch titled
-     Subject: compiler.h: avoid sparse errors in __compiletime_error_fallback()
+     Subject: ipcshm-document-new-limits-in-the-uapi-header-v3
 has been added to the -mm tree.  Its filename is
-     compilerh-avoid-sparse-errors-in-__compiletime_error_fallback.patch
+     ipcshm-document-new-limits-in-the-uapi-header-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compilerh-avoid-sparse-errors-in-__compiletime_error_fallback.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-document-new-limits-in-the-uapi-header-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compilerh-avoid-sparse-errors-in-__compiletime_error_fallback.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-document-new-limits-in-the-uapi-header-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,67 +43,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: James Hogan <james.hogan@imgtec.com>
-Subject: compiler.h: avoid sparse errors in __compiletime_error_fallback()
+From: Davidlohr Bueso <davidlohr@hp.com>
+Subject: ipcshm-document-new-limits-in-the-uapi-header-v3
 
-Usually, BUG_ON and friends aren't even evaluated in sparse, but recently
-compiletime_assert_atomic_type() was added, and that now results in a
-sparse warning every time it is used.
-
-The reason turns out to be the temporary variable, after it sparse no
-longer considers the value to be a constant, and results in a warning and
-an error.  The error is the more annoying part of this as it suppresses
-any further warnings in the same file, hiding other problems.
-
-Unfortunately the condition cannot be simply expanded out to avoid the
-temporary variable since it breaks compiletime_assert on old versions of
-GCC such as GCC 4.2.4 which the latest metag compiler is based on.
-
-Therefore #ifndef __CHECKER__ out the __compiletime_error_fallback which
-uses the potentially negative size array to trigger a conditional compiler
-error, so that sparse doesn't see it.
-
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Johannes Berg <johannes.berg@intel.com>
-Cc: Daniel Santos <daniel.santos@pobox.com>
-Cc: Luciano Coelho <luciano.coelho@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Acked-by: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ include/uapi/linux/shm.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/compiler.h~compilerh-avoid-sparse-errors-in-__compiletime_error_fallback include/linux/compiler.h
---- a/include/linux/compiler.h~compilerh-avoid-sparse-errors-in-__compiletime_error_fallback
-+++ a/include/linux/compiler.h
-@@ -323,9 +323,18 @@ void ftrace_likely_update(struct ftrace_
- #endif
- #ifndef __compiletime_error
- # define __compiletime_error(message)
--# define __compiletime_error_fallback(condition) \
-+/*
-+ * Sparse complains of variable sized arrays due to the temporary variable in
-+ * __compiletime_assert. Unfortunately we can't just expand it out to make
-+ * sparse see a constant array size without breaking compiletime_assert on old
-+ * versions of GCC (e.g. 4.2.4), so hide the array from sparse altogether.
-+ */
-+# ifndef __CHECKER__
-+#  define __compiletime_error_fallback(condition) \
- 	do { ((void)sizeof(char[1 - 2 * condition])); } while (0)
--#else
-+# endif
-+#endif
-+#ifndef __compiletime_error_fallback
- # define __compiletime_error_fallback(condition) do { } while (0)
+diff -puN include/uapi/linux/shm.h~ipcshm-document-new-limits-in-the-uapi-header-v3 include/uapi/linux/shm.h
+--- a/include/uapi/linux/shm.h~ipcshm-document-new-limits-in-the-uapi-header-v3
++++ a/include/uapi/linux/shm.h
+@@ -8,13 +8,13 @@
  #endif
  
+ /*
+- * SHMMNI, SHMMAX and SHMALL are the default upper limits which can be
+- * modified by sysctl. Both SHMMAX and SHMALL have their default values
+- * to the maximum limit which is as large as it can be without helping
+- * userspace overflow the values. There is really nothing the kernel
+- * can do to avoid this any further. It is therefore not advised to
+- * make them any larger. These limits are suitable for both 32 and
+- * 64-bit systems.
++ * SHMMNI, SHMMAX and SHMALL are default upper limits which can be
++ * modified by sysctl. The SHMMAX and SHMALL values have been chosen to
++ * be as large possible without facilitating scenarios where userspace
++ * causes overflows when adjusting the limits via operations of the form
++ * "retrieve current limit; add X; update limit". It is therefore not
++ * advised to make SHMMAX and SHMALL any larger. These limits are
++ * suitable for both 32 and 64-bit systems.
+  */
+ #define SHMMIN 1			 /* min shared seg size (bytes) */
+ #define SHMMNI 4096			 /* max num of segs system wide */
 _
 
-Patches currently in -mm which might be from james.hogan@imgtec.com are
+Patches currently in -mm which might be from davidlohr@hp.com are
 
-compilerh-avoid-sparse-errors-in-__compiletime_error_fallback.patch
+mmvmacache-add-debug-data.patch
+mmvmacache-optimize-overflow-system-wide-flushing.patch
+mm-pass-vm_bug_on-reason-to-dump_page.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
+hugetlb-add-hstate_is_gigantic.patch
+hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
+hugetlb-move-helpers-up-in-the-file.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
+m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
+mips-call-find_vma-with-the-mmap_sem-held.patch
+arc-call-find_vma-with-the-mmap_sem-held.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+drm-exynos-call-find_vma-with-the-mmap_sem-held.patch
+mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path.patch
+ipc-constify-ipc_ops.patch
+ipc-shmc-check-for-ulong-overflows-in-shmat.patch
+ipc-shmc-check-for-overflows-of-shm_tot.patch
+ipc-shmc-check-for-integer-overflow-during-shmget.patch
+ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
+ipcshm-document-new-limits-in-the-uapi-header.patch
+ipcshm-document-new-limits-in-the-uapi-header-v2.patch
+ipcshm-document-new-limits-in-the-uapi-header-v3.patch
+ipcmsg-use-current-state-helpers.patch
+ipcmsg-move-some-msgq-ns-code-around.patch
+ipcmsg-always-respect-msg_noerror.patch
+ipcmsg-document-volatile-r_msg.patch
 linux-next.patch
+blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
+rwsem-support-optimistic-spinning.patch
+rwsem-support-optimistic-spinning-checkpatch-fixes.patch
 
