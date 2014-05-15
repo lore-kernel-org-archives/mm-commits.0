@@ -1,190 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: +
- cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
- added to -mm tree
-Date: Thu, 15 May 2014 14:59:39 -0700
-Message-ID: <537538cb.ZNmdxNUiBDP8mPB1%akpm@linux-foundation.org>
+Subject: [withdrawn] ipcmsg-loosen-check-for-full-queue.patch removed from -mm tree
+Date: Thu, 15 May 2014 15:13:11 -0700
+Message-ID: <53753bf7.7B4JlrYU8nsl0r3q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38795 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38828 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752799AbaEOV7l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 17:59:41 -0400
+	with ESMTP id S1754276AbaEOWNM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 18:13:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, rostedt@goodmis.org, rjw@rjwysocki.net, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, mgalbraith@suse.de, hch@infradead.org, fweisbec@gmail.com, ego@linux.vnet.ibm.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, manfred@colorfullife.com, aswin@hp.com, davidlohr@hp.com
 
-Subject: + cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch added to -mm tree
-To: srivatsa.bhat@linux.vnet.ibm.com,bp@suse.de,ego@linux.vnet.ibm.com,fweisbec@gmail.com,hch@infradead.org,mgalbraith@suse.de,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,rjw@rjwysocki.net,rostedt@goodmis.org,rusty@rustcorp.com.au,tglx@linutronix.de,tj@kernel.org
+Subject: [withdrawn] ipcmsg-loosen-check-for-full-queue.patch removed from -mm tree
+To: davidlohr@hp.com,aswin@hp.com,manfred@colorfullife.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 14:59:39 -0700
+Date: Thu, 15 May 2014 15:13:11 -0700
 
 
 The patch titled
-     Subject: CPU hotplug, smp: flush any pending IPI callbacks before CPU offline
-has been added to the -mm tree.  Its filename is
-     cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+     Subject: ipc,msg: loosen check for full queue
+has been removed from the -mm tree.  Its filename was
+     ipcmsg-loosen-check-for-full-queue.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: CPU hotplug, smp: flush any pending IPI callbacks before CPU offline
+From: Davidlohr Bueso <davidlohr@hp.com>
+Subject: ipc,msg: loosen check for full queue
 
-During CPU offline, in the stop-machine loop, we use 2 separate stages to
-disable interrupts, to ensure that the CPU going offline doesn't get any
-new IPIs from the other CPUs after it has gone offline.
+When sending a message, we must guarantee that there will be enough room
+in the queue to add it, otherwise wait until space becomes available --
+which requires blocking the calling task.  Currently, this relies meeting
+both of the following conditions:
 
-However, an IPI sent much earlier might arrive late on the target CPU
-(possibly _after_ the CPU has gone offline) due to hardware latencies, and
-due to this, the smp-call-function callbacks queued on the outgoing CPU
-might not get noticed (and hence not executed) at all.
+(i)  The new msg size + current size is lower than the queue's max size. 
 
-This is somewhat theoretical, but in any case, it makes sense to
-explicitly loop through the call_single_queue and flush any pending
-callbacks before the CPU goes completely offline.  So, flush the queued
-smp-call-function callbacks in the MULTI_STOP_DISABLE_IRQ_ACTIVE stage,
-after disabling interrupts on the active CPU.  That way, we would have
-handled all the queued callbacks before going offline, and also, no new
-IPIs can be sent by the other CPUs to the outgoing CPU at that point,
-because they will all be executing the stop-machine code with interrupts
-disabled.
+(ii) The current amount of messages in the queue + 1 (this msg) is
+     lower than the queue's max size.
 
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Suggested-by: Frederic Weisbecker <fweisbec@gmail.com>
-Reviewed-by: Tejun Heo <tj@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Mike Galbraith <mgalbraith@suse.de>
-Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+While (i) is obvious and well documented in the msgsnd(2) manpage, the
+second one is far more ambiguous and does not serve the purpose, as we do
+not control the amount of messages in the queue (unlike posix queues do). 
+Thus remove (ii) and loosen how we check for space.
+
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Aswin Chandramouleeswaran <aswin@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h   |    2 ++
- kernel/smp.c          |   33 +++++++++++++++++++++++++++++++++
- kernel/stop_machine.c |   11 +++++++++++
- 3 files changed, 46 insertions(+)
+ ipc/msg.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/smp.h~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline include/linux/smp.h
---- a/include/linux/smp.h~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline
-+++ a/include/linux/smp.h
-@@ -52,6 +52,8 @@ void on_each_cpu_cond(bool (*cond_func)(
+diff -puN ipc/msg.c~ipcmsg-loosen-check-for-full-queue ipc/msg.c
+--- a/ipc/msg.c~ipcmsg-loosen-check-for-full-queue
++++ a/ipc/msg.c
+@@ -658,10 +658,8 @@ long do_msgsnd(int msqid, long mtype, vo
+ 		if (err)
+ 			goto out_unlock0;
  
- int smp_call_function_single_async(int cpu, struct call_single_data *csd);
+-		if (msgsz + msq->q_cbytes <= msq->q_qbytes &&
+-				1 + msq->q_qnum <= msq->q_qbytes) {
+-			break;
+-		}
++		if (msgsz + msq->q_cbytes <= msq->q_qbytes)
++			break; /* there is space in the queue for this msg */
  
-+void flush_smp_call_function_queue(void);
-+
- #ifdef CONFIG_SMP
- 
- #include <linux/preempt.h>
-diff -puN kernel/smp.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline kernel/smp.c
---- a/kernel/smp.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline
-+++ a/kernel/smp.c
-@@ -212,6 +212,39 @@ void generic_smp_call_function_single_in
- 	}
- }
- 
-+/**
-+ * flush_smp_call_function_queue - Flush pending smp-call-function callbacks
-+ *
-+ * Flush any pending smp-call-function callbacks queued on this CPU (including
-+ * those for which the source CPU's IPIs might not have been received on this
-+ * CPU yet). This is invoked by a CPU about to go offline, to ensure that all
-+ * pending IPI functions are run before it goes completely offline.
-+ *
-+ * Loop through the call_single_queue and run all the queued functions.
-+ * Must be called with interrupts disabled.
-+ */
-+void flush_smp_call_function_queue(void)
-+{
-+	struct llist_head *head;
-+	struct llist_node *entry;
-+	struct call_single_data *csd, *csd_next;
-+
-+	WARN_ON(!irqs_disabled());
-+
-+	head = &__get_cpu_var(call_single_queue);
-+
-+	if (likely(llist_empty(head)))
-+		return;
-+
-+	entry = llist_del_all(head);
-+	entry = llist_reverse_order(entry);
-+
-+	llist_for_each_entry_safe(csd, csd_next, entry, llist) {
-+		csd->func(csd->info);
-+		csd_unlock(csd);
-+	}
-+}
-+
- /*
-  * smp_call_function_single - Run a function on a specific CPU
-  * @func: The function to run. This must be fast and non-blocking.
-diff -puN kernel/stop_machine.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline kernel/stop_machine.c
---- a/kernel/stop_machine.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline
-+++ a/kernel/stop_machine.c
-@@ -21,6 +21,7 @@
- #include <linux/smpboot.h>
- #include <linux/atomic.h>
- #include <linux/lglock.h>
-+#include <linux/smp.h>
- 
- /*
-  * Structure to determine completion condition and record errors.  May
-@@ -224,6 +225,16 @@ static int multi_cpu_stop(void *data)
- 					local_irq_disable();
- 					hard_irq_disable();
- 				}
-+
-+				/*
-+				 * IPIs (from the inactive CPUs) might arrive
-+				 * late due to hardware latencies. So flush
-+				 * out any pending IPI callbacks explicitly,
-+				 * to ensure that the outgoing CPU doesn't go
-+				 * offline with work still pending (during
-+				 * CPU hotplug).
-+				 */
-+				flush_smp_call_function_queue();
- 				break;
- 			case MULTI_STOP_RUN:
- 				if (is_active)
+ 		/* queue full, wait: */
+ 		if (msgflg & IPC_NOWAIT) {
 _
 
-Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
+Patches currently in -mm which might be from davidlohr@hp.com are
 
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v5.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+mmvmacache-add-debug-data.patch
+mmvmacache-optimize-overflow-system-wide-flushing.patch
+mm-pass-vm_bug_on-reason-to-dump_page.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
+hugetlb-add-hstate_is_gigantic.patch
+hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
+hugetlb-move-helpers-up-in-the-file.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
+m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
+mips-call-find_vma-with-the-mmap_sem-held.patch
+arc-call-find_vma-with-the-mmap_sem-held.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+drm-exynos-call-find_vma-with-the-mmap_sem-held.patch
+ipc-constify-ipc_ops.patch
+ipc-shmc-check-for-ulong-overflows-in-shmat.patch
+ipc-shmc-check-for-overflows-of-shm_tot.patch
+ipc-shmc-check-for-integer-overflow-during-shmget.patch
+ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
+ipcshm-document-new-limits-in-the-uapi-header.patch
+ipcshm-document-new-limits-in-the-uapi-header-v2.patch
+ipcmsg-use-current-state-helpers.patch
+ipcmsg-move-some-msgq-ns-code-around.patch
+ipcmsg-always-respect-msg_noerror.patch
+ipcmsg-document-volatile-r_msg.patch
 linux-next.patch
+blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
+rwsem-support-optimistic-spinning.patch
+rwsem-support-optimistic-spinning-checkpatch-fixes.patch
 
