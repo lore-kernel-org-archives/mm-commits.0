@@ -1,108 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] ipcmsg-loosen-check-for-full-queue.patch removed from -mm tree
-Date: Thu, 15 May 2014 15:13:11 -0700
-Message-ID: <53753bf7.7B4JlrYU8nsl0r3q%akpm@linux-foundation.org>
+Subject: + mm-fix-some-indenting-in-cmpxchg_double_slab.patch added to -mm tree
+Date: Thu, 15 May 2014 15:25:41 -0700
+Message-ID: <53753ee5.GFObU0kOKFHyfCeX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38828 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39035 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754276AbaEOWNM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 18:13:12 -0400
+	with ESMTP id S1752291AbaEOWZm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 18:25:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, manfred@colorfullife.com, aswin@hp.com, davidlohr@hp.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, cl@linux-foundation.org, dan.carpenter@oracle.com
 
-Subject: [withdrawn] ipcmsg-loosen-check-for-full-queue.patch removed from -mm tree
-To: davidlohr@hp.com,aswin@hp.com,manfred@colorfullife.com,mm-commits@vger.kernel.org
+Subject: + mm-fix-some-indenting-in-cmpxchg_double_slab.patch added to -mm tree
+To: dan.carpenter@oracle.com,cl@linux-foundation.org,penberg@kernel.org,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 15:13:11 -0700
+Date: Thu, 15 May 2014 15:25:41 -0700
 
 
 The patch titled
-     Subject: ipc,msg: loosen check for full queue
-has been removed from the -mm tree.  Its filename was
-     ipcmsg-loosen-check-for-full-queue.patch
+     Subject: mm/slub.c: fix some indenting in cmpxchg_double_slab()
+has been added to the -mm tree.  Its filename is
+     mm-fix-some-indenting-in-cmpxchg_double_slab.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-some-indenting-in-cmpxchg_double_slab.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-some-indenting-in-cmpxchg_double_slab.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipc,msg: loosen check for full queue
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: mm/slub.c: fix some indenting in cmpxchg_double_slab()
 
-When sending a message, we must guarantee that there will be enough room
-in the queue to add it, otherwise wait until space becomes available --
-which requires blocking the calling task.  Currently, this relies meeting
-both of the following conditions:
+The return statement goes with the cmpxchg_double() condition so it needs
+to be indented another tab.
 
-(i)  The new msg size + current size is lower than the queue's max size. 
+Also these days the fashion is to line function parameters up, and it
+looks nicer that way because then the "freelist_new" is not at the same
+indent level as the "return 1;".
 
-(ii) The current amount of messages in the queue + 1 (this msg) is
-     lower than the queue's max size.
-
-While (i) is obvious and well documented in the msgsnd(2) manpage, the
-second one is far more ambiguous and does not serve the purpose, as we do
-not control the amount of messages in the queue (unlike posix queues do). 
-Thus remove (ii) and loosen how we check for space.
-
-Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Aswin Chandramouleeswaran <aswin@hp.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/slub.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN ipc/msg.c~ipcmsg-loosen-check-for-full-queue ipc/msg.c
---- a/ipc/msg.c~ipcmsg-loosen-check-for-full-queue
-+++ a/ipc/msg.c
-@@ -658,10 +658,8 @@ long do_msgsnd(int msqid, long mtype, vo
- 		if (err)
- 			goto out_unlock0;
- 
--		if (msgsz + msq->q_cbytes <= msq->q_qbytes &&
--				1 + msq->q_qnum <= msq->q_qbytes) {
--			break;
--		}
-+		if (msgsz + msq->q_cbytes <= msq->q_qbytes)
-+			break; /* there is space in the queue for this msg */
- 
- 		/* queue full, wait: */
- 		if (msgflg & IPC_NOWAIT) {
+diff -puN mm/slub.c~mm-fix-some-indenting-in-cmpxchg_double_slab mm/slub.c
+--- a/mm/slub.c~mm-fix-some-indenting-in-cmpxchg_double_slab
++++ a/mm/slub.c
+@@ -382,9 +382,9 @@ static inline bool __cmpxchg_double_slab
+     defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
+ 	if (s->flags & __CMPXCHG_DOUBLE) {
+ 		if (cmpxchg_double(&page->freelist, &page->counters,
+-			freelist_old, counters_old,
+-			freelist_new, counters_new))
+-		return 1;
++				   freelist_old, counters_old,
++				   freelist_new, counters_new))
++			return 1;
+ 	} else
+ #endif
+ 	{
+@@ -418,9 +418,9 @@ static inline bool cmpxchg_double_slab(s
+     defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
+ 	if (s->flags & __CMPXCHG_DOUBLE) {
+ 		if (cmpxchg_double(&page->freelist, &page->counters,
+-			freelist_old, counters_old,
+-			freelist_new, counters_new))
+-		return 1;
++				   freelist_old, counters_old,
++				   freelist_new, counters_new))
++			return 1;
+ 	} else
+ #endif
+ 	{
 _
 
-Patches currently in -mm which might be from davidlohr@hp.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mmvmacache-add-debug-data.patch
-mmvmacache-optimize-overflow-system-wide-flushing.patch
-mm-pass-vm_bug_on-reason-to-dump_page.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
-mips-call-find_vma-with-the-mmap_sem-held.patch
-arc-call-find_vma-with-the-mmap_sem-held.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-drm-exynos-call-find_vma-with-the-mmap_sem-held.patch
-ipc-constify-ipc_ops.patch
-ipc-shmc-check-for-ulong-overflows-in-shmat.patch
-ipc-shmc-check-for-overflows-of-shm_tot.patch
-ipc-shmc-check-for-integer-overflow-during-shmget.patch
-ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
-ipcshm-document-new-limits-in-the-uapi-header.patch
-ipcshm-document-new-limits-in-the-uapi-header-v2.patch
-ipcmsg-use-current-state-helpers.patch
-ipcmsg-move-some-msgq-ns-code-around.patch
-ipcmsg-always-respect-msg_noerror.patch
-ipcmsg-document-volatile-r_msg.patch
+mm-fix-some-indenting-in-cmpxchg_double_slab.patch
+lib-stringc-use-the-name-c-string-in-comments.patch
 linux-next.patch
-blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
-rwsem-support-optimistic-spinning.patch
-rwsem-support-optimistic-spinning-checkpatch-fixes.patch
 
