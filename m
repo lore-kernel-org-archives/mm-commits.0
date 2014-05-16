@@ -1,79 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: + fs-add-generic-data-flush-to-fsync-fix-fix.patch added to -mm
- tree
-Date: Thu, 15 May 2014 16:36:25 -0700
-Message-ID: <53754f79.4kunwjNKc99vEtfH%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Fri, 16 May 2014 13:45:46 -0700
+Message-ID: <537678fa.YivK9I+qRIVvfRRT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39845 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50821 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681AbaEOXg0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 May 2014 19:36:26 -0400
+	with ESMTP id S1752002AbaEPUpr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 May 2014 16:45:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + fs-add-generic-data-flush-to-fsync-fix-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,fabf@skynet.be
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 15 May 2014 16:36:25 -0700
+Date: Fri, 16 May 2014 13:45:46 -0700
 
 
 The patch titled
-     Subject: fs-add-generic-data-flush-to-fsync-fix-fix
-has been added to the -mm tree.  Its filename is
-     fs-add-generic-data-flush-to-fsync-fix-fix.patch
+     Subject: linux-next-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-add-generic-data-flush-to-fsync-fix-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-add-generic-data-flush-to-fsync-fix-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-add-generic-data-flush-to-fsync-fix-fix
+Subject: linux-next-rejects
 
-fix warning
-
-Cc: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/blkdev.h |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/x86/kernel/apic/hw_nmi.c |    2 +-
+ mm/memblock.c                 |    2 +-
+ mm/memcontrol.c               |   23 ++++++++++++-----------
+ 3 files changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/blkdev.h~fs-add-generic-data-flush-to-fsync-fix-fix include/linux/blkdev.h
---- a/include/linux/blkdev.h~fs-add-generic-data-flush-to-fsync-fix-fix
-+++ a/include/linux/blkdev.h
-@@ -1589,6 +1589,9 @@ struct block_device_operations {
- extern int __blkdev_driver_ioctl(struct block_device *, fmode_t, unsigned int,
- 				 unsigned long);
- #else /* CONFIG_BLOCK */
-+
-+struct block_device;
-+
- /*
-  * stubs for when the block layer is configured out
-  */
+diff -puN arch/x86/kernel/apic/hw_nmi.c~linux-next-rejects arch/x86/kernel/apic/hw_nmi.c
+--- a/arch/x86/kernel/apic/hw_nmi.c~linux-next-rejects
++++ a/arch/x86/kernel/apic/hw_nmi.c
+@@ -65,7 +65,7 @@ void arch_trigger_all_cpu_backtrace(bool
+ 	}
+ 
+ 	clear_bit(0, &backtrace_flag);
+-	smp_mb__after_clear_bit();
++	smp_mb__after_atomic();
+ 	put_cpu();
+ }
+ 
+diff -puN mm/memblock.c~linux-next-rejects mm/memblock.c
+--- a/mm/memblock.c~linux-next-rejects
++++ a/mm/memblock.c
+@@ -692,7 +692,7 @@ int __init_memblock memblock_free(phys_a
+ 		     (void *)_RET_IP_);
+ 
+ 	kmemleak_free_part(__va(base), size);
+-	return __memblock_remove(&memblock.reserved, base, size);
++	return memblock_remove_range(&memblock.reserved, base, size);
+ }
+ 
+ static int __init_memblock memblock_reserve_region(phys_addr_t base,
+diff -puN mm/memcontrol.c~linux-next-rejects mm/memcontrol.c
+--- a/mm/memcontrol.c~linux-next-rejects
++++ a/mm/memcontrol.c
+@@ -4786,10 +4786,11 @@ static int mem_cgroup_force_empty(struct
+ 	return 0;
+ }
+ 
+-static int mem_cgroup_force_empty_write(struct cgroup_subsys_state *css,
+-					unsigned int event)
++static ssize_t mem_cgroup_force_empty_write(struct kernfs_open_file *of,
++					    char *buf, size_t nbytes,
++					    loff_t off)
+ {
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
+ 
+ 	if (mem_cgroup_is_root(memcg))
+ 		return -EINVAL;
+@@ -4797,7 +4798,7 @@ static int mem_cgroup_force_empty_write(
+ 		     "removed.  Let us know if it is needed in your usecase at "
+ 		     "linux-mm@kvack.org\n",
+ 		     current->comm, task_pid_nr(current));
+-	return mem_cgroup_force_empty(memcg);
++	return mem_cgroup_force_empty(memcg) ?: nbytes;
+ }
+ 
+ static u64 mem_cgroup_hierarchy_read(struct cgroup_subsys_state *css,
+@@ -5084,7 +5085,7 @@ static ssize_t mem_cgroup_write(struct k
+ 			ret = -EINVAL;
+ 			break;
+ 		}
+-		ret = res_counter_memparse_write_strategy(buffer, &val);
++		ret = res_counter_memparse_write_strategy(buf, &val);
+ 		if (ret)
+ 			break;
+ 		if (type == _MEM) {
+@@ -6013,31 +6014,31 @@ static struct cftype mem_cgroup_files[]
+ 	{
+ 		.name = "max_usage_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_MEM, RES_MAX_USAGE),
+-		.trigger = mem_cgroup_reset,
++		.write = mem_cgroup_reset,
+ 		.read_u64 = mem_cgroup_read_u64,
+ 	},
+ 	{
+ 		.name = "limit_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_MEM, RES_LIMIT),
+-		.write_string = mem_cgroup_write,
++		.write = mem_cgroup_write,
+ 		.read_u64 = mem_cgroup_read_u64,
+ 	},
+ 	{
+ 		.name = "low_limit_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_MEM, RES_LOW_LIMIT),
+-		.write_string = mem_cgroup_write,
++		.write = mem_cgroup_write,
+ 		.read_u64 = mem_cgroup_read_u64,
+ 	},
+ 	{
+ 		.name = "soft_limit_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_MEM, RES_SOFT_LIMIT),
+-		.write_string = mem_cgroup_write,
++		.write = mem_cgroup_write,
+ 		.read_u64 = mem_cgroup_read_u64,
+ 	},
+ 	{
+ 		.name = "failcnt",
+ 		.private = MEMFILE_PRIVATE(_MEM, RES_FAILCNT),
+-		.trigger = mem_cgroup_reset,
++		.write = mem_cgroup_reset,
+ 		.read_u64 = mem_cgroup_read_u64,
+ 	},
+ 	{
+@@ -6047,7 +6048,7 @@ static struct cftype mem_cgroup_files[]
+ 	{
+ 		.name = "force_empty",
+ 		.flags = CFTYPE_INSANE,
+-		.trigger = mem_cgroup_force_empty_write,
++		.write = mem_cgroup_force_empty_write,
+ 	},
+ 	{
+ 		.name = "use_hierarchy",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+linux-next.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 maintainers-akpm-maintenance.patch
@@ -132,8 +210,6 @@ sysctl-allow-for-strict-write-position-handling-fix.patch
 sysctl-allow-for-strict-write-position-handling-fix-3.patch
 fs-pstore-logging-clean-up-fix.patch
 fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-linux-next.patch
-linux-next-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 mm-page_ioc-work-around-gcc-bug.patch
 lib-test_bpfc-dont-use-gcc-union-shortcut.patch
