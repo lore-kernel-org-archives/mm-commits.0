@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch added to -mm tree
-Date: Mon, 19 May 2014 16:16:54 -0700
-Message-ID: <537a90e6.qBlZJxd9BLdpHMKf%akpm@linux-foundation.org>
+Subject: + fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch added
+ to -mm tree
+Date: Mon, 19 May 2014 16:16:56 -0700
+Message-ID: <537a90e8.i9B5tEHK/N/zNY/p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50508 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50512 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbaESXQz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 May 2014 19:16:55 -0400
+	with ESMTP id S1750852AbaESXQ5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 May 2014 19:16:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch added to -mm tree
+Subject: + fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch added to -mm tree
 To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Mon, 19 May 2014 16:16:54 -0700
+Date: Mon, 19 May 2014 16:16:56 -0700
 
 
 The patch titled
-     Subject: fs/hugetlbfs/inode.c: add static to hugetlbfs_i_mmap_mutex_key
+     Subject: fs/hugetlbfs/inode.c: remove null test before kfree
 has been added to the -mm tree.  Its filename is
-     fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch
+     fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,29 +45,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hugetlbfs/inode.c: add static to hugetlbfs_i_mmap_mutex_key
+Subject: fs/hugetlbfs/inode.c: remove null test before kfree
 
-hugetlbfs_i_mmap_mutex_key is only used in inode.c
+Fix checkpatch warning:
+WARNING: kfree(NULL) is safe this check is probably not required
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key
+diff -puN fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-remove-null-test-before-kfree fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-remove-null-test-before-kfree
 +++ a/fs/hugetlbfs/inode.c
-@@ -477,7 +477,7 @@ static struct inode *hugetlbfs_get_root(
-  * annotation because huge_pmd_share() does an allocation under
-  * i_mmap_mutex.
-  */
--struct lock_class_key hugetlbfs_i_mmap_mutex_key;
-+static struct lock_class_key hugetlbfs_i_mmap_mutex_key;
- 
- static struct inode *hugetlbfs_get_inode(struct super_block *sb,
- 					struct inode *dir,
+@@ -901,8 +901,7 @@ hugetlbfs_fill_super(struct super_block
+ 		goto out_free;
+ 	return 0;
+ out_free:
+-	if (sbinfo->spool)
+-		kfree(sbinfo->spool);
++	kfree(sbinfo->spool);
+ 	kfree(sbinfo);
+ 	return -ENOMEM;
+ }
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
