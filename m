@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + printk-use-symbolic-defines-for-console-loglevels.patch added
- to -mm tree
-Date: Mon, 19 May 2014 14:22:42 -0700
-Message-ID: <537a7622.jdJ9YuK6IbxvdQXD%akpm@linux-foundation.org>
+Subject: +
+ vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch added to
+ -mm tree
+Date: Mon, 19 May 2014 14:27:51 -0700
+Message-ID: <537a7757.bOwSX/i3+qm0X33X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49639 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49657 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751957AbaESVWn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 May 2014 17:22:43 -0400
+	with ESMTP id S1752062AbaESV1w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 May 2014 17:27:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, keescook@chromium.org, joe@perches.com, bp@suse.de
+To: mm-commits@vger.kernel.org, walken@google.com, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, klamm@yandex-team.ru, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz
 
-Subject: + printk-use-symbolic-defines-for-console-loglevels.patch added to -mm tree
-To: bp@suse.de,joe@perches.com,keescook@chromium.org,rdunlap@infradead.org
+Subject: + vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch added to -mm tree
+To: mhocko@suse.cz,gthelen@google.com,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,klamm@yandex-team.ru,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,walken@google.com
 From: akpm@linux-foundation.org
-Date: Mon, 19 May 2014 14:22:42 -0700
+Date: Mon, 19 May 2014 14:27:51 -0700
 
 
 The patch titled
-     Subject: kernel/printk: use symbolic defines for console loglevels
+     Subject: vmscan: memcg: check whether the low limit should be ignored
 has been added to the -mm tree.  Its filename is
-     printk-use-symbolic-defines-for-console-loglevels.patch
+     vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-use-symbolic-defines-for-console-loglevels.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-use-symbolic-defines-for-console-loglevels.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,308 +45,192 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Borislav Petkov <bp@suse.de>
-Subject: kernel/printk: use symbolic defines for console loglevels
+From: Michal Hocko <mhocko@suse.cz>
+Subject: vmscan: memcg: check whether the low limit should be ignored
 
-... instead of naked numbers.
+Low-limit (aka guarantee) is ignored when there is no group scanned during
+the first round of __shink_zone.  This approach doesn't work when multiple
+reclaimers race and reclaim the same hierarchy (e.g.  kswapd vs.  direct
+reclaim or multiple tasks hitting the hard limit) because memcg iterator
+makes sure that multiple reclaimers are interleaved in the hierarchy. 
+This means that some reclaimers can see 0 scanned groups although there
+are groups which are above the low-limit and they were reclaimed on behalf
+of other reclaimers.  This leads to a premature low-limit break.
 
-Stuff in sysrq.c used to set it to 8 which is supposed to mean above
-default level so set it to DEBUG instead as we're terminating/killing all
-tasks and we want to be verbose there.
+This patch adds mem_cgroup_all_within_guarantee() which will check whether
+all the groups in the reclaimed hierarchy are within their low limit and
+shrink_zone will allow the fallback reclaim only when that is true.  This
+alone is still not sufficient however because it would lead to another
+problem.  If a reclaimer constantly fails to scan anything because it sees
+only groups within their guarantees while others do the reclaim then the
+reclaim priority would drop down very quickly.  shrink_zone has to be
+careful to preserve scan at least one group semantic so __shrink_zone has
+to be retried until at least one group is scanned.
 
-There should be no functionality change resulting from this patch.
-
-Signed-off-by: Borislav Petkov <bp@suse.de>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Roman Gushchin <klamm@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/head64.c      |    2 +-
- arch/x86/platform/uv/uv_nmi.c |    2 +-
- drivers/nubus/nubus.c         |   18 +++++++++---------
- drivers/tty/sysrq.c           |    8 ++++----
- include/linux/printk.h        |   15 +++++++++++++--
- init/main.c                   |    4 ++--
- kernel/debug/kdb/kdb_bt.c     |    2 +-
- kernel/debug/kdb/kdb_io.c     |    2 +-
- kernel/debug/kdb/kdb_main.c   |    2 +-
- kernel/printk/printk.c        |   13 +++----------
- 10 files changed, 36 insertions(+), 32 deletions(-)
+ include/linux/memcontrol.h |    5 +++++
+ mm/memcontrol.c            |   13 +++++++++++++
+ mm/vmscan.c                |   17 ++++++++++++-----
+ 3 files changed, 30 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/kernel/head64.c~printk-use-symbolic-defines-for-console-loglevels arch/x86/kernel/head64.c
---- a/arch/x86/kernel/head64.c~printk-use-symbolic-defines-for-console-loglevels
-+++ a/arch/x86/kernel/head64.c
-@@ -172,7 +172,7 @@ asmlinkage __visible void __init x86_64_
- 	 */
- 	load_ucode_bsp();
+diff -puN include/linux/memcontrol.h~vmscan-memcg-check-whether-the-low-limit-should-be-ignored include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~vmscan-memcg-check-whether-the-low-limit-should-be-ignored
++++ a/include/linux/memcontrol.h
+@@ -94,6 +94,7 @@ bool task_in_mem_cgroup(struct task_stru
  
--	if (console_loglevel == 10)
-+	if (console_loglevel >= CONSOLE_LOGLEVEL_DEBUG)
- 		early_printk("Kernel alive\n");
+ extern bool mem_cgroup_within_guarantee(struct mem_cgroup *memcg,
+ 		struct mem_cgroup *root);
++extern bool mem_cgroup_all_within_guarantee(struct mem_cgroup *root);
  
- 	clear_page(init_level4_pgt);
-diff -puN arch/x86/platform/uv/uv_nmi.c~printk-use-symbolic-defines-for-console-loglevels arch/x86/platform/uv/uv_nmi.c
---- a/arch/x86/platform/uv/uv_nmi.c~printk-use-symbolic-defines-for-console-loglevels
-+++ a/arch/x86/platform/uv/uv_nmi.c
-@@ -85,7 +85,7 @@ static cpumask_var_t uv_nmi_cpu_mask;
-  * Default is all stack dumps go to the console and buffer.
-  * Lower level to send to log buffer only.
-  */
--static int uv_nmi_loglevel = 7;
-+static int uv_nmi_loglevel = CONSOLE_LOGLEVEL_DEFAULT;
- module_param_named(dump_loglevel, uv_nmi_loglevel, int, 0644);
- 
- /*
-diff -puN drivers/nubus/nubus.c~printk-use-symbolic-defines-for-console-loglevels drivers/nubus/nubus.c
---- a/drivers/nubus/nubus.c~printk-use-symbolic-defines-for-console-loglevels
-+++ a/drivers/nubus/nubus.c
-@@ -473,7 +473,7 @@ static struct nubus_dev* __init
- 	if (slot == 0 && (unsigned long)dir.base % 2)
- 		dir.base += 1;
- 	
--	if (console_loglevel >= 10)
-+	if (console_loglevel >= CONSOLE_LOGLEVEL_DEBUG)
- 		printk(KERN_DEBUG "nubus_get_functional_resource: parent is 0x%p, dir is 0x%p\n",
- 		       parent->base, dir.base);
- 
-@@ -568,7 +568,7 @@ static int __init nubus_get_vidnames(str
- 
- 	printk(KERN_INFO "    video modes supported:\n");
- 	nubus_get_subdir(parent, &dir);
--	if (console_loglevel >= 10)
-+	if (console_loglevel >= CONSOLE_LOGLEVEL_DEBUG)
- 		printk(KERN_DEBUG "nubus_get_vidnames: parent is 0x%p, dir is 0x%p\n",
- 		       parent->base, dir.base);
- 
-@@ -629,7 +629,7 @@ static int __init nubus_get_vendorinfo(s
- 
- 	printk(KERN_INFO "    vendor info:\n");
- 	nubus_get_subdir(parent, &dir);
--	if (console_loglevel >= 10)
-+	if (console_loglevel >= CONSOLE_LOGLEVEL_DEBUG)
- 		printk(KERN_DEBUG "nubus_get_vendorinfo: parent is 0x%p, dir is 0x%p\n",
- 		       parent->base, dir.base);
- 
-@@ -654,7 +654,7 @@ static int __init nubus_get_board_resour
- 	struct nubus_dirent ent;
- 	
- 	nubus_get_subdir(parent, &dir);
--	if (console_loglevel >= 10)
-+	if (console_loglevel >= CONSOLE_LOGLEVEL_DEBUG)
- 		printk(KERN_DEBUG "nubus_get_board_resource: parent is 0x%p, dir is 0x%p\n",
- 		       parent->base, dir.base);
- 
-@@ -753,19 +753,19 @@ static void __init nubus_find_rom_dir(st
- 	if (nubus_readdir(&dir, &ent) == -1)
- 		goto badrom;
- 
--	if (console_loglevel >= 10)
-+	if (console_loglevel >= CONSOLE_LOGLEVEL_DEBUG)
- 		printk(KERN_INFO "nubus_get_rom_dir: entry %02x %06x\n", ent.type, ent.data);
- 	/* This one takes us to where we want to go. */
- 	if (nubus_readdir(&dir, &ent) == -1) 
- 		goto badrom;
--	if (console_loglevel >= 10)
-+	if (console_loglevel >= CONSOLE_LOGLEVEL_DEBUG)
- 		printk(KERN_DEBUG "nubus_get_rom_dir: entry %02x %06x\n", ent.type, ent.data);
- 	nubus_get_subdir(&ent, &dir);
- 
- 	/* Resource ID 01, also an "Unknown Macintosh" */
- 	if (nubus_readdir(&dir, &ent) == -1) 
- 		goto badrom;
--	if (console_loglevel >= 10)
-+	if (console_loglevel >= CONSOLE_LOGLEVEL_DEBUG)
- 		printk(KERN_DEBUG "nubus_get_rom_dir: entry %02x %06x\n", ent.type, ent.data);
- 
- 	/* FIXME: the first one is *not* always the right one.  We
-@@ -780,7 +780,7 @@ static void __init nubus_find_rom_dir(st
- 	   path to that address... */
- 	if (nubus_readdir(&dir, &ent) == -1)
- 		goto badrom;
--	if (console_loglevel >= 10)
-+	if (console_loglevel >= CONSOLE_LOGLEVEL_DEBUG)
- 		printk(KERN_DEBUG "nubus_get_rom_dir: entry %02x %06x\n", ent.type, ent.data);
- 	
- 	/* Bwahahahaha... */
-@@ -816,7 +816,7 @@ static struct nubus_board* __init nubus_
- 	board->fblock = rp;
- 
- 	/* Dump the format block for debugging purposes */
--	if (console_loglevel >= 10) {
-+	if (console_loglevel >= CONSOLE_LOGLEVEL_DEBUG) {
- 		int i;
- 		printk(KERN_DEBUG "Slot %X, format block at 0x%p\n",
- 		       slot, rp);
-diff -puN drivers/tty/sysrq.c~printk-use-symbolic-defines-for-console-loglevels drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~printk-use-symbolic-defines-for-console-loglevels
-+++ a/drivers/tty/sysrq.c
-@@ -88,7 +88,7 @@ static void sysrq_handle_loglevel(int ke
- 	int i;
- 
- 	i = key - '0';
--	console_loglevel = 7;
-+	console_loglevel = CONSOLE_LOGLEVEL_DEFAULT;
- 	printk("Loglevel set to %d\n", i);
- 	console_loglevel = i;
- }
-@@ -343,7 +343,7 @@ static void send_sig_all(int sig)
- static void sysrq_handle_term(int key)
+ extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
+ extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
+@@ -296,6 +297,10 @@ static inline bool mem_cgroup_within_gua
  {
- 	send_sig_all(SIGTERM);
--	console_loglevel = 8;
-+	console_loglevel = CONSOLE_LOGLEVEL_DEBUG;
+ 	return false;
  }
- static struct sysrq_key_op sysrq_term_op = {
- 	.handler	= sysrq_handle_term,
-@@ -387,7 +387,7 @@ static struct sysrq_key_op sysrq_thaw_op
- static void sysrq_handle_kill(int key)
++static inline bool mem_cgroup_all_within_guarantee(struct mem_cgroup *root)
++{
++	return false;
++}
+ 
+ static inline struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
  {
- 	send_sig_all(SIGKILL);
--	console_loglevel = 8;
-+	console_loglevel = CONSOLE_LOGLEVEL_DEBUG;
- }
- static struct sysrq_key_op sysrq_kill_op = {
- 	.handler	= sysrq_handle_kill,
-@@ -520,7 +520,7 @@ void __handle_sysrq(int key, bool check_
- 	 * routing in the consumers of /proc/kmsg.
- 	 */
- 	orig_log_level = console_loglevel;
--	console_loglevel = 7;
-+	console_loglevel = CONSOLE_LOGLEVEL_DEFAULT;
- 	printk(KERN_INFO "SysRq : ");
- 
-         op_p = __sysrq_get_key_op(key);
-diff -puN include/linux/printk.h~printk-use-symbolic-defines-for-console-loglevels include/linux/printk.h
---- a/include/linux/printk.h~printk-use-symbolic-defines-for-console-loglevels
-+++ a/include/linux/printk.h
-@@ -30,6 +30,17 @@ static inline const char *printk_skip_le
- 	return buffer;
+diff -puN mm/memcontrol.c~vmscan-memcg-check-whether-the-low-limit-should-be-ignored mm/memcontrol.c
+--- a/mm/memcontrol.c~vmscan-memcg-check-whether-the-low-limit-should-be-ignored
++++ a/mm/memcontrol.c
+@@ -2821,6 +2821,19 @@ bool mem_cgroup_within_guarantee(struct
+ 	return false;
  }
  
-+/* printk's without a loglevel use this.. */
-+#define DEFAULT_MESSAGE_LOGLEVEL CONFIG_DEFAULT_MESSAGE_LOGLEVEL
++bool mem_cgroup_all_within_guarantee(struct mem_cgroup *root)
++{
++	struct mem_cgroup *iter;
 +
-+/* We show everything that is MORE important than this.. */
-+#define CONSOLE_LOGLEVEL_SILENT  0 /* Mum's the word */
-+#define CONSOLE_LOGLEVEL_MIN	 1 /* Minimum loglevel we let people use */
-+#define CONSOLE_LOGLEVEL_QUIET	 4 /* Shhh ..., when booted with "quiet" */
-+#define CONSOLE_LOGLEVEL_DEFAULT 7 /* anything MORE serious than KERN_DEBUG */
-+#define CONSOLE_LOGLEVEL_DEBUG	10 /* issue debug messages */
-+#define CONSOLE_LOGLEVEL_MOTORMOUTH 15	/* You can't shut this one up */
++	for_each_mem_cgroup_tree(iter, root)
++		if (!mem_cgroup_within_guarantee(iter, root)) {
++			mem_cgroup_iter_break(root, iter);
++			return false;
++		}
 +
- extern int console_printk[];
- 
- #define console_loglevel (console_printk[0])
-@@ -39,13 +50,13 @@ extern int console_printk[];
- 
- static inline void console_silent(void)
++	return true;
++}
++
+ struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
  {
--	console_loglevel = 0;
-+	console_loglevel = CONSOLE_LOGLEVEL_SILENT;
- }
+ 	struct mem_cgroup *memcg = NULL;
+diff -puN mm/vmscan.c~vmscan-memcg-check-whether-the-low-limit-should-be-ignored mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-memcg-check-whether-the-low-limit-should-be-ignored
++++ a/mm/vmscan.c
+@@ -2311,13 +2311,20 @@ static unsigned __shrink_zone(struct zon
  
- static inline void console_verbose(void)
+ static void shrink_zone(struct zone *zone, struct scan_control *sc)
  {
- 	if (console_loglevel)
--		console_loglevel = 15;
-+		console_loglevel = CONSOLE_LOGLEVEL_MOTORMOUTH;
- }
- 
- struct va_format {
-diff -puN init/main.c~printk-use-symbolic-defines-for-console-loglevels init/main.c
---- a/init/main.c~printk-use-symbolic-defines-for-console-loglevels
-+++ a/init/main.c
-@@ -203,13 +203,13 @@ EXPORT_SYMBOL(loops_per_jiffy);
- 
- static int __init debug_kernel(char *str)
- {
--	console_loglevel = 10;
-+	console_loglevel = CONSOLE_LOGLEVEL_DEBUG;
- 	return 0;
- }
- 
- static int __init quiet_kernel(char *str)
- {
--	console_loglevel = 4;
-+	console_loglevel = CONSOLE_LOGLEVEL_QUIET;
- 	return 0;
- }
- 
-diff -puN kernel/debug/kdb/kdb_bt.c~printk-use-symbolic-defines-for-console-loglevels kernel/debug/kdb/kdb_bt.c
---- a/kernel/debug/kdb/kdb_bt.c~printk-use-symbolic-defines-for-console-loglevels
-+++ a/kernel/debug/kdb/kdb_bt.c
-@@ -21,7 +21,7 @@
- static void kdb_show_stack(struct task_struct *p, void *addr)
- {
- 	int old_lvl = console_loglevel;
--	console_loglevel = 15;
-+	console_loglevel = CONSOLE_LOGLEVEL_MOTORMOUTH;
- 	kdb_trap_printk++;
- 	kdb_set_current_task(p);
- 	if (addr) {
-diff -puN kernel/debug/kdb/kdb_io.c~printk-use-symbolic-defines-for-console-loglevels kernel/debug/kdb/kdb_io.c
---- a/kernel/debug/kdb/kdb_io.c~printk-use-symbolic-defines-for-console-loglevels
-+++ a/kernel/debug/kdb/kdb_io.c
-@@ -710,7 +710,7 @@ kdb_printit:
+-	if (!__shrink_zone(zone, sc, true)) {
++	bool honor_guarantee = true;
++
++	while (!__shrink_zone(zone, sc, honor_guarantee)) {
+ 		/*
+-		 * First round of reclaim didn't find anything to reclaim
+-		 * because of the memory guantees for all memcgs in the
+-		 * reclaim target so try again and ignore guarantees this time.
++		 * The previous round of reclaim didn't find anything to scan
++		 * because
++		 * a) the whole reclaimed hierarchy is within guarantee so
++		 *    we fallback to ignore the guarantee because other option
++		 *    would be the OOM
++		 * b) multiple reclaimers are racing and so the first round
++		 *    should be retried
+ 		 */
+-		__shrink_zone(zone, sc, false);
++		if (mem_cgroup_all_within_guarantee(sc->target_mem_cgroup))
++			honor_guarantee = false;
  	}
- 	if (logging) {
- 		saved_loglevel = console_loglevel;
--		console_loglevel = 0;
-+		console_loglevel = CONSOLE_LOGLEVEL_SILENT;
- 		printk(KERN_INFO "%s", kdb_buffer);
- 	}
+ }
  
-diff -puN kernel/debug/kdb/kdb_main.c~printk-use-symbolic-defines-for-console-loglevels kernel/debug/kdb/kdb_main.c
---- a/kernel/debug/kdb/kdb_main.c~printk-use-symbolic-defines-for-console-loglevels
-+++ a/kernel/debug/kdb/kdb_main.c
-@@ -1091,7 +1091,7 @@ static int kdb_reboot(int argc, const ch
- static void kdb_dumpregs(struct pt_regs *regs)
- {
- 	int old_lvl = console_loglevel;
--	console_loglevel = 15;
-+	console_loglevel = CONSOLE_LOGLEVEL_MOTORMOUTH;
- 	kdb_trap_printk++;
- 	show_regs(regs);
- 	kdb_trap_printk--;
-diff -puN kernel/printk/printk.c~printk-use-symbolic-defines-for-console-loglevels kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-use-symbolic-defines-for-console-loglevels
-+++ a/kernel/printk/printk.c
-@@ -54,18 +54,11 @@
- #include "console_cmdline.h"
- #include "braille.h"
- 
--/* printk's without a loglevel use this.. */
--#define DEFAULT_MESSAGE_LOGLEVEL CONFIG_DEFAULT_MESSAGE_LOGLEVEL
--
--/* We show everything that is MORE important than this.. */
--#define MINIMUM_CONSOLE_LOGLEVEL 1 /* Minimum loglevel we let people use */
--#define DEFAULT_CONSOLE_LOGLEVEL 7 /* anything MORE serious than KERN_DEBUG */
--
- int console_printk[4] = {
--	DEFAULT_CONSOLE_LOGLEVEL,	/* console_loglevel */
-+	CONSOLE_LOGLEVEL_DEFAULT,	/* console_loglevel */
- 	DEFAULT_MESSAGE_LOGLEVEL,	/* default_message_loglevel */
--	MINIMUM_CONSOLE_LOGLEVEL,	/* minimum_console_loglevel */
--	DEFAULT_CONSOLE_LOGLEVEL,	/* default_console_loglevel */
-+	CONSOLE_LOGLEVEL_MIN,		/* minimum_console_loglevel */
-+	CONSOLE_LOGLEVEL_DEFAULT,	/* default_console_loglevel */
- };
- 
- /* Deferred messaged from sched code are marked by this special level */
 _
 
-Patches currently in -mm which might be from bp@suse.de are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-printk-use-symbolic-defines-for-console-loglevels.patch
-checkpatch-warn-on-defines-ending-in-semicolon.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v5.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+memcg-fix-swapcache-charge-from-kernel-thread-context.patch
+slb-charge-slabs-to-kmemcg-explicitly.patch
+mm-get-rid-of-__gfp_kmemcg.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
+mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control-fix.patch
+mm-disable-zone_reclaim_mode-by-default.patch
+mm-page_alloc-do-not-cache-reclaim-distances.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+documentation-memcg-warn-about-incomplete-kmemcg-state.patch
+memcg-kill-config_mm_owner.patch
+memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
+memcg-slab-do-not-schedule-cache-destruction-when-last-page-goes-away.patch
+memcg-slab-merge-memcg_bindrelease_pages-to-memcg_uncharge_slab.patch
+memcg-slab-simplify-synchronization-scheme.patch
+memcg-mm_update_next_owner-should-skip-kthreads.patch
+memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner.patch
+memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
+memcg-fold-mem_cgroup_stolen.patch
+memcg-fold-mem_cgroup_stolen-fix.patch
+memcg-correct-comments-for-__mem_cgroup_begin_update_page_stat.patch
+memcg-get-rid-of-memcg_create_cache_name.patch
+memcg-memcg_kmem_create_cache-make-memcg_name_buf.patch
+swap-change-swap_info-singly-linked-list-to-list_head.patch
+plist-add-helper-functions.patch
+plist-add-plist_requeue.patch
+swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
+memcg-cleanup-kmem-cache-creation-destruction-functions-naming.patch
+jump_label-expose-the-reference-count.patch
+mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
+mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
+mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
+mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
+mm-page_alloc-use-word-based-accesses-for-get-set-pageblock-bitmaps.patch
+mm-page_alloc-reduce-number-of-times-page_to_pfn-is-called.patch
+mm-page_alloc-lookup-pageblock-migratetype-with-irqs-enabled-during-free.patch
+mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
+mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
+mm-shmem-avoid-atomic-operation-during-shmem_getpage_gfp.patch
+mm-do-not-use-atomic-operations-when-releasing-pages.patch
+mm-do-not-use-unnecessary-atomic-operations-when-adding-pages-to-the-lru.patch
+fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
+fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
+mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
+mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref.patch
+mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
 linux-next.patch
+memcg-mm-introduce-lowlimit-reclaim.patch
+memcg-mm-introduce-lowlimit-reclaim-fix.patch
+memcg-allow-setting-low_limit.patch
+memcg-doc-clarify-global-vs-limit-reclaims.patch
+memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
+memcg-document-memorylow_limit_in_bytes.patch
+vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
+vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-oom_control.patch
+mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
+mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
+memcg-deprecate-memoryforce_empty-knob.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
 
