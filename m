@@ -1,82 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-gfs2-filec-kernel-doc-warning-fixes.patch removed
+Subject: [merged] fs-gfs2-bmapc-kernel-doc-warning-fixes.patch removed
  from -mm tree
-Date: Mon, 19 May 2014 12:45:03 -0700
-Message-ID: <537a5f3f.nYolzEK/mvQdrhB1%akpm@linux-foundation.org>
+Date: Mon, 19 May 2014 12:45:01 -0700
+Message-ID: <537a5f3d.d0MY7EzVy68u5ZEg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48283 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48279 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752296AbaESTpE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 May 2014 15:45:04 -0400
+	with ESMTP id S1755107AbaESTpC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 May 2014 15:45:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, swhiteho@redhat.com, fabf@skynet.be
 
-Subject: [merged] fs-gfs2-filec-kernel-doc-warning-fixes.patch removed from -mm tree
+Subject: [merged] fs-gfs2-bmapc-kernel-doc-warning-fixes.patch removed from -mm tree
 To: fabf@skynet.be,swhiteho@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 19 May 2014 12:45:03 -0700
+Date: Mon, 19 May 2014 12:45:01 -0700
 
 
 The patch titled
-     Subject: fs/gfs2/file.c: kernel-doc warning fixes
+     Subject: fs/gfs2/bmap.c: kernel-doc warning fixes
 has been removed from the -mm tree.  Its filename was
-     fs-gfs2-filec-kernel-doc-warning-fixes.patch
+     fs-gfs2-bmapc-kernel-doc-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/gfs2/file.c: kernel-doc warning fixes
+Subject: fs/gfs2/bmap.c: kernel-doc warning fixes
 
-Related function is not gfs2_set_flags but do_gfs2_set_flags
+Fix 2 typos and move one definition which was between function comments
+and function definition (yet another kernel-doc warning)
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/file.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/gfs2/bmap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/gfs2/file.c~fs-gfs2-filec-kernel-doc-warning-fixes fs/gfs2/file.c
---- a/fs/gfs2/file.c~fs-gfs2-filec-kernel-doc-warning-fixes
-+++ a/fs/gfs2/file.c
-@@ -203,9 +203,9 @@ void gfs2_set_inode_flags(struct inode *
- 			     GFS2_DIF_INHERIT_JDATA)
- 
- /**
-- * gfs2_set_flags - set flags on an inode
-- * @inode: The inode
-- * @flags: The flags to set
-+ * do_gfs2_set_flags - set flags on an inode
-+ * @filp: file pointer
-+ * @reqflags: The flags to set
-  * @mask: Indicates which flags are valid
+diff -puN fs/gfs2/bmap.c~fs-gfs2-bmapc-kernel-doc-warning-fixes fs/gfs2/bmap.c
+--- a/fs/gfs2/bmap.c~fs-gfs2-bmapc-kernel-doc-warning-fixes
++++ a/fs/gfs2/bmap.c
+@@ -707,7 +707,7 @@ int gfs2_extent_map(struct inode *inode,
+  * @top: The first pointer in the buffer
+  * @bottom: One more than the last pointer
+  * @height: the height this buffer is at
+- * @data: a pointer to a struct strip_mine
++ * @sm: a pointer to a struct strip_mine
   *
+  * Returns: errno
   */
-@@ -318,7 +318,7 @@ static long gfs2_ioctl(struct file *filp
+@@ -992,6 +992,8 @@ unlock:
+ 	return err;
+ }
  
++#define GFS2_JTRUNC_REVOKES 8192
++
  /**
-  * gfs2_size_hint - Give a hint to the size of a write request
-- * @file: The struct file
-+ * @filep: The struct file
-  * @offset: The file offset of the write
-  * @size: The length of the write
+  * gfs2_journaled_truncate - Wrapper for truncate_pagecache for jdata files
+  * @inode: The inode being truncated
+@@ -1003,8 +1005,6 @@ unlock:
+  * if the number of pages being truncated gets too large.
+  */
+ 
+-#define GFS2_JTRUNC_REVOKES 8192
+-
+ static int gfs2_journaled_truncate(struct inode *inode, u64 oldsize, u64 newsize)
+ {
+ 	struct gfs2_sbd *sdp = GFS2_SB(inode);
+@@ -1348,7 +1348,7 @@ void gfs2_free_journal_extents(struct gf
+  * gfs2_add_jextent - Add or merge a new extent to extent cache
+  * @jd: The journal descriptor
+  * @lblock: The logical block at start of new extent
+- * @pblock: The physical block at start of new extent
++ * @dblock: The physical block at start of new extent
+  * @blocks: Size of extent in fs blocks
   *
-@@ -371,7 +371,7 @@ static int gfs2_allocate_page_backing(st
- /**
-  * gfs2_page_mkwrite - Make a shared, mmap()ed, page writable
-  * @vma: The virtual memory area
-- * @page: The page which is about to become writable
-+ * @vmf: The virtual memory fault containing the page to become writable
-  *
-  * When the page becomes writable, we need to ensure that we have
-  * blocks allocated on disk to back that page.
+  * Returns: 0 on success or -ENOMEM
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
