@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch added
- to -mm tree
-Date: Mon, 19 May 2014 16:16:56 -0700
-Message-ID: <537a90e8.i9B5tEHK/N/zNY/p%akpm@linux-foundation.org>
+Subject: +
+ fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch added to
+ -mm tree
+Date: Mon, 19 May 2014 16:16:55 -0700
+Message-ID: <537a90e7.5c9OqToBI07LQKGQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50512 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50511 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbaESXQ5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 May 2014 19:16:57 -0400
+	with ESMTP id S1750852AbaESXQ4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 May 2014 19:16:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch added to -mm tree
+Subject: + fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch added to -mm tree
 To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Mon, 19 May 2014 16:16:56 -0700
+Date: Mon, 19 May 2014 16:16:55 -0700
 
 
 The patch titled
-     Subject: fs/hugetlbfs/inode.c: remove null test before kfree
+     Subject: fs/hugetlbfs/inode.c: use static const for dentry_operations
 has been added to the -mm tree.  Its filename is
-     fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
+     fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,31 +46,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hugetlbfs/inode.c: remove null test before kfree
+Subject: fs/hugetlbfs/inode.c: use static const for dentry_operations
 
-Fix checkpatch warning:
-WARNING: kfree(NULL) is safe this check is probably not required
+...like other filesystems.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-remove-null-test-before-kfree fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-remove-null-test-before-kfree
+diff -puN fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-use-static-const-for-dentry_operations fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-use-static-const-for-dentry_operations
 +++ a/fs/hugetlbfs/inode.c
-@@ -901,8 +901,7 @@ hugetlbfs_fill_super(struct super_block
- 		goto out_free;
- 	return 0;
- out_free:
--	if (sbinfo->spool)
--		kfree(sbinfo->spool);
-+	kfree(sbinfo->spool);
- 	kfree(sbinfo);
- 	return -ENOMEM;
+@@ -938,7 +938,7 @@ static int get_hstate_idx(int page_size_
+ 	return h - hstates;
  }
+ 
+-static struct dentry_operations anon_ops = {
++static const struct dentry_operations anon_ops = {
+ 	.d_dname = simple_dname
+ };
+ 
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
