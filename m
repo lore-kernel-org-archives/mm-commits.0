@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- maintainers-add-closing-angle-bracket-to-vince-bridgers-email-address.patch added to -mm tree
-Date: Tue, 20 May 2014 13:47:59 -0700
-Message-ID: <537bbf7f.mY83Yg86jZnq3CSW%akpm@linux-foundation.org>
+ hwpoison-remove-unused-global-variable-in-do_machine_check.patch added to
+ -mm tree
+Date: Tue, 20 May 2014 15:13:14 -0700
+Message-ID: <537bd37a.ng4s6qBMTCunlbgo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35373 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750721AbaETUsA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 May 2014 16:48:00 -0400
+	with ESMTP id S1750699AbaETWNP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 May 2014 18:13:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbridgers2013@gmail.com, tklauser@distanz.ch
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, n-horiguchi@ah.jp.nec.com, mingo@elte.hu, hpa@zytor.com, fengguang.wu@intel.com, andi@firstfloor.org, slaoub@gmail.com
 
-Subject: + maintainers-add-closing-angle-bracket-to-vince-bridgers-email-address.patch added to -mm tree
-To: tklauser@distanz.ch,vbridgers2013@gmail.com
+Subject: + hwpoison-remove-unused-global-variable-in-do_machine_check.patch added to -mm tree
+To: slaoub@gmail.com,andi@firstfloor.org,fengguang.wu@intel.com,hpa@zytor.com,mingo@elte.hu,n-horiguchi@ah.jp.nec.com,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Tue, 20 May 2014 13:47:59 -0700
+Date: Tue, 20 May 2014 15:13:14 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: add closing angle bracket to Vince Bridgers' email address
+     Subject: hwpoison: remove unused global variable in do_machine_check()
 has been added to the -mm tree.  Its filename is
-     maintainers-add-closing-angle-bracket-to-vince-bridgers-email-address.patch
+     hwpoison-remove-unused-global-variable-in-do_machine_check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-closing-angle-bracket-to-vince-bridgers-email-address.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hwpoison-remove-unused-global-variable-in-do_machine_check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-closing-angle-bracket-to-vince-bridgers-email-address.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hwpoison-remove-unused-global-variable-in-do_machine_check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,33 +45,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: MAINTAINERS: add closing angle bracket to Vince Bridgers' email address
+From: Chen Yucong <slaoub@gmail.com>
+Subject: hwpoison: remove unused global variable in do_machine_check()
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Cc: Vince Bridgers <vbridgers2013@gmail.com>
+Remove an unused global variable mce_entry and relative operations in
+do_machine_check().
+
+Signed-off-by: Chen Yucong <slaoub@gmail.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/mce.h       |    2 --
+ arch/x86/kernel/cpu/mcheck/mce.c |    5 -----
+ 2 files changed, 7 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-closing-angle-bracket-to-vince-bridgers-email-address MAINTAINERS
---- a/MAINTAINERS~maintainers-add-closing-angle-bracket-to-vince-bridgers-email-address
-+++ a/MAINTAINERS
-@@ -537,7 +537,7 @@ L:	linux-alpha@vger.kernel.org
- F:	arch/alpha/
+diff -puN arch/x86/include/asm/mce.h~hwpoison-remove-unused-global-variable-in-do_machine_check arch/x86/include/asm/mce.h
+--- a/arch/x86/include/asm/mce.h~hwpoison-remove-unused-global-variable-in-do_machine_check
++++ a/arch/x86/include/asm/mce.h
+@@ -176,8 +176,6 @@ int mce_available(struct cpuinfo_x86 *c)
+ DECLARE_PER_CPU(unsigned, mce_exception_count);
+ DECLARE_PER_CPU(unsigned, mce_poll_count);
  
- ALTERA TRIPLE SPEED ETHERNET DRIVER
--M:	Vince Bridgers <vbridgers2013@gmail.com
-+M:	Vince Bridgers <vbridgers2013@gmail.com>
- L:	netdev@vger.kernel.org
- L:	nios2-dev@lists.rocketboards.org (moderated for non-subscribers)
- S:	Maintained
-_
-
-Patches currently in -mm which might be from tklauser@distanz.ch are
-
-maintainers-add-closing-angle-bracket-to-vince-bridgers-email-address.patch
-linux-next.patch
-
+-extern atomic_t mce_entry;
+-
+ typedef DECLARE_BITMAP(mce_banks_t, MAX_NR_BANKS);
+ DECLARE_PER_CPU(mce_banks_t, mce_poll_banks);
+ 
+diff -puN arch/x86/kernel/cpu/mcheck/mce.c~hwpoison-remove-unused-global-variable-in-do_machine_check arch/x86/kernel/cpu/mcheck/mce.c
+--- a/arch/x86/kernel/cpu/mcheck/mce.c~hwpoison-remove-unused-global-variable-in-do_machine_check
++++ a/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -60,8 +60,6 @@ static DEFINE_MUTEX(mce_chrdev_read_mute
+ 
+ #define SPINUNIT 100	/* 100ns */
+ 
+-atomic_t mce_entry;
+-
+ DEFINE_PER_CPU(unsigned, mce_exception_count);
+ 
+ struct mce_bank *mce_banks __read_mostly;
+@@ -1041,8 +1039,6 @@ void do_machine_check(struct pt_regs *re
+ 	DECLARE_BITMAP(valid_banks, MAX_NR_BANKS);
+ 	char *msg = "Unknown";
+ 
+-	atomic_inc(&mce_entry);
