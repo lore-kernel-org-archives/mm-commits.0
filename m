@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 20 May 2014 11:15:24 -0700
-Message-ID: <537b9bbc.pOUtREaz4L+3m7wE%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix.patch added to -mm tree
+Date: Tue, 20 May 2014 11:19:07 -0700
+Message-ID: <537b9c9b./Gdz6KJIq69+nmnO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32970 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32972 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751074AbaETSPY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 May 2014 14:15:24 -0400
+	with ESMTP id S1752851AbaETSTI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 May 2014 14:19:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, akpm@linux-foundation.org
 
-Subject: + linux-next-git-rejects.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: + mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,vbabka@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 20 May 2014 11:15:24 -0700
+Date: Tue, 20 May 2014 11:19:07 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,145 +45,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix
 
+fix typo in comment
+
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/uapi/asm/inst.h    |   21 ---------------------
- arch/mips/loongson/lemote-2f/clock.c |   15 ---------------
- arch/x86/kernel/ldt.c                |    9 ---------
- arch/x86/vdso/vdso32-setup.c         |    9 ---------
- sound/soc/intel/sst-baytrail-dsp.c   |   10 ----------
- 5 files changed, 64 deletions(-)
+ mm/compaction.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/mips/include/uapi/asm/inst.h~linux-next-git-rejects arch/mips/include/uapi/asm/inst.h
---- a/arch/mips/include/uapi/asm/inst.h~linux-next-git-rejects
-+++ a/arch/mips/include/uapi/asm/inst.h
-@@ -482,27 +482,6 @@ enum MIPS6e_i8_func {
-  */
- #define MM_NOP16	0x0c00
+diff -puN mm/compaction.c~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix
++++ a/mm/compaction.c
+@@ -224,9 +224,9 @@ static bool compact_checklock_irqsave(sp
  
--<<<<<<< HEAD
--/*
-- * Damn ...  bitfields depend from byteorder :-(
-- */
--#ifdef __MIPSEB__
--#define __BITFIELD_FIELD(field, more)					\
--	field;								\
--	more
--
--#elif defined(__MIPSEL__)
--
--#define __BITFIELD_FIELD(field, more)					\
--	more								\
--	field;
--
--#else /* !defined (__MIPSEB__) && !defined (__MIPSEL__) */
--#error "MIPS but neither __MIPSEL__ nor __MIPSEB__?"
--#endif
--
--=======
-->>>>>>> linux-next/akpm-base
- struct j_format {
- 	__BITFIELD_FIELD(unsigned int opcode : 6, /* Jump format */
- 	__BITFIELD_FIELD(unsigned int target : 26,
-diff -puN arch/mips/loongson/lemote-2f/clock.c~linux-next-git-rejects arch/mips/loongson/lemote-2f/clock.c
---- a/arch/mips/loongson/lemote-2f/clock.c~linux-next-git-rejects
-+++ a/arch/mips/loongson/lemote-2f/clock.c
-@@ -92,10 +92,7 @@ EXPORT_SYMBOL(clk_put);
- int clk_set_rate(struct clk *clk, unsigned long rate)
- {
- 	unsigned int rate_khz = rate / 1000;
--<<<<<<< HEAD
--=======
- 	struct cpufreq_frequency_table *pos;
-->>>>>>> linux-next/akpm-base
- 	int ret = 0;
- 	int regval;
- 
-@@ -110,22 +107,10 @@ int clk_set_rate(struct clk *clk, unsign
- 	if (unlikely(clk->flags & CLK_RATE_PROPAGATES))
- 		propagate_rate(clk);
- 
--<<<<<<< HEAD
--	for (i = 0; loongson2_clockmod_table[i].frequency != CPUFREQ_TABLE_END;
--	     i++) {
--		if (loongson2_clockmod_table[i].frequency ==
--		    CPUFREQ_ENTRY_INVALID)
--			continue;
--		if (rate_khz == loongson2_clockmod_table[i].frequency)
--			break;
--	}
--	if (rate_khz != loongson2_clockmod_table[i].frequency)
--=======
- 	cpufreq_for_each_valid_entry(pos, loongson2_clockmod_table)
- 		if (rate_khz == pos->frequency)
- 			break;
- 	if (rate_khz != pos->frequency)
-->>>>>>> linux-next/akpm-base
- 		return -ENOTSUPP;
- 
- 	clk->rate = rate;
-diff -puN arch/x86/kernel/ldt.c~linux-next-git-rejects arch/x86/kernel/ldt.c
---- a/arch/x86/kernel/ldt.c~linux-next-git-rejects
-+++ a/arch/x86/kernel/ldt.c
-@@ -231,16 +231,7 @@ static int write_ldt(void __user *ptr, u
- 		}
- 	}
- 
--<<<<<<< HEAD
--	/*
--	 * On x86-64 we do not support 16-bit segments due to
--	 * IRET leaking the high bits of the kernel stack address.
--	 */
--#ifdef CONFIG_X86_64
--	if (!ldt_info.seg_32bit && !sysctl_ldt16) {
--=======
- 	if (!IS_ENABLED(CONFIG_X86_16BIT) && !ldt_info.seg_32bit) {
-->>>>>>> linux-next/akpm-base
- 		error = -EINVAL;
- 		goto out_unlock;
- 	}
-diff -puN arch/x86/vdso/vdso32-setup.c~linux-next-git-rejects arch/x86/vdso/vdso32-setup.c
---- a/arch/x86/vdso/vdso32-setup.c~linux-next-git-rejects
-+++ a/arch/x86/vdso/vdso32-setup.c
-@@ -21,15 +21,6 @@
- #define VDSO_DEFAULT	1
- #endif
- 
--<<<<<<< HEAD
--#ifdef CONFIG_X86_64
--#define vdso_enabled			sysctl_vsyscall32
--#define arch_setup_additional_pages	syscall32_setup_pages
--extern int sysctl_ldt16;
--#endif
--
--=======
-->>>>>>> linux-next/akpm-base
  /*
-  * Should the kernel map a VDSO page into processes and pass its
-  * address down to glibc upon exec()?
-diff -puN sound/soc/intel/sst-baytrail-dsp.c~linux-next-git-rejects sound/soc/intel/sst-baytrail-dsp.c
---- a/sound/soc/intel/sst-baytrail-dsp.c~linux-next-git-rejects
-+++ a/sound/soc/intel/sst-baytrail-dsp.c
-@@ -324,16 +324,6 @@ static int sst_byt_init(struct sst_dsp *
- 		return ret;
- 	}
- 
--<<<<<<< HEAD
--	/*
--	 * save the physical address of extended firmware block in the first
--	 * 4 bytes of the mailbox
--	 */
--	memcpy_toio(sst->addr.lpe + SST_BYT_MAILBOX_OFFSET,
--	       &pdata->fw_base, sizeof(u32));
--
--=======
-->>>>>>> linux-next/akpm-base
- 	ret = dma_coerce_mask_and_coherent(sst->dma_dev, DMA_BIT_MASK(32));
- 	if (ret)
- 		return ret;
+  * Aside from avoiding lock contention, compaction also periodically checks
+- * need_resched() and either schedules in sync compaction, or aborts async
+- * compaction. This is similar to compact_checklock_irqsave() does, but used
+- * where no lock is concerned.
++ * need_resched() and either schedules in sync compaction or aborts async
++ * compaction. This is similar to what compact_checklock_irqsave() does, but
++ * is used where no lock is concerned.
+  *
+  * Returns false when no scheduling was needed, or sync compaction scheduled.
+  * Returns true when async compaction should abort.
+diff -puN mm/internal.h~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix mm/internal.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -246,6 +136,7 @@ fs-pstore-logging-clean-up-fix.patch
 fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
 linux-next.patch
 linux-next-rejects.patch
+linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 mm-page_ioc-work-around-gcc-bug.patch
 lib-test_bpfc-dont-use-gcc-union-shortcut.patch
@@ -262,5 +153,4 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-linux-next-git-rejects.patch
 
