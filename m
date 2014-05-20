@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref-fix.patch
- added to -mm tree
-Date: Tue, 20 May 2014 11:27:35 -0700
-Message-ID: <537b9e97.wlM2pp45zTkPDcI/%akpm@linux-foundation.org>
+ mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch added to -mm tree
+Date: Tue, 20 May 2014 12:35:04 -0700
+Message-ID: <537bae68.tEJrSjRcyJYoACTr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33115 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34149 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753877AbaETS1g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 May 2014 14:27:36 -0400
+	with ESMTP id S1754330AbaETTfF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 May 2014 15:35:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, hannes@cmpxchg.org, dan.carpenter@oracle.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, prabhakar.csengg@gmail.com, peterz@infradead.org, mhocko@suse.cz, mgorman@suse.de, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, akpm@linux-foundation.org
 
-Subject: + mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref-fix.patch added to -mm tree
-To: mgorman@suse.de,dan.carpenter@oracle.com,hannes@cmpxchg.org,riel@redhat.com
+Subject: + mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch added to -mm tree
+To: akpm@linux-foundation.org,dave.hansen@intel.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,mgorman@suse.de,mhocko@suse.cz,peterz@infradead.org,prabhakar.csengg@gmail.com,vbabka@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 20 May 2014 11:27:35 -0700
+Date: Tue, 20 May 2014 12:35:04 -0700
 
 
 The patch titled
-     Subject: mm: page_alloc: calculate classzone_idx once from the zonelist ref
+     Subject: mm/shmem.c: don't run init_page_accessed() against an uninitialised pointer
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref-fix.patch
+     mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,136 +44,123 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: calculate classzone_idx once from the zonelist ref
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/shmem.c: don't run init_page_accessed() against an uninitialised pointer
 
-Dan Carpenter reported the following bug
+If shmem_getpage() returned an error then it didn't necessarily initialise
+*pagep.  So shmem_write_begin() shouldn't be playing with *pagep in this
+situation.
 
-	The patch a486e00b8283: "mm: page_alloc: calculate classzone_idx
-	once from the zonelist ref" from May 17, 2014, leads to the
-	following static checker warning:
+Fixes an oops when "mm: non-atomically mark page accessed during page
+cache allocation where possible" (quite reasonably) left *pagep
+uninitialized.
 
-        mm/page_alloc.c:2543 __alloc_pages_slowpath()
-        warn: we tested 'nodemask' before and it was 'false'
-
-mm/page_alloc.c
-  2537           * Find the true preferred zone if the allocation is unconstrained by
-  2538           * cpusets.
-  2539           */
-  2540          if (!(alloc_flags & ALLOC_CPUSET) && !nodemask) {
-                                                     ^^^^^^^^^
-Patch introduces this test.
-
-  2541                  struct zoneref *preferred_zoneref;
-  2542                  preferred_zoneref = first_zones_zonelist(zonelist, high_zoneidx,
-  2543                                  nodemask ? : &cpuset_current_mems_allowed,
-                                        ^^^^^^^^
-Patch introduces this test as well.
-
-  2544                                  &preferred_zone);
-  2545                  classzone_idx = zonelist_zone_idx(preferred_zoneref);
-  2546          }
-
-This patch should resolve it and is a fix to the mmotm patch
-mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
+Reported-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref-fix
-+++ a/mm/page_alloc.c
-@@ -2540,8 +2540,7 @@ restart:
- 	if (!(alloc_flags & ALLOC_CPUSET) && !nodemask) {
- 		struct zoneref *preferred_zoneref;
- 		preferred_zoneref = first_zones_zonelist(zonelist, high_zoneidx,
--				nodemask ? : &cpuset_current_mems_allowed,
--				&preferred_zone);
-+				NULL, &preferred_zone);
- 		classzone_idx = zonelist_zone_idx(preferred_zoneref);
- 	}
- 
+diff -puN mm/shmem.c~mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2 mm/shmem.c
+--- a/mm/shmem.c~mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2
++++ a/mm/shmem.c
+@@ -1376,7 +1376,7 @@ shmem_write_begin(struct file *file, str
+ 	struct inode *inode = mapping->host;
+ 	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
+ 	ret = shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
+-	if (*pagep)
++	if (ret == 0 && *pagep)
+ 		init_page_accessed(*pagep);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-require-x86-64-for-automatic-numa-balancing.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+fs-add-generic-data-flush-to-fsync-fix.patch
+fs-add-generic-data-flush-to-fsync-fix-fix.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
 mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-disable-zone_reclaim_mode-by-default.patch
-mm-page_alloc-do-not-cache-reclaim-distances.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
 mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-compaction-clean-up-unused-code-lines.patch
-mm-compaction-cleanup-isolate_freepages.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
 mm-compaction-cleanup-isolate_freepages-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix-2.patch
-mm-compaction-cleanup-isolate_freepages-fix3.patch
-mm-swapc-clean-up-lru_cache_add-functions.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
 mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-fix.patch
-mm-numa-add-migrated-transhuge-pages-to-lru-the-same-way-as-base-pages.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-mm-x86-pgtable-drop-unneeded-preprocessor-ifdef.patch
-mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
-mm-mempolicyc-parameter-doc-uniformization.patch
-mm-migration-add-destination-page-freeing-callback.patch
-mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
-mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
-mm-compaction-embed-migration-mode-in-compact_control.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
-mm-compaction-terminate-async-compaction-when-rescheduling.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary.patch
-mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
-swap-change-swap_info-singly-linked-list-to-list_head.patch
-plist-add-helper-functions.patch
-plist-add-plist_requeue.patch
-swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
-mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
-mm-page_alloc-do-not-treat-a-zone-that-cannot-be-used-for-dirty-pages-as-full.patch
-jump_label-expose-the-reference-count.patch
-mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
-mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets-fix.patch
-mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
-mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
-mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
-mm-page_alloc-use-word-based-accesses-for-get-set-pageblock-bitmaps.patch
-mm-page_alloc-reduce-number-of-times-page_to_pfn-is-called.patch
-mm-page_alloc-lookup-pageblock-migratetype-with-irqs-enabled-during-free.patch
-mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
-mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
-mm-shmem-avoid-atomic-operation-during-shmem_getpage_gfp.patch
-mm-do-not-use-atomic-operations-when-releasing-pages.patch
-mm-do-not-use-unnecessary-atomic-operations-when-adding-pages-to-the-lru.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+mm-update-comment-for-default_max_map_count-fix.patch
+memcg-fold-mem_cgroup_stolen-fix.patch
+mm-compaction-embed-migration-mode-in-compact_control-fix.patch
+mm-add-comment-for-__mod_zone_page_stat.patch
+mm-add-comment-for-__mod_zone_page_stat-checkpatch-fixes.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
 fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
-mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref.patch
-mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref-fix.patch
-mm-avoid-unnecessary-atomic-operations-during-end_page_writeback.patch
-mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch
+mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
+mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+init-mainc-remove-an-ifdef.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+rtc-da9063-rtc-driver-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
 smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v5.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+lib-test_bpfc-dont-use-gcc-union-shortcut.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+rwsem-support-optimistic-spinning-checkpatch-fixes.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
