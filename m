@@ -1,67 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch
- added to -mm tree
-Date: Tue, 20 May 2014 15:42:29 -0700
-Message-ID: <537bda55.IzwdkyZayTwvlCvG%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ checkpatch-add-strict-test-for-kmalloc-kzalloc-with-multiply.patch removed
+ from -mm tree
+Date: Tue, 20 May 2014 15:42:34 -0700
+Message-ID: <537bda5a.fJ5kbfCZFpfd6JO6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35587 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35591 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750747AbaETWma (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 May 2014 18:42:30 -0400
+	with ESMTP id S1750747AbaETWme (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 May 2014 18:42:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, apw@canonical.com, joe@perches.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch added to -mm tree
-To: joe@perches.com,apw@canonical.com
+Subject: [to-be-updated] checkpatch-add-strict-test-for-kmalloc-kzalloc-with-multiply.patch removed from -mm tree
+To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 20 May 2014 15:42:29 -0700
+Date: Tue, 20 May 2014 15:42:34 -0700
 
 
 The patch titled
-     Subject: checkpatch: add warning for kmalloc/kzalloc with multiply
-has been added to the -mm tree.  Its filename is
-     checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch
+     Subject: checkpatch: add --strict test for kmalloc/kzalloc with multiply
+has been removed from the -mm tree.  Its filename was
+     checkpatch-add-strict-test-for-kmalloc-kzalloc-with-multiply.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add warning for kmalloc/kzalloc with multiply
+Subject: checkpatch: add --strict test for kmalloc/kzalloc with multiply
 
-Protect against sizeof overflows by preferring kmalloc_array/kcalloc over
-kmalloc/kzalloc with a sizeof multiply.
+Protect against sizeof overflows by preferring kmalloc_array and kcalloc
+to kmalloc/kzalloc with a sizeof multiply.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ scripts/checkpatch.pl |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply
+diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-kmalloc-kzalloc-with-multiply scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-kmalloc-kzalloc-with-multiply
 +++ a/scripts/checkpatch.pl
-@@ -4378,6 +4378,30 @@ sub process {
+@@ -4378,6 +4378,20 @@ sub process {
  			    "Prefer $3(sizeof(*$1)...) over $3($4...)\n" . $herecurr);
  		}
  
@@ -74,18 +60,8 @@ diff -puN scripts/checkpatch.pl~checkpatch-add-warning-for-kmalloc-kzalloc-with-
 +			my $newfunc = "kmalloc_array";
 +			$newfunc = "kcalloc" if ($oldfunc eq "kzalloc");
 +			if ($a1 =~ /^sizeof\s*\S/ || $a2 =~ /^sizeof\s*\S/) {
-+				if (WARN("ALLOC_WITH_MULTIPLY",
-+					 "Prefer $newfunc over $oldfunc with multiply\n" . $herecurr) &&
-+				    $fix) {
-+					my $r1 = $a1;
-+					my $r2 = $a2;
-+					if ($a1 =~ /^sizeof\s*\S/) {
-+						$r1 = $a2;
-+						$r2 = $a1;
-+					}
-+					$fixed[$linenr - 1] =~ s/\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/$1 . ' = ' . "$newfunc(" . trim($r1) . ', ' . trim($r2)/e;
-+
-+				}
++				CHK("ALLOC_WITH_MULTIPLY",
++				    "Prefer $newfunc over $oldfunc with multiply\n" . $herecurr);
 +			}
 +		}
 +
@@ -109,7 +85,6 @@ checkpatch-improve-missing-blank-line-after-declarations-test.patch
 checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
 checkpatch-warn-on-defines-ending-in-semicolon.patch
 checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch
-checkpatch-add-strict-test-for-kmalloc-kzalloc-with-multiply.patch
 fs-efs-convert-printk-to-pr_foo.patch
 fs-efs-add-pr_fmt-use-__func__.patch
 fs-efs-convert-printkkern_debug-to-pr_debug.patch
