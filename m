@@ -1,122 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- checkpatch-add-strict-test-for-kmalloc-kzalloc-with-multiply.patch removed
- from -mm tree
-Date: Tue, 20 May 2014 15:42:34 -0700
-Message-ID: <537bda5a.fJ5kbfCZFpfd6JO6%akpm@linux-foundation.org>
+Subject: + sync-only-the-requested-range-in-msync.patch added to -mm tree
+Date: Tue, 20 May 2014 16:01:24 -0700
+Message-ID: <537bdec4.sLC4puLA/MoWEuki%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35591 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35728 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750747AbaETWme (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 May 2014 18:42:34 -0400
+	with ESMTP id S1750965AbaETXBZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 May 2014 19:01:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, jmoyer@redhat.com, hch@lst.de, clm@fb.com, matthew.r.wilcox@intel.com
 
-Subject: [to-be-updated] checkpatch-add-strict-test-for-kmalloc-kzalloc-with-multiply.patch removed from -mm tree
-To: joe@perches.com,mm-commits@vger.kernel.org
+Subject: + sync-only-the-requested-range-in-msync.patch added to -mm tree
+To: matthew.r.wilcox@intel.com,clm@fb.com,hch@lst.de,jmoyer@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 20 May 2014 15:42:34 -0700
+Date: Tue, 20 May 2014 16:01:24 -0700
 
 
 The patch titled
-     Subject: checkpatch: add --strict test for kmalloc/kzalloc with multiply
-has been removed from the -mm tree.  Its filename was
-     checkpatch-add-strict-test-for-kmalloc-kzalloc-with-multiply.patch
+     Subject: mm/msync.c: sync only the requested range in msync()
+has been added to the -mm tree.  Its filename is
+     sync-only-the-requested-range-in-msync.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/sync-only-the-requested-range-in-msync.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/sync-only-the-requested-range-in-msync.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add --strict test for kmalloc/kzalloc with multiply
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: mm/msync.c: sync only the requested range in msync()
 
-Protect against sizeof overflows by preferring kmalloc_array and kcalloc
-to kmalloc/kzalloc with a sizeof multiply.
+msync() currently syncs more than POSIX requires or BSD or Solaris
+implement.  It is supposed to be equivalent to fdatasync(), not fsync(),
+and it is only supposed to sync the portion of the file that overlaps the
+range passed to msync.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+If the VMA is non-linear, fall back to syncing the entire file, but we
+still optimise to only fdatasync() the entire file, not the full fsync().
+
+akpm: there are obvious concerns with bck-compatibility: is anyone relying
+on the undocumented side-effect for their data integrity?  And how would
+they ever know if this change broke their data integrity?
+
+We think the risk is reasonably low, and this patch brings the kernel into
+line with other OS's and with what the manpage has always said...
+
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Chris Mason <clm@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/msync.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-kmalloc-kzalloc-with-multiply scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-kmalloc-kzalloc-with-multiply
-+++ a/scripts/checkpatch.pl
-@@ -4378,6 +4378,20 @@ sub process {
- 			    "Prefer $3(sizeof(*$1)...) over $3($4...)\n" . $herecurr);
- 		}
+diff -puN mm/msync.c~sync-only-the-requested-range-in-msync mm/msync.c
+--- a/mm/msync.c~sync-only-the-requested-range-in-msync
++++ a/mm/msync.c
+@@ -58,6 +58,7 @@ SYSCALL_DEFINE3(msync, unsigned long, st
+ 	vma = find_vma(mm, start);
+ 	for (;;) {
+ 		struct file *file;
++		loff_t fstart, fend;
  
-+# check for k[mz]alloc with multiplies that could be kmalloc_array/kcalloc
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $line =~ /\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/) {
-+			my $oldfunc = $3;
-+			my $a1 = $4;
-+			my $a2 = $10;
-+			my $newfunc = "kmalloc_array";
-+			$newfunc = "kcalloc" if ($oldfunc eq "kzalloc");
-+			if ($a1 =~ /^sizeof\s*\S/ || $a2 =~ /^sizeof\s*\S/) {
-+				CHK("ALLOC_WITH_MULTIPLY",
-+				    "Prefer $newfunc over $oldfunc with multiply\n" . $herecurr);
-+			}
-+		}
-+
- # check for krealloc arg reuse
- 		if ($^V && $^V ge 5.10.0 &&
- 		    $line =~ /\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*krealloc\s*\(\s*\1\s*,/) {
+ 		/* Still start < end. */
+ 		error = -ENOMEM;
+@@ -77,12 +78,17 @@ SYSCALL_DEFINE3(msync, unsigned long, st
+ 			goto out_unlock;
+ 		}
+ 		file = vma->vm_file;
++		fstart = start + ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
++		fend = fstart + (min(end, vma->vm_end) - start) - 1;
+ 		start = vma->vm_end;
+ 		if ((flags & MS_SYNC) && file &&
+ 				(vma->vm_flags & VM_SHARED)) {
+ 			get_file(file);
+ 			up_read(&mm->mmap_sem);
+-			error = vfs_fsync(file, 0);
++			if (vma->vm_flags & VM_NONLINEAR)
++				error = vfs_fsync(file, 1);
++			else
++				error = vfs_fsync_range(file, fstart, fend, 1);
+ 			fput(file);
+ 			if (error || start >= end)
+ 				goto out;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
 
-origin.patch
-mm-slubc-convert-printk-to-pr_foo.patch
-mm-slubc-convert-vnsprintf-static-to-va_format.patch
-documentation-expand-clarify-debug-documentation.patch
-printk-use-symbolic-defines-for-console-loglevels.patch
-maintainers-add-linux-api-for-review-of-api-abi-changes.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-fix-wildcard-dt-compatible-string-checking.patch
-checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
-checkpatch-improve-missing-blank-line-after-declarations-test.patch
-checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
-checkpatch-warn-on-defines-ending-in-semicolon.patch
-checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch
-fs-efs-convert-printk-to-pr_foo.patch
-fs-efs-add-pr_fmt-use-__func__.patch
-fs-efs-convert-printkkern_debug-to-pr_debug.patch
-init-mainc-dont-use-pr_debug.patch
-fs-isofs-logging-clean-up.patch
-fs-coda-replace-printk-by-pr_foo.patch
-fs-coda-logging-prefix-uniformization.patch
-fs-coda-use-__func__.patch
-fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-devpts-inodec-convert-printk-to-pr_foo.patch
-fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-linux-next.patch
-arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-tile-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-parport-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-scsi-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-ntfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-ipc-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-mm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+fs-bufferc-remove-block_write_full_page_endio.patch
+fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage.patch
+fs-mpagec-factor-page_endio-out-of-mpage_end_io.patch
+fs-block_devc-add-bdev_read_page-and-bdev_write_page.patch
+swap-use-bdev_read_page-bdev_write_page.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+brd-add-support-for-rw_page.patch
+brd-return-enospc-rather-than-enomem-on-page-allocation-failure.patch
+sync-only-the-requested-range-in-msync.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
