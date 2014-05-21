@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-radix-treec-kernel-doc-warning-fix.patch added to -mm tree
-Date: Wed, 21 May 2014 12:36:50 -0700
-Message-ID: <537d0052.nMhLgYMP6uCix0wz%akpm@linux-foundation.org>
+Subject: + lib-crc32c-remove-unnecessary-__constant.patch added to -mm
+ tree
+Date: Wed, 21 May 2014 12:43:09 -0700
+Message-ID: <537d01cd.nMvKWBrj99KIFh5R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48262 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48269 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753244AbaEUTgv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 May 2014 15:36:51 -0400
+	with ESMTP id S1751137AbaEUTnK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 May 2014 15:43:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, davem@davemloft.net, fabf@skynet.be
 
-Subject: + lib-radix-treec-kernel-doc-warning-fix.patch added to -mm tree
-To: fabf@skynet.be,hannes@cmpxchg.org
+Subject: + lib-crc32c-remove-unnecessary-__constant.patch added to -mm tree
+To: fabf@skynet.be,davem@davemloft.net
 From: akpm@linux-foundation.org
-Date: Wed, 21 May 2014 12:36:50 -0700
+Date: Wed, 21 May 2014 12:43:09 -0700
 
 
 The patch titled
-     Subject: lib/radix-tree.c: kernel-doc warning fix
+     Subject: lib/crc32.c: remove unnecessary __constant
 has been added to the -mm tree.  Its filename is
-     lib-radix-treec-kernel-doc-warning-fix.patch
+     lib-crc32c-remove-unnecessary-__constant.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-radix-treec-kernel-doc-warning-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-crc32c-remove-unnecessary-__constant.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-radix-treec-kernel-doc-warning-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-crc32c-remove-unnecessary-__constant.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,30 +45,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/radix-tree.c: kernel-doc warning fix
+Subject: lib/crc32.c: remove unnecessary __constant
 
-index has been removed from __radix_tree_delete_node in 449dd6984d0e47
-("mm: keep page cache radix tree nodes in check")
+Use cpu_to_le32 instead of __constant_cpu_to_le32.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/crc32.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/radix-tree.c~lib-radix-treec-kernel-doc-warning-fix lib/radix-tree.c
---- a/lib/radix-tree.c~lib-radix-treec-kernel-doc-warning-fix
-+++ a/lib/radix-tree.c
-@@ -1296,7 +1296,6 @@ static inline void radix_tree_shrink(str
- /**
-  *	__radix_tree_delete_node    -    try to free node after clearing a slot
-  *	@root:		radix tree root
-- *	@index:		index key
-  *	@node:		node containing @index
-  *
-  *	After clearing the slot at @index in @node from radix tree
+diff -puN lib/crc32.c~lib-crc32c-remove-unnecessary-__constant lib/crc32.c
+--- a/lib/crc32.c~lib-crc32c-remove-unnecessary-__constant
++++ a/lib/crc32.c
+@@ -33,13 +33,13 @@
+ #include "crc32defs.h"
+ 
+ #if CRC_LE_BITS > 8
+-# define tole(x) ((__force u32) __constant_cpu_to_le32(x))
++# define tole(x) ((__force u32) cpu_to_le32(x))
+ #else
+ # define tole(x) (x)
+ #endif
+ 
+ #if CRC_BE_BITS > 8
+-# define tobe(x) ((__force u32) __constant_cpu_to_be32(x))
++# define tobe(x) ((__force u32) cpu_to_be32(x))
+ #else
+ # define tobe(x) (x)
+ #endif
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -128,6 +136,7 @@ documentation-expand-clarify-debug-documentation.patch
 lib-libcrc32cc-use-ptr_err_or_zero.patch
 lib-vsprintfc-fix-comparison-to-bool.patch
 lib-radix-treec-kernel-doc-warning-fix.patch
+lib-crc32c-remove-unnecessary-__constant.patch
 kernel-compatc-use-sizeof-instead-of-sizeof.patch
 fs-efs-convert-printk-to-pr_foo.patch
 fs-efs-add-pr_fmt-use-__func__.patch
