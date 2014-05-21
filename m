@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-typo-in-comment-in-do_fault_around.patch added to -mm
- tree
-Date: Wed, 21 May 2014 13:34:41 -0700
-Message-ID: <537d0de1.Cx0YKa+CxEQ9h+3E%akpm@linux-foundation.org>
+Subject: + tools-vm-page-typesc-catch-sigbus-if-raced-with-truncate.patch
+ added to -mm tree
+Date: Wed, 21 May 2014 15:13:03 -0700
+Message-ID: <537d24ef.o2OekqYr6XCTsuSn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49133 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49987 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753178AbaEUUel (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 May 2014 16:34:41 -0400
+	with ESMTP id S1753460AbaEUWNE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 May 2014 18:13:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, koct9i@gmail.com
 
-Subject: + mm-fix-typo-in-comment-in-do_fault_around.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com
+Subject: + tools-vm-page-typesc-catch-sigbus-if-raced-with-truncate.patch added to -mm tree
+To: koct9i@gmail.com,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Wed, 21 May 2014 13:34:41 -0700
+Date: Wed, 21 May 2014 15:13:03 -0700
 
 
 The patch titled
-     Subject: mm: fix typo in comment in do_fault_around()
+     Subject: tools/vm/page-types.c: catch sigbus if raced with truncate
 has been added to the -mm tree.  Its filename is
-     mm-fix-typo-in-comment-in-do_fault_around.patch
+     tools-vm-page-typesc-catch-sigbus-if-raced-with-truncate.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-typo-in-comment-in-do_fault_around.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page-typesc-catch-sigbus-if-raced-with-truncate.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-typo-in-comment-in-do_fault_around.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page-typesc-catch-sigbus-if-raced-with-truncate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,72 +44,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix typo in comment in do_fault_around()
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: tools/vm/page-types.c: catch sigbus if raced with truncate
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Recently added page-cache dumping is known to be a little bit racy.
+But after race with truncate it just dies due to unhandled SIGBUS
+when it tries to poke pages beyond the new end of file.
+This patch adds handler for SIGBUS which skips the rest of the file.
+
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/vm/page-types.c |   35 ++++++++++++++++++++++++++++++++---
+ 1 file changed, 32 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory.c~mm-fix-typo-in-comment-in-do_fault_around mm/memory.c
---- a/mm/memory.c~mm-fix-typo-in-comment-in-do_fault_around
-+++ a/mm/memory.c
-@@ -2832,7 +2832,7 @@ static void do_fault_around(struct vm_ar
+diff -puN tools/vm/page-types.c~tools-vm-page-typesc-catch-sigbus-if-raced-with-truncate tools/vm/page-types.c
+--- a/tools/vm/page-types.c~tools-vm-page-typesc-catch-sigbus-if-raced-with-truncate
++++ a/tools/vm/page-types.c
+@@ -32,6 +32,8 @@
+ #include <assert.h>
+ #include <ftw.h>
+ #include <time.h>
++#include <setjmp.h>
++#include <signal.h>
+ #include <sys/types.h>
+ #include <sys/errno.h>
+ #include <sys/fcntl.h>
+@@ -824,21 +826,38 @@ static void show_file(const char *name,
+ 			atime, now - st->st_atime);
+ }
  
- 	/*
- 	 *  max_pgoff is either end of page table or end of vma
--	 *  or fault_around_pages() from pgoff, depending what is neast.
-+	 *  or fault_around_pages() from pgoff, depending what is nearest.
- 	 */
- 	max_pgoff = pgoff - ((start_addr >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)) +
- 		PTRS_PER_PTE - 1;
++static sigjmp_buf sigbus_jmp;
++
++static void * volatile sigbus_addr;
++
++static void sigbus_handler(int sig, siginfo_t *info, void *ucontex)
++{
++	(void)sig;
++	(void)ucontex;
++	sigbus_addr = info ? info->si_addr : NULL;
++	siglongjmp(sigbus_jmp, 1);
++}
++
++static struct sigaction sigbus_action = {
++	.sa_sigaction = sigbus_handler,
++	.sa_flags = SA_SIGINFO,
++};
++
+ static void walk_file(const char *name, const struct stat *st)
+ {
+ 	uint8_t vec[PAGEMAP_BATCH];
+ 	uint64_t buf[PAGEMAP_BATCH], flags;
+ 	unsigned long nr_pages, pfn, i;
++	off_t off, end = st->st_size;
+ 	int fd;
+-	off_t off;
+ 	ssize_t len;
+ 	void *ptr;
+ 	int first = 1;
+ 
+ 	fd = checked_open(name, O_RDONLY|O_NOATIME|O_NOFOLLOW);
+ 
+-	for (off = 0; off < st->st_size; off += len) {
+-		nr_pages = (st->st_size - off + page_size - 1) / page_size;
++	for (off = 0; off < end; off += len) {
++		nr_pages = (end - off + page_size - 1) / page_size;
+ 		if (nr_pages > PAGEMAP_BATCH)
+ 			nr_pages = PAGEMAP_BATCH;
+ 		len = nr_pages * page_size;
+@@ -855,11 +874,19 @@ static void walk_file(const char *name,
+ 		if (madvise(ptr, len, MADV_RANDOM))
+ 			fatal("madvice failed: %s", name);
+ 
++		if (sigsetjmp(sigbus_jmp, 1)) {
++			end = off + sigbus_addr ? sigbus_addr - ptr : 0;
++			fprintf(stderr, "got sigbus at offset %lld: %s\n",
++					(long long)end, name);
++			goto got_sigbus;
++		}
++
+ 		/* populate ptes */
+ 		for (i = 0; i < nr_pages ; i++) {
+ 			if (vec[i] & 1)
+ 				(void)*(volatile int *)(ptr + i * page_size);
+ 		}
++got_sigbus:
+ 
+ 		/* turn off harvesting reference bits */
+ 		if (madvise(ptr, len, MADV_SEQUENTIAL))
+@@ -910,6 +937,7 @@ static void walk_page_cache(void)
+ 
+ 	kpageflags_fd = checked_open(PROC_KPAGEFLAGS, O_RDONLY);
+ 	pagemap_fd = checked_open("/proc/self/pagemap", O_RDONLY);
++	sigaction(SIGBUS, &sigbus_action, NULL);
+ 
+ 	if (stat(opt_file, &st))
+ 		fatal("stat failed: %s\n", opt_file);
+@@ -925,6 +953,7 @@ static void walk_page_cache(void)
+ 
+ 	close(kpageflags_fd);
+ 	close(pagemap_fd);
++	signal(SIGBUS, SIG_DFL);
+ }
+ 
+ static void parse_file(const char *name)
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
-origin.patch
-mm-fix-typo-in-comment-in-do_fault_around.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-thp-consolidate-assert-checks-in-__split_huge_page.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-pass-vm_bug_on-reason-to-dump_page.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-mm-move-get_user_pages-related-code-to-separate-file.patch
-mm-extract-in_gate_area-case-from-__get_user_pages.patch
-mm-cleanup-follow_page_mask.patch
-mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch
-mm-cleanup-__get_user_pages.patch
-mm-rmapc-make-page_referenced_one-and-try_to_unmap_one-static.patch
-mm-update-comment-for-default_max_map_count.patch
-mm-update-comment-for-default_max_map_count-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-userc-drop-unused-field-files-from-user_struct.patch
+tools-vm-page-typesc-catch-sigbus-if-raced-with-truncate.patch
 linux-next.patch
-mm-mark-remap_file_pages-syscall-as-deprecated.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
