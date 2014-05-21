@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-dlm-fix-possible-convertion-deadlock.patch added to -mm
- tree
-Date: Wed, 21 May 2014 15:25:54 -0700
-Message-ID: <537d27f2.xAVqJVErKI43bNzo%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-umount-hang-while-shutting-down-truncate-log.patch
+ added to -mm tree
+Date: Wed, 21 May 2014 15:29:49 -0700
+Message-ID: <537d28dd.15dfnGEIDEnDaUio%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50081 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50097 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753255AbaEUWZz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 May 2014 18:25:55 -0400
+	with ESMTP id S1753377AbaEUW3u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 May 2014 18:29:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: + ocfs2-dlm-fix-possible-convertion-deadlock.patch added to -mm tree
+Subject: + ocfs2-fix-umount-hang-while-shutting-down-truncate-log.patch added to -mm tree
 To: xuejiufei@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Wed, 21 May 2014 15:25:54 -0700
+Date: Wed, 21 May 2014 15:29:49 -0700
 
 
 The patch titled
-     Subject: ocfs2/dlm: fix possible convert=sion deadlock
+     Subject: ocfs2: fix umount hang while shutting down truncate log
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlm-fix-possible-convertion-deadlock.patch
+     ocfs2-fix-umount-hang-while-shutting-down-truncate-log.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-fix-possible-convertion-deadlock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-umount-hang-while-shutting-down-truncate-log.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-fix-possible-convertion-deadlock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-umount-hang-while-shutting-down-truncate-log.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,49 +45,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2/dlm: fix possible convert=sion deadlock
+Subject: ocfs2: fix umount hang while shutting down truncate log
 
-We found there is a conversion deadlock when the owner of lockres happened
-to crash before send DLM_PROXY_AST_MSG for a downconverting lock.  The
-situation is as follows:
+Revert XXXX because it may cause umount hang while shutting down truncate
+log.
 
-Node1                            Node2                  Node3
-                           the owner of lockresA
-lock_1 granted at EX mode
-and call ocfs2_cluster_unlock
-to decrease ex_holders.
-                                                 converting lock_3 from
-                                                 NL to EX
-                           send DLM_PROXY_AST_MSG
-                           to Node1, asking Node 1
-                           to downconvert.
-receiving DLM_PROXY_AST_MSG,
-thread ocfs2dc send
-DLM_CONVERT_LOCK_MSG
-to Node2 to downconvert
-lock_1(EX->NL).
-                           lock_1 can be granted and
-                           put it into pending_asts
-                           list, return DLM_NORMAL.
-                           then something happened
-                           and Node2 crashed.
-received DLM_NORMAL, waiting
-for DLM_PROXY_AST_MSG.
-                                               selected as the recovery
-                                               master, receving migrate
-                                               lock from Node1, queue
-                                               lock_1 to the tail of
-                                               converting list.
+fix NULL pointer dereference when dismount and ocfs2rec simultaneously
 
-After dlm recovery, converting list in the master of lockresA(Node3) will
-be: converting list head <-> lock_3(NL->EX) <->lock_1(EX<->NL).  Requested
-mode of lock_3 is not compatible with the granted mode of lock_1, so it
-can not be granted.  and lock_1 can not downconvert because covnerting
-queue is strictly FIFO.  So a deadlock is created.  We think function
-dlm_process_recovery_data() should queue_ast for lock_1 or alter the order
-of lock_1 and lock_3, so dlm_thread can process lock_1 first.  And if
-there are multiple downconverting locks, they must convert form PR to NL,
-so no need to sort them.
+The situation is as followes:
+ocfs2_dismout_volume
+-> ocfs2_recovery_exit
+  -> free osb->recovery_map
+-> ocfs2_truncate_shutdown
+  -> lock global bitmap inode
+    -> ocfs2_wait_for_recovery
+	  -> check whether osb->recovery_map->rm_used is zero
+Because osb->recovery_map is already freed, rm_used can be any other
+values, so it may yield umount hang.
+
+To prevent NULL pointer dereference while getting sys_root_inode, we
+use a osb_tl_disable flag to disable schedule osb_truncate_log_wq after
+truncate log shutdown.
 
 Signed-off-by: joyce.xue <xuejiufei@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -95,33 +73,56 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ fs/ocfs2/alloc.c |    6 +++++-
+ fs/ocfs2/ocfs2.h |    1 +
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-possible-convertion-deadlock fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-possible-convertion-deadlock
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -1986,7 +1986,15 @@ skip_lvb:
- 		}
- 		if (!bad) {
- 			dlm_lock_get(newlock);
--			list_add_tail(&newlock->list, queue);
-+			if (mres->flags & DLM_MRES_RECOVERY &&
-+					ml->list == DLM_CONVERTING_LIST &&
-+					newlock->ml.type >
-+					newlock->ml.convert_type) {
-+				/* newlock is doing downconvert, add it to the
-+				 * head of converting list */
-+				list_add(&newlock->list, queue);
-+			} else
-+				list_add_tail(&newlock->list, queue);
- 			mlog(0, "%s:%.*s: added lock for node %u, "
- 			     "setting refmap bit\n", dlm->name,
- 			     res->lockname.len, res->lockname.name, ml->node);
+diff -puN fs/ocfs2/alloc.c~ocfs2-fix-umount-hang-while-shutting-down-truncate-log fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-fix-umount-hang-while-shutting-down-truncate-log
++++ a/fs/ocfs2/alloc.c
+@@ -6046,7 +6046,8 @@ static void ocfs2_truncate_log_worker(st
+ void ocfs2_schedule_truncate_log_flush(struct ocfs2_super *osb,
+ 				       int cancel)
+ {
+-	if (osb->osb_tl_inode) {
++	if (osb->osb_tl_inode &&
++			atomic_read(&osb->osb_tl_disable) == 0) {
+ 		/* We want to push off log flushes while truncates are
+ 		 * still running. */
+ 		if (cancel)
+@@ -6223,6 +6224,8 @@ void ocfs2_truncate_log_shutdown(struct
+ 	int status;
+ 	struct inode *tl_inode = osb->osb_tl_inode;
+ 
++	atomic_set(&osb->osb_tl_disable, 1);
++
+ 	if (tl_inode) {
+ 		cancel_delayed_work(&osb->osb_truncate_log_wq);
+ 		flush_workqueue(ocfs2_wq);
+@@ -6254,6 +6257,7 @@ int ocfs2_truncate_log_init(struct ocfs2
+ 	 * until we're sure all is well. */
+ 	INIT_DELAYED_WORK(&osb->osb_truncate_log_wq,
+ 			  ocfs2_truncate_log_worker);
++	atomic_set(&osb->osb_tl_disable, 0);
+ 	osb->osb_tl_bh    = tl_bh;
+ 	osb->osb_tl_inode = tl_inode;
+ 
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-fix-umount-hang-while-shutting-down-truncate-log fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-fix-umount-hang-while-shutting-down-truncate-log
++++ a/fs/ocfs2/ocfs2.h
+@@ -422,6 +422,7 @@ struct ocfs2_super
+ 	struct inode			*osb_tl_inode;
+ 	struct buffer_head		*osb_tl_bh;
+ 	struct delayed_work		osb_truncate_log_wq;
++	atomic_t			osb_tl_disable;
+ 	/*
+ 	 * How many clusters in our truncate log.
+ 	 * It must be protected by osb_tl_inode->i_mutex.
 _
 
 Patches currently in -mm which might be from xuejiufei@huawei.com are
 
 ocfs2-dlm-fix-possible-convertion-deadlock.patch
+ocfs2-fix-umount-hang-while-shutting-down-truncate-log.patch
 ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 
