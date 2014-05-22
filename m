@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- wait-swap-exit_zombiez-and-exit_deadx-chars-in-task_state_to_char_str.patch added to -mm tree
-Date: Thu, 22 May 2014 10:21:51 -0700
-Message-ID: <537e322f.6MQCktrjuA1+lN0d%akpm@linux-foundation.org>
+ ocfs2-revert-the-patch-fix-null-pointer-dereference-when-dismount-and-ocfs2rec-simultaneously.patch added to -mm tree
+Date: Thu, 22 May 2014 10:56:03 -0700
+Message-ID: <537e3a33.U1erEOVe4w0ZFD4H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58493 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58861 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249AbaEVRVw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 May 2014 13:21:52 -0400
+	with ESMTP id S1751061AbaEVR4E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 May 2014 13:56:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, oleg@redhat.com, yamato@redhat.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: + wait-swap-exit_zombiez-and-exit_deadx-chars-in-task_state_to_char_str.patch added to -mm tree
-To: yamato@redhat.com,oleg@redhat.com
+Subject: + ocfs2-revert-the-patch-fix-null-pointer-dereference-when-dismount-and-ocfs2rec-simultaneously.patch added to -mm tree
+To: xuejiufei@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Thu, 22 May 2014 10:21:51 -0700
+Date: Thu, 22 May 2014 10:56:03 -0700
 
 
 The patch titled
-     Subject: wait: swap EXIT_ZOMBIE(Z) and EXIT_DEAD(X) chars in TASK_STATE_TO_CHAR_STR
+     Subject: ocfs2: revert "ocfs2: fix NULL pointer dereference when dismount and ocfs2rec simultaneously"
 has been added to the -mm tree.  Its filename is
-     wait-swap-exit_zombiez-and-exit_deadx-chars-in-task_state_to_char_str.patch
+     ocfs2-revert-the-patch-fix-null-pointer-dereference-when-dismount-and-ocfs2rec-simultaneously.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/wait-swap-exit_zombiez-and-exit_deadx-chars-in-task_state_to_char_str.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-revert-the-patch-fix-null-pointer-dereference-when-dismount-and-ocfs2rec-simultaneously.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/wait-swap-exit_zombiez-and-exit_deadx-chars-in-task_state_to_char_str.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-revert-the-patch-fix-null-pointer-dereference-when-dismount-and-ocfs2rec-simultaneously.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,38 +44,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Masatake YAMATO <yamato@redhat.com>
-Subject: wait: swap EXIT_ZOMBIE(Z) and EXIT_DEAD(X) chars in TASK_STATE_TO_CHAR_STR
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: revert "ocfs2: fix NULL pointer dereference when dismount and ocfs2rec simultaneously"
 
-In ad86622b478eaafdc ("wait: swap EXIT_ZOMBIE and EXIT_DEAD to hide
-EXIT_TRACE from user-space") the order of task state definitions were
-changed: EXIT_DEAD and EXIT_ZOMBIE were swapped.  Though the charterers
-for the states in TASK_STATE_TO_CHAR_STR string were not updated.  This
-patch synchronizes the string to the order of definitions.
+75f82eaa502c ("ocfs2: fix NULL pointer dereference when dismount and
+ocfs2rec simultaneously") may cause umount hang while shutting down
+truncate log.
 
-Signed-off-by: Masatake YAMATO <yamato@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+The situation is as followes:
+ocfs2_dismout_volume
+-> ocfs2_recovery_exit
+  -> free osb->recovery_map
+-> ocfs2_truncate_shutdown
+  -> lock global bitmap inode
+    -> ocfs2_wait_for_recovery
+	  -> check whether osb->recovery_map->rm_used is zero
+	
+Because osb->recovery_map is already freed, rm_used can be any other
+values, so it may yield umount hang.
+
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/super.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/sched.h~wait-swap-exit_zombiez-and-exit_deadx-chars-in-task_state_to_char_str include/linux/sched.h
---- a/include/linux/sched.h~wait-swap-exit_zombiez-and-exit_deadx-chars-in-task_state_to_char_str
-+++ a/include/linux/sched.h
-@@ -220,7 +220,7 @@ print_cfs_rq(struct seq_file *m, int cpu
- #define TASK_PARKED		512
- #define TASK_STATE_MAX		1024
+diff -puN fs/ocfs2/super.c~ocfs2-revert-the-patch-fix-null-pointer-dereference-when-dismount-and-ocfs2rec-simultaneously fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-revert-the-patch-fix-null-pointer-dereference-when-dismount-and-ocfs2rec-simultaneously
++++ a/fs/ocfs2/super.c
+@@ -1925,15 +1925,11 @@ static void ocfs2_dismount_volume(struct
  
--#define TASK_STATE_TO_CHAR_STR "RSDTtZXxKWP"
-+#define TASK_STATE_TO_CHAR_STR "RSDTtXZxKWP"
+ 	ocfs2_shutdown_local_alloc(osb);
  
- extern char ___assert_task_state[1 - 2*!!(
- 		sizeof(TASK_STATE_TO_CHAR_STR)-1 != ilog2(TASK_STATE_MAX)+1)];
-_
-
-Patches currently in -mm which might be from yamato@redhat.com are
-
-wait-swap-exit_zombiez-and-exit_deadx-chars-in-task_state_to_char_str.patch
-
++	ocfs2_truncate_log_shutdown(osb);
++
+ 	/* This will disable recovery and flush any recovery work. */
+ 	ocfs2_recovery_exit(osb);
+ 
+-	/*
+-	 * During dismount, when it recovers another node it will call
+-	 * ocfs2_recover_orphans and queue delayed work osb_truncate_log_wq.
+-	 */
+-	ocfs2_truncate_log_shutdown(osb);
