@@ -1,166 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible-fix.patch removed from -mm tree
-Date: Thu, 22 May 2014 11:10:35 -0700
-Message-ID: <537e3d9b./Wuv6kzoY0tso/7e%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch added to -mm tree
+Date: Thu, 22 May 2014 12:07:51 -0700
+Message-ID: <537e4b07.JoHRQQoZGbaI7HO7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58924 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59855 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750922AbaEVSKg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 May 2014 14:10:36 -0400
+	with ESMTP id S1752653AbaEVTHw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 May 2014 15:07:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, prabhakar.csengg@gmail.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: [withdrawn] mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible-fix.patch removed from -mm tree
-To: mgorman@suse.de,prabhakar.csengg@gmail.com,mm-commits@vger.kernel.org
+Subject: + ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch added to -mm tree
+To: xuejiufei@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Thu, 22 May 2014 11:10:35 -0700
+Date: Thu, 22 May 2014 12:07:51 -0700
 
 
 The patch titled
-     Subject: mm: non-atomically mark page accessed during page cache allocation where possible -fix
-has been removed from the -mm tree.  Its filename was
-     mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible-fix.patch
+     Subject: ocfs2/dlm: do not purge lockres that is queued for assert master
+has been added to the -mm tree.  Its filename is
+     ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: non-atomically mark page accessed during page cache allocation where possible -fix
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2/dlm: do not purge lockres that is queued for assert master
 
-Prabhakar Lad reported the following problem
+When workqueue is delayed, it may occur that a lockres is purged while it
+is still queued for master assert.  it may trigger BUG() as follows.
 
-  I see following issue on DA850 evm,
-  git bisect points me to
-  commit id: 975c3a671f11279441006a29a19f55ccc15fb320
-  ( mm: non-atomically mark page accessed during page cache allocation
-  where possible)
+N1                                         N2
+dlm_get_lockres()
+->dlm_do_master_requery
+                                  is the master of lockres,
+                                  so queue assert_master work
 
-  Unable to handle kernel paging request at virtual address 30e03501
-  pgd = c68cc000
-  [30e03501] *pgd=00000000
-  Internal error: Oops: 1 [#1] PREEMPT ARM
-  Modules linked in:
-  CPU: 0 PID: 1015 Comm: network.sh Not tainted 3.15.0-rc5-00323-g975c3a6 #9
-  task: c70c4e00 ti: c73d0000 task.ti: c73d0000
-  PC is at init_page_accessed+0xc/0x24
-  LR is at shmem_write_begin+0x54/0x60
-  pc : [<c0088aa0>]    lr : [<c00923e8>]    psr: 20000013
-  sp : c73d1d90  ip : c73d1da0  fp : c73d1d9c
-  r10: c73d1dec  r9 : 00000000  r8 : 00000000
-  r7 : c73d1e6c  r6 : c694d7bc  r5 : ffffffe4  r4 : c73d1dec
-  r3 : c73d0000  r2 : 00000001  r1 : 00000000  r0 : 30e03501
-  Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-  Control: 0005317f  Table: c68cc000  DAC: 00000015
-  Process network.sh (pid: 1015, stack limit = 0xc73d01c0)
+                                  dlm_thread() start running
+                                  and purge the lockres
 
-pagep is set but not pointing to anywhere valid as it's an uninitialised
-stack variable. This patch is a fix to
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
+                                  dlm_assert_master_worker()
+                                  send assert master message
+                                  to other nodes
+receiving the assert_master
+message, set master to N2
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Tested-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+dlmlock_remote() send create_lock message to N2, but receive DLM_IVLOCKID,
+if it is RECOVERY lockres, it triggers the BUG().
+
+Another BUG() is triggered when N3 become the new master and send
+assert_master to N1, N1 will trigger the BUG() because owner doesn't
+match.  So we should not purge lockres when it is queued for assert
+master.
+
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmcommon.h   |    4 +++
+ fs/ocfs2/dlm/dlmmaster.c   |   43 ++++++++++++++++++++++++++++++++++-
+ fs/ocfs2/dlm/dlmrecovery.c |    3 +-
+ fs/ocfs2/dlm/dlmthread.c   |   11 +++++---
+ 4 files changed, 55 insertions(+), 6 deletions(-)
 
-diff -puN mm/filemap.c~mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible-fix mm/filemap.c
---- a/mm/filemap.c~mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible-fix
-+++ a/mm/filemap.c
-@@ -2485,7 +2485,7 @@ ssize_t generic_perform_write(struct fil
- 		flags |= AOP_FLAG_UNINTERRUPTIBLE;
+diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmcommon.h
+--- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
++++ a/fs/ocfs2/dlm/dlmcommon.h
+@@ -332,6 +332,7 @@ struct dlm_lock_resource
+ 	u16 state;
+ 	char lvb[DLM_LVB_LEN];
+ 	unsigned int inflight_locks;
++	unsigned int inflight_assert_workers;
+ 	unsigned long refmap[BITS_TO_LONGS(O2NM_MAX_NODES)];
+ };
  
- 	do {
--		struct page *page;
-+		struct page *page = NULL;
- 		unsigned long offset;	/* Offset into pagecache page */
- 		unsigned long bytes;	/* Bytes to write to page */
- 		size_t copied;		/* Bytes copied from user */
+@@ -911,6 +912,9 @@ void dlm_lockres_drop_inflight_ref(struc
+ void dlm_lockres_grab_inflight_ref(struct dlm_ctxt *dlm,
+ 				   struct dlm_lock_resource *res);
+ 
++void __dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res);
++
+ void dlm_queue_ast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
+ void dlm_queue_bast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
+ void __dlm_queue_ast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -581,6 +581,7 @@ static void dlm_init_lockres(struct dlm_
+ 	atomic_set(&res->asts_reserved, 0);
+ 	res->migration_pending = 0;
+ 	res->inflight_locks = 0;
++	res->inflight_assert_workers = 0;
+ 
+ 	res->dlm = dlm;
+ 
+@@ -683,6 +684,43 @@ void dlm_lockres_drop_inflight_ref(struc
+ 	wake_up(&res->wq);
+ }
+ 
++void __dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res)
++{
++	assert_spin_locked(&res->spinlock);
++	res->inflight_assert_workers++;
++	mlog(0, "%s:%.*s: inflight assert worker++: now %u\n",
++			dlm->name, res->lockname.len, res->lockname.name,
++			res->inflight_assert_workers);
++}
++
++void dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res)
++{
++	spin_lock(&res->spinlock);
++	__dlm_lockres_grab_inflight_worker(dlm, res);
++	spin_unlock(&res->spinlock);
++}
++
++void __dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res)
++{
++	assert_spin_locked(&res->spinlock);
++	BUG_ON(res->inflight_assert_workers == 0);
++	res->inflight_assert_workers--;
++	mlog(0, "%s:%.*s: inflight assert worker--: now %u\n",
++			dlm->name, res->lockname.len, res->lockname.name,
++			res->inflight_assert_workers);
++}
++
++void dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res)
++{
++	spin_lock(&res->spinlock);
++	__dlm_lockres_drop_inflight_worker(dlm, res);
++	spin_unlock(&res->spinlock);
++}
++
+ /*
+  * lookup a lock resource by name.
+  * may already exist in the hashtable.
+@@ -1603,7 +1641,8 @@ send_response:
+ 			mlog(ML_ERROR, "failed to dispatch assert master work\n");
+ 			response = DLM_MASTER_RESP_ERROR;
+ 			dlm_lockres_put(res);
+-		}
++		} else
++			dlm_lockres_grab_inflight_worker(dlm, res);
+ 	} else {
+ 		if (res)
+ 			dlm_lockres_put(res);
+@@ -2118,6 +2157,8 @@ static void dlm_assert_master_worker(str
+ 	dlm_lockres_release_ast(dlm, res);
+ 
+ put:
++	dlm_lockres_drop_inflight_worker(dlm, res);
++
+ 	dlm_lockres_put(res);
+ 
+ 	mlog(0, "finished with dlm_assert_master_worker\n");
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -1708,7 +1708,8 @@ int dlm_master_requery_handler(struct o2
+ 				mlog_errno(-ENOMEM);
+ 				/* retry!? */
+ 				BUG();
+-			}
++			} else
++				__dlm_lockres_grab_inflight_worker(dlm, res);
+ 		} else /* put.. incase we are not the master */
+ 			dlm_lockres_put(res);
+ 		spin_unlock(&res->spinlock);
+diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmthread.c
+--- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
++++ a/fs/ocfs2/dlm/dlmthread.c
+@@ -259,11 +259,14 @@ static void dlm_run_purge_list(struct dl
+ 		 * refs on it. */
+ 		unused = __dlm_lockres_unused(lockres);
+ 		if (!unused ||
+-		    (lockres->state & DLM_LOCK_RES_MIGRATING)) {
++		    (lockres->state & DLM_LOCK_RES_MIGRATING) ||
++		    (lockres->inflight_assert_workers != 0)) {
+ 			mlog(0, "%s: res %.*s is in use or being remastered, "
+-			     "used %d, state %d\n", dlm->name,
+-			     lockres->lockname.len, lockres->lockname.name,
+-			     !unused, lockres->state);
++			     "used %d, state %d, assert master workers %u\n",
++			     dlm->name, lockres->lockname.len,
++			     lockres->lockname.name,
++			     !unused, lockres->state,
++			     lockres->inflight_assert_workers);
+ 			list_move_tail(&dlm->purge_list, &lockres->purge);
+ 			spin_unlock(&lockres->spinlock);
+ 			continue;
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-x86-require-x86-64-for-automatic-numa-balancing.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-disable-zone_reclaim_mode-by-default.patch
-mm-page_alloc-do-not-cache-reclaim-distances.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-compaction-clean-up-unused-code-lines.patch
-mm-compaction-cleanup-isolate_freepages.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix-2.patch
-mm-compaction-cleanup-isolate_freepages-fix3.patch
-mm-swapc-clean-up-lru_cache_add-functions.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-fix.patch
-mm-numa-add-migrated-transhuge-pages-to-lru-the-same-way-as-base-pages.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-mm-x86-pgtable-drop-unneeded-preprocessor-ifdef.patch
-mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
-mm-mempolicyc-parameter-doc-uniformization.patch
-mm-migration-add-destination-page-freeing-callback.patch
-mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
-mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
-mm-compaction-embed-migration-mode-in-compact_control.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
-mm-compaction-terminate-async-compaction-when-rescheduling.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary.patch
-mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
-swap-change-swap_info-singly-linked-list-to-list_head.patch
-plist-add-helper-functions.patch
-plist-add-plist_requeue.patch
-swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
-mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
-mm-page_alloc-do-not-treat-a-zone-that-cannot-be-used-for-dirty-pages-as-full.patch
-jump_label-expose-the-reference-count.patch
-mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
-mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets-fix.patch
-mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
-mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
-mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
-mm-page_alloc-use-word-based-accesses-for-get-set-pageblock-bitmaps.patch
-mm-page_alloc-reduce-number-of-times-page_to_pfn-is-called.patch
-mm-page_alloc-lookup-pageblock-migratetype-with-irqs-enabled-during-free.patch
-mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
-mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
-mm-shmem-avoid-atomic-operation-during-shmem_getpage_gfp.patch
-mm-do-not-use-atomic-operations-when-releasing-pages.patch
-mm-do-not-use-unnecessary-atomic-operations-when-adding-pages-to-the-lru.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
-mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref.patch
-mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref-fix.patch
-mm-avoid-unnecessary-atomic-operations-during-end_page_writeback.patch
-mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch
-fs-superblock-unregister-sb-shrinker-before-kill_sb.patch
-fs-superblock-avoid-locking-counting-inodes-and-dentries-before-reclaiming-them.patch
-mm-vmscan-use-proportional-scanning-during-direct-reclaim-and-full-scan-at-def_priority.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v5.patch
-linux-next.patch
+ocfs2-dlm-fix-possible-convertion-deadlock.patch
+ocfs2-fix-umount-hang-while-shutting-down-truncate-log.patch
+ocfs2-revert-the-patch-fix-null-pointer-dereference-when-dismount-and-ocfs2rec-simultaneously.patch
+ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 
