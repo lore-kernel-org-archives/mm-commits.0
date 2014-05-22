@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + lib-devresc-use-dev-in-devm_request_and_ioremap.patch added to
- -mm tree
-Date: Thu, 22 May 2014 12:28:13 -0700
-Message-ID: <537e4fcd.+qAmJqK1yhnTQ+Mq%akpm@linux-foundation.org>
+Subject: + lib-digsigc-kernel-doc-warning-fixes.patch added to -mm tree
+Date: Thu, 22 May 2014 12:28:44 -0700
+Message-ID: <537e4fec.3jGn7nJTEJh5znIE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59970 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59977 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752839AbaEVT2O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 May 2014 15:28:14 -0400
+	with ESMTP id S1752918AbaEVT2p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 May 2014 15:28:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gregkh@linuxfoundation.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, duanj.fnst@cn.fujitsu.com, fabf@skynet.be
 
-Subject: + lib-devresc-use-dev-in-devm_request_and_ioremap.patch added to -mm tree
-To: fabf@skynet.be,gregkh@linuxfoundation.org
+Subject: + lib-digsigc-kernel-doc-warning-fixes.patch added to -mm tree
+To: fabf@skynet.be,duanj.fnst@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Thu, 22 May 2014 12:28:13 -0700
+Date: Thu, 22 May 2014 12:28:44 -0700
 
 
 The patch titled
-     Subject: lib/devres.c: use dev in devm_request_and_ioremap
+     Subject: lib/digsig.c: kernel-doc warning fixes
 has been added to the -mm tree.  Its filename is
-     lib-devresc-use-dev-in-devm_request_and_ioremap.patch
+     lib-digsigc-kernel-doc-warning-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-devresc-use-dev-in-devm_request_and_ioremap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-digsigc-kernel-doc-warning-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-devresc-use-dev-in-devm_request_and_ioremap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-digsigc-kernel-doc-warning-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,66 +44,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/devres.c: use dev in devm_request_and_ioremap
+Subject: lib/digsig.c: kernel-doc warning fixes
 
-devm_request_and_ioremap was the only function to use device instead of
-dev(this fixes kernel-doc warning).
-
-Also fix some checkpatch warnings.
+Small typo and @return: -> Returns ...
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Duan Jiong <duanj.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/devres.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ lib/digsig.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN lib/devres.c~lib-devresc-use-dev-in-devm_request_and_ioremap lib/devres.c
---- a/lib/devres.c~lib-devresc-use-dev-in-devm_request_and_ioremap
-+++ a/lib/devres.c
-@@ -157,12 +157,11 @@ EXPORT_SYMBOL(devm_ioremap_resource);
-  *	if (!base)
-  *		return -EADDRNOTAVAIL;
-  */
--void __iomem *devm_request_and_ioremap(struct device *device,
--				       struct resource *res)
-+void __iomem *devm_request_and_ioremap(struct device *dev, struct resource *res)
- {
- 	void __iomem *dest_ptr;
- 
--	dest_ptr = devm_ioremap_resource(device, res);
-+	dest_ptr = devm_ioremap_resource(dev, res);
- 	if (IS_ERR(dest_ptr))
- 		return NULL;
- 
-@@ -194,7 +193,7 @@ static int devm_ioport_map_match(struct
-  * Managed ioport_map().  Map is automatically unmapped on driver
-  * detach.
-  */
--void __iomem * devm_ioport_map(struct device *dev, unsigned long port,
-+void __iomem *devm_ioport_map(struct device *dev, unsigned long port,
- 			       unsigned int nr)
- {
- 	void __iomem **ptr, *addr;
-@@ -265,7 +264,7 @@ static void pcim_iomap_release(struct de
-  * be safely called without context and guaranteed to succed once
-  * allocated.
-  */
--void __iomem * const * pcim_iomap_table(struct pci_dev *pdev)
-+void __iomem * const *pcim_iomap_table(struct pci_dev *pdev)
- {
- 	struct pcim_iomap_devres *dr, *new_dr;
- 
-@@ -290,7 +289,7 @@ EXPORT_SYMBOL(pcim_iomap_table);
-  * Managed pci_iomap().  Map is automatically unmapped on driver
-  * detach.
-  */
--void __iomem * pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
-+void __iomem *pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
- {
- 	void __iomem **tbl;
- 
+diff -puN lib/digsig.c~lib-digsigc-kernel-doc-warning-fixes lib/digsig.c
+--- a/lib/digsig.c~lib-digsigc-kernel-doc-warning-fixes
++++ a/lib/digsig.c
+@@ -175,10 +175,11 @@ err1:
+  * digsig_verify() - digital signature verification with public key
+  * @keyring:	keyring to search key in
+  * @sig:	digital signature
+- * @sigen:	length of the signature
++ * @siglen:	length of the signature
+  * @data:	data
+  * @datalen:	length of the data
+- * @return:	0 on success, -EINVAL otherwise
++ *
++ * Returns 0 on success, -EINVAL otherwise
+  *
+  * Verifies data integrity against digital signature.
+  * Currently only RSA is supported.
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -167,6 +135,7 @@ lib-vsprintfc-fix-comparison-to-bool.patch
 lib-radix-treec-kernel-doc-warning-fix.patch
 lib-crc32c-remove-unnecessary-__constant.patch
 lib-devresc-use-dev-in-devm_request_and_ioremap.patch
+lib-digsigc-kernel-doc-warning-fixes.patch
 kernel-compatc-use-sizeof-instead-of-sizeof.patch
 fs-efs-convert-printk-to-pr_foo.patch
 fs-efs-add-pr_fmt-use-__func__.patch
