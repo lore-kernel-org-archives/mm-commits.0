@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-digsigc-kernel-doc-warning-fixes.patch added to -mm tree
-Date: Thu, 22 May 2014 12:28:44 -0700
-Message-ID: <537e4fec.3jGn7nJTEJh5znIE%akpm@linux-foundation.org>
+Subject: + lib-nlattrc-move-export_symbol-after-functions.patch added to
+ -mm tree
+Date: Thu, 22 May 2014 12:29:05 -0700
+Message-ID: <537e5001.jP4ukS8LH+fFV97B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59977 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59980 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752918AbaEVT2p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 May 2014 15:28:45 -0400
+	with ESMTP id S1752925AbaEVT3G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 May 2014 15:29:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, duanj.fnst@cn.fujitsu.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, pablo@netfilter.org, fabf@skynet.be
 
-Subject: + lib-digsigc-kernel-doc-warning-fixes.patch added to -mm tree
-To: fabf@skynet.be,duanj.fnst@cn.fujitsu.com
+Subject: + lib-nlattrc-move-export_symbol-after-functions.patch added to -mm tree
+To: fabf@skynet.be,pablo@netfilter.org
 From: akpm@linux-foundation.org
-Date: Thu, 22 May 2014 12:28:44 -0700
+Date: Thu, 22 May 2014 12:29:05 -0700
 
 
 The patch titled
-     Subject: lib/digsig.c: kernel-doc warning fixes
+     Subject: lib/nlattr.c: move EXPORT_SYMBOL after functions
 has been added to the -mm tree.  Its filename is
-     lib-digsigc-kernel-doc-warning-fixes.patch
+     lib-nlattrc-move-export_symbol-after-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-digsigc-kernel-doc-warning-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-nlattrc-move-export_symbol-after-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-digsigc-kernel-doc-warning-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-nlattrc-move-export_symbol-after-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,35 +45,99 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/digsig.c: kernel-doc warning fixes
+Subject: lib/nlattr.c: move EXPORT_SYMBOL after functions
 
-Small typo and @return: -> Returns ...
+Fix some checkpatch warnings:
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Duan Jiong <duanj.fnst@cn.fujitsu.com>
+Cc: Pablo Neira <pablo@netfilter.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/digsig.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/nlattr.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN lib/digsig.c~lib-digsigc-kernel-doc-warning-fixes lib/digsig.c
---- a/lib/digsig.c~lib-digsigc-kernel-doc-warning-fixes
-+++ a/lib/digsig.c
-@@ -175,10 +175,11 @@ err1:
-  * digsig_verify() - digital signature verification with public key
-  * @keyring:	keyring to search key in
-  * @sig:	digital signature
-- * @sigen:	length of the signature
-+ * @siglen:	length of the signature
-  * @data:	data
-  * @datalen:	length of the data
-- * @return:	0 on success, -EINVAL otherwise
-+ *
-+ * Returns 0 on success, -EINVAL otherwise
-  *
-  * Verifies data integrity against digital signature.
-  * Currently only RSA is supported.
+diff -puN lib/nlattr.c~lib-nlattrc-move-export_symbol-after-functions lib/nlattr.c
+--- a/lib/nlattr.c~lib-nlattrc-move-export_symbol-after-functions
++++ a/lib/nlattr.c
+@@ -136,6 +136,7 @@ int nla_validate(const struct nlattr *he
+ errout:
+ 	return err;
+ }
++EXPORT_SYMBOL(nla_validate);
+ 
+ /**
+  * nla_policy_len - Determin the max. length of a policy
+@@ -162,6 +163,7 @@ nla_policy_len(const struct nla_policy *
+ 
+ 	return len;
+ }
++EXPORT_SYMBOL(nla_policy_len);
+ 
+ /**
+  * nla_parse - Parse a stream of attributes into a tb buffer
+@@ -208,6 +210,7 @@ int nla_parse(struct nlattr **tb, int ma
+ errout:
+ 	return err;
+ }
++EXPORT_SYMBOL(nla_parse);
+ 
+ /**
+  * nla_find - Find a specific attribute in a stream of attributes
+@@ -228,6 +231,7 @@ struct nlattr *nla_find(const struct nla
+ 
+ 	return NULL;
+ }
++EXPORT_SYMBOL(nla_find);
+ 
+ /**
+  * nla_strlcpy - Copy string attribute payload into a sized buffer
+@@ -258,6 +262,7 @@ size_t nla_strlcpy(char *dst, const stru
+ 
+ 	return srclen;
+ }
++EXPORT_SYMBOL(nla_strlcpy);
+ 
+ /**
+  * nla_memcpy - Copy a netlink attribute into another memory area
+@@ -278,6 +283,7 @@ int nla_memcpy(void *dest, const struct
+ 
+ 	return minlen;
+ }
++EXPORT_SYMBOL(nla_memcpy);
+ 
+ /**
+  * nla_memcmp - Compare an attribute with sized memory area
+@@ -295,6 +301,7 @@ int nla_memcmp(const struct nlattr *nla,
+ 
+ 	return d;
+ }
++EXPORT_SYMBOL(nla_memcmp);
+ 
+ /**
+  * nla_strcmp - Compare a string attribute against a string
+@@ -317,6 +324,7 @@ int nla_strcmp(const struct nlattr *nla,
+ 
+ 	return d;
+ }
++EXPORT_SYMBOL(nla_strcmp);
+ 
+ #ifdef CONFIG_NET
+ /**
+@@ -502,12 +510,3 @@ int nla_append(struct sk_buff *skb, int
+ }
+ EXPORT_SYMBOL(nla_append);
+ #endif
+-
+-EXPORT_SYMBOL(nla_validate);
+-EXPORT_SYMBOL(nla_policy_len);
+-EXPORT_SYMBOL(nla_parse);
+-EXPORT_SYMBOL(nla_find);
+-EXPORT_SYMBOL(nla_strlcpy);
+-EXPORT_SYMBOL(nla_memcpy);
+-EXPORT_SYMBOL(nla_memcmp);
+-EXPORT_SYMBOL(nla_strcmp);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -136,6 +201,7 @@ lib-radix-treec-kernel-doc-warning-fix.patch
 lib-crc32c-remove-unnecessary-__constant.patch
 lib-devresc-use-dev-in-devm_request_and_ioremap.patch
 lib-digsigc-kernel-doc-warning-fixes.patch
+lib-nlattrc-move-export_symbol-after-functions.patch
 kernel-compatc-use-sizeof-instead-of-sizeof.patch
 fs-efs-convert-printk-to-pr_foo.patch
 fs-efs-add-pr_fmt-use-__func__.patch
