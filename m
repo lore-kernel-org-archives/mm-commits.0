@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-nlattrc-move-export_symbol-after-functions.patch added to
- -mm tree
-Date: Thu, 22 May 2014 12:29:05 -0700
-Message-ID: <537e5001.jP4ukS8LH+fFV97B%akpm@linux-foundation.org>
+Subject: + fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch added to -mm
+ tree
+Date: Thu, 22 May 2014 12:29:47 -0700
+Message-ID: <537e502b.D8vnghv/0RW9opPV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59980 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59984 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752925AbaEVT3G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 May 2014 15:29:06 -0400
+	with ESMTP id S1751039AbaEVT3s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 May 2014 15:29:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, pablo@netfilter.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, slava@dubeyko.com, fabf@skynet.be
 
-Subject: + lib-nlattrc-move-export_symbol-after-functions.patch added to -mm tree
-To: fabf@skynet.be,pablo@netfilter.org
+Subject: + fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch added to -mm tree
+To: fabf@skynet.be,slava@dubeyko.com
 From: akpm@linux-foundation.org
-Date: Thu, 22 May 2014 12:29:05 -0700
+Date: Thu, 22 May 2014 12:29:47 -0700
 
 
 The patch titled
-     Subject: lib/nlattr.c: move EXPORT_SYMBOL after functions
+     Subject: fs/hfsplus: fix pr_foo() and hfs_dbg formats
 has been added to the -mm tree.  Its filename is
-     lib-nlattrc-move-export_symbol-after-functions.patch
+     fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-nlattrc-move-export_symbol-after-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-nlattrc-move-export_symbol-after-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,99 +45,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/nlattr.c: move EXPORT_SYMBOL after functions
-
-Fix some checkpatch warnings:
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
+Subject: fs/hfsplus: fix pr_foo() and hfs_dbg formats
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Pablo Neira <pablo@netfilter.org>
+Suggested-By: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/nlattr.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ fs/hfsplus/extents.c |    7 +++----
+ fs/hfsplus/super.c   |    3 ++-
+ fs/hfsplus/xattr.c   |    2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN lib/nlattr.c~lib-nlattrc-move-export_symbol-after-functions lib/nlattr.c
---- a/lib/nlattr.c~lib-nlattrc-move-export_symbol-after-functions
-+++ a/lib/nlattr.c
-@@ -136,6 +136,7 @@ int nla_validate(const struct nlattr *he
- errout:
- 	return err;
- }
-+EXPORT_SYMBOL(nla_validate);
+diff -puN fs/hfsplus/extents.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats fs/hfsplus/extents.c
+--- a/fs/hfsplus/extents.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats
++++ a/fs/hfsplus/extents.c
+@@ -436,10 +436,9 @@ int hfsplus_file_extend(struct inode *in
+ 	if (sbi->alloc_file->i_size * 8 <
+ 	    sbi->total_blocks - sbi->free_blocks + 8) {
+ 		/* extend alloc file */
+-		pr_err("extend alloc file! "
+-				"(%llu,%u,%u)\n",
+-			sbi->alloc_file->i_size * 8,
+-			sbi->total_blocks, sbi->free_blocks);
++		pr_err("extend alloc file! (%llu,%u,%u)\n",
++		       sbi->alloc_file->i_size * 8,
++		       sbi->total_blocks, sbi->free_blocks);
+ 		return -ENOSPC;
+ 	}
  
- /**
-  * nla_policy_len - Determin the max. length of a policy
-@@ -162,6 +163,7 @@ nla_policy_len(const struct nla_policy *
+diff -puN fs/hfsplus/super.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats fs/hfsplus/super.c
+--- a/fs/hfsplus/super.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats
++++ a/fs/hfsplus/super.c
+@@ -131,9 +131,10 @@ static int hfsplus_system_write_inode(st
+ 	hfsplus_inode_write_fork(inode, fork);
+ 	if (tree) {
+ 		int err = hfs_btree_write(tree);
++
+ 		if (err) {
+ 			pr_err("b-tree write err: %d, ino %lu\n",
+-					err, inode->i_ino);
++			       err, inode->i_ino);
+ 			return err;
+ 		}
+ 	}
+diff -puN fs/hfsplus/xattr.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats fs/hfsplus/xattr.c
+--- a/fs/hfsplus/xattr.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats
++++ a/fs/hfsplus/xattr.c
+@@ -70,7 +70,7 @@ static void hfsplus_init_header_node(str
+ 	loff_t tmp;
  
- 	return len;
- }
-+EXPORT_SYMBOL(nla_policy_len);
+ 	hfs_dbg(ATTR_MOD, "init_hdr_attr_file: clump %u, node_size %u\n",
+-				clump_size, node_size);
++		clump_size, node_size);
  
- /**
-  * nla_parse - Parse a stream of attributes into a tb buffer
-@@ -208,6 +210,7 @@ int nla_parse(struct nlattr **tb, int ma
- errout:
- 	return err;
- }
-+EXPORT_SYMBOL(nla_parse);
- 
- /**
-  * nla_find - Find a specific attribute in a stream of attributes
-@@ -228,6 +231,7 @@ struct nlattr *nla_find(const struct nla
- 
- 	return NULL;
- }
-+EXPORT_SYMBOL(nla_find);
- 
- /**
-  * nla_strlcpy - Copy string attribute payload into a sized buffer
-@@ -258,6 +262,7 @@ size_t nla_strlcpy(char *dst, const stru
- 
- 	return srclen;
- }
-+EXPORT_SYMBOL(nla_strlcpy);
- 
- /**
-  * nla_memcpy - Copy a netlink attribute into another memory area
-@@ -278,6 +283,7 @@ int nla_memcpy(void *dest, const struct
- 
- 	return minlen;
- }
-+EXPORT_SYMBOL(nla_memcpy);
- 
- /**
-  * nla_memcmp - Compare an attribute with sized memory area
-@@ -295,6 +301,7 @@ int nla_memcmp(const struct nlattr *nla,
- 
- 	return d;
- }
-+EXPORT_SYMBOL(nla_memcmp);
- 
- /**
-  * nla_strcmp - Compare a string attribute against a string
-@@ -317,6 +324,7 @@ int nla_strcmp(const struct nlattr *nla,
- 
- 	return d;
- }
-+EXPORT_SYMBOL(nla_strcmp);
- 
- #ifdef CONFIG_NET
- /**
-@@ -502,12 +510,3 @@ int nla_append(struct sk_buff *skb, int
- }
- EXPORT_SYMBOL(nla_append);
- #endif
--
--EXPORT_SYMBOL(nla_validate);
--EXPORT_SYMBOL(nla_policy_len);
--EXPORT_SYMBOL(nla_parse);
--EXPORT_SYMBOL(nla_find);
--EXPORT_SYMBOL(nla_strlcpy);
--EXPORT_SYMBOL(nla_memcpy);
--EXPORT_SYMBOL(nla_memcmp);
--EXPORT_SYMBOL(nla_strcmp);
+ 	/* The end of the node contains list of record offsets */
+ 	rec_offsets = (__be16 *)(buf + node_size);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -220,6 +183,7 @@ fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
 fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
 fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
 fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
 fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
 fs-hpfs-convert-printk-to-pr_foo.patch
 fs-hpfs-use-pr_fmt-for-logging.patch
