@@ -1,93 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet.patch removed
- from -mm tree
-Date: Tue, 27 May 2014 13:22:33 -0700
-Message-ID: <5384f409.ApyS+w582d6ZdvMI%akpm@linux-foundation.org>
+Subject: [merged] lib-devresc-use-dev-in-devm_request_and_ioremap.patch
+ removed from -mm tree
+Date: Tue, 27 May 2014 13:22:35 -0700
+Message-ID: <5384f40b.5GNiDhzxPZnom9Tv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53753 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53757 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108AbaE0UWe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 16:22:34 -0400
+	with ESMTP id S1752108AbaE0UWg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 16:22:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, stefani@seibold.net, stable@vger.kernel.org, sasha.levin@oracle.com, mingo@elte.hu, hpa@linux.intel.com, luto@amacapital.net
+To: mm-commits@vger.kernel.org, gregkh@linuxfoundation.org, fabf@skynet.be
 
-Subject: [merged] x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet.patch removed from -mm tree
-To: luto@amacapital.net,hpa@linux.intel.com,mingo@elte.hu,sasha.levin@oracle.com,stable@vger.kernel.org,stefani@seibold.net,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: [merged] lib-devresc-use-dev-in-devm_request_and_ioremap.patch removed from -mm tree
+To: fabf@skynet.be,gregkh@linuxfoundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 27 May 2014 13:22:33 -0700
+Date: Tue, 27 May 2014 13:22:35 -0700
 
 
 The patch titled
-     Subject: x86,vdso: fix an OOPS accessing the hpet mapping w/o an hpet
+     Subject: lib/devres.c: use dev in devm_request_and_ioremap
 has been removed from the -mm tree.  Its filename was
-     x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet.patch
+     lib-devresc-use-dev-in-devm_request_and_ioremap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: x86,vdso: fix an OOPS accessing the hpet mapping w/o an hpet
+From: Fabian Frederick <fabf@skynet.be>
+Subject: lib/devres.c: use dev in devm_request_and_ioremap
 
-The oops can be triggered in qemu using -no-hpet (but not nohpet) by
-reading a couple of pages past the end of the vdso text.  This should send
-SIGBUS instead of OOPSing.
+devm_request_and_ioremap was the only function to use device instead of
+dev(this fixes kernel-doc warning).
 
-The bug was introduced by:
+Also fix some checkpatch warnings.
 
-commit 7a59ed415f5b57469e22e41fc4188d5399e0b194
-Author: Stefani Seibold <stefani@seibold.net>
-Date:   Mon Mar 17 23:22:09 2014 +0100
-
-    x86, vdso: Add 32 bit VDSO time support for 32 bit kernel
-
-which is new in 3.15.
-
-This will be fixed separately in 3.15, but that patch will not apply to
-tip/x86/vdso.  This is the equivalent fix for tip/x86/vdso and,
-presumably, 3.16.
-
-Signed-off-by: Andy Lutomirski <luto@amacapital.net>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Stefani Seibold <stefani@seibold.net>
-Cc: <stable@vger.kernel.org>	[needs rework for 3.15 and earlier]
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/vdso/vma.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/devres.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/vdso/vma.c~x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet arch/x86/vdso/vma.c
---- a/arch/x86/vdso/vma.c~x86vdso-fix-an-oops-accessing-the-hpet-mapping-w-o-an-hpet
-+++ a/arch/x86/vdso/vma.c
-@@ -90,6 +90,7 @@ static int map_vdso(const struct vdso_im
- 	struct vm_area_struct *vma;
- 	unsigned long addr;
- 	int ret = 0;
-+	static struct page *no_pages[] = {NULL};
+diff -puN lib/devres.c~lib-devresc-use-dev-in-devm_request_and_ioremap lib/devres.c
+--- a/lib/devres.c~lib-devresc-use-dev-in-devm_request_and_ioremap
++++ a/lib/devres.c
+@@ -157,12 +157,11 @@ EXPORT_SYMBOL(devm_ioremap_resource);
+  *	if (!base)
+  *		return -EADDRNOTAVAIL;
+  */
+-void __iomem *devm_request_and_ioremap(struct device *device,
+-				       struct resource *res)
++void __iomem *devm_request_and_ioremap(struct device *dev, struct resource *res)
+ {
+ 	void __iomem *dest_ptr;
  
- 	if (calculate_addr) {
- 		addr = vdso_addr(current->mm->start_stack,
-@@ -125,7 +126,7 @@ static int map_vdso(const struct vdso_im
- 				       addr + image->size,
- 				       image->sym_end_mapping - image->size,
- 				       VM_READ,
--				       NULL);
-+				       no_pages);
+-	dest_ptr = devm_ioremap_resource(device, res);
++	dest_ptr = devm_ioremap_resource(dev, res);
+ 	if (IS_ERR(dest_ptr))
+ 		return NULL;
  
- 	if (IS_ERR(vma)) {
- 		ret = PTR_ERR(vma);
+@@ -194,7 +193,7 @@ static int devm_ioport_map_match(struct
+  * Managed ioport_map().  Map is automatically unmapped on driver
+  * detach.
+  */
+-void __iomem * devm_ioport_map(struct device *dev, unsigned long port,
++void __iomem *devm_ioport_map(struct device *dev, unsigned long port,
+ 			       unsigned int nr)
+ {
+ 	void __iomem **ptr, *addr;
+@@ -265,7 +264,7 @@ static void pcim_iomap_release(struct de
+  * be safely called without context and guaranteed to succed once
+  * allocated.
+  */
+-void __iomem * const * pcim_iomap_table(struct pci_dev *pdev)
++void __iomem * const *pcim_iomap_table(struct pci_dev *pdev)
+ {
+ 	struct pcim_iomap_devres *dr, *new_dr;
+ 
+@@ -290,7 +289,7 @@ EXPORT_SYMBOL(pcim_iomap_table);
+  * Managed pci_iomap().  Map is automatically unmapped on driver
+  * detach.
+  */
+-void __iomem * pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
++void __iomem *pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
+ {
+ 	void __iomem **tbl;
+ 
 _
 
-Patches currently in -mm which might be from luto@amacapital.net are
+Patches currently in -mm which might be from fabf@skynet.be are
 
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+fs-fscache-replace-seq_printf-by-seq_puts.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+fs-configfs-convert-printk-to-pr_foo.patch
+fs-configfs-use-pr_fmt.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+fs-add-generic-data-flush-to-fsync.patch
+fs-add-generic-data-flush-to-fsync-fix.patch
+fs-add-generic-data-flush-to-fsync-fix-fix.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
+fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch
+fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch
+fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
+fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
+kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+kernel-stop_machinec-kernel-doc-warning-fix.patch
+kernel-tracepointc-kernel-doc-fixes.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
+kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
+documentation-expand-clarify-debug-documentation.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+lib-radix-treec-kernel-doc-warning-fix.patch
+lib-crc32c-remove-unnecessary-__constant.patch
+lib-digsigc-kernel-doc-warning-fixes.patch
+lib-nlattrc-move-export_symbol-after-functions.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+fs-efs-convert-printk-to-pr_foo.patch
+fs-efs-add-pr_fmt-use-__func__.patch
+fs-efs-convert-printkkern_debug-to-pr_debug.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-hpfs-convert-printk-to-pr_foo.patch
+fs-hpfs-use-pr_fmt-for-logging.patch
+fs-hpfs-use-__func__-for-logging.patch
+fs-hpfs-increase-pr_warn-level.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+mm-kmemleak-testc-use-pr_fmt-for-logging.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
