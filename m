@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zswap-numa-aware-allocation-for-zswap_dstmem.patch added to
- -mm tree
-Date: Tue, 27 May 2014 13:50:29 -0700
-Message-ID: <5384fa95.iJIIH48uW8/9Ugmi%akpm@linux-foundation.org>
+Subject: + mm-process_vm_access-move-config-option-into-init-kconfig.patch added to -mm tree
+Date: Tue, 27 May 2014 13:52:15 -0700
+Message-ID: <5384faff.sSyZsvXp63U8A/xf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54101 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54112 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126AbaE0Uua (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 16:50:30 -0400
+	with ESMTP id S1751591AbaE0UwQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 16:52:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, edumazet@google.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, hughd@google.com, davidlohr@hp.com, cyeoh@au1.ibm.com, koct9i@gmail.com
 
-Subject: + mm-zswap-numa-aware-allocation-for-zswap_dstmem.patch added to -mm tree
-To: edumazet@google.com
+Subject: + mm-process_vm_access-move-config-option-into-init-kconfig.patch added to -mm tree
+To: koct9i@gmail.com,cyeoh@au1.ibm.com,davidlohr@hp.com,hughd@google.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 27 May 2014 13:50:29 -0700
+Date: Tue, 27 May 2014 13:52:15 -0700
 
 
 The patch titled
-     Subject: mm/zswap: NUMA aware allocation for zswap_dstmem
+     Subject: mm/process_vm_access: move config option into init/Kconfig
 has been added to the -mm tree.  Its filename is
-     mm-zswap-numa-aware-allocation-for-zswap_dstmem.patch
+     mm-process_vm_access-move-config-option-into-init-kconfig.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-numa-aware-allocation-for-zswap_dstmem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-process_vm_access-move-config-option-into-init-kconfig.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-numa-aware-allocation-for-zswap_dstmem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-process_vm_access-move-config-option-into-init-kconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,39 +43,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: mm/zswap: NUMA aware allocation for zswap_dstmem
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: mm/process_vm_access: move config option into init/Kconfig
 
-zswap_dstmem is a percpu block of memory, which should be allocated using
-kmalloc_node(), to get better NUMA locality.
+CONFIG_CROSS_MEMORY_ATTACH adds couple syscalls: process_vm_readv and
+process_vm_writev, it's a kind of IPC for copying data between processes. 
+Currently this option is placed inside "Processor type and features".
 
-Without it, all the blocks are allocated from a single node.
+This patch moves it into "General setup" (where all other arch-independed
+syscalls and ipc features are placed) and changes prompt string to less
+cryptic.
 
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Seth Jennings <sjennings@variantweb.net>
-David Rientjes <rientjes@google.com>
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Christopher Yeoh <cyeoh@au1.ibm.com>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/Kconfig |   10 ++++++++++
+ mm/Kconfig   |   10 ----------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN mm/zswap.c~mm-zswap-numa-aware-allocation-for-zswap_dstmem mm/zswap.c
---- a/mm/zswap.c~mm-zswap-numa-aware-allocation-for-zswap_dstmem
-+++ a/mm/zswap.c
-@@ -347,7 +347,7 @@ static int __zswap_cpu_notifier(unsigned
- 			return NOTIFY_BAD;
- 		}
- 		*per_cpu_ptr(zswap_comp_pcpu_tfms, cpu) = tfm;
--		dst = kmalloc(PAGE_SIZE * 2, GFP_KERNEL);
-+		dst = kmalloc_node(PAGE_SIZE * 2, GFP_KERNEL, cpu_to_node(cpu));
- 		if (!dst) {
- 			pr_err("can't allocate compressor buffer\n");
- 			crypto_free_comp(tfm);
-_
-
-Patches currently in -mm which might be from edumazet@google.com are
-
-mm-zswap-numa-aware-allocation-for-zswap_dstmem.patch
-linux-next.patch
-
+diff -puN init/Kconfig~mm-process_vm_access-move-config-option-into-init-kconfig init/Kconfig
+--- a/init/Kconfig~mm-process_vm_access-move-config-option-into-init-kconfig
++++ a/init/Kconfig
+@@ -261,6 +261,16 @@ config POSIX_MQUEUE_SYSCTL
+ 	depends on SYSCTL
+ 	default y
+ 
++config CROSS_MEMORY_ATTACH
++	bool "Enable process_vm_readv/writev syscalls"
++	depends on MMU
++	default y
++	help
++	  Enabling this option adds the system calls process_vm_readv and
++	  process_vm_writev which allow a process with the correct privileges
++	  to directly read from or write to to another process's address space.
++	  See the man page for more details.
++
+ config FHANDLE
+ 	bool "open by fhandle syscalls"
+ 	select EXPORTFS
+diff -puN mm/Kconfig~mm-process_vm_access-move-config-option-into-init-kconfig mm/Kconfig
+--- a/mm/Kconfig~mm-process_vm_access-move-config-option-into-init-kconfig
++++ a/mm/Kconfig
+@@ -430,16 +430,6 @@ choice
+ 	  benefit.
+ endchoice
+ 
+-config CROSS_MEMORY_ATTACH
+-	bool "Cross Memory Support"
+-	depends on MMU
+-	default y
+-	help
+-	  Enabling this option adds the system calls process_vm_readv and
+-	  process_vm_writev which allow a process with the correct privileges
+-	  to directly read from or write to to another process's address space.
+-	  See the man page for more details.
