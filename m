@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-process_vm_access-move-config-option-into-init-kconfig.patch added to -mm tree
-Date: Tue, 27 May 2014 13:52:15 -0700
-Message-ID: <5384faff.sSyZsvXp63U8A/xf%akpm@linux-foundation.org>
+Subject: + refcount-take-inode_lock-until-write-io-issued.patch added to
+ -mm tree
+Date: Tue, 27 May 2014 14:06:24 -0700
+Message-ID: <5384fe50.ELpviUxb5BpLW/Ml%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54112 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54261 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751591AbaE0UwQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 16:52:16 -0400
+	with ESMTP id S1751711AbaE0VGZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 17:06:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, hughd@google.com, davidlohr@hp.com, cyeoh@au1.ibm.com, koct9i@gmail.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, wen.gang.wang@oracle.com
 
-Subject: + mm-process_vm_access-move-config-option-into-init-kconfig.patch added to -mm tree
-To: koct9i@gmail.com,cyeoh@au1.ibm.com,davidlohr@hp.com,hughd@google.com,viro@zeniv.linux.org.uk
+Subject: + refcount-take-inode_lock-until-write-io-issued.patch added to -mm tree
+To: wen.gang.wang@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 27 May 2014 13:52:15 -0700
+Date: Tue, 27 May 2014 14:06:24 -0700
 
 
 The patch titled
-     Subject: mm/process_vm_access: move config option into init/Kconfig
+     Subject: ocfs2: refcount: take inode_lock until write io issued
 has been added to the -mm tree.  Its filename is
-     mm-process_vm_access-move-config-option-into-init-kconfig.patch
+     refcount-take-inode_lock-until-write-io-issued.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-process_vm_access-move-config-option-into-init-kconfig.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/refcount-take-inode_lock-until-write-io-issued.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-process_vm_access-move-config-option-into-init-kconfig.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/refcount-take-inode_lock-until-write-io-issued.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,62 +44,174 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mm/process_vm_access: move config option into init/Kconfig
+From: Wengang Wang <wen.gang.wang@oracle.com>
+Subject: ocfs2: refcount: take inode_lock until write io issued
 
-CONFIG_CROSS_MEMORY_ATTACH adds couple syscalls: process_vm_readv and
-process_vm_writev, it's a kind of IPC for copying data between processes. 
-Currently this option is placed inside "Processor type and features".
+This patch tries to fix this crash:
 
-This patch moves it into "General setup" (where all other arch-independed
-syscalls and ipc features are placed) and changes prompt string to less
-cryptic.
+ #5 [ffff88003c1cd690] do_invalid_op at ffffffff810166d5
+ #6 [ffff88003c1cd730] invalid_op at ffffffff8159b2de
+    [exception RIP: ocfs2_direct_IO_get_blocks+359]
+    RIP: ffffffffa05dfa27  RSP: ffff88003c1cd7e8  RFLAGS: 00010202
+    RAX: 0000000000000000  RBX: ffff88003c1cdaa8  RCX: 0000000000000000
+    RDX: 000000000000000c  RSI: ffff880027a95000  RDI: ffff88003c79b540
+    RBP: ffff88003c1cd858   R8: 0000000000000000   R9: ffffffff815f6ba0
+    R10: 00000000000001c9  R11: 00000000000001c9  R12: ffff88002d271500
+    R13: 0000000000000001  R14: 0000000000000000  R15: 0000000000001000
+    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
+ #7 [ffff88003c1cd860] do_direct_IO at ffffffff811cd31b
+ #8 [ffff88003c1cd950] direct_IO_iovec at ffffffff811cde9c
+ #9 [ffff88003c1cd9b0] do_blockdev_direct_IO at ffffffff811ce764
+#10 [ffff88003c1cdb80] __blockdev_direct_IO at ffffffff811ce7cc
+#11 [ffff88003c1cdbb0] ocfs2_direct_IO at ffffffffa05df756 [ocfs2]
+#12 [ffff88003c1cdbe0] generic_file_direct_write_iter at ffffffff8112f935
+#13 [ffff88003c1cdc40] ocfs2_file_write_iter at ffffffffa0600ccc [ocfs2]
+#14 [ffff88003c1cdd50] do_aio_write at ffffffff8119126c
+#15 [ffff88003c1cddc0] aio_rw_vect_retry at ffffffff811d9bb4
+#16 [ffff88003c1cddf0] aio_run_iocb at ffffffff811db880
+#17 [ffff88003c1cde30] io_submit_one at ffffffff811dc238
+#18 [ffff88003c1cde80] do_io_submit at ffffffff811dc437
+#19 [ffff88003c1cdf70] sys_io_submit at ffffffff811dc530
+#20 [ffff88003c1cdf80] system_call_fastpath at ffffffff8159a159
 
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Christopher Yeoh <cyeoh@au1.ibm.com>
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+It crashes at
+	BUG_ON(create && (ext_flags & OCFS2_EXT_REFCOUNTED));
+in ocfs2_direct_IO_get_blocks.
+
+ocfs2_direct_IO_get_blocks is expecting the OCFS2_EXT_REFCOUNTED be
+removed in ocfs2_prepare_inode_for_write() if it was there.  But no
+cluster lock is taken during the time before (or inside)
+ocfs2_prepare_inode_for_write() and after ocfs2_direct_IO_get_blocks().
+
+It can happen in this case:
+
+Node A(which crashes)				Node B
+------------------------                 ---------------------------
+ocfs2_file_aio_write
+  ocfs2_prepare_inode_for_write
+    ocfs2_inode_lock
+    ...
+    ocfs2_inode_unlock
+  #no refcount found
+....					ocfs2_reflink
+					  ocfs2_inode_lock
+					  ...
+					  ocfs2_inode_unlock
+					  #now, refcount flag set on extent
+
+					...
+					flush change to disk
+
+ocfs2_direct_IO_get_blocks
+  ocfs2_get_clusters
+    #extent map miss
+    #buffer_head miss
+    read extents from disk
+  found refcount flag on extent
+  crash..
+
+Fix: We have to take the inode_lock long enough until
+ocfs2_direct_IO_get_blocks finished.
+
+Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   10 ++++++++++
- mm/Kconfig   |   10 ----------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ fs/ocfs2/file.c     |   23 ++++++++++++++++++++---
+ fs/ocfs2/ocfs2_fs.h |    2 +-
+ 2 files changed, 21 insertions(+), 4 deletions(-)
 
-diff -puN init/Kconfig~mm-process_vm_access-move-config-option-into-init-kconfig init/Kconfig
---- a/init/Kconfig~mm-process_vm_access-move-config-option-into-init-kconfig
-+++ a/init/Kconfig
-@@ -261,6 +261,16 @@ config POSIX_MQUEUE_SYSCTL
- 	depends on SYSCTL
- 	default y
+diff -puN fs/ocfs2/file.c~refcount-take-inode_lock-until-write-io-issued fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~refcount-take-inode_lock-until-write-io-issued
++++ a/fs/ocfs2/file.c
+@@ -2104,13 +2104,16 @@ static int ocfs2_prepare_inode_for_write
+ 					 size_t count,
+ 					 int appending,
+ 					 int *direct_io,
+-					 int *has_refcount)
++					 int *has_refcount,
++					 int *meta_level_out)
+ {
+ 	int ret = 0, meta_level = 0;
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+ 	loff_t saved_pos = 0, end;
  
-+config CROSS_MEMORY_ATTACH
-+	bool "Enable process_vm_readv/writev syscalls"
-+	depends on MMU
-+	default y
-+	help
-+	  Enabling this option adds the system calls process_vm_readv and
-+	  process_vm_writev which allow a process with the correct privileges
-+	  to directly read from or write to to another process's address space.
-+	  See the man page for more details.
-+
- config FHANDLE
- 	bool "open by fhandle syscalls"
- 	select EXPORTFS
-diff -puN mm/Kconfig~mm-process_vm_access-move-config-option-into-init-kconfig mm/Kconfig
---- a/mm/Kconfig~mm-process_vm_access-move-config-option-into-init-kconfig
-+++ a/mm/Kconfig
-@@ -430,16 +430,6 @@ choice
- 	  benefit.
- endchoice
++	if (meta_level_out)
++		*meta_level_out = -1;
+ 	/*
+ 	 * We start with a read level meta lock and only jump to an ex
+ 	 * if we need to make modifications here.
+@@ -2226,6 +2229,15 @@ out_unlock:
+ 					    saved_pos, appending, count,
+ 					    direct_io, has_refcount);
  
--config CROSS_MEMORY_ATTACH
--	bool "Cross Memory Support"
--	depends on MMU
--	default y
--	help
--	  Enabling this option adds the system calls process_vm_readv and
--	  process_vm_writev which allow a process with the correct privileges
--	  to directly read from or write to to another process's address space.
--	  See the man page for more details.
++	/*
++	 * If direct IO would be done later, we have to keep inode_lock locked.
++	 * Buffer'd IO is fine since the COW work will be done again in
++	 * ocfs2_write_begin.
++	 */
++	if (direct_io && *direct_io && meta_level_out && !ret) {
++		*meta_level_out = meta_level;
++		meta_level = -1;
++	}
+ 	if (meta_level >= 0)
+ 		ocfs2_inode_unlock(inode, meta_level);
+ 
+@@ -2251,6 +2263,7 @@ static ssize_t ocfs2_file_aio_write(stru
+ 	int full_coherency = !(osb->s_mount_opt &
+ 			       OCFS2_MOUNT_COHERENCY_BUFFERED);
+ 	int unaligned_dio = 0;
++	int meta_level = -1;
+ 
+ 	trace_ocfs2_file_aio_write(inode, file, file->f_path.dentry,
+ 		(unsigned long long)OCFS2_I(inode)->ip_blkno,
+@@ -2310,7 +2323,8 @@ relock:
+ 	can_do_direct = direct_io;
+ 	ret = ocfs2_prepare_inode_for_write(file, ppos,
+ 					    iocb->ki_nbytes, appending,
+-					    &can_do_direct, &has_refcount);
++					    &can_do_direct, &has_refcount,
++					    &meta_level);
+ 	if (ret < 0) {
+ 		mlog_errno(ret);
+ 		goto out;
+@@ -2434,6 +2448,8 @@ out_sems:
+ 	if (have_alloc_sem)
+ 		ocfs2_iocb_clear_sem_locked(iocb);
+ 
++	if (meta_level >= 0)
++		ocfs2_inode_unlock(inode, meta_level);
+ 	mutex_unlock(&inode->i_mutex);
+ 
+ 	if (written)
+@@ -2448,7 +2464,8 @@ static int ocfs2_splice_to_file(struct p
+ 	int ret;
+ 
+ 	ret = ocfs2_prepare_inode_for_write(out, &sd->pos,
+-					    sd->total_len, 0, NULL, NULL);
++					    sd->total_len, 0, NULL, NULL,
++					    NULL);
+ 	if (ret < 0) {
+ 		mlog_errno(ret);
+ 		return ret;
+diff -puN fs/ocfs2/ocfs2_fs.h~refcount-take-inode_lock-until-write-io-issued fs/ocfs2/ocfs2_fs.h
+--- a/fs/ocfs2/ocfs2_fs.h~refcount-take-inode_lock-until-write-io-issued
++++ a/fs/ocfs2/ocfs2_fs.h
+@@ -724,7 +724,7 @@ struct ocfs2_dinode {
+ 	__le64 i_xattr_loc;
+ /*80*/	struct ocfs2_block_check i_check;	/* Error checking */
+ /*88*/	__le64 i_dx_root;		/* Pointer to dir index root block */
+-/*90*/	__le64 i_refcount_loc;
++/*90*/	__le64 i_refcount_loc;		/* Root block of the refcount tree */
+ 	__le64 i_suballoc_loc;		/* Suballocator block group this
+ 					   inode belongs to.  Only valid
+ 					   if allocated from a
+_
+
+Patches currently in -mm which might be from wen.gang.wang@oracle.com are
+
+refcount-take-inode_lock-until-write-io-issued.patch
+
