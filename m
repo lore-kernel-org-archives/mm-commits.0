@@ -1,132 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] fs-superc-avoid-counting-without-__gfp_fs.patch removed
- from -mm tree
-Date: Tue, 27 May 2014 14:25:01 -0700
-Message-ID: <538502ad.kW7Ciz21CZd3s67K%akpm@linux-foundation.org>
+Subject: +
+ documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+ added to -mm tree
+Date: Tue, 27 May 2014 14:32:39 -0700
+Message-ID: <53850477.IVrGxqZIU6JJEsym%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54562 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54595 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753627AbaE0VZD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 17:25:03 -0400
+	with ESMTP id S1751344AbaE0Vck (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 17:32:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yuanhan.liu@linux.intel.com, viro@zeniv.linux.org.uk, tim.c.chen@linux.intel.com, riel@redhat.com, mgorman@suse.de, jack@suse.cz, hannes@cmpxchg.org, david@fromorbit.com, bob.liu@oracle.com, hughd@google.com
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, corbet@lwn.net, fabf@skynet.be
 
-Subject: [nacked] fs-superc-avoid-counting-without-__gfp_fs.patch removed from -mm tree
-To: hughd@google.com,bob.liu@oracle.com,david@fromorbit.com,hannes@cmpxchg.org,jack@suse.cz,mgorman@suse.de,riel@redhat.com,tim.c.chen@linux.intel.com,viro@zeniv.linux.org.uk,yuanhan.liu@linux.intel.com,mm-commits@vger.kernel.org
+Subject: + documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch added to -mm tree
+To: fabf@skynet.be,corbet@lwn.net,rdunlap@infradead.org
 From: akpm@linux-foundation.org
-Date: Tue, 27 May 2014 14:25:01 -0700
+Date: Tue, 27 May 2014 14:32:39 -0700
 
 
 The patch titled
-     Subject: fs/super.c: avoid counting without __GFP_FS
-has been removed from the -mm tree.  Its filename was
-     fs-superc-avoid-counting-without-__gfp_fs.patch
+     Subject: Documentation/filesystems/seq_file.txt: create_proc_entry deprecated
+has been added to the -mm tree.  Its filename is
+     documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: fs/super.c: avoid counting without __GFP_FS
+From: Fabian Frederick <fabf@skynet.be>
+Subject: Documentation/filesystems/seq_file.txt: create_proc_entry deprecated
 
-Don't waste time counting objects in super_cache_count() if no __GFP_FS:
-super_cache_scan() would only back out with SHRINK_STOP in that case.
+Linked article in seq_file.txt still uses create_proc_entry which was removed in
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-Cc: Bob Liu <bob.liu@oracle.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+80e928f7ebb958
+"proc: Kill create_proc_entry()"
+
+This patch adds information for kernel 3.10 and above
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/filesystems/seq_file.txt |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN fs/super.c~fs-superc-avoid-counting-without-__gfp_fs fs/super.c
---- a/fs/super.c~fs-superc-avoid-counting-without-__gfp_fs
-+++ a/fs/super.c
-@@ -110,6 +110,12 @@ static unsigned long super_cache_count(s
- 	struct super_block *sb;
- 	long	total_objects = 0;
+diff -puN Documentation/filesystems/seq_file.txt~documentation-filesystems-seq_filetxt-create_proc_entry-deprecated Documentation/filesystems/seq_file.txt
+--- a/Documentation/filesystems/seq_file.txt~documentation-filesystems-seq_filetxt-create_proc_entry-deprecated
++++ a/Documentation/filesystems/seq_file.txt
+@@ -54,6 +54,15 @@ how the mechanism works without getting
+ wanting to see the full source for this module can find it at
+ http://lwn.net/Articles/22359/).
  
-+	/*
-+	 * None can be freed without __GFP_FS, so don't waste time counting.
-+	 */
-+	if (!(sc->gfp_mask & __GFP_FS))
-+		return 0;
++Deprecated create_proc_entry
 +
- 	sb = container_of(shrink, struct super_block, s_shrink);
++Note that the above article uses create_proc_entry which was removed in
++kernel 3.10. Current versions require the following update
++
++-	entry = create_proc_entry("sequence", 0, NULL);
++-	if (entry)
++-		entry->proc_fops = &ct_file_ops;
+++	entry = proc_create("sequence", 0, NULL, &ct_file_ops);
  
- 	/*
+ The iterator interface
+ 
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally.patch
-mm-softdirty-dont-forget-to-save-file-map-softdiry-bit-on-unmap.patch
-mm-softdirty-clear-vm_softdirty-flag-inside-clear_refs_write-instead-of-clear_soft_dirty.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-numa-add-migrated-transhuge-pages-to-lru-the-same-way-as-base-pages.patch
-fs-bufferc-remove-block_write_full_page_endio.patch
-fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage.patch
-fs-mpagec-factor-page_endio-out-of-mpage_end_io.patch
-fs-block_devc-add-bdev_read_page-and-bdev_write_page.patch
-swap-use-bdev_read_page-bdev_write_page.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-brd-add-support-for-rw_page.patch
-brd-return-enospc-rather-than-enomem-on-page-allocation-failure.patch
-mm-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
-mm-add-comment-for-__mod_zone_page_stat.patch
-mm-add-comment-for-__mod_zone_page_stat-checkpatch-fixes.patch
-mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
-swap-change-swap_info-singly-linked-list-to-list_head.patch
-plist-add-helper-functions.patch
-plist-add-plist_requeue.patch
-swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
-jump_label-expose-the-reference-count.patch
-mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
-mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
-mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
-mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
-mm-page_alloc-use-word-based-accesses-for-get-set-pageblock-bitmaps.patch
-mm-page_alloc-reduce-number-of-times-page_to_pfn-is-called.patch
-mm-page_alloc-lookup-pageblock-migratetype-with-irqs-enabled-during-free.patch
-mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
-mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
-mm-shmem-avoid-atomic-operation-during-shmem_getpage_gfp.patch
-mm-do-not-use-atomic-operations-when-releasing-pages.patch
-mm-do-not-use-unnecessary-atomic-operations-when-adding-pages-to-the-lru.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
-mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref.patch
-fs-superblock-unregister-sb-shrinker-before-kill_sb.patch
-fs-superblock-avoid-locking-counting-inodes-and-dentries-before-reclaiming-them.patch
-mm-vmscan-use-proportional-scanning-during-direct-reclaim-and-full-scan-at-def_priority.patch
-mm-process_vm_access-move-config-option-into-init-kconfig.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+fs-fscache-replace-seq_printf-by-seq_puts.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+fs-configfs-convert-printk-to-pr_foo.patch
+fs-configfs-use-pr_fmt.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+fs-add-generic-data-flush-to-fsync.patch
+fs-add-generic-data-flush-to-fsync-fix.patch
+fs-add-generic-data-flush-to-fsync-fix-fix.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
+fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch
+fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch
+fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
+fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
+kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+kernel-stop_machinec-kernel-doc-warning-fix.patch
+kernel-tracepointc-kernel-doc-fixes.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
+kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
+documentation-expand-clarify-debug-documentation.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+lib-radix-treec-kernel-doc-warning-fix.patch
+lib-crc32c-remove-unnecessary-__constant.patch
+lib-digsigc-kernel-doc-warning-fixes.patch
+lib-nlattrc-move-export_symbol-after-functions.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+fs-efs-convert-printk-to-pr_foo.patch
+fs-efs-add-pr_fmt-use-__func__.patch
+fs-efs-convert-printkkern_debug-to-pr_debug.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-hpfs-convert-printk-to-pr_foo.patch
+fs-hpfs-use-pr_fmt-for-logging.patch
+fs-hpfs-use-__func__-for-logging.patch
+fs-hpfs-increase-pr_warn-level.patch
+documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
-memcg-mm-introduce-lowlimit-reclaim.patch
-memcg-mm-introduce-lowlimit-reclaim-fix.patch
-memcg-allow-setting-low_limit.patch
-memcg-doc-clarify-global-vs-limit-reclaims.patch
-memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
-memcg-document-memorylow_limit_in_bytes.patch
-vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+mm-kmemleak-testc-use-pr_fmt-for-logging.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
