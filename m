@@ -1,77 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch
- removed from -mm tree
-Date: Tue, 27 May 2014 13:22:25 -0700
-Message-ID: <5384f401.Heu95hNTCgJx9s8g%akpm@linux-foundation.org>
+Subject: [merged] documentation-fix-docbooks=-building.patch removed from
+ -mm tree
+Date: Tue, 27 May 2014 13:22:27 -0700
+Message-ID: <5384f403.59cZPZ+C8QU5YMmf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53735 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53740 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108AbaE0UWZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 16:22:25 -0400
+	with ESMTP id S1752108AbaE0UW2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 16:22:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, rdunlap@xenotime.net, mchehab@redhat.com, johannes.berg@intel.com
 
-Subject: [merged] ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch removed from -mm tree
-To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] documentation-fix-docbooks=-building.patch removed from -mm tree
+To: johannes.berg@intel.com,mchehab@redhat.com,rdunlap@xenotime.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 27 May 2014 13:22:25 -0700
+Date: Tue, 27 May 2014 13:22:27 -0700
 
 
 The patch titled
-     Subject: ocfs2: fix double kmem_cache_destroy in dlm_init
+     Subject: Documentation: fix DOCBOOKS=... building
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-double-kmem_cache_destroy-in-dlm_init.patch
+     documentation-fix-docbooks=-building.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix double kmem_cache_destroy in dlm_init
+From: Johannes Berg <johannes.berg@intel.com>
+Subject: Documentation: fix DOCBOOKS=... building
 
-In dlm_init, if create dlm_lockname_cache failed in
-dlm_init_master_caches, it will destroy dlm_lockres_cache which created
-before twice.  And this will cause system die when loading modules.
+Prior to
+commit 4266129964b8238526936d723de65b419d8069c6
+Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date:   Tue May 31 16:27:44 2011 -0300
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+    [media] DocBook: Move all media docbook stuff into its own directory
+
+it was possible to build only a single (or more) book(s) by calling, for
+example
+
+	make htmldocs DOCBOOKS=80211.xml
+
+This now fails:
+cp: target `.../Documentation/DocBook//media_api' is not a directory
+
+Ignore errors from that copy to make this possible again.
+
+Fixes: 4266129964b8 ("[media] DocBook: Move all media docbook stuff into its own directory")
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ Documentation/DocBook/media/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-fix-double-kmem_cache_destroy-in-dlm_init fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-fix-double-kmem_cache_destroy-in-dlm_init
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -472,11 +472,15 @@ bail:
+diff -puN Documentation/DocBook/media/Makefile~documentation-fix-docbooks=-building Documentation/DocBook/media/Makefile
+--- a/Documentation/DocBook/media/Makefile~documentation-fix-docbooks=-building
++++ a/Documentation/DocBook/media/Makefile
+@@ -195,7 +195,7 @@ DVB_DOCUMENTED = \
+ #
  
- void dlm_destroy_master_caches(void)
- {
--	if (dlm_lockname_cache)
-+	if (dlm_lockname_cache) {
- 		kmem_cache_destroy(dlm_lockname_cache);
-+		dlm_lockname_cache = NULL;
-+	}
+ install_media_images = \
+-	$(Q)cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
++	$(Q)-cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
  
--	if (dlm_lockres_cache)
-+	if (dlm_lockres_cache) {
- 		kmem_cache_destroy(dlm_lockres_cache);
-+		dlm_lockres_cache = NULL;
-+	}
- }
- 
- static void dlm_lockres_release(struct kref *kref)
+ $(MEDIA_OBJ_DIR)/%: $(MEDIA_SRC_DIR)/%.b64
+ 	$(Q)base64 -d $< >$@
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from johannes.berg@intel.com are
 
-ocfs2-limit-printk-when-journal-is-aborted.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
-ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
+compilerh-avoid-sparse-errors-in-__compiletime_error_fallback.patch
+linux-next.patch
 
