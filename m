@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
- added to -mm tree
-Date: Tue, 27 May 2014 14:32:39 -0700
-Message-ID: <53850477.IVrGxqZIU6JJEsym%akpm@linux-foundation.org>
+Subject: + fs-ocfs2-ioctlc-add-static-to-local-functions.patch added to
+ -mm tree
+Date: Tue, 27 May 2014 14:33:37 -0700
+Message-ID: <538504b1.Eskug39UHj88R/4H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54595 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54603 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344AbaE0Vck (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 17:32:40 -0400
+	with ESMTP id S1751344AbaE0Vdi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 17:33:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, corbet@lwn.net, fabf@skynet.be
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, fabf@skynet.be
 
-Subject: + documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch added to -mm tree
-To: fabf@skynet.be,corbet@lwn.net,rdunlap@infradead.org
+Subject: + fs-ocfs2-ioctlc-add-static-to-local-functions.patch added to -mm tree
+To: fabf@skynet.be,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 27 May 2014 14:32:39 -0700
+Date: Tue, 27 May 2014 14:33:37 -0700
 
 
 The patch titled
-     Subject: Documentation/filesystems/seq_file.txt: create_proc_entry deprecated
+     Subject: fs/ocfs2/ioctl.c: add static to local functions
 has been added to the -mm tree.  Its filename is
-     documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+     fs-ocfs2-ioctlc-add-static-to-local-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ocfs2-ioctlc-add-static-to-local-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ocfs2-ioctlc-add-static-to-local-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,43 +45,220 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: Documentation/filesystems/seq_file.txt: create_proc_entry deprecated
+Subject: fs/ocfs2/ioctl.c: add static to local functions
 
-Linked article in seq_file.txt still uses create_proc_entry which was removed in
-
-80e928f7ebb958
-"proc: Kill create_proc_entry()"
-
-This patch adds information for kernel 3.10 and above
+ocfs_info_foo() and ocfs2_get_request_ptr functions are only used in ioctl.c
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/seq_file.txt |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ fs/ocfs2/ioctl.c |   81 ++++++++++++++++++++++-----------------------
+ 1 file changed, 41 insertions(+), 40 deletions(-)
 
-diff -puN Documentation/filesystems/seq_file.txt~documentation-filesystems-seq_filetxt-create_proc_entry-deprecated Documentation/filesystems/seq_file.txt
---- a/Documentation/filesystems/seq_file.txt~documentation-filesystems-seq_filetxt-create_proc_entry-deprecated
-+++ a/Documentation/filesystems/seq_file.txt
-@@ -54,6 +54,15 @@ how the mechanism works without getting
- wanting to see the full source for this module can find it at
- http://lwn.net/Articles/22359/).
+diff -puN fs/ocfs2/ioctl.c~fs-ocfs2-ioctlc-add-static-to-local-functions fs/ocfs2/ioctl.c
+--- a/fs/ocfs2/ioctl.c~fs-ocfs2-ioctlc-add-static-to-local-functions
++++ a/fs/ocfs2/ioctl.c
+@@ -143,8 +143,8 @@ bail:
+ 	return status;
+ }
  
-+Deprecated create_proc_entry
-+
-+Note that the above article uses create_proc_entry which was removed in
-+kernel 3.10. Current versions require the following update
-+
-+-	entry = create_proc_entry("sequence", 0, NULL);
-+-	if (entry)
-+-		entry->proc_fops = &ct_file_ops;
-++	entry = proc_create("sequence", 0, NULL, &ct_file_ops);
+-int ocfs2_info_handle_blocksize(struct inode *inode,
+-				struct ocfs2_info_request __user *req)
++static int ocfs2_info_handle_blocksize(struct inode *inode,
++				       struct ocfs2_info_request __user *req)
+ {
+ 	int status = -EFAULT;
+ 	struct ocfs2_info_blocksize oib;
+@@ -167,8 +167,8 @@ bail:
+ 	return status;
+ }
  
- The iterator interface
+-int ocfs2_info_handle_clustersize(struct inode *inode,
+-				  struct ocfs2_info_request __user *req)
++static int ocfs2_info_handle_clustersize(struct inode *inode,
++					 struct ocfs2_info_request __user *req)
+ {
+ 	int status = -EFAULT;
+ 	struct ocfs2_info_clustersize oic;
+@@ -192,8 +192,8 @@ bail:
+ 	return status;
+ }
  
+-int ocfs2_info_handle_maxslots(struct inode *inode,
+-			       struct ocfs2_info_request __user *req)
++static int ocfs2_info_handle_maxslots(struct inode *inode,
++				      struct ocfs2_info_request __user *req)
+ {
+ 	int status = -EFAULT;
+ 	struct ocfs2_info_maxslots oim;
+@@ -217,8 +217,8 @@ bail:
+ 	return status;
+ }
+ 
+-int ocfs2_info_handle_label(struct inode *inode,
+-			    struct ocfs2_info_request __user *req)
++static int ocfs2_info_handle_label(struct inode *inode,
++				   struct ocfs2_info_request __user *req)
+ {
+ 	int status = -EFAULT;
+ 	struct ocfs2_info_label oil;
+@@ -242,8 +242,8 @@ bail:
+ 	return status;
+ }
+ 
+-int ocfs2_info_handle_uuid(struct inode *inode,
+-			   struct ocfs2_info_request __user *req)
++static int ocfs2_info_handle_uuid(struct inode *inode,
++				  struct ocfs2_info_request __user *req)
+ {
+ 	int status = -EFAULT;
+ 	struct ocfs2_info_uuid oiu;
+@@ -267,8 +267,8 @@ bail:
+ 	return status;
+ }
+ 
+-int ocfs2_info_handle_fs_features(struct inode *inode,
+-				  struct ocfs2_info_request __user *req)
++static int ocfs2_info_handle_fs_features(struct inode *inode,
++					 struct ocfs2_info_request __user *req)
+ {
+ 	int status = -EFAULT;
+ 	struct ocfs2_info_fs_features oif;
+@@ -294,8 +294,8 @@ bail:
+ 	return status;
+ }
+ 
+-int ocfs2_info_handle_journal_size(struct inode *inode,
+-				   struct ocfs2_info_request __user *req)
++static int ocfs2_info_handle_journal_size(struct inode *inode,
++					  struct ocfs2_info_request __user *req)
+ {
+ 	int status = -EFAULT;
+ 	struct ocfs2_info_journal_size oij;
+@@ -319,9 +319,10 @@ bail:
+ 	return status;
+ }
+ 
+-int ocfs2_info_scan_inode_alloc(struct ocfs2_super *osb,
+-				struct inode *inode_alloc, u64 blkno,
+-				struct ocfs2_info_freeinode *fi, u32 slot)
++static int ocfs2_info_scan_inode_alloc(struct ocfs2_super *osb,
++				       struct inode *inode_alloc, u64 blkno,
++				       struct ocfs2_info_freeinode *fi,
++				       u32 slot)
+ {
+ 	int status = 0, unlock = 0;
+ 
+@@ -366,8 +367,8 @@ bail:
+ 	return status;
+ }
+ 
+-int ocfs2_info_handle_freeinode(struct inode *inode,
+-				struct ocfs2_info_request __user *req)
++static int ocfs2_info_handle_freeinode(struct inode *inode,
++				       struct ocfs2_info_request __user *req)
+ {
+ 	u32 i;
+ 	u64 blkno = -1;
+@@ -462,19 +463,19 @@ static void o2ffg_update_stats(struct oc
+ 	stats->ffs_free_chunks_real++;
+ }
+ 
+-void ocfs2_info_update_ffg(struct ocfs2_info_freefrag *ffg,
+-			   unsigned int chunksize)
++static void ocfs2_info_update_ffg(struct ocfs2_info_freefrag *ffg,
++				  unsigned int chunksize)
+ {
+ 	o2ffg_update_histogram(&(ffg->iff_ffs.ffs_fc_hist), chunksize);
+ 	o2ffg_update_stats(&(ffg->iff_ffs), chunksize);
+ }
+ 
+-int ocfs2_info_freefrag_scan_chain(struct ocfs2_super *osb,
+-				   struct inode *gb_inode,
+-				   struct ocfs2_dinode *gb_dinode,
+-				   struct ocfs2_chain_rec *rec,
+-				   struct ocfs2_info_freefrag *ffg,
+-				   u32 chunks_in_group)
++static int ocfs2_info_freefrag_scan_chain(struct ocfs2_super *osb,
++					  struct inode *gb_inode,
++					  struct ocfs2_dinode *gb_dinode,
++					  struct ocfs2_chain_rec *rec,
++					  struct ocfs2_info_freefrag *ffg,
++					  u32 chunks_in_group)
+ {
+ 	int status = 0, used;
+ 	u64 blkno;
+@@ -572,9 +573,9 @@ bail:
+ 	return status;
+ }
+ 
+-int ocfs2_info_freefrag_scan_bitmap(struct ocfs2_super *osb,
+-				    struct inode *gb_inode, u64 blkno,
+-				    struct ocfs2_info_freefrag *ffg)
++static int ocfs2_info_freefrag_scan_bitmap(struct ocfs2_super *osb,
++					   struct inode *gb_inode, u64 blkno,
++					   struct ocfs2_info_freefrag *ffg)
+ {
+ 	u32 chunks_in_group;
+ 	int status = 0, unlock = 0, i;
+@@ -652,8 +653,8 @@ bail:
+ 	return status;
+ }
+ 
+-int ocfs2_info_handle_freefrag(struct inode *inode,
+-			       struct ocfs2_info_request __user *req)
++static int ocfs2_info_handle_freefrag(struct inode *inode,
++				      struct ocfs2_info_request __user *req)
+ {
+ 	u64 blkno = -1;
+ 	char namebuf[40];
+@@ -723,8 +724,8 @@ out_err:
+ 	return status;
+ }
+ 
+-int ocfs2_info_handle_unknown(struct inode *inode,
+-			      struct ocfs2_info_request __user *req)
++static int ocfs2_info_handle_unknown(struct inode *inode,
++				     struct ocfs2_info_request __user *req)
+ {
+ 	int status = -EFAULT;
+ 	struct ocfs2_info_request oir;
+@@ -752,8 +753,8 @@ bail:
+  * - distinguish different requests.
+  * - validate size of different requests.
+  */
+-int ocfs2_info_handle_request(struct inode *inode,
+-			      struct ocfs2_info_request __user *req)
++static int ocfs2_info_handle_request(struct inode *inode,
++				     struct ocfs2_info_request __user *req)
+ {
+ 	int status = -EFAULT;
+ 	struct ocfs2_info_request oir;
+@@ -811,8 +812,8 @@ bail:
+ 	return status;
+ }
+ 
+-int ocfs2_get_request_ptr(struct ocfs2_info *info, int idx,
+-			  u64 *req_addr, int compat_flag)
++static int ocfs2_get_request_ptr(struct ocfs2_info *info, int idx,
++				 u64 *req_addr, int compat_flag)
+ {
+ 	int status = -EFAULT;
+ 	u64 __user *bp = NULL;
+@@ -849,8 +850,8 @@ bail:
+  * a better backward&forward compatibility, since a small piece of
+  * request will be less likely to be broken if disk layout get changed.
+  */
+-int ocfs2_info_handle(struct inode *inode, struct ocfs2_info *info,
+-		      int compat_flag)
++static int ocfs2_info_handle(struct inode *inode, struct ocfs2_info *info,
++			     int compat_flag)
+ {
+ 	int i, status = 0;
+ 	u64 req_addr;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -107,6 +283,7 @@ fs-configfs-convert-printk-to-pr_foo.patch
 fs-configfs-use-pr_fmt.patch
 ocfs2-remove-null-assignments-on-static.patch
 fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-ocfs2-ioctlc-add-static-to-local-functions.patch
 fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
 fs-9p-kerneldoc-fixes.patch
 fs-add-generic-data-flush-to-fsync.patch
