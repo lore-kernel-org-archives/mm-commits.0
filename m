@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch added to
- -mm tree
-Date: Tue, 27 May 2014 15:15:28 -0700
-Message-ID: <53850e80.22Q2pYzZorr4TNxN%akpm@linux-foundation.org>
+Subject: + ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
+ added to -mm tree
+Date: Tue, 27 May 2014 15:53:26 -0700
+Message-ID: <53851766.aH9YdXKcl3OC/mWG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55045 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55769 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697AbaE0WP3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 18:15:29 -0400
+	with ESMTP id S1751868AbaE0Wx1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 18:53:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, hughd@google.com
+To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, joe@perches.com, davidlohr@hp.com, manfred@colorfullife.com
 
-Subject: + memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch added to -mm tree
-To: hughd@google.com,hannes@cmpxchg.org,mhocko@suse.cz
+Subject: + ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch added to -mm tree
+To: manfred@colorfullife.com,davidlohr@hp.com,joe@perches.com,mtk.manpages@gmail.com
 From: akpm@linux-foundation.org
-Date: Tue, 27 May 2014 15:15:28 -0700
+Date: Tue, 27 May 2014 15:53:26 -0700
 
 
 The patch titled
-     Subject: memcg-mm-introduce-lowlimit-reclaim-fix2.patch
+     Subject: ipc/sem.c: add a printk_once for semctl(GETNCNT/GETZCNT)
 has been added to the -mm tree.  Its filename is
-     memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
+     ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,102 +44,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: memcg-mm-introduce-lowlimit-reclaim-fix2.patch
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: add a printk_once for semctl(GETNCNT/GETZCNT)
 
-mem_cgroup_within_guarantee() oopses in _raw_spin_lock_irqsave() when
-booted with cgroup_disable=memory.  Fix that in the obvious inelegant way
-for now - though I hope we are moving towards a world in which almost all
-of the mem_cgroup_disabled() tests will vanish, with a root_mem_cgroup
-which can handle the basics even when disabled.
+The actual Linux implementation for semctl(GETNCNT) and semctl(GETZCNT)
+always (since 0.99.10) reported a thread as sleeping on all semaphores
+that are listed in the semop() call.
 
-I bet there's a neater way of doing this, rearranging the loop (and we
-shall want to avoid spinlocking on root_mem_cgroup when we reach that new
-world), but that's the kind of thing I'd get wrong in a hurry!
+The documented behavior (both in the Linux man page and in the Single Unix
+Specification) is that a task should be reported on exactly one semaphore:
+The semaphore that caused the thread to got to sleep.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+This patch adds a pr_info_once() that is triggered if a thread hits
+the relevant case.
+
+The code triggers slightly too often, otherwise it would be necessary to
+replicate the old code.  As there are no known users of GETNCNT or
+GETZCNT, this is done to prevent unnecessary bloat.
+
+The task that triggered is reported with name (tsk->comm) and pid.
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +++
- 1 file changed, 3 insertions(+)
+ ipc/sem.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim-fix2patch mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim-fix2patch
-+++ a/mm/memcontrol.c
-@@ -2809,6 +2809,9 @@ static struct mem_cgroup *mem_cgroup_loo
- bool mem_cgroup_within_guarantee(struct mem_cgroup *memcg,
- 		struct mem_cgroup *root)
+diff -puN ipc/sem.c~ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt
++++ a/ipc/sem.c
+@@ -1000,6 +1000,17 @@ static int check_qop(struct sem_array *s
  {
-+	if (mem_cgroup_disabled())
-+		return false;
+ 	struct sembuf *sop = q->blocking;
+ 
++	/*
++	 * Linux always (since 0.99.10) reported a task as sleeping on all
++	 * semaphores. This violates SUS, therefore it was changed to the
++	 * standard compliant behavior.
++	 * Give the administrators a chance to notice that an application
++	 * might misbehave because it relies on the Linux behavior.
++	 */
++	pr_info_once("semctl(GETNCNT/GETZCNT) is since 3.16 Single Unix Specification compliant.\n"
++			"The task %s (%d) triggered the difference, watch for misbehavior.\n",
++			current->comm, task_pid_nr(current));
 +
- 	do {
- 		if (!res_counter_low_limit_excess(&memcg->res))
- 			return true;
+ 	if (sop->sem_num != semnum)
+ 		return 0;
+ 
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally.patch
-mm-softdirty-dont-forget-to-save-file-map-softdiry-bit-on-unmap.patch
-mm-softdirty-clear-vm_softdirty-flag-inside-clear_refs_write-instead-of-clear_soft_dirty.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-numa-add-migrated-transhuge-pages-to-lru-the-same-way-as-base-pages.patch
-fs-bufferc-remove-block_write_full_page_endio.patch
-fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage.patch
-fs-mpagec-factor-page_endio-out-of-mpage_end_io.patch
-fs-block_devc-add-bdev_read_page-and-bdev_write_page.patch
-swap-use-bdev_read_page-bdev_write_page.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-brd-add-support-for-rw_page.patch
-brd-return-enospc-rather-than-enomem-on-page-allocation-failure.patch
-mm-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
-mm-add-comment-for-__mod_zone_page_stat.patch
-mm-add-comment-for-__mod_zone_page_stat-checkpatch-fixes.patch
-mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
-swap-change-swap_info-singly-linked-list-to-list_head.patch
-plist-add-helper-functions.patch
-plist-add-plist_requeue.patch
-swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
-jump_label-expose-the-reference-count.patch
-mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
-mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
-mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
-mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
-mm-page_alloc-use-word-based-accesses-for-get-set-pageblock-bitmaps.patch
-mm-page_alloc-reduce-number-of-times-page_to_pfn-is-called.patch
-mm-page_alloc-lookup-pageblock-migratetype-with-irqs-enabled-during-free.patch
-mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
-mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
-mm-shmem-avoid-atomic-operation-during-shmem_getpage_gfp.patch
-mm-do-not-use-atomic-operations-when-releasing-pages.patch
-mm-do-not-use-unnecessary-atomic-operations-when-adding-pages-to-the-lru.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
-mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref.patch
-fs-superblock-unregister-sb-shrinker-before-kill_sb.patch
-fs-superblock-avoid-locking-counting-inodes-and-dentries-before-reclaiming-them.patch
-mm-vmscan-use-proportional-scanning-during-direct-reclaim-and-full-scan-at-def_priority.patch
-mm-process_vm_access-move-config-option-into-init-kconfig.patch
-linux-next.patch
-memcg-mm-introduce-lowlimit-reclaim.patch
-memcg-mm-introduce-lowlimit-reclaim-fix.patch
-memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
-memcg-allow-setting-low_limit.patch
-memcg-doc-clarify-global-vs-limit-reclaims.patch
-memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
-memcg-document-memorylow_limit_in_bytes.patch
-vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
-vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o-om-control-fixpatch.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+ipc-constify-ipc_ops.patch
+ipc-shmc-check-for-ulong-overflows-in-shmat.patch
+ipc-shmc-check-for-overflows-of-shm_tot.patch
+ipc-shmc-check-for-integer-overflow-during-shmget.patch
+ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
+ipcshm-document-new-limits-in-the-uapi-header.patch
+ipcshm-document-new-limits-in-the-uapi-header-v2.patch
+ipcshm-document-new-limits-in-the-uapi-header-v3.patch
+ipcmsg-move-some-msgq-ns-code-around.patch
+ipcmsg-document-volatile-r_msg.patch
+ipc-semc-bugfix-for-semctlgetzcnt.patch
+ipc-semc-remove-code-duplication.patch
+ipc-semc-change-perform_atomic_semop-parameters.patch
+ipc-semc-store-which-operation-blocks-in-perform_atomic_semop.patch
+ipc-semc-make-semctlgetncntgetzcnt-standard-compliant.patch
+ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
+slab-leaks3-default-y.patch
 
