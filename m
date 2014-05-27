@@ -1,206 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-devresc-use-dev-in-devm_request_and_ioremap.patch
+Subject: [merged] mm-fix-some-indenting-in-cmpxchg_double_slab.patch
  removed from -mm tree
-Date: Tue, 27 May 2014 13:22:35 -0700
-Message-ID: <5384f40b.5GNiDhzxPZnom9Tv%akpm@linux-foundation.org>
+Date: Tue, 27 May 2014 13:22:37 -0700
+Message-ID: <5384f40d.Ax/dl9d9WCxCi5jx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53757 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53764 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108AbaE0UWg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 16:22:36 -0400
+	with ESMTP id S1752108AbaE0UWi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 16:22:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gregkh@linuxfoundation.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, cl@linux-foundation.org, dan.carpenter@oracle.com
 
-Subject: [merged] lib-devresc-use-dev-in-devm_request_and_ioremap.patch removed from -mm tree
-To: fabf@skynet.be,gregkh@linuxfoundation.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-fix-some-indenting-in-cmpxchg_double_slab.patch removed from -mm tree
+To: dan.carpenter@oracle.com,cl@linux-foundation.org,penberg@kernel.org,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 27 May 2014 13:22:35 -0700
+Date: Tue, 27 May 2014 13:22:37 -0700
 
 
 The patch titled
-     Subject: lib/devres.c: use dev in devm_request_and_ioremap
+     Subject: mm/slub.c: fix some indenting in cmpxchg_double_slab()
 has been removed from the -mm tree.  Its filename was
-     lib-devresc-use-dev-in-devm_request_and_ioremap.patch
+     mm-fix-some-indenting-in-cmpxchg_double_slab.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/devres.c: use dev in devm_request_and_ioremap
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: mm/slub.c: fix some indenting in cmpxchg_double_slab()
 
-devm_request_and_ioremap was the only function to use device instead of
-dev(this fixes kernel-doc warning).
+The return statement goes with the cmpxchg_double() condition so it needs
+to be indented another tab.
 
-Also fix some checkpatch warnings.
+Also these days the fashion is to line function parameters up, and it
+looks nicer that way because then the "freelist_new" is not at the same
+indent level as the "return 1;".
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/devres.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/slub.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN lib/devres.c~lib-devresc-use-dev-in-devm_request_and_ioremap lib/devres.c
---- a/lib/devres.c~lib-devresc-use-dev-in-devm_request_and_ioremap
-+++ a/lib/devres.c
-@@ -157,12 +157,11 @@ EXPORT_SYMBOL(devm_ioremap_resource);
-  *	if (!base)
-  *		return -EADDRNOTAVAIL;
-  */
--void __iomem *devm_request_and_ioremap(struct device *device,
--				       struct resource *res)
-+void __iomem *devm_request_and_ioremap(struct device *dev, struct resource *res)
- {
- 	void __iomem *dest_ptr;
- 
--	dest_ptr = devm_ioremap_resource(device, res);
-+	dest_ptr = devm_ioremap_resource(dev, res);
- 	if (IS_ERR(dest_ptr))
- 		return NULL;
- 
-@@ -194,7 +193,7 @@ static int devm_ioport_map_match(struct
-  * Managed ioport_map().  Map is automatically unmapped on driver
-  * detach.
-  */
--void __iomem * devm_ioport_map(struct device *dev, unsigned long port,
-+void __iomem *devm_ioport_map(struct device *dev, unsigned long port,
- 			       unsigned int nr)
- {
- 	void __iomem **ptr, *addr;
-@@ -265,7 +264,7 @@ static void pcim_iomap_release(struct de
-  * be safely called without context and guaranteed to succed once
-  * allocated.
-  */
--void __iomem * const * pcim_iomap_table(struct pci_dev *pdev)
-+void __iomem * const *pcim_iomap_table(struct pci_dev *pdev)
- {
- 	struct pcim_iomap_devres *dr, *new_dr;
- 
-@@ -290,7 +289,7 @@ EXPORT_SYMBOL(pcim_iomap_table);
-  * Managed pci_iomap().  Map is automatically unmapped on driver
-  * detach.
-  */
--void __iomem * pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
-+void __iomem *pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
- {
- 	void __iomem **tbl;
- 
+diff -puN mm/slub.c~mm-fix-some-indenting-in-cmpxchg_double_slab mm/slub.c
+--- a/mm/slub.c~mm-fix-some-indenting-in-cmpxchg_double_slab
++++ a/mm/slub.c
+@@ -382,9 +382,9 @@ static inline bool __cmpxchg_double_slab
+     defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
+ 	if (s->flags & __CMPXCHG_DOUBLE) {
+ 		if (cmpxchg_double(&page->freelist, &page->counters,
+-			freelist_old, counters_old,
+-			freelist_new, counters_new))
+-		return 1;
++				   freelist_old, counters_old,
++				   freelist_new, counters_new))
++			return 1;
+ 	} else
+ #endif
+ 	{
+@@ -418,9 +418,9 @@ static inline bool cmpxchg_double_slab(s
+     defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
+ 	if (s->flags & __CMPXCHG_DOUBLE) {
+ 		if (cmpxchg_double(&page->freelist, &page->counters,
+-			freelist_old, counters_old,
+-			freelist_new, counters_new))
+-		return 1;
++				   freelist_old, counters_old,
++				   freelist_new, counters_new))
++			return 1;
+ 	} else
+ #endif
+ 	{
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
-fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
-fs-fscache-convert-printk-to-pr_foo.patch
-fs-fscache-replace-seq_printf-by-seq_puts.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
-ntfs-remove-null-value-assignments.patch
-fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
-arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
-arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
-arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
-fs-configs-itemc-kernel-doc-fixes-clean-up.patch
-fs-configfs-convert-printk-to-pr_foo.patch
-fs-configfs-use-pr_fmt.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
-fs-9p-kerneldoc-fixes.patch
-fs-add-generic-data-flush-to-fsync.patch
-fs-add-generic-data-flush-to-fsync-fix.patch
-fs-add-generic-data-flush-to-fsync-fix-fix.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-mm-slubc-convert-printk-to-pr_foo.patch
-mm-slubc-convert-vnsprintf-static-to-va_format.patch
-mm-memory_hotplugc-use-pfn_down.patch
-mm-memblockc-use-pfn_down.patch
-mm-memcontrolc-remove-null-assignment-on-static.patch
-mm-vmallocc-replace-seq_printf-by-seq_puts.patch
-mm-mempolicyc-parameter-doc-uniformization.patch
-fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch
-fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch
-fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
-mm-zbudc-make-size-unsigned-like-unique-callsite.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
-fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
-kernel-cpuc-convert-printk-to-pr_foo.patch
-kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
-kernel-capabilityc-code-clean-up.patch
-kernel-exec_domainc-code-clean-up.patch
-kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
-kernel-stop_machinec-kernel-doc-warning-fix.patch
-kernel-tracepointc-kernel-doc-fixes.patch
-kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
-kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
-kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
-kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
-documentation-expand-clarify-debug-documentation.patch
-lib-libcrc32cc-use-ptr_err_or_zero.patch
-lib-vsprintfc-fix-comparison-to-bool.patch
-lib-radix-treec-kernel-doc-warning-fix.patch
-lib-crc32c-remove-unnecessary-__constant.patch
-lib-digsigc-kernel-doc-warning-fixes.patch
-lib-nlattrc-move-export_symbol-after-functions.patch
-kernel-compatc-use-sizeof-instead-of-sizeof.patch
-fs-efs-convert-printk-to-pr_foo.patch
-fs-efs-add-pr_fmt-use-__func__.patch
-fs-efs-convert-printkkern_debug-to-pr_debug.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-coda-replace-printk-by-pr_foo.patch
-fs-coda-logging-prefix-uniformization.patch
-fs-coda-use-__func__.patch
-fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
-fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
-fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
-fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
-fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-hpfs-convert-printk-to-pr_foo.patch
-fs-hpfs-use-pr_fmt-for-logging.patch
-fs-hpfs-use-__func__-for-logging.patch
-fs-hpfs-increase-pr_warn-level.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
-fs-devpts-inodec-convert-printk-to-pr_foo.patch
-fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
+mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref-fix.patch
+lib-stringc-use-the-name-c-string-in-comments.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-fs-dlm-configc-convert-simple_str-to-kstr.patch
-fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
-fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
-mm-kmemleak-testc-use-pr_fmt-for-logging.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
 
