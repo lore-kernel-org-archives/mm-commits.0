@@ -1,47 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + fs-superc-avoid-counting-without-__gfp_fs.patch added to -mm
- tree
-Date: Tue, 27 May 2014 14:24:28 -0700
-Message-ID: <5385028c.eRRm/6e3XkPotvtU%akpm@linux-foundation.org>
+Subject: [nacked] fs-superc-avoid-counting-without-__gfp_fs.patch removed
+ from -mm tree
+Date: Tue, 27 May 2014 14:25:01 -0700
+Message-ID: <538502ad.kW7Ciz21CZd3s67K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54545 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54562 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991AbaE0VY3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 17:24:29 -0400
+	with ESMTP id S1753627AbaE0VZD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 17:25:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, yuanhan.liu@linux.intel.com, viro@zeniv.linux.org.uk, tim.c.chen@linux.intel.com, riel@redhat.com, mgorman@suse.de, jack@suse.cz, hannes@cmpxchg.org, david@fromorbit.com, bob.liu@oracle.com, hughd@google.com
 
-Subject: + fs-superc-avoid-counting-without-__gfp_fs.patch added to -mm tree
-To: hughd@google.com,bob.liu@oracle.com,david@fromorbit.com,hannes@cmpxchg.org,jack@suse.cz,mgorman@suse.de,riel@redhat.com,tim.c.chen@linux.intel.com,viro@zeniv.linux.org.uk,yuanhan.liu@linux.intel.com
+Subject: [nacked] fs-superc-avoid-counting-without-__gfp_fs.patch removed from -mm tree
+To: hughd@google.com,bob.liu@oracle.com,david@fromorbit.com,hannes@cmpxchg.org,jack@suse.cz,mgorman@suse.de,riel@redhat.com,tim.c.chen@linux.intel.com,viro@zeniv.linux.org.uk,yuanhan.liu@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 27 May 2014 14:24:28 -0700
+Date: Tue, 27 May 2014 14:25:01 -0700
 
 
 The patch titled
      Subject: fs/super.c: avoid counting without __GFP_FS
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      fs-superc-avoid-counting-without-__gfp_fs.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-superc-avoid-counting-without-__gfp_fs.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-superc-avoid-counting-without-__gfp_fs.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
@@ -134,7 +120,6 @@ fs-superblock-unregister-sb-shrinker-before-kill_sb.patch
 fs-superblock-avoid-locking-counting-inodes-and-dentries-before-reclaiming-them.patch
 mm-vmscan-use-proportional-scanning-during-direct-reclaim-and-full-scan-at-def_priority.patch
 mm-process_vm_access-move-config-option-into-init-kconfig.patch
-fs-superc-avoid-counting-without-__gfp_fs.patch
 linux-next.patch
 memcg-mm-introduce-lowlimit-reclaim.patch
 memcg-mm-introduce-lowlimit-reclaim-fix.patch
