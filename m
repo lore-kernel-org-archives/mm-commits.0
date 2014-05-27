@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o-om-control-fixpatch.patch added to -mm tree
-Date: Tue, 27 May 2014 15:01:54 -0700
-Message-ID: <53850b52.aBjYOJumHEdvw/oc%akpm@linux-foundation.org>
+Subject: + memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch added to
+ -mm tree
+Date: Tue, 27 May 2014 15:15:28 -0700
+Message-ID: <53850e80.22Q2pYzZorr4TNxN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54781 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55045 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752528AbaE0WBz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 18:01:55 -0400
+	with ESMTP id S1751697AbaE0WP3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 May 2014 18:15:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, hughd@google.com
 
-Subject: + vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o-om-control-fixpatch.patch added to -mm tree
+Subject: + memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch added to -mm tree
 To: hughd@google.com,hannes@cmpxchg.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 27 May 2014 15:01:54 -0700
+Date: Tue, 27 May 2014 15:15:28 -0700
 
 
 The patch titled
-     Subject:  vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o om-control-fix.patch
+     Subject: memcg-mm-introduce-lowlimit-reclaim-fix2.patch
 has been added to the -mm tree.  Its filename is
-     vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o-om-control-fixpatch.patch
+     memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o-om-control-fixpatch.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o-om-control-fixpatch.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,13 +45,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject:  vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o om-control-fix.patch
+Subject: memcg-mm-introduce-lowlimit-reclaim-fix2.patch
 
-mem_cgroup_swappiness() oopses immediately when booted with
-cgroup_disable=memory.  Fix that in the obvious inelegant way for now -
-though I hope we are moving towards a world in which almost all of the
-mem_cgroup_disabled() tests will vanish, with a root_mem_cgroup which can
-handle the basics even when disabled.
+mem_cgroup_within_guarantee() oopses in _raw_spin_lock_irqsave() when
+booted with cgroup_disable=memory.  Fix that in the obvious inelegant way
+for now - though I hope we are moving towards a world in which almost all
+of the mem_cgroup_disabled() tests will vanish, with a root_mem_cgroup
+which can handle the basics even when disabled.
+
+I bet there's a neater way of doing this, rearranging the loop (and we
+shall want to avoid spinlocking on root_mem_cgroup when we reach that new
+world), but that's the kind of thing I'd get wrong in a hurry!
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -59,21 +63,22 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/memcontrol.c~vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o-om-control-fixpatch mm/memcontrol.c
---- a/mm/memcontrol.c~vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o-om-control-fixpatch
+diff -puN mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim-fix2patch mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim-fix2patch
 +++ a/mm/memcontrol.c
-@@ -1548,7 +1548,7 @@ static unsigned long mem_cgroup_margin(s
- int mem_cgroup_swappiness(struct mem_cgroup *memcg)
+@@ -2809,6 +2809,9 @@ static struct mem_cgroup *mem_cgroup_loo
+ bool mem_cgroup_within_guarantee(struct mem_cgroup *memcg,
+ 		struct mem_cgroup *root)
  {
- 	/* root ? */
--	if (!memcg->css.parent)
-+	if (mem_cgroup_disabled() || !memcg->css.parent)
- 		return vm_swappiness;
- 
- 	return memcg->swappiness;
++	if (mem_cgroup_disabled())
++		return false;
++
+ 	do {
+ 		if (!res_counter_low_limit_excess(&memcg->res))
+ 			return true;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
