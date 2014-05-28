@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-call-mmu_notifier_invalidate_page-during-munlock.patch
+Subject: + maintainers-add-me-as-the-get_maintainerpl-maintainer.patch
  added to -mm tree
-Date: Wed, 28 May 2014 16:10:03 -0700
-Message-ID: <53866ccb.RMnfFVP9YOXyCspu%akpm@linux-foundation.org>
+Date: Wed, 28 May 2014 16:27:59 -0700
+Message-ID: <538670ff.Loi4zNcerD/PlKkp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43228 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43768 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753144AbaE1XKE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 May 2014 19:10:04 -0400
+	with ESMTP id S1751690AbaE1X2A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 May 2014 19:28:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, koct9i@gmail.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + mm-dont-call-mmu_notifier_invalidate_page-during-munlock.patch added to -mm tree
-To: koct9i@gmail.com,riel@redhat.com
+Subject: + maintainers-add-me-as-the-get_maintainerpl-maintainer.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 28 May 2014 16:10:03 -0700
+Date: Wed, 28 May 2014 16:27:59 -0700
 
 
 The patch titled
-     Subject: mm/rmap.c: don't call mmu_notifier_invalidate_page() during munlock
+     Subject: MAINTAINERS: add Joe as the get_maintainer.pl maintainer
 has been added to the -mm tree.  Its filename is
-     mm-dont-call-mmu_notifier_invalidate_page-during-munlock.patch
+     maintainers-add-me-as-the-get_maintainerpl-maintainer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-call-mmu_notifier_invalidate_page-during-munlock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-me-as-the-get_maintainerpl-maintainer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-call-mmu_notifier_invalidate_page-during-munlock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-me-as-the-get_maintainerpl-maintainer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,39 +44,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mm/rmap.c: don't call mmu_notifier_invalidate_page() during munlock
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: add Joe as the get_maintainer.pl maintainer
 
-In its munmap mode, try_to_unmap_one() searches other mlocked vmas, it
-never unmaps pages.  There is no reason for invalidation because ptes are
-left unchanged.
+Might as well be the get_maintainer maintainer...
 
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/rmap.c~mm-dont-call-mmu_notifier_invalidate_page-during-munlock mm/rmap.c
---- a/mm/rmap.c~mm-dont-call-mmu_notifier_invalidate_page-during-munlock
-+++ a/mm/rmap.c
-@@ -1246,7 +1246,7 @@ static int try_to_unmap_one(struct page
+diff -puN MAINTAINERS~maintainers-add-me-as-the-get_maintainerpl-maintainer MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-me-as-the-get_maintainerpl-maintainer
++++ a/MAINTAINERS
+@@ -3886,6 +3886,11 @@ L:	kvm@vger.kernel.org
+ S:	Supported
+ F:	drivers/uio/uio_pci_generic.c
  
- out_unmap:
- 	pte_unmap_unlock(pte, ptl);
--	if (ret != SWAP_FAIL)
-+	if (ret != SWAP_FAIL && TTU_ACTION(flags) != TTU_MUNLOCK)
- 		mmu_notifier_invalidate_page(mm, address);
- out:
- 	return ret;
++GET_MAINTAINER SCRIPT
++M:	Joe Perches <joe@perches.com>
++S:	Maintained
++F:	scripts/get_maintainer.pl
++
+ GFS2 FILE SYSTEM
+ M:	Steven Whitehouse <swhiteho@redhat.com>
+ L:	cluster-devel@redhat.com
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-tools-vm-page-typesc-catch-sigbus-if-raced-with-truncate.patch
-mm-process_vm_access-move-config-option-into-init-kconfig.patch
-mm-dont-call-mmu_notifier_invalidate_page-during-munlock.patch
+maintainers-add-me-as-the-get_maintainerpl-maintainer.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+documentation-expand-clarify-debug-documentation.patch
+printk-use-symbolic-defines-for-console-loglevels.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-fix-wildcard-dt-compatible-string-checking.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-improve-missing-blank-line-after-declarations-test.patch
+checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
+checkpatch-warn-on-defines-ending-in-semicolon.patch
+checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch
+fs-efs-convert-printk-to-pr_foo.patch
+fs-efs-add-pr_fmt-use-__func__.patch
+fs-efs-convert-printkkern_debug-to-pr_debug.patch
+init-mainc-dont-use-pr_debug.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
 linux-next.patch
+arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+tile-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+parport-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+scsi-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ntfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ipc-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+mm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+maintainers-add-linux-api-for-review-of-api-abi-changes.patch
 
