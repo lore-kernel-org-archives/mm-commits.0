@@ -1,147 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch removed from -mm tree
-Date: Thu, 29 May 2014 14:31:49 -0700
-Message-ID: <5387a745.eqaNOzMEuyNqeay5%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5.patch removed from -mm tree
+Date: Thu, 29 May 2014 14:32:37 -0700
+Message-ID: <5387a775.jpYZFONn9Kbmhm9v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45109 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755299AbaE2Vbu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 17:31:50 -0400
+	with ESMTP id S1753484AbaE2Vci (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 17:32:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, rostedt@goodmis.org, rjw@rjwysocki.net, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, mgalbraith@suse.de, hch@infradead.org, fweisbec@gmail.com, ego@linux.vnet.ibm.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, peterz@infradead.org, oleg@redhat.com, fweisbec@gmail.com, srivatsa.bhat@linux.vnet.ibm.com
 
-Subject: [withdrawn] cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch removed from -mm tree
-To: srivatsa.bhat@linux.vnet.ibm.com,bp@suse.de,ego@linux.vnet.ibm.com,fweisbec@gmail.com,hch@infradead.org,mgalbraith@suse.de,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,rjw@rjwysocki.net,rostedt@goodmis.org,rusty@rustcorp.com.au,tglx@linutronix.de,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [to-be-updated] cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5.patch removed from -mm tree
+To: srivatsa.bhat@linux.vnet.ibm.com,fweisbec@gmail.com,oleg@redhat.com,peterz@infradead.org,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 29 May 2014 14:31:49 -0700
+Date: Thu, 29 May 2014 14:32:37 -0700
 
 
 The patch titled
-     Subject: cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3
+     Subject: CPU hotplug, smp: Flush any pending IPI callbacks before CPU offline
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
+     cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3
+From: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: CPU hotplug, smp: Flush any pending IPI callbacks before CPU offline
+
+During CPU offline, in the stop-machine loop, we use 2 separate stages to
+disable interrupts, to ensure that the CPU going offline doesn't get any
+new IPIs from the other CPUs after it has gone offline.
+
+However, an IPI sent much earlier might arrive late on the target CPU
+(possibly _after_ the CPU has gone offline) due to hardware latencies, and
+due to this, the smp-call-function callbacks queued on the outgoing CPU
+might not get noticed (and hence not executed) at all.
+
+This is somewhat theoretical, but in any case, it makes sense to
+explicitly loop through the call_single_queue and flush any pending
+callbacks before the CPU goes completely offline.  So, flush the queued
+smp-call-function callbacks in the MULTI_STOP_DISABLE_IRQ_ACTIVE stage,
+after disabling interrupts on the active CPU.  This can be trivially
+achieved by invoking the generic_smp_call_function_single_interrupt()
+function itself (and since the outgoing CPU is still online at this point,
+we won't trigger the "IPI to offline CPU" warning in this function; so we
+are safe to call it here).
+
+This way, we would have handled all the queued callbacks before going
+offline, and also, no new IPIs can be sent by the other CPUs to the
+outgoing CPU at that point, because they will all be executing the
+stop-machine code with interrupts disabled.
 
 Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Suggested-by: Frederic Weisbecker <fweisbec@gmail.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Mike Galbraith <mgalbraith@suse.de>
-Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/stop_machine.c |   43 +++++++++++++++++-----------------------
- 1 file changed, 19 insertions(+), 24 deletions(-)
+ include/linux/smp.h   |    2 ++
+ kernel/smp.c          |   17 ++++++++++++++---
+ kernel/stop_machine.c |   11 +++++++++++
+ 3 files changed, 27 insertions(+), 3 deletions(-)
 
-diff -puN kernel/stop_machine.c~cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3 kernel/stop_machine.c
---- a/kernel/stop_machine.c~cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3
-+++ a/kernel/stop_machine.c
-@@ -130,8 +130,10 @@ enum multi_stop_state {
- 	MULTI_STOP_NONE,
- 	/* Awaiting everyone to be scheduled. */
- 	MULTI_STOP_PREPARE,
--	/* Disable interrupts. */
--	MULTI_STOP_DISABLE_IRQ,
-+	/* Disable interrupts on CPUs not in ->active_cpus mask. */
-+	MULTI_STOP_DISABLE_IRQ_INACTIVE,
-+	/* Disable interrupts on CPUs in ->active_cpus mask. */
-+	MULTI_STOP_DISABLE_IRQ_ACTIVE,
- 	/* Run the function */
- 	MULTI_STOP_RUN,
- 	/* Exit */
-@@ -165,13 +167,12 @@ static void ack_state(struct multi_stop_
- 		set_state(msdata, msdata->state + 1);
+diff -puN include/linux/smp.h~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5 include/linux/smp.h
+--- a/include/linux/smp.h~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5
++++ a/include/linux/smp.h
+@@ -151,6 +151,8 @@ smp_call_function_any(const struct cpuma
+ 
+ static inline void kick_all_cpus_sync(void) {  }
+ 
++static inline void generic_smp_call_function_single_interrupt(void) { }
++
+ #endif /* !SMP */
+ 
+ /*
+diff -puN kernel/smp.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5 kernel/smp.c
+--- a/kernel/smp.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5
++++ a/kernel/smp.c
+@@ -177,9 +177,18 @@ static int generic_exec_single(int cpu,
+ 	return 0;
  }
  
--
- /* This is the cpu_stop function which stops the CPU. */
- static int multi_cpu_stop(void *data)
+-/*
+- * Invoked by arch to handle an IPI for call function single. Must be
+- * called from the arch with interrupts disabled.
++/**
++ * generic_smp_call_function_single_interrupt - Execute SMP IPI callbacks
++ *
++ * Invoked by arch to handle an IPI for call function single.
++ *
++ * This is also invoked by a CPU about to go offline, to flush any pending
++ * smp-call-function callbacks queued on this CPU (including those for which
++ * the source CPU's IPIs might not have been received on this CPU yet).
++ * This ensures that all pending IPI callbacks are run before the CPU goes
++ * completely offline.
++ *
++ * Must be called with interrupts disabled.
+  */
+ void generic_smp_call_function_single_interrupt(void)
  {
- 	struct multi_stop_data *msdata = data;
- 	enum multi_stop_state curstate = MULTI_STOP_NONE;
--	int cpu = smp_processor_id(), num_active_cpus, err = 0;
-+	int cpu = smp_processor_id(), err = 0;
- 	unsigned long flags;
- 	bool is_active;
+@@ -187,6 +196,8 @@ void generic_smp_call_function_single_in
+ 	struct call_single_data *csd, *csd_next;
+ 	static bool warned;
  
-@@ -181,13 +182,10 @@ static int multi_cpu_stop(void *data)
- 	 */
- 	local_save_flags(flags);
- 
--	if (!msdata->active_cpus) {
-+	if (!msdata->active_cpus)
- 		is_active = cpu == cpumask_first(cpu_online_mask);
--		num_active_cpus = 1;
--	} else {
-+	else
- 		is_active = cpumask_test_cpu(cpu, msdata->active_cpus);
--		num_active_cpus = cpumask_weight(msdata->active_cpus);
--	}
- 
- 	/* Simple state machine */
- 	do {
-@@ -197,26 +195,23 @@ static int multi_cpu_stop(void *data)
- 		/*
- 		 * In the case of CPU offline, we don't want the other CPUs to
- 		 * send IPIs to the active_cpu (the one going offline) after it
--		 * has entered the _DISABLE_IRQ state (because, then it will
--		 * notice the IPIs only after it goes offline). So ensure that
--		 * the active_cpu always follows the others while entering
--		 * each subsequent state in this state-machine.
--		 *
--		 * msdata->thread_ack tracks the number of CPUs that are yet to
--		 * move to the next state, during each transition. So make the
--		 * active_cpu(s) wait until ->thread_ack indicates that the
--		 * active_cpus are the only ones left to complete the transition.
-+		 * has disabled interrupts in the _DISABLE_IRQ state (because,
-+		 * then it will notice the IPIs only after it goes offline). So
-+		 * we split this state into _INACTIVE and _ACTIVE, and thereby
-+		 * ensure that the active_cpu disables interrupts only after
-+		 * the other CPUs do the same thing.
- 		 */
--		if (is_active) {
--			/* Wait until all the non-active threads ack the state */
--			while (atomic_read(&msdata->thread_ack) > num_active_cpus)
--				cpu_relax();
--		}
- 
- 		if (msdata->state != curstate) {
- 			curstate = msdata->state;
- 			switch (curstate) {
--			case MULTI_STOP_DISABLE_IRQ:
-+			case MULTI_STOP_DISABLE_IRQ_INACTIVE:
-+				if (is_active)
-+					break;
++	WARN_ON(!irqs_disabled());
 +
-+				/* Else, fall-through */
+ 	entry = llist_del_all(&__get_cpu_var(call_single_queue));
+ 	entry = llist_reverse_order(entry);
+ 
+diff -puN kernel/stop_machine.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5 kernel/stop_machine.c
+--- a/kernel/stop_machine.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5
++++ a/kernel/stop_machine.c
+@@ -21,6 +21,7 @@
+ #include <linux/smpboot.h>
+ #include <linux/atomic.h>
+ #include <linux/lglock.h>
++#include <linux/smp.h>
+ 
+ /*
+  * Structure to determine completion condition and record errors.  May
+@@ -223,6 +224,16 @@ static int multi_cpu_stop(void *data)
+ 				if (is_active) {
+ 					local_irq_disable();
+ 					hard_irq_disable();
 +
-+			case MULTI_STOP_DISABLE_IRQ_ACTIVE:
- 				local_irq_disable();
- 				hard_irq_disable();
++					/*
++					 * IPIs (from the inactive CPUs) might
++					 * arrive late due to hardware latencies.
++					 * So flush out any pending IPI callbacks
++					 * explicitly, to ensure that the outgoing
++					 * CPU doesn't go offline with work still
++					 * pending (during CPU hotplug).
++					 */
++					generic_smp_call_function_single_interrupt();
+ 				}
  				break;
+ 			case MULTI_STOP_RUN:
 _
 
 Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
@@ -150,8 +152,6 @@ origin.patch
 smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
 smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
 smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
-cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v5.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5.patch
 cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5-checkpatch-fixes.patch
 linux-next.patch
 
