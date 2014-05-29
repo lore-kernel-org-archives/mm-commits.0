@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2.patch
- added to -mm tree
-Date: Thu, 29 May 2014 16:04:41 -0700
-Message-ID: <5387bd09.PBv/0LJMagACHxFM%akpm@linux-foundation.org>
+Subject: + arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch added to -mm
+ tree
+Date: Thu, 29 May 2014 16:09:54 -0700
+Message-ID: <5387be42.521nuQ79GZ8BxMwA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46213 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751538AbaE2XEm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 19:04:42 -0400
+	with ESMTP id S1753626AbaE2XJz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 19:09:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, linux@maxim.org.za, bevenson@melinkcorp.com, a.zummo@towertech.it, boris.brezillon@free-electrons.com
+To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, mark.roszko@gmail.com, linux@maxim.org.za, johan@hovold.com, bevenson@melinkcorp.com, a.zummo@towertech.it, boris.brezillon@free-electrons.com
 
-Subject: + rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2.patch added to -mm tree
-To: boris.brezillon@free-electrons.com,a.zummo@towertech.it,bevenson@melinkcorp.com,linux@maxim.org.za,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com
+Subject: + arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch added to -mm tree
+To: boris.brezillon@free-electrons.com,a.zummo@towertech.it,bevenson@melinkcorp.com,johan@hovold.com,linux@maxim.org.za,mark.roszko@gmail.com,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com
 From: akpm@linux-foundation.org
-Date: Thu, 29 May 2014 16:04:41 -0700
+Date: Thu, 29 May 2014 16:09:54 -0700
 
 
 The patch titled
-     Subject: rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2
+     Subject: ARM: at91: fix rtc irq mask for sam9x5 SoCs
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2.patch
+     arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,87 +45,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2
+Subject: ARM: at91: fix rtc irq mask for sam9x5 SoCs
 
-Changes since v1:
-- disable SECEV interrupt when the RTC is ready to accept new time updates
+The RTC IMR register is not reliable on sam9x5 SoCs, hence why me have to
+mask all interrupts no matter what IMR claims about already masked irqs.
+
+Mark said:
+
+: Atmel actually has this issue in the Errata of the SAM9G25 and SAM9G35
+: datasheets which might be worth referencing in the description?
 
 Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
-Cc: Bryan Evenson <bevenson@melinkcorp.com>
+Reported-by: Bryan Evenson <bevenson@melinkcorp.com>
+Tested-by: Bryan Evenson <bevenson@melinkcorp.com>
 Cc: Andrew Victor <linux@maxim.org.za>
 Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
 Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Mark Roszko <mark.roszko@gmail.com>
+Cc: Johan Hovold <johan@hovold.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/mach-at91/sysirq_mask.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2 drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -48,13 +48,12 @@ struct at91_rtc_config {
+diff -puN arch/arm/mach-at91/sysirq_mask.c~arm-at91-fix-rtc-irq-mask-for-sam9x5-socs arch/arm/mach-at91/sysirq_mask.c
+--- a/arch/arm/mach-at91/sysirq_mask.c~arm-at91-fix-rtc-irq-mask-for-sam9x5-socs
++++ a/arch/arm/mach-at91/sysirq_mask.c
+@@ -37,12 +37,7 @@ void __init at91_sysirq_mask_rtc(u32 rtc
+ 	if (!base)
+ 		return;
  
- static const struct at91_rtc_config *at91_rtc_config;
- static DECLARE_COMPLETION(at91_rtc_updated);
--static DECLARE_COMPLETION(at91_rtc_wait_upd_rdy);
-+static DECLARE_COMPLETION(at91_rtc_upd_rdy);
- static unsigned int at91_alarm_year = AT91_RTC_EPOCH;
- static void __iomem *at91_rtc_regs;
- static int irq;
- static DEFINE_SPINLOCK(at91_rtc_lock);
- static u32 at91_rtc_shadow_imr;
--static bool at91_rtc_upd_rdy;
+-	mask = readl_relaxed(base + AT91_RTC_IMR);
+-	if (mask) {
+-		pr_info("AT91: Disabling rtc irq\n");
+-		writel_relaxed(mask, base + AT91_RTC_IDR);
+-		(void)readl_relaxed(base + AT91_RTC_IMR);	/* flush */
+-	}
++	writel_relaxed(0x1f, base + AT91_RTC_IDR);
  
- static void at91_rtc_write_ier(u32 mask)
- {
-@@ -163,7 +162,7 @@ static int at91_rtc_settime(struct devic
- 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
- 		tm->tm_hour, tm->tm_min, tm->tm_sec);
- 
--	wait_for_completion(&at91_rtc_wait_upd_rdy);
-+	wait_for_completion(&at91_rtc_upd_rdy);
- 
- 	/* Stop Time/Calendar from counting */
- 	cr = at91_rtc_read(AT91_RTC_CR);
-@@ -187,8 +186,9 @@ static int at91_rtc_settime(struct devic
- 
- 	/* Restart Time/Calendar */
- 	cr = at91_rtc_read(AT91_RTC_CR);
--	at91_rtc_upd_rdy = 0;
-+	at91_rtc_write(AT91_RTC_SCCR, AT91_RTC_SECEV);
- 	at91_rtc_write(AT91_RTC_CR, cr & ~(AT91_RTC_UPDCAL | AT91_RTC_UPDTIM));
-+	at91_rtc_write_ier(AT91_RTC_SECEV);
- 
- 	return 0;
- }
-@@ -296,11 +296,8 @@ static irqreturn_t at91_rtc_interrupt(in
- 		if (rtsr & AT91_RTC_ALARM)
- 			events |= (RTC_AF | RTC_IRQF);
- 		if (rtsr & AT91_RTC_SECEV) {
--			events |= (RTC_UF | RTC_IRQF);
--			if (!at91_rtc_upd_rdy) {
--				at91_rtc_upd_rdy = 1;
--				complete(&at91_rtc_wait_upd_rdy);
--			}
-+			complete(&at91_rtc_upd_rdy);
-+			at91_rtc_write_idr(AT91_RTC_SECEV);
- 		}
- 		if (rtsr & AT91_RTC_ACKUPD)
- 			complete(&at91_rtc_updated);
-@@ -423,8 +420,11 @@ static int __init at91_rtc_probe(struct
- 		return PTR_ERR(rtc);
- 	platform_set_drvdata(pdev, rtc);
- 
--	/* Enable 1Hz events */
-+	/* enable SECEV interrupt in order to initialize at91_rtc_upd_rdy
-+	 * completion.
-+	 */
- 	at91_rtc_write_ier(AT91_RTC_SECEV);
-+
- 	dev_info(&pdev->dev, "AT91 Real Time Clock driver.\n");
- 	return 0;
+ 	iounmap(base);
  }
 _
 
@@ -133,5 +93,6 @@ Patches currently in -mm which might be from boris.brezillon@free-electrons.com 
 
 rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
 rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2.patch
+arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch
 linux-next.patch
 
