@@ -1,157 +1,207 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mm-fix-move_pages-follow_page-huge_addr-bug.patch
- removed from -mm tree
-Date: Thu, 29 May 2014 13:49:04 -0700
-Message-ID: <53879d40.iX7qICT7DHY6bkDo%akpm__5116.69556512988$1401396560$gmane$org@linux-foundation.org>
+Subject: [withdrawn]
+ cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch removed from -mm tree
+Date: Thu, 29 May 2014 14:31:47 -0700
+Message-ID: <5387a743.dwOZV7JL2lKRs5vu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45073 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754261AbaE2UtF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 16:49:05 -0400
+	with ESMTP id S1755299AbaE2Vbt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 17:31:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, n-horiguchi@ah.jp.nec.com, mpe@ellerman.id.au, hughd@google.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, rostedt@goodmis.org, rjw@rjwysocki.net, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, mgalbraith@suse.de, hch@infradead.org, fweisbec@gmail.com, ego@linux.vnet.ibm.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com
 
-Subject: [withdrawn] mm-fix-move_pages-follow_page-huge_addr-bug.patch removed from -mm tree
-To: hughd@google.com,mpe@ellerman.id.au,n-horiguchi@ah.jp.nec.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [withdrawn] cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch removed from -mm tree
+To: srivatsa.bhat@linux.vnet.ibm.com,bp@suse.de,ego@linux.vnet.ibm.com,fweisbec@gmail.com,hch@infradead.org,mgalbraith@suse.de,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,rjw@rjwysocki.net,rostedt@goodmis.org,rusty@rustcorp.com.au,tglx@linutronix.de,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 29 May 2014 13:49:04 -0700
+Date: Thu, 29 May 2014 14:31:47 -0700
 
 
 The patch titled
-     Subject: mm: fix move_pages follow_page huge_addr BUG
+     Subject: CPU hotplug, stop-machine: plug race-window that leads to "IPI-to-offline-CPU"
 has been removed from the -mm tree.  Its filename was
-     mm-fix-move_pages-follow_page-huge_addr-bug.patch
+     cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: fix move_pages follow_page huge_addr BUG
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: CPU hotplug, stop-machine: plug race-window that leads to "IPI-to-offline-CPU"
 
-v3.12's e632a938d914 ("mm: migrate: add hugepage migration code to
-move_pages()") is okay on most arches, but on follow_huge_addr-style
-arches ia64 and powerpc, it hits my old BUG_ON(flags & FOLL_GET) from
-v2.6.15 deceb6cd17e6 ("mm: follow_page with inner ptlock").
+During CPU offline, stop-machine is used to take control over all the
+online CPUs (via the per-cpu stopper thread) and then run take_cpu_down()
+on the CPU that is to be taken offline.
 
-The point of the BUG_ON was that nothing needed FOLL_GET there at the
-time, and it was not clear that we have sufficient locking to use
-get_page() safely here on the outside - maybe the page found has already
-been freed and even reused when follow_huge_addr() returns.
+But stop-machine itself has several stages: _PREPARE, _DISABLE_IRQ, _RUN
+etc.  The important thing to note here is that the _DISABLE_IRQ stage
+comes much later after starting stop-machine, and hence there is a large
+window where other CPUs can send IPIs to the CPU going offline.  As a
+result, we can encounter a scenario as depicted below, which causes IPIs
+to be sent to the CPU going offline, and that CPU notices them *after* it
+has gone offline, triggering the "IPI-to-offline-CPU" warning from the
+smp-call-function code.
 
-I suspect that e632a938d914's use of get_page() after return from
-follow_huge_pmd() has the same problem: what prevents a racing instance of
-move_pages() from already migrating away and freeing that page by then?  A
-reference to the page should be taken while holding suitable lock
-(huge_pte_lockptr?), to serialize against concurrent migration.
+              CPU 1                                         CPU 2
+          (Online CPU)                               (CPU going offline)
 
-But I'm not prepared to rework the hugetlb locking here myself; so for now
-just supply a patch to copy e632a938d914's get_page() after
-follow_huge_pmd() to after follow_huge_addr(): removing the BUG_ON(flags &
-FOLL_GET), but probably leaving a race.
+       Enter _PREPARE stage                          Enter _PREPARE stage
 
-Whether this is a patch that should go in without fixing the locking,
-I don't know.  An unlikely race is better than a triggerable BUG?
-Or perhaps I'm just wrong about there being any such race.
+                                                     Enter _DISABLE_IRQ stage
 
-Fixes: e632a938d914 ("mm: migrate: add hugepage migration code to move_pages()")
-Reported-by: Michael Ellerman <mpe@ellerman.id.au>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: <stable@vger.kernel.org>	[3.12+]
+                                                   =
+       Got a device interrupt,                     | Didn't notice the IPI
+       and the interrupt handler                   | since interrupts were
+       called smp_call_function()                  | disabled on this CPU.
+       and sent an IPI to CPU 2.                   |
+                                                   =
+
+       Enter _DISABLE_IRQ stage
+
+       Enter _RUN stage                              Enter _RUN stage
+
+                                  =
+       Busy loop with interrupts  |                  Invoke take_cpu_down()
+       disabled.                  |                  and take CPU 2 offline
+                                  =
+
+       Enter _EXIT stage                             Enter _EXIT stage
+
+       Re-enable interrupts                          Re-enable interrupts
+
+                                                     The pending IPI is noted
+                                                     immediately, but alas,
+                                                     the CPU is offline at
+                                                     this point.
+
+So, as we can observe from this scenario, the IPI was sent when CPU 2 was
+still online, and hence it was perfectly legal.  But unfortunately it was
+noted only after CPU 2 went offline, resulting in the warning from the IPI
+handling code.  In other words, the fault was not at the sender, but at
+the receiver side - and if we look closely, the real bug is in the
+stop-machine sequence itself.
+
+The problem here is that the CPU going offline disabled its local
+interrupts (by entering _DISABLE_IRQ phase) *before* the other CPUs.  And
+that's the reason why it was not able to respond to the IPI before going
+offline.
+
+A simple solution to this problem is to ensure that the CPU going offline
+disables its interrupts only *after* the other CPUs do the same thing.  To
+achieve this, split the _DISABLE_IRQ state into 2 parts:
+
+1st part: MULTI_STOP_DISABLE_IRQ_INACTIVE, where only the non-active CPUs
+(i.e., the "other" CPUs) disable their interrupts.
+
+2nd part: MULTI_STOP_DISABLE_IRQ_ACTIVE, where the active CPU (i.e., the
+CPU going offline) disables its interrupts.
+
+With this in place, the CPU going offline will always be the last one to
+disable interrupts.  After this step, no further IPIs can be sent to the
+outgoing CPU, since all the other CPUs would be executing the stop-machine
+code with interrupts disabled.  And by the time stop-machine ends, the CPU
+would have gone offline and disappeared from the cpu_online_mask, and
+hence future invocations of smp_call_function() and friends will
+automatically prune that CPU out.  Thus, we can guarantee that no CPU will
+end up *inadvertently* sending IPIs to an offline CPU.
+
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Mike Galbraith <mgalbraith@suse.de>
+Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ kernel/stop_machine.c |   30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory.c~mm-fix-move_pages-follow_page-huge_addr-bug mm/memory.c
---- a/mm/memory.c~mm-fix-move_pages-follow_page-huge_addr-bug
-+++ a/mm/memory.c
-@@ -1486,7 +1486,17 @@ struct page *follow_page_mask(struct vm_
+diff -puN kernel/stop_machine.c~cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu kernel/stop_machine.c
+--- a/kernel/stop_machine.c~cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu
++++ a/kernel/stop_machine.c
+@@ -165,12 +165,13 @@ static void ack_state(struct multi_stop_
+ 		set_state(msdata, msdata->state + 1);
+ }
  
- 	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
- 	if (!IS_ERR(page)) {
--		BUG_ON(flags & FOLL_GET);
-+		if (page && (flags & FOLL_GET)) {
-+			/*
-+			 * Refcount on tail pages are not well-defined and
-+			 * shouldn't be taken. The caller should handle a NULL
-+			 * return when trying to follow tail pages.
-+			 */
-+			if (PageHead(page))
-+				get_page(page);
-+			else
-+				page = NULL;
++
+ /* This is the cpu_stop function which stops the CPU. */
+ static int multi_cpu_stop(void *data)
+ {
+ 	struct multi_stop_data *msdata = data;
+ 	enum multi_stop_state curstate = MULTI_STOP_NONE;
+-	int cpu = smp_processor_id(), err = 0;
++	int cpu = smp_processor_id(), num_active_cpus, err = 0;
+ 	unsigned long flags;
+ 	bool is_active;
+ 
+@@ -180,15 +181,38 @@ static int multi_cpu_stop(void *data)
+ 	 */
+ 	local_save_flags(flags);
+ 
+-	if (!msdata->active_cpus)
++	if (!msdata->active_cpus) {
+ 		is_active = cpu == cpumask_first(cpu_online_mask);
+-	else
++		num_active_cpus = 1;
++	} else {
+ 		is_active = cpumask_test_cpu(cpu, msdata->active_cpus);
++		num_active_cpus = cpumask_weight(msdata->active_cpus);
++	}
+ 
+ 	/* Simple state machine */
+ 	do {
+ 		/* Chill out and ensure we re-read multi_stop_state. */
+ 		cpu_relax();
++
++		/*
++		 * In the case of CPU offline, we don't want the other CPUs to
++		 * send IPIs to the active_cpu (the one going offline) after it
++		 * has entered the _DISABLE_IRQ state (because, then it will
++		 * notice the IPIs only after it goes offline). So ensure that
++		 * the active_cpu always follows the others while entering
++		 * each subsequent state in this state-machine.
++		 *
++		 * msdata->thread_ack tracks the number of CPUs that are yet to
++		 * move to the next state, during each transition. So make the
++		 * active_cpu(s) wait until ->thread_ack indicates that the
++		 * active_cpus are the only ones left to complete the transition.
++		 */
++		if (is_active) {
++			/* Wait until all the non-active threads ack the state */
++			while (atomic_read(&msdata->thread_ack) > num_active_cpus)
++				cpu_relax();
 +		}
- 		goto out;
- 	}
- 
++
+ 		if (msdata->state != curstate) {
+ 			curstate = msdata->state;
+ 			switch (curstate) {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
 
-mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally.patch
-mm-softdirty-dont-forget-to-save-file-map-softdiry-bit-on-unmap.patch
-mm-softdirty-clear-vm_softdirty-flag-inside-clear_refs_write-instead-of-clear_soft_dirty.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-numa-add-migrated-transhuge-pages-to-lru-the-same-way-as-base-pages.patch
-fs-bufferc-remove-block_write_full_page_endio.patch
-fs-mpagec-factor-clean_buffers-out-of-__mpage_writepage.patch
-fs-mpagec-factor-page_endio-out-of-mpage_end_io.patch
-fs-block_devc-add-bdev_read_page-and-bdev_write_page.patch
-swap-use-bdev_read_page-bdev_write_page.patch
-swap-use-bdev_read_page-bdev_write_page-fix.patch
-brd-add-support-for-rw_page.patch
-brd-return-enospc-rather-than-enomem-on-page-allocation-failure.patch
-mm-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
-mm-add-comment-for-__mod_zone_page_stat.patch
-mm-add-comment-for-__mod_zone_page_stat-checkpatch-fixes.patch
-mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
-swap-change-swap_info-singly-linked-list-to-list_head.patch
-plist-add-helper-functions.patch
-plist-add-plist_requeue.patch
-swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
-jump_label-expose-the-reference-count.patch
-mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
-mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
-mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
-mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
-mm-page_alloc-use-word-based-accesses-for-get-set-pageblock-bitmaps.patch
-mm-page_alloc-reduce-number-of-times-page_to_pfn-is-called.patch
-mm-page_alloc-lookup-pageblock-migratetype-with-irqs-enabled-during-free.patch
-mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
-mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
-mm-shmem-avoid-atomic-operation-during-shmem_getpage_gfp.patch
-mm-do-not-use-atomic-operations-when-releasing-pages.patch
-mm-do-not-use-unnecessary-atomic-operations-when-adding-pages-to-the-lru.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
-mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref.patch
-fs-superblock-unregister-sb-shrinker-before-kill_sb.patch
-fs-superblock-avoid-locking-counting-inodes-and-dentries-before-reclaiming-them.patch
-mm-vmscan-use-proportional-scanning-during-direct-reclaim-and-full-scan-at-def_priority.patch
-mm-process_vm_access-move-config-option-into-init-kconfig.patch
+origin.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
+cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v3.patch
+cpu-hotplug-stop-machine-plug-race-window-that-leads-to-ipi-to-offline-cpu-v5.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v5-checkpatch-fixes.patch
 linux-next.patch
-memcg-mm-introduce-lowlimit-reclaim.patch
-memcg-mm-introduce-lowlimit-reclaim-fix.patch
-memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
-memcg-allow-setting-low_limit.patch
-memcg-doc-clarify-global-vs-limit-reclaims.patch
-memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
-memcg-document-memorylow_limit_in_bytes.patch
-vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
-vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o-om-control-fixpatch.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
