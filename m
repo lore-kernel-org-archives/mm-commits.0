@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-fix-compiler-warning-on-powerpc.patch added to -mm tree
-Date: Thu, 29 May 2014 15:02:05 -0700
-Message-ID: <5387ae5d.ch/Mag2COpYUGKtt%akpm@linux-foundation.org>
+Subject: + lib-textsearchc-move-export_symbol-after-functions.patch added
+ to -mm tree
+Date: Thu, 29 May 2014 15:07:40 -0700
+Message-ID: <5387afac.Wa1d2mxxFcGwiP5l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45381 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751975AbaE2WCG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 18:02:06 -0400
+	with ESMTP id S1751321AbaE2WHl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 18:07:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, saproj@gmail.com, geert@linux-m68k.org, lists@nerdbynature.de
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + hfsplus-fix-compiler-warning-on-powerpc.patch added to -mm tree
-To: lists@nerdbynature.de,geert@linux-m68k.org,saproj@gmail.com
+Subject: + lib-textsearchc-move-export_symbol-after-functions.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Thu, 29 May 2014 15:02:05 -0700
+Date: Thu, 29 May 2014 15:07:40 -0700
 
 
 The patch titled
-     Subject: hfsplus: fix compiler warning on PowerPC
+     Subject: lib/textsearch.c: move EXPORT_SYMBOL after functions
 has been added to the -mm tree.  Its filename is
-     hfsplus-fix-compiler-warning-on-powerpc.patch
+     lib-textsearchc-move-export_symbol-after-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-fix-compiler-warning-on-powerpc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-textsearchc-move-export_symbol-after-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-fix-compiler-warning-on-powerpc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-textsearchc-move-export_symbol-after-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,75 +44,180 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christian Kujau <lists@nerdbynature.de>
-Subject: hfsplus: fix compiler warning on PowerPC
+From: Fabian Frederick <fabf@skynet.be>
+Subject: lib/textsearch.c: move EXPORT_SYMBOL after functions
 
-a99b7069aab8 ("hfsplus: Fix undefined __divdi3 in
-hfsplus_init_header_node()") introduced do_div() to xattr.c and the
-warning below too.
+Fix checkpatch warning:
+"WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable"
 
-As Geert remarked: "tmp" is "loff_t" which is "__kernel_loff_t", which is
-"long long", i.e.  signed, while include/asm-generic/div64.h compares its
-type with "uint64_t".  As inode sizes are positive, it should be safe to
-change the type of "tmp" to "u64".
-
-==============================
-   CC [M]  fs/hfsplus/xattr_user.o
-   CC [M]  fs/hfsplus/xattr_security.o
-   CC [M]  fs/hfsplus/xattr.o
-   CC [M]  fs/hfsplus/xattr_trusted.o
-In file included from
-arch/powerpc/include/asm/div64.h:1:0,
-                  from include/linux/kernel.h:124,
-                  from include/asm-generic/bug.h:13,
-                  from arch/powerpc/include/asm/bug.h:127,
-                  from include/linux/bug.h:4,
-                  from include/linux/thread_info.h:11,
-                  from include/asm-generic/preempt.h:4,
-                  from arch/powerpc/include/generated/asm/preempt.h:1,
-                  from include/linux/preempt.h:18,
-                  from include/linux/spinlock.h:50,
-                  from include/linux/wait.h:8,
-                  from include/linux/fs.h:6,
-                  from fs/hfsplus/hfsplus_fs.h:19,
-                  from fs/hfsplus/xattr.c:9:
-fs/hfsplus/xattr.c: In function
-'hfsplus_init_header_node':
-include/asm-generic/div64.h:43:28: warning:
-comparison of distinct pointer types lacks a cast [enabled by default]
-   (void)(((typeof((n)) *)0) == ((uint64_t *)0)); \
-                             ^
-fs/hfsplus/xattr.c:86:2: note: in expansion of
-macro 'do_div'
-   do_div(tmp, node_size);
-   ^
-   LD [M]  fs/hfsplus/hfsplus.o
-==============================
-
-Signed-off-by: Christian Kujau <lists@nerdbynature.de>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Sergei Antonov <saproj@gmail.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/xattr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/textsearch.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/hfsplus/xattr.c~hfsplus-fix-compiler-warning-on-powerpc fs/hfsplus/xattr.c
---- a/fs/hfsplus/xattr.c~hfsplus-fix-compiler-warning-on-powerpc
-+++ a/fs/hfsplus/xattr.c
-@@ -67,7 +67,7 @@ static void hfsplus_init_header_node(str
- 	char *bmp;
- 	u32 used_nodes;
- 	u32 used_bmp_bytes;
--	loff_t tmp;
-+	u64 tmp;
+diff -puN lib/textsearch.c~lib-textsearchc-move-export_symbol-after-functions lib/textsearch.c
+--- a/lib/textsearch.c~lib-textsearchc-move-export_symbol-after-functions
++++ a/lib/textsearch.c
+@@ -159,6 +159,7 @@ errout:
+ 	spin_unlock(&ts_mod_lock);
+ 	return err;
+ }
++EXPORT_SYMBOL(textsearch_register);
  
- 	hfs_dbg(ATTR_MOD, "init_hdr_attr_file: clump %u, node_size %u\n",
- 		clump_size, node_size);
+ /**
+  * textsearch_unregister - unregister a textsearch module
+@@ -190,6 +191,7 @@ out:
+ 	spin_unlock(&ts_mod_lock);
+ 	return err;
+ }
++EXPORT_SYMBOL(textsearch_unregister);
+ 
+ struct ts_linear_state
+ {
+@@ -236,6 +238,7 @@ unsigned int textsearch_find_continuous(
+ 
+ 	return textsearch_find(conf, state);
+ }
++EXPORT_SYMBOL(textsearch_find_continuous);
+ 
+ /**
+  * textsearch_prepare - Prepare a search
+@@ -298,6 +301,7 @@ errout:
+ 		
+ 	return ERR_PTR(err);
+ }
++EXPORT_SYMBOL(textsearch_prepare);
+ 
+ /**
+  * textsearch_destroy - destroy a search configuration
+@@ -316,9 +320,4 @@ void textsearch_destroy(struct ts_config
+ 
+ 	kfree(conf);
+ }
+-
+-EXPORT_SYMBOL(textsearch_register);
+-EXPORT_SYMBOL(textsearch_unregister);
+-EXPORT_SYMBOL(textsearch_prepare);
+-EXPORT_SYMBOL(textsearch_find_continuous);
+ EXPORT_SYMBOL(textsearch_destroy);
 _
 
-Patches currently in -mm which might be from lists@nerdbynature.de are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-hfsplus-fix-compiler-warning-on-powerpc.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+fs-fscache-replace-seq_printf-by-seq_puts.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+fs-configfs-convert-printk-to-pr_foo.patch
+fs-configfs-use-pr_fmt.patch
+lib-debugobjectsc-convert-printk-to-pr_foo.patch
+lib-debugobjectsc-add-pr_fmt-to-logging.patch
+lib-debugobjectsc-convert-printkkern_debug-to-pr_debug.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-ocfs2-ioctlc-add-static-to-local-functions.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+fs-add-generic-data-flush-to-fsync.patch
+fs-add-generic-data-flush-to-fsync-fix.patch
+fs-add-generic-data-flush-to-fsync-fix-fix.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
+fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch
+fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch
+fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
+fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
+kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+kernel-stop_machinec-kernel-doc-warning-fix.patch
+kernel-tracepointc-kernel-doc-fixes.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
+kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
+documentation-expand-clarify-debug-documentation.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+lib-radix-treec-kernel-doc-warning-fix.patch
+lib-crc32c-remove-unnecessary-__constant.patch
+lib-digsigc-kernel-doc-warning-fixes.patch
+lib-nlattrc-move-export_symbol-after-functions.patch
+lib-textsearchc-move-export_symbol-after-functions.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+fs-efs-convert-printk-to-pr_foo.patch
+fs-efs-add-pr_fmt-use-__func__.patch
+fs-efs-convert-printkkern_debug-to-pr_debug.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-hpfs-convert-printk-to-pr_foo.patch
+fs-hpfs-use-pr_fmt-for-logging.patch
+fs-hpfs-use-__func__-for-logging.patch
+fs-hpfs-increase-pr_warn-level.patch
+documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
+linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+mm-kmemleak-testc-use-pr_fmt-for-logging.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
