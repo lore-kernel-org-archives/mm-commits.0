@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + lib-textsearchc-move-export_symbol-after-functions.patch added
- to -mm tree
-Date: Thu, 29 May 2014 15:07:40 -0700
-Message-ID: <5387afac.Wa1d2mxxFcGwiP5l%akpm@linux-foundation.org>
+Subject: + lib-bugc-convert-printk-to-pr_foo.patch added to -mm tree
+Date: Thu, 29 May 2014 15:08:31 -0700
+Message-ID: <5387afdf.9AeBFZwRW2E1f9Wy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45381 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45385 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751321AbaE2WHl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 18:07:41 -0400
+	with ESMTP id S1751321AbaE2WIc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 18:08:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, joe@perches.com, jeremy@goop.org, fabf@skynet.be
 
-Subject: + lib-textsearchc-move-export_symbol-after-functions.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + lib-bugc-convert-printk-to-pr_foo.patch added to -mm tree
+To: fabf@skynet.be,jeremy@goop.org,joe@perches.com
 From: akpm@linux-foundation.org
-Date: Thu, 29 May 2014 15:07:40 -0700
+Date: Thu, 29 May 2014 15:08:31 -0700
 
 
 The patch titled
-     Subject: lib/textsearch.c: move EXPORT_SYMBOL after functions
+     Subject: lib/bug.c: convert printk to pr_foo()
 has been added to the -mm tree.  Its filename is
-     lib-textsearchc-move-export_symbol-after-functions.patch
+     lib-bugc-convert-printk-to-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-textsearchc-move-export_symbol-after-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bugc-convert-printk-to-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-textsearchc-move-export_symbol-after-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bugc-convert-printk-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,63 +44,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/textsearch.c: move EXPORT_SYMBOL after functions
+Subject: lib/bug.c: convert printk to pr_foo()
 
-Fix checkpatch warning:
-"WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable"
+- Coalesce formats
+
+- "WARNING:" prefix unchanged to keep bug format.
+
+- printk(KERN_DEFAULT not converted.
+
+- define pr_fmt without prefix to avoid any default prefix update
+  (suggested by Joe Perches).
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/textsearch.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ lib/bug.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN lib/textsearch.c~lib-textsearchc-move-export_symbol-after-functions lib/textsearch.c
---- a/lib/textsearch.c~lib-textsearchc-move-export_symbol-after-functions
-+++ a/lib/textsearch.c
-@@ -159,6 +159,7 @@ errout:
- 	spin_unlock(&ts_mod_lock);
- 	return err;
+diff -puN lib/bug.c~lib-bugc-convert-printk-to-pr_foo lib/bug.c
+--- a/lib/bug.c~lib-bugc-convert-printk-to-pr_foo
++++ a/lib/bug.c
+@@ -37,6 +37,9 @@
+ 
+     Jeremy Fitzhardinge <jeremy@goop.org> 2006
+  */
++
++#define pr_fmt(fmt) fmt
++
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+@@ -153,15 +156,13 @@ enum bug_trap_type report_bug(unsigned l
+ 
+ 	if (warning) {
+ 		/* this is a WARN_ON rather than BUG/BUG_ON */
+-		printk(KERN_WARNING "------------[ cut here ]------------\n");
++		pr_warn("------------[ cut here ]------------\n");
+ 
+ 		if (file)
+-			printk(KERN_WARNING "WARNING: at %s:%u\n",
+-			       file, line);
++			pr_warn("WARNING: at %s:%u\n", file, line);
+ 		else
+-			printk(KERN_WARNING "WARNING: at %p "
+-			       "[verbose debug info unavailable]\n",
+-			       (void *)bugaddr);
++			pr_warn("WARNING: at %p [verbose debug info unavailable]\n",
++				(void *)bugaddr);
+ 
+ 		print_modules();
+ 		show_regs(regs);
+@@ -174,12 +175,10 @@ enum bug_trap_type report_bug(unsigned l
+ 	printk(KERN_DEFAULT "------------[ cut here ]------------\n");
+ 
+ 	if (file)
+-		printk(KERN_CRIT "kernel BUG at %s:%u!\n",
+-		       file, line);
++		pr_crit("kernel BUG at %s:%u!\n", file, line);
+ 	else
+-		printk(KERN_CRIT "Kernel BUG at %p "
+-		       "[verbose debug info unavailable]\n",
+-		       (void *)bugaddr);
++		pr_crit("Kernel BUG at %p [verbose debug info unavailable]\n",
++			(void *)bugaddr);
+ 
+ 	return BUG_TRAP_TYPE_BUG;
  }
-+EXPORT_SYMBOL(textsearch_register);
- 
- /**
-  * textsearch_unregister - unregister a textsearch module
-@@ -190,6 +191,7 @@ out:
- 	spin_unlock(&ts_mod_lock);
- 	return err;
- }
-+EXPORT_SYMBOL(textsearch_unregister);
- 
- struct ts_linear_state
- {
-@@ -236,6 +238,7 @@ unsigned int textsearch_find_continuous(
- 
- 	return textsearch_find(conf, state);
- }
-+EXPORT_SYMBOL(textsearch_find_continuous);
- 
- /**
-  * textsearch_prepare - Prepare a search
-@@ -298,6 +301,7 @@ errout:
- 		
- 	return ERR_PTR(err);
- }
-+EXPORT_SYMBOL(textsearch_prepare);
- 
- /**
-  * textsearch_destroy - destroy a search configuration
-@@ -316,9 +320,4 @@ void textsearch_destroy(struct ts_config
- 
- 	kfree(conf);
- }
--
--EXPORT_SYMBOL(textsearch_register);
--EXPORT_SYMBOL(textsearch_unregister);
--EXPORT_SYMBOL(textsearch_prepare);
--EXPORT_SYMBOL(textsearch_find_continuous);
- EXPORT_SYMBOL(textsearch_destroy);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -170,6 +181,7 @@ lib-crc32c-remove-unnecessary-__constant.patch
 lib-digsigc-kernel-doc-warning-fixes.patch
 lib-nlattrc-move-export_symbol-after-functions.patch
 lib-textsearchc-move-export_symbol-after-functions.patch
+lib-bugc-convert-printk-to-pr_foo.patch
 kernel-compatc-use-sizeof-instead-of-sizeof.patch
 fs-efs-convert-printk-to-pr_foo.patch
 fs-efs-add-pr_fmt-use-__func__.patch
