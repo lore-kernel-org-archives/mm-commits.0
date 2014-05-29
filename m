@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-try_to_unmap_one-static-and-cleanup-ttu_flags.patch
- added to -mm tree
-Date: Thu, 29 May 2014 13:16:00 -0700
-Message-ID: <53879580.DulogRsz3GLAYcnr%akpm@linux-foundation.org>
+Subject: + lib-debugobjectsc-convert-printk-to-pr_foo.patch added to -mm
+ tree
+Date: Thu, 29 May 2014 13:18:27 -0700
+Message-ID: <53879613.g+iEzhWJrz8Of+Cx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44367 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44372 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755805AbaE2UQB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 16:16:01 -0400
+	with ESMTP id S1756052AbaE2US2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 16:18:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, koct9i@gmail.com
+To: mm-commits@vger.kernel.org, josh@joshtriplett.org, fabf@skynet.be
 
-Subject: + mm-make-try_to_unmap_one-static-and-cleanup-ttu_flags.patch added to -mm tree
-To: koct9i@gmail.com,riel@redhat.com
+Subject: + lib-debugobjectsc-convert-printk-to-pr_foo.patch added to -mm tree
+To: fabf@skynet.be,josh@joshtriplett.org
 From: akpm@linux-foundation.org
-Date: Thu, 29 May 2014 13:16:00 -0700
+Date: Thu, 29 May 2014 13:18:27 -0700
 
 
 The patch titled
-     Subject: mm/rmap.c: cleanup ttu_flags
+     Subject: lib/debugobjects.c: convert printk to pr_foo()
 has been added to the -mm tree.  Its filename is
-     mm-make-try_to_unmap_one-static-and-cleanup-ttu_flags.patch
+     lib-debugobjectsc-convert-printk-to-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-try_to_unmap_one-static-and-cleanup-ttu_flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-debugobjectsc-convert-printk-to-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-try_to_unmap_one-static-and-cleanup-ttu_flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-debugobjectsc-convert-printk-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,93 +44,179 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mm/rmap.c: cleanup ttu_flags
+From: Fabian Frederick <fabf@skynet.be>
+Subject: lib/debugobjects.c: convert printk to pr_foo()
 
-Transform action part of ttu_flags into individiual bits.  These flags
-aren't part of any uses-space visible api or even trace events.
+Convert all printk to pr_foo() except KERN_DEBUG (see
+Documentation/CodingStyle Chapter 13)
 
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    7 +++----
- mm/rmap.c            |   10 +++++-----
- 2 files changed, 8 insertions(+), 9 deletions(-)
+ lib/debugobjects.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-make-try_to_unmap_one-static-and-cleanup-ttu_flags include/linux/rmap.h
---- a/include/linux/rmap.h~mm-make-try_to_unmap_one-static-and-cleanup-ttu_flags
-+++ a/include/linux/rmap.h
-@@ -72,10 +72,9 @@ struct anon_vma_chain {
- };
+diff -puN lib/debugobjects.c~lib-debugobjectsc-convert-printk-to-pr_foo lib/debugobjects.c
+--- a/lib/debugobjects.c~lib-debugobjectsc-convert-printk-to-pr_foo
++++ a/lib/debugobjects.c
+@@ -218,7 +218,7 @@ static void debug_objects_oom(void)
+ 	unsigned long flags;
+ 	int i;
  
- enum ttu_flags {
--	TTU_UNMAP = 0,			/* unmap mode */
--	TTU_MIGRATION = 1,		/* migration mode */
--	TTU_MUNLOCK = 2,		/* munlock mode */
--	TTU_ACTION_MASK = 0xff,
-+	TTU_UNMAP = 1,			/* unmap mode */
-+	TTU_MIGRATION = 2,		/* migration mode */
-+	TTU_MUNLOCK = 4,		/* munlock mode */
+-	printk(KERN_WARNING "ODEBUG: Out of memory. ODEBUG disabled\n");
++	pr_warn("ODEBUG: Out of memory. ODEBUG disabled\n");
  
- 	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
- 	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
-diff -puN mm/rmap.c~mm-make-try_to_unmap_one-static-and-cleanup-ttu_flags mm/rmap.c
---- a/mm/rmap.c~mm-make-try_to_unmap_one-static-and-cleanup-ttu_flags
-+++ a/mm/rmap.c
-@@ -1156,7 +1156,7 @@ static int try_to_unmap_one(struct page
- 		if (vma->vm_flags & VM_LOCKED)
- 			goto out_mlock;
+ 	for (i = 0; i < ODEBUG_HASH_SIZE; i++, db++) {
+ 		raw_spin_lock_irqsave(&db->lock, flags);
+@@ -292,11 +292,9 @@ static void debug_object_is_on_stack(voi
  
--		if (TTU_ACTION(flags) == TTU_MUNLOCK)
-+		if (flags & TTU_MUNLOCK)
- 			goto out_unmap;
- 	}
- 	if (!(flags & TTU_IGNORE_ACCESS)) {
-@@ -1224,7 +1224,7 @@ static int try_to_unmap_one(struct page
- 			 * pte. do_swap_page() will wait until the migration
- 			 * pte is removed and then restart fault handling.
- 			 */
--			BUG_ON(TTU_ACTION(flags) != TTU_MIGRATION);
-+			BUG_ON(!(flags & TTU_MIGRATION));
- 			entry = make_migration_entry(page, pte_write(pteval));
- 		}
- 		swp_pte = swp_entry_to_pte(entry);
-@@ -1233,7 +1233,7 @@ static int try_to_unmap_one(struct page
- 		set_pte_at(mm, address, pte, swp_pte);
- 		BUG_ON(pte_file(*pte));
- 	} else if (IS_ENABLED(CONFIG_MIGRATION) &&
--		   (TTU_ACTION(flags) == TTU_MIGRATION)) {
-+		   (flags & TTU_MIGRATION)) {
- 		/* Establish migration entry for a file page */
- 		swp_entry_t entry;
- 		entry = make_migration_entry(page, pte_write(pteval));
-@@ -1246,7 +1246,7 @@ static int try_to_unmap_one(struct page
+ 	limit++;
+ 	if (is_on_stack)
+-		printk(KERN_WARNING
+-		       "ODEBUG: object is on stack, but not annotated\n");
++		pr_warn("ODEBUG: object is on stack, but not annotated\n");
+ 	else
+-		printk(KERN_WARNING
+-		       "ODEBUG: object is not on stack, but annotated\n");
++		pr_warn("ODEBUG: object is not on stack, but annotated\n");
+ 	WARN_ON(1);
+ }
  
- out_unmap:
- 	pte_unmap_unlock(pte, ptl);
--	if (ret != SWAP_FAIL && TTU_ACTION(flags) != TTU_MUNLOCK)
-+	if (ret != SWAP_FAIL && !(flags & TTU_MUNLOCK))
- 		mmu_notifier_invalidate_page(mm, address);
+@@ -985,7 +983,7 @@ static void __init debug_objects_selftes
+ 	if (check_results(&obj, ODEBUG_STATE_NONE, ++fixups, ++warnings))
+ 		goto out;
+ #endif
+-	printk(KERN_INFO "ODEBUG: selftest passed\n");
++	pr_info("ODEBUG: selftest passed\n");
+ 
  out:
- 	return ret;
-@@ -1533,7 +1533,7 @@ int try_to_unmap(struct page *page, enum
- 	 * locking requirements of exec(), migration skips
- 	 * temporary VMAs until after exec() completes.
- 	 */
--	if (flags & TTU_MIGRATION && !PageKsm(page) && PageAnon(page))
-+	if ((flags & TTU_MIGRATION) && !PageKsm(page) && PageAnon(page))
- 		rwc.invalid_vma = invalid_migration_vma;
- 
- 	ret = rmap_walk(page, &rwc);
+ 	debug_objects_fixups = oldfixups;
+@@ -1090,7 +1088,7 @@ void __init debug_objects_mem_init(void)
+ 		debug_objects_enabled = 0;
+ 		if (obj_cache)
+ 			kmem_cache_destroy(obj_cache);
+-		printk(KERN_WARNING "ODEBUG: out of memory.\n");
++		pr_warn("ODEBUG: out of memory.\n");
+ 	} else
+ 		debug_objects_selftest();
+ }
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-tools-vm-page-typesc-catch-sigbus-if-raced-with-truncate.patch
-mm-process_vm_access-move-config-option-into-init-kconfig.patch
-mm-dont-call-mmu_notifier_invalidate_page-during-munlock.patch
-mm-make-try_to_unmap_one-static-and-cleanup-ttu_flags.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+fs-fscache-replace-seq_printf-by-seq_puts.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+fs-configfs-convert-printk-to-pr_foo.patch
+fs-configfs-use-pr_fmt.patch
+lib-debugobjectsc-convert-printk-to-pr_foo.patch
+lib-debugobjectsc-add-pr_fmt-to-logging.patch
+lib-debugobjectsc-convert-printkkern_debug-to-pr_debug.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-ocfs2-ioctlc-add-static-to-local-functions.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+fs-add-generic-data-flush-to-fsync.patch
+fs-add-generic-data-flush-to-fsync-fix.patch
+fs-add-generic-data-flush-to-fsync-fix-fix.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
+fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch
+fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch
+fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
+fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
+kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+kernel-stop_machinec-kernel-doc-warning-fix.patch
+kernel-tracepointc-kernel-doc-fixes.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
+kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
+documentation-expand-clarify-debug-documentation.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+lib-radix-treec-kernel-doc-warning-fix.patch
+lib-crc32c-remove-unnecessary-__constant.patch
+lib-digsigc-kernel-doc-warning-fixes.patch
+lib-nlattrc-move-export_symbol-after-functions.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+fs-efs-convert-printk-to-pr_foo.patch
+fs-efs-add-pr_fmt-use-__func__.patch
+fs-efs-convert-printkkern_debug-to-pr_debug.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-hpfs-convert-printk-to-pr_foo.patch
+fs-hpfs-use-pr_fmt-for-logging.patch
+fs-hpfs-use-__func__-for-logging.patch
+fs-hpfs-increase-pr_warn-level.patch
+documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+mm-kmemleak-testc-use-pr_fmt-for-logging.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
