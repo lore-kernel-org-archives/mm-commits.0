@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-debugobjectsc-convert-printk-to-pr_foo.patch added to -mm
- tree
-Date: Thu, 29 May 2014 13:18:27 -0700
-Message-ID: <53879613.g+iEzhWJrz8Of+Cx%akpm@linux-foundation.org>
+Subject: + lib-debugobjectsc-convert-printkkern_debug-to-pr_debug.patch
+ added to -mm tree
+Date: Thu, 29 May 2014 13:18:29 -0700
+Message-ID: <53879615.xXjaKXFLmoGr0C4r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44380 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756052AbaE2US2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 16:18:28 -0400
+	with ESMTP id S932342AbaE2USa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 May 2014 16:18:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, josh@joshtriplett.org, fabf@skynet.be
 
-Subject: + lib-debugobjectsc-convert-printk-to-pr_foo.patch added to -mm tree
+Subject: + lib-debugobjectsc-convert-printkkern_debug-to-pr_debug.patch added to -mm tree
 To: fabf@skynet.be,josh@joshtriplett.org
 From: akpm@linux-foundation.org
-Date: Thu, 29 May 2014 13:18:27 -0700
+Date: Thu, 29 May 2014 13:18:29 -0700
 
 
 The patch titled
-     Subject: lib/debugobjects.c: convert printk to pr_foo()
+     Subject: lib/debugobjects.c: convert printk(KERN_DEBUG to pr_debug
 has been added to the -mm tree.  Its filename is
-     lib-debugobjectsc-convert-printk-to-pr_foo.patch
+     lib-debugobjectsc-convert-printkkern_debug-to-pr_debug.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-debugobjectsc-convert-printk-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-debugobjectsc-convert-printkkern_debug-to-pr_debug.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-debugobjectsc-convert-printk-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-debugobjectsc-convert-printkkern_debug-to-pr_debug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,9 +45,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/debugobjects.c: convert printk to pr_foo()
+Subject: lib/debugobjects.c: convert printk(KERN_DEBUG to pr_debug
 
-Convert all printk to pr_foo() except KERN_DEBUG (see
+Direct conversion of one KERN_DEBUG message without DEBUG definition
+(suggested by Josh Triplett)
+
+That message will now be disabled by default.  (see
 Documentation/CodingStyle Chapter 13)
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
@@ -55,53 +58,23 @@ Reviewed-by: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/debugobjects.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ lib/debugobjects.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/debugobjects.c~lib-debugobjectsc-convert-printk-to-pr_foo lib/debugobjects.c
---- a/lib/debugobjects.c~lib-debugobjectsc-convert-printk-to-pr_foo
+diff -puN lib/debugobjects.c~lib-debugobjectsc-convert-printkkern_debug-to-pr_debug lib/debugobjects.c
+--- a/lib/debugobjects.c~lib-debugobjectsc-convert-printkkern_debug-to-pr_debug
 +++ a/lib/debugobjects.c
-@@ -218,7 +218,7 @@ static void debug_objects_oom(void)
- 	unsigned long flags;
- 	int i;
+@@ -1061,8 +1061,8 @@ static int __init debug_objects_replace_
+ 	}
+ 	local_irq_enable();
  
--	printk(KERN_WARNING "ODEBUG: Out of memory. ODEBUG disabled\n");
-+	pr_warn("ODEBUG: Out of memory. ODEBUG disabled\n");
- 
- 	for (i = 0; i < ODEBUG_HASH_SIZE; i++, db++) {
- 		raw_spin_lock_irqsave(&db->lock, flags);
-@@ -292,11 +292,9 @@ static void debug_object_is_on_stack(voi
- 
- 	limit++;
- 	if (is_on_stack)
--		printk(KERN_WARNING
--		       "ODEBUG: object is on stack, but not annotated\n");
-+		pr_warn("ODEBUG: object is on stack, but not annotated\n");
- 	else
--		printk(KERN_WARNING
--		       "ODEBUG: object is not on stack, but annotated\n");
-+		pr_warn("ODEBUG: object is not on stack, but annotated\n");
- 	WARN_ON(1);
- }
- 
-@@ -985,7 +983,7 @@ static void __init debug_objects_selftes
- 	if (check_results(&obj, ODEBUG_STATE_NONE, ++fixups, ++warnings))
- 		goto out;
- #endif
--	printk(KERN_INFO "ODEBUG: selftest passed\n");
-+	pr_info("ODEBUG: selftest passed\n");
- 
- out:
- 	debug_objects_fixups = oldfixups;
-@@ -1090,7 +1088,7 @@ void __init debug_objects_mem_init(void)
- 		debug_objects_enabled = 0;
- 		if (obj_cache)
- 			kmem_cache_destroy(obj_cache);
--		printk(KERN_WARNING "ODEBUG: out of memory.\n");
-+		pr_warn("ODEBUG: out of memory.\n");
- 	} else
- 		debug_objects_selftest();
- }
+-	printk(KERN_DEBUG "ODEBUG: %d of %d active objects replaced\n", cnt,
+-	       obj_pool_used);
++	pr_debug("%d of %d active objects replaced\n",
++		 cnt, obj_pool_used);
+ 	return 0;
+ free:
+ 	hlist_for_each_entry_safe(obj, tmp, &objects, node) {
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
