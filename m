@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch
- added to -mm tree
-Date: Mon, 02 Jun 2014 13:40:58 -0700
-Message-ID: <538ce15a.9a27uVomL7eW2t1E%akpm@linux-foundation.org>
+Subject: + lib-asn1_decoderc-kernel-doc-warning-fix.patch added to -mm
+ tree
+Date: Mon, 02 Jun 2014 13:41:36 -0700
+Message-ID: <538ce180.MSSub/n/OvEPJfco%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41141 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41149 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753475AbaFBUk7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 16:40:59 -0400
+	with ESMTP id S1753981AbaFBUlh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 16:41:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, luca@luca-barbieri.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch added to -mm tree
-To: fabf@skynet.be,luca@luca-barbieri.com
+Subject: + lib-asn1_decoderc-kernel-doc-warning-fix.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Mon, 02 Jun 2014 13:40:58 -0700
+Date: Mon, 02 Jun 2014 13:41:36 -0700
 
 
 The patch titled
-     Subject: lib/atomic64_test.c: convert printk(KERN_INFO to pr_info
+     Subject: lib/asn1_decoder.c: kernel-doc warning fix
 has been added to the -mm tree.  Its filename is
-     lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch
+     lib-asn1_decoderc-kernel-doc-warning-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-asn1_decoderc-kernel-doc-warning-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-asn1_decoderc-kernel-doc-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,58 +45,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/atomic64_test.c: convert printk(KERN_INFO to pr_info
-
-Convert printk to current pr_foo() logging functions.
-
-Also add pr_fmt based on KBUILD_MODNAME to avoid repeating prefix.  Prefix
-is now "atomic64_test: "
+Subject: lib/asn1_decoder.c: kernel-doc warning fix
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Luca Barbieri <luca@luca-barbieri.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/atomic64_test.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ lib/asn1_decoder.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/atomic64_test.c~lib-atomic64_testc-convert-printkkern_info-to-pr_info lib/atomic64_test.c
---- a/lib/atomic64_test.c~lib-atomic64_testc-convert-printkkern_info-to-pr_info
-+++ a/lib/atomic64_test.c
-@@ -8,6 +8,9 @@
-  * the Free Software Foundation; either version 2 of the License, or
-  * (at your option) any later version.
-  */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/init.h>
- #include <linux/bug.h>
- #include <linux/kernel.h>
-@@ -146,18 +149,18 @@ static __init int test_atomic64(void)
- 	BUG_ON(v.counter != r);
- 
- #ifdef CONFIG_X86
--	printk(KERN_INFO "atomic64 test passed for %s platform %s CX8 and %s SSE\n",
-+	pr_info("passed for %s platform %s CX8 and %s SSE\n",
- #ifdef CONFIG_X86_64
--	       "x86-64",
-+		"x86-64",
- #elif defined(CONFIG_X86_CMPXCHG64)
--	       "i586+",
-+		"i586+",
- #else
--	       "i386+",
-+		"i386+",
- #endif
- 	       boot_cpu_has(X86_FEATURE_CX8) ? "with" : "without",
- 	       boot_cpu_has(X86_FEATURE_XMM) ? "with" : "without");
- #else
--	printk(KERN_INFO "atomic64 test passed\n");
-+	pr_info("passed\n");
- #endif
- 
- 	return 0;
+diff -puN lib/asn1_decoder.c~lib-asn1_decoderc-kernel-doc-warning-fix lib/asn1_decoder.c
+--- a/lib/asn1_decoder.c~lib-asn1_decoderc-kernel-doc-warning-fix
++++ a/lib/asn1_decoder.c
+@@ -140,7 +140,7 @@ error:
+  * @decoder: The decoder definition (produced by asn1_compiler)
+  * @context: The caller's context (to be passed to the action functions)
+  * @data: The encoded data
+- * @datasize: The size of the encoded data
++ * @datalen: The size of the encoded data
+  *
+  * Decode BER/DER/CER encoded ASN.1 data according to a bytecode pattern
+  * produced by asn1_compiler.  Action functions are called on marked tags to
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -167,6 +136,7 @@ lib-nlattrc-move-export_symbol-after-functions.patch
 lib-textsearchc-move-export_symbol-after-functions.patch
 lib-bugc-convert-printk-to-pr_foo.patch
 lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch
+lib-asn1_decoderc-kernel-doc-warning-fix.patch
 kernel-compatc-use-sizeof-instead-of-sizeof.patch
 fs-efs-convert-printk-to-pr_foo.patch
 fs-efs-add-pr_fmt-use-__func__.patch
