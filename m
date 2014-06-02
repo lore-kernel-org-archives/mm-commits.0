@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch added to -mm tree
-Date: Mon, 02 Jun 2014 15:45:13 -0700
-Message-ID: <538cfe79.mQTEFX/3f03RFO3p%akpm@linux-foundation.org>
+ mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 02 Jun 2014 15:45:15 -0700
+Message-ID: <538cfe7b.IykSAQiTNiKXRuDL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42808 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42817 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752326AbaFBWpO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 18:45:14 -0400
+	with ESMTP id S1752116AbaFBWpQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 18:45:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, n-horiguchi@ah.jp.nec.com, gong.chen@linux.jf.intel.com, bp@suse.de, andi@firstfloor.org, tony.luck@intel.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
 
-Subject: + memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch added to -mm tree
-To: tony.luck@intel.com,andi@firstfloor.org,bp@suse.de,gong.chen@linux.jf.intel.com,n-horiguchi@ah.jp.nec.com,stable@vger.kernel.org
+Subject: + mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch added to -mm tree
+To: akpm@linux-foundation.org,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Mon, 02 Jun 2014 15:45:13 -0700
+Date: Mon, 02 Jun 2014 15:45:15 -0700
 
 
 The patch titled
-     Subject: mm/memory-failure.c: don't let collect_procs() skip over processes for MF_ACTION_REQUIRED
+     Subject: mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch
+     mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,132 +44,148 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tony Luck <tony.luck@intel.com>
-Subject: mm/memory-failure.c: don't let collect_procs() skip over processes for MF_ACTION_REQUIRED
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes
 
-When Linux sees an "action optional" machine check (where h/w has reported
-an error that is not in the current execution path) we generally do not
-want to signal a process, since most processes do not have a SIGBUS
-handler - we'd just prematurely terminate the process for a problem that
-they might never actually see.
+WARNING: Missing a blank line after declarations
+#73: FILE: mm/memory-failure.c:391:
++	struct task_struct *t;
++	rcu_read_lock();
 
-task_early_kill() decides whether to consider a process - and it checks
-whether this specific process has been marked for early signals with
-"prctl", or if the system administrator has requested early signals for
-all processes using /proc/sys/vm/memory_failure_early_kill.
+WARNING: Missing a blank line after declarations
+#118: FILE: mm/memory-failure.c:443:
++		struct task_struct *t = task_early_kill(tsk, force_early);
++		if (!t)
 
-But for MF_ACTION_REQUIRED case we must not defer.  The error is in the
-execution path of the current thread so we must send the SIGBUS
-immediatley.
+WARNING: Missing a blank line after declarations
+#139: FILE: mm/memory-failure.c:473:
++		struct task_struct *t = task_early_kill(tsk, force_early);
++		if (!t)
 
-Fix by passing a flag argument through collect_procs*() to
-task_early_kill() so it knows whether we can defer or must take action.
+total: 0 errors, 3 warnings, 103 lines checked
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Chen Gong <gong.chen@linux.jf.intel.com>
-Cc: <stable@vger.kernel.org>	[3.2+]
+./patches/mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ mm/memory-failure.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/memory-failure.c~memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required mm/memory-failure.c
---- a/mm/memory-failure.c~memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required
+diff -puN mm/memory-failure.c~mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes
 +++ a/mm/memory-failure.c
-@@ -380,10 +380,12 @@ static void kill_procs(struct list_head
- 	}
- }
- 
--static int task_early_kill(struct task_struct *tsk)
-+static int task_early_kill(struct task_struct *tsk, int force_early)
+@@ -388,6 +388,7 @@ static void kill_procs(struct list_head
+ static struct task_struct *find_early_kill_thread(struct task_struct *tsk)
  {
- 	if (!tsk->mm)
- 		return 0;
-+	if (force_early)
-+		return 1;
- 	if (tsk->flags & PF_MCE_PROCESS)
- 		return !!(tsk->flags & PF_MCE_EARLY);
- 	return sysctl_memory_failure_early_kill;
-@@ -393,7 +395,7 @@ static int task_early_kill(struct task_s
-  * Collect processes when the error hit an anonymous page.
-  */
- static void collect_procs_anon(struct page *page, struct list_head *to_kill,
--			      struct to_kill **tkc)
-+			      struct to_kill **tkc, int force_early)
- {
- 	struct vm_area_struct *vma;
- 	struct task_struct *tsk;
-@@ -409,7 +411,7 @@ static void collect_procs_anon(struct pa
+ 	struct task_struct *t;
++
+ 	rcu_read_lock();
+ 	for_each_thread(tsk, t)
+ 		if ((t->flags & PF_MCE_PROCESS) && (t->flags & PF_MCE_EARLY))
+@@ -440,6 +441,7 @@ static void collect_procs_anon(struct pa
  	for_each_process (tsk) {
  		struct anon_vma_chain *vmac;
- 
--		if (!task_early_kill(tsk))
-+		if (!task_early_kill(tsk, force_early))
+ 		struct task_struct *t = task_early_kill(tsk, force_early);
++
+ 		if (!t)
  			continue;
  		anon_vma_interval_tree_foreach(vmac, &av->rb_root,
- 					       pgoff, pgoff) {
-@@ -428,7 +430,7 @@ static void collect_procs_anon(struct pa
-  * Collect processes when the error hit a file mapped page.
-  */
- static void collect_procs_file(struct page *page, struct list_head *to_kill,
--			      struct to_kill **tkc)
-+			      struct to_kill **tkc, int force_early)
- {
- 	struct vm_area_struct *vma;
- 	struct task_struct *tsk;
-@@ -439,7 +441,7 @@ static void collect_procs_file(struct pa
+@@ -470,6 +472,7 @@ static void collect_procs_file(struct pa
  	for_each_process(tsk) {
  		pgoff_t pgoff = page_pgoff(page);
- 
--		if (!task_early_kill(tsk))
-+		if (!task_early_kill(tsk, force_early))
+ 		struct task_struct *t = task_early_kill(tsk, force_early);
++
+ 		if (!t)
  			continue;
- 
  		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff,
-@@ -465,7 +467,8 @@ static void collect_procs_file(struct pa
-  * First preallocate one tokill structure outside the spin locks,
-  * so that we can kill at least one process reasonably reliable.
-  */
--static void collect_procs(struct page *page, struct list_head *tokill)
-+static void collect_procs(struct page *page, struct list_head *tokill,
-+				int force_early)
- {
- 	struct to_kill *tk;
- 
-@@ -476,9 +479,9 @@ static void collect_procs(struct page *p
- 	if (!tk)
- 		return;
- 	if (PageAnon(page))
--		collect_procs_anon(page, tokill, &tk);
-+		collect_procs_anon(page, tokill, &tk, force_early);
- 	else
--		collect_procs_file(page, tokill, &tk);
-+		collect_procs_file(page, tokill, &tk, force_early);
- 	kfree(tk);
- }
- 
-@@ -963,7 +966,7 @@ static int hwpoison_user_mappings(struct
- 	 * there's nothing that can be done.
- 	 */
- 	if (kill)
--		collect_procs(ppage, &tokill);
-+		collect_procs(ppage, &tokill, flags & MF_ACTION_REQUIRED);
- 
- 	ret = try_to_unmap(ppage, ttu);
- 	if (ret != SWAP_SUCCESS)
 _
 
-Patches currently in -mm which might be from tony.luck@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-restrict-hugepage_migration_support-to-x86_64.patch
-memory-failure-send-right-signal-code-to-correct-thread.patch
-memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch
-mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao.patch
-lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
-lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+fs-add-generic-data-flush-to-fsync-fix.patch
+fs-add-generic-data-flush-to-fsync-fix-fix.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagewalk-update-page-table-walker-core-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages-fix.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+mm-update-comment-for-default_max_map_count-fix.patch
+memcg-fold-mem_cgroup_stolen-fix.patch
+mm-compaction-embed-migration-mode-in-compact_control-fix.patch
+mm-add-comment-for-__mod_zone_page_stat.patch
+mm-add-comment-for-__mod_zone_page_stat-checkpatch-fixes.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
+fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
+mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
+mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix.patch
+mm-document-do_fault_around-feature-fix.patch
+mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+init-mainc-remove-an-ifdef.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+rtc-da9063-rtc-driver-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-checkpatch-fixes.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+rwsem-support-optimistic-spinning-checkpatch-fixes.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
