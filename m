@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-omap-enable-rtc_irqwakeen-bits-when-alarm-is-set.patch
- added to -mm tree
-Date: Mon, 02 Jun 2014 15:02:40 -0700
-Message-ID: <538cf480.wuMkIXILWEE40aMR%akpm@linux-foundation.org>
+Subject: +
+ memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch added to -mm tree
+Date: Mon, 02 Jun 2014 15:45:13 -0700
+Message-ID: <538cfe79.mQTEFX/3f03RFO3p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42545 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42808 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750941AbaFBWCl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 18:02:41 -0400
+	with ESMTP id S1752326AbaFBWpO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 18:45:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, robh+dt@kernel.org, nsekhar@ti.com, grant.likely@linaro.org, a.zummo@towertech.it, lokeshvutla@ti.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, n-horiguchi@ah.jp.nec.com, gong.chen@linux.jf.intel.com, bp@suse.de, andi@firstfloor.org, tony.luck@intel.com
 
-Subject: + rtc-omap-enable-rtc_irqwakeen-bits-when-alarm-is-set.patch added to -mm tree
-To: lokeshvutla@ti.com,a.zummo@towertech.it,grant.likely@linaro.org,nsekhar@ti.com,robh+dt@kernel.org
+Subject: + memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch added to -mm tree
+To: tony.luck@intel.com,andi@firstfloor.org,bp@suse.de,gong.chen@linux.jf.intel.com,n-horiguchi@ah.jp.nec.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 02 Jun 2014 15:02:40 -0700
+Date: Mon, 02 Jun 2014 15:45:13 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-omap.c: enable RTC_IRQWAKEEN bits when Alarm is set
+     Subject: mm/memory-failure.c: don't let collect_procs() skip over processes for MF_ACTION_REQUIRED
 has been added to the -mm tree.  Its filename is
-     rtc-omap-enable-rtc_irqwakeen-bits-when-alarm-is-set.patch
+     memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-omap-enable-rtc_irqwakeen-bits-when-alarm-is-set.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-omap-enable-rtc_irqwakeen-bits-when-alarm-is-set.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,144 +44,132 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: drivers/rtc/rtc-omap.c: enable RTC_IRQWAKEEN bits when Alarm is set
+From: Tony Luck <tony.luck@intel.com>
+Subject: mm/memory-failure.c: don't let collect_procs() skip over processes for MF_ACTION_REQUIRED
 
-When RTC CLKTRCTRL bit is configured in HW_AUTO, module goes to sleep in
-IDLE state.
+When Linux sees an "action optional" machine check (where h/w has reported
+an error that is not in the current execution path) we generally do not
+want to signal a process, since most processes do not have a SIGBUS
+handler - we'd just prematurely terminate the process for a problem that
+they might never actually see.
 
-The Alarm SWakeup event can be used to wakeup the RTC when it is in IDLE
-state.  In order to do so, the alarm needs to be set and enabled before
-RTC enters the IDLE state.  Also the wakeup generation for alarm/timer
-event needs to be set (bits [1:0] in RTC_IRQWAKEEN register).
+task_early_kill() decides whether to consider a process - and it checks
+whether this specific process has been marked for early signals with
+"prctl", or if the system administrator has requested early signals for
+all processes using /proc/sys/vm/memory_failure_early_kill.
 
-Currently RTC_IRQWAKEEN bits are set only in suspend/resume paths.  With
-this ALARM interrupts are not generated when it enters IDLE state.  So
-programming the RTC_IRQWAKEEN bits when ever ALARM is set.
+But for MF_ACTION_REQUIRED case we must not defer.  The error is in the
+execution path of the current thread so we must send the SIGBUS
+immediatley.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-Acked-by: Sekhar Nori <nsekhar@ti.com>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Fix by passing a flag argument through collect_procs*() to
+task_early_kill() so it knows whether we can defer or must take action.
+
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Chen Gong <gong.chen@linux.jf.intel.com>
+Cc: <stable@vger.kernel.org>	[3.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |   67 +++++++++++++++++++--------------------
- 1 file changed, 33 insertions(+), 34 deletions(-)
+ mm/memory-failure.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-omap-enable-rtc_irqwakeen-bits-when-alarm-is-set drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-omap-enable-rtc_irqwakeen-bits-when-alarm-is-set
-+++ a/drivers/rtc/rtc-omap.c
-@@ -171,17 +171,28 @@ static irqreturn_t rtc_irq(int irq, void
+diff -puN mm/memory-failure.c~memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required mm/memory-failure.c
+--- a/mm/memory-failure.c~memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required
++++ a/mm/memory-failure.c
+@@ -380,10 +380,12 @@ static void kill_procs(struct list_head
+ 	}
+ }
  
- static int omap_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
+-static int task_early_kill(struct task_struct *tsk)
++static int task_early_kill(struct task_struct *tsk, int force_early)
  {
--	u8 reg;
-+	u8 reg, irqwake_reg = 0;
-+	struct platform_device *pdev = to_platform_device(dev);
-+	const struct platform_device_id *id_entry =
-+					platform_get_device_id(pdev);
- 
- 	local_irq_disable();
- 	rtc_wait_not_busy();
- 	reg = rtc_read(OMAP_RTC_INTERRUPTS_REG);
--	if (enabled)
-+	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
-+		irqwake_reg = rtc_read(OMAP_RTC_IRQWAKEEN);
-+
-+	if (enabled) {
- 		reg |= OMAP_RTC_INTERRUPTS_IT_ALARM;
--	else
-+		irqwake_reg |= OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
-+	} else {
- 		reg &= ~OMAP_RTC_INTERRUPTS_IT_ALARM;
-+		irqwake_reg &= ~OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
-+	}
- 	rtc_wait_not_busy();
- 	rtc_write(reg, OMAP_RTC_INTERRUPTS_REG);
-+	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
-+		rtc_write(irqwake_reg, OMAP_RTC_IRQWAKEEN);
- 	local_irq_enable();
- 
- 	return 0;
-@@ -281,7 +292,10 @@ static int omap_rtc_read_alarm(struct de
- 
- static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+ 	if (!tsk->mm)
+ 		return 0;
++	if (force_early)
++		return 1;
+ 	if (tsk->flags & PF_MCE_PROCESS)
+ 		return !!(tsk->flags & PF_MCE_EARLY);
+ 	return sysctl_memory_failure_early_kill;
+@@ -393,7 +395,7 @@ static int task_early_kill(struct task_s
+  * Collect processes when the error hit an anonymous page.
+  */
+ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
+-			      struct to_kill **tkc)
++			      struct to_kill **tkc, int force_early)
  {
--	u8 reg;
-+	u8 reg, irqwake_reg = 0;
-+	struct platform_device *pdev = to_platform_device(dev);
-+	const struct platform_device_id *id_entry =
-+					platform_get_device_id(pdev);
+ 	struct vm_area_struct *vma;
+ 	struct task_struct *tsk;
+@@ -409,7 +411,7 @@ static void collect_procs_anon(struct pa
+ 	for_each_process (tsk) {
+ 		struct anon_vma_chain *vmac;
  
- 	if (tm2bcd(&alm->time) < 0)
- 		return -EINVAL;
-@@ -297,11 +311,19 @@ static int omap_rtc_set_alarm(struct dev
- 	rtc_write(alm->time.tm_sec, OMAP_RTC_ALARM_SECONDS_REG);
- 
- 	reg = rtc_read(OMAP_RTC_INTERRUPTS_REG);
--	if (alm->enabled)
-+	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
-+		irqwake_reg = rtc_read(OMAP_RTC_IRQWAKEEN);
-+
-+	if (alm->enabled) {
- 		reg |= OMAP_RTC_INTERRUPTS_IT_ALARM;
--	else
-+		irqwake_reg |= OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
-+	} else {
- 		reg &= ~OMAP_RTC_INTERRUPTS_IT_ALARM;
-+		irqwake_reg &= ~OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
-+	}
- 	rtc_write(reg, OMAP_RTC_INTERRUPTS_REG);
-+	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
-+		rtc_write(irqwake_reg, OMAP_RTC_IRQWAKEEN);
- 
- 	local_irq_enable();
- 
-@@ -503,28 +525,16 @@ static u8 irqstat;
- 
- static int omap_rtc_suspend(struct device *dev)
+-		if (!task_early_kill(tsk))
++		if (!task_early_kill(tsk, force_early))
+ 			continue;
+ 		anon_vma_interval_tree_foreach(vmac, &av->rb_root,
+ 					       pgoff, pgoff) {
+@@ -428,7 +430,7 @@ static void collect_procs_anon(struct pa
+  * Collect processes when the error hit a file mapped page.
+  */
+ static void collect_procs_file(struct page *page, struct list_head *to_kill,
+-			      struct to_kill **tkc)
++			      struct to_kill **tkc, int force_early)
  {
--	u8 irqwake_stat;
--	struct platform_device *pdev = to_platform_device(dev);
--	const struct platform_device_id *id_entry =
--					platform_get_device_id(pdev);
--
- 	irqstat = rtc_read(OMAP_RTC_INTERRUPTS_REG);
+ 	struct vm_area_struct *vma;
+ 	struct task_struct *tsk;
+@@ -439,7 +441,7 @@ static void collect_procs_file(struct pa
+ 	for_each_process(tsk) {
+ 		pgoff_t pgoff = page_pgoff(page);
  
- 	/* FIXME the RTC alarm is not currently acting as a wakeup event
- 	 * source on some platforms, and in fact this enable() call is just
- 	 * saving a flag that's never used...
+-		if (!task_early_kill(tsk))
++		if (!task_early_kill(tsk, force_early))
+ 			continue;
+ 
+ 		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff,
+@@ -465,7 +467,8 @@ static void collect_procs_file(struct pa
+  * First preallocate one tokill structure outside the spin locks,
+  * so that we can kill at least one process reasonably reliable.
+  */
+-static void collect_procs(struct page *page, struct list_head *tokill)
++static void collect_procs(struct page *page, struct list_head *tokill,
++				int force_early)
+ {
+ 	struct to_kill *tk;
+ 
+@@ -476,9 +479,9 @@ static void collect_procs(struct page *p
+ 	if (!tk)
+ 		return;
+ 	if (PageAnon(page))
+-		collect_procs_anon(page, tokill, &tk);
++		collect_procs_anon(page, tokill, &tk, force_early);
+ 	else
+-		collect_procs_file(page, tokill, &tk);
++		collect_procs_file(page, tokill, &tk, force_early);
+ 	kfree(tk);
+ }
+ 
+@@ -963,7 +966,7 @@ static int hwpoison_user_mappings(struct
+ 	 * there's nothing that can be done.
  	 */
--	if (device_may_wakeup(dev)) {
-+	if (device_may_wakeup(dev))
- 		enable_irq_wake(omap_rtc_alarm);
--
--		if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN) {
--			irqwake_stat = rtc_read(OMAP_RTC_IRQWAKEEN);
--			irqwake_stat |= OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
--			rtc_write(irqwake_stat, OMAP_RTC_IRQWAKEEN);
--		}
--	} else {
-+	else
- 		rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
--	}
+ 	if (kill)
+-		collect_procs(ppage, &tokill);
++		collect_procs(ppage, &tokill, flags & MF_ACTION_REQUIRED);
  
- 	/* Disable the clock/module */
- 	pm_runtime_put_sync(dev);
-@@ -534,25 +544,14 @@ static int omap_rtc_suspend(struct devic
- 
- static int omap_rtc_resume(struct device *dev)
- {
--	u8 irqwake_stat;
--	struct platform_device *pdev = to_platform_device(dev);
--	const struct platform_device_id *id_entry =
--				platform_get_device_id(pdev);
--
- 	/* Enable the clock/module so that we can access the registers */
- 	pm_runtime_get_sync(dev);
- 
--	if (device_may_wakeup(dev)) {
-+	if (device_may_wakeup(dev))
- 		disable_irq_wake(omap_rtc_alarm);
+ 	ret = try_to_unmap(ppage, ttu);
+ 	if (ret != SWAP_SUCCESS)
+_
+
+Patches currently in -mm which might be from tony.luck@intel.com are
+
+hugetlb-restrict-hugepage_migration_support-to-x86_64.patch
+memory-failure-send-right-signal-code-to-correct-thread.patch
+memory-failure-dont-let-collect_procs-skip-over-processes-for-mf_action_required.patch
+mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao.patch
+lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
+lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
+linux-next.patch
+
