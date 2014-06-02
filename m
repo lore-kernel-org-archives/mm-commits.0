@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2.patch added to -mm tree
-Date: Mon, 02 Jun 2014 16:10:11 -0700
-Message-ID: <538d0453.bDkIi3CBWFY7t9UQ%akpm@linux-foundation.org>
+Subject: + ocfs2-remove-some-unused-codes.patch added to -mm tree
+Date: Mon, 02 Jun 2014 16:21:46 -0700
+Message-ID: <538d070a.H7POJD6HC9FDEEPI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42854 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42963 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751875AbaFBXKM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 19:10:12 -0400
+	with ESMTP id S1752598AbaFBXVr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 19:21:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, swarren@nvidia.com, shawn.guo@linaro.org, sfr@canb.auug.org.au, rientjes@google.com, khilman@linaro.org, fabio.estevam@freescale.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: + mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2.patch added to -mm tree
-To: vbabka@suse.cz,fabio.estevam@freescale.com,khilman@linaro.org,rientjes@google.com,sfr@canb.auug.org.au,shawn.guo@linaro.org,swarren@nvidia.com
+Subject: + ocfs2-remove-some-unused-codes.patch added to -mm tree
+To: xuejiufei@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Mon, 02 Jun 2014 16:10:11 -0700
+Date: Mon, 02 Jun 2014 16:21:46 -0700
 
 
 The patch titled
-     Subject: mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2
+     Subject: ocfs2: remove some unused code
 has been added to the -mm tree.  Its filename is
-     mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2.patch
+     ocfs2-remove-some-unused-codes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-some-unused-codes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-some-unused-codes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,90 +43,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: remove some unused code
 
-Step 1: Change function name and comment between v1 and v2 so that the return
-        value signals the opposite thing.
-Step 2: Change the call sites to reflect the opposite return value.
-Step 3: ???
-Step 4: Make a complete fool of yourself.
+dlm_recovery_ctxt.received is unused.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Kevin Hilman <khilman@linaro.org>
-Reported-by: Shawn Guo <shawn.guo@linaro.org>
-Tested-by: Shawn Guo <shawn.guo@linaro.org>
-Tested-by: Kevin Hilman <khilman@linaro.org>
-Tested-by: Stephen Warren <swarren@nvidia.com>
-Tested-by: Fabio Estevam <fabio.estevam@freescale.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+ocfs2_should_refresh_lock_res() can only return 0 or 1, so the error
+handling code in ocfs2_super_lock() is unneeded.
+
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmcommon.h |    1 -
+ fs/ocfs2/dlm/dlmdomain.c |    1 -
+ fs/ocfs2/dlmglue.c       |    5 -----
+ 3 files changed, 7 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2 mm/compaction.c
---- a/mm/compaction.c~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2
-+++ a/mm/compaction.c
-@@ -237,13 +237,13 @@ static inline bool compact_should_abort(
- 	if (need_resched()) {
- 		if (cc->mode == MIGRATE_ASYNC) {
- 			cc->contended = true;
--			return false;
-+			return true;
- 		}
+diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-remove-some-unused-codes fs/ocfs2/dlm/dlmcommon.h
+--- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-remove-some-unused-codes
++++ a/fs/ocfs2/dlm/dlmcommon.h
+@@ -108,7 +108,6 @@ static inline int dlm_is_recovery_lock(c
+ struct dlm_recovery_ctxt
+ {
+ 	struct list_head resources;
+-	struct list_head received;
+ 	struct list_head node_data;
+ 	u8  new_master;
+ 	u8  dead_node;
+diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-remove-some-unused-codes fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-remove-some-unused-codes
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -2034,7 +2034,6 @@ static struct dlm_ctxt *dlm_alloc_ctxt(c
+ 	INIT_LIST_HEAD(&dlm->list);
+ 	INIT_LIST_HEAD(&dlm->dirty_list);
+ 	INIT_LIST_HEAD(&dlm->reco.resources);
+-	INIT_LIST_HEAD(&dlm->reco.received);
+ 	INIT_LIST_HEAD(&dlm->reco.node_data);
+ 	INIT_LIST_HEAD(&dlm->purge_list);
+ 	INIT_LIST_HEAD(&dlm->dlm_domain_handlers);
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-remove-some-unused-codes fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-remove-some-unused-codes
++++ a/fs/ocfs2/dlmglue.c
+@@ -2544,11 +2544,6 @@ int ocfs2_super_lock(struct ocfs2_super
+ 	 * refreshed, so we do it here. Of course, making sense of
+ 	 * everything is up to the caller :) */
+ 	status = ocfs2_should_refresh_lock_res(lockres);
+-	if (status < 0) {
+-		ocfs2_cluster_unlock(osb, lockres, level);
+-		mlog_errno(status);
+-		goto bail;
+-	}
+ 	if (status) {
+ 		status = ocfs2_refresh_slot_info(osb);
  
- 		cond_resched();
- 	}
- 
--	return true;
-+	return false;
- }
- 
- /* Returns true if the page is within a block suitable for migration to */
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-compaction-clean-up-unused-code-lines.patch
-mm-compaction-cleanup-isolate_freepages.patch
-mm-compaction-cleanup-isolate_freepages-fix.patch
-mm-compaction-cleanup-isolate_freepages-fix-2.patch
-mm-migration-add-destination-page-freeing-callback.patch
-mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
-mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
-mm-compaction-embed-migration-mode-in-compact_control.patch
-mm-compaction-embed-migration-mode-in-compact_control-fix.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
-mm-compaction-terminate-async-compaction-when-rescheduling.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary-fix.patch
-mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
-mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages-fix.patch
-jump_label-expose-the-reference-count.patch
-mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
-mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
-mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
-mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
-mm-page_alloc-use-word-based-accesses-for-get-set-pageblock-bitmaps.patch
-mm-page_alloc-reduce-number-of-times-page_to_pfn-is-called.patch
-mm-page_alloc-lookup-pageblock-migratetype-with-irqs-enabled-during-free.patch
-mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
-mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
-mm-shmem-avoid-atomic-operation-during-shmem_getpage_gfp.patch
-mm-do-not-use-atomic-operations-when-releasing-pages.patch
-mm-do-not-use-unnecessary-atomic-operations-when-adding-pages-to-the-lru.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
-mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref.patch
-mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch
-mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix.patch
-mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2.patch
+ocfs2-dlm-fix-possible-convertion-deadlock.patch
+ocfs2-fix-umount-hang-while-shutting-down-truncate-log.patch
+ocfs2-dlm-disallow-node-joining-when-recovery-is-on-going.patch
+ocfs2-cleanup-unused-paramters-in-ocfs2_calc_new_backup_super.patch
+ocfs2-remove-some-unused-codes.patch
+ocfs2-revert-the-patch-fix-null-pointer-dereference-when-dismount-and-ocfs2rec-simultaneously.patch
+ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 
