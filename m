@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch added to -mm tree
-Date: Mon, 02 Jun 2014 14:29:01 -0700
-Message-ID: <538cec9d.uNDzc7gXRYXfBLUA%akpm@linux-foundation.org>
+Subject: + fs-proc-vmcorec-remove-null-assignment-on-static.patch added to -mm tree
+Date: Mon, 02 Jun 2014 14:29:33 -0700
+Message-ID: <538cecbd.idjzJ2ChN2qY9pBm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41773 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751102AbaFBV3C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 17:29:02 -0400
+	with ESMTP id S1753022AbaFBV3e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 17:29:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, vgoyal@redhat.com, fabf@skynet.be
 
-Subject: + fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch added to -mm tree
-To: fabf@skynet.be,xemul@parallels.com
+Subject: + fs-proc-vmcorec-remove-null-assignment-on-static.patch added to -mm tree
+To: fabf@skynet.be,vgoyal@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 02 Jun 2014 14:29:01 -0700
+Date: Mon, 02 Jun 2014 14:29:33 -0700
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: replace seq_printf by seq_puts
+     Subject: fs/proc/vmcore.c: remove NULL assignment to static
 has been added to the -mm tree.  Its filename is
-     fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
+     fs-proc-vmcorec-remove-null-assignment-on-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-vmcorec-remove-null-assignment-on-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-vmcorec-remove-null-assignment-on-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,49 +44,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/proc/task_mmu.c: replace seq_printf by seq_puts
+Subject: fs/proc/vmcore.c: remove NULL assignment to static
+
+Static values are automatically initialized to NULL.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/proc/vmcore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-replace-seq_printf-by-seq_puts fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-replace-seq_printf-by-seq_puts
-+++ a/fs/proc/task_mmu.c
-@@ -1414,10 +1414,10 @@ static int show_numa_map(struct seq_file
- 	seq_printf(m, "%08lx %s", vma->vm_start, buffer);
+diff -puN fs/proc/vmcore.c~fs-proc-vmcorec-remove-null-assignment-on-static fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~fs-proc-vmcorec-remove-null-assignment-on-static
++++ a/fs/proc/vmcore.c
+@@ -42,7 +42,7 @@ static size_t elfnotes_sz;
+ /* Total size of vmcore file. */
+ static u64 vmcore_size;
  
- 	if (file) {
--		seq_printf(m, " file=");
-+		seq_puts(m, " file=");
- 		seq_path(m, &file->f_path, "\n\t= ");
- 	} else if (vma->vm_start <= mm->brk && vma->vm_end >= mm->start_brk) {
--		seq_printf(m, " heap");
-+		seq_puts(m, " heap");
- 	} else {
- 		pid_t tid = vm_is_stack(task, vma, is_pid);
- 		if (tid != 0) {
-@@ -1427,14 +1427,14 @@ static int show_numa_map(struct seq_file
- 			 */
- 			if (!is_pid || (vma->vm_start <= mm->start_stack &&
- 			    vma->vm_end >= mm->start_stack))
--				seq_printf(m, " stack");
-+				seq_puts(m, " stack");
- 			else
- 				seq_printf(m, " stack:%d", tid);
- 		}
- 	}
+-static struct proc_dir_entry *proc_vmcore = NULL;
++static struct proc_dir_entry *proc_vmcore;
  
- 	if (is_vm_hugetlb_page(vma))
--		seq_printf(m, " huge");
-+		seq_puts(m, " huge");
- 
- 	/* mmap_sem is held by m_start */
- 	walk_page_range(vma->vm_start, vma->vm_end, &walk);
+ /*
+  * Returns > 0 for RAM pages, 0 for non-RAM pages, < 0 on error
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -186,6 +167,7 @@ fs-hpfs-increase-pr_warn-level.patch
 documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
 fs-proc-consoles-replace-seq_printf-by-seq_puts.patch
 fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
+fs-proc-vmcorec-remove-null-assignment-on-static.patch
 kernel-kexecc-convert-printk-to-pr_foo.patch
 kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
 fs-affs-filec-remove-unnecessary-function-parameters.patch
