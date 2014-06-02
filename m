@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch added to -mm
- tree
-Date: Mon, 02 Jun 2014 13:03:50 -0700
-Message-ID: <538cd8a6.QE4uRmM106f+nDMA%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-warn-on-unnecessary-void-function-return-statements.patch added
+ to -mm tree
+Date: Mon, 02 Jun 2014 13:40:14 -0700
+Message-ID: <538ce12e.OducOrHfJ1+C58SH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41139 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369AbaFBUDw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 16:03:52 -0400
+	with ESMTP id S1752396AbaFBUkP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2014 16:40:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, mark.roszko@gmail.com, linux@maxim.org.za, johan@hovold.com, bevenson@melinkcorp.com, a.zummo@towertech.it, boris.brezillon@free-electrons.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch added to -mm tree
-To: boris.brezillon@free-electrons.com,a.zummo@towertech.it,bevenson@melinkcorp.com,johan@hovold.com,linux@maxim.org.za,mark.roszko@gmail.com,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com
+Subject: + checkpatch-warn-on-unnecessary-void-function-return-statements.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Mon, 02 Jun 2014 13:03:50 -0700
+Date: Mon, 02 Jun 2014 13:40:14 -0700
 
 
 The patch titled
-     Subject: ARM: at91: fix at91_sysirq_mask_rtc for sam9x5 SoCs
+     Subject: checkpatch: warn on unnecessary void function return statements
 has been added to the -mm tree.  Its filename is
-     arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch
+     checkpatch-warn-on-unnecessary-void-function-return-statements.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-warn-on-unnecessary-void-function-return-statements.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-warn-on-unnecessary-void-function-return-statements.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,79 +45,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: ARM: at91: fix at91_sysirq_mask_rtc for sam9x5 SoCs
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: warn on unnecessary void function return statements
 
-sam9x5 SoCs have the following errata:
-"RTC: Interrupt Mask Register cannot be used
- Interrupt Mask Register read always returns 0."
+void function lines that use a single tab then "return;" are generally
+unnecessary.
 
-Hence we should not rely on what IMR claims about already masked IRQs
-and just disable all IRQs.
-
-Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
-Reported-by: Bryan Evenson <bevenson@melinkcorp.com>
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Bryan Evenson <bevenson@melinkcorp.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Mark Roszko <mark.roszko@gmail.com>
-Cc: Johan Hovold <johan@hovold.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/sysirq_mask.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ scripts/checkpatch.pl |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/arm/mach-at91/sysirq_mask.c~arm-at91-fix-rtc-irq-mask-for-sam9x5-socs arch/arm/mach-at91/sysirq_mask.c
---- a/arch/arm/mach-at91/sysirq_mask.c~arm-at91-fix-rtc-irq-mask-for-sam9x5-socs
-+++ a/arch/arm/mach-at91/sysirq_mask.c
-@@ -25,24 +25,28 @@
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-void-function-return-statements scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-void-function-return-statements
++++ a/scripts/checkpatch.pl
+@@ -3470,6 +3470,13 @@ sub process {
+ 			}
+ 		}
  
- #include "generic.h"
- 
--#define AT91_RTC_IDR	0x24	/* Interrupt Disable Register */
--#define AT91_RTC_IMR	0x28	/* Interrupt Mask Register */
-+#define AT91_RTC_IDR		0x24	/* Interrupt Disable Register */
-+#define AT91_RTC_IMR		0x28	/* Interrupt Mask Register */
-+#define AT91_RTC_IRQ_MASK	0x1f	/* Available IRQs mask */
- 
- void __init at91_sysirq_mask_rtc(u32 rtc_base)
- {
- 	void __iomem *base;
--	u32 mask;
- 
- 	base = ioremap(rtc_base, 64);
- 	if (!base)
- 		return;
- 
--	mask = readl_relaxed(base + AT91_RTC_IMR);
--	if (mask) {
--		pr_info("AT91: Disabling rtc irq\n");
--		writel_relaxed(mask, base + AT91_RTC_IDR);
--		(void)readl_relaxed(base + AT91_RTC_IMR);	/* flush */
--	}
-+	/*
-+	 * sam9x5 SoCs have the following errata:
-+	 * "RTC: Interrupt Mask Register cannot be used
-+	 *  Interrupt Mask Register read always returns 0."
-+	 *
-+	 * Hence we're not relying on IMR values to disable
-+	 * interrupts.
-+	 */
-+	writel_relaxed(AT91_RTC_IRQ_MASK, base + AT91_RTC_IDR);
-+	(void)readl_relaxed(base + AT91_RTC_IMR);	/* flush */
- 
- 	iounmap(base);
- }
++# unnecessary return in a void function? (a single leading tab, then return;)
++		if ($sline =~ /^\+\treturn\s*;\s*$/ &&
++		    $prevline =~ /^\+/) {
++			WARN("RETURN_VOID",
++			     "void function return statements are not generally useful\n" . $herecurr);
++		}
++
+ # if statements using unnecessary parentheses - ie: if ((foo == bar))
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    $line =~ /\bif\s*((?:\(\s*){2,})/) {
 _
 
-Patches currently in -mm which might be from boris.brezillon@free-electrons.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
-rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2.patch
-arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch
+maintainers-add-me-as-the-get_maintainerpl-maintainer.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+documentation-expand-clarify-debug-documentation.patch
+printk-use-symbolic-defines-for-console-loglevels.patch
+lib-bugc-convert-printk-to-pr_foo.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-fix-wildcard-dt-compatible-string-checking.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-improve-missing-blank-line-after-declarations-test.patch
+checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
+checkpatch-warn-on-defines-ending-in-semicolon.patch
+checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch
+checkpatch-prefer-kstrtofoo-to-sscanfbuf-%lhuidx-bar.patch
+checkpatch-warn-on-unnecessary-void-function-return-statements.patch
+fs-efs-convert-printk-to-pr_foo.patch
+fs-efs-add-pr_fmt-use-__func__.patch
+fs-efs-convert-printkkern_debug-to-pr_debug.patch
+init-mainc-dont-use-pr_debug.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
 linux-next.patch
-arm-at91-fix-rtc-irq-mask-for-sam9x5-socs-fix.patch
+arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+tile-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+parport-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+scsi-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ntfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ipc-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+mm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+maintainers-add-linux-api-for-review-of-api-abi-changes.patch
 
