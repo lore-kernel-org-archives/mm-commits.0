@@ -1,77 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 03 Jun 2014 15:51:36 -0700
-Message-ID: <538e5178.jlezduX9OCuXKPD8%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ rwsem-support-optimistic-spinning-checkpatch-fixes.patch removed from -mm
+ tree
+Date: Tue, 03 Jun 2014 15:52:51 -0700
+Message-ID: <538e51c3./R3EsBSTNr6ARLlv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54255 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54257 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751955AbaFCWvg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2014 18:51:36 -0400
+	with ESMTP id S1755221AbaFCWww (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2014 18:52:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, davidlohr@hp.com, akpm@linux-foundation.org
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] rwsem-support-optimistic-spinning-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,davidlohr@hp.com,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de,tim.c.chen@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 03 Jun 2014 15:51:36 -0700
+Date: Tue, 03 Jun 2014 15:52:51 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: rwsem-support-optimistic-spinning-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     rwsem-support-optimistic-spinning-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into rwsem-support-optimistic-spinning.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: rwsem-support-optimistic-spinning-checkpatch-fixes
 
+WARNING: line over 80 characters
+#205: FILE: kernel/locking/rwsem-xadd.c:275:
++		old = cmpxchg(&sem->count, count, count + RWSEM_ACTIVE_WRITE_BIAS);
+
+WARNING: line over 80 characters
+#376: FILE: kernel/locking/rwsem-xadd.c:434:
++		 * If there were already threads queued before us and there are no
+
+WARNING: line over 80 characters
+#377: FILE: kernel/locking/rwsem-xadd.c:435:
++		 * active writers, the lock must be read owned; so we try to wake
+
+total: 0 errors, 3 warnings, 417 lines checked
+
+./patches/rwsem-support-optimistic-spinning.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mti-malta/malta-memory.c |    5 -----
- kernel/sched/core.c                |    3 ---
- 2 files changed, 8 deletions(-)
+ kernel/locking/rwsem-xadd.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/mips/mti-malta/malta-memory.c~linux-next-git-rejects arch/mips/mti-malta/malta-memory.c
---- a/arch/mips/mti-malta/malta-memory.c~linux-next-git-rejects
-+++ a/arch/mips/mti-malta/malta-memory.c
-@@ -26,13 +26,8 @@ unsigned long physical_memsize = 0L;
+diff -puN kernel/locking/rwsem-xadd.c~rwsem-support-optimistic-spinning-checkpatch-fixes kernel/locking/rwsem-xadd.c
+--- a/kernel/locking/rwsem-xadd.c~rwsem-support-optimistic-spinning-checkpatch-fixes
++++ a/kernel/locking/rwsem-xadd.c
+@@ -431,9 +431,9 @@ struct rw_semaphore __sched *rwsem_down_
+ 		count = ACCESS_ONCE(sem->count);
  
- fw_memblock_t * __init fw_getmdesc(int eva)
- {
--<<<<<<< HEAD
--	char *memsize_str, *ememsize_str __maybe_unused = NULL, *ptr;
--	unsigned long memsize = 0, ememsize __maybe_unused = 0;
--=======
- 	char *memsize_str, *ememsize_str = NULL, *ptr;
- 	unsigned long memsize = 0, ememsize = 0;
-->>>>>>> linux-next/akpm-base
- 	static char cmdline[COMMAND_LINE_SIZE] __initdata;
- 	int tmp;
- 
-diff -puN kernel/sched/core.c~linux-next-git-rejects kernel/sched/core.c
---- a/kernel/sched/core.c~linux-next-git-rejects
-+++ a/kernel/sched/core.c
-@@ -5124,12 +5124,9 @@ static int sched_cpu_active(struct notif
- 				      unsigned long action, void *hcpu)
- {
- 	switch (action & ~CPU_TASKS_FROZEN) {
--<<<<<<< HEAD
--=======
- 	case CPU_STARTING:
- 		set_cpu_rq_start_time();
- 		return NOTIFY_OK;
-->>>>>>> linux-next/akpm-base
- 	case CPU_DOWN_FAILED:
- 		set_cpu_active((long)hcpu, true);
- 		return NOTIFY_OK;
+ 		/*
+-		 * If there were already threads queued before us and there are no
+-		 * active writers, the lock must be read owned; so we try to wake
+-		 * any read locks that were queued ahead of us.
++		 * If there were already threads queued before us and there are
++		 * no active writers, the lock must be read owned; so we try to
++		 * wake any read locks that were queued ahead of us.
+ 		 */
+ 		if (count > RWSEM_WAITING_BIAS)
+ 			sem = __rwsem_do_wake(sem, RWSEM_WAKE_READERS);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,7 +153,7 @@ linux-next-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 mm-page_ioc-work-around-gcc-bug.patch
 kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-rwsem-support-optimistic-spinning-checkpatch-fixes.patch
+rwsem-support-optimistic-spinning.patch
 mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
 mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 memcg-deprecate-memoryforce_empty-knob-fix.patch
