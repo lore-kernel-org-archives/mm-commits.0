@@ -1,94 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] rwsem-support-optimistic-spinning-fix.patch
- removed from -mm tree
-Date: Tue, 03 Jun 2014 15:52:53 -0700
-Message-ID: <538e51c5.nIFiWBrKCyz68Qe4%akpm@linux-foundation.org>
+Subject: +
+ scripts-checkpatchpl-device_initcall-is-not-the-only-__initcall-substitute.patch added to -mm tree
+Date: Tue, 03 Jun 2014 16:06:11 -0700
+Message-ID: <538e54e3.mWFZM33cZ58lFTcW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54265 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54450 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755221AbaFCWwy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2014 18:52:54 -0400
+	with ESMTP id S1754439AbaFCXGM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2014 19:06:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, davidlohr@hp.com
+To: mm-commits@vger.kernel.org, joe@perches.com, apw@canonical.com, fabf@skynet.be
 
-Subject: [folded-merged] rwsem-support-optimistic-spinning-fix.patch removed from -mm tree
-To: davidlohr@hp.com,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de,tim.c.chen@linux.intel.com,mm-commits@vger.kernel.org
+Subject: + scripts-checkpatchpl-device_initcall-is-not-the-only-__initcall-substitute.patch added to -mm tree
+To: fabf@skynet.be,apw@canonical.com,joe@perches.com
 From: akpm@linux-foundation.org
-Date: Tue, 03 Jun 2014 15:52:53 -0700
+Date: Tue, 03 Jun 2014 16:06:11 -0700
 
 
 The patch titled
-     Subject: rwsem-support-optimistic-spinning-fix
-has been removed from the -mm tree.  Its filename was
-     rwsem-support-optimistic-spinning-fix.patch
+     Subject: scripts/checkpatch.pl: device_initcall is not the only __initcall substitute
+has been added to the -mm tree.  Its filename is
+     scripts-checkpatchpl-device_initcall-is-not-the-only-__initcall-substitute.patch
 
-This patch was dropped because it was folded into rwsem-support-optimistic-spinning.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-checkpatchpl-device_initcall-is-not-the-only-__initcall-substitute.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-checkpatchpl-device_initcall-is-not-the-only-__initcall-substitute.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: rwsem-support-optimistic-spinning-fix
+From: Fabian Frederick <fabf@skynet.be>
+Subject: scripts/checkpatch.pl: device_initcall is not the only __initcall substitute
 
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+This patch adds a link to init.h to find appropriate initcall function to
+replace obsolete __initcall
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rwsem.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/rwsem.h~rwsem-support-optimistic-spinning-fix include/linux/rwsem.h
---- a/include/linux/rwsem.h~rwsem-support-optimistic-spinning-fix
-+++ a/include/linux/rwsem.h
-@@ -64,7 +64,7 @@ static inline int rwsem_is_locked(struct
- # define __RWSEM_DEP_MAP_INIT(lockname)
- #endif
+diff -puN scripts/checkpatch.pl~scripts-checkpatchpl-device_initcall-is-not-the-only-__initcall-substitute scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~scripts-checkpatchpl-device_initcall-is-not-the-only-__initcall-substitute
++++ a/scripts/checkpatch.pl
+@@ -4559,10 +4559,10 @@ sub process {
+ 			     "$1 is obsolete, use k$3 instead\n" . $herecurr);
+ 		}
  
--#ifdef CONFIG_SMP
-+#if defined(CONFIG_SMP) && defined(CONFIG_RWSEM_XCHGADD_ALGORITHM)
- #define __RWSEM_INITIALIZER(name)			\
- 	{ RWSEM_UNLOCKED_VALUE,				\
- 	  __RAW_SPIN_LOCK_UNLOCKED(name.wait_lock),	\
+-# check for __initcall(), use device_initcall() explicitly please
++# check for __initcall(), use device_initcall() explicitly or more appropriate function please
+ 		if ($line =~ /^.\s*__initcall\s*\(/) {
+ 			WARN("USE_DEVICE_INITCALL",
+-			     "please use device_initcall() instead of __initcall()\n" . $herecurr);
++			     "please use device_initcall() or more appropriate function instead of __initcall() (see include/linux/init.h)\n" . $herecurr);
+ 		}
+ 
+ # check for various ops structs, ensure they are const.
 _
 
-Patches currently in -mm which might be from davidlohr@hp.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-mmvmacache-add-debug-data.patch
-mmvmacache-optimize-overflow-system-wide-flushing.patch
-mm-pass-vm_bug_on-reason-to-dump_page.patch
-mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
-mips-call-find_vma-with-the-mmap_sem-held.patch
-arc-call-find_vma-with-the-mmap_sem-held.patch
-arc-call-find_vma-with-the-mmap_sem-held-fix.patch
-drm-exynos-call-find_vma-with-the-mmap_sem-held.patch
-mm-hugetlb-move-the-error-handle-logic-out-of-normal-code-path.patch
-mm-process_vm_access-move-config-option-into-init-kconfig.patch
-ipc-constify-ipc_ops.patch
-ipc-shmc-check-for-ulong-overflows-in-shmat.patch
-ipc-shmc-check-for-overflows-of-shm_tot.patch
-ipc-shmc-check-for-integer-overflow-during-shmget.patch
-ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
-ipcshm-document-new-limits-in-the-uapi-header.patch
-ipcshm-document-new-limits-in-the-uapi-header-v2.patch
-ipcshm-document-new-limits-in-the-uapi-header-v3.patch
-ipcmsg-use-current-state-helpers.patch
-ipcmsg-move-some-msgq-ns-code-around.patch
-ipcmsg-document-volatile-r_msg.patch
-ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-jfs-jfs_logmgrc-remove-null-assignment-on-static.patch
+fs-jfs-superc-remove-0-assignement-to-static-code-clean-up.patch
+fs-fscache-convert-printk-to-pr_foo.patch
+fs-fscache-replace-seq_printf-by-seq_puts.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-time-ntpc-convert-simple_strtol-to-kstrtol.patch
+ntfs-remove-null-value-assignments.patch
+fs-squashfs-squashfsh-replace-pr_warning-by-pr_warn.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+fs-configs-itemc-kernel-doc-fixes-clean-up.patch
+fs-configfs-convert-printk-to-pr_foo.patch
+fs-configfs-use-pr_fmt.patch
+lib-debugobjectsc-convert-printk-to-pr_foo.patch
+lib-debugobjectsc-add-pr_fmt-to-logging.patch
+lib-debugobjectsc-convert-printkkern_debug-to-pr_debug.patch
+ocfs2-remove-null-assignments-on-static.patch
+fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-ocfs2-ioctlc-add-static-to-local-functions.patch
+fs-9p-v9fsc-add-__init-to-v9fs_sysfs_init.patch
+fs-9p-kerneldoc-fixes.patch
+fs-add-generic-data-flush-to-fsync.patch
+fs-add-generic-data-flush-to-fsync-fix.patch
+fs-add-generic-data-flush-to-fsync-fix-fix.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-slubc-convert-printk-to-pr_foo.patch
+mm-slubc-convert-vnsprintf-static-to-va_format.patch
+mm-memory_hotplugc-use-pfn_down.patch
+mm-memblockc-use-pfn_down.patch
+mm-memcontrolc-remove-null-assignment-on-static.patch
+mm-vmallocc-replace-seq_printf-by-seq_puts.patch
+mm-mempolicyc-parameter-doc-uniformization.patch
+fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch
+fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch
+fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
+mm-zbudc-make-size-unsigned-like-unique-callsite.patch
+sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
+fs-efivarfs-superc-use-static-const-for-dentry_operations.patch
+fs-exportfs-expfsc-kernel-doc-warning-fixes.patch
+kernel-cpuc-convert-printk-to-pr_foo.patch
+kernel-backtracetestc-replace-no-level-printk-by-pr_info.patch
+kernel-capabilityc-code-clean-up.patch
+kernel-exec_domainc-code-clean-up.patch
+kernel-latencytopc-convert-seq_printf-to-seq_puts.patch
+kernel-stop_machinec-kernel-doc-warning-fix.patch
+kernel-tracepointc-kernel-doc-fixes.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+kernel-utsname_sysctlc-replace-obsolete-__initcall-by-device_initcall.patch
+kernel-hung_taskc-convert-simple_strtoul-to-kstrtouint.patch
+documentation-expand-clarify-debug-documentation.patch
+lib-libcrc32cc-use-ptr_err_or_zero.patch
+lib-vsprintfc-fix-comparison-to-bool.patch
+lib-radix-treec-kernel-doc-warning-fix.patch
+lib-crc32c-remove-unnecessary-__constant.patch
+lib-digsigc-kernel-doc-warning-fixes.patch
+lib-nlattrc-move-export_symbol-after-functions.patch
+lib-textsearchc-move-export_symbol-after-functions.patch
+lib-bugc-convert-printk-to-pr_foo.patch
+lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch
+lib-asn1_decoderc-kernel-doc-warning-fix.patch
+kernel-compatc-use-sizeof-instead-of-sizeof.patch
+scripts-checkpatchpl-device_initcall-is-not-the-only-__initcall-substitute.patch
+fs-efs-convert-printk-to-pr_foo.patch
+fs-efs-add-pr_fmt-use-__func__.patch
+fs-efs-convert-printkkern_debug-to-pr_debug.patch
+fs-binfmt_elfc-fix-bool-assignements.patch
+fs-ncpfs-getoptc-replace-simple_strtoul-by-kstrtoul.patch
+fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-hpfs-convert-printk-to-pr_foo.patch
+fs-hpfs-use-pr_fmt-for-logging.patch
+fs-hpfs-use-__func__-for-logging.patch
+fs-hpfs-increase-pr_warn-level.patch
+documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
+fs-proc-vmcorec-remove-null-assignment-on-static.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
-blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
-rwsem-support-optimistic-spinning.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+mm-kmemleak-testc-use-pr_fmt-for-logging.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
