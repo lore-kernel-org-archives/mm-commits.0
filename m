@@ -1,64 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
- removed from -mm tree
-Date: Wed, 04 Jun 2014 15:19:04 -0700
-Message-ID: <538f9b58.Wy/EMzg9IwnVsEX6%akpm@linux-foundation.org>
+ ocfs2-limit-printk-when-journal-is-aborted-fix.patch removed from -mm tree
+Date: Wed, 04 Jun 2014 15:19:41 -0700
+Message-ID: <538f9b7d.C6uv8PxYcy6aNo+z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38929 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38933 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000AbaFDWTF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:19:05 -0400
+	with ESMTP id S1751000AbaFDWTm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:19:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gxt@mprc.pku.edu.cn, fabf@skynet.be, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, akpm@linux-foundation.org
 
-Subject: [folded-merged] arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,fabf@skynet.be,gxt@mprc.pku.edu.cn,mm-commits@vger.kernel.org
+Subject: [folded-merged] ocfs2-limit-printk-when-journal-is-aborted-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 04 Jun 2014 15:19:04 -0700
+Date: Wed, 04 Jun 2014 15:19:41 -0700
 
 
 The patch titled
-     Subject: arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix
+     Subject: ocfs2-limit-printk-when-journal-is-aborted-fix
 has been removed from the -mm tree.  Its filename was
-     arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix.patch
+     ocfs2-limit-printk-when-journal-is-aborted-fix.patch
 
-This patch was dropped because it was folded into arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
+This patch was dropped because it was folded into ocfs2-limit-printk-when-journal-is-aborted.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix
+Subject: ocfs2-limit-printk-when-journal-is-aborted-fix
 
-undo crazy long line
+document the msleep
 
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/mm/ioremap.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/ocfs2/journal.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN arch/unicore32/mm/ioremap.c~arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix arch/unicore32/mm/ioremap.c
---- a/arch/unicore32/mm/ioremap.c~arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1-fix
-+++ a/arch/unicore32/mm/ioremap.c
-@@ -144,7 +144,10 @@ void __iomem *__uc32_ioremap_pfn_caller(
- 	 * Don't allow RAM to be mapped
- 	 */
- 	if (pfn_valid(pfn))
--		WARN(1, "BUG: Your driver calls ioremap() on\nsystem memory.  This leads to architecturally\nunpredictable behaviour, and ioremap() will fail in\nthe next kernel release. Please fix your driver.\n");
-+		WARN(1, "BUG: Your driver calls ioremap() on\n"
-+			"system memory.  This leads to architecturally\n"
-+			"unpredictable behaviour, and ioremap() will fail in\n"
-+			"the next kernel release. Please fix your driver.\n");
+diff -puN fs/ocfs2/journal.c~ocfs2-limit-printk-when-journal-is-aborted-fix fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-limit-printk-when-journal-is-aborted-fix
++++ a/fs/ocfs2/journal.c
+@@ -2193,6 +2193,11 @@ static int ocfs2_commit_thread(void *arg
+ 			if (printk_timed_ratelimit(&abort_warn_time, 60*HZ))
+ 				mlog(ML_ERROR, "status = %d, journal is "
+ 						"already aborted.\n", status);
++			/*
++			 * After ocfs2_commit_cache() fails, j_num_trans has a
++			 * non-zero value.  Sleep here to avoid a busy-wait
++			 * loop.
++			 */
+ 			msleep_interruptible(1000);
+ 		}
  
- 	type = get_mem_type(mtype);
- 	if (!type)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +66,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
 arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
-ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+ocfs2-limit-printk-when-journal-is-aborted.patch
 fs-add-generic-data-flush-to-fsync-fix.patch
 fs-add-generic-data-flush-to-fsync-fix-fix.patch
 mm-huge_memoryc-complete-conversion-to-pr_foo.patch
