@@ -1,102 +1,85 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets-fix.patch removed from -mm tree
-Date: Wed, 04 Jun 2014 15:32:13 -0700
-Message-ID: <538f9e6d.0TSuexN6CqMWa2be%akpm@linux-foundation.org>
+ mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2.patch removed from -mm tree
+Date: Wed, 04 Jun 2014 15:48:29 -0700
+Message-ID: <538fa23d.sPAScdqIhNGmtj9b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39270 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39315 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751986AbaFDWcN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:32:13 -0400
+	with ESMTP id S1751664AbaFDWsa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:48:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, mgorman@suse.de
+To: mm-commits@vger.kernel.org, swarren@nvidia.com, shawn.guo@linaro.org, sfr@canb.auug.org.au, rientjes@google.com, khilman@linaro.org, fabio.estevam@freescale.com, vbabka@suse.cz
 
-Subject: [folded-merged] mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets-fix.patch removed from -mm tree
-To: mgorman@suse.de,sfr@canb.auug.org.au,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2.patch removed from -mm tree
+To: vbabka@suse.cz,fabio.estevam@freescale.com,khilman@linaro.org,rientjes@google.com,sfr@canb.auug.org.au,shawn.guo@linaro.org,swarren@nvidia.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 04 Jun 2014 15:32:13 -0700
+Date: Wed, 04 Jun 2014 15:48:29 -0700
 
 
 The patch titled
-     Subject: mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets-fix
+     Subject: mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets-fix.patch
+     mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2.patch
 
-This patch was dropped because it was folded into mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
+This patch was dropped because it was folded into mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets-fix
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2
 
-Stephen Rothwell reported the following build failure on -next.
+Step 1: Change function name and comment between v1 and v2 so that the return
+        value signals the opposite thing.
+Step 2: Change the call sites to reflect the opposite return value.
+Step 3: ???
+Step 4: Make a complete fool of yourself.
 
-In file included from arch/powerpc/mm/numa.c:23:0:
-include/linux/cpuset.h: In function 'cpusets_enabled':
-include/linux/cpuset.h:21:2: error: implicit declaration of function 'static_key_false' [-Werror=implicit-function-declaration]
-  return static_key_false(&cpusets_enabled_key);
-  ^
-include/linux/cpuset.h: In function 'nr_cpusets':
-include/linux/cpuset.h:27:2: error: implicit declaration of function 'static_key_count' [-Werror=implicit-function-declaration]
-  return static_key_count(&cpusets_enabled_key) + 1;
-  ^
-include/linux/cpuset.h: In function 'cpuset_inc':
-include/linux/cpuset.h:32:2: error: implicit declaration of function 'static_key_slow_inc' [-Werror=implicit-function-declaration]
-  static_key_slow_inc(&cpusets_enabled_key);
-  ^
-include/linux/cpuset.h: In function 'cpuset_dec':
-include/linux/cpuset.h:37:2: error: implicit declaration of function 'static_key_slow_dec' [-Werror=implicit-function-declaration]
-  static_key_slow_dec(&cpusets_enabled_key);
-  ^
-
-This is a fix to the mmotm patch mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Kevin Hilman <khilman@linaro.org>
+Reported-by: Shawn Guo <shawn.guo@linaro.org>
+Tested-by: Shawn Guo <shawn.guo@linaro.org>
+Tested-by: Kevin Hilman <khilman@linaro.org>
+Tested-by: Stephen Warren <swarren@nvidia.com>
+Tested-by: Fabio Estevam <fabio.estevam@freescale.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/compaction.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/cpuset.h~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets-fix include/linux/cpuset.h
---- a/include/linux/cpuset.h~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets-fix
-+++ a/include/linux/cpuset.h
-@@ -12,6 +12,7 @@
- #include <linux/cpumask.h>
- #include <linux/nodemask.h>
- #include <linux/mm.h>
-+#include <linux/jump_label.h>
+diff -puN mm/compaction.c~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2 mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2
++++ a/mm/compaction.c
+@@ -237,13 +237,13 @@ static inline bool compact_should_abort(
+ 	if (need_resched()) {
+ 		if (cc->mode == MIGRATE_ASYNC) {
+ 			cc->contended = true;
+-			return false;
++			return true;
+ 		}
  
- #ifdef CONFIG_CPUSETS
+ 		cond_resched();
+ 	}
  
+-	return true;
++	return false;
+ }
+ 
+ /* Returns true if the page is within a block suitable for migration to */
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-origin.patch
-x86-require-x86-64-for-automatic-numa-balancing.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
-mm-huge_memoryc-complete-conversion-to-pr_foo.patch
-mm-disable-zone_reclaim_mode-by-default.patch
-mm-page_alloc-do-not-cache-reclaim-distances.patch
 mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
 mm-compaction-clean-up-unused-code-lines.patch
 mm-compaction-cleanup-isolate_freepages.patch
-mm-swapc-clean-up-lru_cache_add-functions.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
-mm-numa-add-migrated-transhuge-pages-to-lru-the-same-way-as-base-pages.patch
-mm-swapc-introduce-put_refcounted_compound_page-helpers-for-spliting-put_compound_page.patch
-mm-swapc-split-put_compound_page-function.patch
-mm-introdule-compound_head_by_tail.patch
-mm-x86-pgtable-drop-unneeded-preprocessor-ifdef.patch
-mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
-mm-mempolicyc-parameter-doc-uniformization.patch
 mm-migration-add-destination-page-freeing-callback.patch
 mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
 mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
@@ -105,12 +88,6 @@ mm-thp-avoid-excessive-compaction-latency-during-fault.patch
 mm-compaction-terminate-async-compaction-when-rescheduling.patch
 mm-compaction-do-not-count-migratepages-when-unnecessary.patch
 mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
-swap-change-swap_info-singly-linked-list-to-list_head.patch
-plist-add-helper-functions.patch
-plist-add-plist_requeue.patch
-swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
-mm-page_alloc-do-not-update-zlc-unless-the-zlc-is-active.patch
-mm-page_alloc-do-not-treat-a-zone-that-cannot-be-used-for-dirty-pages-as-full.patch
 jump_label-expose-the-reference-count.patch
 mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
 mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
@@ -125,15 +102,7 @@ mm-shmem-avoid-atomic-operation-during-shmem_getpage_gfp.patch
 mm-do-not-use-atomic-operations-when-releasing-pages.patch
 mm-do-not-use-unnecessary-atomic-operations-when-adding-pages-to-the-lru.patch
 fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
 mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
 mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref.patch
-mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref-fix.patch
-mm-avoid-unnecessary-atomic-operations-during-end_page_writeback.patch
 mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch
-fs-superblock-unregister-sb-shrinker-before-kill_sb.patch
-fs-superblock-avoid-locking-counting-inodes-and-dentries-before-reclaiming-them.patch
-mm-vmscan-use-proportional-scanning-during-direct-reclaim-and-full-scan-at-def_priority.patch
-mm-nominate-faultaround-area-in-bytes-rather-then-page-order.patch
 
