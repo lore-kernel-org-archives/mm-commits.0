@@ -1,65 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch removed
- from -mm tree
-Date: Wed, 04 Jun 2014 15:52:43 -0700
-Message-ID: <538fa33b.baIYu2btPxq8hYIE%akpm@linux-foundation.org>
+ printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch removed from -mm tree
+Date: Wed, 04 Jun 2014 15:53:08 -0700
+Message-ID: <538fa354.qcsmJrcK1yzFnTEP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39343 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39348 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751421AbaFDWwo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:52:44 -0400
+	with ESMTP id S1751421AbaFDWxJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:53:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, mhocko@suse.cz, fabf@skynet.be, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, jack@suse.cz, akpm@linux-foundation.org
 
-Subject: [folded-merged] kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,fabf@skynet.be,mhocko@suse.cz,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,jack@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 04 Jun 2014 15:52:43 -0700
+Date: Wed, 04 Jun 2014 15:53:08 -0700
 
 
 The patch titled
-     Subject: kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix
+     Subject: printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix
 has been removed from the -mm tree.  Its filename was
-     kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+     printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
 
-This patch was dropped because it was folded into kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
+This patch was dropped because it was folded into printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix
+Subject: printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix
 
-don't overwrite kstrtoull()'s errno
+fix have_callable_console() comment
 
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/res_counter.c |    5 ++++-
+ kernel/printk/printk.c |    5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/res_counter.c~kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix kernel/res_counter.c
---- a/kernel/res_counter.c~kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix
-+++ a/kernel/res_counter.c
-@@ -187,7 +187,10 @@ int res_counter_memparse_write_strategy(
- 	/* return RES_COUNTER_MAX(unlimited) if "-1" is specified */
- 	if (*buf == '-') {
- 		int rc = kstrtoull(buf + 1, 10, &res);
--		if ((res != 1) || rc)
-+
-+		if (rc)
-+			return rc;
-+		if (res != 1)
- 			return -EINVAL;
- 		*resp = RES_COUNTER_MAX;
- 		return 0;
+diff -puN kernel/printk/printk.c~printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix
++++ a/kernel/printk/printk.c
+@@ -1377,7 +1377,10 @@ static void zap_locks(void)
+ 	sema_init(&console_sem, 1);
+ }
+ 
+-/* Check if we have any console registered that can be called early in boot. */
++/*
++ * Check if we have any console that is capable of printing while cpu is
++ * booting or shutting down. Requires console_sem.
++ */
+ static int have_callable_console(void)
+ {
+ 	struct console *con;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,7 +87,7 @@ mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch
 mm-document-do_fault_around-feature.patch
 mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao.patch
 kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch
 lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
 init-mainc-dont-use-pr_debug.patch
 init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
