@@ -1,61 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
- removed from -mm tree
-Date: Wed, 04 Jun 2014 15:24:04 -0700
-Message-ID: <538f9c84.kDidqh2q+grWg1fQ%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 04 Jun 2014 15:24:32 -0700
+Message-ID: <538f9ca0.qGtpHq2NkaDNNBr9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39029 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39066 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751826AbaFDWYF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:24:05 -0400
+	with ESMTP id S1751680AbaFDWYd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:24:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, davidlohr@hp.com, dave.hansen@linux.intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, lcapitulino@redhat.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-pass-vm_bug_on-reason-to-dump_page-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,dave.hansen@linux.intel.com,davidlohr@hp.com,kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,lcapitulino@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 04 Jun 2014 15:24:04 -0700
+Date: Wed, 04 Jun 2014 15:24:32 -0700
 
 
 The patch titled
-     Subject: mm-pass-vm_bug_on-reason-to-dump_page-fix
+     Subject: hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+     hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-pass-vm_bug_on-reason-to-dump_page.patch
+This patch was dropped because it was folded into hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-pass-vm_bug_on-reason-to-dump_page-fix
+Subject: hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes
 
-include stringify.h
+WARNING: braces {} are not necessary for any arm of this statement
+#282: FILE: mm/hugetlb.c:1650:
++		if (hstate_is_gigantic(h)) {
+[...]
++		} else {
+[...]
 
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+total: 0 errors, 1 warnings, 219 lines checked
+
+./patches/hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmdebug.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/hugetlb.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mmdebug.h~mm-pass-vm_bug_on-reason-to-dump_page-fix include/linux/mmdebug.h
---- a/include/linux/mmdebug.h~mm-pass-vm_bug_on-reason-to-dump_page-fix
-+++ a/include/linux/mmdebug.h
-@@ -1,6 +1,8 @@
- #ifndef LINUX_MM_DEBUG_H
- #define LINUX_MM_DEBUG_H 1
- 
-+#include <linux/stringify.h>
-+
- struct page;
- 
- extern void dump_page(struct page *page, const char *reason);
+diff -puN mm/hugetlb.c~hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes
++++ a/mm/hugetlb.c
+@@ -1647,11 +1647,10 @@ static unsigned long set_max_huge_pages(
+ 		 * and reducing the surplus.
+ 		 */
+ 		spin_unlock(&hugetlb_lock);
+-		if (hstate_is_gigantic(h)) {
++		if (hstate_is_gigantic(h))
+ 			ret = alloc_fresh_gigantic_page(h, nodes_allowed);
+-		} else {
++		else
+ 			ret = alloc_fresh_huge_page(h, nodes_allowed);
+-		}
+ 		spin_lock(&hugetlb_lock);
+ 		if (!ret)
+ 			goto out;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +86,7 @@ mm-huge_memoryc-complete-conversion-to-pr_foo.patch
 include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
 mm-mempool-warn-about-__gfp_zero-usage.patch
 mm-pass-vm_bug_on-reason-to-dump_page.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
 mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
 fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
 mm-compaction-cleanup-isolate_freepages-fix.patch
