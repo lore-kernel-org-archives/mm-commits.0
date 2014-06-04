@@ -1,64 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- ocfs2-limit-printk-when-journal-is-aborted-fix.patch removed from -mm tree
-Date: Wed, 04 Jun 2014 15:19:41 -0700
-Message-ID: <538f9b7d.C6uv8PxYcy6aNo+z%akpm@linux-foundation.org>
+Subject: [folded-merged] fs-add-generic-data-flush-to-fsync-fix-fix.patch
+ removed from -mm tree
+Date: Wed, 04 Jun 2014 15:20:05 -0700
+Message-ID: <538f9b95.O/eyLGDKncqnH/z6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38933 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38944 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000AbaFDWTm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:19:42 -0400
+	with ESMTP id S1751559AbaFDWUG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:20:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, fabf@skynet.be, akpm@linux-foundation.org
 
-Subject: [folded-merged] ocfs2-limit-printk-when-journal-is-aborted-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] fs-add-generic-data-flush-to-fsync-fix-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,fabf@skynet.be,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 04 Jun 2014 15:19:41 -0700
+Date: Wed, 04 Jun 2014 15:20:05 -0700
 
 
 The patch titled
-     Subject: ocfs2-limit-printk-when-journal-is-aborted-fix
+     Subject: fs-add-generic-data-flush-to-fsync-fix-fix
 has been removed from the -mm tree.  Its filename was
-     ocfs2-limit-printk-when-journal-is-aborted-fix.patch
+     fs-add-generic-data-flush-to-fsync-fix-fix.patch
 
-This patch was dropped because it was folded into ocfs2-limit-printk-when-journal-is-aborted.patch
+This patch was dropped because it was folded into fs-add-generic-data-flush-to-fsync.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-limit-printk-when-journal-is-aborted-fix
+Subject: fs-add-generic-data-flush-to-fsync-fix-fix
 
-document the msleep
+fix warning
 
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/blkdev.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-limit-printk-when-journal-is-aborted-fix fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-limit-printk-when-journal-is-aborted-fix
-+++ a/fs/ocfs2/journal.c
-@@ -2193,6 +2193,11 @@ static int ocfs2_commit_thread(void *arg
- 			if (printk_timed_ratelimit(&abort_warn_time, 60*HZ))
- 				mlog(ML_ERROR, "status = %d, journal is "
- 						"already aborted.\n", status);
-+			/*
-+			 * After ocfs2_commit_cache() fails, j_num_trans has a
-+			 * non-zero value.  Sleep here to avoid a busy-wait
-+			 * loop.
-+			 */
- 			msleep_interruptible(1000);
- 		}
- 
+diff -puN include/linux/blkdev.h~fs-add-generic-data-flush-to-fsync-fix-fix include/linux/blkdev.h
+--- a/include/linux/blkdev.h~fs-add-generic-data-flush-to-fsync-fix-fix
++++ a/include/linux/blkdev.h
+@@ -1589,6 +1589,9 @@ struct block_device_operations {
+ extern int __blkdev_driver_ioctl(struct block_device *, fmode_t, unsigned int,
+ 				 unsigned long);
+ #else /* CONFIG_BLOCK */
++
++struct block_device;
++
+ /*
+  * stubs for when the block layer is configured out
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,8 +63,7 @@ origin.patch
 arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
 arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
 ocfs2-limit-printk-when-journal-is-aborted.patch
-fs-add-generic-data-flush-to-fsync-fix.patch
-fs-add-generic-data-flush-to-fsync-fix-fix.patch
+fs-add-generic-data-flush-to-fsync.patch
 mm-huge_memoryc-complete-conversion-to-pr_foo.patch
 include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
 mm-mempool-warn-about-__gfp_zero-usage-fix.patch
