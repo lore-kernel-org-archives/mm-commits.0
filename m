@@ -1,92 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2.patch removed from
- -mm tree
-Date: Wed, 04 Jun 2014 15:28:08 -0700
-Message-ID: <538f9d78.+VWxYVZdo/+9Z+rD%akpm@linux-foundation.org>
+ mm-update-comment-for-default_max_map_count-fix.patch removed from -mm tree
+Date: Wed, 04 Jun 2014 15:28:30 -0700
+Message-ID: <538f9d8e.OypXblOoALqpij02%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39115 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39126 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432AbaFDW2I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:28:08 -0400
+	with ESMTP id S1751740AbaFDW2b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:28:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gorcunov@openvz.org, gorcunov@gmail.com
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2.patch removed from -mm tree
-To: gorcunov@gmail.com,gorcunov@openvz.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-update-comment-for-default_max_map_count-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 04 Jun 2014 15:28:07 -0700
+Date: Wed, 04 Jun 2014 15:28:30 -0700
 
 
 The patch titled
-     Subject: mm: pgtable -- Require X86_64 for soft-dirty tracker, v2
+     Subject: mm-update-comment-for-default_max_map_count-fix
 has been removed from the -mm tree.  Its filename was
-     mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2.patch
+     mm-update-comment-for-default_max_map_count-fix.patch
 
-This patch was dropped because it was folded into mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
+This patch was dropped because it was folded into mm-update-comment-for-default_max_map_count.patch
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: mm: pgtable -- Require X86_64 for soft-dirty tracker, v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-update-comment-for-default_max_map_count-fix
 
-v2 (by akpm@):
- - guard helpers with CONFIG_HAVE_ARCH_SOFT_DIRTY on i386, otherwise
-   it fails to build because we've a generic definitions in
-   asm-generic/pgtable.h
+fix typo
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/sched/sysctl.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2 arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker-v2
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -297,6 +297,7 @@ static inline pmd_t pmd_mknotpresent(pmd
- 	return pmd_clear_flags(pmd, _PAGE_PRESENT);
- }
- 
-+#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- static inline int pte_soft_dirty(pte_t pte)
- {
- 	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
-@@ -332,6 +333,8 @@ static inline int pte_file_soft_dirty(pt
- 	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
- }
- 
-+#endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
-+
- /*
-  * Mask out unsupported bits in a present pgprot.  Non-present pgprots
-  * can use those bits for other purposes, so leave them be.
-@@ -865,6 +868,7 @@ static inline void update_mmu_cache_pmd(
- {
- }
- 
-+#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
- {
- 	VM_BUG_ON(pte_present_nonuma(pte));
-@@ -882,6 +886,7 @@ static inline pte_t pte_swp_clear_soft_d
- 	VM_BUG_ON(pte_present_nonuma(pte));
- 	return pte_clear_flags(pte, _PAGE_SWP_SOFT_DIRTY);
- }
-+#endif
- 
- #include <asm-generic/pgtable.h>
- #endif	/* __ASSEMBLY__ */
+diff -puN include/linux/sched/sysctl.h~mm-update-comment-for-default_max_map_count-fix include/linux/sched/sysctl.h
+--- a/include/linux/sched/sysctl.h~mm-update-comment-for-default_max_map_count-fix
++++ a/include/linux/sched/sysctl.h
+@@ -26,8 +26,8 @@ enum { sysctl_hung_task_timeout_secs = 0
+  * generating coredump, we need some margin. The number of extra sections is
+  * 1-3 now and depends on arch. We use "5" as safe margin, here.
+  *
+- * ELF extended numbering allows more then 65535 sections, so 16-bit bound is
+- * not hard limit any more. Although some userspace tools can be surprised by
++ * ELF extended numbering allows more than 65535 sections, so 16-bit bound is
++ * not a hard limit any more. Although some userspace tools can be surprised by
+  * that.
+  */
+ #define MAPCOUNT_ELF_CORE_MARGIN	(5)
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-require-x86-64-for-automatic-numa-balancing.patch
-x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
-mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
+origin.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+ocfs2-limit-printk-when-journal-is-aborted.patch
+fs-add-generic-data-flush-to-fsync.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage.patch
+mm-pass-vm_bug_on-reason-to-dump_page.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
+mm-compaction-cleanup-isolate_freepages.patch
+arc-call-find_vma-with-the-mmap_sem-held.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
+swap-use-bdev_read_page-bdev_write_page.patch
+mm-update-comment-for-default_max_map_count.patch
+memcg-fold-mem_cgroup_stolen-fix.patch
+mm-compaction-embed-migration-mode-in-compact_control-fix.patch
+mm-add-comment-for-__mod_zone_page_stat.patch
+mm-add-comment-for-__mod_zone_page_stat-checkpatch-fixes.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
+fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
+mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
+mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix.patch
+mm-document-do_fault_around-feature-fix.patch
+mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+init-mainc-remove-an-ifdef.patch
 
