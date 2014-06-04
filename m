@@ -1,68 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch removed from
- -mm tree
-Date: Wed, 04 Jun 2014 15:54:37 -0700
-Message-ID: <538fa3ad.QT1r3hJtZxCwnkMP%akpm@linux-foundation.org>
+ lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch removed from -mm tree
+Date: Wed, 04 Jun 2014 15:53:40 -0700
+Message-ID: <538fa374.7caeN+1yBoQ+i2vd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39513 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39350 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490AbaFDWyi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:54:38 -0400
+	with ESMTP id S1751421AbaFDWxl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:53:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rostedt@goodmis.org, rob@landley.net, richard.weinberger@gmail.com, prarit@redhat.com, peterz@infradead.org, mingo@kernel.org, jwboyer@fedoraproject.org, fweisbec@gmail.com, andi@firstfloor.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, johannes@sipsolutions.net, joern@logfs.org, huangminfei@ucloud.cn, akpm@linux-foundation.org
 
-Subject: [folded-merged] init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,andi@firstfloor.org,fweisbec@gmail.com,jwboyer@fedoraproject.org,mingo@kernel.org,peterz@infradead.org,prarit@redhat.com,richard.weinberger@gmail.com,rob@landley.net,rostedt@goodmis.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,huangminfei@ucloud.cn,joern@logfs.org,johannes@sipsolutions.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 04 Jun 2014 15:54:37 -0700
+Date: Wed, 04 Jun 2014 15:53:39 -0700
 
 
 The patch titled
-     Subject: init-mainc-add-initcall_blacklist-kernel-parameter-fix
+     Subject: lib-btreec-fix-leak-of-whole-btree-nodes-fix
 has been removed from the -mm tree.  Its filename was
-     init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+     lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
 
-This patch was dropped because it was folded into init-mainc-add-initcall_blacklist-kernel-parameter.patch
+This patch was dropped because it was folded into lib-btreec-fix-leak-of-whole-btree-nodes.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: init-mainc-add-initcall_blacklist-kernel-parameter-fix
+Subject: lib-btreec-fix-leak-of-whole-btree-nodes-fix
 
-tweak printk text
+remove unneeded test of NULL
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Josh Boyer <jwboyer@fedoraproject.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Richard Weinberger <richard.weinberger@gmail.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Minfei Huang <huangminfei@ucloud.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/btree.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN init/main.c~init-mainc-add-initcall_blacklist-kernel-parameter-fix init/main.c
---- a/init/main.c~init-mainc-add-initcall_blacklist-kernel-parameter-fix
-+++ a/init/main.c
-@@ -683,7 +683,7 @@ static int __init initcall_blacklist(cha
- 	do {
- 		str_entry = strsep(&str, ",");
- 		if (str_entry) {
--			pr_debug("initcall blacklisted %s\n", str_entry);
-+			pr_debug("blacklisting initcall %s\n", str_entry);
- 			entry = alloc_bootmem(sizeof(*entry));
- 			entry->buf = alloc_bootmem(strlen(str_entry) + 1);
- 			strcpy(entry->buf, str_entry);
+diff -puN lib/btree.c~lib-btreec-fix-leak-of-whole-btree-nodes-fix lib/btree.c
+--- a/lib/btree.c~lib-btreec-fix-leak-of-whole-btree-nodes-fix
++++ a/lib/btree.c
+@@ -198,8 +198,7 @@ EXPORT_SYMBOL_GPL(btree_init);
+ 
+ void btree_destroy(struct btree_head *head)
+ {
+-	if (head->node)
+-		mempool_free(head->node, head->mempool);
++	mempool_free(head->node, head->mempool);
+ 	mempool_destroy(head->mempool);
+ 	head->mempool = NULL;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +90,6 @@ kernel-res_counterc-replace-simple_strtoull-by-kstrtoull.patch
 printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch
 lib-btreec-fix-leak-of-whole-btree-nodes.patch
 init-mainc-dont-use-pr_debug.patch
-init-mainc-add-initcall_blacklist-kernel-parameter.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
 init-mainc-remove-an-ifdef.patch
 
