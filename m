@@ -1,76 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- arc-call-find_vma-with-the-mmap_sem-held-fix.patch removed from -mm tree
-Date: Wed, 04 Jun 2014 15:26:15 -0700
-Message-ID: <538f9d07.Qc5vhHxX7W7E0snu%akpm@linux-foundation.org>
+ mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 04 Jun 2014 15:26:53 -0700
+Message-ID: <538f9d2d.XxDp0rAoYIAaJWcQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39104 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39108 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751900AbaFDW0P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:26:15 -0400
+	with ESMTP id S1751799AbaFDW0y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:26:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgupta@synopsys.com, davidlohr@hp.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mgorman@suse.de, akpm@linux-foundation.org
 
-Subject: [folded-merged] arc-call-find_vma-with-the-mmap_sem-held-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,davidlohr@hp.com,vgupta@synopsys.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,mgorman@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 04 Jun 2014 15:26:15 -0700
+Date: Wed, 04 Jun 2014 15:26:53 -0700
 
 
 The patch titled
-     Subject: arc-call-find_vma-with-the-mmap_sem-held-fix
+     Subject: mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+     mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into arc-call-find_vma-with-the-mmap_sem-held.patch
+This patch was dropped because it was folded into mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arc-call-find_vma-with-the-mmap_sem-held-fix
+Subject: mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes
 
-CSE current->active_mm, per Vineet
+ERROR: code indent should use tabs where possible
+#66: FILE: mm/vmscan.c:2585:
++        for_each_zone_zonelist_nodemask(zone, z, zonelist,$
 
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
+WARNING: please, no spaces at the start of a line
+#66: FILE: mm/vmscan.c:2585:
++        for_each_zone_zonelist_nodemask(zone, z, zonelist,$
+
+ERROR: code indent should use tabs where possible
+#67: FILE: mm/vmscan.c:2586:
++                                        gfp_mask, nodemask) {$
+
+WARNING: please, no spaces at the start of a line
+#67: FILE: mm/vmscan.c:2586:
++                                        gfp_mask, nodemask) {$
+
+total: 2 errors, 2 warnings, 56 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/troubleshoot.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/arc/kernel/troubleshoot.c~arc-call-find_vma-with-the-mmap_sem-held-fix arch/arc/kernel/troubleshoot.c
---- a/arch/arc/kernel/troubleshoot.c~arc-call-find_vma-with-the-mmap_sem-held-fix
-+++ a/arch/arc/kernel/troubleshoot.c
-@@ -86,12 +86,13 @@ static void show_faulting_vma(unsigned l
- 	unsigned long ino = 0;
- 	dev_t dev = 0;
- 	char *nm = buf;
-+	struct mm_struct *active_mm = current->active_mm;
- 
- 	/* can't use print_vma_addr() yet as it doesn't check for
- 	 * non-inclusive vma
+diff -puN mm/vmscan.c~mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes
++++ a/mm/vmscan.c
+@@ -2597,8 +2597,8 @@ static bool throttle_direct_reclaim(gfp_
+ 	 * Check if the pfmemalloc reserves are ok by finding the first node
+ 	 * with a usable ZONE_NORMAL or lower zone
  	 */
--	down_read(&current->active_mm->mmap_sem);
--	vma = find_vma(current->active_mm, address);
-+	down_read(&active_mm->mmap_sem);
-+	vma = find_vma(active_mm, address);
+-        for_each_zone_zonelist_nodemask(zone, z, zonelist,
+-                                        gfp_mask, nodemask) {
++	for_each_zone_zonelist_nodemask(zone, z, zonelist,
++					gfp_mask, nodemask) {
+ 		if (zone_idx(zone) > ZONE_NORMAL)
+ 			continue;
  
- 	/* check against the find_vma( ) behaviour which returns the next VMA
- 	 * if the container VMA is not found
-@@ -113,7 +114,7 @@ static void show_faulting_vma(unsigned l
- 	} else
- 		pr_info("    @No matching VMA found\n");
- 
--	up_read(&current->active_mm->mmap_sem);
-+	up_read(&active_mm->mmap_sem);
- }
- 
- static void show_ecr_verbose(struct pt_regs *regs)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,7 +99,7 @@ hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
 fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
 mm-compaction-cleanup-isolate_freepages.patch
 arc-call-find_vma-with-the-mmap_sem-held.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
 swap-use-bdev_read_page-bdev_write_page-fix.patch
 mm-update-comment-for-default_max_map_count-fix.patch
 memcg-fold-mem_cgroup_stolen-fix.patch
