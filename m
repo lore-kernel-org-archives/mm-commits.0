@@ -1,100 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch removed from -mm tree
-Date: Wed, 04 Jun 2014 15:46:40 -0700
-Message-ID: <538fa1d0.x6MK126qU4jyjIiC%akpm@linux-foundation.org>
+ mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 04 Jun 2014 15:52:05 -0700
+Message-ID: <538fa315.bNDpXVV7pohMCiep%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39335 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751413AbaFDWql (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:46:41 -0400
+	with ESMTP id S1751376AbaFDWwG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:52:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, tytso@mit.edu, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mhocko@suse.cz, mgorman@suse.de, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,dave.hansen@intel.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,mgorman@suse.de,mhocko@suse.cz,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,tytso@mit.edu,vbabka@suse.cz,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 04 Jun 2014 15:46:40 -0700
+Date: Wed, 04 Jun 2014 15:52:05 -0700
 
 
 The patch titled
-     Subject: fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix
+     Subject: mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
+     mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
+This patch was dropped because it was folded into mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix
+Subject: mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes
 
-move BUFFER_FLAGS_DISCARD into the .c file
+WARNING: Missing a blank line after declarations
+#73: FILE: mm/memory-failure.c:391:
++	struct task_struct *t;
++	rcu_read_lock();
 
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+WARNING: Missing a blank line after declarations
+#118: FILE: mm/memory-failure.c:443:
++		struct task_struct *t = task_early_kill(tsk, force_early);
++		if (!t)
+
+WARNING: Missing a blank line after declarations
+#139: FILE: mm/memory-failure.c:473:
++		struct task_struct *t = task_early_kill(tsk, force_early);
++		if (!t)
+
+total: 0 errors, 3 warnings, 103 lines checked
+
+./patches/mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |    9 ++++++++-
- include/linux/buffer_head.h |    5 -----
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ mm/memory-failure.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/buffer.c~fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix fs/buffer.c
---- a/fs/buffer.c~fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix
-+++ a/fs/buffer.c
-@@ -1483,6 +1483,12 @@ EXPORT_SYMBOL(set_bh_page);
- /*
-  * Called when truncating a buffer on a page completely.
-  */
-+
-+/* Bits that are cleared during an invalidate */
-+#define BUFFER_FLAGS_DISCARD \
-+	(1 << BH_Mapped | 1 << BH_New | 1 << BH_Req | \
-+	 1 << BH_Delay | 1 << BH_Unwritten)
-+
- static void discard_buffer(struct buffer_head * bh)
+diff -puN mm/memory-failure.c~mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes
++++ a/mm/memory-failure.c
+@@ -388,6 +388,7 @@ static void kill_procs(struct list_head
+ static struct task_struct *find_early_kill_thread(struct task_struct *tsk)
  {
- 	unsigned long b_state, b_state_old;
-@@ -1492,7 +1498,8 @@ static void discard_buffer(struct buffer
- 	bh->b_bdev = NULL;
- 	b_state = bh->b_state;
- 	for (;;) {
--		b_state_old = cmpxchg(&bh->b_state, b_state, (b_state & ~BUFFER_FLAGS_DISCARD));
-+		b_state_old = cmpxchg(&bh->b_state, b_state,
-+				      (b_state & ~BUFFER_FLAGS_DISCARD));
- 		if (b_state_old == b_state)
- 			break;
- 		b_state = b_state_old;
-diff -puN include/linux/buffer_head.h~fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix
-+++ a/include/linux/buffer_head.h
-@@ -77,11 +77,6 @@ struct buffer_head {
- 	atomic_t b_count;		/* users using this buffer_head */
- };
- 
--/* Bits that are cleared during an invalidate */
--#define BUFFER_FLAGS_DISCARD \
--	(1 << BH_Mapped | 1 << BH_New | 1 << BH_Req | \
--	 1 << BH_Delay | 1 << BH_Unwritten)
--
- /*
-  * macro tricks to expand the set_buffer_foo(), clear_buffer_foo()
-  * and buffer_foo() functions.
+ 	struct task_struct *t;
++
+ 	rcu_read_lock();
+ 	for_each_thread(tsk, t)
+ 		if ((t->flags & PF_MCE_PROCESS) && (t->flags & PF_MCE_EARLY))
+@@ -440,6 +441,7 @@ static void collect_procs_anon(struct pa
+ 	for_each_process (tsk) {
+ 		struct anon_vma_chain *vmac;
+ 		struct task_struct *t = task_early_kill(tsk, force_early);
++
+ 		if (!t)
+ 			continue;
+ 		anon_vma_interval_tree_foreach(vmac, &av->rb_root,
+@@ -470,6 +472,7 @@ static void collect_procs_file(struct pa
+ 	for_each_process(tsk) {
+ 		pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
+ 		struct task_struct *t = task_early_kill(tsk, force_early);
++
+ 		if (!t)
+ 			continue;
+ 		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,10 +116,10 @@ mm-compaction-embed-migration-mode-in-compact_control.patch
 mm-add-comment-for-__mod_zone_page_stat.patch
 mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
 fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
-mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix.patch
-mm-document-do_fault_around-feature-fix.patch
-mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch
+mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
+mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch
+mm-document-do_fault_around-feature.patch
+mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao.patch
 kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
 printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
 lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
