@@ -1,44 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-compaction-cleanup-isolate_freepages-fix-2.patch removed from -mm tree
-Date: Wed, 04 Jun 2014 15:25:17 -0700
-Message-ID: <538f9ccd.qeQ8drqRszjDypqi%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-compaction-cleanup-isolate_freepages-fix.patch removed from -mm tree
+Date: Wed, 04 Jun 2014 15:25:15 -0700
+Message-ID: <538f9ccb.6WMOBejDfsNeFZLy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39093 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39079 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729AbaFDWZS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:25:18 -0400
+	with ESMTP id S1751504AbaFDWZQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:25:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunghwan.yun@samsung.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, d.j.shin@samsung.com, cl@linux.com, b.zolnierkie@samsung.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, sunghwan.yun@samsung.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, d.j.shin@samsung.com, cl@linux.com, b.zolnierkie@samsung.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-compaction-cleanup-isolate_freepages-fix-2.patch removed from -mm tree
-To: vbabka@suse.cz,b.zolnierkie@samsung.com,cl@linux.com,d.j.shin@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,sunghwan.yun@samsung.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-compaction-cleanup-isolate_freepages-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,b.zolnierkie@samsung.com,cl@linux.com,d.j.shin@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,sunghwan.yun@samsung.com,vbabka@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 04 Jun 2014 15:25:17 -0700
+Date: Wed, 04 Jun 2014 15:25:15 -0700
 
 
 The patch titled
-     Subject: mm-compaction-cleanup-isolate_freepages-fix 2
+     Subject: mm-compaction-cleanup-isolate_freepages-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-cleanup-isolate_freepages-fix-2.patch
+     mm-compaction-cleanup-isolate_freepages-fix.patch
 
 This patch was dropped because it was folded into mm-compaction-cleanup-isolate_freepages.patch
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-compaction-cleanup-isolate_freepages-fix 2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-compaction-cleanup-isolate_freepages-fix
 
-Cleanup detection of compaction scanners crossing in isolate_freepages(). 
-To make sure compact_finished() observes scanners crossing, we can just
-set free_pfn to migrate_pfn instead of confusing max() construct.
+comment fixes, per Minchan
 
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Dongjun Shin <d.j.shin@samsung.com>
@@ -49,62 +44,74 @@ Cc: Minchan Kim <minchan@kernel.org>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Sunghwan Yun <sunghwan.yun@samsung.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-cleanup-isolate_freepages-fix-2 mm/compaction.c
---- a/mm/compaction.c~mm-compaction-cleanup-isolate_freepages-fix-2
+diff -puN mm/compaction.c~mm-compaction-cleanup-isolate_freepages-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-cleanup-isolate_freepages-fix
 +++ a/mm/compaction.c
-@@ -758,7 +758,7 @@ static void isolate_freepages(struct zon
- 	 * so that compact_finished() may detect this
- 	 */
- 	if (pfn < low_pfn)
--		next_free_pfn = max(pfn, zone->zone_start_pfn);
-+		next_free_pfn = cc->migrate_pfn;
+@@ -662,7 +662,10 @@ static void isolate_freepages(struct zon
+ 				struct compact_control *cc)
+ {
+ 	struct page *page;
+-	unsigned long pfn, low_pfn, next_free_pfn, z_end_pfn;
++	unsigned long pfn;	     /* scanning cursor */
++	unsigned long low_pfn;	     /* lowest pfn scanner is able to scan */
++	unsigned long next_free_pfn; /* start pfn for scaning at next round */
++	unsigned long z_end_pfn;     /* zone's end pfn */
+ 	int nr_freepages = cc->nr_freepages;
+ 	struct list_head *freelist = &cc->freepages;
  
- 	cc->free_pfn = next_free_pfn;
- 	cc->nr_freepages = nr_freepages;
+@@ -679,8 +682,8 @@ static void isolate_freepages(struct zon
+ 	low_pfn = ALIGN(cc->migrate_pfn + 1, pageblock_nr_pages);
+ 
+ 	/*
+-	 * Seed the value for max(next_free_pfn, pfn) updates. If there are
+-	 * none, the pfn < low_pfn check will kick in.
++	 * Seed the value for max(next_free_pfn, pfn) updates. If no pages are
++	 * isolated, the pfn < low_pfn check will kick in.
+ 	 */
+ 	next_free_pfn = 0;
+ 
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
-mm-compaction-clean-up-unused-code-lines.patch
+origin.patch
+arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
+arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+ocfs2-limit-printk-when-journal-is-aborted.patch
+fs-add-generic-data-flush-to-fsync.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage.patch
+mm-pass-vm_bug_on-reason-to-dump_page.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
+fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
 mm-compaction-cleanup-isolate_freepages.patch
-mm-migration-add-destination-page-freeing-callback.patch
-mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
-mm-compaction-add-per-zone-migration-pfn-cache-for-async-compaction.patch
-mm-compaction-embed-migration-mode-in-compact_control.patch
+arc-call-find_vma-with-the-mmap_sem-held-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal-checkpatch-fixes.patch
+swap-use-bdev_read_page-bdev_write_page-fix.patch
+mm-update-comment-for-default_max_map_count-fix.patch
+memcg-fold-mem_cgroup_stolen-fix.patch
 mm-compaction-embed-migration-mode-in-compact_control-fix.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault.patch
-mm-thp-avoid-excessive-compaction-latency-during-fault-fix.patch
-mm-compaction-terminate-async-compaction-when-rescheduling.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary.patch
-mm-compaction-do-not-count-migratepages-when-unnecessary-fix.patch
-mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages.patch
-mm-compaction-avoid-rescanning-pageblocks-in-isolate_freepages-fix.patch
-jump_label-expose-the-reference-count.patch
-mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
-mm-page_alloc-only-check-the-zone-id-check-if-pages-are-buddies.patch
-mm-page_alloc-only-check-the-alloc-flags-and-gfp_mask-for-dirty-once.patch
-mm-page_alloc-take-the-alloc_no_watermark-check-out-of-the-fast-path.patch
-mm-page_alloc-use-word-based-accesses-for-get-set-pageblock-bitmaps.patch
-mm-page_alloc-reduce-number-of-times-page_to_pfn-is-called.patch
-mm-page_alloc-lookup-pageblock-migratetype-with-irqs-enabled-during-free.patch
-mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
-mm-page_alloc-convert-hot-cold-parameter-and-immediate-callers-to-bool.patch
-mm-shmem-avoid-atomic-operation-during-shmem_getpage_gfp.patch
-mm-do-not-use-atomic-operations-when-releasing-pages.patch
-mm-do-not-use-unnecessary-atomic-operations-when-adding-pages-to-the-lru.patch
-fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers.patch
+mm-add-comment-for-__mod_zone_page_stat.patch
+mm-add-comment-for-__mod_zone_page_stat-checkpatch-fixes.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site.patch
+mm-fold-mlocked_vma_newpage-into-its-only-call-site-checkpatch-fixes.patch
 fs-buffer-do-not-use-unnecessary-atomic-operations-when-discarding-buffers-fix.patch
-mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possible.patch
 mm-non-atomically-mark-page-accessed-during-page-cache-allocation-where-possiblefix-2.patch
-mm-page_alloc-calculate-classzone_idx-once-from-the-zonelist-ref.patch
-mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch
 mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix.patch
-mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention-fix-2.patch
+mm-document-do_fault_around-feature-fix.patch
+mm-memory-failurec-support-dedicated-thread-to-handle-sigbusbus_mceerr_ao-checkpatch-fixes.patch
+kernel-res_counterc-replace-simple_strtoull-by-kstrtoull-fix.patch
+printk-release-lockbuf_lock-before-calling-console_trylock_for_printk-fix.patch
+lib-btreec-fix-leak-of-whole-btree-nodes-fix.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+init-mainc-remove-an-ifdef.patch
 
