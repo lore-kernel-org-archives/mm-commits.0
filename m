@@ -1,78 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 04 Jun 2014 15:24:32 -0700
-Message-ID: <538f9ca0.qGtpHq2NkaDNNBr9%akpm@linux-foundation.org>
+ mm-page_alloc-do-not-cache-reclaim-distances-fix.patch removed from -mm
+ tree
+Date: Wed, 04 Jun 2014 15:24:56 -0700
+Message-ID: <538f9cb8.UVYlqiRHDjO3c+SD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39066 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39071 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751680AbaFDWYd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:24:33 -0400
+	with ESMTP id S1751693AbaFDWY5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2014 18:24:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, lcapitulino@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mhocko@suse.cz, mgorman@suse.de, hannes@cmpxchg.org, cl@linux.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,lcapitulino@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-page_alloc-do-not-cache-reclaim-distances-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,cl@linux.com,hannes@cmpxchg.org,mgorman@suse.de,mhocko@suse.cz,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 04 Jun 2014 15:24:32 -0700
+Date: Wed, 04 Jun 2014 15:24:56 -0700
 
 
 The patch titled
-     Subject: hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes
+     Subject: mm-page_alloc-do-not-cache-reclaim-distances-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+     mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
 
-This patch was dropped because it was folded into hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
+This patch was dropped because it was folded into mm-page_alloc-do-not-cache-reclaim-distances.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes
+Subject: mm-page_alloc-do-not-cache-reclaim-distances-fix
 
-WARNING: braces {} are not necessary for any arm of this statement
-#282: FILE: mm/hugetlb.c:1650:
-+		if (hstate_is_gigantic(h)) {
-[...]
-+		} else {
-[...]
+restore a hunk which got rejected and not fixed
 
-total: 0 errors, 1 warnings, 219 lines checked
-
-./patches/hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes
-+++ a/mm/hugetlb.c
-@@ -1647,11 +1647,10 @@ static unsigned long set_max_huge_pages(
- 		 * and reducing the surplus.
- 		 */
- 		spin_unlock(&hugetlb_lock);
--		if (hstate_is_gigantic(h)) {
-+		if (hstate_is_gigantic(h))
- 			ret = alloc_fresh_gigantic_page(h, nodes_allowed);
--		} else {
-+		else
- 			ret = alloc_fresh_huge_page(h, nodes_allowed);
--		}
- 		spin_lock(&hugetlb_lock);
- 		if (!ret)
- 			goto out;
+diff -puN mm/page_alloc.c~mm-page_alloc-do-not-cache-reclaim-distances-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-cache-reclaim-distances-fix
++++ a/mm/page_alloc.c
+@@ -4922,8 +4922,6 @@ void __paginginit free_area_init_node(in
+ 
+ 	pgdat->node_id = nid;
+ 	pgdat->node_start_pfn = node_start_pfn;
+-	if (node_state(nid, N_MEMORY))
+-		init_zone_allows_reclaim(nid);
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,7 +73,7 @@ include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
 mm-mempool-warn-about-__gfp_zero-usage.patch
 mm-pass-vm_bug_on-reason-to-dump_page.patch
 hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
-mm-page_alloc-do-not-cache-reclaim-distances-fix.patch
+mm-page_alloc-do-not-cache-reclaim-distances.patch
 fs-hugetlbfs-inodec-complete-conversion-to-pr_foo.patch
 mm-compaction-cleanup-isolate_freepages-fix.patch
 arc-call-find_vma-with-the-mmap_sem-held-fix.patch
