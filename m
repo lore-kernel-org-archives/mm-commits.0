@@ -1,175 +1,236 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-introdule-compound_head_by_tail.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 12:51:02 -0700
-Message-ID: <5390ca26.+g+EgAssYeqYLEfD%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:51:19 -0700
+Message-ID: <5390ca37./fgEtzDjlOK+ItxC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56095 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56127 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643AbaFETvD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:03 -0400
+	with ESMTP id S1751834AbaFETvU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, peterz@infradead.org, mgorman@suse.de, liwanp@linux.vnet.ibm.com, liuj97@gmail.com, kirill.shutemov@linux.intel.com, hughd@google.com, hannes@cmpxchg.org, aarcange@redhat.com, nasa4836@gmail.com
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
 
-Subject: [merged] mm-introdule-compound_head_by_tail.patch removed from -mm tree
-To: nasa4836@gmail.com,aarcange@redhat.com,hannes@cmpxchg.org,hughd@google.com,kirill.shutemov@linux.intel.com,liuj97@gmail.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,peterz@infradead.org,riel@redhat.com,sasha.levin@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:02 -0700
+Date: Thu, 05 Jun 2014 12:51:19 -0700
 
 
 The patch titled
-     Subject: mm: introdule compound_head_by_tail()
+     Subject: mm: extract code to fault in a page from __get_user_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-introdule-compound_head_by_tail.patch
+     mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jianyu Zhan <nasa4836@gmail.com>
-Subject: mm: introdule compound_head_by_tail()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: extract code to fault in a page from __get_user_pages()
 
-Currently, in put_compound_page(), we have
+Nesting level in __get_user_pages() is just insane. Let's try to fix it
+a bit.
 
-======
-if (likely(!PageTail(page))) {                  <------  (1)
-        if (put_page_testzero(page)) {
-                 /*
-                 ¦* By the time all refcounts have been released
-                 ¦* split_huge_page cannot run anymore from under us.
-                 ¦*/
-                 if (PageHead(page))
-                         __put_compound_page(page);
-                 else
-                         __put_single_page(page);
-         }
-         return;
-}
-
-/* __split_huge_page_refcount can run under us */
-page_head = compound_head(page);        <------------ (2)
-======
-
-if at (1) ,  we fail the check, this means page is *likely* a tail page.
-
-Then at (2), as compoud_head(page) is inlined, it is :
-
-======
-static inline struct page *compound_head(struct page *page)
-{
-          if (unlikely(PageTail(page))) {           <----------- (3)
-              struct page *head = page->first_page;
-
-                smp_rmb();
-                if (likely(PageTail(page)))
-                        return head;
-        }
-        return page;
-}
-======
-
-here, the (3) unlikely in the case is a negative hint, because it is
-*likely* a tail page.  So the check (3) in this case is not good, so I
-introduce a helper for this case.
-
-So this patch introduces compound_head_by_tail() which deals with a
-possible tail page(though it could be spilt by a racy thread), and make
-compound_head() a wrapper on it.
-
-This patch has no functional change, and it reduces the object
-size slightly:
-   text    data     bss     dec     hex  filename
-  11003    1328      16   12347    303b  mm/swap.o.orig
-  10971    1328      16   12315    301b  mm/swap.o.patched
-
-I've ran "perf top -e branch-miss" to observe branch-miss in this case. 
-As Michael points out, it's a slow path, so only very few times this case
-happens.  But I grep'ed the code base, and found there still are some
-other call sites could be benifited from this helper.  And given that it
-only bloating up the source by only 5 lines, but with a reduced object
-size.  I still believe this helper deserves to exsit.
-
-Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   29 +++++++++++++++++------------
- mm/swap.c          |    2 +-
- 2 files changed, 18 insertions(+), 13 deletions(-)
+ mm/gup.c |  138 +++++++++++++++++++++++++++--------------------------
+ 1 file changed, 71 insertions(+), 67 deletions(-)
 
-diff -puN include/linux/mm.h~mm-introdule-compound_head_by_tail include/linux/mm.h
---- a/include/linux/mm.h~mm-introdule-compound_head_by_tail
-+++ a/include/linux/mm.h
-@@ -407,20 +407,25 @@ static inline void compound_unlock_irqre
- #endif
+diff -puN mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages mm/gup.c
+--- a/mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages
++++ a/mm/gup.c
+@@ -214,12 +214,6 @@ struct page *follow_page_mask(struct vm_
+ 	return follow_page_pte(vma, address, pmd, flags);
  }
  
--static inline struct page *compound_head(struct page *page)
-+static inline struct page *compound_head_by_tail(struct page *tail)
- {
--	if (unlikely(PageTail(page))) {
--		struct page *head = page->first_page;
-+	struct page *head = tail->first_page;
+-static inline int stack_guard_page(struct vm_area_struct *vma, unsigned long addr)
+-{
+-	return stack_guard_page_start(vma, addr) ||
+-	       stack_guard_page_end(vma, addr+PAGE_SIZE);
+-}
+-
+ static int get_gate_page(struct mm_struct *mm, unsigned long address,
+ 		unsigned int gup_flags, struct vm_area_struct **vma,
+ 		struct page **page)
+@@ -264,6 +258,63 @@ unmap:
+ 	return ret;
+ }
+ 
++static int faultin_page(struct task_struct *tsk, struct vm_area_struct *vma,
++		unsigned long address, unsigned int *flags, int *nonblocking)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	unsigned int fault_flags = 0;
++	int ret;
++
++	/* For mlock, just skip the stack guard page. */
++	if ((*flags & FOLL_MLOCK) &&
++			(stack_guard_page_start(vma, address) ||
++			 stack_guard_page_end(vma, address + PAGE_SIZE)))
++		return -ENOENT;
++	if (*flags & FOLL_WRITE)
++		fault_flags |= FAULT_FLAG_WRITE;
++	if (nonblocking)
++		fault_flags |= FAULT_FLAG_ALLOW_RETRY;
++	if (*flags & FOLL_NOWAIT)
++		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_RETRY_NOWAIT;
++
++	ret = handle_mm_fault(mm, vma, address, fault_flags);
++	if (ret & VM_FAULT_ERROR) {
++		if (ret & VM_FAULT_OOM)
++			return -ENOMEM;
++		if (ret & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
++			return *flags & FOLL_HWPOISON ? -EHWPOISON : -EFAULT;
++		if (ret & VM_FAULT_SIGBUS)
++			return -EFAULT;
++		BUG();
++	}
++
++	if (tsk) {
++		if (ret & VM_FAULT_MAJOR)
++			tsk->maj_flt++;
++		else
++			tsk->min_flt++;
++	}
++
++	if (ret & VM_FAULT_RETRY) {
++		if (nonblocking)
++			*nonblocking = 0;
++		return -EBUSY;
++	}
 +
 +	/*
-+	 * page->first_page may be a dangling pointer to an old
-+	 * compound page, so recheck that it is still a tail
-+	 * page before returning.
++	 * The VM_FAULT_WRITE bit tells us that do_wp_page has broken COW when
++	 * necessary, even if maybe_mkwrite decided not to set pte_write. We
++	 * can thus safely do subsequent page lookups as if they were reads.
++	 * But only do so when looping for pte_write is futile: in some cases
++	 * userspace may also be wanting to write to the gotten user page,
++	 * which a read fault here might prevent (a readonly page might get
++	 * reCOWed by userspace write).
 +	 */
-+	smp_rmb();
-+	if (likely(PageTail(tail)))
-+		return head;
-+	return tail;
++	if ((ret & VM_FAULT_WRITE) && !(vma->vm_flags & VM_WRITE))
++		*flags &= ~FOLL_WRITE;
++	return 0;
 +}
- 
--		/*
--		 * page->first_page may be a dangling pointer to an old
--		 * compound page, so recheck that it is still a tail
--		 * page before returning.
--		 */
--		smp_rmb();
--		if (likely(PageTail(page)))
--			return head;
--	}
-+static inline struct page *compound_head(struct page *page)
-+{
-+	if (unlikely(PageTail(page)))
-+		return compound_head_by_tail(page);
- 	return page;
- }
- 
-diff -puN mm/swap.c~mm-introdule-compound_head_by_tail mm/swap.c
---- a/mm/swap.c~mm-introdule-compound_head_by_tail
-+++ a/mm/swap.c
-@@ -253,7 +253,7 @@ static void put_compound_page(struct pag
- 	 *  Case 3 is possible, as we may race with
- 	 *  __split_huge_page_refcount tearing down a THP page.
- 	 */
--	page_head = compound_head(page);
-+	page_head = compound_head_by_tail(page);
- 	if (!__compound_tail_refcounted(page_head))
- 		put_unrefcounted_compound_page(page_head, page);
- 	else
++
+ /**
+  * __get_user_pages() - pin user pages in memory
+  * @tsk:	task_struct of target task
+@@ -410,69 +461,22 @@ long __get_user_pages(struct task_struct
+ 			while (!(page = follow_page_mask(vma, start,
+ 						foll_flags, &page_mask))) {
+ 				int ret;
+-				unsigned int fault_flags = 0;
+-
+-				/* For mlock, just skip the stack guard page. */
+-				if (foll_flags & FOLL_MLOCK) {
+-					if (stack_guard_page(vma, start))
+-						goto next_page;
+-				}
+-				if (foll_flags & FOLL_WRITE)
+-					fault_flags |= FAULT_FLAG_WRITE;
+-				if (nonblocking)
+-					fault_flags |= FAULT_FLAG_ALLOW_RETRY;
+-				if (foll_flags & FOLL_NOWAIT)
+-					fault_flags |= (FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_RETRY_NOWAIT);
+-
+-				ret = handle_mm_fault(mm, vma, start,
+-							fault_flags);
+-
+-				if (ret & VM_FAULT_ERROR) {
+-					if (ret & VM_FAULT_OOM)
+-						return i ? i : -ENOMEM;
+-					if (ret & (VM_FAULT_HWPOISON |
+-						   VM_FAULT_HWPOISON_LARGE)) {
+-						if (i)
+-							return i;
+-						else if (gup_flags & FOLL_HWPOISON)
+-							return -EHWPOISON;
+-						else
+-							return -EFAULT;
+-					}
+-					if (ret & VM_FAULT_SIGBUS)
+-						goto efault;
+-					BUG();
+-				}
+-
+-				if (tsk) {
+-					if (ret & VM_FAULT_MAJOR)
+-						tsk->maj_flt++;
+-					else
+-						tsk->min_flt++;
+-				}
+-
+-				if (ret & VM_FAULT_RETRY) {
+-					if (nonblocking)
+-						*nonblocking = 0;
++				ret = faultin_page(tsk, vma, start, &foll_flags,
++						nonblocking);
++				switch (ret) {
++				case 0:
++					break;
++				case -EFAULT:
++				case -ENOMEM:
++				case -EHWPOISON:
++					return i ? i : ret;
++				case -EBUSY:
+ 					return i;
++				case -ENOENT:
++					goto next_page;
++				default:
++					BUG();
+ 				}
+-
+-				/*
+-				 * The VM_FAULT_WRITE bit tells us that
+-				 * do_wp_page has broken COW when necessary,
+-				 * even if maybe_mkwrite decided not to set
+-				 * pte_write. We can thus safely do subsequent
+-				 * page lookups as if they were reads. But only
+-				 * do so when looping for pte_write is futile:
+-				 * in some cases userspace may also be wanting
+-				 * to write to the gotten user page, which a
+-				 * read fault here might prevent (a readonly
+-				 * page might get reCOWed by userspace write).
+-				 */
+-				if ((ret & VM_FAULT_WRITE) &&
+-				    !(vma->vm_flags & VM_WRITE))
+-					foll_flags &= ~FOLL_WRITE;
+-
+ 				cond_resched();
+ 			}
+ 			if (IS_ERR(page))
 _
 
-Patches currently in -mm which might be from nasa4836@gmail.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-update-page-table-walker-core-fix.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-prom-pid-clear_refs-avoid-split_huge_page.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
-mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
-mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
+mm-mark-remap_file_pages-syscall-as-deprecated.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
