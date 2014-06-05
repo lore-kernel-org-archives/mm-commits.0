@@ -1,89 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 13:05:33 -0700
-Message-ID: <5390cd8d.P+hQo3wXG6auYazo%akpm@linux-foundation.org>
+Subject: [merged] lib-nlattrc-move-export_symbol-after-functions.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 13:05:27 -0700
+Message-ID: <5390cd87.KTGdsgEeLwgr3mBk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56837 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56830 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbaFEUFe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:34 -0400
+	with ESMTP id S1751926AbaFEUF2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, luca@luca-barbieri.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, pablo@netfilter.org, fabf@skynet.be
 
-Subject: [merged] lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch removed from -mm tree
-To: fabf@skynet.be,luca@luca-barbieri.com,mm-commits@vger.kernel.org
+Subject: [merged] lib-nlattrc-move-export_symbol-after-functions.patch removed from -mm tree
+To: fabf@skynet.be,pablo@netfilter.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:33 -0700
+Date: Thu, 05 Jun 2014 13:05:27 -0700
 
 
 The patch titled
-     Subject: lib/atomic64_test.c: convert printk(KERN_INFO to pr_info
+     Subject: lib/nlattr.c: move EXPORT_SYMBOL after functions
 has been removed from the -mm tree.  Its filename was
-     lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch
+     lib-nlattrc-move-export_symbol-after-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/atomic64_test.c: convert printk(KERN_INFO to pr_info
+Subject: lib/nlattr.c: move EXPORT_SYMBOL after functions
 
-Convert printk to current pr_foo() logging functions.
-
-Also add pr_fmt based on KBUILD_MODNAME to avoid repeating prefix.  Prefix
-is now "atomic64_test: "
+Fix some checkpatch warnings:
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Luca Barbieri <luca@luca-barbieri.com>
+Cc: Pablo Neira <pablo@netfilter.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/atomic64_test.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ lib/nlattr.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN lib/atomic64_test.c~lib-atomic64_testc-convert-printkkern_info-to-pr_info lib/atomic64_test.c
---- a/lib/atomic64_test.c~lib-atomic64_testc-convert-printkkern_info-to-pr_info
-+++ a/lib/atomic64_test.c
-@@ -8,6 +8,9 @@
-  * the Free Software Foundation; either version 2 of the License, or
-  * (at your option) any later version.
-  */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/init.h>
- #include <linux/bug.h>
- #include <linux/kernel.h>
-@@ -146,18 +149,18 @@ static __init int test_atomic64(void)
- 	BUG_ON(v.counter != r);
+diff -puN lib/nlattr.c~lib-nlattrc-move-export_symbol-after-functions lib/nlattr.c
+--- a/lib/nlattr.c~lib-nlattrc-move-export_symbol-after-functions
++++ a/lib/nlattr.c
+@@ -136,6 +136,7 @@ int nla_validate(const struct nlattr *he
+ errout:
+ 	return err;
+ }
++EXPORT_SYMBOL(nla_validate);
  
- #ifdef CONFIG_X86
--	printk(KERN_INFO "atomic64 test passed for %s platform %s CX8 and %s SSE\n",
-+	pr_info("passed for %s platform %s CX8 and %s SSE\n",
- #ifdef CONFIG_X86_64
--	       "x86-64",
-+		"x86-64",
- #elif defined(CONFIG_X86_CMPXCHG64)
--	       "i586+",
-+		"i586+",
- #else
--	       "i386+",
-+		"i386+",
- #endif
- 	       boot_cpu_has(X86_FEATURE_CX8) ? "with" : "without",
- 	       boot_cpu_has(X86_FEATURE_XMM) ? "with" : "without");
- #else
--	printk(KERN_INFO "atomic64 test passed\n");
-+	pr_info("passed\n");
- #endif
+ /**
+  * nla_policy_len - Determin the max. length of a policy
+@@ -162,6 +163,7 @@ nla_policy_len(const struct nla_policy *
  
- 	return 0;
+ 	return len;
+ }
++EXPORT_SYMBOL(nla_policy_len);
+ 
+ /**
+  * nla_parse - Parse a stream of attributes into a tb buffer
+@@ -208,6 +210,7 @@ int nla_parse(struct nlattr **tb, int ma
+ errout:
+ 	return err;
+ }
++EXPORT_SYMBOL(nla_parse);
+ 
+ /**
+  * nla_find - Find a specific attribute in a stream of attributes
+@@ -228,6 +231,7 @@ struct nlattr *nla_find(const struct nla
+ 
+ 	return NULL;
+ }
++EXPORT_SYMBOL(nla_find);
+ 
+ /**
+  * nla_strlcpy - Copy string attribute payload into a sized buffer
+@@ -258,6 +262,7 @@ size_t nla_strlcpy(char *dst, const stru
+ 
+ 	return srclen;
+ }
++EXPORT_SYMBOL(nla_strlcpy);
+ 
+ /**
+  * nla_memcpy - Copy a netlink attribute into another memory area
+@@ -278,6 +283,7 @@ int nla_memcpy(void *dest, const struct
+ 
+ 	return minlen;
+ }
++EXPORT_SYMBOL(nla_memcpy);
+ 
+ /**
+  * nla_memcmp - Compare an attribute with sized memory area
+@@ -295,6 +301,7 @@ int nla_memcmp(const struct nlattr *nla,
+ 
+ 	return d;
+ }
++EXPORT_SYMBOL(nla_memcmp);
+ 
+ /**
+  * nla_strcmp - Compare a string attribute against a string
+@@ -317,6 +324,7 @@ int nla_strcmp(const struct nlattr *nla,
+ 
+ 	return d;
+ }
++EXPORT_SYMBOL(nla_strcmp);
+ 
+ #ifdef CONFIG_NET
+ /**
+@@ -502,12 +510,3 @@ int nla_append(struct sk_buff *skb, int
+ }
+ EXPORT_SYMBOL(nla_append);
+ #endif
+-
+-EXPORT_SYMBOL(nla_validate);
+-EXPORT_SYMBOL(nla_policy_len);
+-EXPORT_SYMBOL(nla_parse);
+-EXPORT_SYMBOL(nla_find);
+-EXPORT_SYMBOL(nla_strlcpy);
+-EXPORT_SYMBOL(nla_memcpy);
+-EXPORT_SYMBOL(nla_memcmp);
+-EXPORT_SYMBOL(nla_strcmp);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
