@@ -1,65 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 12:49:19 -0700
-Message-ID: <5390c9bf.w7dKjyUnwuBgtKLX%akpm@linux-foundation.org>
+Subject: [merged] mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 12:49:17 -0700
+Message-ID: <5390c9bd.MuvWoPX891ajg9qh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55797 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55794 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752117AbaFETtT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:19 -0400
+	with ESMTP id S1752117AbaFETtR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sebott@linux.vnet.ibm.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
 
-Subject: [merged] include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch removed from -mm tree
-To: akpm@linux-foundation.org,sebott@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-huge_memoryc-complete-conversion-to-pr_foo.patch removed from -mm tree
+To: akpm@linux-foundation.org,kirill.shutemov@linux.intel.com,mgorman@suse.de,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:49:19 -0700
+Date: Thu, 05 Jun 2014 12:49:17 -0700
 
 
 The patch titled
-     Subject: include/linux/mmdebug.h: add VM_WARN_ON() and VM_WARN_ON_ONCE()
+     Subject: mm/huge_memory.c: complete conversion to pr_foo()
 has been removed from the -mm tree.  Its filename was
-     include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+     mm-huge_memoryc-complete-conversion-to-pr_foo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/mmdebug.h: add VM_WARN_ON() and VM_WARN_ON_ONCE()
+Subject: mm/huge_memory.c: complete conversion to pr_foo()
 
-WARN_ON() and WARN_ON_ONCE(), dependent on CONFIG_DEBUG_VM
+It was using a mix of pr_foo() and printk(KERN_ERR ...).
 
-Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmdebug.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/huge_memory.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/mmdebug.h~include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once include/linux/mmdebug.h
---- a/include/linux/mmdebug.h~include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once
-+++ a/include/linux/mmdebug.h
-@@ -11,9 +11,13 @@ extern void dump_page_badflags(struct pa
- #define VM_BUG_ON(cond) BUG_ON(cond)
- #define VM_BUG_ON_PAGE(cond, page) \
- 	do { if (unlikely(cond)) { dump_page(page, NULL); BUG(); } } while (0)
-+#define VM_WARN_ON(cond) WARN_ON(cond)
-+#define VM_WARN_ON_ONCE(cond) WARN_ON_ONCE(cond)
- #else
- #define VM_BUG_ON(cond) BUILD_BUG_ON_INVALID(cond)
- #define VM_BUG_ON_PAGE(cond, page) VM_BUG_ON(cond)
-+#define VM_WARN_ON(cond) BUILD_BUG_ON_INVALID(cond)
-+#define VM_WARN_ON_ONCE(cond) BUILD_BUG_ON_INVALID(cond)
- #endif
+diff -puN mm/huge_memory.c~mm-huge_memoryc-complete-conversion-to-pr_foo mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-huge_memoryc-complete-conversion-to-pr_foo
++++ a/mm/huge_memory.c
+@@ -5,6 +5,8 @@
+  *  the COPYING file in the top-level directory.
+  */
  
- #ifdef CONFIG_DEBUG_VIRTUAL
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ #include <linux/highmem.h>
+@@ -151,8 +153,7 @@ static int start_khugepaged(void)
+ 			khugepaged_thread = kthread_run(khugepaged, NULL,
+ 							"khugepaged");
+ 		if (unlikely(IS_ERR(khugepaged_thread))) {
+-			printk(KERN_ERR
+-			       "khugepaged: kthread_run(khugepaged) failed\n");
++			pr_err("khugepaged: kthread_run(khugepaged) failed\n");
+ 			err = PTR_ERR(khugepaged_thread);
+ 			khugepaged_thread = NULL;
+ 		}
+@@ -584,19 +585,19 @@ static int __init hugepage_init_sysfs(st
+ 
+ 	*hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
+ 	if (unlikely(!*hugepage_kobj)) {
+-		printk(KERN_ERR "hugepage: failed to create transparent hugepage kobject\n");
++		pr_err("failed to create transparent hugepage kobject\n");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	err = sysfs_create_group(*hugepage_kobj, &hugepage_attr_group);
+ 	if (err) {
+-		printk(KERN_ERR "hugepage: failed to register transparent hugepage group\n");
++		pr_err("failed to register transparent hugepage group\n");
+ 		goto delete_obj;
+ 	}
+ 
+ 	err = sysfs_create_group(*hugepage_kobj, &khugepaged_attr_group);
+ 	if (err) {
+-		printk(KERN_ERR "hugepage: failed to register transparent hugepage group\n");
++		pr_err("failed to register transparent hugepage group\n");
+ 		goto remove_hp_group;
+ 	}
+ 
+@@ -689,8 +690,7 @@ static int __init setup_transparent_huge
+ 	}
+ out:
+ 	if (!ret)
+-		printk(KERN_WARNING
+-		       "transparent_hugepage= cannot parse, ignored\n");
++		pr_warn("transparent_hugepage= cannot parse, ignored\n");
+ 	return ret;
+ }
+ __setup("transparent_hugepage=", setup_transparent_hugepage);
+@@ -1831,8 +1831,8 @@ static void __split_huge_page(struct pag
+ 	 * walk, to be able to set it as pmd_trans_splitting too.
+ 	 */
+ 	if (mapcount != page_mapcount(page)) {
+-		printk(KERN_ERR "mapcount %d page_mapcount %d\n",
+-		       mapcount, page_mapcount(page));
++		pr_err("mapcount %d page_mapcount %d\n",
++			mapcount, page_mapcount(page));
+ 		BUG();
+ 	}
+ 
+@@ -1846,8 +1846,8 @@ static void __split_huge_page(struct pag
+ 		mapcount2 += __split_huge_page_map(page, vma, addr);
+ 	}
+ 	if (mapcount != mapcount2) {
+-		printk(KERN_ERR "mapcount %d mapcount2 %d page_mapcount %d\n",
+-		       mapcount, mapcount2, page_mapcount(page));
++		pr_err("mapcount %d mapcount2 %d page_mapcount %d\n",
++			mapcount, mapcount2, page_mapcount(page));
+ 		BUG();
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
