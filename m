@@ -1,200 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-do-not-count-migratepages-when-unnecessary.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:51:53 -0700
-Message-ID: <5390ca59.Igo4n8Kup/H4Dm9w%akpm@linux-foundation.org>
+Subject: [merged] plist-add-helper-functions.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:52:03 -0700
+Message-ID: <5390ca63.vvDM7jIZbX4xbc+i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56220 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56270 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751821AbaFETvy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:54 -0400
+	with ESMTP id S1753109AbaFETwE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:52:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, cl@linux.com, b.zolnierkie@samsung.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, weijieut@gmail.com, tglx@linutronix.de, shli@fusionio.com, rostedt@goodmis.org, riel@redhat.com, peterz@infradead.org, paul.gortmaker@windriver.com, mhocko@suse.cz, mgorman@suse.de, hughd@google.com, hannes@cmpxchg.org, ehrhardt@linux.vnet.ibm.com, bob.liu@oracle.com, ddstreet@ieee.org
 
-Subject: [merged] mm-compaction-do-not-count-migratepages-when-unnecessary.patch removed from -mm tree
-To: vbabka@suse.cz,b.zolnierkie@samsung.com,cl@linux.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: [merged] plist-add-helper-functions.patch removed from -mm tree
+To: ddstreet@ieee.org,bob.liu@oracle.com,ehrhardt@linux.vnet.ibm.com,hannes@cmpxchg.org,hughd@google.com,mgorman@suse.de,mhocko@suse.cz,paul.gortmaker@windriver.com,peterz@infradead.org,riel@redhat.com,rostedt@goodmis.org,shli@fusionio.com,tglx@linutronix.de,weijieut@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:53 -0700
+Date: Thu, 05 Jun 2014 12:52:03 -0700
 
 
 The patch titled
-     Subject: mm/compaction: do not count migratepages when unnecessary
+     Subject: lib/plist: add helper functions
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-do-not-count-migratepages-when-unnecessary.patch
+     plist-add-helper-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/compaction: do not count migratepages when unnecessary
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: lib/plist: add helper functions
 
-During compaction, update_nr_listpages() has been used to count remaining
-non-migrated and free pages after a call to migrage_pages().  The
-freepages counting has become unneccessary, and it turns out that
-migratepages counting is also unnecessary in most cases.
+Add PLIST_HEAD() to plist.h, equivalent to LIST_HEAD() from list.h, to
+define and initialize a struct plist_head.
 
-The only situation when it's needed to count cc->migratepages is when
-migrate_pages() returns with a negative error code.  Otherwise, the
-non-negative return value is the number of pages that were not migrated,
-which is exactly the count of remaining pages in the cc->migratepages
-list.
+Add plist_for_each_continue() and plist_for_each_entry_continue(),
+equivalent to list_for_each_continue() and list_for_each_entry_continue(),
+to iterate over a plist continuing after the current position.
 
-Furthermore, any non-zero count is only interesting for the tracepoint of
-mm_compaction_migratepages events, because after that all remaining
-unmigrated pages are put back and their count is set to 0.
+Add plist_prev() and plist_next(), equivalent to (struct list_head*)->prev
+and ->next, implemented by list_prev_entry() and list_next_entry(), to
+access the prev/next struct plist_node entry.  These are needed because
+unlike struct list_head, direct access of the prev/next struct plist_node
+isn't possible; the list must be navigated via the contained struct
+list_head.  e.g.  instead of accessing the prev by list_prev_entry(node,
+node_list) it can be accessed by plist_prev(node).
 
-This patch therefore removes update_nr_listpages() completely, and changes
-the tracepoint definition so that the manual counting is done only when
-the tracepoint is enabled, and only when migrate_pages() returns a
-negative error code.
-
-Furthermore, migrate_pages() and the tracepoints won't be called when
-there's nothing to migrate.  This potentially avoids some wasted cycles
-and reduces the volume of uninteresting mm_compaction_migratepages events
-where "nr_migrated=0 nr_failed=0".  In the stress-highalloc mmtest, this
-was about 75% of the events.  The mm_compaction_isolate_migratepages event
-is better for determining that nothing was isolated for migration, and
-this one was just duplicating the info.
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Christian Ehrhardt <ehrhardt@linux.vnet.ibm.com>
+Cc: Weijie Yang <weijieut@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Bob Liu <bob.liu@oracle.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/compaction.h |   25 ++++++++++++++++++----
- mm/compaction.c                   |   31 ++++++----------------------
- 2 files changed, 28 insertions(+), 28 deletions(-)
+ include/linux/plist.h |   43 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff -puN include/trace/events/compaction.h~mm-compaction-do-not-count-migratepages-when-unnecessary include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-compaction-do-not-count-migratepages-when-unnecessary
-+++ a/include/trace/events/compaction.h
-@@ -5,6 +5,7 @@
- #define _TRACE_COMPACTION_H
- 
- #include <linux/types.h>
-+#include <linux/list.h>
- #include <linux/tracepoint.h>
- #include <trace/events/gfpflags.h>
- 
-@@ -47,10 +48,11 @@ DEFINE_EVENT(mm_compaction_isolate_templ
- 
- TRACE_EVENT(mm_compaction_migratepages,
- 
--	TP_PROTO(unsigned long nr_migrated,
--		unsigned long nr_failed),
-+	TP_PROTO(unsigned long nr_all,
-+		int migrate_rc,
-+		struct list_head *migratepages),
- 
--	TP_ARGS(nr_migrated, nr_failed),
-+	TP_ARGS(nr_all, migrate_rc, migratepages),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, nr_migrated)
-@@ -58,7 +60,22 @@ TRACE_EVENT(mm_compaction_migratepages,
- 	),
- 
- 	TP_fast_assign(
--		__entry->nr_migrated = nr_migrated;
-+		unsigned long nr_failed = 0;
-+		struct list_head *page_lru;
-+
-+		/*
-+		 * migrate_pages() returns either a non-negative number
-+		 * with the number of pages that failed migration, or an
-+		 * error code, in which case we need to count the remaining
-+		 * pages manually
-+		 */
-+		if (migrate_rc >= 0)
-+			nr_failed = migrate_rc;
-+		else
-+			list_for_each(page_lru, migratepages)
-+				nr_failed++;
-+
-+		__entry->nr_migrated = nr_all - nr_failed;
- 		__entry->nr_failed = nr_failed;
- 	),
- 
-diff -puN mm/compaction.c~mm-compaction-do-not-count-migratepages-when-unnecessary mm/compaction.c
---- a/mm/compaction.c~mm-compaction-do-not-count-migratepages-when-unnecessary
-+++ a/mm/compaction.c
-@@ -822,22 +822,6 @@ static void compaction_free(struct page
- 	cc->nr_freepages++;
+diff -puN include/linux/plist.h~plist-add-helper-functions include/linux/plist.h
+--- a/include/linux/plist.h~plist-add-helper-functions
++++ a/include/linux/plist.h
+@@ -98,6 +98,13 @@ struct plist_node {
  }
  
--/*
-- * We cannot control nr_migratepages fully when migration is running as
-- * migrate_pages() has no knowledge of of compact_control.  When migration is
-- * complete, we count the number of pages on the list by hand.
-- */
--static void update_nr_listpages(struct compact_control *cc)
--{
--	int nr_migratepages = 0;
--	struct page *page;
--
--	list_for_each_entry(page, &cc->migratepages, lru)
--		nr_migratepages++;
--
--	cc->nr_migratepages = nr_migratepages;
--}
--
- /* possible outcome of isolate_migratepages */
- typedef enum {
- 	ISOLATE_ABORT,		/* Abort compaction now */
-@@ -1032,7 +1016,6 @@ static int compact_zone(struct zone *zon
- 	migrate_prep_local();
- 
- 	while ((ret = compact_finished(zone, cc)) == COMPACT_CONTINUE) {
--		unsigned long nr_migrate, nr_remaining;
- 		int err;
- 
- 		switch (isolate_migratepages(zone, cc)) {
-@@ -1047,20 +1030,20 @@ static int compact_zone(struct zone *zon
- 			;
- 		}
- 
--		nr_migrate = cc->nr_migratepages;
-+		if (!cc->nr_migratepages)
-+			continue;
+ /**
++ * PLIST_HEAD - declare and init plist_head
++ * @head:	name for struct plist_head variable
++ */
++#define PLIST_HEAD(head) \
++	struct plist_head head = PLIST_HEAD_INIT(head)
 +
- 		err = migrate_pages(&cc->migratepages, compaction_alloc,
- 				compaction_free, (unsigned long)cc, cc->mode,
- 				MR_COMPACTION);
--		update_nr_listpages(cc);
--		nr_remaining = cc->nr_migratepages;
++/**
+  * PLIST_NODE_INIT - static struct plist_node initializer
+  * @node:	struct plist_node variable name
+  * @__prio:	initial node priority
+@@ -143,6 +150,16 @@ extern void plist_del(struct plist_node
+ 	 list_for_each_entry(pos, &(head)->node_list, node_list)
  
--		trace_mm_compaction_migratepages(nr_migrate - nr_remaining,
--						nr_remaining);
-+		trace_mm_compaction_migratepages(cc->nr_migratepages, err,
-+							&cc->migratepages);
+ /**
++ * plist_for_each_continue - continue iteration over the plist
++ * @pos:	the type * to use as a loop cursor
++ * @head:	the head for your list
++ *
++ * Continue to iterate over plist, continuing after the current position.
++ */
++#define plist_for_each_continue(pos, head)	\
++	 list_for_each_entry_continue(pos, &(head)->node_list, node_list)
++
++/**
+  * plist_for_each_safe - iterate safely over a plist of given type
+  * @pos:	the type * to use as a loop counter
+  * @n:	another type * to use as temporary storage
+@@ -163,6 +180,18 @@ extern void plist_del(struct plist_node
+ 	 list_for_each_entry(pos, &(head)->node_list, mem.node_list)
  
--		/* Release isolated pages not migrated */
-+		/* All pages were either migrated or will be released */
-+		cc->nr_migratepages = 0;
- 		if (err) {
- 			putback_movable_pages(&cc->migratepages);
--			cc->nr_migratepages = 0;
- 			/*
- 			 * migrate_pages() may return -ENOMEM when scanners meet
- 			 * and we want compact_finished() to detect it
+ /**
++ * plist_for_each_entry_continue - continue iteration over list of given type
++ * @pos:	the type * to use as a loop cursor
++ * @head:	the head for your list
++ * @m:		the name of the list_struct within the struct
++ *
++ * Continue to iterate over list of given type, continuing after
++ * the current position.
++ */
++#define plist_for_each_entry_continue(pos, head, m)	\
++	list_for_each_entry_continue(pos, &(head)->node_list, m.node_list)
++
++/**
+  * plist_for_each_entry_safe - iterate safely over list of given type
+  * @pos:	the type * to use as a loop counter
+  * @n:		another type * to use as temporary storage
+@@ -229,6 +258,20 @@ static inline int plist_node_empty(const
+ #endif
+ 
+ /**
++ * plist_next - get the next entry in list
++ * @pos:	the type * to cursor
++ */
++#define plist_next(pos) \
++	list_next_entry(pos, node_list)
++
++/**
++ * plist_prev - get the prev entry in list
++ * @pos:	the type * to cursor
++ */
++#define plist_prev(pos) \
++	list_prev_entry(pos, node_list)
++
++/**
+  * plist_first - return the first node (and thus, highest priority)
+  * @head:	the &struct plist_head pointer
+  *
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
 origin.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
 linux-next.patch
 
