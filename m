@@ -1,40 +1,40 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch removed
+ fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch removed
  from -mm tree
-Date: Thu, 05 Jun 2014 12:53:03 -0700
-Message-ID: <5390ca9f.veeBflF/hfWtH3aE%akpm@linux-foundation.org>
+Date: Thu, 05 Jun 2014 12:53:05 -0700
+Message-ID: <5390caa1.lsmpxTKwvX4ec9rO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56524 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56526 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751644AbaFETxD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:03 -0400
+	with ESMTP id S1752349AbaFETxF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: [merged] fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch removed from -mm tree
+Subject: [merged] fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch removed from -mm tree
 To: fabf@skynet.be,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:53:03 -0700
+Date: Thu, 05 Jun 2014 12:53:05 -0700
 
 
 The patch titled
-     Subject: fs/hugetlbfs/inode.c: add static to hugetlbfs_i_mmap_mutex_key
+     Subject: fs/hugetlbfs/inode.c: use static const for dentry_operations
 has been removed from the -mm tree.  Its filename was
-     fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key.patch
+     fs-hugetlbfs-inodec-use-static-const-for-dentry_operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hugetlbfs/inode.c: add static to hugetlbfs_i_mmap_mutex_key
+Subject: fs/hugetlbfs/inode.c: use static const for dentry_operations
 
-hugetlbfs_i_mmap_mutex_key is only used in inode.c
+...like other filesystems.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -43,18 +43,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  fs/hugetlbfs/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-add-static-to-hugetlbfs_i_mmap_mutex_key
+diff -puN fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-use-static-const-for-dentry_operations fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-use-static-const-for-dentry_operations
 +++ a/fs/hugetlbfs/inode.c
-@@ -477,7 +477,7 @@ static struct inode *hugetlbfs_get_root(
-  * annotation because huge_pmd_share() does an allocation under
-  * i_mmap_mutex.
-  */
--struct lock_class_key hugetlbfs_i_mmap_mutex_key;
-+static struct lock_class_key hugetlbfs_i_mmap_mutex_key;
+@@ -938,7 +938,7 @@ static int get_hstate_idx(int page_size_
+ 	return h - hstates;
+ }
  
- static struct inode *hugetlbfs_get_inode(struct super_block *sb,
- 					struct inode *dir,
+-static struct dentry_operations anon_ops = {
++static const struct dentry_operations anon_ops = {
+ 	.d_dname = simple_dname
+ };
+ 
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
