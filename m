@@ -1,144 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-compatc-use-sizeof-instead-of-sizeof.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 13:05:37 -0700
-Message-ID: <5390cd91.0fr/JXpSigZQzdAL%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 13:05:41 -0700
+Message-ID: <5390cd95.KiOBge4y+wb5tYhV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56845 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56855 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbaFEUFh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:37 -0400
+	with ESMTP id S1751926AbaFEUFl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hpa@zytor.com, arnd@arndb.de, fabf@skynet.be
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] kernel-compatc-use-sizeof-instead-of-sizeof.patch removed from -mm tree
-To: fabf@skynet.be,arnd@arndb.de,hpa@zytor.com,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch removed from -mm tree
+To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:37 -0700
+Date: Thu, 05 Jun 2014 13:05:41 -0700
 
 
 The patch titled
-     Subject: kernel/compat.c: use sizeof() instead of sizeof
+     Subject: checkpatch: always warn on missing blank line after variable declaration block
 has been removed from the -mm tree.  Its filename was
-     kernel-compatc-use-sizeof-instead-of-sizeof.patch
+     checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/compat.c: use sizeof() instead of sizeof
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: always warn on missing blank line after variable declaration block
 
-Fix 4 checkpatch warnings
-WARNING: sizeof *tv should be sizeof(*tv)
+Make the test system wide, modify the message too.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Joe Perches <joe@perches.com>	
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/compat.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |   44 ++++++++++++++++++++++++++++++----------
+ 1 file changed, 34 insertions(+), 10 deletions(-)
 
-diff -puN kernel/compat.c~kernel-compatc-use-sizeof-instead-of-sizeof kernel/compat.c
---- a/kernel/compat.c~kernel-compatc-use-sizeof-instead-of-sizeof
-+++ a/kernel/compat.c
-@@ -157,7 +157,7 @@ static int __compat_put_timespec(const s
- int compat_get_timeval(struct timeval *tv, const void __user *utv)
- {
- 	if (COMPAT_USE_64BIT_TIME)
--		return copy_from_user(tv, utv, sizeof *tv) ? -EFAULT : 0;
-+		return copy_from_user(tv, utv, sizeof(*tv)) ? -EFAULT : 0;
- 	else
- 		return __compat_get_timeval(tv, utv);
+diff -puN scripts/checkpatch.pl~checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block
++++ a/scripts/checkpatch.pl
+@@ -397,6 +397,11 @@ foreach my $entry (@mode_permission_func
+ 	$mode_perms_search .= $entry->[0];
  }
-@@ -166,7 +166,7 @@ EXPORT_SYMBOL_GPL(compat_get_timeval);
- int compat_put_timeval(const struct timeval *tv, void __user *utv)
- {
- 	if (COMPAT_USE_64BIT_TIME)
--		return copy_to_user(utv, tv, sizeof *tv) ? -EFAULT : 0;
-+		return copy_to_user(utv, tv, sizeof(*tv)) ? -EFAULT : 0;
- 	else
- 		return __compat_put_timeval(tv, utv);
- }
-@@ -175,7 +175,7 @@ EXPORT_SYMBOL_GPL(compat_put_timeval);
- int compat_get_timespec(struct timespec *ts, const void __user *uts)
- {
- 	if (COMPAT_USE_64BIT_TIME)
--		return copy_from_user(ts, uts, sizeof *ts) ? -EFAULT : 0;
-+		return copy_from_user(ts, uts, sizeof(*ts)) ? -EFAULT : 0;
- 	else
- 		return __compat_get_timespec(ts, uts);
- }
-@@ -184,7 +184,7 @@ EXPORT_SYMBOL_GPL(compat_get_timespec);
- int compat_put_timespec(const struct timespec *ts, void __user *uts)
- {
- 	if (COMPAT_USE_64BIT_TIME)
--		return copy_to_user(uts, ts, sizeof *ts) ? -EFAULT : 0;
-+		return copy_to_user(uts, ts, sizeof(*ts)) ? -EFAULT : 0;
- 	else
- 		return __compat_put_timespec(ts, uts);
- }
+ 
++our $declaration_macros = qr{(?x:
++	(?:$Storage\s+)?(?:DECLARE|DEFINE)_[A-Z]+\s*\(|
++	(?:$Storage\s+)?LIST_HEAD\s*\(
++)};
++
+ our $allowed_asm_includes = qr{(?x:
+ 	irq|
+ 	memory
+@@ -2268,18 +2273,37 @@ sub process {
+ 		}
+ 
+ # check for missing blank lines after declarations
+-		if ($realfile =~ m@^(drivers/net/|net/)@ &&
+-		    $prevline =~ /^\+\s+$Declare\s+$Ident/ &&
+-		    !($prevline =~ /(?:$Compare|$Assignment|$Operators)\s*$/ ||
+-		      $prevline =~ /(?:\{\s*|\\)$/) &&		#extended lines
+-		    $sline =~ /^\+\s+/ &&			#Not at char 1
+-		    !($sline =~ /^\+\s+$Declare/ ||
+-		      $sline =~ /^\+\s+$Ident\s+$Ident/ ||	#eg: typedef foo
++		if ($sline =~ /^\+\s+\S/ &&			#Not at char 1
++			# actual declarations
++		    ($prevline =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
++			# foo bar; where foo is some local typedef or #define
++		     $prevline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
++			# known declaration macros
++		     $prevline =~ /^\+\s+$declaration_macros/) &&
++			# for "else if" which can look like "$Ident $Ident"
++		    !($prevline =~ /^\+\s+$c90_Keywords\b/ ||
++			# other possible extensions of declaration lines
++		      $prevline =~ /(?:$Compare|$Assignment|$Operators)\s*$/ ||
++			# not starting a section or a macro "\" extended line
++		      $prevline =~ /(?:\{\s*|\\)$/) &&
++			# looks like a declaration
++		    !($sline =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
++			# foo bar; where foo is some local typedef or #define
++		      $sline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
++			# known declaration macros
++		      $sline =~ /^\+\s+$declaration_macros/ ||
++			# start of struct or union or enum
+ 		      $sline =~ /^\+\s+(?:union|struct|enum|typedef)\b/ ||
+-		      $sline =~ /^\+\s+(?:$|[\{\}\.\#\"\?\:\(])/ ||
+-		      $sline =~ /^\+\s+\(?\s*(?:$Compare|$Assignment|$Operators)/)) {
++			# start or end of block or continuation of declaration
++		      $sline =~ /^\+\s+(?:$|[\{\}\.\#\"\?\:\(\[])/ ||
++			# bitfield continuation
++		      $sline =~ /^\+\s+$Ident\s*:\s*\d+\s*[,;]/ ||
++			# other possible extensions of declaration lines
++		      $sline =~ /^\+\s+\(?\s*(?:$Compare|$Assignment|$Operators)/) &&
++			# indentation of previous and current line are the same
++		    (($prevline =~ /\+(\s+)\S/) && $sline =~ /^\+$1\S/)) {
+ 			WARN("SPACING",
+-			     "networking uses a blank line after declarations\n" . $hereprev);
++			     "Missing a blank line after declarations\n" . $hereprev);
+ 		}
+ 
+ # check for spaces at the beginning of a line.
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
+checkpatch-check-git-commit-descriptions.patch
+mm-utilc-add-kstrimdup.patch
 fs-isofs-logging-clean-up.patch
 fs-coda-replace-printk-by-pr_foo.patch
 fs-coda-logging-prefix-uniformization.patch
 fs-coda-use-__func__.patch
-fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
-fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
-fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
 fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
-fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-hpfs-convert-printk-to-pr_foo.patch
-fs-hpfs-use-pr_fmt-for-logging.patch
-fs-hpfs-use-__func__-for-logging.patch
-fs-hpfs-increase-pr_warn-level.patch
-documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
-fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
-fs-proc-vmcorec-remove-null-assignment-on-static.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
 fs-affs-convert-printk-to-pr_foo.patch
 fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
 fs-pstore-logging-clean-up.patch
 fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
 fs-devpts-inodec-convert-printk-to-pr_foo.patch
 fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
+ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-fs-dlm-configc-convert-simple_str-to-kstr.patch
-fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
-fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
-mm-kmemleak-testc-use-pr_fmt-for-logging.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
+arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+tile-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+parport-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+scsi-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ntfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ipc-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+mm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+maintainers-add-linux-api-for-review-of-api-abi-changes.patch
 
