@@ -1,143 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fanotify-check-file-flags-passed-in-fanotify_init.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 12:42:15 -0700
-Message-ID: <5390c817.md2OoMSLDnYr2TOu%akpm@linux-foundation.org>
+Subject: [merged]
+ fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:42:07 -0700
+Message-ID: <5390c80f.5yWiSF+2LBTDGnS6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55515 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751677AbaFETmQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:16 -0400
+	with ESMTP id S1752110AbaFETmI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, jack@suse.cz, Valdis.Kletnieks@vt.edu, xypron.glpk@gmx.de
+To: mm-commits@vger.kernel.org, tvrtko.ursulin@onelan.co.uk, jack@suse.cz, eparis@redhat.com, xypron.glpk@gmx.de
 
-Subject: [merged] fanotify-check-file-flags-passed-in-fanotify_init.patch removed from -mm tree
-To: xypron.glpk@gmx.de,Valdis.Kletnieks@vt.edu,jack@suse.cz,mtk.manpages@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch removed from -mm tree
+To: xypron.glpk@gmx.de,eparis@redhat.com,jack@suse.cz,tvrtko.ursulin@onelan.co.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:42:15 -0700
+Date: Thu, 05 Jun 2014 12:42:07 -0700
 
 
 The patch titled
-     Subject: fanotify: check file flags passed in fanotify_init
+     Subject: fanotify: FAN_MARK_FLUSH: avoid having to provide a fake/invalid fd and path
 has been removed from the -mm tree.  Its filename was
-     fanotify-check-file-flags-passed-in-fanotify_init.patch
+     fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Subject: fanotify: check file flags passed in fanotify_init
+Subject: fanotify: FAN_MARK_FLUSH: avoid having to provide a fake/invalid fd and path
 
-Without this patch fanotify_init does not validate the value passed in
-event_f_flags.
+Originally from Tvrtko Ursulin (https://lkml.org/lkml/2011/1/12/112)
 
-When a fanotify event is read from the fanotify file descriptor a new file
-descriptor is created where file.f_flags = event_f_flags.
+Avoid having to provide a fake/invalid fd and path when flushing marks
 
-Internal and external open flags are stored together in field f_flags of
-struct file.  Hence, an application might create file descriptors with
-internal flags like FMODE_EXEC, FMODE_NOCMTIME set.
+Currently for a group to flush marks it has set it needs to provide a fake
+or invalid (but resolvable) file descriptor and path when calling
+fanotify_mark.  This patch pulls the flush handling a bit up so file
+descriptor and path are completely ignored when flushing.
 
-Jan Kara and Eric Paris both aggreed that this is a bug and the value of
-event_f_flags should be checked:
-https://lkml.org/lkml/2014/4/29/522
-https://lkml.org/lkml/2014/4/29/539
-
-This updated patch version considers the comments by Michael Kerrisk in
-https://lkml.org/lkml/2014/5/4/10
-
-With the patch the value of event_f_flags is checked.
-When specifying an invalid value error EINVAL is returned.
-
-Internal flags are disallowed.
-
-File creation flags are disallowed:
-O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_TRUNC, and O_TTY_INIT.
-
-Flags which do not make sense with fanotify are disallowed:
-__O_TMPFILE, O_PATH, FASYNC, and O_DIRECT.
-
-This leaves us with the following allowed values:
-
-O_RDONLY, O_WRONLY, O_RDWR are basic functionality. The are stored in the
-bits given by O_ACCMODE.
-
-O_APPEND is working as expected. The value might be useful in a logging
-application which appends the current status each time the log is opened.
-
-O_LARGEFILE is needed for files exceeding 4GB on 32bit systems.
-
-O_NONBLOCK may be useful when monitoring slow devices like tapes.
-
-O_NDELAY is equal to O_NONBLOCK except for platform parisc.
-To avoid code breaking on parisc either both flags should be
-allowed or none. The patch allows both.
-
-__O_SYNC and O_DSYNC may be used to avoid data loss on power disruption.
-
-O_NOATIME may be useful to reduce disk activity.
-
-O_CLOEXEC may be useful, if separate processes shall be used to scan files.
-
-Once this patch is accepted, the fanotify_init.2 manpage has to be updated.
+I reworked the patch to be applicable again (the signature of fanotify_mark
+has changed since Tvrtko's work).
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Acked-by: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify_user.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ fs/notify/fanotify/fanotify_user.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-check-file-flags-passed-in-fanotify_init fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fanotify-check-file-flags-passed-in-fanotify_init
+diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path
 +++ a/fs/notify/fanotify/fanotify_user.c
-@@ -25,6 +25,19 @@
- #define FANOTIFY_DEFAULT_MAX_MARKS	8192
- #define FANOTIFY_DEFAULT_MAX_LISTENERS	128
+@@ -813,6 +813,15 @@ SYSCALL_DEFINE5(fanotify_mark, int, fano
+ 	    group->priority == FS_PRIO_0)
+ 		goto fput_and_out;
  
-+/*
-+ * All flags that may be specified in parameter event_f_flags of fanotify_init.
-+ *
-+ * Internal and external open flags are stored together in field f_flags of
-+ * struct file. Only external open flags shall be allowed in event_f_flags.
-+ * Internal flags like FMODE_NONOTIFY, FMODE_EXEC, FMODE_NOCMTIME shall be
-+ * excluded.
-+ */
-+#define	FANOTIFY_INIT_ALL_EVENT_F_BITS				( \
-+		O_ACCMODE	| O_APPEND	| O_NONBLOCK	| \
-+		__O_SYNC	| O_DSYNC	| O_CLOEXEC     | \
-+		O_LARGEFILE	| O_NOATIME	)
-+
- extern const struct fsnotify_ops fanotify_fsnotify_ops;
- 
- static struct kmem_cache *fanotify_mark_cache __read_mostly;
-@@ -669,6 +682,18 @@ SYSCALL_DEFINE2(fanotify_init, unsigned
- 	if (flags & ~FAN_ALL_INIT_FLAGS)
- 		return -EINVAL;
- 
-+	if (event_f_flags & ~FANOTIFY_INIT_ALL_EVENT_F_BITS)
-+		return -EINVAL;
-+
-+	switch (event_f_flags & O_ACCMODE) {
-+	case O_RDONLY:
-+	case O_RDWR:
-+	case O_WRONLY:
-+		break;
-+	default:
-+		return -EINVAL;
++	if (flags & FAN_MARK_FLUSH) {
++		ret = 0;
++		if (flags & FAN_MARK_MOUNT)
++			fsnotify_clear_vfsmount_marks_by_group(group);
++		else
++			fsnotify_clear_inode_marks_by_group(group);
++		goto fput_and_out;
 +	}
 +
- 	user = get_current_user();
- 	if (atomic_read(&user->fanotify_listeners) > FANOTIFY_DEFAULT_MAX_LISTENERS) {
- 		free_uid(user);
+ 	ret = fanotify_find_path(dfd, pathname, &path, flags);
+ 	if (ret)
+ 		goto fput_and_out;
+@@ -824,7 +833,7 @@ SYSCALL_DEFINE5(fanotify_mark, int, fano
+ 		mnt = path.mnt;
+ 
+ 	/* create/update an inode mark */
+-	switch (flags & (FAN_MARK_ADD | FAN_MARK_REMOVE | FAN_MARK_FLUSH)) {
++	switch (flags & (FAN_MARK_ADD | FAN_MARK_REMOVE)) {
+ 	case FAN_MARK_ADD:
+ 		if (flags & FAN_MARK_MOUNT)
+ 			ret = fanotify_add_vfsmount_mark(group, mnt, mask, flags);
+@@ -837,12 +846,6 @@ SYSCALL_DEFINE5(fanotify_mark, int, fano
+ 		else
+ 			ret = fanotify_remove_inode_mark(group, inode, mask, flags);
+ 		break;
+-	case FAN_MARK_FLUSH:
+-		if (flags & FAN_MARK_MOUNT)
+-			fsnotify_clear_vfsmount_marks_by_group(group);
+-		else
+-			fsnotify_clear_inode_marks_by_group(group);
+-		break;
+ 	default:
+ 		ret = -EINVAL;
+ 	}
 _
 
 Patches currently in -mm which might be from xypron.glpk@gmx.de are
