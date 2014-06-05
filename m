@@ -1,86 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-fix-wildcard-dt-compatible-string-checking.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 13:05:39 -0700
-Message-ID: <5390cd93.BjYdNvQOV+o45fcs%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-warn-on-defines-ending-in-semicolon.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 13:05:45 -0700
+Message-ID: <5390cd99.SHKWtDS8gs+9/7yx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56849 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56862 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbaFEUFk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:40 -0400
+	with ESMTP id S1751365AbaFEUFp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, geert@linux-m68k.org, florian.vaussard@epfl.ch, apw@canonical.com, alexandre.belloni@free-electrons.com, robh@kernel.org
+To: mm-commits@vger.kernel.org, bp@suse.de, joe@perches.com
 
-Subject: [merged] checkpatch-fix-wildcard-dt-compatible-string-checking.patch removed from -mm tree
-To: robh@kernel.org,alexandre.belloni@free-electrons.com,apw@canonical.com,florian.vaussard@epfl.ch,geert@linux-m68k.org,joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-warn-on-defines-ending-in-semicolon.patch removed from -mm tree
+To: joe@perches.com,bp@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:39 -0700
+Date: Thu, 05 Jun 2014 13:05:45 -0700
 
 
 The patch titled
-     Subject: checkpatch: fix wildcard DT compatible string checking
+     Subject: checkpatch: warn on #defines ending in semicolon
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-wildcard-dt-compatible-string-checking.patch
+     checkpatch-warn-on-defines-ending-in-semicolon.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rob Herring <robh@kernel.org>
-Subject: checkpatch: fix wildcard DT compatible string checking
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: warn on #defines ending in semicolon
 
-We attempt to search for compatible strings which use a variable token in
-the documented name such as <chip> or <soc>.  While this was attempted to
-be handled, it's utterly broken.
+Using a #define ending in a semicolon is poor style and can lead to
+unexpected code paths being executed.
 
-The desired forms of matching are:
+Warn on uses of these #define types:
 
-vendor,<chip>-*
-vendor,name<part#>-*
+	#define foo[(...)] bar;
+	#define foo[(...)]	\
+		bar;
 
-For <chip>, lower case characters and numbers are permitted.  For <part#>,
-only numeric values are allowed.
+Based on a patch from Borislav Petkov.
 
-With this change, the number of missing compatible strings reported in
-arch/arm/boot/dts is reduced from 1071 to 960.
-
-Reported-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Signed-off-by: Rob Herring <robh@kernel.org>
-Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-wildcard-dt-compatible-string-checking scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-wildcard-dt-compatible-string-checking
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-defines-ending-in-semicolon scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-defines-ending-in-semicolon
 +++ a/scripts/checkpatch.pl
-@@ -2093,8 +2093,10 @@ sub process {
+@@ -3821,6 +3821,17 @@ sub process {
+ 					WARN("DO_WHILE_MACRO_WITH_TRAILING_SEMICOLON",
+ 					     "do {} while (0) macros should not be semicolon terminated\n" . "$herectx");
+ 				}
++			} elsif ($dstat =~ /^\+\s*#\s*define\s+$Ident.*;\s*$/) {
++				$ctx =~ s/\n*$//;
++				my $cnt = statement_rawlines($ctx);
++				my $herectx = $here . "\n";
++
++				for (my $n = 0; $n < $cnt; $n++) {
++					$herectx .= raw_line($linenr, $n) . "\n";
++				}
++
++				WARN("TRAILING_SEMICOLON",
++				     "macros should not use a trailing semicolon\n" . "$herectx");
+ 			}
+ 		}
  
- 			foreach my $compat (@compats) {
- 				my $compat2 = $compat;
--				$compat2 =~ s/\,[a-z]*\-/\,<\.\*>\-/;
--				`grep -Erq "$compat|$compat2" $dt_path`;
-+				$compat2 =~ s/\,[a-zA-Z0-9]*\-/\,<\.\*>\-/;
-+				my $compat3 = $compat;
-+				$compat3 =~ s/\,([a-z]*)[0-9]*\-/\,$1<\.\*>\-/;
-+				`grep -Erq "$compat|$compat2|$compat3" $dt_path`;
- 				if ( $? >> 8 ) {
- 					WARN("UNDOCUMENTED_DT_STRING",
- 					     "DT compatible string \"$compat\" appears un-documented -- check $dt_path\n" . $herecurr);
 _
 
-Patches currently in -mm which might be from robh@kernel.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+checkpatch-check-git-commit-descriptions.patch
+mm-utilc-add-kstrimdup.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
 linux-next.patch
+arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+tile-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+parport-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+scsi-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ntfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ipc-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+mm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+maintainers-add-linux-api-for-review-of-api-abi-changes.patch
 
