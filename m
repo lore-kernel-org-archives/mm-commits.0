@@ -1,46 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
+Subject: [merged] memcg-mm_update_next_owner-should-skip-kthreads.patch
  removed from -mm tree
-Date: Thu, 05 Jun 2014 12:50:50 -0700
-Message-ID: <5390ca1a.FaE3r993QO+zbR5D%akpm@linux-foundation.org>
+Date: Thu, 05 Jun 2014 12:50:46 -0700
+Message-ID: <5390ca16.YHNU+eeS3uAkHRSZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56055 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56041 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581AbaFETuv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:51 -0400
+	with ESMTP id S1751581AbaFETur (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, pchiang@nvidia.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, bsingharora@gmail.com, oleg@redhat.com
 
-Subject: [merged] memcg-kill-start_kernel-mm_init_ownerinit_mm.patch removed from -mm tree
+Subject: [merged] memcg-mm_update_next_owner-should-skip-kthreads.patch removed from -mm tree
 To: oleg@redhat.com,bsingharora@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,pchiang@nvidia.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:50:50 -0700
+Date: Thu, 05 Jun 2014 12:50:46 -0700
 
 
 The patch titled
-     Subject: memcg: kill start_kernel()->mm_init_owner(&init_mm)
+     Subject: memcg: mm_update_next_owner() should skip kthreads
 has been removed from the -mm tree.  Its filename was
-     memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
+     memcg-mm_update_next_owner-should-skip-kthreads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: memcg: kill start_kernel()->mm_init_owner(&init_mm)
+Subject: memcg: mm_update_next_owner() should skip kthreads
 
-Remove start_kernel()->mm_init_owner(&init_mm, &init_task).
+"Search through everything else" in mm_update_next_owner() can hit a
+kthread which adopted this "mm" via use_mm(), it should not be used as
+mm->owner.  Add the PF_KTHREAD check.
 
-This doesn't really hurt but unnecessary and misleading.  init_task is the
-"swapper" thread == current, its ->mm is always NULL.  And init_mm can
-only be used as ->active_mm, not as ->mm.
-
-mm_init_owner() has a single caller with this patch, perhaps it should
-die.  mm_init() can initialize ->owner under #ifdef.
+While at it, change this code to use for_each_process_thread()
+instead of deprecated do_each_thread/while_each_thread.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
@@ -52,20 +50,31 @@ Cc: Peter Chiang <pchiang@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/exit.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN init/main.c~memcg-kill-start_kernel-mm_init_ownerinit_mm init/main.c
---- a/init/main.c~memcg-kill-start_kernel-mm_init_ownerinit_mm
-+++ a/init/main.c
-@@ -507,7 +507,6 @@ asmlinkage __visible void __init start_k
- 	page_address_init();
- 	pr_notice("%s", linux_banner);
- 	setup_arch(&command_line);
--	mm_init_owner(&init_mm, &init_task);
- 	mm_init_cpumask(&init_mm);
- 	setup_command_line(command_line);
- 	setup_nr_cpu_ids();
+diff -puN kernel/exit.c~memcg-mm_update_next_owner-should-skip-kthreads kernel/exit.c
+--- a/kernel/exit.c~memcg-mm_update_next_owner-should-skip-kthreads
++++ a/kernel/exit.c
+@@ -395,14 +395,12 @@ retry:
+ 	}
+ 
+ 	/*
+-	 * Search through everything else. We should not get
+-	 * here often
++	 * Search through everything else, we should not get here often.
+ 	 */
+-	do_each_thread(g, c) {
+-		if (c->mm == mm)
++	for_each_process_thread(g, c) {
++		if (!(c->flags & PF_KTHREAD) && c->mm == mm)
+ 			goto assign_new_owner;
+-	} while_each_thread(g, c);
+-
++	}
+ 	read_unlock(&tasklist_lock);
+ 	/*
+ 	 * We found no owner yet mm_users > 1: this implies that we are
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
