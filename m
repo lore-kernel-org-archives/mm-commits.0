@@ -1,127 +1,124 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hugetlb-rename-hugepage_migration_support-to-_supported.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 12:53:35 -0700
-Message-ID: <5390cabf.2V0to2y+mMOfTB+r%akpm@linux-foundation.org>
+ fs-superblock-avoid-locking-counting-inodes-and-dentries-before-reclaiming-them.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:53:19 -0700
+Message-ID: <5390caaf.2Xa6jt5h/Xqm4bnu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56619 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56576 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751847AbaFETxf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:35 -0400
+	with ESMTP id S1752608AbaFETxU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hughd@google.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, yuanhan.liu@linux.intel.com, viro@zeniv.linux.org.uk, riel@redhat.com, mgorman@suse.de, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, david@fromorbit.com, bob.liu@oracle.com, tim.c.chen@linux.intel.com
 
-Subject: [merged] hugetlb-rename-hugepage_migration_support-to-_supported.patch removed from -mm tree
-To: n-horiguchi@ah.jp.nec.com,hughd@google.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-superblock-avoid-locking-counting-inodes-and-dentries-before-reclaiming-them.patch removed from -mm tree
+To: tim.c.chen@linux.intel.com,bob.liu@oracle.com,david@fromorbit.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,mgorman@suse.de,riel@redhat.com,viro@zeniv.linux.org.uk,yuanhan.liu@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:53:35 -0700
+Date: Thu, 05 Jun 2014 12:53:19 -0700
 
 
 The patch titled
-     Subject: hugetlb: rename hugepage_migration_support() to ..._supported()
+     Subject: fs/superblock: avoid locking counting inodes and dentries before reclaiming them
 has been removed from the -mm tree.  Its filename was
-     hugetlb-rename-hugepage_migration_support-to-_supported.patch
+     fs-superblock-avoid-locking-counting-inodes-and-dentries-before-reclaiming-them.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: hugetlb: rename hugepage_migration_support() to ..._supported()
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: fs/superblock: avoid locking counting inodes and dentries before reclaiming them
 
-We already have a function named hugepages_supported(), and the similar
-name hugepage_migration_support() is a bit unconfortable, so let's rename
-it hugepage_migration_supported().
+We remove the call to grab_super_passive in call to super_cache_count. 
+This becomes a scalability bottleneck as multiple threads are trying to do
+memory reclamation, e.g.  when we are doing large amount of file read and
+page cache is under pressure.  The cached objects quickly got reclaimed
+down to 0 and we are aborting the cache_scan() reclaim.  But counting
+creates a log jam acquiring the sb_lock.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+We are holding the shrinker_rwsem which ensures the safety of call to
+list_lru_count_node() and s_op->nr_cached_objects.  The shrinker is
+unregistered now before ->kill_sb() so the operation is safe when we are
+doing unmount.
+
+The impact will depend heavily on the machine and the workload but for a
+small machine using postmark tuned to use 4xRAM size the results were
+
+                                  3.15.0-rc5            3.15.0-rc5
+                                     vanilla         shrinker-v1r1
+Ops/sec Transactions         21.00 (  0.00%)       24.00 ( 14.29%)
+Ops/sec FilesCreate          39.00 (  0.00%)       44.00 ( 12.82%)
+Ops/sec CreateTransact       10.00 (  0.00%)       12.00 ( 20.00%)
+Ops/sec FilesDeleted       6202.00 (  0.00%)     6202.00 (  0.00%)
+Ops/sec DeleteTransact       11.00 (  0.00%)       12.00 (  9.09%)
+Ops/sec DataRead/MB          25.97 (  0.00%)       29.10 ( 12.05%)
+Ops/sec DataWrite/MB         49.99 (  0.00%)       56.02 ( 12.06%)
+
+ffsb running in a configuration that is meant to simulate a mail server showed
+
+                                 3.15.0-rc5             3.15.0-rc5
+                                    vanilla          shrinker-v1r1
+Ops/sec readall           9402.63 (  0.00%)      9567.97 (  1.76%)
+Ops/sec create            4695.45 (  0.00%)      4735.00 (  0.84%)
+Ops/sec delete             173.72 (  0.00%)       179.83 (  3.52%)
+Ops/sec Transactions     14271.80 (  0.00%)     14482.81 (  1.48%)
+Ops/sec Read                37.00 (  0.00%)        37.60 (  1.62%)
+Ops/sec Write               18.20 (  0.00%)        18.30 (  0.55%)
+
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Tested-by: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Cc: Bob Liu <bob.liu@oracle.com>
+Cc: Jan Kara <jack@suse.cz>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    4 ++--
- mm/hugetlb.c            |    2 +-
- mm/migrate.c            |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ fs/super.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-rename-hugepage_migration_support-to-_supported include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-rename-hugepage_migration_support-to-_supported
-+++ a/include/linux/hugetlb.h
-@@ -397,7 +397,7 @@ static inline pgoff_t basepage_index(str
+diff -puN fs/super.c~fs-superblock-avoid-locking-counting-inodes-and-dentries-before-reclaiming-them fs/super.c
+--- a/fs/super.c~fs-superblock-avoid-locking-counting-inodes-and-dentries-before-reclaiming-them
++++ a/fs/super.c
+@@ -112,9 +112,14 @@ static unsigned long super_cache_count(s
  
- extern void dissolve_free_huge_pages(unsigned long start_pfn,
- 				     unsigned long end_pfn);
--static inline int hugepage_migration_support(struct hstate *h)
-+static inline int hugepage_migration_supported(struct hstate *h)
- {
- #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
- 	return huge_page_shift(h) == PMD_SHIFT;
-@@ -453,7 +453,7 @@ static inline pgoff_t basepage_index(str
- 	return page->index;
+ 	sb = container_of(shrink, struct super_block, s_shrink);
+ 
+-	if (!grab_super_passive(sb))
+-		return 0;
+-
++	/*
++	 * Don't call grab_super_passive as it is a potential
++	 * scalability bottleneck. The counts could get updated
++	 * between super_cache_count and super_cache_scan anyway.
++	 * Call to super_cache_count with shrinker_rwsem held
++	 * ensures the safety of call to list_lru_count_node() and
++	 * s_op->nr_cached_objects().
++	 */
+ 	if (sb->s_op && sb->s_op->nr_cached_objects)
+ 		total_objects = sb->s_op->nr_cached_objects(sb,
+ 						 sc->nid);
+@@ -125,7 +130,6 @@ static unsigned long super_cache_count(s
+ 						 sc->nid);
+ 
+ 	total_objects = vfs_pressure_ratio(total_objects);
+-	drop_super(sb);
+ 	return total_objects;
  }
- #define dissolve_free_huge_pages(s, e)	do {} while (0)
--#define hugepage_migration_support(h)	0
-+#define hugepage_migration_supported(h)	0
  
- static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
- 					   struct mm_struct *mm, pte_t *pte)
-diff -puN mm/hugetlb.c~hugetlb-rename-hugepage_migration_support-to-_supported mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-rename-hugepage_migration_support-to-_supported
-+++ a/mm/hugetlb.c
-@@ -544,7 +544,7 @@ static struct page *dequeue_huge_page_no
- /* Movability of hugepages depends on migration support. */
- static inline gfp_t htlb_alloc_mask(struct hstate *h)
- {
--	if (hugepages_treat_as_movable || hugepage_migration_support(h))
-+	if (hugepages_treat_as_movable || hugepage_migration_supported(h))
- 		return GFP_HIGHUSER_MOVABLE;
- 	else
- 		return GFP_HIGHUSER;
-diff -puN mm/migrate.c~hugetlb-rename-hugepage_migration_support-to-_supported mm/migrate.c
---- a/mm/migrate.c~hugetlb-rename-hugepage_migration_support-to-_supported
-+++ a/mm/migrate.c
-@@ -1039,7 +1039,7 @@ static int unmap_and_move_huge_page(new_
- 	 * tables or check whether the hugepage is pmd-based or not before
- 	 * kicking migration.
- 	 */
--	if (!hugepage_migration_support(page_hstate(hpage))) {
-+	if (!hugepage_migration_supported(page_hstate(hpage))) {
- 		putback_active_hugepage(hpage);
- 		return -ENOSYS;
- 	}
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
 
 origin.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-update-page-table-walker-core-fix.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
-mm-pagewalkc-move-pte-null-check.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-prom-pid-clear_refs-avoid-split_huge_page.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
+rwsem-support-optimistic-spinning.patch
 
