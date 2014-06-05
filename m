@@ -1,81 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-fix-incorrect-i_size-of-global-bitmap-inode-after-resize.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 12:42:56 -0700
-Message-ID: <5390c840.XZ2dcJD1PYy4AEA+%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-remove-some-unused-codes.patch removed from -mm
+ tree
+Date: Thu, 05 Jun 2014 12:42:58 -0700
+Message-ID: <5390c842.Nv46aQwa7LKP3Fg/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55606 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550AbaFETm5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:57 -0400
+	with ESMTP id S1751550AbaFETm7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: [merged] ocfs2-fix-incorrect-i_size-of-global-bitmap-inode-after-resize.patch removed from -mm tree
-To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-remove-some-unused-codes.patch removed from -mm tree
+To: xuejiufei@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:42:56 -0700
+Date: Thu, 05 Jun 2014 12:42:58 -0700
 
 
 The patch titled
-     Subject: ocfs2: fix incorrect i_size of global bitmap inode after resize
+     Subject: ocfs2: remove some unused code
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-incorrect-i_size-of-global-bitmap-inode-after-resize.patch
+     ocfs2-remove-some-unused-codes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix incorrect i_size of global bitmap inode after resize
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: remove some unused code
 
-Ocfs2 cluster size may be 1MB, which has 20 bits.  When resize, the input
-new clusters is mostly the number of clusters in a group
-descriptor(32256).
+dlm_recovery_ctxt.received is unused.
 
-Since the input clusters is defined as type int, so it will overflow when
-shift left 20 bits and then lead to incorrect global bitmap i_size.
+ocfs2_should_refresh_lock_res() can only return 0 or 1, so the error
+handling code in ocfs2_super_lock() is unneeded.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/resize.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmcommon.h |    1 -
+ fs/ocfs2/dlm/dlmdomain.c |    1 -
+ fs/ocfs2/dlmglue.c       |    5 -----
+ 3 files changed, 7 deletions(-)
 
-diff -puN fs/ocfs2/resize.c~ocfs2-fix-incorrect-i_size-of-global-bitmap-inode-after-resize fs/ocfs2/resize.c
---- a/fs/ocfs2/resize.c~ocfs2-fix-incorrect-i_size-of-global-bitmap-inode-after-resize
-+++ a/fs/ocfs2/resize.c
-@@ -153,7 +153,7 @@ static int ocfs2_update_last_group_and_i
- 
- 	spin_lock(&OCFS2_I(bm_inode)->ip_lock);
- 	OCFS2_I(bm_inode)->ip_clusters = le32_to_cpu(fe->i_clusters);
--	le64_add_cpu(&fe->i_size, new_clusters << osb->s_clustersize_bits);
-+	le64_add_cpu(&fe->i_size, (u64)new_clusters << osb->s_clustersize_bits);
- 	spin_unlock(&OCFS2_I(bm_inode)->ip_lock);
- 	i_size_write(bm_inode, le64_to_cpu(fe->i_size));
- 
-@@ -563,7 +563,7 @@ int ocfs2_group_add(struct inode *inode,
- 
- 	spin_lock(&OCFS2_I(main_bm_inode)->ip_lock);
- 	OCFS2_I(main_bm_inode)->ip_clusters = le32_to_cpu(fe->i_clusters);
--	le64_add_cpu(&fe->i_size, input->clusters << osb->s_clustersize_bits);
-+	le64_add_cpu(&fe->i_size, (u64)input->clusters << osb->s_clustersize_bits);
- 	spin_unlock(&OCFS2_I(main_bm_inode)->ip_lock);
- 	i_size_write(main_bm_inode, le64_to_cpu(fe->i_size));
+diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-remove-some-unused-codes fs/ocfs2/dlm/dlmcommon.h
+--- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-remove-some-unused-codes
++++ a/fs/ocfs2/dlm/dlmcommon.h
+@@ -108,7 +108,6 @@ static inline int dlm_is_recovery_lock(c
+ struct dlm_recovery_ctxt
+ {
+ 	struct list_head resources;
+-	struct list_head received;
+ 	struct list_head node_data;
+ 	u8  new_master;
+ 	u8  dead_node;
+diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-remove-some-unused-codes fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-remove-some-unused-codes
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -2034,7 +2034,6 @@ static struct dlm_ctxt *dlm_alloc_ctxt(c
+ 	INIT_LIST_HEAD(&dlm->list);
+ 	INIT_LIST_HEAD(&dlm->dirty_list);
+ 	INIT_LIST_HEAD(&dlm->reco.resources);
+-	INIT_LIST_HEAD(&dlm->reco.received);
+ 	INIT_LIST_HEAD(&dlm->reco.node_data);
+ 	INIT_LIST_HEAD(&dlm->purge_list);
+ 	INIT_LIST_HEAD(&dlm->dlm_domain_handlers);
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-remove-some-unused-codes fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-remove-some-unused-codes
++++ a/fs/ocfs2/dlmglue.c
+@@ -2544,11 +2544,6 @@ int ocfs2_super_lock(struct ocfs2_super
+ 	 * refreshed, so we do it here. Of course, making sense of
+ 	 * everything is up to the caller :) */
+ 	status = ocfs2_should_refresh_lock_res(lockres);
+-	if (status < 0) {
+-		ocfs2_cluster_unlock(osb, lockres, level);
+-		mlog_errno(status);
+-		goto bail;
+-	}
+ 	if (status) {
+ 		status = ocfs2_refresh_slot_info(osb);
  
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
 origin.patch
-ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
+ocfs2-revert-the-patch-fix-null-pointer-dereference-when-dismount-and-ocfs2rec-simultaneously.patch
+ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 linux-next.patch
 
