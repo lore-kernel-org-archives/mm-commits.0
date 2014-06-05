@@ -1,107 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fold-mem_cgroup_stolen.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:51:33 -0700
-Message-ID: <5390ca45.d6hUsi3W8zO6t9LJ%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-compaction-terminate-async-compaction-when-rescheduling.patch removed
+ from -mm tree
+Date: Thu, 05 Jun 2014 12:51:51 -0700
+Message-ID: <5390ca57.Tlty78U2AjBFEdhs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56167 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56207 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751712AbaFETve (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:34 -0400
+	with ESMTP id S1752087AbaFETvw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, h.huangqiang@huawei.com
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, mgorman@suse.de, rientjes@google.com
 
-Subject: [merged] memcg-fold-mem_cgroup_stolen.patch removed from -mm tree
-To: h.huangqiang@huawei.com,hannes@cmpxchg.org,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] mm-compaction-terminate-async-compaction-when-rescheduling.patch removed from -mm tree
+To: rientjes@google.com,mgorman@suse.de,vbabka@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:33 -0700
+Date: Thu, 05 Jun 2014 12:51:51 -0700
 
 
 The patch titled
-     Subject: memcg: fold mem_cgroup_stolen
+     Subject: mm, compaction: terminate async compaction when rescheduling
 has been removed from the -mm tree.  Its filename was
-     memcg-fold-mem_cgroup_stolen.patch
+     mm-compaction-terminate-async-compaction-when-rescheduling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Qiang Huang <h.huangqiang@huawei.com>
-Subject: memcg: fold mem_cgroup_stolen
+From: David Rientjes <rientjes@google.com>
+Subject: mm, compaction: terminate async compaction when rescheduling
 
-It is only used in __mem_cgroup_begin_update_page_stat(), the name is
-confusing and 2 routines for one thing also confuse people, so fold this
-function seems more clear.
+Async compaction terminates prematurely when need_resched(), see
+compact_checklock_irqsave().  This can never trigger, however, if the
+cond_resched() in isolate_migratepages_range() always takes care of the
+scheduling.
 
-[akpm@linux-foundation.org: fix typo, per Michal]
-Signed-off-by: Qiang Huang <h.huangqiang@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+If the cond_resched() actually triggers, then terminate this pageblock
+scan for async compaction as well.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   25 +++++++------------------
- 1 file changed, 7 insertions(+), 18 deletions(-)
+ mm/compaction.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fold-mem_cgroup_stolen mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fold-mem_cgroup_stolen
-+++ a/mm/memcontrol.c
-@@ -1594,23 +1594,12 @@ static void mem_cgroup_end_move(struct m
- }
+diff -puN mm/compaction.c~mm-compaction-terminate-async-compaction-when-rescheduling mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-terminate-async-compaction-when-rescheduling
++++ a/mm/compaction.c
+@@ -494,8 +494,13 @@ isolate_migratepages_range(struct zone *
+ 			return 0;
+ 	}
  
- /*
-- * 2 routines for checking "mem" is under move_account() or not.
-+ * A routine for checking "mem" is under move_account() or not.
-  *
-- * mem_cgroup_stolen() -  checking whether a cgroup is mc.from or not. This
-- *			  is used for avoiding races in accounting.  If true,
-- *			  pc->mem_cgroup may be overwritten.
-- *
-- * mem_cgroup_under_move() - checking a cgroup is mc.from or mc.to or
-- *			  under hierarchy of moving cgroups. This is for
-- *			  waiting at hith-memory prressure caused by "move".
-+ * Checking a cgroup is mc.from or mc.to or under hierarchy of
-+ * moving cgroups. This is for waiting at high-memory pressure
-+ * caused by "move".
-  */
--
--static bool mem_cgroup_stolen(struct mem_cgroup *memcg)
--{
--	VM_BUG_ON(!rcu_read_lock_held());
--	return atomic_read(&memcg->moving_account) > 0;
--}
--
- static bool mem_cgroup_under_move(struct mem_cgroup *memcg)
- {
- 	struct mem_cgroup *from;
-@@ -1653,7 +1642,6 @@ static bool mem_cgroup_wait_acct_move(st
-  * Take this lock when
-  * - a code tries to modify page's memcg while it's USED.
-  * - a code tries to modify page state accounting in a memcg.
-- * see mem_cgroup_stolen(), too.
-  */
- static void move_lock_mem_cgroup(struct mem_cgroup *memcg,
- 				  unsigned long *flags)
-@@ -2326,9 +2314,10 @@ again:
- 	 * If this memory cgroup is not under account moving, we don't
- 	 * need to take move_lock_mem_cgroup(). Because we already hold
- 	 * rcu_read_lock(), any calls to move_account will be delayed until
--	 * rcu_read_unlock() if mem_cgroup_stolen() == true.
-+	 * rcu_read_unlock().
- 	 */
--	if (!mem_cgroup_stolen(memcg))
-+	VM_BUG_ON(!rcu_read_lock_held());
-+	if (atomic_read(&memcg->moving_account) <= 0)
- 		return;
- 
- 	move_lock_mem_cgroup(memcg, flags);
++	if (cond_resched()) {
++		/* Async terminates prematurely on need_resched() */
++		if (cc->mode == MIGRATE_ASYNC)
++			return 0;
++	}
++
+ 	/* Time to isolate some pages for migration */
+-	cond_resched();
+ 	for (; low_pfn < end_pfn; low_pfn++) {
+ 		/* give a chance to irqs before checking need_resched() */
+ 		if (locked && !(low_pfn % SWAP_CLUSTER_MAX)) {
 _
 
-Patches currently in -mm which might be from h.huangqiang@huawei.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
 
