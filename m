@@ -1,80 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] brd-add-support-for-rw_page.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:50:38 -0700
-Message-ID: <5390ca0e./mZquWigYqoGYvA/%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch removed from
+ -mm tree
+Date: Thu, 05 Jun 2014 12:50:26 -0700
+Message-ID: <5390ca02.179W0HncjKK57M1R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56026 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56003 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581AbaFETuj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:39 -0400
+	with ESMTP id S1751651AbaFETu0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hughd@google.com, dheeraj.reddy@intel.com, david@fromorbit.com, matthew.r.wilcox@intel.com
+To: mm-commits@vger.kernel.org, mel@csn.ul.ie, hannes@cmpxchg.org, neilb@suse.de
 
-Subject: [merged] brd-add-support-for-rw_page.patch removed from -mm tree
-To: matthew.r.wilcox@intel.com,david@fromorbit.com,dheeraj.reddy@intel.com,hughd@google.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch removed from -mm tree
+To: neilb@suse.de,hannes@cmpxchg.org,mel@csn.ul.ie,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:50:38 -0700
+Date: Thu, 05 Jun 2014 12:50:26 -0700
 
 
 The patch titled
-     Subject: brd: add support for rw_page()
+     Subject: mm/vmscan.c: avoid throttling reclaim for loop-back nfsd threads
 has been removed from the -mm tree.  Its filename was
-     brd-add-support-for-rw_page.patch
+     mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: brd: add support for rw_page()
+From: NeilBrown <neilb@suse.de>
+Subject: mm/vmscan.c: avoid throttling reclaim for loop-back nfsd threads
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dheeraj Reddy <dheeraj.reddy@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+When a loopback NFS mount is active and the backing device for the NFS
+mount becomes congested, that can impose throttling delays on the nfsd
+threads.
+
+These delays significantly reduce throughput and so the NFS mount remains
+congested.
+
+This results in a livelock and the reduced throughput persists.
+
+This livelock has been found in testing with the 'wait_iff_congested'
+call, and could possibly be caused by the 'congestion_wait' call.
+
+This livelock is similar to the deadlock which justified the introduction
+of PF_LESS_THROTTLE, and the same flag can be used to remove this
+livelock.
+
+To minimise the impact of the change, we still throttle nfsd when the
+filesystem it is writing to is congested, but not when some separate
+filesystem (e.g.  the NFS filesystem) is congested.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/brd.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/vmscan.c |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/brd.c~brd-add-support-for-rw_page drivers/block/brd.c
---- a/drivers/block/brd.c~brd-add-support-for-rw_page
-+++ a/drivers/block/brd.c
-@@ -360,6 +360,15 @@ out:
- 	bio_endio(bio, err);
+diff -puN mm/vmscan.c~mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads mm/vmscan.c
+--- a/mm/vmscan.c~mm-avoid-throttling-reclaim-for-loop-back-nfsd-threads
++++ a/mm/vmscan.c
+@@ -1439,6 +1439,19 @@ putback_inactive_pages(struct lruvec *lr
  }
  
-+static int brd_rw_page(struct block_device *bdev, sector_t sector,
-+		       struct page *page, int rw)
+ /*
++ * If a kernel thread (such as nfsd for loop-back mounts) services
++ * a backing device by writing to the page cache it sets PF_LESS_THROTTLE.
++ * In that case we should only throttle if the backing device it is
++ * writing to is congested.  In other cases it is safe to throttle.
++ */
++static int current_may_throttle(void)
 +{
-+	struct brd_device *brd = bdev->bd_disk->private_data;
-+	int err = brd_do_bvec(brd, page, PAGE_CACHE_SIZE, 0, rw, sector);
-+	page_endio(page, rw & WRITE, err);
-+	return err;
++	return !(current->flags & PF_LESS_THROTTLE) ||
++		current->backing_dev_info == NULL ||
++		bdi_write_congested(current->backing_dev_info);
 +}
 +
- #ifdef CONFIG_BLK_DEV_XIP
- static int brd_direct_access(struct block_device *bdev, sector_t sector,
- 			void **kaddr, unsigned long *pfn)
-@@ -419,6 +428,7 @@ static int brd_ioctl(struct block_device
++/*
+  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
+  * of reclaimed pages
+  */
+@@ -1566,7 +1579,8 @@ shrink_inactive_list(unsigned long nr_to
+ 		 * implies that pages are cycling through the LRU faster than
+ 		 * they are written so also forcibly stall.
+ 		 */
+-		if (nr_unqueued_dirty == nr_taken || nr_immediate)
++		if ((nr_unqueued_dirty == nr_taken || nr_immediate) &&
++		    current_may_throttle())
+ 			congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 	}
  
- static const struct block_device_operations brd_fops = {
- 	.owner =		THIS_MODULE,
-+	.rw_page =		brd_rw_page,
- 	.ioctl =		brd_ioctl,
- #ifdef CONFIG_BLK_DEV_XIP
- 	.direct_access =	brd_direct_access,
+@@ -1575,7 +1589,8 @@ shrink_inactive_list(unsigned long nr_to
+ 	 * is congested. Allow kswapd to continue until it starts encountering
+ 	 * unqueued dirty pages or cycling through the LRU too quickly.
+ 	 */
+-	if (!sc->hibernation_mode && !current_is_kswapd())
++	if (!sc->hibernation_mode && !current_is_kswapd() &&
++	    current_may_throttle())
+ 		wait_iff_congested(zone, BLK_RW_ASYNC, HZ/10);
+ 
+ 	trace_mm_vmscan_lru_shrink_inactive(zone->zone_pgdat->node_id,
 _
 
-Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
 
