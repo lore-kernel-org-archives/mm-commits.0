@@ -1,123 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-binfmt_elfc-fix-bool-assignements.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 13:07:31 -0700
-Message-ID: <5390ce03.BSTK8lKawC5GdYDR%akpm@linux-foundation.org>
+Subject: [merged] init-mainc-dont-use-pr_debug.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 13:07:35 -0700
+Message-ID: <5390ce07.cRkmQ+qz22bVY7dy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56892 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56897 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800AbaFEUHb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:07:31 -0400
+	with ESMTP id S1751634AbaFEUHg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:07:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, rmk@arm.linux.org.uk, joe@perches.com, akpm@linux-foundation.org
 
-Subject: [merged] fs-binfmt_elfc-fix-bool-assignements.patch removed from -mm tree
-To: fabf@skynet.be,mm-commits@vger.kernel.org
+Subject: [merged] init-mainc-dont-use-pr_debug.patch removed from -mm tree
+To: akpm@linux-foundation.org,joe@perches.com,rmk@arm.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:07:31 -0700
+Date: Thu, 05 Jun 2014 13:07:35 -0700
 
 
 The patch titled
-     Subject: fs/binfmt_elf.c: fix bool assignements
+     Subject: init/main.c: don't use pr_debug()
 has been removed from the -mm tree.  Its filename was
-     fs-binfmt_elfc-fix-bool-assignements.patch
+     init-mainc-dont-use-pr_debug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/binfmt_elf.c: fix bool assignements
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: init/main.c: don't use pr_debug()
 
-Fix coccinelle warnings.
+Pertially revert ea676e846a8171b8 ("init/main.c: convert to pr_foo()").
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Unbeknownst to me, pr_debug() is different from the other pr_foo() levels:
+pr_debug() is a no-op when DEBUG is not defined.
+
+Happily, init/main.c does have a #define DEBUG so we didn't break
+initcall_debug.  But the functioning of initcall_debug should not be
+dependent upon the presence of that #define DEBUG.
+
+Reported-by: Russell King <rmk@arm.linux.org.uk>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    4 ++--
+ init/main.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-fix-bool-assignements fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-binfmt_elfc-fix-bool-assignements
-+++ a/fs/binfmt_elf.c
-@@ -1686,7 +1686,7 @@ static size_t get_note_info_size(struct
- static int write_note_info(struct elf_note_info *info,
- 			   struct coredump_params *cprm)
- {
--	bool first = 1;
-+	bool first = true;
- 	struct elf_thread_core_info *t = info->thread;
+diff -puN init/main.c~init-mainc-dont-use-pr_debug init/main.c
+--- a/init/main.c~init-mainc-dont-use-pr_debug
++++ a/init/main.c
+@@ -671,13 +671,13 @@ static int __init_or_module do_one_initc
+ 	unsigned long long duration;
+ 	int ret;
  
- 	do {
-@@ -1710,7 +1710,7 @@ static int write_note_info(struct elf_no
- 			    !writenote(&t->notes[i], cprm))
- 				return 0;
+-	pr_debug("calling  %pF @ %i\n", fn, task_pid_nr(current));
++	printk(KERN_DEBUG "calling  %pF @ %i\n", fn, task_pid_nr(current));
+ 	calltime = ktime_get();
+ 	ret = fn();
+ 	rettime = ktime_get();
+ 	delta = ktime_sub(rettime, calltime);
+ 	duration = (unsigned long long) ktime_to_ns(delta) >> 10;
+-	pr_debug("initcall %pF returned %d after %lld usecs\n",
++	printk(KERN_DEBUG "initcall %pF returned %d after %lld usecs\n",
+ 		 fn, ret, duration);
  
--		first = 0;
-+		first = false;
- 		t = t->next;
- 	} while (t);
- 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-coda-replace-printk-by-pr_foo.patch
-fs-coda-logging-prefix-uniformization.patch
-fs-coda-use-__func__.patch
-fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
-fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
-fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
-fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
-fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-hpfs-convert-printk-to-pr_foo.patch
-fs-hpfs-use-pr_fmt-for-logging.patch
-fs-hpfs-use-__func__-for-logging.patch
-fs-hpfs-increase-pr_warn-level.patch
-documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
-fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
-fs-proc-vmcorec-remove-null-assignment-on-static.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
-fs-pstore-logging-clean-up.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagewalk-update-page-table-walker-core-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
+rtc-da9063-rtc-driver-fix.patch
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-checkpatch-fixes.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
 fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
-fs-devpts-inodec-convert-printk-to-pr_foo.patch
 fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-fs-dlm-configc-convert-simple_str-to-kstr.patch
-fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
-fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
-mm-kmemleak-testc-use-pr_fmt-for-logging.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+rwsem-support-optimistic-spinning.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
