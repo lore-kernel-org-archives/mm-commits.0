@@ -1,91 +1,193 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- swap-delete-the-last_in_cluster-scan_base-loop-in-the-body-of-scan_swap_map.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:53:37 -0700
-Message-ID: <5390cac1.HEaWx34XYxFBJVkD%akpm@linux-foundation.org>
+ mm-nominate-faultaround-area-in-bytes-rather-then-page-order.patch removed
+ from -mm tree
+Date: Thu, 05 Jun 2014 12:53:31 -0700
+Message-ID: <5390cabb.MJuzLCL3i9X6fpT4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56621 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56609 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752129AbaFETxi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:38 -0400
+	with ESMTP id S1752695AbaFETxc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shli@kernel.org, hughd@google.com, slaoub@gmail.com
+To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, riel@redhat.com, peterz@infradead.org, paulus@samba.org, mingo@kernel.org, mgorman@suse.de, maddy@linux.vnet.ibm.com, hughd@google.com, dave.hansen@intel.com, benh@kernel.crashing.org, ak@linux.intel.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] swap-delete-the-last_in_cluster-scan_base-loop-in-the-body-of-scan_swap_map.patch removed from -mm tree
-To: slaoub@gmail.com,hughd@google.com,shli@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-nominate-faultaround-area-in-bytes-rather-then-page-order.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,ak@linux.intel.com,benh@kernel.crashing.org,dave.hansen@intel.com,hughd@google.com,maddy@linux.vnet.ibm.com,mgorman@suse.de,mingo@kernel.org,paulus@samba.org,peterz@infradead.org,riel@redhat.com,rusty@rustcorp.com.au,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:53:37 -0700
+Date: Thu, 05 Jun 2014 12:53:31 -0700
 
 
 The patch titled
-     Subject: mm/swapfile.c: delete  the "last_in_cluster < scan_base" loop in the body of scan_swap_map()
+     Subject: mm: nominate faultaround area in bytes rather than page order
 has been removed from the -mm tree.  Its filename was
-     swap-delete-the-last_in_cluster-scan_base-loop-in-the-body-of-scan_swap_map.patch
+     mm-nominate-faultaround-area-in-bytes-rather-then-page-order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Yucong <slaoub@gmail.com>
-Subject: mm/swapfile.c: delete  the "last_in_cluster < scan_base" loop in the body of scan_swap_map()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: nominate faultaround area in bytes rather than page order
 
-Via ebc2a1a69111 ("swap: make cluster allocation per-cpu"), we can find
-that all SWP_SOLIDSTATE "seek is cheap"(SSD case) has already gone to
-si->cluster_info scan_swap_map_try_ssd_cluster() route.  So that the
-"last_in_cluster < scan_base" loop in the body of scan_swap_map() has
-already become a dead code snippet, and it should have been deleted.
+There is evidencs that the faultaround feature is less relevant on
+architectures with page size bigger then 4k.  Which makes sense since page
+fault overhead per byte of mapped area should be less there.
 
-This patch is to delete the redundant loop as Hugh and Shaohua suggested.
+Let's rework the feature to specify faultaround area in bytes instead of
+page order.  It's 64 kilobytes for now.
 
-[hughd@google.com: fix comment, simplify code]
-Signed-off-by: Chen Yucong <slaoub@gmail.com>
-Cc: Shaohua Li <shli@kernel.org>
-Acked-by: Hugh Dickins <hughd@google.com>
+The patch effectively disables faultaround on architectures with page size
+>= 64k (like ppc64).
+
+It's possible that some other size of faultaround area is relevant for a
+platform.  We can expose `fault_around_bytes' variable to arch-specific
+code once such platforms will be found.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Madhavan Srinivasan <maddy@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   29 +++--------------------------
- 1 file changed, 3 insertions(+), 26 deletions(-)
+ mm/memory.c |   62 ++++++++++++++++++--------------------------------
+ 1 file changed, 23 insertions(+), 39 deletions(-)
 
-diff -puN mm/swapfile.c~swap-delete-the-last_in_cluster-scan_base-loop-in-the-body-of-scan_swap_map mm/swapfile.c
---- a/mm/swapfile.c~swap-delete-the-last_in_cluster-scan_base-loop-in-the-body-of-scan_swap_map
-+++ a/mm/swapfile.c
-@@ -523,13 +523,10 @@ static unsigned long scan_swap_map(struc
- 		/*
- 		 * If seek is expensive, start searching for new cluster from
- 		 * start of partition, to minimize the span of allocated swap.
--		 * But if seek is cheap, search from our current position, so
--		 * that swap is allocated from all over the partition: if the
--		 * Flash Translation Layer only remaps within limited zones,
--		 * we don't want to wear out the first zone too quickly.
-+		 * If seek is cheap, that is the SWP_SOLIDSTATE si->cluster_info
-+		 * case, just handled by scan_swap_map_try_ssd_cluster() above.
- 		 */
--		if (!(si->flags & SWP_SOLIDSTATE))
--			scan_base = offset = si->lowest_bit;
-+		scan_base = offset = si->lowest_bit;
- 		last_in_cluster = offset + SWAPFILE_CLUSTER - 1;
+diff -puN mm/memory.c~mm-nominate-faultaround-area-in-bytes-rather-then-page-order mm/memory.c
+--- a/mm/memory.c~mm-nominate-faultaround-area-in-bytes-rather-then-page-order
++++ a/mm/memory.c
+@@ -2758,63 +2758,47 @@ void do_set_pte(struct vm_area_struct *v
+ 	update_mmu_cache(vma, address, pte);
+ }
  
- 		/* Locate the first empty (unaligned) cluster */
-@@ -537,26 +534,6 @@ static unsigned long scan_swap_map(struc
- 			if (si->swap_map[offset])
- 				last_in_cluster = offset + SWAPFILE_CLUSTER;
- 			else if (offset == last_in_cluster) {
--				spin_lock(&si->lock);
--				offset -= SWAPFILE_CLUSTER - 1;
--				si->cluster_next = offset;
--				si->cluster_nr = SWAPFILE_CLUSTER - 1;
--				goto checks;
--			}
--			if (unlikely(--latency_ration < 0)) {
--				cond_resched();
--				latency_ration = LATENCY_LIMIT;
--			}
--		}
+-#define FAULT_AROUND_ORDER 4
++static unsigned long fault_around_bytes = 65536;
+ 
+-#ifdef CONFIG_DEBUG_FS
+-static unsigned int fault_around_order = FAULT_AROUND_ORDER;
++static inline unsigned long fault_around_pages(void)
++{
++	return rounddown_pow_of_two(fault_around_bytes) / PAGE_SIZE;
++}
+ 
+-static int fault_around_order_get(void *data, u64 *val)
++static inline unsigned long fault_around_mask(void)
+ {
+-	*val = fault_around_order;
++	return ~(rounddown_pow_of_two(fault_around_bytes) - 1) & PAGE_MASK;
++}
++
++
++#ifdef CONFIG_DEBUG_FS
++static int fault_around_bytes_get(void *data, u64 *val)
++{
++	*val = fault_around_bytes;
+ 	return 0;
+ }
+ 
+-static int fault_around_order_set(void *data, u64 val)
++static int fault_around_bytes_set(void *data, u64 val)
+ {
+-	BUILD_BUG_ON((1UL << FAULT_AROUND_ORDER) > PTRS_PER_PTE);
+-	if (1UL << val > PTRS_PER_PTE)
++	if (val / PAGE_SIZE > PTRS_PER_PTE)
+ 		return -EINVAL;
+-	fault_around_order = val;
++	fault_around_bytes = val;
+ 	return 0;
+ }
+-DEFINE_SIMPLE_ATTRIBUTE(fault_around_order_fops,
+-		fault_around_order_get, fault_around_order_set, "%llu\n");
++DEFINE_SIMPLE_ATTRIBUTE(fault_around_bytes_fops,
++		fault_around_bytes_get, fault_around_bytes_set, "%llu\n");
+ 
+ static int __init fault_around_debugfs(void)
+ {
+ 	void *ret;
+ 
+-	ret = debugfs_create_file("fault_around_order",	0644, NULL, NULL,
+-			&fault_around_order_fops);
++	ret = debugfs_create_file("fault_around_bytes", 0644, NULL, NULL,
++			&fault_around_bytes_fops);
+ 	if (!ret)
+-		pr_warn("Failed to create fault_around_order in debugfs");
++		pr_warn("Failed to create fault_around_bytes in debugfs");
+ 	return 0;
+ }
+ late_initcall(fault_around_debugfs);
 -
--		offset = si->lowest_bit;
--		last_in_cluster = offset + SWAPFILE_CLUSTER - 1;
+-static inline unsigned long fault_around_pages(void)
+-{
+-	return 1UL << fault_around_order;
+-}
+-
+-static inline unsigned long fault_around_mask(void)
+-{
+-	return ~((1UL << (PAGE_SHIFT + fault_around_order)) - 1);
+-}
+-#else
+-static inline unsigned long fault_around_pages(void)
+-{
+-	unsigned long nr_pages;
+-
+-	nr_pages = 1UL << FAULT_AROUND_ORDER;
+-	BUILD_BUG_ON(nr_pages > PTRS_PER_PTE);
+-	return nr_pages;
+-}
+-
+-static inline unsigned long fault_around_mask(void)
+-{
+-	return ~((1UL << (PAGE_SHIFT + FAULT_AROUND_ORDER)) - 1);
+-}
+ #endif
+ 
+ static void do_fault_around(struct vm_area_struct *vma, unsigned long address,
+@@ -2871,7 +2855,7 @@ static int do_read_fault(struct mm_struc
+ 	 * if page by the offset is not ready to be mapped (cold cache or
+ 	 * something).
+ 	 */
+-	if (vma->vm_ops->map_pages) {
++	if (vma->vm_ops->map_pages && fault_around_pages() > 1) {
+ 		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 		do_fault_around(vma, address, pte, pgoff, flags);
+ 		if (!pte_same(*pte, orig_pte))
+_
+
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+
+origin.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-update-page-table-walker-core-fix.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-prom-pid-clear_refs-avoid-split_huge_page.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+linux-next.patch
+mm-mark-remap_file_pages-syscall-as-deprecated.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+
