@@ -1,76 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-warn-on-defines-ending-in-semicolon.patch
+Subject: [merged]
+ checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
  removed from -mm tree
-Date: Thu, 05 Jun 2014 13:05:45 -0700
-Message-ID: <5390cd99.SHKWtDS8gs+9/7yx%akpm@linux-foundation.org>
+Date: Thu, 05 Jun 2014 13:05:43 -0700
+Message-ID: <5390cd97.sozF+K0olqET1PvK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56862 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56859 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751365AbaFEUFp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:45 -0400
+	with ESMTP id S1751926AbaFEUFo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, bp@suse.de, joe@perches.com
+To: mm-commits@vger.kernel.org, davem@davemloft.net, apw@canonical.com, joe@perches.com
 
-Subject: [merged] checkpatch-warn-on-defines-ending-in-semicolon.patch removed from -mm tree
-To: joe@perches.com,bp@suse.de,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch removed from -mm tree
+To: joe@perches.com,apw@canonical.com,davem@davemloft.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:45 -0700
+Date: Thu, 05 Jun 2014 13:05:43 -0700
 
 
 The patch titled
-     Subject: checkpatch: warn on #defines ending in semicolon
+     Subject: checkpatch: make --strict a default for files in drivers/net and net/
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-on-defines-ending-in-semicolon.patch
+     checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on #defines ending in semicolon
+Subject: checkpatch: make --strict a default for files in drivers/net and net/
 
-Using a #define ending in a semicolon is poor style and can lead to
-unexpected code paths being executed.
-
-Warn on uses of these #define types:
-
-	#define foo[(...)] bar;
-	#define foo[(...)]	\
-		bar;
-
-Based on a patch from Borislav Petkov.
+Networking files are generally more strictly conformant to linux-kernel
+style so make checkpatch more verbose by default for patches to files or
+when checking files in these directories.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Borislav Petkov <bp@suse.de>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ scripts/checkpatch.pl |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-defines-ending-in-semicolon scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-defines-ending-in-semicolon
+diff -puN scripts/checkpatch.pl~checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net
 +++ a/scripts/checkpatch.pl
-@@ -3821,6 +3821,17 @@ sub process {
- 					WARN("DO_WHILE_MACRO_WITH_TRAILING_SEMICOLON",
- 					     "do {} while (0) macros should not be semicolon terminated\n" . "$herectx");
- 				}
-+			} elsif ($dstat =~ /^\+\s*#\s*define\s+$Ident.*;\s*$/) {
-+				$ctx =~ s/\n*$//;
-+				my $cnt = statement_rawlines($ctx);
-+				my $herectx = $here . "\n";
-+
-+				for (my $n = 0; $n < $cnt; $n++) {
-+					$herectx .= raw_line($linenr, $n) . "\n";
-+				}
-+
-+				WARN("TRAILING_SEMICOLON",
-+				     "macros should not use a trailing semicolon\n" . "$herectx");
+@@ -24,6 +24,7 @@ my $emacs = 0;
+ my $terse = 0;
+ my $file = 0;
+ my $check = 0;
++my $check_orig = 0;
+ my $summary = 1;
+ my $mailback = 0;
+ my $summary_file = 0;
+@@ -146,6 +147,7 @@ GetOptions(
+ help(0) if ($help);
+ 
+ $fix = 1 if ($fix_inplace);
++$check_orig = $check;
+ 
+ my $exit = 0;
+ 
+@@ -1813,11 +1815,13 @@ sub process {
+ 		$here = "#$linenr: " if (!$file);
+ 		$here = "#$realline: " if ($file);
+ 
++		my $found_file = 0;
+ 		# extract the filename as it passes
+ 		if ($line =~ /^diff --git.*?(\S+)$/) {
+ 			$realfile = $1;
+ 			$realfile =~ s@^([^/]*)/@@ if (!$file);
+ 			$in_commit_log = 0;
++			$found_file = 1;
+ 		} elsif ($line =~ /^\+\+\+\s+(\S+)/) {
+ 			$realfile = $1;
+ 			$realfile =~ s@^([^/]*)/@@ if (!$file);
+@@ -1834,6 +1838,15 @@ sub process {
+ 				ERROR("MODIFIED_INCLUDE_ASM",
+ 				      "do not modify files in include/asm, change architecture specific files in include/asm-<architecture>\n" . "$here$rawline\n");
  			}
++			$found_file = 1;
++		}
++
++		if ($found_file) {
++			if ($realfile =~ m@^(drivers/net/|net/)@) {
++				$check = 1;
++			} else {
++				$check = $check_orig;
++			}
+ 			next;
  		}
  
 _
