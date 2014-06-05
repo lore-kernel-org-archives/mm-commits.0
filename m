@@ -1,124 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcontrolc-remove-null-assignment-on-static.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 12:51:12 -0700
-Message-ID: <5390ca30.ooxXHBK1C9qhc1we%akpm@linux-foundation.org>
+Subject: [merged] mm-introdule-compound_head_by_tail.patch removed from
+ -mm tree
+Date: Thu, 05 Jun 2014 12:51:02 -0700
+Message-ID: <5390ca26.+g+EgAssYeqYLEfD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56117 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56095 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643AbaFETvM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:12 -0400
+	with ESMTP id S1751643AbaFETvD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, peterz@infradead.org, mgorman@suse.de, liwanp@linux.vnet.ibm.com, liuj97@gmail.com, kirill.shutemov@linux.intel.com, hughd@google.com, hannes@cmpxchg.org, aarcange@redhat.com, nasa4836@gmail.com
 
-Subject: [merged] mm-memcontrolc-remove-null-assignment-on-static.patch removed from -mm tree
-To: fabf@skynet.be,hannes@cmpxchg.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-introdule-compound_head_by_tail.patch removed from -mm tree
+To: nasa4836@gmail.com,aarcange@redhat.com,hannes@cmpxchg.org,hughd@google.com,kirill.shutemov@linux.intel.com,liuj97@gmail.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,peterz@infradead.org,riel@redhat.com,sasha.levin@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:12 -0700
+Date: Thu, 05 Jun 2014 12:51:02 -0700
 
 
 The patch titled
-     Subject: mm/memcontrol.c: remove NULL assignment on static
+     Subject: mm: introdule compound_head_by_tail()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrolc-remove-null-assignment-on-static.patch
+     mm-introdule-compound_head_by_tail.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: mm/memcontrol.c: remove NULL assignment on static
+From: Jianyu Zhan <nasa4836@gmail.com>
+Subject: mm: introdule compound_head_by_tail()
 
-static values are automatically initialized to NULL
+Currently, in put_compound_page(), we have
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+======
+if (likely(!PageTail(page))) {                  <------  (1)
+        if (put_page_testzero(page)) {
+                 /*
+                 ¦* By the time all refcounts have been released
+                 ¦* split_huge_page cannot run anymore from under us.
+                 ¦*/
+                 if (PageHead(page))
+                         __put_compound_page(page);
+                 else
+                         __put_single_page(page);
+         }
+         return;
+}
+
+/* __split_huge_page_refcount can run under us */
+page_head = compound_head(page);        <------------ (2)
+======
+
+if at (1) ,  we fail the check, this means page is *likely* a tail page.
+
+Then at (2), as compoud_head(page) is inlined, it is :
+
+======
+static inline struct page *compound_head(struct page *page)
+{
+          if (unlikely(PageTail(page))) {           <----------- (3)
+              struct page *head = page->first_page;
+
+                smp_rmb();
+                if (likely(PageTail(page)))
+                        return head;
+        }
+        return page;
+}
+======
+
+here, the (3) unlikely in the case is a negative hint, because it is
+*likely* a tail page.  So the check (3) in this case is not good, so I
+introduce a helper for this case.
+
+So this patch introduces compound_head_by_tail() which deals with a
+possible tail page(though it could be spilt by a racy thread), and make
+compound_head() a wrapper on it.
+
+This patch has no functional change, and it reduces the object
+size slightly:
+   text    data     bss     dec     hex  filename
+  11003    1328      16   12347    303b  mm/swap.o.orig
+  10971    1328      16   12315    301b  mm/swap.o.patched
+
+I've ran "perf top -e branch-miss" to observe branch-miss in this case. 
+As Michael points out, it's a slow path, so only very few times this case
+happens.  But I grep'ed the code base, and found there still are some
+other call sites could be benifited from this helper.  And given that it
+only bloating up the source by only 5 lines, but with a reduced object
+size.  I still believe this helper deserves to exsit.
+
+Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Jiang Liu <liuj97@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h |   29 +++++++++++++++++------------
+ mm/swap.c          |    2 +-
+ 2 files changed, 18 insertions(+), 13 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrolc-remove-null-assignment-on-static mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrolc-remove-null-assignment-on-static
-+++ a/mm/memcontrol.c
-@@ -80,7 +80,7 @@ int do_swap_account __read_mostly;
- #ifdef CONFIG_MEMCG_SWAP_ENABLED
- static int really_do_swap_account __initdata = 1;
- #else
--static int really_do_swap_account __initdata = 0;
-+static int really_do_swap_account __initdata;
+diff -puN include/linux/mm.h~mm-introdule-compound_head_by_tail include/linux/mm.h
+--- a/include/linux/mm.h~mm-introdule-compound_head_by_tail
++++ a/include/linux/mm.h
+@@ -407,20 +407,25 @@ static inline void compound_unlock_irqre
  #endif
+ }
  
- #else
-@@ -3110,7 +3110,7 @@ int memcg_update_cache_size(struct kmem_
- char *memcg_create_cache_name(struct mem_cgroup *memcg,
- 			      struct kmem_cache *root_cache)
+-static inline struct page *compound_head(struct page *page)
++static inline struct page *compound_head_by_tail(struct page *tail)
  {
--	static char *buf = NULL;
-+	static char *buf;
+-	if (unlikely(PageTail(page))) {
+-		struct page *head = page->first_page;
++	struct page *head = tail->first_page;
++
++	/*
++	 * page->first_page may be a dangling pointer to an old
++	 * compound page, so recheck that it is still a tail
++	 * page before returning.
++	 */
++	smp_rmb();
++	if (likely(PageTail(tail)))
++		return head;
++	return tail;
++}
  
- 	/*
- 	 * We need a mutex here to protect the shared buffer. Since this is
+-		/*
+-		 * page->first_page may be a dangling pointer to an old
+-		 * compound page, so recheck that it is still a tail
+-		 * page before returning.
+-		 */
+-		smp_rmb();
+-		if (likely(PageTail(page)))
+-			return head;
+-	}
++static inline struct page *compound_head(struct page *page)
++{
++	if (unlikely(PageTail(page)))
++		return compound_head_by_tail(page);
+ 	return page;
+ }
+ 
+diff -puN mm/swap.c~mm-introdule-compound_head_by_tail mm/swap.c
+--- a/mm/swap.c~mm-introdule-compound_head_by_tail
++++ a/mm/swap.c
+@@ -253,7 +253,7 @@ static void put_compound_page(struct pag
+ 	 *  Case 3 is possible, as we may race with
+ 	 *  __split_huge_page_refcount tearing down a THP page.
+ 	 */
+-	page_head = compound_head(page);
++	page_head = compound_head_by_tail(page);
+ 	if (!__compound_tail_refcounted(page_head))
+ 		put_unrefcounted_compound_page(page_head, page);
+ 	else
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from nasa4836@gmail.com are
 
 origin.patch
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-coda-replace-printk-by-pr_foo.patch
-fs-coda-logging-prefix-uniformization.patch
-fs-coda-use-__func__.patch
-fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
-fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
-fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
-fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
-fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-hpfs-convert-printk-to-pr_foo.patch
-fs-hpfs-use-pr_fmt-for-logging.patch
-fs-hpfs-use-__func__-for-logging.patch
-fs-hpfs-increase-pr_warn-level.patch
-documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
-fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
-fs-proc-vmcorec-remove-null-assignment-on-static.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
-fs-devpts-inodec-convert-printk-to-pr_foo.patch
-fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-fs-dlm-configc-convert-simple_str-to-kstr.patch
-fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
-fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
-mm-kmemleak-testc-use-pr_fmt-for-logging.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
+mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
+mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
 
