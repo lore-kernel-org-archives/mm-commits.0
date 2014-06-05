@@ -1,101 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 13:05:43 -0700
-Message-ID: <5390cd97.sozF+K0olqET1PvK%akpm@linux-foundation.org>
+ checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 13:05:47 -0700
+Message-ID: <5390cd9b.HdVf9n3eUmz1/+Ne%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56859 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56865 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbaFEUFo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:44 -0400
+	with ESMTP id S1751365AbaFEUFr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, davem@davemloft.net, apw@canonical.com, joe@perches.com
+To: mm-commits@vger.kernel.org, apw@canonical.com, joe@perches.com
 
-Subject: [merged] checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch removed from -mm tree
-To: joe@perches.com,apw@canonical.com,davem@davemloft.net,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch removed from -mm tree
+To: joe@perches.com,apw@canonical.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:43 -0700
+Date: Thu, 05 Jun 2014 13:05:47 -0700
 
 
 The patch titled
-     Subject: checkpatch: make --strict a default for files in drivers/net and net/
+     Subject: checkpatch: add warning for kmalloc/kzalloc with multiply
 has been removed from the -mm tree.  Its filename was
-     checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net.patch
+     checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: make --strict a default for files in drivers/net and net/
+Subject: checkpatch: add warning for kmalloc/kzalloc with multiply
 
-Networking files are generally more strictly conformant to linux-kernel
-style so make checkpatch more verbose by default for patches to files or
-when checking files in these directories.
+Protect against sizeof overflows by preferring kmalloc_array/kcalloc over
+kmalloc/kzalloc with a sizeof multiply.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Andy Whitcroft <apw@canonical.com>
-Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ scripts/checkpatch.pl |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-make-strict-a-default-for-files-in-drivers-net-and-net
+diff -puN scripts/checkpatch.pl~checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-warning-for-kmalloc-kzalloc-with-multiply
 +++ a/scripts/checkpatch.pl
-@@ -24,6 +24,7 @@ my $emacs = 0;
- my $terse = 0;
- my $file = 0;
- my $check = 0;
-+my $check_orig = 0;
- my $summary = 1;
- my $mailback = 0;
- my $summary_file = 0;
-@@ -146,6 +147,7 @@ GetOptions(
- help(0) if ($help);
- 
- $fix = 1 if ($fix_inplace);
-+$check_orig = $check;
- 
- my $exit = 0;
- 
-@@ -1813,11 +1815,13 @@ sub process {
- 		$here = "#$linenr: " if (!$file);
- 		$here = "#$realline: " if ($file);
- 
-+		my $found_file = 0;
- 		# extract the filename as it passes
- 		if ($line =~ /^diff --git.*?(\S+)$/) {
- 			$realfile = $1;
- 			$realfile =~ s@^([^/]*)/@@ if (!$file);
- 			$in_commit_log = 0;
-+			$found_file = 1;
- 		} elsif ($line =~ /^\+\+\+\s+(\S+)/) {
- 			$realfile = $1;
- 			$realfile =~ s@^([^/]*)/@@ if (!$file);
-@@ -1834,6 +1838,15 @@ sub process {
- 				ERROR("MODIFIED_INCLUDE_ASM",
- 				      "do not modify files in include/asm, change architecture specific files in include/asm-<architecture>\n" . "$here$rawline\n");
- 			}
-+			$found_file = 1;
-+		}
-+
-+		if ($found_file) {
-+			if ($realfile =~ m@^(drivers/net/|net/)@) {
-+				$check = 1;
-+			} else {
-+				$check = $check_orig;
-+			}
- 			next;
+@@ -4378,6 +4378,30 @@ sub process {
+ 			    "Prefer $3(sizeof(*$1)...) over $3($4...)\n" . $herecurr);
  		}
  
++# check for k[mz]alloc with multiplies that could be kmalloc_array/kcalloc
++		if ($^V && $^V ge 5.10.0 &&
++		    $line =~ /\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/) {
++			my $oldfunc = $3;
++			my $a1 = $4;
++			my $a2 = $10;
++			my $newfunc = "kmalloc_array";
++			$newfunc = "kcalloc" if ($oldfunc eq "kzalloc");
++			if ($a1 =~ /^sizeof\s*\S/ || $a2 =~ /^sizeof\s*\S/) {
++				if (WARN("ALLOC_WITH_MULTIPLY",
++					 "Prefer $newfunc over $oldfunc with multiply\n" . $herecurr) &&
++				    $fix) {
++					my $r1 = $a1;
++					my $r2 = $a2;
++					if ($a1 =~ /^sizeof\s*\S/) {
++						$r1 = $a2;
++						$r2 = $a1;
++					}
++					$fixed[$linenr - 1] =~ s/\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/$1 . ' = ' . "$newfunc(" . trim($r1) . ', ' . trim($r2)/e;
++
++				}
++			}
++		}
++
+ # check for krealloc arg reuse
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    $line =~ /\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*krealloc\s*\(\s*\1\s*,/) {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
