@@ -1,117 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-shrinker-trace-points-fix-negatives.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 12:51:08 -0700
-Message-ID: <5390ca2c.opdsfWCuQIAUAMhV%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 12:51:06 -0700
+Message-ID: <5390ca2a.kuGVWxME/HuRBdi0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56110 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56105 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643AbaFETvJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:09 -0400
+	with ESMTP id S1751643AbaFETvG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, khlebnikov@openvz.org, david@fromorbit.com, dave.hansen@linux.intel.com
+To: mm-commits@vger.kernel.org, daeseok.youn@gmail.com
 
-Subject: [merged] mm-shrinker-trace-points-fix-negatives.patch removed from -mm tree
-To: dave.hansen@linux.intel.com,david@fromorbit.com,khlebnikov@openvz.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch removed from -mm tree
+To: daeseok.youn@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:08 -0700
+Date: Thu, 05 Jun 2014 12:51:06 -0700
 
 
 The patch titled
-     Subject: mm: shrinker trace points: fix negatives
+     Subject: mm/dmapool.c: remove redundant NULL check for dev in dma_pool_create()
 has been removed from the -mm tree.  Its filename was
-     mm-shrinker-trace-points-fix-negatives.patch
+     mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm: shrinker trace points: fix negatives
+From: Daeseok Youn <daeseok.youn@gmail.com>
+Subject: mm/dmapool.c: remove redundant NULL check for dev in dma_pool_create()
 
-I was looking at a trace of the slab shrinkers (attachment in this comment):
+"dev" cannot be NULL because it is already checked before calling
+dma_pool_create().
 
-	https://bugs.freedesktop.org/show_bug.cgi?id=72742#c67
+If dev ever was NULL, the code would oops in dev_to_node() after enabling
+CONFIG_NUMA.
 
-and noticed that "total_scan" can go negative in some cases.  We
-used to dump out the "total_scan" variable directly, but some of
-the shrinker modifications along the way changed that.
+It is possible that some driver is using dev==NULL and has never been run
+on a NUMA machine.  Such a driver is probably outdated, possibly buggy and
+will need some attention if it starts triggering NULL derefs.
 
-This patch just dumps it out directly, again.  It doesn't make
-any sense to derive it from new_nr and nr any more since there
-are now other shrinkers that can be running in parallel and
-mucking with those values.
-
-Here's an example of the negative numbers in the output:
-
->          kswapd0-840   [000]   160.869398: mm_shrink_slab_end:   i915_gem_inactive_scan+0x0 0xffff8800037cbc68: unused scan count 10 new scan count 39 total_scan 29 last shrinker return val 256
->          kswapd0-840   [000]   160.869618: mm_shrink_slab_end:   i915_gem_inactive_scan+0x0 0xffff8800037cbc68: unused scan count 39 new scan count 102 total_scan 63 last shrinker return val 256
->          kswapd0-840   [000]   160.870031: mm_shrink_slab_end:   i915_gem_inactive_scan+0x0 0xffff8800037cbc68: unused scan count 102 new scan count 47 total_scan -55 last shrinker return val 768
->          kswapd0-840   [000]   160.870464: mm_shrink_slab_end:   i915_gem_inactive_scan+0x0 0xffff8800037cbc68: unused scan count 47 new scan count 45 total_scan -2 last shrinker return val 768
->          kswapd0-840   [000]   163.384144: mm_shrink_slab_end:   i915_gem_inactive_scan+0x0 0xffff8800037cbc68: unused scan count 45 new scan count 56 total_scan 11 last shrinker return val 0
->          kswapd0-840   [000]   163.384297: mm_shrink_slab_end:   i915_gem_inactive_scan+0x0 0xffff8800037cbc68: unused scan count 56 new scan count 15 total_scan -41 last shrinker return val 256
->          kswapd0-840   [000]   163.384414: mm_shrink_slab_end:   i915_gem_inactive_scan+0x0 0xffff8800037cbc68: unused scan count 15 new scan count 117 total_scan 102 last shrinker return val 0
->          kswapd0-840   [000]   163.384657: mm_shrink_slab_end:   i915_gem_inactive_scan+0x0 0xffff8800037cbc68: unused scan count 117 new scan count 36 total_scan -81 last shrinker return val 512
->          kswapd0-840   [000]   163.384880: mm_shrink_slab_end:   i915_gem_inactive_scan+0x0 0xffff8800037cbc68: unused scan count 36 new scan count 111 total_scan 75 last shrinker return val 256
->          kswapd0-840   [000]   163.385256: mm_shrink_slab_end:   i915_gem_inactive_scan+0x0 0xffff8800037cbc68: unused scan count 111 new scan count 34 total_scan -77 last shrinker return val 768
->          kswapd0-840   [000]   163.385598: mm_shrink_slab_end:   i915_gem_inactive_scan+0x0 0xffff8800037cbc68: unused scan count 34 new scan count 122 total_scan 88 last shrinker return val 512
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: Dave Chinner <david@fromorbit.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |    6 +++---
- mm/vmscan.c                   |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/dmapool.c |   24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
-diff -puN include/trace/events/vmscan.h~mm-shrinker-trace-points-fix-negatives include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~mm-shrinker-trace-points-fix-negatives
-+++ a/include/trace/events/vmscan.h
-@@ -226,9 +226,9 @@ TRACE_EVENT(mm_shrink_slab_start,
+diff -puN mm/dmapool.c~mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create mm/dmapool.c
+--- a/mm/dmapool.c~mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create
++++ a/mm/dmapool.c
+@@ -170,24 +170,16 @@ struct dma_pool *dma_pool_create(const c
+ 	retval->boundary = boundary;
+ 	retval->allocation = allocation;
  
- TRACE_EVENT(mm_shrink_slab_end,
- 	TP_PROTO(struct shrinker *shr, int shrinker_retval,
--		long unused_scan_cnt, long new_scan_cnt),
-+		long unused_scan_cnt, long new_scan_cnt, long total_scan),
+-	if (dev) {
+-		int ret;
++	INIT_LIST_HEAD(&retval->pools);
  
--	TP_ARGS(shr, shrinker_retval, unused_scan_cnt, new_scan_cnt),
-+	TP_ARGS(shr, shrinker_retval, unused_scan_cnt, new_scan_cnt, total_scan),
+-		mutex_lock(&pools_lock);
+-		if (list_empty(&dev->dma_pools))
+-			ret = device_create_file(dev, &dev_attr_pools);
+-		else
+-			ret = 0;
+-		/* note:  not currently insisting "name" be unique */
+-		if (!ret)
+-			list_add(&retval->pools, &dev->dma_pools);
+-		else {
+-			kfree(retval);
+-			retval = NULL;
+-		}
+-		mutex_unlock(&pools_lock);
++	mutex_lock(&pools_lock);
++	if (list_empty(&dev->dma_pools) &&
++	    device_create_file(dev, &dev_attr_pools)) {
++		kfree(retval);
++		return NULL;
+ 	} else
+-		INIT_LIST_HEAD(&retval->pools);
++		list_add(&retval->pools, &dev->dma_pools);
++	mutex_unlock(&pools_lock);
  
- 	TP_STRUCT__entry(
- 		__field(struct shrinker *, shr)
-@@ -245,7 +245,7 @@ TRACE_EVENT(mm_shrink_slab_end,
- 		__entry->unused_scan = unused_scan_cnt;
- 		__entry->new_scan = new_scan_cnt;
- 		__entry->retval = shrinker_retval;
--		__entry->total_scan = new_scan_cnt - unused_scan_cnt;
-+		__entry->total_scan = total_scan;
- 	),
- 
- 	TP_printk("%pF %p: unused scan count %ld new scan count %ld total_scan %ld last shrinker return val %d",
-diff -puN mm/vmscan.c~mm-shrinker-trace-points-fix-negatives mm/vmscan.c
---- a/mm/vmscan.c~mm-shrinker-trace-points-fix-negatives
-+++ a/mm/vmscan.c
-@@ -324,7 +324,7 @@ shrink_slab_node(struct shrink_control *
- 	else
- 		new_nr = atomic_long_read(&shrinker->nr_deferred[nid]);
- 
--	trace_mm_shrink_slab_end(shrinker, freed, nr, new_nr);
-+	trace_mm_shrink_slab_end(shrinker, freed, nr, new_nr, total_scan);
- 	return freed;
+ 	return retval;
  }
- 
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from daeseok.youn@gmail.com are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
 
