@@ -1,139 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-shrinker-add-nid-to-tracepoint-output.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 12:51:10 -0700
-Message-ID: <5390ca2e.q2QiWe2BRPQz7GF0%akpm@linux-foundation.org>
+Subject: [merged] mm-memcontrolc-remove-null-assignment-on-static.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 12:51:12 -0700
+Message-ID: <5390ca30.ooxXHBK1C9qhc1we%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56113 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56117 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643AbaFETvK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:10 -0400
+	with ESMTP id S1751643AbaFETvM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, khlebnikov@openvz.org, david@fromorbit.com, dave.hansen@linux.intel.com
+To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, fabf@skynet.be
 
-Subject: [merged] mm-shrinker-add-nid-to-tracepoint-output.patch removed from -mm tree
-To: dave.hansen@linux.intel.com,david@fromorbit.com,khlebnikov@openvz.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-memcontrolc-remove-null-assignment-on-static.patch removed from -mm tree
+To: fabf@skynet.be,hannes@cmpxchg.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:10 -0700
+Date: Thu, 05 Jun 2014 12:51:12 -0700
 
 
 The patch titled
-     Subject: mm: shrinker: add nid to tracepoint output
+     Subject: mm/memcontrol.c: remove NULL assignment on static
 has been removed from the -mm tree.  Its filename was
-     mm-shrinker-add-nid-to-tracepoint-output.patch
+     mm-memcontrolc-remove-null-assignment-on-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm: shrinker: add nid to tracepoint output
+From: Fabian Frederick <fabf@skynet.be>
+Subject: mm/memcontrol.c: remove NULL assignment on static
 
-Now that we are doing NUMA-aware shrinking, and can have
-shrinkers running in parallel, or working on individual nodes, it
-seems like we should also be sticking the node in the output.
+static values are automatically initialized to NULL
 
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: Dave Chinner <david@fromorbit.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   15 +++++++++++----
- mm/vmscan.c                   |    2 +-
- 2 files changed, 12 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/trace/events/vmscan.h~mm-shrinker-add-nid-to-tracepoint-output include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~mm-shrinker-add-nid-to-tracepoint-output
-+++ a/include/trace/events/vmscan.h
-@@ -191,6 +191,7 @@ TRACE_EVENT(mm_shrink_slab_start,
- 	TP_STRUCT__entry(
- 		__field(struct shrinker *, shr)
- 		__field(void *, shrink)
-+		__field(int, nid)
- 		__field(long, nr_objects_to_shrink)
- 		__field(gfp_t, gfp_flags)
- 		__field(unsigned long, pgs_scanned)
-@@ -203,6 +204,7 @@ TRACE_EVENT(mm_shrink_slab_start,
- 	TP_fast_assign(
- 		__entry->shr = shr;
- 		__entry->shrink = shr->scan_objects;
-+		__entry->nid = sc->nid;
- 		__entry->nr_objects_to_shrink = nr_objects_to_shrink;
- 		__entry->gfp_flags = sc->gfp_mask;
- 		__entry->pgs_scanned = pgs_scanned;
-@@ -212,9 +214,10 @@ TRACE_EVENT(mm_shrink_slab_start,
- 		__entry->total_scan = total_scan;
- 	),
+diff -puN mm/memcontrol.c~mm-memcontrolc-remove-null-assignment-on-static mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrolc-remove-null-assignment-on-static
++++ a/mm/memcontrol.c
+@@ -80,7 +80,7 @@ int do_swap_account __read_mostly;
+ #ifdef CONFIG_MEMCG_SWAP_ENABLED
+ static int really_do_swap_account __initdata = 1;
+ #else
+-static int really_do_swap_account __initdata = 0;
++static int really_do_swap_account __initdata;
+ #endif
  
--	TP_printk("%pF %p: objects to shrink %ld gfp_flags %s pgs_scanned %ld lru_pgs %ld cache items %ld delta %lld total_scan %ld",
-+	TP_printk("%pF %p: nid: %d objects to shrink %ld gfp_flags %s pgs_scanned %ld lru_pgs %ld cache items %ld delta %lld total_scan %ld",
- 		__entry->shrink,
- 		__entry->shr,
-+		__entry->nid,
- 		__entry->nr_objects_to_shrink,
- 		show_gfp_flags(__entry->gfp_flags),
- 		__entry->pgs_scanned,
-@@ -225,13 +228,15 @@ TRACE_EVENT(mm_shrink_slab_start,
- );
+ #else
+@@ -3110,7 +3110,7 @@ int memcg_update_cache_size(struct kmem_
+ char *memcg_create_cache_name(struct mem_cgroup *memcg,
+ 			      struct kmem_cache *root_cache)
+ {
+-	static char *buf = NULL;
++	static char *buf;
  
- TRACE_EVENT(mm_shrink_slab_end,
--	TP_PROTO(struct shrinker *shr, int shrinker_retval,
-+	TP_PROTO(struct shrinker *shr, int nid, int shrinker_retval,
- 		long unused_scan_cnt, long new_scan_cnt, long total_scan),
- 
--	TP_ARGS(shr, shrinker_retval, unused_scan_cnt, new_scan_cnt, total_scan),
-+	TP_ARGS(shr, nid, shrinker_retval, unused_scan_cnt, new_scan_cnt,
-+		total_scan),
- 
- 	TP_STRUCT__entry(
- 		__field(struct shrinker *, shr)
-+		__field(int, nid)
- 		__field(void *, shrink)
- 		__field(long, unused_scan)
- 		__field(long, new_scan)
-@@ -241,6 +246,7 @@ TRACE_EVENT(mm_shrink_slab_end,
- 
- 	TP_fast_assign(
- 		__entry->shr = shr;
-+		__entry->nid = nid;
- 		__entry->shrink = shr->scan_objects;
- 		__entry->unused_scan = unused_scan_cnt;
- 		__entry->new_scan = new_scan_cnt;
-@@ -248,9 +254,10 @@ TRACE_EVENT(mm_shrink_slab_end,
- 		__entry->total_scan = total_scan;
- 	),
- 
--	TP_printk("%pF %p: unused scan count %ld new scan count %ld total_scan %ld last shrinker return val %d",
-+	TP_printk("%pF %p: nid: %d unused scan count %ld new scan count %ld total_scan %ld last shrinker return val %d",
- 		__entry->shrink,
- 		__entry->shr,
-+		__entry->nid,
- 		__entry->unused_scan,
- 		__entry->new_scan,
- 		__entry->total_scan,
-diff -puN mm/vmscan.c~mm-shrinker-add-nid-to-tracepoint-output mm/vmscan.c
---- a/mm/vmscan.c~mm-shrinker-add-nid-to-tracepoint-output
-+++ a/mm/vmscan.c
-@@ -324,7 +324,7 @@ shrink_slab_node(struct shrink_control *
- 	else
- 		new_nr = atomic_long_read(&shrinker->nr_deferred[nid]);
- 
--	trace_mm_shrink_slab_end(shrinker, freed, nr, new_nr, total_scan);
-+	trace_mm_shrink_slab_end(shrinker, nid, freed, nr, new_nr, total_scan);
- 	return freed;
- }
- 
+ 	/*
+ 	 * We need a mutex here to protect the shared buffer. Since this is
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-hpfs-convert-printk-to-pr_foo.patch
+fs-hpfs-use-pr_fmt-for-logging.patch
+fs-hpfs-use-__func__-for-logging.patch
+fs-hpfs-increase-pr_warn-level.patch
+documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
+fs-proc-vmcorec-remove-null-assignment-on-static.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+mm-kmemleak-testc-use-pr_fmt-for-logging.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
