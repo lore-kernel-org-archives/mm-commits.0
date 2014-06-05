@@ -1,74 +1,61 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-ncpfs-getoptc-replace-simple_strtoul-by-kstrtoul.patch removed from -mm
- tree
-Date: Thu, 05 Jun 2014 13:07:43 -0700
-Message-ID: <5390ce0f.Uhj9CM/8EHDqn8G1%akpm@linux-foundation.org>
+ fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch removed
+ from -mm tree
+Date: Thu, 05 Jun 2014 13:07:45 -0700
+Message-ID: <5390ce11.3xw479dEJ27bRG2j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56919 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751644AbaFEUHn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:07:43 -0400
+	with ESMTP id S1751644AbaFEUHp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:07:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, petr@vandrovec.name, fabf@skynet.be
+To: mm-commits@vger.kernel.org, raven@themaw.net, fabf@skynet.be
 
-Subject: [merged] fs-ncpfs-getoptc-replace-simple_strtoul-by-kstrtoul.patch removed from -mm tree
-To: fabf@skynet.be,petr@vandrovec.name,mm-commits@vger.kernel.org
+Subject: [merged] fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch removed from -mm tree
+To: fabf@skynet.be,raven@themaw.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:07:43 -0700
+Date: Thu, 05 Jun 2014 13:07:45 -0700
 
 
 The patch titled
-     Subject: fs/ncpfs/getopt.c: replace simple_strtoul by kstrtoul
+     Subject: fs/autofs4/dev-ioctl.c: add __init to autofs_dev_ioctl_init
 has been removed from the -mm tree.  Its filename was
-     fs-ncpfs-getoptc-replace-simple_strtoul-by-kstrtoul.patch
+     fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/ncpfs/getopt.c: replace simple_strtoul by kstrtoul
+Subject: fs/autofs4/dev-ioctl.c: add __init to autofs_dev_ioctl_init
 
-Remove obsolete simple_strtoul in ncp_getopt
+autofs_dev_ioctl_init is only called by __init init_autofs4_fs
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Petr Vandrovec <petr@vandrovec.name>
+Acked-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/getopt.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ fs/autofs4/dev-ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ncpfs/getopt.c~fs-ncpfs-getoptc-replace-simple_strtoul-by-kstrtoul fs/ncpfs/getopt.c
---- a/fs/ncpfs/getopt.c~fs-ncpfs-getoptc-replace-simple_strtoul-by-kstrtoul
-+++ a/fs/ncpfs/getopt.c
-@@ -53,15 +53,14 @@ int ncp_getopt(const char *caller, char
- 				return -EINVAL;
- 			}
- 			if (opts->has_arg & OPT_INT) {
--				char* v;
-+				int rc = kstrtoul(val, 0, value);
+diff -puN fs/autofs4/dev-ioctl.c~fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~fs-autofs4-dev-ioctlc-add-__init-to-autofs_dev_ioctl_init
++++ a/fs/autofs4/dev-ioctl.c
+@@ -737,7 +737,7 @@ MODULE_ALIAS_MISCDEV(AUTOFS_MINOR);
+ MODULE_ALIAS("devname:autofs");
  
--				*value = simple_strtoul(val, &v, 0);
--				if (!*v) {
--					return opts->val;
-+				if (rc) {
-+					pr_info("%s: invalid numeric value in %s=%s\n",
-+						caller, token, val);
-+					return rc;
- 				}
--				pr_info("%s: invalid numeric value in %s=%s\n",
--					caller, token, val);
--				return -EDOM;
-+				return opts->val;
- 			}
- 			if (opts->has_arg & OPT_STRING) {
- 				return opts->val;
+ /* Register/deregister misc character device */
+-int autofs_dev_ioctl_init(void)
++int __init autofs_dev_ioctl_init(void)
+ {
+ 	int r;
+ 
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
