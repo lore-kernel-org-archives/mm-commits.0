@@ -1,81 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-typo-in-comment-in-do_fault_around.patch removed
+Subject: [merged] sync-only-the-requested-range-in-msync.patch removed
  from -mm tree
-Date: Thu, 05 Jun 2014 12:53:15 -0700
-Message-ID: <5390caab.+zK7AjB2qPYSobBM%akpm@linux-foundation.org>
+Date: Thu, 05 Jun 2014 12:53:13 -0700
+Message-ID: <5390caa9.QMMyGpwyjyJY1sz4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56559 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56555 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751671AbaFETxP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:15 -0400
+	with ESMTP id S1751671AbaFETxO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, jmoyer@redhat.com, hch@lst.de, clm@fb.com, matthew.r.wilcox@intel.com
 
-Subject: [merged] mm-fix-typo-in-comment-in-do_fault_around.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [merged] sync-only-the-requested-range-in-msync.patch removed from -mm tree
+To: matthew.r.wilcox@intel.com,clm@fb.com,hch@lst.de,jmoyer@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:53:15 -0700
+Date: Thu, 05 Jun 2014 12:53:13 -0700
 
 
 The patch titled
-     Subject: mm: fix typo in comment in do_fault_around()
+     Subject: mm/msync.c: sync only the requested range in msync()
 has been removed from the -mm tree.  Its filename was
-     mm-fix-typo-in-comment-in-do_fault_around.patch
+     sync-only-the-requested-range-in-msync.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix typo in comment in do_fault_around()
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: mm/msync.c: sync only the requested range in msync()
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+msync() currently syncs more than POSIX requires or BSD or Solaris
+implement.  It is supposed to be equivalent to fdatasync(), not fsync(),
+and it is only supposed to sync the portion of the file that overlaps the
+range passed to msync.
+
+If the VMA is non-linear, fall back to syncing the entire file, but we
+still optimise to only fdatasync() the entire file, not the full fsync().
+
+akpm: there are obvious concerns with bck-compatibility: is anyone relying
+on the undocumented side-effect for their data integrity?  And how would
+they ever know if this change broke their data integrity?
+
+We think the risk is reasonably low, and this patch brings the kernel into
+line with other OS's and with what the manpage has always said...
+
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Chris Mason <clm@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/msync.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-fix-typo-in-comment-in-do_fault_around mm/memory.c
---- a/mm/memory.c~mm-fix-typo-in-comment-in-do_fault_around
-+++ a/mm/memory.c
-@@ -2832,7 +2832,7 @@ static void do_fault_around(struct vm_ar
+diff -puN mm/msync.c~sync-only-the-requested-range-in-msync mm/msync.c
+--- a/mm/msync.c~sync-only-the-requested-range-in-msync
++++ a/mm/msync.c
+@@ -58,6 +58,7 @@ SYSCALL_DEFINE3(msync, unsigned long, st
+ 	vma = find_vma(mm, start);
+ 	for (;;) {
+ 		struct file *file;
++		loff_t fstart, fend;
  
- 	/*
- 	 *  max_pgoff is either end of page table or end of vma
--	 *  or fault_around_pages() from pgoff, depending what is neast.
-+	 *  or fault_around_pages() from pgoff, depending what is nearest.
- 	 */
- 	max_pgoff = pgoff - ((start_addr >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)) +
- 		PTRS_PER_PTE - 1;
+ 		/* Still start < end. */
+ 		error = -ENOMEM;
+@@ -77,12 +78,17 @@ SYSCALL_DEFINE3(msync, unsigned long, st
+ 			goto out_unlock;
+ 		}
+ 		file = vma->vm_file;
++		fstart = start + ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
++		fend = fstart + (min(end, vma->vm_end) - start) - 1;
+ 		start = vma->vm_end;
+ 		if ((flags & MS_SYNC) && file &&
+ 				(vma->vm_flags & VM_SHARED)) {
+ 			get_file(file);
+ 			up_read(&mm->mmap_sem);
+-			error = vfs_fsync(file, 0);
++			if (vma->vm_flags & VM_NONLINEAR)
++				error = vfs_fsync(file, 1);
++			else
++				error = vfs_fsync_range(file, fstart, fend, 1);
+ 			fput(file);
+ 			if (error || start >= end)
+ 				goto out;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
 
 origin.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-update-page-table-walker-core-fix.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-prom-pid-clear_refs-avoid-split_huge_page.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
-mm-mark-remap_file_pages-syscall-as-deprecated.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
