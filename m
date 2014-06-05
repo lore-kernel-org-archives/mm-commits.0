@@ -1,112 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-asn1_decoderc-kernel-doc-warning-fix.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 13:05:35 -0700
-Message-ID: <5390cd8f.Y9RfRKfW3kWGltZB%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-fix-wildcard-dt-compatible-string-checking.patch removed from
+ -mm tree
+Date: Thu, 05 Jun 2014 13:05:39 -0700
+Message-ID: <5390cd93.BjYdNvQOV+o45fcs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56841 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56849 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbaFEUFf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:35 -0400
+	with ESMTP id S1751926AbaFEUFk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, joe@perches.com, geert@linux-m68k.org, florian.vaussard@epfl.ch, apw@canonical.com, alexandre.belloni@free-electrons.com, robh@kernel.org
 
-Subject: [merged] lib-asn1_decoderc-kernel-doc-warning-fix.patch removed from -mm tree
-To: fabf@skynet.be,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-fix-wildcard-dt-compatible-string-checking.patch removed from -mm tree
+To: robh@kernel.org,alexandre.belloni@free-electrons.com,apw@canonical.com,florian.vaussard@epfl.ch,geert@linux-m68k.org,joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:35 -0700
+Date: Thu, 05 Jun 2014 13:05:39 -0700
 
 
 The patch titled
-     Subject: lib/asn1_decoder.c: kernel-doc warning fix
+     Subject: checkpatch: fix wildcard DT compatible string checking
 has been removed from the -mm tree.  Its filename was
-     lib-asn1_decoderc-kernel-doc-warning-fix.patch
+     checkpatch-fix-wildcard-dt-compatible-string-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/asn1_decoder.c: kernel-doc warning fix
+From: Rob Herring <robh@kernel.org>
+Subject: checkpatch: fix wildcard DT compatible string checking
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+We attempt to search for compatible strings which use a variable token in
+the documented name such as <chip> or <soc>.  While this was attempted to
+be handled, it's utterly broken.
+
+The desired forms of matching are:
+
+vendor,<chip>-*
+vendor,name<part#>-*
+
+For <chip>, lower case characters and numbers are permitted.  For <part#>,
+only numeric values are allowed.
+
+With this change, the number of missing compatible strings reported in
+arch/arm/boot/dts is reduced from 1071 to 960.
+
+Reported-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Signed-off-by: Rob Herring <robh@kernel.org>
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/asn1_decoder.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN lib/asn1_decoder.c~lib-asn1_decoderc-kernel-doc-warning-fix lib/asn1_decoder.c
---- a/lib/asn1_decoder.c~lib-asn1_decoderc-kernel-doc-warning-fix
-+++ a/lib/asn1_decoder.c
-@@ -140,7 +140,7 @@ error:
-  * @decoder: The decoder definition (produced by asn1_compiler)
-  * @context: The caller's context (to be passed to the action functions)
-  * @data: The encoded data
-- * @datasize: The size of the encoded data
-+ * @datalen: The size of the encoded data
-  *
-  * Decode BER/DER/CER encoded ASN.1 data according to a bytecode pattern
-  * produced by asn1_compiler.  Action functions are called on marked tags to
+diff -puN scripts/checkpatch.pl~checkpatch-fix-wildcard-dt-compatible-string-checking scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-wildcard-dt-compatible-string-checking
++++ a/scripts/checkpatch.pl
+@@ -2093,8 +2093,10 @@ sub process {
+ 
+ 			foreach my $compat (@compats) {
+ 				my $compat2 = $compat;
+-				$compat2 =~ s/\,[a-z]*\-/\,<\.\*>\-/;
+-				`grep -Erq "$compat|$compat2" $dt_path`;
++				$compat2 =~ s/\,[a-zA-Z0-9]*\-/\,<\.\*>\-/;
++				my $compat3 = $compat;
++				$compat3 =~ s/\,([a-z]*)[0-9]*\-/\,$1<\.\*>\-/;
++				`grep -Erq "$compat|$compat2|$compat3" $dt_path`;
+ 				if ( $? >> 8 ) {
+ 					WARN("UNDOCUMENTED_DT_STRING",
+ 					     "DT compatible string \"$compat\" appears un-documented -- check $dt_path\n" . $herecurr);
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from robh@kernel.org are
 
 origin.patch
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-coda-replace-printk-by-pr_foo.patch
-fs-coda-logging-prefix-uniformization.patch
-fs-coda-use-__func__.patch
-fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
-fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
-fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
-fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
-fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-hpfs-convert-printk-to-pr_foo.patch
-fs-hpfs-use-pr_fmt-for-logging.patch
-fs-hpfs-use-__func__-for-logging.patch
-fs-hpfs-increase-pr_warn-level.patch
-documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
-fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
-fs-proc-vmcorec-remove-null-assignment-on-static.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
-fs-devpts-inodec-convert-printk-to-pr_foo.patch
-fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-fs-dlm-configc-convert-simple_str-to-kstr.patch
-fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
-fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
-mm-kmemleak-testc-use-pr_fmt-for-logging.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
 
