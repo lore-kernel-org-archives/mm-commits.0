@@ -1,195 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] init-mainc-add-initcall_blacklist-kernel-parameter.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 13:07:37 -0700
-Message-ID: <5390ce09.MfeNX5kJlv48fwVO%akpm@linux-foundation.org>
+Subject: [merged]
+ kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 13:07:39 -0700
+Message-ID: <5390ce0b.8dlByY/c5WS6HT+a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56899 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56908 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751634AbaFEUHi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:07:38 -0400
+	with ESMTP id S1751644AbaFEUHk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:07:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rostedt@goodmis.org, rob@landley.net, richard.weinberger@gmail.com, peterz@infradead.org, mingo@kernel.org, jwboyer@fedoraproject.org, fweisbec@gmail.com, andi@firstfloor.org, prarit@redhat.com
+To: mm-commits@vger.kernel.org, rostedt@goodmis.org, peterz@infradead.org, mingo@kernel.org, mathieu.desnoyers@efficios.com, fweisbec@gmail.com, oleg@redhat.com
 
-Subject: [merged] init-mainc-add-initcall_blacklist-kernel-parameter.patch removed from -mm tree
-To: prarit@redhat.com,andi@firstfloor.org,fweisbec@gmail.com,jwboyer@fedoraproject.org,mingo@kernel.org,peterz@infradead.org,richard.weinberger@gmail.com,rob@landley.net,rostedt@goodmis.org,mm-commits@vger.kernel.org
+Subject: [merged] kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch removed from -mm tree
+To: oleg@redhat.com,fweisbec@gmail.com,mathieu.desnoyers@efficios.com,mingo@kernel.org,peterz@infradead.org,rostedt@goodmis.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:07:37 -0700
+Date: Thu, 05 Jun 2014 13:07:39 -0700
 
 
 The patch titled
-     Subject: init/main.c: add initcall_blacklist kernel parameter
+     Subject: kthreads: kill CLONE_KERNEL, change kernel_thread(kernel_init) to avoid CLONE_SIGHAND
 has been removed from the -mm tree.  Its filename was
-     init-mainc-add-initcall_blacklist-kernel-parameter.patch
+     kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: init/main.c: add initcall_blacklist kernel parameter
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: kthreads: kill CLONE_KERNEL, change kernel_thread(kernel_init) to avoid CLONE_SIGHAND
 
-When a module is built into the kernel the module_init() function becomes
-an initcall.  Sometimes debugging through dynamic debug can help, however,
-debugging built in kernel modules is typically done by changing the
-.config, recompiling, and booting the new kernel in an effort to determine
-exactly which module caused a problem.
+1. Remove CLONE_KERNEL, it has no users and it is dangerous.
 
-This patchset can be useful stand-alone or combined with initcall_debug. 
-There are cases where some initcalls can hang the machine before the
-console can be flushed, which can make initcall_debug output inaccurate. 
-Having the ability to skip initcalls can help further debugging of these
-scenarios.
+   The (old) comment says "List of flags we want to share for kernel
+   threads" but this is not true, we do not want to share ->sighand by
+   default. This flag can only be used if the caller is sure that both
+   parent/child will never play with signals (say, allow_signal/etc).
 
-Usage: initcall_blacklist=<list of comma separated initcalls>
+2. Change rest_init() to clone kernel_init() without CLONE_SIGHAND.
 
-ex) added "initcall_blacklist=sgi_uv_sysfs_init" as a kernel parameter and
-the log contains:
+   In this case CLONE_SIGHAND does not really hurt, and it looks like
+   optimization because copy_sighand() can avoid kmem_cache_alloc().
 
-	blacklisting initcall sgi_uv_sysfs_init
-	...
-	...
-	initcall sgi_uv_sysfs_init blacklisted
+   But in fact this only adds the minor pessimization. kernel_init()
+   is going to exec the init process, and de_thread() will need to
+   unshare ->sighand and do kmem_cache_alloc(sighand_cachep) anyway,
+   but it needs to do more work and take tasklist_lock and siglock.
 
-ex) added "initcall_blacklist=foo_bar,sgi_uv_sysfs_init" as a kernel parameter
-and the log contains:
-
-	blacklisting initcall foo_bar
-	blacklisting initcall sgi_uv_sysfs_init
-	...
-	...
-	initcall sgi_uv_sysfs_init blacklisted
-
-[akpm@linux-foundation.org: tweak printk text]
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Richard Weinberger <richard.weinberger@gmail.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Josh Boyer <jwboyer@fedoraproject.org>
-Cc: Rob Landley <rob@landley.net>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Peter Zijlstra <peterz@infradead.org>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    4 +
- init/main.c                         |   68 ++++++++++++++++++++++++++
- 2 files changed, 72 insertions(+)
+ include/linux/sched.h |    6 ------
+ init/main.c           |    2 +-
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~init-mainc-add-initcall_blacklist-kernel-parameter Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~init-mainc-add-initcall_blacklist-kernel-parameter
-+++ a/Documentation/kernel-parameters.txt
-@@ -1312,6 +1312,10 @@ bytes respectively. Such letter suffixes
- 			for working out where the kernel is dying during
- 			startup.
+diff -puN include/linux/sched.h~kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand include/linux/sched.h
+--- a/include/linux/sched.h~kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand
++++ a/include/linux/sched.h
+@@ -137,12 +137,6 @@ struct filename;
+ #define VMACACHE_MASK (VMACACHE_SIZE - 1)
  
-+	initcall_blacklist=  [KNL] Do not execute a comma-separated list of
-+			initcall functions.  Useful for debugging built-in
-+			modules and initcalls.
-+
- 	initrd=		[BOOT] Specify the location of the initial ramdisk
- 
- 	inport.irq=	[HW] Inport (ATI XL and Microsoft) busmouse driver
-diff -puN init/main.c~init-mainc-add-initcall_blacklist-kernel-parameter init/main.c
---- a/init/main.c~init-mainc-add-initcall_blacklist-kernel-parameter
+ /*
+- * List of flags we want to share for kernel threads,
+- * if only because they are not used by them anyway.
+- */
+-#define CLONE_KERNEL	(CLONE_FS | CLONE_FILES | CLONE_SIGHAND)
+-
+-/*
+  * These are the constant used to fake the fixed-point load-average
+  * counting. Some notes:
+  *  - 11 bit fractions expand to 22 bits by the multiplies: this gives
+diff -puN init/main.c~kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand init/main.c
+--- a/init/main.c~kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand
 +++ a/init/main.c
-@@ -77,6 +77,7 @@
- #include <linux/sched_clock.h>
- #include <linux/context_tracking.h>
- #include <linux/random.h>
-+#include <linux/list.h>
- 
- #include <asm/io.h>
- #include <asm/bugs.h>
-@@ -665,6 +666,70 @@ static void __init do_ctors(void)
- bool initcall_debug;
- core_param(initcall_debug, initcall_debug, bool, 0644);
- 
-+#ifdef CONFIG_KALLSYMS
-+struct blacklist_entry {
-+	struct list_head next;
-+	char *buf;
-+};
-+
-+static __initdata_or_module LIST_HEAD(blacklisted_initcalls);
-+
-+static int __init initcall_blacklist(char *str)
-+{
-+	char *str_entry;
-+	struct blacklist_entry *entry;
-+
-+	/* str argument is a comma-separated list of functions */
-+	do {
-+		str_entry = strsep(&str, ",");
-+		if (str_entry) {
-+			pr_debug("blacklisting initcall %s\n", str_entry);
-+			entry = alloc_bootmem(sizeof(*entry));
-+			entry->buf = alloc_bootmem(strlen(str_entry) + 1);
-+			strcpy(entry->buf, str_entry);
-+			list_add(&entry->next, &blacklisted_initcalls);
-+		}
-+	} while (str_entry);
-+
-+	return 0;
-+}
-+
-+static bool __init_or_module initcall_blacklisted(initcall_t fn)
-+{
-+	struct list_head *tmp;
-+	struct blacklist_entry *entry;
-+	char *fn_name;
-+
-+	fn_name = kasprintf(GFP_KERNEL, "%pf", fn);
-+	if (!fn_name)
-+		return false;
-+
-+	list_for_each(tmp, &blacklisted_initcalls) {
-+		entry = list_entry(tmp, struct blacklist_entry, next);
-+		if (!strcmp(fn_name, entry->buf)) {
-+			pr_debug("initcall %s blacklisted\n", fn_name);
-+			kfree(fn_name);
-+			return true;
-+		}
-+	}
-+
-+	kfree(fn_name);
-+	return false;
-+}
-+#else
-+static int __init initcall_blacklist(char *str)
-+{
-+	pr_warn("initcall_blacklist requires CONFIG_KALLSYMS\n");
-+	return 0;
-+}
-+
-+static bool __init_or_module initcall_blacklisted(initcall_t fn)
-+{
-+	return false;
-+}
-+#endif
-+__setup("initcall_blacklist=", initcall_blacklist);
-+
- static int __init_or_module do_one_initcall_debug(initcall_t fn)
- {
- 	ktime_t calltime, delta, rettime;
-@@ -689,6 +754,9 @@ int __init_or_module do_one_initcall(ini
- 	int ret;
- 	char msgbuf[64];
- 
-+	if (initcall_blacklisted(fn))
-+		return -EPERM;
-+
- 	if (initcall_debug)
- 		ret = do_one_initcall_debug(fn);
- 	else
+@@ -380,7 +380,7 @@ static noinline void __init_refok rest_i
+ 	 * the init task will end up wanting to create kthreads, which, if
+ 	 * we schedule it before we create kthreadd, will OOPS.
+ 	 */
+-	kernel_thread(kernel_init, NULL, CLONE_FS | CLONE_SIGHAND);
++	kernel_thread(kernel_init, NULL, CLONE_FS);
+ 	numa_default_policy();
+ 	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
+ 	rcu_read_lock();
 _
 
-Patches currently in -mm which might be from prarit@redhat.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+ptrace-fix-fork-event-messages-across-pid-namespaces.patch
+ptrace-task_clear_jobctl_trapping-wake_up_bit-needs-mb.patch
+signals-kill-sigfindinword.patch
+signals-s-siginitset-sigemptyset-in-do_sigtimedwait.patch
+signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
+signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
+signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
+signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
+signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch
+signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch
+signals-disallow_signal-should-flush-the-potentially-pending-signal.patch
+signals-introduce-kernel_sigaction.patch
+signals-change-wait_for_helper-to-use-kernel_sigaction.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
 linux-next.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
+nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch
 
