@@ -1,193 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-nominate-faultaround-area-in-bytes-rather-then-page-order.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 12:53:31 -0700
-Message-ID: <5390cabb.MJuzLCL3i9X6fpT4%akpm@linux-foundation.org>
+Subject: [merged] printk-fix-lockdep-instrumentation-of-console_sem.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 12:54:47 -0700
+Message-ID: <5390cb07.SaLjcUZxMstXvgUl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56609 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56632 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752695AbaFETxc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:32 -0400
+	with ESMTP id S1751776AbaFETzT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:55:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, riel@redhat.com, peterz@infradead.org, paulus@samba.org, mingo@kernel.org, mgorman@suse.de, maddy@linux.vnet.ibm.com, hughd@google.com, dave.hansen@intel.com, benh@kernel.crashing.org, ak@linux.intel.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, valdis.kletnieks@vt.edu, rostedt@goodmis.org, peterz@infradead.org, mingo@kernel.org, festevam@gmail.com, fabio.estevam@freescale.com, andriy.shevchenko@linux.intel.com, jack@suse.cz
 
-Subject: [merged] mm-nominate-faultaround-area-in-bytes-rather-then-page-order.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,ak@linux.intel.com,benh@kernel.crashing.org,dave.hansen@intel.com,hughd@google.com,maddy@linux.vnet.ibm.com,mgorman@suse.de,mingo@kernel.org,paulus@samba.org,peterz@infradead.org,riel@redhat.com,rusty@rustcorp.com.au,mm-commits@vger.kernel.org
+Subject: [merged] printk-fix-lockdep-instrumentation-of-console_sem.patch removed from -mm tree
+To: jack@suse.cz,andriy.shevchenko@linux.intel.com,fabio.estevam@freescale.com,festevam@gmail.com,mingo@kernel.org,peterz@infradead.org,rostedt@goodmis.org,valdis.kletnieks@vt.edu,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:53:31 -0700
+Date: Thu, 05 Jun 2014 12:54:47 -0700
 
 
 The patch titled
-     Subject: mm: nominate faultaround area in bytes rather than page order
+     Subject: printk: fix lockdep instrumentation of console_sem
 has been removed from the -mm tree.  Its filename was
-     mm-nominate-faultaround-area-in-bytes-rather-then-page-order.patch
+     printk-fix-lockdep-instrumentation-of-console_sem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: nominate faultaround area in bytes rather than page order
+From: Jan Kara <jack@suse.cz>
+Subject: printk: fix lockdep instrumentation of console_sem
 
-There is evidencs that the faultaround feature is less relevant on
-architectures with page size bigger then 4k.  Which makes sense since page
-fault overhead per byte of mapped area should be less there.
+Printk calls mutex_acquire() / mutex_release() by hand to instrument
+lockdep about console_sem.  However in some corner cases the
+instrumentation is missing.  Fix the problem by creating helper functions
+for locking / unlocking console_sem which take care of lockdep
+instrumentation as well.
 
-Let's rework the feature to specify faultaround area in bytes instead of
-page order.  It's 64 kilobytes for now.
-
-The patch effectively disables faultaround on architectures with page size
->= 64k (like ppc64).
-
-It's possible that some other size of faultaround area is relevant for a
-platform.  We can expose `fault_around_bytes' variable to arch-specific
-code once such platforms will be found.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Madhavan Srinivasan <maddy@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Fabio Estevam <festevam@gmail.com>
+Reported-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Tested-by: Fabio Estevam <fabio.estevam@freescale.com>
+Tested-By: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   62 ++++++++++++++++++--------------------------------
- 1 file changed, 23 insertions(+), 39 deletions(-)
+ kernel/printk/printk.c |   46 +++++++++++++++++++++++++++------------
+ 1 file changed, 32 insertions(+), 14 deletions(-)
 
-diff -puN mm/memory.c~mm-nominate-faultaround-area-in-bytes-rather-then-page-order mm/memory.c
---- a/mm/memory.c~mm-nominate-faultaround-area-in-bytes-rather-then-page-order
-+++ a/mm/memory.c
-@@ -2758,63 +2758,47 @@ void do_set_pte(struct vm_area_struct *v
- 	update_mmu_cache(vma, address, pte);
- }
- 
--#define FAULT_AROUND_ORDER 4
-+static unsigned long fault_around_bytes = 65536;
- 
--#ifdef CONFIG_DEBUG_FS
--static unsigned int fault_around_order = FAULT_AROUND_ORDER;
-+static inline unsigned long fault_around_pages(void)
-+{
-+	return rounddown_pow_of_two(fault_around_bytes) / PAGE_SIZE;
-+}
- 
--static int fault_around_order_get(void *data, u64 *val)
-+static inline unsigned long fault_around_mask(void)
- {
--	*val = fault_around_order;
-+	return ~(rounddown_pow_of_two(fault_around_bytes) - 1) & PAGE_MASK;
-+}
-+
-+
-+#ifdef CONFIG_DEBUG_FS
-+static int fault_around_bytes_get(void *data, u64 *val)
-+{
-+	*val = fault_around_bytes;
- 	return 0;
- }
- 
--static int fault_around_order_set(void *data, u64 val)
-+static int fault_around_bytes_set(void *data, u64 val)
- {
--	BUILD_BUG_ON((1UL << FAULT_AROUND_ORDER) > PTRS_PER_PTE);
--	if (1UL << val > PTRS_PER_PTE)
-+	if (val / PAGE_SIZE > PTRS_PER_PTE)
- 		return -EINVAL;
--	fault_around_order = val;
-+	fault_around_bytes = val;
- 	return 0;
- }
--DEFINE_SIMPLE_ATTRIBUTE(fault_around_order_fops,
--		fault_around_order_get, fault_around_order_set, "%llu\n");
-+DEFINE_SIMPLE_ATTRIBUTE(fault_around_bytes_fops,
-+		fault_around_bytes_get, fault_around_bytes_set, "%llu\n");
- 
- static int __init fault_around_debugfs(void)
- {
- 	void *ret;
- 
--	ret = debugfs_create_file("fault_around_order",	0644, NULL, NULL,
--			&fault_around_order_fops);
-+	ret = debugfs_create_file("fault_around_bytes", 0644, NULL, NULL,
-+			&fault_around_bytes_fops);
- 	if (!ret)
--		pr_warn("Failed to create fault_around_order in debugfs");
-+		pr_warn("Failed to create fault_around_bytes in debugfs");
- 	return 0;
- }
- late_initcall(fault_around_debugfs);
--
--static inline unsigned long fault_around_pages(void)
--{
--	return 1UL << fault_around_order;
--}
--
--static inline unsigned long fault_around_mask(void)
--{
--	return ~((1UL << (PAGE_SHIFT + fault_around_order)) - 1);
--}
--#else
--static inline unsigned long fault_around_pages(void)
--{
--	unsigned long nr_pages;
--
--	nr_pages = 1UL << FAULT_AROUND_ORDER;
--	BUILD_BUG_ON(nr_pages > PTRS_PER_PTE);
--	return nr_pages;
--}
--
--static inline unsigned long fault_around_mask(void)
--{
--	return ~((1UL << (PAGE_SHIFT + FAULT_AROUND_ORDER)) - 1);
--}
+diff -puN kernel/printk/printk.c~printk-fix-lockdep-instrumentation-of-console_sem kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-fix-lockdep-instrumentation-of-console_sem
++++ a/kernel/printk/printk.c
+@@ -91,6 +91,29 @@ static struct lockdep_map console_lock_d
  #endif
  
- static void do_fault_around(struct vm_area_struct *vma, unsigned long address,
-@@ -2871,7 +2855,7 @@ static int do_read_fault(struct mm_struc
- 	 * if page by the offset is not ready to be mapped (cold cache or
- 	 * something).
+ /*
++ * Helper macros to handle lockdep when locking/unlocking console_sem. We use
++ * macros instead of functions so that _RET_IP_ contains useful information.
++ */
++#define down_console_sem() do { \
++	down(&console_sem);\
++	mutex_acquire(&console_lock_dep_map, 0, 0, _RET_IP_);\
++} while (0)
++
++static int __down_trylock_console_sem(unsigned long ip)
++{
++	if (down_trylock(&console_sem))
++		return 1;
++	mutex_acquire(&console_lock_dep_map, 0, 1, ip);
++	return 0;
++}
++#define down_trylock_console_sem() __down_trylock_console_sem(_RET_IP_)
++
++#define up_console_sem() do { \
++	mutex_release(&console_lock_dep_map, 1, _RET_IP_);\
++	up(&console_sem);\
++} while (0)
++
++/*
+  * This is used for debugging the mess that is the VT code by
+  * keeping track if we have the console semaphore held. It's
+  * definitely not the perfect debug tool (we don't know if _WE_
+@@ -1422,7 +1445,7 @@ static int console_trylock_for_printk(un
  	 */
--	if (vma->vm_ops->map_pages) {
-+	if (vma->vm_ops->map_pages && fault_around_pages() > 1) {
- 		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
- 		do_fault_around(vma, address, pte, pgoff, flags);
- 		if (!pte_same(*pte, orig_pte))
+ 	if (!can_use_console(cpu)) {
+ 		console_locked = 0;
+-		up(&console_sem);
++		up_console_sem();
+ 		return 0;
+ 	}
+ 	return 1;
+@@ -1951,16 +1974,14 @@ void suspend_console(void)
+ 	printk("Suspending console(s) (use no_console_suspend to debug)\n");
+ 	console_lock();
+ 	console_suspended = 1;
+-	up(&console_sem);
+-	mutex_release(&console_lock_dep_map, 1, _RET_IP_);
++	up_console_sem();
+ }
+ 
+ void resume_console(void)
+ {
+ 	if (!console_suspend_enabled)
+ 		return;
+-	down(&console_sem);
+-	mutex_acquire(&console_lock_dep_map, 0, 0, _RET_IP_);
++	down_console_sem();
+ 	console_suspended = 0;
+ 	console_unlock();
+ }
+@@ -2002,12 +2023,11 @@ void console_lock(void)
+ {
+ 	might_sleep();
+ 
+-	down(&console_sem);
++	down_console_sem();
+ 	if (console_suspended)
+ 		return;
+ 	console_locked = 1;
+ 	console_may_schedule = 1;
+-	mutex_acquire(&console_lock_dep_map, 0, 0, _RET_IP_);
+ }
+ EXPORT_SYMBOL(console_lock);
+ 
+@@ -2021,15 +2041,14 @@ EXPORT_SYMBOL(console_lock);
+  */
+ int console_trylock(void)
+ {
+-	if (down_trylock(&console_sem))
++	if (down_trylock_console_sem())
+ 		return 0;
+ 	if (console_suspended) {
+-		up(&console_sem);
++		up_console_sem();
+ 		return 0;
+ 	}
+ 	console_locked = 1;
+ 	console_may_schedule = 0;
+-	mutex_acquire(&console_lock_dep_map, 0, 1, _RET_IP_);
+ 	return 1;
+ }
+ EXPORT_SYMBOL(console_trylock);
+@@ -2091,7 +2110,7 @@ void console_unlock(void)
+ 	bool retry;
+ 
+ 	if (console_suspended) {
+-		up(&console_sem);
++		up_console_sem();
+ 		return;
+ 	}
+ 
+@@ -2153,7 +2172,6 @@ skip:
+ 		local_irq_restore(flags);
+ 	}
+ 	console_locked = 0;
+-	mutex_release(&console_lock_dep_map, 1, _RET_IP_);
+ 
+ 	/* Release the exclusive_console once it is used */
+ 	if (unlikely(exclusive_console))
+@@ -2161,7 +2179,7 @@ skip:
+ 
+ 	raw_spin_unlock(&logbuf_lock);
+ 
+-	up(&console_sem);
++	up_console_sem();
+ 
+ 	/*
+ 	 * Someone could have filled up the buffer again, so re-check if there's
+@@ -2206,7 +2224,7 @@ void console_unblank(void)
+ 	 * oops_in_progress is set to 1..
+ 	 */
+ 	if (oops_in_progress) {
+-		if (down_trylock(&console_sem) != 0)
++		if (down_trylock_console_sem() != 0)
+ 			return;
+ 	} else
+ 		console_lock();
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-update-page-table-walker-core-fix.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-prom-pid-clear_refs-avoid-split_huge_page.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+fs-isofs-logging-clean-up.patch
 linux-next.patch
-mm-mark-remap_file_pages-syscall-as-deprecated.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+mm-add-strictlimit-knob-v2.patch
 
