@@ -1,216 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-move-helpers-up-in-the-file.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 12:49:39 -0700
-Message-ID: <5390c9d3.Y/MOLHhtjrVEzP2d%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-do-not-cache-reclaim-distances.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 12:49:45 -0700
+Message-ID: <5390c9d9.j70TLxAYLJTyN2CH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55854 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55877 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752373AbaFETtk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:40 -0400
+	with ESMTP id S1752430AbaFETtq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, rientjes@google.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mtosatti@redhat.com, kirill.shutemov@linux.intel.com, isimatu.yasuaki@jp.fujitsu.com, davidlohr@hp.com, aarcange@redhat.com, lcapitulino@redhat.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mhocko@suse.cz, hannes@cmpxchg.org, cl@linux.com, mgorman@suse.de
 
-Subject: [merged] hugetlb-move-helpers-up-in-the-file.patch removed from -mm tree
-To: lcapitulino@redhat.com,aarcange@redhat.com,davidlohr@hp.com,isimatu.yasuaki@jp.fujitsu.com,kirill.shutemov@linux.intel.com,mtosatti@redhat.com,n-horiguchi@ah.jp.nec.com,riel@redhat.com,rientjes@google.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-page_alloc-do-not-cache-reclaim-distances.patch removed from -mm tree
+To: mgorman@suse.de,cl@linux.com,hannes@cmpxchg.org,mhocko@suse.cz,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:49:39 -0700
+Date: Thu, 05 Jun 2014 12:49:45 -0700
 
 
 The patch titled
-     Subject: hugetlb: move helpers up in the file
+     Subject: mm: page_alloc: do not cache reclaim distances
 has been removed from the -mm tree.  Its filename was
-     hugetlb-move-helpers-up-in-the-file.patch
+     mm-page_alloc-do-not-cache-reclaim-distances.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Luiz Capitulino <lcapitulino@redhat.com>
-Subject: hugetlb: move helpers up in the file
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: page_alloc: do not cache reclaim distances
 
-Next commit will add new code which will want to call
-for_each_node_mask_to_alloc() macro.  Move it, its buddy
-for_each_node_mask_to_free() and their dependencies up in the file so the
-new code can use them.  This is just code movement, no logic change.
+pgdat->reclaim_nodes tracks if a remote node is allowed to be reclaimed by
+zone_reclaim due to its distance. As it is expected that zone_reclaim_mode
+will be rarely enabled it is unreasonable for all machines to take a penalty.
+Fortunately, the zone_reclaim_mode() path is already slow and it is the path
+that takes the hit.
 
-Signed-off-by: Luiz Capitulino <lcapitulino@redhat.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |  146 ++++++++++++++++++++++++-------------------------
- 1 file changed, 73 insertions(+), 73 deletions(-)
+ include/linux/mmzone.h |    1 -
+ mm/page_alloc.c        |   17 ++---------------
+ 2 files changed, 2 insertions(+), 16 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-move-helpers-up-in-the-file mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-move-helpers-up-in-the-file
-+++ a/mm/hugetlb.c
-@@ -607,6 +607,79 @@ err:
- 	return NULL;
- }
+diff -puN include/linux/mmzone.h~mm-page_alloc-do-not-cache-reclaim-distances include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-do-not-cache-reclaim-distances
++++ a/include/linux/mmzone.h
+@@ -763,7 +763,6 @@ typedef struct pglist_data {
+ 	unsigned long node_spanned_pages; /* total size of physical page
+ 					     range, including holes */
+ 	int node_id;
+-	nodemask_t reclaim_nodes;	/* Nodes allowed to reclaim from */
+ 	wait_queue_head_t kswapd_wait;
+ 	wait_queue_head_t pfmemalloc_wait;
+ 	struct task_struct *kswapd;	/* Protected by lock_memory_hotplug() */
+diff -puN mm/page_alloc.c~mm-page_alloc-do-not-cache-reclaim-distances mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-cache-reclaim-distances
++++ a/mm/page_alloc.c
+@@ -1850,16 +1850,8 @@ static bool zone_local(struct zone *loca
  
-+/*
-+ * common helper functions for hstate_next_node_to_{alloc|free}.
-+ * We may have allocated or freed a huge page based on a different
-+ * nodes_allowed previously, so h->next_node_to_{alloc|free} might
-+ * be outside of *nodes_allowed.  Ensure that we use an allowed
-+ * node for alloc or free.
-+ */
-+static int next_node_allowed(int nid, nodemask_t *nodes_allowed)
-+{
-+	nid = next_node(nid, *nodes_allowed);
-+	if (nid == MAX_NUMNODES)
-+		nid = first_node(*nodes_allowed);
-+	VM_BUG_ON(nid >= MAX_NUMNODES);
-+
-+	return nid;
-+}
-+
-+static int get_valid_node_allowed(int nid, nodemask_t *nodes_allowed)
-+{
-+	if (!node_isset(nid, *nodes_allowed))
-+		nid = next_node_allowed(nid, nodes_allowed);
-+	return nid;
-+}
-+
-+/*
-+ * returns the previously saved node ["this node"] from which to
-+ * allocate a persistent huge page for the pool and advance the
-+ * next node from which to allocate, handling wrap at end of node
-+ * mask.
-+ */
-+static int hstate_next_node_to_alloc(struct hstate *h,
-+					nodemask_t *nodes_allowed)
-+{
-+	int nid;
-+
-+	VM_BUG_ON(!nodes_allowed);
-+
-+	nid = get_valid_node_allowed(h->next_nid_to_alloc, nodes_allowed);
-+	h->next_nid_to_alloc = next_node_allowed(nid, nodes_allowed);
-+
-+	return nid;
-+}
-+
-+/*
-+ * helper for free_pool_huge_page() - return the previously saved
-+ * node ["this node"] from which to free a huge page.  Advance the
-+ * next node id whether or not we find a free huge page to free so
-+ * that the next attempt to free addresses the next node.
-+ */
-+static int hstate_next_node_to_free(struct hstate *h, nodemask_t *nodes_allowed)
-+{
-+	int nid;
-+
-+	VM_BUG_ON(!nodes_allowed);
-+
-+	nid = get_valid_node_allowed(h->next_nid_to_free, nodes_allowed);
-+	h->next_nid_to_free = next_node_allowed(nid, nodes_allowed);
-+
-+	return nid;
-+}
-+
-+#define for_each_node_mask_to_alloc(hs, nr_nodes, node, mask)		\
-+	for (nr_nodes = nodes_weight(*mask);				\
-+		nr_nodes > 0 &&						\
-+		((node = hstate_next_node_to_alloc(hs, mask)) || 1);	\
-+		nr_nodes--)
-+
-+#define for_each_node_mask_to_free(hs, nr_nodes, node, mask)		\
-+	for (nr_nodes = nodes_weight(*mask);				\
-+		nr_nodes > 0 &&						\
-+		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
-+		nr_nodes--)
-+
- static void update_and_free_page(struct hstate *h, struct page *page)
+ static bool zone_allows_reclaim(struct zone *local_zone, struct zone *zone)
  {
- 	int i;
-@@ -786,79 +859,6 @@ static struct page *alloc_fresh_huge_pag
- 	return page;
+-	return node_isset(local_zone->node, zone->zone_pgdat->reclaim_nodes);
+-}
+-
+-static void __paginginit init_zone_allows_reclaim(int nid)
+-{
+-	int i;
+-
+-	for_each_node_state(i, N_MEMORY)
+-		if (node_distance(nid, i) <= RECLAIM_DISTANCE)
+-			node_set(i, NODE_DATA(nid)->reclaim_nodes);
++	return node_distance(zone_to_nid(local_zone), zone_to_nid(zone)) <
++				RECLAIM_DISTANCE;
  }
  
--/*
-- * common helper functions for hstate_next_node_to_{alloc|free}.
-- * We may have allocated or freed a huge page based on a different
-- * nodes_allowed previously, so h->next_node_to_{alloc|free} might
-- * be outside of *nodes_allowed.  Ensure that we use an allowed
-- * node for alloc or free.
-- */
--static int next_node_allowed(int nid, nodemask_t *nodes_allowed)
+ #else	/* CONFIG_NUMA */
+@@ -1893,9 +1885,6 @@ static bool zone_allows_reclaim(struct z
+ 	return true;
+ }
+ 
+-static inline void init_zone_allows_reclaim(int nid)
 -{
--	nid = next_node(nid, *nodes_allowed);
--	if (nid == MAX_NUMNODES)
--		nid = first_node(*nodes_allowed);
--	VM_BUG_ON(nid >= MAX_NUMNODES);
--
--	return nid;
 -}
--
--static int get_valid_node_allowed(int nid, nodemask_t *nodes_allowed)
--{
--	if (!node_isset(nid, *nodes_allowed))
--		nid = next_node_allowed(nid, nodes_allowed);
--	return nid;
--}
--
--/*
-- * returns the previously saved node ["this node"] from which to
-- * allocate a persistent huge page for the pool and advance the
-- * next node from which to allocate, handling wrap at end of node
-- * mask.
-- */
--static int hstate_next_node_to_alloc(struct hstate *h,
--					nodemask_t *nodes_allowed)
--{
--	int nid;
--
--	VM_BUG_ON(!nodes_allowed);
--
--	nid = get_valid_node_allowed(h->next_nid_to_alloc, nodes_allowed);
--	h->next_nid_to_alloc = next_node_allowed(nid, nodes_allowed);
--
--	return nid;
--}
--
--/*
-- * helper for free_pool_huge_page() - return the previously saved
-- * node ["this node"] from which to free a huge page.  Advance the
-- * next node id whether or not we find a free huge page to free so
-- * that the next attempt to free addresses the next node.
-- */
--static int hstate_next_node_to_free(struct hstate *h, nodemask_t *nodes_allowed)
--{
--	int nid;
--
--	VM_BUG_ON(!nodes_allowed);
--
--	nid = get_valid_node_allowed(h->next_nid_to_free, nodes_allowed);
--	h->next_nid_to_free = next_node_allowed(nid, nodes_allowed);
--
--	return nid;
--}
--
--#define for_each_node_mask_to_alloc(hs, nr_nodes, node, mask)		\
--	for (nr_nodes = nodes_weight(*mask);				\
--		nr_nodes > 0 &&						\
--		((node = hstate_next_node_to_alloc(hs, mask)) || 1);	\
--		nr_nodes--)
--
--#define for_each_node_mask_to_free(hs, nr_nodes, node, mask)		\
--	for (nr_nodes = nodes_weight(*mask);				\
--		nr_nodes > 0 &&						\
--		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
--		nr_nodes--)
+ #endif	/* CONFIG_NUMA */
+ 
+ /*
+@@ -4933,8 +4922,6 @@ void __paginginit free_area_init_node(in
+ 
+ 	pgdat->node_id = nid;
+ 	pgdat->node_start_pfn = node_start_pfn;
+-	if (node_state(nid, N_MEMORY))
+-		init_zone_allows_reclaim(nid);
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
+ #endif
+_
+
+Patches currently in -mm which might be from mgorman@suse.de are
+
+origin.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+linux-next.patch
+
