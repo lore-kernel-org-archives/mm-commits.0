@@ -1,148 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mempolicyc-parameter-doc-uniformization.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:51:27 -0700
-Message-ID: <5390ca3f.1Y1gdKBVwolnYzia%akpm@linux-foundation.org>
+Subject: [merged] mm-update-comment-for-default_max_map_count.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 12:51:31 -0700
+Message-ID: <5390ca43.Pe10OxDHuH5L1PPF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56145 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56164 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750840AbaFETv1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:27 -0400
+	with ESMTP id S1752811AbaFETvb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mgorman@suse.de, fabf@skynet.be
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
 
-Subject: [merged] mm-mempolicyc-parameter-doc-uniformization.patch removed from -mm tree
-To: fabf@skynet.be,mgorman@suse.de,mm-commits@vger.kernel.org
+Subject: [merged] mm-update-comment-for-default_max_map_count.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:27 -0700
+Date: Thu, 05 Jun 2014 12:51:31 -0700
 
 
 The patch titled
-     Subject: mm/mempolicy.c: parameter doc uniformization
+     Subject: mm: update comment for DEFAULT_MAX_MAP_COUNT
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicyc-parameter-doc-uniformization.patch
+     mm-update-comment-for-default_max_map_count.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: mm/mempolicy.c: parameter doc uniformization
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: update comment for DEFAULT_MAX_MAP_COUNT
 
-Also fixes kernel-doc warning
+With ELF extended numbering 16-bit bound is not hard limit any more.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Mel Gorman <mgorman@suse.de>
+[akpm@linux-foundation.org: fix typo]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ include/linux/sched/sysctl.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/mempolicy.c~mm-mempolicyc-parameter-doc-uniformization mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicyc-parameter-doc-uniformization
-+++ a/mm/mempolicy.c
-@@ -1606,9 +1606,9 @@ COMPAT_SYSCALL_DEFINE6(mbind, compat_ulo
- 
- /*
-  * get_vma_policy(@task, @vma, @addr)
-- * @task - task for fallback if vma policy == default
-- * @vma   - virtual memory area whose policy is sought
-- * @addr  - address in @vma for shared policy lookup
-+ * @task: task for fallback if vma policy == default
-+ * @vma: virtual memory area whose policy is sought
-+ * @addr: address in @vma for shared policy lookup
-  *
-  * Returns effective policy for a VMA at specified address.
-  * Falls back to @task or system default policy, as necessary.
-@@ -1854,11 +1854,11 @@ int node_random(const nodemask_t *maskp)
- #ifdef CONFIG_HUGETLBFS
- /*
-  * huge_zonelist(@vma, @addr, @gfp_flags, @mpol)
-- * @vma = virtual memory area whose policy is sought
-- * @addr = address in @vma for shared policy lookup and interleave policy
-- * @gfp_flags = for requested zone
-- * @mpol = pointer to mempolicy pointer for reference counted mempolicy
-- * @nodemask = pointer to nodemask pointer for MPOL_BIND nodemask
-+ * @vma: virtual memory area whose policy is sought
-+ * @addr: address in @vma for shared policy lookup and interleave policy
-+ * @gfp_flags: for requested zone
-+ * @mpol: pointer to mempolicy pointer for reference counted mempolicy
-+ * @nodemask: pointer to nodemask pointer for MPOL_BIND nodemask
-  *
-  * Returns a zonelist suitable for a huge page allocation and a pointer
-  * to the struct mempolicy for conditional unref after allocation.
-@@ -2270,9 +2270,9 @@ static void sp_free(struct sp_node *n)
- /**
-  * mpol_misplaced - check whether current page node is valid in policy
-  *
-- * @page   - page to be checked
-- * @vma    - vm area where page mapped
-- * @addr   - virtual address where page mapped
-+ * @page: page to be checked
-+ * @vma: vm area where page mapped
-+ * @addr: virtual address where page mapped
-  *
-  * Lookup current policy node id for vma,addr and "compare to" page's
-  * node id.
+diff -puN include/linux/sched/sysctl.h~mm-update-comment-for-default_max_map_count include/linux/sched/sysctl.h
+--- a/include/linux/sched/sysctl.h~mm-update-comment-for-default_max_map_count
++++ a/include/linux/sched/sysctl.h
+@@ -25,6 +25,10 @@ enum { sysctl_hung_task_timeout_secs = 0
+  * Because the kernel adds some informative sections to a image of program at
+  * generating coredump, we need some margin. The number of extra sections is
+  * 1-3 now and depends on arch. We use "5" as safe margin, here.
++ *
++ * ELF extended numbering allows more than 65535 sections, so 16-bit bound is
++ * not a hard limit any more. Although some userspace tools can be surprised by
++ * that.
+  */
+ #define MAPCOUNT_ELF_CORE_MARGIN	(5)
+ #define DEFAULT_MAX_MAP_COUNT	(USHRT_MAX - MAPCOUNT_ELF_CORE_MARGIN)
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-coda-replace-printk-by-pr_foo.patch
-fs-coda-logging-prefix-uniformization.patch
-fs-coda-use-__func__.patch
-fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
-fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
-fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
-fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
-fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-hpfs-convert-printk-to-pr_foo.patch
-fs-hpfs-use-pr_fmt-for-logging.patch
-fs-hpfs-use-__func__-for-logging.patch
-fs-hpfs-increase-pr_warn-level.patch
-documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
-fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
-fs-proc-vmcorec-remove-null-assignment-on-static.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
-fs-devpts-inodec-convert-printk-to-pr_foo.patch
-fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-update-page-table-walker-core-fix.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-prom-pid-clear_refs-avoid-split_huge_page.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-fs-dlm-configc-convert-simple_str-to-kstr.patch
-fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
-fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
-mm-kmemleak-testc-use-pr_fmt-for-logging.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
+mm-mark-remap_file_pages-syscall-as-deprecated.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
