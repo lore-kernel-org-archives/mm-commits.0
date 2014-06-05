@@ -1,78 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-plistc-replace-pr_debug-with-printk-in-plist_test.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 13:05:09 -0700
-Message-ID: <5390cd75.biWioVObr3hQIFWx%akpm@linux-foundation.org>
+Subject: [merged] lib-xz-enable-all-filters-by-default-in-kconfig.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 13:05:11 -0700
+Message-ID: <5390cd77.037qcLmmLD5qSg3V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56798 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56802 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751861AbaFEUFJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:09 -0400
+	with ESMTP id S1751871AbaFEUFM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rostedt@goodmis.org, ddstreet@ieee.org
+To: mm-commits@vger.kernel.org, phillip@lougher.demon.co.uk, kyle@infradead.org, f.fainelli@gmail.com, lasse.collin@tukaani.org
 
-Subject: [merged] lib-plistc-replace-pr_debug-with-printk-in-plist_test.patch removed from -mm tree
-To: ddstreet@ieee.org,rostedt@goodmis.org,mm-commits@vger.kernel.org
+Subject: [merged] lib-xz-enable-all-filters-by-default-in-kconfig.patch removed from -mm tree
+To: lasse.collin@tukaani.org,f.fainelli@gmail.com,kyle@infradead.org,phillip@lougher.demon.co.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:09 -0700
+Date: Thu, 05 Jun 2014 13:05:11 -0700
 
 
 The patch titled
-     Subject: lib/plist.c: replace pr_debug with printk in plist_test()
+     Subject: lib/xz: enable all filters by default in Kconfig
 has been removed from the -mm tree.  Its filename was
-     lib-plistc-replace-pr_debug-with-printk-in-plist_test.patch
+     lib-xz-enable-all-filters-by-default-in-kconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Streetman <ddstreet@ieee.org>
-Subject: lib/plist.c: replace pr_debug with printk in plist_test()
+From: Lasse Collin <lasse.collin@tukaani.org>
+Subject: lib/xz: enable all filters by default in Kconfig
 
-Replace pr_debug() in lib/plist.c test function plist_test() with
-printk(KERN_DEBUG ...).
+This restores the old behavior that existed before 2013-02-22, when
+changes were made by 64dbfb444c150 ("decompressors: drop dependency on
+CONFIG_EXPERT") and 5dc49c75a2 ("decompressors: make the default XZ_DEC_*
+config match the selected architecture").
 
-Without DEBUG defined, pr_debug() is complied out, but the entire
-plist_test() function is already inside CONFIG_DEBUG_PI_LIST, so printk
-should just be used directly.
+Disabling the filters only makes sense on embedded systems.
 
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
+Acked-by: Kyle McMartin <kyle@infradead.org>
+Cc: Florian Fainelli <f.fainelli@gmail.com>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/plist.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/xz/Kconfig |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN lib/plist.c~lib-plistc-replace-pr_debug-with-printk-in-plist_test lib/plist.c
---- a/lib/plist.c~lib-plistc-replace-pr_debug-with-printk-in-plist_test
-+++ a/lib/plist.c
-@@ -223,7 +223,7 @@ static int  __init plist_test(void)
- 	int nr_expect = 0, i, loop;
- 	unsigned int r = local_clock();
+diff -puN lib/xz/Kconfig~lib-xz-enable-all-filters-by-default-in-kconfig lib/xz/Kconfig
+--- a/lib/xz/Kconfig~lib-xz-enable-all-filters-by-default-in-kconfig
++++ a/lib/xz/Kconfig
+@@ -9,33 +9,33 @@ config XZ_DEC
+ if XZ_DEC
  
--	pr_debug("start plist test\n");
-+	printk(KERN_DEBUG "start plist test\n");
- 	plist_head_init(&test_head);
- 	for (i = 0; i < ARRAY_SIZE(test_node); i++)
- 		plist_node_init(test_node + i, 0);
-@@ -255,7 +255,7 @@ static int  __init plist_test(void)
- 		plist_test_check(nr_expect);
- 	}
+ config XZ_DEC_X86
+-	bool "x86 BCJ filter decoder"
+-	default y if X86
++	bool "x86 BCJ filter decoder" if EXPERT
++	default y
+ 	select XZ_DEC_BCJ
  
--	pr_debug("end plist test\n");
-+	printk(KERN_DEBUG "end plist test\n");
- 	return 0;
- }
+ config XZ_DEC_POWERPC
+-	bool "PowerPC BCJ filter decoder"
+-	default y if PPC
++	bool "PowerPC BCJ filter decoder" if EXPERT
++	default y
+ 	select XZ_DEC_BCJ
  
+ config XZ_DEC_IA64
+-	bool "IA-64 BCJ filter decoder"
+-	default y if IA64
++	bool "IA-64 BCJ filter decoder" if EXPERT
++	default y
+ 	select XZ_DEC_BCJ
+ 
+ config XZ_DEC_ARM
+-	bool "ARM BCJ filter decoder"
+-	default y if ARM
++	bool "ARM BCJ filter decoder" if EXPERT
++	default y
+ 	select XZ_DEC_BCJ
+ 
+ config XZ_DEC_ARMTHUMB
+-	bool "ARM-Thumb BCJ filter decoder"
+-	default y if (ARM && ARM_THUMB)
++	bool "ARM-Thumb BCJ filter decoder" if EXPERT
++	default y
+ 	select XZ_DEC_BCJ
+ 
+ config XZ_DEC_SPARC
+-	bool "SPARC BCJ filter decoder"
+-	default y if SPARC
++	bool "SPARC BCJ filter decoder" if EXPERT
++	default y
+ 	select XZ_DEC_BCJ
+ 
+ endif
 _
 
-Patches currently in -mm which might be from ddstreet@ieee.org are
+Patches currently in -mm which might be from lasse.collin@tukaani.org are
 
 origin.patch
 linux-next.patch
