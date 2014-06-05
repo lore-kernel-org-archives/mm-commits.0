@@ -1,146 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:50:15 -0700
-Message-ID: <5390c9f7.hOduOkbVLFGP5cKM%akpm__48293.335925746$1401997832$gmane$org@linux-foundation.org>
+Subject: [merged] memcg-kill-config_mm_owner.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:50:13 -0700
+Message-ID: <5390c9f5.4BeKHZ2p+QyD71ba%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55970 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55966 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752633AbaFETuQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:16 -0400
+	with ESMTP id S1751908AbaFETuO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mgorman@suse.de
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, oleg@redhat.com
 
-Subject: [merged] mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch removed from -mm tree
-To: mgorman@suse.de,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] memcg-kill-config_mm_owner.patch removed from -mm tree
+To: oleg@redhat.com,hannes@cmpxchg.org,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:50:15 -0700
+Date: Thu, 05 Jun 2014 12:50:13 -0700
 
 
 The patch titled
-     Subject: mm: vmscan: do not throttle based on pfmemalloc reserves if node has no ZONE_NORMAL
+     Subject: memcg: kill CONFIG_MM_OWNER
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal.patch
+     memcg-kill-config_mm_owner.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmscan: do not throttle based on pfmemalloc reserves if node has no ZONE_NORMAL
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: memcg: kill CONFIG_MM_OWNER
 
-throttle_direct_reclaim() is meant to trigger during swap-over-network
-during which the min watermark is treated as a pfmemalloc reserve.  It
-throttes on the first node in the zonelist but this is flawed.
+CONFIG_MM_OWNER makes no sense.  It is not user-selectable, it is only
+selected by CONFIG_MEMCG automatically.  So we can kill this option in
+init/Kconfig and do s/CONFIG_MM_OWNER/CONFIG_MEMCG/ globally.
 
-The user-visible impact is that a process running on CPU whose local
-memory node has no ZONE_NORMAL will stall for prolonged periods of time,
-possibly indefintely.  This is due to throttle_direct_reclaim thinking the
-pfmemalloc reserves are depleted when in fact they don't exist on that
-node.
-
-On a NUMA machine running a 32-bit kernel (I know) allocation requests
-from CPUs on node 1 would detect no pfmemalloc reserves and the process
-gets throttled.  This patch adjusts throttling of direct reclaim to
-throttle based on the first node in the zonelist that has a usable
-ZONE_NORMAL or lower zone.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   43 +++++++++++++++++++++++++++++++++++++------
- 1 file changed, 37 insertions(+), 6 deletions(-)
+ include/linux/mm_types.h |    2 +-
+ include/linux/sched.h    |    4 ++--
+ init/Kconfig             |    7 -------
+ kernel/exit.c            |    4 ++--
+ kernel/fork.c            |    4 ++--
+ 5 files changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-zone_normal
-+++ a/mm/vmscan.c
-@@ -2537,10 +2537,17 @@ static bool pfmemalloc_watermark_ok(pg_d
- 
- 	for (i = 0; i <= ZONE_NORMAL; i++) {
- 		zone = &pgdat->node_zones[i];
-+		if (!populated_zone(zone))
-+			continue;
-+
- 		pfmemalloc_reserve += min_wmark_pages(zone);
- 		free_pages += zone_page_state(zone, NR_FREE_PAGES);
- 	}
- 
-+	/* If there are no reserves (unexpected config) then do not throttle */
-+	if (!pfmemalloc_reserve)
-+		return true;
-+
- 	wmark_ok = free_pages > pfmemalloc_reserve / 2;
- 
- 	/* kswapd must be awake if processes are being throttled */
-@@ -2565,9 +2572,9 @@ static bool pfmemalloc_watermark_ok(pg_d
- static bool throttle_direct_reclaim(gfp_t gfp_mask, struct zonelist *zonelist,
- 					nodemask_t *nodemask)
- {
-+	struct zoneref *z;
- 	struct zone *zone;
--	int high_zoneidx = gfp_zone(gfp_mask);
--	pg_data_t *pgdat;
-+	pg_data_t *pgdat = NULL;
- 
+diff -puN include/linux/mm_types.h~memcg-kill-config_mm_owner include/linux/mm_types.h
+--- a/include/linux/mm_types.h~memcg-kill-config_mm_owner
++++ a/include/linux/mm_types.h
+@@ -406,7 +406,7 @@ struct mm_struct {
+ 	spinlock_t			ioctx_lock;
+ 	struct kioctx_table __rcu	*ioctx_table;
+ #endif
+-#ifdef CONFIG_MM_OWNER
++#ifdef CONFIG_MEMCG
  	/*
- 	 * Kernel threads should not be throttled as they may be indirectly
-@@ -2586,10 +2593,34 @@ static bool throttle_direct_reclaim(gfp_
- 	if (fatal_signal_pending(current))
- 		goto out;
+ 	 * "owner" points to a task that is regarded as the canonical
+ 	 * user/owner of this mm. All of the following must be true in
+diff -puN include/linux/sched.h~memcg-kill-config_mm_owner include/linux/sched.h
+--- a/include/linux/sched.h~memcg-kill-config_mm_owner
++++ a/include/linux/sched.h
+@@ -2967,7 +2967,7 @@ static inline void inc_syscw(struct task
+ #define TASK_SIZE_OF(tsk)	TASK_SIZE
+ #endif
  
--	/* Check if the pfmemalloc reserves are ok */
--	first_zones_zonelist(zonelist, high_zoneidx, NULL, &zone);
--	pgdat = zone->zone_pgdat;
--	if (pfmemalloc_watermark_ok(pgdat))
-+	/*
-+	 * Check if the pfmemalloc reserves are ok by finding the first node
-+	 * with a usable ZONE_NORMAL or lower zone. The expectation is that
-+	 * GFP_KERNEL will be required for allocating network buffers when
-+	 * swapping over the network so ZONE_HIGHMEM is unusable.
-+	 *
-+	 * Throttling is based on the first usable node and throttled processes
-+	 * wait on a queue until kswapd makes progress and wakes them. There
-+	 * is an affinity then between processes waking up and where reclaim
-+	 * progress has been made assuming the process wakes on the same node.
-+	 * More importantly, processes running on remote nodes will not compete
-+	 * for remote pfmemalloc reserves and processes on different nodes
-+	 * should make reasonable progress.
-+	 */
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist,
-+					gfp_mask, nodemask) {
-+		if (zone_idx(zone) > ZONE_NORMAL)
-+			continue;
-+
-+		/* Throttle based on the first usable node */
-+		pgdat = zone->zone_pgdat;
-+		if (pfmemalloc_watermark_ok(pgdat))
-+			goto out;
-+		break;
-+	}
-+
-+	/* If no zone was usable by the allocation flags then do not throttle */
-+	if (!pgdat)
- 		goto out;
+-#ifdef CONFIG_MM_OWNER
++#ifdef CONFIG_MEMCG
+ extern void mm_update_next_owner(struct mm_struct *mm);
+ extern void mm_init_owner(struct mm_struct *mm, struct task_struct *p);
+ #else
+@@ -2978,7 +2978,7 @@ static inline void mm_update_next_owner(
+ static inline void mm_init_owner(struct mm_struct *mm, struct task_struct *p)
+ {
+ }
+-#endif /* CONFIG_MM_OWNER */
++#endif /* CONFIG_MEMCG */
  
- 	/* Account for the throttling */
+ static inline unsigned long task_rlimit(const struct task_struct *tsk,
+ 		unsigned int limit)
+diff -puN init/Kconfig~memcg-kill-config_mm_owner init/Kconfig
+--- a/init/Kconfig~memcg-kill-config_mm_owner
++++ a/init/Kconfig
+@@ -933,7 +933,6 @@ config RESOURCE_COUNTERS
+ config MEMCG
+ 	bool "Memory Resource Controller for Control Groups"
+ 	depends on RESOURCE_COUNTERS
+-	select MM_OWNER
+ 	select EVENTFD
+ 	help
+ 	  Provides a memory resource controller that manages both anonymous
+@@ -951,9 +950,6 @@ config MEMCG
+ 	  disable memory resource controller and you can avoid overheads.
+ 	  (and lose benefits of memory resource controller)
+ 
+-	  This config option also selects MM_OWNER config option, which
+-	  could in turn add some fork/exit overhead.
+-
+ config MEMCG_SWAP
+ 	bool "Memory Resource Controller Swap Extension"
+ 	depends on MEMCG && SWAP
+@@ -1179,9 +1175,6 @@ config SCHED_AUTOGROUP
+ 	  desktop applications.  Task group autogeneration is currently based
+ 	  upon task session.
+ 
+-config MM_OWNER
+-	bool
+-
+ config SYSFS_DEPRECATED
+ 	bool "Enable deprecated sysfs features to support old userspace tools"
+ 	depends on SYSFS
+diff -puN kernel/exit.c~memcg-kill-config_mm_owner kernel/exit.c
+--- a/kernel/exit.c~memcg-kill-config_mm_owner
++++ a/kernel/exit.c
+@@ -352,7 +352,7 @@ int disallow_signal(int sig)
+ 
+ EXPORT_SYMBOL(disallow_signal);
+ 
+-#ifdef CONFIG_MM_OWNER
++#ifdef CONFIG_MEMCG
+ /*
+  * A task is exiting.   If it owned this mm, find a new owner for the mm.
+  */
+@@ -434,7 +434,7 @@ assign_new_owner:
+ 	task_unlock(c);
+ 	put_task_struct(c);
+ }
+-#endif /* CONFIG_MM_OWNER */
++#endif /* CONFIG_MEMCG */
+ 
+ /*
+  * Turn us into a lazy TLB process if we
+diff -puN kernel/fork.c~memcg-kill-config_mm_owner kernel/fork.c
+--- a/kernel/fork.c~memcg-kill-config_mm_owner
++++ a/kernel/fork.c
+@@ -1099,12 +1099,12 @@ static void rt_mutex_init_task(struct ta
+ #endif
+ }
+ 
+-#ifdef CONFIG_MM_OWNER
++#ifdef CONFIG_MEMCG
+ void mm_init_owner(struct mm_struct *mm, struct task_struct *p)
+ {
+ 	mm->owner = p;
+ }
+-#endif /* CONFIG_MM_OWNER */
++#endif /* CONFIG_MEMCG */
+ 
+ /*
+  * Initialize POSIX timer handling for a single task.
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+ptrace-fix-fork-event-messages-across-pid-namespaces.patch
+ptrace-task_clear_jobctl_trapping-wake_up_bit-needs-mb.patch
+signals-kill-sigfindinword.patch
+signals-s-siginitset-sigemptyset-in-do_sigtimedwait.patch
+signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
+signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
+signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
+signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
+signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch
+signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch
+signals-disallow_signal-should-flush-the-potentially-pending-signal.patch
+signals-introduce-kernel_sigaction.patch
+signals-change-wait_for_helper-to-use-kernel_sigaction.patch
 smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
 smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
 smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
 cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
 linux-next.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
+nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch
 
