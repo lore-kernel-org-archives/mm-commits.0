@@ -1,41 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:50:48 -0700
-Message-ID: <5390ca18.jmpgIGZ52mi1aUyi%akpm@linux-foundation.org>
+Subject: [merged] memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 12:50:50 -0700
+Message-ID: <5390ca1a.FaE3r993QO+zbR5D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56055 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581AbaFETut (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:49 -0400
+	with ESMTP id S1751581AbaFETuv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, pchiang@nvidia.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, bsingharora@gmail.com, oleg@redhat.com
 
-Subject: [merged] memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner.patch removed from -mm tree
+Subject: [merged] memcg-kill-start_kernel-mm_init_ownerinit_mm.patch removed from -mm tree
 To: oleg@redhat.com,bsingharora@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,pchiang@nvidia.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:50:48 -0700
+Date: Thu, 05 Jun 2014 12:50:50 -0700
 
 
 The patch titled
-     Subject: memcg: optimize the "Search everything else" loop in mm_update_next_owner()
+     Subject: memcg: kill start_kernel()->mm_init_owner(&init_mm)
 has been removed from the -mm tree.  Its filename was
-     memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner.patch
+     memcg-kill-start_kernel-mm_init_ownerinit_mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: memcg: optimize the "Search everything else" loop in mm_update_next_owner()
+Subject: memcg: kill start_kernel()->mm_init_owner(&init_mm)
 
-for_each_process_thread() is sub-optimal. All threads share the same
-->mm, we can swicth to the next process once we found a thread with
-->mm != NULL and ->mm != mm.
+Remove start_kernel()->mm_init_owner(&init_mm, &init_task).
+
+This doesn't really hurt but unnecessary and misleading.  init_task is the
+"swapper" thread == current, its ->mm is always NULL.  And init_mm can
+only be used as ->active_mm, not as ->mm.
+
+mm_init_owner() has a single caller with this patch, perhaps it should
+die.  mm_init() can initialize ->owner under #ifdef.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
@@ -47,31 +52,20 @@ Cc: Peter Chiang <pchiang@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ init/main.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/exit.c~memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner kernel/exit.c
---- a/kernel/exit.c~memcg-optimize-the-search-everything-else-loop-in-mm_update_next_owner
-+++ a/kernel/exit.c
-@@ -397,9 +397,15 @@ retry:
- 	/*
- 	 * Search through everything else, we should not get here often.
- 	 */
--	for_each_process_thread(g, c) {
--		if (!(c->flags & PF_KTHREAD) && c->mm == mm)
--			goto assign_new_owner;
-+	for_each_process(g) {
-+		if (g->flags & PF_KTHREAD)
-+			continue;
-+		for_each_thread(g, c) {
-+			if (c->mm == mm)
-+				goto assign_new_owner;
-+			if (c->mm)
-+				break;
-+		}
- 	}
- 	read_unlock(&tasklist_lock);
- 	/*
+diff -puN init/main.c~memcg-kill-start_kernel-mm_init_ownerinit_mm init/main.c
+--- a/init/main.c~memcg-kill-start_kernel-mm_init_ownerinit_mm
++++ a/init/main.c
+@@ -507,7 +507,6 @@ asmlinkage __visible void __init start_k
+ 	page_address_init();
+ 	pr_notice("%s", linux_banner);
+ 	setup_arch(&command_line);
+-	mm_init_owner(&init_mm, &init_task);
+ 	mm_init_cpumask(&init_mm);
+ 	setup_command_line(command_line);
+ 	setup_nr_cpu_ids();
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
