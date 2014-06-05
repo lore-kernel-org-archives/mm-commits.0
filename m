@@ -1,117 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 12:42:24 -0700
-Message-ID: <5390c820.ZskL/nLCgCI8369C%akpm@linux-foundation.org>
+Subject: [merged] fanotify-check-file-flags-passed-in-fanotify_init.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 12:42:15 -0700
+Message-ID: <5390c817.md2OoMSLDnYr2TOu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55549 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55530 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752319AbaFETmY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:24 -0400
+	with ESMTP id S1751677AbaFETmQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gxt@mprc.pku.edu.cn, fabf@skynet.be, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, jack@suse.cz, Valdis.Kletnieks@vt.edu, xypron.glpk@gmx.de
 
-Subject: [merged] arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch removed from -mm tree
-To: akpm@linux-foundation.org,fabf@skynet.be,gxt@mprc.pku.edu.cn,mm-commits@vger.kernel.org
+Subject: [merged] fanotify-check-file-flags-passed-in-fanotify_init.patch removed from -mm tree
+To: xypron.glpk@gmx.de,Valdis.Kletnieks@vt.edu,jack@suse.cz,mtk.manpages@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:42:24 -0700
+Date: Thu, 05 Jun 2014 12:42:15 -0700
 
 
 The patch titled
-     Subject: arch/unicore32/mm/ioremap.c: return NULL on invalid pfn
+     Subject: fanotify: check file flags passed in fanotify_init
 has been removed from the -mm tree.  Its filename was
-     arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn.patch
+     fanotify-check-file-flags-passed-in-fanotify_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/unicore32/mm/ioremap.c: return NULL on invalid pfn
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: fanotify: check file flags passed in fanotify_init
 
-__uc32_ioremap_pfn_caller() should return NULL when the pfn is found to be
-invalid.
+Without this patch fanotify_init does not validate the value passed in
+event_f_flags.
 
-From a recommendation by Guan Xuetao.
+When a fanotify event is read from the fanotify file descriptor a new file
+descriptor is created where file.f_flags = event_f_flags.
 
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Cc: Fabian Frederick <fabf@skynet.be>
+Internal and external open flags are stored together in field f_flags of
+struct file.  Hence, an application might create file descriptors with
+internal flags like FMODE_EXEC, FMODE_NOCMTIME set.
+
+Jan Kara and Eric Paris both aggreed that this is a bug and the value of
+event_f_flags should be checked:
+https://lkml.org/lkml/2014/4/29/522
+https://lkml.org/lkml/2014/4/29/539
+
+This updated patch version considers the comments by Michael Kerrisk in
+https://lkml.org/lkml/2014/5/4/10
+
+With the patch the value of event_f_flags is checked.
+When specifying an invalid value error EINVAL is returned.
+
+Internal flags are disallowed.
+
+File creation flags are disallowed:
+O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_TRUNC, and O_TTY_INIT.
+
+Flags which do not make sense with fanotify are disallowed:
+__O_TMPFILE, O_PATH, FASYNC, and O_DIRECT.
+
+This leaves us with the following allowed values:
+
+O_RDONLY, O_WRONLY, O_RDWR are basic functionality. The are stored in the
+bits given by O_ACCMODE.
+
+O_APPEND is working as expected. The value might be useful in a logging
+application which appends the current status each time the log is opened.
+
+O_LARGEFILE is needed for files exceeding 4GB on 32bit systems.
+
+O_NONBLOCK may be useful when monitoring slow devices like tapes.
+
+O_NDELAY is equal to O_NONBLOCK except for platform parisc.
+To avoid code breaking on parisc either both flags should be
+allowed or none. The patch allows both.
+
+__O_SYNC and O_DSYNC may be used to avoid data loss on power disruption.
+
+O_NOATIME may be useful to reduce disk activity.
+
+O_CLOEXEC may be useful, if separate processes shall be used to scan files.
+
+Once this patch is accepted, the fanotify_init.2 manpage has to be updated.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/mm/ioremap.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/notify/fanotify/fanotify_user.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN arch/unicore32/mm/ioremap.c~arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn arch/unicore32/mm/ioremap.c
---- a/arch/unicore32/mm/ioremap.c~arch-unicore32-mm-ioremapc-return-null-on-invalid-pfn
-+++ a/arch/unicore32/mm/ioremap.c
-@@ -143,11 +143,13 @@ void __iomem *__uc32_ioremap_pfn_caller(
- 	/*
- 	 * Don't allow RAM to be mapped
- 	 */
--	if (pfn_valid(pfn))
-+	if (pfn_valid(pfn)) {
- 		WARN(1, "BUG: Your driver calls ioremap() on\n"
- 			"system memory.  This leads to architecturally\n"
- 			"unpredictable behaviour, and ioremap() will fail in\n"
- 			"the next kernel release. Please fix your driver.\n");
-+		return NULL;
-+	}
+diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-check-file-flags-passed-in-fanotify_init fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fanotify-check-file-flags-passed-in-fanotify_init
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -25,6 +25,19 @@
+ #define FANOTIFY_DEFAULT_MAX_MARKS	8192
+ #define FANOTIFY_DEFAULT_MAX_LISTENERS	128
  
- 	type = get_mem_type(mtype);
- 	if (!type)
++/*
++ * All flags that may be specified in parameter event_f_flags of fanotify_init.
++ *
++ * Internal and external open flags are stored together in field f_flags of
++ * struct file. Only external open flags shall be allowed in event_f_flags.
++ * Internal flags like FMODE_NONOTIFY, FMODE_EXEC, FMODE_NOCMTIME shall be
++ * excluded.
++ */
++#define	FANOTIFY_INIT_ALL_EVENT_F_BITS				( \
++		O_ACCMODE	| O_APPEND	| O_NONBLOCK	| \
++		__O_SYNC	| O_DSYNC	| O_CLOEXEC     | \
++		O_LARGEFILE	| O_NOATIME	)
++
+ extern const struct fsnotify_ops fanotify_fsnotify_ops;
+ 
+ static struct kmem_cache *fanotify_mark_cache __read_mostly;
+@@ -669,6 +682,18 @@ SYSCALL_DEFINE2(fanotify_init, unsigned
+ 	if (flags & ~FAN_ALL_INIT_FLAGS)
+ 		return -EINVAL;
+ 
++	if (event_f_flags & ~FANOTIFY_INIT_ALL_EVENT_F_BITS)
++		return -EINVAL;
++
++	switch (event_f_flags & O_ACCMODE) {
++	case O_RDONLY:
++	case O_RDWR:
++	case O_WRONLY:
++		break;
++	default:
++		return -EINVAL;
++	}
++
+ 	user = get_current_user();
+ 	if (atomic_read(&user->fanotify_listeners) > FANOTIFY_DEFAULT_MAX_LISTENERS) {
+ 		free_uid(user);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xypron.glpk@gmx.de are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-update-page-table-walker-core-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support-fix.patch
-rtc-da9063-rtc-driver-fix.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-checkpatch-fixes.patch
-sysctl-allow-for-strict-write-position-handling-fix-2.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-3.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-rwsem-support-optimistic-spinning.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
