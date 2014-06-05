@@ -1,171 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-get-rid-of-memcg_create_cache_name.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 12:51:37 -0700
-Message-ID: <5390ca49.nKI4Rd82gu+SZMSv%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 12:51:43 -0700
+Message-ID: <5390ca4f.xsVG+yhtUmDeepRj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56174 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56190 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752960AbaFETvi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:38 -0400
+	with ESMTP id S1752987AbaFETvo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, gthelen@google.com, rientjes@google.com
 
-Subject: [merged] memcg-get-rid-of-memcg_create_cache_name.patch removed from -mm tree
-To: vdavydov@parallels.com,hannes@cmpxchg.org,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch removed from -mm tree
+To: rientjes@google.com,gthelen@google.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,vbabka@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:37 -0700
+Date: Thu, 05 Jun 2014 12:51:43 -0700
 
 
 The patch titled
-     Subject: memcg: get rid of memcg_create_cache_name
+     Subject: mm, compaction: return failed migration target pages back to freelist
 has been removed from the -mm tree.  Its filename was
-     memcg-get-rid-of-memcg_create_cache_name.patch
+     mm-compaction-return-failed-migration-target-pages-back-to-freelist.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: get rid of memcg_create_cache_name
+From: David Rientjes <rientjes@google.com>
+Subject: mm, compaction: return failed migration target pages back to freelist
 
-Instead of calling back to memcontrol.c from kmem_cache_create_memcg in
-order to just create the name of a per memcg cache, let's allocate it in
-place.  We only need to pass the memcg name to kmem_cache_create_memcg for
-that - everything else can be done in slab_common.c.
+Greg reported that he found isolated free pages were returned back to the
+VM rather than the compaction freelist.  This will cause holes behind the
+free scanner and cause it to reallocate additional memory if necessary
+later.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+He detected the problem at runtime seeing that ext4 metadata pages (esp
+the ones read by "sbi->s_group_desc[i] = sb_bread(sb, block)") were
+constantly visited by compaction calls of migrate_pages().  These pages
+had a non-zero b_count which caused fallback_migrate_page() ->
+try_to_release_page() -> try_to_free_buffers() to fail.
+
+
+
+Memory compaction works by having a "freeing scanner" scan from one end of
+a zone which isolates pages as migration targets while another "migrating
+scanner" scans from the other end of the same zone which isolates pages
+for migration.
+
+When page migration fails for an isolated page, the target page is
+returned to the system rather than the freelist built by the freeing
+scanner.  This may require the freeing scanner to continue scanning memory
+after suitable migration targets have already been returned to the system
+needlessly.
+
+This patch returns destination pages to the freeing scanner freelist when
+page migration fails.  This prevents unnecessary work done by the freeing
+scanner but also encourages memory to be as compacted as possible at the
+end of the zone.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Greg Thelen <gthelen@google.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 --
- include/linux/slab.h       |    3 ++-
- mm/memcontrol.c            |   33 +++++++++------------------------
- mm/slab_common.c           |    7 +++++--
- 4 files changed, 16 insertions(+), 29 deletions(-)
+ mm/compaction.c |   27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-get-rid-of-memcg_create_cache_name include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-get-rid-of-memcg_create_cache_name
-+++ a/include/linux/memcontrol.h
-@@ -492,8 +492,6 @@ void __memcg_kmem_uncharge_pages(struct
- 
- int memcg_cache_id(struct mem_cgroup *memcg);
- 
--char *memcg_create_cache_name(struct mem_cgroup *memcg,
--			      struct kmem_cache *root_cache);
- int memcg_alloc_cache_params(struct mem_cgroup *memcg, struct kmem_cache *s,
- 			     struct kmem_cache *root_cache);
- void memcg_free_cache_params(struct kmem_cache *s);
-diff -puN include/linux/slab.h~memcg-get-rid-of-memcg_create_cache_name include/linux/slab.h
---- a/include/linux/slab.h~memcg-get-rid-of-memcg_create_cache_name
-+++ a/include/linux/slab.h
-@@ -117,7 +117,8 @@ struct kmem_cache *kmem_cache_create(con
- 			void (*)(void *));
- #ifdef CONFIG_MEMCG_KMEM
- struct kmem_cache *kmem_cache_create_memcg(struct mem_cgroup *,
--					   struct kmem_cache *);
-+					   struct kmem_cache *,
-+					   const char *);
- #endif
- void kmem_cache_destroy(struct kmem_cache *);
- int kmem_cache_shrink(struct kmem_cache *);
-diff -puN mm/memcontrol.c~memcg-get-rid-of-memcg_create_cache_name mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-get-rid-of-memcg_create_cache_name
-+++ a/mm/memcontrol.c
-@@ -3095,29 +3095,6 @@ int memcg_update_cache_size(struct kmem_
- 	return 0;
+diff -puN mm/compaction.c~mm-compaction-return-failed-migration-target-pages-back-to-freelist mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-return-failed-migration-target-pages-back-to-freelist
++++ a/mm/compaction.c
+@@ -790,23 +790,32 @@ static struct page *compaction_alloc(str
  }
  
--char *memcg_create_cache_name(struct mem_cgroup *memcg,
--			      struct kmem_cache *root_cache)
--{
--	static char *buf;
--
--	/*
--	 * We need a mutex here to protect the shared buffer. Since this is
--	 * expected to be called only on cache creation, we can employ the
--	 * slab_mutex for that purpose.
--	 */
--	lockdep_assert_held(&slab_mutex);
--
--	if (!buf) {
--		buf = kmalloc(NAME_MAX + 1, GFP_KERNEL);
--		if (!buf)
--			return NULL;
--	}
--
--	cgroup_name(memcg->css.cgroup, buf, NAME_MAX + 1);
--	return kasprintf(GFP_KERNEL, "%s(%d:%s)", root_cache->name,
--			 memcg_cache_id(memcg), buf);
--}
--
- int memcg_alloc_cache_params(struct mem_cgroup *memcg, struct kmem_cache *s,
- 			     struct kmem_cache *root_cache)
- {
-@@ -3158,6 +3135,7 @@ void memcg_free_cache_params(struct kmem
- static void memcg_kmem_create_cache(struct mem_cgroup *memcg,
- 				    struct kmem_cache *root_cache)
- {
-+	static char *memcg_name_buf;	/* protected by memcg_slab_mutex */
- 	struct kmem_cache *cachep;
- 	int id;
- 
-@@ -3173,7 +3151,14 @@ static void memcg_kmem_create_cache(stru
- 	if (cache_from_memcg_idx(root_cache, id))
- 		return;
- 
--	cachep = kmem_cache_create_memcg(memcg, root_cache);
-+	if (!memcg_name_buf) {
-+		memcg_name_buf = kmalloc(NAME_MAX + 1, GFP_KERNEL);
-+		if (!memcg_name_buf)
-+			return;
-+	}
+ /*
+- * We cannot control nr_migratepages and nr_freepages fully when migration is
+- * running as migrate_pages() has no knowledge of compact_control. When
+- * migration is complete, we count the number of pages on the lists by hand.
++ * This is a migrate-callback that "frees" freepages back to the isolated
++ * freelist.  All pages on the freelist are from the same zone, so there is no
++ * special handling needed for NUMA.
++ */
++static void compaction_free(struct page *page, unsigned long data)
++{
++	struct compact_control *cc = (struct compact_control *)data;
 +
-+	cgroup_name(memcg->css.cgroup, memcg_name_buf, NAME_MAX + 1);
-+	cachep = kmem_cache_create_memcg(memcg, root_cache, memcg_name_buf);
- 	/*
- 	 * If we could not create a memcg cache, do not complain, because
- 	 * that's not critical at all as we can always proceed with the root
-diff -puN mm/slab_common.c~memcg-get-rid-of-memcg_create_cache_name mm/slab_common.c
---- a/mm/slab_common.c~memcg-get-rid-of-memcg_create_cache_name
-+++ a/mm/slab_common.c
-@@ -264,13 +264,15 @@ EXPORT_SYMBOL(kmem_cache_create);
-  * kmem_cache_create_memcg - Create a cache for a memory cgroup.
-  * @memcg: The memory cgroup the new cache is for.
-  * @root_cache: The parent of the new cache.
-+ * @memcg_name: The name of the memory cgroup (used for naming the new cache).
-  *
-  * This function attempts to create a kmem cache that will serve allocation
-  * requests going from @memcg to @root_cache. The new cache inherits properties
-  * from its parent.
++	list_add(&page->lru, &cc->freepages);
++	cc->nr_freepages++;
++}
++
++/*
++ * We cannot control nr_migratepages fully when migration is running as
++ * migrate_pages() has no knowledge of of compact_control.  When migration is
++ * complete, we count the number of pages on the list by hand.
   */
- struct kmem_cache *kmem_cache_create_memcg(struct mem_cgroup *memcg,
--					   struct kmem_cache *root_cache)
-+					   struct kmem_cache *root_cache,
-+					   const char *memcg_name)
+ static void update_nr_listpages(struct compact_control *cc)
  {
- 	struct kmem_cache *s = NULL;
- 	char *cache_name;
-@@ -280,7 +282,8 @@ struct kmem_cache *kmem_cache_create_mem
+ 	int nr_migratepages = 0;
+-	int nr_freepages = 0;
+ 	struct page *page;
  
- 	mutex_lock(&slab_mutex);
+ 	list_for_each_entry(page, &cc->migratepages, lru)
+ 		nr_migratepages++;
+-	list_for_each_entry(page, &cc->freepages, lru)
+-		nr_freepages++;
  
--	cache_name = memcg_create_cache_name(memcg, root_cache);
-+	cache_name = kasprintf(GFP_KERNEL, "%s(%d:%s)", root_cache->name,
-+			       memcg_cache_id(memcg), memcg_name);
- 	if (!cache_name)
- 		goto out_unlock;
+ 	cc->nr_migratepages = nr_migratepages;
+-	cc->nr_freepages = nr_freepages;
+ }
  
+ /* possible outcome of isolate_migratepages */
+@@ -1016,8 +1025,8 @@ static int compact_zone(struct zone *zon
+ 		}
+ 
+ 		nr_migrate = cc->nr_migratepages;
+-		err = migrate_pages(&cc->migratepages, compaction_alloc, NULL,
+-				(unsigned long)cc,
++		err = migrate_pages(&cc->migratepages, compaction_alloc,
++				compaction_free, (unsigned long)cc,
+ 				cc->sync ? MIGRATE_SYNC_LIGHT : MIGRATE_ASYNC,
+ 				MR_COMPACTION);
+ 		update_nr_listpages(cc);
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
 
