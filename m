@@ -1,99 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sync-only-the-requested-range-in-msync.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 12:53:13 -0700
-Message-ID: <5390caa9.QMMyGpwyjyJY1sz4%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-superblock-unregister-sb-shrinker-before-kill_sb.patch removed from -mm
+ tree
+Date: Thu, 05 Jun 2014 12:53:17 -0700
+Message-ID: <5390caad.jzWT5QQbIuO2k5IV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56555 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56566 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751671AbaFETxO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:14 -0400
+	with ESMTP id S1751871AbaFETxS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jmoyer@redhat.com, hch@lst.de, clm@fb.com, matthew.r.wilcox@intel.com
+To: mm-commits@vger.kernel.org, yuanhan.liu@linux.intel.com, viro@zeniv.linux.org.uk, tim.c.chen@linux.intel.com, riel@redhat.com, mgorman@suse.de, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, bob.liu@oracle.com, david@fromorbit.com
 
-Subject: [merged] sync-only-the-requested-range-in-msync.patch removed from -mm tree
-To: matthew.r.wilcox@intel.com,clm@fb.com,hch@lst.de,jmoyer@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-superblock-unregister-sb-shrinker-before-kill_sb.patch removed from -mm tree
+To: david@fromorbit.com,bob.liu@oracle.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,mgorman@suse.de,riel@redhat.com,tim.c.chen@linux.intel.com,viro@zeniv.linux.org.uk,yuanhan.liu@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:53:13 -0700
+Date: Thu, 05 Jun 2014 12:53:17 -0700
 
 
 The patch titled
-     Subject: mm/msync.c: sync only the requested range in msync()
+     Subject: fs/superblock: unregister sb shrinker before ->kill_sb()
 has been removed from the -mm tree.  Its filename was
-     sync-only-the-requested-range-in-msync.patch
+     fs-superblock-unregister-sb-shrinker-before-kill_sb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: mm/msync.c: sync only the requested range in msync()
+From: Dave Chinner <david@fromorbit.com>
+Subject: fs/superblock: unregister sb shrinker before ->kill_sb()
 
-msync() currently syncs more than POSIX requires or BSD or Solaris
-implement.  It is supposed to be equivalent to fdatasync(), not fsync(),
-and it is only supposed to sync the portion of the file that overlaps the
-range passed to msync.
+This series is aimed at regressions noticed during reclaim activity.  The
+first two patches are shrinker patches that were posted ages ago but never
+merged for reasons that are unclear to me.  I'm posting them again to see
+if there was a reason they were dropped or if they just got lost.  Dave? 
+Time?  The last patch adjusts proportional reclaim.  Yuanhan Liu, can you
+retest the vm scalability test cases on a larger machine?  Hugh, does this
+work for you on the memcg test cases?
 
-If the VMA is non-linear, fall back to syncing the entire file, but we
-still optimise to only fdatasync() the entire file, not the full fsync().
+Based on ext4, I get the following results but unfortunately my larger
+test machines are all unavailable so this is based on a relatively small
+machine.
 
-akpm: there are obvious concerns with bck-compatibility: is anyone relying
-on the undocumented side-effect for their data integrity?  And how would
-they ever know if this change broke their data integrity?
+postmark
+                                  3.15.0-rc5            3.15.0-rc5
+                                     vanilla       proportion-v1r4
+Ops/sec Transactions         21.00 (  0.00%)       25.00 ( 19.05%)
+Ops/sec FilesCreate          39.00 (  0.00%)       45.00 ( 15.38%)
+Ops/sec CreateTransact       10.00 (  0.00%)       12.00 ( 20.00%)
+Ops/sec FilesDeleted       6202.00 (  0.00%)     6202.00 (  0.00%)
+Ops/sec DeleteTransact       11.00 (  0.00%)       12.00 (  9.09%)
+Ops/sec DataRead/MB          25.97 (  0.00%)       30.02 ( 15.59%)
+Ops/sec DataWrite/MB         49.99 (  0.00%)       57.78 ( 15.58%)
 
-We think the risk is reasonably low, and this patch brings the kernel into
-line with other OS's and with what the manpage has always said...
+ffsb (mail server simulator)
+                                 3.15.0-rc5             3.15.0-rc5
+                                    vanilla        proportion-v1r4
+Ops/sec readall           9402.63 (  0.00%)      9805.74 (  4.29%)
+Ops/sec create            4695.45 (  0.00%)      4781.39 (  1.83%)
+Ops/sec delete             173.72 (  0.00%)       177.23 (  2.02%)
+Ops/sec Transactions     14271.80 (  0.00%)     14764.37 (  3.45%)
+Ops/sec Read                37.00 (  0.00%)        38.50 (  4.05%)
+Ops/sec Write               18.20 (  0.00%)        18.50 (  1.65%)
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Chris Mason <clm@fb.com>
+dd of a large file
+                                3.15.0-rc5            3.15.0-rc5
+                                   vanilla       proportion-v1r4
+WallTime DownloadTar       75.00 (  0.00%)       61.00 ( 18.67%)
+WallTime DD               423.00 (  0.00%)      401.00 (  5.20%)
+WallTime Delete             2.00 (  0.00%)        5.00 (-150.00%)
+
+stutter (times mmap latency during large amounts of IO)
+
+                            3.15.0-rc5            3.15.0-rc5
+                               vanilla       proportion-v1r4
+Unit >5ms Delays  80252.0000 (  0.00%)  81523.0000 ( -1.58%)
+Unit Mmap min         8.2118 (  0.00%)      8.3206 ( -1.33%)
+Unit Mmap mean       17.4614 (  0.00%)     17.2868 (  1.00%)
+Unit Mmap stddev     24.9059 (  0.00%)     34.6771 (-39.23%)
+Unit Mmap max      2811.6433 (  0.00%)   2645.1398 (  5.92%)
+Unit Mmap 90%        20.5098 (  0.00%)     18.3105 ( 10.72%)
+Unit Mmap 93%        22.9180 (  0.00%)     20.1751 ( 11.97%)
+Unit Mmap 95%        25.2114 (  0.00%)     22.4988 ( 10.76%)
+Unit Mmap 99%        46.1430 (  0.00%)     43.5952 (  5.52%)
+Unit Ideal  Tput     85.2623 (  0.00%)     78.8906 (  7.47%)
+Unit Tput min        44.0666 (  0.00%)     43.9609 (  0.24%)
+Unit Tput mean       45.5646 (  0.00%)     45.2009 (  0.80%)
+Unit Tput stddev      0.9318 (  0.00%)      1.1084 (-18.95%)
+Unit Tput max        46.7375 (  0.00%)     46.7539 ( -0.04%)
+
+
+
+This patch (of 3):
+
+We will like to unregister the sb shrinker before ->kill_sb().  This will
+allow cached objects to be counted without call to grab_super_passive() to
+update ref count on sb.  We want to avoid locking during memory
+reclamation especially when we are skipping the memory reclaim when we are
+out of cached objects.
+
+This is safe because grab_super_passive does a try-lock on the
+sb->s_umount now, and so if we are in the unmount process, it won't ever
+block.  That means what used to be a deadlock and races we were avoiding
+by using grab_super_passive() is now:
+
+        shrinker                        umount
+
+        down_read(shrinker_rwsem)
+                                        down_write(sb->s_umount)
+                                        shrinker_unregister
+                                          down_write(shrinker_rwsem)
+                                            <blocks>
+        grab_super_passive(sb)
+          down_read_trylock(sb->s_umount)
+            <fails>
+        <shrinker aborts>
+        ....
+        <shrinkers finish running>
+        up_read(shrinker_rwsem)
+                                          <unblocks>
+                                          <removes shrinker>
+                                          up_write(shrinker_rwsem)
+                                        ->kill_sb()
+                                        ....
+
+So it is safe to deregister the shrinker before ->kill_sb().
+
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Tested-by: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Cc: Bob Liu <bob.liu@oracle.com>
+Cc: Jan Kara <jack@suse.cz>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/msync.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ fs/super.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/msync.c~sync-only-the-requested-range-in-msync mm/msync.c
---- a/mm/msync.c~sync-only-the-requested-range-in-msync
-+++ a/mm/msync.c
-@@ -58,6 +58,7 @@ SYSCALL_DEFINE3(msync, unsigned long, st
- 	vma = find_vma(mm, start);
- 	for (;;) {
- 		struct file *file;
-+		loff_t fstart, fend;
- 
- 		/* Still start < end. */
- 		error = -ENOMEM;
-@@ -77,12 +78,17 @@ SYSCALL_DEFINE3(msync, unsigned long, st
- 			goto out_unlock;
- 		}
- 		file = vma->vm_file;
-+		fstart = start + ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
-+		fend = fstart + (min(end, vma->vm_end) - start) - 1;
- 		start = vma->vm_end;
- 		if ((flags & MS_SYNC) && file &&
- 				(vma->vm_flags & VM_SHARED)) {
- 			get_file(file);
- 			up_read(&mm->mmap_sem);
--			error = vfs_fsync(file, 0);
-+			if (vma->vm_flags & VM_NONLINEAR)
-+				error = vfs_fsync(file, 1);
-+			else
-+				error = vfs_fsync_range(file, fstart, fend, 1);
- 			fput(file);
- 			if (error || start >= end)
- 				goto out;
-_
-
-Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
-
-origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-linux-next.patch
-
+diff -puN fs/super.c~fs-superblock-unregister-sb-shrinker-before-kill_sb fs/super.c
+--- a/fs/super.c~fs-superblock-unregister-sb-shrinker-before-kill_sb
++++ a/fs/super.c
+@@ -276,10 +276,8 @@ void deactivate_locked_super(struct supe
+ 	struct file_system_type *fs = s->s_type;
+ 	if (atomic_dec_and_test(&s->s_active)) {
+ 		cleancache_invalidate_fs(s);
+-		fs->kill_sb(s);
