@@ -1,236 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:51:19 -0700
-Message-ID: <5390ca37./fgEtzDjlOK+ItxC%akpm@linux-foundation.org>
+Subject: [merged] arch-x86-mm-numac-use-for_each_memblock.patch removed
+ from -mm tree
+Date: Thu, 05 Jun 2014 12:51:29 -0700
+Message-ID: <5390ca41.96bnOdHlLg/g0sNL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56127 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56159 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834AbaFETvU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:20 -0400
+	with ESMTP id S1751712AbaFETva (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, Emilian.Medve@Freescale.com
 
-Subject: [merged] mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [merged] arch-x86-mm-numac-use-for_each_memblock.patch removed from -mm tree
+To: Emilian.Medve@Freescale.com,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de,yinghai@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:19 -0700
+Date: Thu, 05 Jun 2014 12:51:29 -0700
 
 
 The patch titled
-     Subject: mm: extract code to fault in a page from __get_user_pages()
+     Subject: arch/x86/mm/numa.c: use for_each_memblock()
 has been removed from the -mm tree.  Its filename was
-     mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch
+     arch-x86-mm-numac-use-for_each_memblock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: extract code to fault in a page from __get_user_pages()
+From: Emil Medve <Emilian.Medve@Freescale.com>
+Subject: arch/x86/mm/numa.c: use for_each_memblock()
 
-Nesting level in __get_user_pages() is just insane. Let's try to fix it
-a bit.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Emil Medve <Emilian.Medve@Freescale.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  138 +++++++++++++++++++++++++++--------------------------
- 1 file changed, 71 insertions(+), 67 deletions(-)
+ arch/x86/mm/numa.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages mm/gup.c
---- a/mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages
-+++ a/mm/gup.c
-@@ -214,12 +214,6 @@ struct page *follow_page_mask(struct vm_
- 	return follow_page_pte(vma, address, pmd, flags);
- }
+diff -puN arch/x86/mm/numa.c~arch-x86-mm-numac-use-for_each_memblock arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~arch-x86-mm-numac-use-for_each_memblock
++++ a/arch/x86/mm/numa.c
+@@ -559,7 +559,7 @@ static void __init numa_clear_kernel_nod
+ 	int i, nid;
+ 	nodemask_t numa_kernel_nodes = NODE_MASK_NONE;
+ 	unsigned long start, end;
+-	struct memblock_type *type = &memblock.reserved;
++	struct memblock_region *r;
  
--static inline int stack_guard_page(struct vm_area_struct *vma, unsigned long addr)
--{
--	return stack_guard_page_start(vma, addr) ||
--	       stack_guard_page_end(vma, addr+PAGE_SIZE);
--}
--
- static int get_gate_page(struct mm_struct *mm, unsigned long address,
- 		unsigned int gup_flags, struct vm_area_struct **vma,
- 		struct page **page)
-@@ -264,6 +258,63 @@ unmap:
- 	return ret;
- }
+ 	/*
+ 	 * At this time, all memory regions reserved by memblock are
+@@ -573,8 +573,8 @@ static void __init numa_clear_kernel_nod
+ 	}
  
-+static int faultin_page(struct task_struct *tsk, struct vm_area_struct *vma,
-+		unsigned long address, unsigned int *flags, int *nonblocking)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	unsigned int fault_flags = 0;
-+	int ret;
-+
-+	/* For mlock, just skip the stack guard page. */
-+	if ((*flags & FOLL_MLOCK) &&
-+			(stack_guard_page_start(vma, address) ||
-+			 stack_guard_page_end(vma, address + PAGE_SIZE)))
-+		return -ENOENT;
-+	if (*flags & FOLL_WRITE)
-+		fault_flags |= FAULT_FLAG_WRITE;
-+	if (nonblocking)
-+		fault_flags |= FAULT_FLAG_ALLOW_RETRY;
-+	if (*flags & FOLL_NOWAIT)
-+		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_RETRY_NOWAIT;
-+
-+	ret = handle_mm_fault(mm, vma, address, fault_flags);
-+	if (ret & VM_FAULT_ERROR) {
-+		if (ret & VM_FAULT_OOM)
-+			return -ENOMEM;
-+		if (ret & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
-+			return *flags & FOLL_HWPOISON ? -EHWPOISON : -EFAULT;
-+		if (ret & VM_FAULT_SIGBUS)
-+			return -EFAULT;
-+		BUG();
-+	}
-+
-+	if (tsk) {
-+		if (ret & VM_FAULT_MAJOR)
-+			tsk->maj_flt++;
-+		else
-+			tsk->min_flt++;
-+	}
-+
-+	if (ret & VM_FAULT_RETRY) {
-+		if (nonblocking)
-+			*nonblocking = 0;
-+		return -EBUSY;
-+	}
-+
-+	/*
-+	 * The VM_FAULT_WRITE bit tells us that do_wp_page has broken COW when
-+	 * necessary, even if maybe_mkwrite decided not to set pte_write. We
-+	 * can thus safely do subsequent page lookups as if they were reads.
-+	 * But only do so when looping for pte_write is futile: in some cases
-+	 * userspace may also be wanting to write to the gotten user page,
-+	 * which a read fault here might prevent (a readonly page might get
-+	 * reCOWed by userspace write).
-+	 */
-+	if ((ret & VM_FAULT_WRITE) && !(vma->vm_flags & VM_WRITE))
-+		*flags &= ~FOLL_WRITE;
-+	return 0;
-+}
-+
- /**
-  * __get_user_pages() - pin user pages in memory
-  * @tsk:	task_struct of target task
-@@ -410,69 +461,22 @@ long __get_user_pages(struct task_struct
- 			while (!(page = follow_page_mask(vma, start,
- 						foll_flags, &page_mask))) {
- 				int ret;
--				unsigned int fault_flags = 0;
--
--				/* For mlock, just skip the stack guard page. */
--				if (foll_flags & FOLL_MLOCK) {
--					if (stack_guard_page(vma, start))
--						goto next_page;
--				}
--				if (foll_flags & FOLL_WRITE)
--					fault_flags |= FAULT_FLAG_WRITE;
--				if (nonblocking)
--					fault_flags |= FAULT_FLAG_ALLOW_RETRY;
--				if (foll_flags & FOLL_NOWAIT)
--					fault_flags |= (FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_RETRY_NOWAIT);
--
--				ret = handle_mm_fault(mm, vma, start,
--							fault_flags);
--
--				if (ret & VM_FAULT_ERROR) {
--					if (ret & VM_FAULT_OOM)
--						return i ? i : -ENOMEM;
--					if (ret & (VM_FAULT_HWPOISON |
--						   VM_FAULT_HWPOISON_LARGE)) {
--						if (i)
--							return i;
--						else if (gup_flags & FOLL_HWPOISON)
--							return -EHWPOISON;
--						else
--							return -EFAULT;
--					}
--					if (ret & VM_FAULT_SIGBUS)
--						goto efault;
--					BUG();
--				}
--
--				if (tsk) {
--					if (ret & VM_FAULT_MAJOR)
--						tsk->maj_flt++;
--					else
--						tsk->min_flt++;
--				}
--
--				if (ret & VM_FAULT_RETRY) {
--					if (nonblocking)
--						*nonblocking = 0;
-+				ret = faultin_page(tsk, vma, start, &foll_flags,
-+						nonblocking);
-+				switch (ret) {
-+				case 0:
-+					break;
-+				case -EFAULT:
-+				case -ENOMEM:
-+				case -EHWPOISON:
-+					return i ? i : ret;
-+				case -EBUSY:
- 					return i;
-+				case -ENOENT:
-+					goto next_page;
-+				default:
-+					BUG();
- 				}
--
--				/*
--				 * The VM_FAULT_WRITE bit tells us that
--				 * do_wp_page has broken COW when necessary,
--				 * even if maybe_mkwrite decided not to set
--				 * pte_write. We can thus safely do subsequent
--				 * page lookups as if they were reads. But only
--				 * do so when looping for pte_write is futile:
--				 * in some cases userspace may also be wanting
--				 * to write to the gotten user page, which a
--				 * read fault here might prevent (a readonly
--				 * page might get reCOWed by userspace write).
--				 */
--				if ((ret & VM_FAULT_WRITE) &&
--				    !(vma->vm_flags & VM_WRITE))
--					foll_flags &= ~FOLL_WRITE;
--
- 				cond_resched();
- 			}
- 			if (IS_ERR(page))
+ 	/* Mark all kernel nodes. */
+-	for (i = 0; i < type->cnt; i++)
+-		node_set(type->regions[i].nid, numa_kernel_nodes);
++	for_each_memblock(reserved, r)
++		node_set(r->nid, numa_kernel_nodes);
+ 
+ 	/* Clear MEMBLOCK_HOTPLUG flag for memory in kernel nodes. */
+ 	for (i = 0; i < numa_meminfo.nr_blks; i++) {
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from Emilian.Medve@Freescale.com are
 
 origin.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-update-page-table-walker-core-fix.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-prom-pid-clear_refs-avoid-split_huge_page.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
-mm-mark-remap_file_pages-syscall-as-deprecated.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
