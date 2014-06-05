@@ -1,167 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 12:49:55 -0700
-Message-ID: <5390c9e3.r3pwzeJXceaoaxIe%akpm@linux-foundation.org>
+Subject: [merged] mm-compaction-clean-up-unused-code-lines.patch removed
+ from -mm tree
+Date: Thu, 05 Jun 2014 12:49:57 -0700
+Message-ID: <5390c9e5.3sschTOfYbrSPY3X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55906 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55922 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752430AbaFETt4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:56 -0400
+	with ESMTP id S1752430AbaFETt6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ytk.lee@samsung.com, riel@redhat.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, m.szyprowski@samsung.com, kosaki.motohiro@jp.fujitsu.com, iamjoonsoo.kim@lge.com, hughd@google.com, b.zolnierkie@samsung.com, Yalin.Wang@sonymobile.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, sunghwan.yun@samsung.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, d.j.shin@samsung.com, cl@linux.com, b.zolnierkie@samsung.com, heesub.shin@samsung.com
 
-Subject: [merged] mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch removed from -mm tree
-To: vbabka@suse.cz,Yalin.Wang@sonymobile.com,b.zolnierkie@samsung.com,hughd@google.com,iamjoonsoo.kim@lge.com,kosaki.motohiro@jp.fujitsu.com,m.szyprowski@samsung.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,riel@redhat.com,ytk.lee@samsung.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-compaction-clean-up-unused-code-lines.patch removed from -mm tree
+To: heesub.shin@samsung.com,b.zolnierkie@samsung.com,cl@linux.com,d.j.shin@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,sunghwan.yun@samsung.com,vbabka@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:49:55 -0700
+Date: Thu, 05 Jun 2014 12:49:57 -0700
 
 
 The patch titled
-     Subject: mm/page_alloc: prevent MIGRATE_RESERVE pages from being misplaced
+     Subject: mm/compaction: clean up unused code lines
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+     mm-compaction-clean-up-unused-code-lines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/page_alloc: prevent MIGRATE_RESERVE pages from being misplaced
+From: Heesub Shin <heesub.shin@samsung.com>
+Subject: mm/compaction: clean up unused code lines
 
-For the MIGRATE_RESERVE pages, it is useful when they do not get misplaced
-on free_list of other migratetype, otherwise they might get allocated
-prematurely and e.g.  fragment the MIGRATE_RESEVE pageblocks.  While this
-cannot be avoided completely when allocating new MIGRATE_RESERVE
-pageblocks in min_free_kbytes sysctl handler, we should prevent the
-misplacement where possible.
+Remove code lines currently not in use or never called.
 
-Currently, it is possible for the misplacement to happen when a
-MIGRATE_RESERVE page is allocated on pcplist through rmqueue_bulk() as a
-fallback for other desired migratetype, and then later freed back through
-free_pcppages_bulk() without being actually used.  This happens because
-free_pcppages_bulk() uses get_freepage_migratetype() to choose the
-free_list, and rmqueue_bulk() calls set_freepage_migratetype() with the
-*desired* migratetype and not the page's original MIGRATE_RESERVE
-migratetype.
-
-This patch fixes the problem by moving the call to
-set_freepage_migratetype() from rmqueue_bulk() down to
-__rmqueue_smallest() and __rmqueue_fallback() where the actual page's
-migratetype (e.g.  from which free_list the page is taken from) is used. 
-Note that this migratetype might be different from the pageblock's
-migratetype due to freepage stealing decisions.  This is OK, as page
-stealing never uses MIGRATE_RESERVE as a fallback, and also takes care to
-leave all MIGRATE_CMA pages on the correct freelist.
-
-Therefore, as an additional benefit, the call to
-get_pageblock_migratetype() from rmqueue_bulk() when CMA is enabled, can
-be removed completely.  This relies on the fact that MIGRATE_CMA
-pageblocks are created only during system init, and the above.  The
-related is_migrate_isolate() check is also unnecessary, as memory
-isolation has other ways to move pages between freelists, and drain pcp
-lists containing pages that should be isolated.  The buffered_rmqueue()
-can also benefit from calling get_freepage_migratetype() instead of
-get_pageblock_migratetype().
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Yong-Taek Lee <ytk.lee@samsung.com>
-Reported-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Suggested-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Suggested-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Heesub Shin <heesub.shin@samsung.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dongjun Shin <d.j.shin@samsung.com>
+Cc: Sunghwan Yun <sunghwan.yun@samsung.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: "Wang, Yalin" <Yalin.Wang@sonymobile.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Dongjun Shin <d.j.shin@samsung.com>
+Cc: Sunghwan Yun <sunghwan.yun@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ mm/compaction.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced
-+++ a/mm/page_alloc.c
-@@ -931,6 +931,7 @@ struct page *__rmqueue_smallest(struct z
- 		rmv_page_order(page);
- 		area->nr_free--;
- 		expand(zone, page, order, current_order, area, migratetype);
-+		set_freepage_migratetype(page, migratetype);
- 		return page;
- 	}
+diff -puN mm/compaction.c~mm-compaction-clean-up-unused-code-lines mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-clean-up-unused-code-lines
++++ a/mm/compaction.c
+@@ -208,12 +208,6 @@ static bool compact_checklock_irqsave(sp
+ 	return true;
+ }
  
-@@ -1057,7 +1058,9 @@ static int try_to_steal_freepages(struct
- 
- 	/*
- 	 * When borrowing from MIGRATE_CMA, we need to release the excess
--	 * buddy pages to CMA itself.
-+	 * buddy pages to CMA itself. We also ensure the freepage_migratetype
-+	 * is set to CMA so it is returned to the correct freelist in case
-+	 * the page ends up being not actually allocated from the pcp lists.
- 	 */
- 	if (is_migrate_cma(fallback_type))
- 		return fallback_type;
-@@ -1125,6 +1128,12 @@ __rmqueue_fallback(struct zone *zone, in
- 
- 			expand(zone, page, order, current_order, area,
- 			       new_type);
-+			/* The freepage_migratetype may differ from pageblock's
-+			 * migratetype depending on the decisions in
-+			 * try_to_steal_freepages. This is OK as long as it does
-+			 * not differ for MIGRATE_CMA type.
-+			 */
-+			set_freepage_migratetype(page, new_type);
- 
- 			trace_mm_page_alloc_extfrag(page, order, current_order,
- 				start_migratetype, migratetype, new_type);
-@@ -1175,7 +1184,7 @@ static int rmqueue_bulk(struct zone *zon
- 			unsigned long count, struct list_head *list,
- 			int migratetype, int cold)
+-static inline bool compact_trylock_irqsave(spinlock_t *lock,
+-			unsigned long *flags, struct compact_control *cc)
+-{
+-	return compact_checklock_irqsave(lock, flags, false, cc);
+-}
+-
+ /* Returns true if the page is within a block suitable for migration to */
+ static bool suitable_migration_target(struct page *page)
  {
--	int mt = migratetype, i;
-+	int i;
+@@ -736,7 +730,6 @@ static void isolate_freepages(struct zon
+ 			continue;
  
- 	spin_lock(&zone->lock);
- 	for (i = 0; i < count; ++i) {
-@@ -1196,14 +1205,8 @@ static int rmqueue_bulk(struct zone *zon
- 			list_add(&page->lru, list);
- 		else
- 			list_add_tail(&page->lru, list);
--		if (IS_ENABLED(CONFIG_CMA)) {
--			mt = get_pageblock_migratetype(page);
--			if (!is_migrate_cma(mt) && !is_migrate_isolate(mt))
--				mt = migratetype;
--		}
--		set_freepage_migratetype(page, mt);
- 		list = &page->lru;
--		if (is_migrate_cma(mt))
-+		if (is_migrate_cma(get_freepage_migratetype(page)))
- 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
- 					      -(1 << order));
- 	}
-@@ -1572,7 +1575,7 @@ again:
- 		if (!page)
- 			goto failed;
- 		__mod_zone_freepage_state(zone, -(1 << order),
--					  get_pageblock_migratetype(page));
-+					  get_freepage_migratetype(page));
- 	}
+ 		/* Found a block suitable for isolating free pages from */
+-		isolated = 0;
  
- 	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
+ 		/*
+ 		 * Take care when isolating in last pageblock of a zone which
+@@ -1165,9 +1158,6 @@ static void __compact_pgdat(pg_data_t *p
+ 			if (zone_watermark_ok(zone, cc->order,
+ 						low_wmark_pages(zone), 0, 0))
+ 				compaction_defer_reset(zone, cc->order, false);
+-			/* Currently async compaction is never deferred. */
+-			else if (cc->sync)
+-				defer_compaction(zone, cc->order);
+ 		}
+ 
+ 		VM_BUG_ON(!list_empty(&cc->freepages));
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from heesub.shin@samsung.com are
 
 origin.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
 linux-next.patch
 
