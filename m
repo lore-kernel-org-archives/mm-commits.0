@@ -1,116 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 12:53:07 -0700
-Message-ID: <5390caa3.08TgYg6XQZNiXD2y%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:53:09 -0700
+Message-ID: <5390caa5.8IyjDfDOM1sbVYqa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56528 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56536 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752156AbaFETxH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:07 -0400
+	with ESMTP id S1751871AbaFETxK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, swarren@nvidia.com, shawn.guo@linaro.org, sfr@canb.auug.org.au, rientjes@google.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, khilman@linaro.org, iamjoonsoo.kim@lge.com, fabio.estevam@freescale.com, cl@linux.com, b.zolnierkie@samsung.com, vbabka@suse.cz
 
-Subject: [merged] fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch removed from -mm tree
-To: fabf@skynet.be,mm-commits@vger.kernel.org
+Subject: [merged] mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch removed from -mm tree
+To: vbabka@suse.cz,b.zolnierkie@samsung.com,cl@linux.com,fabio.estevam@freescale.com,iamjoonsoo.kim@lge.com,khilman@linaro.org,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,rientjes@google.com,sfr@canb.auug.org.au,shawn.guo@linaro.org,swarren@nvidia.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:53:07 -0700
+Date: Thu, 05 Jun 2014 12:53:09 -0700
 
 
 The patch titled
-     Subject: fs/hugetlbfs/inode.c: remove null test before kfree
+     Subject: mm, compaction: properly signal and act upon lock and need_sched() contention
 has been removed from the -mm tree.  Its filename was
-     fs-hugetlbfs-inodec-remove-null-test-before-kfree.patch
+     mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hugetlbfs/inode.c: remove null test before kfree
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: properly signal and act upon lock and need_sched() contention
 
-Fix checkpatch warning:
-WARNING: kfree(NULL) is safe this check is probably not required
+Compaction uses compact_checklock_irqsave() function to periodically check
+for lock contention and need_resched() to either abort async compaction,
+or to free the lock, schedule and retake the lock.  When aborting,
+cc->contended is set to signal the contended state to the caller.  Two
+problems have been identified in this mechanism.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+First, compaction also calls directly cond_resched() in both scanners when
+no lock is yet taken.  This call either does not abort async compaction,
+or set cc->contended appropriately.  This patch introduces a new
+compact_should_abort() function to achieve both.  In isolate_freepages(),
+the check frequency is reduced to once by SWAP_CLUSTER_MAX pageblocks to
+match what the migration scanner does in the preliminary page checks.  In
+case a pageblock is found suitable for calling isolate_freepages_block(),
+the checks within there are done on higher frequency.
+
+Second, isolate_freepages() does not check if isolate_freepages_block()
+aborted due to contention, and advances to the next pageblock.  This
+violates the principle of aborting on contention, and might result in
+pageblocks not being scanned completely, since the scanning cursor is
+advanced.  This problem has been noticed in the code by Joonsoo Kim when
+reviewing related patches.  This patch makes isolate_freepages_block()
+check the cc->contended flag and abort.
+
+In case isolate_freepages() has already isolated some pages before
+aborting due to contention, page migration will proceed, which is OK since
+we do not want to waste the work that has been done, and page migration
+has own checks for contention.  However, we do not want another isolation
+attempt by either of the scanners, so cc->contended flag check is added
+also to compaction_alloc() and compact_finished() to make sure compaction
+is aborted right after the migration.
+
+The outcome of the patch should be reduced lock contention by async
+compaction and lower latencies for higher-order allocations where direct
+compaction is involved.
+
+[akpm@linux-foundation.org: fix typo in comment]
+Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Tested-by: Shawn Guo <shawn.guo@linaro.org>
+Tested-by: Kevin Hilman <khilman@linaro.org>
+Tested-by: Stephen Warren <swarren@nvidia.com>
+Tested-by: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/compaction.c |   54 +++++++++++++++++++++++++++++++++++++---------
+ mm/internal.h   |    5 +++-
+ 2 files changed, 48 insertions(+), 11 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-remove-null-test-before-kfree fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-remove-null-test-before-kfree
-+++ a/fs/hugetlbfs/inode.c
-@@ -901,8 +901,7 @@ hugetlbfs_fill_super(struct super_block
- 		goto out_free;
- 	return 0;
- out_free:
--	if (sbinfo->spool)
--		kfree(sbinfo->spool);
-+	kfree(sbinfo->spool);
- 	kfree(sbinfo);
- 	return -ENOMEM;
+diff -puN mm/compaction.c~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention
++++ a/mm/compaction.c
+@@ -222,6 +222,30 @@ static bool compact_checklock_irqsave(sp
+ 	return true;
  }
+ 
++/*
++ * Aside from avoiding lock contention, compaction also periodically checks
++ * need_resched() and either schedules in sync compaction or aborts async
++ * compaction. This is similar to what compact_checklock_irqsave() does, but
++ * is used where no lock is concerned.
++ *
++ * Returns false when no scheduling was needed, or sync compaction scheduled.
++ * Returns true when async compaction should abort.
++ */
++static inline bool compact_should_abort(struct compact_control *cc)
++{
++	/* async compaction aborts if contended */
++	if (need_resched()) {
++		if (cc->mode == MIGRATE_ASYNC) {
++			cc->contended = true;
++			return true;
++		}
++
++		cond_resched();
++	}
++
++	return false;
++}
++
+ /* Returns true if the page is within a block suitable for migration to */
+ static bool suitable_migration_target(struct page *page)
+ {
+@@ -494,11 +518,8 @@ isolate_migratepages_range(struct zone *
+ 			return 0;
+ 	}
+ 
+-	if (cond_resched()) {
+-		/* Async terminates prematurely on need_resched() */
+-		if (cc->mode == MIGRATE_ASYNC)
+-			return 0;
+-	}
++	if (compact_should_abort(cc))
++		return 0;
+ 
+ 	/* Time to isolate some pages for migration */
+ 	for (; low_pfn < end_pfn; low_pfn++) {
+@@ -720,9 +741,11 @@ static void isolate_freepages(struct zon
+ 		/*
+ 		 * This can iterate a massively long zone without finding any
+ 		 * suitable migration targets, so periodically check if we need
+-		 * to schedule.
++		 * to schedule, or even abort async compaction.
+ 		 */
+-		cond_resched();
++		if (!(block_start_pfn % (SWAP_CLUSTER_MAX * pageblock_nr_pages))
++						&& compact_should_abort(cc))
++			break;
+ 
+ 		if (!pfn_valid(block_start_pfn))
+ 			continue;
+@@ -760,6 +783,13 @@ static void isolate_freepages(struct zon
+ 		 */
+ 		if (isolated)
+ 			cc->finished_update_free = true;
++
++		/*
++		 * isolate_freepages_block() might have aborted due to async
++		 * compaction being contended
++		 */
++		if (cc->contended)
++			break;
+ 	}
+ 
+ 	/* split_free_page does not map the pages */
+@@ -786,9 +816,13 @@ static struct page *compaction_alloc(str
+ 	struct compact_control *cc = (struct compact_control *)data;
+ 	struct page *freepage;
+ 
+-	/* Isolate free pages if necessary */
++	/*
++	 * Isolate free pages if necessary, and if we are not aborting due to
++	 * contention.
++	 */
+ 	if (list_empty(&cc->freepages)) {
+-		isolate_freepages(cc->zone, cc);
++		if (!cc->contended)
++			isolate_freepages(cc->zone, cc);
+ 
+ 		if (list_empty(&cc->freepages))
+ 			return NULL;
+@@ -858,7 +892,7 @@ static int compact_finished(struct zone
+ 	unsigned int order;
+ 	unsigned long watermark;
+ 
+-	if (fatal_signal_pending(current))
++	if (cc->contended || fatal_signal_pending(current))
+ 		return COMPACT_PARTIAL;
+ 
+ 	/* Compaction run completes if the migrate and free scanner meet */
+diff -puN mm/internal.h~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention mm/internal.h
+--- a/mm/internal.h~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention
++++ a/mm/internal.h
+@@ -144,7 +144,10 @@ struct compact_control {
+ 	int order;			/* order a direct compactor needs */
+ 	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
+ 	struct zone *zone;
+-	bool contended;			/* True if a lock was contended */
++	bool contended;			/* True if a lock was contended, or
++					 * need_resched() true during async
++					 * compaction
++					 */
+ };
+ 
+ unsigned long
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 origin.patch
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-coda-replace-printk-by-pr_foo.patch
-fs-coda-logging-prefix-uniformization.patch
-fs-coda-use-__func__.patch
-fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
-fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
-fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
-fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
-fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-hpfs-convert-printk-to-pr_foo.patch
-fs-hpfs-use-pr_fmt-for-logging.patch
-fs-hpfs-use-__func__-for-logging.patch
-fs-hpfs-increase-pr_warn-level.patch
-documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
-fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
-fs-proc-vmcorec-remove-null-assignment-on-static.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
-fs-devpts-inodec-convert-printk-to-pr_foo.patch
-fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-fs-dlm-configc-convert-simple_str-to-kstr.patch
-fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
-fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
-mm-kmemleak-testc-use-pr_fmt-for-logging.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
 
