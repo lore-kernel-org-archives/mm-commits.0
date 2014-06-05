@@ -1,350 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cleanup-follow_page_mask.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:51:18 -0700
-Message-ID: <5390ca36.M+mRllGHA36yeheW%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:51:23 -0700
+Message-ID: <5390ca3b.dXAcBBNI8C/F3r/k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56125 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56153 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752757AbaFETvT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:19 -0400
+	with ESMTP id S1751712AbaFETv3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, xemul@parallels.com, torvalds@linux-foundation.org, steven@uplinklabs.net, riel@redhat.com, peterz@infradead.org, mingo@kernel.org, mgorman@suse.de, hpa@zytor.com, david.vrabel@citrix.com, gorcunov@openvz.org
 
-Subject: [merged] mm-cleanup-follow_page_mask.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch removed from -mm tree
+To: gorcunov@openvz.org,david.vrabel@citrix.com,hpa@zytor.com,mgorman@suse.de,mingo@kernel.org,peterz@infradead.org,riel@redhat.com,steven@uplinklabs.net,torvalds@linux-foundation.org,xemul@parallels.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:18 -0700
+Date: Thu, 05 Jun 2014 12:51:23 -0700
 
 
 The patch titled
-     Subject: mm: cleanup follow_page_mask()
+     Subject: mm: x86 pgtable: require X86_64 for soft-dirty tracker
 has been removed from the -mm tree.  Its filename was
-     mm-cleanup-follow_page_mask.patch
+     mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: cleanup follow_page_mask()
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: mm: x86 pgtable: require X86_64 for soft-dirty tracker
 
-Cleanups:
- - move pte-related code to separate function. It's about half of the
-   function;
- - get rid of some goto-logic;
- - use 'return NULL' instead of 'return page' where page can only be
-   NULL;
+Tracking dirty status on 2 level pages requires very ugly macros and
+taking into account how old the machines who can operate without PAE mode
+only are, lets drop soft dirty tracker from them for code simplicity (note
+I can't drop all the macros from 2 level pages by now since
+_PAGE_BIT_PROTNONE and _PAGE_BIT_FILE are still used even without
+tracker).
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Linus proposed to completely rip off softdirty support on x86-32 (even
+with PAE) and since for CRIU we're not planning to support native x86-32
+mode, lets do that.
+
+(Softdirty tracker is relatively new feature which is mostly used by CRIU
+so I don't expect if such API change would cause problems for userspace).
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Steven Noonan <steven@uplinklabs.net>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  231 +++++++++++++++++++++++++++--------------------------
- 1 file changed, 119 insertions(+), 112 deletions(-)
+ arch/x86/Kconfig                      |    2 
+ arch/x86/include/asm/pgtable-2level.h |   49 ------------------------
+ arch/x86/include/asm/pgtable.h        |    5 ++
+ 3 files changed, 6 insertions(+), 50 deletions(-)
 
-diff -puN mm/gup.c~mm-cleanup-follow_page_mask mm/gup.c
---- a/mm/gup.c~mm-cleanup-follow_page_mask
-+++ a/mm/gup.c
-@@ -12,105 +12,35 @@
- 
- #include "internal.h"
- 
--/**
-- * follow_page_mask - look up a page descriptor from a user-virtual address
-- * @vma: vm_area_struct mapping @address
-- * @address: virtual address to look up
-- * @flags: flags modifying lookup behaviour
-- * @page_mask: on output, *page_mask is set according to the size of the page
-- *
-- * @flags can have FOLL_ flags set, defined in <linux/mm.h>
-- *
-- * Returns the mapped (struct page *), %NULL if no mapping exists, or
-- * an error pointer if there is a mapping to something not represented
-- * by a page descriptor (see also vm_normal_page()).
-- */
--struct page *follow_page_mask(struct vm_area_struct *vma,
--			      unsigned long address, unsigned int flags,
--			      unsigned int *page_mask)
-+static struct page *no_page_table(struct vm_area_struct *vma,
-+		unsigned int flags)
- {
--	pgd_t *pgd;
--	pud_t *pud;
--	pmd_t *pmd;
--	pte_t *ptep, pte;
--	spinlock_t *ptl;
--	struct page *page;
--	struct mm_struct *mm = vma->vm_mm;
--
--	*page_mask = 0;
--
--	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
--	if (!IS_ERR(page)) {
--		BUG_ON(flags & FOLL_GET);
--		goto out;
--	}
--
--	page = NULL;
--	pgd = pgd_offset(mm, address);
--	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
--		goto no_page_table;
-+	/*
-+	 * When core dumping an enormous anonymous area that nobody
-+	 * has touched so far, we don't want to allocate unnecessary pages or
-+	 * page tables.  Return error instead of NULL to skip handle_mm_fault,
-+	 * then get_dump_page() will return NULL to leave a hole in the dump.
-+	 * But we can only make this optimization where a hole would surely
-+	 * be zero-filled if handle_mm_fault() actually did handle it.
-+	 */
-+	if ((flags & FOLL_DUMP) && (!vma->vm_ops || !vma->vm_ops->fault))
-+		return ERR_PTR(-EFAULT);
-+	return NULL;
-+}
- 
--	pud = pud_offset(pgd, address);
--	if (pud_none(*pud))
--		goto no_page_table;
--	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
--		if (flags & FOLL_GET)
--			goto out;
--		page = follow_huge_pud(mm, address, pud, flags & FOLL_WRITE);
--		goto out;
--	}
--	if (unlikely(pud_bad(*pud)))
--		goto no_page_table;
-+static struct page *follow_page_pte(struct vm_area_struct *vma,
-+		unsigned long address, pmd_t *pmd, unsigned int flags)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	struct page *page;
-+	spinlock_t *ptl;
-+	pte_t *ptep, pte;
- 
--	pmd = pmd_offset(pud, address);
--	if (pmd_none(*pmd))
--		goto no_page_table;
--	if (pmd_huge(*pmd) && vma->vm_flags & VM_HUGETLB) {
--		page = follow_huge_pmd(mm, address, pmd, flags & FOLL_WRITE);
--		if (flags & FOLL_GET) {
--			/*
--			 * Refcount on tail pages are not well-defined and
--			 * shouldn't be taken. The caller should handle a NULL
--			 * return when trying to follow tail pages.
--			 */
--			if (PageHead(page))
--				get_page(page);
--			else {
--				page = NULL;
--				goto out;
--			}
--		}
--		goto out;
--	}
--	if ((flags & FOLL_NUMA) && pmd_numa(*pmd))
--		goto no_page_table;
--	if (pmd_trans_huge(*pmd)) {
--		if (flags & FOLL_SPLIT) {
--			split_huge_page_pmd(vma, address, pmd);
--			goto split_fallthrough;
--		}
--		ptl = pmd_lock(mm, pmd);
--		if (likely(pmd_trans_huge(*pmd))) {
--			if (unlikely(pmd_trans_splitting(*pmd))) {
--				spin_unlock(ptl);
--				wait_split_huge_page(vma->anon_vma, pmd);
--			} else {
--				page = follow_trans_huge_pmd(vma, address,
--							     pmd, flags);
--				spin_unlock(ptl);
--				*page_mask = HPAGE_PMD_NR - 1;
--				goto out;
--			}
--		} else
--			spin_unlock(ptl);
--		/* fall through */
--	}
--split_fallthrough:
-+retry:
- 	if (unlikely(pmd_bad(*pmd)))
--		goto no_page_table;
-+		return no_page_table(vma, flags);
- 
- 	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
--
- 	pte = *ptep;
- 	if (!pte_present(pte)) {
- 		swp_entry_t entry;
-@@ -128,12 +58,14 @@ split_fallthrough:
- 			goto no_page;
- 		pte_unmap_unlock(ptep, ptl);
- 		migration_entry_wait(mm, pmd, address);
--		goto split_fallthrough;
-+		goto retry;
- 	}
- 	if ((flags & FOLL_NUMA) && pte_numa(pte))
- 		goto no_page;
--	if ((flags & FOLL_WRITE) && !pte_write(pte))
--		goto unlock;
-+	if ((flags & FOLL_WRITE) && !pte_write(pte)) {
-+		pte_unmap_unlock(ptep, ptl);
-+		return NULL;
-+	}
- 
- 	page = vm_normal_page(vma, address, pte);
- 	if (unlikely(!page)) {
-@@ -178,11 +110,8 @@ split_fallthrough:
- 			unlock_page(page);
- 		}
- 	}
--unlock:
- 	pte_unmap_unlock(ptep, ptl);
--out:
- 	return page;
--
- bad_page:
- 	pte_unmap_unlock(ptep, ptl);
- 	return ERR_PTR(-EFAULT);
-@@ -190,21 +119,99 @@ bad_page:
- no_page:
- 	pte_unmap_unlock(ptep, ptl);
- 	if (!pte_none(pte))
-+		return NULL;
-+	return no_page_table(vma, flags);
-+}
-+
-+/**
-+ * follow_page_mask - look up a page descriptor from a user-virtual address
-+ * @vma: vm_area_struct mapping @address
-+ * @address: virtual address to look up
-+ * @flags: flags modifying lookup behaviour
-+ * @page_mask: on output, *page_mask is set according to the size of the page
-+ *
-+ * @flags can have FOLL_ flags set, defined in <linux/mm.h>
-+ *
-+ * Returns the mapped (struct page *), %NULL if no mapping exists, or
-+ * an error pointer if there is a mapping to something not represented
-+ * by a page descriptor (see also vm_normal_page()).
-+ */
-+struct page *follow_page_mask(struct vm_area_struct *vma,
-+			      unsigned long address, unsigned int flags,
-+			      unsigned int *page_mask)
-+{
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	spinlock_t *ptl;
-+	struct page *page;
-+	struct mm_struct *mm = vma->vm_mm;
-+
-+	*page_mask = 0;
-+
-+	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
-+	if (!IS_ERR(page)) {
-+		BUG_ON(flags & FOLL_GET);
- 		return page;
-+	}
- 
--no_page_table:
--	/*
--	 * When core dumping an enormous anonymous area that nobody
--	 * has touched so far, we don't want to allocate unnecessary pages or
--	 * page tables.  Return error instead of NULL to skip handle_mm_fault,
--	 * then get_dump_page() will return NULL to leave a hole in the dump.
--	 * But we can only make this optimization where a hole would surely
--	 * be zero-filled if handle_mm_fault() actually did handle it.
--	 */
--	if ((flags & FOLL_DUMP) &&
--	    (!vma->vm_ops || !vma->vm_ops->fault))
--		return ERR_PTR(-EFAULT);
--	return page;
-+	pgd = pgd_offset(mm, address);
-+	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
-+		return no_page_table(vma, flags);
-+
-+	pud = pud_offset(pgd, address);
-+	if (pud_none(*pud))
-+		return no_page_table(vma, flags);
-+	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
-+		if (flags & FOLL_GET)
-+			return NULL;
-+		page = follow_huge_pud(mm, address, pud, flags & FOLL_WRITE);
-+		return page;
-+	}
-+	if (unlikely(pud_bad(*pud)))
-+		return no_page_table(vma, flags);
-+
-+	pmd = pmd_offset(pud, address);
-+	if (pmd_none(*pmd))
-+		return no_page_table(vma, flags);
-+	if (pmd_huge(*pmd) && vma->vm_flags & VM_HUGETLB) {
-+		page = follow_huge_pmd(mm, address, pmd, flags & FOLL_WRITE);
-+		if (flags & FOLL_GET) {
-+			/*
-+			 * Refcount on tail pages are not well-defined and
-+			 * shouldn't be taken. The caller should handle a NULL
-+			 * return when trying to follow tail pages.
-+			 */
-+			if (PageHead(page))
-+				get_page(page);
-+			else
-+				page = NULL;
-+		}
-+		return page;
-+	}
-+	if ((flags & FOLL_NUMA) && pmd_numa(*pmd))
-+		return no_page_table(vma, flags);
-+	if (pmd_trans_huge(*pmd)) {
-+		if (flags & FOLL_SPLIT) {
-+			split_huge_page_pmd(vma, address, pmd);
-+			return follow_page_pte(vma, address, pmd, flags);
-+		}
-+		ptl = pmd_lock(mm, pmd);
-+		if (likely(pmd_trans_huge(*pmd))) {
-+			if (unlikely(pmd_trans_splitting(*pmd))) {
-+				spin_unlock(ptl);
-+				wait_split_huge_page(vma->anon_vma, pmd);
-+			} else {
-+				page = follow_trans_huge_pmd(vma, address,
-+							     pmd, flags);
-+				spin_unlock(ptl);
-+				*page_mask = HPAGE_PMD_NR - 1;
-+				return page;
-+			}
-+		} else
-+			spin_unlock(ptl);
-+	}
-+	return follow_page_pte(vma, address, pmd, flags);
+diff -puN arch/x86/Kconfig~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker
++++ a/arch/x86/Kconfig
+@@ -105,7 +105,7 @@ config X86
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select BUILDTIME_EXTABLE_SORT
+ 	select GENERIC_CMOS_UPDATE
+-	select HAVE_ARCH_SOFT_DIRTY
++	select HAVE_ARCH_SOFT_DIRTY if X86_64
+ 	select CLOCKSOURCE_WATCHDOG
+ 	select GENERIC_CLOCKEVENTS
+ 	select ARCH_CLOCKSOURCE_DATA
+diff -puN arch/x86/include/asm/pgtable-2level.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker arch/x86/include/asm/pgtable-2level.h
+--- a/arch/x86/include/asm/pgtable-2level.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker
++++ a/arch/x86/include/asm/pgtable-2level.h
+@@ -62,53 +62,6 @@ static inline unsigned long pte_bitop(un
+ 	return ((value >> rightshift) & mask) << leftshift;
  }
  
- static inline int stack_guard_page(struct vm_area_struct *vma, unsigned long addr)
+-#ifdef CONFIG_MEM_SOFT_DIRTY
+-
+-/*
+- * Bits _PAGE_BIT_PRESENT, _PAGE_BIT_FILE, _PAGE_BIT_SOFT_DIRTY and
+- * _PAGE_BIT_PROTNONE are taken, split up the 28 bits of offset
+- * into this range.
+- */
+-#define PTE_FILE_MAX_BITS	28
+-#define PTE_FILE_SHIFT1		(_PAGE_BIT_PRESENT + 1)
+-#define PTE_FILE_SHIFT2		(_PAGE_BIT_FILE + 1)
+-#define PTE_FILE_SHIFT3		(_PAGE_BIT_PROTNONE + 1)
+-#define PTE_FILE_SHIFT4		(_PAGE_BIT_SOFT_DIRTY + 1)
+-#define PTE_FILE_BITS1		(PTE_FILE_SHIFT2 - PTE_FILE_SHIFT1 - 1)
+-#define PTE_FILE_BITS2		(PTE_FILE_SHIFT3 - PTE_FILE_SHIFT2 - 1)
+-#define PTE_FILE_BITS3		(PTE_FILE_SHIFT4 - PTE_FILE_SHIFT3 - 1)
+-
+-#define PTE_FILE_MASK1		((1U << PTE_FILE_BITS1) - 1)
+-#define PTE_FILE_MASK2		((1U << PTE_FILE_BITS2) - 1)
+-#define PTE_FILE_MASK3		((1U << PTE_FILE_BITS3) - 1)
+-
+-#define PTE_FILE_LSHIFT2	(PTE_FILE_BITS1)
+-#define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
+-#define PTE_FILE_LSHIFT4	(PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3)
+-
+-static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
+-{
+-	return (pgoff_t)
+-		(pte_bitop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		    +
+-		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
+-		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT3, PTE_FILE_MASK3,  PTE_FILE_LSHIFT3) +
+-		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT4,           -1UL,  PTE_FILE_LSHIFT4));
+-}
+-
+-static __always_inline pte_t pgoff_to_pte(pgoff_t off)
+-{
+-	return (pte_t){
+-		.pte_low =
+-			pte_bitop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
+-			pte_bitop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
+-			pte_bitop(off, PTE_FILE_LSHIFT3, PTE_FILE_MASK3,  PTE_FILE_SHIFT3) +
+-			pte_bitop(off, PTE_FILE_LSHIFT4,           -1UL,  PTE_FILE_SHIFT4) +
+-			_PAGE_FILE,
+-	};
+-}
+-
+-#else /* CONFIG_MEM_SOFT_DIRTY */
+-
+ /*
+  * Bits _PAGE_BIT_PRESENT, _PAGE_BIT_FILE and _PAGE_BIT_PROTNONE are taken,
+  * split up the 29 bits of offset into this range.
+@@ -145,8 +98,6 @@ static __always_inline pte_t pgoff_to_pt
+ 	};
+ }
+ 
+-#endif /* CONFIG_MEM_SOFT_DIRTY */
+-
+ /* Encode and de-code a swap entry */
+ #define SWP_TYPE_BITS (_PAGE_BIT_FILE - _PAGE_BIT_PRESENT - 1)
+ #define SWP_OFFSET_SHIFT (_PAGE_BIT_PROTNONE + 1)
+diff -puN arch/x86/include/asm/pgtable.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker
++++ a/arch/x86/include/asm/pgtable.h
+@@ -297,6 +297,7 @@ static inline pmd_t pmd_mknotpresent(pmd
+ 	return pmd_clear_flags(pmd, _PAGE_PRESENT);
+ }
+ 
++#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline int pte_soft_dirty(pte_t pte)
+ {
+ 	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
+@@ -332,6 +333,8 @@ static inline int pte_file_soft_dirty(pt
+ 	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
+ }
+ 
++#endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
++
+ /*
+  * Mask out unsupported bits in a present pgprot.  Non-present pgprots
+  * can use those bits for other purposes, so leave them be.
+@@ -865,6 +868,7 @@ static inline void update_mmu_cache_pmd(
+ {
+ }
+ 
++#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
+ {
+ 	VM_BUG_ON(pte_present_nonuma(pte));
+@@ -882,6 +886,7 @@ static inline pte_t pte_swp_clear_soft_d
+ 	VM_BUG_ON(pte_present_nonuma(pte));
+ 	return pte_clear_flags(pte, _PAGE_SWP_SOFT_DIRTY);
+ }
++#endif
+ 
+ #include <asm-generic/pgtable.h>
+ #endif	/* __ASSEMBLY__ */
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 origin.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-update-page-table-walker-core-fix.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-prom-pid-clear_refs-avoid-split_huge_page.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
-mm-mark-remap_file_pages-syscall-as-deprecated.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
