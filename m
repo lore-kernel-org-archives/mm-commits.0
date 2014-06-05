@@ -1,108 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-xz-enable-all-filters-by-default-in-kconfig.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 13:05:11 -0700
-Message-ID: <5390cd77.037qcLmmLD5qSg3V%akpm@linux-foundation.org>
+Subject: [merged] lib-libcrc32cc-use-ptr_err_or_zero.patch removed from
+ -mm tree
+Date: Thu, 05 Jun 2014 13:05:13 -0700
+Message-ID: <5390cd79.vQ6gTJC6mGTpQ40/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56802 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56807 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871AbaFEUFM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:12 -0400
+	with ESMTP id S1751871AbaFEUFN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, phillip@lougher.demon.co.uk, kyle@infradead.org, f.fainelli@gmail.com, lasse.collin@tukaani.org
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: [merged] lib-xz-enable-all-filters-by-default-in-kconfig.patch removed from -mm tree
-To: lasse.collin@tukaani.org,f.fainelli@gmail.com,kyle@infradead.org,phillip@lougher.demon.co.uk,mm-commits@vger.kernel.org
+Subject: [merged] lib-libcrc32cc-use-ptr_err_or_zero.patch removed from -mm tree
+To: fabf@skynet.be,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:11 -0700
+Date: Thu, 05 Jun 2014 13:05:13 -0700
 
 
 The patch titled
-     Subject: lib/xz: enable all filters by default in Kconfig
+     Subject: lib/libcrc32c.c: use PTR_ERR_OR_ZERO
 has been removed from the -mm tree.  Its filename was
-     lib-xz-enable-all-filters-by-default-in-kconfig.patch
+     lib-libcrc32cc-use-ptr_err_or_zero.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: lib/xz: enable all filters by default in Kconfig
+From: Fabian Frederick <fabf@skynet.be>
+Subject: lib/libcrc32c.c: use PTR_ERR_OR_ZERO
 
-This restores the old behavior that existed before 2013-02-22, when
-changes were made by 64dbfb444c150 ("decompressors: drop dependency on
-CONFIG_EXPERT") and 5dc49c75a2 ("decompressors: make the default XZ_DEC_*
-config match the selected architecture").
+replace IS_ERR/PTR_ERR
 
-Disabling the filters only makes sense on embedded systems.
-
-Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
-Acked-by: Kyle McMartin <kyle@infradead.org>
-Cc: Florian Fainelli <f.fainelli@gmail.com>
-Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xz/Kconfig |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ lib/libcrc32c.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN lib/xz/Kconfig~lib-xz-enable-all-filters-by-default-in-kconfig lib/xz/Kconfig
---- a/lib/xz/Kconfig~lib-xz-enable-all-filters-by-default-in-kconfig
-+++ a/lib/xz/Kconfig
-@@ -9,33 +9,33 @@ config XZ_DEC
- if XZ_DEC
+diff -puN lib/libcrc32c.c~lib-libcrc32cc-use-ptr_err_or_zero lib/libcrc32c.c
+--- a/lib/libcrc32c.c~lib-libcrc32cc-use-ptr_err_or_zero
++++ a/lib/libcrc32c.c
+@@ -62,10 +62,7 @@ EXPORT_SYMBOL(crc32c);
+ static int __init libcrc32c_mod_init(void)
+ {
+ 	tfm = crypto_alloc_shash("crc32c", 0, 0);
+-	if (IS_ERR(tfm))
+-		return PTR_ERR(tfm);
+-
+-	return 0;
++	return PTR_ERR_OR_ZERO(tfm);
+ }
  
- config XZ_DEC_X86
--	bool "x86 BCJ filter decoder"
--	default y if X86
-+	bool "x86 BCJ filter decoder" if EXPERT
-+	default y
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_POWERPC
--	bool "PowerPC BCJ filter decoder"
--	default y if PPC
-+	bool "PowerPC BCJ filter decoder" if EXPERT
-+	default y
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_IA64
--	bool "IA-64 BCJ filter decoder"
--	default y if IA64
-+	bool "IA-64 BCJ filter decoder" if EXPERT
-+	default y
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_ARM
--	bool "ARM BCJ filter decoder"
--	default y if ARM
-+	bool "ARM BCJ filter decoder" if EXPERT
-+	default y
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_ARMTHUMB
--	bool "ARM-Thumb BCJ filter decoder"
--	default y if (ARM && ARM_THUMB)
-+	bool "ARM-Thumb BCJ filter decoder" if EXPERT
-+	default y
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_SPARC
--	bool "SPARC BCJ filter decoder"
--	default y if SPARC
-+	bool "SPARC BCJ filter decoder" if EXPERT
-+	default y
- 	select XZ_DEC_BCJ
- 
- endif
+ static void __exit libcrc32c_mod_fini(void)
 _
 
-Patches currently in -mm which might be from lasse.collin@tukaani.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-hpfs-convert-printk-to-pr_foo.patch
+fs-hpfs-use-pr_fmt-for-logging.patch
+fs-hpfs-use-__func__-for-logging.patch
+fs-hpfs-increase-pr_warn-level.patch
+documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
+fs-proc-vmcorec-remove-null-assignment-on-static.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+mm-kmemleak-testc-use-pr_fmt-for-logging.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
