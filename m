@@ -1,73 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-dlm-disallow-node-joining-when-recovery-is-on-going.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 12:42:52 -0700
-Message-ID: <5390c83c.d2+3RxsXpZ+KKDNO%akpm@linux-foundation.org>
+ ocfs2-fix-umount-hang-while-shutting-down-truncate-log.patch removed from
+ -mm tree
+Date: Thu, 05 Jun 2014 12:42:50 -0700
+Message-ID: <5390c83a.igl7ikYA+F/4Cdgq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55594 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55589 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550AbaFETmx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:53 -0400
+	with ESMTP id S1751550AbaFETmv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: [merged] ocfs2-dlm-disallow-node-joining-when-recovery-is-on-going.patch removed from -mm tree
+Subject: [merged] ocfs2-fix-umount-hang-while-shutting-down-truncate-log.patch removed from -mm tree
 To: xuejiufei@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:42:52 -0700
+Date: Thu, 05 Jun 2014 12:42:50 -0700
 
 
 The patch titled
-     Subject: ocfs2/dlm: disallow node joining when recovery is on going
+     Subject: ocfs2: fix umount hang while shutting down truncate log
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-disallow-node-joining-when-recovery-is-on-going.patch
+     ocfs2-fix-umount-hang-while-shutting-down-truncate-log.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2/dlm: disallow node joining when recovery is on going
+Subject: ocfs2: fix umount hang while shutting down truncate log
 
-We found a race situation when dlm recovery and node joining occurs
-simultaneously if the network state is bad.
+Revert 75f82eaa502c ("ocfs2: fix NULL pointer dereference when dismount
+and ocfs2rec simultaneously") because it may cause a umount hang while
+shutting down the truncate log.
 
-N1                                      N4
-start joining dlm and send
-query join to all live nodes
-                            set joining node to N1, return OK
-send query join to other
-live nodes and it may take
-a while
+fix NULL pointer dereference when dismount and ocfs2rec simultaneously
 
-call dlm_send_join_assert()
-to send assert join message
-when N2 is down, so keep
-trying to send message to N2
-until find N2 is down
+The situation is as followes:
+ocfs2_dismout_volume
+-> ocfs2_recovery_exit
+  -> free osb->recovery_map
+-> ocfs2_truncate_shutdown
+  -> lock global bitmap inode
+    -> ocfs2_wait_for_recovery
+	  -> check whether osb->recovery_map->rm_used is zero
 
-send assert join message to
-N3, but connection is down
-with N3, so it may take a
-while
-                            become the recovery master for N2
-                            and send begin reco message to other
-                            nodes in domain map but no N1
-connection with N3 is rebuild,
-then send assert join to N4
-                            call dlm_assert_joined_handler(),
-                            add N1 to domain_map
+Because osb->recovery_map is already freed, rm_used can be any other
+values, so it may yield umount hang.
 
-                            dlm recovery done, send finalize message
-                            to nodes in domain map, including N1
-receiving finalize message,
-trigger the BUG() because
-recovery master mismatch.
+To prevent NULL pointer dereference while getting sys_root_inode, we
+use a osb_tl_disable flag to disable schedule osb_truncate_log_wq after
+truncate log shutdown.
 
 Signed-off-by: joyce.xue <xuejiufei@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -75,50 +62,51 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdomain.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ fs/ocfs2/alloc.c |    6 +++++-
+ fs/ocfs2/ocfs2.h |    1 +
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-dlm-disallow-node-joining-when-recovery-is-on-going fs/ocfs2/dlm/dlmdomain.c
---- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-dlm-disallow-node-joining-when-recovery-is-on-going
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -959,6 +959,14 @@ static int dlm_assert_joined_handler(str
- 		 * domain. Set him in the map and clean up our
- 		 * leftover join state. */
- 		BUG_ON(dlm->joining_node != assert->node_idx);
-+
-+		if (dlm->reco.state & DLM_RECO_STATE_ACTIVE) {
-+			mlog(0, "dlm recovery is ongoing, disallow join\n");
-+			spin_unlock(&dlm->spinlock);
-+			spin_unlock(&dlm_domain_lock);
-+			return -EAGAIN;
-+		}
-+
- 		set_bit(assert->node_idx, dlm->domain_map);
- 		clear_bit(assert->node_idx, dlm->exit_domain_map);
- 		__dlm_set_joining_node(dlm, DLM_LOCK_RES_OWNER_UNKNOWN);
-@@ -1517,6 +1525,7 @@ static int dlm_send_one_join_assert(stru
- 				    unsigned int node)
+diff -puN fs/ocfs2/alloc.c~ocfs2-fix-umount-hang-while-shutting-down-truncate-log fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-fix-umount-hang-while-shutting-down-truncate-log
++++ a/fs/ocfs2/alloc.c
+@@ -6046,7 +6046,8 @@ static void ocfs2_truncate_log_worker(st
+ void ocfs2_schedule_truncate_log_flush(struct ocfs2_super *osb,
+ 				       int cancel)
  {
+-	if (osb->osb_tl_inode) {
++	if (osb->osb_tl_inode &&
++			atomic_read(&osb->osb_tl_disable) == 0) {
+ 		/* We want to push off log flushes while truncates are
+ 		 * still running. */
+ 		if (cancel)
+@@ -6223,6 +6224,8 @@ void ocfs2_truncate_log_shutdown(struct
  	int status;
-+	int ret;
- 	struct dlm_assert_joined assert_msg;
+ 	struct inode *tl_inode = osb->osb_tl_inode;
  
- 	mlog(0, "Sending join assert to node %u\n", node);
-@@ -1528,11 +1537,13 @@ static int dlm_send_one_join_assert(stru
++	atomic_set(&osb->osb_tl_disable, 1);
++
+ 	if (tl_inode) {
+ 		cancel_delayed_work(&osb->osb_truncate_log_wq);
+ 		flush_workqueue(ocfs2_wq);
+@@ -6254,6 +6257,7 @@ int ocfs2_truncate_log_init(struct ocfs2
+ 	 * until we're sure all is well. */
+ 	INIT_DELAYED_WORK(&osb->osb_truncate_log_wq,
+ 			  ocfs2_truncate_log_worker);
++	atomic_set(&osb->osb_tl_disable, 0);
+ 	osb->osb_tl_bh    = tl_bh;
+ 	osb->osb_tl_inode = tl_inode;
  
- 	status = o2net_send_message(DLM_ASSERT_JOINED_MSG, DLM_MOD_KEY,
- 				    &assert_msg, sizeof(assert_msg), node,
--				    NULL);
-+				    &ret);
- 	if (status < 0)
- 		mlog(ML_ERROR, "Error %d when sending message %u (key 0x%x) to "
- 		     "node %u\n", status, DLM_ASSERT_JOINED_MSG, DLM_MOD_KEY,
- 		     node);
-+	else
-+		status = ret;
- 
- 	return status;
- }
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-fix-umount-hang-while-shutting-down-truncate-log fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-fix-umount-hang-while-shutting-down-truncate-log
++++ a/fs/ocfs2/ocfs2.h
+@@ -422,6 +422,7 @@ struct ocfs2_super
+ 	struct inode			*osb_tl_inode;
+ 	struct buffer_head		*osb_tl_bh;
+ 	struct delayed_work		osb_truncate_log_wq;
++	atomic_t			osb_tl_disable;
+ 	/*
+ 	 * How many clusters in our truncate log.
+ 	 * It must be protected by osb_tl_inode->i_mutex.
 _
 
 Patches currently in -mm which might be from xuejiufei@huawei.com are
