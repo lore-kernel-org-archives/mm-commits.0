@@ -1,120 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-configfs-use-pr_fmt.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:42:30 -0700
-Message-ID: <5390c826.o9z9TjV91pXAv8CX%akpm@linux-foundation.org>
+Subject: [merged]
+ arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch removed
+ from -mm tree
+Date: Thu, 05 Jun 2014 12:42:22 -0700
+Message-ID: <5390c81e.UFdyqToR1Leq5R6x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55558 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55545 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752325AbaFETma (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:30 -0400
+	with ESMTP id S1752270AbaFETmX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jlbec@evilplan.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, gxt@mprc.pku.edu.cn, fabf@skynet.be
 
-Subject: [merged] fs-configfs-use-pr_fmt.patch removed from -mm tree
-To: fabf@skynet.be,jlbec@evilplan.org,mm-commits@vger.kernel.org
+Subject: [merged] arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch removed from -mm tree
+To: fabf@skynet.be,gxt@mprc.pku.edu.cn,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:42:30 -0700
+Date: Thu, 05 Jun 2014 12:42:22 -0700
 
 
 The patch titled
-     Subject: fs/configfs: use pr_fmt
+     Subject: arch/unicore32/mm/ioremap.c: convert printk/warn_on to warn()
 has been removed from the -mm tree.  Its filename was
-     fs-configfs-use-pr_fmt.patch
+     arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/configfs: use pr_fmt
+Subject: arch/unicore32/mm/ioremap.c: convert printk/warn_on to warn()
 
-Add pr_fmt based on module name.
+Coalesce formats.
 
+[akpm@linux-foundation.org: undo crazy long line]
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/configfs_internal.h |    6 ++++++
- fs/configfs/dir.c               |    4 ++--
- fs/configfs/inode.c             |    2 +-
- fs/configfs/mount.c             |    4 ++--
- 4 files changed, 11 insertions(+), 5 deletions(-)
+ arch/unicore32/mm/ioremap.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/configfs/configfs_internal.h~fs-configfs-use-pr_fmt fs/configfs/configfs_internal.h
---- a/fs/configfs/configfs_internal.h~fs-configfs-use-pr_fmt
-+++ a/fs/configfs/configfs_internal.h
-@@ -24,6 +24,12 @@
-  * configfs Copyright (C) 2005 Oracle.  All rights reserved.
-  */
+diff -puN arch/unicore32/mm/ioremap.c~arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1 arch/unicore32/mm/ioremap.c
+--- a/arch/unicore32/mm/ioremap.c~arch-unicore32-mm-ioremapc-convert-printk-warn_on-to-warn1
++++ a/arch/unicore32/mm/ioremap.c
+@@ -143,13 +143,11 @@ void __iomem *__uc32_ioremap_pfn_caller(
+ 	/*
+ 	 * Don't allow RAM to be mapped
+ 	 */
+-	if (pfn_valid(pfn)) {
+-		printk(KERN_WARNING "BUG: Your driver calls ioremap() on\n"
++	if (pfn_valid(pfn))
++		WARN(1, "BUG: Your driver calls ioremap() on\n"
+ 			"system memory.  This leads to architecturally\n"
+ 			"unpredictable behaviour, and ioremap() will fail in\n"
+ 			"the next kernel release. Please fix your driver.\n");
+-		WARN_ON(1);
+-	}
  
-+#ifdef pr_fmt
-+#undef pr_fmt
-+#endif
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/slab.h>
- #include <linux/list.h>
- #include <linux/spinlock.h>
-diff -puN fs/configfs/dir.c~fs-configfs-use-pr_fmt fs/configfs/dir.c
---- a/fs/configfs/dir.c~fs-configfs-use-pr_fmt
-+++ a/fs/configfs/dir.c
-@@ -1699,7 +1699,7 @@ void configfs_unregister_subsystem(struc
- 	struct dentry *root = dentry->d_sb->s_root;
- 
- 	if (dentry->d_parent != root) {
--		pr_err("configfs: Tried to unregister non-subsystem!\n");
-+		pr_err("Tried to unregister non-subsystem!\n");
- 		return;
- 	}
- 
-@@ -1709,7 +1709,7 @@ void configfs_unregister_subsystem(struc
- 	mutex_lock(&configfs_symlink_mutex);
- 	spin_lock(&configfs_dirent_lock);
- 	if (configfs_detach_prep(dentry, NULL)) {
--		pr_err("configfs: Tried to unregister non-empty subsystem!\n");
-+		pr_err("Tried to unregister non-empty subsystem!\n");
- 	}
- 	spin_unlock(&configfs_dirent_lock);
- 	mutex_unlock(&configfs_symlink_mutex);
-diff -puN fs/configfs/inode.c~fs-configfs-use-pr_fmt fs/configfs/inode.c
---- a/fs/configfs/inode.c~fs-configfs-use-pr_fmt
-+++ a/fs/configfs/inode.c
-@@ -168,7 +168,7 @@ static void configfs_set_inode_lock_clas
- 			 * In practice the maximum level of locking depth is
- 			 * already reached. Just inform about possible reasons.
- 			 */
--			pr_info("configfs: Too many levels of inodes for the locking correctness validator.\n");
-+			pr_info("Too many levels of inodes for the locking correctness validator.\n");
- 			pr_info("Spurious warnings may appear.\n");
- 		}
- 	}
-diff -puN fs/configfs/mount.c~fs-configfs-use-pr_fmt fs/configfs/mount.c
---- a/fs/configfs/mount.c~fs-configfs-use-pr_fmt
-+++ a/fs/configfs/mount.c
-@@ -85,7 +85,7 @@ static int configfs_fill_super(struct su
- 		/* directory inodes start off with i_nlink == 2 (for "." entry) */
- 		inc_nlink(inode);
- 	} else {
--		pr_debug("configfs: could not get root inode\n");
-+		pr_debug("could not get root inode\n");
- 		return -ENOMEM;
- 	}
- 
-@@ -155,7 +155,7 @@ static int __init configfs_init(void)
- 
- 	return 0;
- out4:
--	pr_err("configfs: Unable to register filesystem!\n");
-+	pr_err("Unable to register filesystem!\n");
- 	configfs_inode_exit();
- out3:
- 	kobject_put(config_kobj);
+ 	type = get_mem_type(mtype);
+ 	if (!type)
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
