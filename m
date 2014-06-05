@@ -1,316 +1,372 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-fscache-convert-printk-to-pr_foo.patch removed from
+Subject: [merged]
+ hugetlb-restrict-hugepage_migration_support-to-x86_64.patch removed from
  -mm tree
-Date: Thu, 05 Jun 2014 12:42:03 -0700
-Message-ID: <5390c80b.4ZapV6pbnBjAo8Wl%akpm@linux-foundation.org>
+Date: Thu, 05 Jun 2014 12:41:59 -0700
+Message-ID: <5390c807.qI/rAlf2Q5BY4b5z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55509 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55497 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752110AbaFETmE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:04 -0400
+	with ESMTP id S1751650AbaFETmA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dhowells@redhat.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, tony.luck@intel.com, stable@vger.kernel.org, schwidefsky@de.ibm.com, rmk@arm.linux.org.uk, ralf@linux-mips.org, mpe@ellerman.id.au, james.hogan@imgtec.com, hughd@google.com, davem@davemloft.net, benh@kernel.crashing.org, n-horiguchi@ah.jp.nec.com
 
-Subject: [merged] fs-fscache-convert-printk-to-pr_foo.patch removed from -mm tree
-To: fabf@skynet.be,dhowells@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] hugetlb-restrict-hugepage_migration_support-to-x86_64.patch removed from -mm tree
+To: n-horiguchi@ah.jp.nec.com,benh@kernel.crashing.org,davem@davemloft.net,hughd@google.com,james.hogan@imgtec.com,mpe@ellerman.id.au,ralf@linux-mips.org,rmk@arm.linux.org.uk,schwidefsky@de.ibm.com,stable@vger.kernel.org,tony.luck@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:42:03 -0700
+Date: Thu, 05 Jun 2014 12:41:59 -0700
 
 
 The patch titled
-     Subject: fs/fscache: convert printk to pr_foo()
+     Subject: hugetlb: restrict hugepage_migration_support() to x86_64
 has been removed from the -mm tree.  Its filename was
-     fs-fscache-convert-printk-to-pr_foo.patch
+     hugetlb-restrict-hugepage_migration_support-to-x86_64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/fscache: convert printk to pr_foo()
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: hugetlb: restrict hugepage_migration_support() to x86_64
 
--All printk converted to pr_foo() except internal.h: printk(KERN_DEBUG
+Currently hugepage migration is available for all archs which support
+pmd-level hugepage, but testing is done only for x86_64 and there're bugs
+for other archs.  So to avoid breaking such archs, this patch limits the
+availability strictly to x86_64 until developers of other archs get
+interested in enabling this feature.
 
--Coalesce formats.
+Simply disabling hugepage migration on non-x86_64 archs is not enough to
+fix the reported problem where sys_move_pages() hits the BUG_ON() in
+follow_page(FOLL_GET), so let's fix this by checking if hugepage migration
+is supported in vma_migratable().
 
--Add pr_fmt
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: Michael Ellerman <mpe@ellerman.id.au>
+Tested-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: <stable@vger.kernel.org>	[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fscache/cache.c     |   13 ++++++-------
- fs/fscache/cookie.c    |    2 +-
- fs/fscache/internal.h  |   26 ++++++++++++++++----------
- fs/fscache/main.c      |    7 +++----
- fs/fscache/netfs.c     |    7 +++----
- fs/fscache/operation.c |    3 +--
- fs/fscache/page.c      |    6 ++----
- 7 files changed, 32 insertions(+), 32 deletions(-)
+ arch/arm/mm/hugetlbpage.c     |    5 -----
+ arch/arm64/mm/hugetlbpage.c   |    5 -----
+ arch/ia64/mm/hugetlbpage.c    |    5 -----
+ arch/metag/mm/hugetlbpage.c   |    5 -----
+ arch/mips/mm/hugetlbpage.c    |    5 -----
+ arch/powerpc/mm/hugetlbpage.c |   10 ----------
+ arch/s390/mm/hugetlbpage.c    |    5 -----
+ arch/sh/mm/hugetlbpage.c      |    5 -----
+ arch/sparc/mm/hugetlbpage.c   |    5 -----
+ arch/tile/mm/hugetlbpage.c    |    5 -----
+ arch/x86/Kconfig              |    4 ++++
+ arch/x86/mm/hugetlbpage.c     |   10 ----------
+ include/linux/hugetlb.h       |   13 +++++--------
+ include/linux/mempolicy.h     |    6 ++++++
+ mm/Kconfig                    |    3 +++
+ 15 files changed, 18 insertions(+), 73 deletions(-)
 
-diff -puN fs/fscache/cache.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/cache.c
---- a/fs/fscache/cache.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/cache.c
-@@ -280,15 +280,15 @@ int fscache_add_cache(struct fscache_cac
- 	spin_unlock(&fscache_fsdef_index.lock);
- 	up_write(&fscache_addremove_sem);
- 
--	printk(KERN_NOTICE "FS-Cache: Cache \"%s\" added (type %s)\n",
--	       cache->tag->name, cache->ops->name);
-+	pr_notice("Cache \"%s\" added (type %s)\n",
-+		  cache->tag->name, cache->ops->name);
- 	kobject_uevent(cache->kobj, KOBJ_ADD);
- 
- 	_leave(" = 0 [%s]", cache->identifier);
- 	return 0;
- 
- tag_in_use:
--	printk(KERN_ERR "FS-Cache: Cache tag '%s' already in use\n", tagname);
-+	pr_err("Cache tag '%s' already in use\n", tagname);
- 	__fscache_release_cache_tag(tag);
- 	_leave(" = -EXIST");
- 	return -EEXIST;
-@@ -317,8 +317,7 @@ EXPORT_SYMBOL(fscache_add_cache);
- void fscache_io_error(struct fscache_cache *cache)
+diff -puN arch/arm/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/arm/mm/hugetlbpage.c
+--- a/arch/arm/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/arm/mm/hugetlbpage.c
+@@ -56,8 +56,3 @@ int pmd_huge(pmd_t pmd)
  {
- 	if (!test_and_set_bit(FSCACHE_IOERROR, &cache->flags))
--		printk(KERN_ERR "FS-Cache:"
--		       " Cache '%s' stopped due to I/O error\n",
-+		pr_err("Cache '%s' stopped due to I/O error\n",
- 		       cache->ops->name);
+ 	return pmd_val(pmd) && !(pmd_val(pmd) & PMD_TABLE_BIT);
  }
- EXPORT_SYMBOL(fscache_io_error);
-@@ -369,8 +368,8 @@ void fscache_withdraw_cache(struct fscac
+-
+-int pmd_huge_support(void)
+-{
+-	return 1;
+-}
+diff -puN arch/arm64/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/arm64/mm/hugetlbpage.c
+--- a/arch/arm64/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -58,11 +58,6 @@ int pud_huge(pud_t pud)
+ #endif
+ }
  
- 	_enter("");
+-int pmd_huge_support(void)
+-{
+-	return 1;
+-}
+-
+ static __init int setup_hugepagesz(char *opt)
+ {
+ 	unsigned long ps = memparse(opt, &opt);
+diff -puN arch/ia64/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/ia64/mm/hugetlbpage.c
+--- a/arch/ia64/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/ia64/mm/hugetlbpage.c
+@@ -114,11 +114,6 @@ int pud_huge(pud_t pud)
+ 	return 0;
+ }
  
--	printk(KERN_NOTICE "FS-Cache: Withdrawing cache \"%s\"\n",
--	       cache->tag->name);
-+	pr_notice("Withdrawing cache \"%s\"\n",
-+		  cache->tag->name);
+-int pmd_huge_support(void)
+-{
+-	return 0;
+-}
+-
+ struct page *
+ follow_huge_pmd(struct mm_struct *mm, unsigned long address, pmd_t *pmd, int write)
+ {
+diff -puN arch/metag/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/metag/mm/hugetlbpage.c
+--- a/arch/metag/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/metag/mm/hugetlbpage.c
+@@ -110,11 +110,6 @@ int pud_huge(pud_t pud)
+ 	return 0;
+ }
  
- 	/* make the cache unavailable for cookie acquisition */
- 	if (test_and_set_bit(FSCACHE_CACHE_WITHDRAWN, &cache->flags))
-diff -puN fs/fscache/cookie.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/cookie.c
---- a/fs/fscache/cookie.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/cookie.c
-@@ -519,7 +519,7 @@ void __fscache_disable_cookie(struct fsc
- 	ASSERTCMP(atomic_read(&cookie->n_active), >, 0);
+-int pmd_huge_support(void)
+-{
+-	return 1;
+-}
+-
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+ 			     pmd_t *pmd, int write)
+ {
+diff -puN arch/mips/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/mips/mm/hugetlbpage.c
+--- a/arch/mips/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/mips/mm/hugetlbpage.c
+@@ -84,11 +84,6 @@ int pud_huge(pud_t pud)
+ 	return (pud_val(pud) & _PAGE_HUGE) != 0;
+ }
  
- 	if (atomic_read(&cookie->n_children) != 0) {
--		printk(KERN_ERR "FS-Cache: Cookie '%s' still has children\n",
-+		pr_err("Cookie '%s' still has children\n",
- 		       cookie->def->name);
- 		BUG();
- 	}
-diff -puN fs/fscache/internal.h~fs-fscache-convert-printk-to-pr_foo fs/fscache/internal.h
---- a/fs/fscache/internal.h~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/internal.h
-@@ -22,6 +22,12 @@
-  *
-  */
+-int pmd_huge_support(void)
+-{
+-	return 1;
+-}
+-
+ struct page *
+ follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+ 		pmd_t *pmd, int write)
+diff -puN arch/powerpc/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -86,11 +86,6 @@ int pgd_huge(pgd_t pgd)
+ 	 */
+ 	return ((pgd_val(pgd) & 0x3) != 0x0);
+ }
+-
+-int pmd_huge_support(void)
+-{
+-	return 1;
+-}
+ #else
+ int pmd_huge(pmd_t pmd)
+ {
+@@ -106,11 +101,6 @@ int pgd_huge(pgd_t pgd)
+ {
+ 	return 0;
+ }
+-
+-int pmd_huge_support(void)
+-{
+-	return 0;
+-}
+ #endif
  
-+#ifdef pr_fmt
-+#undef pr_fmt
+ pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
+diff -puN arch/s390/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/s390/mm/hugetlbpage.c
+--- a/arch/s390/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/s390/mm/hugetlbpage.c
+@@ -220,11 +220,6 @@ int pud_huge(pud_t pud)
+ 	return 0;
+ }
+ 
+-int pmd_huge_support(void)
+-{
+-	return 1;
+-}
+-
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+ 			     pmd_t *pmdp, int write)
+ {
+diff -puN arch/sh/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/sh/mm/hugetlbpage.c
+--- a/arch/sh/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/sh/mm/hugetlbpage.c
+@@ -83,11 +83,6 @@ int pud_huge(pud_t pud)
+ 	return 0;
+ }
+ 
+-int pmd_huge_support(void)
+-{
+-	return 0;
+-}
+-
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+ 			     pmd_t *pmd, int write)
+ {
+diff -puN arch/sparc/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/sparc/mm/hugetlbpage.c
+--- a/arch/sparc/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/sparc/mm/hugetlbpage.c
+@@ -231,11 +231,6 @@ int pud_huge(pud_t pud)
+ 	return 0;
+ }
+ 
+-int pmd_huge_support(void)
+-{
+-	return 0;
+-}
+-
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+ 			     pmd_t *pmd, int write)
+ {
+diff -puN arch/tile/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/tile/mm/hugetlbpage.c
+--- a/arch/tile/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/tile/mm/hugetlbpage.c
+@@ -166,11 +166,6 @@ int pud_huge(pud_t pud)
+ 	return !!(pud_val(pud) & _PAGE_HUGE_PAGE);
+ }
+ 
+-int pmd_huge_support(void)
+-{
+-	return 1;
+-}
+-
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+ 			     pmd_t *pmd, int write)
+ {
+diff -puN arch/x86/Kconfig~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/x86/Kconfig
+--- a/arch/x86/Kconfig~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/x86/Kconfig
+@@ -1873,6 +1873,10 @@ config ARCH_ENABLE_SPLIT_PMD_PTLOCK
+ 	def_bool y
+ 	depends on X86_64 || X86_PAE
+ 
++config ARCH_ENABLE_HUGEPAGE_MIGRATION
++	def_bool y
++	depends on X86_64 && HUGETLB_PAGE && MIGRATION
++
+ menu "Power management and ACPI options"
+ 
+ config ARCH_HIBERNATION_HEADER
+diff -puN arch/x86/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64 arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -58,11 +58,6 @@ follow_huge_pmd(struct mm_struct *mm, un
+ {
+ 	return NULL;
+ }
+-
+-int pmd_huge_support(void)
+-{
+-	return 0;
+-}
+ #else
+ 
+ struct page *
+@@ -80,11 +75,6 @@ int pud_huge(pud_t pud)
+ {
+ 	return !!(pud_val(pud) & _PAGE_PSE);
+ }
+-
+-int pmd_huge_support(void)
+-{
+-	return 1;
+-}
+ #endif
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+diff -puN include/linux/hugetlb.h~hugetlb-restrict-hugepage_migration_support-to-x86_64 include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/include/linux/hugetlb.h
+@@ -392,15 +392,13 @@ static inline pgoff_t basepage_index(str
+ 
+ extern void dissolve_free_huge_pages(unsigned long start_pfn,
+ 				     unsigned long end_pfn);
+-int pmd_huge_support(void);
+-/*
+- * Currently hugepage migration is enabled only for pmd-based hugepage.
+- * This function will be updated when hugepage migration is more widely
+- * supported.
+- */
+ static inline int hugepage_migration_support(struct hstate *h)
+ {
+-	return pmd_huge_support() && (huge_page_shift(h) == PMD_SHIFT);
++#ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
++	return huge_page_shift(h) == PMD_SHIFT;
++#else
++	return 0;
++#endif
+ }
+ 
+ static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
+@@ -450,7 +448,6 @@ static inline pgoff_t basepage_index(str
+ 	return page->index;
+ }
+ #define dissolve_free_huge_pages(s, e)	do {} while (0)
+-#define pmd_huge_support()	0
+ #define hugepage_migration_support(h)	0
+ 
+ static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
+diff -puN include/linux/mempolicy.h~hugetlb-restrict-hugepage_migration_support-to-x86_64 include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/include/linux/mempolicy.h
+@@ -175,6 +175,12 @@ static inline int vma_migratable(struct
+ {
+ 	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
+ 		return 0;
++
++#ifndef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
++	if (vma->vm_flags & VM_HUGETLB)
++		return 0;
 +#endif
 +
-+#define pr_fmt(fmt) "FS-Cache: " fmt
+ 	/*
+ 	 * Migration allocates pages in the highest zone. If we cannot
+ 	 * do so then migration (at least from node to node) is not
+diff -puN mm/Kconfig~hugetlb-restrict-hugepage_migration_support-to-x86_64 mm/Kconfig
+--- a/mm/Kconfig~hugetlb-restrict-hugepage_migration_support-to-x86_64
++++ a/mm/Kconfig
+@@ -267,6 +267,9 @@ config MIGRATION
+ 	  pages as migration can relocate pages to satisfy a huge page
+ 	  allocation instead of reclaiming.
+ 
++config ARCH_ENABLE_HUGEPAGE_MIGRATION
++	boolean
 +
- #include <linux/fscache-cache.h>
- #include <linux/sched.h>
- 
-@@ -413,8 +419,8 @@ do {						\
- #define ASSERT(X)							\
- do {									\
- 	if (unlikely(!(X))) {						\
--		printk(KERN_ERR "\n");					\
--		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
-+		pr_err("\n");					\
-+		pr_err("Assertion failed\n");	\
- 		BUG();							\
- 	}								\
- } while (0)
-@@ -422,9 +428,9 @@ do {									\
- #define ASSERTCMP(X, OP, Y)						\
- do {									\
- 	if (unlikely(!((X) OP (Y)))) {					\
--		printk(KERN_ERR "\n");					\
--		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
--		printk(KERN_ERR "%lx " #OP " %lx is false\n",		\
-+		pr_err("\n");					\
-+		pr_err("Assertion failed\n");	\
-+		pr_err("%lx " #OP " %lx is false\n",		\
- 		       (unsigned long)(X), (unsigned long)(Y));		\
- 		BUG();							\
- 	}								\
-@@ -433,8 +439,8 @@ do {									\
- #define ASSERTIF(C, X)							\
- do {									\
- 	if (unlikely((C) && !(X))) {					\
--		printk(KERN_ERR "\n");					\
--		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
-+		pr_err("\n");					\
-+		pr_err("Assertion failed\n");	\
- 		BUG();							\
- 	}								\
- } while (0)
-@@ -442,9 +448,9 @@ do {									\
- #define ASSERTIFCMP(C, X, OP, Y)					\
- do {									\
- 	if (unlikely((C) && !((X) OP (Y)))) {				\
--		printk(KERN_ERR "\n");					\
--		printk(KERN_ERR "FS-Cache: Assertion failed\n");	\
--		printk(KERN_ERR "%lx " #OP " %lx is false\n",		\
-+		pr_err("\n");					\
-+		pr_err("Assertion failed\n");	\
-+		pr_err("%lx " #OP " %lx is false\n",		\
- 		       (unsigned long)(X), (unsigned long)(Y));		\
- 		BUG();							\
- 	}								\
-diff -puN fs/fscache/main.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/main.c
---- a/fs/fscache/main.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/main.c
-@@ -146,8 +146,7 @@ static int __init fscache_init(void)
- 					       0,
- 					       fscache_cookie_init_once);
- 	if (!fscache_cookie_jar) {
--		printk(KERN_NOTICE
--		       "FS-Cache: Failed to allocate a cookie jar\n");
-+		pr_notice("Failed to allocate a cookie jar\n");
- 		ret = -ENOMEM;
- 		goto error_cookie_jar;
- 	}
-@@ -156,7 +155,7 @@ static int __init fscache_init(void)
- 	if (!fscache_root)
- 		goto error_kobj;
- 
--	printk(KERN_NOTICE "FS-Cache: Loaded\n");
-+	pr_notice("Loaded\n");
- 	return 0;
- 
- error_kobj:
-@@ -192,7 +191,7 @@ static void __exit fscache_exit(void)
- 	fscache_proc_cleanup();
- 	destroy_workqueue(fscache_op_wq);
- 	destroy_workqueue(fscache_object_wq);
--	printk(KERN_NOTICE "FS-Cache: Unloaded\n");
-+	pr_notice("Unloaded\n");
- }
- 
- module_exit(fscache_exit);
-diff -puN fs/fscache/netfs.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/netfs.c
---- a/fs/fscache/netfs.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/netfs.c
-@@ -65,8 +65,7 @@ int __fscache_register_netfs(struct fsca
- 	list_add(&netfs->link, &fscache_netfs_list);
- 	ret = 0;
- 
--	printk(KERN_NOTICE "FS-Cache: Netfs '%s' registered for caching\n",
--	       netfs->name);
-+	pr_notice("Netfs '%s' registered for caching\n", netfs->name);
- 
- already_registered:
- 	up_write(&fscache_addremove_sem);
-@@ -97,8 +96,8 @@ void __fscache_unregister_netfs(struct f
- 
- 	up_write(&fscache_addremove_sem);
- 
--	printk(KERN_NOTICE "FS-Cache: Netfs '%s' unregistered from caching\n",
--	       netfs->name);
-+	pr_notice("Netfs '%s' unregistered from caching\n",
-+		  netfs->name);
- 
- 	_leave("");
- }
-diff -puN fs/fscache/operation.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/operation.c
---- a/fs/fscache/operation.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/operation.c
-@@ -51,8 +51,7 @@ void fscache_enqueue_operation(struct fs
- 		_debug("queue for caller's attention");
- 		break;
- 	default:
--		printk(KERN_ERR "FS-Cache: Unexpected op type %lx",
--		       op->flags);
-+		pr_err("Unexpected op type %lx", op->flags);
- 		BUG();
- 		break;
- 	}
-diff -puN fs/fscache/page.c~fs-fscache-convert-printk-to-pr_foo fs/fscache/page.c
---- a/fs/fscache/page.c~fs-fscache-convert-printk-to-pr_foo
-+++ a/fs/fscache/page.c
-@@ -1108,10 +1108,8 @@ void fscache_mark_page_cached(struct fsc
- 		static bool once_only;
- 		if (!once_only) {
- 			once_only = true;
--			printk(KERN_WARNING "FS-Cache:"
--			       " Cookie type %s marked page %lx"
--			       " multiple times\n",
--			       cookie->def->name, page->index);
-+			pr_warn("Cookie type %s marked page %lx multiple times\n",
-+				cookie->def->name, page->index);
- 		}
- 	}
+ config PHYS_ADDR_T_64BIT
+ 	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
  
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-coda-replace-printk-by-pr_foo.patch
-fs-coda-logging-prefix-uniformization.patch
-fs-coda-use-__func__.patch
-fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
-fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
-fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
-fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
-fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-hpfs-convert-printk-to-pr_foo.patch
-fs-hpfs-use-pr_fmt-for-logging.patch
-fs-hpfs-use-__func__-for-logging.patch
-fs-hpfs-increase-pr_warn-level.patch
-documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
-fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
-fs-proc-vmcorec-remove-null-assignment-on-static.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
-fs-devpts-inodec-convert-printk-to-pr_foo.patch
-fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagewalk-update-page-table-walker-core-fix.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
+mm-pagewalkc-move-pte-null-check.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-prom-pid-clear_refs-avoid-split_huge_page.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-fs-dlm-configc-convert-simple_str-to-kstr.patch
-fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
-fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
-mm-kmemleak-testc-use-pr_fmt-for-logging.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
 
