@@ -1,188 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:51:23 -0700
-Message-ID: <5390ca3b.dXAcBBNI8C/F3r/k%akpm@linux-foundation.org>
+Subject: [merged] mm-mempolicyc-parameter-doc-uniformization.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:51:27 -0700
+Message-ID: <5390ca3f.1Y1gdKBVwolnYzia%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56153 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56145 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751712AbaFETv3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:29 -0400
+	with ESMTP id S1750840AbaFETv1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, torvalds@linux-foundation.org, steven@uplinklabs.net, riel@redhat.com, peterz@infradead.org, mingo@kernel.org, mgorman@suse.de, hpa@zytor.com, david.vrabel@citrix.com, gorcunov@openvz.org
+To: mm-commits@vger.kernel.org, mgorman@suse.de, fabf@skynet.be
 
-Subject: [merged] mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch removed from -mm tree
-To: gorcunov@openvz.org,david.vrabel@citrix.com,hpa@zytor.com,mgorman@suse.de,mingo@kernel.org,peterz@infradead.org,riel@redhat.com,steven@uplinklabs.net,torvalds@linux-foundation.org,xemul@parallels.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-mempolicyc-parameter-doc-uniformization.patch removed from -mm tree
+To: fabf@skynet.be,mgorman@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:23 -0700
+Date: Thu, 05 Jun 2014 12:51:27 -0700
 
 
 The patch titled
-     Subject: mm: x86 pgtable: require X86_64 for soft-dirty tracker
+     Subject: mm/mempolicy.c: parameter doc uniformization
 has been removed from the -mm tree.  Its filename was
-     mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker.patch
+     mm-mempolicyc-parameter-doc-uniformization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: mm: x86 pgtable: require X86_64 for soft-dirty tracker
+From: Fabian Frederick <fabf@skynet.be>
+Subject: mm/mempolicy.c: parameter doc uniformization
 
-Tracking dirty status on 2 level pages requires very ugly macros and
-taking into account how old the machines who can operate without PAE mode
-only are, lets drop soft dirty tracker from them for code simplicity (note
-I can't drop all the macros from 2 level pages by now since
-_PAGE_BIT_PROTNONE and _PAGE_BIT_FILE are still used even without
-tracker).
+Also fixes kernel-doc warning
 
-Linus proposed to completely rip off softdirty support on x86-32 (even
-with PAE) and since for CRIU we're not planning to support native x86-32
-mode, lets do that.
-
-(Softdirty tracker is relatively new feature which is mostly used by CRIU
-so I don't expect if such API change would cause problems for userspace).
-
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Steven Noonan <steven@uplinklabs.net>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                      |    2 
- arch/x86/include/asm/pgtable-2level.h |   49 ------------------------
- arch/x86/include/asm/pgtable.h        |    5 ++
- 3 files changed, 6 insertions(+), 50 deletions(-)
+ mm/mempolicy.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/Kconfig~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker
-+++ a/arch/x86/Kconfig
-@@ -105,7 +105,7 @@ config X86
- 	select HAVE_ARCH_SECCOMP_FILTER
- 	select BUILDTIME_EXTABLE_SORT
- 	select GENERIC_CMOS_UPDATE
--	select HAVE_ARCH_SOFT_DIRTY
-+	select HAVE_ARCH_SOFT_DIRTY if X86_64
- 	select CLOCKSOURCE_WATCHDOG
- 	select GENERIC_CLOCKEVENTS
- 	select ARCH_CLOCKSOURCE_DATA
-diff -puN arch/x86/include/asm/pgtable-2level.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker arch/x86/include/asm/pgtable-2level.h
---- a/arch/x86/include/asm/pgtable-2level.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker
-+++ a/arch/x86/include/asm/pgtable-2level.h
-@@ -62,53 +62,6 @@ static inline unsigned long pte_bitop(un
- 	return ((value >> rightshift) & mask) << leftshift;
- }
+diff -puN mm/mempolicy.c~mm-mempolicyc-parameter-doc-uniformization mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-parameter-doc-uniformization
++++ a/mm/mempolicy.c
+@@ -1606,9 +1606,9 @@ COMPAT_SYSCALL_DEFINE6(mbind, compat_ulo
  
--#ifdef CONFIG_MEM_SOFT_DIRTY
--
--/*
-- * Bits _PAGE_BIT_PRESENT, _PAGE_BIT_FILE, _PAGE_BIT_SOFT_DIRTY and
-- * _PAGE_BIT_PROTNONE are taken, split up the 28 bits of offset
-- * into this range.
-- */
--#define PTE_FILE_MAX_BITS	28
--#define PTE_FILE_SHIFT1		(_PAGE_BIT_PRESENT + 1)
--#define PTE_FILE_SHIFT2		(_PAGE_BIT_FILE + 1)
--#define PTE_FILE_SHIFT3		(_PAGE_BIT_PROTNONE + 1)
--#define PTE_FILE_SHIFT4		(_PAGE_BIT_SOFT_DIRTY + 1)
--#define PTE_FILE_BITS1		(PTE_FILE_SHIFT2 - PTE_FILE_SHIFT1 - 1)
--#define PTE_FILE_BITS2		(PTE_FILE_SHIFT3 - PTE_FILE_SHIFT2 - 1)
--#define PTE_FILE_BITS3		(PTE_FILE_SHIFT4 - PTE_FILE_SHIFT3 - 1)
--
--#define PTE_FILE_MASK1		((1U << PTE_FILE_BITS1) - 1)
--#define PTE_FILE_MASK2		((1U << PTE_FILE_BITS2) - 1)
--#define PTE_FILE_MASK3		((1U << PTE_FILE_BITS3) - 1)
--
--#define PTE_FILE_LSHIFT2	(PTE_FILE_BITS1)
--#define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
--#define PTE_FILE_LSHIFT4	(PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3)
--
--static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
--{
--	return (pgoff_t)
--		(pte_bitop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		    +
--		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
--		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT3, PTE_FILE_MASK3,  PTE_FILE_LSHIFT3) +
--		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT4,           -1UL,  PTE_FILE_LSHIFT4));
--}
--
--static __always_inline pte_t pgoff_to_pte(pgoff_t off)
--{
--	return (pte_t){
--		.pte_low =
--			pte_bitop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
--			pte_bitop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
--			pte_bitop(off, PTE_FILE_LSHIFT3, PTE_FILE_MASK3,  PTE_FILE_SHIFT3) +
--			pte_bitop(off, PTE_FILE_LSHIFT4,           -1UL,  PTE_FILE_SHIFT4) +
--			_PAGE_FILE,
--	};
--}
--
--#else /* CONFIG_MEM_SOFT_DIRTY */
--
  /*
-  * Bits _PAGE_BIT_PRESENT, _PAGE_BIT_FILE and _PAGE_BIT_PROTNONE are taken,
-  * split up the 29 bits of offset into this range.
-@@ -145,8 +98,6 @@ static __always_inline pte_t pgoff_to_pt
- 	};
- }
- 
--#endif /* CONFIG_MEM_SOFT_DIRTY */
--
- /* Encode and de-code a swap entry */
- #define SWP_TYPE_BITS (_PAGE_BIT_FILE - _PAGE_BIT_PRESENT - 1)
- #define SWP_OFFSET_SHIFT (_PAGE_BIT_PROTNONE + 1)
-diff -puN arch/x86/include/asm/pgtable.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~mm-x86-pgtable-require-x86_64-for-soft-dirty-tracker
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -297,6 +297,7 @@ static inline pmd_t pmd_mknotpresent(pmd
- 	return pmd_clear_flags(pmd, _PAGE_PRESENT);
- }
- 
-+#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- static inline int pte_soft_dirty(pte_t pte)
- {
- 	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
-@@ -332,6 +333,8 @@ static inline int pte_file_soft_dirty(pt
- 	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
- }
- 
-+#endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
-+
+  * get_vma_policy(@task, @vma, @addr)
+- * @task - task for fallback if vma policy == default
+- * @vma   - virtual memory area whose policy is sought
+- * @addr  - address in @vma for shared policy lookup
++ * @task: task for fallback if vma policy == default
++ * @vma: virtual memory area whose policy is sought
++ * @addr: address in @vma for shared policy lookup
+  *
+  * Returns effective policy for a VMA at specified address.
+  * Falls back to @task or system default policy, as necessary.
+@@ -1854,11 +1854,11 @@ int node_random(const nodemask_t *maskp)
+ #ifdef CONFIG_HUGETLBFS
  /*
-  * Mask out unsupported bits in a present pgprot.  Non-present pgprots
-  * can use those bits for other purposes, so leave them be.
-@@ -865,6 +868,7 @@ static inline void update_mmu_cache_pmd(
- {
- }
- 
-+#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
- {
- 	VM_BUG_ON(pte_present_nonuma(pte));
-@@ -882,6 +886,7 @@ static inline pte_t pte_swp_clear_soft_d
- 	VM_BUG_ON(pte_present_nonuma(pte));
- 	return pte_clear_flags(pte, _PAGE_SWP_SOFT_DIRTY);
- }
-+#endif
- 
- #include <asm-generic/pgtable.h>
- #endif	/* __ASSEMBLY__ */
+  * huge_zonelist(@vma, @addr, @gfp_flags, @mpol)
+- * @vma = virtual memory area whose policy is sought
+- * @addr = address in @vma for shared policy lookup and interleave policy
+- * @gfp_flags = for requested zone
+- * @mpol = pointer to mempolicy pointer for reference counted mempolicy
+- * @nodemask = pointer to nodemask pointer for MPOL_BIND nodemask
++ * @vma: virtual memory area whose policy is sought
++ * @addr: address in @vma for shared policy lookup and interleave policy
++ * @gfp_flags: for requested zone
++ * @mpol: pointer to mempolicy pointer for reference counted mempolicy
++ * @nodemask: pointer to nodemask pointer for MPOL_BIND nodemask
+  *
+  * Returns a zonelist suitable for a huge page allocation and a pointer
+  * to the struct mempolicy for conditional unref after allocation.
+@@ -2270,9 +2270,9 @@ static void sp_free(struct sp_node *n)
+ /**
+  * mpol_misplaced - check whether current page node is valid in policy
+  *
+- * @page   - page to be checked
+- * @vma    - vm area where page mapped
+- * @addr   - virtual address where page mapped
++ * @page: page to be checked
++ * @vma: vm area where page mapped
++ * @addr: virtual address where page mapped
+  *
+  * Lookup current policy node id for vma,addr and "compare to" page's
+  * node id.
 _
 
-Patches currently in -mm which might be from gorcunov@openvz.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-hpfs-convert-printk-to-pr_foo.patch
+fs-hpfs-use-pr_fmt-for-logging.patch
+fs-hpfs-use-__func__-for-logging.patch
+fs-hpfs-increase-pr_warn-level.patch
+documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
+fs-proc-vmcorec-remove-null-assignment-on-static.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+mm-kmemleak-testc-use-pr_fmt-for-logging.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
