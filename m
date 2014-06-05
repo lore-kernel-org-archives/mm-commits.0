@@ -1,115 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-radix-treec-kernel-doc-warning-fix.patch removed
+Subject: [merged] lib-btreec-fix-leak-of-whole-btree-nodes.patch removed
  from -mm tree
-Date: Thu, 05 Jun 2014 13:05:21 -0700
-Message-ID: <5390cd81.6MBfCEAlbvZa+t6u%akpm@linux-foundation.org>
+Date: Thu, 05 Jun 2014 13:05:17 -0700
+Message-ID: <5390cd7d.R4344SHug/xMqg0q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56821 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56812 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871AbaFEUFW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:22 -0400
+	with ESMTP id S1751871AbaFEUFS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, johannes@sipsolutions.net, joern@logfs.org, huangminfei@ucloud.cn
 
-Subject: [merged] lib-radix-treec-kernel-doc-warning-fix.patch removed from -mm tree
-To: fabf@skynet.be,hannes@cmpxchg.org,mm-commits@vger.kernel.org
+Subject: [merged] lib-btreec-fix-leak-of-whole-btree-nodes.patch removed from -mm tree
+To: huangminfei@ucloud.cn,joern@logfs.org,johannes@sipsolutions.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:21 -0700
+Date: Thu, 05 Jun 2014 13:05:17 -0700
 
 
 The patch titled
-     Subject: lib/radix-tree.c: kernel-doc warning fix
+     Subject: lib/btree.c: fix leak of whole btree nodes
 has been removed from the -mm tree.  Its filename was
-     lib-radix-treec-kernel-doc-warning-fix.patch
+     lib-btreec-fix-leak-of-whole-btree-nodes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/radix-tree.c: kernel-doc warning fix
+From: Minfei Huang <huangminfei@ucloud.cn>
+Subject: lib/btree.c: fix leak of whole btree nodes
 
-index has been removed from __radix_tree_delete_node in 449dd6984d0e47
-("mm: keep page cache radix tree nodes in check")
+I use btree from 3.14-rc2 in my own module.  When the btree module is
+removed, a warning arises:
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+kmem_cache_destroy btree_node: Slab cache still has objects
+CPU: 13 PID: 9150 Comm: rmmod Tainted: GF          O 3.14.0-rc2 #1
+Hardware name: Inspur NF5270M3/NF5270M3, BIOS CHEETAH_2.1.3 09/10/2013
+ffff881ff8643b18 ffff881ffdc23ea8 ffffffff815a4ecc 0000000000000000
+ffff881ff8643ac0 ffff881ffdc23ec8 ffffffff811610df 0000000000000880
+ffffffffa057da60 ffff881ffdc23ed8 ffffffffa057d57c ffff881ffdc23f78
+Call Trace:
+[<ffffffff815a4ecc>] dump_stack+0x49/0x5d
+[<ffffffff811610df>] kmem_cache_destroy+0xcf/0xe0
+[<ffffffffa057d57c>] btree_module_exit+0x10/0x12 [btree]
+[<ffffffff810d7948>] SyS_delete_module+0x198/0x1f0
+[<ffffffff815aac89>] ? retint_swapgs+0xe/0x13
+[<ffffffff810a561d>] ? trace_hardirqs_on_caller+0xfd/0x1c0
+[<ffffffff812addde>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+[<ffffffff815b3652>] system_call_fastpath+0x16/0x1b
+
+The cause is that it doesn't release the last btree node, when height = 1
+and fill = 1.
+
+[akpm@linux-foundation.org: remove unneeded test of NULL]
+Signed-off-by: Minfei Huang <huangminfei@ucloud.cn>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/btree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/radix-tree.c~lib-radix-treec-kernel-doc-warning-fix lib/radix-tree.c
---- a/lib/radix-tree.c~lib-radix-treec-kernel-doc-warning-fix
-+++ a/lib/radix-tree.c
-@@ -1296,7 +1296,6 @@ static inline void radix_tree_shrink(str
- /**
-  *	__radix_tree_delete_node    -    try to free node after clearing a slot
-  *	@root:		radix tree root
-- *	@index:		index key
-  *	@node:		node containing @index
-  *
-  *	After clearing the slot at @index in @node from radix tree
+diff -puN lib/btree.c~lib-btreec-fix-leak-of-whole-btree-nodes lib/btree.c
+--- a/lib/btree.c~lib-btreec-fix-leak-of-whole-btree-nodes
++++ a/lib/btree.c
+@@ -198,6 +198,7 @@ EXPORT_SYMBOL_GPL(btree_init);
+ 
+ void btree_destroy(struct btree_head *head)
+ {
++	mempool_free(head->node, head->mempool);
+ 	mempool_destroy(head->mempool);
+ 	head->mempool = NULL;
+ }
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from huangminfei@ucloud.cn are
 
 origin.patch
-fs-ceph-replace-pr_warning-by-pr_warn.patch
-fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
-fs-befs-kernel-doc-fixes.patch
-fs-isofs-logging-clean-up.patch
-fs-coda-replace-printk-by-pr_foo.patch
-fs-coda-logging-prefix-uniformization.patch
-fs-coda-use-__func__.patch
-fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
-fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
-fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
-fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
-fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
-fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
-fs-hpfs-convert-printk-to-pr_foo.patch
-fs-hpfs-use-pr_fmt-for-logging.patch
-fs-hpfs-use-__func__-for-logging.patch
-fs-hpfs-increase-pr_warn-level.patch
-documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
-fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
-fs-proc-vmcorec-remove-null-assignment-on-static.patch
-kernel-kexecc-convert-printk-to-pr_foo.patch
-kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
-fs-affs-convert-printk-to-pr_foo.patch
-fs-affs-pr_debug-cleanup.patch
-kernel-profilec-convert-printk-to-pr_foo.patch
-kernel-profilec-use-static-const-char-instead-of-static-char.patch
-fs-pstore-logging-clean-up.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-cachefiles-convert-printk-to-pr_foo.patch
-fs-cachefiles-replace-kerror-by-pr_err.patch
-fs-devpts-inodec-convert-printk-to-pr_foo.patch
-fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-reiserfs-streec-remove-obsolete-__constant.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-fs-dlm-configc-convert-simple_str-to-kstr.patch
-fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
-fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
-mm-kmemleak-testc-use-pr_fmt-for-logging.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
 
