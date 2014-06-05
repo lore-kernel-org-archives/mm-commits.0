@@ -1,63 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-un-export-__memcg_kmem_get_cache.patch removed
+Subject: [merged] mm-disable-zone_reclaim_mode-by-default.patch removed
  from -mm tree
-Date: Thu, 05 Jun 2014 12:49:47 -0700
-Message-ID: <5390c9db.yqfghHIZTqu+E4RE%akpm@linux-foundation.org>
+Date: Thu, 05 Jun 2014 12:49:43 -0700
+Message-ID: <5390c9d7.7Q6MCpXfs5AzJRJ0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55879 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55871 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752430AbaFETtr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:47 -0400
+	with ESMTP id S1752455AbaFETto (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mhocko@suse.cz, hannes@cmpxchg.org, cl@linux.com, mgorman@suse.de
 
-Subject: [merged] memcg-un-export-__memcg_kmem_get_cache.patch removed from -mm tree
-To: vdavydov@parallels.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-disable-zone_reclaim_mode-by-default.patch removed from -mm tree
+To: mgorman@suse.de,cl@linux.com,hannes@cmpxchg.org,mhocko@suse.cz,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:49:47 -0700
+Date: Thu, 05 Jun 2014 12:49:43 -0700
 
 
 The patch titled
-     Subject: memcg: un-export __memcg_kmem_get_cache
+     Subject: mm: disable zone_reclaim_mode by default
 has been removed from the -mm tree.  Its filename was
-     memcg-un-export-__memcg_kmem_get_cache.patch
+     mm-disable-zone_reclaim_mode-by-default.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: un-export __memcg_kmem_get_cache
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: disable zone_reclaim_mode by default
 
-It is only used in slab and should not be used anywhere else so there is
-no need in exporting it.
+When it was introduced, zone_reclaim_mode made sense as NUMA distances
+punished and workloads were generally partitioned to fit into a NUMA node.
+ NUMA machines are now common but few of the workloads are NUMA-aware and
+it's routine to see major performance degradation due to zone_reclaim_mode
+being enabled but relatively few can identify the problem.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Those that require zone_reclaim_mode are likely to be able to detect when
+it needs to be enabled and tune appropriately so lets have a sensible
+default for the bulk of users.
+
+
+
+This patch (of 2):
+
+zone_reclaim_mode causes processes to prefer reclaiming memory from local
+node instead of spilling over to other nodes. This made sense initially when
+NUMA machines were almost exclusively HPC and the workload was partitioned
+into nodes. The NUMA penalties were sufficiently high to justify reclaiming
+the memory. On current machines and workloads it is often the case that
+zone_reclaim_mode destroys performance but not all users know how to detect
+this. Favour the common case and disable it by default. Users that are
+sophisticated enough to know they need zone_reclaim_mode will detect it.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/sysctl/vm.txt         |   17 +++++++++--------
+ arch/ia64/include/asm/topology.h    |    3 ++-
+ arch/powerpc/include/asm/topology.h |    8 ++------
+ include/linux/topology.h            |    3 ++-
+ mm/page_alloc.c                     |    2 --
+ 5 files changed, 15 insertions(+), 18 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-un-export-__memcg_kmem_get_cache mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-un-export-__memcg_kmem_get_cache
-+++ a/mm/memcontrol.c
-@@ -3513,7 +3513,6 @@ out:
- 	rcu_read_unlock();
- 	return cachep;
- }
--EXPORT_SYMBOL(__memcg_kmem_get_cache);
+diff -puN Documentation/sysctl/vm.txt~mm-disable-zone_reclaim_mode-by-default Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-disable-zone_reclaim_mode-by-default
++++ a/Documentation/sysctl/vm.txt
+@@ -772,16 +772,17 @@ This is value ORed together of
+ 2	= Zone reclaim writes dirty pages out
+ 4	= Zone reclaim swaps pages
+ 
+-zone_reclaim_mode is set during bootup to 1 if it is determined that pages
+-from remote zones will cause a measurable performance reduction. The
+-page allocator will then reclaim easily reusable pages (those page
+-cache pages that are currently not used) before allocating off node pages.
+-
+-It may be beneficial to switch off zone reclaim if the system is
+-used for a file server and all of memory should be used for caching files
+-from disk. In that case the caching effect is more important than
++zone_reclaim_mode is disabled by default.  For file servers or workloads
++that benefit from having their data cached, zone_reclaim_mode should be
++left disabled as the caching effect is likely to be more important than
+ data locality.
+ 
++zone_reclaim may be enabled if it's known that the workload is partitioned
++such that each partition fits within a NUMA node and that accessing remote
++memory would cause a measurable performance reduction.  The page allocator
++will then reclaim easily reusable pages (those page cache pages that are
++currently not used) before allocating off node pages.
++
+ Allowing zone reclaim to write out pages stops processes that are
+ writing large amounts of data from dirtying pages on other nodes. Zone
+ reclaim will write out dirty pages if a zone fills up and so effectively
+diff -puN arch/ia64/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default arch/ia64/include/asm/topology.h
+--- a/arch/ia64/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default
++++ a/arch/ia64/include/asm/topology.h
+@@ -21,7 +21,8 @@
+ #define PENALTY_FOR_NODE_WITH_CPUS 255
  
  /*
-  * We need to verify if the allocation against current->mm->owner's memcg is
+- * Distance above which we begin to use zone reclaim
++ * Nodes within this distance are eligible for reclaim by zone_reclaim() when
++ * zone_reclaim_mode is enabled.
+  */
+ #define RECLAIM_DISTANCE 15
+ 
+diff -puN arch/powerpc/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default arch/powerpc/include/asm/topology.h
+--- a/arch/powerpc/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default
++++ a/arch/powerpc/include/asm/topology.h
+@@ -9,12 +9,8 @@ struct device_node;
+ #ifdef CONFIG_NUMA
+ 
+ /*
+- * Before going off node we want the VM to try and reclaim from the local
+- * node. It does this if the remote distance is larger than RECLAIM_DISTANCE.
+- * With the default REMOTE_DISTANCE of 20 and the default RECLAIM_DISTANCE of
+- * 20, we never reclaim and go off node straight away.
+- *
+- * To fix this we choose a smaller value of RECLAIM_DISTANCE.
++ * If zone_reclaim_mode is enabled, a RECLAIM_DISTANCE of 10 will mean that
++ * all zones on all nodes will be eligible for zone_reclaim().
+  */
+ #define RECLAIM_DISTANCE 10
+ 
+diff -puN include/linux/topology.h~mm-disable-zone_reclaim_mode-by-default include/linux/topology.h
+--- a/include/linux/topology.h~mm-disable-zone_reclaim_mode-by-default
++++ a/include/linux/topology.h
+@@ -58,7 +58,8 @@ int arch_update_cpu_topology(void);
+ /*
+  * If the distance between nodes in a system is larger than RECLAIM_DISTANCE
+  * (in whatever arch specific measurement units returned by node_distance())
+- * then switch on zone reclaim on boot.
++ * and zone_reclaim_mode is enabled then the VM will only call zone_reclaim()
++ * on nodes within this distance.
+  */
+ #define RECLAIM_DISTANCE 30
+ #endif
+diff -puN mm/page_alloc.c~mm-disable-zone_reclaim_mode-by-default mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-disable-zone_reclaim_mode-by-default
++++ a/mm/page_alloc.c
+@@ -1860,8 +1860,6 @@ static void __paginginit init_zone_allow
+ 	for_each_node_state(i, N_MEMORY)
+ 		if (node_distance(nid, i) <= RECLAIM_DISTANCE)
+ 			node_set(i, NODE_DATA(nid)->reclaim_nodes);
+-		else
+-			zone_reclaim_mode = 1;
+ }
+ 
+ #else	/* CONFIG_NUMA */
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
 linux-next.patch
 
