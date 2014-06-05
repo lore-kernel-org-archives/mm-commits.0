@@ -1,92 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-textsearchc-move-export_symbol-after-functions.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 13:05:29 -0700
-Message-ID: <5390cd89.WrYDzEs0WK8vT8N2%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch removed from
+ -mm tree
+Date: Thu, 05 Jun 2014 13:05:33 -0700
+Message-ID: <5390cd8d.P+hQo3wXG6auYazo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56837 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbaFEUF3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:29 -0400
+	with ESMTP id S1751926AbaFEUFe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, luca@luca-barbieri.com, fabf@skynet.be
 
-Subject: [merged] lib-textsearchc-move-export_symbol-after-functions.patch removed from -mm tree
-To: fabf@skynet.be,mm-commits@vger.kernel.org
+Subject: [merged] lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch removed from -mm tree
+To: fabf@skynet.be,luca@luca-barbieri.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:29 -0700
+Date: Thu, 05 Jun 2014 13:05:33 -0700
 
 
 The patch titled
-     Subject: lib/textsearch.c: move EXPORT_SYMBOL after functions
+     Subject: lib/atomic64_test.c: convert printk(KERN_INFO to pr_info
 has been removed from the -mm tree.  Its filename was
-     lib-textsearchc-move-export_symbol-after-functions.patch
+     lib-atomic64_testc-convert-printkkern_info-to-pr_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/textsearch.c: move EXPORT_SYMBOL after functions
+Subject: lib/atomic64_test.c: convert printk(KERN_INFO to pr_info
 
-Fix checkpatch warning:
-"WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable"
+Convert printk to current pr_foo() logging functions.
+
+Also add pr_fmt based on KBUILD_MODNAME to avoid repeating prefix.  Prefix
+is now "atomic64_test: "
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Luca Barbieri <luca@luca-barbieri.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/textsearch.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ lib/atomic64_test.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN lib/textsearch.c~lib-textsearchc-move-export_symbol-after-functions lib/textsearch.c
---- a/lib/textsearch.c~lib-textsearchc-move-export_symbol-after-functions
-+++ a/lib/textsearch.c
-@@ -159,6 +159,7 @@ errout:
- 	spin_unlock(&ts_mod_lock);
- 	return err;
- }
-+EXPORT_SYMBOL(textsearch_register);
+diff -puN lib/atomic64_test.c~lib-atomic64_testc-convert-printkkern_info-to-pr_info lib/atomic64_test.c
+--- a/lib/atomic64_test.c~lib-atomic64_testc-convert-printkkern_info-to-pr_info
++++ a/lib/atomic64_test.c
+@@ -8,6 +8,9 @@
+  * the Free Software Foundation; either version 2 of the License, or
+  * (at your option) any later version.
+  */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/init.h>
+ #include <linux/bug.h>
+ #include <linux/kernel.h>
+@@ -146,18 +149,18 @@ static __init int test_atomic64(void)
+ 	BUG_ON(v.counter != r);
  
- /**
-  * textsearch_unregister - unregister a textsearch module
-@@ -190,6 +191,7 @@ out:
- 	spin_unlock(&ts_mod_lock);
- 	return err;
- }
-+EXPORT_SYMBOL(textsearch_unregister);
+ #ifdef CONFIG_X86
+-	printk(KERN_INFO "atomic64 test passed for %s platform %s CX8 and %s SSE\n",
++	pr_info("passed for %s platform %s CX8 and %s SSE\n",
+ #ifdef CONFIG_X86_64
+-	       "x86-64",
++		"x86-64",
+ #elif defined(CONFIG_X86_CMPXCHG64)
+-	       "i586+",
++		"i586+",
+ #else
+-	       "i386+",
++		"i386+",
+ #endif
+ 	       boot_cpu_has(X86_FEATURE_CX8) ? "with" : "without",
+ 	       boot_cpu_has(X86_FEATURE_XMM) ? "with" : "without");
+ #else
+-	printk(KERN_INFO "atomic64 test passed\n");
++	pr_info("passed\n");
+ #endif
  
- struct ts_linear_state
- {
-@@ -236,6 +238,7 @@ unsigned int textsearch_find_continuous(
- 
- 	return textsearch_find(conf, state);
- }
-+EXPORT_SYMBOL(textsearch_find_continuous);
- 
- /**
-  * textsearch_prepare - Prepare a search
-@@ -298,6 +301,7 @@ errout:
- 		
- 	return ERR_PTR(err);
- }
-+EXPORT_SYMBOL(textsearch_prepare);
- 
- /**
-  * textsearch_destroy - destroy a search configuration
-@@ -316,9 +320,4 @@ void textsearch_destroy(struct ts_config
- 
- 	kfree(conf);
- }
--
--EXPORT_SYMBOL(textsearch_register);
--EXPORT_SYMBOL(textsearch_unregister);
--EXPORT_SYMBOL(textsearch_prepare);
--EXPORT_SYMBOL(textsearch_find_continuous);
- EXPORT_SYMBOL(textsearch_destroy);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
