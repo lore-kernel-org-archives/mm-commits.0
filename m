@@ -1,103 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arc-call-find_vma-with-the-mmap_sem-held.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 12:50:05 -0700
-Message-ID: <5390c9ed./tDq373jrFN4qrel%akpm@linux-foundation.org>
+Subject: [merged]
+ documentation-memcg-warn-about-incomplete-kmemcg-state.patch removed from
+ -mm tree
+Date: Thu, 05 Jun 2014 12:50:03 -0700
+Message-ID: <5390c9eb.kiOGWTPnZZ91xOqN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55943 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55942 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751908AbaFETuG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:06 -0400
+	with ESMTP id S1752430AbaFETuE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgupta@synopsys.com, davidlohr@hp.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, vdavydov@parallels.com
 
-Subject: [merged] arc-call-find_vma-with-the-mmap_sem-held.patch removed from -mm tree
-To: davidlohr@hp.com,vgupta@synopsys.com,mm-commits@vger.kernel.org
+Subject: [merged] documentation-memcg-warn-about-incomplete-kmemcg-state.patch removed from -mm tree
+To: vdavydov@parallels.com,hannes@cmpxchg.org,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:50:05 -0700
+Date: Thu, 05 Jun 2014 12:50:03 -0700
 
 
 The patch titled
-     Subject: arc: call find_vma with the mmap_sem held
+     Subject: Documentation/memcg: warn about incomplete kmemcg state
 has been removed from the -mm tree.  Its filename was
-     arc-call-find_vma-with-the-mmap_sem-held.patch
+     documentation-memcg-warn-about-incomplete-kmemcg-state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: arc: call find_vma with the mmap_sem held
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: Documentation/memcg: warn about incomplete kmemcg state
 
-Performing vma lookups without taking the mm->mmap_sem is asking for
-trouble.  While doing the search, the vma in question can be modified or
-even removed before returning to the caller.  Take the lock (shared) in
-order to avoid races while iterating through the vmacache and/or rbtree.
+Kmemcg is currently under development and lacks some important features. 
+In particular, it does not have support of kmem reclaim on memory pressure
+inside cgroup, which practically makes it unusable in real life.  Let's
+warn about it in both Kconfig and Documentation to prevent complaints
+arising.
 
-[akpm@linux-foundation.org: CSE current->active_mm, per Vineet]
-Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Acked-by: Vineet Gupta <vgupta@synopsys.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/troubleshoot.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ Documentation/cgroups/memory.txt |    5 +++++
+ init/Kconfig                     |    6 ++++++
+ 2 files changed, 11 insertions(+)
 
-diff -puN arch/arc/kernel/troubleshoot.c~arc-call-find_vma-with-the-mmap_sem-held arch/arc/kernel/troubleshoot.c
---- a/arch/arc/kernel/troubleshoot.c~arc-call-find_vma-with-the-mmap_sem-held
-+++ a/arch/arc/kernel/troubleshoot.c
-@@ -86,12 +86,13 @@ static void show_faulting_vma(unsigned l
- 	unsigned long ino = 0;
- 	dev_t dev = 0;
- 	char *nm = buf;
-+	struct mm_struct *active_mm = current->active_mm;
+diff -puN Documentation/cgroups/memory.txt~documentation-memcg-warn-about-incomplete-kmemcg-state Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~documentation-memcg-warn-about-incomplete-kmemcg-state
++++ a/Documentation/cgroups/memory.txt
+@@ -270,6 +270,11 @@ When oom event notifier is registered, e
  
- 	/* can't use print_vma_addr() yet as it doesn't check for
- 	 * non-inclusive vma
- 	 */
--
--	vma = find_vma(current->active_mm, address);
-+	down_read(&active_mm->mmap_sem);
-+	vma = find_vma(active_mm, address);
+ 2.7 Kernel Memory Extension (CONFIG_MEMCG_KMEM)
  
- 	/* check against the find_vma( ) behaviour which returns the next VMA
- 	 * if the container VMA is not found
-@@ -110,9 +111,10 @@ static void show_faulting_vma(unsigned l
- 			vma->vm_start < TASK_UNMAPPED_BASE ?
- 				address : address - vma->vm_start,
- 			nm, vma->vm_start, vma->vm_end);
--	} else {
-+	} else
- 		pr_info("    @No matching VMA found\n");
--	}
++WARNING: Current implementation lacks reclaim support. That means allocation
++	 attempts will fail when close to the limit even if there are plenty of
++	 kmem available for reclaim. That makes this option unusable in real
++	 life so DO NOT SELECT IT unless for development purposes.
 +
-+	up_read(&active_mm->mmap_sem);
- }
+ With the Kernel memory extension, the Memory Controller is able to limit
+ the amount of kernel memory used by the system. Kernel memory is fundamentally
+ different than user memory, since it can't be swapped out, which makes it
+diff -puN init/Kconfig~documentation-memcg-warn-about-incomplete-kmemcg-state init/Kconfig
+--- a/init/Kconfig~documentation-memcg-warn-about-incomplete-kmemcg-state
++++ a/init/Kconfig
+@@ -996,6 +996,12 @@ config MEMCG_KMEM
+ 	  the kmem extension can use it to guarantee that no group of processes
+ 	  will ever exhaust kernel resources alone.
  
- static void show_ecr_verbose(struct pt_regs *regs)
++	  WARNING: Current implementation lacks reclaim support. That means
++	  allocation attempts will fail when close to the limit even if there
++	  are plenty of kmem available for reclaim. That makes this option
++	  unusable in real life so DO NOT SELECT IT unless for development
++	  purposes.
++
+ config CGROUP_HUGETLB
+ 	bool "HugeTLB Resource Controller for Control Groups"
+ 	depends on RESOURCE_COUNTERS && HUGETLB_PAGE
 _
 
-Patches currently in -mm which might be from davidlohr@hp.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
-ipc-constify-ipc_ops.patch
-ipc-shmc-check-for-ulong-overflows-in-shmat.patch
-ipc-shmc-check-for-overflows-of-shm_tot.patch
-ipc-shmc-check-for-integer-overflow-during-shmget.patch
-ipc-shmc-increase-the-defaults-for-shmall-shmmax.patch
-ipcshm-document-new-limits-in-the-uapi-header.patch
-ipcshm-document-new-limits-in-the-uapi-header-v2.patch
-ipcshm-document-new-limits-in-the-uapi-header-v3.patch
-ipcmsg-use-current-state-helpers.patch
-ipcmsg-move-some-msgq-ns-code-around.patch
-ipcmsg-document-volatile-r_msg.patch
-ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
 linux-next.patch
-blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
-rwsem-support-optimistic-spinning.patch
 
