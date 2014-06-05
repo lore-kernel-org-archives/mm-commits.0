@@ -1,75 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 12:49:37 -0700
-Message-ID: <5390c9d1.pxBZSeOFHUp3Gbs2%akpm@linux-foundation.org>
+Subject: [merged] hugetlb-add-hstate_is_gigantic.patch removed from -mm
+ tree
+Date: Thu, 05 Jun 2014 12:49:35 -0700
+Message-ID: <5390c9cf.fTY9zCE5dhypoC+W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55845 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55836 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752373AbaFETti (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:38 -0400
+	with ESMTP id S1752373AbaFETtg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, rientjes@google.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mtosatti@redhat.com, kirill.shutemov@linux.intel.com, isimatu.yasuaki@jp.fujitsu.com, davidlohr@hp.com, aarcange@redhat.com, lcapitulino@redhat.com
 
-Subject: [merged] hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch removed from -mm tree
+Subject: [merged] hugetlb-add-hstate_is_gigantic.patch removed from -mm tree
 To: lcapitulino@redhat.com,aarcange@redhat.com,davidlohr@hp.com,isimatu.yasuaki@jp.fujitsu.com,kirill.shutemov@linux.intel.com,mtosatti@redhat.com,n-horiguchi@ah.jp.nec.com,riel@redhat.com,rientjes@google.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:49:37 -0700
+Date: Thu, 05 Jun 2014 12:49:35 -0700
 
 
 The patch titled
-     Subject: hugetlb: update_and_free_page(): don't clear PG_reserved bit
+     Subject: hugetlb: add hstate_is_gigantic()
 has been removed from the -mm tree.  Its filename was
-     hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
+     hugetlb-add-hstate_is_gigantic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Luiz Capitulino <lcapitulino@redhat.com>
-Subject: hugetlb: update_and_free_page(): don't clear PG_reserved bit
-
-Hugepages pages never get the PG_reserved bit set, so don't clear it.
-
-However, note that if the bit gets mistakenly set free_pages_check() will
-catch it.
+Subject: hugetlb: add hstate_is_gigantic()
 
 Signed-off-by: Luiz Capitulino <lcapitulino@redhat.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/hugetlb.h |    5 +++++
+ mm/hugetlb.c            |   28 ++++++++++++++--------------
+ 2 files changed, 19 insertions(+), 14 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-update_and_free_page-dont-clear-pg_reserved-bit mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-update_and_free_page-dont-clear-pg_reserved-bit
+diff -puN include/linux/hugetlb.h~hugetlb-add-hstate_is_gigantic include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-add-hstate_is_gigantic
++++ a/include/linux/hugetlb.h
+@@ -343,6 +343,11 @@ static inline unsigned huge_page_shift(s
+ 	return h->order + PAGE_SHIFT;
+ }
+ 
++static inline bool hstate_is_gigantic(struct hstate *h)
++{
++	return huge_page_order(h) >= MAX_ORDER;
++}
++
+ static inline unsigned int pages_per_huge_page(struct hstate *h)
+ {
+ 	return 1 << h->order;
+diff -puN mm/hugetlb.c~hugetlb-add-hstate_is_gigantic mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-add-hstate_is_gigantic
 +++ a/mm/hugetlb.c
-@@ -618,8 +618,8 @@ static void update_and_free_page(struct
- 	for (i = 0; i < pages_per_huge_page(h); i++) {
- 		page[i].flags &= ~(1 << PG_locked | 1 << PG_error |
- 				1 << PG_referenced | 1 << PG_dirty |
--				1 << PG_active | 1 << PG_reserved |
--				1 << PG_private | 1 << PG_writeback);
-+				1 << PG_active | 1 << PG_private |
-+				1 << PG_writeback);
+@@ -611,7 +611,7 @@ static void update_and_free_page(struct
+ {
+ 	int i;
+ 
+-	VM_BUG_ON(h->order >= MAX_ORDER);
++	VM_BUG_ON(hstate_is_gigantic(h));
+ 
+ 	h->nr_huge_pages--;
+ 	h->nr_huge_pages_node[page_to_nid(page)]--;
+@@ -664,7 +664,7 @@ static void free_huge_page(struct page *
+ 	if (restore_reserve)
+ 		h->resv_huge_pages++;
+ 
+-	if (h->surplus_huge_pages_node[nid] && huge_page_order(h) < MAX_ORDER) {
++	if (h->surplus_huge_pages_node[nid] && !hstate_is_gigantic(h)) {
+ 		/* remove the page from active list */
+ 		list_del(&page->lru);
+ 		update_and_free_page(h, page);
+@@ -768,7 +768,7 @@ static struct page *alloc_fresh_huge_pag
+ {
+ 	struct page *page;
+ 
+-	if (h->order >= MAX_ORDER)
++	if (hstate_is_gigantic(h))
+ 		return NULL;
+ 
+ 	page = alloc_pages_exact_node(nid,
+@@ -962,7 +962,7 @@ static struct page *alloc_buddy_huge_pag
+ 	struct page *page;
+ 	unsigned int r_nid;
+ 
+-	if (h->order >= MAX_ORDER)
++	if (hstate_is_gigantic(h))
+ 		return NULL;
+ 
+ 	/*
+@@ -1155,7 +1155,7 @@ static void return_unused_surplus_pages(
+ 	h->resv_huge_pages -= unused_resv_pages;
+ 
+ 	/* Cannot return gigantic pages currently */
+-	if (h->order >= MAX_ORDER)
++	if (hstate_is_gigantic(h))
+ 		return;
+ 
+ 	nr_pages = min(unused_resv_pages, h->surplus_huge_pages);
+@@ -1355,7 +1355,7 @@ static void __init gather_bootmem_preall
+ 		 * fix confusing memory reports from free(1) and another
+ 		 * side-effects, like CommitLimit going negative.
+ 		 */
+-		if (h->order > (MAX_ORDER - 1))
++		if (hstate_is_gigantic(h))
+ 			adjust_managed_page_count(page, 1 << h->order);
  	}
- 	VM_BUG_ON_PAGE(hugetlb_cgroup_from_page(page), page);
- 	set_compound_page_dtor(page, NULL);
+ }
+@@ -1365,7 +1365,7 @@ static void __init hugetlb_hstate_alloc_
+ 	unsigned long i;
+ 
+ 	for (i = 0; i < h->max_huge_pages; ++i) {
+-		if (h->order >= MAX_ORDER) {
++		if (hstate_is_gigantic(h)) {
+ 			if (!alloc_bootmem_huge_page(h))
+ 				break;
+ 		} else if (!alloc_fresh_huge_page(h,
+@@ -1381,7 +1381,7 @@ static void __init hugetlb_init_hstates(
+ 
+ 	for_each_hstate(h) {
+ 		/* oversize hugepages were init'ed in early boot */
+-		if (h->order < MAX_ORDER)
++		if (!hstate_is_gigantic(h))
+ 			hugetlb_hstate_alloc_pages(h);
+ 	}
+ }
+@@ -1415,7 +1415,7 @@ static void try_to_free_low(struct hstat
+ {
+ 	int i;
+ 
+-	if (h->order >= MAX_ORDER)
++	if (hstate_is_gigantic(h))
+ 		return;
+ 
+ 	for_each_node_mask(i, *nodes_allowed) {
+@@ -1478,7 +1478,7 @@ static unsigned long set_max_huge_pages(
+ {
+ 	unsigned long min_count, ret;
+ 
+-	if (h->order >= MAX_ORDER)
++	if (hstate_is_gigantic(h))
+ 		return h->max_huge_pages;
+ 
+ 	/*
+@@ -1605,7 +1605,7 @@ static ssize_t nr_hugepages_store_common
+ 		goto out;
+ 
+ 	h = kobj_to_hstate(kobj, &nid);
+-	if (h->order >= MAX_ORDER) {
++	if (hstate_is_gigantic(h)) {
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+@@ -1688,7 +1688,7 @@ static ssize_t nr_overcommit_hugepages_s
+ 	unsigned long input;
+ 	struct hstate *h = kobj_to_hstate(kobj, NULL);
+ 
+-	if (h->order >= MAX_ORDER)
++	if (hstate_is_gigantic(h))
+ 		return -EINVAL;
+ 
+ 	err = kstrtoul(buf, 10, &input);
+@@ -2112,7 +2112,7 @@ static int hugetlb_sysctl_handler_common
+ 
+ 	tmp = h->max_huge_pages;
+ 
+-	if (write && h->order >= MAX_ORDER)
++	if (write && hstate_is_gigantic(h))
+ 		return -EINVAL;
+ 
+ 	table->data = &tmp;
+@@ -2168,7 +2168,7 @@ int hugetlb_overcommit_handler(struct ct
+ 
+ 	tmp = h->nr_overcommit_huge_pages;
+ 
+-	if (write && h->order >= MAX_ORDER)
++	if (write && hstate_is_gigantic(h))
+ 		return -EINVAL;
+ 
+ 	table->data = &tmp;
 _
 
 Patches currently in -mm which might be from lcapitulino@redhat.com are
