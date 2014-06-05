@@ -1,118 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memblock-introduce-memblock_alloc_range.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 12:49:09 -0700
-Message-ID: <5390c9b5.Sse8V7U3NhfCnvZY%akpm@linux-foundation.org>
+Subject: [merged] thp-consolidate-assert-checks-in-__split_huge_page.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:49:15 -0700
+Message-ID: <5390c9bb.y2huMGmsxteWiHPE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55790 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126AbaFETtK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:10 -0400
+	with ESMTP id S1752117AbaFETtP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, tglx@linutronix.de, mingo@redhat.com, m.szyprowski@samsung.com, konrad.wilk@oracle.com, hpa@zytor.com, dwmw2@infradead.org, ddutile@redhat.com, andi@firstfloor.org, akinobu.mita@gmail.com
+To: mm-commits@vger.kernel.org, aarcange@redhat.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] memblock-introduce-memblock_alloc_range.patch removed from -mm tree
-To: akinobu.mita@gmail.com,andi@firstfloor.org,ddutile@redhat.com,dwmw2@infradead.org,hpa@zytor.com,konrad.wilk@oracle.com,m.szyprowski@samsung.com,mingo@redhat.com,tglx@linutronix.de,yinghai@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] thp-consolidate-assert-checks-in-__split_huge_page.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,aarcange@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:49:09 -0700
+Date: Thu, 05 Jun 2014 12:49:15 -0700
 
 
 The patch titled
-     Subject: memblock: introduce memblock_alloc_range()
+     Subject: thp: consolidate assert checks in __split_huge_page()
 has been removed from the -mm tree.  Its filename was
-     memblock-introduce-memblock_alloc_range.patch
+     thp-consolidate-assert-checks-in-__split_huge_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: memblock: introduce memblock_alloc_range()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: consolidate assert checks in __split_huge_page()
 
-This introduces memblock_alloc_range() which allocates memblock from the
-specified range of physical address.  I would like to use this function to
-specify the location of CMA.
+It doesn't make sense to have two assert checks for each invariant: one
+for printing and one for BUG().
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Don Dutile <ddutile@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Let's trigger BUG() if we print error message.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    2 ++
- mm/memblock.c            |   21 +++++++++++++++++----
- 2 files changed, 19 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/memblock.h~memblock-introduce-memblock_alloc_range include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-introduce-memblock_alloc_range
-+++ a/include/linux/memblock.h
-@@ -272,6 +272,8 @@ static inline bool memblock_bottom_up(vo
- #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)
- #define MEMBLOCK_ALLOC_ACCESSIBLE	0
+diff -puN mm/huge_memory.c~thp-consolidate-assert-checks-in-__split_huge_page mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-consolidate-assert-checks-in-__split_huge_page
++++ a/mm/huge_memory.c
+@@ -1830,10 +1830,11 @@ static void __split_huge_page(struct pag
+ 	 * the newly established pmd of the child later during the
+ 	 * walk, to be able to set it as pmd_trans_splitting too.
+ 	 */
+-	if (mapcount != page_mapcount(page))
++	if (mapcount != page_mapcount(page)) {
+ 		printk(KERN_ERR "mapcount %d page_mapcount %d\n",
+ 		       mapcount, page_mapcount(page));
+-	BUG_ON(mapcount != page_mapcount(page));
++		BUG();
++	}
  
-+phys_addr_t __init memblock_alloc_range(phys_addr_t size, phys_addr_t align,
-+					phys_addr_t start, phys_addr_t end);
- phys_addr_t memblock_alloc_base(phys_addr_t size, phys_addr_t align,
- 				phys_addr_t max_addr);
- phys_addr_t __memblock_alloc_base(phys_addr_t size, phys_addr_t align,
-diff -puN mm/memblock.c~memblock-introduce-memblock_alloc_range mm/memblock.c
---- a/mm/memblock.c~memblock-introduce-memblock_alloc_range
-+++ a/mm/memblock.c
-@@ -1033,22 +1033,35 @@ int __init_memblock memblock_set_node(ph
- }
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+ 	__split_huge_page_refcount(page, list);
  
--static phys_addr_t __init memblock_alloc_base_nid(phys_addr_t size,
--					phys_addr_t align, phys_addr_t max_addr,
--					int nid)
-+static phys_addr_t __init memblock_alloc_range_nid(phys_addr_t size,
-+					phys_addr_t align, phys_addr_t start,
-+					phys_addr_t end, int nid)
- {
- 	phys_addr_t found;
- 
- 	if (!align)
- 		align = SMP_CACHE_BYTES;
- 
--	found = memblock_find_in_range_node(size, align, 0, max_addr, nid);
-+	found = memblock_find_in_range_node(size, align, start, end, nid);
- 	if (found && !memblock_reserve(found, size))
- 		return found;
- 
- 	return 0;
+@@ -1844,10 +1845,11 @@ static void __split_huge_page(struct pag
+ 		BUG_ON(is_vma_temporary_stack(vma));
+ 		mapcount2 += __split_huge_page_map(page, vma, addr);
+ 	}
+-	if (mapcount != mapcount2)
++	if (mapcount != mapcount2) {
+ 		printk(KERN_ERR "mapcount %d mapcount2 %d page_mapcount %d\n",
+ 		       mapcount, mapcount2, page_mapcount(page));
+-	BUG_ON(mapcount != mapcount2);
++		BUG();
++	}
  }
  
-+phys_addr_t __init memblock_alloc_range(phys_addr_t size, phys_addr_t align,
-+					phys_addr_t start, phys_addr_t end)
-+{
-+	return memblock_alloc_range_nid(size, align, start, end, NUMA_NO_NODE);
-+}
-+
-+static phys_addr_t __init memblock_alloc_base_nid(phys_addr_t size,
-+					phys_addr_t align, phys_addr_t max_addr,
-+					int nid)
-+{
-+	return memblock_alloc_range_nid(size, align, 0, max_addr, nid);
-+}
-+
- phys_addr_t __init memblock_alloc_nid(phys_addr_t size, phys_addr_t align, int nid)
- {
- 	return memblock_alloc_base_nid(size, align, MEMBLOCK_ALLOC_ACCESSIBLE, nid);
+ /*
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-update-page-table-walker-core-fix.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-prom-pid-clear_refs-avoid-split_huge_page.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
+mm-mark-remap_file_pages-syscall-as-deprecated.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
