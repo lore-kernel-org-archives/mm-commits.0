@@ -1,402 +1,241 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- swap-change-swap_list_head-to-plist-add-swap_avail_head.patch removed from
+ mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch removed from
  -mm tree
-Date: Thu, 05 Jun 2014 12:52:07 -0700
-Message-ID: <5390ca67.UKeUKY4JAzT8dKKm%akpm@linux-foundation.org>
+Date: Thu, 05 Jun 2014 12:52:37 -0700
+Message-ID: <5390ca85.jgMtu0EQgrRNxDsc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56305 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56425 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752491AbaFETwI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:52:08 -0400
+	with ESMTP id S1751530AbaFETwi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, weijieut@gmail.com, tglx@linutronix.de, shli@fusionio.com, rostedt@goodmis.org, riel@redhat.com, peterz@infradead.org, paul.gortmaker@windriver.com, mhocko@suse.cz, mgorman@suse.de, hughd@google.com, hannes@cmpxchg.org, ehrhardt@linux.vnet.ibm.com, bob.liu@oracle.com, ddstreet@ieee.org
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, tytso@mit.edu, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mhocko@suse.cz, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, mgorman@suse.de
 
-Subject: [merged] swap-change-swap_list_head-to-plist-add-swap_avail_head.patch removed from -mm tree
-To: ddstreet@ieee.org,bob.liu@oracle.com,ehrhardt@linux.vnet.ibm.com,hannes@cmpxchg.org,hughd@google.com,mgorman@suse.de,mhocko@suse.cz,paul.gortmaker@windriver.com,peterz@infradead.org,riel@redhat.com,rostedt@goodmis.org,shli@fusionio.com,tglx@linutronix.de,weijieut@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch removed from -mm tree
+To: mgorman@suse.de,dave.hansen@intel.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,mhocko@suse.cz,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,tytso@mit.edu,vbabka@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:52:07 -0700
+Date: Thu, 05 Jun 2014 12:52:37 -0700
 
 
 The patch titled
-     Subject: swap: change swap_list_head to plist, add swap_avail_head
+     Subject: mm: page_alloc: use unsigned int for order in more places
 has been removed from the -mm tree.  Its filename was
-     swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
+     mm-page_alloc-use-unsigned-int-for-order-in-more-places.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Streetman <ddstreet@ieee.org>
-Subject: swap: change swap_list_head to plist, add swap_avail_head
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: page_alloc: use unsigned int for order in more places
 
-Originally get_swap_page() started iterating through the singly-linked
-list of swap_info_structs using swap_list.next or highest_priority_index,
-which both were intended to point to the highest priority active swap
-target that was not full.  The first patch in this series changed the
-singly-linked list to a doubly-linked list, and removed the logic to start
-at the highest priority non-full entry; it starts scanning at the highest
-priority entry each time, even if the entry is full.
+X86 prefers the use of unsigned types for iterators and there is a
+tendency to mix whether a signed or unsigned type if used for page order. 
+This converts a number of sites in mm/page_alloc.c to use unsigned int for
+order where possible.
 
-Replace the manually ordered swap_list_head with a plist, swap_active_head.
-Add a new plist, swap_avail_head.  The original swap_active_head plist
-contains all active swap_info_structs, as before, while the new
-swap_avail_head plist contains only swap_info_structs that are active and
-available, i.e. not full.  Add a new spinlock, swap_avail_lock, to protect
-the swap_avail_head list.
-
-Mel Gorman suggested using plists since they internally handle ordering
-the list entries based on priority, which is exactly what swap was doing
-manually.  All the ordering code is now removed, and swap_info_struct
-entries and simply added to their corresponding plist and automatically
-ordered correctly.
-
-Using a new plist for available swap_info_structs simplifies and
-optimizes get_swap_page(), which no longer has to iterate over full
-swap_info_structs.  Using a new spinlock for swap_avail_head plist
-allows each swap_info_struct to add or remove themselves from the
-plist when they become full or not-full; previously they could not
-do so because the swap_info_struct->lock is held when they change
-from full<->not-full, and the swap_lock protecting the main
-swap_active_head must be ordered before any swap_info_struct->lock.
-
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Shaohua Li <shli@fusionio.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Christian Ehrhardt <ehrhardt@linux.vnet.ibm.com>
-Cc: Weijie Yang <weijieut@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Bob Liu <bob.liu@oracle.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h     |    3 
- include/linux/swapfile.h |    2 
- mm/frontswap.c           |    6 -
- mm/swapfile.c            |  145 +++++++++++++++++++++++--------------
- 4 files changed, 97 insertions(+), 59 deletions(-)
+ include/linux/mmzone.h |    8 +++----
+ mm/page_alloc.c        |   43 ++++++++++++++++++++-------------------
+ 2 files changed, 27 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/swap.h~swap-change-swap_list_head-to-plist-add-swap_avail_head include/linux/swap.h
---- a/include/linux/swap.h~swap-change-swap_list_head-to-plist-add-swap_avail_head
-+++ a/include/linux/swap.h
-@@ -214,7 +214,8 @@ struct percpu_cluster {
- struct swap_info_struct {
- 	unsigned long	flags;		/* SWP_USED etc: see above */
- 	signed short	prio;		/* swap priority of this type */
--	struct list_head list;		/* entry in swap list */
-+	struct plist_node list;		/* entry in swap_active_head */
-+	struct plist_node avail_list;	/* entry in swap_avail_head */
- 	signed char	type;		/* strange name for an index */
- 	unsigned int	max;		/* extent of the swap_map */
- 	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
-diff -puN include/linux/swapfile.h~swap-change-swap_list_head-to-plist-add-swap_avail_head include/linux/swapfile.h
---- a/include/linux/swapfile.h~swap-change-swap_list_head-to-plist-add-swap_avail_head
-+++ a/include/linux/swapfile.h
-@@ -6,7 +6,7 @@
-  * want to expose them to the dozens of source files that include swap.h
-  */
- extern spinlock_t swap_lock;
--extern struct list_head swap_list_head;
-+extern struct plist_head swap_active_head;
- extern struct swap_info_struct *swap_info[];
- extern int try_to_unuse(unsigned int, bool, unsigned long);
- 
-diff -puN mm/frontswap.c~swap-change-swap_list_head-to-plist-add-swap_avail_head mm/frontswap.c
---- a/mm/frontswap.c~swap-change-swap_list_head-to-plist-add-swap_avail_head
-+++ a/mm/frontswap.c
-@@ -331,7 +331,7 @@ static unsigned long __frontswap_curr_pa
- 	struct swap_info_struct *si = NULL;
- 
- 	assert_spin_locked(&swap_lock);
--	list_for_each_entry(si, &swap_list_head, list)
-+	plist_for_each_entry(si, &swap_active_head, list)
- 		totalpages += atomic_read(&si->frontswap_pages);
- 	return totalpages;
+diff -puN include/linux/mmzone.h~mm-page_alloc-use-unsigned-int-for-order-in-more-places include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-use-unsigned-int-for-order-in-more-places
++++ a/include/linux/mmzone.h
+@@ -817,10 +817,10 @@ static inline bool pgdat_is_empty(pg_dat
+ extern struct mutex zonelists_mutex;
+ void build_all_zonelists(pg_data_t *pgdat, struct zone *zone);
+ void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx);
+-bool zone_watermark_ok(struct zone *z, int order, unsigned long mark,
+-		int classzone_idx, int alloc_flags);
+-bool zone_watermark_ok_safe(struct zone *z, int order, unsigned long mark,
+-		int classzone_idx, int alloc_flags);
++bool zone_watermark_ok(struct zone *z, unsigned int order,
++		unsigned long mark, int classzone_idx, int alloc_flags);
++bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
++		unsigned long mark, int classzone_idx, int alloc_flags);
+ enum memmap_context {
+ 	MEMMAP_EARLY,
+ 	MEMMAP_HOTPLUG,
+diff -puN mm/page_alloc.c~mm-page_alloc-use-unsigned-int-for-order-in-more-places mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-use-unsigned-int-for-order-in-more-places
++++ a/mm/page_alloc.c
+@@ -409,7 +409,8 @@ static int destroy_compound_page(struct
+ 	return bad;
  }
-@@ -346,7 +346,7 @@ static int __frontswap_unuse_pages(unsig
- 	unsigned long pages = 0, pages_to_unuse = 0;
  
- 	assert_spin_locked(&swap_lock);
--	list_for_each_entry(si, &swap_list_head, list) {
-+	plist_for_each_entry(si, &swap_active_head, list) {
- 		si_frontswap_pages = atomic_read(&si->frontswap_pages);
- 		if (total_pages_to_unuse < si_frontswap_pages) {
- 			pages = pages_to_unuse = total_pages_to_unuse;
-@@ -408,7 +408,7 @@ void frontswap_shrink(unsigned long targ
- 	/*
- 	 * we don't want to hold swap_lock while doing a very
- 	 * lengthy try_to_unuse, but swap_list may change
--	 * so restart scan from swap_list_head each time
-+	 * so restart scan from swap_active_head each time
- 	 */
- 	spin_lock(&swap_lock);
- 	ret = __frontswap_shrink(target_pages, &pages_to_unuse, &type);
-diff -puN mm/swapfile.c~swap-change-swap_list_head-to-plist-add-swap_avail_head mm/swapfile.c
---- a/mm/swapfile.c~swap-change-swap_list_head-to-plist-add-swap_avail_head
-+++ a/mm/swapfile.c
-@@ -61,7 +61,22 @@ static const char Unused_offset[] = "Unu
-  * all active swap_info_structs
-  * protected with swap_lock, and ordered by priority.
-  */
--LIST_HEAD(swap_list_head);
-+PLIST_HEAD(swap_active_head);
-+
-+/*
-+ * all available (active, not full) swap_info_structs
-+ * protected with swap_avail_lock, ordered by priority.
-+ * This is used by get_swap_page() instead of swap_active_head
-+ * because swap_active_head includes all swap_info_structs,
-+ * but get_swap_page() doesn't need to look at full ones.
-+ * This uses its own lock instead of swap_lock because when a
-+ * swap_info_struct changes between not-full/full, it needs to
-+ * add/remove itself to/from this list, but the swap_info_struct->lock
-+ * is held and the locking order requires swap_lock to be taken
-+ * before any swap_info_struct->lock.
-+ */
-+static PLIST_HEAD(swap_avail_head);
-+static DEFINE_SPINLOCK(swap_avail_lock);
- 
- struct swap_info_struct *swap_info[MAX_SWAPFILES];
- 
-@@ -594,6 +609,9 @@ checks:
- 	if (si->inuse_pages == si->pages) {
- 		si->lowest_bit = si->max;
- 		si->highest_bit = 0;
-+		spin_lock(&swap_avail_lock);
-+		plist_del(&si->avail_list, &swap_avail_head);
-+		spin_unlock(&swap_avail_lock);
- 	}
- 	si->swap_map[offset] = usage;
- 	inc_cluster_info_page(si, si->cluster_info, offset);
-@@ -645,57 +663,63 @@ swp_entry_t get_swap_page(void)
+-static inline void prep_zero_page(struct page *page, int order, gfp_t gfp_flags)
++static inline void prep_zero_page(struct page *page, unsigned int order,
++							gfp_t gfp_flags)
  {
- 	struct swap_info_struct *si, *next;
- 	pgoff_t offset;
--	struct list_head *tmp;
+ 	int i;
  
--	spin_lock(&swap_lock);
- 	if (atomic_long_read(&nr_swap_pages) <= 0)
- 		goto noswap;
- 	atomic_long_dec(&nr_swap_pages);
+@@ -453,7 +454,7 @@ static inline void set_page_guard_flag(s
+ static inline void clear_page_guard_flag(struct page *page) { }
+ #endif
  
--	list_for_each(tmp, &swap_list_head) {
--		si = list_entry(tmp, typeof(*si), list);
-+	spin_lock(&swap_avail_lock);
-+
-+start_over:
-+	plist_for_each_entry_safe(si, next, &swap_avail_head, avail_list) {
-+		/* requeue si to after same-priority siblings */
-+		plist_requeue(&si->avail_list, &swap_avail_head);
-+		spin_unlock(&swap_avail_lock);
- 		spin_lock(&si->lock);
- 		if (!si->highest_bit || !(si->flags & SWP_WRITEOK)) {
-+			spin_lock(&swap_avail_lock);
-+			if (plist_node_empty(&si->avail_list)) {
-+				spin_unlock(&si->lock);
-+				goto nextsi;
-+			}
-+			WARN(!si->highest_bit,
-+			     "swap_info %d in list but !highest_bit\n",
-+			     si->type);
-+			WARN(!(si->flags & SWP_WRITEOK),
-+			     "swap_info %d in list but !SWP_WRITEOK\n",
-+			     si->type);
-+			plist_del(&si->avail_list, &swap_avail_head);
- 			spin_unlock(&si->lock);
--			continue;
-+			goto nextsi;
- 		}
- 
--		/*
--		 * rotate the current swap_info that we're going to use
--		 * to after any other swap_info that have the same prio,
--		 * so that all equal-priority swap_info get used equally
--		 */
--		next = si;
--		list_for_each_entry_continue(next, &swap_list_head, list) {
--			if (si->prio != next->prio)
--				break;
--			list_rotate_left(&si->list);
--			next = si;
--		}
--
--		spin_unlock(&swap_lock);
- 		/* This is called for allocating swap entry for cache */
- 		offset = scan_swap_map(si, SWAP_HAS_CACHE);
- 		spin_unlock(&si->lock);
- 		if (offset)
- 			return swp_entry(si->type, offset);
--		spin_lock(&swap_lock);
-+		pr_debug("scan_swap_map of si %d failed to find offset\n",
-+		       si->type);
-+		spin_lock(&swap_avail_lock);
-+nextsi:
- 		/*
- 		 * if we got here, it's likely that si was almost full before,
- 		 * and since scan_swap_map() can drop the si->lock, multiple
- 		 * callers probably all tried to get a page from the same si
--		 * and it filled up before we could get one.  So we need to
--		 * try again.  Since we dropped the swap_lock, there may now
--		 * be non-full higher priority swap_infos, and this si may have
--		 * even been removed from the list (although very unlikely).
--		 * Let's start over.
-+		 * and it filled up before we could get one; or, the si filled
-+		 * up between us dropping swap_avail_lock and taking si->lock.
-+		 * Since we dropped the swap_avail_lock, the swap_avail_head
-+		 * list may have been modified; so if next is still in the
-+		 * swap_avail_head list then try it, otherwise start over.
- 		 */
--		tmp = &swap_list_head;
-+		if (plist_node_empty(&next->avail_list))
-+			goto start_over;
- 	}
- 
-+	spin_unlock(&swap_avail_lock);
-+
- 	atomic_long_inc(&nr_swap_pages);
- noswap:
--	spin_unlock(&swap_lock);
- 	return (swp_entry_t) {0};
- }
- 
-@@ -798,8 +822,18 @@ static unsigned char swap_entry_free(str
- 		dec_cluster_info_page(p, p->cluster_info, offset);
- 		if (offset < p->lowest_bit)
- 			p->lowest_bit = offset;
--		if (offset > p->highest_bit)
-+		if (offset > p->highest_bit) {
-+			bool was_full = !p->highest_bit;
- 			p->highest_bit = offset;
-+			if (was_full && (p->flags & SWP_WRITEOK)) {
-+				spin_lock(&swap_avail_lock);
-+				WARN_ON(!plist_node_empty(&p->avail_list));
-+				if (plist_node_empty(&p->avail_list))
-+					plist_add(&p->avail_list,
-+						  &swap_avail_head);
-+				spin_unlock(&swap_avail_lock);
-+			}
-+		}
- 		atomic_long_inc(&nr_swap_pages);
- 		p->inuse_pages--;
- 		frontswap_invalidate_page(p->type, offset);
-@@ -1734,12 +1768,16 @@ static void _enable_swap_info(struct swa
- 				unsigned char *swap_map,
- 				struct swap_cluster_info *cluster_info)
+-static inline void set_page_order(struct page *page, int order)
++static inline void set_page_order(struct page *page, unsigned int order)
  {
--	struct swap_info_struct *si;
--
- 	if (prio >= 0)
- 		p->prio = prio;
- 	else
- 		p->prio = --least_priority;
-+	/*
-+	 * the plist prio is negated because plist ordering is
-+	 * low-to-high, while swap ordering is high-to-low
-+	 */
-+	p->list.prio = -p->prio;
-+	p->avail_list.prio = -p->prio;
- 	p->swap_map = swap_map;
- 	p->cluster_info = cluster_info;
- 	p->flags |= SWP_WRITEOK;
-@@ -1747,27 +1785,20 @@ static void _enable_swap_info(struct swa
- 	total_swap_pages += p->pages;
+ 	set_page_private(page, order);
+ 	__SetPageBuddy(page);
+@@ -504,7 +505,7 @@ __find_buddy_index(unsigned long page_id
+  * For recording page's order, we use page_private(page).
+  */
+ static inline int page_is_buddy(struct page *page, struct page *buddy,
+-								int order)
++							unsigned int order)
+ {
+ 	if (!pfn_valid_within(page_to_pfn(buddy)))
+ 		return 0;
+@@ -726,7 +727,7 @@ static void free_pcppages_bulk(struct zo
  
- 	assert_spin_locked(&swap_lock);
--	BUG_ON(!list_empty(&p->list));
--	/*
--	 * insert into swap list; the list is in priority order,
--	 * so that get_swap_page() can get a page from the highest
--	 * priority swap_info_struct with available page(s), and
--	 * swapoff can adjust the auto-assigned (i.e. negative) prio
--	 * values for any lower-priority swap_info_structs when
--	 * removing a negative-prio swap_info_struct
--	 */
--	list_for_each_entry(si, &swap_list_head, list) {
--		if (p->prio >= si->prio) {
--			list_add_tail(&p->list, &si->list);
--			return;
--		}
--	}
- 	/*
--	 * this covers two cases:
--	 * 1) p->prio is less than all existing prio
--	 * 2) the swap list is empty
-+	 * both lists are plists, and thus priority ordered.
-+	 * swap_active_head needs to be priority ordered for swapoff(),
-+	 * which on removal of any swap_info_struct with an auto-assigned
-+	 * (i.e. negative) priority increments the auto-assigned priority
-+	 * of any lower-priority swap_info_structs.
-+	 * swap_avail_head needs to be priority ordered for get_swap_page(),
-+	 * which allocates swap pages from the highest available priority
-+	 * swap_info_struct.
- 	 */
--	list_add_tail(&p->list, &swap_list_head);
-+	plist_add(&p->list, &swap_active_head);
-+	spin_lock(&swap_avail_lock);
-+	plist_add(&p->avail_list, &swap_avail_head);
-+	spin_unlock(&swap_avail_lock);
+ static void free_one_page(struct zone *zone,
+ 				struct page *page, unsigned long pfn,
+-				int order,
++				unsigned int order,
+ 				int migratetype)
+ {
+ 	spin_lock(&zone->lock);
+@@ -897,7 +898,7 @@ static inline int check_new_page(struct
+ 	return 0;
  }
  
- static void enable_swap_info(struct swap_info_struct *p, int prio,
-@@ -1821,7 +1852,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+-static int prep_new_page(struct page *page, int order, gfp_t gfp_flags)
++static int prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags)
+ {
+ 	int i;
  
- 	mapping = victim->f_mapping;
- 	spin_lock(&swap_lock);
--	list_for_each_entry(p, &swap_list_head, list) {
-+	plist_for_each_entry(p, &swap_active_head, list) {
- 		if (p->flags & SWP_WRITEOK) {
- 			if (p->swap_file->f_mapping == mapping) {
- 				found = 1;
-@@ -1841,16 +1872,21 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 		spin_unlock(&swap_lock);
- 		goto out_dput;
- 	}
-+	spin_lock(&swap_avail_lock);
-+	plist_del(&p->avail_list, &swap_avail_head);
-+	spin_unlock(&swap_avail_lock);
- 	spin_lock(&p->lock);
- 	if (p->prio < 0) {
- 		struct swap_info_struct *si = p;
+@@ -1108,16 +1109,17 @@ static int try_to_steal_freepages(struct
  
--		list_for_each_entry_continue(si, &swap_list_head, list) {
-+		plist_for_each_entry_continue(si, &swap_active_head, list) {
- 			si->prio++;
-+			si->list.prio--;
-+			si->avail_list.prio--;
- 		}
- 		least_priority++;
- 	}
--	list_del_init(&p->list);
-+	plist_del(&p->list, &swap_active_head);
- 	atomic_long_sub(p->pages, &nr_swap_pages);
- 	total_swap_pages -= p->pages;
- 	p->flags &= ~SWP_WRITEOK;
-@@ -2115,7 +2151,8 @@ static struct swap_info_struct *alloc_sw
- 		 */
- 	}
- 	INIT_LIST_HEAD(&p->first_swap_extent.list);
--	INIT_LIST_HEAD(&p->list);
-+	plist_node_init(&p->list, 0);
-+	plist_node_init(&p->avail_list, 0);
- 	p->flags = SWP_USED;
- 	spin_unlock(&swap_lock);
- 	spin_lock_init(&p->lock);
+ /* Remove an element from the buddy allocator from the fallback list */
+ static inline struct page *
+-__rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
++__rmqueue_fallback(struct zone *zone, unsigned int order, int start_migratetype)
+ {
+ 	struct free_area *area;
+-	int current_order;
++	unsigned int current_order;
+ 	struct page *page;
+ 	int migratetype, new_type, i;
+ 
+ 	/* Find the largest possible block of pages in the other list */
+-	for (current_order = MAX_ORDER-1; current_order >= order;
+-						--current_order) {
++	for (current_order = MAX_ORDER-1;
++				current_order >= order && current_order <= MAX_ORDER-1;
++				--current_order) {
+ 		for (i = 0;; i++) {
+ 			migratetype = fallbacks[start_migratetype][i];
+ 
+@@ -1345,7 +1347,7 @@ void mark_free_pages(struct zone *zone)
+ {
+ 	unsigned long pfn, max_zone_pfn;
+ 	unsigned long flags;
+-	int order, t;
++	unsigned int order, t;
+ 	struct list_head *curr;
+ 
+ 	if (zone_is_empty(zone))
+@@ -1541,8 +1543,8 @@ int split_free_page(struct page *page)
+  */
+ static inline
+ struct page *buffered_rmqueue(struct zone *preferred_zone,
+-			struct zone *zone, int order, gfp_t gfp_flags,
+-			int migratetype)
++			struct zone *zone, unsigned int order,
++			gfp_t gfp_flags, int migratetype)
+ {
+ 	unsigned long flags;
+ 	struct page *page;
+@@ -1691,8 +1693,9 @@ static inline bool should_fail_alloc_pag
+  * Return true if free pages are above 'mark'. This takes into account the order
+  * of the allocation.
+  */
+-static bool __zone_watermark_ok(struct zone *z, int order, unsigned long mark,
+-		      int classzone_idx, int alloc_flags, long free_pages)
++static bool __zone_watermark_ok(struct zone *z, unsigned int order,
++			unsigned long mark, int classzone_idx, int alloc_flags,
++			long free_pages)
+ {
+ 	/* free_pages my go negative - that's OK */
+ 	long min = mark;
+@@ -1726,15 +1729,15 @@ static bool __zone_watermark_ok(struct z
+ 	return true;
+ }
+ 
+-bool zone_watermark_ok(struct zone *z, int order, unsigned long mark,
++bool zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
+ 		      int classzone_idx, int alloc_flags)
+ {
+ 	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
+ 					zone_page_state(z, NR_FREE_PAGES));
+ }
+ 
+-bool zone_watermark_ok_safe(struct zone *z, int order, unsigned long mark,
+-		      int classzone_idx, int alloc_flags)
++bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
++			unsigned long mark, int classzone_idx, int alloc_flags)
+ {
+ 	long free_pages = zone_page_state(z, NR_FREE_PAGES);
+ 
+@@ -4121,7 +4124,7 @@ void __meminit memmap_init_zone(unsigned
+ 
+ static void __meminit zone_init_free_lists(struct zone *zone)
+ {
+-	int order, t;
++	unsigned int order, t;
+ 	for_each_migratetype_order(order, t) {
+ 		INIT_LIST_HEAD(&zone->free_area[order].free_list[t]);
+ 		zone->free_area[order].nr_free = 0;
+@@ -6444,7 +6447,7 @@ __offline_isolated_pages(unsigned long s
+ {
+ 	struct page *page;
+ 	struct zone *zone;
+-	int order, i;
++	unsigned int order, i;
+ 	unsigned long pfn;
+ 	unsigned long flags;
+ 	/* find the first valid pfn */
+@@ -6496,7 +6499,7 @@ bool is_free_buddy_page(struct page *pag
+ 	struct zone *zone = page_zone(page);
+ 	unsigned long pfn = page_to_pfn(page);
+ 	unsigned long flags;
+-	int order;
++	unsigned int order;
+ 
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	for (order = 0; order < MAX_ORDER; order++) {
 _
 
-Patches currently in -mm which might be from ddstreet@ieee.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
 linux-next.patch
 
