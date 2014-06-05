@@ -1,103 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-bugc-convert-printk-to-pr_foo.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 13:05:31 -0700
-Message-ID: <5390cd8b.IPL+icElpfJIJ3Nz%akpm@linux-foundation.org>
+Subject: [merged] kernel-compatc-use-sizeof-instead-of-sizeof.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 13:05:37 -0700
+Message-ID: <5390cd91.0fr/JXpSigZQzdAL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56835 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56845 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbaFEUFc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:32 -0400
+	with ESMTP id S1751926AbaFEUFh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, jeremy@goop.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, hpa@zytor.com, arnd@arndb.de, fabf@skynet.be
 
-Subject: [merged] lib-bugc-convert-printk-to-pr_foo.patch removed from -mm tree
-To: fabf@skynet.be,jeremy@goop.org,joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] kernel-compatc-use-sizeof-instead-of-sizeof.patch removed from -mm tree
+To: fabf@skynet.be,arnd@arndb.de,hpa@zytor.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:31 -0700
+Date: Thu, 05 Jun 2014 13:05:37 -0700
 
 
 The patch titled
-     Subject: lib/bug.c: convert printk to pr_foo()
+     Subject: kernel/compat.c: use sizeof() instead of sizeof
 has been removed from the -mm tree.  Its filename was
-     lib-bugc-convert-printk-to-pr_foo.patch
+     kernel-compatc-use-sizeof-instead-of-sizeof.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/bug.c: convert printk to pr_foo()
+Subject: kernel/compat.c: use sizeof() instead of sizeof
 
-- Coalesce formats
-
-- "WARNING:" prefix unchanged to keep bug format.
-
-- printk(KERN_DEFAULT not converted.
-
-- define pr_fmt without prefix to avoid any default prefix update
-  (suggested by Joe Perches).
+Fix 4 checkpatch warnings
+WARNING: sizeof *tv should be sizeof(*tv)
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Joe Perches <joe@perches.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bug.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ kernel/compat.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/bug.c~lib-bugc-convert-printk-to-pr_foo lib/bug.c
---- a/lib/bug.c~lib-bugc-convert-printk-to-pr_foo
-+++ a/lib/bug.c
-@@ -37,6 +37,9 @@
- 
-     Jeremy Fitzhardinge <jeremy@goop.org> 2006
-  */
-+
-+#define pr_fmt(fmt) fmt
-+
- #include <linux/list.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
-@@ -153,15 +156,13 @@ enum bug_trap_type report_bug(unsigned l
- 
- 	if (warning) {
- 		/* this is a WARN_ON rather than BUG/BUG_ON */
--		printk(KERN_WARNING "------------[ cut here ]------------\n");
-+		pr_warn("------------[ cut here ]------------\n");
- 
- 		if (file)
--			printk(KERN_WARNING "WARNING: at %s:%u\n",
--			       file, line);
-+			pr_warn("WARNING: at %s:%u\n", file, line);
- 		else
--			printk(KERN_WARNING "WARNING: at %p "
--			       "[verbose debug info unavailable]\n",
--			       (void *)bugaddr);
-+			pr_warn("WARNING: at %p [verbose debug info unavailable]\n",
-+				(void *)bugaddr);
- 
- 		print_modules();
- 		show_regs(regs);
-@@ -174,12 +175,10 @@ enum bug_trap_type report_bug(unsigned l
- 	printk(KERN_DEFAULT "------------[ cut here ]------------\n");
- 
- 	if (file)
--		printk(KERN_CRIT "kernel BUG at %s:%u!\n",
--		       file, line);
-+		pr_crit("kernel BUG at %s:%u!\n", file, line);
+diff -puN kernel/compat.c~kernel-compatc-use-sizeof-instead-of-sizeof kernel/compat.c
+--- a/kernel/compat.c~kernel-compatc-use-sizeof-instead-of-sizeof
++++ a/kernel/compat.c
+@@ -157,7 +157,7 @@ static int __compat_put_timespec(const s
+ int compat_get_timeval(struct timeval *tv, const void __user *utv)
+ {
+ 	if (COMPAT_USE_64BIT_TIME)
+-		return copy_from_user(tv, utv, sizeof *tv) ? -EFAULT : 0;
++		return copy_from_user(tv, utv, sizeof(*tv)) ? -EFAULT : 0;
  	else
--		printk(KERN_CRIT "Kernel BUG at %p "
--		       "[verbose debug info unavailable]\n",
--		       (void *)bugaddr);
-+		pr_crit("Kernel BUG at %p [verbose debug info unavailable]\n",
-+			(void *)bugaddr);
- 
- 	return BUG_TRAP_TYPE_BUG;
+ 		return __compat_get_timeval(tv, utv);
+ }
+@@ -166,7 +166,7 @@ EXPORT_SYMBOL_GPL(compat_get_timeval);
+ int compat_put_timeval(const struct timeval *tv, void __user *utv)
+ {
+ 	if (COMPAT_USE_64BIT_TIME)
+-		return copy_to_user(utv, tv, sizeof *tv) ? -EFAULT : 0;
++		return copy_to_user(utv, tv, sizeof(*tv)) ? -EFAULT : 0;
+ 	else
+ 		return __compat_put_timeval(tv, utv);
+ }
+@@ -175,7 +175,7 @@ EXPORT_SYMBOL_GPL(compat_put_timeval);
+ int compat_get_timespec(struct timespec *ts, const void __user *uts)
+ {
+ 	if (COMPAT_USE_64BIT_TIME)
+-		return copy_from_user(ts, uts, sizeof *ts) ? -EFAULT : 0;
++		return copy_from_user(ts, uts, sizeof(*ts)) ? -EFAULT : 0;
+ 	else
+ 		return __compat_get_timespec(ts, uts);
+ }
+@@ -184,7 +184,7 @@ EXPORT_SYMBOL_GPL(compat_get_timespec);
+ int compat_put_timespec(const struct timespec *ts, void __user *uts)
+ {
+ 	if (COMPAT_USE_64BIT_TIME)
+-		return copy_to_user(uts, ts, sizeof *ts) ? -EFAULT : 0;
++		return copy_to_user(uts, ts, sizeof(*ts)) ? -EFAULT : 0;
+ 	else
+ 		return __compat_put_timespec(ts, uts);
  }
 _
 
