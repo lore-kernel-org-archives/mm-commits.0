@@ -1,165 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 12:43:16 -0700
-Message-ID: <5390c854.PQJumjFZTUfSauH5%akpm@linux-foundation.org>
+Subject: [merged] mm-slub-fix-alloc_slowpath-stat.patch removed from -mm
+ tree
+Date: Thu, 05 Jun 2014 12:43:18 -0700
+Message-ID: <5390c856.JvI0M+KyF7wyfxcb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55668 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55677 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751708AbaFETnR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:43:17 -0400
+	with ESMTP id S1751708AbaFETnT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:43:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, cl@linux.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, cl@linux.com, dave.hansen@linux.intel.com
 
-Subject: [merged] mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch removed from -mm tree
-To: rientjes@google.com,cl@linux.com,penberg@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-slub-fix-alloc_slowpath-stat.patch removed from -mm tree
+To: dave.hansen@linux.intel.com,cl@linux.com,penberg@kernel.org,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:43:16 -0700
+Date: Thu, 05 Jun 2014 12:43:18 -0700
 
 
 The patch titled
-     Subject: mm, slab: suppress out of memory warning unless debug is enabled
+     Subject: mm: slub: fix ALLOC_SLOWPATH stat
 has been removed from the -mm tree.  Its filename was
-     mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled.patch
+     mm-slub-fix-alloc_slowpath-stat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, slab: suppress out of memory warning unless debug is enabled
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm: slub: fix ALLOC_SLOWPATH stat
 
-When the slab or slub allocators cannot allocate additional slab pages,
-they emit diagnostic information to the kernel log such as current number
-of slabs, number of objects, active objects, etc.  This is always coupled
-with a page allocation failure warning since it is controlled by
-!__GFP_NOWARN.
+There used to be only one path out of __slab_alloc(), and ALLOC_SLOWPATH
+got bumped in that exit path.  Now there are two, and a bunch of gotos. 
+ALLOC_SLOWPATH can now get set more than once during a single call to
+__slab_alloc() which is pretty bogus.  Here's the sequence:
 
-Suppress this out of memory warning if the allocator is configured without
-debug supported.  The page allocation failure warning will indicate it is
-a failed slab allocation, the order, and the gfp mask, so this is only
-useful to diagnose allocator issues.
+1. Enter __slab_alloc(), fall through all the way to the
+   stat(s, ALLOC_SLOWPATH);
+2. hit 'if (!freelist)', and bump DEACTIVATE_BYPASS, jump to
+   new_slab (goto #1)
+3. Hit 'if (c->partial)', bump CPU_PARTIAL_ALLOC, goto redo
+   (goto #2)
+4. Fall through in the same path we did before all the way to
+   stat(s, ALLOC_SLOWPATH)
+5. bump ALLOC_REFILL stat, then return
 
-Since CONFIG_SLUB_DEBUG is already enabled by default for the slub
-allocator, there is no functional change with this patch.  If debug is
-disabled, however, the warnings are now suppressed.
+Doing this is obviously bogus.  It keeps us from being able to accurately
+compare ALLOC_SLOWPATH vs.  ALLOC_FASTPATH.  It also means that the total
+number of allocs always exceeds the total number of frees.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+This patch moves stat(s, ALLOC_SLOWPATH) to be called from the same place
+that __slab_alloc() is.  This makes it much less likely that
+ALLOC_SLOWPATH will get botched again in the spaghetti-code inside
+__slab_alloc().
+
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   10 ++++++++--
- mm/slub.c |   29 +++++++++++++++++------------
- 2 files changed, 25 insertions(+), 14 deletions(-)
+ mm/slub.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled mm/slab.c
---- a/mm/slab.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled
-+++ a/mm/slab.c
-@@ -1621,10 +1621,16 @@ __initcall(cpucache_init);
- static noinline void
- slab_out_of_memory(struct kmem_cache *cachep, gfp_t gfpflags, int nodeid)
- {
-+#if DEBUG
- 	struct kmem_cache_node *n;
- 	struct page *page;
- 	unsigned long flags;
- 	int node;
-+	static DEFINE_RATELIMIT_STATE(slab_oom_rs, DEFAULT_RATELIMIT_INTERVAL,
-+				      DEFAULT_RATELIMIT_BURST);
-+
-+	if ((gfpflags & __GFP_NOWARN) || !__ratelimit(&slab_oom_rs))
-+		return;
- 
- 	printk(KERN_WARNING
- 		"SLAB: Unable to allocate memory on node %d (gfp=0x%x)\n",
-@@ -1662,6 +1668,7 @@ slab_out_of_memory(struct kmem_cache *ca
- 			node, active_slabs, num_slabs, active_objs, num_objs,
- 			free_objects);
- 	}
-+#endif
- }
- 
- /*
-@@ -1683,8 +1690,7 @@ static struct page *kmem_getpages(struct
- 
- 	page = alloc_pages_exact_node(nodeid, flags | __GFP_NOTRACK, cachep->gfporder);
- 	if (!page) {
--		if (!(flags & __GFP_NOWARN) && printk_ratelimit())
--			slab_out_of_memory(cachep, flags, nodeid);
-+		slab_out_of_memory(cachep, flags, nodeid);
- 		return NULL;
- 	}
- 
-diff -puN mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled mm/slub.c
---- a/mm/slub.c~mm-slab-suppress-out-of-memory-warning-unless-debug-is-enabled
+diff -puN mm/slub.c~mm-slub-fix-alloc_slowpath-stat mm/slub.c
+--- a/mm/slub.c~mm-slub-fix-alloc_slowpath-stat
 +++ a/mm/slub.c
-@@ -2119,11 +2119,19 @@ static inline int node_match(struct page
- 	return 1;
- }
+@@ -2326,8 +2326,6 @@ redo:
+ 	if (freelist)
+ 		goto load_freelist;
  
-+#ifdef CONFIG_SLUB_DEBUG
- static int count_free(struct page *page)
- {
- 	return page->objects - page->inuse;
- }
- 
-+static inline unsigned long node_nr_objs(struct kmem_cache_node *n)
-+{
-+	return atomic_long_read(&n->total_objects);
-+}
-+#endif /* CONFIG_SLUB_DEBUG */
-+
-+#if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SYSFS)
- static unsigned long count_partial(struct kmem_cache_node *n,
- 					int (*get_count)(struct page *))
- {
-@@ -2137,21 +2145,19 @@ static unsigned long count_partial(struc
- 	spin_unlock_irqrestore(&n->list_lock, flags);
- 	return x;
- }
+-	stat(s, ALLOC_SLOWPATH);
 -
--static inline unsigned long node_nr_objs(struct kmem_cache_node *n)
--{
--#ifdef CONFIG_SLUB_DEBUG
--	return atomic_long_read(&n->total_objects);
--#else
--	return 0;
--#endif
--}
-+#endif /* CONFIG_SLUB_DEBUG || CONFIG_SYSFS */
+ 	freelist = get_freelist(s, page);
  
- static noinline void
- slab_out_of_memory(struct kmem_cache *s, gfp_t gfpflags, int nid)
- {
-+#ifdef CONFIG_SLUB_DEBUG
-+	static DEFINE_RATELIMIT_STATE(slub_oom_rs, DEFAULT_RATELIMIT_INTERVAL,
-+				      DEFAULT_RATELIMIT_BURST);
- 	int node;
+ 	if (!freelist) {
+@@ -2432,10 +2430,10 @@ redo:
  
-+	if ((gfpflags & __GFP_NOWARN) || !__ratelimit(&slub_oom_rs))
-+		return;
-+
- 	pr_warn("SLUB: Unable to allocate memory on node %d (gfp=0x%x)\n",
- 		nid, gfpflags);
- 	pr_warn("  cache: %s, object size: %d, buffer size: %d, default order: %d, min order: %d\n",
-@@ -2178,6 +2184,7 @@ slab_out_of_memory(struct kmem_cache *s,
- 		pr_warn("  node %d: slabs: %ld, objs: %ld, free: %ld\n",
- 			node, nr_slabs, nr_objs, nr_free);
- 	}
-+#endif
- }
- 
- static inline void *new_slab_objects(struct kmem_cache *s, gfp_t flags,
-@@ -2356,9 +2363,7 @@ new_slab:
- 	freelist = new_slab_objects(s, gfpflags, node, &c);
- 
- 	if (unlikely(!freelist)) {
--		if (!(gfpflags & __GFP_NOWARN) && printk_ratelimit())
--			slab_out_of_memory(s, gfpflags, node);
+ 	object = c->freelist;
+ 	page = c->page;
+-	if (unlikely(!object || !node_match(page, node)))
++	if (unlikely(!object || !node_match(page, node))) {
+ 		object = __slab_alloc(s, gfpflags, node, addr, c);
