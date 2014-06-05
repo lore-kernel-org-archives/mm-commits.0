@@ -1,218 +1,82 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:53:09 -0700
-Message-ID: <5390caa5.8IyjDfDOM1sbVYqa%akpm@linux-foundation.org>
+ hwpoison-remove-unused-global-variable-in-do_machine_check.patch removed
+ from -mm tree
+Date: Thu, 05 Jun 2014 12:53:11 -0700
+Message-ID: <5390caa7.x41EJ+a20EKNvm8A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56549 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871AbaFETxK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:10 -0400
+	with ESMTP id S1751671AbaFETxM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, swarren@nvidia.com, shawn.guo@linaro.org, sfr@canb.auug.org.au, rientjes@google.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, khilman@linaro.org, iamjoonsoo.kim@lge.com, fabio.estevam@freescale.com, cl@linux.com, b.zolnierkie@samsung.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, n-horiguchi@ah.jp.nec.com, mingo@elte.hu, hpa@zytor.com, fengguang.wu@intel.com, andi@firstfloor.org, slaoub@gmail.com
 
-Subject: [merged] mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch removed from -mm tree
-To: vbabka@suse.cz,b.zolnierkie@samsung.com,cl@linux.com,fabio.estevam@freescale.com,iamjoonsoo.kim@lge.com,khilman@linaro.org,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,rientjes@google.com,sfr@canb.auug.org.au,shawn.guo@linaro.org,swarren@nvidia.com,mm-commits@vger.kernel.org
+Subject: [merged] hwpoison-remove-unused-global-variable-in-do_machine_check.patch removed from -mm tree
+To: slaoub@gmail.com,andi@firstfloor.org,fengguang.wu@intel.com,hpa@zytor.com,mingo@elte.hu,n-horiguchi@ah.jp.nec.com,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:53:09 -0700
+Date: Thu, 05 Jun 2014 12:53:11 -0700
 
 
 The patch titled
-     Subject: mm, compaction: properly signal and act upon lock and need_sched() contention
+     Subject: hwpoison: remove unused global variable in do_machine_check()
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention.patch
+     hwpoison-remove-unused-global-variable-in-do_machine_check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: properly signal and act upon lock and need_sched() contention
+From: Chen Yucong <slaoub@gmail.com>
+Subject: hwpoison: remove unused global variable in do_machine_check()
 
-Compaction uses compact_checklock_irqsave() function to periodically check
-for lock contention and need_resched() to either abort async compaction,
-or to free the lock, schedule and retake the lock.  When aborting,
-cc->contended is set to signal the contended state to the caller.  Two
-problems have been identified in this mechanism.
+Remove an unused global variable mce_entry and relative operations in
+do_machine_check().
 
-First, compaction also calls directly cond_resched() in both scanners when
-no lock is yet taken.  This call either does not abort async compaction,
-or set cc->contended appropriately.  This patch introduces a new
-compact_should_abort() function to achieve both.  In isolate_freepages(),
-the check frequency is reduced to once by SWAP_CLUSTER_MAX pageblocks to
-match what the migration scanner does in the preliminary page checks.  In
-case a pageblock is found suitable for calling isolate_freepages_block(),
-the checks within there are done on higher frequency.
-
-Second, isolate_freepages() does not check if isolate_freepages_block()
-aborted due to contention, and advances to the next pageblock.  This
-violates the principle of aborting on contention, and might result in
-pageblocks not being scanned completely, since the scanning cursor is
-advanced.  This problem has been noticed in the code by Joonsoo Kim when
-reviewing related patches.  This patch makes isolate_freepages_block()
-check the cc->contended flag and abort.
-
-In case isolate_freepages() has already isolated some pages before
-aborting due to contention, page migration will proceed, which is OK since
-we do not want to waste the work that has been done, and page migration
-has own checks for contention.  However, we do not want another isolation
-attempt by either of the scanners, so cc->contended flag check is added
-also to compaction_alloc() and compact_finished() to make sure compaction
-is aborted right after the migration.
-
-The outcome of the patch should be reduced lock contention by async
-compaction and lower latencies for higher-order allocations where direct
-compaction is involved.
-
-[akpm@linux-foundation.org: fix typo in comment]
-Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Rik van Riel <riel@redhat.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Tested-by: Shawn Guo <shawn.guo@linaro.org>
-Tested-by: Kevin Hilman <khilman@linaro.org>
-Tested-by: Stephen Warren <swarren@nvidia.com>
-Tested-by: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Chen Yucong <slaoub@gmail.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   54 +++++++++++++++++++++++++++++++++++++---------
- mm/internal.h   |    5 +++-
- 2 files changed, 48 insertions(+), 11 deletions(-)
+ arch/x86/include/asm/mce.h       |    2 --
+ arch/x86/kernel/cpu/mcheck/mce.c |    5 -----
+ 2 files changed, 7 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention mm/compaction.c
---- a/mm/compaction.c~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention
-+++ a/mm/compaction.c
-@@ -222,6 +222,30 @@ static bool compact_checklock_irqsave(sp
- 	return true;
- }
+diff -puN arch/x86/include/asm/mce.h~hwpoison-remove-unused-global-variable-in-do_machine_check arch/x86/include/asm/mce.h
+--- a/arch/x86/include/asm/mce.h~hwpoison-remove-unused-global-variable-in-do_machine_check
++++ a/arch/x86/include/asm/mce.h
+@@ -176,8 +176,6 @@ int mce_available(struct cpuinfo_x86 *c)
+ DECLARE_PER_CPU(unsigned, mce_exception_count);
+ DECLARE_PER_CPU(unsigned, mce_poll_count);
  
-+/*
-+ * Aside from avoiding lock contention, compaction also periodically checks
-+ * need_resched() and either schedules in sync compaction or aborts async
-+ * compaction. This is similar to what compact_checklock_irqsave() does, but
-+ * is used where no lock is concerned.
-+ *
-+ * Returns false when no scheduling was needed, or sync compaction scheduled.
-+ * Returns true when async compaction should abort.
-+ */
-+static inline bool compact_should_abort(struct compact_control *cc)
-+{
-+	/* async compaction aborts if contended */
-+	if (need_resched()) {
-+		if (cc->mode == MIGRATE_ASYNC) {
-+			cc->contended = true;
-+			return true;
-+		}
-+
-+		cond_resched();
-+	}
-+
-+	return false;
-+}
-+
- /* Returns true if the page is within a block suitable for migration to */
- static bool suitable_migration_target(struct page *page)
- {
-@@ -494,11 +518,8 @@ isolate_migratepages_range(struct zone *
- 			return 0;
- 	}
+-extern atomic_t mce_entry;
+-
+ typedef DECLARE_BITMAP(mce_banks_t, MAX_NR_BANKS);
+ DECLARE_PER_CPU(mce_banks_t, mce_poll_banks);
  
--	if (cond_resched()) {
--		/* Async terminates prematurely on need_resched() */
--		if (cc->mode == MIGRATE_ASYNC)
--			return 0;
--	}
-+	if (compact_should_abort(cc))
-+		return 0;
+diff -puN arch/x86/kernel/cpu/mcheck/mce.c~hwpoison-remove-unused-global-variable-in-do_machine_check arch/x86/kernel/cpu/mcheck/mce.c
+--- a/arch/x86/kernel/cpu/mcheck/mce.c~hwpoison-remove-unused-global-variable-in-do_machine_check
++++ a/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -60,8 +60,6 @@ static DEFINE_MUTEX(mce_chrdev_read_mute
  
- 	/* Time to isolate some pages for migration */
- 	for (; low_pfn < end_pfn; low_pfn++) {
-@@ -720,9 +741,11 @@ static void isolate_freepages(struct zon
- 		/*
- 		 * This can iterate a massively long zone without finding any
- 		 * suitable migration targets, so periodically check if we need
--		 * to schedule.
-+		 * to schedule, or even abort async compaction.
- 		 */
--		cond_resched();
-+		if (!(block_start_pfn % (SWAP_CLUSTER_MAX * pageblock_nr_pages))
-+						&& compact_should_abort(cc))
-+			break;
+ #define SPINUNIT 100	/* 100ns */
  
- 		if (!pfn_valid(block_start_pfn))
- 			continue;
-@@ -760,6 +783,13 @@ static void isolate_freepages(struct zon
- 		 */
- 		if (isolated)
- 			cc->finished_update_free = true;
-+
-+		/*
-+		 * isolate_freepages_block() might have aborted due to async
-+		 * compaction being contended
-+		 */
-+		if (cc->contended)
-+			break;
- 	}
+-atomic_t mce_entry;
+-
+ DEFINE_PER_CPU(unsigned, mce_exception_count);
  
- 	/* split_free_page does not map the pages */
-@@ -786,9 +816,13 @@ static struct page *compaction_alloc(str
- 	struct compact_control *cc = (struct compact_control *)data;
- 	struct page *freepage;
+ struct mce_bank *mce_banks __read_mostly;
+@@ -1040,8 +1038,6 @@ void do_machine_check(struct pt_regs *re
+ 	DECLARE_BITMAP(valid_banks, MAX_NR_BANKS);
+ 	char *msg = "Unknown";
  
--	/* Isolate free pages if necessary */
-+	/*
-+	 * Isolate free pages if necessary, and if we are not aborting due to
-+	 * contention.
-+	 */
- 	if (list_empty(&cc->freepages)) {
--		isolate_freepages(cc->zone, cc);
-+		if (!cc->contended)
-+			isolate_freepages(cc->zone, cc);
- 
- 		if (list_empty(&cc->freepages))
- 			return NULL;
-@@ -858,7 +892,7 @@ static int compact_finished(struct zone
- 	unsigned int order;
- 	unsigned long watermark;
- 
--	if (fatal_signal_pending(current))
-+	if (cc->contended || fatal_signal_pending(current))
- 		return COMPACT_PARTIAL;
- 
- 	/* Compaction run completes if the migrate and free scanner meet */
-diff -puN mm/internal.h~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention mm/internal.h
---- a/mm/internal.h~mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contention
-+++ a/mm/internal.h
-@@ -144,7 +144,10 @@ struct compact_control {
- 	int order;			/* order a direct compactor needs */
- 	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
- 	struct zone *zone;
--	bool contended;			/* True if a lock was contended */
-+	bool contended;			/* True if a lock was contended, or
-+					 * need_resched() true during async
-+					 * compaction
-+					 */
- };
- 
- unsigned long
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-origin.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-linux-next.patch
-
+-	atomic_inc(&mce_entry);
