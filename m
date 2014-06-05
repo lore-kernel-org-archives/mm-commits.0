@@ -1,161 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-swapc-clean-up-lru_cache_add-functions.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 12:50:09 -0700
-Message-ID: <5390c9f1.jGk/46q35DuziS6V%akpm@linux-foundation.org>
+Subject: [merged]
+ memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:50:17 -0700
+Message-ID: <5390c9f9.4O8yztcdgZbcJqP5%akpm__46831.3605445021$1401997831$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55957 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55973 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751908AbaFETuK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:10 -0400
+	with ESMTP id S1752651AbaFETuS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, sjenning@linux.vnet.ibm.com, shli@kernel.org, riel@redhat.com, minchan@kernel.org, mgorman@suse.de, khalid.aziz@oracle.com, iamjoonsoo.kim@lge.com, hch@lst.de, hannes@cmpxchg.org, bob.liu@oracle.com, aquini@redhat.com, aarcange@redhat.com, nasa4836@gmail.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, ebiederm@xmission.com, mhocko@suse.cz
 
-Subject: [merged] mm-swapc-clean-up-lru_cache_add-functions.patch removed from -mm tree
-To: nasa4836@gmail.com,aarcange@redhat.com,aquini@redhat.com,bob.liu@oracle.com,hannes@cmpxchg.org,hch@lst.de,iamjoonsoo.kim@lge.com,khalid.aziz@oracle.com,mgorman@suse.de,minchan@kernel.org,riel@redhat.com,shli@kernel.org,sjenning@linux.vnet.ibm.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch removed from -mm tree
+To: mhocko@suse.cz,ebiederm@xmission.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,rientjes@google.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:50:09 -0700
+Date: Thu, 05 Jun 2014 12:50:17 -0700
 
 
 The patch titled
-     Subject: mm/swap.c: clean up *lru_cache_add* functions
+     Subject: memcg: do not hang on OOM when killed by userspace OOM access to memory reserves
 has been removed from the -mm tree.  Its filename was
-     mm-swapc-clean-up-lru_cache_add-functions.patch
+     memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jianyu Zhan <nasa4836@gmail.com>
-Subject: mm/swap.c: clean up *lru_cache_add* functions
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: do not hang on OOM when killed by userspace OOM access to memory reserves
 
-In mm/swap.c, __lru_cache_add() is exported, but actually there are no
-users outside this file.
+Eric has reported that he can see task(s) stuck in memcg OOM handler
+regularly.  The only way out is to
 
-This patch unexports __lru_cache_add(), and makes it static.  It also
-exports lru_cache_add_file(), as it is use by cifs and fuse, which can
-loaded as modules.
+	echo 0 > $GROUP/memory.oom_control
 
-Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Bob Liu <bob.liu@oracle.com>
-Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+His usecase is:
+
+- Setup a hierarchy with memory and the freezer (disable kernel oom and
+  have a process watch for oom).
+
+- In that memory cgroup add a process with one thread per cpu.
+
+- In one thread slowly allocate once per second I think it is 16M of ram
+  and mlock and dirty it (just to force the pages into ram and stay
+  there).
+
+- When oom is achieved loop:
+  * attempt to freeze all of the tasks.
+  * if frozen send every task SIGKILL, unfreeze, remove the directory in
+    cgroupfs.
+
+Eric has then pinpointed the issue to be memcg specific.
+
+All tasks are sitting on the memcg_oom_waitq when memcg oom is disabled. 
+Those that have received fatal signal will bypass the charge and should
+continue on their way out.  The tricky part is that the exit path might
+trigger a page fault (e.g.  exit_robust_list), thus the memcg charge,
+while its memcg is still under OOM because nobody has released any charges
+yet.
+
+Unlike with the in-kernel OOM handler the exiting task doesn't get
+TIF_MEMDIE set so it doesn't shortcut further charges of the killed task
+and falls to the memcg OOM again without any way out of it as there are no
+fatal signals pending anymore.
+
+This patch fixes the issue by checking PF_EXITING early in
+mem_cgroup_try_charge and bypass the charge same as if it had fatal
+signal pending or TIF_MEMDIE set.
+
+Normally exiting tasks (aka not killed) will bypass the charge now but
+this should be OK as the task is leaving and will release memory and
+increasing the memory pressure just to release it in a moment seems
+dubious wasting of cycles.  Besides that charges after exit_signals should
+be rare.
+
+I am bringing this patch again (rebased on the current mmotm tree). I
+hope we can move forward finally. If there is still an opposition then
+I would really appreciate a concurrent approach so that we can discuss
+alternatives.
+
+http://comments.gmane.org/gmane.linux.kernel.stable/77650 is a reference
+to the followup discussion when the patch has been dropped from the mmotm
+last time.
+
+Reported-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   19 ++-----------------
- mm/swap.c            |   31 +++++++++++++++++++++++--------
- 2 files changed, 25 insertions(+), 25 deletions(-)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~mm-swapc-clean-up-lru_cache_add-functions include/linux/swap.h
---- a/include/linux/swap.h~mm-swapc-clean-up-lru_cache_add-functions
-+++ a/include/linux/swap.h
-@@ -308,8 +308,9 @@ extern unsigned long nr_free_pagecache_p
+diff -puN mm/memcontrol.c~memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves
++++ a/mm/memcontrol.c
+@@ -2684,7 +2684,8 @@ static int mem_cgroup_try_charge(struct
+ 	 * free their memory.
+ 	 */
+ 	if (unlikely(test_thread_flag(TIF_MEMDIE) ||
+-		     fatal_signal_pending(current)))
++		     fatal_signal_pending(current) ||
++		     current->flags & PF_EXITING))
+ 		goto bypass;
  
- 
- /* linux/mm/swap.c */
--extern void __lru_cache_add(struct page *);
- extern void lru_cache_add(struct page *);
-+extern void lru_cache_add_anon(struct page *page);
-+extern void lru_cache_add_file(struct page *page);
- extern void lru_add_page_tail(struct page *page, struct page *page_tail,
- 			 struct lruvec *lruvec, struct list_head *head);
- extern void activate_page(struct page *);
-@@ -323,22 +324,6 @@ extern void swap_setup(void);
- 
- extern void add_page_to_unevictable_list(struct page *page);
- 
--/**
-- * lru_cache_add: add a page to the page lists
-- * @page: the page to add
-- */
--static inline void lru_cache_add_anon(struct page *page)
--{
--	ClearPageActive(page);
--	__lru_cache_add(page);
--}
--
--static inline void lru_cache_add_file(struct page *page)
--{
--	ClearPageActive(page);
--	__lru_cache_add(page);
--}
--
- /* linux/mm/vmscan.c */
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
-diff -puN mm/swap.c~mm-swapc-clean-up-lru_cache_add-functions mm/swap.c
---- a/mm/swap.c~mm-swapc-clean-up-lru_cache_add-functions
-+++ a/mm/swap.c
-@@ -582,13 +582,7 @@ void mark_page_accessed(struct page *pag
- }
- EXPORT_SYMBOL(mark_page_accessed);
- 
--/*
-- * Queue the page for addition to the LRU via pagevec. The decision on whether
-- * to add the page to the [in]active [file|anon] list is deferred until the
-- * pagevec is drained. This gives a chance for the caller of __lru_cache_add()
-- * have the page added to the active list using mark_page_accessed().
-- */
--void __lru_cache_add(struct page *page)
-+static void __lru_cache_add(struct page *page)
- {
- 	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
- 
-@@ -598,11 +592,32 @@ void __lru_cache_add(struct page *page)
- 	pagevec_add(pvec, page);
- 	put_cpu_var(lru_add_pvec);
- }
--EXPORT_SYMBOL(__lru_cache_add);
-+
-+/**
-+ * lru_cache_add: add a page to the page lists
-+ * @page: the page to add
-+ */
-+void lru_cache_add_anon(struct page *page)
-+{
-+	ClearPageActive(page);
-+	__lru_cache_add(page);
-+}
-+
-+void lru_cache_add_file(struct page *page)
-+{
-+	ClearPageActive(page);
-+	__lru_cache_add(page);
-+}
-+EXPORT_SYMBOL(lru_cache_add_file);
- 
- /**
-  * lru_cache_add - add a page to a page list
-  * @page: the page to be added to the LRU.
-+ *
-+ * Queue the page for addition to the LRU via pagevec. The decision on whether
-+ * to add the page to the [in]active [file|anon] list is deferred until the
-+ * pagevec is drained. This gives a chance for the caller of lru_cache_add()
-+ * have the page added to the active list using mark_page_accessed().
-  */
- void lru_cache_add(struct page *page)
- {
+ 	if (unlikely(task_in_memcg_oom(current)))
 _
 
-Patches currently in -mm which might be from nasa4836@gmail.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
 linux-next.patch
+memcg-mm-introduce-lowlimit-reclaim.patch
+memcg-mm-introduce-lowlimit-reclaim-fix.patch
+memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
+memcg-allow-setting-low_limit.patch
+memcg-doc-clarify-global-vs-limit-reclaims.patch
+memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
+memcg-document-memorylow_limit_in_bytes.patch
+vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
+vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-oom_control.patch
+vmscan-memcg-always-use-swappiness-of-the-reclaimed-memcg-swappiness-and-o-om-control-fixpatch.patch
 mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
 mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
+memcg-deprecate-memoryforce_empty-knob.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
 
