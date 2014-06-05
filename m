@@ -1,108 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-configfs-convert-printk-to-pr_foo.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 12:42:28 -0700
-Message-ID: <5390c824.EtF+Oc0IteAB1xjV%akpm@linux-foundation.org>
+Subject: [merged] lib-debugobjectsc-convert-printk-to-pr_foo.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:42:32 -0700
+Message-ID: <5390c828.h/NeCo3TSv9AI/zO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55555 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55560 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752325AbaFETm3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:29 -0400
+	with ESMTP id S1752325AbaFETmc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jlbec@evilplan.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, josh@joshtriplett.org, fabf@skynet.be
 
-Subject: [merged] fs-configfs-convert-printk-to-pr_foo.patch removed from -mm tree
-To: fabf@skynet.be,jlbec@evilplan.org,mm-commits@vger.kernel.org
+Subject: [merged] lib-debugobjectsc-convert-printk-to-pr_foo.patch removed from -mm tree
+To: fabf@skynet.be,josh@joshtriplett.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:42:28 -0700
+Date: Thu, 05 Jun 2014 12:42:32 -0700
 
 
 The patch titled
-     Subject: fs/configfs: convert printk to pr_foo()
+     Subject: lib/debugobjects.c: convert printk to pr_foo()
 has been removed from the -mm tree.  Its filename was
-     fs-configfs-convert-printk-to-pr_foo.patch
+     lib-debugobjectsc-convert-printk-to-pr_foo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/configfs: convert printk to pr_foo()
+Subject: lib/debugobjects.c: convert printk to pr_foo()
+
+Convert all printk to pr_foo() except KERN_DEBUG (see
+Documentation/CodingStyle Chapter 13)
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Joel Becker <jlbec@evilplan.org>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/dir.c   |    8 ++++----
- fs/configfs/inode.c |    5 ++---
- fs/configfs/mount.c |    2 +-
- 3 files changed, 7 insertions(+), 8 deletions(-)
+ lib/debugobjects.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN fs/configfs/dir.c~fs-configfs-convert-printk-to-pr_foo fs/configfs/dir.c
---- a/fs/configfs/dir.c~fs-configfs-convert-printk-to-pr_foo
-+++ a/fs/configfs/dir.c
-@@ -940,9 +940,9 @@ static void client_drop_item(struct conf
- #ifdef DEBUG
- static void configfs_dump_one(struct configfs_dirent *sd, int level)
- {
--	printk(KERN_INFO "%*s\"%s\":\n", level, " ", configfs_get_name(sd));
-+	pr_info("%*s\"%s\":\n", level, " ", configfs_get_name(sd));
+diff -puN lib/debugobjects.c~lib-debugobjectsc-convert-printk-to-pr_foo lib/debugobjects.c
+--- a/lib/debugobjects.c~lib-debugobjectsc-convert-printk-to-pr_foo
++++ a/lib/debugobjects.c
+@@ -218,7 +218,7 @@ static void debug_objects_oom(void)
+ 	unsigned long flags;
+ 	int i;
  
--#define type_print(_type) if (sd->s_type & _type) printk(KERN_INFO "%*s %s\n", level, " ", #_type);
-+#define type_print(_type) if (sd->s_type & _type) pr_info("%*s %s\n", level, " ", #_type);
- 	type_print(CONFIGFS_ROOT);
- 	type_print(CONFIGFS_DIR);
- 	type_print(CONFIGFS_ITEM_ATTR);
-@@ -1699,7 +1699,7 @@ void configfs_unregister_subsystem(struc
- 	struct dentry *root = dentry->d_sb->s_root;
+-	printk(KERN_WARNING "ODEBUG: Out of memory. ODEBUG disabled\n");
++	pr_warn("ODEBUG: Out of memory. ODEBUG disabled\n");
  
- 	if (dentry->d_parent != root) {
--		printk(KERN_ERR "configfs: Tried to unregister non-subsystem!\n");
-+		pr_err("configfs: Tried to unregister non-subsystem!\n");
- 		return;
- 	}
+ 	for (i = 0; i < ODEBUG_HASH_SIZE; i++, db++) {
+ 		raw_spin_lock_irqsave(&db->lock, flags);
+@@ -292,11 +292,9 @@ static void debug_object_is_on_stack(voi
  
-@@ -1709,7 +1709,7 @@ void configfs_unregister_subsystem(struc
- 	mutex_lock(&configfs_symlink_mutex);
- 	spin_lock(&configfs_dirent_lock);
- 	if (configfs_detach_prep(dentry, NULL)) {
--		printk(KERN_ERR "configfs: Tried to unregister non-empty subsystem!\n");
-+		pr_err("configfs: Tried to unregister non-empty subsystem!\n");
- 	}
- 	spin_unlock(&configfs_dirent_lock);
- 	mutex_unlock(&configfs_symlink_mutex);
-diff -puN fs/configfs/inode.c~fs-configfs-convert-printk-to-pr_foo fs/configfs/inode.c
---- a/fs/configfs/inode.c~fs-configfs-convert-printk-to-pr_foo
-+++ a/fs/configfs/inode.c
-@@ -168,9 +168,8 @@ static void configfs_set_inode_lock_clas
- 			 * In practice the maximum level of locking depth is
- 			 * already reached. Just inform about possible reasons.
- 			 */
--			printk(KERN_INFO "configfs: Too many levels of inodes"
--			       " for the locking correctness validator.\n");
--			printk(KERN_INFO "Spurious warnings may appear.\n");
-+			pr_info("configfs: Too many levels of inodes for the locking correctness validator.\n");
-+			pr_info("Spurious warnings may appear.\n");
- 		}
- 	}
+ 	limit++;
+ 	if (is_on_stack)
+-		printk(KERN_WARNING
+-		       "ODEBUG: object is on stack, but not annotated\n");
++		pr_warn("ODEBUG: object is on stack, but not annotated\n");
+ 	else
+-		printk(KERN_WARNING
+-		       "ODEBUG: object is not on stack, but annotated\n");
++		pr_warn("ODEBUG: object is not on stack, but annotated\n");
+ 	WARN_ON(1);
  }
-diff -puN fs/configfs/mount.c~fs-configfs-convert-printk-to-pr_foo fs/configfs/mount.c
---- a/fs/configfs/mount.c~fs-configfs-convert-printk-to-pr_foo
-+++ a/fs/configfs/mount.c
-@@ -155,7 +155,7 @@ static int __init configfs_init(void)
  
- 	return 0;
- out4:
--	printk(KERN_ERR "configfs: Unable to register filesystem!\n");
-+	pr_err("configfs: Unable to register filesystem!\n");
- 	configfs_inode_exit();
- out3:
- 	kobject_put(config_kobj);
+@@ -985,7 +983,7 @@ static void __init debug_objects_selftes
+ 	if (check_results(&obj, ODEBUG_STATE_NONE, ++fixups, ++warnings))
+ 		goto out;
+ #endif
+-	printk(KERN_INFO "ODEBUG: selftest passed\n");
++	pr_info("ODEBUG: selftest passed\n");
+ 
+ out:
+ 	debug_objects_fixups = oldfixups;
+@@ -1090,7 +1088,7 @@ void __init debug_objects_mem_init(void)
+ 		debug_objects_enabled = 0;
+ 		if (obj_cache)
+ 			kmem_cache_destroy(obj_cache);
+-		printk(KERN_WARNING "ODEBUG: out of memory.\n");
++		pr_warn("ODEBUG: out of memory.\n");
+ 	} else
+ 		debug_objects_selftest();
+ }
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
