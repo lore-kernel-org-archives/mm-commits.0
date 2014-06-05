@@ -1,120 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_alloc-cleanup-add_active_range-related-comments.patch removed from
+Subject: [merged] mm-document-do_fault_around-feature.patch removed from
  -mm tree
-Date: Thu, 05 Jun 2014 12:53:29 -0700
-Message-ID: <5390cab9.NrFlJwCsfEd9Wrc3%akpm@linux-foundation.org>
+Date: Thu, 05 Jun 2014 12:53:33 -0700
+Message-ID: <5390cabd.hU9TlaooLOeH/xez%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56600 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56617 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753189AbaFETx3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:29 -0400
+	with ESMTP id S1753189AbaFETxd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:53:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, zhenzhang.zhang@huawei.com
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
 
-Subject: [merged] mm-page_alloc-cleanup-add_active_range-related-comments.patch removed from -mm tree
-To: zhenzhang.zhang@huawei.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-document-do_fault_around-feature.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:53:29 -0700
+Date: Thu, 05 Jun 2014 12:53:33 -0700
 
 
 The patch titled
-     Subject: mm/page_alloc.c: cleanup add_active_range() related comments
+     Subject: mm: document do_fault_around() feature
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-cleanup-add_active_range-related-comments.patch
+     mm-document-do_fault_around-feature.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Subject: mm/page_alloc.c: cleanup add_active_range() related comments
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: document do_fault_around() feature
 
-add_active_range() has been repalced by memblock_set_node().  Clean up the
-comments to comply with that change.
+Some clarification on how faultaround works.
 
-Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Cc: Tejun Heo <tj@kernel.org>
+[akpm@linux-foundation.org: tweak comment text]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+ mm/memory.c |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-cleanup-add_active_range-related-comments mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-cleanup-add_active_range-related-comments
-+++ a/mm/page_alloc.c
-@@ -4387,9 +4387,6 @@ int __meminit init_currently_empty_zone(
- #ifndef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
- /*
-  * Required by SPARSEMEM. Given a PFN, return what node the PFN is on.
-- * Architectures may implement their own version but if add_active_range()
-- * was used and there are no special requirements, this is a convenient
-- * alternative
-  */
- int __meminit __early_pfn_to_nid(unsigned long pfn)
+diff -puN mm/memory.c~mm-document-do_fault_around-feature mm/memory.c
+--- a/mm/memory.c~mm-document-do_fault_around-feature
++++ a/mm/memory.c
+@@ -2760,6 +2760,10 @@ void do_set_pte(struct vm_area_struct *v
+ 
+ static unsigned long fault_around_bytes = 65536;
+ 
++/*
++ * fault_around_pages() and fault_around_mask() round down fault_around_bytes
++ * to nearest page order. It's what do_fault_around() expects to see.
++ */
+ static inline unsigned long fault_around_pages(void)
  {
-@@ -4444,10 +4441,9 @@ bool __meminit early_pfn_in_nid(unsigned
-  * @nid: The node to free memory on. If MAX_NUMNODES, all nodes are freed.
-  * @max_low_pfn: The highest PFN that will be passed to memblock_free_early_nid
-  *
-- * If an architecture guarantees that all ranges registered with
-- * add_active_ranges() contain no holes and may be freed, this
-- * this function may be used instead of calling memblock_free_early_nid()
-- * manually.
-+ * If an architecture guarantees that all ranges registered contain no holes
-+ * and may be freed, this this function may be used instead of calling
-+ * memblock_free_early_nid() manually.
-  */
- void __init free_bootmem_with_active_regions(int nid, unsigned long max_low_pfn)
+ 	return rounddown_pow_of_two(fault_around_bytes) / PAGE_SIZE;
+@@ -2801,6 +2805,29 @@ static int __init fault_around_debugfs(v
+ late_initcall(fault_around_debugfs);
+ #endif
+ 
++/*
++ * do_fault_around() tries to map few pages around the fault address. The hope
++ * is that the pages will be needed soon and this will lower the number of
++ * faults to handle.
++ *
++ * It uses vm_ops->map_pages() to map the pages, which skips the page if it's
++ * not ready to be mapped: not up-to-date, locked, etc.
++ *
++ * This function is called with the page table lock taken. In the split ptlock
++ * case the page table lock only protects only those entries which belong to
++ * the page table corresponding to the fault address.
++ *
++ * This function doesn't cross the VMA boundaries, in order to call map_pages()
++ * only once.
++ *
++ * fault_around_pages() defines how many pages we'll try to map.
++ * do_fault_around() expects it to return a power of two less than or equal to
++ * PTRS_PER_PTE.
++ *
++ * The virtual address of the area that we map is naturally aligned to the
++ * fault_around_pages() value (and therefore to page order).  This way it's
++ * easier to guarantee that we don't cross page table boundaries.
++ */
+ static void do_fault_around(struct vm_area_struct *vma, unsigned long address,
+ 		pte_t *pte, pgoff_t pgoff, unsigned int flags)
  {
-@@ -4469,9 +4465,8 @@ void __init free_bootmem_with_active_reg
-  * sparse_memory_present_with_active_regions - Call memory_present for each active range
-  * @nid: The node to call memory_present for. If MAX_NUMNODES, all nodes will be used.
-  *
-- * If an architecture guarantees that all ranges registered with
-- * add_active_ranges() contain no holes and may be freed, this
-- * function may be used instead of calling memory_present() manually.
-+ * If an architecture guarantees that all ranges registered contain no holes and may
-+ * be freed, this function may be used instead of calling memory_present() manually.
-  */
- void __init sparse_memory_present_with_active_regions(int nid)
- {
-@@ -4489,7 +4484,7 @@ void __init sparse_memory_present_with_a
-  * @end_pfn: Passed by reference. On return, it will have the node end_pfn.
-  *
-  * It returns the start and end page frame of a node based on information
-- * provided by an arch calling add_active_range(). If called for a node
-+ * provided by memblock_set_node(). If called for a node
-  * with no available memory, a warning is printed and the start and end
-  * PFNs will be 0.
-  */
-@@ -5066,7 +5061,7 @@ static unsigned long __init find_min_pfn
-  * find_min_pfn_with_active_regions - Find the minimum PFN registered
-  *
-  * It returns the minimum PFN based on information provided via
-- * add_active_range().
-+ * memblock_set_node().
-  */
- unsigned long __init find_min_pfn_with_active_regions(void)
- {
-@@ -5287,7 +5282,7 @@ static void check_for_memory(pg_data_t *
-  * @max_zone_pfn: an array of max PFNs for each zone
-  *
-  * This will call free_area_init_node() for each active node in the system.
-- * Using the page ranges provided by add_active_range(), the size of each
-+ * Using the page ranges provided by memblock_set_node(), the size of each
-  * zone in each node and their holes is calculated. If the maximum PFN
-  * between two adjacent zones match, it is assumed that the zone is empty.
-  * For example, if arch_max_dma_pfn == arch_max_dma32_pfn, it is assumed
 _
 
-Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-update-page-table-walker-core-fix.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-prom-pid-clear_refs-avoid-split_huge_page.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
+mm-mark-remap_file_pages-syscall-as-deprecated.patch
+mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
