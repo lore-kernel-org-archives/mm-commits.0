@@ -1,69 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pass-on-hwpoison-maintainership-to-naoya-noriguchi.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 12:41:55 -0700
-Message-ID: <5390c803.jOGEJ3FAHCv51p17%akpm@linux-foundation.org>
+Subject: [merged] fs-fscache-replace-seq_printf-by-seq_puts.patch removed
+ from -mm tree
+Date: Thu, 05 Jun 2014 12:42:05 -0700
+Message-ID: <5390c80d.e30eFkIWOraMWN2v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55485 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751380AbaFETlz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:41:55 -0400
+	with ESMTP id S1752110AbaFETmG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:42:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, ak@linux.intel.com
+To: mm-commits@vger.kernel.org, dhowells@redhat.com, fabf@skynet.be
 
-Subject: [merged] pass-on-hwpoison-maintainership-to-naoya-noriguchi.patch removed from -mm tree
-To: ak@linux.intel.com,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-fscache-replace-seq_printf-by-seq_puts.patch removed from -mm tree
+To: fabf@skynet.be,dhowells@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:41:55 -0700
+Date: Thu, 05 Jun 2014 12:42:05 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: pass on hwpoison maintainership to Naoya Horiguchi
+     Subject: fs/fscache: replace seq_printf by seq_puts
 has been removed from the -mm tree.  Its filename was
-     pass-on-hwpoison-maintainership-to-naoya-noriguchi.patch
+     fs-fscache-replace-seq_printf-by-seq_puts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: MAINTAINERS: pass on hwpoison maintainership to Naoya Horiguchi
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/fscache: replace seq_printf by seq_puts
 
-Horiguchi-san has done most of the work on hwpoison in the last years and
-he also does most of the reviewing.  So I'm passing on the hwpoison
-maintainership to him.
+Replace seq_printf where possible + coalesce formats from 2 existing
+seq_puts
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/fscache/histogram.c   |    6 ++----
+ fs/fscache/object-list.c |    8 ++++----
+ 2 files changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN MAINTAINERS~pass-on-hwpoison-maintainership-to-naoya-noriguchi MAINTAINERS
---- a/MAINTAINERS~pass-on-hwpoison-maintainership-to-naoya-noriguchi
-+++ a/MAINTAINERS
-@@ -4011,9 +4011,8 @@ S:	Odd Fixes
- F:	drivers/media/usb/hdpvr/
+diff -puN fs/fscache/histogram.c~fs-fscache-replace-seq_printf-by-seq_puts fs/fscache/histogram.c
+--- a/fs/fscache/histogram.c~fs-fscache-replace-seq_printf-by-seq_puts
++++ a/fs/fscache/histogram.c
+@@ -31,12 +31,10 @@ static int fscache_histogram_show(struct
  
- HWPOISON MEMORY FAILURE HANDLING
--M:	Andi Kleen <andi@firstfloor.org>
-+M:	Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
- L:	linux-mm@kvack.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-mce-2.6.git hwpoison
- S:	Maintained
- F:	mm/memory-failure.c
- F:	mm/hwpoison-inject.c
+ 	switch ((unsigned long) v) {
+ 	case 1:
+-		seq_puts(m, "JIFS  SECS  OBJ INST  OP RUNS   OBJ RUNS "
+-			 " RETRV DLY RETRIEVLS\n");
++		seq_puts(m, "JIFS  SECS  OBJ INST  OP RUNS   OBJ RUNS  RETRV DLY RETRIEVLS\n");
+ 		return 0;
+ 	case 2:
+-		seq_puts(m, "===== ===== ========= ========= ========="
+-			 " ========= =========\n");
++		seq_puts(m, "===== ===== ========= ========= ========= ========= =========\n");
+ 		return 0;
+ 	default:
+ 		index = (unsigned long) v - 3;
+diff -puN fs/fscache/object-list.c~fs-fscache-replace-seq_printf-by-seq_puts fs/fscache/object-list.c
+--- a/fs/fscache/object-list.c~fs-fscache-replace-seq_printf-by-seq_puts
++++ a/fs/fscache/object-list.c
+@@ -285,20 +285,20 @@ static int fscache_objlist_show(struct s
+ 		fscache_unuse_cookie(obj);
+ 
+ 		if (keylen > 0 || auxlen > 0) {
+-			seq_printf(m, " ");
++			seq_puts(m, " ");
+ 			for (p = buf; keylen > 0; keylen--)
+ 				seq_printf(m, "%02x", *p++);
+ 			if (auxlen > 0) {
+ 				if (config & FSCACHE_OBJLIST_CONFIG_KEY)
+-					seq_printf(m, ", ");
++					seq_puts(m, ", ");
+ 				for (; auxlen > 0; auxlen--)
+ 					seq_printf(m, "%02x", *p++);
+ 			}
+ 		}
+ 
+-		seq_printf(m, "\n");
++		seq_puts(m, "\n");
+ 	} else {
+-		seq_printf(m, "<no_netfs>\n");
++		seq_puts(m, "<no_netfs>\n");
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-hpfs-convert-printk-to-pr_foo.patch
+fs-hpfs-use-pr_fmt-for-logging.patch
+fs-hpfs-use-__func__-for-logging.patch
+fs-hpfs-increase-pr_warn-level.patch
+documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
+fs-proc-vmcorec-remove-null-assignment-on-static.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+mm-kmemleak-testc-use-pr_fmt-for-logging.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
