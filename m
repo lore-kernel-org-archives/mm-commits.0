@@ -1,129 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-nlattrc-move-export_symbol-after-functions.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 13:05:27 -0700
-Message-ID: <5390cd87.KTGdsgEeLwgr3mBk%akpm@linux-foundation.org>
+Subject: [merged] lib-bugc-convert-printk-to-pr_foo.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 13:05:31 -0700
+Message-ID: <5390cd8b.IPL+icElpfJIJ3Nz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56830 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56835 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbaFEUF2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:28 -0400
+	with ESMTP id S1751926AbaFEUFc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, pablo@netfilter.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, joe@perches.com, jeremy@goop.org, fabf@skynet.be
 
-Subject: [merged] lib-nlattrc-move-export_symbol-after-functions.patch removed from -mm tree
-To: fabf@skynet.be,pablo@netfilter.org,mm-commits@vger.kernel.org
+Subject: [merged] lib-bugc-convert-printk-to-pr_foo.patch removed from -mm tree
+To: fabf@skynet.be,jeremy@goop.org,joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:27 -0700
+Date: Thu, 05 Jun 2014 13:05:31 -0700
 
 
 The patch titled
-     Subject: lib/nlattr.c: move EXPORT_SYMBOL after functions
+     Subject: lib/bug.c: convert printk to pr_foo()
 has been removed from the -mm tree.  Its filename was
-     lib-nlattrc-move-export_symbol-after-functions.patch
+     lib-bugc-convert-printk-to-pr_foo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/nlattr.c: move EXPORT_SYMBOL after functions
+Subject: lib/bug.c: convert printk to pr_foo()
 
-Fix some checkpatch warnings:
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
+- Coalesce formats
+
+- "WARNING:" prefix unchanged to keep bug format.
+
+- printk(KERN_DEFAULT not converted.
+
+- define pr_fmt without prefix to avoid any default prefix update
+  (suggested by Joe Perches).
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Pablo Neira <pablo@netfilter.org>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/nlattr.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ lib/bug.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN lib/nlattr.c~lib-nlattrc-move-export_symbol-after-functions lib/nlattr.c
---- a/lib/nlattr.c~lib-nlattrc-move-export_symbol-after-functions
-+++ a/lib/nlattr.c
-@@ -136,6 +136,7 @@ int nla_validate(const struct nlattr *he
- errout:
- 	return err;
+diff -puN lib/bug.c~lib-bugc-convert-printk-to-pr_foo lib/bug.c
+--- a/lib/bug.c~lib-bugc-convert-printk-to-pr_foo
++++ a/lib/bug.c
+@@ -37,6 +37,9 @@
+ 
+     Jeremy Fitzhardinge <jeremy@goop.org> 2006
+  */
++
++#define pr_fmt(fmt) fmt
++
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+@@ -153,15 +156,13 @@ enum bug_trap_type report_bug(unsigned l
+ 
+ 	if (warning) {
+ 		/* this is a WARN_ON rather than BUG/BUG_ON */
+-		printk(KERN_WARNING "------------[ cut here ]------------\n");
++		pr_warn("------------[ cut here ]------------\n");
+ 
+ 		if (file)
+-			printk(KERN_WARNING "WARNING: at %s:%u\n",
+-			       file, line);
++			pr_warn("WARNING: at %s:%u\n", file, line);
+ 		else
+-			printk(KERN_WARNING "WARNING: at %p "
+-			       "[verbose debug info unavailable]\n",
+-			       (void *)bugaddr);
++			pr_warn("WARNING: at %p [verbose debug info unavailable]\n",
++				(void *)bugaddr);
+ 
+ 		print_modules();
+ 		show_regs(regs);
+@@ -174,12 +175,10 @@ enum bug_trap_type report_bug(unsigned l
+ 	printk(KERN_DEFAULT "------------[ cut here ]------------\n");
+ 
+ 	if (file)
+-		printk(KERN_CRIT "kernel BUG at %s:%u!\n",
+-		       file, line);
++		pr_crit("kernel BUG at %s:%u!\n", file, line);
+ 	else
+-		printk(KERN_CRIT "Kernel BUG at %p "
+-		       "[verbose debug info unavailable]\n",
+-		       (void *)bugaddr);
++		pr_crit("Kernel BUG at %p [verbose debug info unavailable]\n",
++			(void *)bugaddr);
+ 
+ 	return BUG_TRAP_TYPE_BUG;
  }
-+EXPORT_SYMBOL(nla_validate);
- 
- /**
-  * nla_policy_len - Determin the max. length of a policy
-@@ -162,6 +163,7 @@ nla_policy_len(const struct nla_policy *
- 
- 	return len;
- }
-+EXPORT_SYMBOL(nla_policy_len);
- 
- /**
-  * nla_parse - Parse a stream of attributes into a tb buffer
-@@ -208,6 +210,7 @@ int nla_parse(struct nlattr **tb, int ma
- errout:
- 	return err;
- }
-+EXPORT_SYMBOL(nla_parse);
- 
- /**
-  * nla_find - Find a specific attribute in a stream of attributes
-@@ -228,6 +231,7 @@ struct nlattr *nla_find(const struct nla
- 
- 	return NULL;
- }
-+EXPORT_SYMBOL(nla_find);
- 
- /**
-  * nla_strlcpy - Copy string attribute payload into a sized buffer
-@@ -258,6 +262,7 @@ size_t nla_strlcpy(char *dst, const stru
- 
- 	return srclen;
- }
-+EXPORT_SYMBOL(nla_strlcpy);
- 
- /**
-  * nla_memcpy - Copy a netlink attribute into another memory area
-@@ -278,6 +283,7 @@ int nla_memcpy(void *dest, const struct
- 
- 	return minlen;
- }
-+EXPORT_SYMBOL(nla_memcpy);
- 
- /**
-  * nla_memcmp - Compare an attribute with sized memory area
-@@ -295,6 +301,7 @@ int nla_memcmp(const struct nlattr *nla,
- 
- 	return d;
- }
-+EXPORT_SYMBOL(nla_memcmp);
- 
- /**
-  * nla_strcmp - Compare a string attribute against a string
-@@ -317,6 +324,7 @@ int nla_strcmp(const struct nlattr *nla,
- 
- 	return d;
- }
-+EXPORT_SYMBOL(nla_strcmp);
- 
- #ifdef CONFIG_NET
- /**
-@@ -502,12 +510,3 @@ int nla_append(struct sk_buff *skb, int
- }
- EXPORT_SYMBOL(nla_append);
- #endif
--
--EXPORT_SYMBOL(nla_validate);
--EXPORT_SYMBOL(nla_policy_len);
--EXPORT_SYMBOL(nla_parse);
--EXPORT_SYMBOL(nla_find);
--EXPORT_SYMBOL(nla_strlcpy);
--EXPORT_SYMBOL(nla_memcpy);
--EXPORT_SYMBOL(nla_memcmp);
--EXPORT_SYMBOL(nla_strcmp);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
