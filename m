@@ -1,70 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-vsprintfc-fix-comparison-to-bool.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 13:05:15 -0700
-Message-ID: <5390cd7b.VOlGljoSNVJ8aZJB%akpm@linux-foundation.org>
+Subject: [merged] lib-radix-treec-kernel-doc-warning-fix.patch removed
+ from -mm tree
+Date: Thu, 05 Jun 2014 13:05:21 -0700
+Message-ID: <5390cd81.6MBfCEAlbvZa+t6u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56821 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871AbaFEUFQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:16 -0400
+	with ESMTP id S1751871AbaFEUFW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, fabf@skynet.be
 
-Subject: [merged] lib-vsprintfc-fix-comparison-to-bool.patch removed from -mm tree
-To: fabf@skynet.be,mm-commits@vger.kernel.org
+Subject: [merged] lib-radix-treec-kernel-doc-warning-fix.patch removed from -mm tree
+To: fabf@skynet.be,hannes@cmpxchg.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:15 -0700
+Date: Thu, 05 Jun 2014 13:05:21 -0700
 
 
 The patch titled
-     Subject: lib/vsprintf.c: fix comparison to bool
+     Subject: lib/radix-tree.c: kernel-doc warning fix
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintfc-fix-comparison-to-bool.patch
+     lib-radix-treec-kernel-doc-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/vsprintf.c: fix comparison to bool
+Subject: lib/radix-tree.c: kernel-doc warning fix
 
-Fixing 2 coccinelle warnings:
-lib/vsprintf.c:2350:2-9: WARNING: Assignment of bool to 0/1
-lib/vsprintf.c:2389:3-10: WARNING: Assignment of bool to 0/1
+index has been removed from __radix_tree_delete_node in 449dd6984d0e47
+("mm: keep page cache radix tree nodes in check")
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/radix-tree.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-fix-comparison-to-bool lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-fix-comparison-to-bool
-+++ a/lib/vsprintf.c
-@@ -2347,7 +2347,7 @@ int vsscanf(const char *buf, const char
- 			break;
- 
- 		base = 10;
--		is_sign = 0;
-+		is_sign = false;
- 
- 		switch (*fmt++) {
- 		case 'c':
-@@ -2386,7 +2386,7 @@ int vsscanf(const char *buf, const char
- 		case 'i':
- 			base = 0;
- 		case 'd':
--			is_sign = 1;
-+			is_sign = true;
- 		case 'u':
- 			break;
- 		case '%':
+diff -puN lib/radix-tree.c~lib-radix-treec-kernel-doc-warning-fix lib/radix-tree.c
+--- a/lib/radix-tree.c~lib-radix-treec-kernel-doc-warning-fix
++++ a/lib/radix-tree.c
+@@ -1296,7 +1296,6 @@ static inline void radix_tree_shrink(str
+ /**
+  *	__radix_tree_delete_node    -    try to free node after clearing a slot
+  *	@root:		radix tree root
+- *	@index:		index key
+  *	@node:		node containing @index
+  *
+  *	After clearing the slot at @index in @node from radix tree
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
