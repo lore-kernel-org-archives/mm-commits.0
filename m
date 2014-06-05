@@ -1,65 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-digsigc-kernel-doc-warning-fixes.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 13:05:25 -0700
-Message-ID: <5390cd85.KQyCIGjEmrrzs9H5%akpm@linux-foundation.org>
+Subject: [merged] lib-textsearchc-move-export_symbol-after-functions.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 13:05:29 -0700
+Message-ID: <5390cd89.WrYDzEs0WK8vT8N2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56827 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56832 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbaFEUFZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:25 -0400
+	with ESMTP id S1751926AbaFEUF3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:05:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, duanj.fnst@cn.fujitsu.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: [merged] lib-digsigc-kernel-doc-warning-fixes.patch removed from -mm tree
-To: fabf@skynet.be,duanj.fnst@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] lib-textsearchc-move-export_symbol-after-functions.patch removed from -mm tree
+To: fabf@skynet.be,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:05:25 -0700
+Date: Thu, 05 Jun 2014 13:05:29 -0700
 
 
 The patch titled
-     Subject: lib/digsig.c: kernel-doc warning fixes
+     Subject: lib/textsearch.c: move EXPORT_SYMBOL after functions
 has been removed from the -mm tree.  Its filename was
-     lib-digsigc-kernel-doc-warning-fixes.patch
+     lib-textsearchc-move-export_symbol-after-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/digsig.c: kernel-doc warning fixes
+Subject: lib/textsearch.c: move EXPORT_SYMBOL after functions
 
-Small typo and @return: -> Returns ...
+Fix checkpatch warning:
+"WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable"
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Duan Jiong <duanj.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/digsig.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/textsearch.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN lib/digsig.c~lib-digsigc-kernel-doc-warning-fixes lib/digsig.c
---- a/lib/digsig.c~lib-digsigc-kernel-doc-warning-fixes
-+++ a/lib/digsig.c
-@@ -175,10 +175,11 @@ err1:
-  * digsig_verify() - digital signature verification with public key
-  * @keyring:	keyring to search key in
-  * @sig:	digital signature
-- * @sigen:	length of the signature
-+ * @siglen:	length of the signature
-  * @data:	data
-  * @datalen:	length of the data
-- * @return:	0 on success, -EINVAL otherwise
-+ *
-+ * Returns 0 on success, -EINVAL otherwise
-  *
-  * Verifies data integrity against digital signature.
-  * Currently only RSA is supported.
+diff -puN lib/textsearch.c~lib-textsearchc-move-export_symbol-after-functions lib/textsearch.c
+--- a/lib/textsearch.c~lib-textsearchc-move-export_symbol-after-functions
++++ a/lib/textsearch.c
+@@ -159,6 +159,7 @@ errout:
+ 	spin_unlock(&ts_mod_lock);
+ 	return err;
+ }
++EXPORT_SYMBOL(textsearch_register);
+ 
+ /**
+  * textsearch_unregister - unregister a textsearch module
+@@ -190,6 +191,7 @@ out:
+ 	spin_unlock(&ts_mod_lock);
+ 	return err;
+ }
++EXPORT_SYMBOL(textsearch_unregister);
+ 
+ struct ts_linear_state
+ {
+@@ -236,6 +238,7 @@ unsigned int textsearch_find_continuous(
+ 
+ 	return textsearch_find(conf, state);
+ }
++EXPORT_SYMBOL(textsearch_find_continuous);
+ 
+ /**
+  * textsearch_prepare - Prepare a search
+@@ -298,6 +301,7 @@ errout:
+ 		
+ 	return ERR_PTR(err);
+ }
++EXPORT_SYMBOL(textsearch_prepare);
+ 
+ /**
+  * textsearch_destroy - destroy a search configuration
+@@ -316,9 +320,4 @@ void textsearch_destroy(struct ts_config
+ 
+ 	kfree(conf);
+ }
+-
+-EXPORT_SYMBOL(textsearch_register);
+-EXPORT_SYMBOL(textsearch_unregister);
+-EXPORT_SYMBOL(textsearch_prepare);
+-EXPORT_SYMBOL(textsearch_find_continuous);
+ EXPORT_SYMBOL(textsearch_destroy);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
