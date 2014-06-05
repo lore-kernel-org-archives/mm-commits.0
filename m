@@ -1,78 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-prefer-kstrtofoo-to-sscanfbuf-%lhuidx-bar.patch removed from -mm tree
-Date: Thu, 05 Jun 2014 13:07:17 -0700
-Message-ID: <5390cdf5.936EjBrqrgIq3bRL%akpm@linux-foundation.org>
+ checkpatch-warn-on-unnecessary-void-function-return-statements.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 13:07:19 -0700
+Message-ID: <5390cdf7.3dPm8LEbJGCHHJU3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56873 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56875 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751015AbaFEUHS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:07:18 -0400
+	with ESMTP id S1751015AbaFEUHT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:07:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] checkpatch-prefer-kstrtofoo-to-sscanfbuf-%lhuidx-bar.patch removed from -mm tree
+Subject: [merged] checkpatch-warn-on-unnecessary-void-function-return-statements.patch removed from -mm tree
 To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:07:17 -0700
+Date: Thu, 05 Jun 2014 13:07:19 -0700
 
 
 The patch titled
-     Subject: checkpatch: prefer kstrto<foo> to sscanf(buf, "%<lhuidx>", &bar);
+     Subject: checkpatch: warn on unnecessary void function return statements
 has been removed from the -mm tree.  Its filename was
-     checkpatch-prefer-kstrtofoo-to-sscanfbuf-%lhuidx-bar.patch
+     checkpatch-warn-on-unnecessary-void-function-return-statements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: prefer kstrto<foo> to sscanf(buf, "%<lhuidx>", &bar);
+Subject: checkpatch: warn on unnecessary void function return statements
 
-Use the kstrto<foo> functions in preference to sscanf.
+void function lines that use a single tab then "return;" are generally
+unnecessary.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ scripts/checkpatch.pl |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-prefer-kstrtofoo-to-sscanfbuf-%lhuidx-bar scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-prefer-kstrtofoo-to-sscanfbuf-%lhuidx-bar
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-void-function-return-statements scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-void-function-return-statements
 +++ a/scripts/checkpatch.pl
-@@ -4314,6 +4314,27 @@ sub process {
- 			     "unchecked sscanf return value\n" . "$here\n$stat_real\n");
+@@ -3470,6 +3470,13 @@ sub process {
+ 			}
  		}
  
-+# check for simple sscanf that should be kstrto<foo>
-+		if ($^V && $^V ge 5.10.0 &&
-+		    defined $stat &&
-+		    $line =~ /\bsscanf\b/) {
-+			my $lc = $stat =~ tr@\n@@;
-+			$lc = $lc + $linenr;
-+			my $stat_real = raw_line($linenr, 0);
-+		        for (my $count = $linenr + 1; $count <= $lc; $count++) {
-+				$stat_real = $stat_real . "\n" . raw_line($count, 0);
-+			}
-+			if ($stat_real =~ /\bsscanf\b\s*\(\s*$FuncArg\s*,\s*("[^"]+")/) {
-+				my $format = $6;
-+				my $count = $format =~ tr@%@%@;
-+				if ($count == 1 &&
-+				    $format =~ /^"\%(?i:ll[udxi]|[udxi]ll|ll|[hl]h?[udxi]|[udxi][hl]h?|[hl]h?|[udxi])"$/) {
-+					WARN("SSCANF_TO_KSTRTO",
-+					     "Prefer kstrto<type> to single variable sscanf\n" . "$here\n$stat_real\n");
-+				}
-+			}
++# unnecessary return in a void function? (a single leading tab, then return;)
++		if ($sline =~ /^\+\treturn\s*;\s*$/ &&
++		    $prevline =~ /^\+/) {
++			WARN("RETURN_VOID",
++			     "void function return statements are not generally useful\n" . $herecurr);
 +		}
 +
- # check for new externs in .h files.
- 		if ($realfile =~ /\.h$/ &&
- 		    $line =~ /^\+\s*(extern\s+)$Type\s*$Ident\s*\(/s) {
+ # if statements using unnecessary parentheses - ie: if ((foo == bar))
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    $line =~ /\bif\s*((?:\(\s*){2,})/) {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
