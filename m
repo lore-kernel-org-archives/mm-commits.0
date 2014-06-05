@@ -1,96 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 12:51:06 -0700
-Message-ID: <5390ca2a.kuGVWxME/HuRBdi0%akpm@linux-foundation.org>
+Subject: [merged] mm-vmallocc-replace-seq_printf-by-seq_puts.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 12:51:14 -0700
+Message-ID: <5390ca32.uqaEL7Vc8ucNRN1C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56105 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56119 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643AbaFETvG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:06 -0400
+	with ESMTP id S1751643AbaFETvO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, daeseok.youn@gmail.com
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: [merged] mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch removed from -mm tree
-To: daeseok.youn@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-vmallocc-replace-seq_printf-by-seq_puts.patch removed from -mm tree
+To: fabf@skynet.be,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:06 -0700
+Date: Thu, 05 Jun 2014 12:51:14 -0700
 
 
 The patch titled
-     Subject: mm/dmapool.c: remove redundant NULL check for dev in dma_pool_create()
+     Subject: mm/vmalloc.c: replace seq_printf by seq_puts
 has been removed from the -mm tree.  Its filename was
-     mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create.patch
+     mm-vmallocc-replace-seq_printf-by-seq_puts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daeseok Youn <daeseok.youn@gmail.com>
-Subject: mm/dmapool.c: remove redundant NULL check for dev in dma_pool_create()
+From: Fabian Frederick <fabf@skynet.be>
+Subject: mm/vmalloc.c: replace seq_printf by seq_puts
 
-"dev" cannot be NULL because it is already checked before calling
-dma_pool_create().
+Replace seq_printf where possible
 
-If dev ever was NULL, the code would oops in dev_to_node() after enabling
-CONFIG_NUMA.
-
-It is possible that some driver is using dev==NULL and has never been run
-on a NUMA machine.  Such a driver is probably outdated, possibly buggy and
-will need some attention if it starts triggering NULL derefs.
-
-Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/dmapool.c |   24 ++++++++----------------
- 1 file changed, 8 insertions(+), 16 deletions(-)
+ mm/vmalloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/dmapool.c~mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create mm/dmapool.c
---- a/mm/dmapool.c~mm-dmapoolc-remove-redundant-null-check-for-dev-in-dma_pool_create
-+++ a/mm/dmapool.c
-@@ -170,24 +170,16 @@ struct dma_pool *dma_pool_create(const c
- 	retval->boundary = boundary;
- 	retval->allocation = allocation;
+diff -puN mm/vmalloc.c~mm-vmallocc-replace-seq_printf-by-seq_puts mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-replace-seq_printf-by-seq_puts
++++ a/mm/vmalloc.c
+@@ -2619,19 +2619,19 @@ static int s_show(struct seq_file *m, vo
+ 		seq_printf(m, " phys=%llx", (unsigned long long)v->phys_addr);
  
--	if (dev) {
--		int ret;
-+	INIT_LIST_HEAD(&retval->pools);
+ 	if (v->flags & VM_IOREMAP)
+-		seq_printf(m, " ioremap");
++		seq_puts(m, " ioremap");
  
--		mutex_lock(&pools_lock);
--		if (list_empty(&dev->dma_pools))
--			ret = device_create_file(dev, &dev_attr_pools);
--		else
--			ret = 0;
--		/* note:  not currently insisting "name" be unique */
--		if (!ret)
--			list_add(&retval->pools, &dev->dma_pools);
--		else {
--			kfree(retval);
--			retval = NULL;
--		}
--		mutex_unlock(&pools_lock);
-+	mutex_lock(&pools_lock);
-+	if (list_empty(&dev->dma_pools) &&
-+	    device_create_file(dev, &dev_attr_pools)) {
-+		kfree(retval);
-+		return NULL;
- 	} else
--		INIT_LIST_HEAD(&retval->pools);
-+		list_add(&retval->pools, &dev->dma_pools);
-+	mutex_unlock(&pools_lock);
+ 	if (v->flags & VM_ALLOC)
+-		seq_printf(m, " vmalloc");
++		seq_puts(m, " vmalloc");
  
- 	return retval;
- }
+ 	if (v->flags & VM_MAP)
+-		seq_printf(m, " vmap");
++		seq_puts(m, " vmap");
+ 
+ 	if (v->flags & VM_USERMAP)
+-		seq_printf(m, " user");
++		seq_puts(m, " user");
+ 
+ 	if (v->flags & VM_VPAGES)
+-		seq_printf(m, " vpages");
++		seq_puts(m, " vpages");
+ 
+ 	show_numa_info(m, v);
+ 	seq_putc(m, '\n');
 _
 
-Patches currently in -mm which might be from daeseok.youn@gmail.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
+fs-ceph-replace-pr_warning-by-pr_warn.patch
+fs-ceph-debugfsc-replace-seq_printf-by-seq_puts.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
+fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+fs-befs-linuxvfsc-remove-positive-test-on-sector_t.patch
+fs-befs-kernel-doc-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-coda-replace-printk-by-pr_foo.patch
+fs-coda-logging-prefix-uniformization.patch
+fs-coda-use-__func__.patch
+fs-hfsplus-bnodec-replace-min-casting-by-min_t.patch
+fs-hfsplus-optionsc-replace-seq_printf-by-seq_puts.patch
+fs-hfsplus-wrapperc-replace-min-casting-by-min_t.patch
+fs-hfsplus-wrapperc-replace-shift-loop-by-ilog2.patch
+fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
+fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
+fs-hpfs-convert-printk-to-pr_foo.patch
+fs-hpfs-use-pr_fmt-for-logging.patch
+fs-hpfs-use-__func__-for-logging.patch
+fs-hpfs-increase-pr_warn-level.patch
+documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+fs-proc-task_mmuc-replace-seq_printf-by-seq_puts.patch
+fs-proc-vmcorec-remove-null-assignment-on-static.patch
+kernel-kexecc-convert-printk-to-pr_foo.patch
+kernel-user_namespacec-kernel-doc-checkpatch-fixes.patch
+fs-affs-filec-remove-unnecessary-function-parameters.patch
+fs-affs-convert-printk-to-pr_foo.patch
+fs-affs-pr_debug-cleanup.patch
+kernel-profilec-convert-printk-to-pr_foo.patch
+kernel-profilec-use-static-const-char-instead-of-static-char.patch
+fs-pstore-logging-clean-up.patch
+fs-pstore-logging-clean-up-fix.patch
+fs-cachefiles-convert-printk-to-pr_foo.patch
+fs-cachefiles-replace-kerror-by-pr_err.patch
+fs-devpts-inodec-convert-printk-to-pr_foo.patch
+fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
+kernel-seccompc-kernel-doc-warning-fix.patch
 linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+fs-reiserfs-bitmapc-coding-style-fixes.patch
+fs-reiserfs-streec-remove-obsolete-__constant.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-dlm-configc-convert-simple_str-to-kstr.patch
+fs-dlm-lockspacec-convert-simple_str-to-kstr.patch
+fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
+mm-kmemleak-testc-use-pr_fmt-for-logging.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
