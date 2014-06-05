@@ -1,66 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-warn-on-unnecessary-void-function-return-statements.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 13:07:19 -0700
-Message-ID: <5390cdf7.3dPm8LEbJGCHHJU3%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-check-stable-email-address.patch removed from -mm tree
+Date: Thu, 05 Jun 2014 13:07:21 -0700
+Message-ID: <5390cdf9.MT/q356FJOSLC5U5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56875 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56877 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751015AbaFEUHT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:07:19 -0400
+	with ESMTP id S1751015AbaFEUHV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 16:07:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] checkpatch-warn-on-unnecessary-void-function-return-statements.patch removed from -mm tree
+Subject: [merged] checkpatch-check-stable-email-address.patch removed from -mm tree
 To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 13:07:19 -0700
+Date: Thu, 05 Jun 2014 13:07:21 -0700
 
 
 The patch titled
-     Subject: checkpatch: warn on unnecessary void function return statements
+     Subject: checkpatch: check stable email address
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-on-unnecessary-void-function-return-statements.patch
+     checkpatch-check-stable-email-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on unnecessary void function return statements
+Subject: checkpatch: check stable email address
 
-void function lines that use a single tab then "return;" are generally
-unnecessary.
+It should be stable@vger.kernel.org, not stable@kernel.org.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++++
- 1 file changed, 7 insertions(+)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-void-function-return-statements scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-void-function-return-statements
+diff -puN scripts/checkpatch.pl~checkpatch-check-stable-email-address scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-stable-email-address
 +++ a/scripts/checkpatch.pl
-@@ -3470,6 +3470,13 @@ sub process {
+@@ -1944,6 +1944,12 @@ sub process {
  			}
  		}
  
-+# unnecessary return in a void function? (a single leading tab, then return;)
-+		if ($sline =~ /^\+\treturn\s*;\s*$/ &&
-+		    $prevline =~ /^\+/) {
-+			WARN("RETURN_VOID",
-+			     "void function return statements are not generally useful\n" . $herecurr);
++# Check for old stable address
++		if ($line =~ /^\s*cc:\s*.*<?\bstable\@kernel\.org\b>?.*$/i) {
++			ERROR("STABLE_ADDRESS",
++			      "The 'stable' address should be 'stable\@vger.kernel.org'\n" . $herecurr);
 +		}
 +
- # if statements using unnecessary parentheses - ie: if ((foo == bar))
- 		if ($^V && $^V ge 5.10.0 &&
- 		    $line =~ /\bif\s*((?:\(\s*){2,})/) {
+ # Check for unwanted Gerrit info
+ 		if ($in_commit_log && $line =~ /^\s*change-id:/i) {
+ 			ERROR("GERRIT_CHANGE_ID",
 _
 
 Patches currently in -mm which might be from joe@perches.com are
