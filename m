@@ -1,359 +1,200 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-embed-migration-mode-in-compact_control.patch removed from
- -mm tree
-Date: Thu, 05 Jun 2014 12:51:47 -0700
-Message-ID: <5390ca53.yp69efj3f1o6G/Tp%akpm@linux-foundation.org>
+ mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 12:52:23 -0700
+Message-ID: <5390ca77.23K8xKu89k4B8fMe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56198 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56346 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752981AbaFETvs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:51:48 -0400
+	with ESMTP id S1753144AbaFETwY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:52:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, gthelen@google.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, tytso@mit.edu, sfr@canb.auug.org.au, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mhocko@suse.cz, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, mgorman@suse.de
 
-Subject: [merged] mm-compaction-embed-migration-mode-in-compact_control.patch removed from -mm tree
-To: rientjes@google.com,gthelen@google.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,vbabka@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch removed from -mm tree
+To: mgorman@suse.de,dave.hansen@intel.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,mhocko@suse.cz,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,sfr@canb.auug.org.au,tytso@mit.edu,vbabka@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:51:47 -0700
+Date: Thu, 05 Jun 2014 12:52:23 -0700
 
 
 The patch titled
-     Subject: mm, compaction: embed migration mode in compact_control
+     Subject: mm: page_alloc: use jump labels to avoid checking number_of_cpusets
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-embed-migration-mode-in-compact_control.patch
+     mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, compaction: embed migration mode in compact_control
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: page_alloc: use jump labels to avoid checking number_of_cpusets
 
-We're going to want to manipulate the migration mode for compaction in the
-page allocator, and currently compact_control's sync field is only a bool.
+If cpusets are not in use then we still check a global variable on every
+page allocation.  Use jump labels to avoid the overhead.
 
-Currently, we only do MIGRATE_ASYNC or MIGRATE_SYNC_LIGHT compaction
-depending on the value of this bool.  Convert the bool to enum
-migrate_mode and pass the migration mode in directly.  Later, we'll want
-to avoid MIGRATE_SYNC_LIGHT for thp allocations in the pagefault patch to
-avoid unnecessary latency.
-
-This also alters compaction triggered from sysfs, either for the entire
-system or for a node, to force MIGRATE_SYNC.
-
-[akpm@linux-foundation.org: fix build]
-[iamjoonsoo.kim@lge.com: use MIGRATE_SYNC in alloc_contig_range()]
-Signed-off-by: David Rientjes <rientjes@google.com>
-Suggested-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    4 +--
- mm/compaction.c            |   36 +++++++++++++++++---------------
- mm/internal.h              |    2 -
- mm/page_alloc.c            |   39 +++++++++++++++--------------------
- 4 files changed, 39 insertions(+), 42 deletions(-)
+ include/linux/cpuset.h |   29 ++++++++++++++++++++++++++---
+ kernel/cpuset.c        |   14 ++++----------
+ mm/page_alloc.c        |    3 ++-
+ 3 files changed, 32 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-embed-migration-mode-in-compact_control include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-embed-migration-mode-in-compact_control
-+++ a/include/linux/compaction.h
-@@ -22,7 +22,7 @@ extern int sysctl_extfrag_handler(struct
- extern int fragmentation_index(struct zone *zone, unsigned int order);
- extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *mask,
--			bool sync, bool *contended);
-+			enum migrate_mode mode, bool *contended);
- extern void compact_pgdat(pg_data_t *pgdat, int order);
- extern void reset_isolation_suitable(pg_data_t *pgdat);
- extern unsigned long compaction_suitable(struct zone *zone, int order);
-@@ -91,7 +91,7 @@ static inline bool compaction_restarting
- #else
- static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *nodemask,
--			bool sync, bool *contended)
-+			enum migrate_mode mode, bool *contended)
+diff -puN include/linux/cpuset.h~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets include/linux/cpuset.h
+--- a/include/linux/cpuset.h~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
++++ a/include/linux/cpuset.h
+@@ -12,10 +12,31 @@
+ #include <linux/cpumask.h>
+ #include <linux/nodemask.h>
+ #include <linux/mm.h>
++#include <linux/jump_label.h>
+ 
+ #ifdef CONFIG_CPUSETS
+ 
+-extern int number_of_cpusets;	/* How many cpusets are defined in system? */
++extern struct static_key cpusets_enabled_key;
++static inline bool cpusets_enabled(void)
++{
++	return static_key_false(&cpusets_enabled_key);
++}
++
++static inline int nr_cpusets(void)
++{
++	/* jump label reference count + the top-level cpuset */
++	return static_key_count(&cpusets_enabled_key) + 1;
++}
++
++static inline void cpuset_inc(void)
++{
++	static_key_slow_inc(&cpusets_enabled_key);
++}
++
++static inline void cpuset_dec(void)
++{
++	static_key_slow_dec(&cpusets_enabled_key);
++}
+ 
+ extern int cpuset_init(void);
+ extern void cpuset_init_smp(void);
+@@ -32,13 +53,13 @@ extern int __cpuset_node_allowed_hardwal
+ 
+ static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
  {
- 	return COMPACT_CONTINUE;
- }
-diff -puN mm/compaction.c~mm-compaction-embed-migration-mode-in-compact_control mm/compaction.c
---- a/mm/compaction.c~mm-compaction-embed-migration-mode-in-compact_control
-+++ a/mm/compaction.c
-@@ -161,7 +161,8 @@ static void update_pageblock_skip(struct
- 			return;
- 		if (pfn > zone->compact_cached_migrate_pfn[0])
- 			zone->compact_cached_migrate_pfn[0] = pfn;
--		if (cc->sync && pfn > zone->compact_cached_migrate_pfn[1])
-+		if (cc->mode != MIGRATE_ASYNC &&
-+		    pfn > zone->compact_cached_migrate_pfn[1])
- 			zone->compact_cached_migrate_pfn[1] = pfn;
- 	} else {
- 		if (cc->finished_update_free)
-@@ -208,7 +209,7 @@ static bool compact_checklock_irqsave(sp
- 		}
- 
- 		/* async aborts if taking too long or contended */
--		if (!cc->sync) {
-+		if (cc->mode == MIGRATE_ASYNC) {
- 			cc->contended = true;
- 			return false;
- 		}
-@@ -473,7 +474,8 @@ isolate_migratepages_range(struct zone *
- 	bool locked = false;
- 	struct page *page = NULL, *valid_page = NULL;
- 	bool set_unsuitable = true;
--	const isolate_mode_t mode = (!cc->sync ? ISOLATE_ASYNC_MIGRATE : 0) |
-+	const isolate_mode_t mode = (cc->mode == MIGRATE_ASYNC ?
-+					ISOLATE_ASYNC_MIGRATE : 0) |
- 				    (unevictable ? ISOLATE_UNEVICTABLE : 0);
- 
- 	/*
-@@ -483,7 +485,7 @@ isolate_migratepages_range(struct zone *
- 	 */
- 	while (unlikely(too_many_isolated(zone))) {
- 		/* async migration should just abort */
--		if (!cc->sync)
-+		if (cc->mode == MIGRATE_ASYNC)
- 			return 0;
- 
- 		congestion_wait(BLK_RW_ASYNC, HZ/10);
-@@ -548,7 +550,8 @@ isolate_migratepages_range(struct zone *
- 			 * the minimum amount of work satisfies the allocation
- 			 */
- 			mt = get_pageblock_migratetype(page);
--			if (!cc->sync && !migrate_async_suitable(mt)) {
-+			if (cc->mode == MIGRATE_ASYNC &&
-+			    !migrate_async_suitable(mt)) {
- 				set_unsuitable = false;
- 				goto next_pageblock;
- 			}
-@@ -981,6 +984,7 @@ static int compact_zone(struct zone *zon
- 	int ret;
- 	unsigned long start_pfn = zone->zone_start_pfn;
- 	unsigned long end_pfn = zone_end_pfn(zone);
-+	const bool sync = cc->mode != MIGRATE_ASYNC;
- 
- 	ret = compaction_suitable(zone, cc->order);
- 	switch (ret) {
-@@ -1006,7 +1010,7 @@ static int compact_zone(struct zone *zon
- 	 * information on where the scanners should start but check that it
- 	 * is initialised by ensuring the values are within zone boundaries.
- 	 */
--	cc->migrate_pfn = zone->compact_cached_migrate_pfn[cc->sync];
-+	cc->migrate_pfn = zone->compact_cached_migrate_pfn[sync];
- 	cc->free_pfn = zone->compact_cached_free_pfn;
- 	if (cc->free_pfn < start_pfn || cc->free_pfn > end_pfn) {
- 		cc->free_pfn = end_pfn & ~(pageblock_nr_pages-1);
-@@ -1040,8 +1044,7 @@ static int compact_zone(struct zone *zon
- 
- 		nr_migrate = cc->nr_migratepages;
- 		err = migrate_pages(&cc->migratepages, compaction_alloc,
--				compaction_free, (unsigned long)cc,
--				cc->sync ? MIGRATE_SYNC_LIGHT : MIGRATE_ASYNC,
-+				compaction_free, (unsigned long)cc, cc->mode,
- 				MR_COMPACTION);
- 		update_nr_listpages(cc);
- 		nr_remaining = cc->nr_migratepages;
-@@ -1074,9 +1077,8 @@ out:
- 	return ret;
+-	return number_of_cpusets <= 1 ||
++	return nr_cpusets() <= 1 ||
+ 		__cpuset_node_allowed_softwall(node, gfp_mask);
  }
  
--static unsigned long compact_zone_order(struct zone *zone,
--				 int order, gfp_t gfp_mask,
--				 bool sync, bool *contended)
-+static unsigned long compact_zone_order(struct zone *zone, int order,
-+		gfp_t gfp_mask, enum migrate_mode mode, bool *contended)
+ static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
  {
- 	unsigned long ret;
- 	struct compact_control cc = {
-@@ -1085,7 +1087,7 @@ static unsigned long compact_zone_order(
- 		.order = order,
- 		.migratetype = allocflags_to_migratetype(gfp_mask),
- 		.zone = zone,
--		.sync = sync,
-+		.mode = mode,
- 	};
- 	INIT_LIST_HEAD(&cc.freepages);
- 	INIT_LIST_HEAD(&cc.migratepages);
-@@ -1107,7 +1109,7 @@ int sysctl_extfrag_threshold = 500;
-  * @order: The order of the current allocation
-  * @gfp_mask: The GFP mask of the current allocation
-  * @nodemask: The allowed nodes to allocate from
-- * @sync: Whether migration is synchronous or not
-+ * @mode: The migration mode for async, sync light, or sync migration
-  * @contended: Return value that is true if compaction was aborted due to lock contention
-  * @page: Optionally capture a free page of the requested order during compaction
-  *
-@@ -1115,7 +1117,7 @@ int sysctl_extfrag_threshold = 500;
-  */
- unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *nodemask,
--			bool sync, bool *contended)
-+			enum migrate_mode mode, bool *contended)
- {
- 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
- 	int may_enter_fs = gfp_mask & __GFP_FS;
-@@ -1140,7 +1142,7 @@ unsigned long try_to_compact_pages(struc
- 								nodemask) {
- 		int status;
- 
--		status = compact_zone_order(zone, order, gfp_mask, sync,
-+		status = compact_zone_order(zone, order, gfp_mask, mode,
- 						contended);
- 		rc = max(status, rc);
- 
-@@ -1190,7 +1192,7 @@ void compact_pgdat(pg_data_t *pgdat, int
- {
- 	struct compact_control cc = {
- 		.order = order,
--		.sync = false,
-+		.mode = MIGRATE_ASYNC,
- 	};
- 
- 	if (!order)
-@@ -1203,7 +1205,7 @@ static void compact_node(int nid)
- {
- 	struct compact_control cc = {
- 		.order = -1,
--		.sync = true,
-+		.mode = MIGRATE_SYNC,
- 		.ignore_skip_hint = true,
- 	};
- 
-diff -puN mm/internal.h~mm-compaction-embed-migration-mode-in-compact_control mm/internal.h
---- a/mm/internal.h~mm-compaction-embed-migration-mode-in-compact_control
-+++ a/mm/internal.h
-@@ -134,7 +134,7 @@ struct compact_control {
- 	unsigned long nr_migratepages;	/* Number of pages to migrate */
- 	unsigned long free_pfn;		/* isolate_freepages search base */
- 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
--	bool sync;			/* Synchronous migration */
-+	enum migrate_mode mode;		/* Async or sync migration mode */
- 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
- 	bool finished_update_free;	/* True when the zone cached pfns are
- 					 * no longer being updated
-diff -puN mm/page_alloc.c~mm-compaction-embed-migration-mode-in-compact_control mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-embed-migration-mode-in-compact_control
-+++ a/mm/page_alloc.c
-@@ -2217,7 +2217,7 @@ static struct page *
- __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
- 	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
--	int migratetype, bool sync_migration,
-+	int migratetype, enum migrate_mode mode,
- 	bool *contended_compaction, bool *deferred_compaction,
- 	unsigned long *did_some_progress)
- {
-@@ -2231,7 +2231,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 
- 	current->flags |= PF_MEMALLOC;
- 	*did_some_progress = try_to_compact_pages(zonelist, order, gfp_mask,
--						nodemask, sync_migration,
-+						nodemask, mode,
- 						contended_compaction);
- 	current->flags &= ~PF_MEMALLOC;
- 
-@@ -2264,7 +2264,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 		 * As async compaction considers a subset of pageblocks, only
- 		 * defer if the failure was a sync compaction failure.
- 		 */
--		if (sync_migration)
-+		if (mode != MIGRATE_ASYNC)
- 			defer_compaction(preferred_zone, order);
- 
- 		cond_resched();
-@@ -2277,9 +2277,8 @@ static inline struct page *
- __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
- 	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
--	int migratetype, bool sync_migration,
--	bool *contended_compaction, bool *deferred_compaction,
--	unsigned long *did_some_progress)
-+	int migratetype, enum migrate_mode mode, bool *contended_compaction,
-+	bool *deferred_compaction, unsigned long *did_some_progress)
- {
- 	return NULL;
+-	return number_of_cpusets <= 1 ||
++	return nr_cpusets() <= 1 ||
+ 		__cpuset_node_allowed_hardwall(node, gfp_mask);
  }
-@@ -2474,7 +2473,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	int alloc_flags;
- 	unsigned long pages_reclaimed = 0;
- 	unsigned long did_some_progress;
--	bool sync_migration = false;
-+	enum migrate_mode migration_mode = MIGRATE_ASYNC;
- 	bool deferred_compaction = false;
- 	bool contended_compaction = false;
  
-@@ -2568,17 +2567,15 @@ rebalance:
- 	 * Try direct compaction. The first pass is asynchronous. Subsequent
- 	 * attempts after direct reclaim are synchronous
- 	 */
--	page = __alloc_pages_direct_compact(gfp_mask, order,
--					zonelist, high_zoneidx,
--					nodemask,
--					alloc_flags, preferred_zone,
--					migratetype, sync_migration,
--					&contended_compaction,
-+	page = __alloc_pages_direct_compact(gfp_mask, order, zonelist,
-+					high_zoneidx, nodemask, alloc_flags,
-+					preferred_zone, migratetype,
-+					migration_mode, &contended_compaction,
- 					&deferred_compaction,
- 					&did_some_progress);
- 	if (page)
- 		goto got_pg;
--	sync_migration = true;
-+	migration_mode = MIGRATE_SYNC_LIGHT;
+@@ -124,6 +145,8 @@ static inline void set_mems_allowed(node
  
- 	/*
- 	 * If compaction is deferred for high-order allocations, it is because
-@@ -2653,12 +2650,10 @@ rebalance:
- 		 * direct reclaim and reclaim/compaction depends on compaction
- 		 * being called after reclaim so call directly if necessary
- 		 */
--		page = __alloc_pages_direct_compact(gfp_mask, order,
--					zonelist, high_zoneidx,
--					nodemask,
--					alloc_flags, preferred_zone,
--					migratetype, sync_migration,
--					&contended_compaction,
-+		page = __alloc_pages_direct_compact(gfp_mask, order, zonelist,
-+					high_zoneidx, nodemask, alloc_flags,
-+					preferred_zone, migratetype,
-+					migration_mode, &contended_compaction,
- 					&deferred_compaction,
- 					&did_some_progress);
- 		if (page)
-@@ -6218,7 +6213,7 @@ static int __alloc_contig_migrate_range(
- 		cc->nr_migratepages -= nr_reclaimed;
+ #else /* !CONFIG_CPUSETS */
  
- 		ret = migrate_pages(&cc->migratepages, alloc_migrate_target,
--				    NULL, 0, MIGRATE_SYNC, MR_CMA);
-+				    NULL, 0, cc->mode, MR_CMA);
++static inline bool cpusets_enabled(void) { return false; }
++
+ static inline int cpuset_init(void) { return 0; }
+ static inline void cpuset_init_smp(void) {}
+ 
+diff -puN kernel/cpuset.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets kernel/cpuset.c
+--- a/kernel/cpuset.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
++++ a/kernel/cpuset.c
+@@ -61,12 +61,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/wait.h>
+ 
+-/*
+- * Tracks how many cpusets are currently defined in system.
+- * When there is only one cpuset (the root cpuset) we can
+- * short circuit some hooks.
+- */
+-int number_of_cpusets __read_mostly;
++struct static_key cpusets_enabled_key __read_mostly = STATIC_KEY_INIT_FALSE;
+ 
+ /* See "Frequency meter" comments, below. */
+ 
+@@ -611,7 +606,7 @@ static int generate_sched_domains(cpumas
+ 		goto done;
  	}
- 	if (ret < 0) {
- 		putback_movable_pages(&cc->migratepages);
-@@ -6257,7 +6252,7 @@ int alloc_contig_range(unsigned long sta
- 		.nr_migratepages = 0,
- 		.order = -1,
- 		.zone = page_zone(pfn_to_page(start)),
--		.sync = true,
-+		.mode = MIGRATE_SYNC,
- 		.ignore_skip_hint = true,
- 	};
- 	INIT_LIST_HEAD(&cc.migratepages);
+ 
+-	csa = kmalloc(number_of_cpusets * sizeof(cp), GFP_KERNEL);
++	csa = kmalloc(nr_cpusets() * sizeof(cp), GFP_KERNEL);
+ 	if (!csa)
+ 		goto done;
+ 	csn = 0;
+@@ -1888,7 +1883,7 @@ static int cpuset_css_online(struct cgro
+ 	if (is_spread_slab(parent))
+ 		set_bit(CS_SPREAD_SLAB, &cs->flags);
+ 
+-	number_of_cpusets++;
++	cpuset_inc();
+ 
+ 	if (!test_bit(CGRP_CPUSET_CLONE_CHILDREN, &css->cgroup->flags))
+ 		goto out_unlock;
+@@ -1939,7 +1934,7 @@ static void cpuset_css_offline(struct cg
+ 	if (is_sched_load_balance(cs))
+ 		update_flag(CS_SCHED_LOAD_BALANCE, cs, 0);
+ 
+-	number_of_cpusets--;
++	cpuset_dec();
+ 	clear_bit(CS_ONLINE, &cs->flags);
+ 
+ 	mutex_unlock(&cpuset_mutex);
+@@ -1992,7 +1987,6 @@ int __init cpuset_init(void)
+ 	if (!alloc_cpumask_var(&cpus_attach, GFP_KERNEL))
+ 		BUG();
+ 
+-	number_of_cpusets = 1;
+ 	return 0;
+ }
+ 
+diff -puN mm/page_alloc.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
++++ a/mm/page_alloc.c
+@@ -1921,7 +1921,8 @@ zonelist_scan:
+ 		if (IS_ENABLED(CONFIG_NUMA) && zlc_active &&
+ 			!zlc_zone_worth_trying(zonelist, z, allowednodes))
+ 				continue;
+-		if ((alloc_flags & ALLOC_CPUSET) &&
++		if (cpusets_enabled() &&
++			(alloc_flags & ALLOC_CPUSET) &&
+ 			!cpuset_zone_allowed_softwall(zone, gfp_mask))
+ 				continue;
+ 		BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-mm-utilc-add-kstrimdup.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
 linux-next.patch
 
