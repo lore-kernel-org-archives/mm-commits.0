@@ -1,188 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-compaction-cleanup-isolate_freepages.patch removed
- from -mm tree
-Date: Thu, 05 Jun 2014 12:49:59 -0700
-Message-ID: <5390c9e7.3y0fjUAU/hjFV1Yw%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
+ removed from -mm tree
+Date: Thu, 05 Jun 2014 12:49:55 -0700
+Message-ID: <5390c9e3.r3pwzeJXceaoaxIe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55934 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55906 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752430AbaFETuA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:50:00 -0400
+	with ESMTP id S1752430AbaFETt4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:49:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunghwan.yun@samsung.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, d.j.shin@samsung.com, cl@linux.com, b.zolnierkie@samsung.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, ytk.lee@samsung.com, riel@redhat.com, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, m.szyprowski@samsung.com, kosaki.motohiro@jp.fujitsu.com, iamjoonsoo.kim@lge.com, hughd@google.com, b.zolnierkie@samsung.com, Yalin.Wang@sonymobile.com, vbabka@suse.cz
 
-Subject: [merged] mm-compaction-cleanup-isolate_freepages.patch removed from -mm tree
-To: vbabka@suse.cz,b.zolnierkie@samsung.com,cl@linux.com,d.j.shin@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,sunghwan.yun@samsung.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch removed from -mm tree
+To: vbabka@suse.cz,Yalin.Wang@sonymobile.com,b.zolnierkie@samsung.com,hughd@google.com,iamjoonsoo.kim@lge.com,kosaki.motohiro@jp.fujitsu.com,m.szyprowski@samsung.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,riel@redhat.com,ytk.lee@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:49:59 -0700
+Date: Thu, 05 Jun 2014 12:49:55 -0700
 
 
 The patch titled
-     Subject: mm/compaction: cleanup isolate_freepages()
+     Subject: mm/page_alloc: prevent MIGRATE_RESERVE pages from being misplaced
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-cleanup-isolate_freepages.patch
+     mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/compaction: cleanup isolate_freepages()
+Subject: mm/page_alloc: prevent MIGRATE_RESERVE pages from being misplaced
 
-isolate_freepages() is currently somewhat hard to follow thanks to many
-looks like it is related to the 'low_pfn' variable, but in fact it is not.
+For the MIGRATE_RESERVE pages, it is useful when they do not get misplaced
+on free_list of other migratetype, otherwise they might get allocated
+prematurely and e.g.  fragment the MIGRATE_RESEVE pageblocks.  While this
+cannot be avoided completely when allocating new MIGRATE_RESERVE
+pageblocks in min_free_kbytes sysctl handler, we should prevent the
+misplacement where possible.
 
-This patch renames the 'high_pfn' variable to a hopefully less confusing name,
-and slightly changes its handling without a functional change. A comment made
-obsolete by recent changes is also updated.
+Currently, it is possible for the misplacement to happen when a
+MIGRATE_RESERVE page is allocated on pcplist through rmqueue_bulk() as a
+fallback for other desired migratetype, and then later freed back through
+free_pcppages_bulk() without being actually used.  This happens because
+free_pcppages_bulk() uses get_freepage_migratetype() to choose the
+free_list, and rmqueue_bulk() calls set_freepage_migratetype() with the
+*desired* migratetype and not the page's original MIGRATE_RESERVE
+migratetype.
 
-[akpm@linux-foundation.org: comment fixes, per Minchan]
-[iamjoonsoo.kim@lge.com: cleanups]
+This patch fixes the problem by moving the call to
+set_freepage_migratetype() from rmqueue_bulk() down to
+__rmqueue_smallest() and __rmqueue_fallback() where the actual page's
+migratetype (e.g.  from which free_list the page is taken from) is used. 
+Note that this migratetype might be different from the pageblock's
+migratetype due to freepage stealing decisions.  This is OK, as page
+stealing never uses MIGRATE_RESERVE as a fallback, and also takes care to
+leave all MIGRATE_CMA pages on the correct freelist.
+
+Therefore, as an additional benefit, the call to
+get_pageblock_migratetype() from rmqueue_bulk() when CMA is enabled, can
+be removed completely.  This relies on the fact that MIGRATE_CMA
+pageblocks are created only during system init, and the above.  The
+related is_migrate_isolate() check is also unnecessary, as memory
+isolation has other ways to move pages between freelists, and drain pcp
+lists containing pages that should be isolated.  The buffered_rmqueue()
+can also benefit from calling get_freepage_migratetype() instead of
+get_pageblock_migratetype().
+
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Christoph Lameter <cl@linux.com>
+Reported-by: Yong-Taek Lee <ytk.lee@samsung.com>
+Reported-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Suggested-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Suggested-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Dongjun Shin <d.j.shin@samsung.com>
-Cc: Sunghwan Yun <sunghwan.yun@samsung.com>
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: "Wang, Yalin" <Yalin.Wang@sonymobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   56 ++++++++++++++++++++++------------------------
- 1 file changed, 27 insertions(+), 29 deletions(-)
+ mm/page_alloc.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-cleanup-isolate_freepages mm/compaction.c
---- a/mm/compaction.c~mm-compaction-cleanup-isolate_freepages
-+++ a/mm/compaction.c
-@@ -665,7 +665,10 @@ static void isolate_freepages(struct zon
- 				struct compact_control *cc)
- {
- 	struct page *page;
--	unsigned long high_pfn, low_pfn, pfn, z_end_pfn;
-+	unsigned long block_start_pfn;	/* start of current pageblock */
-+	unsigned long block_end_pfn;	/* end of current pageblock */
-+	unsigned long low_pfn;	     /* lowest pfn scanner is able to scan */
-+	unsigned long next_free_pfn; /* start pfn for scaning at next round */
- 	int nr_freepages = cc->nr_freepages;
- 	struct list_head *freelist = &cc->freepages;
- 
-@@ -673,32 +676,33 @@ static void isolate_freepages(struct zon
- 	 * Initialise the free scanner. The starting point is where we last
- 	 * successfully isolated from, zone-cached value, or the end of the
- 	 * zone when isolating for the first time. We need this aligned to
--	 * the pageblock boundary, because we do pfn -= pageblock_nr_pages
--	 * in the for loop.
-+	 * the pageblock boundary, because we do
-+	 * block_start_pfn -= pageblock_nr_pages in the for loop.
-+	 * For ending point, take care when isolating in last pageblock of a
-+	 * a zone which ends in the middle of a pageblock.
- 	 * The low boundary is the end of the pageblock the migration scanner
- 	 * is using.
- 	 */
--	pfn = cc->free_pfn & ~(pageblock_nr_pages-1);
-+	block_start_pfn = cc->free_pfn & ~(pageblock_nr_pages-1);
-+	block_end_pfn = min(block_start_pfn + pageblock_nr_pages,
-+						zone_end_pfn(zone));
- 	low_pfn = ALIGN(cc->migrate_pfn + 1, pageblock_nr_pages);
- 
- 	/*
--	 * Take care that if the migration scanner is at the end of the zone
--	 * that the free scanner does not accidentally move to the next zone
--	 * in the next isolation cycle.
-+	 * If no pages are isolated, the block_start_pfn < low_pfn check
-+	 * will kick in.
- 	 */
--	high_pfn = min(low_pfn, pfn);
--
--	z_end_pfn = zone_end_pfn(zone);
-+	next_free_pfn = 0;
- 
- 	/*
- 	 * Isolate free pages until enough are available to migrate the
- 	 * pages on cc->migratepages. We stop searching if the migrate
- 	 * and free page scanners meet or enough free pages are isolated.
- 	 */
--	for (; pfn >= low_pfn && cc->nr_migratepages > nr_freepages;
--					pfn -= pageblock_nr_pages) {
-+	for (; block_start_pfn >= low_pfn && cc->nr_migratepages > nr_freepages;
-+				block_end_pfn = block_start_pfn,
-+				block_start_pfn -= pageblock_nr_pages) {
- 		unsigned long isolated;
--		unsigned long end_pfn;
- 
- 		/*
- 		 * This can iterate a massively long zone without finding any
-@@ -707,7 +711,7 @@ static void isolate_freepages(struct zon
- 		 */
- 		cond_resched();
- 
--		if (!pfn_valid(pfn))
-+		if (!pfn_valid(block_start_pfn))
- 			continue;
- 
- 		/*
-@@ -717,7 +721,7 @@ static void isolate_freepages(struct zon
- 		 * i.e. it's possible that all pages within a zones range of
- 		 * pages do not belong to a single zone.
- 		 */
--		page = pfn_to_page(pfn);
-+		page = pfn_to_page(block_start_pfn);
- 		if (page_zone(page) != zone)
- 			continue;
- 
-@@ -730,14 +734,8 @@ static void isolate_freepages(struct zon
- 			continue;
- 
- 		/* Found a block suitable for isolating free pages from */
--
--		/*
--		 * Take care when isolating in last pageblock of a zone which
--		 * ends in the middle of a pageblock.
--		 */
--		end_pfn = min(pfn + pageblock_nr_pages, z_end_pfn);
--		isolated = isolate_freepages_block(cc, pfn, end_pfn,
--						   freelist, false);
-+		isolated = isolate_freepages_block(cc, block_start_pfn,
-+					block_end_pfn, freelist, false);
- 		nr_freepages += isolated;
- 
- 		/*
-@@ -745,9 +743,9 @@ static void isolate_freepages(struct zon
- 		 * looking for free pages, the search will restart here as
- 		 * page migration may have returned some pages to the allocator
- 		 */
--		if (isolated) {
-+		if (isolated && next_free_pfn == 0) {
- 			cc->finished_update_free = true;
--			high_pfn = max(high_pfn, pfn);
-+			next_free_pfn = block_start_pfn;
- 		}
+diff -puN mm/page_alloc.c~mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-prevent-migrate_reserve-pages-from-being-misplaced
++++ a/mm/page_alloc.c
+@@ -931,6 +931,7 @@ struct page *__rmqueue_smallest(struct z
+ 		rmv_page_order(page);
+ 		area->nr_free--;
+ 		expand(zone, page, order, current_order, area, migratetype);
++		set_freepage_migratetype(page, migratetype);
+ 		return page;
  	}
  
-@@ -758,10 +756,10 @@ static void isolate_freepages(struct zon
- 	 * If we crossed the migrate scanner, we want to keep it that way
- 	 * so that compact_finished() may detect this
- 	 */
--	if (pfn < low_pfn)
--		cc->free_pfn = max(pfn, zone->zone_start_pfn);
--	else
--		cc->free_pfn = high_pfn;
-+	if (block_start_pfn < low_pfn)
-+		next_free_pfn = cc->migrate_pfn;
-+
-+	cc->free_pfn = next_free_pfn;
- 	cc->nr_freepages = nr_freepages;
- }
+@@ -1057,7 +1058,9 @@ static int try_to_steal_freepages(struct
  
+ 	/*
+ 	 * When borrowing from MIGRATE_CMA, we need to release the excess
+-	 * buddy pages to CMA itself.
++	 * buddy pages to CMA itself. We also ensure the freepage_migratetype
++	 * is set to CMA so it is returned to the correct freelist in case
++	 * the page ends up being not actually allocated from the pcp lists.
+ 	 */
+ 	if (is_migrate_cma(fallback_type))
+ 		return fallback_type;
+@@ -1125,6 +1128,12 @@ __rmqueue_fallback(struct zone *zone, in
+ 
+ 			expand(zone, page, order, current_order, area,
+ 			       new_type);
++			/* The freepage_migratetype may differ from pageblock's
++			 * migratetype depending on the decisions in
++			 * try_to_steal_freepages. This is OK as long as it does
++			 * not differ for MIGRATE_CMA type.
++			 */
++			set_freepage_migratetype(page, new_type);
+ 
+ 			trace_mm_page_alloc_extfrag(page, order, current_order,
+ 				start_migratetype, migratetype, new_type);
+@@ -1175,7 +1184,7 @@ static int rmqueue_bulk(struct zone *zon
+ 			unsigned long count, struct list_head *list,
+ 			int migratetype, int cold)
+ {
+-	int mt = migratetype, i;
++	int i;
+ 
+ 	spin_lock(&zone->lock);
+ 	for (i = 0; i < count; ++i) {
+@@ -1196,14 +1205,8 @@ static int rmqueue_bulk(struct zone *zon
+ 			list_add(&page->lru, list);
+ 		else
+ 			list_add_tail(&page->lru, list);
+-		if (IS_ENABLED(CONFIG_CMA)) {
+-			mt = get_pageblock_migratetype(page);
+-			if (!is_migrate_cma(mt) && !is_migrate_isolate(mt))
+-				mt = migratetype;
+-		}
+-		set_freepage_migratetype(page, mt);
+ 		list = &page->lru;
+-		if (is_migrate_cma(mt))
++		if (is_migrate_cma(get_freepage_migratetype(page)))
+ 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
+ 					      -(1 << order));
+ 	}
+@@ -1572,7 +1575,7 @@ again:
+ 		if (!page)
+ 			goto failed;
+ 		__mod_zone_freepage_state(zone, -(1 << order),
+-					  get_pageblock_migratetype(page));
++					  get_freepage_migratetype(page));
+ 	}
+ 
+ 	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
