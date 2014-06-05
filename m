@@ -1,200 +1,402 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
- removed from -mm tree
-Date: Thu, 05 Jun 2014 12:52:23 -0700
-Message-ID: <5390ca77.23K8xKu89k4B8fMe%akpm@linux-foundation.org>
+ swap-change-swap_list_head-to-plist-add-swap_avail_head.patch removed from
+ -mm tree
+Date: Thu, 05 Jun 2014 12:52:07 -0700
+Message-ID: <5390ca67.UKeUKY4JAzT8dKKm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56346 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56305 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753144AbaFETwY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:52:24 -0400
+	with ESMTP id S1752491AbaFETwI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2014 15:52:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, tytso@mit.edu, sfr@canb.auug.org.au, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mhocko@suse.cz, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, weijieut@gmail.com, tglx@linutronix.de, shli@fusionio.com, rostedt@goodmis.org, riel@redhat.com, peterz@infradead.org, paul.gortmaker@windriver.com, mhocko@suse.cz, mgorman@suse.de, hughd@google.com, hannes@cmpxchg.org, ehrhardt@linux.vnet.ibm.com, bob.liu@oracle.com, ddstreet@ieee.org
 
-Subject: [merged] mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch removed from -mm tree
-To: mgorman@suse.de,dave.hansen@intel.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,mhocko@suse.cz,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,sfr@canb.auug.org.au,tytso@mit.edu,vbabka@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] swap-change-swap_list_head-to-plist-add-swap_avail_head.patch removed from -mm tree
+To: ddstreet@ieee.org,bob.liu@oracle.com,ehrhardt@linux.vnet.ibm.com,hannes@cmpxchg.org,hughd@google.com,mgorman@suse.de,mhocko@suse.cz,paul.gortmaker@windriver.com,peterz@infradead.org,riel@redhat.com,rostedt@goodmis.org,shli@fusionio.com,tglx@linutronix.de,weijieut@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 05 Jun 2014 12:52:23 -0700
+Date: Thu, 05 Jun 2014 12:52:07 -0700
 
 
 The patch titled
-     Subject: mm: page_alloc: use jump labels to avoid checking number_of_cpusets
+     Subject: swap: change swap_list_head to plist, add swap_avail_head
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets.patch
+     swap-change-swap_list_head-to-plist-add-swap_avail_head.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: use jump labels to avoid checking number_of_cpusets
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: swap: change swap_list_head to plist, add swap_avail_head
 
-If cpusets are not in use then we still check a global variable on every
-page allocation.  Use jump labels to avoid the overhead.
+Originally get_swap_page() started iterating through the singly-linked
+list of swap_info_structs using swap_list.next or highest_priority_index,
+which both were intended to point to the highest priority active swap
+target that was not full.  The first patch in this series changed the
+singly-linked list to a doubly-linked list, and removed the logic to start
+at the highest priority non-full entry; it starts scanning at the highest
+priority entry each time, even if the entry is full.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Replace the manually ordered swap_list_head with a plist, swap_active_head.
+Add a new plist, swap_avail_head.  The original swap_active_head plist
+contains all active swap_info_structs, as before, while the new
+swap_avail_head plist contains only swap_info_structs that are active and
+available, i.e. not full.  Add a new spinlock, swap_avail_lock, to protect
+the swap_avail_head list.
+
+Mel Gorman suggested using plists since they internally handle ordering
+the list entries based on priority, which is exactly what swap was doing
+manually.  All the ordering code is now removed, and swap_info_struct
+entries and simply added to their corresponding plist and automatically
+ordered correctly.
+
+Using a new plist for available swap_info_structs simplifies and
+optimizes get_swap_page(), which no longer has to iterate over full
+swap_info_structs.  Using a new spinlock for swap_avail_head plist
+allows each swap_info_struct to add or remove themselves from the
+plist when they become full or not-full; previously they could not
+do so because the swap_info_struct->lock is held when they change
+from full<->not-full, and the swap_lock protecting the main
+swap_active_head must be ordered before any swap_info_struct->lock.
+
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Christian Ehrhardt <ehrhardt@linux.vnet.ibm.com>
+Cc: Weijie Yang <weijieut@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Bob Liu <bob.liu@oracle.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h |   29 ++++++++++++++++++++++++++---
- kernel/cpuset.c        |   14 ++++----------
- mm/page_alloc.c        |    3 ++-
- 3 files changed, 32 insertions(+), 14 deletions(-)
+ include/linux/swap.h     |    3 
+ include/linux/swapfile.h |    2 
+ mm/frontswap.c           |    6 -
+ mm/swapfile.c            |  145 +++++++++++++++++++++++--------------
+ 4 files changed, 97 insertions(+), 59 deletions(-)
 
-diff -puN include/linux/cpuset.h~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets include/linux/cpuset.h
---- a/include/linux/cpuset.h~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
-+++ a/include/linux/cpuset.h
-@@ -12,10 +12,31 @@
- #include <linux/cpumask.h>
- #include <linux/nodemask.h>
- #include <linux/mm.h>
-+#include <linux/jump_label.h>
+diff -puN include/linux/swap.h~swap-change-swap_list_head-to-plist-add-swap_avail_head include/linux/swap.h
+--- a/include/linux/swap.h~swap-change-swap_list_head-to-plist-add-swap_avail_head
++++ a/include/linux/swap.h
+@@ -214,7 +214,8 @@ struct percpu_cluster {
+ struct swap_info_struct {
+ 	unsigned long	flags;		/* SWP_USED etc: see above */
+ 	signed short	prio;		/* swap priority of this type */
+-	struct list_head list;		/* entry in swap list */
++	struct plist_node list;		/* entry in swap_active_head */
++	struct plist_node avail_list;	/* entry in swap_avail_head */
+ 	signed char	type;		/* strange name for an index */
+ 	unsigned int	max;		/* extent of the swap_map */
+ 	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
+diff -puN include/linux/swapfile.h~swap-change-swap_list_head-to-plist-add-swap_avail_head include/linux/swapfile.h
+--- a/include/linux/swapfile.h~swap-change-swap_list_head-to-plist-add-swap_avail_head
++++ a/include/linux/swapfile.h
+@@ -6,7 +6,7 @@
+  * want to expose them to the dozens of source files that include swap.h
+  */
+ extern spinlock_t swap_lock;
+-extern struct list_head swap_list_head;
++extern struct plist_head swap_active_head;
+ extern struct swap_info_struct *swap_info[];
+ extern int try_to_unuse(unsigned int, bool, unsigned long);
  
- #ifdef CONFIG_CPUSETS
+diff -puN mm/frontswap.c~swap-change-swap_list_head-to-plist-add-swap_avail_head mm/frontswap.c
+--- a/mm/frontswap.c~swap-change-swap_list_head-to-plist-add-swap_avail_head
++++ a/mm/frontswap.c
+@@ -331,7 +331,7 @@ static unsigned long __frontswap_curr_pa
+ 	struct swap_info_struct *si = NULL;
  
--extern int number_of_cpusets;	/* How many cpusets are defined in system? */
-+extern struct static_key cpusets_enabled_key;
-+static inline bool cpusets_enabled(void)
-+{
-+	return static_key_false(&cpusets_enabled_key);
-+}
-+
-+static inline int nr_cpusets(void)
-+{
-+	/* jump label reference count + the top-level cpuset */
-+	return static_key_count(&cpusets_enabled_key) + 1;
-+}
-+
-+static inline void cpuset_inc(void)
-+{
-+	static_key_slow_inc(&cpusets_enabled_key);
-+}
-+
-+static inline void cpuset_dec(void)
-+{
-+	static_key_slow_dec(&cpusets_enabled_key);
-+}
- 
- extern int cpuset_init(void);
- extern void cpuset_init_smp(void);
-@@ -32,13 +53,13 @@ extern int __cpuset_node_allowed_hardwal
- 
- static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
- {
--	return number_of_cpusets <= 1 ||
-+	return nr_cpusets() <= 1 ||
- 		__cpuset_node_allowed_softwall(node, gfp_mask);
+ 	assert_spin_locked(&swap_lock);
+-	list_for_each_entry(si, &swap_list_head, list)
++	plist_for_each_entry(si, &swap_active_head, list)
+ 		totalpages += atomic_read(&si->frontswap_pages);
+ 	return totalpages;
  }
+@@ -346,7 +346,7 @@ static int __frontswap_unuse_pages(unsig
+ 	unsigned long pages = 0, pages_to_unuse = 0;
  
- static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
- {
--	return number_of_cpusets <= 1 ||
-+	return nr_cpusets() <= 1 ||
- 		__cpuset_node_allowed_hardwall(node, gfp_mask);
- }
- 
-@@ -124,6 +145,8 @@ static inline void set_mems_allowed(node
- 
- #else /* !CONFIG_CPUSETS */
- 
-+static inline bool cpusets_enabled(void) { return false; }
+ 	assert_spin_locked(&swap_lock);
+-	list_for_each_entry(si, &swap_list_head, list) {
++	plist_for_each_entry(si, &swap_active_head, list) {
+ 		si_frontswap_pages = atomic_read(&si->frontswap_pages);
+ 		if (total_pages_to_unuse < si_frontswap_pages) {
+ 			pages = pages_to_unuse = total_pages_to_unuse;
+@@ -408,7 +408,7 @@ void frontswap_shrink(unsigned long targ
+ 	/*
+ 	 * we don't want to hold swap_lock while doing a very
+ 	 * lengthy try_to_unuse, but swap_list may change
+-	 * so restart scan from swap_list_head each time
++	 * so restart scan from swap_active_head each time
+ 	 */
+ 	spin_lock(&swap_lock);
+ 	ret = __frontswap_shrink(target_pages, &pages_to_unuse, &type);
+diff -puN mm/swapfile.c~swap-change-swap_list_head-to-plist-add-swap_avail_head mm/swapfile.c
+--- a/mm/swapfile.c~swap-change-swap_list_head-to-plist-add-swap_avail_head
++++ a/mm/swapfile.c
+@@ -61,7 +61,22 @@ static const char Unused_offset[] = "Unu
+  * all active swap_info_structs
+  * protected with swap_lock, and ordered by priority.
+  */
+-LIST_HEAD(swap_list_head);
++PLIST_HEAD(swap_active_head);
 +
- static inline int cpuset_init(void) { return 0; }
- static inline void cpuset_init_smp(void) {}
++/*
++ * all available (active, not full) swap_info_structs
++ * protected with swap_avail_lock, ordered by priority.
++ * This is used by get_swap_page() instead of swap_active_head
++ * because swap_active_head includes all swap_info_structs,
++ * but get_swap_page() doesn't need to look at full ones.
++ * This uses its own lock instead of swap_lock because when a
++ * swap_info_struct changes between not-full/full, it needs to
++ * add/remove itself to/from this list, but the swap_info_struct->lock
++ * is held and the locking order requires swap_lock to be taken
++ * before any swap_info_struct->lock.
++ */
++static PLIST_HEAD(swap_avail_head);
++static DEFINE_SPINLOCK(swap_avail_lock);
  
-diff -puN kernel/cpuset.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets kernel/cpuset.c
---- a/kernel/cpuset.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
-+++ a/kernel/cpuset.c
-@@ -61,12 +61,7 @@
- #include <linux/cgroup.h>
- #include <linux/wait.h>
+ struct swap_info_struct *swap_info[MAX_SWAPFILES];
  
--/*
-- * Tracks how many cpusets are currently defined in system.
-- * When there is only one cpuset (the root cpuset) we can
-- * short circuit some hooks.
-- */
--int number_of_cpusets __read_mostly;
-+struct static_key cpusets_enabled_key __read_mostly = STATIC_KEY_INIT_FALSE;
+@@ -594,6 +609,9 @@ checks:
+ 	if (si->inuse_pages == si->pages) {
+ 		si->lowest_bit = si->max;
+ 		si->highest_bit = 0;
++		spin_lock(&swap_avail_lock);
++		plist_del(&si->avail_list, &swap_avail_head);
++		spin_unlock(&swap_avail_lock);
+ 	}
+ 	si->swap_map[offset] = usage;
+ 	inc_cluster_info_page(si, si->cluster_info, offset);
+@@ -645,57 +663,63 @@ swp_entry_t get_swap_page(void)
+ {
+ 	struct swap_info_struct *si, *next;
+ 	pgoff_t offset;
+-	struct list_head *tmp;
  
- /* See "Frequency meter" comments, below. */
+-	spin_lock(&swap_lock);
+ 	if (atomic_long_read(&nr_swap_pages) <= 0)
+ 		goto noswap;
+ 	atomic_long_dec(&nr_swap_pages);
  
-@@ -611,7 +606,7 @@ static int generate_sched_domains(cpumas
- 		goto done;
+-	list_for_each(tmp, &swap_list_head) {
+-		si = list_entry(tmp, typeof(*si), list);
++	spin_lock(&swap_avail_lock);
++
++start_over:
++	plist_for_each_entry_safe(si, next, &swap_avail_head, avail_list) {
++		/* requeue si to after same-priority siblings */
++		plist_requeue(&si->avail_list, &swap_avail_head);
++		spin_unlock(&swap_avail_lock);
+ 		spin_lock(&si->lock);
+ 		if (!si->highest_bit || !(si->flags & SWP_WRITEOK)) {
++			spin_lock(&swap_avail_lock);
++			if (plist_node_empty(&si->avail_list)) {
++				spin_unlock(&si->lock);
++				goto nextsi;
++			}
++			WARN(!si->highest_bit,
++			     "swap_info %d in list but !highest_bit\n",
++			     si->type);
++			WARN(!(si->flags & SWP_WRITEOK),
++			     "swap_info %d in list but !SWP_WRITEOK\n",
++			     si->type);
++			plist_del(&si->avail_list, &swap_avail_head);
+ 			spin_unlock(&si->lock);
+-			continue;
++			goto nextsi;
+ 		}
+ 
+-		/*
+-		 * rotate the current swap_info that we're going to use
+-		 * to after any other swap_info that have the same prio,
+-		 * so that all equal-priority swap_info get used equally
+-		 */
+-		next = si;
+-		list_for_each_entry_continue(next, &swap_list_head, list) {
+-			if (si->prio != next->prio)
+-				break;
+-			list_rotate_left(&si->list);
+-			next = si;
+-		}
+-
+-		spin_unlock(&swap_lock);
+ 		/* This is called for allocating swap entry for cache */
+ 		offset = scan_swap_map(si, SWAP_HAS_CACHE);
+ 		spin_unlock(&si->lock);
+ 		if (offset)
+ 			return swp_entry(si->type, offset);
+-		spin_lock(&swap_lock);
++		pr_debug("scan_swap_map of si %d failed to find offset\n",
++		       si->type);
++		spin_lock(&swap_avail_lock);
++nextsi:
+ 		/*
+ 		 * if we got here, it's likely that si was almost full before,
+ 		 * and since scan_swap_map() can drop the si->lock, multiple
+ 		 * callers probably all tried to get a page from the same si
+-		 * and it filled up before we could get one.  So we need to
+-		 * try again.  Since we dropped the swap_lock, there may now
+-		 * be non-full higher priority swap_infos, and this si may have
+-		 * even been removed from the list (although very unlikely).
+-		 * Let's start over.
++		 * and it filled up before we could get one; or, the si filled
++		 * up between us dropping swap_avail_lock and taking si->lock.
++		 * Since we dropped the swap_avail_lock, the swap_avail_head
++		 * list may have been modified; so if next is still in the
++		 * swap_avail_head list then try it, otherwise start over.
+ 		 */
+-		tmp = &swap_list_head;
++		if (plist_node_empty(&next->avail_list))
++			goto start_over;
  	}
  
--	csa = kmalloc(number_of_cpusets * sizeof(cp), GFP_KERNEL);
-+	csa = kmalloc(nr_cpusets() * sizeof(cp), GFP_KERNEL);
- 	if (!csa)
- 		goto done;
- 	csn = 0;
-@@ -1888,7 +1883,7 @@ static int cpuset_css_online(struct cgro
- 	if (is_spread_slab(parent))
- 		set_bit(CS_SPREAD_SLAB, &cs->flags);
- 
--	number_of_cpusets++;
-+	cpuset_inc();
- 
- 	if (!test_bit(CGRP_CPUSET_CLONE_CHILDREN, &css->cgroup->flags))
- 		goto out_unlock;
-@@ -1939,7 +1934,7 @@ static void cpuset_css_offline(struct cg
- 	if (is_sched_load_balance(cs))
- 		update_flag(CS_SCHED_LOAD_BALANCE, cs, 0);
- 
--	number_of_cpusets--;
-+	cpuset_dec();
- 	clear_bit(CS_ONLINE, &cs->flags);
- 
- 	mutex_unlock(&cpuset_mutex);
-@@ -1992,7 +1987,6 @@ int __init cpuset_init(void)
- 	if (!alloc_cpumask_var(&cpus_attach, GFP_KERNEL))
- 		BUG();
- 
--	number_of_cpusets = 1;
- 	return 0;
++	spin_unlock(&swap_avail_lock);
++
+ 	atomic_long_inc(&nr_swap_pages);
+ noswap:
+-	spin_unlock(&swap_lock);
+ 	return (swp_entry_t) {0};
  }
  
-diff -puN mm/page_alloc.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-use-jump-labels-to-avoid-checking-number_of_cpusets
-+++ a/mm/page_alloc.c
-@@ -1921,7 +1921,8 @@ zonelist_scan:
- 		if (IS_ENABLED(CONFIG_NUMA) && zlc_active &&
- 			!zlc_zone_worth_trying(zonelist, z, allowednodes))
- 				continue;
--		if ((alloc_flags & ALLOC_CPUSET) &&
-+		if (cpusets_enabled() &&
-+			(alloc_flags & ALLOC_CPUSET) &&
- 			!cpuset_zone_allowed_softwall(zone, gfp_mask))
- 				continue;
- 		BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
+@@ -798,8 +822,18 @@ static unsigned char swap_entry_free(str
+ 		dec_cluster_info_page(p, p->cluster_info, offset);
+ 		if (offset < p->lowest_bit)
+ 			p->lowest_bit = offset;
+-		if (offset > p->highest_bit)
++		if (offset > p->highest_bit) {
++			bool was_full = !p->highest_bit;
+ 			p->highest_bit = offset;
++			if (was_full && (p->flags & SWP_WRITEOK)) {
++				spin_lock(&swap_avail_lock);
++				WARN_ON(!plist_node_empty(&p->avail_list));
++				if (plist_node_empty(&p->avail_list))
++					plist_add(&p->avail_list,
++						  &swap_avail_head);
++				spin_unlock(&swap_avail_lock);
++			}
++		}
+ 		atomic_long_inc(&nr_swap_pages);
+ 		p->inuse_pages--;
+ 		frontswap_invalidate_page(p->type, offset);
+@@ -1734,12 +1768,16 @@ static void _enable_swap_info(struct swa
+ 				unsigned char *swap_map,
+ 				struct swap_cluster_info *cluster_info)
+ {
+-	struct swap_info_struct *si;
+-
+ 	if (prio >= 0)
+ 		p->prio = prio;
+ 	else
+ 		p->prio = --least_priority;
++	/*
++	 * the plist prio is negated because plist ordering is
++	 * low-to-high, while swap ordering is high-to-low
++	 */
++	p->list.prio = -p->prio;
++	p->avail_list.prio = -p->prio;
+ 	p->swap_map = swap_map;
+ 	p->cluster_info = cluster_info;
+ 	p->flags |= SWP_WRITEOK;
+@@ -1747,27 +1785,20 @@ static void _enable_swap_info(struct swa
+ 	total_swap_pages += p->pages;
+ 
+ 	assert_spin_locked(&swap_lock);
+-	BUG_ON(!list_empty(&p->list));
+-	/*
+-	 * insert into swap list; the list is in priority order,
+-	 * so that get_swap_page() can get a page from the highest
+-	 * priority swap_info_struct with available page(s), and
+-	 * swapoff can adjust the auto-assigned (i.e. negative) prio
+-	 * values for any lower-priority swap_info_structs when
+-	 * removing a negative-prio swap_info_struct
+-	 */
+-	list_for_each_entry(si, &swap_list_head, list) {
+-		if (p->prio >= si->prio) {
+-			list_add_tail(&p->list, &si->list);
+-			return;
+-		}
+-	}
+ 	/*
+-	 * this covers two cases:
+-	 * 1) p->prio is less than all existing prio
+-	 * 2) the swap list is empty
++	 * both lists are plists, and thus priority ordered.
++	 * swap_active_head needs to be priority ordered for swapoff(),
++	 * which on removal of any swap_info_struct with an auto-assigned
++	 * (i.e. negative) priority increments the auto-assigned priority
++	 * of any lower-priority swap_info_structs.
++	 * swap_avail_head needs to be priority ordered for get_swap_page(),
++	 * which allocates swap pages from the highest available priority
++	 * swap_info_struct.
+ 	 */
+-	list_add_tail(&p->list, &swap_list_head);
++	plist_add(&p->list, &swap_active_head);
++	spin_lock(&swap_avail_lock);
++	plist_add(&p->avail_list, &swap_avail_head);
++	spin_unlock(&swap_avail_lock);
+ }
+ 
+ static void enable_swap_info(struct swap_info_struct *p, int prio,
+@@ -1821,7 +1852,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 
+ 	mapping = victim->f_mapping;
+ 	spin_lock(&swap_lock);
+-	list_for_each_entry(p, &swap_list_head, list) {
++	plist_for_each_entry(p, &swap_active_head, list) {
+ 		if (p->flags & SWP_WRITEOK) {
+ 			if (p->swap_file->f_mapping == mapping) {
+ 				found = 1;
+@@ -1841,16 +1872,21 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 		spin_unlock(&swap_lock);
+ 		goto out_dput;
+ 	}
++	spin_lock(&swap_avail_lock);
++	plist_del(&p->avail_list, &swap_avail_head);
++	spin_unlock(&swap_avail_lock);
+ 	spin_lock(&p->lock);
+ 	if (p->prio < 0) {
+ 		struct swap_info_struct *si = p;
+ 
+-		list_for_each_entry_continue(si, &swap_list_head, list) {
++		plist_for_each_entry_continue(si, &swap_active_head, list) {
+ 			si->prio++;
++			si->list.prio--;
++			si->avail_list.prio--;
+ 		}
+ 		least_priority++;
+ 	}
+-	list_del_init(&p->list);
++	plist_del(&p->list, &swap_active_head);
+ 	atomic_long_sub(p->pages, &nr_swap_pages);
+ 	total_swap_pages -= p->pages;
+ 	p->flags &= ~SWP_WRITEOK;
+@@ -2115,7 +2151,8 @@ static struct swap_info_struct *alloc_sw
+ 		 */
+ 	}
+ 	INIT_LIST_HEAD(&p->first_swap_extent.list);
+-	INIT_LIST_HEAD(&p->list);
++	plist_node_init(&p->list, 0);
++	plist_node_init(&p->avail_list, 0);
+ 	p->flags = SWP_USED;
+ 	spin_unlock(&swap_lock);
+ 	spin_lock_init(&p->lock);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-v5.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
 linux-next.patch
 
