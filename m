@@ -1,111 +1,124 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch removed from -mm tree
-Date: Fri, 06 Jun 2014 14:06:24 -0700
-Message-ID: <53922d50.nWro6pVmLPaIq9yj%akpm@linux-foundation.org>
+ rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2.patch removed from
+ -mm tree
+Date: Fri, 06 Jun 2014 14:04:10 -0700
+Message-ID: <53922cca.NUVFW1pU0FTddnst%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40159 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40046 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751901AbaFFVG0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2014 17:06:26 -0400
+	with ESMTP id S1751635AbaFFVEL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2014 17:04:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, srivatsa.bhat@linux.vnet.ibm.com, rusty@rustcorp.com.au, rostedt@goodmis.org, rjw@rjwysocki.net, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, mgalbraith@suse.de, hch@infradead.org, fweisbec@gmail.com, ego@linux.vnet.ibm.com, bp@suse.de, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, linux@maxim.org.za, bevenson@melinkcorp.com, a.zummo@towertech.it, boris.brezillon@free-electrons.com
 
-Subject: [folded-merged] smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,bp@suse.de,ego@linux.vnet.ibm.com,fweisbec@gmail.com,hch@infradead.org,mgalbraith@suse.de,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,rjw@rjwysocki.net,rostedt@goodmis.org,rusty@rustcorp.com.au,srivatsa.bhat@linux.vnet.ibm.com,tglx@linutronix.de,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2.patch removed from -mm tree
+To: boris.brezillon@free-electrons.com,a.zummo@towertech.it,bevenson@melinkcorp.com,linux@maxim.org.za,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 06 Jun 2014 14:06:24 -0700
+Date: Fri, 06 Jun 2014 14:04:10 -0700
 
 
 The patch titled
-     Subject: smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix
+     Subject: rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2
 has been removed from the -mm tree.  Its filename was
-     smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+     rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2.patch
 
-This patch was dropped because it was folded into smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+This patch was dropped because it was folded into rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2
 
-correctly suppress warning output on second and later occurrences
+Changes since v1:
+- disable SECEV interrupt when the RTC is ready to accept new time updates
 
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mike Galbraith <mgalbraith@suse.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+Cc: Bryan Evenson <bevenson@melinkcorp.com>
+Cc: Andrew Victor <linux@maxim.org.za>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ drivers/rtc/rtc-at91rm9200.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN kernel/smp.c~smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix kernel/smp.c
---- a/kernel/smp.c~smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix
-+++ a/kernel/smp.c
-@@ -185,20 +185,17 @@ void generic_smp_call_function_single_in
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2 drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq-v2
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -48,13 +48,12 @@ struct at91_rtc_config {
+ 
+ static const struct at91_rtc_config *at91_rtc_config;
+ static DECLARE_COMPLETION(at91_rtc_updated);
+-static DECLARE_COMPLETION(at91_rtc_wait_upd_rdy);
++static DECLARE_COMPLETION(at91_rtc_upd_rdy);
+ static unsigned int at91_alarm_year = AT91_RTC_EPOCH;
+ static void __iomem *at91_rtc_regs;
+ static int irq;
+ static DEFINE_SPINLOCK(at91_rtc_lock);
+ static u32 at91_rtc_shadow_imr;
+-static bool at91_rtc_upd_rdy;
+ 
+ static void at91_rtc_write_ier(u32 mask)
  {
- 	struct llist_node *entry;
- 	struct call_single_data *csd, *csd_next;
--	int warn = 0;
--
--	/*
--	 * Shouldn't receive this interrupt on a cpu that is not yet online.
--	 */
--	if (unlikely(!cpu_online(smp_processor_id()))) {
--		warn = 1;
--		WARN_ON_ONCE(1);
--	}
-+	static bool warned;
+@@ -163,7 +162,7 @@ static int at91_rtc_settime(struct devic
+ 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+ 		tm->tm_hour, tm->tm_min, tm->tm_sec);
  
- 	entry = llist_del_all(&__get_cpu_var(call_single_queue));
- 	entry = llist_reverse_order(entry);
+-	wait_for_completion(&at91_rtc_wait_upd_rdy);
++	wait_for_completion(&at91_rtc_upd_rdy);
  
--	if (unlikely(warn)) {
-+	/*
-+	 * Shouldn't receive this interrupt on a cpu that is not yet online.
+ 	/* Stop Time/Calendar from counting */
+ 	cr = at91_rtc_read(AT91_RTC_CR);
+@@ -187,8 +186,9 @@ static int at91_rtc_settime(struct devic
+ 
+ 	/* Restart Time/Calendar */
+ 	cr = at91_rtc_read(AT91_RTC_CR);
+-	at91_rtc_upd_rdy = 0;
++	at91_rtc_write(AT91_RTC_SCCR, AT91_RTC_SECEV);
+ 	at91_rtc_write(AT91_RTC_CR, cr & ~(AT91_RTC_UPDCAL | AT91_RTC_UPDTIM));
++	at91_rtc_write_ier(AT91_RTC_SECEV);
+ 
+ 	return 0;
+ }
+@@ -296,11 +296,8 @@ static irqreturn_t at91_rtc_interrupt(in
+ 		if (rtsr & AT91_RTC_ALARM)
+ 			events |= (RTC_AF | RTC_IRQF);
+ 		if (rtsr & AT91_RTC_SECEV) {
+-			events |= (RTC_UF | RTC_IRQF);
+-			if (!at91_rtc_upd_rdy) {
+-				at91_rtc_upd_rdy = 1;
+-				complete(&at91_rtc_wait_upd_rdy);
+-			}
++			complete(&at91_rtc_upd_rdy);
++			at91_rtc_write_idr(AT91_RTC_SECEV);
+ 		}
+ 		if (rtsr & AT91_RTC_ACKUPD)
+ 			complete(&at91_rtc_updated);
+@@ -423,8 +420,11 @@ static int __init at91_rtc_probe(struct
+ 		return PTR_ERR(rtc);
+ 	platform_set_drvdata(pdev, rtc);
+ 
+-	/* Enable 1Hz events */
++	/* enable SECEV interrupt in order to initialize at91_rtc_upd_rdy
++	 * completion.
 +	 */
-+	if (unlikely(!cpu_online(smp_processor_id()) && !warned)) {
-+		warned = true;
-+		WARN_ON(1);
- 		/*
- 		 * We don't have to use the _safe() variant here
- 		 * because we are not invoking the IPI handlers yet.
+ 	at91_rtc_write_ier(AT91_RTC_SECEV);
++
+ 	dev_info(&pdev->dev, "AT91 Real Time Clock driver.\n");
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from boris.brezillon@free-electrons.com are
 
 origin.patch
-rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support.patch
-rtc-da9063-rtc-driver.patch
-hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
-sysctl-allow-for-strict-write-position-handling-fix-2.patch
-sysctl-allow-for-strict-write-position-handling-fix.patch
-sysctl-allow-for-strict-write-position-handling-fix-3.patch
-fs-pstore-logging-clean-up-fix.patch
-fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
-mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
+rtc-rtc-at91rm9200-fix-infinite-wait-for-ackupd-irq.patch
+arm-at91-fix-rtc-irq-mask-for-sam9x5-socs.patch
 
