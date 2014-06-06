@@ -1,62 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- sysctl-allow-for-strict-write-position-handling-fix.patch removed from -mm
- tree
-Date: Fri, 06 Jun 2014 14:07:17 -0700
-Message-ID: <53922d85.zdcRURQL3mKnfxyr%akpm@linux-foundation.org>
+ hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch removed from -mm tree
+Date: Fri, 06 Jun 2014 14:04:33 -0700
+Message-ID: <53922ce1.cQxtPLlkMxrozJky%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40055 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752242AbaFFVHS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2014 17:07:18 -0400
+	with ESMTP id S1751635AbaFFVEe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2014 17:04:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, keescook@chromium.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, sougata@tuxera.com, slava@dubeyko.com, htl10@users.sourceforge.net, hch@infradead.org, anton@tuxera.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] sysctl-allow-for-strict-write-position-handling-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,keescook@chromium.org,rdunlap@infradead.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,anton@tuxera.com,hch@infradead.org,htl10@users.sourceforge.net,slava@dubeyko.com,sougata@tuxera.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 06 Jun 2014 14:07:17 -0700
+Date: Fri, 06 Jun 2014 14:04:33 -0700
 
 
 The patch titled
-     Subject: sysctl-allow-for-strict-write-position-handling-fix
+     Subject: hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix
 has been removed from the -mm tree.  Its filename was
-     sysctl-allow-for-strict-write-position-handling-fix.patch
+     hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix.patch
 
-This patch was dropped because it was folded into sysctl-allow-for-strict-write-position-handling.patch
+This patch was dropped because it was folded into hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sysctl-allow-for-strict-write-position-handling-fix
+Subject: hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix
 
-move misplaced hunk, per Randy
+fix build
 
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Anton Altaparmakov <anton@tuxera.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Sougata Santra <sougata@tuxera.com>
+Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/hfsplus/xattr.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/sysctl.c~sysctl-allow-for-strict-write-position-handling-fix kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-allow-for-strict-write-position-handling-fix
-+++ a/kernel/sysctl.c
-@@ -1783,8 +1783,8 @@ static int _proc_do_string(char *data, i
+diff -puN fs/hfsplus/xattr.c~hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix fs/hfsplus/xattr.c
+--- a/fs/hfsplus/xattr.c~hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes-fix
++++ a/fs/hfsplus/xattr.c
+@@ -726,6 +726,7 @@ ssize_t hfsplus_listxattr(struct dentry
  
- static void warn_sysctl_write(struct ctl_table *table)
- {
--	pr_warn("%s wrote to %s when file position was not 0!\n",
--		current->comm, table->procname);
-+	pr_warn("write to %s by %s used a non-zero file position!\n",
-+		table->procname, current->comm);
- 	pr_warn("This will not be supported in the future.\n");
- 	pr_warn("To silence warning, set kernel.sysctl_writes_strict = -1\n");
+ end_listxattr:
+ 	kfree(strbuf);
++out:
+ 	hfs_find_exit(&fd);
+ 	return res;
  }
 _
 
@@ -66,9 +66,11 @@ origin.patch
 rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support.patch
 rtc-da9063-rtc-driver.patch
 hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch
-hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
-sysctl-allow-for-strict-write-position-handling.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
 sysctl-allow-for-strict-write-position-handling-fix-3.patch
 fs-pstore-logging-clean-up-fix.patch
 fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
