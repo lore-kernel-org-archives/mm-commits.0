@@ -1,71 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] fs-pstore-logging-clean-up-fix.patch removed from -mm tree
-Date: Fri, 06 Jun 2014 14:08:11 -0700
-Message-ID: <53922dbb.qkxZ/O9Rd1hYmRqL%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch removed from -mm tree
+Date: Fri, 06 Jun 2014 14:04:56 -0700
+Message-ID: <53922cf8.29fMak7DC6r1TFmD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40187 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40071 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751901AbaFFVIM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2014 17:08:12 -0400
+	with ESMTP id S1751635AbaFFVE5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2014 17:04:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, fabf@skynet.be, ccross@android.com, anton@enomsg.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, sougata@tuxera.com, slava@dubeyko.com, htl10@users.sourceforge.net, hch@infradead.org, anton@tuxera.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] fs-pstore-logging-clean-up-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,anton@enomsg.org,ccross@android.com,fabf@skynet.be,joe@perches.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch removed from -mm tree
+To: akpm@linux-foundation.org,anton@tuxera.com,hch@infradead.org,htl10@users.sourceforge.net,slava@dubeyko.com,sougata@tuxera.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 06 Jun 2014 14:08:11 -0700
+Date: Fri, 06 Jun 2014 14:04:56 -0700
 
 
 The patch titled
-     Subject: fs-pstore-logging-clean-up-fix
+     Subject: hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2
 has been removed from the -mm tree.  Its filename was
-     fs-pstore-logging-clean-up-fix.patch
+     hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2.patch
 
-This patch was dropped because it was folded into fs-pstore-logging-clean-up.patch
+This patch was dropped because it was folded into hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-pstore-logging-clean-up-fix
+Subject: hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2
 
-missed a couple of prefix removals
+fix build
 
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: Colin Cross <ccross@android.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Joe Perches <joe@perches.com>
+fs/hfsplus/xattr_security.c: In function 'hfsplus_security_getxattr':
+fs/hfsplus/xattr_security.c:23: error: 'NLS_MAX_CHARSET_SIZE' undeclared (first use in this function)
+fs/hfsplus/xattr_security.c:23: error: (Each undeclared identifier is reported o
+
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Anton Altaparmakov <anton@tuxera.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Sougata Santra <sougata@tuxera.com>
+Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pstore/platform.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/hfsplus/xattr_security.c |    2 ++
+ fs/hfsplus/xattr_trusted.c  |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN fs/pstore/platform.c~fs-pstore-logging-clean-up-fix fs/pstore/platform.c
---- a/fs/pstore/platform.c~fs-pstore-logging-clean-up-fix
-+++ a/fs/pstore/platform.c
-@@ -455,8 +455,7 @@ int pstore_register(struct pstore_info *
- 		add_timer(&pstore_timer);
- 	}
+diff -puN fs/hfsplus/xattr_security.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2 fs/hfsplus/xattr_security.c
+--- a/fs/hfsplus/xattr_security.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2
++++ a/fs/hfsplus/xattr_security.c
+@@ -7,6 +7,8 @@
+  */
  
--	pr_info("pstore: Registered %s as persistent store backend\n",
--		psi->name);
-+	pr_info("Registered %s as persistent store backend\n", psi->name);
+ #include <linux/security.h>
++#include <linux/nls.h>
++
+ #include "hfsplus_fs.h"
+ #include "xattr.h"
+ #include "acl.h"
+diff -puN fs/hfsplus/xattr_trusted.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2 fs/hfsplus/xattr_trusted.c
+--- a/fs/hfsplus/xattr_trusted.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes-fix-2
++++ a/fs/hfsplus/xattr_trusted.c
+@@ -6,6 +6,8 @@
+  * Handler for trusted extended attributes.
+  */
  
- 	return 0;
- }
-@@ -502,7 +501,7 @@ void pstore_get_records(int quiet)
- 				size = unzipped_len;
- 				compressed = false;
- 			} else {
--				pr_err("pstore: decompression failed;returned %d\n",
-+				pr_err("decompression failed;returned %d\n",
- 				       unzipped_len);
- 				compressed = true;
- 			}
++#include <linux/nls.h>
++
+ #include "hfsplus_fs.h"
+ #include "xattr.h"
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,9 +85,11 @@ rtc-rtc-cmos-drivers-char-rtcc-features-for-decstation-support.patch
 rtc-da9063-rtc-driver.patch
 hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch
 hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes.patch
-smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
-sysctl-allow-for-strict-write-position-handling.patch
-fs-pstore-logging-clean-up.patch
+smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-2.patch
+sysctl-allow-for-strict-write-position-handling-fix.patch
+sysctl-allow-for-strict-write-position-handling-fix-3.patch
+fs-pstore-logging-clean-up-fix.patch
 fs-devpts-inodec-convert-printk-to-pr_foo-fix.patch
 mm-mark-remap_file_pages-syscall-as-deprecated-fix.patch
 mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
