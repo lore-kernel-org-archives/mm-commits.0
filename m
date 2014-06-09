@@ -1,84 +1,103 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
- removed from -mm tree
-Date: Mon, 09 Jun 2014 12:33:17 -0700
-Message-ID: <53960bfd.DVAZN/fn1ko2ujIs%akpm@linux-foundation.org>
+ documentation-submittingpatches-describe-the-fixes-tag.patch removed from
+ -mm tree
+Date: Mon, 09 Jun 2014 12:33:12 -0700
+Message-ID: <53960bf8.rMU3/UIL+9zCTELJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53969 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750805AbaFITdS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:33:18 -0400
+	with ESMTP id S1750805AbaFITdN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:33:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, corbet@lwn.net, fabf@skynet.be
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, jeffrey.t.kirsher@intel.com, aaron.f.brown@intel.com, jacob.e.keller@intel.com
 
-Subject: [merged] documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch removed from -mm tree
-To: fabf@skynet.be,corbet@lwn.net,rdunlap@infradead.org,mm-commits@vger.kernel.org
+Subject: [merged] documentation-submittingpatches-describe-the-fixes-tag.patch removed from -mm tree
+To: jacob.e.keller@intel.com,aaron.f.brown@intel.com,jeffrey.t.kirsher@intel.com,rdunlap@infradead.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:33:17 -0700
+Date: Mon, 09 Jun 2014 12:33:12 -0700
 
 
 The patch titled
-     Subject: Documentation/filesystems/seq_file.txt: create_proc_entry deprecated
+     Subject: Documentation/SubmittingPatches: describe the Fixes: tag
 has been removed from the -mm tree.  Its filename was
-     documentation-filesystems-seq_filetxt-create_proc_entry-deprecated.patch
+     documentation-submittingpatches-describe-the-fixes-tag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: Documentation/filesystems/seq_file.txt: create_proc_entry deprecated
+From: Jacob Keller <jacob.e.keller@intel.com>
+Subject: Documentation/SubmittingPatches: describe the Fixes: tag
 
-Linked article in seq_file.txt still uses create_proc_entry which was
-removed in 80e928f7ebb958 ("proc: Kill create_proc_entry()").
+Update the SubmittingPatches process to include howto about the new
+'Fixes:' tag to be used when a patch fixes an issue in a previous commit
+(found by git-bisect for example).
 
-This patch adds information for kernel 3.10 and above
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Jacob Keller <jacob.e.keller@intel.com>
+Tested-by: Aaron Brown <aaron.f.brown@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/seq_file.txt |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ Documentation/SubmittingPatches |   22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/seq_file.txt~documentation-filesystems-seq_filetxt-create_proc_entry-deprecated Documentation/filesystems/seq_file.txt
---- a/Documentation/filesystems/seq_file.txt~documentation-filesystems-seq_filetxt-create_proc_entry-deprecated
-+++ a/Documentation/filesystems/seq_file.txt
-@@ -54,6 +54,15 @@ how the mechanism works without getting
- wanting to see the full source for this module can find it at
- http://lwn.net/Articles/22359/).
+diff -puN Documentation/SubmittingPatches~documentation-submittingpatches-describe-the-fixes-tag Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~documentation-submittingpatches-describe-the-fixes-tag
++++ a/Documentation/SubmittingPatches
+@@ -132,6 +132,20 @@ Example:
+ 	platform_set_drvdata(), but left the variable "dev" unused,
+ 	delete it.
  
-+Deprecated create_proc_entry
++If your patch fixes a bug in a specific commit, e.g. you found an issue using
++git-bisect, please use the 'Fixes:' tag with the first 12 characters of the
++SHA-1 ID, and the one line summary.
++Example:
 +
-+Note that the above article uses create_proc_entry which was removed in
-+kernel 3.10. Current versions require the following update
++	Fixes: e21d2170f366 ("video: remove unnecessary platform_set_drvdata()")
 +
-+-	entry = create_proc_entry("sequence", 0, NULL);
-+-	if (entry)
-+-		entry->proc_fops = &ct_file_ops;
-++	entry = proc_create("sequence", 0, NULL, &ct_file_ops);
++The following git-config settings can be used to add a pretty format for
++outputting the above style in the git log or git show commands
++
++	[core]
++		abbrev = 12
++	[pretty]
++		fixes = Fixes: %h (\"%s\")
  
- The iterator interface
+ 3) Separate your changes.
+ 
+@@ -443,7 +457,7 @@ person it names.  This tag documents tha
+ have been included in the discussion
+ 
+ 
+-14) Using Reported-by:, Tested-by:, Reviewed-by: and Suggested-by:
++14) Using Reported-by:, Tested-by:, Reviewed-by:, Suggested-by: and Fixes:
+ 
+ If this patch fixes a problem reported by somebody else, consider adding a
+ Reported-by: tag to credit the reporter for their contribution.  Please
+@@ -498,6 +512,12 @@ idea was not posted in a public forum. T
+ idea reporters, they will, hopefully, be inspired to help us again in the
+ future.
+ 
++A Fixes: tag indicates that the patch fixes an issue in a previous commit. It
++is used to make it easy to determine where a bug originated, which can help
++review a bug fix. This tag also assists the stable kernel team in determining
++which stable kernel versions should receive your fix. This is the preferred
++method for indicating a bug fixed by the patch. See #2 above for more details.
++
+ 
+ 15) The canonical patch format
  
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from jacob.e.keller@intel.com are
 
 origin.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-isofs-logging-clean-up.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
 
