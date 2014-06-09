@@ -1,46 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-omapc-use-bit-macro.patch removed from
- -mm tree
-Date: Mon, 09 Jun 2014 12:30:17 -0700
-Message-ID: <53960b49.FoZ2RtCgHDslfqb9%akpm@linux-foundation.org>
+Subject: [merged]
+ drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock.patch removed
+ from -mm tree
+Date: Mon, 09 Jun 2014 12:30:22 -0700
+Message-ID: <53960b4e.u2416mQZOHrA3Bz5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53823 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53825 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754050AbaFITaS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:30:18 -0400
+	with ESMTP id S1753895AbaFITaX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:30:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, lokeshvutla@ti.com, a.zummo@towertech.it, nsekhar@ti.com
 
-Subject: [merged] drivers-rtc-rtc-omapc-use-bit-macro.patch removed from -mm tree
+Subject: [merged] drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock.patch removed from -mm tree
 To: nsekhar@ti.com,a.zummo@towertech.it,lokeshvutla@ti.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:30:17 -0700
+Date: Mon, 09 Jun 2014 12:30:22 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-omap.c: use BIT() macro
+     Subject: drivers/rtc/rtc-omap.c: add support for enabling 32khz clock
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-omapc-use-bit-macro.patch
+     drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sekhar Nori <nsekhar@ti.com>
-Subject: drivers/rtc/rtc-omap.c: use BIT() macro
+Subject: drivers/rtc/rtc-omap.c: add support for enabling 32khz clock
 
-Use BIT() macro for RTC_HAS_<FEATURE> defines instead of hand-writing bit
-masks.
+Newer versions of OMAP RTC IP such as those found in AM335x and DRA7x need
+an explicit enable of 32khz functional clock which ticks the RTC.
 
-Use BIT() macros for register bit field definitions.
+AM335x support was working so far because of settings done in U-Boot. 
+However, the DRA7x U-Boot does no such enable of 32khz clock and this
+patch is need to get the RTC to work on DRA7x at least.  In general, it is
+better to not depend on settings done in U-Boot.
 
-While at it, fix indentation done using spaces.
-
-No functional change in this patch.
+Thanks to Lokesh Vutla for noticing this.
 
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -48,77 +50,56 @@ Cc: Lokesh Vutla <lokeshvutla@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |   42 +++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+ drivers/rtc/rtc-omap.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-use-bit-macro drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-use-bit-macro
+diff -puN drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-add-support-for-enabling-32khz-clock
 +++ a/drivers/rtc/rtc-omap.c
-@@ -73,43 +73,43 @@
- #define OMAP_RTC_IRQWAKEEN		0x7c
+@@ -96,6 +96,9 @@
+ #define OMAP_RTC_INTERRUPTS_IT_ALARM	BIT(3)
+ #define OMAP_RTC_INTERRUPTS_IT_TIMER	BIT(2)
  
- /* OMAP_RTC_CTRL_REG bit fields: */
--#define OMAP_RTC_CTRL_SPLIT		(1<<7)
--#define OMAP_RTC_CTRL_DISABLE		(1<<6)
--#define OMAP_RTC_CTRL_SET_32_COUNTER	(1<<5)
--#define OMAP_RTC_CTRL_TEST		(1<<4)
--#define OMAP_RTC_CTRL_MODE_12_24	(1<<3)
--#define OMAP_RTC_CTRL_AUTO_COMP		(1<<2)
--#define OMAP_RTC_CTRL_ROUND_30S		(1<<1)
--#define OMAP_RTC_CTRL_STOP		(1<<0)
-+#define OMAP_RTC_CTRL_SPLIT		BIT(7)
-+#define OMAP_RTC_CTRL_DISABLE		BIT(6)
-+#define OMAP_RTC_CTRL_SET_32_COUNTER	BIT(5)
-+#define OMAP_RTC_CTRL_TEST		BIT(4)
-+#define OMAP_RTC_CTRL_MODE_12_24	BIT(3)
-+#define OMAP_RTC_CTRL_AUTO_COMP		BIT(2)
-+#define OMAP_RTC_CTRL_ROUND_30S		BIT(1)
-+#define OMAP_RTC_CTRL_STOP		BIT(0)
- 
- /* OMAP_RTC_STATUS_REG bit fields: */
--#define OMAP_RTC_STATUS_POWER_UP        (1<<7)
--#define OMAP_RTC_STATUS_ALARM           (1<<6)
--#define OMAP_RTC_STATUS_1D_EVENT        (1<<5)
--#define OMAP_RTC_STATUS_1H_EVENT        (1<<4)
--#define OMAP_RTC_STATUS_1M_EVENT        (1<<3)
--#define OMAP_RTC_STATUS_1S_EVENT        (1<<2)
--#define OMAP_RTC_STATUS_RUN             (1<<1)
--#define OMAP_RTC_STATUS_BUSY            (1<<0)
-+#define OMAP_RTC_STATUS_POWER_UP	BIT(7)
-+#define OMAP_RTC_STATUS_ALARM		BIT(6)
-+#define OMAP_RTC_STATUS_1D_EVENT	BIT(5)
-+#define OMAP_RTC_STATUS_1H_EVENT	BIT(4)
-+#define OMAP_RTC_STATUS_1M_EVENT	BIT(3)
-+#define OMAP_RTC_STATUS_1S_EVENT	BIT(2)
-+#define OMAP_RTC_STATUS_RUN		BIT(1)
-+#define OMAP_RTC_STATUS_BUSY		BIT(0)
- 
- /* OMAP_RTC_INTERRUPTS_REG bit fields: */
--#define OMAP_RTC_INTERRUPTS_IT_ALARM    (1<<3)
--#define OMAP_RTC_INTERRUPTS_IT_TIMER    (1<<2)
-+#define OMAP_RTC_INTERRUPTS_IT_ALARM	BIT(3)
-+#define OMAP_RTC_INTERRUPTS_IT_TIMER	BIT(2)
- 
++/* OMAP_RTC_OSC_REG bit fields: */
++#define OMAP_RTC_OSC_32KCLK_EN		BIT(6)
++
  /* OMAP_RTC_IRQWAKEEN bit fields: */
--#define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN    (1<<1)
-+#define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN	BIT(1)
+ #define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN	BIT(1)
  
- /* OMAP_RTC_KICKER values */
- #define	KICK0_VALUE			0x83e70b13
- #define	KICK1_VALUE			0x95a4f1e0
- 
--#define	OMAP_RTC_HAS_KICKER		0x1
-+#define	OMAP_RTC_HAS_KICKER		BIT(0)
- 
- /*
-  * Few RTC IP revisions has special WAKE-EN Register to enable Wakeup
-  * generation for event Alarm.
+@@ -111,6 +114,12 @@
   */
--#define	OMAP_RTC_HAS_IRQWAKEEN		0x2
-+#define	OMAP_RTC_HAS_IRQWAKEEN		BIT(1)
+ #define	OMAP_RTC_HAS_IRQWAKEEN		BIT(1)
  
++/*
++ * Some RTC IP revisions (like those in AM335x and DRA7x) need
++ * the 32KHz clock to be explicitly enabled.
++ */
++#define OMAP_RTC_HAS_32KCLK_EN		BIT(2)
++
  static void __iomem	*rtc_base;
  
+ #define rtc_read(addr)		readb(rtc_base + (addr))
+@@ -319,7 +328,8 @@ static struct platform_device_id omap_rt
+ 	},
+ 	[OMAP_RTC_DATA_AM3352_IDX] = {
+ 		.name	= "am3352-rtc",
+-		.driver_data = OMAP_RTC_HAS_KICKER | OMAP_RTC_HAS_IRQWAKEEN,
++		.driver_data = OMAP_RTC_HAS_KICKER | OMAP_RTC_HAS_IRQWAKEEN |
++			       OMAP_RTC_HAS_32KCLK_EN,
+ 	},
+ 	[OMAP_RTC_DATA_DA830_IDX] = {
+ 		.name	= "da830-rtc",
+@@ -398,6 +408,10 @@ static int __init omap_rtc_probe(struct
+ 	 */
+ 	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+ 
++	/* enable RTC functional clock */
++	if (id_entry->driver_data & OMAP_RTC_HAS_32KCLK_EN)
++		rtc_writel(OMAP_RTC_OSC_32KCLK_EN, OMAP_RTC_OSC_REG);
++
+ 	/* clear old status */
+ 	reg = rtc_read(OMAP_RTC_STATUS_REG);
+ 	if (reg & (u8) OMAP_RTC_STATUS_POWER_UP) {
 _
 
 Patches currently in -mm which might be from nsekhar@ti.com are
