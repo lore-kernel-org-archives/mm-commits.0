@@ -1,224 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-kernel-clear-whitespace.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:37:07 -0700
-Message-ID: <53960ce3.vUlOAenOE0EC5/zD%akpm@linux-foundation.org>
+Subject: [merged] ipc-shmc-check-for-ulong-overflows-in-shmat.patch
+ removed from -mm tree
+Date: Mon, 09 Jun 2014 12:37:12 -0700
+Message-ID: <53960ce8.tGj0EF1Uh/bAwf7J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54214 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54216 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753687AbaFIThI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:37:08 -0400
+	with ESMTP id S1751736AbaFIThN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:37:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paulmcquad@gmail.com
+To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, kosaki.motohiro@jp.fujitsu.com, davidlohr@hp.com, manfred@colorfullife.com
 
-Subject: [merged] ipc-kernel-clear-whitespace.patch removed from -mm tree
-To: paulmcquad@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] ipc-shmc-check-for-ulong-overflows-in-shmat.patch removed from -mm tree
+To: manfred@colorfullife.com,davidlohr@hp.com,kosaki.motohiro@jp.fujitsu.com,mtk.manpages@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:37:07 -0700
+Date: Mon, 09 Jun 2014 12:37:12 -0700
 
 
 The patch titled
-     Subject: ipc, kernel: clear whitespace
+     Subject: ipc/shm.c: check for ulong overflows in shmat
 has been removed from the -mm tree.  Its filename was
-     ipc-kernel-clear-whitespace.patch
+     ipc-shmc-check-for-ulong-overflows-in-shmat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Paul McQuade <paulmcquad@gmail.com>
-Subject: ipc, kernel: clear whitespace
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/shm.c: check for ulong overflows in shmat
 
-trailing whitespace
+The increase of SHMMAX/SHMALL is a 4 patch series.
 
-Signed-off-by: Paul McQuade <paulmcquad@gmail.com>
+The change itself is trivial, the only problem are interger overflows. 
+The overflows are not new, but if we make huge values the default, then
+the code should be free from overflows.
+
+SHMMAX:
+
+- shmmem_file_setup places a hard limit on the segment size:
+  MAX_LFS_FILESIZE.
+
+  On 32-bit, the limit is > 1 TB, i.e. 4 GB-1 byte segments are
+  possible. Rounded up to full pages the actual allocated size
+  is 0. --> must be fixed, patch 3
+
+- shmat:
+  - find_vma_intersection does not handle overflows properly.
+    --> must be fixed, patch 1
+
+  - the rest is fine, do_mmap_pgoff limits mappings to TASK_SIZE
+    and checks for overflows (i.e.: map 2 GB, starting from
+    addr=2.5GB fails).
+
+SHMALL:
+- after creating 8192 segments size (1L<<63)-1, shm_tot overflows and
+  returns 0.  --> must be fixed, patch 2.
+
+Userspace:
+- Obviously, there could be overflows in userspace. There is nothing
+  we can do, only use values smaller than ULONG_MAX.
+  I ended with "ULONG_MAX - 1L<<24":
+
+  - TASK_SIZE cannot be used because it is the size of the current
+    task. Could be 4G if it's a 32-bit task on a 64-bit kernel.
+
+  - The maximum size is not standardized across archs:
+    I found TASK_MAX_SIZE, TASK_SIZE_MAX and TASK_SIZE_64.
+
+  - Just in case some arch revives a 4G/4G split, nearly
+    ULONG_MAX is a valid segment size.
+
+  - Using "0" as a magic value for infinity is even worse, because
+    right now 0 means 0, i.e. fail all allocations.
+
+
+This patch (of 4):
+
+find_vma_intersection() does not work as intended if addr+size overflows. 
+The patch adds a manual check before the call to find_vma_intersection.
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: Davidlohr Bueso <davidlohr@hp.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c     |   31 +++++++++++++++----------------
- ipc/sem.c     |   10 +++++-----
- ipc/shm.c     |    2 +-
- ipc/util.c    |    4 ++--
- ipc/util.h    |    8 ++++----
- kernel/acct.c |    4 ++--
- 6 files changed, 29 insertions(+), 30 deletions(-)
+ ipc/shm.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN ipc/msg.c~ipc-kernel-clear-whitespace ipc/msg.c
---- a/ipc/msg.c~ipc-kernel-clear-whitespace
-+++ a/ipc/msg.c
-@@ -611,23 +611,22 @@ SYSCALL_DEFINE3(msgctl, int, msqid, int,
- 
- static int testmsg(struct msg_msg *msg, long type, int mode)
- {
--	switch (mode)
--	{
--		case SEARCH_ANY:
--		case SEARCH_NUMBER:
-+	switch (mode) {
-+	case SEARCH_ANY:
-+	case SEARCH_NUMBER:
-+		return 1;
-+	case SEARCH_LESSEQUAL:
-+		if (msg->m_type <= type)
- 			return 1;
--		case SEARCH_LESSEQUAL:
--			if (msg->m_type <= type)
--				return 1;
--			break;
--		case SEARCH_EQUAL:
--			if (msg->m_type == type)
--				return 1;
--			break;
--		case SEARCH_NOTEQUAL:
--			if (msg->m_type != type)
--				return 1;
--			break;
-+		break;
-+	case SEARCH_EQUAL:
-+		if (msg->m_type == type)
-+			return 1;
-+		break;
-+	case SEARCH_NOTEQUAL:
-+		if (msg->m_type != type)
-+			return 1;
-+		break;
- 	}
- 	return 0;
- }
-diff -puN ipc/sem.c~ipc-kernel-clear-whitespace ipc/sem.c
---- a/ipc/sem.c~ipc-kernel-clear-whitespace
-+++ a/ipc/sem.c
-@@ -160,7 +160,7 @@ static int sysvipc_sem_proc_show(struct
-  *	sem_array.pending{_alter,_cont},
-  *	sem_array.sem_undo: global sem_lock() for read/write
-  *	sem_undo.proc_next: only "current" is allowed to read/write that field.
-- *	
-+ *
-  *	sem_array.sem_base[i].pending_{const,alter}:
-  *		global or semaphore sem_lock() for read/write
-  */
-@@ -1161,7 +1161,7 @@ static int semctl_nolock(struct ipc_name
- 		err = security_sem_semctl(NULL, cmd);
- 		if (err)
- 			return err;
--		
-+
- 		memset(&seminfo, 0, sizeof(seminfo));
- 		seminfo.semmni = ns->sc_semmni;
- 		seminfo.semmns = ns->sc_semmns;
-@@ -1181,7 +1181,7 @@ static int semctl_nolock(struct ipc_name
- 		}
- 		max_id = ipc_get_maxid(&sem_ids(ns));
- 		up_read(&sem_ids(ns).rwsem);
--		if (copy_to_user(p, &seminfo, sizeof(struct seminfo))) 
-+		if (copy_to_user(p, &seminfo, sizeof(struct seminfo)))
- 			return -EFAULT;
- 		return (max_id < 0) ? 0 : max_id;
- 	}
-@@ -1883,7 +1883,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
- 	/* We need to sleep on this operation, so we put the current
- 	 * task into the pending queue and go to sleep.
- 	 */
--		
-+
- 	queue.sops = sops;
- 	queue.nsops = nsops;
- 	queue.undo = un;
-@@ -2016,7 +2016,7 @@ int copy_semundo(unsigned long clone_fla
- 			return error;
- 		atomic_inc(&undo_list->refcnt);
- 		tsk->sysvsem.undo_list = undo_list;
--	} else 
-+	} else
- 		tsk->sysvsem.undo_list = NULL;
- 
- 	return 0;
-diff -puN ipc/shm.c~ipc-kernel-clear-whitespace ipc/shm.c
---- a/ipc/shm.c~ipc-kernel-clear-whitespace
+diff -puN ipc/shm.c~ipc-shmc-check-for-ulong-overflows-in-shmat ipc/shm.c
+--- a/ipc/shm.c~ipc-shmc-check-for-ulong-overflows-in-shmat
 +++ a/ipc/shm.c
-@@ -694,7 +694,7 @@ static inline unsigned long copy_shminfo
- 		out.shmmin	= in->shmmin;
- 		out.shmmni	= in->shmmni;
- 		out.shmseg	= in->shmseg;
--		out.shmall	= in->shmall; 
-+		out.shmall	= in->shmall;
- 
- 		return copy_to_user(buf, &out, sizeof(out));
- 	    }
-diff -puN ipc/util.c~ipc-kernel-clear-whitespace ipc/util.c
---- a/ipc/util.c~ipc-kernel-clear-whitespace
-+++ a/ipc/util.c
-@@ -183,7 +183,7 @@ void __init ipc_init_proc_interface(cons
-  * ipc_findkey	- find a key in an ipc identifier set
-  * @ids: ipc identifier set
-  * @key: key to find
-- *	
-+ *
-  * Returns the locked pointer to the ipc structure if found or NULL
-  * otherwise. If key is found ipc points to the owning ipc structure
-  *
-@@ -538,7 +538,7 @@ int ipcperms(struct ipc_namespace *ns, s
- 	else if (in_group_p(ipcp->cgid) || in_group_p(ipcp->gid))
- 		granted_mode >>= 3;
- 	/* is there some bit set in requested_mode but not in granted_mode? */
--	if ((requested_mode & ~granted_mode & 0007) && 
-+	if ((requested_mode & ~granted_mode & 0007) &&
- 	    !ns_capable(ns->user_ns, CAP_IPC_OWNER))
- 		return -1;
- 
-diff -puN ipc/util.h~ipc-kernel-clear-whitespace ipc/util.h
---- a/ipc/util.h~ipc-kernel-clear-whitespace
-+++ a/ipc/util.h
-@@ -78,9 +78,9 @@ struct ipc_params {
-  *      . routine to call for an extra check if needed
-  */
- struct ipc_ops {
--	int (*getnew) (struct ipc_namespace *, struct ipc_params *);
--	int (*associate) (struct kern_ipc_perm *, int);
--	int (*more_checks) (struct kern_ipc_perm *, struct ipc_params *);
-+	int (*getnew)(struct ipc_namespace *, struct ipc_params *);
-+	int (*associate)(struct kern_ipc_perm *, int);
-+	int (*more_checks)(struct kern_ipc_perm *, struct ipc_params *);
- };
- 
- struct seq_file;
-@@ -142,7 +142,7 @@ struct kern_ipc_perm *ipcctl_pre_down_no
- 					     struct ipc64_perm *perm, int extra_perm);
- 
- #ifndef CONFIG_ARCH_WANT_IPC_PARSE_VERSION
--  /* On IA-64, we always use the "64-bit version" of the IPC structures.  */ 
-+/* On IA-64, we always use the "64-bit version" of the IPC structures.  */
- # define ipc_parse_version(cmd)	IPC_64
- #else
- int ipc_parse_version(int *cmd);
-diff -puN kernel/acct.c~ipc-kernel-clear-whitespace kernel/acct.c
---- a/kernel/acct.c~ipc-kernel-clear-whitespace
-+++ a/kernel/acct.c
-@@ -134,7 +134,7 @@ static int check_free_space(struct bsd_a
- 	spin_lock(&acct_lock);
- 	if (file != acct->file) {
- 		if (act)
--			res = act>0;
-+			res = act > 0;
- 		goto out;
- 	}
- 
-@@ -262,7 +262,7 @@ SYSCALL_DEFINE1(acct, const char __user
- 	if (name) {
- 		struct filename *tmp = getname(name);
- 		if (IS_ERR(tmp))
--			return (PTR_ERR(tmp));
-+			return PTR_ERR(tmp);
- 		error = acct_on(tmp);
- 		putname(tmp);
- 	} else {
+@@ -1160,6 +1160,9 @@ long do_shmat(int shmid, char __user *sh
+ 	down_write(&current->mm->mmap_sem);
+ 	if (addr && !(shmflg & SHM_REMAP)) {
+ 		err = -EINVAL;
++		if (addr + size < addr)
++			goto invalid;
++
+ 		if (find_vma_intersection(current->mm, addr, addr + size))
+ 			goto invalid;
+ 		/*
 _
 
-Patches currently in -mm which might be from paulmcquad@gmail.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 origin.patch
-linux-next.patch
+slab-leaks3-default-y.patch
 
