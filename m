@@ -1,152 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:40:56 -0700
-Message-ID: <53960dc8.0GKf2ZDDdQ/jPKh7%akpm@linux-foundation.org>
+Subject: [merged] mm-mark-remap_file_pages-syscall-as-deprecated.patch
+ removed from -mm tree
+Date: Mon, 09 Jun 2014 12:41:01 -0700
+Message-ID: <53960dcd.XHEOjSjuL/d4m8Ea%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54367 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54372 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbaFITk5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:40:57 -0400
+	with ESMTP id S1750992AbaFITlC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:41:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, nasa4836@gmail.com, mhocko@suse.cz, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, peterz@infradead.org, mingo@kernel.org, davej@redhat.com, arigo@tunes.org, kirill.shutemov@linux.intel.com
 
-Subject: [merged] mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch removed from -mm tree
-To: hannes@cmpxchg.org,mhocko@suse.cz,nasa4836@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-mark-remap_file_pages-syscall-as-deprecated.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,arigo@tunes.org,davej@redhat.com,mingo@kernel.org,peterz@infradead.org,torvalds@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:40:56 -0700
+Date: Mon, 09 Jun 2014 12:41:01 -0700
 
 
 The patch titled
-     Subject: mm: memcontrol: remove unnecessary memcg argument from soft limit functions
+     Subject: mm: mark remap_file_pages() syscall as deprecated
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
+     mm-mark-remap_file_pages-syscall-as-deprecated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: remove unnecessary memcg argument from soft limit functions
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: mark remap_file_pages() syscall as deprecated
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Jianyu Zhan <nasa4836@gmail.com>
+The remap_file_pages() system call is used to create a nonlinear mapping,
+that is, a mapping in which the pages of the file are mapped into a
+nonsequential order in memory.  The advantage of using remap_file_pages()
+over using repeated calls to mmap(2) is that the former approach does not
+require the kernel to create additional VMA (Virtual Memory Area) data
+structures.
+
+Supporting of nonlinear mapping requires significant amount of non-trivial
+code in kernel virtual memory subsystem including hot paths.  Also to get
+nonlinear mapping work kernel need a way to distinguish normal page table
+entries from entries with file offset (pte_file).  Kernel reserves flag in
+PTE for this purpose.  PTE flags are scarce resource especially on some
+CPU architectures.  It would be nice to free up the flag for other usage.
+
+Fortunately, there are not many users of remap_file_pages() in the wild. 
+It's only known that one enterprise RDBMS implementation uses the syscall
+on 32-bit systems to map files bigger than can linearly fit into 32-bit
+virtual address space.  This use-case is not critical anymore since 64-bit
+systems are widely available.
+
+The plan is to deprecate the syscall and replace it with an emulation. 
+The emulation will create new VMAs instead of nonlinear mappings.  It's
+going to work slower for rare users of remap_file_pages() but ABI is
+preserved.
+
+One side effect of emulation (apart from performance) is that user can hit
+vm.max_map_count limit more easily due to additional VMAs.  See comment
+for DEFAULT_MAX_MAP_COUNT for more details on the limit.
+
+[akpm@linux-foundation.org: fix spello]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Armin Rigo <arigo@tunes.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   34 ++++++++++++++--------------------
- 1 file changed, 14 insertions(+), 20 deletions(-)
+ Documentation/vm/remap_file_pages.txt |   28 ++++++++++++++++++++++++
+ mm/fremap.c                           |    4 +++
+ 2 files changed, 32 insertions(+)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions
-+++ a/mm/memcontrol.c
-@@ -713,11 +713,9 @@ soft_limit_tree_from_page(struct page *p
- 	return &soft_limit_tree.rb_tree_per_node[nid]->rb_tree_per_zone[zid];
- }
+diff -puN /dev/null Documentation/vm/remap_file_pages.txt
+--- /dev/null
++++ a/Documentation/vm/remap_file_pages.txt
+@@ -0,0 +1,28 @@
++The remap_file_pages() system call is used to create a nonlinear mapping,
++that is, a mapping in which the pages of the file are mapped into a
++nonsequential order in memory. The advantage of using remap_file_pages()
++over using repeated calls to mmap(2) is that the former approach does not
++require the kernel to create additional VMA (Virtual Memory Area) data
++structures.
++
++Supporting of nonlinear mapping requires significant amount of non-trivial
++code in kernel virtual memory subsystem including hot paths. Also to get
++nonlinear mapping work kernel need a way to distinguish normal page table
++entries from entries with file offset (pte_file). Kernel reserves flag in
++PTE for this purpose. PTE flags are scarce resource especially on some CPU
++architectures. It would be nice to free up the flag for other usage.
++
++Fortunately, there are not many users of remap_file_pages() in the wild.
++It's only known that one enterprise RDBMS implementation uses the syscall
++on 32-bit systems to map files bigger than can linearly fit into 32-bit
++virtual address space. This use-case is not critical anymore since 64-bit
++systems are widely available.
++
++The plan is to deprecate the syscall and replace it with an emulation.
++The emulation will create new VMAs instead of nonlinear mappings. It's
++going to work slower for rare users of remap_file_pages() but ABI is
++preserved.
++
++One side effect of emulation (apart from performance) is that user can hit
++vm.max_map_count limit more easily due to additional VMAs. See comment for
++DEFAULT_MAX_MAP_COUNT for more details on the limit.
+diff -puN mm/fremap.c~mm-mark-remap_file_pages-syscall-as-deprecated mm/fremap.c
+--- a/mm/fremap.c~mm-mark-remap_file_pages-syscall-as-deprecated
++++ a/mm/fremap.c
+@@ -149,6 +149,10 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	int has_write_lock = 0;
+ 	vm_flags_t vm_flags = 0;
  
--static void
--__mem_cgroup_insert_exceeded(struct mem_cgroup *memcg,
--				struct mem_cgroup_per_zone *mz,
--				struct mem_cgroup_tree_per_zone *mctz,
--				unsigned long long new_usage_in_excess)
-+static void __mem_cgroup_insert_exceeded(struct mem_cgroup_per_zone *mz,
-+					 struct mem_cgroup_tree_per_zone *mctz,
-+					 unsigned long long new_usage_in_excess)
- {
- 	struct rb_node **p = &mctz->rb_root.rb_node;
- 	struct rb_node *parent = NULL;
-@@ -747,10 +745,8 @@ __mem_cgroup_insert_exceeded(struct mem_
- 	mz->on_tree = true;
- }
- 
--static void
--__mem_cgroup_remove_exceeded(struct mem_cgroup *memcg,
--				struct mem_cgroup_per_zone *mz,
--				struct mem_cgroup_tree_per_zone *mctz)
-+static void __mem_cgroup_remove_exceeded(struct mem_cgroup_per_zone *mz,
-+					 struct mem_cgroup_tree_per_zone *mctz)
- {
- 	if (!mz->on_tree)
- 		return;
-@@ -758,13 +754,11 @@ __mem_cgroup_remove_exceeded(struct mem_
- 	mz->on_tree = false;
- }
- 
--static void
--mem_cgroup_remove_exceeded(struct mem_cgroup *memcg,
--				struct mem_cgroup_per_zone *mz,
--				struct mem_cgroup_tree_per_zone *mctz)
-+static void mem_cgroup_remove_exceeded(struct mem_cgroup_per_zone *mz,
-+				       struct mem_cgroup_tree_per_zone *mctz)
- {
- 	spin_lock(&mctz->lock);
--	__mem_cgroup_remove_exceeded(memcg, mz, mctz);
-+	__mem_cgroup_remove_exceeded(mz, mctz);
- 	spin_unlock(&mctz->lock);
- }
- 
-@@ -791,12 +785,12 @@ static void mem_cgroup_update_tree(struc
- 			spin_lock(&mctz->lock);
- 			/* if on-tree, remove it */
- 			if (mz->on_tree)
--				__mem_cgroup_remove_exceeded(memcg, mz, mctz);
-+				__mem_cgroup_remove_exceeded(mz, mctz);
- 			/*
- 			 * Insert again. mz->usage_in_excess will be updated.
- 			 * If excess is 0, no tree ops.
- 			 */
--			__mem_cgroup_insert_exceeded(memcg, mz, mctz, excess);
-+			__mem_cgroup_insert_exceeded(mz, mctz, excess);
- 			spin_unlock(&mctz->lock);
- 		}
- 	}
-@@ -812,7 +806,7 @@ static void mem_cgroup_remove_from_trees
- 		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
- 			mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
- 			mctz = soft_limit_tree_node_zone(nid, zid);
--			mem_cgroup_remove_exceeded(memcg, mz, mctz);
-+			mem_cgroup_remove_exceeded(mz, mctz);
- 		}
- 	}
- }
-@@ -835,7 +829,7 @@ retry:
- 	 * we will to add it back at the end of reclaim to its correct
- 	 * position in the tree.
- 	 */
--	__mem_cgroup_remove_exceeded(mz->memcg, mz, mctz);
-+	__mem_cgroup_remove_exceeded(mz, mctz);
- 	if (!res_counter_soft_limit_excess(&mz->memcg->res) ||
- 		!css_tryget(&mz->memcg->css))
- 		goto retry;
-@@ -4586,7 +4580,7 @@ unsigned long mem_cgroup_soft_limit_recl
- 					break;
- 			} while (1);
- 		}
--		__mem_cgroup_remove_exceeded(mz->memcg, mz, mctz);
-+		__mem_cgroup_remove_exceeded(mz, mctz);
- 		excess = res_counter_soft_limit_excess(&mz->memcg->res);
- 		/*
- 		 * One school of thought says that we should not add
-@@ -4597,7 +4591,7 @@ unsigned long mem_cgroup_soft_limit_recl
- 		 * term TODO.
- 		 */
- 		/* If excess == 0, no tree ops */
--		__mem_cgroup_insert_exceeded(mz->memcg, mz, mctz, excess);
-+		__mem_cgroup_insert_exceeded(mz, mctz, excess);
- 		spin_unlock(&mctz->lock);
- 		css_put(&mz->memcg->css);
- 		loop++;
++	pr_warn_once("%s (%d) uses deprecated remap_file_pages() syscall. "
++			"See Documentation/vm/remap_file_pages.txt.\n",
++			current->comm, current->pid);
++
+ 	if (prot)
+ 		return err;
+ 	/*
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
 pagewalk-update-page-table-walker-core.patch
+pagewalk-update-page-table-walker-core-fix.patch
 pagewalk-add-walk_page_vma.patch
 smaps-redefine-callback-functions-for-page-table-walker.patch
 clear_refs-redefine-callback-functions-for-page-table-walker.patch
@@ -156,16 +138,12 @@ memcg-redefine-callback-functions-for-page-table-walker.patch
 arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
 pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
 mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-prom-pid-clear_refs-avoid-split_huge_page.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
-memcg-mm-introduce-lowlimit-reclaim.patch
-memcg-mm-introduce-lowlimit-reclaim-fix.patch
-memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
-memcg-allow-setting-low_limit.patch
-memcg-doc-clarify-global-vs-limit-reclaims.patch
-memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
-memcg-document-memorylow_limit_in_bytes.patch
-vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
-memcg-deprecate-memoryforce_empty-knob.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-debugging-keep-track-of-page-owners.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
