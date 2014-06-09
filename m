@@ -1,40 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rtc-m41t80-propagate-error-value-from-smbus-functions.patch removed from
- -mm tree
-Date: Mon, 09 Jun 2014 12:28:42 -0700
-Message-ID: <53960aea.dej8VK2WJcTzNT8C%akpm@linux-foundation.org>
+Subject: [merged] rtc-m41t80-add-support-for-microcrystal-rv4162.patch
+ removed from -mm tree
+Date: Mon, 09 Jun 2014 12:28:47 -0700
+Message-ID: <53960aef.F3ndPGN1RU1Grugk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53756 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53759 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932106AbaFIT2n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:28:43 -0400
+	with ESMTP id S1753900AbaFIT2s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:28:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com, a.zummo@towertech.it, wsa@sang-engineering.com
 
-Subject: [merged] rtc-m41t80-propagate-error-value-from-smbus-functions.patch removed from -mm tree
+Subject: [merged] rtc-m41t80-add-support-for-microcrystal-rv4162.patch removed from -mm tree
 To: wsa@sang-engineering.com,a.zummo@towertech.it,jg1.han@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:28:42 -0700
+Date: Mon, 09 Jun 2014 12:28:47 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-m41t80.c: propagate error value from smbus functions
+     Subject: drivers/rtc/rtc-m41t80.c: add support for MicroCrystal rv4162
 has been removed from the -mm tree.  Its filename was
-     rtc-m41t80-propagate-error-value-from-smbus-functions.patch
+     rtc-m41t80-add-support-for-microcrystal-rv4162.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Wolfram Sang <wsa@sang-engineering.com>
-Subject: drivers/rtc/rtc-m41t80.c: propagate error value from smbus functions
-
-Don't replace the value we got from the I2C layer, just pass it on.
+Subject: drivers/rtc/rtc-m41t80.c: add support for MicroCrystal rv4162
 
 Signed-off-by: Wolfram Sang <wsa@sang-engineering.com>
 Cc: Jingoo Han <jg1.han@samsung.com>
@@ -42,97 +39,39 @@ Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m41t80.c |   37 +++++++++++++++++++++++--------------
- 1 file changed, 23 insertions(+), 14 deletions(-)
+ drivers/rtc/Kconfig      |    4 ++--
+ drivers/rtc/rtc-m41t80.c |    1 +
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-m41t80.c~rtc-m41t80-propagate-error-value-from-smbus-functions drivers/rtc/rtc-m41t80.c
---- a/drivers/rtc/rtc-m41t80.c~rtc-m41t80-propagate-error-value-from-smbus-functions
+diff -puN drivers/rtc/Kconfig~rtc-m41t80-add-support-for-microcrystal-rv4162 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-m41t80-add-support-for-microcrystal-rv4162
++++ a/drivers/rtc/Kconfig
+@@ -386,12 +386,12 @@ config RTC_DRV_PCF8583
+ 	  will be called rtc-pcf8583.
+ 
+ config RTC_DRV_M41T80
+-	tristate "ST M41T62/65/M41T80/81/82/83/84/85/87"
++	tristate "ST M41T62/65/M41T80/81/82/83/84/85/87 and compatible"
+ 	help
+ 	  If you say Y here you will get support for the ST M41T60
+ 	  and M41T80 RTC chips series. Currently, the following chips are
+ 	  supported: M41T62, M41T65, M41T80, M41T81, M41T82, M41T83, M41ST84,
+-	  M41ST85, and M41ST87.
++	  M41ST85, M41ST87, and MicroCrystal RV4162.
+ 
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-m41t80.
+diff -puN drivers/rtc/rtc-m41t80.c~rtc-m41t80-add-support-for-microcrystal-rv4162 drivers/rtc/rtc-m41t80.c
+--- a/drivers/rtc/rtc-m41t80.c~rtc-m41t80-add-support-for-microcrystal-rv4162
 +++ a/drivers/rtc/rtc-m41t80.c
-@@ -230,7 +230,7 @@ static ssize_t m41t80_sysfs_show_flags(s
- 
- 	val = i2c_smbus_read_byte_data(client, M41T80_REG_FLAGS);
- 	if (val < 0)
--		return -EIO;
-+		return val;
- 	return sprintf(buf, "%#x\n", val);
- }
- static DEVICE_ATTR(flags, S_IRUGO, m41t80_sysfs_show_flags, NULL);
-@@ -250,7 +250,7 @@ static ssize_t m41t80_sysfs_show_sqwfreq
- 		reg_sqw = M41T80_REG_WDAY;
- 	val = i2c_smbus_read_byte_data(client, reg_sqw);
- 	if (val < 0)
--		return -EIO;
-+		return val;
- 	val = (val >> 4) & 0xf;
- 	switch (val) {
- 	case 0:
-@@ -269,7 +269,7 @@ static ssize_t m41t80_sysfs_set_sqwfreq(
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct m41t80_data *clientdata = i2c_get_clientdata(client);
--	int almon, sqw, reg_sqw;
-+	int almon, sqw, reg_sqw, rc;
- 	int val = simple_strtoul(buf, NULL, 0);
- 
- 	if (!(clientdata->features & M41T80_FEATURE_SQ))
-@@ -289,21 +289,30 @@ static ssize_t m41t80_sysfs_set_sqwfreq(
- 	/* disable SQW, set SQW frequency & re-enable */
- 	almon = i2c_smbus_read_byte_data(client, M41T80_REG_ALARM_MON);
- 	if (almon < 0)
--		return -EIO;
-+		return almon;
- 	reg_sqw = M41T80_REG_SQW;
- 	if (clientdata->features & M41T80_FEATURE_SQ_ALT)
- 		reg_sqw = M41T80_REG_WDAY;
- 	sqw = i2c_smbus_read_byte_data(client, reg_sqw);
- 	if (sqw < 0)
--		return -EIO;
-+		return sqw;
- 	sqw = (sqw & 0x0f) | (val << 4);
--	if (i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON,
--				      almon & ~M41T80_ALMON_SQWE) < 0 ||
--	    i2c_smbus_write_byte_data(client, reg_sqw, sqw) < 0)
--		return -EIO;
--	if (val && i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON,
--					     almon | M41T80_ALMON_SQWE) < 0)
--		return -EIO;
-+
-+	rc = i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON,
-+				      almon & ~M41T80_ALMON_SQWE);
-+	if (rc < 0)
-+		return rc;
-+
-+	if (val) {
-+		rc = i2c_smbus_write_byte_data(client, reg_sqw, sqw);
-+		if (rc < 0)
-+			return rc;
-+
-+		rc = i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON,
-+					     almon | M41T80_ALMON_SQWE);
-+		if (rc <0)
-+			return rc;
-+	}
- 	return count;
- }
- static DEVICE_ATTR(sqwfreq, S_IRUGO | S_IWUSR,
-@@ -665,7 +674,7 @@ static int m41t80_probe(struct i2c_clien
- 
- 	if (rc < 0) {
- 		dev_err(&client->dev, "Can't clear HT bit\n");
--		return -EIO;
-+		return rc;
- 	}
- 
- 	/* Make sure ST (stop) bit is cleared */
-@@ -676,7 +685,7 @@ static int m41t80_probe(struct i2c_clien
- 					      rc & ~M41T80_SEC_ST);
- 	if (rc < 0) {
- 		dev_err(&client->dev, "Can't clear ST bit\n");
--		return -EIO;
-+		return rc;
- 	}
- 
- 	rc = m41t80_sysfs_register(&client->dev);
+@@ -78,6 +78,7 @@ static const struct i2c_device_id m41t80
+ 	{ "m41st84", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
+ 	{ "m41st85", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
+ 	{ "m41st87", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
++	{ "rv4162", M41T80_FEATURE_SQ | M41T80_FEATURE_WD | M41T80_FEATURE_SQ_ALT },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, m41t80_id);
 _
 
 Patches currently in -mm which might be from wsa@sang-engineering.com are
