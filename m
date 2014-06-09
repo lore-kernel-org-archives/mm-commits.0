@@ -1,223 +1,317 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-pstore-logging-clean-up.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:36:32 -0700
-Message-ID: <53960cc0.HTa08BivxD7jc2HO%akpm@linux-foundation.org>
+Subject: [merged] fs-cachefiles-convert-printk-to-pr_foo.patch removed
+ from -mm tree
+Date: Mon, 09 Jun 2014 12:36:37 -0700
+Message-ID: <53960cc5.0Q3gROsOx9T6tBxx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54187 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54194 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752945AbaFITgd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:36:33 -0400
+	with ESMTP id S1752945AbaFITgi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:36:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, ccross@android.com, anton@enomsg.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, dhowells@redhat.com, fabf@skynet.be
 
-Subject: [merged] fs-pstore-logging-clean-up.patch removed from -mm tree
-To: fabf@skynet.be,anton@enomsg.org,ccross@android.com,joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-cachefiles-convert-printk-to-pr_foo.patch removed from -mm tree
+To: fabf@skynet.be,dhowells@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:36:32 -0700
+Date: Mon, 09 Jun 2014 12:36:37 -0700
 
 
 The patch titled
-     Subject: fs/pstore: logging clean-up
+     Subject: FS/CACHEFILES: convert printk to pr_foo()
 has been removed from the -mm tree.  Its filename was
-     fs-pstore-logging-clean-up.patch
+     fs-cachefiles-convert-printk-to-pr_foo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/pstore: logging clean-up
+Subject: FS/CACHEFILES: convert printk to pr_foo()
 
-- Define pr_fmt in plateform.c and ram_core.c for global prefix.
-
-- Coalesce format fragments.
-
-- Separate format/arguments on lines > 80 characters.
-
-Note: Some pr_foo() were initially declared without prefix and therefore
-this could break existing log analyzer.
-
-[akpm@linux-foundation.org: missed a couple of prefix removals]
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Joe Perches <joe@perches.com>
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: Colin Cross <ccross@android.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pstore/platform.c |   19 +++++++++----------
- fs/pstore/ram_core.c |   36 +++++++++++++++++-------------------
- 2 files changed, 26 insertions(+), 29 deletions(-)
+ fs/cachefiles/bind.c      |   10 +++------
+ fs/cachefiles/interface.c |    3 --
+ fs/cachefiles/internal.h  |   22 ++++++++++----------
+ fs/cachefiles/main.c      |    7 ++----
+ fs/cachefiles/namei.c     |   39 +++++++++++++++---------------------
+ fs/cachefiles/security.c  |   10 ++-------
+ 6 files changed, 39 insertions(+), 52 deletions(-)
 
-diff -puN fs/pstore/platform.c~fs-pstore-logging-clean-up fs/pstore/platform.c
---- a/fs/pstore/platform.c~fs-pstore-logging-clean-up
-+++ a/fs/pstore/platform.c
-@@ -18,6 +18,8 @@
-  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+diff -puN fs/cachefiles/bind.c~fs-cachefiles-convert-printk-to-pr_foo fs/cachefiles/bind.c
+--- a/fs/cachefiles/bind.c~fs-cachefiles-convert-printk-to-pr_foo
++++ a/fs/cachefiles/bind.c
+@@ -228,9 +228,8 @@ static int cachefiles_daemon_add_cache(s
+ 	set_bit(CACHEFILES_READY, &cache->flags);
+ 	dput(root);
+ 
+-	printk(KERN_INFO "CacheFiles:"
+-	       " File cache on %s registered\n",
+-	       cache->cache.identifier);
++	pr_info("CacheFiles: File cache on %s registered\n",
++		cache->cache.identifier);
+ 
+ 	/* check how much space the cache has */
+ 	cachefiles_has_space(cache, 0, 0);
+@@ -262,9 +261,8 @@ void cachefiles_daemon_unbind(struct cac
+ 	_enter("");
+ 
+ 	if (test_bit(CACHEFILES_READY, &cache->flags)) {
+-		printk(KERN_INFO "CacheFiles:"
+-		       " File cache on %s unregistering\n",
+-		       cache->cache.identifier);
++		pr_info("CacheFiles: File cache on %s unregistering\n",
++			cache->cache.identifier);
+ 
+ 		fscache_withdraw_cache(&cache->cache);
+ 	}
+diff -puN fs/cachefiles/interface.c~fs-cachefiles-convert-printk-to-pr_foo fs/cachefiles/interface.c
+--- a/fs/cachefiles/interface.c~fs-cachefiles-convert-printk-to-pr_foo
++++ a/fs/cachefiles/interface.c
+@@ -146,8 +146,7 @@ static int cachefiles_lookup_object(stru
+ 
+ 	if (ret < 0 && ret != -ETIMEDOUT) {
+ 		if (ret != -ENOBUFS)
+-			printk(KERN_WARNING
+-			       "CacheFiles: Lookup failed error %d\n", ret);
++			pr_warn("CacheFiles: Lookup failed error %d\n", ret);
+ 		fscache_object_lookup_error(&object->fscache);
+ 	}
+ 
+diff -puN fs/cachefiles/internal.h~fs-cachefiles-convert-printk-to-pr_foo fs/cachefiles/internal.h
+--- a/fs/cachefiles/internal.h~fs-cachefiles-convert-printk-to-pr_foo
++++ a/fs/cachefiles/internal.h
+@@ -245,7 +245,7 @@ extern int cachefiles_remove_object_xatt
+ /*
+  * error handling
   */
+-#define kerror(FMT, ...) printk(KERN_ERR "CacheFiles: "FMT"\n", ##__VA_ARGS__)
++#define kerror(FMT, ...) pr_err("CacheFiles: "FMT"\n", ##__VA_ARGS__)
  
-+#define pr_fmt(fmt) "pstore: " fmt
-+
- #include <linux/atomic.h>
- #include <linux/types.h>
- #include <linux/errno.h>
-@@ -224,14 +226,12 @@ static void allocate_buf_for_compression
- 			zlib_inflate_workspacesize());
- 		stream.workspace = kmalloc(size, GFP_KERNEL);
- 		if (!stream.workspace) {
--			pr_err("pstore: No memory for compression workspace; "
--				"skipping compression\n");
-+			pr_err("No memory for compression workspace; skipping compression\n");
- 			kfree(big_oops_buf);
- 			big_oops_buf = NULL;
- 		}
- 	} else {
--		pr_err("No memory for uncompressed data; "
--			"skipping compression\n");
-+		pr_err("No memory for uncompressed data; skipping compression\n");
- 		stream.workspace = NULL;
+ #define cachefiles_io_error(___cache, FMT, ...)		\
+ do {							\
+@@ -310,8 +310,8 @@ do {							\
+ #define ASSERT(X)							\
+ do {									\
+ 	if (unlikely(!(X))) {						\
+-		printk(KERN_ERR "\n");					\
+-		printk(KERN_ERR "CacheFiles: Assertion failed\n");	\
++		pr_err("\n");						\
++		pr_err("CacheFiles: Assertion failed\n");		\
+ 		BUG();							\
+ 	}								\
+ } while (0)
+@@ -319,9 +319,9 @@ do {									\
+ #define ASSERTCMP(X, OP, Y)						\
+ do {									\
+ 	if (unlikely(!((X) OP (Y)))) {					\
+-		printk(KERN_ERR "\n");					\
+-		printk(KERN_ERR "CacheFiles: Assertion failed\n");	\
+-		printk(KERN_ERR "%lx " #OP " %lx is false\n",		\
++		pr_err("\n");						\
++		pr_err("CacheFiles: Assertion failed\n");		\
++		pr_err("%lx " #OP " %lx is false\n",			\
+ 		       (unsigned long)(X), (unsigned long)(Y));		\
+ 		BUG();							\
+ 	}								\
+@@ -330,8 +330,8 @@ do {									\
+ #define ASSERTIF(C, X)							\
+ do {									\
+ 	if (unlikely((C) && !(X))) {					\
+-		printk(KERN_ERR "\n");					\
+-		printk(KERN_ERR "CacheFiles: Assertion failed\n");	\
++		pr_err("\n");						\
++		pr_err("CacheFiles: Assertion failed\n");		\
+ 		BUG();							\
+ 	}								\
+ } while (0)
+@@ -339,9 +339,9 @@ do {									\
+ #define ASSERTIFCMP(C, X, OP, Y)					\
+ do {									\
+ 	if (unlikely((C) && !((X) OP (Y)))) {				\
+-		printk(KERN_ERR "\n");					\
+-		printk(KERN_ERR "CacheFiles: Assertion failed\n");	\
+-		printk(KERN_ERR "%lx " #OP " %lx is false\n",		\
++		pr_err("\n");						\
++		pr_err("CacheFiles: Assertion failed\n");		\
++		pr_err("%lx " #OP " %lx is false\n",			\
+ 		       (unsigned long)(X), (unsigned long)(Y));		\
+ 		BUG();							\
+ 	}								\
+diff -puN fs/cachefiles/main.c~fs-cachefiles-convert-printk-to-pr_foo fs/cachefiles/main.c
+--- a/fs/cachefiles/main.c~fs-cachefiles-convert-printk-to-pr_foo
++++ a/fs/cachefiles/main.c
+@@ -68,8 +68,7 @@ static int __init cachefiles_init(void)
+ 				  SLAB_HWCACHE_ALIGN,
+ 				  cachefiles_object_init_once);
+ 	if (!cachefiles_object_jar) {
+-		printk(KERN_NOTICE
+-		       "CacheFiles: Failed to allocate an object jar\n");
++		pr_notice("CacheFiles: Failed to allocate an object jar\n");
+ 		goto error_object_jar;
  	}
  
-@@ -455,8 +455,7 @@ int pstore_register(struct pstore_info *
- 		add_timer(&pstore_timer);
- 	}
+@@ -77,7 +76,7 @@ static int __init cachefiles_init(void)
+ 	if (ret < 0)
+ 		goto error_proc;
  
--	pr_info("pstore: Registered %s as persistent store backend\n",
--		psi->name);
-+	pr_info("Registered %s as persistent store backend\n", psi->name);
- 
+-	printk(KERN_INFO "CacheFiles: Loaded\n");
++	pr_info("CacheFiles: Loaded\n");
  	return 0;
- }
-@@ -502,8 +501,8 @@ void pstore_get_records(int quiet)
- 				size = unzipped_len;
- 				compressed = false;
- 			} else {
--				pr_err("pstore: decompression failed;"
--					"returned %d\n", unzipped_len);
-+				pr_err("decompression failed;returned %d\n",
-+				       unzipped_len);
- 				compressed = true;
- 			}
- 		}
-@@ -524,8 +523,8 @@ out:
- 	mutex_unlock(&psi->read_mutex);
  
- 	if (failed)
--		printk(KERN_WARNING "pstore: failed to load %d record(s) from '%s'\n",
--		       failed, psi->name);
-+		pr_warn("failed to load %d record(s) from '%s'\n",
-+			failed, psi->name);
- }
- 
- static void pstore_dowork(struct work_struct *work)
-diff -puN fs/pstore/ram_core.c~fs-pstore-logging-clean-up fs/pstore/ram_core.c
---- a/fs/pstore/ram_core.c~fs-pstore-logging-clean-up
-+++ a/fs/pstore/ram_core.c
-@@ -12,6 +12,8 @@
-  *
+ error_proc:
+@@ -96,7 +95,7 @@ fs_initcall(cachefiles_init);
   */
+ static void __exit cachefiles_exit(void)
+ {
+-	printk(KERN_INFO "CacheFiles: Unloading\n");
++	pr_info("CacheFiles: Unloading\n");
  
-+#define pr_fmt(fmt) "persistent_ram: " fmt
-+
- #include <linux/device.h>
- #include <linux/err.h>
- #include <linux/errno.h>
-@@ -205,12 +207,10 @@ static void persistent_ram_ecc_old(struc
- 			size = buffer->data + prz->buffer_size - block;
- 		numerr = persistent_ram_decode_rs8(prz, block, size, par);
- 		if (numerr > 0) {
--			pr_devel("persistent_ram: error in block %p, %d\n",
--			       block, numerr);
-+			pr_devel("error in block %p, %d\n", block, numerr);
- 			prz->corrected_bytes += numerr;
- 		} else if (numerr < 0) {
--			pr_devel("persistent_ram: uncorrectable error in block %p\n",
--				block);
-+			pr_devel("uncorrectable error in block %p\n", block);
- 			prz->bad_blocks++;
- 		}
- 		block += prz->ecc_info.block_size;
-@@ -257,7 +257,7 @@ static int persistent_ram_init_ecc(struc
- 	prz->rs_decoder = init_rs(prz->ecc_info.symsize, prz->ecc_info.poly,
- 				  0, 1, prz->ecc_info.ecc_size);
- 	if (prz->rs_decoder == NULL) {
--		pr_info("persistent_ram: init_rs failed\n");
-+		pr_info("init_rs failed\n");
- 		return -EINVAL;
- 	}
+ 	cachefiles_proc_cleanup();
+ 	kmem_cache_destroy(cachefiles_object_jar);
+diff -puN fs/cachefiles/namei.c~fs-cachefiles-convert-printk-to-pr_foo fs/cachefiles/namei.c
+--- a/fs/cachefiles/namei.c~fs-cachefiles-convert-printk-to-pr_foo
++++ a/fs/cachefiles/namei.c
+@@ -35,22 +35,21 @@ void __cachefiles_printk_object(struct c
+ 	struct fscache_cookie *cookie;
+ 	unsigned keylen, loop;
  
-@@ -267,10 +267,10 @@ static int persistent_ram_init_ecc(struc
- 	numerr = persistent_ram_decode_rs8(prz, buffer, sizeof(*buffer),
- 					   prz->par_header);
- 	if (numerr > 0) {
--		pr_info("persistent_ram: error in header, %d\n", numerr);
-+		pr_info("error in header, %d\n", numerr);
- 		prz->corrected_bytes += numerr;
- 	} else if (numerr < 0) {
--		pr_info("persistent_ram: uncorrectable error in header\n");
-+		pr_info("uncorrectable error in header\n");
- 		prz->bad_blocks++;
- 	}
+-	printk(KERN_ERR "%sobject: OBJ%x\n",
+-	       prefix, object->fscache.debug_id);
+-	printk(KERN_ERR "%sobjstate=%s fl=%lx wbusy=%x ev=%lx[%lx]\n",
++	pr_err("%sobject: OBJ%x\n", prefix, object->fscache.debug_id);
++	pr_err("%sobjstate=%s fl=%lx wbusy=%x ev=%lx[%lx]\n",
+ 	       prefix, object->fscache.state->name,
+ 	       object->fscache.flags, work_busy(&object->fscache.work),
+ 	       object->fscache.events, object->fscache.event_mask);
+-	printk(KERN_ERR "%sops=%u inp=%u exc=%u\n",
++	pr_err("%sops=%u inp=%u exc=%u\n",
+ 	       prefix, object->fscache.n_ops, object->fscache.n_in_progress,
+ 	       object->fscache.n_exclusive);
+-	printk(KERN_ERR "%sparent=%p\n",
++	pr_err("%sparent=%p\n",
+ 	       prefix, object->fscache.parent);
  
-@@ -317,7 +317,7 @@ void persistent_ram_save_old(struct pers
- 		prz->old_log = kmalloc(size, GFP_KERNEL);
- 	}
- 	if (!prz->old_log) {
--		pr_err("persistent_ram: failed to allocate buffer\n");
-+		pr_err("failed to allocate buffer\n");
- 		return;
- 	}
- 
-@@ -396,8 +396,8 @@ static void *persistent_ram_vmap(phys_ad
- 
- 	pages = kmalloc(sizeof(struct page *) * page_count, GFP_KERNEL);
- 	if (!pages) {
--		pr_err("%s: Failed to allocate array for %u pages\n", __func__,
--			page_count);
-+		pr_err("%s: Failed to allocate array for %u pages\n",
-+		       __func__, page_count);
- 		return NULL;
- 	}
- 
-@@ -462,19 +462,17 @@ static int persistent_ram_post_init(stru
- 	if (prz->buffer->sig == sig) {
- 		if (buffer_size(prz) > prz->buffer_size ||
- 		    buffer_start(prz) > buffer_size(prz))
--			pr_info("persistent_ram: found existing invalid buffer,"
--				" size %zu, start %zu\n",
--			       buffer_size(prz), buffer_start(prz));
-+			pr_info("found existing invalid buffer, size %zu, start %zu\n",
-+				buffer_size(prz), buffer_start(prz));
- 		else {
--			pr_debug("persistent_ram: found existing buffer,"
--				" size %zu, start %zu\n",
--			       buffer_size(prz), buffer_start(prz));
-+			pr_debug("found existing buffer, size %zu, start %zu\n",
-+				 buffer_size(prz), buffer_start(prz));
- 			persistent_ram_save_old(prz);
- 			return 0;
- 		}
+ 	spin_lock(&object->fscache.lock);
+ 	cookie = object->fscache.cookie;
+ 	if (cookie) {
+-		printk(KERN_ERR "%scookie=%p [pr=%p nd=%p fl=%lx]\n",
++		pr_err("%scookie=%p [pr=%p nd=%p fl=%lx]\n",
+ 		       prefix,
+ 		       object->fscache.cookie,
+ 		       object->fscache.cookie->parent,
+@@ -62,16 +61,16 @@ void __cachefiles_printk_object(struct c
+ 		else
+ 			keylen = 0;
  	} else {
--		pr_debug("persistent_ram: no valid data in buffer"
--			" (sig = 0x%08x)\n", prz->buffer->sig);
-+		pr_debug("no valid data in buffer (sig = 0x%08x)\n",
-+			 prz->buffer->sig);
+-		printk(KERN_ERR "%scookie=NULL\n", prefix);
++		pr_err("%scookie=NULL\n", prefix);
+ 		keylen = 0;
+ 	}
+ 	spin_unlock(&object->fscache.lock);
+ 
+ 	if (keylen) {
+-		printk(KERN_ERR "%skey=[%u] '", prefix, keylen);
++		pr_err("%skey=[%u] '", prefix, keylen);
+ 		for (loop = 0; loop < keylen; loop++)
+-			printk("%02x", keybuf[loop]);
+-		printk("'\n");
++			pr_cont("%02x", keybuf[loop]);
++		pr_cont("'\n");
+ 	}
+ }
+ 
+@@ -131,13 +130,11 @@ found_dentry:
+ 	       dentry);
+ 
+ 	if (fscache_object_is_live(&object->fscache)) {
+-		printk(KERN_ERR "\n");
+-		printk(KERN_ERR "CacheFiles: Error:"
+-		       " Can't preemptively bury live object\n");
++		pr_err("\n");
++		pr_err("CacheFiles: Error: Can't preemptively bury live object\n");
+ 		cachefiles_printk_object(object, NULL);
+ 	} else if (test_and_set_bit(CACHEFILES_OBJECT_BURIED, &object->flags)) {
+-		printk(KERN_ERR "CacheFiles: Error:"
+-		       " Object already preemptively buried\n");
++		pr_err("CacheFiles: Error: Object already preemptively buried\n");
  	}
  
- 	prz->buffer->sig = sig;
-@@ -509,7 +507,7 @@ struct persistent_ram_zone *persistent_r
+ 	write_unlock(&cache->active_lock);
+@@ -160,7 +157,7 @@ try_again:
+ 	write_lock(&cache->active_lock);
  
- 	prz = kzalloc(sizeof(struct persistent_ram_zone), GFP_KERNEL);
- 	if (!prz) {
--		pr_err("persistent_ram: failed to allocate persistent ram zone\n");
-+		pr_err("failed to allocate persistent ram zone\n");
- 		goto err;
+ 	if (test_and_set_bit(CACHEFILES_OBJECT_ACTIVE, &object->flags)) {
+-		printk(KERN_ERR "CacheFiles: Error: Object already active\n");
++		pr_err("CacheFiles: Error: Object already active\n");
+ 		cachefiles_printk_object(object, NULL);
+ 		BUG();
+ 	}
+@@ -193,9 +190,8 @@ try_again:
+ 	 * need to wait for it to be destroyed */
+ wait_for_old_object:
+ 	if (fscache_object_is_live(&object->fscache)) {
+-		printk(KERN_ERR "\n");
+-		printk(KERN_ERR "CacheFiles: Error:"
+-		       " Unexpected object collision\n");
++		pr_err("\n");
++		pr_err("CacheFiles: Error: Unexpected object collision\n");
+ 		cachefiles_printk_object(object, xobject);
+ 		BUG();
+ 	}
+@@ -241,9 +237,8 @@ wait_for_old_object:
+ 		}
+ 
+ 		if (timeout <= 0) {
+-			printk(KERN_ERR "\n");
+-			printk(KERN_ERR "CacheFiles: Error: Overlong"
+-			       " wait for old active object to go away\n");
++			pr_err("\n");
++			pr_err("CacheFiles: Error: Overlong wait for old active object to go away\n");
+ 			cachefiles_printk_object(object, xobject);
+ 			goto requeue;
+ 		}
+diff -puN fs/cachefiles/security.c~fs-cachefiles-convert-printk-to-pr_foo fs/cachefiles/security.c
+--- a/fs/cachefiles/security.c~fs-cachefiles-convert-printk-to-pr_foo
++++ a/fs/cachefiles/security.c
+@@ -34,9 +34,7 @@ int cachefiles_get_security_ID(struct ca
+ 		ret = set_security_override_from_ctx(new, cache->secctx);
+ 		if (ret < 0) {
+ 			put_cred(new);
+-			printk(KERN_ERR "CacheFiles:"
+-			       " Security denies permission to nominate"
+-			       " security context: error %d\n",
++			pr_err("CacheFiles: Security denies permission to nominate security context: error %d\n",
+ 			       ret);
+ 			goto error;
+ 		}
+@@ -59,16 +57,14 @@ static int cachefiles_check_cache_dir(st
+ 
+ 	ret = security_inode_mkdir(root->d_inode, root, 0);
+ 	if (ret < 0) {
+-		printk(KERN_ERR "CacheFiles:"
+-		       " Security denies permission to make dirs: error %d",
++		pr_err("CacheFiles: Security denies permission to make dirs: error %d",
+ 		       ret);
+ 		return ret;
  	}
  
+ 	ret = security_inode_create(root->d_inode, root, 0);
+ 	if (ret < 0)
+-		printk(KERN_ERR "CacheFiles:"
+-		       " Security denies permission to create files: error %d",
++		pr_err("CacheFiles: Security denies permission to create files: error %d",
+ 		       ret);
+ 
+ 	return ret;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
