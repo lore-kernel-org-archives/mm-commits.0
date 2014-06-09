@@ -1,174 +1,426 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-rtc-rtc-ds1343c-fix-potential-race-condition.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:29:57 -0700
-Message-ID: <53960b35.X8iz76YHSynA+QRS%akpm@linux-foundation.org>
+Subject: [merged] rtc-da9063-rtc-driver.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:30:07 -0700
+Message-ID: <53960b3f.oGujbCYO5XoNmFLL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53803 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53814 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753875AbaFIT35 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:29:57 -0400
+	with ESMTP id S1753875AbaFITaI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:30:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, a.zummo@towertech.it, ravi23ganiga@gmail.com
+To: mm-commits@vger.kernel.org, sameo@linux.intel.com, p.zabel@pengutronix.de, lee.jones@linaro.org, david.chen@diasemi.com, broonie@linaro.org, a.zummo@towertech.it, stwiss.opensource@diasemi.com
 
-Subject: [merged] drivers-rtc-rtc-ds1343c-fix-potential-race-condition.patch removed from -mm tree
-To: ravi23ganiga@gmail.com,a.zummo@towertech.it,mm-commits@vger.kernel.org
+Subject: [merged] rtc-da9063-rtc-driver.patch removed from -mm tree
+To: stwiss.opensource@diasemi.com,a.zummo@towertech.it,broonie@linaro.org,david.chen@diasemi.com,lee.jones@linaro.org,p.zabel@pengutronix.de,sameo@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:29:57 -0700
+Date: Mon, 09 Jun 2014 12:30:07 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1343.c: fix potential race condition
+     Subject: rtc: da9063: RTC driver
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-ds1343c-fix-potential-race-condition.patch
+     rtc-da9063-rtc-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Raghavendra Ganiga <ravi23ganiga@gmail.com>
-Subject: drivers/rtc/rtc-ds1343.c: fix potential race condition
+From: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
+Subject: rtc: da9063: RTC driver
 
-Avoid the potential race condition by avoiding bailing out of driver in
-probe after registering with rtc subsystem
+Add the RTC driver for DA9063.
 
-Also the set_alarm , read_alarm and alarm_irq_enable returns error if irq
-registration fails in probe.
-
-Also the sysfs will not create entry for alarm if irq registration fails
-in probe.
-
-Signed-off-by: Raghavendra Chandra Ganiga <ravi23ganiga@gmail.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+[akpm@linux-foundation.org: coding-style tweaks]
+Signed-off-by: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Mark Brown <broonie@linaro.org>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: David Dajun Chen <david.chen@diasemi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1343.c |   38 +++++++++++++++++++++++--------------
- 1 file changed, 24 insertions(+), 14 deletions(-)
+ drivers/rtc/Kconfig      |   10 +
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-da9063.c |  333 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 344 insertions(+)
 
-diff -puN drivers/rtc/rtc-ds1343.c~drivers-rtc-rtc-ds1343c-fix-potential-race-condition drivers/rtc/rtc-ds1343.c
---- a/drivers/rtc/rtc-ds1343.c~drivers-rtc-rtc-ds1343c-fix-potential-race-condition
-+++ a/drivers/rtc/rtc-ds1343.c
-@@ -80,6 +80,7 @@ struct ds1343_priv {
- 	struct regmap *map;
- 	struct mutex mutex;
- 	unsigned int irqen;
-+	int irq;
- 	int alarm_sec;
- 	int alarm_min;
- 	int alarm_hour;
-@@ -262,28 +263,32 @@ static DEVICE_ATTR(trickle_charger, S_IR
+diff -puN drivers/rtc/Kconfig~rtc-da9063-rtc-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-da9063-rtc-driver
++++ a/drivers/rtc/Kconfig
+@@ -777,6 +777,16 @@ config RTC_DRV_DA9055
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-da9055
  
- static int ds1343_sysfs_register(struct device *dev)
- {
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
- 	int err;
- 
- 	err = device_create_file(dev, &dev_attr_glitch_filter);
- 	if (err)
- 		return err;
- 
--	err = device_create_file(dev, &dev_attr_alarm_status);
-+	err = device_create_file(dev, &dev_attr_trickle_charger);
- 	if (err)
- 		goto error1;
- 
-+	if (priv->irq <= 0)
-+		return err;
++config RTC_DRV_DA9063
++	tristate "Dialog Semiconductor DA9063 RTC"
++	depends on MFD_DA9063
++	help
++	  If you say yes here you will get support for the RTC subsystem
++	  of the Dialog Semiconductor DA9063.
 +
- 	err = device_create_file(dev, &dev_attr_alarm_mode);
- 	if (err)
- 		goto error2;
- 
--	err = device_create_file(dev, &dev_attr_trickle_charger);
-+	err = device_create_file(dev, &dev_attr_alarm_status);
- 	if (!err)
- 		return err;
- 
- 	device_remove_file(dev, &dev_attr_alarm_mode);
- 
- error2:
--	device_remove_file(dev, &dev_attr_alarm_status);
-+	device_remove_file(dev, &dev_attr_trickle_charger);
- 
- error1:
- 	device_remove_file(dev, &dev_attr_glitch_filter);
-@@ -293,10 +298,16 @@ error1:
- 
- static void ds1343_sysfs_unregister(struct device *dev)
- {
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
++	  This driver can also be built as a module. If so, the module
++	  will be called "rtc-da9063".
 +
- 	device_remove_file(dev, &dev_attr_glitch_filter);
-+	device_remove_file(dev, &dev_attr_trickle_charger);
+ config RTC_DRV_EFI
+ 	tristate "EFI RTC"
+ 	depends on IA64
+diff -puN drivers/rtc/Makefile~rtc-da9063-rtc-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-da9063-rtc-driver
++++ a/drivers/rtc/Makefile
+@@ -32,6 +32,7 @@ obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
+ obj-$(CONFIG_RTC_DRV_COH901331)	+= rtc-coh901331.o
+ obj-$(CONFIG_RTC_DRV_DA9052)	+= rtc-da9052.o
+ obj-$(CONFIG_RTC_DRV_DA9055)	+= rtc-da9055.o
++obj-$(CONFIG_RTC_DRV_DA9063)	+= rtc-da9063.o
+ obj-$(CONFIG_RTC_DRV_DAVINCI)	+= rtc-davinci.o
+ obj-$(CONFIG_RTC_DRV_DM355EVM)	+= rtc-dm355evm.o
+ obj-$(CONFIG_RTC_DRV_VRTC)	+= rtc-mrst.o
+diff -puN /dev/null drivers/rtc/rtc-da9063.c
+--- /dev/null
++++ a/drivers/rtc/rtc-da9063.c
+@@ -0,0 +1,333 @@
++/* rtc-da9063.c - Real time clock device driver for DA9063
++ * Copyright (C) 2013-14  Dialog Semiconductor Ltd.
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Library General Public License for more details.
++ */
 +
-+	if (priv->irq <= 0)
-+		return;
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/rtc.h>
++#include <linux/slab.h>
++#include <linux/delay.h>
++#include <linux/regmap.h>
++#include <linux/mfd/da9063/registers.h>
++#include <linux/mfd/da9063/core.h>
 +
- 	device_remove_file(dev, &dev_attr_alarm_status);
- 	device_remove_file(dev, &dev_attr_alarm_mode);
--	device_remove_file(dev, &dev_attr_trickle_charger);
- }
- 
- static int ds1343_read_time(struct device *dev, struct rtc_time *dt)
-@@ -415,11 +426,10 @@ static int ds1343_update_alarm(struct de
- static int ds1343_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
- {
- 	struct ds1343_priv *priv = dev_get_drvdata(dev);
--	struct spi_device *spi = priv->spi;
- 	int res = 0;
- 	unsigned int stat;
- 
--	if (spi->irq <= 0)
-+	if (priv->irq <= 0)
- 		return -EINVAL;
- 
- 	mutex_lock(&priv->mutex);
-@@ -450,10 +460,9 @@ out:
- static int ds1343_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
- {
- 	struct ds1343_priv *priv = dev_get_drvdata(dev);
--	struct spi_device *spi = priv->spi;
- 	int res = 0;
- 
--	if (spi->irq <= 0)
-+	if (priv->irq <= 0)
- 		return -EINVAL;
- 
- 	mutex_lock(&priv->mutex);
-@@ -476,10 +485,9 @@ static int ds1343_set_alarm(struct devic
- static int ds1343_alarm_irq_enable(struct device *dev, unsigned int enabled)
- {
- 	struct ds1343_priv *priv = dev_get_drvdata(dev);
--	struct spi_device *spi = priv->spi;
- 	int res = 0;
- 
--	if (spi->irq <= 0)
-+	if (priv->irq <= 0)
- 		return -EINVAL;
- 
- 	mutex_lock(&priv->mutex);
-@@ -593,18 +601,20 @@ static int ds1343_probe(struct spi_devic
- 		return PTR_ERR(priv->rtc);
- 	}
- 
--	if (spi->irq >= 0) {
-+	priv->irq = spi->irq;
++#define YEARS_TO_DA9063(year)		((year) - 100)
++#define MONTHS_TO_DA9063(month)		((month) + 1)
++#define YEARS_FROM_DA9063(year)		((year) + 100)
++#define MONTHS_FROM_DA9063(month)	((month) - 1)
 +
-+	if (priv->irq >= 0) {
- 		res = devm_request_threaded_irq(&spi->dev, spi->irq, NULL,
- 						ds1343_thread,
- 						IRQF_NO_SUSPEND | IRQF_ONESHOT,
- 						"ds1343", priv);
- 		if (res) {
-+			priv->irq = -1;
- 			dev_err(&spi->dev,
- 				"unable to request irq for rtc ds1343\n");
--			return res;
-+		} else {
-+			device_set_wakeup_capable(&spi->dev, 1);
- 		}
++#define RTC_DATA_LEN	(DA9063_REG_COUNT_Y - DA9063_REG_COUNT_S + 1)
++#define RTC_SEC		0
++#define RTC_MIN		1
++#define RTC_HOUR	2
++#define RTC_DAY		3
++#define RTC_MONTH	4
++#define RTC_YEAR	5
++
++struct da9063_rtc {
++	struct rtc_device	*rtc_dev;
++	struct da9063		*hw;
++	struct rtc_time		alarm_time;
++	bool			rtc_sync;
++};
++
++static void da9063_data_to_tm(u8 *data, struct rtc_time *tm)
++{
++	tm->tm_sec  = data[RTC_SEC]  & DA9063_COUNT_SEC_MASK;
++	tm->tm_min  = data[RTC_MIN]  & DA9063_COUNT_MIN_MASK;
++	tm->tm_hour = data[RTC_HOUR] & DA9063_COUNT_HOUR_MASK;
++	tm->tm_mday = data[RTC_DAY]  & DA9063_COUNT_DAY_MASK;
++	tm->tm_mon  = MONTHS_FROM_DA9063(data[RTC_MONTH] &
++					 DA9063_COUNT_MONTH_MASK);
++	tm->tm_year = YEARS_FROM_DA9063(data[RTC_YEAR] &
++					DA9063_COUNT_YEAR_MASK);
++}
++
++static void da9063_tm_to_data(struct rtc_time *tm, u8 *data)
++{
++	data[RTC_SEC] &= ~DA9063_COUNT_SEC_MASK;
++	data[RTC_SEC] |= tm->tm_sec & DA9063_COUNT_SEC_MASK;
++
++	data[RTC_MIN] &= ~DA9063_COUNT_MIN_MASK;
++	data[RTC_MIN] |= tm->tm_min & DA9063_COUNT_MIN_MASK;
++
++	data[RTC_HOUR] &= ~DA9063_COUNT_HOUR_MASK;
++	data[RTC_HOUR] |= tm->tm_hour & DA9063_COUNT_HOUR_MASK;
++
++	data[RTC_DAY] &= ~DA9063_COUNT_DAY_MASK;
++	data[RTC_DAY] |= tm->tm_mday & DA9063_COUNT_DAY_MASK;
++
++	data[RTC_MONTH] &= ~DA9063_COUNT_MONTH_MASK;
++	data[RTC_MONTH] |= MONTHS_TO_DA9063(tm->tm_mon) &
++				DA9063_COUNT_MONTH_MASK;
++
++	data[RTC_YEAR] &= ~DA9063_COUNT_YEAR_MASK;
++	data[RTC_YEAR] |= YEARS_TO_DA9063(tm->tm_year) &
++				DA9063_COUNT_YEAR_MASK;
++}
++
++static int da9063_rtc_stop_alarm(struct device *dev)
++{
++	struct da9063_rtc *rtc = dev_get_drvdata(dev);
++
++	return regmap_update_bits(rtc->hw->regmap, DA9063_REG_ALARM_Y,
++				  DA9063_ALARM_ON, 0);
++}
++
++static int da9063_rtc_start_alarm(struct device *dev)
++{
++	struct da9063_rtc *rtc = dev_get_drvdata(dev);
++
++	return regmap_update_bits(rtc->hw->regmap, DA9063_REG_ALARM_Y,
++				  DA9063_ALARM_ON, DA9063_ALARM_ON);
++}
++
++static int da9063_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct da9063_rtc *rtc = dev_get_drvdata(dev);
++	unsigned long tm_secs;
++	unsigned long al_secs;
++	u8 data[RTC_DATA_LEN];
++	int ret;
++
++	ret = regmap_bulk_read(rtc->hw->regmap, DA9063_REG_COUNT_S,
++			       data, RTC_DATA_LEN);
++	if (ret < 0) {
++		dev_err(dev, "Failed to read RTC time data: %d\n", ret);
++		return ret;
++	}
++
++	if (!(data[RTC_SEC] & DA9063_RTC_READ)) {
++		dev_dbg(dev, "RTC not yet ready to be read by the host\n");
++		return -EINVAL;
++	}
++
++	da9063_data_to_tm(data, tm);
++
++	rtc_tm_to_time(tm, &tm_secs);
++	rtc_tm_to_time(&rtc->alarm_time, &al_secs);
++
++	/* handle the rtc synchronisation delay */
++	if (rtc->rtc_sync == true && al_secs - tm_secs == 1)
++		memcpy(tm, &rtc->alarm_time, sizeof(struct rtc_time));
++	else
++		rtc->rtc_sync = false;
++
++	return rtc_valid_tm(tm);
++}
++
++static int da9063_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct da9063_rtc *rtc = dev_get_drvdata(dev);
++	u8 data[RTC_DATA_LEN];
++	int ret;
++
++	da9063_tm_to_data(tm, data);
++	ret = regmap_bulk_write(rtc->hw->regmap, DA9063_REG_COUNT_S,
++				data, RTC_DATA_LEN);
++	if (ret < 0)
++		dev_err(dev, "Failed to set RTC time data: %d\n", ret);
++
++	return ret;
++}
++
++static int da9063_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct da9063_rtc *rtc = dev_get_drvdata(dev);
++	u8 data[RTC_DATA_LEN];
++	int ret;
++	unsigned int val;
++
++	ret = regmap_bulk_read(rtc->hw->regmap, DA9063_REG_ALARM_S,
++			       &data[RTC_SEC], RTC_DATA_LEN);
++	if (ret < 0)
++		return ret;
++
++	da9063_data_to_tm(data, &alrm->time);
++
++	alrm->enabled = !!(data[RTC_YEAR] & DA9063_ALARM_ON);
++
++	ret = regmap_read(rtc->hw->regmap, DA9063_REG_EVENT_A, &val);
++	if (ret < 0)
++		return ret;
++
++	if (val & (DA9063_E_ALARM))
++		alrm->pending = 1;
++	else
++		alrm->pending = 0;
++
++	return 0;
++}
++
++static int da9063_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct da9063_rtc *rtc = dev_get_drvdata(dev);
++	u8 data[RTC_DATA_LEN];
++	int ret;
++
++	da9063_tm_to_data(&alrm->time, data);
++
++	ret = da9063_rtc_stop_alarm(dev);
++	if (ret < 0) {
++		dev_err(dev, "Failed to stop alarm: %d\n", ret);
++		return ret;
++	}
++
++	ret = regmap_bulk_write(rtc->hw->regmap, DA9063_REG_ALARM_S,
++				data, RTC_DATA_LEN);
++	if (ret < 0) {
++		dev_err(dev, "Failed to write alarm: %d\n", ret);
++		return ret;
++	}
++
++	rtc->alarm_time = alrm->time;
++
++	if (alrm->enabled) {
++		ret = da9063_rtc_start_alarm(dev);
++		if (ret < 0) {
++			dev_err(dev, "Failed to start alarm: %d\n", ret);
++			return ret;
++		}
++	}
++
++	return ret;
++}
++
++static int da9063_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
++{
++	if (enabled)
++		return da9063_rtc_start_alarm(dev);
++	else
++		return da9063_rtc_stop_alarm(dev);
++}
++
++static irqreturn_t da9063_alarm_event(int irq, void *data)
++{
++	struct da9063_rtc *rtc = data;
++
++	regmap_update_bits(rtc->hw->regmap, DA9063_REG_ALARM_Y,
++			   DA9063_ALARM_ON, 0);
++
++	rtc->rtc_sync = true;
++	rtc_update_irq(rtc->rtc_dev, 1, RTC_IRQF | RTC_AF);
++
++	return IRQ_HANDLED;
++}
++
++static const struct rtc_class_ops da9063_rtc_ops = {
++	.read_time = da9063_rtc_read_time,
++	.set_time = da9063_rtc_set_time,
++	.read_alarm = da9063_rtc_read_alarm,
++	.set_alarm = da9063_rtc_set_alarm,
++	.alarm_irq_enable = da9063_rtc_alarm_irq_enable,
++};
++
++static int da9063_rtc_probe(struct platform_device *pdev)
++{
++	struct da9063 *da9063 = dev_get_drvdata(pdev->dev.parent);
++	struct da9063_rtc *rtc;
++	int irq_alarm;
++	u8 data[RTC_DATA_LEN];
++	int ret;
++
++	ret = regmap_update_bits(da9063->regmap, DA9063_REG_CONTROL_E,
++				 DA9063_RTC_EN, DA9063_RTC_EN);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to enable RTC\n");
++		goto err;
++	}
++
++	ret = regmap_update_bits(da9063->regmap, DA9063_REG_EN_32K,
++				 DA9063_CRYSTAL, DA9063_CRYSTAL);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to run 32kHz oscillator\n");
++		goto err;
++	}
++
++	ret = regmap_update_bits(da9063->regmap, DA9063_REG_ALARM_S,
++			DA9063_ALARM_STATUS_TICK | DA9063_ALARM_STATUS_ALARM,
++			0);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to access RTC alarm register\n");
++		goto err;
++	}
++
++	ret = regmap_update_bits(da9063->regmap, DA9063_REG_ALARM_S,
++				 DA9063_ALARM_STATUS_ALARM,
++				 DA9063_ALARM_STATUS_ALARM);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to access RTC alarm register\n");
++		goto err;
++	}
++
++	ret = regmap_update_bits(da9063->regmap, DA9063_REG_ALARM_Y,
++				 DA9063_TICK_ON, 0);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to disable TICKs\n");
++		goto err;
++	}
++
++	ret = regmap_bulk_read(da9063->regmap, DA9063_REG_ALARM_S,
++			       data, RTC_DATA_LEN);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to read initial alarm data: %d\n",
++			ret);
++		goto err;
++	}
++
++	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
++	if (!rtc)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, rtc);
++
++	irq_alarm = platform_get_irq_byname(pdev, "ALARM");
++	ret = devm_request_threaded_irq(&pdev->dev, irq_alarm, NULL,
++					da9063_alarm_event,
++					IRQF_TRIGGER_LOW | IRQF_ONESHOT,
++					"ALARM", rtc);
++	if (ret) {
++		dev_err(&pdev->dev, "Failed to request ALARM IRQ %d: %d\n",
++			irq_alarm, ret);
++		goto err;
++	}
++
++	rtc->hw = da9063;
++	rtc->rtc_dev = devm_rtc_device_register(&pdev->dev, DA9063_DRVNAME_RTC,
++					   &da9063_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc->rtc_dev))
++		return PTR_ERR(rtc->rtc_dev);
++
++	da9063_data_to_tm(data, &rtc->alarm_time);
++	rtc->rtc_sync = false;
++err:
++	return ret;
++}
++
++static struct platform_driver da9063_rtc_driver = {
++	.probe		= da9063_rtc_probe,
++	.driver		= {
++		.name	= DA9063_DRVNAME_RTC,
++		.owner	= THIS_MODULE,
++	},
++};
++
++module_platform_driver(da9063_rtc_driver);
++
++MODULE_AUTHOR("S Twiss <stwiss.opensource@diasemi.com>");
++MODULE_DESCRIPTION("Real time clock device driver for Dialog DA9063");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:" DA9063_DRVNAME_RTC);
+_
+
+Patches currently in -mm which might be from stwiss.opensource@diasemi.com are
+
+origin.patch
+
