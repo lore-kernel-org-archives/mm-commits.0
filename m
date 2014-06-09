@@ -1,166 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-coda-logging-prefix-uniformization.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:31:27 -0700
-Message-ID: <53960b8f.YTqF9/dVcHV0eOrE%akpm@linux-foundation.org>
+Subject: [merged]
+ hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:31:37 -0700
+Message-ID: <53960b99.sTH1pOu54OEfwklW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53884 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53890 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750822AbaFITb2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:31:28 -0400
+	with ESMTP id S1751214AbaFITbi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:31:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, jaharkes@cs.cmu.edu, fabf@skynet.be
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, sougata@tuxera.com, slava@dubeyko.com, hch@infradead.org, anton@tuxera.com, htl10@users.sourceforge.net
 
-Subject: [merged] fs-coda-logging-prefix-uniformization.patch removed from -mm tree
-To: fabf@skynet.be,jaharkes@cs.cmu.edu,joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch removed from -mm tree
+To: htl10@users.sourceforge.net,anton@tuxera.com,hch@infradead.org,slava@dubeyko.com,sougata@tuxera.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:31:27 -0700
+Date: Mon, 09 Jun 2014 12:31:37 -0700
 
 
 The patch titled
-     Subject: fs/coda: logging prefix uniformization
+     Subject: hfsplus: fix worst-case unicode to char conversion of file names and attributes
 has been removed from the -mm tree.  Its filename was
-     fs-coda-logging-prefix-uniformization.patch
+     hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/coda: logging prefix uniformization
+From: Hin-Tak Leung <htl10@users.sourceforge.net>
+Subject: hfsplus: fix worst-case unicode to char conversion of file names and attributes
 
-- Add pr_fmt based on module name.
+This is a series of 3 patches which corrects issues in HFS+ concerning the
+use of non-english file names and attributes.  Names and attributes are
+stored internally as UTF-16 units up to a fixed maximum size, and convert
+to and from user-representation by NLS.  The code incorrectly assume that
+NLS string lengths are equal to unicode lengths, which is only true for
+English ascii usage.
 
-- Remove Coda: coda: from pr_foo()
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Jan Harkes <jaharkes@cs.cmu.edu>
-Cc: Joe Perches <joe@perches.com>
+This patch (of 3):
+
+The HFS Plus Volume Format specification (TN1150) states that file names
+are stored internally as a maximum of 255 unicode characters, as defined
+by The Unicode Standard, Version 2.0 [Unicode, Inc.  ISBN 0-201-48345-9]. 
+File names are converted by the NLS system on Linux before presented to
+the user.
+
+255 CJK characters converts to UTF-8 with 1 unicode character to up to 3
+bytes, and to GB18030 with 1 unicode character to up to 4 bytes.  Thus,
+trying in a UTF-8 locale to list files with names of more than 85 CJK
+characters results in:
+
+    $ ls /mnt
+    ls: reading directory /mnt: File name too long
+
+The receiving buffer to hfsplus_uni2asc() needs to be 255 x
+NLS_MAX_CHARSET_SIZE bytes, not 255 bytes as the code has always been.
+
+Similar consideration applies to attributes, which are stored internally
+as a maximum of 127 UTF-16BE units.  See XNU source for an up-to-date
+reference on attributes.
+
+Strictly speaking, the maximum value of NLS_MAX_CHARSET_SIZE = 6 is not
+attainable in the case of conversion to UTF-8, as going beyond 3 bytes
+requires the use of surrogate pairs, i.e.  consuming two input units.
+
+Thanks Anton Altaparmakov for reviewing an earlier version of this change.
+
+This patch fixes all callers of hfsplus_uni2asc(), and also enables the
+use of long non-English file names in HFS+.  The getting and setting, and
+general usage of long non-English attributes requires further forthcoming
+work, in the following patches of this series.
+
+[akpm@linux-foundation.org: fix build]
+Signed-off-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Reviewed-by: Anton Altaparmakov <anton@tuxera.com>
+Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Sougata Santra <sougata@tuxera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/coda_linux.h |    6 ++++++
- fs/coda/dir.c        |    2 +-
- fs/coda/inode.c      |    2 +-
- fs/coda/psdev.c      |    6 +++---
- fs/coda/upcall.c     |    6 +++---
- 5 files changed, 14 insertions(+), 8 deletions(-)
+ fs/hfsplus/dir.c   |   11 +++++++++--
+ fs/hfsplus/xattr.c |   15 ++++++++++++---
+ 2 files changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN fs/coda/coda_linux.h~fs-coda-logging-prefix-uniformization fs/coda/coda_linux.h
---- a/fs/coda/coda_linux.h~fs-coda-logging-prefix-uniformization
-+++ a/fs/coda/coda_linux.h
-@@ -12,6 +12,12 @@
- #ifndef _LINUX_CODA_FS
- #define _LINUX_CODA_FS
+diff -puN fs/hfsplus/dir.c~hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes fs/hfsplus/dir.c
+--- a/fs/hfsplus/dir.c~hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes
++++ a/fs/hfsplus/dir.c
+@@ -12,6 +12,7 @@
+ #include <linux/fs.h>
+ #include <linux/slab.h>
+ #include <linux/random.h>
++#include <linux/nls.h>
  
-+#ifdef pr_fmt
-+#undef pr_fmt
-+#endif
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/kernel.h>
- #include <linux/param.h>
- #include <linux/mm.h>
-diff -puN fs/coda/dir.c~fs-coda-logging-prefix-uniformization fs/coda/dir.c
---- a/fs/coda/dir.c~fs-coda-logging-prefix-uniformization
-+++ a/fs/coda/dir.c
-@@ -589,7 +589,7 @@ int coda_revalidate_inode(struct inode *
- 		coda_vattr_to_iattr(inode, &attr);
- 
- 		if ((old_mode & S_IFMT) != (inode->i_mode & S_IFMT)) {
--			pr_warn("Coda: inode %ld, fid %s changed type!\n",
-+			pr_warn("inode %ld, fid %s changed type!\n",
- 				inode->i_ino, coda_f2s(&(cii->c_fid)));
- 		}
- 
-diff -puN fs/coda/inode.c~fs-coda-logging-prefix-uniformization fs/coda/inode.c
---- a/fs/coda/inode.c~fs-coda-logging-prefix-uniformization
-+++ a/fs/coda/inode.c
-@@ -247,7 +247,7 @@ static void coda_put_super(struct super_
- 	sb->s_fs_info = NULL;
- 	mutex_unlock(&vcp->vc_mutex);
- 
--	pr_info("Coda: Bye bye.\n");
-+	pr_info("Bye bye.\n");
- }
- 
- static void coda_evict_inode(struct inode *inode)
-diff -puN fs/coda/psdev.c~fs-coda-logging-prefix-uniformization fs/coda/psdev.c
---- a/fs/coda/psdev.c~fs-coda-logging-prefix-uniformization
-+++ a/fs/coda/psdev.c
-@@ -120,7 +120,7 @@ static ssize_t coda_psdev_write(struct f
+ #include "hfsplus_fs.h"
+ #include "hfsplus_raw.h"
+@@ -127,7 +128,7 @@ static int hfsplus_readdir(struct file *
+ 	struct inode *inode = file_inode(file);
+ 	struct super_block *sb = inode->i_sb;
+ 	int len, err;
+-	char strbuf[HFSPLUS_MAX_STRLEN + 1];
++	char *strbuf;
+ 	hfsplus_cat_entry entry;
+ 	struct hfs_find_data fd;
+ 	struct hfsplus_readdir_data *rd;
+@@ -139,6 +140,11 @@ static int hfsplus_readdir(struct file *
+ 	err = hfs_find_init(HFSPLUS_SB(sb)->cat_tree, &fd);
+ 	if (err)
+ 		return err;
++	strbuf = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_MAX_STRLEN + 1, GFP_KERNEL);
++	if (!strbuf) {
++		err = -ENOMEM;
++		goto out;
++	}
+ 	hfsplus_cat_build_key(sb, fd.search_key, inode->i_ino, NULL);
+ 	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
+ 	if (err)
+@@ -193,7 +199,7 @@ static int hfsplus_readdir(struct file *
+ 		hfs_bnode_read(fd.bnode, &entry, fd.entryoffset,
+ 			fd.entrylength);
+ 		type = be16_to_cpu(entry.type);
+-		len = HFSPLUS_MAX_STRLEN;
++		len = NLS_MAX_CHARSET_SIZE * HFSPLUS_MAX_STRLEN;
+ 		err = hfsplus_uni2asc(sb, &fd.key->cat.name, strbuf, &len);
+ 		if (err)
  			goto out;
- 		}
- 		if ( nbytes > size ) {
--			pr_warn("Coda: downcall opc %d, uniq %d, too much!",
-+			pr_warn("downcall opc %d, uniq %d, too much!",
- 				hdr.opcode, hdr.unique);
- 		        nbytes = size;
- 		}
-@@ -400,7 +400,7 @@ static int __init init_coda(void)
- 	
- 	status = register_filesystem(&coda_fs_type);
- 	if (status) {
--		pr_warn("coda: failed to register filesystem!\n");
-+		pr_warn("failed to register filesystem!\n");
- 		goto out;
+@@ -246,6 +252,7 @@ next:
  	}
- 	return 0;
-@@ -422,7 +422,7 @@ static void __exit exit_coda(void)
+ 	memcpy(&rd->key, fd.key, sizeof(struct hfsplus_cat_key));
+ out:
++	kfree(strbuf);
+ 	hfs_find_exit(&fd);
+ 	return err;
+ }
+diff -puN fs/hfsplus/xattr.c~hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes fs/hfsplus/xattr.c
+--- a/fs/hfsplus/xattr.c~hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes
++++ a/fs/hfsplus/xattr.c
+@@ -8,6 +8,7 @@
  
- 	err = unregister_filesystem(&coda_fs_type);
- 	if (err != 0)
--		pr_warn("coda: failed to unregister filesystem\n");
-+		pr_warn("failed to unregister filesystem\n");
- 	for (i = 0; i < MAX_CODADEVS; i++)
- 		device_destroy(coda_psdev_class, MKDEV(CODA_PSDEV_MAJOR, i));
- 	class_destroy(coda_psdev_class);
-diff -puN fs/coda/upcall.c~fs-coda-logging-prefix-uniformization fs/coda/upcall.c
---- a/fs/coda/upcall.c~fs-coda-logging-prefix-uniformization
-+++ a/fs/coda/upcall.c
-@@ -675,7 +675,7 @@ static int coda_upcall(struct venus_comm
- 	mutex_lock(&vcp->vc_mutex);
+ #include "hfsplus_fs.h"
+ #include <linux/posix_acl_xattr.h>
++#include <linux/nls.h>
+ #include "xattr.h"
+ #include "acl.h"
  
- 	if (!vcp->vc_inuse) {
--		pr_notice("coda: Venus dead, not sending upcall\n");
-+		pr_notice("Venus dead, not sending upcall\n");
- 		error = -ENXIO;
- 		goto exit;
- 	}
-@@ -725,7 +725,7 @@ static int coda_upcall(struct venus_comm
+@@ -645,8 +646,7 @@ ssize_t hfsplus_listxattr(struct dentry
+ 	struct hfs_find_data fd;
+ 	u16 key_len = 0;
+ 	struct hfsplus_attr_key attr_key;
+-	char strbuf[HFSPLUS_ATTR_MAX_STRLEN +
+-			XATTR_MAC_OSX_PREFIX_LEN + 1] = {0};
++	char *strbuf;
+ 	int xattr_name_len;
  
- 	error = -EINTR;
- 	if ((req->uc_flags & CODA_REQ_ABORT) || !signal_pending(current)) {
--		pr_warn("coda: Unexpected interruption.\n");
-+		pr_warn("Unexpected interruption.\n");
- 		goto exit;
+ 	if ((!S_ISREG(inode->i_mode) &&
+@@ -666,6 +666,13 @@ ssize_t hfsplus_listxattr(struct dentry
+ 		return err;
  	}
  
-@@ -735,7 +735,7 @@ static int coda_upcall(struct venus_comm
++	strbuf = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN +
++			XATTR_MAC_OSX_PREFIX_LEN + 1, GFP_KERNEL);
++	if (!strbuf) {
++		res = -ENOMEM;
++		goto out;
++	}
++
+ 	err = hfsplus_find_attr(inode->i_sb, inode->i_ino, NULL, &fd);
+ 	if (err) {
+ 		if (err == -ENOENT) {
+@@ -692,7 +699,7 @@ ssize_t hfsplus_listxattr(struct dentry
+ 		if (be32_to_cpu(attr_key.cnid) != inode->i_ino)
+ 			goto end_listxattr;
  
- 	/* Venus saw the upcall, make sure we can send interrupt signal */
- 	if (!vcp->vc_inuse) {
--		pr_info("coda: Venus dead, not sending signal.\n");
-+		pr_info("Venus dead, not sending signal.\n");
- 		goto exit;
+-		xattr_name_len = HFSPLUS_ATTR_MAX_STRLEN;
++		xattr_name_len = NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN;
+ 		if (hfsplus_uni2asc(inode->i_sb,
+ 			(const struct hfsplus_unistr *)&fd.key->attr.key_name,
+ 					strbuf, &xattr_name_len)) {
+@@ -718,6 +725,8 @@ ssize_t hfsplus_listxattr(struct dentry
  	}
  
+ end_listxattr:
++	kfree(strbuf);
++out:
+ 	hfs_find_exit(&fd);
+ 	return res;
+ }
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from htl10@users.sourceforge.net are
 
 origin.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-isofs-logging-clean-up.patch
-linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
 
