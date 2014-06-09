@@ -1,93 +1,94 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height.patch
+ idr-fix-null-pointer-dereference-when-ida_removeunallocated_id.patch
  removed from -mm tree
-Date: Mon, 09 Jun 2014 12:34:57 -0700
-Message-ID: <53960c61.ttNvTb1RN530qnM/%akpm__36115.2083882645$1402342518$gmane$org@linux-foundation.org>
+Date: Mon, 09 Jun 2014 12:35:07 -0700
+Message-ID: <53960c6b.QUYBb8AkK6I6BoS4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54123 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753735AbaFITe6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:34:58 -0400
+	with ESMTP id S1750878AbaFITfI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:35:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, stable@vger.kernel.org, laijs@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, laijs@cn.fujitsu.com
 
-Subject: [merged] idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height.patch removed from -mm tree
-To: laijs@cn.fujitsu.com,stable@vger.kernel.org,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] idr-fix-null-pointer-dereference-when-ida_removeunallocated_id.patch removed from -mm tree
+To: laijs@cn.fujitsu.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:34:57 -0700
+Date: Mon, 09 Jun 2014 12:35:07 -0700
 
 
 The patch titled
-     Subject: idr: fix overflow bug during maximum ID calculation at maximum height
+     Subject: idr: fix NULL pointer dereference when ida_remove(unallocated_id)
 has been removed from the -mm tree.  Its filename was
-     idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height.patch
+     idr-fix-null-pointer-dereference-when-ida_removeunallocated_id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: idr: fix overflow bug during maximum ID calculation at maximum height
+Subject: idr: fix NULL pointer dereference when ida_remove(unallocated_id)
 
-idr_replace() open-codes the logic to calculate the maximum valid ID given
-the height of the idr tree; unfortunately, the open-coded logic doesn't
-account for the fact that the top layer may have unused slots and
-over-shifts the limit to zero when the tree is at its maximum height.
+If the ida has at least one existing id, and when an unallocated ID which
+meets a certain condition is passed to the ida_remove(), the system will
+crash because it hits NULL pointer dereference.
 
-The following test code shows it fails to replace the value for
-id=((1<<27)+42):
+The condition is that the unallocated ID shares the same lowest idr layer
+with the existing ID, but the idr slot would be different if the
+unallocated ID were to be allocated.
 
-static void test5(void)
+In this case the matching idr slot for the unallocated_id is NULL, causing
+@bitmap to be NULL which the function dereferences without checking
+crashing the kernel.
+
+See the test code:
+
+static void test3(void)
 {
 	int id;
-	DEFINE_IDR(test_idr);
-#define TEST5_START ((1<<27)+42) /* use the highest layer */
+	DEFINE_IDA(test_ida);
 
-	printk(KERN_INFO "Start test5\n");
-	id = idr_alloc(&test_idr, (void *)1, TEST5_START, 0, GFP_KERNEL);
-	BUG_ON(id != TEST5_START);
-	TEST_BUG_ON(idr_replace(&test_idr, (void *)2, TEST5_START) != (void *)1);
-	idr_destroy(&test_idr);
-	printk(KERN_INFO "End of test5\n");
+	printk(KERN_INFO "Start test3\n");
+	if (ida_pre_get(&test_ida, GFP_KERNEL) < 0) return;
+	if (ida_get_new(&test_ida,  &id) < 0) return;
+	ida_remove(&test_ida, 4000); /* bug: null deference here */
+	printk(KERN_INFO "End of test3\n");
 }
 
-Fix the bug by using idr_max() which correctly takes into account the
-maximum allowed shift.
+It happens only when the caller tries to free an unallocated ID which is
+the caller's fault.  It is not a bug.  But it is better to add the proper
+check and complain rather than crashing the kernel.
 
-sub_alloc() shares the same problem and may incorrectly fail with -EAGAIN;
-however, this bug doesn't affect correct operation because
-idr_get_empty_slot(), which already uses idr_max(), retries with the
-increased @id in such cases.
-
-[tj@kernel.org: Updated patch description.]
+[tj@kernel.org: updated patch description]
 Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
 Acked-by: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ lib/idr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/idr.c~idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height lib/idr.c
---- a/lib/idr.c~idr-fix-overflow-bug-during-maximum-id-calculation-at-maximum-height
+diff -puN lib/idr.c~idr-fix-null-pointer-dereference-when-ida_removeunallocated_id lib/idr.c
+--- a/lib/idr.c~idr-fix-null-pointer-dereference-when-ida_removeunallocated_id
 +++ a/lib/idr.c
-@@ -249,7 +249,7 @@ static int sub_alloc(struct idr *idp, in
- 			id = (id | ((1 << (IDR_BITS * l)) - 1)) + 1;
+@@ -1048,7 +1048,7 @@ void ida_remove(struct ida *ida, int id)
+ 	__clear_bit(n, p->bitmap);
  
- 			/* if already at the top layer, we need to grow */
--			if (id >= 1 << (idp->layers * IDR_BITS)) {
-+			if (id > idr_max(idp->layers)) {
- 				*starting_id = id;
- 				return -EAGAIN;
- 			}
-@@ -811,12 +811,10 @@ void *idr_replace(struct idr *idp, void
- 	if (!p)
- 		return ERR_PTR(-EINVAL);
+ 	bitmap = (void *)p->ary[n];
+-	if (!test_bit(offset, bitmap->bitmap))
++	if (!bitmap || !test_bit(offset, bitmap->bitmap))
+ 		goto err;
  
--	n = (p->layer+1) * IDR_BITS;
+ 	/* update bitmap and remove it if empty */
+_
+
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+
+origin.patch
+linux-next.patch
+
