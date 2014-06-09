@@ -1,76 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- maintainers-add-linux-api-for-review-of-api-abi-changes.patch removed from
- -mm tree
-Date: Mon, 09 Jun 2014 12:41:26 -0700
-Message-ID: <53960de6.3LmbCl9xVcaMLVpK%akpm@linux-foundation.org>
+Subject: [merged] mm-kmemleak-testc-use-pr_fmt-for-logging.patch removed
+ from -mm tree
+Date: Mon, 09 Jun 2014 12:41:21 -0700
+Message-ID: <53960de1.R0gAFYpUgj4JhIZj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54389 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750805AbaFITl1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:41:27 -0400
+	with ESMTP id S1750805AbaFITlV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:41:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rostedt@goodmis.org, mtk.man-pages@gmail.com, joe@perches.com, gregkh@linuxfoundation.org, davem@davemloft.net, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, catalin.marinas@arm.com, fabf@skynet.be
 
-Subject: [merged] maintainers-add-linux-api-for-review-of-api-abi-changes.patch removed from -mm tree
-To: josh@joshtriplett.org,davem@davemloft.net,gregkh@linuxfoundation.org,joe@perches.com,mtk.man-pages@gmail.com,rostedt@goodmis.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-kmemleak-testc-use-pr_fmt-for-logging.patch removed from -mm tree
+To: fabf@skynet.be,catalin.marinas@arm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:41:26 -0700
+Date: Mon, 09 Jun 2014 12:41:21 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: add linux-api for review of API/ABI changes
+     Subject: mm/kmemleak-test.c: use pr_fmt for logging
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-linux-api-for-review-of-api-abi-changes.patch
+     mm-kmemleak-testc-use-pr_fmt-for-logging.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: MAINTAINERS: add linux-api for review of API/ABI changes
+From: Fabian Frederick <fabf@skynet.be>
+Subject: mm/kmemleak-test.c: use pr_fmt for logging
 
-This makes it more likely that patch submitters will CC API/ABI changes to
-the linux-api list, and tools like get_maintainer.pl will do so
-automatically.
-
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Michael Kerrisk <mtk.man-pages@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/kmemleak-test.c |   36 +++++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 17 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-linux-api-for-review-of-api-abi-changes MAINTAINERS
---- a/MAINTAINERS~maintainers-add-linux-api-for-review-of-api-abi-changes
-+++ a/MAINTAINERS
-@@ -210,6 +210,13 @@ S:	Supported
- F:	Documentation/scsi/aacraid.txt
- F:	drivers/scsi/aacraid/
+diff -puN mm/kmemleak-test.c~mm-kmemleak-testc-use-pr_fmt-for-logging mm/kmemleak-test.c
+--- a/mm/kmemleak-test.c~mm-kmemleak-testc-use-pr_fmt-for-logging
++++ a/mm/kmemleak-test.c
+@@ -18,6 +18,8 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
  
-+ABI/API
-+L:	linux-api@vger.kernel.org
-+F:	Documentation/ABI/
-+F:	include/linux/syscalls.h
-+F:	include/uapi/
-+F:	kernel/sys_ni.c
++#define pr_fmt(fmt) "kmemleak: " fmt
 +
- ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
- M:	Hans de Goede <hdegoede@redhat.com>
- L:	lm-sensors@lm-sensors.org
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -50,25 +52,25 @@ static int __init kmemleak_test_init(voi
+ 	printk(KERN_INFO "Kmemleak testing\n");
+ 
+ 	/* make some orphan objects */
+-	pr_info("kmemleak: kmalloc(32) = %p\n", kmalloc(32, GFP_KERNEL));
+-	pr_info("kmemleak: kmalloc(32) = %p\n", kmalloc(32, GFP_KERNEL));
+-	pr_info("kmemleak: kmalloc(1024) = %p\n", kmalloc(1024, GFP_KERNEL));
+-	pr_info("kmemleak: kmalloc(1024) = %p\n", kmalloc(1024, GFP_KERNEL));
+-	pr_info("kmemleak: kmalloc(2048) = %p\n", kmalloc(2048, GFP_KERNEL));
+-	pr_info("kmemleak: kmalloc(2048) = %p\n", kmalloc(2048, GFP_KERNEL));
+-	pr_info("kmemleak: kmalloc(4096) = %p\n", kmalloc(4096, GFP_KERNEL));
+-	pr_info("kmemleak: kmalloc(4096) = %p\n", kmalloc(4096, GFP_KERNEL));
++	pr_info("kmalloc(32) = %p\n", kmalloc(32, GFP_KERNEL));
++	pr_info("kmalloc(32) = %p\n", kmalloc(32, GFP_KERNEL));
++	pr_info("kmalloc(1024) = %p\n", kmalloc(1024, GFP_KERNEL));
++	pr_info("kmalloc(1024) = %p\n", kmalloc(1024, GFP_KERNEL));
++	pr_info("kmalloc(2048) = %p\n", kmalloc(2048, GFP_KERNEL));
++	pr_info("kmalloc(2048) = %p\n", kmalloc(2048, GFP_KERNEL));
++	pr_info("kmalloc(4096) = %p\n", kmalloc(4096, GFP_KERNEL));
++	pr_info("kmalloc(4096) = %p\n", kmalloc(4096, GFP_KERNEL));
+ #ifndef CONFIG_MODULES
+-	pr_info("kmemleak: kmem_cache_alloc(files_cachep) = %p\n",
++	pr_info("kmem_cache_alloc(files_cachep) = %p\n",
+ 		kmem_cache_alloc(files_cachep, GFP_KERNEL));
+-	pr_info("kmemleak: kmem_cache_alloc(files_cachep) = %p\n",
++	pr_info("kmem_cache_alloc(files_cachep) = %p\n",
+ 		kmem_cache_alloc(files_cachep, GFP_KERNEL));
+ #endif
+-	pr_info("kmemleak: vmalloc(64) = %p\n", vmalloc(64));
+-	pr_info("kmemleak: vmalloc(64) = %p\n", vmalloc(64));
+-	pr_info("kmemleak: vmalloc(64) = %p\n", vmalloc(64));
+-	pr_info("kmemleak: vmalloc(64) = %p\n", vmalloc(64));
+-	pr_info("kmemleak: vmalloc(64) = %p\n", vmalloc(64));
++	pr_info("vmalloc(64) = %p\n", vmalloc(64));
++	pr_info("vmalloc(64) = %p\n", vmalloc(64));
++	pr_info("vmalloc(64) = %p\n", vmalloc(64));
++	pr_info("vmalloc(64) = %p\n", vmalloc(64));
++	pr_info("vmalloc(64) = %p\n", vmalloc(64));
+ 
+ 	/*
+ 	 * Add elements to a list. They should only appear as orphan
+@@ -76,7 +78,7 @@ static int __init kmemleak_test_init(voi
+ 	 */
+ 	for (i = 0; i < 10; i++) {
+ 		elem = kzalloc(sizeof(*elem), GFP_KERNEL);
+-		pr_info("kmemleak: kzalloc(sizeof(*elem)) = %p\n", elem);
++		pr_info("kzalloc(sizeof(*elem)) = %p\n", elem);
+ 		if (!elem)
+ 			return -ENOMEM;
+ 		INIT_LIST_HEAD(&elem->list);
+@@ -85,7 +87,7 @@ static int __init kmemleak_test_init(voi
+ 
+ 	for_each_possible_cpu(i) {
+ 		per_cpu(kmemleak_test_pointer, i) = kmalloc(129, GFP_KERNEL);
+-		pr_info("kmemleak: kmalloc(129) = %p\n",
++		pr_info("kmalloc(129) = %p\n",
+ 			per_cpu(kmemleak_test_pointer, i));
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-isofs-logging-clean-up.patch
 linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
