@@ -1,158 +1,142 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:34:42 -0700
-Message-ID: <53960c52.UG95NkHeIUu5vmFk%akpm@linux-foundation.org>
+ kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:34:47 -0700
+Message-ID: <53960c57.eQ2i9eAyNunnrlNP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54114 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753703AbaFITen (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:34:43 -0400
+	with ESMTP id S1753735AbaFITes (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:34:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, rostedt@goodmis.org, rjw@rjwysocki.net, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, mgalbraith@suse.de, hch@infradead.org, fweisbec@gmail.com, ego@linux.vnet.ibm.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, yoshihiro.yunomae.ez@hitachi.com, vgoyal@redhat.com, tomoki.sekiyama@hds.com, satoru.moriya.br@hitachi.com, ebiederm@xmission.com, Motohiro.Kosaki@us.fujitsu.com, masami.hiramatsu.pt@hitachi.com
 
-Subject: [merged] smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch removed from -mm tree
-To: srivatsa.bhat@linux.vnet.ibm.com,bp@suse.de,ego@linux.vnet.ibm.com,fweisbec@gmail.com,hch@infradead.org,mgalbraith@suse.de,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,rjw@rjwysocki.net,rostedt@goodmis.org,rusty@rustcorp.com.au,tglx@linutronix.de,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers.patch removed from -mm tree
+To: masami.hiramatsu.pt@hitachi.com,Motohiro.Kosaki@us.fujitsu.com,ebiederm@xmission.com,satoru.moriya.br@hitachi.com,tomoki.sekiyama@hds.com,vgoyal@redhat.com,yoshihiro.yunomae.ez@hitachi.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:34:42 -0700
+Date: Mon, 09 Jun 2014 12:34:47 -0700
 
 
 The patch titled
-     Subject: smp: print more useful debug info upon receiving IPI on an offline CPU
+     Subject: kernel/panic.c: add "crash_kexec_post_notifiers" option for kdump after panic_notifers
 has been removed from the -mm tree.  Its filename was
-     smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
+     kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: smp: print more useful debug info upon receiving IPI on an offline CPU
+From: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Subject: kernel/panic.c: add "crash_kexec_post_notifiers" option for kdump after panic_notifers
 
-There is a longstanding problem related to CPU hotplug which causes IPIs
-to be delivered to offline CPUs, and the smp-call-function IPI handler
-code prints out a warning whenever this is detected.  Every once in a
-while this (usually harmless) warning gets reported on LKML, but so far it
-has not been completely fixed.  Usually the solution involves finding out
-the IPI sender and fixing it by adding appropriate synchronization with
-CPU hotplug.
+Add a "crash_kexec_post_notifiers" boot option to run kdump after running
+panic_notifiers and dump kmsg.  This can help rare situations where kdump
+fails because of unstable crashed kernel or hardware failure (memory
+corruption on critical data/code), or the 2nd kernel is already broken by
+the 1st kernel (it's a broken behavior, but who can guarantee that the
+"crashed" kernel works correctly?).
 
-However, while going through one such internal bug reports, I found that
-there is a significant bug in the receiver side itself (more specifically,
-in stop-machine) that can lead to this problem even when the sender code
-is perfectly fine.  This patchset fixes that synchronization problem in
-the CPU hotplug stop-machine code.
+Usage: add "crash_kexec_post_notifiers" to kernel boot option.
 
-Patch 1 adds some additional debug code to the smp-call-function
-framework, to help debug such issues easily.
+Note that this actually increases risks of the failure of kdump.
+This option should be set only if you worry about the rare case
+of kdump failure rather than increasing the chance of success.
 
-Patch 2 modifies the stop-machine code to ensure that any IPIs that were
-sent while the target CPU was online, would be noticed and handled by that
-CPU without fail before it goes offline.  Thus, this avoids scenarios
-where IPIs are received on offline CPUs (as long as the sender uses proper
-hotplug synchronization).
-
-
-In fact, I debugged the problem by using Patch 1, and found that the
-payload of the IPI was always the block layer's trigger_softirq()
-function.  But I was not able to find anything wrong with the block layer
-code.  That's when I started looking at the stop-machine code and realized
-that there is a race-window which makes the IPI _receiver_ the culprit,
-not the sender.  Patch 2 fixes that race and hence this should put an end
-to most of the hard-to-debug IPI-to-offline-CPU issues.
-
-
-
-
-This patch (of 2):
-
-Today the smp-call-function code just prints a warning if we get an IPI on
-an offline CPU.  This info is sufficient to let us know that something
-went wrong, but often it is very hard to debug exactly who sent the IPI
-and why, from this info alone.
-
-In most cases, we get the warning about the IPI to an offline CPU,
-immediately after the CPU going offline comes out of the stop-machine
-phase and reenables interrupts.  Since all online CPUs participate in
-stop-machine, the information regarding the sender of the IPI is already
-lost by the time we exit the stop-machine loop.  So even if we dump the
-stack on each CPU at this point, we won't find anything useful since all
-of them will show the stack-trace of the stopper thread.  So we need a
-better way to figure out who sent the IPI and why.
-
-To achieve this, when we detect an IPI targeted to an offline CPU, loop
-through the call-single-data linked list and print out the payload (i.e.,
-the name of the function which was supposed to be executed by the target
-CPU).  This would give us an insight as to who might have sent the IPI and
-help us debug this further.
-
-[akpm@linux-foundation.org: correctly suppress warning output on second and later occurrences]
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Mike Galbraith <mgalbraith@suse.de>
-Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Signed-off-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Acked-by: Motohiro Kosaki <Motohiro.Kosaki@us.fujitsu.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Yoshihiro YUNOMAE <yoshihiro.yunomae.ez@hitachi.com>
+Cc: Satoru MORIYA <satoru.moriya.br@hitachi.com>
+Cc: Tomoki Sekiyama <tomoki.sekiyama@hds.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ Documentation/kernel-parameters.txt |    8 ++++++++
+ kernel/panic.c                      |   23 +++++++++++++++++++++--
+ 2 files changed, 29 insertions(+), 2 deletions(-)
 
-diff -puN kernel/smp.c~smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu kernel/smp.c
---- a/kernel/smp.c~smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu
-+++ a/kernel/smp.c
-@@ -185,14 +185,26 @@ void generic_smp_call_function_single_in
- {
- 	struct llist_node *entry;
- 	struct call_single_data *csd, *csd_next;
-+	static bool warned;
+diff -puN Documentation/kernel-parameters.txt~kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers
++++ a/Documentation/kernel-parameters.txt
+@@ -2361,6 +2361,14 @@ bytes respectively. Such letter suffixes
+ 			timeout < 0: reboot immediately
+ 			Format: <timeout>
+ 
++	crash_kexec_post_notifiers
++			Run kdump after running panic-notifiers and dumping
++			kmsg. This only for the users who doubt kdump always
++			succeeds in any situation.
++			Note that this also increases risks of kdump failure,
++			because some panic notifiers can make the crashed
++			kernel more unstable.
 +
-+	entry = llist_del_all(&__get_cpu_var(call_single_queue));
-+	entry = llist_reverse_order(entry);
+ 	parkbd.port=	[HW] Parallel port number the keyboard adapter is
+ 			connected to, default is 0.
+ 			Format: <parport#>
+diff -puN kernel/panic.c~kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers kernel/panic.c
+--- a/kernel/panic.c~kernel-panicc-add-crash_kexec_post_notifiers-option-for-kdump-after-panic_notifers
++++ a/kernel/panic.c
+@@ -32,6 +32,7 @@ static unsigned long tainted_mask;
+ static int pause_on_oops;
+ static int pause_on_oops_flag;
+ static DEFINE_SPINLOCK(pause_on_oops_lock);
++static bool crash_kexec_post_notifiers;
+ 
+ int panic_timeout = CONFIG_PANIC_TIMEOUT;
+ EXPORT_SYMBOL_GPL(panic_timeout);
+@@ -112,9 +113,11 @@ void panic(const char *fmt, ...)
+ 	/*
+ 	 * If we have crashed and we have a crash kernel loaded let it handle
+ 	 * everything else.
+-	 * Do we want to call this before we try to display a message?
++	 * If we want to run this after calling panic_notifiers, pass
++	 * the "crash_kexec_post_notifiers" option to the kernel.
+ 	 */
+-	crash_kexec(NULL);
++	if (!crash_kexec_post_notifiers)
++		crash_kexec(NULL);
  
  	/*
- 	 * Shouldn't receive this interrupt on a cpu that is not yet online.
- 	 */
--	WARN_ON_ONCE(!cpu_online(smp_processor_id()));
-+	if (unlikely(!cpu_online(smp_processor_id()) && !warned)) {
-+		warned = true;
-+		WARN(1, "IPI on offline CPU %d\n", smp_processor_id());
+ 	 * Note smp_send_stop is the usual smp shutdown function, which
+@@ -131,6 +134,15 @@ void panic(const char *fmt, ...)
  
--	entry = llist_del_all(&__get_cpu_var(call_single_queue));
--	entry = llist_reverse_order(entry);
-+		/*
-+		 * We don't have to use the _safe() variant here
-+		 * because we are not invoking the IPI handlers yet.
-+		 */
-+		llist_for_each_entry(csd, entry, llist)
-+			pr_warn("IPI callback %pS sent to offline CPU\n",
-+				csd->func);
-+	}
+ 	kmsg_dump(KMSG_DUMP_PANIC);
  
- 	llist_for_each_entry_safe(csd, csd_next, entry, llist) {
- 		csd->func(csd->info);
++	/*
++	 * If you doubt kdump always works fine in any situation,
++	 * "crash_kexec_post_notifiers" offers you a chance to run
++	 * panic_notifiers and dumping kmsg before kdump.
++	 * Note: since some panic_notifiers can make crashed kernel
++	 * more unstable, it can increase risks of the kdump failure too.
++	 */
++	crash_kexec(NULL);
++
+ 	bust_spinlocks(0);
+ 
+ 	if (!panic_blink)
+@@ -472,6 +484,13 @@ EXPORT_SYMBOL(__stack_chk_fail);
+ core_param(panic, panic_timeout, int, 0644);
+ core_param(pause_on_oops, pause_on_oops, int, 0644);
+ 
++static int __init setup_crash_kexec_post_notifiers(char *s)
++{
++	crash_kexec_post_notifiers = true;
++	return 0;
++}
++early_param("crash_kexec_post_notifiers", setup_crash_kexec_post_notifiers);
++
+ static int __init oops_setup(char *s)
+ {
+ 	if (!s)
 _
 
-Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
+Patches currently in -mm which might be from masami.hiramatsu.pt@hitachi.com are
 
 origin.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-checkpatch-fixes.patch
 linux-next.patch
 
