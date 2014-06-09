@@ -1,125 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-adi-buildroot-devel-is-moderated.patch
+Subject: [merged] fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
  removed from -mm tree
-Date: Mon, 09 Jun 2014 12:41:31 -0700
-Message-ID: <53960deb.yG8mIWLE1pYpq+8B%akpm@linux-foundation.org>
+Date: Mon, 09 Jun 2014 12:41:16 -0700
+Message-ID: <53960ddc.Ifb8Tetk1NzTz+Vj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54406 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54386 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752945AbaFITlb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:41:31 -0400
+	with ESMTP id S1752945AbaFITlQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:41:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, richard@nod.at
+To: mm-commits@vger.kernel.org, ccaulfie@redhat.com, fabf@skynet.be
 
-Subject: [merged] maintainers-adi-buildroot-devel-is-moderated.patch removed from -mm tree
-To: richard@nod.at,mm-commits@vger.kernel.org
+Subject: [merged] fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch removed from -mm tree
+To: fabf@skynet.be,ccaulfie@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:41:31 -0700
+Date: Mon, 09 Jun 2014 12:41:16 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: adi-buildroot-devel is moderated
+     Subject: fs/dlm/debug_fs.c: replace seq_printf by seq_puts
 has been removed from the -mm tree.  Its filename was
-     maintainers-adi-buildroot-devel-is-moderated.patch
+     fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Richard Weinberger <richard@nod.at>
-Subject: MAINTAINERS: adi-buildroot-devel is moderated
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/dlm/debug_fs.c: replace seq_printf by seq_puts
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
+Replace seq_printf where possible.  This patch also fixes the following
+checkpatch warning "unnecessary whitespace before a quoted newline"
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Christine Caulfield <ccaulfie@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ fs/dlm/debug_fs.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-adi-buildroot-devel-is-moderated MAINTAINERS
---- a/MAINTAINERS~maintainers-adi-buildroot-devel-is-moderated
-+++ a/MAINTAINERS
-@@ -654,7 +654,7 @@ F:	sound/soc/codecs/ssm*
- F:	sound/soc/codecs/sigmadsp.*
+diff -puN fs/dlm/debug_fs.c~fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts fs/dlm/debug_fs.c
+--- a/fs/dlm/debug_fs.c~fs-dlm-debug_fsc-replace-seq_printf-by-seq_puts
++++ a/fs/dlm/debug_fs.c
+@@ -68,7 +68,7 @@ static int print_format1_lock(struct seq
+ 	if (lkb->lkb_wait_type)
+ 		seq_printf(s, " wait_type: %d", lkb->lkb_wait_type);
  
- ANALOG DEVICES INC ASOC DRIVERS
--L:	adi-buildroot-devel@lists.sourceforge.net
-+L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
- W:	http://blackfin.uclinux.org/
- S:	Supported
-@@ -1765,54 +1765,54 @@ F:	include/uapi/linux/bfs_fs.h
+-	return seq_printf(s, "\n");
++	return seq_puts(s, "\n");
+ }
  
- BLACKFIN ARCHITECTURE
- M:	Steven Miao <realmz6@gmail.com>
--L:	adi-buildroot-devel@lists.sourceforge.net
-+L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
- T:	git git://git.code.sf.net/p/adi-linux/code
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	arch/blackfin/
+ static int print_format1(struct dlm_rsb *res, struct seq_file *s)
+@@ -92,31 +92,31 @@ static int print_format1(struct dlm_rsb
+ 	}
  
- BLACKFIN EMAC DRIVER
--L:	adi-buildroot-devel@lists.sourceforge.net
-+L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/net/ethernet/adi/
+ 	if (res->res_nodeid > 0)
+-		rv = seq_printf(s, "\"  \nLocal Copy, Master is node %d\n",
++		rv = seq_printf(s, "\"\nLocal Copy, Master is node %d\n",
+ 				res->res_nodeid);
+ 	else if (res->res_nodeid == 0)
+-		rv = seq_printf(s, "\"  \nMaster Copy\n");
++		rv = seq_puts(s, "\"\nMaster Copy\n");
+ 	else if (res->res_nodeid == -1)
+-		rv = seq_printf(s, "\"  \nLooking up master (lkid %x)\n",
++		rv = seq_printf(s, "\"\nLooking up master (lkid %x)\n",
+ 			   	res->res_first_lkid);
+ 	else
+-		rv = seq_printf(s, "\"  \nInvalid master %d\n",
++		rv = seq_printf(s, "\"\nInvalid master %d\n",
+ 				res->res_nodeid);
+ 	if (rv)
+ 		goto out;
  
- BLACKFIN RTC DRIVER
--L:	adi-buildroot-devel@lists.sourceforge.net
-+L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/rtc/rtc-bfin.c
+ 	/* Print the LVB: */
+ 	if (res->res_lvbptr) {
+-		seq_printf(s, "LVB: ");
++		seq_puts(s, "LVB: ");
+ 		for (i = 0; i < lvblen; i++) {
+ 			if (i == lvblen / 2)
+-				seq_printf(s, "\n     ");
++				seq_puts(s, "\n     ");
+ 			seq_printf(s, "%02x ",
+ 				   (unsigned char) res->res_lvbptr[i]);
+ 		}
+ 		if (rsb_flag(res, RSB_VALNOTVALID))
+-			seq_printf(s, " (INVALID)");
+-		rv = seq_printf(s, "\n");
++			seq_puts(s, " (INVALID)");
++		rv = seq_puts(s, "\n");
+ 		if (rv)
+ 			goto out;
+ 	}
+@@ -133,21 +133,21 @@ static int print_format1(struct dlm_rsb
+ 	}
  
- BLACKFIN SDH DRIVER
- M:	Sonic Zhang <sonic.zhang@analog.com>
--L:	adi-buildroot-devel@lists.sourceforge.net
-+L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/mmc/host/bfin_sdh.c
+ 	/* Print the locks attached to this resource */
+-	seq_printf(s, "Granted Queue\n");
++	seq_puts(s, "Granted Queue\n");
+ 	list_for_each_entry(lkb, &res->res_grantqueue, lkb_statequeue) {
+ 		rv = print_format1_lock(s, lkb, res);
+ 		if (rv)
+ 			goto out;
+ 	}
  
- BLACKFIN SERIAL DRIVER
- M:	Sonic Zhang <sonic.zhang@analog.com>
--L:	adi-buildroot-devel@lists.sourceforge.net
-+L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/tty/serial/bfin_uart.c
+-	seq_printf(s, "Conversion Queue\n");
++	seq_puts(s, "Conversion Queue\n");
+ 	list_for_each_entry(lkb, &res->res_convertqueue, lkb_statequeue) {
+ 		rv = print_format1_lock(s, lkb, res);
+ 		if (rv)
+ 			goto out;
+ 	}
  
- BLACKFIN WATCHDOG DRIVER
--L:	adi-buildroot-devel@lists.sourceforge.net
-+L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/watchdog/bfin_wdt.c
+-	seq_printf(s, "Waiting Queue\n");
++	seq_puts(s, "Waiting Queue\n");
+ 	list_for_each_entry(lkb, &res->res_waitqueue, lkb_statequeue) {
+ 		rv = print_format1_lock(s, lkb, res);
+ 		if (rv)
+@@ -157,13 +157,13 @@ static int print_format1(struct dlm_rsb
+ 	if (list_empty(&res->res_lookup))
+ 		goto out;
  
- BLACKFIN I2C TWI DRIVER
- M:	Sonic Zhang <sonic.zhang@analog.com>
--L:	adi-buildroot-devel@lists.sourceforge.net
-+L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	http://blackfin.uclinux.org/
- S:	Supported
- F:	drivers/i2c/busses/i2c-bfin-twi.c
+-	seq_printf(s, "Lookup Queue\n");
++	seq_puts(s, "Lookup Queue\n");
+ 	list_for_each_entry(lkb, &res->res_lookup, lkb_rsb_lookup) {
+ 		rv = seq_printf(s, "%08x %s", lkb->lkb_id,
+ 				print_lockmode(lkb->lkb_rqmode));
+ 		if (lkb->lkb_wait_type)
+ 			seq_printf(s, " wait_type: %d", lkb->lkb_wait_type);
+-		rv = seq_printf(s, "\n");
++		rv = seq_puts(s, "\n");
+ 	}
+  out:
+ 	unlock_rsb(res);
+@@ -300,7 +300,7 @@ static int print_format3(struct dlm_rsb
+ 		else
+ 			seq_printf(s, " %02x", (unsigned char)r->res_name[i]);
+ 	}
+-	rv = seq_printf(s, "\n");
++	rv = seq_puts(s, "\n");
+ 	if (rv)
+ 		goto out;
  
- BLACKFIN MEDIA DRIVER
- M:	Scott Jiang <scott.jiang.linux@gmail.com>
--L:	adi-buildroot-devel@lists.sourceforge.net
-+L:	adi-buildroot-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	http://blackfin.uclinux.org/
- S:	Supported
- F:	drivers/media/platform/blackfin/
+@@ -311,7 +311,7 @@ static int print_format3(struct dlm_rsb
+ 
+ 	for (i = 0; i < lvblen; i++)
+ 		seq_printf(s, " %02x", (unsigned char)r->res_lvbptr[i]);
+-	rv = seq_printf(s, "\n");
++	rv = seq_puts(s, "\n");
+ 	if (rv)
+ 		goto out;
+ 
+@@ -377,7 +377,7 @@ static int print_format4(struct dlm_rsb
+ 		else
+ 			seq_printf(s, " %02x", (unsigned char)r->res_name[i]);
+ 	}
+-	rv = seq_printf(s, "\n");
++	rv = seq_puts(s, "\n");
+  out:
+ 	unlock_rsb(r);
+ 	return rv;
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-isofs-logging-clean-up.patch
 linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
