@@ -1,73 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nbd-zero-from-and-len-fields-in-nbd_cmd_disconnect.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:41:41 -0700
-Message-ID: <53960df5.SY0BVHEOYGDsF0Dk%akpm@linux-foundation.org>
+Subject: [merged] cris-update-comments-for-generic-idle-conversion.patch
+ removed from -mm tree
+Date: Mon, 09 Jun 2014 12:41:51 -0700
+Message-ID: <53960dff.w/VEwKOdl21agq8B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54411 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54419 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750992AbaFITlm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:41:42 -0400
+	with ESMTP id S1750878AbaFITlw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:41:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paul.clements@us.sios.com, hani@linux.com, Paul.Clements@steeleye.com, kroosec@gmail.com
+To: mm-commits@vger.kernel.org, jesper.nilsson@axis.com, geert+renesas@glider.be
 
-Subject: [merged] nbd-zero-from-and-len-fields-in-nbd_cmd_disconnect.patch removed from -mm tree
-To: kroosec@gmail.com,Paul.Clements@steeleye.com,hani@linux.com,paul.clements@us.sios.com,mm-commits@vger.kernel.org
+Subject: [merged] cris-update-comments-for-generic-idle-conversion.patch removed from -mm tree
+To: geert+renesas@glider.be,jesper.nilsson@axis.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:41:41 -0700
+Date: Mon, 09 Jun 2014 12:41:51 -0700
 
 
 The patch titled
-     Subject: nbd: zero from and len fields in NBD_CMD_DISCONNECT.
+     Subject: cris: update comments for generic idle conversion
 has been removed from the -mm tree.  Its filename was
-     nbd-zero-from-and-len-fields-in-nbd_cmd_disconnect.patch
+     cris-update-comments-for-generic-idle-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hani Benhabiles <kroosec@gmail.com>
-Subject: nbd: zero from and len fields in NBD_CMD_DISCONNECT.
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: cris: update comments for generic idle conversion
 
-Len field is already set to zero, but not the from field which is sent as
-0xfffffffffffffe00.  This makes no sense, and may cause confuse server
-implementations doing sanity checks (qemu-nbd is an example.)
+As of 8dc7c5ecd8d0 ("cris: Use generic idle loop"), cris no longer
+provides cpu_idle().
 
-Signed-off-by: Hani Benhabiles <hani@linux.com>
-Cc: Paul Clements <paul.clements@us.sios.com>
-Cc: Paul Clements <Paul.Clements@steeleye.com>
+- On cris-v10, etrax_gpio_wake_up_check() is called from default_idle()
+  instead of cpu_idle(),
+
+- On cris-v32, etrax_gpio_wake_up_check() is not called from
+  default_idle(), so remove this (copy-and-paste?) part.
+
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reviewed-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ arch/cris/arch-v10/drivers/gpio.c         |    4 ++--
+ arch/cris/arch-v32/drivers/mach-fs/gpio.c |    6 +-----
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/block/nbd.c~nbd-zero-from-and-len-fields-in-nbd_cmd_disconnect drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-zero-from-and-len-fields-in-nbd_cmd_disconnect
-+++ a/drivers/block/nbd.c
-@@ -243,14 +243,11 @@ static int nbd_send_req(struct nbd_devic
- 	struct nbd_request request;
- 	unsigned long size = blk_rq_bytes(req);
+diff -puN arch/cris/arch-v10/drivers/gpio.c~cris-update-comments-for-generic-idle-conversion arch/cris/arch-v10/drivers/gpio.c
+--- a/arch/cris/arch-v10/drivers/gpio.c~cris-update-comments-for-generic-idle-conversion
++++ a/arch/cris/arch-v10/drivers/gpio.c
+@@ -833,8 +833,8 @@ static int __init gpio_init(void)
+ 	printk(KERN_INFO "ETRAX 100LX GPIO driver v2.5, (c) 2001-2008 "
+ 		"Axis Communications AB\n");
+ 	/* We call etrax_gpio_wake_up_check() from timer interrupt and
+-	 * from cpu_idle() in kernel/process.c
+-	 * The check in cpu_idle() reduces latency from ~15 ms to ~6 ms
++	 * from default_idle() in kernel/process.c
++	 * The check in default_idle() reduces latency from ~15 ms to ~6 ms
+ 	 * in some tests.
+ 	 */
+ 	res = request_irq(TIMER0_IRQ_NBR, gpio_poll_timer_interrupt,
+diff -puN arch/cris/arch-v32/drivers/mach-fs/gpio.c~cris-update-comments-for-generic-idle-conversion arch/cris/arch-v32/drivers/mach-fs/gpio.c
+--- a/arch/cris/arch-v32/drivers/mach-fs/gpio.c~cris-update-comments-for-generic-idle-conversion
++++ a/arch/cris/arch-v32/drivers/mach-fs/gpio.c
+@@ -958,11 +958,7 @@ gpio_init(void)
  
-+	memset(&request, 0, sizeof(request));
- 	request.magic = htonl(NBD_REQUEST_MAGIC);
- 	request.type = htonl(nbd_cmd(req));
- 
--	if (nbd_cmd(req) == NBD_CMD_FLUSH) {
--		/* Other values are reserved for FLUSH requests.  */
--		request.from = 0;
--		request.len = 0;
--	} else {
-+	if (nbd_cmd(req) != NBD_CMD_FLUSH && nbd_cmd(req) != NBD_CMD_DISC) {
- 		request.from = cpu_to_be64((u64)blk_rq_pos(req) << 9);
- 		request.len = htonl(size);
- 	}
+ 	printk(KERN_INFO "ETRAX FS GPIO driver v2.5, (c) 2003-2007 "
+ 		"Axis Communications AB\n");
+-	/* We call etrax_gpio_wake_up_check() from timer interrupt and
+-	 * from cpu_idle() in kernel/process.c
+-	 * The check in cpu_idle() reduces latency from ~15 ms to ~6 ms
+-	 * in some tests.
+-	 */
++	/* We call etrax_gpio_wake_up_check() from timer interrupt */
+ 	if (request_irq(TIMER0_INTR_VECT, gpio_poll_timer_interrupt,
+ 			IRQF_SHARED, "gpio poll", &alarmlist))
+ 		printk(KERN_ERR "timer0 irq for gpio\n");
 _
 
-Patches currently in -mm which might be from kroosec@gmail.com are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
 origin.patch
+linux-next.patch
 
