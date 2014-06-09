@@ -1,82 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rapidio-tsi721-use-pci_enable_msix_exact-instead-of-pci_enable_msix.patch
- removed from -mm tree
-Date: Mon, 09 Jun 2014 12:35:32 -0700
-Message-ID: <53960c84.36sMDzWt2B/AWlGH%akpm@linux-foundation.org>
+Subject: [merged] sysctl-clean-up-char-buffer-arguments.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:35:37 -0700
+Message-ID: <53960c89.Za/7cXP8W2JjPhjq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54146 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54150 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbaFITfd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:35:33 -0400
+	with ESMTP id S1751101AbaFITfh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:35:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mporter@kernel.crashing.org, alexandre.bounine@idt.com, agordeev@redhat.com
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, keescook@chromium.org
 
-Subject: [merged] rapidio-tsi721-use-pci_enable_msix_exact-instead-of-pci_enable_msix.patch removed from -mm tree
-To: agordeev@redhat.com,alexandre.bounine@idt.com,mporter@kernel.crashing.org,mm-commits@vger.kernel.org
+Subject: [merged] sysctl-clean-up-char-buffer-arguments.patch removed from -mm tree
+To: keescook@chromium.org,rdunlap@infradead.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:35:32 -0700
+Date: Mon, 09 Jun 2014 12:35:37 -0700
 
 
 The patch titled
-     Subject: rapidio/tsi721: use pci_enable_msix_exact() instead of pci_enable_msix()
+     Subject: sysctl: clean up char buffer arguments
 has been removed from the -mm tree.  Its filename was
-     rapidio-tsi721-use-pci_enable_msix_exact-instead-of-pci_enable_msix.patch
+     sysctl-clean-up-char-buffer-arguments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@redhat.com>
-Subject: rapidio/tsi721: use pci_enable_msix_exact() instead of pci_enable_msix()
+From: Kees Cook <keescook@chromium.org>
+Subject: sysctl: clean up char buffer arguments
 
-As result of deprecation of MSI-X/MSI enablement functions
-pci_enable_msix() and pci_enable_msi_block() all drivers using these two
-interfaces need to be updated to use the new pci_enable_msi_range() or
-pci_enable_msi_exact() and pci_enable_msix_range() or
-pci_enable_msix_exact() interfaces.
+When writing to a sysctl string, each write, regardless of VFS position,
+began writing the string from the start. This meant the contents of
+the last write to the sysctl controlled the string contents instead of
+the first.
 
-The patch has no runtime effect.
+This misbehavior was featured in an exploit against Chrome OS. While it's
+not in itself a vulnerability, it's a weirdness that isn't on the mind
+of most auditors: "This filter looks correct, the first line written
+would not be meaningful to sysctl" doesn't apply here, since the size
+of the write and the contents of the final write are what matter when
+writing to sysctls.
 
-Signed-off-by: Alexander Gordeev <agordeev@redhat.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
+This adds the sysctl kernel.sysctl_writes_strict to control the write
+behavior. The default (0) reports when VFS position is non-0 on a write,
+but retains legacy behavior, -1 disables the warning, and 1 enables the
+position-respecting behavior.
+
+The long-term plan here is to wait for userspace to be fixed in response
+to the new warning and to then switch the default kernel behavior to the
+new position-respecting behavior.
+
+
+
+This patch (of 4):
+
+The char buffer arguments are needlessly cast in weird places. Clean it up
+so things are easier to read.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ kernel/sysctl.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-use-pci_enable_msix_exact-instead-of-pci_enable_msix drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-use-pci_enable_msix_exact-instead-of-pci_enable_msix
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -768,15 +768,10 @@ static int tsi721_enable_msix(struct tsi
- 	}
- #endif /* CONFIG_RAPIDIO_DMA_ENGINE */
+diff -puN kernel/sysctl.c~sysctl-clean-up-char-buffer-arguments kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-clean-up-char-buffer-arguments
++++ a/kernel/sysctl.c
+@@ -1703,8 +1703,8 @@ int __init sysctl_init(void)
  
--	err = pci_enable_msix(priv->pdev, entries, ARRAY_SIZE(entries));
-+	err = pci_enable_msix_exact(priv->pdev, entries, ARRAY_SIZE(entries));
- 	if (err) {
--		if (err > 0)
--			dev_info(&priv->pdev->dev,
--				 "Only %d MSI-X vectors available, "
--				 "not using MSI-X\n", err);
--		else
--			dev_err(&priv->pdev->dev,
--				"Failed to enable MSI-X (err=%d)\n", err);
-+		dev_err(&priv->pdev->dev,
-+			"Failed to enable MSI-X (err=%d)\n", err);
- 		return err;
- 	}
+ #ifdef CONFIG_PROC_SYSCTL
  
+-static int _proc_do_string(void* data, int maxlen, int write,
+-			   void __user *buffer,
++static int _proc_do_string(char *data, int maxlen, int write,
++			   char __user *buffer,
+ 			   size_t *lenp, loff_t *ppos)
+ {
+ 	size_t len;
+@@ -1730,7 +1730,7 @@ static int _proc_do_string(void* data, i
+ 			len = maxlen-1;
+ 		if(copy_from_user(data, buffer, len))
+ 			return -EFAULT;
+-		((char *) data)[len] = 0;
++		data[len] = 0;
+ 		*ppos += *lenp;
+ 	} else {
+ 		len = strlen(data);
+@@ -1748,10 +1748,10 @@ static int _proc_do_string(void* data, i
+ 		if (len > *lenp)
+ 			len = *lenp;
+ 		if (len)
+-			if(copy_to_user(buffer, data, len))
++			if (copy_to_user(buffer, data, len))
+ 				return -EFAULT;
+ 		if (len < *lenp) {
+-			if(put_user('\n', ((char __user *) buffer) + len))
++			if (put_user('\n', buffer + len))
+ 				return -EFAULT;
+ 			len++;
+ 		}
+@@ -1781,8 +1781,8 @@ static int _proc_do_string(void* data, i
+ int proc_dostring(struct ctl_table *table, int write,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+-	return _proc_do_string(table->data, table->maxlen, write,
+-			       buffer, lenp, ppos);
++	return _proc_do_string((char *)(table->data), table->maxlen, write,
++			       (char __user *)buffer, lenp, ppos);
+ }
+ 
+ static size_t proc_skip_spaces(char **buf)
 _
 
-Patches currently in -mm which might be from agordeev@redhat.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 origin.patch
+lib-vsprintf-add-%pt-format-specifier.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 linux-next.patch
 
