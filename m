@@ -1,68 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] idle-remove-cpu_idle-forward-declarations.patch removed
- from -mm tree
-Date: Mon, 09 Jun 2014 12:41:46 -0700
-Message-ID: <53960dfa.OtSkXtDfZl2Uyw01%akpm@linux-foundation.org>
+Subject: [merged] nbd-zero-from-and-len-fields-in-nbd_cmd_disconnect.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:41:41 -0700
+Message-ID: <53960df5.SY0BVHEOYGDsF0Dk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54416 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54411 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752945AbaFITlq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:41:46 -0400
+	with ESMTP id S1750992AbaFITlm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:41:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, geert+renesas@glider.be
+To: mm-commits@vger.kernel.org, paul.clements@us.sios.com, hani@linux.com, Paul.Clements@steeleye.com, kroosec@gmail.com
 
-Subject: [merged] idle-remove-cpu_idle-forward-declarations.patch removed from -mm tree
-To: geert+renesas@glider.be,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: [merged] nbd-zero-from-and-len-fields-in-nbd_cmd_disconnect.patch removed from -mm tree
+To: kroosec@gmail.com,Paul.Clements@steeleye.com,hani@linux.com,paul.clements@us.sios.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:41:46 -0700
+Date: Mon, 09 Jun 2014 12:41:41 -0700
 
 
 The patch titled
-     Subject: idle: remove cpu_idle() forward declarations
+     Subject: nbd: zero from and len fields in NBD_CMD_DISCONNECT.
 has been removed from the -mm tree.  Its filename was
-     idle-remove-cpu_idle-forward-declarations.patch
+     nbd-zero-from-and-len-fields-in-nbd_cmd_disconnect.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: idle: remove cpu_idle() forward declarations
+From: Hani Benhabiles <kroosec@gmail.com>
+Subject: nbd: zero from and len fields in NBD_CMD_DISCONNECT.
 
-After all architectures were converted to the generic idle framework,
-d190e8195b90 ("idle: Remove GENERIC_IDLE_LOOP config switch") removed the
-last caller of cpu_idle().  The forward declarations in header files were
-forgotten.
+Len field is already set to zero, but not the from field which is sent as
+0xfffffffffffffe00.  This makes no sense, and may cause confuse server
+implementations doing sanity checks (qemu-nbd is an example.)
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Hani Benhabiles <hani@linux.com>
+Cc: Paul Clements <paul.clements@us.sios.com>
+Cc: Paul Clements <Paul.Clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |    1 -
- include/linux/smp.h |    2 --
- 2 files changed, 3 deletions(-)
+ drivers/block/nbd.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/cpu.h~idle-remove-cpu_idle-forward-declarations include/linux/cpu.h
---- a/include/linux/cpu.h~idle-remove-cpu_idle-forward-declarations
-+++ a/include/linux/cpu.h
-@@ -256,7 +256,6 @@ enum cpuhp_state {
- };
+diff -puN drivers/block/nbd.c~nbd-zero-from-and-len-fields-in-nbd_cmd_disconnect drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-zero-from-and-len-fields-in-nbd_cmd_disconnect
++++ a/drivers/block/nbd.c
+@@ -243,14 +243,11 @@ static int nbd_send_req(struct nbd_devic
+ 	struct nbd_request request;
+ 	unsigned long size = blk_rq_bytes(req);
  
- void cpu_startup_entry(enum cpuhp_state state);
--void cpu_idle(void);
++	memset(&request, 0, sizeof(request));
+ 	request.magic = htonl(NBD_REQUEST_MAGIC);
+ 	request.type = htonl(nbd_cmd(req));
  
- void cpu_idle_poll_ctrl(bool enable);
- 
-diff -puN include/linux/smp.h~idle-remove-cpu_idle-forward-declarations include/linux/smp.h
---- a/include/linux/smp.h~idle-remove-cpu_idle-forward-declarations
-+++ a/include/linux/smp.h
-@@ -13,8 +13,6 @@
- #include <linux/init.h>
- #include <linux/llist.h>
- 
--extern void cpu_idle(void);
+-	if (nbd_cmd(req) == NBD_CMD_FLUSH) {
+-		/* Other values are reserved for FLUSH requests.  */
+-		request.from = 0;
+-		request.len = 0;
+-	} else {
++	if (nbd_cmd(req) != NBD_CMD_FLUSH && nbd_cmd(req) != NBD_CMD_DISC) {
+ 		request.from = cpu_to_be64((u64)blk_rq_pos(req) << 9);
+ 		request.len = htonl(size);
+ 	}
+_
+
+Patches currently in -mm which might be from kroosec@gmail.com are
+
+origin.patch
+
