@@ -1,90 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:38:18 -0700
-Message-ID: <53960d2a.x0JHOAZKp5HC0Anv%akpm@linux-foundation.org>
+Subject: [merged] kernel-seccompc-kernel-doc-warning-fix.patch removed
+ from -mm tree
+Date: Mon, 09 Jun 2014 12:38:23 -0700
+Message-ID: <53960d2f.UZCSZi4+ZAMJ3Txx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54273 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54277 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751213AbaFITiT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:38:19 -0400
+	with ESMTP id S1753700AbaFITiX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:38:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, joe@perches.com, davidlohr@hp.com, manfred@colorfullife.com
+To: mm-commits@vger.kernel.org, davem@davemloft.net, fabf@skynet.be
 
-Subject: [merged] ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch removed from -mm tree
-To: manfred@colorfullife.com,davidlohr@hp.com,joe@perches.com,mtk.manpages@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] kernel-seccompc-kernel-doc-warning-fix.patch removed from -mm tree
+To: fabf@skynet.be,davem@davemloft.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:38:18 -0700
+Date: Mon, 09 Jun 2014 12:38:23 -0700
 
 
 The patch titled
-     Subject: ipc/sem.c: add a printk_once for semctl(GETNCNT/GETZCNT)
+     Subject: kernel/seccomp.c: kernel-doc warning fix
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt.patch
+     kernel-seccompc-kernel-doc-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: add a printk_once for semctl(GETNCNT/GETZCNT)
+From: Fabian Frederick <fabf@skynet.be>
+Subject: kernel/seccomp.c: kernel-doc warning fix
 
-The actual Linux implementation for semctl(GETNCNT) and semctl(GETZCNT)
-always (since 0.99.10) reported a thread as sleeping on all semaphores
-that are listed in the semop() call.
++ fix small typo
 
-The documented behavior (both in the Linux man page and in the Single Unix
-Specification) is that a task should be reported on exactly one semaphore:
-The semaphore that caused the thread to got to sleep.
-
-This patch adds a pr_info_once() that is triggered if a thread hits
-the relevant case.
-
-The code triggers slightly too often, otherwise it would be necessary to
-replicate the old code.  As there are no known users of GETNCNT or
-GETZCNT, this is done to prevent unnecessary bloat.
-
-The task that triggered is reported with name (tsk->comm) and pid.
-
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ kernel/seccomp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt ipc/sem.c
---- a/ipc/sem.c~ipc-semc-add-a-printk_once-for-semctlgetncnt-getzcnt
-+++ a/ipc/sem.c
-@@ -1000,6 +1000,17 @@ static int check_qop(struct sem_array *s
- {
- 	struct sembuf *sop = q->blocking;
+diff -puN kernel/seccomp.c~kernel-seccompc-kernel-doc-warning-fix kernel/seccomp.c
+--- a/kernel/seccomp.c~kernel-seccompc-kernel-doc-warning-fix
++++ a/kernel/seccomp.c
+@@ -39,7 +39,7 @@
+  *         is only needed for handling filters shared across tasks.
+  * @prev: points to a previously installed, or inherited, filter
+  * @len: the number of instructions in the program
+- * @insns: the BPF program instructions to evaluate
++ * @insnsi: the BPF program instructions to evaluate
+  *
+  * seccomp_filter objects are organized in a tree linked via the @prev
+  * pointer.  For any task, it appears to be a singly-linked list starting
+@@ -220,7 +220,7 @@ static long seccomp_attach_filter(struct
+ 		return -ENOMEM;
  
-+	/*
-+	 * Linux always (since 0.99.10) reported a task as sleeping on all
-+	 * semaphores. This violates SUS, therefore it was changed to the
-+	 * standard compliant behavior.
-+	 * Give the administrators a chance to notice that an application
-+	 * might misbehave because it relies on the Linux behavior.
-+	 */
-+	pr_info_once("semctl(GETNCNT/GETZCNT) is since 3.16 Single Unix Specification compliant.\n"
-+			"The task %s (%d) triggered the difference, watch for misbehavior.\n",
-+			current->comm, task_pid_nr(current));
-+
- 	if (sop->sem_num != semnum)
- 		return 0;
- 
+ 	/*
+-	 * Installing a seccomp filter requires that the task have
++	 * Installing a seccomp filter requires that the task has
+ 	 * CAP_SYS_ADMIN in its namespace or be running with no_new_privs.
+ 	 * This avoids scenarios where unprivileged tasks can affect the
+ 	 * behavior of privileged children.
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-slab-leaks3-default-y.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-isofs-logging-clean-up.patch
+linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
