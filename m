@@ -1,38 +1,38 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch removed
+ random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch removed
  from -mm tree
-Date: Mon, 09 Jun 2014 12:38:43 -0700
-Message-ID: <53960d43.5lporJVrpfvE3KVI%akpm@linux-foundation.org>
+Date: Mon, 09 Jun 2014 12:38:48 -0700
+Message-ID: <53960d48.ql9ajVrPBnZUH6ed%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54287 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54290 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753700AbaFITin (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:38:43 -0400
+	with ESMTP id S1753700AbaFITis (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:38:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch removed from -mm tree
+Subject: [merged] random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch removed from -mm tree
 To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:38:43 -0700
+Date: Mon, 09 Jun 2014 12:38:48 -0700
 
 
 The patch titled
-     Subject: cdrom: convert use of typedef ctl_table to struct ctl_table
+     Subject: random: convert use of typedef ctl_table to struct ctl_table
 has been removed from the -mm tree.  Its filename was
-     cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+     random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: cdrom: convert use of typedef ctl_table to struct ctl_table
+Subject: random: convert use of typedef ctl_table to struct ctl_table
 
 This typedef is unnecessary and should just be removed.
 
@@ -40,57 +40,25 @@ Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/char/random.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/cdrom/cdrom.c~cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/drivers/cdrom/cdrom.c
-@@ -3470,7 +3470,7 @@ static int cdrom_print_info(const char *
- 	return 0;
- }
- 
--static int cdrom_sysctl_info(ctl_table *ctl, int write,
-+static int cdrom_sysctl_info(struct ctl_table *ctl, int write,
-                            void __user *buffer, size_t *lenp, loff_t *ppos)
+diff -puN drivers/char/random.c~random-convert-use-of-typedef-ctl_table-to-struct-ctl_table drivers/char/random.c
+--- a/drivers/char/random.c~random-convert-use-of-typedef-ctl_table-to-struct-ctl_table
++++ a/drivers/char/random.c
+@@ -1582,10 +1582,10 @@ static int proc_do_uuid(struct ctl_table
+ /*
+  * Return entropy available scaled to integral bits
+  */
+-static int proc_do_entropy(ctl_table *table, int write,
++static int proc_do_entropy(struct ctl_table *table, int write,
+ 			   void __user *buffer, size_t *lenp, loff_t *ppos)
  {
- 	int pos;
-@@ -3583,7 +3583,7 @@ static void cdrom_update_settings(void)
- 	mutex_unlock(&cdrom_mutex);
- }
+-	ctl_table fake_table;
++	struct ctl_table fake_table;
+ 	int entropy_count;
  
--static int cdrom_sysctl_handler(ctl_table *ctl, int write,
-+static int cdrom_sysctl_handler(struct ctl_table *ctl, int write,
- 				void __user *buffer, size_t *lenp, loff_t *ppos)
- {
- 	int ret;
-@@ -3609,7 +3609,7 @@ static int cdrom_sysctl_handler(ctl_tabl
- }
- 
- /* Place files in /proc/sys/dev/cdrom */
--static ctl_table cdrom_table[] = {
-+static struct ctl_table cdrom_table[] = {
- 	{
- 		.procname	= "info",
- 		.data		= &cdrom_sysctl_settings.info, 
-@@ -3655,7 +3655,7 @@ static ctl_table cdrom_table[] = {
- 	{ }
- };
- 
--static ctl_table cdrom_cdrom_table[] = {
-+static struct ctl_table cdrom_cdrom_table[] = {
- 	{
- 		.procname	= "cdrom",
- 		.maxlen		= 0,
-@@ -3666,7 +3666,7 @@ static ctl_table cdrom_cdrom_table[] = {
- };
- 
- /* Make sure that /proc/sys/dev is there */
--static ctl_table cdrom_root_table[] = {
-+static struct ctl_table cdrom_root_table[] = {
- 	{
- 		.procname	= "dev",
- 		.maxlen		= 0,
+ 	entropy_count = *(int *)table->data >> ENTROPY_SHIFT;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
