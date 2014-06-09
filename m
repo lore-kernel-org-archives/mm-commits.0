@@ -1,251 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
- removed from -mm tree
-Date: Mon, 09 Jun 2014 12:40:51 -0700
-Message-ID: <53960dc3.BfvTpDnf9OSx5M4s%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:40:56 -0700
+Message-ID: <53960dc8.0GKf2ZDDdQ/jPKh7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54363 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54367 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753748AbaFITkv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:40:51 -0400
+	with ESMTP id S1750904AbaFITk5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:40:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, nasa4836@gmail.com
+To: mm-commits@vger.kernel.org, nasa4836@gmail.com, mhocko@suse.cz, hannes@cmpxchg.org
 
-Subject: [merged] mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch removed from -mm tree
-To: nasa4836@gmail.com,hannes@cmpxchg.org,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch removed from -mm tree
+To: hannes@cmpxchg.org,mhocko@suse.cz,nasa4836@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:40:51 -0700
+Date: Mon, 09 Jun 2014 12:40:56 -0700
 
 
 The patch titled
-     Subject: mm: memcontrol: clean up memcg zoneinfo lookup
+     Subject: mm: memcontrol: remove unnecessary memcg argument from soft limit functions
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-clean-up-memcg-zoneinfo-lookup.patch
+     mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jianyu Zhan <nasa4836@gmail.com>
-Subject: mm: memcontrol: clean up memcg zoneinfo lookup
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: remove unnecessary memcg argument from soft limit functions
 
-Memcg zoneinfo lookup sites have either the page, the zone, or the node id
-and zone index, but sites that only have the zone have to look up the node
-id and zone index themselves, whereas sites that already have those two
-integers use a function for a simple pointer chase.
-
-Provide mem_cgroup_zone_zoneinfo() that takes a zone pointer and let sites
-that already have node id and zone index - all for each node, for each
-zone iterators - use &memcg->nodeinfo[nid]->zoneinfo[zid].
-
-Rename page_cgroup_zoneinfo() to mem_cgroup_page_zoneinfo() to match.
-
-Signed-off-by: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   89 ++++++++++++++++++++--------------------------
- 1 file changed, 39 insertions(+), 50 deletions(-)
+ mm/memcontrol.c |   34 ++++++++++++++--------------------
+ 1 file changed, 14 insertions(+), 20 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-clean-up-memcg-zoneinfo-lookup mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-clean-up-memcg-zoneinfo-lookup
+diff -puN mm/memcontrol.c~mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-remove-unnecessary-memcg-argument-from-soft-limit-functions
 +++ a/mm/memcontrol.c
-@@ -676,9 +676,11 @@ static void disarm_static_keys(struct me
- static void drain_all_stock_async(struct mem_cgroup *memcg);
- 
- static struct mem_cgroup_per_zone *
--mem_cgroup_zoneinfo(struct mem_cgroup *memcg, int nid, int zid)
-+mem_cgroup_zone_zoneinfo(struct mem_cgroup *memcg, struct zone *zone)
- {
--	VM_BUG_ON((unsigned)nid >= nr_node_ids);
-+	int nid = zone_to_nid(zone);
-+	int zid = zone_idx(zone);
-+
- 	return &memcg->nodeinfo[nid]->zoneinfo[zid];
+@@ -713,11 +713,9 @@ soft_limit_tree_from_page(struct page *p
+ 	return &soft_limit_tree.rb_tree_per_node[nid]->rb_tree_per_zone[zid];
  }
  
-@@ -688,12 +690,12 @@ struct cgroup_subsys_state *mem_cgroup_c
+-static void
+-__mem_cgroup_insert_exceeded(struct mem_cgroup *memcg,
+-				struct mem_cgroup_per_zone *mz,
+-				struct mem_cgroup_tree_per_zone *mctz,
+-				unsigned long long new_usage_in_excess)
++static void __mem_cgroup_insert_exceeded(struct mem_cgroup_per_zone *mz,
++					 struct mem_cgroup_tree_per_zone *mctz,
++					 unsigned long long new_usage_in_excess)
+ {
+ 	struct rb_node **p = &mctz->rb_root.rb_node;
+ 	struct rb_node *parent = NULL;
+@@ -747,10 +745,8 @@ __mem_cgroup_insert_exceeded(struct mem_
+ 	mz->on_tree = true;
  }
  
- static struct mem_cgroup_per_zone *
--page_cgroup_zoneinfo(struct mem_cgroup *memcg, struct page *page)
-+mem_cgroup_page_zoneinfo(struct mem_cgroup *memcg, struct page *page)
+-static void
+-__mem_cgroup_remove_exceeded(struct mem_cgroup *memcg,
+-				struct mem_cgroup_per_zone *mz,
+-				struct mem_cgroup_tree_per_zone *mctz)
++static void __mem_cgroup_remove_exceeded(struct mem_cgroup_per_zone *mz,
++					 struct mem_cgroup_tree_per_zone *mctz)
  {
- 	int nid = page_to_nid(page);
- 	int zid = page_zonenum(page);
- 
--	return mem_cgroup_zoneinfo(memcg, nid, zid);
-+	return &memcg->nodeinfo[nid]->zoneinfo[zid];
+ 	if (!mz->on_tree)
+ 		return;
+@@ -758,13 +754,11 @@ __mem_cgroup_remove_exceeded(struct mem_
+ 	mz->on_tree = false;
  }
  
- static struct mem_cgroup_tree_per_zone *
-@@ -772,16 +774,14 @@ static void mem_cgroup_update_tree(struc
- 	unsigned long long excess;
- 	struct mem_cgroup_per_zone *mz;
- 	struct mem_cgroup_tree_per_zone *mctz;
--	int nid = page_to_nid(page);
--	int zid = page_zonenum(page);
--	mctz = soft_limit_tree_from_page(page);
- 
-+	mctz = soft_limit_tree_from_page(page);
- 	/*
- 	 * Necessary to update all ancestors when hierarchy is used.
- 	 * because their event counter is not touched.
- 	 */
- 	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
--		mz = mem_cgroup_zoneinfo(memcg, nid, zid);
-+		mz = mem_cgroup_page_zoneinfo(memcg, page);
- 		excess = res_counter_soft_limit_excess(&memcg->res);
- 		/*
- 		 * We have to update the tree if mz is on RB-tree or
-@@ -804,14 +804,14 @@ static void mem_cgroup_update_tree(struc
- 
- static void mem_cgroup_remove_from_trees(struct mem_cgroup *memcg)
+-static void
+-mem_cgroup_remove_exceeded(struct mem_cgroup *memcg,
+-				struct mem_cgroup_per_zone *mz,
+-				struct mem_cgroup_tree_per_zone *mctz)
++static void mem_cgroup_remove_exceeded(struct mem_cgroup_per_zone *mz,
++				       struct mem_cgroup_tree_per_zone *mctz)
  {
--	int node, zone;
--	struct mem_cgroup_per_zone *mz;
- 	struct mem_cgroup_tree_per_zone *mctz;
-+	struct mem_cgroup_per_zone *mz;
-+	int nid, zid;
+ 	spin_lock(&mctz->lock);
+-	__mem_cgroup_remove_exceeded(memcg, mz, mctz);
++	__mem_cgroup_remove_exceeded(mz, mctz);
+ 	spin_unlock(&mctz->lock);
+ }
  
--	for_each_node(node) {
--		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
--			mz = mem_cgroup_zoneinfo(memcg, node, zone);
--			mctz = soft_limit_tree_node_zone(node, zone);
-+	for_each_node(nid) {
-+		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-+			mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
-+			mctz = soft_limit_tree_node_zone(nid, zid);
- 			mem_cgroup_remove_exceeded(memcg, mz, mctz);
+@@ -791,12 +785,12 @@ static void mem_cgroup_update_tree(struc
+ 			spin_lock(&mctz->lock);
+ 			/* if on-tree, remove it */
+ 			if (mz->on_tree)
+-				__mem_cgroup_remove_exceeded(memcg, mz, mctz);
++				__mem_cgroup_remove_exceeded(mz, mctz);
+ 			/*
+ 			 * Insert again. mz->usage_in_excess will be updated.
+ 			 * If excess is 0, no tree ops.
+ 			 */
+-			__mem_cgroup_insert_exceeded(memcg, mz, mctz, excess);
++			__mem_cgroup_insert_exceeded(mz, mctz, excess);
+ 			spin_unlock(&mctz->lock);
  		}
  	}
-@@ -946,8 +946,7 @@ static void mem_cgroup_charge_statistics
- 	__this_cpu_add(memcg->stat->nr_page_events, nr_pages);
- }
- 
--unsigned long
--mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
-+unsigned long mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
- {
- 	struct mem_cgroup_per_zone *mz;
- 
-@@ -955,46 +954,38 @@ mem_cgroup_get_lru_size(struct lruvec *l
- 	return mz->lru_size[lru];
- }
- 
--static unsigned long
--mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, int nid, int zid,
--			unsigned int lru_mask)
--{
--	struct mem_cgroup_per_zone *mz;
--	enum lru_list lru;
--	unsigned long ret = 0;
--
--	mz = mem_cgroup_zoneinfo(memcg, nid, zid);
--
--	for_each_lru(lru) {
--		if (BIT(lru) & lru_mask)
--			ret += mz->lru_size[lru];
--	}
--	return ret;
--}
--
--static unsigned long
--mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
--			int nid, unsigned int lru_mask)
-+static unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
-+						  int nid,
-+						  unsigned int lru_mask)
- {
--	u64 total = 0;
-+	unsigned long nr = 0;
- 	int zid;
- 
--	for (zid = 0; zid < MAX_NR_ZONES; zid++)
--		total += mem_cgroup_zone_nr_lru_pages(memcg,
--						nid, zid, lru_mask);
-+	VM_BUG_ON((unsigned)nid >= nr_node_ids);
- 
--	return total;
-+	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-+		struct mem_cgroup_per_zone *mz;
-+		enum lru_list lru;
-+
-+		for_each_lru(lru) {
-+			if (!(BIT(lru) & lru_mask))
-+				continue;
-+			mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
-+			nr += mz->lru_size[lru];
-+		}
-+	}
-+	return nr;
- }
- 
- static unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *memcg,
- 			unsigned int lru_mask)
- {
-+	unsigned long nr = 0;
- 	int nid;
--	u64 total = 0;
- 
- 	for_each_node_state(nid, N_MEMORY)
--		total += mem_cgroup_node_nr_lru_pages(memcg, nid, lru_mask);
--	return total;
-+		nr += mem_cgroup_node_nr_lru_pages(memcg, nid, lru_mask);
-+	return nr;
- }
- 
- static bool mem_cgroup_event_ratelimit(struct mem_cgroup *memcg,
-@@ -1242,11 +1233,9 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		int uninitialized_var(seq);
- 
- 		if (reclaim) {
--			int nid = zone_to_nid(reclaim->zone);
--			int zid = zone_idx(reclaim->zone);
- 			struct mem_cgroup_per_zone *mz;
- 
--			mz = mem_cgroup_zoneinfo(root, nid, zid);
-+			mz = mem_cgroup_zone_zoneinfo(root, reclaim->zone);
- 			iter = &mz->reclaim_iter[reclaim->priority];
- 			if (prev && reclaim->generation != iter->generation) {
- 				iter->last_visited = NULL;
-@@ -1353,7 +1342,7 @@ struct lruvec *mem_cgroup_zone_lruvec(st
- 		goto out;
+@@ -812,7 +806,7 @@ static void mem_cgroup_remove_from_trees
+ 		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+ 			mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
+ 			mctz = soft_limit_tree_node_zone(nid, zid);
+-			mem_cgroup_remove_exceeded(memcg, mz, mctz);
++			mem_cgroup_remove_exceeded(mz, mctz);
+ 		}
  	}
- 
--	mz = mem_cgroup_zoneinfo(memcg, zone_to_nid(zone), zone_idx(zone));
-+	mz = mem_cgroup_zone_zoneinfo(memcg, zone);
- 	lruvec = &mz->lruvec;
- out:
- 	/*
-@@ -1412,7 +1401,7 @@ struct lruvec *mem_cgroup_page_lruvec(st
- 	if (!PageLRU(page) && !PageCgroupUsed(pc) && memcg != root_mem_cgroup)
- 		pc->mem_cgroup = memcg = root_mem_cgroup;
- 
--	mz = page_cgroup_zoneinfo(memcg, page);
-+	mz = mem_cgroup_page_zoneinfo(memcg, page);
- 	lruvec = &mz->lruvec;
- out:
- 	/*
-@@ -5305,7 +5294,7 @@ static int memcg_stat_show(struct seq_fi
- 
- 		for_each_online_node(nid)
- 			for (zid = 0; zid < MAX_NR_ZONES; zid++) {
--				mz = mem_cgroup_zoneinfo(memcg, nid, zid);
-+				mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
- 				rstat = &mz->lruvec.reclaim_stat;
- 
- 				recent_rotated[0] += rstat->recent_rotated[0];
+ }
+@@ -835,7 +829,7 @@ retry:
+ 	 * we will to add it back at the end of reclaim to its correct
+ 	 * position in the tree.
+ 	 */
+-	__mem_cgroup_remove_exceeded(mz->memcg, mz, mctz);
++	__mem_cgroup_remove_exceeded(mz, mctz);
+ 	if (!res_counter_soft_limit_excess(&mz->memcg->res) ||
+ 		!css_tryget(&mz->memcg->css))
+ 		goto retry;
+@@ -4586,7 +4580,7 @@ unsigned long mem_cgroup_soft_limit_recl
+ 					break;
+ 			} while (1);
+ 		}
+-		__mem_cgroup_remove_exceeded(mz->memcg, mz, mctz);
++		__mem_cgroup_remove_exceeded(mz, mctz);
+ 		excess = res_counter_soft_limit_excess(&mz->memcg->res);
+ 		/*
+ 		 * One school of thought says that we should not add
+@@ -4597,7 +4591,7 @@ unsigned long mem_cgroup_soft_limit_recl
+ 		 * term TODO.
+ 		 */
+ 		/* If excess == 0, no tree ops */
+-		__mem_cgroup_insert_exceeded(mz->memcg, mz, mctz, excess);
++		__mem_cgroup_insert_exceeded(mz, mctz, excess);
+ 		spin_unlock(&mctz->lock);
+ 		css_put(&mz->memcg->css);
+ 		loop++;
 _
 
-Patches currently in -mm which might be from nasa4836@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
 linux-next.patch
+memcg-mm-introduce-lowlimit-reclaim.patch
+memcg-mm-introduce-lowlimit-reclaim-fix.patch
+memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
+memcg-allow-setting-low_limit.patch
+memcg-doc-clarify-global-vs-limit-reclaims.patch
+memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
+memcg-document-memorylow_limit_in_bytes.patch
+vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
+memcg-deprecate-memoryforce_empty-knob.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+debugging-keep-track-of-page-owners.patch
 
