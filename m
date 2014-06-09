@@ -1,131 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: [merged] initramfs-remove-compression-mode-choice.patch removed
- from -mm tree
-Date: Mon, 09 Jun 2014 12:36:52 -0700
-Message-ID: <53960cd4.YbsESm02wEZqBEgR%akpm@linux-foundation.org>
+Subject: [merged] ipc-constify-ipc_ops.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:36:57 -0700
+Message-ID: <53960cd9.9rKWOnqjFwFvRFue%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54203 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54207 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750822AbaFITgw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:36:52 -0400
+	with ESMTP id S1753687AbaFITg6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:36:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ppandit@redhat.com, pebolle@tiscali.nl
+To: mm-commits@vger.kernel.org, pageexec@freemail.hu, manfred@colorfullife.com, davidlohr@hp.com, minipli@googlemail.com
 
-Subject: [merged] initramfs-remove-compression-mode-choice.patch removed from -mm tree
-To: pebolle@tiscali.nl,ppandit@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] ipc-constify-ipc_ops.patch removed from -mm tree
+To: minipli@googlemail.com,davidlohr@hp.com,manfred@colorfullife.com,pageexec@freemail.hu,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:36:52 -0700
+Date: Mon, 09 Jun 2014 12:36:57 -0700
 
 
 The patch titled
-     Subject: initramfs: remove "compression mode" choice
+     Subject: ipc: constify ipc_ops
 has been removed from the -mm tree.  Its filename was
-     initramfs-remove-compression-mode-choice.patch
+     ipc-constify-ipc_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: initramfs: remove "compression mode" choice
+From: Mathias Krause <minipli@googlemail.com>
+Subject: ipc: constify ipc_ops
 
-9ba4bcb64589 ("initramfs: read CONFIG_RD_ variables for initramfs
-compression") removed the users of the various INITRAMFS_COMPRESSION_*
-Kconfig symbols.  So since v3.13 the entire "Built-in initramfs
-compression mode" choice is a set of knobs connected to nothing.  The
-entire choice can safely be removed.
+There is no need to recreate the very same ipc_ops structure on every
+kernel entry for msgget/semget/shmget.  Just declare it static and be done
+with it.  While at it, constify it as we don't modify the structure at
+runtime.
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-Cc: P J P <ppandit@redhat.com>
+Found in the PaX patch, written by the PaX Team.
+
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Cc: PaX Team <pageexec@freemail.hu>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Kconfig |   77 --------------------------------------------------
- 1 file changed, 77 deletions(-)
+ ipc/msg.c  |    9 ++++-----
+ ipc/sem.c  |   10 +++++-----
+ ipc/shm.c  |   10 +++++-----
+ ipc/util.c |    8 ++++----
+ ipc/util.h |    2 +-
+ 5 files changed, 19 insertions(+), 20 deletions(-)
 
-diff -puN usr/Kconfig~initramfs-remove-compression-mode-choice usr/Kconfig
---- a/usr/Kconfig~initramfs-remove-compression-mode-choice
-+++ a/usr/Kconfig
-@@ -98,80 +98,3 @@ config RD_LZ4
- 	help
- 	  Support loading of a LZ4 encoded initial ramdisk or cpio buffer
- 	  If unsure, say N.
+diff -puN ipc/msg.c~ipc-constify-ipc_ops ipc/msg.c
+--- a/ipc/msg.c~ipc-constify-ipc_ops
++++ a/ipc/msg.c
+@@ -306,15 +306,14 @@ static inline int msg_security(struct ke
+ SYSCALL_DEFINE2(msgget, key_t, key, int, msgflg)
+ {
+ 	struct ipc_namespace *ns;
+-	struct ipc_ops msg_ops;
++	static const struct ipc_ops msg_ops = {
++		.getnew = newque,
++		.associate = msg_security,
++	};
+ 	struct ipc_params msg_params;
+ 
+ 	ns = current->nsproxy->ipc_ns;
+ 
+-	msg_ops.getnew = newque;
+-	msg_ops.associate = msg_security;
+-	msg_ops.more_checks = NULL;
 -
--choice
--	prompt "Built-in initramfs compression mode" if INITRAMFS_SOURCE!=""
--	help
--	  This option decides by which algorithm the builtin initramfs
--	  will be compressed.  Several compression algorithms are
--	  available, which differ in efficiency, compression and
--	  decompression speed.  Compression speed is only relevant
--	  when building a kernel.  Decompression speed is relevant at
--	  each boot.
+ 	msg_params.key = key;
+ 	msg_params.flg = msgflg;
+ 
+diff -puN ipc/sem.c~ipc-constify-ipc_ops ipc/sem.c
+--- a/ipc/sem.c~ipc-constify-ipc_ops
++++ a/ipc/sem.c
+@@ -564,7 +564,11 @@ static inline int sem_more_checks(struct
+ SYSCALL_DEFINE3(semget, key_t, key, int, nsems, int, semflg)
+ {
+ 	struct ipc_namespace *ns;
+-	struct ipc_ops sem_ops;
++	static const struct ipc_ops sem_ops = {
++		.getnew = newary,
++		.associate = sem_security,
++		.more_checks = sem_more_checks,
++	};
+ 	struct ipc_params sem_params;
+ 
+ 	ns = current->nsproxy->ipc_ns;
+@@ -572,10 +576,6 @@ SYSCALL_DEFINE3(semget, key_t, key, int,
+ 	if (nsems < 0 || nsems > ns->sc_semmsl)
+ 		return -EINVAL;
+ 
+-	sem_ops.getnew = newary;
+-	sem_ops.associate = sem_security;
+-	sem_ops.more_checks = sem_more_checks;
 -
--	  If you have any problems with bzip2 or LZMA compressed
--	  initramfs, mail me (Alain Knaff) <alain@knaff.lu>.
+ 	sem_params.key = key;
+ 	sem_params.flg = semflg;
+ 	sem_params.u.nsems = nsems;
+diff -puN ipc/shm.c~ipc-constify-ipc_ops ipc/shm.c
+--- a/ipc/shm.c~ipc-constify-ipc_ops
++++ a/ipc/shm.c
+@@ -609,15 +609,15 @@ static inline int shm_more_checks(struct
+ SYSCALL_DEFINE3(shmget, key_t, key, size_t, size, int, shmflg)
+ {
+ 	struct ipc_namespace *ns;
+-	struct ipc_ops shm_ops;
++	static const struct ipc_ops shm_ops = {
++		.getnew = newseg,
++		.associate = shm_security,
++		.more_checks = shm_more_checks,
++	};
+ 	struct ipc_params shm_params;
+ 
+ 	ns = current->nsproxy->ipc_ns;
+ 
+-	shm_ops.getnew = newseg;
+-	shm_ops.associate = shm_security;
+-	shm_ops.more_checks = shm_more_checks;
 -
--	  High compression options are mostly useful for users who are
--	  low on RAM, since it reduces the memory consumption during
--	  boot.
--
--	  If in doubt, select 'gzip'
--
--config INITRAMFS_COMPRESSION_NONE
--	bool "None"
--	help
--	  Do not compress the built-in initramfs at all. This may
--	  sound wasteful in space, but, you should be aware that the
--	  built-in initramfs will be compressed at a later stage
--	  anyways along with the rest of the kernel, on those
--	  architectures that support this.
--	  However, not compressing the initramfs may lead to slightly
--	  higher memory consumption during a short time at boot, while
--	  both the cpio image and the unpacked filesystem image will
--	  be present in memory simultaneously
--
--config INITRAMFS_COMPRESSION_GZIP
--	bool "Gzip"
--	depends on RD_GZIP
--	help
--	  The old and tried gzip compression. It provides a good balance
--	  between compression ratio and decompression speed.
--
--config INITRAMFS_COMPRESSION_BZIP2
--	bool "Bzip2"
--	depends on RD_BZIP2
--	help
--	  Its compression ratio and speed is intermediate.
--	  Decompression speed is slowest among the choices.  The initramfs
--	  size is about 10% smaller with bzip2, in comparison to gzip.
--	  Bzip2 uses a large amount of memory. For modern kernels you
--	  will need at least 8MB RAM or more for booting.
--
--config INITRAMFS_COMPRESSION_LZMA
--	bool "LZMA"
--	depends on RD_LZMA
--	help
--	  This algorithm's compression ratio is best.
--	  Decompression speed is between the other choices.
--	  Compression is slowest. The initramfs size is about 33%
--	  smaller with LZMA in comparison to gzip.
--
--config INITRAMFS_COMPRESSION_XZ
--	bool "XZ"
--	depends on RD_XZ
--	help
--	  XZ uses the LZMA2 algorithm. The initramfs size is about 30%
--	  smaller with XZ in comparison to gzip. Decompression speed
--	  is better than that of bzip2 but worse than gzip and LZO.
--	  Compression is slow.
--
--config INITRAMFS_COMPRESSION_LZO
--	bool "LZO"
--	depends on RD_LZO
--	help
--	  Its compression ratio is the poorest among the choices. The kernel
--	  size is about 10% bigger than gzip; however its speed
--	  (both compression and decompression) is the fastest.
+ 	shm_params.key = key;
+ 	shm_params.flg = shmflg;
+ 	shm_params.u.size = size;
+diff -puN ipc/util.c~ipc-constify-ipc_ops ipc/util.c
+--- a/ipc/util.c~ipc-constify-ipc_ops
++++ a/ipc/util.c
+@@ -317,7 +317,7 @@ int ipc_addid(struct ipc_ids *ids, struc
+  * when the key is IPC_PRIVATE.
+  */
+ static int ipcget_new(struct ipc_namespace *ns, struct ipc_ids *ids,
+-		struct ipc_ops *ops, struct ipc_params *params)
++		const struct ipc_ops *ops, struct ipc_params *params)
+ {
+ 	int err;
+ 
+@@ -344,7 +344,7 @@ static int ipcget_new(struct ipc_namespa
+  */
+ static int ipc_check_perms(struct ipc_namespace *ns,
+ 			   struct kern_ipc_perm *ipcp,
+-			   struct ipc_ops *ops,
++			   const struct ipc_ops *ops,
+ 			   struct ipc_params *params)
+ {
+ 	int err;
+@@ -375,7 +375,7 @@ static int ipc_check_perms(struct ipc_na
+  * On success, the ipc id is returned.
+  */
+ static int ipcget_public(struct ipc_namespace *ns, struct ipc_ids *ids,
+-		struct ipc_ops *ops, struct ipc_params *params)
++		const struct ipc_ops *ops, struct ipc_params *params)
+ {
+ 	struct kern_ipc_perm *ipcp;
+ 	int flg = params->flg;
+@@ -678,7 +678,7 @@ out:
+  * Common routine called by sys_msgget(), sys_semget() and sys_shmget().
+  */
+ int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
+-			struct ipc_ops *ops, struct ipc_params *params)
++			const struct ipc_ops *ops, struct ipc_params *params)
+ {
+ 	if (params->key == IPC_PRIVATE)
+ 		return ipcget_new(ns, ids, ops, params);
+diff -puN ipc/util.h~ipc-constify-ipc_ops ipc/util.h
+--- a/ipc/util.h~ipc-constify-ipc_ops
++++ a/ipc/util.h
+@@ -201,7 +201,7 @@ static inline bool ipc_valid_object(stru
+ 
+ struct kern_ipc_perm *ipc_obtain_object_check(struct ipc_ids *ids, int id);
+ int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
+-			struct ipc_ops *ops, struct ipc_params *params);
++			const struct ipc_ops *ops, struct ipc_params *params);
+ void free_ipcs(struct ipc_namespace *ns, struct ipc_ids *ids,
+ 		void (*free)(struct ipc_namespace *, struct kern_ipc_perm *));
+ #endif
+_
+
+Patches currently in -mm which might be from minipli@googlemail.com are
+
+origin.patch
+linux-next.patch
+
