@@ -1,92 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch removed
- from -mm tree
-Date: Mon, 09 Jun 2014 12:32:27 -0700
-Message-ID: <53960bcb.G9fwk0IKaEdHFuG/%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:32:37 -0700
+Message-ID: <53960bd5.20oPFYX4GUjxe83C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53942 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53948 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750805AbaFITc1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:32:27 -0400
+	with ESMTP id S1751124AbaFITch (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:32:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, slava@dubeyko.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, dushistov@mail.ru, fabf@skynet.be
 
-Subject: [merged] fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch removed from -mm tree
-To: fabf@skynet.be,slava@dubeyko.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch removed from -mm tree
+To: fabf@skynet.be,dushistov@mail.ru,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:32:27 -0700
+Date: Mon, 09 Jun 2014 12:32:37 -0700
 
 
 The patch titled
-     Subject: fs/hfsplus: fix pr_foo() and hfs_dbg formats
+     Subject: fs/ufs/balloc.c: remove err parameter in ufs_add_fragments
 has been removed from the -mm tree.  Its filename was
-     fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats.patch
+     fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hfsplus: fix pr_foo() and hfs_dbg formats
+Subject: fs/ufs/balloc.c: remove err parameter in ufs_add_fragments
+
+err is used in ufs_new_fragments (ufs_add_fragments only callsite)
+not in ufs_add_fragments.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Suggested-By: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/extents.c |    7 +++----
- fs/hfsplus/super.c   |    3 ++-
- fs/hfsplus/xattr.c   |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ fs/ufs/balloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/hfsplus/extents.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats fs/hfsplus/extents.c
---- a/fs/hfsplus/extents.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats
-+++ a/fs/hfsplus/extents.c
-@@ -436,10 +436,9 @@ int hfsplus_file_extend(struct inode *in
- 	if (sbi->alloc_file->i_size * 8 <
- 	    sbi->total_blocks - sbi->free_blocks + 8) {
- 		/* extend alloc file */
--		pr_err("extend alloc file! "
--				"(%llu,%u,%u)\n",
--			sbi->alloc_file->i_size * 8,
--			sbi->total_blocks, sbi->free_blocks);
-+		pr_err("extend alloc file! (%llu,%u,%u)\n",
-+		       sbi->alloc_file->i_size * 8,
-+		       sbi->total_blocks, sbi->free_blocks);
- 		return -ENOSPC;
- 	}
+diff -puN fs/ufs/balloc.c~fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments fs/ufs/balloc.c
+--- a/fs/ufs/balloc.c~fs-ufs-ballocc-remove-err-parameter-in-ufs_add_fragments
++++ a/fs/ufs/balloc.c
+@@ -24,7 +24,7 @@
  
-diff -puN fs/hfsplus/super.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats fs/hfsplus/super.c
---- a/fs/hfsplus/super.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats
-+++ a/fs/hfsplus/super.c
-@@ -131,9 +131,10 @@ static int hfsplus_system_write_inode(st
- 	hfsplus_inode_write_fork(inode, fork);
- 	if (tree) {
- 		int err = hfs_btree_write(tree);
-+
- 		if (err) {
- 			pr_err("b-tree write err: %d, ino %lu\n",
--					err, inode->i_ino);
-+			       err, inode->i_ino);
- 			return err;
- 		}
- 	}
-diff -puN fs/hfsplus/xattr.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats fs/hfsplus/xattr.c
---- a/fs/hfsplus/xattr.c~fs-hfsplus-fix-pr_foo-and-hfs_dbg-formats
-+++ a/fs/hfsplus/xattr.c
-@@ -70,7 +70,7 @@ static void hfsplus_init_header_node(str
- 	loff_t tmp;
+ #define INVBLOCK ((u64)-1L)
  
- 	hfs_dbg(ATTR_MOD, "init_hdr_attr_file: clump %u, node_size %u\n",
--				clump_size, node_size);
-+		clump_size, node_size);
+-static u64 ufs_add_fragments(struct inode *, u64, unsigned, unsigned, int *);
++static u64 ufs_add_fragments(struct inode *, u64, unsigned, unsigned);
+ static u64 ufs_alloc_fragments(struct inode *, unsigned, u64, unsigned, int *);
+ static u64 ufs_alloccg_block(struct inode *, struct ufs_cg_private_info *, u64, int *);
+ static u64 ufs_bitmap_search (struct super_block *, struct ufs_cg_private_info *, u64, unsigned);
+@@ -432,7 +432,7 @@ u64 ufs_new_fragments(struct inode *inod
+ 	/*
+ 	 * resize block
+ 	 */
+-	result = ufs_add_fragments (inode, tmp, oldcount, newcount, err);
++	result = ufs_add_fragments(inode, tmp, oldcount, newcount);
+ 	if (result) {
+ 		*err = 0;
+ 		UFS_I(inode)->i_lastfrag = max(UFS_I(inode)->i_lastfrag,
+@@ -491,7 +491,7 @@ u64 ufs_new_fragments(struct inode *inod
+ }		
  
- 	/* The end of the node contains list of record offsets */
- 	rec_offsets = (__be16 *)(buf + node_size);
+ static u64 ufs_add_fragments(struct inode *inode, u64 fragment,
+-			     unsigned oldcount, unsigned newcount, int *err)
++			     unsigned oldcount, unsigned newcount)
+ {
+ 	struct super_block * sb;
+ 	struct ufs_sb_private_info * uspi;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
