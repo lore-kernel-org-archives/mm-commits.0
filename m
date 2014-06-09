@@ -1,72 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-proc-vmcorec-remove-null-assignment-on-static.patch
- removed from -mm tree
-Date: Mon, 09 Jun 2014 12:34:37 -0700
-Message-ID: <53960c4d.u7REjRsnAgOqkQSz%akpm@linux-foundation.org>
+Subject: [merged]
+ smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:34:42 -0700
+Message-ID: <53960c52.UG95NkHeIUu5vmFk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54106 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751213AbaFITej (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:34:39 -0400
+	with ESMTP id S1753703AbaFITen (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:34:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgoyal@redhat.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, rostedt@goodmis.org, rjw@rjwysocki.net, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, mgalbraith@suse.de, hch@infradead.org, fweisbec@gmail.com, ego@linux.vnet.ibm.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com
 
-Subject: [merged] fs-proc-vmcorec-remove-null-assignment-on-static.patch removed from -mm tree
-To: fabf@skynet.be,vgoyal@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch removed from -mm tree
+To: srivatsa.bhat@linux.vnet.ibm.com,bp@suse.de,ego@linux.vnet.ibm.com,fweisbec@gmail.com,hch@infradead.org,mgalbraith@suse.de,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,rjw@rjwysocki.net,rostedt@goodmis.org,rusty@rustcorp.com.au,tglx@linutronix.de,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:34:37 -0700
+Date: Mon, 09 Jun 2014 12:34:42 -0700
 
 
 The patch titled
-     Subject: fs/proc/vmcore.c: remove NULL assignment to static
+     Subject: smp: print more useful debug info upon receiving IPI on an offline CPU
 has been removed from the -mm tree.  Its filename was
-     fs-proc-vmcorec-remove-null-assignment-on-static.patch
+     smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/proc/vmcore.c: remove NULL assignment to static
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: smp: print more useful debug info upon receiving IPI on an offline CPU
 
-Static values are automatically initialized to NULL.
+There is a longstanding problem related to CPU hotplug which causes IPIs
+to be delivered to offline CPUs, and the smp-call-function IPI handler
+code prints out a warning whenever this is detected.  Every once in a
+while this (usually harmless) warning gets reported on LKML, but so far it
+has not been completely fixed.  Usually the solution involves finding out
+the IPI sender and fixing it by adding appropriate synchronization with
+CPU hotplug.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+However, while going through one such internal bug reports, I found that
+there is a significant bug in the receiver side itself (more specifically,
+in stop-machine) that can lead to this problem even when the sender code
+is perfectly fine.  This patchset fixes that synchronization problem in
+the CPU hotplug stop-machine code.
+
+Patch 1 adds some additional debug code to the smp-call-function
+framework, to help debug such issues easily.
+
+Patch 2 modifies the stop-machine code to ensure that any IPIs that were
+sent while the target CPU was online, would be noticed and handled by that
+CPU without fail before it goes offline.  Thus, this avoids scenarios
+where IPIs are received on offline CPUs (as long as the sender uses proper
+hotplug synchronization).
+
+
+In fact, I debugged the problem by using Patch 1, and found that the
+payload of the IPI was always the block layer's trigger_softirq()
+function.  But I was not able to find anything wrong with the block layer
+code.  That's when I started looking at the stop-machine code and realized
+that there is a race-window which makes the IPI _receiver_ the culprit,
+not the sender.  Patch 2 fixes that race and hence this should put an end
+to most of the hard-to-debug IPI-to-offline-CPU issues.
+
+
+
+
+This patch (of 2):
+
+Today the smp-call-function code just prints a warning if we get an IPI on
+an offline CPU.  This info is sufficient to let us know that something
+went wrong, but often it is very hard to debug exactly who sent the IPI
+and why, from this info alone.
+
+In most cases, we get the warning about the IPI to an offline CPU,
+immediately after the CPU going offline comes out of the stop-machine
+phase and reenables interrupts.  Since all online CPUs participate in
+stop-machine, the information regarding the sender of the IPI is already
+lost by the time we exit the stop-machine loop.  So even if we dump the
+stack on each CPU at this point, we won't find anything useful since all
+of them will show the stack-trace of the stopper thread.  So we need a
+better way to figure out who sent the IPI and why.
+
+To achieve this, when we detect an IPI targeted to an offline CPU, loop
+through the call-single-data linked list and print out the payload (i.e.,
+the name of the function which was supposed to be executed by the target
+CPU).  This would give us an insight as to who might have sent the IPI and
+help us debug this further.
+
+[akpm@linux-foundation.org: correctly suppress warning output on second and later occurrences]
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Mike Galbraith <mgalbraith@suse.de>
+Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/smp.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/vmcore.c~fs-proc-vmcorec-remove-null-assignment-on-static fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~fs-proc-vmcorec-remove-null-assignment-on-static
-+++ a/fs/proc/vmcore.c
-@@ -42,7 +42,7 @@ static size_t elfnotes_sz;
- /* Total size of vmcore file. */
- static u64 vmcore_size;
+diff -puN kernel/smp.c~smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu kernel/smp.c
+--- a/kernel/smp.c~smp-print-more-useful-debug-info-upon-receiving-ipi-on-an-offline-cpu
++++ a/kernel/smp.c
+@@ -185,14 +185,26 @@ void generic_smp_call_function_single_in
+ {
+ 	struct llist_node *entry;
+ 	struct call_single_data *csd, *csd_next;
++	static bool warned;
++
++	entry = llist_del_all(&__get_cpu_var(call_single_queue));
++	entry = llist_reverse_order(entry);
  
--static struct proc_dir_entry *proc_vmcore = NULL;
-+static struct proc_dir_entry *proc_vmcore;
+ 	/*
+ 	 * Shouldn't receive this interrupt on a cpu that is not yet online.
+ 	 */
+-	WARN_ON_ONCE(!cpu_online(smp_processor_id()));
++	if (unlikely(!cpu_online(smp_processor_id()) && !warned)) {
++		warned = true;
++		WARN(1, "IPI on offline CPU %d\n", smp_processor_id());
  
- /*
-  * Returns > 0 for RAM pages, 0 for non-RAM pages, < 0 on error
+-	entry = llist_del_all(&__get_cpu_var(call_single_queue));
+-	entry = llist_reverse_order(entry);
++		/*
++		 * We don't have to use the _safe() variant here
++		 * because we are not invoking the IPI handlers yet.
++		 */
++		llist_for_each_entry(csd, entry, llist)
++			pr_warn("IPI callback %pS sent to offline CPU\n",
++				csd->func);
++	}
+ 
+ 	llist_for_each_entry_safe(csd, csd_next, entry, llist) {
+ 		csd->func(csd->info);
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
 
 origin.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-isofs-logging-clean-up.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-checkpatch-fixes.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
 
