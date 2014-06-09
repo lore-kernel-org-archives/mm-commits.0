@@ -1,43 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-semc-remove-code-duplication.patch removed from -mm
- tree
-Date: Mon, 09 Jun 2014 12:37:57 -0700
-Message-ID: <53960d15.kWNSY+daTHIqBMgR%akpm@linux-foundation.org>
+Subject: [merged] ipc-semc-change-perform_atomic_semop-parameters.patch
+ removed from -mm tree
+Date: Mon, 09 Jun 2014 12:38:02 -0700
+Message-ID: <53960d1a./nY+LymAgC/fmepl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54254 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54258 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751879AbaFITh6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:37:58 -0400
+	with ESMTP id S1751879AbaFITiD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:38:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, davidlohr.bueso@hp.com, manfred@colorfullife.com
 
-Subject: [merged] ipc-semc-remove-code-duplication.patch removed from -mm tree
+Subject: [merged] ipc-semc-change-perform_atomic_semop-parameters.patch removed from -mm tree
 To: manfred@colorfullife.com,davidlohr.bueso@hp.com,mtk.manpages@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:37:57 -0700
+Date: Mon, 09 Jun 2014 12:38:02 -0700
 
 
 The patch titled
-     Subject: ipc/sem.c: remove code duplication
+     Subject: ipc/sem.c: change perform_atomic_semop parameters
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-remove-code-duplication.patch
+     ipc-semc-change-perform_atomic_semop-parameters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: remove code duplication
+Subject: ipc/sem.c: change perform_atomic_semop parameters
 
-count_semzcnt and count_semncnt are more of less identical.  The patch
-creates a single function that either counts the number of tasks waiting
-for zero or waiting due to a decrease operation.
+Right now, perform_atomic_semop gets the content of sem_queue as
+individual fields.  Changes that, instead pass a pointer to sem_queue.
 
-Compared to the initial version, the BUG_ONs were removed.
+This is a preparation for the next patch: it uses sem_queue to store the
+reason why a task must sleep.
 
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
@@ -45,161 +45,93 @@ Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |  107 ++++++++++++++++++++++++----------------------------
- 1 file changed, 51 insertions(+), 56 deletions(-)
+ ipc/sem.c |   38 +++++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-remove-code-duplication ipc/sem.c
---- a/ipc/sem.c~ipc-semc-remove-code-duplication
+diff -puN ipc/sem.c~ipc-semc-change-perform_atomic_semop-parameters ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-change-perform_atomic_semop-parameters
 +++ a/ipc/sem.c
-@@ -47,8 +47,7 @@
-  *   Thus: Perfect SMP scaling between independent semaphore arrays.
-  *         If multiple semaphores in one array are used, then cache line
-  *         trashing on the semaphore array spinlock will limit the scaling.
-- * - semncnt and semzcnt are calculated on demand in count_semncnt() and
-- *   count_semzcnt()
-+ * - semncnt and semzcnt are calculated on demand in count_semcnt()
-  * - the task that performs a successful semop() scans the list of all
-  *   sleeping tasks and completes any pending operations that can be fulfilled.
-  *   Semaphores are actively given to waiting tasks (necessary for FIFO).
-@@ -989,6 +988,31 @@ static void do_smart_update(struct sem_a
- 		set_semotime(sma, sops);
- }
- 
-+/*
-+ * check_qop: Test how often a queued operation sleeps on the semaphore semnum
-+ */
-+static int check_qop(struct sem_array *sma, int semnum, struct sem_queue *q,
-+			bool count_zero)
-+{
-+	struct sembuf *sops = q->sops;
-+	int nsops = q->nsops;
-+	int i, semcnt;
-+
-+	semcnt = 0;
-+
-+	for (i = 0; i < nsops; i++) {
-+		if (sops[i].sem_num != semnum)
-+			continue;
-+		if (sops[i].sem_flg & IPC_NOWAIT)
-+			continue;
-+		if (count_zero && sops[i].sem_op == 0)
-+			semcnt++;
-+		if (!count_zero && sops[i].sem_op < 0)
-+			semcnt++;
-+	}
-+	return semcnt;
-+}
-+
- /* The following counts are associated to each semaphore:
-  *   semncnt        number of tasks waiting on semval being nonzero
-  *   semzcnt        number of tasks waiting on semval being zero
-@@ -998,66 +1022,37 @@ static void do_smart_update(struct sem_a
-  * The counts we return here are a rough approximation, but still
-  * warrant that semncnt+semzcnt>0 if the task is on the pending queue.
+@@ -585,21 +585,23 @@ SYSCALL_DEFINE3(semget, key_t, key, int,
+ /**
+  * perform_atomic_semop - Perform (if possible) a semaphore operation
+  * @sma: semaphore array
+- * @sops: array with operations that should be checked
+- * @nsops: number of operations
+- * @un: undo array
+- * @pid: pid that did the change
++ * @q: struct sem_queue that describes the operation
+  *
+  * Returns 0 if the operation was possible.
+  * Returns 1 if the operation is impossible, the caller must sleep.
+  * Negative values are error codes.
   */
--static int count_semncnt(struct sem_array *sma, ushort semnum)
-+static int count_semcnt(struct sem_array *sma, ushort semnum,
-+			bool count_zero)
+-static int perform_atomic_semop(struct sem_array *sma, struct sembuf *sops,
+-			     int nsops, struct sem_undo *un, int pid)
++static int perform_atomic_semop(struct sem_array *sma, struct sem_queue *q)
  {
--	int semncnt;
-+	struct list_head *l;
- 	struct sem_queue *q;
-+	int semcnt;
+-	int result, sem_op;
++	int result, sem_op, nsops, pid;
+ 	struct sembuf *sop;
+ 	struct sem *curr;
++	struct sembuf *sops;
++	struct sem_undo *un;
++
++	sops = q->sops;
++	nsops = q->nsops;
++	un = q->undo;
  
--	semncnt = 0;
--	list_for_each_entry(q, &sma->sem_base[semnum].pending_alter, list) {
--		struct sembuf *sops = q->sops;
--		BUG_ON(sops->sem_num != semnum);
--		if ((sops->sem_op < 0) && !(sops->sem_flg & IPC_NOWAIT))
--			semncnt++;
--	}
--
--	list_for_each_entry(q, &sma->pending_alter, list) {
--		struct sembuf *sops = q->sops;
--		int nsops = q->nsops;
--		int i;
--		for (i = 0; i < nsops; i++)
--			if (sops[i].sem_num == semnum
--			    && (sops[i].sem_op < 0)
--			    && !(sops[i].sem_flg & IPC_NOWAIT))
--				semncnt++;
--	}
--	return semncnt;
--}
--
--static int count_semzcnt(struct sem_array *sma, ushort semnum)
--{
--	int semzcnt;
--	struct sem_queue *q;
-+	semcnt = 0;
-+	/* First: check the simple operations. They are easy to evaluate */
-+	if (count_zero)
-+		l = &sma->sem_base[semnum].pending_const;
-+	else
-+		l = &sma->sem_base[semnum].pending_alter;
- 
--	semzcnt = 0;
--	list_for_each_entry(q, &sma->sem_base[semnum].pending_const, list) {
--		struct sembuf *sops = q->sops;
--		BUG_ON(sops->sem_num != semnum);
--		if ((sops->sem_op == 0) && !(sops->sem_flg & IPC_NOWAIT))
--			semzcnt++;
-+	list_for_each_entry(q, l, list) {
-+		/* all task on a per-semaphore list sleep on exactly
-+		 * that semaphore
-+		 */
-+		semcnt++;
+ 	for (sop = sops; sop < sops + nsops; sop++) {
+ 		curr = sma->sem_base + sop->sem_num;
+@@ -627,6 +629,7 @@ static int perform_atomic_semop(struct s
  	}
  
--	list_for_each_entry(q, &sma->pending_const, list) {
--		struct sembuf *sops = q->sops;
--		int nsops = q->nsops;
--		int i;
--		for (i = 0; i < nsops; i++)
--			if (sops[i].sem_num == semnum
--			    && (sops[i].sem_op == 0)
--			    && !(sops[i].sem_flg & IPC_NOWAIT))
--				semzcnt++;
--	}
-+	/* Then: check the complex operations. */
- 	list_for_each_entry(q, &sma->pending_alter, list) {
--		struct sembuf *sops = q->sops;
--		int nsops = q->nsops;
--		int i;
--		for (i = 0; i < nsops; i++)
--			if (sops[i].sem_num == semnum
--			    && (sops[i].sem_op == 0)
--			    && !(sops[i].sem_flg & IPC_NOWAIT))
--				semzcnt++;
-+		semcnt += check_qop(sma, semnum, q, count_zero);
-+	}
-+	if (count_zero) {
-+		list_for_each_entry(q, &sma->pending_const, list) {
-+			semcnt += check_qop(sma, semnum, q, count_zero);
-+		}
- 	}
--	return semzcnt;
-+	return semcnt;
- }
+ 	sop--;
++	pid = q->pid;
+ 	while (sop >= sops) {
+ 		sma->sem_base[sop->sem_num].sempid = pid;
+ 		sop--;
+@@ -779,8 +782,7 @@ static int wake_const_ops(struct sem_arr
+ 		q = container_of(walk, struct sem_queue, list);
+ 		walk = walk->next;
  
- /* Free a semaphore set. freeary() is called with sem_ids.rwsem locked
-@@ -1459,10 +1454,10 @@ static int semctl_main(struct ipc_namesp
- 		err = curr->sempid;
- 		goto out_unlock;
- 	case GETNCNT:
--		err = count_semncnt(sma, semnum);
-+		err = count_semcnt(sma, semnum, 0);
- 		goto out_unlock;
- 	case GETZCNT:
--		err = count_semzcnt(sma, semnum);
-+		err = count_semcnt(sma, semnum, 1);
- 		goto out_unlock;
- 	}
+-		error = perform_atomic_semop(sma, q->sops, q->nsops,
+-						 q->undo, q->pid);
++		error = perform_atomic_semop(sma, q);
  
-_
-
-Patches currently in -mm which might be from manfred@colorfullife.com are
-
-origin.patch
-slab-leaks3-default-y.patch
-
+ 		if (error <= 0) {
+ 			/* operation completed, remove from queue & wakeup */
+@@ -892,8 +894,7 @@ again:
+ 		if (semnum != -1 && sma->sem_base[semnum].semval == 0)
+ 			break;
+ 
+-		error = perform_atomic_semop(sma, q->sops, q->nsops,
+-					 q->undo, q->pid);
++		error = perform_atomic_semop(sma, q);
+ 
+ 		/* Does q->sleeper still need to sleep? */
+ 		if (error > 0)
+@@ -1871,8 +1872,13 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 	if (un && un->semid == -1)
+ 		goto out_unlock_free;
+ 
+-	error = perform_atomic_semop(sma, sops, nsops, un,
+-					task_tgid_vnr(current));
++	queue.sops = sops;
++	queue.nsops = nsops;
++	queue.undo = un;
++	queue.pid = task_tgid_vnr(current);
++	queue.alter = alter;
++
++	error = perform_atomic_semop(sma, &queue);
+ 	if (error == 0) {
+ 		/* If the operation was successful, then do
+ 		 * the required updates.
+@@ -1889,12 +1895,6 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 	 * task into the pending queue and go to sleep.
+ 	 */
+ 
+-	queue.sops = sops;
+-	queue.nsops = nsops;
+-	queue.undo = un;
+-	queue.pid = task_tgid_vnr(current);
+-	queue.alter = alter;
