@@ -1,82 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:39:58 -0700
-Message-ID: <53960d8e.abjb0hy5HH3SFL1V%akpm@linux-foundation.org>
+Subject: [merged] fs-reiserfs-bitmapc-coding-style-fixes.patch removed
+ from -mm tree
+Date: Mon, 09 Jun 2014 12:40:03 -0700
+Message-ID: <53960d93.+ewLdMsMQqGFSX6t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54322 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54327 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753703AbaFITj7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:39:59 -0400
+	with ESMTP id S1753703AbaFITkD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:40:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, realmz6@gmail.com, davidlohr@hp.com
+To: mm-commits@vger.kernel.org, jeffm@suse.com, fabf@skynet.be
 
-Subject: [merged] blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch removed from -mm tree
-To: davidlohr@hp.com,realmz6@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-reiserfs-bitmapc-coding-style-fixes.patch removed from -mm tree
+To: fabf@skynet.be,jeffm@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:39:58 -0700
+Date: Mon, 09 Jun 2014 12:40:03 -0700
 
 
 The patch titled
-     Subject: blackfin/ptrace: call find_vma with the mmap_sem held
+     Subject: fs/reiserfs/bitmap.c: coding style fixes
 has been removed from the -mm tree.  Its filename was
-     blackfin-ptrace-call-find_vma-with-the-mmap_sem-held.patch
+     fs-reiserfs-bitmapc-coding-style-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: blackfin/ptrace: call find_vma with the mmap_sem held
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/reiserfs/bitmap.c: coding style fixes
 
-Performing vma lookups without taking the mm->mmap_sem is asking for
-trouble.  While doing the search, the vma in question can be modified or
-even removed before returning to the caller.  Take the lock (shared) in
-order to avoid races while iterating through the vmacache and/or rbtree.
+-Trivial code clean-up
+-Fix endif }; (coccinelle warning)
 
-Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Steven Miao <realmz6@gmail.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/ptrace.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/reiserfs/bitmap.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN arch/blackfin/kernel/ptrace.c~blackfin-ptrace-call-find_vma-with-the-mmap_sem-held arch/blackfin/kernel/ptrace.c
---- a/arch/blackfin/kernel/ptrace.c~blackfin-ptrace-call-find_vma-with-the-mmap_sem-held
-+++ a/arch/blackfin/kernel/ptrace.c
-@@ -117,6 +117,7 @@ put_reg(struct task_struct *task, unsign
- int
- is_user_addr_valid(struct task_struct *child, unsigned long start, unsigned long len)
+diff -puN fs/reiserfs/bitmap.c~fs-reiserfs-bitmapc-coding-style-fixes fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~fs-reiserfs-bitmapc-coding-style-fixes
++++ a/fs/reiserfs/bitmap.c
+@@ -142,7 +142,6 @@ static int scan_bitmap_block(struct reis
+ 	int org = *beg;
+ 
+ 	BUG_ON(!th->t_trans_id);
+-
+ 	RFALSE(bmap_n >= reiserfs_bmap_count(s), "Bitmap %u is out of "
+ 	       "range (0..%u)", bmap_n, reiserfs_bmap_count(s) - 1);
+ 	PROC_INFO_INC(s, scan_bitmap.bmap);
+@@ -321,7 +320,6 @@ static int scan_bitmap(struct reiserfs_t
+ 	unsigned int off_max = s->s_blocksize << 3;
+ 
+ 	BUG_ON(!th->t_trans_id);
+-
+ 	PROC_INFO_INC(s, scan_bitmap.call);
+ 	if (SB_FREE_BLOCKS(s) <= 0)
+ 		return 0;	// No point in looking for more free blocks
+@@ -388,9 +386,7 @@ static void _reiserfs_free_block(struct
+ 	unsigned int nr, offset;
+ 
+ 	BUG_ON(!th->t_trans_id);
+-
+ 	PROC_INFO_INC(s, free_block);
+-
+ 	rs = SB_DISK_SUPER_BLOCK(s);
+ 	sbh = SB_BUFFER_WITH_SB(s);
+ 	apbi = SB_AP_BITMAP(s);
+@@ -435,8 +431,8 @@ void reiserfs_free_block(struct reiserfs
+ 			 int for_unformatted)
  {
-+	bool valid;
- 	struct vm_area_struct *vma;
- 	struct sram_list_struct *sraml;
+ 	struct super_block *s = th->t_super;
+-	BUG_ON(!th->t_trans_id);
  
-@@ -124,9 +125,12 @@ is_user_addr_valid(struct task_struct *c
- 	if (start + len < start)
- 		return -EIO;
++	BUG_ON(!th->t_trans_id);
+ 	RFALSE(!s, "vs-4061: trying to free block on nonexistent device");
+ 	if (!is_reusable(s, block, 1))
+ 		return;
+@@ -471,6 +467,7 @@ static void __discard_prealloc(struct re
+ 	unsigned long save = ei->i_prealloc_block;
+ 	int dirty = 0;
+ 	struct inode *inode = &ei->vfs_inode;
++
+ 	BUG_ON(!th->t_trans_id);
+ #ifdef CONFIG_REISERFS_CHECK
+ 	if (ei->i_prealloc_count < 0)
+@@ -494,6 +491,7 @@ void reiserfs_discard_prealloc(struct re
+ 			       struct inode *inode)
+ {
+ 	struct reiserfs_inode_info *ei = REISERFS_I(inode);
++
+ 	BUG_ON(!th->t_trans_id);
+ 	if (ei->i_prealloc_count)
+ 		__discard_prealloc(th, ei);
+@@ -504,7 +502,6 @@ void reiserfs_discard_all_prealloc(struc
+ 	struct list_head *plist = &SB_JOURNAL(th->t_super)->j_prealloc_list;
  
-+	down_read(&child->mm->mmap_sem);
- 	vma = find_vma(child->mm, start);
--	if (vma && start >= vma->vm_start && start + len <= vma->vm_end)
--			return 0;
-+	valid = vma && start >= vma->vm_start && start + len <= vma->vm_end;
-+	up_read(&child->mm->mmap_sem);
-+	if (valid)
-+		return 0;
+ 	BUG_ON(!th->t_trans_id);
+-
+ 	while (!list_empty(plist)) {
+ 		struct reiserfs_inode_info *ei;
+ 		ei = list_entry(plist->next, struct reiserfs_inode_info,
+@@ -562,7 +559,7 @@ int reiserfs_parse_alloc_options(struct
+ 		if (!strcmp(this_char, "displacing_new_packing_localities")) {
+ 			SET_OPTION(displacing_new_packing_localities);
+ 			continue;
+-		};
++		}
  
- 	for (sraml = child->mm->context.sram_list; sraml; sraml = sraml->next)
- 		if (start >= (unsigned long)sraml->addr
+ 		if (!strcmp(this_char, "old_hashed_relocation")) {
+ 			SET_OPTION(old_hashed_relocation);
+@@ -729,6 +726,7 @@ void show_alloc_options(struct seq_file
+ static inline void new_hashed_relocation(reiserfs_blocknr_hint_t * hint)
+ {
+ 	char *hash_in;
++
+ 	if (hint->formatted_node) {
+ 		hash_in = (char *)&hint->key.k_dir_id;
+ 	} else {
+@@ -757,6 +755,7 @@ static void dirid_groups(reiserfs_blockn
+ 	__u32 dirid = 0;
+ 	int bm = 0;
+ 	struct super_block *sb = hint->th->t_super;
++
+ 	if (hint->inode)
+ 		dirid = le32_to_cpu(INODE_PKEY(hint->inode)->k_dir_id);
+ 	else if (hint->formatted_node)
 _
 
-Patches currently in -mm which might be from davidlohr@hp.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-isofs-logging-clean-up.patch
 linux-next.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+init-mainc-code-clean-up.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
