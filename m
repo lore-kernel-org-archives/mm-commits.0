@@ -1,39 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-88pm860xc-use-of_get_child_by_name.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:29:07 -0700
-Message-ID: <53960b03.ZKpHuC6OkcBfdwtL%akpm@linux-foundation.org>
+Subject: [merged] drivers-rtc-rtc-88pm860xc-add-missing-of_node_put.patch
+ removed from -mm tree
+Date: Mon, 09 Jun 2014 12:29:12 -0700
+Message-ID: <53960b08.fVcEU55BCPh/yCOQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53772 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53777 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753886AbaFIT3I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:29:08 -0400
+	with ESMTP id S1753886AbaFIT3N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:29:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org, jg1.han@samsung.com, haojian.zhuang@linaro.org, a.zummo@towertech.it, k.kozlowski@samsung.com
 
-Subject: [merged] drivers-rtc-rtc-88pm860xc-use-of_get_child_by_name.patch removed from -mm tree
+Subject: [merged] drivers-rtc-rtc-88pm860xc-add-missing-of_node_put.patch removed from -mm tree
 To: k.kozlowski@samsung.com,a.zummo@towertech.it,haojian.zhuang@linaro.org,jg1.han@samsung.com,sachin.kamat@linaro.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:29:07 -0700
+Date: Mon, 09 Jun 2014 12:29:12 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-88pm860x.c: use of_get_child_by_name()
+     Subject: drivers/rtc/rtc-88pm860x.c: add missing of_node_put()
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-88pm860xc-use-of_get_child_by_name.patch
+     drivers-rtc-rtc-88pm860xc-add-missing-of_node_put.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: drivers/rtc/rtc-88pm860x.c: use of_get_child_by_name()
+Subject: drivers/rtc/rtc-88pm860x.c: add missing of_node_put()
 
-Use of_get_child_by_name() to obtain reference to charger node instead of
-of_find_node_by_name() which can walk outside of the parent node.
+Add missing of_node_put() to decrement the reference count.
 
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Acked-by: Jingoo Han <jg1.han@samsung.com>
@@ -43,21 +43,20 @@ Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-88pm860x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-88pm860x.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-use-of_get_child_by_name drivers/rtc/rtc-88pm860x.c
---- a/drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-use-of_get_child_by_name
+diff -puN drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-add-missing-of_node_put drivers/rtc/rtc-88pm860x.c
+--- a/drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-add-missing-of_node_put
 +++ a/drivers/rtc/rtc-88pm860x.c
-@@ -293,7 +293,7 @@ static int pm860x_rtc_dt_init(struct pla
- 	int ret;
- 	if (!np)
- 		return -ENODEV;
--	np = of_find_node_by_name(np, "rtc");
-+	np = of_get_child_by_name(np, "rtc");
- 	if (!np) {
- 		dev_err(&pdev->dev, "failed to find rtc node\n");
- 		return -ENODEV;
+@@ -301,6 +301,7 @@ static int pm860x_rtc_dt_init(struct pla
+ 	ret = of_property_read_u32(np, "marvell,88pm860x-vrtc", &info->vrtc);
+ 	if (ret)
+ 		info->vrtc = 0;
++	of_node_put(np);
+ 	return 0;
+ }
+ #else
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
