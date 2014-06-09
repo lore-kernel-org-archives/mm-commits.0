@@ -1,186 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-constify-ipc_ops.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:36:57 -0700
-Message-ID: <53960cd9.9rKWOnqjFwFvRFue%akpm@linux-foundation.org>
+Subject: [merged] ipc-kernel-use-linux-headers.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:37:02 -0700
+Message-ID: <53960cde.F/QSPLnk5kudTBFE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54207 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54212 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753687AbaFITg6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:36:58 -0400
+	with ESMTP id S1753687AbaFIThD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:37:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, pageexec@freemail.hu, manfred@colorfullife.com, davidlohr@hp.com, minipli@googlemail.com
+To: mm-commits@vger.kernel.org, paulmcquad@gmail.com
 
-Subject: [merged] ipc-constify-ipc_ops.patch removed from -mm tree
-To: minipli@googlemail.com,davidlohr@hp.com,manfred@colorfullife.com,pageexec@freemail.hu,mm-commits@vger.kernel.org
+Subject: [merged] ipc-kernel-use-linux-headers.patch removed from -mm tree
+To: paulmcquad@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:36:57 -0700
+Date: Mon, 09 Jun 2014 12:37:02 -0700
 
 
 The patch titled
-     Subject: ipc: constify ipc_ops
+     Subject: ipc, kernel: use Linux headers
 has been removed from the -mm tree.  Its filename was
-     ipc-constify-ipc_ops.patch
+     ipc-kernel-use-linux-headers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mathias Krause <minipli@googlemail.com>
-Subject: ipc: constify ipc_ops
+From: Paul McQuade <paulmcquad@gmail.com>
+Subject: ipc, kernel: use Linux headers
 
-There is no need to recreate the very same ipc_ops structure on every
-kernel entry for msgget/semget/shmget.  Just declare it static and be done
-with it.  While at it, constify it as we don't modify the structure at
-runtime.
+Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
+Use #include <linux/types.h> instead of <asm/types.h>
 
-Found in the PaX patch, written by the PaX Team.
-
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: PaX Team <pageexec@freemail.hu>
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Paul McQuade <paulmcquad@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |    9 ++++-----
- ipc/sem.c  |   10 +++++-----
- ipc/shm.c  |   10 +++++-----
- ipc/util.c |    8 ++++----
- ipc/util.h |    2 +-
- 5 files changed, 19 insertions(+), 20 deletions(-)
+ ipc/compat.c    |    2 +-
+ ipc/compat_mq.c |    2 +-
+ ipc/msg.c       |    2 +-
+ ipc/sem.c       |    2 +-
+ ipc/shm.c       |    2 +-
+ kernel/acct.c   |    2 +-
+ kernel/audit.c  |    2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN ipc/msg.c~ipc-constify-ipc_ops ipc/msg.c
---- a/ipc/msg.c~ipc-constify-ipc_ops
+diff -puN ipc/compat.c~ipc-kernel-use-linux-headers ipc/compat.c
+--- a/ipc/compat.c~ipc-kernel-use-linux-headers
++++ a/ipc/compat.c
+@@ -30,7 +30,7 @@
+ #include <linux/ptrace.h>
+ 
+ #include <linux/mutex.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ 
+ #include "util.h"
+ 
+diff -puN ipc/compat_mq.c~ipc-kernel-use-linux-headers ipc/compat_mq.c
+--- a/ipc/compat_mq.c~ipc-kernel-use-linux-headers
++++ a/ipc/compat_mq.c
+@@ -12,7 +12,7 @@
+ #include <linux/mqueue.h>
+ #include <linux/syscalls.h>
+ 
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ 
+ struct compat_mq_attr {
+ 	compat_long_t mq_flags;      /* message queue flags		     */
+diff -puN ipc/msg.c~ipc-kernel-use-linux-headers ipc/msg.c
+--- a/ipc/msg.c~ipc-kernel-use-linux-headers
 +++ a/ipc/msg.c
-@@ -306,15 +306,14 @@ static inline int msg_security(struct ke
- SYSCALL_DEFINE2(msgget, key_t, key, int, msgflg)
- {
- 	struct ipc_namespace *ns;
--	struct ipc_ops msg_ops;
-+	static const struct ipc_ops msg_ops = {
-+		.getnew = newque,
-+		.associate = msg_security,
-+	};
- 	struct ipc_params msg_params;
+@@ -39,7 +39,7 @@
+ #include <linux/ipc_namespace.h>
  
- 	ns = current->nsproxy->ipc_ns;
+ #include <asm/current.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include "util.h"
  
--	msg_ops.getnew = newque;
--	msg_ops.associate = msg_security;
--	msg_ops.more_checks = NULL;
--
- 	msg_params.key = key;
- 	msg_params.flg = msgflg;
- 
-diff -puN ipc/sem.c~ipc-constify-ipc_ops ipc/sem.c
---- a/ipc/sem.c~ipc-constify-ipc_ops
+ /*
+diff -puN ipc/sem.c~ipc-kernel-use-linux-headers ipc/sem.c
+--- a/ipc/sem.c~ipc-kernel-use-linux-headers
 +++ a/ipc/sem.c
-@@ -564,7 +564,11 @@ static inline int sem_more_checks(struct
- SYSCALL_DEFINE3(semget, key_t, key, int, nsems, int, semflg)
- {
- 	struct ipc_namespace *ns;
--	struct ipc_ops sem_ops;
-+	static const struct ipc_ops sem_ops = {
-+		.getnew = newary,
-+		.associate = sem_security,
-+		.more_checks = sem_more_checks,
-+	};
- 	struct ipc_params sem_params;
+@@ -87,7 +87,7 @@
+ #include <linux/nsproxy.h>
+ #include <linux/ipc_namespace.h>
  
- 	ns = current->nsproxy->ipc_ns;
-@@ -572,10 +576,6 @@ SYSCALL_DEFINE3(semget, key_t, key, int,
- 	if (nsems < 0 || nsems > ns->sc_semmsl)
- 		return -EINVAL;
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include "util.h"
  
--	sem_ops.getnew = newary;
--	sem_ops.associate = sem_security;
--	sem_ops.more_checks = sem_more_checks;
--
- 	sem_params.key = key;
- 	sem_params.flg = semflg;
- 	sem_params.u.nsems = nsems;
-diff -puN ipc/shm.c~ipc-constify-ipc_ops ipc/shm.c
---- a/ipc/shm.c~ipc-constify-ipc_ops
+ /* One semaphore structure for each semaphore in the system. */
+diff -puN ipc/shm.c~ipc-kernel-use-linux-headers ipc/shm.c
+--- a/ipc/shm.c~ipc-kernel-use-linux-headers
 +++ a/ipc/shm.c
-@@ -609,15 +609,15 @@ static inline int shm_more_checks(struct
- SYSCALL_DEFINE3(shmget, key_t, key, size_t, size, int, shmflg)
- {
- 	struct ipc_namespace *ns;
--	struct ipc_ops shm_ops;
-+	static const struct ipc_ops shm_ops = {
-+		.getnew = newseg,
-+		.associate = shm_security,
-+		.more_checks = shm_more_checks,
-+	};
- 	struct ipc_params shm_params;
+@@ -43,7 +43,7 @@
+ #include <linux/mount.h>
+ #include <linux/ipc_namespace.h>
  
- 	ns = current->nsproxy->ipc_ns;
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
--	shm_ops.getnew = newseg;
--	shm_ops.associate = shm_security;
--	shm_ops.more_checks = shm_more_checks;
--
- 	shm_params.key = key;
- 	shm_params.flg = shmflg;
- 	shm_params.u.size = size;
-diff -puN ipc/util.c~ipc-constify-ipc_ops ipc/util.c
---- a/ipc/util.c~ipc-constify-ipc_ops
-+++ a/ipc/util.c
-@@ -317,7 +317,7 @@ int ipc_addid(struct ipc_ids *ids, struc
-  * when the key is IPC_PRIVATE.
-  */
- static int ipcget_new(struct ipc_namespace *ns, struct ipc_ids *ids,
--		struct ipc_ops *ops, struct ipc_params *params)
-+		const struct ipc_ops *ops, struct ipc_params *params)
- {
- 	int err;
+ #include "util.h"
  
-@@ -344,7 +344,7 @@ static int ipcget_new(struct ipc_namespa
-  */
- static int ipc_check_perms(struct ipc_namespace *ns,
- 			   struct kern_ipc_perm *ipcp,
--			   struct ipc_ops *ops,
-+			   const struct ipc_ops *ops,
- 			   struct ipc_params *params)
- {
- 	int err;
-@@ -375,7 +375,7 @@ static int ipc_check_perms(struct ipc_na
-  * On success, the ipc id is returned.
-  */
- static int ipcget_public(struct ipc_namespace *ns, struct ipc_ids *ids,
--		struct ipc_ops *ops, struct ipc_params *params)
-+		const struct ipc_ops *ops, struct ipc_params *params)
- {
- 	struct kern_ipc_perm *ipcp;
- 	int flg = params->flg;
-@@ -678,7 +678,7 @@ out:
-  * Common routine called by sys_msgget(), sys_semget() and sys_shmget().
-  */
- int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
--			struct ipc_ops *ops, struct ipc_params *params)
-+			const struct ipc_ops *ops, struct ipc_params *params)
- {
- 	if (params->key == IPC_PRIVATE)
- 		return ipcget_new(ns, ids, ops, params);
-diff -puN ipc/util.h~ipc-constify-ipc_ops ipc/util.h
---- a/ipc/util.h~ipc-constify-ipc_ops
-+++ a/ipc/util.h
-@@ -201,7 +201,7 @@ static inline bool ipc_valid_object(stru
+diff -puN kernel/acct.c~ipc-kernel-use-linux-headers kernel/acct.c
+--- a/kernel/acct.c~ipc-kernel-use-linux-headers
++++ a/kernel/acct.c
+@@ -55,7 +55,7 @@
+ #include <linux/times.h>
+ #include <linux/syscalls.h>
+ #include <linux/mount.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <asm/div64.h>
+ #include <linux/blkdev.h> /* sector_div */
+ #include <linux/pid_namespace.h>
+diff -puN kernel/audit.c~ipc-kernel-use-linux-headers kernel/audit.c
+--- a/kernel/audit.c~ipc-kernel-use-linux-headers
++++ a/kernel/audit.c
+@@ -44,7 +44,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
- struct kern_ipc_perm *ipc_obtain_object_check(struct ipc_ids *ids, int id);
- int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
--			struct ipc_ops *ops, struct ipc_params *params);
-+			const struct ipc_ops *ops, struct ipc_params *params);
- void free_ipcs(struct ipc_namespace *ns, struct ipc_ids *ids,
- 		void (*free)(struct ipc_namespace *, struct kern_ipc_perm *));
- #endif
+ #include <linux/init.h>
+-#include <asm/types.h>
++#include <linux/types.h>
+ #include <linux/atomic.h>
+ #include <linux/mm.h>
+ #include <linux/export.h>
 _
 
-Patches currently in -mm which might be from minipli@googlemail.com are
+Patches currently in -mm which might be from paulmcquad@gmail.com are
 
 origin.patch
 linux-next.patch
