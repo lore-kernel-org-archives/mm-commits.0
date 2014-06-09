@@ -1,89 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] idr-reorder-the-fields.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:35:27 -0700
-Message-ID: <53960c7f.vqU1m3nL3oteVowx%akpm@linux-foundation.org>
+Subject: [merged]
+ rapidio-tsi721-use-pci_enable_msix_exact-instead-of-pci_enable_msix.patch
+ removed from -mm tree
+Date: Mon, 09 Jun 2014 12:35:32 -0700
+Message-ID: <53960c84.36sMDzWt2B/AWlGH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54146 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbaFITf1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:35:27 -0400
+	with ESMTP id S1750904AbaFITfd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:35:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, laijs@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, mporter@kernel.crashing.org, alexandre.bounine@idt.com, agordeev@redhat.com
 
-Subject: [merged] idr-reorder-the-fields.patch removed from -mm tree
-To: laijs@cn.fujitsu.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] rapidio-tsi721-use-pci_enable_msix_exact-instead-of-pci_enable_msix.patch removed from -mm tree
+To: agordeev@redhat.com,alexandre.bounine@idt.com,mporter@kernel.crashing.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:35:27 -0700
+Date: Mon, 09 Jun 2014 12:35:32 -0700
 
 
 The patch titled
-     Subject: idr: reorder the fields
+     Subject: rapidio/tsi721: use pci_enable_msix_exact() instead of pci_enable_msix()
 has been removed from the -mm tree.  Its filename was
-     idr-reorder-the-fields.patch
+     rapidio-tsi721-use-pci_enable_msix_exact-instead-of-pci_enable_msix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: idr: reorder the fields
+From: Alexander Gordeev <agordeev@redhat.com>
+Subject: rapidio/tsi721: use pci_enable_msix_exact() instead of pci_enable_msix()
 
-idr_layer->layer is always accessed in read path, move it in the front.
+As result of deprecation of MSI-X/MSI enablement functions
+pci_enable_msix() and pci_enable_msi_block() all drivers using these two
+interfaces need to be updated to use the new pci_enable_msi_range() or
+pci_enable_msi_exact() and pci_enable_msix_range() or
+pci_enable_msix_exact() interfaces.
 
-idr_layer->bitmap is moved on the bottom.  And rcu_head shares with bitmap
-due to they do not be accessed at the same time.
+The patch has no runtime effect.
 
-idr->id_free/id_free_cnt/lock are free list fields, and moved to the
-bottom.  They will be removed in near future.
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Alexander Gordeev <agordeev@redhat.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/rapidio/devices/tsi721.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/idr.h~idr-reorder-the-fields include/linux/idr.h
---- a/include/linux/idr.h~idr-reorder-the-fields
-+++ a/include/linux/idr.h
-@@ -29,21 +29,24 @@
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-use-pci_enable_msix_exact-instead-of-pci_enable_msix drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-use-pci_enable_msix_exact-instead-of-pci_enable_msix
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -768,15 +768,10 @@ static int tsi721_enable_msix(struct tsi
+ 	}
+ #endif /* CONFIG_RAPIDIO_DMA_ENGINE */
  
- struct idr_layer {
- 	int			prefix;	/* the ID prefix of this idr_layer */
--	DECLARE_BITMAP(bitmap, IDR_SIZE); /* A zero bit means "space here" */
-+	int			layer;	/* distance from leaf */
- 	struct idr_layer __rcu	*ary[1<<IDR_BITS];
- 	int			count;	/* When zero, we can release it */
--	int			layer;	/* distance from leaf */
--	struct rcu_head		rcu_head;
-+	union {
-+		/* A zero bit means "space here" */
-+		DECLARE_BITMAP(bitmap, IDR_SIZE);
-+		struct rcu_head		rcu_head;
-+	};
- };
+-	err = pci_enable_msix(priv->pdev, entries, ARRAY_SIZE(entries));
++	err = pci_enable_msix_exact(priv->pdev, entries, ARRAY_SIZE(entries));
+ 	if (err) {
+-		if (err > 0)
+-			dev_info(&priv->pdev->dev,
+-				 "Only %d MSI-X vectors available, "
+-				 "not using MSI-X\n", err);
+-		else
+-			dev_err(&priv->pdev->dev,
+-				"Failed to enable MSI-X (err=%d)\n", err);
++		dev_err(&priv->pdev->dev,
++			"Failed to enable MSI-X (err=%d)\n", err);
+ 		return err;
+ 	}
  
- struct idr {
- 	struct idr_layer __rcu	*hint;	/* the last layer allocated from */
- 	struct idr_layer __rcu	*top;
--	struct idr_layer	*id_free;
- 	int			layers;	/* only valid w/o concurrent changes */
--	int			id_free_cnt;
- 	int			cur;	/* current pos for cyclic allocation */
- 	spinlock_t		lock;
-+	int			id_free_cnt;
-+	struct idr_layer	*id_free;
- };
- 
- #define IDR_INIT(name)							\
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from agordeev@redhat.com are
 
 origin.patch
 linux-next.patch
