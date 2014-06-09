@@ -1,47 +1,41 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- signals-disallow_signal-should-flush-the-potentially-pending-signal.patch
- removed from -mm tree
-Date: Mon, 09 Jun 2014 12:34:17 -0700
-Message-ID: <53960c39.HnxeT+kGbv+hC8/a%akpm@linux-foundation.org>
+ signals-change-wait_for_helper-to-use-kernel_sigaction.patch removed from
+ -mm tree
+Date: Mon, 09 Jun 2014 12:34:27 -0700
+Message-ID: <53960c43.hulSmg46QOCspCwd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54066 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54091 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124AbaFITeS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:34:18 -0400
+	with ESMTP id S1750904AbaFITe2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:34:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tj@kernel.org, rostedt@goodmis.org, richard@nod.at, peterz@infradead.org, mingo@kernel.org, mathieu.desnoyers@efficios.com, geert@linux-m68k.org, fweisbec@gmail.com, dwmw2@infradead.org, oleg@redhat.com
 
-Subject: [merged] signals-disallow_signal-should-flush-the-potentially-pending-signal.patch removed from -mm tree
+Subject: [merged] signals-change-wait_for_helper-to-use-kernel_sigaction.patch removed from -mm tree
 To: oleg@redhat.com,dwmw2@infradead.org,fweisbec@gmail.com,geert@linux-m68k.org,mathieu.desnoyers@efficios.com,mingo@kernel.org,peterz@infradead.org,richard@nod.at,rostedt@goodmis.org,tj@kernel.org,viro@ZenIV.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:34:17 -0700
+Date: Mon, 09 Jun 2014 12:34:27 -0700
 
 
 The patch titled
-     Subject: signals: disallow_signal() should flush the potentially pending signal
+     Subject: signals: change wait_for_helper() to use kernel_sigaction()
 has been removed from the -mm tree.  Its filename was
-     signals-disallow_signal-should-flush-the-potentially-pending-signal.patch
+     signals-change-wait_for_helper-to-use-kernel_sigaction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: signals: disallow_signal() should flush the potentially pending signal
+Subject: signals: change wait_for_helper() to use kernel_sigaction()
 
-disallow_signal() simply sets SIG_IGN, this is not enough and
-recalc_sigpending() is simply pointless because in can never change the
-state of TIF_SIGPENDING.
-
-If we ignore a signal, we also need to do flush_sigqueue_mask() for the
-case when this signal is pending, this way recalc_sigpending() can
-actually clear TIF_SIGPENDING and we do not "leak" the allocated
-siginfo's.
+Now that we have kernel_sigaction() we can change wait_for_helper() to use
+it and cleans up the code a bit.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -57,37 +51,16 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ kernel/kmod.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN kernel/signal.c~signals-disallow_signal-should-flush-the-potentially-pending-signal kernel/signal.c
---- a/kernel/signal.c~signals-disallow_signal-should-flush-the-potentially-pending-signal
-+++ a/kernel/signal.c
-@@ -3085,8 +3085,15 @@ EXPORT_SYMBOL(allow_signal);
+diff -puN kernel/kmod.c~signals-change-wait_for_helper-to-use-kernel_sigaction kernel/kmod.c
+--- a/kernel/kmod.c~signals-change-wait_for_helper-to-use-kernel_sigaction
++++ a/kernel/kmod.c
+@@ -285,10 +285,7 @@ static int wait_for_helper(void *data)
+ 	pid_t pid;
  
- void disallow_signal(int sig)
- {
-+	sigset_t mask;
-+
-+	sigemptyset(&mask);
-+	sigaddset(&mask, sig);
-+
- 	spin_lock_irq(&current->sighand->siglock);
- 	current->sighand->action[(sig)-1].sa.sa_handler = SIG_IGN;
-+	flush_sigqueue_mask(&mask, &current->signal->shared_pending);
-+	flush_sigqueue_mask(&mask, &current->pending);
- 	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
- }
-_
-
-Patches currently in -mm which might be from oleg@redhat.com are
-
-origin.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-linux-next.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
-nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch
-
+ 	/* If SIGCLD is ignored sys_wait4 won't populate the status. */
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->sighand->action[SIGCHLD-1].sa.sa_handler = SIG_DFL;
+-	spin_unlock_irq(&current->sighand->siglock);
