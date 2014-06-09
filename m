@@ -1,45 +1,57 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:34:12 -0700
-Message-ID: <53960c34.Ffq4Y9K+qXKzTwKP%akpm@linux-foundation.org>
+ signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:34:07 -0700
+Message-ID: <53960c2f.teWs1VwNGwJYOMKm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54061 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54053 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbaFITeN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:34:13 -0400
+	with ESMTP id S1750904AbaFITeI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:34:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tj@kernel.org, rostedt@goodmis.org, richard@nod.at, peterz@infradead.org, mingo@kernel.org, mathieu.desnoyers@efficios.com, geert@linux-m68k.org, fweisbec@gmail.com, dwmw2@infradead.org, oleg@redhat.com
 
-Subject: [merged] signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch removed from -mm tree
+Subject: [merged] signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch removed from -mm tree
 To: oleg@redhat.com,dwmw2@infradead.org,fweisbec@gmail.com,geert@linux-m68k.org,mathieu.desnoyers@efficios.com,mingo@kernel.org,peterz@infradead.org,richard@nod.at,rostedt@goodmis.org,tj@kernel.org,viro@ZenIV.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:34:12 -0700
+Date: Mon, 09 Jun 2014 12:34:07 -0700
 
 
 The patch titled
-     Subject: signals: kill the obsolete sigdelset() and recalc_sigpending() in allow_signal()
+     Subject: signals: jffs2: fix the wrong usage of disallow_signal()
 has been removed from the -mm tree.  Its filename was
-     signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch
+     signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: signals: kill the obsolete sigdelset() and recalc_sigpending() in allow_signal()
+Subject: signals: jffs2: fix the wrong usage of disallow_signal()
 
-allow_signal() does sigdelset(current->blocked) due to historic reason,
-previously it could be called by a daemonize()'ed kthread, and daemonize()
-played with current->blocked.
+jffs2_garbage_collect_thread() does disallow_signal(SIGHUP) around
+jffs2_garbage_collect_pass() and the comment says "We don't want SIGHUP to
+interrupt us".
 
-Now that daemonize() has gone away we can remove sigdelset() and
-recalc_sigpending().  If a user really wants to unblock a signal, it must
-use sigprocmask() or set_current_block() explicitely.
+But disallow_signal() can't ensure that jffs2_garbage_collect_pass() won't
+be interrupted by SIGHUP, the problem is that SIGHUP can be already
+pending when disallow_signal() is called, and in this case any
+interruptible sleep won't block.
+
+Note: this is in fact because disallow_signal() is buggy and should be
+fixed, see the next changes.
+
+But there is another reason why disallow_signal() is wrong: SIG_IGN set by
+disallow_signal() silently discards any SIGHUP which can be sent before
+the next allow_signal(SIGHUP).
+
+Change this code to use sigprocmask(SIG_UNBLOCK/SIG_BLOCK, SIGHUP).  This
+even matches the old (and wrong) semantics allow/disallow had when this
+logic was written.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -55,30 +67,57 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/jffs2/background.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN kernel/signal.c~signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal kernel/signal.c
---- a/kernel/signal.c~signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal
-+++ a/kernel/signal.c
-@@ -3072,16 +3072,13 @@ COMPAT_SYSCALL_DEFINE4(rt_tgsigqueueinfo
-  */
- void allow_signal(int sig)
+diff -puN fs/jffs2/background.c~signals-jffs2-fix-the-wrong-usage-of-disallow_signal fs/jffs2/background.c
+--- a/fs/jffs2/background.c~signals-jffs2-fix-the-wrong-usage-of-disallow_signal
++++ a/fs/jffs2/background.c
+@@ -75,10 +75,13 @@ void jffs2_stop_garbage_collect_thread(s
+ static int jffs2_garbage_collect_thread(void *_c)
  {
--	spin_lock_irq(&current->sighand->siglock);
--	/* This is only needed for daemonize()'ed kthreads */
--	sigdelset(&current->blocked, sig);
- 	/*
- 	 * Kernel threads handle their own signals. Let the signal code
- 	 * know it'll be handled, so that they don't get converted to
- 	 * SIGKILL or just silently dropped.
- 	 */
-+	spin_lock_irq(&current->sighand->siglock);
- 	current->sighand->action[(sig)-1].sa.sa_handler = (void __user *)2;
--	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
- }
- EXPORT_SYMBOL(allow_signal);
+ 	struct jffs2_sb_info *c = _c;
++	sigset_t hupmask;
+ 
++	siginitset(&hupmask, sigmask(SIGHUP));
+ 	allow_signal(SIGKILL);
+ 	allow_signal(SIGSTOP);
+ 	allow_signal(SIGCONT);
++	allow_signal(SIGHUP);
+ 
+ 	c->gc_task = current;
+ 	complete(&c->gc_thread_start);
+@@ -87,7 +90,7 @@ static int jffs2_garbage_collect_thread(
+ 
+ 	set_freezable();
+ 	for (;;) {
+-		allow_signal(SIGHUP);
++		sigprocmask(SIG_UNBLOCK, &hupmask, NULL);
+ 	again:
+ 		spin_lock(&c->erase_completion_lock);
+ 		if (!jffs2_thread_should_wake(c)) {
+@@ -95,10 +98,9 @@ static int jffs2_garbage_collect_thread(
+ 			spin_unlock(&c->erase_completion_lock);
+ 			jffs2_dbg(1, "%s(): sleeping...\n", __func__);
+ 			schedule();
+-		} else
++		} else {
+ 			spin_unlock(&c->erase_completion_lock);
+-			
+-
++		}
+ 		/* Problem - immediately after bootup, the GCD spends a lot
+ 		 * of time in places like jffs2_kill_fragtree(); so much so
+ 		 * that userspace processes (like gdm and X) are starved
+@@ -150,7 +152,7 @@ static int jffs2_garbage_collect_thread(
+ 			}
+ 		}
+ 		/* We don't want SIGHUP to interrupt us. STOP and KILL are OK though. */
+-		disallow_signal(SIGHUP);
++		sigprocmask(SIG_BLOCK, &hupmask, NULL);
+ 
+ 		jffs2_dbg(1, "%s(): pass\n", __func__);
+ 		if (jffs2_garbage_collect_pass(c) == -ENOSPC) {
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
