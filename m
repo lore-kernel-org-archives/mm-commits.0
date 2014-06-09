@@ -1,149 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-devpts-inodec-convert-printk-to-pr_foo.patch removed
+Subject: [merged] initramfs-remove-compression-mode-choice.patch removed
  from -mm tree
-Date: Mon, 09 Jun 2014 12:36:47 -0700
-Message-ID: <53960ccf.LjxyG5AFAOzjR1R2%akpm@linux-foundation.org>
+Date: Mon, 09 Jun 2014 12:36:52 -0700
+Message-ID: <53960cd4.YbsESm02wEZqBEgR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54200 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54203 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750822AbaFITgr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:36:47 -0400
+	with ESMTP id S1750822AbaFITgw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:36:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tytso@mit.edu, joe@perches.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, ppandit@redhat.com, pebolle@tiscali.nl
 
-Subject: [merged] fs-devpts-inodec-convert-printk-to-pr_foo.patch removed from -mm tree
-To: fabf@skynet.be,joe@perches.com,tytso@mit.edu,mm-commits@vger.kernel.org
+Subject: [merged] initramfs-remove-compression-mode-choice.patch removed from -mm tree
+To: pebolle@tiscali.nl,ppandit@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:36:47 -0700
+Date: Mon, 09 Jun 2014 12:36:52 -0700
 
 
 The patch titled
-     Subject: fs/devpts/inode.c: convert printk to pr_foo()
+     Subject: initramfs: remove "compression mode" choice
 has been removed from the -mm tree.  Its filename was
-     fs-devpts-inodec-convert-printk-to-pr_foo.patch
+     initramfs-remove-compression-mode-choice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/devpts/inode.c: convert printk to pr_foo()
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: initramfs: remove "compression mode" choice
 
-Also convert spaces to tabs (checkpatch warnings) if (!dentry) KERN_NOTICE
-converted to pr_err (like if (!inode) error process)
+9ba4bcb64589 ("initramfs: read CONFIG_RD_ variables for initramfs
+compression") removed the users of the various INITRAMFS_COMPRESSION_*
+Kconfig symbols.  So since v3.13 the entire "Built-in initramfs
+compression mode" choice is a set of knobs connected to nothing.  The
+entire choice can safely be removed.
 
-[akpm@linux-foundation.org: use KBUILD_MODNAME, per Joe]
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Joe Perches <joe@perches.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Cc: P J P <ppandit@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |   26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ usr/Kconfig |   77 --------------------------------------------------
+ 1 file changed, 77 deletions(-)
 
-diff -puN fs/devpts/inode.c~fs-devpts-inodec-convert-printk-to-pr_foo fs/devpts/inode.c
---- a/fs/devpts/inode.c~fs-devpts-inodec-convert-printk-to-pr_foo
-+++ a/fs/devpts/inode.c
-@@ -10,6 +10,8 @@
-  *
-  * ------------------------------------------------------------------------- */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/fs.h>
-@@ -148,10 +150,10 @@ static inline struct super_block *pts_sb
- 
- /*
-  * parse_mount_options():
-- * 	Set @opts to mount options specified in @data. If an option is not
-- * 	specified in @data, set it to its default value. The exception is
-- * 	'newinstance' option which can only be set/cleared on a mount (i.e.
-- * 	cannot be changed during remount).
-+ *	Set @opts to mount options specified in @data. If an option is not
-+ *	specified in @data, set it to its default value. The exception is
-+ *	'newinstance' option which can only be set/cleared on a mount (i.e.
-+ *	cannot be changed during remount).
-  *
-  * Note: @data may be NULL (in which case all options are set to default).
-  */
-@@ -225,7 +227,7 @@ static int parse_mount_options(char *dat
- 			break;
- #endif
- 		default:
--			printk(KERN_ERR "devpts: called with bogus options\n");
-+			pr_err("called with bogus options\n");
- 			return -EINVAL;
- 		}
- 	}
-@@ -261,7 +263,7 @@ static int mknod_ptmx(struct super_block
- 
- 	dentry = d_alloc_name(root, "ptmx");
- 	if (!dentry) {
--		printk(KERN_NOTICE "Unable to alloc dentry for ptmx node\n");
-+		pr_err("Unable to alloc dentry for ptmx node\n");
- 		goto out;
- 	}
- 
-@@ -270,7 +272,7 @@ static int mknod_ptmx(struct super_block
- 	 */
- 	inode = new_inode(sb);
- 	if (!inode) {
--		printk(KERN_ERR "Unable to alloc inode for ptmx node\n");
-+		pr_err("Unable to alloc inode for ptmx node\n");
- 		dput(dentry);
- 		goto out;
- 	}
-@@ -303,7 +305,7 @@ static void update_ptmx_mode(struct pts_
- #else
- static inline void update_ptmx_mode(struct pts_fs_info *fsi)
- {
--       return;
-+	return;
- }
- #endif
- 
-@@ -333,9 +335,11 @@ static int devpts_show_options(struct se
- 	struct pts_mount_opts *opts = &fsi->mount_opts;
- 
- 	if (opts->setuid)
--		seq_printf(seq, ",uid=%u", from_kuid_munged(&init_user_ns, opts->uid));
-+		seq_printf(seq, ",uid=%u",
-+			   from_kuid_munged(&init_user_ns, opts->uid));
- 	if (opts->setgid)
--		seq_printf(seq, ",gid=%u", from_kgid_munged(&init_user_ns, opts->gid));
-+		seq_printf(seq, ",gid=%u",
-+			   from_kgid_munged(&init_user_ns, opts->gid));
- 	seq_printf(seq, ",mode=%03o", opts->mode);
- #ifdef CONFIG_DEVPTS_MULTIPLE_INSTANCES
- 	seq_printf(seq, ",ptmxmode=%03o", opts->ptmxmode);
-@@ -396,7 +400,7 @@ devpts_fill_super(struct super_block *s,
- 	if (s->s_root)
- 		return 0;
- 
--	printk(KERN_ERR "devpts: get root dentry failed\n");
-+	pr_err("get root dentry failed\n");
- 
- fail:
- 	return -ENOMEM;
-_
-
-Patches currently in -mm which might be from fabf@skynet.be are
-
-origin.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-isofs-logging-clean-up.patch
-linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-
+diff -puN usr/Kconfig~initramfs-remove-compression-mode-choice usr/Kconfig
+--- a/usr/Kconfig~initramfs-remove-compression-mode-choice
++++ a/usr/Kconfig
+@@ -98,80 +98,3 @@ config RD_LZ4
+ 	help
+ 	  Support loading of a LZ4 encoded initial ramdisk or cpio buffer
+ 	  If unsure, say N.
+-
+-choice
+-	prompt "Built-in initramfs compression mode" if INITRAMFS_SOURCE!=""
+-	help
+-	  This option decides by which algorithm the builtin initramfs
+-	  will be compressed.  Several compression algorithms are
+-	  available, which differ in efficiency, compression and
+-	  decompression speed.  Compression speed is only relevant
+-	  when building a kernel.  Decompression speed is relevant at
+-	  each boot.
+-
+-	  If you have any problems with bzip2 or LZMA compressed
+-	  initramfs, mail me (Alain Knaff) <alain@knaff.lu>.
+-
+-	  High compression options are mostly useful for users who are
+-	  low on RAM, since it reduces the memory consumption during
+-	  boot.
+-
+-	  If in doubt, select 'gzip'
+-
+-config INITRAMFS_COMPRESSION_NONE
+-	bool "None"
+-	help
+-	  Do not compress the built-in initramfs at all. This may
+-	  sound wasteful in space, but, you should be aware that the
+-	  built-in initramfs will be compressed at a later stage
+-	  anyways along with the rest of the kernel, on those
+-	  architectures that support this.
+-	  However, not compressing the initramfs may lead to slightly
+-	  higher memory consumption during a short time at boot, while
+-	  both the cpio image and the unpacked filesystem image will
+-	  be present in memory simultaneously
+-
+-config INITRAMFS_COMPRESSION_GZIP
+-	bool "Gzip"
+-	depends on RD_GZIP
+-	help
+-	  The old and tried gzip compression. It provides a good balance
+-	  between compression ratio and decompression speed.
+-
+-config INITRAMFS_COMPRESSION_BZIP2
+-	bool "Bzip2"
+-	depends on RD_BZIP2
+-	help
+-	  Its compression ratio and speed is intermediate.
+-	  Decompression speed is slowest among the choices.  The initramfs
+-	  size is about 10% smaller with bzip2, in comparison to gzip.
+-	  Bzip2 uses a large amount of memory. For modern kernels you
+-	  will need at least 8MB RAM or more for booting.
+-
+-config INITRAMFS_COMPRESSION_LZMA
+-	bool "LZMA"
+-	depends on RD_LZMA
+-	help
+-	  This algorithm's compression ratio is best.
+-	  Decompression speed is between the other choices.
+-	  Compression is slowest. The initramfs size is about 33%
+-	  smaller with LZMA in comparison to gzip.
+-
+-config INITRAMFS_COMPRESSION_XZ
+-	bool "XZ"
+-	depends on RD_XZ
+-	help
+-	  XZ uses the LZMA2 algorithm. The initramfs size is about 30%
+-	  smaller with XZ in comparison to gzip. Decompression speed
+-	  is better than that of bzip2 but worse than gzip and LZO.
+-	  Compression is slow.
+-
+-config INITRAMFS_COMPRESSION_LZO
+-	bool "LZO"
+-	depends on RD_LZO
+-	help
+-	  Its compression ratio is the poorest among the choices. The kernel
+-	  size is about 10% bigger than gzip; however its speed
+-	  (both compression and decompression) is the fastest.
