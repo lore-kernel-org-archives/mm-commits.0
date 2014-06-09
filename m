@@ -1,81 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-seccompc-kernel-doc-warning-fix.patch removed
- from -mm tree
-Date: Mon, 09 Jun 2014 12:38:23 -0700
-Message-ID: <53960d2f.UZCSZi4+ZAMJ3Txx%akpm@linux-foundation.org>
+Subject: [merged]
+ arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch removed from -mm tree
+Date: Mon, 09 Jun 2014 12:38:28 -0700
+Message-ID: <53960d34.HDLztDcdx26RVgFg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54277 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54281 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753700AbaFITiX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:38:23 -0400
+	with ESMTP id S1753700AbaFITi2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:38:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, davem@davemloft.net, fabf@skynet.be
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] kernel-seccompc-kernel-doc-warning-fix.patch removed from -mm tree
-To: fabf@skynet.be,davem@davemloft.net,mm-commits@vger.kernel.org
+Subject: [merged] arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch removed from -mm tree
+To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:38:23 -0700
+Date: Mon, 09 Jun 2014 12:38:28 -0700
 
 
 The patch titled
-     Subject: kernel/seccomp.c: kernel-doc warning fix
+     Subject: arm: convert use of typedef ctl_table to struct ctl_table
 has been removed from the -mm tree.  Its filename was
-     kernel-seccompc-kernel-doc-warning-fix.patch
+     arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/seccomp.c: kernel-doc warning fix
+From: Joe Perches <joe@perches.com>
+Subject: arm: convert use of typedef ctl_table to struct ctl_table
 
-+ fix small typo
+This typedef is unnecessary and should just be removed.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/seccomp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/kernel/isa.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/seccomp.c~kernel-seccompc-kernel-doc-warning-fix kernel/seccomp.c
---- a/kernel/seccomp.c~kernel-seccompc-kernel-doc-warning-fix
-+++ a/kernel/seccomp.c
-@@ -39,7 +39,7 @@
-  *         is only needed for handling filters shared across tasks.
-  * @prev: points to a previously installed, or inherited, filter
-  * @len: the number of instructions in the program
-- * @insns: the BPF program instructions to evaluate
-+ * @insnsi: the BPF program instructions to evaluate
-  *
-  * seccomp_filter objects are organized in a tree linked via the @prev
-  * pointer.  For any task, it appears to be a singly-linked list starting
-@@ -220,7 +220,7 @@ static long seccomp_attach_filter(struct
- 		return -ENOMEM;
+diff -puN arch/arm/kernel/isa.c~arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table arch/arm/kernel/isa.c
+--- a/arch/arm/kernel/isa.c~arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table
++++ a/arch/arm/kernel/isa.c
+@@ -20,7 +20,7 @@
  
- 	/*
--	 * Installing a seccomp filter requires that the task have
-+	 * Installing a seccomp filter requires that the task has
- 	 * CAP_SYS_ADMIN in its namespace or be running with no_new_privs.
- 	 * This avoids scenarios where unprivileged tasks can affect the
- 	 * behavior of privileged children.
+ static unsigned int isa_membase, isa_portbase, isa_portshift;
+ 
+-static ctl_table ctl_isa_vars[4] = {
++static struct ctl_table ctl_isa_vars[4] = {
+ 	{
+ 		.procname	= "membase",
+ 		.data		= &isa_membase, 
+@@ -44,7 +44,7 @@ static ctl_table ctl_isa_vars[4] = {
+ 
+ static struct ctl_table_header *isa_sysctl_header;
+ 
+-static ctl_table ctl_isa[2] = {
++static struct ctl_table ctl_isa[2] = {
+ 	{
+ 		.procname	= "isa",
+ 		.mode		= 0555,
+@@ -52,7 +52,7 @@ static ctl_table ctl_isa[2] = {
+ 	}, {}
+ };
+ 
+-static ctl_table ctl_bus[2] = {
++static struct ctl_table ctl_bus[2] = {
+ 	{
+ 		.procname	= "bus",
+ 		.mode		= 0555,
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+checkpatch-check-git-commit-descriptions.patch
+mm-utilc-add-kstrimdup.patch
 fs-isofs-logging-clean-up.patch
 linux-next.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-init-mainc-code-clean-up.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
 
