@@ -1,66 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days.patch removed from -mm tree
-Date: Mon, 09 Jun 2014 12:28:52 -0700
-Message-ID: <53960af4.qNJaRYut4SBNK6Qz%akpm@linux-foundation.org>
+Subject: [merged] dec-switch-decstation-systems-to-rtc-cmos.patch removed
+ from -mm tree
+Date: Mon, 09 Jun 2014 12:29:02 -0700
+Message-ID: <53960afe.JA+pSmLT8aLaZUqN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53762 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53770 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754251AbaFIT2x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:28:53 -0400
+	with ESMTP id S1754336AbaFIT3D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2014 15:29:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jlee@suse.com, a.zummo@towertech.it, joeyli.kernel@gmail.com
+To: mm-commits@vger.kernel.org, ralf@linux-mips.org, a.zummo@towertech.it, macro@linux-mips.org
 
-Subject: [merged] drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days.patch removed from -mm tree
-To: joeyli.kernel@gmail.com,a.zummo@towertech.it,jlee@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] dec-switch-decstation-systems-to-rtc-cmos.patch removed from -mm tree
+To: macro@linux-mips.org,a.zummo@towertech.it,ralf@linux-mips.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Jun 2014 12:28:52 -0700
+Date: Mon, 09 Jun 2014 12:29:02 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-efi.c: avoid subtracting day twice when computing year days
+     Subject: arch/mips/dec: switch DECstation systems to rtc-cmos
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days.patch
+     dec-switch-decstation-systems-to-rtc-cmos.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: drivers/rtc/rtc-efi.c: avoid subtracting day twice when computing year days
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: arch/mips/dec: switch DECstation systems to rtc-cmos
 
-Compared source code of rtc-lib.c::rtc_year_days() with
-efirtc.c::rtc_year_days(), found the code in rtc-efi decreases value of
-day twice when it computing year days.  rtc-lib.c::rtc_year_days() has
-already decrease days and return the year days from 0 to 365.
+This adds an RTC platform device for DECstation systems so that they can
+use the rtc-cmos driver for their RTC device.
 
-Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-efi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/dec/Makefile   |    2 -
+ arch/mips/dec/platform.c |   44 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-efi.c~drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days drivers/rtc/rtc-efi.c
---- a/drivers/rtc/rtc-efi.c~drivers-rtc-rtc-efic-avoid-subtracting-day-twice-when-computing-year-days
-+++ a/drivers/rtc/rtc-efi.c
-@@ -35,7 +35,7 @@ static inline int
- compute_yday(efi_time_t *eft)
- {
- 	/* efi_time_t.month is in the [1-12] so, we need -1 */
--	return rtc_year_days(eft->day - 1, eft->month - 1, eft->year);
-+	return rtc_year_days(eft->day, eft->month - 1, eft->year);
- }
- /*
-  * returns day of the week [0-6] 0=Sunday
+diff -puN arch/mips/dec/Makefile~dec-switch-decstation-systems-to-rtc-cmos arch/mips/dec/Makefile
+--- a/arch/mips/dec/Makefile~dec-switch-decstation-systems-to-rtc-cmos
++++ a/arch/mips/dec/Makefile
+@@ -3,7 +3,7 @@
+ #
+ 
+ obj-y		:= ecc-berr.o int-handler.o ioasic-irq.o kn01-berr.o \
+-		   kn02-irq.o kn02xa-berr.o reset.o setup.o time.o
++		   kn02-irq.o kn02xa-berr.o platform.o reset.o setup.o time.o
+ 
+ obj-$(CONFIG_TC)		+= tc.o
+ obj-$(CONFIG_CPU_HAS_WB)	+= wbflush.o
+diff -puN /dev/null arch/mips/dec/platform.c
+--- /dev/null
++++ a/arch/mips/dec/platform.c
+@@ -0,0 +1,44 @@
++/*
++ *	DEC platform devices.
++ *
++ *	Copyright (c) 2014  Maciej W. Rozycki
++ *
++ *	This program is free software; you can redistribute it and/or
++ *	modify it under the terms of the GNU General Public License
++ *	as published by the Free Software Foundation; either version
++ *	2 of the License, or (at your option) any later version.
++ */
++
++#include <linux/ioport.h>
++#include <linux/kernel.h>
++#include <linux/mc146818rtc.h>
++#include <linux/platform_device.h>
++
++static struct resource dec_rtc_resources[] = {
++	{
++		.name = "rtc",
++		.flags = IORESOURCE_MEM,
++	},
++};
++
++static struct cmos_rtc_board_info dec_rtc_info = {
++	.flags = CMOS_RTC_FLAGS_NOFREQ,
++	.address_space = 64,
++};
++
++static struct platform_device dec_rtc_device = {
++	.name = "rtc_cmos",
++	.id = PLATFORM_DEVID_NONE,
++	.dev.platform_data = &dec_rtc_info,
++	.resource = dec_rtc_resources,
++	.num_resources = ARRAY_SIZE(dec_rtc_resources),
++};
++
++static int __init dec_add_devices(void)
++{
++	dec_rtc_resources[0].start = RTC_PORT(0);
++	dec_rtc_resources[0].end = RTC_PORT(0) + dec_kn_slot_size - 1;
++	return platform_device_register(&dec_rtc_device);
++}
++
++device_initcall(dec_add_devices);
 _
 
-Patches currently in -mm which might be from joeyli.kernel@gmail.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
+linux-next.patch
 
