@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + tell-gcc-optimizer-to-never-introduce-new-data-races.patch
+Subject: +
+ ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list.patch
  added to -mm tree
-Date: Tue, 10 Jun 2014 15:48:39 -0700
-Message-ID: <53978b47.WL1TM61kRxPpK0Xi%akpm@linux-foundation.org>
+Date: Tue, 10 Jun 2014 15:51:33 -0700
+Message-ID: <53978bf5.5qNFNv3ApWnXmVVL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40697 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40712 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524AbaFJWsk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jun 2014 18:48:40 -0400
+	with ESMTP id S1751998AbaFJWve (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jun 2014 18:51:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, steven@uplinklabs.net, richard.guenther@gmail.com, polacek@redhat.com, pmladek@suse.cz, peterz@infradead.org, paulmck@linux.vnet.ibm.com, mjambor@suse.cz, jakub@redhat.com, jkosina@suse.cz
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, xieyingtai@huawei.com
 
-Subject: + tell-gcc-optimizer-to-never-introduce-new-data-races.patch added to -mm tree
-To: jkosina@suse.cz,jakub@redhat.com,mjambor@suse.cz,paulmck@linux.vnet.ibm.com,peterz@infradead.org,pmladek@suse.cz,polacek@redhat.com,richard.guenther@gmail.com,steven@uplinklabs.net,torvalds@linux-foundation.org
+Subject: + ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list.patch added to -mm tree
+To: xieyingtai@huawei.com,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Jun 2014 15:48:39 -0700
+Date: Tue, 10 Jun 2014 15:51:33 -0700
 
 
 The patch titled
-     Subject: ./Makefile: tell gcc optimizer to never introduce new data races
+     Subject: ocfs2: correctly check the return value of ocfs2_search_extent_list
 has been added to the -mm tree.  Its filename is
-     tell-gcc-optimizer-to-never-introduce-new-data-races.patch
+     ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tell-gcc-optimizer-to-never-introduce-new-data-races.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tell-gcc-optimizer-to-never-introduce-new-data-races.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,194 +45,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: ./Makefile: tell gcc optimizer to never introduce new data races
+From: Yingtai Xie <xieyingtai@huawei.com>
+Subject: ocfs2: correctly check the return value of ocfs2_search_extent_list
 
-We have been chasing a memory corruption bug, which turned out to be
-caused by very old gcc (4.3.4), which happily turned conditional load into
-a non-conditional one, and that broke correctness (the condition was met
-only if lock was held) and corrupted memory.
+ocfs2_search_extent_list may return -1, so we should check the return
+value in ocfs2_split_and_insert, otherwise it may cause array index out of
+bound.
 
-This particular problem with that particular code did not happen when
-never gccs were used. I've brought this up with our gcc folks, as I wanted
-to make sure that this can't really happen again, and it turns out it
-actually can.
+And ocfs2_search_extent_list can only return value less than
+el->l_next_free_rec, so check if it is equal or larger than
+le16_to_cpu(el->l_next_free_rec) is meaningless.
 
-Quoting Martin Jambor <mjambor@suse.cz>:
-
-====
-More current GCCs are more careful when it comes to replacing a
-conditional load with a non-conditional one, most notably they check
-that a store happens in each iteration of _a_ loop but they assume
-loops are executed.  They also perform a simple check whether the
-store cannot trap which currently passes only for non-const
-variables.  A simple testcase demonstrating it on an x86_64 is for
-example the following:
-
-$ cat cond_store.c
-
-int g_1 = 1;
-
-int g_2[1024] __attribute__((section ("safe_section"), aligned (4096)));
-
-int c = 4;
-
-int __attribute__ ((noinline))
-foo (void)
-{
-  int l;
-  for (l = 0; (l != 4); l++) {
-    if (g_1)
-      return l;
-    for (g_2[0] = 0; (g_2[0] >= 26); ++g_2[0])
-      ;
-  }
-  return 2;
-}
-
-int main (int argc, char* argv[])
-{
-  if (mprotect (g_2, sizeof(g_2), PROT_READ) == -1)
-    {
-      int e = errno;
-      error (e, e, "mprotect error %i", e);
-    }
-  foo ();
-  __builtin_printf("OK\n");
-  return 0;
-}
-/* EOF */
-$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=0
-$ ./a.out
-OK
-$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=1
-$ ./a.out
-Segmentation fault
-
-The testcase fails the same at least with 4.9, 4.8 and 4.7.  Therefore
-I would suggest building kernels with this parameter set to zero. I
-also agree with Jikos that the default should be changed for -O2.  I
-have run most of the SPEC 2k6 CPU benchmarks (gamess and dealII
-failed, at -O2, not sure why) compiled with and without this option
-and did not see any real difference between respective run-times.
-====
-
-Hopefully the default will be changed in newer gccs, but let's force
-it for kernel builds so that we are on a safe side even when older
-gcc are used.
-
-
-
-
-The code in question was out-of-tree printk-in-NMI (yeah, surprise 
-suprise, once again) patch written by Petr Mladek, let me quote his 
-comment from our internal bugzilla:
-
-===
-I have spent few days investigating inconsistent state of kernel ring buffer.
-It went out that it was caused by speculative store generated by 
-gcc-4.3.4.
-
-The problem is in assembly generated for make_free_space(). The functions is
-called the following way:
-
-+ vprintk_emit();
-    + log = MAIN_LOG; // with logbuf_lock
-       or
-       log = NMI_LOG; // with nmi_logbuf_lock
-       cont_add(log, ...);
-        + cont_flush(log, ...);
-            + log_store(log, ...);
-                  + log_make_free_space(log, ...);
-
-If called with log = NMI_LOG then only nmi_log_* global variables are safe to
-modify but the generated code does store also into (main_)log_* global 
-variables:
-
-
-<log_make_free_space>:
-       55                      push   %rbp
-       89 f6                   mov    %esi,%esi
-
-       48 8b 05 03 99 51 01    mov    0x1519903(%rip),%rax       # ffffffff82620868 <nmi_log_next_id>
-       44 8b 1d ec 98 51 01    mov    0x15198ec(%rip),%r11d      # ffffffff82620858 <log_next_idx>
-       8b 35 36 60 14 01       mov    0x1146036(%rip),%esi       # ffffffff8224cfa8 <log_buf_len>
-       44 8b 35 33 60 14 01    mov    0x1146033(%rip),%r14d      # ffffffff8224cfac <nmi_log_buf_len>
-       4c 8b 2d d0 98 51 01    mov    0x15198d0(%rip),%r13       # ffffffff82620850 <log_next_seq>
-       4c 8b 25 11 61 14 01    mov    0x1146111(%rip),%r12       # ffffffff8224d098 <log_buf>
-       49 89 c2                mov    %rax,%r10
-       48 21 c2                and    %rax,%rdx
-       48 8b 1d 0c 99 55 01    mov    0x155990c(%rip),%rbx       # ffffffff826608a0 <nmi_log_buf>
-       49 c1 ea 20             shr    $0x20,%r10
-       48 89 55 d0             mov    %rdx,-0x30(%rbp)
-       44 29 de                sub    %r11d,%esi
-       45 29 d6                sub    %r10d,%r14d
-       4c 8b 0d 97 98 51 01    mov    0x1519897(%rip),%r9	# ffffffff82620840 <log_first_seq>
-       eb 7e                   jmp    ffffffff81107029	<log_make_free_space+0xe9>
-[...]
-       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
-       4c 89 e8                mov    %r13,%rax
-       4c 89 ca                mov    %r9,%rdx
-       74 0a                   je     ffffffff8110703d	<log_make_free_space+0xfd>
-       8b 15 27 98 51 01       mov    0x1519827(%rip),%edx       # ffffffff82620860 <nmi_log_first_id>
-       48 8b 45 d0             mov    -0x30(%rbp),%rax
-       48 39 c2                cmp    %rax,%rdx                  # end of loop 
-       0f 84 da 00 00 00       je     ffffffff81107120 <log_make_free_space+0x1e0>
-[...]
-       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
-       4c 89 0d 17 97 51 01    mov    %r9,0x1519717(%rip)        # ffffffff82620840 <log_first_seq>
-                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
-                               KABOOOM
-       74 35                   je     ffffffff81107160		 <log_make_free_space+0x220>
-
-
-It stores log_first_seq when edi == NMI_LOG. This instructions are used also
-when edi == MAIN_LOG but the store is done speculatively before the condition
-is decided.  It is unsafe because we do not have "logbuf_lock" in NMI context
-and some other process migh modify "log_first_seq" in parallel.
-===
-
-I believe that the best course of action is both
-
-- building kernel (and anything multi-threaded, I guess) with that 
-  optimization turned off
-- persuade gcc folks to change the default for future releases
-
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Martin Jambor <mjambor@suse.cz>
-Cc: Petr Mladek <pmladek@suse.cz>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Marek Polacek <polacek@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Steven Noonan <steven@uplinklabs.net>
-Cc: Richard Biener <richard.guenther@gmail.com>
+Signed-off-by: Yingtai Xie <xieyingtai@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/alloc.c        |   15 ++++++++++++---
+ fs/ocfs2/move_extents.c |    2 +-
+ fs/ocfs2/refcounttree.c |    2 +-
+ 3 files changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN Makefile~tell-gcc-optimizer-to-never-introduce-new-data-races Makefile
---- a/Makefile~tell-gcc-optimizer-to-never-introduce-new-data-races
-+++ a/Makefile
-@@ -600,6 +600,9 @@ else
- KBUILD_CFLAGS	+= -O2
- endif
+diff -puN fs/ocfs2/alloc.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list
++++ a/fs/ocfs2/alloc.c
+@@ -4961,6 +4961,15 @@ leftright:
  
-+# Tell gcc to never replace conditional load with a non-conditional one
-+KBUILD_CFLAGS	+= $(call cc-option,--param allow-store-data-races=0)
-+
- include $(srctree)/arch/$(SRCARCH)/Makefile
+ 		el = path_leaf_el(path);
+ 		split_index = ocfs2_search_extent_list(el, cpos);
++		if (split_index == -1) {
++			ocfs2_error(ocfs2_metadata_cache_get_super(et->et_ci),
++					"Owner %llu has an extent at cpos %u "
++					"which can no longer be found.\n",
++					(unsigned long long)ocfs2_metadata_cache_owner(et->et_ci),
++					cpos);
++			ret = -EROFS;
++			goto out;
++		}
+ 		goto leftright;
+ 	}
+ out:
+@@ -5135,7 +5144,7 @@ int ocfs2_change_extent_flag(handle_t *h
+ 	el = path_leaf_el(left_path);
  
- ifdef CONFIG_READABLE_ASM
+ 	index = ocfs2_search_extent_list(el, cpos);
+-	if (index == -1 || index >= le16_to_cpu(el->l_next_free_rec)) {
++	if (index == -1) {
+ 		ocfs2_error(sb,
+ 			    "Owner %llu has an extent at cpos %u which can no "
+ 			    "longer be found.\n",
+@@ -5491,7 +5500,7 @@ int ocfs2_remove_extent(handle_t *handle
+ 
+ 	el = path_leaf_el(path);
+ 	index = ocfs2_search_extent_list(el, cpos);
+-	if (index == -1 || index >= le16_to_cpu(el->l_next_free_rec)) {
++	if (index == -1) {
+ 		ocfs2_error(ocfs2_metadata_cache_get_super(et->et_ci),
+ 			    "Owner %llu has an extent at cpos %u which can no "
+ 			    "longer be found.\n",
+@@ -5557,7 +5566,7 @@ int ocfs2_remove_extent(handle_t *handle
+ 
+ 		el = path_leaf_el(path);
+ 		index = ocfs2_search_extent_list(el, cpos);
+-		if (index == -1 || index >= le16_to_cpu(el->l_next_free_rec)) {
++		if (index == -1) {
+ 			ocfs2_error(ocfs2_metadata_cache_get_super(et->et_ci),
+ 				    "Owner %llu: split at cpos %u lost record.",
+ 				    (unsigned long long)ocfs2_metadata_cache_owner(et->et_ci),
+diff -puN fs/ocfs2/move_extents.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list fs/ocfs2/move_extents.c
+--- a/fs/ocfs2/move_extents.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list
++++ a/fs/ocfs2/move_extents.c
+@@ -98,7 +98,7 @@ static int __ocfs2_move_extent(handle_t
+ 	el = path_leaf_el(path);
+ 
+ 	index = ocfs2_search_extent_list(el, cpos);
+-	if (index == -1 || index >= le16_to_cpu(el->l_next_free_rec)) {
++	if (index == -1) {
+ 		ocfs2_error(inode->i_sb,
+ 			    "Inode %llu has an extent at cpos %u which can no "
+ 			    "longer be found.\n",
+diff -puN fs/ocfs2/refcounttree.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list
++++ a/fs/ocfs2/refcounttree.c
+@@ -3109,7 +3109,7 @@ static int ocfs2_clear_ext_refcount(hand
+ 	el = path_leaf_el(path);
+ 
+ 	index = ocfs2_search_extent_list(el, cpos);
+-	if (index == -1 || index >= le16_to_cpu(el->l_next_free_rec)) {
++	if (index == -1) {
+ 		ocfs2_error(sb,
+ 			    "Inode %llu has an extent at cpos %u which can no "
+ 			    "longer be found.\n",
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from xieyingtai@huawei.com are
 
-origin.patch
-tell-gcc-optimizer-to-never-introduce-new-data-races.patch
-linux-next.patch
+ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list.patch
 
