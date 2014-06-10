@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch added
- to -mm tree
-Date: Tue, 10 Jun 2014 15:44:09 -0700
-Message-ID: <53978a39.3ZwWLGjxcN1UDD1P%akpm@linux-foundation.org>
+Subject: + tell-gcc-optimizer-to-never-introduce-new-data-races.patch
+ added to -mm tree
+Date: Tue, 10 Jun 2014 15:48:39 -0700
+Message-ID: <53978b47.WL1TM61kRxPpK0Xi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40680 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40697 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751937AbaFJWoK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jun 2014 18:44:10 -0400
+	with ESMTP id S1752524AbaFJWsk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jun 2014 18:48:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, steven@uplinklabs.net, richard.guenther@gmail.com, polacek@redhat.com, pmladek@suse.cz, peterz@infradead.org, paulmck@linux.vnet.ibm.com, mjambor@suse.cz, jakub@redhat.com, jkosina@suse.cz
 
-Subject: + checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch added to -mm tree
-To: joe@perches.com
+Subject: + tell-gcc-optimizer-to-never-introduce-new-data-races.patch added to -mm tree
+To: jkosina@suse.cz,jakub@redhat.com,mjambor@suse.cz,paulmck@linux.vnet.ibm.com,peterz@infradead.org,pmladek@suse.cz,polacek@redhat.com,richard.guenther@gmail.com,steven@uplinklabs.net,torvalds@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Jun 2014 15:44:09 -0700
+Date: Tue, 10 Jun 2014 15:48:39 -0700
 
 
 The patch titled
-     Subject: checkpatch: attempt to find unnecessary 'out of memory' messages
+     Subject: ./Makefile: tell gcc optimizer to never introduce new data races
 has been added to the -mm tree.  Its filename is
-     checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+     tell-gcc-optimizer-to-never-introduce-new-data-races.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tell-gcc-optimizer-to-never-introduce-new-data-races.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tell-gcc-optimizer-to-never-introduce-new-data-races.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,94 +44,194 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: attempt to find unnecessary 'out of memory' messages
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: ./Makefile: tell gcc optimizer to never introduce new data races
 
-Logging messages that show some type of "out of memory" error
-are generally unnecessary as there is a generic message and
-a stack dump done by the memory subsystem.
+We have been chasing a memory corruption bug, which turned out to be
+caused by very old gcc (4.3.4), which happily turned conditional load into
+a non-conditional one, and that broke correctness (the condition was met
+only if lock was held) and corrupted memory.
 
-These messages generally increase kernel size without much
-added value.
+This particular problem with that particular code did not happen when
+never gccs were used. I've brought this up with our gcc folks, as I wanted
+to make sure that this can't really happen again, and it turns out it
+actually can.
 
-Emit a warning on these types of messages.
+Quoting Martin Jambor <mjambor@suse.cz>:
 
-This test looks for any inserted message function, then looks
-at the previous line for an "if (!foo)" or "if (foo == NULL)"
-test and then looks at the preceding statement for an allocation
-function like "foo = kmalloc()"
+====
+More current GCCs are more careful when it comes to replacing a
+conditional load with a non-conditional one, most notably they check
+that a store happens in each iteration of _a_ loop but they assume
+loops are executed.  They also perform a simple check whether the
+store cannot trap which currently passes only for non-const
+variables.  A simple testcase demonstrating it on an x86_64 is for
+example the following:
 
-ie: this code matches:
+$ cat cond_store.c
 
-	foo = kmalloc();
-	if (foo == NULL) {
-		printk("Out of memory\n");
-		return -ENOMEM;
-	}
+int g_1 = 1;
 
-This test is very crude and incomplete.
+int g_2[1024] __attribute__((section ("safe_section"), aligned (4096)));
 
-This test can miss quite a lot of of OOM messages that do not
-have this specific form.
+int c = 4;
 
-ie: this code does not match:
+int __attribute__ ((noinline))
+foo (void)
+{
+  int l;
+  for (l = 0; (l != 4); l++) {
+    if (g_1)
+      return l;
+    for (g_2[0] = 0; (g_2[0] >= 26); ++g_2[0])
+      ;
+  }
+  return 2;
+}
 
-	foo = kmalloc();
-	if (!foo) {
-		rtn = -ENOMEM;
-		printk("Out of memory!\n");
-		goto out;
-	}
+int main (int argc, char* argv[])
+{
+  if (mprotect (g_2, sizeof(g_2), PROT_READ) == -1)
+    {
+      int e = errno;
+      error (e, e, "mprotect error %i", e);
+    }
+  foo ();
+  __builtin_printf("OK\n");
+  return 0;
+}
+/* EOF */
+$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=0
+$ ./a.out
+OK
+$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=1
+$ ./a.out
+Segmentation fault
 
-This test could also be a false positive when the logging
-message itself does not specify anything about memory, but
-I did not find any false positives in my limited testing.
+The testcase fails the same at least with 4.9, 4.8 and 4.7.  Therefore
+I would suggest building kernels with this parameter set to zero. I
+also agree with Jikos that the default should be changed for -O2.  I
+have run most of the SPEC 2k6 CPU benchmarks (gamess and dealII
+failed, at -O2, not sure why) compiled with and without this option
+and did not see any real difference between respective run-times.
+====
 
-spatch could be a better solution but correctness seems
-non-trivial for that tool too.
+Hopefully the default will be changed in newer gccs, but let's force
+it for kernel builds so that we are on a safe side even when older
+gcc are used.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+
+
+
+The code in question was out-of-tree printk-in-NMI (yeah, surprise 
+suprise, once again) patch written by Petr Mladek, let me quote his 
+comment from our internal bugzilla:
+
+===
+I have spent few days investigating inconsistent state of kernel ring buffer.
+It went out that it was caused by speculative store generated by 
+gcc-4.3.4.
+
+The problem is in assembly generated for make_free_space(). The functions is
+called the following way:
+
++ vprintk_emit();
+    + log = MAIN_LOG; // with logbuf_lock
+       or
+       log = NMI_LOG; // with nmi_logbuf_lock
+       cont_add(log, ...);
+        + cont_flush(log, ...);
+            + log_store(log, ...);
+                  + log_make_free_space(log, ...);
+
+If called with log = NMI_LOG then only nmi_log_* global variables are safe to
+modify but the generated code does store also into (main_)log_* global 
+variables:
+
+
+<log_make_free_space>:
+       55                      push   %rbp
+       89 f6                   mov    %esi,%esi
+
+       48 8b 05 03 99 51 01    mov    0x1519903(%rip),%rax       # ffffffff82620868 <nmi_log_next_id>
+       44 8b 1d ec 98 51 01    mov    0x15198ec(%rip),%r11d      # ffffffff82620858 <log_next_idx>
+       8b 35 36 60 14 01       mov    0x1146036(%rip),%esi       # ffffffff8224cfa8 <log_buf_len>
+       44 8b 35 33 60 14 01    mov    0x1146033(%rip),%r14d      # ffffffff8224cfac <nmi_log_buf_len>
+       4c 8b 2d d0 98 51 01    mov    0x15198d0(%rip),%r13       # ffffffff82620850 <log_next_seq>
+       4c 8b 25 11 61 14 01    mov    0x1146111(%rip),%r12       # ffffffff8224d098 <log_buf>
+       49 89 c2                mov    %rax,%r10
+       48 21 c2                and    %rax,%rdx
+       48 8b 1d 0c 99 55 01    mov    0x155990c(%rip),%rbx       # ffffffff826608a0 <nmi_log_buf>
+       49 c1 ea 20             shr    $0x20,%r10
+       48 89 55 d0             mov    %rdx,-0x30(%rbp)
+       44 29 de                sub    %r11d,%esi
+       45 29 d6                sub    %r10d,%r14d
+       4c 8b 0d 97 98 51 01    mov    0x1519897(%rip),%r9	# ffffffff82620840 <log_first_seq>
+       eb 7e                   jmp    ffffffff81107029	<log_make_free_space+0xe9>
+[...]
+       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
+       4c 89 e8                mov    %r13,%rax
+       4c 89 ca                mov    %r9,%rdx
+       74 0a                   je     ffffffff8110703d	<log_make_free_space+0xfd>
+       8b 15 27 98 51 01       mov    0x1519827(%rip),%edx       # ffffffff82620860 <nmi_log_first_id>
+       48 8b 45 d0             mov    -0x30(%rbp),%rax
+       48 39 c2                cmp    %rax,%rdx                  # end of loop 
+       0f 84 da 00 00 00       je     ffffffff81107120 <log_make_free_space+0x1e0>
+[...]
+       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
+       4c 89 0d 17 97 51 01    mov    %r9,0x1519717(%rip)        # ffffffff82620840 <log_first_seq>
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               KABOOOM
+       74 35                   je     ffffffff81107160		 <log_make_free_space+0x220>
+
+
+It stores log_first_seq when edi == NMI_LOG. This instructions are used also
+when edi == MAIN_LOG but the store is done speculatively before the condition
+is decided.  It is unsafe because we do not have "logbuf_lock" in NMI context
+and some other process migh modify "log_first_seq" in parallel.
+===
+
+I believe that the best course of action is both
+
+- building kernel (and anything multi-threaded, I guess) with that 
+  optimization turned off
+- persuade gcc folks to change the default for future releases
+
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Martin Jambor <mjambor@suse.cz>
+Cc: Petr Mladek <pmladek@suse.cz>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Marek Polacek <polacek@redhat.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Steven Noonan <steven@uplinklabs.net>
+Cc: Richard Biener <richard.guenther@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ Makefile |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-attempt-to-find-unnecessary-out-of-memory-messages scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-attempt-to-find-unnecessary-out-of-memory-messages
-+++ a/scripts/checkpatch.pl
-@@ -4017,6 +4017,23 @@ sub process {
- 			}
- 		}
+diff -puN Makefile~tell-gcc-optimizer-to-never-introduce-new-data-races Makefile
+--- a/Makefile~tell-gcc-optimizer-to-never-introduce-new-data-races
++++ a/Makefile
+@@ -600,6 +600,9 @@ else
+ KBUILD_CFLAGS	+= -O2
+ endif
  
-+# check for unnecessary "Out of Memory" messages
-+		if ($line =~ /^\+.*\b$logFunctions\s*\(/ &&
-+		    $prevline =~ /^[ \+]\s*if\s*\(\s*(\!\s*|NULL\s*==\s*)?($Lval)(\s*==\s*NULL\s*)?\s*\)/ &&
-+		    (defined $1 || defined $3) &&
-+		    $linenr > 3) {
-+			my $testval = $2;
-+			my $testline = $lines[$linenr - 3];
++# Tell gcc to never replace conditional load with a non-conditional one
++KBUILD_CFLAGS	+= $(call cc-option,--param allow-store-data-races=0)
 +
-+			my ($s, $c) = ctx_statement_block($linenr - 3, $realcnt, 0);
-+#			print("line: <$line>\nprevline: <$prevline>\ns: <$s>\nc: <$c>\n\n\n");
-+
-+			if ($c =~ /(?:^|\n)[ \+]\s*(?:$Type\s*)?\Q$testval\E\s*=\s*(?:\([^\)]*\)\s*)?\s*(?:devm_)?(?:[kv][czm]alloc(?:_node|_array)?\b|kstrdup|(?:dev_)?alloc_skb)/) {
-+				WARN("OOM_MESSAGE",
-+				     "Possible unnecessary 'out of memory' message\n" . $hereprev);
-+			}
-+		}
-+
- # check for bad placement of section $InitAttribute (e.g.: __initdata)
- 		if ($line =~ /(\b$InitAttribute\b)/) {
- 			my $attr = $1;
+ include $(srctree)/arch/$(SRCARCH)/Makefile
+ 
+ ifdef CONFIG_READABLE_ASM
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 origin.patch
-checkpatch-check-git-commit-descriptions.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
-fs-isofs-logging-clean-up.patch
+tell-gcc-optimizer-to-never-introduce-new-data-races.patch
 linux-next.patch
 
