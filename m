@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-support-of-nvram-for-maxim-dallas-rtc-ds1343.patch
- added to -mm tree
-Date: Tue, 10 Jun 2014 16:22:40 -0700
-Message-ID: <53979340.vyuTePs72MT3ZnZG%akpm@linux-foundation.org>
+Subject: +
+ mm-vmscanc-avoid-recording-the-original-scan-targets-in-shrink_lruvec.patch added to -mm tree
+Date: Tue, 10 Jun 2014 16:33:54 -0700
+Message-ID: <539795e2.audl1JRpA5oJ3Su9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41145 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751504AbaFJXWl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jun 2014 19:22:41 -0400
+	with ESMTP id S1753411AbaFJXdz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jun 2014 19:33:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, a.zummo@towertech.it, ravi23ganiga@gmail.com
+To: mm-commits@vger.kernel.org, minchan@kernel.org, mhocko@suse.cz, mgorman@suse.de, hannes@cmpxchg.org, slaoub@gmail.com
 
-Subject: + rtc-add-support-of-nvram-for-maxim-dallas-rtc-ds1343.patch added to -mm tree
-To: ravi23ganiga@gmail.com,a.zummo@towertech.it
+Subject: + mm-vmscanc-avoid-recording-the-original-scan-targets-in-shrink_lruvec.patch added to -mm tree
+To: slaoub@gmail.com,hannes@cmpxchg.org,mgorman@suse.de,mhocko@suse.cz,minchan@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Jun 2014 16:22:40 -0700
+Date: Tue, 10 Jun 2014 16:33:54 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1343.c: add support of nvram for maxim dallas rtc ds1343
+     Subject: mm/vmscan.c: avoid recording the original scan targets in shrink_lruvec()
 has been added to the -mm tree.  Its filename is
-     rtc-add-support-of-nvram-for-maxim-dallas-rtc-ds1343.patch
+     mm-vmscanc-avoid-recording-the-original-scan-targets-in-shrink_lruvec.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-add-support-of-nvram-for-maxim-dallas-rtc-ds1343.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscanc-avoid-recording-the-original-scan-targets-in-shrink_lruvec.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-add-support-of-nvram-for-maxim-dallas-rtc-ds1343.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscanc-avoid-recording-the-original-scan-targets-in-shrink_lruvec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,154 +44,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Raghavendra Ganiga <ravi23ganiga@gmail.com>
-Subject: drivers/rtc/rtc-ds1343.c: add support of nvram for maxim dallas rtc ds1343
+From: Chen Yucong <slaoub@gmail.com>
+Subject: mm/vmscan.c: avoid recording the original scan targets in shrink_lruvec()
 
-This is a patch to add support of nvram for maxim dallas rtc ds1343.
+Via https://lkml.org/lkml/2013/4/10/334, we can find that recording the
+original scan targets introduces extra 40 bytes on the stack.  This patch
+is able to avoid this situation and the call to memcpy().  At the same
+time, it does not change the relative design idea.
 
-Signed-off-by: Raghavendra Chandra Ganiga <ravi23ganiga@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+ratio = original_nr_file / original_nr_anon;
+
+If (nr_file > nr_anon), then ratio = (nr_file - x) / nr_anon.
+ x = nr_file - ratio * nr_anon;
+
+if (nr_file <= nr_anon), then ratio = nr_file / (nr_anon - x).
+ x = nr_anon - nr_file / ratio;
+
+Signed-off-by: Chen Yucong <slaoub@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1343.c |   75 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 73 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   28 +++++++++-------------------
+ 1 file changed, 9 insertions(+), 19 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1343.c~rtc-add-support-of-nvram-for-maxim-dallas-rtc-ds1343 drivers/rtc/rtc-ds1343.c
---- a/drivers/rtc/rtc-ds1343.c~rtc-add-support-of-nvram-for-maxim-dallas-rtc-ds1343
-+++ a/drivers/rtc/rtc-ds1343.c
-@@ -4,6 +4,7 @@
-  * Real Time Clock
-  *
-  * Author : Raghavendra Chandra Ganiga <ravi23ganiga@gmail.com>
-+ *	    Ankur Srivastava <sankurece@gmail.com> : DS1343 Nvram Support
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -45,6 +46,9 @@
- #define DS1343_CONTROL_REG	0x0F
- #define DS1343_STATUS_REG	0x10
- #define DS1343_TRICKLE_REG	0x11
-+#define DS1343_NVRAM		0x20
-+
-+#define DS1343_NVRAM_LEN	96
- 
- /* DS1343 Control Registers bits */
- #define DS1343_EOSC		0x80
-@@ -149,6 +153,64 @@ static ssize_t ds1343_store_glitchfilter
- static DEVICE_ATTR(glitch_filter, S_IRUGO | S_IWUSR, ds1343_show_glitchfilter,
- 			ds1343_store_glitchfilter);
- 
-+static ssize_t ds1343_nvram_write(struct file *filp, struct kobject *kobj,
-+			struct bin_attribute *attr,
-+			char *buf, loff_t off, size_t count)
-+{
-+	int ret;
-+	unsigned char address;
-+	struct device *dev = kobj_to_dev(kobj);
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+
-+	if (unlikely(!count))
-+		return count;
-+
-+	if ((count + off) > DS1343_NVRAM_LEN)
-+		count = DS1343_NVRAM_LEN - off;
-+
-+	address = DS1343_NVRAM + off;
-+
-+	ret = regmap_bulk_write(priv->map, address, buf, count);
-+	if (ret < 0)
-+		dev_err(&priv->spi->dev, "Error in nvram write %d", ret);
-+
-+	return (ret < 0) ? ret : count;
-+}
-+
-+
-+static ssize_t ds1343_nvram_read(struct file *filp, struct kobject *kobj,
-+				struct bin_attribute *attr,
-+				char *buf, loff_t off, size_t count)
-+{
-+	int ret;
-+	unsigned char address;
-+	struct device *dev = kobj_to_dev(kobj);
-+	struct ds1343_priv *priv = dev_get_drvdata(dev);
-+
-+	if (unlikely(!count))
-+		return count;
-+
-+	if ((count + off) > DS1343_NVRAM_LEN)
-+		count = DS1343_NVRAM_LEN - off;
-+
-+	address = DS1343_NVRAM + off;
-+
-+	ret = regmap_bulk_read(priv->map, address, buf, count);
-+	if (ret < 0)
-+		dev_err(&priv->spi->dev, "Error in nvram read %d\n", ret);
-+
-+	return (ret < 0) ? ret : count;
-+}
-+
-+
-+static struct bin_attribute nvram_attr = {
-+	.attr.name	= "nvram",
-+	.attr.mode	= S_IRUGO | S_IWUSR,
-+	.read		= ds1343_nvram_read,
-+	.write		= ds1343_nvram_write,
-+	.size		= DS1343_NVRAM_LEN,
-+};
-+
- static ssize_t ds1343_show_alarmstatus(struct device *dev,
- 				struct device_attribute *attr, char *buf)
+diff -puN mm/vmscan.c~mm-vmscanc-avoid-recording-the-original-scan-targets-in-shrink_lruvec mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscanc-avoid-recording-the-original-scan-targets-in-shrink_lruvec
++++ a/mm/vmscan.c
+@@ -2055,8 +2055,7 @@ out:
+ static void shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
  {
-@@ -274,12 +336,16 @@ static int ds1343_sysfs_register(struct
- 	if (err)
- 		goto error1;
+ 	unsigned long nr[NR_LRU_LISTS];
+-	unsigned long targets[NR_LRU_LISTS];
+-	unsigned long nr_to_scan;
++	unsigned long nr_to_scan, ratio;
+ 	enum lru_list lru;
+ 	unsigned long nr_reclaimed = 0;
+ 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
+@@ -2065,8 +2064,8 @@ static void shrink_lruvec(struct lruvec
  
-+	err = device_create_bin_file(dev, &nvram_attr);
-+	if (err)
-+		goto error2;
-+
- 	if (priv->irq <= 0)
- 		return err;
+ 	get_scan_count(lruvec, sc, nr);
  
- 	err = device_create_file(dev, &dev_attr_alarm_mode);
- 	if (err)
--		goto error2;
-+		goto error3;
+-	/* Record the original scan target for proportional adjustments later */
+-	memcpy(targets, nr, sizeof(nr));
++	ratio = (nr[LRU_INACTIVE_FILE] + nr[LRU_ACTIVE_FILE] + 1) /
++			(nr[LRU_INACTIVE_ANON] + nr[LRU_ACTIVE_ANON] + 1);
  
- 	err = device_create_file(dev, &dev_attr_alarm_status);
- 	if (!err)
-@@ -287,6 +353,9 @@ static int ds1343_sysfs_register(struct
+ 	/*
+ 	 * Global reclaiming within direct reclaim at DEF_PRIORITY is a normal
+@@ -2086,7 +2085,6 @@ static void shrink_lruvec(struct lruvec
+ 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
+ 					nr[LRU_INACTIVE_FILE]) {
+ 		unsigned long nr_anon, nr_file, percentage;
+-		unsigned long nr_scanned;
  
- 	device_remove_file(dev, &dev_attr_alarm_mode);
+ 		for_each_evictable_lru(lru) {
+ 			if (nr[lru]) {
+@@ -2121,15 +2119,13 @@ static void shrink_lruvec(struct lruvec
+ 			break;
  
-+error3:
-+	device_remove_bin_file(dev, &nvram_attr);
-+
- error2:
- 	device_remove_file(dev, &dev_attr_trickle_charger);
+ 		if (nr_file > nr_anon) {
+-			unsigned long scan_target = targets[LRU_INACTIVE_ANON] +
+-						targets[LRU_ACTIVE_ANON] + 1;
++			nr_to_scan = nr_file - ratio * nr_anon;
++			percentage = nr[LRU_FILE] * 100 / nr_file;
+ 			lru = LRU_BASE;
+-			percentage = nr_anon * 100 / scan_target;
+ 		} else {
+-			unsigned long scan_target = targets[LRU_INACTIVE_FILE] +
+-						targets[LRU_ACTIVE_FILE] + 1;
++			nr_to_scan = nr_anon - nr_file / ratio;
++			percentage = nr[LRU_BASE] * 100 / nr_anon;
+ 			lru = LRU_FILE;
+-			percentage = nr_file * 100 / scan_target;
+ 		}
  
-@@ -302,6 +371,7 @@ static void ds1343_sysfs_unregister(stru
- 
- 	device_remove_file(dev, &dev_attr_glitch_filter);
- 	device_remove_file(dev, &dev_attr_trickle_charger);
-+	device_remove_bin_file(dev, &nvram_attr);
- 
- 	if (priv->irq <= 0)
- 		return;
-@@ -684,6 +754,7 @@ static struct spi_driver ds1343_driver =
- module_spi_driver(ds1343_driver);
- 
- MODULE_DESCRIPTION("DS1343 RTC SPI Driver");
--MODULE_AUTHOR("Raghavendra Chandra Ganiga <ravi23ganiga@gmail.com>");
-+MODULE_AUTHOR("Raghavendra Chandra Ganiga <ravi23ganiga@gmail.com>,"
-+		"Ankur Srivastava <sankurece@gmail.com>");
- MODULE_LICENSE("GPL v2");
- MODULE_VERSION(DS1343_DRV_VERSION);
-_
-
-Patches currently in -mm which might be from ravi23ganiga@gmail.com are
-
-origin.patch
-rtc-add-support-of-nvram-for-maxim-dallas-rtc-ds1343.patch
-
+ 		/* Stop scanning the smaller of the LRU */
+@@ -2141,14 +2137,8 @@ static void shrink_lruvec(struct lruvec
+ 		 * scan target and the percentage scanning already complete
+ 		 */
+ 		lru = (lru == LRU_FILE) ? LRU_BASE : LRU_FILE;
+-		nr_scanned = targets[lru] - nr[lru];
+-		nr[lru] = targets[lru] * (100 - percentage) / 100;
+-		nr[lru] -= min(nr[lru], nr_scanned);
