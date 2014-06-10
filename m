@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch added to -mm tree
-Date: Tue, 10 Jun 2014 16:36:43 -0700
-Message-ID: <5397968b.5L0PddDNLFIcMChS%akpm@linux-foundation.org>
+Subject: + checkpatch-warn-on-unnecessary-else-after-return-or-break.patch added to -mm tree
+Date: Tue, 10 Jun 2014 16:46:42 -0700
+Message-ID: <539798e2.lqMLnJbrm/za0R8/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41159 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41195 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751504AbaFJXgo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jun 2014 19:36:44 -0400
+	with ESMTP id S1752030AbaFJXqn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jun 2014 19:46:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, vicky.yangwenfang@huawei.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch added to -mm tree
-To: vicky.yangwenfang@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + checkpatch-warn-on-unnecessary-else-after-return-or-break.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Jun 2014 16:36:43 -0700
+Date: Tue, 10 Jun 2014 16:46:42 -0700
 
 
 The patch titled
-     Subject: ocfs2: call ocfs2_journal_access_di() before ocfs2_journal_dirty() in ocfs2_write_end_nolock()
+     Subject: checkpatch: warn on unnecessary else after return or break
 has been added to the -mm tree.  Its filename is
-     ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
+     checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,116 +43,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: yangwenfang <vicky.yangwenfang@huawei.com>
-Subject: ocfs2: call ocfs2_journal_access_di() before ocfs2_journal_dirty() in ocfs2_write_end_nolock()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: warn on unnecessary else after return or break
 
-After we call ocfs2_journal_access_di() in ocfs2_write_begin(),
-jbd2_journal_restart() may also be called, in this function transaction
-A's t_updates-- and obtains a new transaction B.  If
-jbd2_journal_commit_transaction() is happened to commit transaction A,
-when t_updates==0, it will continue to complete commit and unfile buffer.
+Using an else following a break or return can unnecessarily indent code
+blocks.
 
-So when jbd2_journal_dirty_metadata(), the handle is pointed a new
-transaction B, and the buffer head's journal head is already freed,
-jh->b_transaction == NULL, jh->b_next_transaction == NULL, it returns
-EINVAL, So it triggers the BUG_ON(status).
+ie:
+	for (i = 0; i < 100; i++) {
+		int foo = bar();
+		if (foo < 1)
+			break;
+		else
+			usleep(1);
+	}
 
-thread 1                                          jbd2
-ocfs2_write_begin                     jbd2_journal_commit_transaction
-ocfs2_write_begin_nolock
-  ocfs2_start_trans
-    jbd2__journal_start(t_updates+1,
-                       transaction A)
-    ocfs2_journal_access_di
-    ocfs2_write_cluster_by_desc
-      ocfs2_mark_extent_written
-        ocfs2_change_extent_flag
-          ocfs2_split_extent
-            ocfs2_extend_rotate_transaction
-              jbd2_journal_restart
-              (t_updates-1,transaction B) t_updates==0
-                                        __jbd2_journal_refile_buffer
-                                        (jh->b_transaction = NULL)
-ocfs2_write_end
-ocfs2_write_end_nolock
-    ocfs2_journal_dirty
-        jbd2_journal_dirty_metadata(bug)
-   ocfs2_commit_trans
+is generally better written as:
 
-In ext4, I found that: jbd2_journal_get_write_access() called by
+	for (i = 0; i < 100; i++) {
+		int foo = bar();
+		if (foo < 1)
+			break;
+		usleep(1);
+	}
 
-ext4_write_end.
-ext4_write_begin
-    ext4_journal_start
-        __ext4_journal_start_sb
-            ext4_journal_check_start
-            jbd2__journal_start
+Warn when a bare else statement is preceded by a break or return indented
+1 tab more than the else.
 
-ext4_write_end
-    ext4_mark_inode_dirty
-        ext4_reserve_inode_write
-            ext4_journal_get_write_access
-                jbd2_journal_get_write_access
-        ext4_mark_iloc_dirty
-            ext4_do_update_inode
-                ext4_handle_dirty_metadata
-                    jbd2_journal_dirty_metadata
-
-
-So I think we should put ocfs2_journal_access_di before
-ocfs2_journal_dirty in the ocfs2_write_end.  and it works well after my
-modification.
-
-Signed-off-by: vicky <vicky.yangwenfang@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ scripts/checkpatch.pl |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock
-+++ a/fs/ocfs2/aops.c
-@@ -1818,16 +1818,6 @@ try_again:
- 		if (ret)
- 			goto out_commit;
- 	}
--	/*
--	 * We don't want this to fail in ocfs2_write_end(), so do it
--	 * here.
--	 */
--	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), wc->w_di_bh,
--				      OCFS2_JOURNAL_ACCESS_WRITE);
--	if (ret) {
--		mlog_errno(ret);
--		goto out_quota;
--	}
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-else-after-return-or-break scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-else-after-return-or-break
++++ a/scripts/checkpatch.pl
+@@ -2350,6 +2350,16 @@ sub process {
+ # check we are in a valid C source file if not then ignore this hunk
+ 		next if ($realfile !~ /\.(h|c)$/);
  
- 	/*
- 	 * Fill our page array first. That way we've grabbed enough so
-@@ -2040,8 +2030,16 @@ out_write_size:
- 	di->i_mtime = di->i_ctime = cpu_to_le64(inode->i_mtime.tv_sec);
- 	di->i_mtime_nsec = di->i_ctime_nsec = cpu_to_le32(inode->i_mtime.tv_nsec);
- 	ocfs2_update_inode_fsync_trans(handle, inode, 1);
--	ocfs2_journal_dirty(handle, wc->w_di_bh);
-+	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), wc->w_di_bh,
-+				      OCFS2_JOURNAL_ACCESS_WRITE);
-+	if (ret) {
-+		copied = ret;
-+		mlog_errno(ret);
-+		goto out;
-+	}
- 
-+	ocfs2_journal_dirty(handle, wc->w_di_bh);
-+out:
- 	ocfs2_commit_trans(osb, handle);
- 
- 	ocfs2_run_deallocs(osb, &wc->w_dealloc);
++# check indentation of any line with a bare else
++# if the previous line is a break or return and is indented 1 tab more...
++		if ($sline =~ /^\+([\t]+)(?:}[ \t]*)?else(?:[ \t]*{)?\s*$/) {
++			my $tabs = length($1) + 1;
++			if ($prevline =~ /^\+\t{$tabs,$tabs}(?:break|return)\b/) {
++				WARN("UNNECESSARY_ELSE",
++				     "else is not generally useful after a break or return\n" . $hereprev);
++			}
++		}
++
+ # discourage the addition of CONFIG_EXPERIMENTAL in #if(def).
+ 		if ($line =~ /^\+\s*\#\s*if.*\bCONFIG_EXPERIMENTAL\b/) {
+ 			WARN("CONFIG_EXPERIMENTAL",
 _
 
-Patches currently in -mm which might be from vicky.yangwenfang@huawei.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
+origin.patch
+checkpatch-check-git-commit-descriptions.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+fs-isofs-logging-clean-up.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+linux-next.patch
 
