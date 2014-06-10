@@ -1,87 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: + x86-vdso-remove-one-final-use-of-htole16.patch added to -mm
- tree
-Date: Tue, 10 Jun 2014 14:35:24 -0700
-Message-ID: <53977a1c.j8REUVeYy/MAsDYn%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-ivalid-one-orabug-17489469.patch removed from -mm tree
+Date: Tue, 10 Jun 2014 15:15:59 -0700
+Message-ID: <5397839f.c5wdbHC7A95PA56C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40129 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40394 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753461AbaFJVfZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jun 2014 17:35:25 -0400
+	with ESMTP id S1752940AbaFJWQA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jun 2014 18:16:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, luto@amacapital.net, akpm@linux-foundation.org, hpa@zytor.com
+To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.de, jlbec@evilplan.org, tariq.x.saeed@oracle.com
 
-Subject: + x86-vdso-remove-one-final-use-of-htole16.patch added to -mm tree
-To: hpa@zytor.com,akpm@linux-foundation.org,luto@amacapital.net
+Subject: [folded-merged] ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-ivalid-one-orabug-17489469.patch removed from -mm tree
+To: tariq.x.saeed@oracle.com,jlbec@evilplan.org,mfasheh@suse.de,srinivas.eeda@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Jun 2014 14:35:24 -0700
+Date: Tue, 10 Jun 2014 15:15:59 -0700
 
 
 The patch titled
-     Subject: x86, vdso: Remove one final use of htole16()
-has been added to the -mm tree.  Its filename is
-     x86-vdso-remove-one-final-use-of-htole16.patch
+     Subject: ocfs2/o2net: incorrect to terminate accepting connections loop upon rejecting an invalid one
+has been removed from the -mm tree.  Its filename was
+     ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-ivalid-one-orabug-17489469.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-vdso-remove-one-final-use-of-htole16.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-vdso-remove-one-final-use-of-htole16.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
 
 ------------------------------------------------------
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: x86, vdso: Remove one final use of htole16()
+From: Tariq Saeed <tariq.x.saeed@oracle.com>
+Subject: ocfs2/o2net: incorrect to terminate accepting connections loop upon rejecting an invalid one
 
-One final use of the macros from <endian.h> which are not available on
-older system.  In this case we had one sole case of *writing* a
-littleendian number, but the number is SHN_UNDEF which is the constant
-zero, so rather than dealing with the general case of littleendian puts
-here, just document that the constant is zero and be done with it.
+Orabug: 17489469
 
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Link: http://lkml.kernel.org/r/20140610135051.c3c34165f73d67d218b62bd9@linux-foundation.org
+When o2net-accept-one() rejects an illegal connection, it terminates the
+loop picking up the remaining queued connections.  This fix will continue
+accepting connections till the queue is emtpy.
+
+Signed-off-by: Tariq Saseed <tariq.x.saeed@oracle.com>
+Signed-off-by: Srinivas Eeda <srinivas.eeda@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/vdso/vdso2c.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/cluster/tcp.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN arch/x86/vdso/vdso2c.h~x86-vdso-remove-one-final-use-of-htole16 arch/x86/vdso/vdso2c.h
---- a/arch/x86/vdso/vdso2c.h~x86-vdso-remove-one-final-use-of-htole16
-+++ a/arch/x86/vdso/vdso2c.h
-@@ -116,7 +116,7 @@ static void GOFUNC(void *addr, size_t le
- 	hdr->e_shoff = 0;
- 	hdr->e_shentsize = 0;
- 	hdr->e_shnum = 0;
--	hdr->e_shstrndx = htole16(SHN_UNDEF);
-+	hdr->e_shstrndx = SHN_UNDEF; /* SHN_UNDEF == 0 */
+diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-ivalid-one-orabug-17489469 fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-ivalid-one-orabug-17489469
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -1921,12 +1921,30 @@ out:
+ 	return ret;
+ }
  
- 	if (!name) {
- 		fwrite(addr, load_size, 1, outfile);
++/*
++ * This function is invoked in response to one or more
++ * pending accepts at softIRQ level. We must drain the
++ * entire que before returning.
++ */
++
+ static void o2net_accept_many(struct work_struct *work)
+ {
+ 	struct socket *sock = o2net_listen_sock;
+ 	int	more;
+ 	int	err;
+ 
++	/*
++	 * It is critical to note that due to interrupt moderation
++	 * at the network driver level, we can't assume to get a
++	 * softIRQ for every single conn since tcp SYN packets
++	 * can arrive back-to-back, and therefore many pending
++	 * accepts may result in just 1 softIRQ. If we terminate
++	 * the o2net_accept_one() loop upon seeing an err, what happens
++	 * to the rest of the conns in the queue? If no new SYN
++	 * arrives for hours, no softIRQ  will be delivered,
++	 * and the connections will just sit in the queue.
++	 */
++
+ 	for (;;) {
+ 		err = o2net_accept_one(sock, &more);
+ 		if (!more)
 _
 
-Patches currently in -mm which might be from hpa@zytor.com are
+Patches currently in -mm which might be from tariq.x.saeed@oracle.com are
 
-origin.patch
-x86-vdso-remove-one-final-use-of-htole16.patch
-lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
-lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
-linux-next.patch
+ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
+deadlock-when-two-nodes-are-converting-same-lock-from-pr-to-ex-and-idletimeout-closes-conn.patch
 
