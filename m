@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
- added to -mm tree
-Date: Wed, 11 Jun 2014 15:43:13 -0700
-Message-ID: <5398db81.YgBF4Oxc4g2qvfjM%akpm@linux-foundation.org>
+Subject: +
+ fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch added to
+ -mm tree
+Date: Wed, 11 Jun 2014 15:43:49 -0700
+Message-ID: <5398dba5.Ds/iUvd3hRJWRutX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52482 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52484 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800AbaFKWnN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 18:43:13 -0400
+	with ESMTP id S1752158AbaFKWnu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 18:43:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp, fabf@skynet.be
 
-Subject: + fs-compatc-remove-unnecessary-test-on-unsigned-value.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch added to -mm tree
+To: fabf@skynet.be,konishi.ryusuke@lab.ntt.co.jp
 From: akpm@linux-foundation.org
-Date: Wed, 11 Jun 2014 15:43:13 -0700
+Date: Wed, 11 Jun 2014 15:43:49 -0700
 
 
 The patch titled
-     Subject: fs/compat.c: remove unnecessary test on unsigned value
+     Subject: fs/nilfs2/super.c: remove unnecessary test on unsigned value
 has been added to the -mm tree.  Its filename is
-     fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+     fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,29 +46,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/compat.c: remove unnecessary test on unsigned value
+Subject: fs/nilfs2/super.c: remove unnecessary test on unsigned value
 
-unsigned long value is never < 0
+Unsigned value is never < 0.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |    2 +-
+ fs/nilfs2/super.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/compat.c~fs-compatc-remove-unnecessary-test-on-unsigned-value fs/compat.c
---- a/fs/compat.c~fs-compatc-remove-unnecessary-test-on-unsigned-value
-+++ a/fs/compat.c
-@@ -562,7 +562,7 @@ ssize_t compat_rw_copy_check_uvector(int
- 		goto out;
+diff -puN fs/nilfs2/super.c~fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value
++++ a/fs/nilfs2/super.c
+@@ -1014,7 +1014,7 @@ int nilfs_checkpoint_is_mounted(struct s
+ 	struct dentry *dentry;
+ 	int ret;
  
- 	ret = -EINVAL;
--	if (nr_segs > UIO_MAXIOV || nr_segs < 0)
-+	if (nr_segs > UIO_MAXIOV)
- 		goto out;
- 	if (nr_segs > fast_segs) {
- 		ret = -ENOMEM;
+-	if (cno < 0 || cno > nilfs->ns_cno)
++	if (cno > nilfs->ns_cno)
+ 		return false;
+ 
+ 	if (cno >= nilfs_last_cno(nilfs))
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -88,6 +90,7 @@ mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
 fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
 kernel-test_kprobesc-use-current-logging-functions.patch
 fs-isofs-logging-clean-up.patch
+fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
 fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
 fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
 linux-next.patch
