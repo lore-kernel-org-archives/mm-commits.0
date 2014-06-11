@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 11 Jun 2014 16:23:46 -0700
-Message-ID: <5398e502.6y+xNslYouR6xVnt%akpm@linux-foundation.org>
+ checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch added to -mm tree
+Date: Wed, 11 Jun 2014 16:27:02 -0700
+Message-ID: <5398e5c6.4Rm0LFiD9e035/3+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53076 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53156 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752689AbaFKXXr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 19:23:47 -0400
+	with ESMTP id S1752199AbaFKX1D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 19:27:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, bruce.w.allan@intel.com, joe@perches.com
 
-Subject: + mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,n-horiguchi@ah.jp.nec.com
+Subject: + checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch added to -mm tree
+To: joe@perches.com,bruce.w.allan@intel.com
 From: akpm@linux-foundation.org
-Date: Wed, 11 Jun 2014 16:23:46 -0700
+Date: Wed, 11 Jun 2014 16:27:02 -0700
 
 
 The patch titled
-     Subject: mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes
+     Subject: checkpatch: fix function pointers in blank line needed after declarations test
 has been added to the -mm tree.  Its filename is
-     mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
+     checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,93 +44,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: fix function pointers in blank line needed after declarations test
 
-WARNING: line over 80 characters
-#218: FILE: mm/pagewalk.c:87:
-+		 *    table lock to be unlocked in __split_huge_page_splitting(),
+Add a function pointer declaration check to the test for blank line needed
+after declarations.
 
-total: 0 errors, 1 warnings, 199 lines checked
-
-./patches/mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Bruce W Allan <bruce.w.allan@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ scripts/checkpatch.pl |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/pagewalk.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes mm/pagewalk.c
---- a/mm/pagewalk.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes
-+++ a/mm/pagewalk.c
-@@ -79,13 +79,13 @@ again:
- 		/*
- 		 * We don't take compound_lock() here but no race with splitting
- 		 * thp happens because:
--		 *  - if pmd_trans_huge_lock() returns 1, the relevant thp is
--		 *    not under splitting, which means there's no concurrent
--		 *    thp split,
--		 *  - if another thread runs into split_huge_page() just after
--		 *    we entered this if-block, the thread must wait for page
--		 *    table lock to be unlocked in __split_huge_page_splitting(),
--		 *    where the main part of thp split is not executed yet.
-+		 * - if pmd_trans_huge_lock() returns 1, the relevant thp is
-+		 *   not under splitting, which means there's no concurrent
-+		 *   thp split,
-+		 * - if another thread runs into split_huge_page() just after
-+		 *   we entered this if-block, the thread must wait for page
-+		 *   table lock to be unlocked in __split_huge_page_splitting(),
-+		 *   where the main part of thp split is not executed yet.
- 		 */
- 		if (walk->pmd_entry) {
- 			if (pmd_trans_huge_lock(pmd, walk->vma, &ptl) == 1) {
+diff -puN scripts/checkpatch.pl~checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test
++++ a/scripts/checkpatch.pl
+@@ -2303,6 +2303,8 @@ sub process {
+ 		if ($sline =~ /^\+\s+\S/ &&			#Not at char 1
+ 			# actual declarations
+ 		    ($prevline =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
++			# function pointer declarations
++		     $prevline =~ /^\+\s+$Declare\s*\(\s*\*\s*$Ident\s*\)\s*[=,;:\[\(]/ ||
+ 			# foo bar; where foo is some local typedef or #define
+ 		     $prevline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
+ 			# known declaration macros
+@@ -2315,6 +2317,8 @@ sub process {
+ 		      $prevline =~ /(?:\{\s*|\\)$/) &&
+ 			# looks like a declaration
+ 		    !($sline =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
++			# function pointer declarations
++		      $sline =~ /^\+\s+$Declare\s*\(\s*\*\s*$Ident\s*\)\s*[=,;:\[\(]/ ||
+ 			# foo bar; where foo is some local typedef or #define
+ 		      $sline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
+ 			# known declaration macros
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-x86-vdso-remove-one-final-use-of-htole16.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-update-page-table-walker-core-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
-mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+checkpatch-check-git-commit-descriptions.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
+fs-isofs-logging-clean-up.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
