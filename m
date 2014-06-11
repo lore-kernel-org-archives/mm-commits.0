@@ -1,85 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch added to -mm tree
-Date: Tue, 10 Jun 2014 16:57:28 -0700
-Message-ID: <53979b68.4Y7CKkeMmtdcGbYq%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch removed from -mm tree
+Date: Wed, 11 Jun 2014 12:03:57 -0700
+Message-ID: <5398a81d.GnQeVDT2A2FjdQ9a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41295 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48733 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753812AbaFJX53 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jun 2014 19:57:29 -0400
+	with ESMTP id S1750963AbaFKTD6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 15:03:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.de, jlbec@evilplan.org, tariq.x.saeed@oracle.com
 
-Subject: + checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch added to -mm tree
-To: joe@perches.com
+Subject: [merged] ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch removed from -mm tree
+To: tariq.x.saeed@oracle.com,jlbec@evilplan.org,mfasheh@suse.de,srinivas.eeda@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Jun 2014 16:57:28 -0700
+Date: Wed, 11 Jun 2014 12:03:57 -0700
 
 
 The patch titled
-     Subject: checkpatch: fix complex macro false positive for escaped constant char
-has been added to the -mm tree.  Its filename is
-     checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+     Subject: ocfs2/o2net: incorrect to terminate accepting connections loop upon rejecting an invalid one
+has been removed from the -mm tree.  Its filename was
+     ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: fix complex macro false positive for escaped constant char
+From: Tariq Saeed <tariq.x.saeed@oracle.com>
+Subject: ocfs2/o2net: incorrect to terminate accepting connections loop upon rejecting an invalid one
 
-A single escaped constant char is not a complex macro.
+When o2net-accept-one() rejects an illegal connection, it terminates the
+loop picking up the remaining queued connections.  This fix will continue
+accepting connections till the queue is emtpy.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Addresses Orabug 17489469.
+
+Signed-off-by: Tariq Saseed <tariq.x.saeed@oracle.com>
+Signed-off-by: Srinivas Eeda <srinivas.eeda@oracle.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/cluster/tcp.c |   31 +++++++++++++++++++++++++++++--
+ 1 file changed, 29 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char
-+++ a/scripts/checkpatch.pl
-@@ -3775,7 +3775,7 @@ sub process {
- 			    $dstat !~ /^(?:$Ident|-?$Constant),$/ &&			# 10, // foo(),
- 			    $dstat !~ /^(?:$Ident|-?$Constant);$/ &&			# foo();
- 			    $dstat !~ /^[!~-]?(?:$Lval|$Constant)$/ &&		# 10 // foo() // !foo // ~foo // -foo // foo->bar // foo.bar->baz
--			    $dstat !~ /^'X'$/ &&					# character constants
-+			    $dstat !~ /^'X'$/ && $dstat !~ /^'XX'$/ &&			# character constants
- 			    $dstat !~ /$exceptions/ &&
- 			    $dstat !~ /^\.$Ident\s*=/ &&				# .foo =
- 			    $dstat !~ /^(?:\#\s*$Ident|\#\s*$Constant)\s*$/ &&		# stringification #foo
+diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -1799,7 +1799,7 @@ int o2net_register_hb_callbacks(void)
+ 
+ /* ------------------------------------------------------------ */
+ 
+-static int o2net_accept_one(struct socket *sock)
++static int o2net_accept_one(struct socket *sock, int *more)
+ {
+ 	int ret, slen;
+ 	struct sockaddr_in sin;
+@@ -1810,6 +1810,7 @@ static int o2net_accept_one(struct socke
+ 	struct o2net_node *nn;
+ 
+ 	BUG_ON(sock == NULL);
++	*more = 0;
+ 	ret = sock_create_lite(sock->sk->sk_family, sock->sk->sk_type,
+ 			       sock->sk->sk_protocol, &new_sock);
+ 	if (ret)
+@@ -1821,6 +1822,7 @@ static int o2net_accept_one(struct socke
+ 	if (ret < 0)
+ 		goto out;
+ 
++	*more = 1;
+ 	new_sock->sk->sk_allocation = GFP_ATOMIC;
+ 
+ 	ret = o2net_set_nodelay(new_sock);
+@@ -1919,11 +1921,36 @@ out:
+ 	return ret;
+ }
+ 
++/*
++ * This function is invoked in response to one or more
++ * pending accepts at softIRQ level. We must drain the
++ * entire que before returning.
++ */
++
+ static void o2net_accept_many(struct work_struct *work)
+ {
+ 	struct socket *sock = o2net_listen_sock;
+-	while (o2net_accept_one(sock) == 0)
++	int	more;
++	int	err;
++
++	/*
++	 * It is critical to note that due to interrupt moderation
++	 * at the network driver level, we can't assume to get a
++	 * softIRQ for every single conn since tcp SYN packets
++	 * can arrive back-to-back, and therefore many pending
++	 * accepts may result in just 1 softIRQ. If we terminate
++	 * the o2net_accept_one() loop upon seeing an err, what happens
++	 * to the rest of the conns in the queue? If no new SYN
++	 * arrives for hours, no softIRQ  will be delivered,
++	 * and the connections will just sit in the queue.
++	 */
++
++	for (;;) {
++		err = o2net_accept_one(sock, &more);
++		if (!more)
++			break;
+ 		cond_resched();
++	}
+ }
+ 
+ static void o2net_listen_data_ready(struct sock *sk)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from tariq.x.saeed@oracle.com are
 
 origin.patch
-checkpatch-check-git-commit-descriptions.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
-checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
-checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
-fs-isofs-logging-clean-up.patch
-sysctl-remove-now-unused-typedef-ctl_table.patch
-sysctl-remove-now-unused-typedef-ctl_table-fix.patch
-linux-next.patch
+deadlock-when-two-nodes-are-converting-same-lock-from-pr-to-ex-and-idletimeout-closes-conn.patch
 
