@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mincore-apply-page-table-walker-on-do_mincore.patch added to
- -mm tree
-Date: Wed, 11 Jun 2014 16:21:36 -0700
-Message-ID: <5398e480.Tzf36M2bt36pUhn/%akpm@linux-foundation.org>
+Subject: +
+ memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
+ added to -mm tree
+Date: Wed, 11 Jun 2014 16:23:44 -0700
+Message-ID: <5398e500.wFEUQUZCixxRVPn+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52827 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53074 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754517AbaFKXVh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 19:21:37 -0400
+	with ESMTP id S1752689AbaFKXXp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 19:23:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, riel@redhat.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kirill@shutemov.name, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
 
-Subject: + mincore-apply-page-table-walker-on-do_mincore.patch added to -mm tree
-To: n-horiguchi@ah.jp.nec.com,aneesh.kumar@linux.vnet.ibm.com,benh@kernel.crashing.org,dave.hansen@intel.com,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,kirill@shutemov.name,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,xemul@parallels.com
+Subject: + memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch added to -mm tree
+To: akpm@linux-foundation.org,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Wed, 11 Jun 2014 16:21:36 -0700
+Date: Wed, 11 Jun 2014 16:23:44 -0700
 
 
 The patch titled
-     Subject: mincore: apply page table walker on do_mincore()
+     Subject: memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mincore-apply-page-table-walker-on-do_mincore.patch
+     memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mincore-apply-page-table-walker-on-do_mincore.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mincore-apply-page-table-walker-on-do_mincore.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,348 +45,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mincore: apply page table walker on do_mincore()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes
 
-This patch makes do_mincore() use walk_page_vma(), which reduces many lines
-of code by using common page table walk code.
+WARNING: Missing a blank line after declarations
+#53: FILE: mm/memcontrol.c:6838:
++		pte_t *orig_pte = pte - ((addr & (PMD_SIZE - 1)) >> PAGE_SHIFT);
++		pte_unmap_unlock(orig_pte, walk->ptl);
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+total: 0 errors, 1 warnings, 151 lines checked
+
+./patches/memcg-separate-mem_cgroup_move_charge_pte_range.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   20 ----
- mm/mincore.c     |  198 +++++++++++++++------------------------------
- 2 files changed, 68 insertions(+), 150 deletions(-)
+ mm/memcontrol.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/huge_memory.c~mincore-apply-page-table-walker-on-do_mincore mm/huge_memory.c
---- a/mm/huge_memory.c~mincore-apply-page-table-walker-on-do_mincore
-+++ a/mm/huge_memory.c
-@@ -1379,26 +1379,6 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 	return ret;
- }
- 
--int mincore_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
--		unsigned long addr, unsigned long end,
--		unsigned char *vec)
--{
--	spinlock_t *ptl;
--	int ret = 0;
--
--	if (__pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
--		/*
--		 * All logical pages in the range are present
--		 * if backed by a huge page.
--		 */
--		spin_unlock(ptl);
--		memset(vec, 1, (end - addr) >> PAGE_SHIFT);
--		ret = 1;
--	}
--
--	return ret;
--}
--
- int move_huge_pmd(struct vm_area_struct *vma, struct vm_area_struct *new_vma,
- 		  unsigned long old_addr,
- 		  unsigned long new_addr, unsigned long old_end,
-diff -puN mm/mincore.c~mincore-apply-page-table-walker-on-do_mincore mm/mincore.c
---- a/mm/mincore.c~mincore-apply-page-table-walker-on-do_mincore
-+++ a/mm/mincore.c
-@@ -19,38 +19,27 @@
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
- 
--static void mincore_hugetlb_page_range(struct vm_area_struct *vma,
--				unsigned long addr, unsigned long end,
--				unsigned char *vec)
-+static int mincore_hugetlb(pte_t *pte, unsigned long addr,
-+			unsigned long end, struct mm_walk *walk)
- {
-+	int err = 0;
- #ifdef CONFIG_HUGETLB_PAGE
--	struct hstate *h;
-+	unsigned char present;
-+	unsigned char *vec = walk->private;
- 
--	h = hstate_vma(vma);
--	while (1) {
--		unsigned char present;
--		pte_t *ptep;
--		/*
--		 * Huge pages are always in RAM for now, but
--		 * theoretically it needs to be checked.
--		 */
--		ptep = huge_pte_offset(current->mm,
--				       addr & huge_page_mask(h));
--		present = ptep && !huge_pte_none(huge_ptep_get(ptep));
--		while (1) {
--			*vec = present;
--			vec++;
--			addr += PAGE_SIZE;
--			if (addr == end)
--				return;
--			/* check hugepage border */
--			if (!(addr & ~huge_page_mask(h)))
--				break;
--		}
--	}
-+	/*
-+	 * Hugepages under user process are always in RAM and never
-+	 * swapped out, but theoretically it needs to be checked.
-+	 */
-+	present = pte && !huge_pte_none(huge_ptep_get(pte));
-+	for (; addr != end; vec++, addr += PAGE_SIZE)
-+		*vec = present;
-+	cond_resched();
-+	walk->private += (end - addr) >> PAGE_SHIFT;
- #else
- 	BUG();
- #endif
-+	return err;
- }
- 
- /*
-@@ -94,10 +83,11 @@ static unsigned char mincore_page(struct
- 	return present;
- }
- 
--static void mincore_unmapped_range(struct vm_area_struct *vma,
--				unsigned long addr, unsigned long end,
--				unsigned char *vec)
-+static int mincore_hole(unsigned long addr, unsigned long end,
-+				struct mm_walk *walk)
- {
-+	struct vm_area_struct *vma = walk->vma;
-+	unsigned char *vec = walk->private;
- 	unsigned long nr = (end - addr) >> PAGE_SHIFT;
- 	int i;
- 
-@@ -111,110 +101,49 @@ static void mincore_unmapped_range(struc
- 		for (i = 0; i < nr; i++)
- 			vec[i] = 0;
- 	}
-+	walk->private += nr;
-+	return 0;
- }
- 
--static void mincore_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
--			unsigned long addr, unsigned long end,
--			unsigned char *vec)
--{
--	unsigned long next;
--	spinlock_t *ptl;
--	pte_t *ptep;
--
--	ptep = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
--	do {
--		pte_t pte = *ptep;
--		pgoff_t pgoff;
-+static int mincore_pte(pte_t *pte, unsigned long addr, unsigned long end,
-+			struct mm_walk *walk)
-+{
-+	struct vm_area_struct *vma = walk->vma;
-+	unsigned char *vec = walk->private;
-+	pgoff_t pgoff;
+diff -puN mm/memcontrol.c~memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes
++++ a/mm/memcontrol.c
+@@ -6835,6 +6835,7 @@ static int mem_cgroup_move_charge_pte(pt
+ retry:
+ 	if (!mc.precharge) {
+ 		pte_t *orig_pte = pte - ((addr & (PMD_SIZE - 1)) >> PAGE_SHIFT);
 +
-+	if (pte_present(*pte))
-+		*vec = 1;
-+	else if (pte_file(*pte)) {
-+		pgoff = pte_to_pgoff(*pte);
-+		*vec = mincore_page(vma->vm_file->f_mapping, pgoff);
-+	} else { /* pte is a swap entry */
-+		swp_entry_t entry = pte_to_swp_entry(*pte);
- 
--		next = addr + PAGE_SIZE;
--		if (pte_none(pte))
--			mincore_unmapped_range(vma, addr, next, vec);
--		else if (pte_present(pte))
-+		if (is_migration_entry(entry)) {
-+			/* migration entries are always uptodate */
- 			*vec = 1;
--		else if (pte_file(pte)) {
--			pgoff = pte_to_pgoff(pte);
--			*vec = mincore_page(vma->vm_file->f_mapping, pgoff);
--		} else { /* pte is a swap entry */
--			swp_entry_t entry = pte_to_swp_entry(pte);
--
--			if (is_migration_entry(entry)) {
--				/* migration entries are always uptodate */
--				*vec = 1;
--			} else {
-+		} else {
- #ifdef CONFIG_SWAP
--				pgoff = entry.val;
--				*vec = mincore_page(swap_address_space(entry),
--					pgoff);
-+			pgoff = entry.val;
-+			*vec = mincore_page(swap_address_space(entry),
-+					    pgoff);
- #else
--				WARN_ON(1);
--				*vec = 1;
-+			WARN_ON(1);
-+			*vec = 1;
- #endif
--			}
--		}
--		vec++;
--	} while (ptep++, addr = next, addr != end);
--	pte_unmap_unlock(ptep - 1, ptl);
--}
--
--static void mincore_pmd_range(struct vm_area_struct *vma, pud_t *pud,
--			unsigned long addr, unsigned long end,
--			unsigned char *vec)
--{
--	unsigned long next;
--	pmd_t *pmd;
--
--	pmd = pmd_offset(pud, addr);
--	do {
--		next = pmd_addr_end(addr, end);
--		if (pmd_trans_huge(*pmd)) {
--			if (mincore_huge_pmd(vma, pmd, addr, next, vec)) {
--				vec += (next - addr) >> PAGE_SHIFT;
--				continue;
--			}
--			/* fall through */
- 		}
--		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
--			mincore_unmapped_range(vma, addr, next, vec);
--		else
--			mincore_pte_range(vma, pmd, addr, next, vec);
--		vec += (next - addr) >> PAGE_SHIFT;
--	} while (pmd++, addr = next, addr != end);
--}
--
--static void mincore_pud_range(struct vm_area_struct *vma, pgd_t *pgd,
--			unsigned long addr, unsigned long end,
--			unsigned char *vec)
--{
--	unsigned long next;
--	pud_t *pud;
--
--	pud = pud_offset(pgd, addr);
--	do {
--		next = pud_addr_end(addr, end);
--		if (pud_none_or_clear_bad(pud))
--			mincore_unmapped_range(vma, addr, next, vec);
--		else
--			mincore_pmd_range(vma, pud, addr, next, vec);
--		vec += (next - addr) >> PAGE_SHIFT;
--	} while (pud++, addr = next, addr != end);
--}
--
--static void mincore_page_range(struct vm_area_struct *vma,
--			unsigned long addr, unsigned long end,
--			unsigned char *vec)
--{
--	unsigned long next;
--	pgd_t *pgd;
--
--	pgd = pgd_offset(vma->vm_mm, addr);
--	do {
--		next = pgd_addr_end(addr, end);
--		if (pgd_none_or_clear_bad(pgd))
--			mincore_unmapped_range(vma, addr, next, vec);
--		else
--			mincore_pud_range(vma, pgd, addr, next, vec);
--		vec += (next - addr) >> PAGE_SHIFT;
--	} while (pgd++, addr = next, addr != end);
-+	}
-+	walk->private++;
-+	return 0;
-+}
-+
-+static int mincore_pmd(pmd_t *pmd, unsigned long addr, unsigned long end,
-+			struct mm_walk *walk)
-+{
-+	memset(walk->private, 1, (end - addr) >> PAGE_SHIFT);
-+	walk->private += (end - addr) >> PAGE_SHIFT;
-+	return 0;
- }
- 
- /*
-@@ -226,6 +155,7 @@ static long do_mincore(unsigned long add
- {
- 	struct vm_area_struct *vma;
- 	unsigned long end;
-+	int err;
- 
- 	vma = find_vma(current->mm, addr);
- 	if (!vma || addr < vma->vm_start)
-@@ -233,12 +163,20 @@ static long do_mincore(unsigned long add
- 
- 	end = min(vma->vm_end, addr + (pages << PAGE_SHIFT));
- 
--	if (is_vm_hugetlb_page(vma))
--		mincore_hugetlb_page_range(vma, addr, end, vec);
-+	struct mm_walk mincore_walk = {
-+		.pmd_entry = mincore_pmd,
-+		.pte_entry = mincore_pte,
-+		.pte_hole = mincore_hole,
-+		.hugetlb_entry = mincore_hugetlb,
-+		.mm = vma->vm_mm,
-+		.vma = vma,
-+		.private = vec,
-+	};
-+	err = walk_page_vma(vma, &mincore_walk);
-+	if (err < 0)
-+		return err;
- 	else
--		mincore_page_range(vma, addr, end, vec);
--
--	return (end - addr) >> PAGE_SHIFT;
-+		return (end - addr) >> PAGE_SHIFT;
- }
- 
- /*
+ 		pte_unmap_unlock(orig_pte, walk->ptl);
+ 		cond_resched();
+ 		/*
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-hwpoison-fix-the-handling-path-of-the-victimized-page-frame-that-belong-to-non-lur.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+x86-vdso-remove-one-final-use-of-htole16.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch
 pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
 pagewalk-update-page-table-walker-core-fix.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
 pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
 pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-pagewalkc-move-pte-null-check.patch
-mm-prom-pid-clear_refs-avoid-split_huge_page.patch
-mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
-mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control.patch
-madvise-cleanup-swapin_walk_pmd_entry.patch
-memcg-separate-mem_cgroup_move_charge_pte_range.patch
-arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry.patch
-mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
-mincore-apply-page-table-walker-on-do_mincore.patch
+memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
+mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_ioc-work-around-gcc-bug.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
