@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-cachefiles-bindc-remove-unnecessary-assertions.patch added
- to -mm tree
-Date: Wed, 11 Jun 2014 15:44:18 -0700
-Message-ID: <5398dbc2.G1kLwLPeDjV5fgfD%akpm@linux-foundation.org>
+Subject: + add-lib-globc.patch added to -mm tree
+Date: Wed, 11 Jun 2014 16:04:56 -0700
+Message-ID: <5398e098.d2BxtIuleWOug+bm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52489 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52599 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752443AbaFKWoS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 18:44:18 -0400
+	with ESMTP id S1754649AbaFKXE5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 19:04:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dhowells@redhat.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, tj@kernel.org, rdunlap@infradead.org, mingo@elte.hu, linux@horizon.com
 
-Subject: + fs-cachefiles-bindc-remove-unnecessary-assertions.patch added to -mm tree
-To: fabf@skynet.be,dhowells@redhat.com
+Subject: + add-lib-globc.patch added to -mm tree
+To: linux@horizon.com,mingo@elte.hu,rdunlap@infradead.org,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Jun 2014 15:44:18 -0700
+Date: Wed, 11 Jun 2014 16:04:56 -0700
 
 
 The patch titled
-     Subject: fs/cachefiles/bind.c: remove unnecessary assertions
+     Subject: lib: add lib/glob.c
 has been added to the -mm tree.  Its filename is
-     fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+     add-lib-globc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/add-lib-globc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/add-lib-globc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,64 +43,217 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/cachefiles/bind.c: remove unnecessary assertions
+From: "George Spelvin" <linux@horizon.com>
+Subject: lib: add lib/glob.c
 
-Unsigned values are always >=0.
+This is a helper function from drivers/ata/libata_core.c, where it is used
+to blacklist particular device models.  It's being moved to lib/ so other
+drivers may use it for the same purpose.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: David Howells <dhowells@redhat.com>
+This implementation in non-recursive, so is safe for the kernel stack.
+
+Signed-off-by: George Spelvin <linux@horizon.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cachefiles/bind.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ include/linux/glob.h |   10 +++
+ lib/Kconfig          |   19 ++++++
+ lib/Makefile         |    2 
+ lib/glob.c           |  123 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 154 insertions(+)
 
-diff -puN fs/cachefiles/bind.c~fs-cachefiles-bindc-remove-unnecessary-assertions fs/cachefiles/bind.c
---- a/fs/cachefiles/bind.c~fs-cachefiles-bindc-remove-unnecessary-assertions
-+++ a/fs/cachefiles/bind.c
-@@ -39,13 +39,11 @@ int cachefiles_daemon_bind(struct cachef
- 	       args);
+diff -puN /dev/null include/linux/glob.h
+--- /dev/null
++++ a/include/linux/glob.h
+@@ -0,0 +1,10 @@
++#ifndef _LINUX_GLOB_H
++#define _LINUX_GLOB_H
++
++#include <linux/types.h>	/* For bool */
++#include <linux/compiler.h>	/* For __pure */
++
++bool __pure glob_match(char const *pat, char const *str);
++
++#endif	/* _LINUX_GLOB_H */
++
+diff -puN lib/Kconfig~add-lib-globc lib/Kconfig
+--- a/lib/Kconfig~add-lib-globc
++++ a/lib/Kconfig
+@@ -382,6 +382,25 @@ config CPU_RMAP
+ config DQL
+ 	bool
  
- 	/* start by checking things over */
--	ASSERT(cache->fstop_percent >= 0 &&
--	       cache->fstop_percent < cache->fcull_percent &&
-+	ASSERT(cache->fstop_percent < cache->fcull_percent &&
- 	       cache->fcull_percent < cache->frun_percent &&
- 	       cache->frun_percent  < 100);
++config GLOB
++	bool
++#	This actually supports modular compilation, but the module overhead
++#	is ridiculous for the amount of code involved.	Until an out-of-tree
++#	driver asks for it, we'll just link it directly it into the kernel
++#	when required.  Since we're ignoring out-of-tree users,	there's also
++#	no need bother prompting for a manual decision:
++#	prompt "glob_match() function"
++	help
++	  This option provides a glob_match function for performing
++	  simple text pattern matching.  It originated in the ATA code
++	  to blacklist particular drive models, but other device drivers
++	  may need similar functionality.
++
++	  All drivers in the Linux kernel tree that require this function
++	  should automatically select this option.  Say N unless you
++	  are compiling an out-of tree driver which tells you that it
++	  depends on this.
++
+ #
+ # Netlink attribute parsing support is select'ed if needed
+ #
+diff -puN lib/Makefile~add-lib-globc lib/Makefile
+--- a/lib/Makefile~add-lib-globc
++++ a/lib/Makefile
+@@ -134,6 +134,8 @@ obj-$(CONFIG_CORDIC) += cordic.o
  
--	ASSERT(cache->bstop_percent >= 0 &&
--	       cache->bstop_percent < cache->bcull_percent &&
-+	ASSERT(cache->bstop_percent < cache->bcull_percent &&
- 	       cache->bcull_percent < cache->brun_percent &&
- 	       cache->brun_percent  < 100);
+ obj-$(CONFIG_DQL) += dynamic_queue_limits.o
  
++obj-$(CONFIG_GLOB) += glob.o
++
+ obj-$(CONFIG_MPILIB) += mpi/
+ obj-$(CONFIG_SIGNATURE) += digsig.o
+ 
+diff -puN /dev/null lib/glob.c
+--- /dev/null
++++ a/lib/glob.c
+@@ -0,0 +1,123 @@
++#include <linux/module.h>
++#include <linux/glob.h>
++
++/*
++ * The only reason this code can be compiled as a module is because the
++ * ATA code that depends on it can be as well.  In practice, they're
++ * both usually compiled in and the module overhead goes away.
++ */
++MODULE_DESCRIPTION("glob(7) matching");
++MODULE_LICENSE("Dual MIT/GPL");
++
++/**
++ * glob_match - Shell-style pattern matching, like !fnmatch(pat, str, 0)
++ * @pat: Shell-style pattern to match, e.g. "*.[ch]".
++ * @str: String to match.  The pattern must match the entire string.
++ *
++ * Perform shell-style glob matching, returning true (1) if the match
++ * succeeds, or false (0) if it fails.  Equivalent to !fnmatch(@pat, @str, 0).
++ *
++ * Pattern metacharacters are ?, *, [ and \.
++ * (And, inside character classes, !, - and ].)
++ *
++ * This is small and simple implementation intended for device blacklists
++ * where a string is matched against a number of patterns.  Thus, it
++ * does not preprocess the patterns.  It is non-recursive, and run-time
++ * is at most quadratic: strlen(@str)*strlen(@pat).
++ *
++ * An example of the worst case is glob_match("*aaaaa", "aaaaaaaaaa");
++ * it takes 6 passes over the pattern before matching the string.
++ *
++ * Like !fnmatch(@pat, @str, 0) and unlike the shell, this does NOT
++ * treat / or leading . specially; it isn't actually used for pathnames.
++ *
++ * Note that according to glob(7) (and unlike bash), character classes
++ * are complemented by a leading !; this does not support the regex-style
++ * [^a-z] syntax.
++ *
++ * An opening bracket without a matching close is matched literally.
++ */
++bool __pure glob_match(char const *pat, char const *str)
++{
++	/*
++	 * Backtrack to previous * on mismatch and retry starting one
++	 * character later in the string.  Because * matches all characters
++	 * (no exception for /), it can be easily proved that there's
++	 * never a need to backtrack multiple levels.
++	 */
++	char const *back_pat = 0, *back_str = back_str;
++
++	/*
++	 * Loop over each token (character or class) in pat, matching
++	 * it against the remaining unmatched tail of str.  Return false
++	 * on mismatch, or true after matching the trailing nul bytes.
++	 */
++	for (;;) {
++		unsigned char c = *str++;
++		unsigned char d = *pat++;
++
++		switch (d) {
++		case '?':	/* Wildcard: anything but nul */
++			if (c == '\0')
++				return false;
++			break;
++		case '*':	/* Any-length wildcard */
++			if (*pat == '\0')	/* Optimize trailing * case */
++				return true;
++			back_pat = pat;
++			back_str = --str;	/* Allow zero-length match */
++			break;
++		case '[': {	/* Character class */
++			bool match = false, inverted = (*pat == '!');
++			char const *class = pat + inverted;
++			unsigned char a = *class++;
++
++			/*
++			 * Iterate over each span in the character class.
++			 * A span is either a single character a, or a
++			 * range a-b.  The first span may begin with ']'.
++			 */
++			do {
++				unsigned char b = a;
++
++				if (a == '\0')	/* Malformed */
++					goto literal;
++
++				if (class[0] == '-' && class[1] != ']') {
++					b = class[1];
++
++					if (b == '\0')
++						goto literal;
++
++					class += 2;
++					/* Any special action if a > b? */
++				}
++				match |= (a <= c && c <= b);
++			} while ((a = *class++) != ']');
++
++			if (match == inverted)
++				goto backtrack;
++			pat = class;
++			}
++			break;
++		case '\\':
++			d = *pat++;
++			/*FALLTHROUGH*/
++		default:	/* Literal character */
++literal:
++			if (c == d) {
++				if (d == '\0')
++					return true;
++				break;
++			}
++backtrack:
++			if (c == '\0' || !back_pat)
++				return false;	/* No point continuing */
++			/* Try again from last *, one character later in str. */
++			pat = back_pat;
++			str = ++back_str;
++			break;
++		}
++	}
++}
++EXPORT_SYMBOL(glob_match);
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from linux@horizon.com are
 
 origin.patch
-kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
-mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
-mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
-mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
-fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
-kernel-test_kprobesc-use-current-logging-functions.patch
-fs-isofs-logging-clean-up.patch
-fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
-fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+add-lib-globc.patch
+lib-globc-add-config_glob_selftest.patch
+libata-use-glob_match-from-lib-globc.patch
 linux-next.patch
-init-mainc-code-clean-up.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
 
