@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+Subject: + fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
  added to -mm tree
-Date: Wed, 11 Jun 2014 14:18:25 -0700
-Message-ID: <5398c7a1.++/8pXNBZ6LImtJz%akpm@linux-foundation.org>
+Date: Wed, 11 Jun 2014 14:25:57 -0700
+Message-ID: <5398c965.b+/nVEHJx4cmMx/e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51151 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51291 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751276AbaFKVS0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 17:18:26 -0400
+	with ESMTP id S1751983AbaFKVZ6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 17:25:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kenhelias@firemail.de, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rientjes@google.com, qiuxishi@huawei.com, fabf@skynet.be
 
-Subject: + list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,kenhelias@firemail.de
+Subject: + fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch added to -mm tree
+To: fabf@skynet.be,qiuxishi@huawei.com,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Wed, 11 Jun 2014 14:18:25 -0700
+Date: Wed, 11 Jun 2014 14:25:57 -0700
 
 
 The patch titled
-     Subject: list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes
+     Subject: fs/proc/kcore.c: use PAGE_ALIGN instead of ALIGN(PAGE_SIZE)
 has been added to the -mm tree.  Its filename is
-     list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+     fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,81 +44,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/proc/kcore.c: use PAGE_ALIGN instead of ALIGN(PAGE_SIZE)
 
-ERROR: code indent should use tabs where possible
-#177: FILE: include/linux/rculist.h:453:
-+^I^I^I^I        struct hlist_node *prev)$
+Use mm.h definition.
 
-total: 1 errors, 0 warnings, 0 checks, 151 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/list-fix-order-of-arguments-for-hlist_add_after_rcu.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Ken Helias <kenhelias@firemail.de>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rculist.h |    2 +-
+ fs/proc/kcore.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/rculist.h~list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes include/linux/rculist.h
---- a/include/linux/rculist.h~list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes
-+++ a/include/linux/rculist.h
-@@ -450,7 +450,7 @@ static inline void hlist_add_before_rcu(
-  * problems on Alpha CPUs.
-  */
- static inline void hlist_add_behind_rcu(struct hlist_node *n,
--				        struct hlist_node *prev)
-+					struct hlist_node *prev)
- {
- 	n->next = prev->next;
- 	n->pprev = &prev->next;
+diff -puN fs/proc/kcore.c~fs-proc-kcorec-use-page_align-instead-of-alignpage_size fs/proc/kcore.c
+--- a/fs/proc/kcore.c~fs-proc-kcorec-use-page_align-instead-of-alignpage_size
++++ a/fs/proc/kcore.c
+@@ -172,7 +172,7 @@ get_sparsemem_vmemmap_info(struct kcore_
+ 
+ 	start = ((unsigned long)pfn_to_page(pfn)) & PAGE_MASK;
+ 	end = ((unsigned long)pfn_to_page(pfn + nr_pages)) - 1;
+-	end = ALIGN(end, PAGE_SIZE);
++	end = PAGE_ALIGN(end);
+ 	/* overlap check (because we have to align page */
+ 	list_for_each_entry(tmp, head, list) {
+ 		if (tmp->type != KCORE_VMEMMAP)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-x86-vdso-remove-one-final-use-of-htole16.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
+mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
 mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-update-page-table-walker-core-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+fs-isofs-logging-clean-up.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
 linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-page_ioc-work-around-gcc-bug.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+init-mainc-code-clean-up.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
 
