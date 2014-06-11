@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch added to
- -mm tree
-Date: Wed, 11 Jun 2014 15:43:49 -0700
-Message-ID: <5398dba5.Ds/iUvd3hRJWRutX%akpm@linux-foundation.org>
+Subject: + fs-cachefiles-bindc-remove-unnecessary-assertions.patch added
+ to -mm tree
+Date: Wed, 11 Jun 2014 15:44:18 -0700
+Message-ID: <5398dbc2.G1kLwLPeDjV5fgfD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52489 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752158AbaFKWnu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 18:43:50 -0400
+	with ESMTP id S1752443AbaFKWoS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jun 2014 18:44:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp, fabf@skynet.be
+To: mm-commits@vger.kernel.org, dhowells@redhat.com, fabf@skynet.be
 
-Subject: + fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch added to -mm tree
-To: fabf@skynet.be,konishi.ryusuke@lab.ntt.co.jp
+Subject: + fs-cachefiles-bindc-remove-unnecessary-assertions.patch added to -mm tree
+To: fabf@skynet.be,dhowells@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 11 Jun 2014 15:43:49 -0700
+Date: Wed, 11 Jun 2014 15:44:18 -0700
 
 
 The patch titled
-     Subject: fs/nilfs2/super.c: remove unnecessary test on unsigned value
+     Subject: fs/cachefiles/bind.c: remove unnecessary assertions
 has been added to the -mm tree.  Its filename is
-     fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+     fs-cachefiles-bindc-remove-unnecessary-assertions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-cachefiles-bindc-remove-unnecessary-assertions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-cachefiles-bindc-remove-unnecessary-assertions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,30 +45,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/nilfs2/super.c: remove unnecessary test on unsigned value
+Subject: fs/cachefiles/bind.c: remove unnecessary assertions
 
-Unsigned value is never < 0.
+Unsigned values are always >=0.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/cachefiles/bind.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/nilfs2/super.c~fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value
-+++ a/fs/nilfs2/super.c
-@@ -1014,7 +1014,7 @@ int nilfs_checkpoint_is_mounted(struct s
- 	struct dentry *dentry;
- 	int ret;
+diff -puN fs/cachefiles/bind.c~fs-cachefiles-bindc-remove-unnecessary-assertions fs/cachefiles/bind.c
+--- a/fs/cachefiles/bind.c~fs-cachefiles-bindc-remove-unnecessary-assertions
++++ a/fs/cachefiles/bind.c
+@@ -39,13 +39,11 @@ int cachefiles_daemon_bind(struct cachef
+ 	       args);
  
--	if (cno < 0 || cno > nilfs->ns_cno)
-+	if (cno > nilfs->ns_cno)
- 		return false;
+ 	/* start by checking things over */
+-	ASSERT(cache->fstop_percent >= 0 &&
+-	       cache->fstop_percent < cache->fcull_percent &&
++	ASSERT(cache->fstop_percent < cache->fcull_percent &&
+ 	       cache->fcull_percent < cache->frun_percent &&
+ 	       cache->frun_percent  < 100);
  
- 	if (cno >= nilfs_last_cno(nilfs))
+-	ASSERT(cache->bstop_percent >= 0 &&
+-	       cache->bstop_percent < cache->bcull_percent &&
++	ASSERT(cache->bstop_percent < cache->bcull_percent &&
+ 	       cache->bcull_percent < cache->brun_percent &&
+ 	       cache->brun_percent  < 100);
+ 
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -93,6 +99,7 @@ fs-isofs-logging-clean-up.patch
 fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
 fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
 fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
+fs-cachefiles-bindc-remove-unnecessary-assertions.patch
 linux-next.patch
 init-mainc-code-clean-up.patch
 kernel-kprobesc-convert-printk-to-pr_foo.patch
