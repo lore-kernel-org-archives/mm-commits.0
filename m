@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + madvise-cleanup-swapin_walk_pmd_entry-fix.patch added to -mm
- tree
-Date: Thu, 12 Jun 2014 15:08:27 -0700
-Message-ID: <539a24db.G94DH+kCkJGFpCQi%akpm@linux-foundation.org>
+Subject: +
+ mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch added to -mm tree
+Date: Thu, 12 Jun 2014 15:24:19 -0700
+Message-ID: <539a2893.n+mw/3XYxWzI2gRr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36321 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36578 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750818AbaFLWI2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jun 2014 18:08:28 -0400
+	with ESMTP id S1750895AbaFLWYU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jun 2014 18:24:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
 
-Subject: + madvise-cleanup-swapin_walk_pmd_entry-fix.patch added to -mm tree
+Subject: + mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch added to -mm tree
 To: akpm@linux-foundation.org,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Thu, 12 Jun 2014 15:08:27 -0700
+Date: Thu, 12 Jun 2014 15:24:19 -0700
 
 
 The patch titled
-     Subject: madvise-cleanup-swapin_walk_pmd_entry-fix
+     Subject: mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix
 has been added to the -mm tree.  Its filename is
-     madvise-cleanup-swapin_walk_pmd_entry-fix.patch
+     mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/madvise-cleanup-swapin_walk_pmd_entry-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/madvise-cleanup-swapin_walk_pmd_entry-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,31 +45,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: madvise-cleanup-swapin_walk_pmd_entry-fix
+Subject: mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix
 
-fix warning
+fix build
 
-mm/pagewalk.c: In function 'walk_pte_range':
-mm/pagewalk.c:20: warning: unused variable 'ptl'
+fs/proc/task_mmu.c: In function 'clear_refs_pmd':
+fs/proc/task_mmu.c:806: error: 'struct mm_walk' has no member named 'skip'
 
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/pagewalk.c~madvise-cleanup-swapin_walk_pmd_entry-fix mm/pagewalk.c
---- a/mm/pagewalk.c~madvise-cleanup-swapin_walk_pmd_entry-fix
-+++ a/mm/pagewalk.c
-@@ -17,7 +17,6 @@ static int walk_pte_range(pmd_t *pmd, un
- 	struct mm_struct *mm = walk->mm;
- 	pte_t *pte;
- 	pte_t *orig_pte;
--	spinlock_t *ptl;
- 	int err = 0;
+diff -puN fs/proc/task_mmu.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix
++++ a/fs/proc/task_mmu.c
+@@ -803,7 +803,7 @@ static int clear_refs_pmd(pmd_t *pmd, un
+ out:
+ 	spin_unlock(ptl);
+ 	/* handled as pmd, no need to call clear_refs_pte() */
+-	walk->skip = 1;
++	walk->control = PTWALK_DOWN;
+ 	return 0;
+ }
  
- 	walk->pmd = pmd;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,6 +92,7 @@ pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_
 pagewalk-update-page-table-walker-core-fix.patch
 pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
 pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch
 madvise-cleanup-swapin_walk_pmd_entry-fix.patch
 memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
 mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
