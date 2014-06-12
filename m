@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1.patch added to -mm tree
-Date: Thu, 12 Jun 2014 12:28:35 -0700
-Message-ID: <5399ff63.GIkKAbM2qTu8CE/3%akpm@linux-foundation.org>
+Subject: + fs-qnx6-convert-printk-to-pr_foo.patch added to -mm tree
+Date: Thu, 12 Jun 2014 14:08:37 -0700
+Message-ID: <539a16d5.R8y1KFZHZvl7puqe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35907 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711AbaFLT2g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jun 2014 15:28:36 -0400
+	with ESMTP id S1751856AbaFLVIi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jun 2014 17:08:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hutao@cn.fujitsu.com, guz.fnst@cn.fujitsu.com, gregkh@linuxfoundation.org, tangchen@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, joe@perches.com, chaosman@ontika.net, fabf@skynet.be
 
-Subject: + mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1.patch added to -mm tree
-To: tangchen@cn.fujitsu.com,gregkh@linuxfoundation.org,guz.fnst@cn.fujitsu.com,hutao@cn.fujitsu.com,isimatu.yasuaki@jp.fujitsu.com,laijs@cn.fujitsu.com
+Subject: + fs-qnx6-convert-printk-to-pr_foo.patch added to -mm tree
+To: fabf@skynet.be,chaosman@ontika.net,joe@perches.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 12 Jun 2014 12:28:35 -0700
+Date: Thu, 12 Jun 2014 14:08:37 -0700
 
 
 The patch titled
-     Subject: mem-hotplug: introduce MMOP_OFFLINE to replace the hard coding -1
+     Subject: fs/qnx6: convert printk to pr_foo()
 has been added to the -mm tree.  Its filename is
-     mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1.patch
+     fs-qnx6-convert-printk-to-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-qnx6-convert-printk-to-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-qnx6-convert-printk-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,144 +43,403 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mem-hotplug: introduce MMOP_OFFLINE to replace the hard coding -1
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/qnx6: convert printk to pr_foo()
 
-In store_mem_state(), we have:
-......
- 334         else if (!strncmp(buf, "offline", min_t(int, count, 7)))
- 335                 online_type = -1;
-......
- 355         case -1:
- 356                 ret = device_offline(&mem->dev);
- 357                 break;
-......
+Use current logging functions.
 
-Here, "offline" is hard coded as -1.
+Coalesce formats.
 
-This patch does the following renaming:
- ONLINE_KEEP     ->  MMOP_ONLINE_KEEP
- ONLINE_KERNEL   ->  MMOP_ONLINE_KERNEL
- ONLINE_MOVABLE  ->  MMOP_ONLINE_MOVABLE
-
-and introduce MMOP_OFFLINE = -1 to avoid hard coding.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Hu Tao <hutao@cn.fujitsu.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kai Bankett <chaosman@ontika.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |   18 +++++++++---------
- include/linux/memory_hotplug.h |    9 +++++----
- mm/memory_hotplug.c            |    9 ++++++---
- 3 files changed, 20 insertions(+), 16 deletions(-)
+ fs/qnx6/dir.c       |   14 ++++-----
+ fs/qnx6/inode.c     |   62 ++++++++++++++++++------------------------
+ fs/qnx6/super_mmi.c |   22 ++++++--------
+ 3 files changed, 43 insertions(+), 55 deletions(-)
 
-diff -puN drivers/base/memory.c~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1 drivers/base/memory.c
---- a/drivers/base/memory.c~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1
-+++ a/drivers/base/memory.c
-@@ -284,7 +284,7 @@ static int memory_subsys_online(struct d
- 	 * attribute and need to set the online_type.
- 	 */
- 	if (mem->online_type < 0)
--		mem->online_type = ONLINE_KEEP;
-+		mem->online_type = MMOP_ONLINE_KEEP;
- 
- 	ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
- 
-@@ -316,22 +316,22 @@ store_mem_state(struct device *dev,
- 		return ret;
- 
- 	if (sysfs_streq(buf, "online_kernel"))
--		online_type = ONLINE_KERNEL;
-+		online_type = MMOP_ONLINE_KERNEL;
- 	else if (sysfs_streq(buf, "online_movable"))
--		online_type = ONLINE_MOVABLE;
-+		online_type = MMOP_ONLINE_MOVABLE;
- 	else if (sysfs_streq(buf, "online"))
--		online_type = ONLINE_KEEP;
-+		online_type = MMOP_ONLINE_KEEP;
- 	else if (sysfs_streq(buf, "offline"))
--		online_type = -1;
-+		online_type = MMOP_OFFLINE;
- 	else {
- 		ret = -EINVAL;
- 		goto err;
+diff -puN fs/qnx6/dir.c~fs-qnx6-convert-printk-to-pr_foo fs/qnx6/dir.c
+--- a/fs/qnx6/dir.c~fs-qnx6-convert-printk-to-pr_foo
++++ a/fs/qnx6/dir.c
+@@ -77,13 +77,12 @@ static int qnx6_dir_longfilename(struct
+ 	if (de->de_size != 0xff) {
+ 		/* error - long filename entries always have size 0xff
+ 		   in direntry */
+-		printk(KERN_ERR "qnx6: invalid direntry size (%i).\n",
+-				de->de_size);
++		pr_err("qnx6: invalid direntry size (%i).\n", de->de_size);
+ 		return 0;
+ 	}
+ 	lf = qnx6_longname(s, de, &page);
+ 	if (IS_ERR(lf)) {
+-		printk(KERN_ERR "qnx6:Error reading longname\n");
++		pr_err("qnx6:Error reading longname\n");
+ 		return 0;
  	}
  
- 	switch (online_type) {
--	case ONLINE_KERNEL:
--	case ONLINE_MOVABLE:
--	case ONLINE_KEEP:
-+	case MMOP_ONLINE_KERNEL:
-+	case MMOP_ONLINE_MOVABLE:
-+	case MMOP_ONLINE_KEEP:
- 		/*
- 		 * mem->online_type is not protected so there can be a
- 		 * race here.  However, when racing online, the first
-@@ -342,7 +342,7 @@ store_mem_state(struct device *dev,
- 		mem->online_type = online_type;
- 		ret = device_online(&mem->dev);
- 		break;
--	case -1:
-+	case MMOP_OFFLINE:
- 		ret = device_offline(&mem->dev);
- 		break;
- 	default:
-diff -puN include/linux/memory_hotplug.h~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1 include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1
-+++ a/include/linux/memory_hotplug.h
-@@ -26,11 +26,12 @@ enum {
- 	MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE = NODE_INFO,
- };
+@@ -91,7 +90,7 @@ static int qnx6_dir_longfilename(struct
  
--/* Types for control the zone type of onlined memory */
-+/* Types for control the zone type of onlined and offlined memory */
- enum {
--	ONLINE_KEEP,
--	ONLINE_KERNEL,
--	ONLINE_MOVABLE,
-+	MMOP_OFFLINE = -1,
-+	MMOP_ONLINE_KEEP,
-+	MMOP_ONLINE_KERNEL,
-+	MMOP_ONLINE_MOVABLE,
- };
+ 	if (lf_size > QNX6_LONG_NAME_MAX) {
+ 		QNX6DEBUG((KERN_INFO "file %s\n", lf->lf_fname));
+-		printk(KERN_ERR "qnx6:Filename too long (%i)\n", lf_size);
++		pr_err("qnx6:Filename too long (%i)\n", lf_size);
+ 		qnx6_put_page(page);
+ 		return 0;
+ 	}
+@@ -100,7 +99,7 @@ static int qnx6_dir_longfilename(struct
+ 	   mmi 3g filesystem does not have that checksum */
+ 	if (!test_opt(s, MMI_FS) && fs32_to_cpu(sbi, de->de_checksum) !=
+ 			qnx6_lfile_checksum(lf->lf_fname, lf_size))
+-		printk(KERN_INFO "qnx6: long filename checksum error.\n");
++		pr_info("qnx6: long filename checksum error.\n");
  
- /*
-diff -puN mm/memory_hotplug.c~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1 mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1
-+++ a/mm/memory_hotplug.c
-@@ -977,15 +977,18 @@ int __ref online_pages(unsigned long pfn
- 	zone = page_zone(pfn_to_page(pfn));
+ 	QNX6DEBUG((KERN_INFO "qnx6_readdir:%.*s inode:%u\n",
+ 					lf_size, lf->lf_fname, de_inode));
+@@ -136,7 +135,7 @@ static int qnx6_readdir(struct file *fil
+ 		int i = start;
  
- 	ret = -EINVAL;
--	if ((zone_idx(zone) > ZONE_NORMAL || online_type == ONLINE_MOVABLE) &&
-+	if ((zone_idx(zone) > ZONE_NORMAL ||
-+	    online_type == MMOP_ONLINE_MOVABLE) &&
- 	    !can_online_high_movable(zone))
+ 		if (IS_ERR(page)) {
+-			printk(KERN_ERR "qnx6_readdir: read failed\n");
++			pr_err("qnx6_readdir: read failed\n");
+ 			ctx->pos = (n + 1) << PAGE_CACHE_SHIFT;
+ 			return PTR_ERR(page);
+ 		}
+@@ -259,8 +258,7 @@ unsigned qnx6_find_entry(int len, struct
+ 					if (ino)
+ 						goto found;
+ 				} else
+-					printk(KERN_ERR "qnx6: undefined "
+-						"filename size in inode.\n");
++					pr_err("qnx6: undefined filename size in inode.\n");
+ 			}
+ 			qnx6_put_page(page);
+ 		}
+diff -puN fs/qnx6/inode.c~fs-qnx6-convert-printk-to-pr_foo fs/qnx6/inode.c
+--- a/fs/qnx6/inode.c~fs-qnx6-convert-printk-to-pr_foo
++++ a/fs/qnx6/inode.c
+@@ -87,7 +87,7 @@ static int qnx6_get_block(struct inode *
+ static int qnx6_check_blockptr(__fs32 ptr)
+ {
+ 	if (ptr == ~(__fs32)0) {
+-		printk(KERN_ERR "qnx6: hit unused blockpointer.\n");
++		pr_err("qnx6: hit unused blockpointer.\n");
+ 		return 0;
+ 	}
+ 	return 1;
+@@ -127,8 +127,7 @@ static unsigned qnx6_block_map(struct in
+ 	levelptr = no >> bitdelta;
+ 
+ 	if (levelptr > QNX6_NO_DIRECT_POINTERS - 1) {
+-		printk(KERN_ERR "qnx6:Requested file block number (%u) too big.",
+-				no);
++		pr_err("qnx6:Requested file block number (%u) too big.", no);
+ 		return 0;
+ 	}
+ 
+@@ -137,8 +136,7 @@ static unsigned qnx6_block_map(struct in
+ 	for (i = 0; i < depth; i++) {
+ 		bh = sb_bread(s, block);
+ 		if (!bh) {
+-			printk(KERN_ERR "qnx6:Error reading block (%u)\n",
+-					block);
++			pr_err("qnx6:Error reading block (%u)\n", block);
+ 			return 0;
+ 		}
+ 		bitdelta -= ptrbits;
+@@ -277,7 +275,7 @@ static struct buffer_head *qnx6_check_fi
+ 	   start with the first superblock */
+ 	bh = sb_bread(s, offset);
+ 	if (!bh) {
+-		printk(KERN_ERR "qnx6: unable to read the first superblock\n");
++		pr_err("qnx6: unable to read the first superblock\n");
+ 		return NULL;
+ 	}
+ 	sb = (struct qnx6_super_block *)bh->b_data;
+@@ -292,13 +290,10 @@ static struct buffer_head *qnx6_check_fi
+ 			sbi->s_bytesex = BYTESEX_LE;
+ 		if (!silent) {
+ 			if (offset == 0) {
+-				printk(KERN_ERR "qnx6: wrong signature (magic)"
+-					" in superblock #1.\n");
++				pr_err("qnx6: wrong signature (magic) in superblock #1.\n");
+ 			} else {
+-				printk(KERN_INFO "qnx6: wrong signature (magic)"
+-					" at position (0x%lx) - will try"
+-					" alternative position (0x0000).\n",
+-						offset * s->s_blocksize);
++				pr_info("qnx6: wrong signature (magic) at position (0x%lx) - will try alternative position (0x0000).\n",
++					offset * s->s_blocksize);
+ 			}
+ 		}
+ 		brelse(bh);
+@@ -329,13 +324,13 @@ static int qnx6_fill_super(struct super_
+ 
+ 	/* Superblock always is 512 Byte long */
+ 	if (!sb_set_blocksize(s, QNX6_SUPERBLOCK_SIZE)) {
+-		printk(KERN_ERR "qnx6: unable to set blocksize\n");
++		pr_err("qnx6: unable to set blocksize\n");
+ 		goto outnobh;
+ 	}
+ 
+ 	/* parse the mount-options */
+ 	if (!qnx6_parse_options((char *) data, s)) {
+-		printk(KERN_ERR "qnx6: invalid mount options.\n");
++		pr_err("qnx6: invalid mount options.\n");
+ 		goto outnobh;
+ 	}
+ 	if (test_opt(s, MMI_FS)) {
+@@ -355,7 +350,7 @@ static int qnx6_fill_super(struct super_
+ 		/* try again without bootblock offset */
+ 		bh1 = qnx6_check_first_superblock(s, 0, silent);
+ 		if (!bh1) {
+-			printk(KERN_ERR "qnx6: unable to read the first superblock\n");
++			pr_err("qnx6: unable to read the first superblock\n");
+ 			goto outnobh;
+ 		}
+ 		/* seems that no bootblock at partition start */
+@@ -370,13 +365,13 @@ static int qnx6_fill_super(struct super_
+ 	/* checksum check - start at byte 8 and end at byte 512 */
+ 	if (fs32_to_cpu(sbi, sb1->sb_checksum) !=
+ 			crc32_be(0, (char *)(bh1->b_data + 8), 504)) {
+-		printk(KERN_ERR "qnx6: superblock #1 checksum error\n");
++		pr_err("qnx6: superblock #1 checksum error\n");
  		goto out;
+ 	}
  
--	if (online_type == ONLINE_KERNEL && zone_idx(zone) == ZONE_MOVABLE) {
-+	if (online_type == MMOP_ONLINE_KERNEL &&
-+	    zone_idx(zone) == ZONE_MOVABLE) {
- 		if (move_pfn_range_left(zone - 1, zone, pfn, pfn + nr_pages))
- 			goto out;
+ 	/* set new blocksize */
+ 	if (!sb_set_blocksize(s, fs32_to_cpu(sbi, sb1->sb_blocksize))) {
+-		printk(KERN_ERR "qnx6: unable to set blocksize\n");
++		pr_err("qnx6: unable to set blocksize\n");
+ 		goto out;
  	}
--	if (online_type == ONLINE_MOVABLE && zone_idx(zone) == ZONE_MOVABLE - 1) {
-+	if (online_type == MMOP_ONLINE_MOVABLE &&
-+	    zone_idx(zone) == ZONE_MOVABLE - 1) {
- 		if (move_pfn_range_right(zone, zone + 1, pfn, pfn + nr_pages))
- 			goto out;
+ 	/* blocksize invalidates bh - pull it back in */
+@@ -398,21 +393,20 @@ static int qnx6_fill_super(struct super_
+ 	/* next the second superblock */
+ 	bh2 = sb_bread(s, offset);
+ 	if (!bh2) {
+-		printk(KERN_ERR "qnx6: unable to read the second superblock\n");
++		pr_err("qnx6: unable to read the second superblock\n");
+ 		goto out;
  	}
+ 	sb2 = (struct qnx6_super_block *)bh2->b_data;
+ 	if (fs32_to_cpu(sbi, sb2->sb_magic) != QNX6_SUPER_MAGIC) {
+ 		if (!silent)
+-			printk(KERN_ERR "qnx6: wrong signature (magic)"
+-					" in superblock #2.\n");
++			pr_err("qnx6: wrong signature (magic) in superblock #2.\n");
+ 		goto out;
+ 	}
+ 
+ 	/* checksum check - start at byte 8 and end at byte 512 */
+ 	if (fs32_to_cpu(sbi, sb2->sb_checksum) !=
+ 				crc32_be(0, (char *)(bh2->b_data + 8), 504)) {
+-		printk(KERN_ERR "qnx6: superblock #2 checksum error\n");
++		pr_err("qnx6: superblock #2 checksum error\n");
+ 		goto out;
+ 	}
+ 
+@@ -422,25 +416,24 @@ static int qnx6_fill_super(struct super_
+ 		sbi->sb_buf = bh1;
+ 		sbi->sb = (struct qnx6_super_block *)bh1->b_data;
+ 		brelse(bh2);
+-		printk(KERN_INFO "qnx6: superblock #1 active\n");
++		pr_info("qnx6: superblock #1 active\n");
+ 	} else {
+ 		/* superblock #2 active */
+ 		sbi->sb_buf = bh2;
+ 		sbi->sb = (struct qnx6_super_block *)bh2->b_data;
+ 		brelse(bh1);
+-		printk(KERN_INFO "qnx6: superblock #2 active\n");
++		pr_info("qnx6: superblock #2 active\n");
+ 	}
+ mmi_success:
+ 	/* sanity check - limit maximum indirect pointer levels */
+ 	if (sb1->Inode.levels > QNX6_PTR_MAX_LEVELS) {
+-		printk(KERN_ERR "qnx6: too many inode levels (max %i, sb %i)\n",
+-			QNX6_PTR_MAX_LEVELS, sb1->Inode.levels);
++		pr_err("qnx6: too many inode levels (max %i, sb %i)\n",
++		       QNX6_PTR_MAX_LEVELS, sb1->Inode.levels);
+ 		goto out;
+ 	}
+ 	if (sb1->Longfile.levels > QNX6_PTR_MAX_LEVELS) {
+-		printk(KERN_ERR "qnx6: too many longfilename levels"
+-				" (max %i, sb %i)\n",
+-			QNX6_PTR_MAX_LEVELS, sb1->Longfile.levels);
++		pr_err("qnx6: too many longfilename levels (max %i, sb %i)\n",
++		       QNX6_PTR_MAX_LEVELS, sb1->Longfile.levels);
+ 		goto out;
+ 	}
+ 	s->s_op = &qnx6_sops;
+@@ -460,7 +453,7 @@ mmi_success:
+ 	/* prefetch root inode */
+ 	root = qnx6_iget(s, QNX6_ROOT_INO);
+ 	if (IS_ERR(root)) {
+-		printk(KERN_ERR "qnx6: get inode failed\n");
++		pr_err("qnx6: get inode failed\n");
+ 		ret = PTR_ERR(root);
+ 		goto out2;
+ 	}
+@@ -474,7 +467,7 @@ mmi_success:
+ 	errmsg = qnx6_checkroot(s);
+ 	if (errmsg != NULL) {
+ 		if (!silent)
+-			printk(KERN_ERR "qnx6: %s\n", errmsg);
++			pr_err("qnx6: %s\n", errmsg);
+ 		goto out3;
+ 	}
+ 	return 0;
+@@ -555,8 +548,7 @@ struct inode *qnx6_iget(struct super_blo
+ 	inode->i_mode = 0;
+ 
+ 	if (ino == 0) {
+-		printk(KERN_ERR "qnx6: bad inode number on dev %s: %u is "
+-				"out of range\n",
++		pr_err("qnx6: bad inode number on dev %s: %u is out of range\n",
+ 		       sb->s_id, ino);
+ 		iget_failed(inode);
+ 		return ERR_PTR(-EIO);
+@@ -566,8 +558,8 @@ struct inode *qnx6_iget(struct super_blo
+ 	mapping = sbi->inodes->i_mapping;
+ 	page = read_mapping_page(mapping, n, NULL);
+ 	if (IS_ERR(page)) {
+-		printk(KERN_ERR "qnx6: major problem: unable to read inode from "
+-		       "dev %s\n", sb->s_id);
++		pr_err("qnx6: major problem: unable to read inode from dev %s\n",
++		       sb->s_id);
+ 		iget_failed(inode);
+ 		return ERR_CAST(page);
+ 	}
+@@ -689,7 +681,7 @@ static int __init init_qnx6_fs(void)
+ 		return err;
+ 	}
+ 
+-	printk(KERN_INFO "QNX6 filesystem 1.0.0 registered.\n");
++	pr_info("QNX6 filesystem 1.0.0 registered.\n");
+ 	return 0;
+ }
+ 
+diff -puN fs/qnx6/super_mmi.c~fs-qnx6-convert-printk-to-pr_foo fs/qnx6/super_mmi.c
+--- a/fs/qnx6/super_mmi.c~fs-qnx6-convert-printk-to-pr_foo
++++ a/fs/qnx6/super_mmi.c
+@@ -44,15 +44,14 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 	   start with the first superblock */
+ 	bh1 = sb_bread(s, 0);
+ 	if (!bh1) {
+-		printk(KERN_ERR "qnx6: Unable to read first mmi superblock\n");
++		pr_err("qnx6: Unable to read first mmi superblock\n");
+ 		return NULL;
+ 	}
+ 	sb1 = (struct qnx6_mmi_super_block *)bh1->b_data;
+ 	sbi = QNX6_SB(s);
+ 	if (fs32_to_cpu(sbi, sb1->sb_magic) != QNX6_SUPER_MAGIC) {
+ 		if (!silent) {
+-			printk(KERN_ERR "qnx6: wrong signature (magic) in"
+-					" superblock #1.\n");
++			pr_err("qnx6: wrong signature (magic) in superblock #1.\n");
+ 			goto out;
+ 		}
+ 	}
+@@ -60,7 +59,7 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 	/* checksum check - start at byte 8 and end at byte 512 */
+ 	if (fs32_to_cpu(sbi, sb1->sb_checksum) !=
+ 				crc32_be(0, (char *)(bh1->b_data + 8), 504)) {
+-		printk(KERN_ERR "qnx6: superblock #1 checksum error\n");
++		pr_err("qnx6: superblock #1 checksum error\n");
+ 		goto out;
+ 	}
+ 
+@@ -70,7 +69,7 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 
+ 	/* set new blocksize */
+ 	if (!sb_set_blocksize(s, fs32_to_cpu(sbi, sb1->sb_blocksize))) {
+-		printk(KERN_ERR "qnx6: unable to set blocksize\n");
++		pr_err("qnx6: unable to set blocksize\n");
+ 		goto out;
+ 	}
+ 	/* blocksize invalidates bh - pull it back in */
+@@ -83,27 +82,26 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 	/* read second superblock */
+ 	bh2 = sb_bread(s, offset);
+ 	if (!bh2) {
+-		printk(KERN_ERR "qnx6: unable to read the second superblock\n");
++		pr_err("qnx6: unable to read the second superblock\n");
+ 		goto out;
+ 	}
+ 	sb2 = (struct qnx6_mmi_super_block *)bh2->b_data;
+ 	if (fs32_to_cpu(sbi, sb2->sb_magic) != QNX6_SUPER_MAGIC) {
+ 		if (!silent)
+-			printk(KERN_ERR "qnx6: wrong signature (magic) in"
+-					" superblock #2.\n");
++			pr_err("qnx6: wrong signature (magic) in superblock #2.\n");
+ 		goto out;
+ 	}
+ 
+ 	/* checksum check - start at byte 8 and end at byte 512 */
+ 	if (fs32_to_cpu(sbi, sb2->sb_checksum)
+ 			!= crc32_be(0, (char *)(bh2->b_data + 8), 504)) {
+-		printk(KERN_ERR "qnx6: superblock #1 checksum error\n");
++		pr_err("qnx6: superblock #1 checksum error\n");
+ 		goto out;
+ 	}
+ 
+ 	qsb = kmalloc(sizeof(*qsb), GFP_KERNEL);
+ 	if (!qsb) {
+-		printk(KERN_ERR "qnx6: unable to allocate memory.\n");
++		pr_err("qnx6: unable to allocate memory.\n");
+ 		goto out;
+ 	}
+ 
+@@ -119,7 +117,7 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 		sbi->sb_buf = bh1;
+ 		sbi->sb = (struct qnx6_super_block *)bh1->b_data;
+ 		brelse(bh2);
+-		printk(KERN_INFO "qnx6: superblock #1 active\n");
++		pr_info("qnx6: superblock #1 active\n");
+ 	} else {
+ 		/* superblock #2 active */
+ 		qnx6_mmi_copy_sb(qsb, sb2);
+@@ -131,7 +129,7 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 		sbi->sb_buf = bh2;
+ 		sbi->sb = (struct qnx6_super_block *)bh2->b_data;
+ 		brelse(bh1);
+-		printk(KERN_INFO "qnx6: superblock #2 active\n");
++		pr_info("qnx6: superblock #2 active\n");
+ 	}
+ 	kfree(qsb);
+ 
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
+kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-slabc-add-__init-to-init_lock_keys.patch
+mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
+mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
 include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
-mem-hotplug-avoid-illegal-state-prefixed-with-legal-state-when-changing-state-of-memory_block.patch
-mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1.patch
+mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
+fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+kernel-test_kprobesc-use-current-logging-functions.patch
+fs-isofs-logging-clean-up.patch
+fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
+fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+linux-next.patch
+init-mainc-code-clean-up.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
 
