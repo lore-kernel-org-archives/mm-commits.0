@@ -1,287 +1,107 @@
 From: akpm@linux-foundation.org
 Subject: [nacked]
- mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
- removed from -mm tree
-Date: Mon, 16 Jun 2014 16:32:42 -0700
-Message-ID: <539f7e9a.6xEtFkoIhpmiPnxT%akpm@linux-foundation.org>
+ mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 16 Jun 2014 16:32:44 -0700
+Message-ID: <539f7e9c.HhOLvmr92Kq7cg+9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46723 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46731 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753061AbaFPXcn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:43 -0400
+	with ESMTP id S1753076AbaFPXco (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, riel@redhat.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kirill@shutemov.name, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: mm/pagewalk: move pmd_trans_huge_lock() from callbacks to common code
+     Subject: mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
+     mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/pagewalk: move pmd_trans_huge_lock() from callbacks to common code
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes
 
-Now all of current users of page table walker are canonicalized, i.e.
-pmd_entry() handles only trans_pmd entry, and pte_entry() handles pte entry.
-So we can factorize common code more.
-This patch moves pmd_trans_huge_lock() in each pmd_entry() to pagewalk core.
+WARNING: line over 80 characters
+#218: FILE: mm/pagewalk.c:87:
++		 *    table lock to be unlocked in __split_huge_page_splitting(),
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+total: 0 errors, 1 warnings, 199 lines checked
+
+./patches/mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   67 ++++++++++++++-----------------------------
- mm/memcontrol.c    |   53 ++++++++++------------------------
- mm/pagewalk.c      |   25 +++++++++++++---
- 3 files changed, 60 insertions(+), 85 deletions(-)
+ mm/pagewalk.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code
-+++ a/fs/proc/task_mmu.c
-@@ -502,14 +502,8 @@ static int smaps_pmd(pmd_t *pmd, unsigne
- 			struct mm_walk *walk)
- {
- 	struct mem_size_stats *mss = walk->private;
--	spinlock_t *ptl;
--
--	if (pmd_trans_huge_lock(pmd, walk->vma, &ptl) == 1) {
--		smaps_pte((pte_t *)pmd, addr, addr + HPAGE_PMD_SIZE, walk);
--		spin_unlock(ptl);
--		mss->anonymous_thp += HPAGE_PMD_SIZE;
--	} else
--		walk->control = PTWALK_DOWN;
-+	smaps_pte((pte_t *)pmd, addr, addr + HPAGE_PMD_SIZE, walk);
-+	mss->anonymous_thp += HPAGE_PMD_SIZE;
- 	return 0;
- }
- 
-@@ -1043,31 +1037,22 @@ static int pagemap_pmd(pmd_t *pmd, unsig
- 	struct vm_area_struct *vma = walk->vma;
- 	struct pagemapread *pm = walk->private;
- 	pagemap_entry_t pme = make_pme(PM_NOT_PRESENT(pm->v2));
--	spinlock_t *ptl;
-+	int pmd_flags2;
- 
--	if (!vma)
--		return err;
--	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
--		int pmd_flags2;
--
--		if ((vma->vm_flags & VM_SOFTDIRTY) || pmd_soft_dirty(*pmd))
--			pmd_flags2 = __PM_SOFT_DIRTY;
--		else
--			pmd_flags2 = 0;
--
--		for (; addr != end; addr += PAGE_SIZE) {
--			unsigned long offset;
--
--			offset = (addr & ~PAGEMAP_WALK_MASK) >>
--					PAGE_SHIFT;
--			thp_pmd_to_pagemap_entry(&pme, pm, *pmd, offset, pmd_flags2);
--			err = add_to_pagemap(addr, &pme, pm);
--			if (err)
--				break;
--		}
--		spin_unlock(ptl);
--	} else
--		walk->control = PTWALK_DOWN;
-+	if ((vma->vm_flags & VM_SOFTDIRTY) || pmd_soft_dirty(*pmd))
-+		pmd_flags2 = __PM_SOFT_DIRTY;
-+	else
-+		pmd_flags2 = 0;
-+
-+	for (; addr != end; addr += PAGE_SIZE) {
-+		unsigned long offset;
-+
-+		offset = (addr & ~PAGEMAP_WALK_MASK) >> PAGE_SHIFT;
-+		thp_pmd_to_pagemap_entry(&pme, pm, *pmd, offset, pmd_flags2);
-+		err = add_to_pagemap(addr, &pme, pm);
-+		if (err)
-+			break;
-+	}
- 	return err;
- }
- 
-@@ -1336,19 +1321,13 @@ static int gather_pmd_stats(pmd_t *pmd,
- {
- 	struct numa_maps *md = walk->private;
- 	struct vm_area_struct *vma = walk->vma;
--	spinlock_t *ptl;
-+	pte_t huge_pte = *(pte_t *)pmd;
-+	struct page *page;
- 
--	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
--		pte_t huge_pte = *(pte_t *)pmd;
--		struct page *page;
--
--		page = can_gather_numa_stats(huge_pte, vma, addr);
--		if (page)
--			gather_stats(page, md, pte_dirty(huge_pte),
--				     HPAGE_PMD_SIZE/PAGE_SIZE);
--		spin_unlock(ptl);
--	} else
--		walk->control = PTWALK_DOWN;
-+	page = can_gather_numa_stats(huge_pte, vma, addr);
-+	if (page)
-+		gather_stats(page, md, pte_dirty(huge_pte),
-+			     HPAGE_PMD_SIZE/PAGE_SIZE);
- 	return 0;
- }
- #ifdef CONFIG_HUGETLB_PAGE
-diff -puN mm/memcontrol.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code mm/memcontrol.c
---- a/mm/memcontrol.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code
-+++ a/mm/memcontrol.c
-@@ -6664,14 +6664,9 @@ static int mem_cgroup_count_precharge_pm
- 					struct mm_walk *walk)
- {
- 	struct vm_area_struct *vma = walk->vma;
--	spinlock_t *ptl;
- 
--	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
--		if (get_mctgt_type_thp(vma, addr, *pmd, NULL) == MC_TARGET_PAGE)
--			mc.precharge += HPAGE_PMD_NR;
--		spin_unlock(ptl);
--	} else
--		skip->control = PTWALK_DOWN;
-+	if (get_mctgt_type_thp(vma, addr, *pmd, NULL) == MC_TARGET_PAGE)
-+		mc.precharge += HPAGE_PMD_NR;
- 	return 0;
- }
- 
-@@ -6893,38 +6888,22 @@ static int mem_cgroup_move_charge_pmd(pm
- 	struct page *page;
- 	struct page_cgroup *pc;
- 
--	/*
--	 * We don't take compound_lock() here but no race with splitting thp
--	 * happens because:
--	 *  - if pmd_trans_huge_lock() returns 1, the relevant thp is not
--	 *    under splitting, which means there's no concurrent thp split,
--	 *  - if another thread runs into split_huge_page() just after we
--	 *    entered this if-block, the thread must wait for page table lock
--	 *    to be unlocked in __split_huge_page_splitting(), where the main
--	 *    part of thp split is not executed yet.
--	 */
--	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
--		if (mc.precharge < HPAGE_PMD_NR) {
--			spin_unlock(ptl);
--			return 0;
--		}
--		target_type = get_mctgt_type_thp(vma, addr, *pmd, &target);
--		if (target_type == MC_TARGET_PAGE) {
--			page = target.page;
--			if (!isolate_lru_page(page)) {
--				pc = lookup_page_cgroup(page);
--				if (!mem_cgroup_move_account(page, HPAGE_PMD_NR,
--							pc, mc.from, mc.to)) {
--					mc.precharge -= HPAGE_PMD_NR;
--					mc.moved_charge += HPAGE_PMD_NR;
--				}
--				putback_lru_page(page);
-+	if (mc.precharge < HPAGE_PMD_NR)
-+		return 0;
-+	target_type = get_mctgt_type_thp(vma, addr, *pmd, &target);
-+	if (target_type == MC_TARGET_PAGE) {
-+		page = target.page;
-+		if (!isolate_lru_page(page)) {
-+			pc = lookup_page_cgroup(page);
-+			if (!mem_cgroup_move_account(page, HPAGE_PMD_NR,
-+						     pc, mc.from, mc.to)) {
-+				mc.precharge -= HPAGE_PMD_NR;
-+				mc.moved_charge += HPAGE_PMD_NR;
- 			}
--			put_page(page);
-+			putback_lru_page(page);
- 		}
--		spin_unlock(ptl);
--	} else
--		walk->control = PTWALK_DOWN;
-+		put_page(page);
-+	}
- 	return 0;
- }
- 
-diff -puN mm/pagewalk.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code mm/pagewalk.c
---- a/mm/pagewalk.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code
+diff -puN mm/pagewalk.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes
 +++ a/mm/pagewalk.c
-@@ -60,6 +60,7 @@ static int walk_pmd_range(pud_t *pud, un
- 	pmd_t *pmd;
- 	unsigned long next;
- 	int err = 0;
-+	spinlock_t *ptl;
- 
- 	pmd = pmd_offset(pud, addr);
- 	do {
-@@ -74,8 +75,22 @@ again:
- 			continue;
- 		}
- 
-+		/*
-+		 * We don't take compound_lock() here but no race with splitting
-+		 * thp happens because:
-+		 *  - if pmd_trans_huge_lock() returns 1, the relevant thp is
-+		 *    not under splitting, which means there's no concurrent
-+		 *    thp split,
-+		 *  - if another thread runs into split_huge_page() just after
-+		 *    we entered this if-block, the thread must wait for page
-+		 *    table lock to be unlocked in __split_huge_page_splitting(),
-+		 *    where the main part of thp split is not executed yet.
-+		 */
+@@ -78,13 +78,13 @@ again:
+ 		/*
+ 		 * We don't take compound_lock() here but no race with splitting
+ 		 * thp happens because:
+-		 *  - if pmd_trans_huge_lock() returns 1, the relevant thp is
+-		 *    not under splitting, which means there's no concurrent
+-		 *    thp split,
+-		 *  - if another thread runs into split_huge_page() just after
+-		 *    we entered this if-block, the thread must wait for page
+-		 *    table lock to be unlocked in __split_huge_page_splitting(),
+-		 *    where the main part of thp split is not executed yet.
++		 * - if pmd_trans_huge_lock() returns 1, the relevant thp is
++		 *   not under splitting, which means there's no concurrent
++		 *   thp split,
++		 * - if another thread runs into split_huge_page() just after
++		 *   we entered this if-block, the thread must wait for page
++		 *   table lock to be unlocked in __split_huge_page_splitting(),
++		 *   where the main part of thp split is not executed yet.
+ 		 */
  		if (walk->pmd_entry) {
--			err = walk->pmd_entry(pmd, addr, next, walk);
-+			if (pmd_trans_huge_lock(pmd, walk->vma, &ptl) == 1) {
-+				err = walk->pmd_entry(pmd, addr, next, walk);
-+				spin_unlock(ptl);
-+			}
- 			if (err)
- 				break;
- 			switch (get_reset_walk_control(walk)) {
-@@ -285,9 +300,11 @@ static int __walk_page_range(unsigned lo
-  * outside a vma. If you want to access to some caller-specific data from
-  * callbacks, @walk->private should be helpful.
-  *
-- * The callers should hold @walk->mm->mmap_sem. Note that the lower level
-- * iterators can take page table lock in lowest level iteration and/or
-- * in split_huge_page_pmd().
-+ * Locking:
-+ *   Callers of walk_page_range() and walk_page_vma() should hold
-+ *   @walk->mm->mmap_sem, because these function traverse vma list and/or
-+ *   access to vma's data. And page table lock is held during running
-+ *   pmd_entry() and pte_entry().
-  */
- int walk_page_range(unsigned long start, unsigned long end,
- 		    struct mm_walk *walk)
+ 			if (pmd_trans_huge_lock(pmd, walk->vma, &ptl) == 1) {
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hwpoison-fix-the-handling-path-of-the-victimized-page-frame-that-belong-to-non-lur.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
-mincore-apply-page-table-walker-on-do_mincore.patch
 mincore-apply-page-table-walker-on-do_mincore-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
