@@ -1,166 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch removed
- from -mm tree
-Date: Mon, 16 Jun 2014 15:35:11 -0700
-Message-ID: <539f711f.arr+8MfQrUt6pCya%akpm@linux-foundation.org>
+Subject: [failures]
+ tell-gcc-optimizer-to-never-introduce-new-data-races.patch removed from -mm tree
+Date: Mon, 16 Jun 2014 15:37:34 -0700
+Message-ID: <539f71ae.R0wZyM5gQ/TKfcvl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46105 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46116 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755910AbaFPWfM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 18:35:12 -0400
+	with ESMTP id S1751131AbaFPWhf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 18:37:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, klamm@yandex-team.ru, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, steven@uplinklabs.net, richard.guenther@gmail.com, polacek@redhat.com, pmladek@suse.cz, peterz@infradead.org, paulmck@linux.vnet.ibm.com, mjambor@suse.cz, jakub@redhat.com, jkosina@suse.cz
 
 
 The patch titled
-     Subject: vmscan: memcg: check whether the low limit should be ignored
+     Subject: ./Makefile: tell gcc optimizer to never introduce new data races
 has been removed from the -mm tree.  Its filename was
-     vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
+     tell-gcc-optimizer-to-never-introduce-new-data-races.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: vmscan: memcg: check whether the low limit should be ignored
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: ./Makefile: tell gcc optimizer to never introduce new data races
 
-Low-limit (aka guarantee) is ignored when there is no group scanned during
-the first round of __shink_zone.  This approach doesn't work when multiple
-reclaimers race and reclaim the same hierarchy (e.g.  kswapd vs.  direct
-reclaim or multiple tasks hitting the hard limit) because memcg iterator
-makes sure that multiple reclaimers are interleaved in the hierarchy. 
-This means that some reclaimers can see 0 scanned groups although there
-are groups which are above the low-limit and they were reclaimed on behalf
-of other reclaimers.  This leads to a premature low-limit break.
+We have been chasing a memory corruption bug, which turned out to be
+caused by very old gcc (4.3.4), which happily turned conditional load into
+a non-conditional one, and that broke correctness (the condition was met
+only if lock was held) and corrupted memory.
 
-This patch adds mem_cgroup_all_within_guarantee() which will check whether
-all the groups in the reclaimed hierarchy are within their low limit and
-shrink_zone will allow the fallback reclaim only when that is true.  This
-alone is still not sufficient however because it would lead to another
-problem.  If a reclaimer constantly fails to scan anything because it sees
-only groups within their guarantees while others do the reclaim then the
-reclaim priority would drop down very quickly.  shrink_zone has to be
-careful to preserve scan at least one group semantic so __shrink_zone has
-to be retried until at least one group is scanned.
+This particular problem with that particular code did not happen when
+never gccs were used. I've brought this up with our gcc folks, as I wanted
+to make sure that this can't really happen again, and it turns out it
+actually can.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Roman Gushchin <klamm@yandex-team.ru>
+Quoting Martin Jambor <mjambor@suse.cz>:
+
+====
+More current GCCs are more careful when it comes to replacing a
+conditional load with a non-conditional one, most notably they check
+that a store happens in each iteration of _a_ loop but they assume
+loops are executed.  They also perform a simple check whether the
+store cannot trap which currently passes only for non-const
+variables.  A simple testcase demonstrating it on an x86_64 is for
+example the following:
+
+$ cat cond_store.c
+
+int g_1 = 1;
+
+int g_2[1024] __attribute__((section ("safe_section"), aligned (4096)));
+
+int c = 4;
+
+int __attribute__ ((noinline))
+foo (void)
+{
+  int l;
+  for (l = 0; (l != 4); l++) {
+    if (g_1)
+      return l;
+    for (g_2[0] = 0; (g_2[0] >= 26); ++g_2[0])
+      ;
+  }
+  return 2;
+}
+
+int main (int argc, char* argv[])
+{
+  if (mprotect (g_2, sizeof(g_2), PROT_READ) == -1)
+    {
+      int e = errno;
+      error (e, e, "mprotect error %i", e);
+    }
+  foo ();
+  __builtin_printf("OK\n");
+  return 0;
+}
+/* EOF */
+$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=0
+$ ./a.out
+OK
+$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=1
+$ ./a.out
+Segmentation fault
+
+The testcase fails the same at least with 4.9, 4.8 and 4.7.  Therefore
+I would suggest building kernels with this parameter set to zero. I
+also agree with Jikos that the default should be changed for -O2.  I
+have run most of the SPEC 2k6 CPU benchmarks (gamess and dealII
+failed, at -O2, not sure why) compiled with and without this option
+and did not see any real difference between respective run-times.
+====
+
+Hopefully the default will be changed in newer gccs, but let's force
+it for kernel builds so that we are on a safe side even when older
+gcc are used.
+
+
+
+
+The code in question was out-of-tree printk-in-NMI (yeah, surprise 
+suprise, once again) patch written by Petr Mladek, let me quote his 
+comment from our internal bugzilla:
+
+===
+I have spent few days investigating inconsistent state of kernel ring buffer.
+It went out that it was caused by speculative store generated by 
+gcc-4.3.4.
+
+The problem is in assembly generated for make_free_space(). The functions is
+called the following way:
+
++ vprintk_emit();
+    + log = MAIN_LOG; // with logbuf_lock
+       or
+       log = NMI_LOG; // with nmi_logbuf_lock
+       cont_add(log, ...);
+        + cont_flush(log, ...);
+            + log_store(log, ...);
+                  + log_make_free_space(log, ...);
+
+If called with log = NMI_LOG then only nmi_log_* global variables are safe to
+modify but the generated code does store also into (main_)log_* global 
+variables:
+
+
+<log_make_free_space>:
+       55                      push   %rbp
+       89 f6                   mov    %esi,%esi
+
+       48 8b 05 03 99 51 01    mov    0x1519903(%rip),%rax       # ffffffff82620868 <nmi_log_next_id>
+       44 8b 1d ec 98 51 01    mov    0x15198ec(%rip),%r11d      # ffffffff82620858 <log_next_idx>
+       8b 35 36 60 14 01       mov    0x1146036(%rip),%esi       # ffffffff8224cfa8 <log_buf_len>
+       44 8b 35 33 60 14 01    mov    0x1146033(%rip),%r14d      # ffffffff8224cfac <nmi_log_buf_len>
+       4c 8b 2d d0 98 51 01    mov    0x15198d0(%rip),%r13       # ffffffff82620850 <log_next_seq>
+       4c 8b 25 11 61 14 01    mov    0x1146111(%rip),%r12       # ffffffff8224d098 <log_buf>
+       49 89 c2                mov    %rax,%r10
+       48 21 c2                and    %rax,%rdx
+       48 8b 1d 0c 99 55 01    mov    0x155990c(%rip),%rbx       # ffffffff826608a0 <nmi_log_buf>
+       49 c1 ea 20             shr    $0x20,%r10
+       48 89 55 d0             mov    %rdx,-0x30(%rbp)
+       44 29 de                sub    %r11d,%esi
+       45 29 d6                sub    %r10d,%r14d
+       4c 8b 0d 97 98 51 01    mov    0x1519897(%rip),%r9	# ffffffff82620840 <log_first_seq>
+       eb 7e                   jmp    ffffffff81107029	<log_make_free_space+0xe9>
+[...]
+       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
+       4c 89 e8                mov    %r13,%rax
+       4c 89 ca                mov    %r9,%rdx
+       74 0a                   je     ffffffff8110703d	<log_make_free_space+0xfd>
+       8b 15 27 98 51 01       mov    0x1519827(%rip),%edx       # ffffffff82620860 <nmi_log_first_id>
+       48 8b 45 d0             mov    -0x30(%rbp),%rax
+       48 39 c2                cmp    %rax,%rdx                  # end of loop 
+       0f 84 da 00 00 00       je     ffffffff81107120 <log_make_free_space+0x1e0>
+[...]
+       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
+       4c 89 0d 17 97 51 01    mov    %r9,0x1519717(%rip)        # ffffffff82620840 <log_first_seq>
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               KABOOOM
+       74 35                   je     ffffffff81107160		 <log_make_free_space+0x220>
+
+
+It stores log_first_seq when edi == NMI_LOG. This instructions are used also
+when edi == MAIN_LOG but the store is done speculatively before the condition
+is decided.  It is unsafe because we do not have "logbuf_lock" in NMI context
+and some other process migh modify "log_first_seq" in parallel.
+===
+
+I believe that the best course of action is both
+
+- building kernel (and anything multi-threaded, I guess) with that 
+  optimization turned off
+- persuade gcc folks to change the default for future releases
+
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Martin Jambor <mjambor@suse.cz>
+Cc: Petr Mladek <pmladek@suse.cz>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Marek Polacek <polacek@redhat.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Steven Noonan <steven@uplinklabs.net>
+Cc: Richard Biener <richard.guenther@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 +++++
- mm/memcontrol.c            |   13 +++++++++++++
- mm/vmscan.c                |   17 ++++++++++++-----
- 3 files changed, 30 insertions(+), 5 deletions(-)
+ Makefile |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/memcontrol.h~vmscan-memcg-check-whether-the-low-limit-should-be-ignored include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~vmscan-memcg-check-whether-the-low-limit-should-be-ignored
-+++ a/include/linux/memcontrol.h
-@@ -94,6 +94,7 @@ bool task_in_mem_cgroup(struct task_stru
+diff -puN Makefile~tell-gcc-optimizer-to-never-introduce-new-data-races Makefile
+--- a/Makefile~tell-gcc-optimizer-to-never-introduce-new-data-races
++++ a/Makefile
+@@ -615,6 +615,9 @@ else
+ KBUILD_CFLAGS	+= -O2
+ endif
  
- extern bool mem_cgroup_within_guarantee(struct mem_cgroup *memcg,
- 		struct mem_cgroup *root);
-+extern bool mem_cgroup_all_within_guarantee(struct mem_cgroup *root);
- 
- extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
- extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
-@@ -296,6 +297,10 @@ static inline bool mem_cgroup_within_gua
- {
- 	return false;
- }
-+static inline bool mem_cgroup_all_within_guarantee(struct mem_cgroup *root)
-+{
-+	return false;
-+}
- 
- static inline struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
- {
-diff -puN mm/memcontrol.c~vmscan-memcg-check-whether-the-low-limit-should-be-ignored mm/memcontrol.c
---- a/mm/memcontrol.c~vmscan-memcg-check-whether-the-low-limit-should-be-ignored
-+++ a/mm/memcontrol.c
-@@ -2807,6 +2807,19 @@ bool mem_cgroup_within_guarantee(struct
- 	return false;
- }
- 
-+bool mem_cgroup_all_within_guarantee(struct mem_cgroup *root)
-+{
-+	struct mem_cgroup *iter;
++# Tell gcc to never replace conditional load with a non-conditional one
++KBUILD_CFLAGS	+= $(call cc-option,--param allow-store-data-races=0)
 +
-+	for_each_mem_cgroup_tree(iter, root)
-+		if (!mem_cgroup_within_guarantee(iter, root)) {
-+			mem_cgroup_iter_break(root, iter);
-+			return false;
-+		}
-+
-+	return true;
-+}
-+
- struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
- {
- 	struct mem_cgroup *memcg = NULL;
-diff -puN mm/vmscan.c~vmscan-memcg-check-whether-the-low-limit-should-be-ignored mm/vmscan.c
---- a/mm/vmscan.c~vmscan-memcg-check-whether-the-low-limit-should-be-ignored
-+++ a/mm/vmscan.c
-@@ -2310,13 +2310,20 @@ static unsigned __shrink_zone(struct zon
- 
- static void shrink_zone(struct zone *zone, struct scan_control *sc)
- {
--	if (!__shrink_zone(zone, sc, true)) {
-+	bool honor_guarantee = true;
-+
-+	while (!__shrink_zone(zone, sc, honor_guarantee)) {
- 		/*
--		 * First round of reclaim didn't find anything to reclaim
--		 * because of the memory guantees for all memcgs in the
--		 * reclaim target so try again and ignore guarantees this time.
-+		 * The previous round of reclaim didn't find anything to scan
-+		 * because
-+		 * a) the whole reclaimed hierarchy is within guarantee so
-+		 *    we fallback to ignore the guarantee because other option
-+		 *    would be the OOM
-+		 * b) multiple reclaimers are racing and so the first round
-+		 *    should be retried
- 		 */
--		__shrink_zone(zone, sc, false);
-+		if (mem_cgroup_all_within_guarantee(sc->target_mem_cgroup))
-+			honor_guarantee = false;
- 	}
- }
- 
+ ifdef CONFIG_READABLE_ASM
+ # Disable optimizations that make assembler listings hard to read.
+ # reorder blocks reorders the control in the function
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
-mm-vmscanc-avoid-recording-the-original-scan-targets-in-shrink_lruvec.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
-mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control.patch
-madvise-cleanup-swapin_walk_pmd_entry.patch
-memcg-separate-mem_cgroup_move_charge_pte_range.patch
-arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry.patch
-mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
-mincore-apply-page-table-walker-on-do_mincore.patch
-memcg-deprecate-memoryforce_empty-knob.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
+linux-next.patch
 
