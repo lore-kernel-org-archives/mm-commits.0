@@ -1,88 +1,229 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] madvise-cleanup-swapin_walk_pmd_entry-fix.patch removed
- from -mm tree
-Date: Mon, 16 Jun 2014 16:32:34 -0700
-Message-ID: <539f7e92.iUkiTQz0wK1HUCNT%akpm@linux-foundation.org>
+Subject: [nacked] memcg-separate-mem_cgroup_move_charge_pte_range.patch
+ removed from -mm tree
+Date: Mon, 16 Jun 2014 16:32:36 -0700
+Message-ID: <539f7e94.H26rM1CLUO92Pm/0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46696 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753001AbaFPXcf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:35 -0400
+	with ESMTP id S1751928AbaFPXch (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, xemul@parallels.com, riel@redhat.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kirill@shutemov.name, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: madvise-cleanup-swapin_walk_pmd_entry-fix
+     Subject: memcg: separate mem_cgroup_move_charge_pte_range()
 has been removed from the -mm tree.  Its filename was
-     madvise-cleanup-swapin_walk_pmd_entry-fix.patch
+     memcg-separate-mem_cgroup_move_charge_pte_range.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: madvise-cleanup-swapin_walk_pmd_entry-fix
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: memcg: separate mem_cgroup_move_charge_pte_range()
 
-fix warning
+mem_cgroup_move_charge_pte_range() handles both pte and pmd, which is not
+standardized, so let's cleanup it.  One tricky part is the retry, which is
+performed when we detect !mc.precharge.  In such case we retry the same
+entry, so we don't have to go outside the pte loop.  With rewriting this
+retry in the pte loop, we can separate pmd_entry() and pte_entry(), which
+is what we need.
 
-mm/pagewalk.c: In function 'walk_pte_range':
-mm/pagewalk.c:20: warning: unused variable 'ptl'
-
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memcontrol.c |  128 +++++++++++++++++++++++-----------------------
+ 1 file changed, 66 insertions(+), 62 deletions(-)
 
-diff -puN mm/pagewalk.c~madvise-cleanup-swapin_walk_pmd_entry-fix mm/pagewalk.c
---- a/mm/pagewalk.c~madvise-cleanup-swapin_walk_pmd_entry-fix
-+++ a/mm/pagewalk.c
-@@ -17,7 +17,6 @@ static int walk_pte_range(pmd_t *pmd, un
- 	struct mm_struct *mm = walk->mm;
- 	pte_t *pte;
- 	pte_t *orig_pte;
--	spinlock_t *ptl;
- 	int err = 0;
+diff -puN mm/memcontrol.c~memcg-separate-mem_cgroup_move_charge_pte_range mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-separate-mem_cgroup_move_charge_pte_range
++++ a/mm/memcontrol.c
+@@ -6821,14 +6821,72 @@ static void mem_cgroup_cancel_attach(str
+ 	mem_cgroup_clear_mc();
+ }
  
- 	walk->pmd = pmd;
+-static int mem_cgroup_move_charge_pte_range(pmd_t *pmd,
++static int mem_cgroup_move_charge_pte(pte_t *pte,
+ 				unsigned long addr, unsigned long end,
+ 				struct mm_walk *walk)
+ {
+ 	int ret = 0;
+ 	struct vm_area_struct *vma = walk->vma;
+-	pte_t *pte;
+-	spinlock_t *ptl;
++	union mc_target target;
++	struct page *page;
++	struct page_cgroup *pc;
++	swp_entry_t ent;
++
++retry:
++	if (!mc.precharge) {
++		pte_t *orig_pte = pte - ((addr & (PMD_SIZE - 1)) >> PAGE_SHIFT);
++		pte_unmap_unlock(orig_pte, walk->ptl);
++		cond_resched();
++		/*
++		 * We have consumed all precharges we got in can_attach().
++		 * We try charge one by one, but don't do any additional
++		 * charges to mc.to if we have failed in charge once in attach()
++		 * phase.
++		 */
++		ret = mem_cgroup_do_precharge(1);
++		pte_offset_map(walk->pmd, addr & PMD_MASK);
++		spin_lock(walk->ptl);
++		if (!ret)
++			goto retry;
++		return ret;
++	}
++
++	switch (get_mctgt_type(vma, addr, *pte, &target)) {
++	case MC_TARGET_PAGE:
++		page = target.page;
++		if (isolate_lru_page(page))
++			goto put;
++		pc = lookup_page_cgroup(page);
++		if (!mem_cgroup_move_account(page, 1, pc,
++					     mc.from, mc.to)) {
++			mc.precharge--;
++			/* we uncharge from mc.from later. */
++			mc.moved_charge++;
++		}
++		putback_lru_page(page);
++put:		/* get_mctgt_type() gets the page */
++		put_page(page);
++		break;
++	case MC_TARGET_SWAP:
++		ent = target.ent;
++		if (!mem_cgroup_move_swap_account(ent, mc.from, mc.to)) {
++			mc.precharge--;
++			/* we fixup refcnts and charges later. */
++			mc.moved_swap++;
++		}
++		break;
++	default:
++		break;
++	}
++
++	return 0;
++}
++
++static int mem_cgroup_move_charge_pmd(pmd_t *pmd,
++				unsigned long addr, unsigned long end,
++				struct mm_walk *walk)
++{
++	struct vm_area_struct *vma = walk->vma;
+ 	enum mc_target_type target_type;
+ 	union mc_target target;
+ 	struct page *page;
+@@ -6864,71 +6922,17 @@ static int mem_cgroup_move_charge_pte_ra
+ 			put_page(page);
+ 		}
+ 		spin_unlock(ptl);
+-		return 0;
+-	}
+-
+-	if (pmd_trans_unstable(pmd))
+-		return 0;
+-retry:
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	for (; addr != end; addr += PAGE_SIZE) {
+-		pte_t ptent = *(pte++);
+-		swp_entry_t ent;
+-
+-		if (!mc.precharge)
+-			break;
+-
+-		switch (get_mctgt_type(vma, addr, ptent, &target)) {
+-		case MC_TARGET_PAGE:
+-			page = target.page;
+-			if (isolate_lru_page(page))
+-				goto put;
+-			pc = lookup_page_cgroup(page);
+-			if (!mem_cgroup_move_account(page, 1, pc,
+-						     mc.from, mc.to)) {
+-				mc.precharge--;
+-				/* we uncharge from mc.from later. */
+-				mc.moved_charge++;
+-			}
+-			putback_lru_page(page);
+-put:			/* get_mctgt_type() gets the page */
+-			put_page(page);
+-			break;
+-		case MC_TARGET_SWAP:
+-			ent = target.ent;
+-			if (!mem_cgroup_move_swap_account(ent, mc.from, mc.to)) {
+-				mc.precharge--;
+-				/* we fixup refcnts and charges later. */
+-				mc.moved_swap++;
+-			}
+-			break;
+-		default:
+-			break;
+-		}
+-	}
+-	pte_unmap_unlock(pte - 1, ptl);
+-	cond_resched();
+-
+-	if (addr != end) {
+-		/*
+-		 * We have consumed all precharges we got in can_attach().
+-		 * We try charge one by one, but don't do any additional
+-		 * charges to mc.to if we have failed in charge once in attach()
+-		 * phase.
+-		 */
+-		ret = mem_cgroup_do_precharge(1);
+-		if (!ret)
+-			goto retry;
+-	}
+-
+-	return ret;
++	} else
++		walk->control = PTWALK_DOWN;
++	return 0;
+ }
+ 
+ static void mem_cgroup_move_charge(struct mm_struct *mm)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct mm_walk mem_cgroup_move_charge_walk = {
+-		.pmd_entry = mem_cgroup_move_charge_pte_range,
++		.pmd_entry = mem_cgroup_move_charge_pmd,
++		.pte_entry = mem_cgroup_move_charge_pte,
+ 		.mm = mm,
+ 	};
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+hwpoison-fix-the-handling-path-of-the-victimized-page-frame-that-belong-to-non-lur.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
 memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
+arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry.patch
+mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
 mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
+mincore-apply-page-table-walker-on-do_mincore.patch
 mincore-apply-page-table-walker-on-do_mincore-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
