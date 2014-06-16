@@ -1,97 +1,102 @@
 From: akpm@linux-foundation.org
 Subject: [nacked]
- memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
- removed from -mm tree
-Date: Mon, 16 Jun 2014 16:32:38 -0700
-Message-ID: <539f7e96.+XJEsdgqdGshrUly%akpm@linux-foundation.org>
+ arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry.patch removed
+ from -mm tree
+Date: Mon, 16 Jun 2014 16:32:40 -0700
+Message-ID: <539f7e98.2+JuevRrQxPkFI0H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46703 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46711 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753033AbaFPXcj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:39 -0400
+	with ESMTP id S1753037AbaFPXcl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, xemul@parallels.com, riel@redhat.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kirill@shutemov.name, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes
+     Subject: arch/powerpc/mm/subpage-prot.c: cleanup subpage_walk_pmd_entry()
 has been removed from the -mm tree.  Its filename was
-     memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
+     arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: arch/powerpc/mm/subpage-prot.c: cleanup subpage_walk_pmd_entry()
 
-WARNING: Missing a blank line after declarations
-#53: FILE: mm/memcontrol.c:6838:
-+		pte_t *orig_pte = pte - ((addr & (PMD_SIZE - 1)) >> PAGE_SHIFT);
-+		pte_unmap_unlock(orig_pte, walk->ptl);
+Currently subpage_mark_vma_nohuge() uses page table walker to find thps
+and then split them.  But this can be done by page table walker itself, so
+let's rewrite it in more suitable way.  No functional change.
 
-total: 0 errors, 1 warnings, 151 lines checked
-
-./patches/memcg-separate-mem_cgroup_move_charge_pte_range.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/mm/subpage-prot.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes
-+++ a/mm/memcontrol.c
-@@ -6835,6 +6835,7 @@ static int mem_cgroup_move_charge_pte(pt
- retry:
- 	if (!mc.precharge) {
- 		pte_t *orig_pte = pte - ((addr & (PMD_SIZE - 1)) >> PAGE_SHIFT);
-+
- 		pte_unmap_unlock(orig_pte, walk->ptl);
- 		cond_resched();
- 		/*
+diff -puN arch/powerpc/mm/subpage-prot.c~arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry arch/powerpc/mm/subpage-prot.c
+--- a/arch/powerpc/mm/subpage-prot.c~arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry
++++ a/arch/powerpc/mm/subpage-prot.c
+@@ -131,11 +131,10 @@ static void subpage_prot_clear(unsigned
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-static int subpage_walk_pmd_entry(pmd_t *pmd, unsigned long addr,
++static int subpage_walk_pte(pte_t *pte, unsigned long addr,
+ 				  unsigned long end, struct mm_walk *walk)
+ {
+-	struct vm_area_struct *vma = walk->vma;
+-	split_huge_page_pmd(vma, addr, pmd);
++	walk->control = PTWALK_BREAK;
+ 	return 0;
+ }
+ 
+@@ -143,9 +142,14 @@ static void subpage_mark_vma_nohuge(stru
+ 				    unsigned long len)
+ {
+ 	struct vm_area_struct *vma;
++	/*
++	 * What this walking expects is to split all thps under this mm.
++	 * Page table walker internally splits thps just before we try to
++	 * call .pte_entry() on them, so let's utilize it.
++	 */
+ 	struct mm_walk subpage_proto_walk = {
+ 		.mm = mm,
+-		.pmd_entry = subpage_walk_pmd_entry,
++		.pte_entry = subpage_walk_pte,
+ 	};
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+hwpoison-fix-the-handling-path-of-the-victimized-page-frame-that-belong-to-non-lur.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
 mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
+mincore-apply-page-table-walker-on-do_mincore.patch
 mincore-apply-page-table-walker-on-do_mincore-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
