@@ -1,101 +1,322 @@
 From: akpm@linux-foundation.org
-Subject: + a.patch added to -mm tree
-Date: Mon, 16 Jun 2014 13:55:02 -0700
-Message-ID: <539f59a6.+/FO60QsCZBKa7G4%akpm@linux-foundation.org>
+Subject: [withdrawn] memcg-mm-introduce-lowlimit-reclaim.patch removed
+ from -mm tree
+Date: Mon, 16 Jun 2014 15:34:57 -0700
+Message-ID: <539f7111.yB6e5LXcKTDMoj7k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45373 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46058 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755677AbaFPUzD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 16:55:03 -0400
+	with ESMTP id S1751131AbaFPWe6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 18:34:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, walken@google.com, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, klamm@yandex-team.ru, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: a
-has been added to the -mm tree.  Its filename is
-     a.patch
+     Subject: memcg, mm: introduce lowlimit reclaim
+has been removed from the -mm tree.  Its filename was
+     memcg-mm-introduce-lowlimit-reclaim.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/a.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/a.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: a
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg, mm: introduce lowlimit reclaim
 
-Cc: <akpm@kernel.org>
+Previous discussions have shown that soft limits cannot be reformed
+(http://lwn.net/Articles/555249/).  This series introduces an alternative
+approach for protecting memory allocated to processes executing within a
+memory cgroup controller.  It is based on a new tunable that was discussed
+with Johannes and Tejun held during the kernel summit 2013 and at LSF
+2014.
+
+This patchset introduces such low limit that is functionally similar to a
+minimum guarantee.  Memcgs which are under their lowlimit are not
+considered eligible for the reclaim (both global and hardlimit) unless all
+groups under the reclaimed hierarchy are below the low limit when all of
+them are considered eligible.
+
+The previous version of the patchset posted as a RFC
+(http://marc.info/?l=linux-mm&m=138677140628677&w=2) suggested a hard
+guarantee without any fallback.  More discussions led me to reconsidering
+the default behavior and come up a more relaxed one.  The hard requirement
+can be added later based on a use case which really requires.  It would be
+controlled by memory.reclaim_flags knob which would specify whether to OOM
+or fallback (default) when all groups are bellow low limit.
+
+The default value of the limit is 0 so all groups are eligible by default
+and an interested party has to explicitly set the limit.
+
+The primary use case is to protect an amount of memory allocated to a
+workload without it being reclaimed by an unrelated activity.  In some
+cases this requirement can be fulfilled by mlock but it is not suitable
+for many loads and generally requires application awareness.  Such
+application awareness can be complex.  It effectively forbids the use of
+memory overcommit as the application must explicitly manage memory
+residency.
+
+With the low limit, such workloads can be placed in a memcg with a low
+limit that protects the estimated working set.
+
+The hierarchical behavior of the lowlimit is described in the first patch.
+ The second patch allows setting the lowlimit.  The last 2 patches clarify
+documentation about the memcg reclaim in gereneral (3rd patch) and low
+limit (4th patch).
+
+
+This patch (of 5)
+
+This patch introduces low limit reclaim.  The low_limit acts as a reclaim
+protection because groups which are under their low_limit are considered
+ineligible for reclaim.  While hardlimit protects from using more memory
+than allowed lowlimit protects from getting below memory assigned to the
+group due to external memory pressure.
+
+More precisely a group is considered eligible for the reclaim under a
+specific hierarchy represented by its root only if the group is above its
+low limit and the same applies to all parents up the hierarchy to the
+root.  Nevertheless the limit still might be ignored if all groups under
+the reclaimed hierarchy are under their low limits.  This will prevent
+from OOM rather than protecting the memory.
+
+Consider the following hierarchy with memory pressure coming from the
+group A (hard limit reclaim - l-low_limit_in_bytes, u-usage_in_bytes,
+h-limit_in_bytes):
+
+		root_mem_cgroup
+			.
+		  _____/
+		 /
+		A (l = 80 u=90 h=90)
+	       /
+	      / \_________
+	     /            \
+	    B (l=0 u=50)   C (l=50 u=40)
+	                    \
+			     D (l=0 u=30)
+
+A and B are reclaimable but C and D are not (D is protected by C).
+
+The low_limit is 0 by default so every group is eligible.  This patch
+doesn't provide a way to set the limit yet although the core
+infrastructure is there already.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Roman Gushchin <klamm@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/memcontrol.h  |    9 +++++++++
+ include/linux/res_counter.h |   27 +++++++++++++++++++++++++++
+ mm/memcontrol.c             |   23 +++++++++++++++++++++++
+ mm/vmscan.c                 |   34 +++++++++++++++++++++++++++++++++-
+ 4 files changed, 92 insertions(+), 1 deletion(-)
 
-diff -puN fs/open.c~a fs/open.c
---- a/fs/open.c~a
-+++ a/fs/open.c
-@@ -1107,3 +1107,5 @@ int nonseekable_open(struct inode *inode
+diff -puN include/linux/memcontrol.h~memcg-mm-introduce-lowlimit-reclaim include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-mm-introduce-lowlimit-reclaim
++++ a/include/linux/memcontrol.h
+@@ -92,6 +92,9 @@ bool __mem_cgroup_same_or_subtree(const
+ bool task_in_mem_cgroup(struct task_struct *task,
+ 			const struct mem_cgroup *memcg);
+ 
++extern bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
++		struct mem_cgroup *root);
++
+ extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
+ extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
+ 
+@@ -288,6 +291,12 @@ static inline struct lruvec *mem_cgroup_
+ 	return &zone->lruvec;
  }
  
- EXPORT_SYMBOL(nonseekable_open);
++static inline bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
++		struct mem_cgroup *root)
++{
++	return true;
++}
 +
-+foo
+ static inline struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
+ {
+ 	return NULL;
+diff -puN include/linux/res_counter.h~memcg-mm-introduce-lowlimit-reclaim include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memcg-mm-introduce-lowlimit-reclaim
++++ a/include/linux/res_counter.h
+@@ -40,6 +40,11 @@ struct res_counter {
+ 	 */
+ 	unsigned long long soft_limit;
+ 	/*
++	 * the limit under which the usage cannot be pushed
++	 * due to external pressure.
++	 */
++	unsigned long long low_limit;
++	/*
+ 	 * the number of unsuccessful attempts to consume the resource
+ 	 */
+ 	unsigned long long failcnt;
+@@ -174,6 +179,28 @@ res_counter_soft_limit_excess(struct res
+ 	spin_unlock_irqrestore(&cnt->lock, flags);
+ 	return excess;
+ }
++
++/**
++ * Get the difference between the usage and the low limit
++ * @cnt: The counter
++ *
++ * Returns 0 if usage is less than or equal to low limit
++ * The difference between usage and low limit, otherwise.
++ */
++static inline unsigned long long
++res_counter_low_limit_excess(struct res_counter *cnt)
++{
++	unsigned long long excess;
++	unsigned long flags;
++
++	spin_lock_irqsave(&cnt->lock, flags);
++	if (cnt->usage <= cnt->low_limit)
++		excess = 0;
++	else
++		excess = cnt->usage - cnt->low_limit;
++	spin_unlock_irqrestore(&cnt->lock, flags);
++	return excess;
++}
+ 
+ static inline void res_counter_reset_max(struct res_counter *cnt)
+ {
+diff -puN mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim
++++ a/mm/memcontrol.c
+@@ -2779,6 +2779,29 @@ static struct mem_cgroup *mem_cgroup_loo
+ 	return mem_cgroup_from_id(id);
+ }
+ 
++/**
++ * mem_cgroup_reclaim_eligible - checks whether given memcg is eligible for the
++ * reclaim
++ * @memcg: target memcg for the reclaim
++ * @root: root of the reclaim hierarchy (null for the global reclaim)
++ *
++ * The given group is reclaimable if it is above its low limit and the same
++ * applies for all parents up the hierarchy until root (including).
++ */
++bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
++		struct mem_cgroup *root)
++{
++	do {
++		if (!res_counter_low_limit_excess(&memcg->res))
++			return false;
++		if (memcg == root)
++			break;
++
++	} while ((memcg = parent_mem_cgroup(memcg)));
++
++	return true;
++}
++
+ struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
+ {
+ 	struct mem_cgroup *memcg = NULL;
+diff -puN mm/vmscan.c~memcg-mm-introduce-lowlimit-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~memcg-mm-introduce-lowlimit-reclaim
++++ a/mm/vmscan.c
+@@ -2231,9 +2231,11 @@ static inline bool should_continue_recla
+ 	}
+ }
+ 
+-static void shrink_zone(struct zone *zone, struct scan_control *sc)
++static unsigned __shrink_zone(struct zone *zone, struct scan_control *sc,
++		bool follow_low_limit)
+ {
+ 	unsigned long nr_reclaimed, nr_scanned;
++	unsigned nr_scanned_groups = 0;
+ 
+ 	do {
+ 		struct mem_cgroup *root = sc->target_mem_cgroup;
+@@ -2250,7 +2252,23 @@ static void shrink_zone(struct zone *zon
+ 		do {
+ 			struct lruvec *lruvec;
+ 
++			/*
++			 * Memcg might be under its low limit so we have to
++			 * skip it during the first reclaim round
++			 */
++			if (follow_low_limit &&
++					!mem_cgroup_reclaim_eligible(memcg, root)) {
++				/*
++				 * It would be more optimal to skip the memcg
++				 * subtree now but we do not have a memcg iter
++				 * helper for that. Anyone?
++				 */
++				memcg = mem_cgroup_iter(root, memcg, &reclaim);
++				continue;
++			}
++
+ 			lruvec = mem_cgroup_zone_lruvec(zone, memcg);
++			nr_scanned_groups++;
+ 
+ 			sc->swappiness = mem_cgroup_swappiness(memcg);
+ 			shrink_lruvec(lruvec, sc);
+@@ -2279,6 +2297,20 @@ static void shrink_zone(struct zone *zon
+ 
+ 	} while (should_continue_reclaim(zone, sc->nr_reclaimed - nr_reclaimed,
+ 					 sc->nr_scanned - nr_scanned, sc));
++
++	return nr_scanned_groups;
++}
++
++static void shrink_zone(struct zone *zone, struct scan_control *sc)
++{
++	if (!__shrink_zone(zone, sc, true)) {
++		/*
++		 * First round of reclaim didn't find anything to reclaim
++		 * because of low limit protection so try again and ignore
++		 * the low limit this time.
++		 */
++		__shrink_zone(zone, sc, false);
++	}
+ }
+ 
+ /* Returns true if compaction should go ahead for a high-order request */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-update-page-table-walker-core-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch
-madvise-cleanup-swapin_walk_pmd_entry-fix.patch
-memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
-mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
-mincore-apply-page-table-walker-on-do_mincore-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+mm-vmscanc-avoid-recording-the-original-scan-targets-in-shrink_lruvec.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
+mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control.patch
+madvise-cleanup-swapin_walk_pmd_entry.patch
+memcg-separate-mem_cgroup_move_charge_pte_range.patch
+arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry.patch
+mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
+mincore-apply-page-table-walker-on-do_mincore.patch
+memcg-mm-introduce-lowlimit-reclaim-fix.patch
+memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
+memcg-allow-setting-low_limit.patch
+memcg-doc-clarify-global-vs-limit-reclaims.patch
+memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
+memcg-document-memorylow_limit_in_bytes.patch
+vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
+memcg-deprecate-memoryforce_empty-knob.patch
 memcg-deprecate-memoryforce_empty-knob-fix.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-a.patch
 
