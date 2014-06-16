@@ -1,97 +1,92 @@
 From: akpm@linux-foundation.org
 Subject: [nacked]
- pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch removed from -mm tree
-Date: Mon, 16 Jun 2014 16:31:52 -0700
-Message-ID: <539f7e68.3IRGJnvXB6ax+vxA%akpm@linux-foundation.org>
+ pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch removed from -mm tree
+Date: Mon, 16 Jun 2014 16:31:54 -0700
+Message-ID: <539f7e6a.mUpLiccIdK0Zul4a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46501 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46505 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752736AbaFPXbw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:31:52 -0400
+	with ESMTP id S1752736AbaFPXby (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:31:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: mm/pagewalk.c: fix end address calculation in walk_page_range()
+     Subject: pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix
 has been removed from the -mm tree.  Its filename was
-     pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch
+     pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/pagewalk.c: fix end address calculation in walk_page_range()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix
 
-When we try to walk over inside a vma, walk_page_range() tries to walk
-until vma->vm_end even if a given end is before that point.
-So this patch takes the smaller one as an end address.
+s/min_t/min/
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/pagewalk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/pagewalk.c~pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range mm/pagewalk.c
---- a/mm/pagewalk.c~pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range
+diff -puN mm/pagewalk.c~pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix mm/pagewalk.c
+--- a/mm/pagewalk.c~pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix
 +++ a/mm/pagewalk.c
-@@ -321,8 +321,9 @@ int walk_page_range(unsigned long start,
+@@ -321,7 +321,7 @@ int walk_page_range(unsigned long start,
  			next = vma->vm_start;
  		} else { /* inside the found vma */
  			walk->vma = vma;
--			next = vma->vm_end;
--			err = walk_page_test(start, end, walk);
-+			next = min_t(unsigned long, end, vma->vm_end);
-+
-+			err = walk_page_test(start, next, walk);
+-			next = min_t(unsigned long, end, vma->vm_end);
++			next = min(end, vma->vm_end);
+ 
+ 			err = walk_page_test(start, next, walk);
  			if (skip_lower_level_walking(walk))
- 				continue;
- 			if (err)
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hwpoison-fix-the-handling-path-of-the-victimized-page-frame-that-belong-to-non-lur.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
 pagewalk-update-page-table-walker-core-fix.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
 pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
 pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-pagewalkc-move-pte-null-check.patch
-mm-prom-pid-clear_refs-avoid-split_huge_page.patch
-mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
-mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control.patch
 mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch
-madvise-cleanup-swapin_walk_pmd_entry.patch
 madvise-cleanup-swapin_walk_pmd_entry-fix.patch
-memcg-separate-mem_cgroup_move_charge_pte_range.patch
 memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
-arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry.patch
-mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
 mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
-mincore-apply-page-table-walker-on-do_mincore.patch
 mincore-apply-page-table-walker-on-do_mincore-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
