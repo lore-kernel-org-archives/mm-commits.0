@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + a.patch added to -mm tree
-Date: Mon, 16 Jun 2014 12:45:37 -0700
-Message-ID: <539f4961.RGVRqoK6y1dQSh1I%akpm@linux-foundation.org>
+Date: Mon, 16 Jun 2014 13:55:02 -0700
+Message-ID: <539f59a6.+/FO60QsCZBKa7G4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45373 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953AbaFPTpi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 15:45:38 -0400
+	with ESMTP id S1755677AbaFPUzD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 16:55:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@kernel.org, akpm@linux-foundation.org
 
 
 The patch titled
@@ -41,6 +41,7 @@ there every 3-4 working days
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: a
 
+Cc: <akpm@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
