@@ -1,90 +1,357 @@
 From: akpm@linux-foundation.org
 Subject: [nacked]
- mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch removed from -mm tree
-Date: Mon, 16 Jun 2014 16:32:30 -0700
-Message-ID: <539f7e8e.6vts6WQnOG5l3K88%akpm@linux-foundation.org>
+ mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control.patch
+ removed from -mm tree
+Date: Mon, 16 Jun 2014 16:32:28 -0700
+Message-ID: <539f7e8c.ekuxurh/PjYaUYYz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46673 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46667 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752967AbaFPXca (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:30 -0400
+	with ESMTP id S1752955AbaFPXc3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, xemul@parallels.com, riel@redhat.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kirill@shutemov.name, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, dave.hansen@intel.com, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix
+     Subject: mm/pagewalk: replace mm_walk->skip with more general mm_walk->control
 has been removed from the -mm tree.  Its filename was
-     mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch
+     mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/pagewalk: replace mm_walk->skip with more general mm_walk->control
 
-fix build
+Originally mm_walk->skip is used to determine whether we walk over a vma
+or not.  But this is not enough because one of the page table walker's
+caller subpage_mark_vma_nohuge(), will need another behavior PTWALK_BREAK,
+which let us break current loop and continue from the beginning of the
+next loop.
 
-fs/proc/task_mmu.c: In function 'clear_refs_pmd':
-fs/proc/task_mmu.c:806: error: 'struct mm_walk' has no member named 'skip'
+To implement this behavior and make it extensible for future users, this
+patch replaces mm_walk->skip with more flexible mm_walk->control, and
+changes its default value to PTWALK_NEXT (which is equivalent to present
+walk->skip == 1.) This is because PTWALK_NEXT provides the behavior which
+is most likely to be used globally.
 
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   20 ++++------
+ include/linux/mm.h |   13 +++++--
+ mm/memcontrol.c    |    5 +-
+ mm/mempolicy.c     |    3 -
+ mm/pagewalk.c      |   79 ++++++++++++++++++++++++++-----------------
+ 5 files changed, 71 insertions(+), 49 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix
+diff -puN fs/proc/task_mmu.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control
 +++ a/fs/proc/task_mmu.c
-@@ -803,7 +803,7 @@ static int clear_refs_pmd(pmd_t *pmd, un
- out:
- 	spin_unlock(ptl);
- 	/* handled as pmd, no need to call clear_refs_pte() */
--	walk->skip = 1;
+@@ -508,9 +508,8 @@ static int smaps_pmd(pmd_t *pmd, unsigne
+ 		smaps_pte((pte_t *)pmd, addr, addr + HPAGE_PMD_SIZE, walk);
+ 		spin_unlock(ptl);
+ 		mss->anonymous_thp += HPAGE_PMD_SIZE;
+-		/* don't call smaps_pte() */
+-		walk->skip = 1;
+-	}
++	} else
++		walk->control = PTWALK_DOWN;
+ 	return 0;
+ }
+ 
+@@ -821,13 +820,14 @@ static int clear_refs_test_walk(unsigned
+ 	 * Writing 4 to /proc/pid/clear_refs affects all pages.
+ 	 */
+ 	if (cp->type == CLEAR_REFS_ANON && vma->vm_file)
+-		walk->skip = 1;
++		return 0;
+ 	if (cp->type == CLEAR_REFS_MAPPED && !vma->vm_file)
+-		walk->skip = 1;
++		return 0;
+ 	if (cp->type == CLEAR_REFS_SOFT_DIRTY) {
+ 		if (vma->vm_flags & VM_SOFTDIRTY)
+ 			vma->vm_flags &= ~VM_SOFTDIRTY;
+ 	}
 +	walk->control = PTWALK_DOWN;
  	return 0;
  }
  
+@@ -1066,9 +1066,8 @@ static int pagemap_pmd(pmd_t *pmd, unsig
+ 				break;
+ 		}
+ 		spin_unlock(ptl);
+-		/* don't call pagemap_pte() */
+-		walk->skip = 1;
+-	}
++	} else
++		walk->control = PTWALK_DOWN;
+ 	return err;
+ }
+ 
+@@ -1348,9 +1347,8 @@ static int gather_pmd_stats(pmd_t *pmd,
+ 			gather_stats(page, md, pte_dirty(huge_pte),
+ 				     HPAGE_PMD_SIZE/PAGE_SIZE);
+ 		spin_unlock(ptl);
+-		/* don't call gather_pte_stats() */
+-		walk->skip = 1;
+-	}
++	} else
++		walk->control = PTWALK_DOWN;
+ 	return 0;
+ }
+ #ifdef CONFIG_HUGETLB_PAGE
+diff -puN include/linux/mm.h~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control include/linux/mm.h
+--- a/include/linux/mm.h~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control
++++ a/include/linux/mm.h
+@@ -1112,8 +1112,7 @@ void unmap_vmas(struct mmu_gather *tlb,
+  *             walk_page_test() for how the skip control works.
+  * @mm:        mm_struct representing the target process of page table walk
+  * @vma:       vma currently walked
+- * @skip:      internal control flag which is set when we skip the lower
+- *             level entries.
++ * @control:   walk control flag
+  * @private:   private data for callbacks' use
+  *
+  * (see the comment on walk_page_range() for more details)
+@@ -1131,10 +1130,18 @@ struct mm_walk {
+ 			struct mm_walk *walk);
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+-	int skip;
++	int control;
+ 	void *private;
+ };
+ 
++enum mm_walk_control {
++	PTWALK_NEXT = 0,	/* Go to the next entry in the same level or
++				 * the next vma. This is default behavior. */
++	PTWALK_DOWN,		/* Go down to lower level */
++	PTWALK_BREAK,		/* Break current loop and continue from the
++				 * next loop */
++};
++
+ int walk_page_range(unsigned long addr, unsigned long end,
+ 		struct mm_walk *walk);
+ int walk_page_vma(struct vm_area_struct *vma, struct mm_walk *walk);
+diff -puN mm/memcontrol.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control
++++ a/mm/memcontrol.c
+@@ -6670,9 +6670,8 @@ static int mem_cgroup_count_precharge_pm
+ 		if (get_mctgt_type_thp(vma, addr, *pmd, NULL) == MC_TARGET_PAGE)
+ 			mc.precharge += HPAGE_PMD_NR;
+ 		spin_unlock(ptl);
+-		/* don't call mem_cgroup_count_precharge_pte() */
+-		walk->skip = 1;
+-	}
++	} else
++		skip->control = PTWALK_DOWN;
+ 	return 0;
+ }
+ 
+diff -puN mm/mempolicy.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control
++++ a/mm/mempolicy.c
+@@ -596,7 +596,6 @@ static int queue_pages_test_walk(unsigne
+ 	}
+ 
+ 	qp->prev = vma;
+-	walk->skip = 1;
+ 
+ 	if (vma->vm_flags & VM_PFNMAP)
+ 		return 0;
+@@ -610,7 +609,7 @@ static int queue_pages_test_walk(unsigne
+ 	    ((flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) &&
+ 	     vma_migratable(vma)))
+ 		/* queue pages from current vma */
+-		walk->skip = 0;
++		walk->control = PTWALK_DOWN;
+ 	return 0;
+ }
+ 
+diff -puN mm/pagewalk.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control
++++ a/mm/pagewalk.c
+@@ -3,22 +3,12 @@
+ #include <linux/sched.h>
+ #include <linux/hugetlb.h>
+ 
+-/*
+- * Check the current skip status of page table walker.
+- *
+- * Here what I mean by skip is to skip lower level walking, and that was
+- * determined for each entry independently. For example, when walk_pmd_range
+- * handles a pmd_trans_huge we don't have to walk over ptes under that pmd,
+- * and the skipping does not affect the walking over ptes under other pmds.
+- * That's why we reset @walk->skip after tested.
+- */
+-static bool skip_lower_level_walking(struct mm_walk *walk)
++static int get_reset_walk_control(struct mm_walk *walk)
+ {
+-	if (walk->skip) {
+-		walk->skip = 0;
+-		return true;
+-	}
+-	return false;
++	int ret = walk->control;
++	/* Reset to default value */
++	walk->control = PTWALK_NEXT;
++	return ret;
+ }
+ 
+ static int walk_pte_range(pmd_t *pmd, unsigned long addr,
+@@ -47,7 +37,18 @@ static int walk_pte_range(pmd_t *pmd, un
+ 		err = walk->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
+ 		if (err)
+ 		       break;
++		switch (get_reset_walk_control(walk)) {
++		case PTWALK_NEXT:
++			continue;
++		case PTWALK_DOWN:
++			break;
++		case PTWALK_BREAK:
++			goto out_unlock;
++		default:
++			BUG();
++		}
+ 	} while (pte++, addr += PAGE_SIZE, addr < end);
++out_unlock:
+ 	pte_unmap_unlock(orig_pte, ptl);
+ 	cond_resched();
+ 	return addr == end ? 0 : err;
+@@ -75,10 +76,16 @@ again:
+ 
+ 		if (walk->pmd_entry) {
+ 			err = walk->pmd_entry(pmd, addr, next, walk);
+-			if (skip_lower_level_walking(walk))
+-				continue;
+ 			if (err)
+ 				break;
++			switch (get_reset_walk_control(walk)) {
++			case PTWALK_NEXT:
++				continue;
++			case PTWALK_DOWN:
++				break;
++			default:
++				BUG();
++			}
+ 		}
+ 
+ 		if (walk->pte_entry) {
+@@ -204,13 +211,13 @@ static inline int walk_hugetlb_range(uns
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
+ /*
+- * Decide whether we really walk over the current vma on [@start, @end)
+- * or skip it. When we skip it, we set @walk->skip to 1.
+- * The return value is used to control the page table walking to
+- * continue (for zero) or not (for non-zero).
++ * Decide whether we really walk over the current vma on [@start, @end) or
++ * skip it. If we walk over it, we should set @walk->control to PTWALK_DOWN.
++ * Otherwise, we skip it. The return value is used to control the current
++ * walking to continue (for zero) or terminate (for non-zero).
+  *
+- * Default check (only VM_PFNMAP check for now) is used when the caller
+- * doesn't define test_walk() callback.
++ * We fall through to the default check if the caller doesn't define its own
++ * test_walk() callback.
+  */
+ static int walk_page_test(unsigned long start, unsigned long end,
+ 			struct mm_walk *walk)
+@@ -224,8 +231,8 @@ static int walk_page_test(unsigned long
+ 	 * Do not walk over vma(VM_PFNMAP), because we have no valid struct
+ 	 * page backing a VM_PFNMAP range. See also commit a9ff785e4437.
+ 	 */
+-	if (vma->vm_flags & VM_PFNMAP)
+-		walk->skip = 1;
++	if (!(vma->vm_flags & VM_PFNMAP))
++		walk->control = PTWALK_DOWN;
+ 	return 0;
+ }
+ 
+@@ -266,7 +273,7 @@ static int __walk_page_range(unsigned lo
+  * defines test_walk(), pmd_entry(), and pte_entry(), then callbacks are
+  * called in the order of test_walk(), pmd_entry(), and pte_entry().
+  * If you don't want to go down to lower level at some point and move to
+- * the next entry in the same level, you set @walk->skip to 1.
++ * the next entry in the same level, you set @walk->control to PTWALK_DOWN.
+  * For example if you succeed to handle some pmd entry as trans_huge entry,
+  * you need not call walk_pte_range() any more, so set it to avoid that.
+  * We can't determine whether to go down to lower level with the return
+@@ -310,10 +317,16 @@ int walk_page_range(unsigned long start,
+ 			next = min(end, vma->vm_end);
+ 
+ 			err = walk_page_test(start, next, walk);
+-			if (skip_lower_level_walking(walk))
+-				continue;
+ 			if (err)
+ 				break;
++			switch (get_reset_walk_control(walk)) {
++			case PTWALK_NEXT:
++				continue;
++			case PTWALK_DOWN:
++				break;
++			default:
++				BUG();
++			}
+ 		}
+ 		err = __walk_page_range(start, next, walk);
+ 		if (err)
+@@ -333,9 +346,15 @@ int walk_page_vma(struct vm_area_struct
+ 	VM_BUG_ON(!vma);
+ 	walk->vma = vma;
+ 	err = walk_page_test(vma->vm_start, vma->vm_end, walk);
+-	if (skip_lower_level_walking(walk))
+-		return 0;
+ 	if (err)
+ 		return err;
++	switch (get_reset_walk_control(walk)) {
++	case PTWALK_NEXT:
++		return 0;
++	case PTWALK_DOWN:
++		break;
++	default:
++		BUG();
++	}
+ 	return __walk_page_range(vma->vm_start, vma->vm_end, walk);
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+hwpoison-fix-the-handling-path-of-the-victimized-page-frame-that-belong-to-non-lur.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch
+madvise-cleanup-swapin_walk_pmd_entry.patch
 madvise-cleanup-swapin_walk_pmd_entry-fix.patch
+memcg-separate-mem_cgroup_move_charge_pte_range.patch
 memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
+arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry.patch
+mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
 mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
+mincore-apply-page-table-walker-on-do_mincore.patch
 mincore-apply-page-table-walker-on-do_mincore-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
