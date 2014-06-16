@@ -1,36 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [nacked]
- numa_maps-redefine-callback-functions-for-page-table-walker.patch removed
- from -mm tree
-Date: Mon, 16 Jun 2014 16:32:08 -0700
-Message-ID: <539f7e78.W71MhTLUynAKZA1y%akpm@linux-foundation.org>
+ memcg-redefine-callback-functions-for-page-table-walker.patch removed from
+ -mm tree
+Date: Mon, 16 Jun 2014 16:32:10 -0700
+Message-ID: <539f7e7a.5sluIIa9J8DJoNZe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46571 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46587 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752736AbaFPXcJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:09 -0400
+	with ESMTP id S1752736AbaFPXcL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, xemul@parallels.com, riel@redhat.com, mpm@selenic.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, cpw@sgi.com, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: numa_maps: redefine callback functions for page table walker
+     Subject: memcg: redefine callback functions for page table walker
 has been removed from the -mm tree.  Its filename was
-     numa_maps-redefine-callback-functions-for-page-table-walker.patch
+     memcg-redefine-callback-functions-for-page-table-walker.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: numa_maps: redefine callback functions for page table walker
+Subject: memcg: redefine callback functions for page table walker
 
-gather_pte_stats() connected to pmd_entry() does both of pmd loop and pte
-loop.  So this patch moves pte part into pte_entry().
+Move code around pte loop in mem_cgroup_count_precharge_pte_range() into
+mem_cgroup_count_precharge_pte() connected to pte_entry().
+
+We don't change the callback mem_cgroup_move_charge_pte_range() for now,
+because we can't do the same replacement easily due to 'goto retry'.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Matt Mackall <mpm@selenic.com>
@@ -47,118 +50,129 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   54 ++++++++++++++++++++-----------------------
- 1 file changed, 26 insertions(+), 28 deletions(-)
+ mm/memcontrol.c |   71 +++++++++++++++++-----------------------------
+ 1 file changed, 27 insertions(+), 44 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~numa_maps-redefine-callback-functions-for-page-table-walker fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~numa_maps-redefine-callback-functions-for-page-table-walker
-+++ a/fs/proc/task_mmu.c
-@@ -1203,7 +1203,6 @@ const struct file_operations proc_pagema
- #ifdef CONFIG_NUMA
- 
- struct numa_maps {
--	struct vm_area_struct *vma;
- 	unsigned long pages;
- 	unsigned long anon;
- 	unsigned long active;
-@@ -1269,43 +1268,41 @@ static struct page *can_gather_numa_stat
- 	return page;
+diff -puN mm/memcontrol.c~memcg-redefine-callback-functions-for-page-table-walker mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-redefine-callback-functions-for-page-table-walker
++++ a/mm/memcontrol.c
+@@ -6650,30 +6650,29 @@ static inline enum mc_target_type get_mc
  }
+ #endif
  
--static int gather_pte_stats(pmd_t *pmd, unsigned long addr,
-+static int gather_pte_stats(pte_t *pte, unsigned long addr,
- 		unsigned long end, struct mm_walk *walk)
+-static int mem_cgroup_count_precharge_pte_range(pmd_t *pmd,
++static int mem_cgroup_count_precharge_pte(pte_t *pte,
+ 					unsigned long addr, unsigned long end,
+ 					struct mm_walk *walk)
  {
--	struct numa_maps *md;
--	spinlock_t *ptl;
--	pte_t *orig_pte;
+-	struct vm_area_struct *vma = walk->private;
 -	pte_t *pte;
-+	struct numa_maps *md = walk->private;
- 
--	md = walk->private;
-+	struct page *page = can_gather_numa_stats(*pte, walk->vma, addr);
-+	if (!page)
-+		return 0;
-+	gather_stats(page, md, pte_dirty(*pte), 1);
++	if (get_mctgt_type(walk->vma, addr, *pte, NULL))
++		mc.precharge++;	/* increment precharge temporarily */
 +	return 0;
 +}
- 
--	if (pmd_trans_huge_lock(pmd, md->vma, &ptl) == 1) {
-+static int gather_pmd_stats(pmd_t *pmd, unsigned long addr,
-+		unsigned long end, struct mm_walk *walk)
-+{
-+	struct numa_maps *md = walk->private;
-+	struct vm_area_struct *vma = walk->vma;
-+	spinlock_t *ptl;
 +
-+	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
- 		pte_t huge_pte = *(pte_t *)pmd;
- 		struct page *page;
++static int mem_cgroup_count_precharge_pmd(pmd_t *pmd,
++					unsigned long addr, unsigned long end,
++					struct mm_walk *walk)
++{
++	struct vm_area_struct *vma = walk->vma;
+ 	spinlock_t *ptl;
  
--		page = can_gather_numa_stats(huge_pte, md->vma, addr);
-+		page = can_gather_numa_stats(huge_pte, vma, addr);
- 		if (page)
- 			gather_stats(page, md, pte_dirty(huge_pte),
- 				     HPAGE_PMD_SIZE/PAGE_SIZE);
+ 	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
+ 		if (get_mctgt_type_thp(vma, addr, *pmd, NULL) == MC_TARGET_PAGE)
+ 			mc.precharge += HPAGE_PMD_NR;
  		spin_unlock(ptl);
 -		return 0;
-+		/* don't call gather_pte_stats() */
++		/* don't call mem_cgroup_count_precharge_pte() */
 +		walk->skip = 1;
  	}
 -
 -	if (pmd_trans_unstable(pmd))
 -		return 0;
--	orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
--	do {
--		struct page *page = can_gather_numa_stats(*pte, md->vma, addr);
--		if (!page)
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	for (; addr != end; pte++, addr += PAGE_SIZE)
+-		if (get_mctgt_type(vma, addr, *pte, NULL))
+-			mc.precharge++;	/* increment precharge temporarily */
+-	pte_unmap_unlock(pte - 1, ptl);
+-	cond_resched();
+-
+ 	return 0;
+ }
+ 
+@@ -6682,18 +6681,14 @@ static unsigned long mem_cgroup_count_pr
+ 	unsigned long precharge;
+ 	struct vm_area_struct *vma;
+ 
++	struct mm_walk mem_cgroup_count_precharge_walk = {
++		.pmd_entry = mem_cgroup_count_precharge_pmd,
++		.pte_entry = mem_cgroup_count_precharge_pte,
++		.mm = mm,
++	};
+ 	down_read(&mm->mmap_sem);
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+-		struct mm_walk mem_cgroup_count_precharge_walk = {
+-			.pmd_entry = mem_cgroup_count_precharge_pte_range,
+-			.mm = mm,
+-			.private = vma,
+-		};
+-		if (is_vm_hugetlb_page(vma))
 -			continue;
--		gather_stats(page, md, pte_dirty(*pte), 1);
--
--	} while (pte++, addr += PAGE_SIZE, addr != end);
--	pte_unmap_unlock(orig_pte, ptl);
- 	return 0;
- }
- #ifdef CONFIG_HUGETLB_PAGE
--static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
-+static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
- 		unsigned long addr, unsigned long end, struct mm_walk *walk)
+-		walk_page_range(vma->vm_start, vma->vm_end,
+-					&mem_cgroup_count_precharge_walk);
+-	}
++	for (vma = mm->mmap; vma; vma = vma->vm_next)
++		walk_page_vma(vma, &mem_cgroup_count_precharge_walk);
+ 	up_read(&mm->mmap_sem);
+ 
+ 	precharge = mc.precharge;
+@@ -6832,7 +6827,7 @@ static int mem_cgroup_move_charge_pte_ra
+ 				struct mm_walk *walk)
  {
- 	struct numa_maps *md;
-@@ -1324,7 +1321,7 @@ static int gather_hugetbl_stats(pte_t *p
+ 	int ret = 0;
+-	struct vm_area_struct *vma = walk->private;
++	struct vm_area_struct *vma = walk->vma;
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
+ 	enum mc_target_type target_type;
+@@ -6933,6 +6928,10 @@ put:			/* get_mctgt_type() gets the page
+ static void mem_cgroup_move_charge(struct mm_struct *mm)
+ {
+ 	struct vm_area_struct *vma;
++	struct mm_walk mem_cgroup_move_charge_walk = {
++		.pmd_entry = mem_cgroup_move_charge_pte_range,
++		.mm = mm,
++	};
+ 
+ 	lru_add_drain_all();
+ retry:
+@@ -6948,24 +6947,8 @@ retry:
+ 		cond_resched();
+ 		goto retry;
+ 	}
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+-		int ret;
+-		struct mm_walk mem_cgroup_move_charge_walk = {
+-			.pmd_entry = mem_cgroup_move_charge_pte_range,
+-			.mm = mm,
+-			.private = vma,
+-		};
+-		if (is_vm_hugetlb_page(vma))
+-			continue;
+-		ret = walk_page_range(vma->vm_start, vma->vm_end,
+-						&mem_cgroup_move_charge_walk);
+-		if (ret)
+-			/*
+-			 * means we have consumed all precharges and failed in
+-			 * doing additional charge. Just abandon here.
+-			 */
+-			break;
+-	}
++	for (vma = mm->mmap; vma; vma = vma->vm_next)
++		walk_page_vma(vma, &mem_cgroup_move_charge_walk);
+ 	up_read(&mm->mmap_sem);
  }
  
- #else
--static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
-+static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
- 		unsigned long addr, unsigned long end, struct mm_walk *walk)
- {
- 	return 0;
-@@ -1354,12 +1351,12 @@ static int show_numa_map(struct seq_file
- 	/* Ensure we start with an empty set of numa_maps statistics. */
- 	memset(md, 0, sizeof(*md));
- 
--	md->vma = vma;
--
--	walk.hugetlb_entry = gather_hugetbl_stats;
--	walk.pmd_entry = gather_pte_stats;
-+	walk.hugetlb_entry = gather_hugetlb_stats;
-+	walk.pmd_entry = gather_pmd_stats;
-+	walk.pte_entry = gather_pte_stats;
- 	walk.private = md;
- 	walk.mm = mm;
-+	walk.vma = vma;
- 
- 	pol = get_vma_policy(task, vma, vma->vm_start);
- 	mpol_to_str(buffer, sizeof(buffer), pol);
-@@ -1390,6 +1387,7 @@ static int show_numa_map(struct seq_file
- 	if (is_vm_hugetlb_page(vma))
- 		seq_puts(m, " huge");
- 
-+	/* mmap_sem is held by m_start */
- 	walk_page_range(vma->vm_start, vma->vm_end, &walk);
- 
- 	if (!md->pages)
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
@@ -168,7 +182,6 @@ mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
 arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
 pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
 pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
