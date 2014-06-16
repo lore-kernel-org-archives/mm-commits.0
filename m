@@ -1,267 +1,626 @@
 From: akpm@linux-foundation.org
-Subject: +
- include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch added
- to -mm tree
-Date: Mon, 16 Jun 2014 16:19:46 -0700
-Message-ID: <539f7b92.46xTibhGA8z2oehV%akpm@linux-foundation.org>
+Subject: [nacked] pagewalk-update-page-table-walker-core.patch removed
+ from -mm tree
+Date: Mon, 16 Jun 2014 16:31:50 -0700
+Message-ID: <539f7e66.kFWQex2PpioUdb/W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46468 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46494 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752012AbaFPXTr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:19:47 -0400
+	with ESMTP id S1752736AbaFPXbv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:31:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rostedt@goodmis.org, hagen@jauu.net, mina86@mina86.com
+To: mm-commits@vger.kernel.org, xemul@parallels.com, riel@redhat.com, mpm@selenic.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, cpw@sgi.com, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: include/linux/kernel.h: rewrite min3, max3 and clamp using min and max
-has been added to the -mm tree.  Its filename is
-     include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
+     Subject: pagewalk: update page table walker core
+has been removed from the -mm tree.  Its filename was
+     pagewalk-update-page-table-walker-core.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Michal Nazarewicz <mina86@mina86.com>
-Subject: include/linux/kernel.h: rewrite min3, max3 and clamp using min and max
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: pagewalk: update page table walker core
 
-It appears that gcc is better at optimising a double call to min and max
-rather than open coded min3 and max3.  This can be observed here:
+This patch updates mm/pagewalk.c to make code less complex and more
+maintainable.  The basic idea is unchanged and there's no userspace visible
+effect.
 
-    $ cat min-max.c
-    #define min(x, y) ({				\
-    	typeof(x) _min1 = (x);			\
-    	typeof(y) _min2 = (y);			\
-    	(void) (&_min1 == &_min2);		\
-    	_min1 < _min2 ? _min1 : _min2; })
-    #define min3(x, y, z) ({			\
-    	typeof(x) _min1 = (x);			\
-    	typeof(y) _min2 = (y);			\
-    	typeof(z) _min3 = (z);			\
-    	(void) (&_min1 == &_min2);		\
-    	(void) (&_min1 == &_min3);		\
-    	_min1 < _min2 ? (_min1 < _min3 ? _min1 : _min3) : \
-    		(_min2 < _min3 ? _min2 : _min3); })
+Most of existing callback functions need access to vma to handle each
+entry.  So we had better add a new member vma in struct mm_walk instead of
+using mm_walk->private, which makes code simpler.
 
-    int fmin3(int x, int y, int z) { return min3(x, y, z); }
-    int fmin2(int x, int y, int z) { return min(min(x, y), z); }
+One problem in current page table walker is that we check vma in pgd loop.
+ Historically this was introduced to support hugetlbfs in the strange
+manner.  It's better and cleaner to do the vma check outside pgd loop.
 
-    $ gcc -O2 -o min-max.s -S min-max.c; cat min-max.s
-    	.file	"min-max.c"
-    	.text
-    	.p2align 4,,15
-    	.globl	fmin3
-    	.type	fmin3, @function
-    fmin3:
-    .LFB0:
-    	.cfi_startproc
-    	cmpl	%esi, %edi
-    	jl	.L5
-    	cmpl	%esi, %edx
-    	movl	%esi, %eax
-    	cmovle	%edx, %eax
-    	ret
-    	.p2align 4,,10
-    	.p2align 3
-    .L5:
-    	cmpl	%edi, %edx
-    	movl	%edi, %eax
-    	cmovle	%edx, %eax
-    	ret
-    	.cfi_endproc
-    .LFE0:
-    	.size	fmin3, .-fmin3
-    	.p2align 4,,15
-    	.globl	fmin2
-    	.type	fmin2, @function
-    fmin2:
-    .LFB1:
-    	.cfi_startproc
-    	cmpl	%edi, %esi
-    	movl	%edx, %eax
-    	cmovle	%esi, %edi
-    	cmpl	%edx, %edi
-    	cmovle	%edi, %eax
-    	ret
-    	.cfi_endproc
-    .LFE1:
-    	.size	fmin2, .-fmin2
-    	.ident	"GCC: (Ubuntu/Linaro 4.6.3-1ubuntu5) 4.6.3"
-    	.section	.note.GNU-stack,"",@progbits
+Another problem is that many users of page table walker now use only
+pmd_entry(), although it does both pmd-walk and pte-walk.  This makes code
+duplication and fluctuation among callers, which worsens the
+maintenability.
 
-fmin3 function, which uses open-coded min3 macro, is compiled into total
-of ten instructions including a conditional branch, whereas fmin2
-function, which uses two calls to min2 macro, is compiled into six
-instructions with no branches.
+One difficulty of code sharing is that the callers want to determine
+whether they try to walk over a specific vma or not in their own way.  To
+solve this, this patch introduces test_walk() callback.
 
-Similarly, open-coded clamp produces the same code as clamp using min and
-max macros, but the latter is much shorter:
+When we try to use multiple callbacks in different levels, skip control is
+also important.  For example we have thp enabled in normal configuration,
+and we are interested in doing some work for a thp.  But sometimes we want
+to split it and handle as normal pages, and in another time user would
+handle both at pmd level and pte level.  What we need is that when we've
+done pmd_entry() we want to decide whether to go down to pte level
+handling based on the pmd_entry()'s result.  So this patch introduces a
+skip control flag in mm_walk.  We can't use the returned value for this
+purpose, because we already defined the meaning of whole range of returned
+values (>0 is to terminate page table walk in caller's specific manner, =0
+is to continue to walk, and <0 is to abort the walk in the general
+manner.)
 
-    $ cat clamp.c
-    #define clamp(val, min, max) ({			\
-    	typeof(val) __val = (val);		\
-    	typeof(min) __min = (min);		\
-    	typeof(max) __max = (max);		\
-    	(void) (&__val == &__min);		\
-    	(void) (&__val == &__max);		\
-    	__val = __val < __min ? __min: __val;	\
-    	__val > __max ? __max: __val; })
-    #define min(x, y) ({				\
-    	typeof(x) _min1 = (x);			\
-    	typeof(y) _min2 = (y);			\
-    	(void) (&_min1 == &_min2);		\
-    	_min1 < _min2 ? _min1 : _min2; })
-    #define max(x, y) ({				\
-    	typeof(x) _max1 = (x);			\
-    	typeof(y) _max2 = (y);			\
-    	(void) (&_max1 == &_max2);		\
-    	_max1 > _max2 ? _max1 : _max2; })
-
-    int fclamp(int v, int min, int max) { return clamp(v, min, max); }
-    int fclampmm(int v, int min, int max) { return min(max(v, min), max); }
-
-    $ gcc -O2 -o clamp.s -S clamp.c; cat clamp.s
-    	.file	"clamp.c"
-    	.text
-    	.p2align 4,,15
-    	.globl	fclamp
-    	.type	fclamp, @function
-    fclamp:
-    .LFB0:
-    	.cfi_startproc
-    	cmpl	%edi, %esi
-    	movl	%edx, %eax
-    	cmovge	%esi, %edi
-    	cmpl	%edx, %edi
-    	cmovle	%edi, %eax
-    	ret
-    	.cfi_endproc
-    .LFE0:
-    	.size	fclamp, .-fclamp
-    	.p2align 4,,15
-    	.globl	fclampmm
-    	.type	fclampmm, @function
-    fclampmm:
-    .LFB1:
-    	.cfi_startproc
-    	cmpl	%edi, %esi
-    	cmovge	%esi, %edi
-    	cmpl	%edi, %edx
-    	movl	%edi, %eax
-    	cmovle	%edx, %eax
-    	ret
-    	.cfi_endproc
-    .LFE1:
-    	.size	fclampmm, .-fclampmm
-    	.ident	"GCC: (Ubuntu/Linaro 4.6.3-1ubuntu5) 4.6.3"
-    	.section	.note.GNU-stack,"",@progbits
-
-Furthermore, after `make allmodconfig && make bzImage modules' this is the
-comparison of image and modules sizes:
-
-    # Without this patch applied
-    $ ls -l arch/x86/boot/bzImage **/*.ko |awk '{size += $5} END {print size}'
-    350715800
-
-    # With this patch applied
-    $ ls -l arch/x86/boot/bzImage **/*.ko |awk '{size += $5} END {print size}'
-    349856528
-
-The above builds were done on:
-
-    $ uname -a; gcc --version
-    Linux mpn-glaptop 3.13.0-29-generic #53~precise1-Ubuntu SMP Wed Jun 4 22:06:25 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
-    gcc (Ubuntu/Linaro 4.6.3-1ubuntu5) 4.6.3
-    Copyright (C) 2011 Free Software Foundation, Inc.
-    This is free software; see the source for copying conditions.  There is NO
-    warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Hagen Paul Pfeifer <hagen@jauu.net>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Cliff Wickman <cpw@sgi.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   32 +++++---------------------------
- 1 file changed, 5 insertions(+), 27 deletions(-)
+ include/linux/mm.h |   18 +-
+ mm/pagewalk.c      |  358 ++++++++++++++++++++++++++-----------------
+ 2 files changed, 238 insertions(+), 138 deletions(-)
 
-diff -puN include/linux/kernel.h~include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max include/linux/kernel.h
---- a/include/linux/kernel.h~include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max
-+++ a/include/linux/kernel.h
-@@ -719,23 +719,8 @@ static inline void ftrace_dump(enum ftra
- 	(void) (&_max1 == &_max2);		\
- 	_max1 > _max2 ? _max1 : _max2; })
- 
--#define min3(x, y, z) ({			\
--	typeof(x) _min1 = (x);			\
--	typeof(y) _min2 = (y);			\
--	typeof(z) _min3 = (z);			\
--	(void) (&_min1 == &_min2);		\
--	(void) (&_min1 == &_min3);		\
--	_min1 < _min2 ? (_min1 < _min3 ? _min1 : _min3) : \
--		(_min2 < _min3 ? _min2 : _min3); })
--
--#define max3(x, y, z) ({			\
--	typeof(x) _max1 = (x);			\
--	typeof(y) _max2 = (y);			\
--	typeof(z) _max3 = (z);			\
--	(void) (&_max1 == &_max2);		\
--	(void) (&_max1 == &_max3);		\
--	_max1 > _max2 ? (_max1 > _max3 ? _max1 : _max3) : \
--		(_max2 > _max3 ? _max2 : _max3); })
-+#define min3(x, y, z) min(min(x, y), z)
-+#define max3(x, y, z) max(max(x, y), z)
- 
- /**
-  * min_not_zero - return the minimum that is _not_ zero, unless both are zero
-@@ -750,20 +735,13 @@ static inline void ftrace_dump(enum ftra
- /**
-  * clamp - return a value clamped to a given range with strict typechecking
-  * @val: current value
-- * @min: minimum allowable value
-- * @max: maximum allowable value
-+ * @lo: lowest allowable value
-+ * @hi: highest allowable value
+diff -puN include/linux/mm.h~pagewalk-update-page-table-walker-core include/linux/mm.h
+--- a/include/linux/mm.h~pagewalk-update-page-table-walker-core
++++ a/include/linux/mm.h
+@@ -1109,10 +1109,18 @@ void unmap_vmas(struct mmu_gather *tlb,
+  * @pte_entry: if set, called for each non-empty PTE (4th-level) entry
+  * @pte_hole: if set, called for each hole at all levels
+  * @hugetlb_entry: if set, called for each hugetlb entry
+- *		   *Caution*: The caller must hold mmap_sem() if @hugetlb_entry
+- * 			      is used.
++ * @test_walk: caller specific callback function to determine whether
++ *             we walk over the current vma or not. A positive returned
++ *             value means "do page table walk over the current vma,"
++ *             and a negative one means "abort current page table walk
++ *             right now." 0 means "skip the current vma."
++ * @mm:        mm_struct representing the target process of page table walk
++ * @vma:       vma currently walked
++ * @skip:      internal control flag which is set when we skip the lower
++ *             level entries.
++ * @private:   private data for callbacks' use
   *
-  * This macro does strict typechecking of min/max to make sure they are of the
-  * same type as val.  See the unnecessary pointer comparisons.
+- * (see walk_page_range for more details)
++ * (see the comment on walk_page_range() for more details)
   */
--#define clamp(val, min, max) ({			\
--	typeof(val) __val = (val);		\
--	typeof(min) __min = (min);		\
--	typeof(max) __max = (max);		\
--	(void) (&__val == &__min);		\
--	(void) (&__val == &__max);		\
--	__val = __val < __min ? __min: __val;	\
--	__val > __max ? __max: __val; })
-+#define clamp(val, lo, hi) min(max(val, lo), hi)
+ struct mm_walk {
+ 	int (*pgd_entry)(pgd_t *pgd, unsigned long addr,
+@@ -1128,7 +1136,11 @@ struct mm_walk {
+ 	int (*hugetlb_entry)(pte_t *pte, unsigned long hmask,
+ 			     unsigned long addr, unsigned long next,
+ 			     struct mm_walk *walk);
++	int (*test_walk)(unsigned long addr, unsigned long next,
++			struct mm_walk *walk);
+ 	struct mm_struct *mm;
++	struct vm_area_struct *vma;
++	int skip;
+ 	void *private;
+ };
  
- /*
-  * ..and if you can't take the strict
+diff -puN mm/pagewalk.c~pagewalk-update-page-table-walker-core mm/pagewalk.c
+--- a/mm/pagewalk.c~pagewalk-update-page-table-walker-core
++++ a/mm/pagewalk.c
+@@ -3,29 +3,58 @@
+ #include <linux/sched.h>
+ #include <linux/hugetlb.h>
+ 
+-static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+-			  struct mm_walk *walk)
++/*
++ * Check the current skip status of page table walker.
++ *
++ * Here what I mean by skip is to skip lower level walking, and that was
++ * determined for each entry independently. For example, when walk_pmd_range
++ * handles a pmd_trans_huge we don't have to walk over ptes under that pmd,
++ * and the skipping does not affect the walking over ptes under other pmds.
++ * That's why we reset @walk->skip after tested.
++ */
++static bool skip_lower_level_walking(struct mm_walk *walk)
++{
++	if (walk->skip) {
++		walk->skip = 0;
++		return true;
++	}
++	return false;
++}
++
++static int walk_pte_range(pmd_t *pmd, unsigned long addr,
++				unsigned long end, struct mm_walk *walk)
+ {
++	struct mm_struct *mm = walk->mm;
+ 	pte_t *pte;
++	pte_t *orig_pte;
++	spinlock_t *ptl;
+ 	int err = 0;
+ 
+-	pte = pte_offset_map(pmd, addr);
+-	for (;;) {
++	orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
++	do {
++		if (pte_none(*pte)) {
++			if (walk->pte_hole)
++				err = walk->pte_hole(addr, addr + PAGE_SIZE,
++							walk);
++			if (err)
++				break;
++			continue;
++		}
++		/*
++		 * Callers should have their own way to handle swap entries
++		 * in walk->pte_entry().
++		 */
+ 		err = walk->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
+ 		if (err)
+ 		       break;
+-		addr += PAGE_SIZE;
+-		if (addr == end)
+-			break;
+-		pte++;
+-	}
+-
+-	pte_unmap(pte);
+-	return err;
++	} while (pte++, addr += PAGE_SIZE, addr < end);
++	pte_unmap_unlock(orig_pte, ptl);
++	cond_resched();
++	return addr == end ? 0 : err;
+ }
+ 
+-static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
+-			  struct mm_walk *walk)
++static int walk_pmd_range(pud_t *pud, unsigned long addr,
++				unsigned long end, struct mm_walk *walk)
+ {
+ 	pmd_t *pmd;
+ 	unsigned long next;
+@@ -35,6 +64,7 @@ static int walk_pmd_range(pud_t *pud, un
+ 	do {
+ again:
+ 		next = pmd_addr_end(addr, end);
++
+ 		if (pmd_none(*pmd)) {
+ 			if (walk->pte_hole)
+ 				err = walk->pte_hole(addr, next, walk);
+@@ -42,35 +72,32 @@ again:
+ 				break;
+ 			continue;
+ 		}
+-		/*
+-		 * This implies that each ->pmd_entry() handler
+-		 * needs to know about pmd_trans_huge() pmds
+-		 */
+-		if (walk->pmd_entry)
+-			err = walk->pmd_entry(pmd, addr, next, walk);
+-		if (err)
+-			break;
+ 
+-		/*
+-		 * Check this here so we only break down trans_huge
+-		 * pages when we _need_ to
+-		 */
+-		if (!walk->pte_entry)
+-			continue;
++		if (walk->pmd_entry) {
++			err = walk->pmd_entry(pmd, addr, next, walk);
++			if (skip_lower_level_walking(walk))
++				continue;
++			if (err)
++				break;
++		}
+ 
+-		split_huge_page_pmd_mm(walk->mm, addr, pmd);
+-		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+-			goto again;
+-		err = walk_pte_range(pmd, addr, next, walk);
+-		if (err)
+-			break;
+-	} while (pmd++, addr = next, addr != end);
++		if (walk->pte_entry) {
++			if (walk->vma) {
++				split_huge_page_pmd(walk->vma, addr, pmd);
++				if (pmd_trans_unstable(pmd))
++					goto again;
++			}
++			err = walk_pte_range(pmd, addr, next, walk);
++			if (err)
++				break;
++		}
++	} while (pmd++, addr = next, addr < end);
+ 
+ 	return err;
+ }
+ 
+-static int walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
+-			  struct mm_walk *walk)
++static int walk_pud_range(pgd_t *pgd, unsigned long addr,
++				unsigned long end, struct mm_walk *walk)
+ {
+ 	pud_t *pud;
+ 	unsigned long next;
+@@ -79,6 +106,7 @@ static int walk_pud_range(pgd_t *pgd, un
+ 	pud = pud_offset(pgd, addr);
+ 	do {
+ 		next = pud_addr_end(addr, end);
++
+ 		if (pud_none_or_clear_bad(pud)) {
+ 			if (walk->pte_hole)
+ 				err = walk->pte_hole(addr, next, walk);
+@@ -86,13 +114,58 @@ static int walk_pud_range(pgd_t *pgd, un
+ 				break;
+ 			continue;
+ 		}
+-		if (walk->pud_entry)
++
++		if (walk->pud_entry) {
+ 			err = walk->pud_entry(pud, addr, next, walk);
+-		if (!err && (walk->pmd_entry || walk->pte_entry))
++			if (skip_lower_level_walking(walk))
++				continue;
++			if (err)
++				break;
++		}
++
++		if (walk->pmd_entry || walk->pte_entry) {
+ 			err = walk_pmd_range(pud, addr, next, walk);
+-		if (err)
+-			break;
+-	} while (pud++, addr = next, addr != end);
++			if (err)
++				break;
++		}
++	} while (pud++, addr = next, addr < end);
++
++	return err;
++}
++
++static int walk_pgd_range(unsigned long addr, unsigned long end,
++			struct mm_walk *walk)
++{
++	pgd_t *pgd;
++	unsigned long next;
++	int err = 0;
++
++	pgd = pgd_offset(walk->mm, addr);
++	do {
++		next = pgd_addr_end(addr, end);
++
++		if (pgd_none_or_clear_bad(pgd)) {
++			if (walk->pte_hole)
++				err = walk->pte_hole(addr, next, walk);
++			if (err)
++				break;
++			continue;
++		}
++
++		if (walk->pgd_entry) {
++			err = walk->pgd_entry(pgd, addr, next, walk);
++			if (skip_lower_level_walking(walk))
++				continue;
++			if (err)
++				break;
++		}
++
++		if (walk->pud_entry || walk->pmd_entry || walk->pte_entry) {
++			err = walk_pud_range(pgd, addr, next, walk);
++			if (err)
++				break;
++		}
++	} while (pgd++, addr = next, addr < end);
+ 
+ 	return err;
+ }
+@@ -105,144 +178,159 @@ static unsigned long hugetlb_entry_end(s
+ 	return boundary < end ? boundary : end;
+ }
+ 
+-static int walk_hugetlb_range(struct vm_area_struct *vma,
+-			      unsigned long addr, unsigned long end,
+-			      struct mm_walk *walk)
++static int walk_hugetlb_range(unsigned long addr, unsigned long end,
++				struct mm_walk *walk)
+ {
++	struct mm_struct *mm = walk->mm;
++	struct vm_area_struct *vma = walk->vma;
+ 	struct hstate *h = hstate_vma(vma);
+ 	unsigned long next;
+ 	unsigned long hmask = huge_page_mask(h);
+ 	pte_t *pte;
+ 	int err = 0;
++	spinlock_t *ptl;
+ 
+ 	do {
+ 		next = hugetlb_entry_end(h, addr, end);
+ 		pte = huge_pte_offset(walk->mm, addr & hmask);
++		ptl = huge_pte_lock(h, mm, pte);
++		/*
++		 * Callers should have their own way to handle swap entries
++		 * in walk->hugetlb_entry().
++		 */
+ 		if (pte && walk->hugetlb_entry)
+ 			err = walk->hugetlb_entry(pte, hmask, addr, next, walk);
++		spin_unlock(ptl);
+ 		if (err)
+-			return err;
++			break;
+ 	} while (addr = next, addr != end);
+-
+-	return 0;
++	cond_resched();
++	return err;
+ }
+ 
+ #else /* CONFIG_HUGETLB_PAGE */
+-static int walk_hugetlb_range(struct vm_area_struct *vma,
+-			      unsigned long addr, unsigned long end,
+-			      struct mm_walk *walk)
++static inline int walk_hugetlb_range(unsigned long addr, unsigned long end,
++				struct mm_walk *walk)
+ {
+ 	return 0;
+ }
+ 
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
++/*
++ * Decide whether we really walk over the current vma on [@start, @end)
++ * or skip it. When we skip it, we set @walk->skip to 1.
++ * The return value is used to control the page table walking to
++ * continue (for zero) or not (for non-zero).
++ *
++ * Default check (only VM_PFNMAP check for now) is used when the caller
++ * doesn't define test_walk() callback.
++ */
++static int walk_page_test(unsigned long start, unsigned long end,
++			struct mm_walk *walk)
++{
++	struct vm_area_struct *vma = walk->vma;
++
++	if (walk->test_walk)
++		return walk->test_walk(start, end, walk);
+ 
++	/*
++	 * Do not walk over vma(VM_PFNMAP), because we have no valid struct
++	 * page backing a VM_PFNMAP range. See also commit a9ff785e4437.
++	 */
++	if (vma->vm_flags & VM_PFNMAP)
++		walk->skip = 1;
++	return 0;
++}
++
++static int __walk_page_range(unsigned long start, unsigned long end,
++			struct mm_walk *walk)
++{
++	int err = 0;
++	struct vm_area_struct *vma = walk->vma;
++
++	if (vma && is_vm_hugetlb_page(vma)) {
++		if (walk->hugetlb_entry)
++			err = walk_hugetlb_range(start, end, walk);
++	} else
++		err = walk_pgd_range(start, end, walk);
++
++	return err;
++}
+ 
+ /**
+- * walk_page_range - walk a memory map's page tables with a callback
+- * @addr: starting address
+- * @end: ending address
+- * @walk: set of callbacks to invoke for each level of the tree
+- *
+- * Recursively walk the page table for the memory area in a VMA,
+- * calling supplied callbacks. Callbacks are called in-order (first
+- * PGD, first PUD, first PMD, first PTE, second PTE... second PMD,
+- * etc.). If lower-level callbacks are omitted, walking depth is reduced.
+- *
+- * Each callback receives an entry pointer and the start and end of the
+- * associated range, and a copy of the original mm_walk for access to
+- * the ->private or ->mm fields.
+- *
+- * Usually no locks are taken, but splitting transparent huge page may
+- * take page table lock. And the bottom level iterator will map PTE
+- * directories from highmem if necessary.
++ * walk_page_range - walk page table with caller specific callbacks
++ *
++ * Recursively walk the page table tree of the process represented by
++ * @walk->mm within the virtual address range [@start, @end). In walking,
++ * we can call caller-specific callback functions against each entry.
++ *
++ * Before starting to walk page table, some callers want to check whether
++ * they really want to walk over the vma (for example by checking vm_flags.)
++ * walk_page_test() and @walk->test_walk() do that check.
++ *
++ * If any callback returns a non-zero value, the page table walk is aborted
++ * immediately and the return value is propagated back to the caller.
++ * Note that the meaning of the positive returned value can be defined
++ * by the caller for its own purpose.
+  *
+- * If any callback returns a non-zero value, the walk is aborted and
+- * the return value is propagated back to the caller. Otherwise 0 is returned.
++ * If the caller defines multiple callbacks in different levels, the
++ * callbacks are called in depth-first manner. It could happen that
++ * multiple callbacks are called on a address. For example if some caller
++ * defines test_walk(), pmd_entry(), and pte_entry(), then callbacks are
++ * called in the order of test_walk(), pmd_entry(), and pte_entry().
++ * If you don't want to go down to lower level at some point and move to
++ * the next entry in the same level, you set @walk->skip to 1.
++ * For example if you succeed to handle some pmd entry as trans_huge entry,
++ * you need not call walk_pte_range() any more, so set it to avoid that.
++ * We can't determine whether to go down to lower level with the return
++ * value of the callback, because the whole range of return values (0, >0,
++ * and <0) are used up for other meanings.
+  *
+- * walk->mm->mmap_sem must be held for at least read if walk->hugetlb_entry
+- * is !NULL.
++ * Each callback can access to the vma over which it is doing page table
++ * walk right now via @walk->vma. @walk->vma is set to NULL in walking
++ * outside a vma. If you want to access to some caller-specific data from
++ * callbacks, @walk->private should be helpful.
++ *
++ * The callers should hold @walk->mm->mmap_sem. Note that the lower level
++ * iterators can take page table lock in lowest level iteration and/or
++ * in split_huge_page_pmd().
+  */
+-int walk_page_range(unsigned long addr, unsigned long end,
++int walk_page_range(unsigned long start, unsigned long end,
+ 		    struct mm_walk *walk)
+ {
+-	pgd_t *pgd;
+-	unsigned long next;
+ 	int err = 0;
++	struct vm_area_struct *vma;
++	unsigned long next;
+ 
+-	if (addr >= end)
+-		return err;
++	if (start >= end)
++		return -EINVAL;
+ 
+ 	if (!walk->mm)
+ 		return -EINVAL;
+ 
+ 	VM_BUG_ON(!rwsem_is_locked(&walk->mm->mmap_sem));
+ 
+-	pgd = pgd_offset(walk->mm, addr);
+ 	do {
+-		struct vm_area_struct *vma = NULL;
+-
+-		next = pgd_addr_end(addr, end);
+-
+-		/*
+-		 * This function was not intended to be vma based.
+-		 * But there are vma special cases to be handled:
+-		 * - hugetlb vma's
+-		 * - VM_PFNMAP vma's
+-		 */
+-		vma = find_vma(walk->mm, addr);
+-		if (vma) {
+-			/*
+-			 * There are no page structures backing a VM_PFNMAP
+-			 * range, so do not allow split_huge_page_pmd().
+-			 */
+-			if ((vma->vm_start <= addr) &&
+-			    (vma->vm_flags & VM_PFNMAP)) {
+-				next = vma->vm_end;
+-				pgd = pgd_offset(walk->mm, next);
+-				continue;
+-			}
+-			/*
+-			 * Handle hugetlb vma individually because pagetable
+-			 * walk for the hugetlb page is dependent on the
+-			 * architecture and we can't handled it in the same
+-			 * manner as non-huge pages.
+-			 */
+-			if (walk->hugetlb_entry && (vma->vm_start <= addr) &&
+-			    is_vm_hugetlb_page(vma)) {
+-				if (vma->vm_end < next)
+-					next = vma->vm_end;
+-				/*
+-				 * Hugepage is very tightly coupled with vma,
+-				 * so walk through hugetlb entries within a
+-				 * given vma.
+-				 */
+-				err = walk_hugetlb_range(vma, addr, next, walk);
+-				if (err)
+-					break;
+-				pgd = pgd_offset(walk->mm, next);
++		vma = find_vma(walk->mm, start);
++		if (!vma) { /* after the last vma */
++			walk->vma = NULL;
++			next = end;
++		} else if (start < vma->vm_start) { /* outside the found vma */
++			walk->vma = NULL;
++			next = vma->vm_start;
++		} else { /* inside the found vma */
++			walk->vma = vma;
++			next = vma->vm_end;
++			err = walk_page_test(start, end, walk);
++			if (skip_lower_level_walking(walk))
+ 				continue;
+-			}
+-		}
+-
+-		if (pgd_none_or_clear_bad(pgd)) {
+-			if (walk->pte_hole)
+-				err = walk->pte_hole(addr, next, walk);
+ 			if (err)
+ 				break;
+-			pgd++;
+-			continue;
+ 		}
+-		if (walk->pgd_entry)
+-			err = walk->pgd_entry(pgd, addr, next, walk);
+-		if (!err &&
+-		    (walk->pud_entry || walk->pmd_entry || walk->pte_entry))
+-			err = walk_pud_range(pgd, addr, next, walk);
++		err = __walk_page_range(start, next, walk);
+ 		if (err)
+ 			break;
+-		pgd++;
+-	} while (addr = next, addr < end);
+-
++	} while (start = next, start < end);
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from mina86@mina86.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-page_alloc-simplify-drain_zone_pages-by-using-min.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-debugging-keep-track-of-page-owners.patch
+hwpoison-fix-the-handling-path-of-the-victimized-page-frame-that-belong-to-non-lur.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagewalk-update-page-table-walker-core-fix.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-pagewalkc-move-pte-null-check.patch
+mm-prom-pid-clear_refs-avoid-split_huge_page.patch
+mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
+mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control.patch
+mm-pagewalk-replace-mm_walk-skip-with-more-general-mm_walk-control-fix.patch
+madvise-cleanup-swapin_walk_pmd_entry.patch
+madvise-cleanup-swapin_walk_pmd_entry-fix.patch
+memcg-separate-mem_cgroup_move_charge_pte_range.patch
+memcg-separate-mem_cgroup_move_charge_pte_range-checkpatch-fixes.patch
+arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry.patch
+mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
+mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
+mincore-apply-page-table-walker-on-do_mincore.patch
+mincore-apply-page-table-walker-on-do_mincore-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
