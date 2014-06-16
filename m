@@ -1,77 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 16 Jun 2014 16:32:44 -0700
-Message-ID: <539f7e9c.HhOLvmr92Kq7cg+9%akpm@linux-foundation.org>
+Subject: [nacked] mincore-apply-page-table-walker-on-do_mincore-fix.patch
+ removed from -mm tree
+Date: Mon, 16 Jun 2014 16:32:48 -0700
+Message-ID: <539f7ea0.g4jF7hoEPyP+ebac%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46731 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46746 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753076AbaFPXco (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:44 -0400
+	with ESMTP id S1753076AbaFPXcs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes
+     Subject: mincore-apply-page-table-walker-on-do_mincore-fix
 has been removed from the -mm tree.  Its filename was
-     mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes.patch
+     mincore-apply-page-table-walker-on-do_mincore-fix.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes
+Subject: mincore-apply-page-table-walker-on-do_mincore-fix
 
-WARNING: line over 80 characters
-#218: FILE: mm/pagewalk.c:87:
-+		 *    table lock to be unlocked in __split_huge_page_splitting(),
-
-total: 0 errors, 1 warnings, 199 lines checked
-
-./patches/mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+mm/mincore.c: In function 'do_mincore':
+mm/mincore.c:166: warning: ISO C90 forbids mixed declarations and code
 
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/mincore.c |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff -puN mm/pagewalk.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes mm/pagewalk.c
---- a/mm/pagewalk.c~mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code-checkpatch-fixes
-+++ a/mm/pagewalk.c
-@@ -78,13 +78,13 @@ again:
- 		/*
- 		 * We don't take compound_lock() here but no race with splitting
- 		 * thp happens because:
--		 *  - if pmd_trans_huge_lock() returns 1, the relevant thp is
--		 *    not under splitting, which means there's no concurrent
--		 *    thp split,
--		 *  - if another thread runs into split_huge_page() just after
--		 *    we entered this if-block, the thread must wait for page
--		 *    table lock to be unlocked in __split_huge_page_splitting(),
--		 *    where the main part of thp split is not executed yet.
-+		 * - if pmd_trans_huge_lock() returns 1, the relevant thp is
-+		 *   not under splitting, which means there's no concurrent
-+		 *   thp split,
-+		 * - if another thread runs into split_huge_page() just after
-+		 *   we entered this if-block, the thread must wait for page
-+		 *   table lock to be unlocked in __split_huge_page_splitting(),
-+		 *   where the main part of thp split is not executed yet.
- 		 */
- 		if (walk->pmd_entry) {
- 			if (pmd_trans_huge_lock(pmd, walk->vma, &ptl) == 1) {
+diff -puN mm/mincore.c~mincore-apply-page-table-walker-on-do_mincore-fix mm/mincore.c
+--- a/mm/mincore.c~mincore-apply-page-table-walker-on-do_mincore-fix
++++ a/mm/mincore.c
+@@ -151,32 +151,34 @@ static int mincore_pmd(pmd_t *pmd, unsig
+  * all the arguments, we hold the mmap semaphore: we should
+  * just return the amount of info we're asked for.
+  */
+-static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *vec)
++static long do_mincore(unsigned long addr, unsigned long pages,
++		       unsigned char *vec)
+ {
+ 	struct vm_area_struct *vma;
+-	unsigned long end;
+ 	int err;
+-
+-	vma = find_vma(current->mm, addr);
+-	if (!vma || addr < vma->vm_start)
+-		return -ENOMEM;
+-
+-	end = min(vma->vm_end, addr + (pages << PAGE_SHIFT));
+-
+ 	struct mm_walk mincore_walk = {
+ 		.pmd_entry = mincore_pmd,
+ 		.pte_entry = mincore_pte,
+ 		.pte_hole = mincore_hole,
+ 		.hugetlb_entry = mincore_hugetlb,
+-		.mm = vma->vm_mm,
+-		.vma = vma,
+ 		.private = vec,
+ 	};
++
++	vma = find_vma(current->mm, addr);
++	if (!vma || addr < vma->vm_start)
++		return -ENOMEM;
++	mincore_walk.vma = vma;
++	mincore_walk.mm = vma->vm_mm;
++
+ 	err = walk_page_vma(vma, &mincore_walk);
+-	if (err < 0)
++	if (err < 0) {
+ 		return err;
+-	else
++	} else {
++		unsigned long end;
++
++		end = min(vma->vm_end, addr + (pages << PAGE_SHIFT));
+ 		return (end - addr) >> PAGE_SHIFT;
++	}
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,7 +104,6 @@ ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during
 mm.patch
 mm-page_allocc-unexport-alloc_pages_exact_nid.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-mincore-apply-page-table-walker-on-do_mincore-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
