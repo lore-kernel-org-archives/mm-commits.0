@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
- removed from -mm tree
-Date: Mon, 16 Jun 2014 15:35:07 -0700
-Message-ID: <539f711b.wOGnfjKMPkjBOPNW%akpm@linux-foundation.org>
+Subject: [withdrawn] memcg-document-memorylow_limit_in_bytes.patch removed from -mm tree
+Date: Mon, 16 Jun 2014 15:35:09 -0700
+Message-ID: <539f711d.Iadp1fwB8d+j4zL1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46093 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46100 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755780AbaFPWfI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 18:35:08 -0400
+	with ESMTP id S1755783AbaFPWfK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 18:35:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walken@google.com, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, klamm@yandex-team.ru, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: memcg-doc-clarify-global-vs-limit-reclaims-fix
+     Subject: memcg: document memory.low_limit_in_bytes
 has been removed from the -mm tree.  Its filename was
-     memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
+     memcg-document-memorylow_limit_in_bytes.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg-doc-clarify-global-vs-limit-reclaims-fix
+Subject: memcg: document memory.low_limit_in_bytes
 
-update doc as per Johannes
+Describe low_limit_in_bytes and its effect.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -42,31 +41,37 @@ Cc: Roman Gushchin <klamm@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ Documentation/cgroups/memory.txt |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-doc-clarify-global-vs-limit-reclaims-fix Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-doc-clarify-global-vs-limit-reclaims-fix
+diff -puN Documentation/cgroups/memory.txt~memcg-document-memorylow_limit_in_bytes Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-document-memorylow_limit_in_bytes
 +++ a/Documentation/cgroups/memory.txt
-@@ -241,17 +241,9 @@ global VM. Cgroups can get reclaimed bas
-    proportionally wrt. their LRU size in a round robin fashion
-  - when a cgroup or its hierarchical parent (see 6. Hierarchical support)
-    hits hard limit. If the reclaim is unsuccessful, an OOM routine is invoked
--   to select and kill the bulkiest task in the cgroup. (See 10. OOM Control
-+   to select and kill the bulkiest task in the hiearchy. (See 10. OOM Control
+@@ -57,6 +57,7 @@ Brief summary of control files.
+  memory.memsw.usage_in_bytes	 # show current res_counter usage for memory+Swap
+ 				 (See 5.5 for details)
+  memory.limit_in_bytes		 # set/show limit of memory usage
++ memory.low_limit_in_bytes	 # set/show low limit for memory reclaim
+  memory.memsw.limit_in_bytes	 # set/show limit of memory+Swap usage
+  memory.failcnt			 # show the number of memory usage hits limits
+  memory.memsw.failcnt		 # show the number of memory+Swap hits limits
+@@ -244,7 +245,15 @@ global VM. Cgroups can get reclaimed bas
+    to select and kill the bulkiest task in the hiearchy. (See 10. OOM Control
     below.)
  
--Global and hard-limit reclaims share the same code the only difference
--is the objective of the reclaim. The global reclaim aims at balancing
--zones' watermarks while the limit reclaim frees some memory to allow new
--charges.
--
--NOTE: Hard limit reclaim does not work for the root cgroup, since we cannot set
--any limits on the root cgroup.
--
- Note2: When panic_on_oom is set to "2", the whole system will panic.
+-Note2: When panic_on_oom is set to "2", the whole system will panic.
++Groups might be also protected from both global and limit reclaim by
++low_limit_in_bytes knob. If the limit is non-zero the reclaim logic
++doesn't include groups (and their subgroups - see 6. Hierarchy support)
++which are bellow the low limit if there is other eligible cgroup in the
++reclaimed hierarchy. If all groups which participate reclaim are under
++their low limits then all of them are reclaimed and the low limit is
++ignored.
++
++Note: When panic_on_oom is set to "2", the whole system will panic.
  
  When oom event notifier is registered, event will be delivered to the root
+ of the memory pressure which cannot be handled (See oom_control section)
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
@@ -89,7 +94,6 @@ memcg-separate-mem_cgroup_move_charge_pte_range.patch
 arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry.patch
 mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
 mincore-apply-page-table-walker-on-do_mincore.patch
-memcg-document-memorylow_limit_in_bytes.patch
 vmscan-memcg-check-whether-the-low-limit-should-be-ignored.patch
 memcg-deprecate-memoryforce_empty-knob.patch
 memcg-deprecate-memoryforce_empty-knob-fix.patch
