@@ -1,70 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_ioc-work-around-gcc-bug.patch removed from -mm
- tree
-Date: Mon, 16 Jun 2014 12:08:55 -0700
-Message-ID: <539f40c7.XRjyujsu9jvEKb4W%akpm@linux-foundation.org>
+Subject: [-] a.patch removed from -mm tree
+Date: Mon, 16 Jun 2014 12:43:16 -0700
+Message-ID: <539f48d4.CsPuFCRVmlOipfCb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44152 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44490 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753498AbaFPTI4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 15:08:56 -0400
+	with ESMTP id S1752199AbaFPTnR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 15:43:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: [merged] mm-page_ioc-work-around-gcc-bug.patch removed from -mm tree
-To: akpm@linux-foundation.org,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [-] a.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 16 Jun 2014 12:08:55 -0700
+Date: Mon, 16 Jun 2014 12:43:16 -0700
 
 
 The patch titled
-     Subject: mm/page_io.c: work around gcc bug
+     Subject: a
 has been removed from the -mm tree.  Its filename was
-     mm-page_ioc-work-around-gcc-bug.patch
+     a.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because xxx
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/page_io.c: work around gcc bug
+Subject: a
 
-gcc-4.4.4 (at least) screws up this initialization.
-
-mm/page_io.c: In function '__swap_writepage':
-mm/page_io.c:277: error: unknown field 'bvec' specified in initializer
-mm/page_io.c:278: warning: excess elements in struct initializer
-mm/page_io.c:278: warning: (near initialization for 'from')
-
-Fixes f990bbc9bfa3cbd2d ("bio_vec-backed iov_iter").
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/open.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_io.c~mm-page_ioc-work-around-gcc-bug mm/page_io.c
---- a/mm/page_io.c~mm-page_ioc-work-around-gcc-bug
-+++ a/mm/page_io.c
-@@ -274,9 +274,11 @@ int __swap_writepage(struct page *page,
- 			.count = PAGE_SIZE,
- 			.iov_offset = 0,
- 			.nr_segs = 1,
--			.bvec = &bv
- 		};
+diff -puN fs/open.c~a fs/open.c
+--- a/fs/open.c~a
++++ a/fs/open.c
+@@ -1107,3 +1107,5 @@ int nonseekable_open(struct inode *inode
+ }
  
-+		/* Do this by hand because old gcc messes up the initializer */
-+		from.bvec = &bv;
+ EXPORT_SYMBOL(nonseekable_open);
 +
- 		init_sync_kiocb(&kiocb, swap_file);
- 		kiocb.ki_pos = page_file_offset(page);
- 		kiocb.ki_nbytes = PAGE_SIZE;
++foo
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,4 +87,5 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+a.patch
 
