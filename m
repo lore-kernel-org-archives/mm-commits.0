@@ -1,112 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] memcg-mm-introduce-lowlimit-reclaim.patch removed
- from -mm tree
-Date: Mon, 16 Jun 2014 15:34:57 -0700
-Message-ID: <539f7111.yB6e5LXcKTDMoj7k%akpm@linux-foundation.org>
+Subject: [withdrawn] memcg-mm-introduce-lowlimit-reclaim-fix.patch removed from -mm tree
+Date: Mon, 16 Jun 2014 15:34:59 -0700
+Message-ID: <539f7113.QVwvM0xulDYLtheo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46058 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46068 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751131AbaFPWe6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 18:34:58 -0400
+	with ESMTP id S1751131AbaFPWfA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 18:35:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walken@google.com, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, klamm@yandex-team.ru, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: memcg, mm: introduce lowlimit reclaim
+     Subject: memcg-mm-introduce-lowlimit-reclaim-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-mm-introduce-lowlimit-reclaim.patch
+     memcg-mm-introduce-lowlimit-reclaim-fix.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg, mm: introduce lowlimit reclaim
+Subject: memcg-mm-introduce-lowlimit-reclaim-fix
 
-Previous discussions have shown that soft limits cannot be reformed
-(http://lwn.net/Articles/555249/).  This series introduces an alternative
-approach for protecting memory allocated to processes executing within a
-memory cgroup controller.  It is based on a new tunable that was discussed
-with Johannes and Tejun held during the kernel summit 2013 and at LSF
-2014.
+mem_cgroup_reclaim_eligible -> mem_cgroup_within_guarantee
+follow_low_limit -> honor_memcg_guarantee
+and as suggested by Johannes.
 
-This patchset introduces such low limit that is functionally similar to a
-minimum guarantee.  Memcgs which are under their lowlimit are not
-considered eligible for the reclaim (both global and hardlimit) unless all
-groups under the reclaimed hierarchy are below the low limit when all of
-them are considered eligible.
-
-The previous version of the patchset posted as a RFC
-(http://marc.info/?l=linux-mm&m=138677140628677&w=2) suggested a hard
-guarantee without any fallback.  More discussions led me to reconsidering
-the default behavior and come up a more relaxed one.  The hard requirement
-can be added later based on a use case which really requires.  It would be
-controlled by memory.reclaim_flags knob which would specify whether to OOM
-or fallback (default) when all groups are bellow low limit.
-
-The default value of the limit is 0 so all groups are eligible by default
-and an interested party has to explicitly set the limit.
-
-The primary use case is to protect an amount of memory allocated to a
-workload without it being reclaimed by an unrelated activity.  In some
-cases this requirement can be fulfilled by mlock but it is not suitable
-for many loads and generally requires application awareness.  Such
-application awareness can be complex.  It effectively forbids the use of
-memory overcommit as the application must explicitly manage memory
-residency.
-
-With the low limit, such workloads can be placed in a memcg with a low
-limit that protects the estimated working set.
-
-The hierarchical behavior of the lowlimit is described in the first patch.
- The second patch allows setting the lowlimit.  The last 2 patches clarify
-documentation about the memcg reclaim in gereneral (3rd patch) and low
-limit (4th patch).
-
-
-This patch (of 5)
-
-This patch introduces low limit reclaim.  The low_limit acts as a reclaim
-protection because groups which are under their low_limit are considered
-ineligible for reclaim.  While hardlimit protects from using more memory
-than allowed lowlimit protects from getting below memory assigned to the
-group due to external memory pressure.
-
-More precisely a group is considered eligible for the reclaim under a
-specific hierarchy represented by its root only if the group is above its
-low limit and the same applies to all parents up the hierarchy to the
-root.  Nevertheless the limit still might be ignored if all groups under
-the reclaimed hierarchy are under their low limits.  This will prevent
-from OOM rather than protecting the memory.
-
-Consider the following hierarchy with memory pressure coming from the
-group A (hard limit reclaim - l-low_limit_in_bytes, u-usage_in_bytes,
-h-limit_in_bytes):
-
-		root_mem_cgroup
-			.
-		  _____/
-		 /
-		A (l = 80 u=90 h=90)
-	       /
-	      / \_________
-	     /            \
-	    B (l=0 u=50)   C (l=50 u=40)
-	                    \
-			     D (l=0 u=30)
-
-A and B are reclaimable but C and D are not (D is protected by C).
-
-The low_limit is 0 by default so every group is eligible.  This patch
-doesn't provide a way to set the limit yet although the core
-infrastructure is there already.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -118,176 +42,124 @@ Cc: Roman Gushchin <klamm@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h  |    9 +++++++++
- include/linux/res_counter.h |   27 +++++++++++++++++++++++++++
- mm/memcontrol.c             |   23 +++++++++++++++++++++++
- mm/vmscan.c                 |   34 +++++++++++++++++++++++++++++++++-
- 4 files changed, 92 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    6 +++---
+ mm/memcontrol.c            |   15 ++++++++-------
+ mm/vmscan.c                |   25 ++++++++++++++++---------
+ 3 files changed, 27 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-mm-introduce-lowlimit-reclaim include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-mm-introduce-lowlimit-reclaim
+diff -puN include/linux/memcontrol.h~memcg-mm-introduce-lowlimit-reclaim-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-mm-introduce-lowlimit-reclaim-fix
 +++ a/include/linux/memcontrol.h
-@@ -92,6 +92,9 @@ bool __mem_cgroup_same_or_subtree(const
+@@ -92,7 +92,7 @@ bool __mem_cgroup_same_or_subtree(const
  bool task_in_mem_cgroup(struct task_struct *task,
  			const struct mem_cgroup *memcg);
  
-+extern bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
-+		struct mem_cgroup *root);
-+
- extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
- extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
+-extern bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
++extern bool mem_cgroup_within_guarantee(struct mem_cgroup *memcg,
+ 		struct mem_cgroup *root);
  
-@@ -288,6 +291,12 @@ static inline struct lruvec *mem_cgroup_
+ extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
+@@ -291,10 +291,10 @@ static inline struct lruvec *mem_cgroup_
  	return &zone->lruvec;
  }
  
-+static inline bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
-+		struct mem_cgroup *root)
-+{
-+	return true;
-+}
-+
+-static inline bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
++static inline bool mem_cgroup_within_guarantee(struct mem_cgroup *memcg,
+ 		struct mem_cgroup *root)
+ {
+-	return true;
++	return false;
+ }
+ 
  static inline struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
- {
- 	return NULL;
-diff -puN include/linux/res_counter.h~memcg-mm-introduce-lowlimit-reclaim include/linux/res_counter.h
---- a/include/linux/res_counter.h~memcg-mm-introduce-lowlimit-reclaim
-+++ a/include/linux/res_counter.h
-@@ -40,6 +40,11 @@ struct res_counter {
- 	 */
- 	unsigned long long soft_limit;
- 	/*
-+	 * the limit under which the usage cannot be pushed
-+	 * due to external pressure.
-+	 */
-+	unsigned long long low_limit;
-+	/*
- 	 * the number of unsuccessful attempts to consume the resource
- 	 */
- 	unsigned long long failcnt;
-@@ -174,6 +179,28 @@ res_counter_soft_limit_excess(struct res
- 	spin_unlock_irqrestore(&cnt->lock, flags);
- 	return excess;
- }
-+
-+/**
-+ * Get the difference between the usage and the low limit
-+ * @cnt: The counter
-+ *
-+ * Returns 0 if usage is less than or equal to low limit
-+ * The difference between usage and low limit, otherwise.
-+ */
-+static inline unsigned long long
-+res_counter_low_limit_excess(struct res_counter *cnt)
-+{
-+	unsigned long long excess;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	if (cnt->usage <= cnt->low_limit)
-+		excess = 0;
-+	else
-+		excess = cnt->usage - cnt->low_limit;
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return excess;
-+}
- 
- static inline void res_counter_reset_max(struct res_counter *cnt)
- {
-diff -puN mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim
+diff -puN mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-mm-introduce-lowlimit-reclaim-fix
 +++ a/mm/memcontrol.c
-@@ -2779,6 +2779,29 @@ static struct mem_cgroup *mem_cgroup_loo
- 	return mem_cgroup_from_id(id);
+@@ -2780,26 +2780,27 @@ static struct mem_cgroup *mem_cgroup_loo
  }
  
-+/**
-+ * mem_cgroup_reclaim_eligible - checks whether given memcg is eligible for the
-+ * reclaim
-+ * @memcg: target memcg for the reclaim
-+ * @root: root of the reclaim hierarchy (null for the global reclaim)
-+ *
-+ * The given group is reclaimable if it is above its low limit and the same
-+ * applies for all parents up the hierarchy until root (including).
-+ */
-+bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
-+		struct mem_cgroup *root)
-+{
-+	do {
-+		if (!res_counter_low_limit_excess(&memcg->res))
-+			return false;
-+		if (memcg == root)
-+			break;
-+
-+	} while ((memcg = parent_mem_cgroup(memcg)));
-+
-+	return true;
-+}
-+
- struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
+ /**
+- * mem_cgroup_reclaim_eligible - checks whether given memcg is eligible for the
+- * reclaim
++ * mem_cgroup_within_guarantee - checks whether given memcg is within its
++ * memory guarantee
+  * @memcg: target memcg for the reclaim
+  * @root: root of the reclaim hierarchy (null for the global reclaim)
+  *
+- * The given group is reclaimable if it is above its low limit and the same
+- * applies for all parents up the hierarchy until root (including).
++ * The given group is within its reclaim gurantee if it is below its low limit
++ * or the same applies for any parent up the hierarchy until root (including).
++ * Such a group might be excluded from the reclaim.
+  */
+-bool mem_cgroup_reclaim_eligible(struct mem_cgroup *memcg,
++bool mem_cgroup_within_guarantee(struct mem_cgroup *memcg,
+ 		struct mem_cgroup *root)
  {
- 	struct mem_cgroup *memcg = NULL;
-diff -puN mm/vmscan.c~memcg-mm-introduce-lowlimit-reclaim mm/vmscan.c
---- a/mm/vmscan.c~memcg-mm-introduce-lowlimit-reclaim
+ 	do {
+ 		if (!res_counter_low_limit_excess(&memcg->res))
+-			return false;
++			return true;
+ 		if (memcg == root)
+ 			break;
+ 
+ 	} while ((memcg = parent_mem_cgroup(memcg)));
+ 
+-	return true;
++	return false;
+ }
+ 
+ struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
+diff -puN mm/vmscan.c~memcg-mm-introduce-lowlimit-reclaim-fix mm/vmscan.c
+--- a/mm/vmscan.c~memcg-mm-introduce-lowlimit-reclaim-fix
 +++ a/mm/vmscan.c
-@@ -2231,9 +2231,11 @@ static inline bool should_continue_recla
+@@ -2231,8 +2231,18 @@ static inline bool should_continue_recla
  	}
  }
  
--static void shrink_zone(struct zone *zone, struct scan_control *sc)
-+static unsigned __shrink_zone(struct zone *zone, struct scan_control *sc,
-+		bool follow_low_limit)
++/**
++ * __shrink_zone - shrinks a given zone
++ *
++ * @zone: zone to shrink
++ * @sc: scan control with additional reclaim parameters
++ * @honor_memcg_guarantee: do not reclaim memcgs which are within their memory
++ * guarantee
++ *
++ * Returns the number of reclaimed memcgs.
++ */
+ static unsigned __shrink_zone(struct zone *zone, struct scan_control *sc,
+-		bool follow_low_limit)
++		bool honor_memcg_guarantee)
  {
  	unsigned long nr_reclaimed, nr_scanned;
-+	unsigned nr_scanned_groups = 0;
- 
- 	do {
- 		struct mem_cgroup *root = sc->target_mem_cgroup;
-@@ -2250,7 +2252,23 @@ static void shrink_zone(struct zone *zon
+ 	unsigned nr_scanned_groups = 0;
+@@ -2252,12 +2262,9 @@ static unsigned __shrink_zone(struct zon
  		do {
  			struct lruvec *lruvec;
  
-+			/*
-+			 * Memcg might be under its low limit so we have to
-+			 * skip it during the first reclaim round
-+			 */
-+			if (follow_low_limit &&
-+					!mem_cgroup_reclaim_eligible(memcg, root)) {
-+				/*
-+				 * It would be more optimal to skip the memcg
-+				 * subtree now but we do not have a memcg iter
-+				 * helper for that. Anyone?
-+				 */
-+				memcg = mem_cgroup_iter(root, memcg, &reclaim);
-+				continue;
-+			}
-+
- 			lruvec = mem_cgroup_zone_lruvec(zone, memcg);
-+			nr_scanned_groups++;
- 
- 			sc->swappiness = mem_cgroup_swappiness(memcg);
- 			shrink_lruvec(lruvec, sc);
-@@ -2279,6 +2297,20 @@ static void shrink_zone(struct zone *zon
- 
- 	} while (should_continue_reclaim(zone, sc->nr_reclaimed - nr_reclaimed,
- 					 sc->nr_scanned - nr_scanned, sc));
-+
-+	return nr_scanned_groups;
-+}
-+
-+static void shrink_zone(struct zone *zone, struct scan_control *sc)
-+{
-+	if (!__shrink_zone(zone, sc, true)) {
-+		/*
-+		 * First round of reclaim didn't find anything to reclaim
-+		 * because of low limit protection so try again and ignore
-+		 * the low limit this time.
-+		 */
-+		__shrink_zone(zone, sc, false);
-+	}
- }
- 
- /* Returns true if compaction should go ahead for a high-order request */
+-			/*
+-			 * Memcg might be under its low limit so we have to
+-			 * skip it during the first reclaim round
+-			 */
+-			if (follow_low_limit &&
+-					!mem_cgroup_reclaim_eligible(memcg, root)) {
++			/* Memcg might be protected from the reclaim */
++			if (honor_memcg_guarantee &&
++					mem_cgroup_within_guarantee(memcg, root)) {
+ 				/*
+ 				 * It would be more optimal to skip the memcg
+ 				 * subtree now but we do not have a memcg iter
+@@ -2306,8 +2313,8 @@ static void shrink_zone(struct zone *zon
+ 	if (!__shrink_zone(zone, sc, true)) {
+ 		/*
+ 		 * First round of reclaim didn't find anything to reclaim
+-		 * because of low limit protection so try again and ignore
+-		 * the low limit this time.
++		 * because of the memory guantees for all memcgs in the
++		 * reclaim target so try again and ignore guarantees this time.
+ 		 */
+ 		__shrink_zone(zone, sc, false);
+ 	}
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
@@ -310,8 +182,6 @@ memcg-separate-mem_cgroup_move_charge_pte_range.patch
 arch-powerpc-mm-subpage-protc-cleanup-subpage_walk_pmd_entry.patch
 mm-pagewalk-move-pmd_trans_huge_lock-from-callbacks-to-common-code.patch
 mincore-apply-page-table-walker-on-do_mincore.patch
-memcg-mm-introduce-lowlimit-reclaim-fix.patch
-memcg-mm-introduce-lowlimit-reclaim-fix2patch.patch
 memcg-allow-setting-low_limit.patch
 memcg-doc-clarify-global-vs-limit-reclaims.patch
 memcg-doc-clarify-global-vs-limit-reclaims-fix.patch
