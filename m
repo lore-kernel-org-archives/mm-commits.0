@@ -1,32 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [-] a.patch removed from -mm tree
-Date: Mon, 16 Jun 2014 12:43:16 -0700
-Message-ID: <539f48d4.CsPuFCRVmlOipfCb%akpm@linux-foundation.org>
+Subject: + a.patch added to -mm tree
+Date: Mon, 16 Jun 2014 12:45:37 -0700
+Message-ID: <539f4961.RGVRqoK6y1dQSh1I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44492 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752199AbaFPTnR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 15:43:17 -0400
+	with ESMTP id S1750953AbaFPTpi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 15:45:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: [-] a.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
-From: akpm@linux-foundation.org
-Date: Mon, 16 Jun 2014 12:43:16 -0700
-
 
 The patch titled
      Subject: a
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      a.patch
 
-This patch was dropped because xxx
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/a.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/a.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
