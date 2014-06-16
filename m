@@ -1,156 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Mon, 16 Jun 2014 12:07:49 -0700
-Message-ID: <539f4085.wk+PrxhjB7xX970+%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 16 Jun 2014 12:07:59 -0700
+Message-ID: <539f408f.3U9bECmYFAb/M9Fu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44076 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44077 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755448AbaFPTHx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 15:07:53 -0400
+	with ESMTP id S1755781AbaFPTH7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 15:07:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
 To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 16 Jun 2014 12:07:49 -0700
+Date: Mon, 16 Jun 2014 12:07:59 -0700
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     linux-next-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile        |    6 ++-
- fs/ocfs2/file.c |   79 ----------------------------------------------
- 2 files changed, 4 insertions(+), 81 deletions(-)
+ drivers/scsi/virtio_scsi.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN Makefile~linux-next-rejects Makefile
---- a/Makefile~linux-next-rejects
-+++ a/Makefile
-@@ -621,6 +621,10 @@ endif # $(dot-config)
- # Defaults to vmlinux, but the arch makefile usually adds further targets
- all: vmlinux
+diff -puN drivers/scsi/virtio_scsi.c~linux-next-git-rejects drivers/scsi/virtio_scsi.c
+--- a/drivers/scsi/virtio_scsi.c~linux-next-git-rejects
++++ a/drivers/scsi/virtio_scsi.c
+@@ -514,10 +514,6 @@ static int virtscsi_queuecommand(struct
  
-+include $(srctree)/arch/$(SRCARCH)/Makefile
-+
-+KBUILD_CFLAGS	+= $(call cc-option,-fno-delete-null-pointer-checks,)
-+
- ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
- KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
- else
-@@ -630,8 +634,6 @@ endif
- # Tell gcc to never replace conditional load with a non-conditional one
- KBUILD_CFLAGS	+= $(call cc-option,--param allow-store-data-races=0)
+ 	BUG_ON(sc->cmd_len > VIRTIO_SCSI_CDB_SIZE);
  
--include $(srctree)/arch/$(SRCARCH)/Makefile
--
- ifdef CONFIG_READABLE_ASM
- # Disable optimizations that make assembler listings hard to read.
- # reorder blocks reorders the control in the function
-diff -puN fs/ocfs2/file.c~linux-next-rejects fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~linux-next-rejects
-+++ a/fs/ocfs2/file.c
-@@ -2446,85 +2446,6 @@ out_sems:
- 	return ret;
+-<<<<<<< HEAD
+-	if (virtscsi_kick_cmd(req_vq, cmd,
+-			      sizeof cmd->req.cmd, sizeof cmd->resp.cmd) != 0)
+-=======
+ 	if (virtio_has_feature(vscsi->vdev, VIRTIO_SCSI_F_T10_PI)) {
+ 		virtio_scsi_init_hdr_pi(&cmd->req.cmd_pi, sc);
+ 		memcpy(cmd->req.cmd_pi.cdb, sc->cmnd, sc->cmd_len);
+@@ -529,7 +525,6 @@ static int virtscsi_queuecommand(struct
+ 	}
+ 
+ 	if (virtscsi_kick_cmd(req_vq, cmd, req_size, sizeof cmd->resp.cmd) != 0)
+->>>>>>> linux-next/akpm-base
+ 		return SCSI_MLQUEUE_HOST_BUSY;
+ 	return 0;
  }
- 
--static int ocfs2_splice_to_file(struct pipe_inode_info *pipe,
--				struct file *out,
--				struct splice_desc *sd)
--{
--	int ret;
--
--	ret = ocfs2_prepare_inode_for_write(out, &sd->pos,
--					    sd->total_len, 0, NULL, NULL,
--					    NULL);
--	if (ret < 0) {
--		mlog_errno(ret);
--		return ret;
--	}
--
--	return splice_from_pipe_feed(pipe, sd, pipe_to_file);
--}
--
--static ssize_t ocfs2_file_splice_write(struct pipe_inode_info *pipe,
--				       struct file *out,
--				       loff_t *ppos,
--				       size_t len,
--				       unsigned int flags)
--{
--	int ret;
--	struct address_space *mapping = out->f_mapping;
--	struct inode *inode = mapping->host;
--	struct splice_desc sd = {
--		.total_len = len,
--		.flags = flags,
--		.pos = *ppos,
--		.u.file = out,
--	};
--
--
--	trace_ocfs2_file_splice_write(inode, out, out->f_path.dentry,
--			(unsigned long long)OCFS2_I(inode)->ip_blkno,
--			out->f_path.dentry->d_name.len,
--			out->f_path.dentry->d_name.name, len);
--
--	pipe_lock(pipe);
--
--	splice_from_pipe_begin(&sd);
--	do {
--		ret = splice_from_pipe_next(pipe, &sd);
--		if (ret <= 0)
--			break;
--
--		mutex_lock_nested(&inode->i_mutex, I_MUTEX_CHILD);
--		ret = ocfs2_rw_lock(inode, 1);
--		if (ret < 0)
--			mlog_errno(ret);
--		else {
--			ret = ocfs2_splice_to_file(pipe, out, &sd);
--			ocfs2_rw_unlock(inode, 1);
--		}
--		mutex_unlock(&inode->i_mutex);
--	} while (ret > 0);
--	splice_from_pipe_end(pipe, &sd);
--
--	pipe_unlock(pipe);
--
--	if (sd.num_spliced)
--		ret = sd.num_spliced;
--
--	if (ret > 0) {
--		int err;
--
--		err = generic_write_sync(out, *ppos, ret);
--		if (err)
--			ret = err;
--		else
--			*ppos += ret;
--
--		balance_dirty_pages_ratelimited(mapping);
--	}
--
--	return ret;
--}
--
- static ssize_t ocfs2_file_splice_read(struct file *in,
- 				      loff_t *ppos,
- 				      struct pipe_inode_info *pipe,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -180,7 +89,6 @@ mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
 linux-next.patch
-linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 mm-page_ioc-work-around-gcc-bug.patch
 mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
