@@ -1,34 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] pagewalk-add-walk_page_vma.patch removed from -mm tree
-Date: Mon, 16 Jun 2014 16:31:58 -0700
-Message-ID: <539f7e6e.C7/nM03lIeTzZzvc%akpm@linux-foundation.org>
+Subject: [nacked]
+ smaps-redefine-callback-functions-for-page-table-walker.patch removed from
+ -mm tree
+Date: Mon, 16 Jun 2014 16:32:00 -0700
+Message-ID: <539f7e70.Dq/VLTni5iaN9CDy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46519 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46535 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752736AbaFPXb7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:31:59 -0400
+	with ESMTP id S1752736AbaFPXcB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, xemul@parallels.com, riel@redhat.com, mpm@selenic.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, cpw@sgi.com, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: pagewalk: add walk_page_vma()
+     Subject: smaps: redefine callback functions for page table walker
 has been removed from the -mm tree.  Its filename was
-     pagewalk-add-walk_page_vma.patch
+     smaps-redefine-callback-functions-for-page-table-walker.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: pagewalk: add walk_page_vma()
+Subject: smaps: redefine callback functions for page table walker
 
-Introduces walk_page_vma(), which is useful for the callers which want to
-walk over a given vma.  It's used by later patches.
+smaps_pte_range() connected to pmd_entry() does both of pmd loop and pte
+loop.  So this patch moves pte part into smaps_pte() on pte_entry() as
+expected by the name.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Matt Mackall <mpm@selenic.com>
@@ -45,46 +48,114 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/pagewalk.c      |   18 ++++++++++++++++++
- 2 files changed, 19 insertions(+)
+ fs/proc/task_mmu.c |   47 +++++++++++++++----------------------------
+ 1 file changed, 17 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/mm.h~pagewalk-add-walk_page_vma include/linux/mm.h
---- a/include/linux/mm.h~pagewalk-add-walk_page_vma
-+++ a/include/linux/mm.h
-@@ -1144,6 +1144,7 @@ struct mm_walk {
+diff -puN fs/proc/task_mmu.c~smaps-redefine-callback-functions-for-page-table-walker fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~smaps-redefine-callback-functions-for-page-table-walker
++++ a/fs/proc/task_mmu.c
+@@ -430,7 +430,6 @@ const struct file_operations proc_tid_ma
  
- int walk_page_range(unsigned long addr, unsigned long end,
- 		struct mm_walk *walk);
-+int walk_page_vma(struct vm_area_struct *vma, struct mm_walk *walk);
- void free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
- 		unsigned long end, unsigned long floor, unsigned long ceiling);
- int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
-diff -puN mm/pagewalk.c~pagewalk-add-walk_page_vma mm/pagewalk.c
---- a/mm/pagewalk.c~pagewalk-add-walk_page_vma
-+++ a/mm/pagewalk.c
-@@ -335,3 +335,21 @@ int walk_page_range(unsigned long start,
- 	} while (start = next, start < end);
- 	return err;
- }
-+
-+int walk_page_vma(struct vm_area_struct *vma, struct mm_walk *walk)
-+{
-+	int err;
-+
-+	if (!walk->mm)
-+		return -EINVAL;
-+
-+	VM_BUG_ON(!rwsem_is_locked(&walk->mm->mmap_sem));
-+	VM_BUG_ON(!vma);
-+	walk->vma = vma;
-+	err = walk_page_test(vma->vm_start, vma->vm_end, walk);
-+	if (skip_lower_level_walking(walk))
+ #ifdef CONFIG_PROC_PAGE_MONITOR
+ struct mem_size_stats {
+-	struct vm_area_struct *vma;
+ 	unsigned long resident;
+ 	unsigned long shared_clean;
+ 	unsigned long shared_dirty;
+@@ -444,15 +443,16 @@ struct mem_size_stats {
+ 	u64 pss;
+ };
+ 
+-
+-static void smaps_pte_entry(pte_t ptent, unsigned long addr,
+-		unsigned long ptent_size, struct mm_walk *walk)
++static int smaps_pte(pte_t *pte, unsigned long addr, unsigned long end,
++			struct mm_walk *walk)
+ {
+ 	struct mem_size_stats *mss = walk->private;
+-	struct vm_area_struct *vma = mss->vma;
++	struct vm_area_struct *vma = walk->vma;
+ 	pgoff_t pgoff = linear_page_index(vma, addr);
+ 	struct page *page = NULL;
+ 	int mapcount;
++	pte_t ptent = *pte;
++	unsigned long ptent_size = end - addr;
+ 
+ 	if (pte_present(ptent)) {
+ 		page = vm_normal_page(vma, addr, ptent);
+@@ -469,7 +469,7 @@ static void smaps_pte_entry(pte_t ptent,
+ 	}
+ 
+ 	if (!page)
+-		return;
 +		return 0;
-+	if (err)
-+		return err;
-+	return __walk_page_range(vma->vm_start, vma->vm_end, walk);
-+}
+ 
+ 	if (PageAnon(page))
+ 		mss->anonymous += ptent_size;
+@@ -495,35 +495,22 @@ static void smaps_pte_entry(pte_t ptent,
+ 			mss->private_clean += ptent_size;
+ 		mss->pss += (ptent_size << PSS_SHIFT);
+ 	}
++	return 0;
+ }
+ 
+-static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+-			   struct mm_walk *walk)
++static int smaps_pmd(pmd_t *pmd, unsigned long addr, unsigned long end,
++			struct mm_walk *walk)
+ {
+ 	struct mem_size_stats *mss = walk->private;
+-	struct vm_area_struct *vma = mss->vma;
+-	pte_t *pte;
+ 	spinlock_t *ptl;
+ 
+-	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
+-		smaps_pte_entry(*(pte_t *)pmd, addr, HPAGE_PMD_SIZE, walk);
++	if (pmd_trans_huge_lock(pmd, walk->vma, &ptl) == 1) {
++		smaps_pte((pte_t *)pmd, addr, addr + HPAGE_PMD_SIZE, walk);
+ 		spin_unlock(ptl);
+ 		mss->anonymous_thp += HPAGE_PMD_SIZE;
+-		return 0;
++		/* don't call smaps_pte() */
++		walk->skip = 1;
+ 	}
+-
+-	if (pmd_trans_unstable(pmd))
+-		return 0;
+-	/*
+-	 * The mmap_sem held all the way back in m_start() is what
+-	 * keeps khugepaged out of here and from collapsing things
+-	 * in here.
+-	 */
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	for (; addr != end; pte++, addr += PAGE_SIZE)
+-		smaps_pte_entry(*pte, addr, PAGE_SIZE, walk);
+-	pte_unmap_unlock(pte - 1, ptl);
+-	cond_resched();
+ 	return 0;
+ }
+ 
+@@ -588,16 +575,16 @@ static int show_smap(struct seq_file *m,
+ 	struct vm_area_struct *vma = v;
+ 	struct mem_size_stats mss;
+ 	struct mm_walk smaps_walk = {
+-		.pmd_entry = smaps_pte_range,
++		.pmd_entry = smaps_pmd,
++		.pte_entry = smaps_pte,
+ 		.mm = vma->vm_mm,
++		.vma = vma,
+ 		.private = &mss,
+ 	};
+ 
+ 	memset(&mss, 0, sizeof mss);
+-	mss.vma = vma;
+ 	/* mmap_sem is held in m_start */
+-	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
+-		walk_page_range(vma->vm_start, vma->vm_end, &smaps_walk);
++	walk_page_vma(vma, &smaps_walk);
+ 
+ 	show_map_vma(m, vma, is_pid);
+ 
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
@@ -94,7 +165,6 @@ mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
 clear_refs-redefine-callback-functions-for-page-table-walker.patch
 pagemap-redefine-callback-functions-for-page-table-walker.patch
 pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
