@@ -1,42 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: [nacked]
- clear_refs-redefine-callback-functions-for-page-table-walker.patch removed
+ numa_maps-redefine-callback-functions-for-page-table-walker.patch removed
  from -mm tree
-Date: Mon, 16 Jun 2014 16:32:02 -0700
-Message-ID: <539f7e72.lIcEZyPKhJhyslLn%akpm@linux-foundation.org>
+Date: Mon, 16 Jun 2014 16:32:08 -0700
+Message-ID: <539f7e78.W71MhTLUynAKZA1y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46545 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46571 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752736AbaFPXcD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:03 -0400
+	with ESMTP id S1752736AbaFPXcJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jun 2014 19:32:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, xemul@parallels.com, riel@redhat.com, mpm@selenic.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, cpw@sgi.com, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: clear_refs: redefine callback functions for page table walker
+     Subject: numa_maps: redefine callback functions for page table walker
 has been removed from the -mm tree.  Its filename was
-     clear_refs-redefine-callback-functions-for-page-table-walker.patch
+     numa_maps-redefine-callback-functions-for-page-table-walker.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: clear_refs: redefine callback functions for page table walker
+Subject: numa_maps: redefine callback functions for page table walker
 
-Currently clear_refs_pte_range() is connected to pmd_entry() to split thps
-if found.  But now this work can be done in core page table walker code. 
-So we have no reason to keep this callback on pmd_entry().  This patch
-moves pte handling code on pte_entry() callback.
-
-clear_refs_write() has some prechecks about if we really walk over a given
-vma.  It's fine to let them done by test_walk() callback, so let's define
-it.
+gather_pte_stats() connected to pmd_entry() does both of pmd loop and pte
+loop.  So this patch moves pte part into pte_entry().
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Matt Mackall <mpm@selenic.com>
@@ -53,140 +47,118 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   93 +++++++++++++++++--------------------------
- 1 file changed, 38 insertions(+), 55 deletions(-)
+ fs/proc/task_mmu.c |   54 ++++++++++++++++++++-----------------------
+ 1 file changed, 26 insertions(+), 28 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~clear_refs-redefine-callback-functions-for-page-table-walker fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~clear_refs-redefine-callback-functions-for-page-table-walker
+diff -puN fs/proc/task_mmu.c~numa_maps-redefine-callback-functions-for-page-table-walker fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~numa_maps-redefine-callback-functions-for-page-table-walker
 +++ a/fs/proc/task_mmu.c
-@@ -705,7 +705,6 @@ enum clear_refs_types {
- };
+@@ -1203,7 +1203,6 @@ const struct file_operations proc_pagema
+ #ifdef CONFIG_NUMA
  
- struct clear_refs_private {
+ struct numa_maps {
 -	struct vm_area_struct *vma;
- 	enum clear_refs_types type;
- };
- 
-@@ -734,41 +733,48 @@ static inline void clear_soft_dirty(stru
- #endif
+ 	unsigned long pages;
+ 	unsigned long anon;
+ 	unsigned long active;
+@@ -1269,43 +1268,41 @@ static struct page *can_gather_numa_stat
+ 	return page;
  }
  
--static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
-+static int clear_refs_pte(pte_t *pte, unsigned long addr,
- 				unsigned long end, struct mm_walk *walk)
+-static int gather_pte_stats(pmd_t *pmd, unsigned long addr,
++static int gather_pte_stats(pte_t *pte, unsigned long addr,
+ 		unsigned long end, struct mm_walk *walk)
  {
- 	struct clear_refs_private *cp = walk->private;
--	struct vm_area_struct *vma = cp->vma;
--	pte_t *pte, ptent;
+-	struct numa_maps *md;
 -	spinlock_t *ptl;
-+	struct vm_area_struct *vma = walk->vma;
- 	struct page *page;
+-	pte_t *orig_pte;
+-	pte_t *pte;
++	struct numa_maps *md = walk->private;
  
--	split_huge_page_pmd(vma, addr, pmd);
--	if (pmd_trans_unstable(pmd))
-+	if (cp->type == CLEAR_REFS_SOFT_DIRTY) {
-+		clear_soft_dirty(vma, addr, pte);
-+		return 0;
-+	}
-+	if (!pte_present(*pte))
- 		return 0;
-+	page = vm_normal_page(vma, addr, *pte);
+-	md = walk->private;
++	struct page *page = can_gather_numa_stats(*pte, walk->vma, addr);
 +	if (!page)
 +		return 0;
-+	/* Clear accessed and referenced bits. */
-+	ptep_test_and_clear_young(vma, addr, pte);
-+	ClearPageReferenced(page);
++	gather_stats(page, md, pte_dirty(*pte), 1);
 +	return 0;
 +}
  
--	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
--	for (; addr != end; pte++, addr += PAGE_SIZE) {
--		ptent = *pte;
+-	if (pmd_trans_huge_lock(pmd, md->vma, &ptl) == 1) {
++static int gather_pmd_stats(pmd_t *pmd, unsigned long addr,
++		unsigned long end, struct mm_walk *walk)
++{
++	struct numa_maps *md = walk->private;
++	struct vm_area_struct *vma = walk->vma;
++	spinlock_t *ptl;
++
++	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
+ 		pte_t huge_pte = *(pte_t *)pmd;
+ 		struct page *page;
+ 
+-		page = can_gather_numa_stats(huge_pte, md->vma, addr);
++		page = can_gather_numa_stats(huge_pte, vma, addr);
+ 		if (page)
+ 			gather_stats(page, md, pte_dirty(huge_pte),
+ 				     HPAGE_PMD_SIZE/PAGE_SIZE);
+ 		spin_unlock(ptl);
+-		return 0;
++		/* don't call gather_pte_stats() */
++		walk->skip = 1;
+ 	}
 -
--		if (cp->type == CLEAR_REFS_SOFT_DIRTY) {
--			clear_soft_dirty(vma, addr, pte);
--			continue;
--		}
--
--		if (!pte_present(ptent))
--			continue;
--
--		page = vm_normal_page(vma, addr, ptent);
+-	if (pmd_trans_unstable(pmd))
+-		return 0;
+-	orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+-	do {
+-		struct page *page = can_gather_numa_stats(*pte, md->vma, addr);
 -		if (!page)
 -			continue;
+-		gather_stats(page, md, pte_dirty(*pte), 1);
 -
--		/* Clear accessed and referenced bits. */
--		ptep_test_and_clear_young(vma, addr, pte);
--		ClearPageReferenced(page);
-+static int clear_refs_test_walk(unsigned long start, unsigned long end,
-+				struct mm_walk *walk)
-+{
-+	struct clear_refs_private *cp = walk->private;
-+	struct vm_area_struct *vma = walk->vma;
-+
-+	/*
-+	 * Writing 1 to /proc/pid/clear_refs affects all pages.
-+	 * Writing 2 to /proc/pid/clear_refs only affects anonymous pages.
-+	 * Writing 3 to /proc/pid/clear_refs only affects file mapped pages.
-+	 * Writing 4 to /proc/pid/clear_refs affects all pages.
-+	 */
-+	if (cp->type == CLEAR_REFS_ANON && vma->vm_file)
-+		walk->skip = 1;
-+	if (cp->type == CLEAR_REFS_MAPPED && !vma->vm_file)
-+		walk->skip = 1;
-+	if (cp->type == CLEAR_REFS_SOFT_DIRTY) {
-+		if (vma->vm_flags & VM_SOFTDIRTY)
-+			vma->vm_flags &= ~VM_SOFTDIRTY;
- 	}
--	pte_unmap_unlock(pte - 1, ptl);
--	cond_resched();
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	pte_unmap_unlock(orig_pte, ptl);
  	return 0;
  }
+ #ifdef CONFIG_HUGETLB_PAGE
+-static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
++static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
+ 		unsigned long addr, unsigned long end, struct mm_walk *walk)
+ {
+ 	struct numa_maps *md;
+@@ -1324,7 +1321,7 @@ static int gather_hugetbl_stats(pte_t *p
+ }
  
-@@ -811,39 +817,16 @@ static ssize_t clear_refs_write(struct f
- 			.type = type,
- 		};
- 		struct mm_walk clear_refs_walk = {
--			.pmd_entry = clear_refs_pte_range,
-+			.pte_entry = clear_refs_pte,
-+			.test_walk = clear_refs_test_walk,
- 			.mm = mm,
- 			.private = &cp,
- 		};
- 		down_read(&mm->mmap_sem);
- 		if (type == CLEAR_REFS_SOFT_DIRTY)
- 			mmu_notifier_invalidate_range_start(mm, 0, -1);
--		for (vma = mm->mmap; vma; vma = vma->vm_next) {
--			cp.vma = vma;
--			if (is_vm_hugetlb_page(vma))
--				continue;
--			/*
--			 * Writing 1 to /proc/pid/clear_refs affects all pages.
--			 *
--			 * Writing 2 to /proc/pid/clear_refs only affects
--			 * Anonymous pages.
--			 *
--			 * Writing 3 to /proc/pid/clear_refs only affects file
--			 * mapped pages.
--			 *
--			 * Writing 4 to /proc/pid/clear_refs affects all pages.
--			 */
--			if (type == CLEAR_REFS_ANON && vma->vm_file)
--				continue;
--			if (type == CLEAR_REFS_MAPPED && !vma->vm_file)
--				continue;
--			if (type == CLEAR_REFS_SOFT_DIRTY) {
--				if (vma->vm_flags & VM_SOFTDIRTY)
--					vma->vm_flags &= ~VM_SOFTDIRTY;
--			}
--			walk_page_range(vma->vm_start, vma->vm_end,
--					&clear_refs_walk);
--		}
-+		for (vma = mm->mmap; vma; vma = vma->vm_next)
-+			walk_page_vma(vma, &clear_refs_walk);
- 		if (type == CLEAR_REFS_SOFT_DIRTY)
- 			mmu_notifier_invalidate_range_end(mm, 0, -1);
- 		flush_tlb_mm(mm);
+ #else
+-static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
++static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
+ 		unsigned long addr, unsigned long end, struct mm_walk *walk)
+ {
+ 	return 0;
+@@ -1354,12 +1351,12 @@ static int show_numa_map(struct seq_file
+ 	/* Ensure we start with an empty set of numa_maps statistics. */
+ 	memset(md, 0, sizeof(*md));
+ 
+-	md->vma = vma;
+-
+-	walk.hugetlb_entry = gather_hugetbl_stats;
+-	walk.pmd_entry = gather_pte_stats;
++	walk.hugetlb_entry = gather_hugetlb_stats;
++	walk.pmd_entry = gather_pmd_stats;
++	walk.pte_entry = gather_pte_stats;
+ 	walk.private = md;
+ 	walk.mm = mm;
++	walk.vma = vma;
+ 
+ 	pol = get_vma_policy(task, vma, vma->vm_start);
+ 	mpol_to_str(buffer, sizeof(buffer), pol);
+@@ -1390,6 +1387,7 @@ static int show_numa_map(struct seq_file
+ 	if (is_vm_hugetlb_page(vma))
+ 		seq_puts(m, " huge");
+ 
++	/* mmap_sem is held by m_start */
+ 	walk_page_range(vma->vm_start, vma->vm_end, &walk);
+ 
+ 	if (!md->pages)
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
@@ -196,9 +168,6 @@ mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
 memcg-redefine-callback-functions-for-page-table-walker.patch
 arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
 pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
