@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-add-size-unit-t-p-e-to-memparse.patch added to -mm tree
-Date: Tue, 17 Jun 2014 15:11:22 -0700
-Message-ID: <53a0bd0a.CaA2z3sXESaSloOD%akpm@linux-foundation.org>
+Subject: + init-make-rootdelay=n-consistent-with-rootwait-behaviour.patch
+ added to -mm tree
+Date: Tue, 17 Jun 2014 15:20:25 -0700
+Message-ID: <53a0bf29.W5Jk1h37t5ZQ7Tnz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57544 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57634 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965302AbaFQWLX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 18:11:23 -0400
+	with ESMTP id S965844AbaFQWU0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 18:20:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, guihc.fnst@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, paul.gortmaker@windriver.com
 
 
 The patch titled
-     Subject: lib/cmdline.c: add size unit t/p/e to memparse
+     Subject: init: make rootdelay=N consistent with rootwait behaviour
 has been added to the -mm tree.  Its filename is
-     lib-add-size-unit-t-p-e-to-memparse.patch
+     init-make-rootdelay=n-consistent-with-rootwait-behaviour.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-add-size-unit-t-p-e-to-memparse.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/init-make-rootdelay=n-consistent-with-rootwait-behaviour.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-add-size-unit-t-p-e-to-memparse.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/init-make-rootdelay=n-consistent-with-rootwait-behaviour.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,55 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gui Hecheng <guihc.fnst@cn.fujitsu.com>
-Subject: lib/cmdline.c: add size unit t/p/e to memparse
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: init: make rootdelay=N consistent with rootwait behaviour
 
-For modern filesystems such as btrfs, t/p/e size level operations are
-common.  add size unit t/p/e parsing to memparse
+Currently rootdelay=N and rootwait behave differently (aside from the
+obvious unbounded wait duration) because they are at different places in
+the init sequence.
 
-Signed-off-by: Gui Hecheng <guihc.fnst@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
+The difference manifests itself for md devices because the call to
+md_run_setup() lives between rootdelay and rootwait, so if you try to use
+rootdelay=20 to try and allow a slow RAID0 array to assemble, you get
+this:
+
+[    4.526011] sd 6:0:0:0: [sdc] Attached SCSI removable disk
+[   22.972079] md: Waiting for all devices to be available before autodetect
+
+i.e.  you've achieved nothing other than delaying the probing 20s, when
+what you wanted was a 20s delay _after_ the probing for md devices was
+initiated.
+
+Here we move the rootdelay code to be right beside the rootwait code, so
+that their behaviour is consistent.
+
+It should be noted that in doing so, the actions based on the
+saved_root_name[0] and initrd_load() were previously put on hold by
+rootdelay=N and now currently will not be delayed.  However, I think
+consistent behaviour is more important than matching historical behaviour
+of delaying the above two operations.
+
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ init/do_mounts.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN lib/cmdline.c~lib-add-size-unit-t-p-e-to-memparse lib/cmdline.c
---- a/lib/cmdline.c~lib-add-size-unit-t-p-e-to-memparse
-+++ a/lib/cmdline.c
-@@ -121,11 +121,7 @@ EXPORT_SYMBOL(get_options);
-  *	@retptr: (output) Optional pointer to next char after parse completes
-  *
-  *	Parses a string into a number.  The number stored at @ptr is
-- *	potentially suffixed with %K (for kilobytes, or 1024 bytes),
-- *	%M (for megabytes, or 1048576 bytes), or %G (for gigabytes, or
-- *	1073741824).  If the number is suffixed with K, M, or G, then
-- *	the return value is the number multiplied by one kilobyte, one
-- *	megabyte, or one gigabyte, respectively.
-+ *	potentially suffixed with K, M, G, T, P, E.
-  */
+diff -puN init/do_mounts.c~init-make-rootdelay=n-consistent-with-rootwait-behaviour init/do_mounts.c
+--- a/init/do_mounts.c~init-make-rootdelay=n-consistent-with-rootwait-behaviour
++++ a/init/do_mounts.c
+@@ -539,12 +539,6 @@ void __init prepare_namespace(void)
+ {
+ 	int is_floppy;
  
- unsigned long long memparse(const char *ptr, char **retptr)
-@@ -135,6 +131,15 @@ unsigned long long memparse(const char *
- 	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
- 
- 	switch (*endptr) {
-+	case 'E':
-+	case 'e':
-+		ret <<= 10;
-+	case 'P':
-+	case 'p':
-+		ret <<= 10;
-+	case 'T':
-+	case 't':
-+		ret <<= 10;
- 	case 'G':
- 	case 'g':
- 		ret <<= 10;
-_
-
-Patches currently in -mm which might be from guihc.fnst@cn.fujitsu.com are
-
-lib-add-size-unit-t-p-e-to-memparse.patch
-
+-	if (root_delay) {
+-		printk(KERN_INFO "Waiting %d sec before mounting root device...\n",
+-		       root_delay);
+-		ssleep(root_delay);
+-	}
