@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 17 Jun 2014 12:41:51 -0700
-Message-ID: <53a099ff.JX4ynYc+hx24uBOC%akpm@linux-foundation.org>
+ cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v3.patch added to -mm tree
+Date: Tue, 17 Jun 2014 13:10:19 -0700
+Message-ID: <53a0a0ab.UHPPii/vBIge0T5P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55540 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55905 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933009AbaFQTlw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 15:41:52 -0400
+	with ESMTP id S932927AbaFQUKU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 16:10:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, sachin.kamat@samsung.com, srivatsa.bhat@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes
+     Subject: cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v3
 has been added to the -mm tree.  Its filename is
-     hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
+     cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,71 +39,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes
+From: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v3
 
-WARNING: Missing a blank line after declarations
-#65: FILE: mm/hugetlb.c:2593:
-+			swp_entry_t swp_entry = pte_to_swp_entry(entry);
-+			if (is_write_migration_entry(swp_entry) && cow) {
+Update: Move the switch-case handling for CPU_DYING such that
+CPU_UP_CANCELED falls-through to CPU_DEAD (instead of CPU_DYING).  Also,
+add an explicit comment mentioning this.
 
-total: 0 errors, 1 warnings, 90 lines checked
-
-./patches/hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Tested-by: Sachin Kamat <sachin.kamat@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/smp.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes
-+++ a/mm/hugetlb.c
-@@ -2590,6 +2590,7 @@ int copy_hugetlb_page_range(struct mm_st
- 		} else if (unlikely(is_hugetlb_entry_migration(entry) ||
- 				    is_hugetlb_entry_hwpoisoned(entry))) {
- 			swp_entry_t swp_entry = pte_to_swp_entry(entry);
+diff -puN kernel/smp.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v3 kernel/smp.c
+--- a/kernel/smp.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline-v3
++++ a/kernel/smp.c
+@@ -53,6 +53,13 @@ hotplug_cfd(struct notifier_block *nfb,
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	case CPU_UP_CANCELED:
+ 	case CPU_UP_CANCELED_FROZEN:
++		/* Fall-through to the CPU_DEAD[_FROZEN] case. */
 +
- 			if (is_write_migration_entry(swp_entry) && cow) {
- 				/*
- 				 * COW mappings require pages in both
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
++	case CPU_DEAD:
++	case CPU_DEAD_FROZEN:
++		free_cpumask_var(cfd->cpumask);
++		free_percpu(cfd->csd);
++		break;
+ 
+ 	case CPU_DYING:
+ 	case CPU_DYING_FROZEN:
+@@ -67,12 +74,6 @@ hotplug_cfd(struct notifier_block *nfb,
+ 		 */
+ 		flush_smp_call_function_queue(false);
+ 		break;
