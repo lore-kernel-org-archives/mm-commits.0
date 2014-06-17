@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch added to
- -mm tree
-Date: Tue, 17 Jun 2014 14:44:28 -0700
-Message-ID: <53a0b6bc.4wMS15JAhWM4TeEV%akpm@linux-foundation.org>
+Subject: + memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
+ added to -mm tree
+Date: Tue, 17 Jun 2014 14:44:27 -0700
+Message-ID: <53a0b6bb.xBDjgKwyusROq9ax%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57473 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57466 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965160AbaFQVo3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 17:44:29 -0400
+	with ESMTP id S965160AbaFQVo2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 17:44:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, mhocko@suse.cz, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, cl@linux.com, vdavydov@parallels.com
 
 
 The patch titled
-     Subject: slub: make dead memcg caches discard free slabs immediately
+     Subject: memcg: wait for kfree's to finish before destroying cache
 has been added to the -mm tree.  Its filename is
-     slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
+     memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,19 +40,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slub: make dead memcg caches discard free slabs immediately
+Subject: memcg: wait for kfree's to finish before destroying cache
 
-Since a dead memcg cache is destroyed only after the last slab allocated
-to it is freed, we must disable caching of empty slabs for such caches,
-otherwise they will be hanging around forever.
+kmem_cache_free doesn't expect that the cache can be destroyed as soon as
+the object is freed, e.g.  SLUB's implementation may want to update cache
+stats after putting the object to the free list.
 
-This patch makes SLUB discard dead memcg caches' slabs as soon as they
-become empty.  To achieve that, it disables per cpu partial lists for dead
-caches (see put_cpu_partial) and forbids keeping empty slabs on per node
-partial lists by setting cache's min_partial to 0 on kmem_cache_shrink,
-which is always called on memcg offline (see memcg_unregister_all_caches).
-
-Thanks to Joonsoo Kim.
+Therefore we should wait for all kmem_cache_free's to finish before
+proceeding to cache destruction.  Since both SLAB and SLUB versions of
+kmem_cache_free are non-preemptable, we wait for rcu-sched grace period to
+elapse.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -65,37 +61,92 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ include/linux/slab.h |    6 ++----
+ mm/memcontrol.c      |   34 ++++++++++++++++++++++++++++++++--
+ 2 files changed, 34 insertions(+), 6 deletions(-)
 
-diff -puN mm/slub.c~slub-make-dead-memcg-caches-discard-free-slabs-immediately mm/slub.c
---- a/mm/slub.c~slub-make-dead-memcg-caches-discard-free-slabs-immediately
-+++ a/mm/slub.c
-@@ -2059,6 +2059,14 @@ static void put_cpu_partial(struct kmem_
- 
- 	} while (this_cpu_cmpxchg(s->cpu_slab->partial, oldpage, page)
- 								!= oldpage);
-+
-+	if (memcg_cache_dead(s)) {
-+		unsigned long flags;
-+
-+		local_irq_save(flags);
-+		unfreeze_partials(s, this_cpu_ptr(s->cpu_slab));
-+		local_irq_restore(flags);
-+	}
- #endif
+diff -puN include/linux/slab.h~memcg-wait-for-kfrees-to-finish-before-destroying-cache include/linux/slab.h
+--- a/include/linux/slab.h~memcg-wait-for-kfrees-to-finish-before-destroying-cache
++++ a/include/linux/slab.h
+@@ -532,11 +532,9 @@ static __always_inline void *kmalloc_nod
+  */
+ struct memcg_cache_params {
+ 	bool is_root_cache;
++	struct rcu_head rcu_head;
+ 	union {
+-		struct {
+-			struct rcu_head rcu_head;
+-			struct kmem_cache *memcg_caches[0];
+-		};
++		struct kmem_cache *memcg_caches[0];
+ 		struct {
+ 			struct mem_cgroup *memcg;
+ 			struct list_head list;
+diff -puN mm/memcontrol.c~memcg-wait-for-kfrees-to-finish-before-destroying-cache mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-wait-for-kfrees-to-finish-before-destroying-cache
++++ a/mm/memcontrol.c
+@@ -3194,6 +3194,14 @@ static void memcg_unregister_cache_func(
+ 	mutex_unlock(&memcg_slab_mutex);
  }
  
-@@ -3397,6 +3405,9 @@ int __kmem_cache_shrink(struct kmem_cach
- 		kmalloc(sizeof(struct list_head) * objects, GFP_KERNEL);
- 	unsigned long flags;
- 
-+	if (memcg_cache_dead(s))
-+		s->min_partial = 0;
++static void memcg_unregister_cache_rcu_func(struct rcu_head *rcu)
++{
++	struct memcg_cache_params *params =
++		container_of(rcu, struct memcg_cache_params, rcu_head);
 +
- 	if (!slabs_by_inuse) {
- 		/*
- 		 * Do not fail shrinking empty slabs if allocation of the
++	schedule_work(&params->unregister_work);
++}
++
+ /*
+  * During the creation a new cache, we need to disable our accounting mechanism
+  * altogether. This is true even if we are not creating, but rather just
+@@ -3249,6 +3257,7 @@ static void memcg_unregister_all_caches(
+ {
+ 	struct kmem_cache *cachep;
+ 	struct memcg_cache_params *params, *tmp;
++	LIST_HEAD(empty_caches);
+ 
+ 	if (!memcg_kmem_is_active(memcg))
+ 		return;
+@@ -3261,7 +3270,26 @@ static void memcg_unregister_all_caches(
+ 		kmem_cache_shrink(cachep);
+ 
+ 		if (atomic_long_dec_and_test(&cachep->memcg_params->refcnt))
+-			memcg_unregister_cache(cachep);
++			list_move(&cachep->memcg_params->list, &empty_caches);
++	}
++
++	/*
++	 * kmem_cache_free doesn't expect that the cache can be destroyed as
++	 * soon as the object is freed, e.g. SLUB's implementation may want to
++	 * update cache stats after putting the object to the free list.
++	 *
++	 * Therefore we should wait for all kmem_cache_free's to finish before
++	 * proceeding to cache destruction. Since both SLAB and SLUB versions
++	 * of kmem_cache_free are non-preemptable, we wait for rcu-sched grace
++	 * period to elapse.
++	 */
++	synchronize_sched();
++
++	while (!list_empty(&empty_caches)) {
++		params = list_first_entry(&empty_caches,
++					  struct memcg_cache_params, list);
++		cachep = memcg_params_to_cache(params);
++		memcg_unregister_cache(cachep);
+ 	}
+ 	mutex_unlock(&memcg_slab_mutex);
+ }
+@@ -3343,7 +3371,9 @@ void __memcg_uncharge_slab(struct kmem_c
+ 	memcg_uncharge_kmem(cachep->memcg_params->memcg, PAGE_SIZE << order);
+ 
+ 	if (unlikely(atomic_long_dec_and_test(&cachep->memcg_params->refcnt)))
+-		schedule_work(&cachep->memcg_params->unregister_work);
++		/* see memcg_unregister_all_caches */
++		call_rcu_sched(&cachep->memcg_params->rcu_head,
++			       memcg_unregister_cache_rcu_func);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
