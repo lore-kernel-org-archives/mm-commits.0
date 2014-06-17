@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-o2net-set-tcp-user-timeout-to-max-value.patch added to
- -mm tree
-Date: Tue, 17 Jun 2014 15:43:33 -0700
-Message-ID: <53a0c495.hMwJFGysn5dzPluc%akpm@linux-foundation.org>
+Subject: + refcount-take-rw_lock-in-ocfs2_reflink.patch added to -mm tree
+Date: Tue, 17 Jun 2014 15:48:12 -0700
+Message-ID: <53a0c5ac.hkVIAQdxp3pHicLz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57899 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57920 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965999AbaFQWne (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 18:43:34 -0400
+	with ESMTP id S932845AbaFQWsN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 18:48:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.de, jlbec@evilplan.org, wen.gang.wang@oracle.com
 
 
 The patch titled
-     Subject: ocfs2: o2net: set tcp user timeout to max value
+     Subject: ocfs2: refcount: take rw_lock in ocfs2_reflink
 has been added to the -mm tree.  Its filename is
-     ocfs2-o2net-set-tcp-user-timeout-to-max-value.patch
+     refcount-take-rw_lock-in-ocfs2_reflink.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-o2net-set-tcp-user-timeout-to-max-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/refcount-take-rw_lock-in-ocfs2_reflink.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-o2net-set-tcp-user-timeout-to-max-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/refcount-take-rw_lock-in-ocfs2_reflink.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,90 +38,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: o2net: set tcp user timeout to max value
+From: Wengang Wang <wen.gang.wang@oracle.com>
+Subject: ocfs2: refcount: take rw_lock in ocfs2_reflink
 
-When tcp retransmit timeout(15mins), the connection will be closed. 
-Pending messages may be lost during this time.  So we set tcp user timeout
-to override the retransmit timeout to the max value.  This is OK for ocfs2
-since we have disk heartbeat, if peer crash, the disk heartbeat will
-timeout and it will be evicted, if disk heartbeat not timeout and
-connection idle for a long time, then this means the cluster enters
-split-brain state, since fence can't happen, we'd better keep the
-connection and wait network recover.
+This patch tries to fix this crash:
 
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+ #5 [ffff88003c1cd690] do_invalid_op at ffffffff810166d5
+ #6 [ffff88003c1cd730] invalid_op at ffffffff8159b2de
+    [exception RIP: ocfs2_direct_IO_get_blocks+359]
+    RIP: ffffffffa05dfa27  RSP: ffff88003c1cd7e8  RFLAGS: 00010202
+    RAX: 0000000000000000  RBX: ffff88003c1cdaa8  RCX: 0000000000000000
+    RDX: 000000000000000c  RSI: ffff880027a95000  RDI: ffff88003c79b540
+    RBP: ffff88003c1cd858   R8: 0000000000000000   R9: ffffffff815f6ba0
+    R10: 00000000000001c9  R11: 00000000000001c9  R12: ffff88002d271500
+    R13: 0000000000000001  R14: 0000000000000000  R15: 0000000000001000
+    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
+ #7 [ffff88003c1cd860] do_direct_IO at ffffffff811cd31b
+ #8 [ffff88003c1cd950] direct_IO_iovec at ffffffff811cde9c
+ #9 [ffff88003c1cd9b0] do_blockdev_direct_IO at ffffffff811ce764
+#10 [ffff88003c1cdb80] __blockdev_direct_IO at ffffffff811ce7cc
+#11 [ffff88003c1cdbb0] ocfs2_direct_IO at ffffffffa05df756 [ocfs2]
+#12 [ffff88003c1cdbe0] generic_file_direct_write_iter at ffffffff8112f935
+#13 [ffff88003c1cdc40] ocfs2_file_write_iter at ffffffffa0600ccc [ocfs2]
+#14 [ffff88003c1cdd50] do_aio_write at ffffffff8119126c
+#15 [ffff88003c1cddc0] aio_rw_vect_retry at ffffffff811d9bb4
+#16 [ffff88003c1cddf0] aio_run_iocb at ffffffff811db880
+#17 [ffff88003c1cde30] io_submit_one at ffffffff811dc238
+#18 [ffff88003c1cde80] do_io_submit at ffffffff811dc437
+#19 [ffff88003c1cdf70] sys_io_submit at ffffffff811dc530
+#20 [ffff88003c1cdf80] system_call_fastpath at ffffffff8159a159
+
+It crashes at
+	BUG_ON(create && (ext_flags & OCFS2_EXT_REFCOUNTED));
+in ocfs2_direct_IO_get_blocks.
+
+ocfs2_direct_IO_get_blocks is expecting the OCFS2_EXT_REFCOUNTED be removed in
+ocfs2_prepare_inode_for_write() if it was there. But no cluster lock is taken
+during the time before (or inside) ocfs2_prepare_inode_for_write() and after
+ocfs2_direct_IO_get_blocks().
+
+It can happen in this case:
+
+Node A(which crashes)				Node B
+------------------------                 ---------------------------
+ocfs2_file_aio_write
+  ocfs2_prepare_inode_for_write
+    ocfs2_inode_lock
+    ...
+    ocfs2_inode_unlock
+  #no refcount found
+....					ocfs2_reflink
+					  ocfs2_inode_lock
+					  ...
+					  ocfs2_inode_unlock
+					  #now, refcount flag set on extent
+
+					...
+					flush change to disk
+
+ocfs2_direct_IO_get_blocks
+  ocfs2_get_clusters
+    #extent map miss
+    #buffer_head miss
+    read extents from disk
+  found refcount flag on extent
+  crash..
+
+Fix:
+Take rw_lock in ocfs2_reflink path
+
+Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |   20 ++++++++++++++++++++
- fs/ocfs2/cluster/tcp.h |    1 +
- 2 files changed, 21 insertions(+)
+ fs/ocfs2/refcounttree.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-o2net-set-tcp-user-timeout-to-max-value fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-o2net-set-tcp-user-timeout-to-max-value
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -1480,6 +1480,14 @@ static int o2net_set_nodelay(struct sock
- 	return ret;
- }
- 
-+static int o2net_set_usertimeout(struct socket *sock)
-+{
-+	int user_timeout = O2NET_TCP_USER_TIMEOUT;
-+
-+	return kernel_setsockopt(sock, SOL_TCP, TCP_USER_TIMEOUT,
-+				(char *)&user_timeout, sizeof(user_timeout));
-+}
-+
- static void o2net_initialize_handshake(void)
- {
- 	o2net_hand->o2hb_heartbeat_timeout_ms = cpu_to_be32(
-@@ -1663,6 +1671,12 @@ static void o2net_start_connect(struct w
+diff -puN fs/ocfs2/refcounttree.c~refcount-take-rw_lock-in-ocfs2_reflink fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~refcount-take-rw_lock-in-ocfs2_reflink
++++ a/fs/ocfs2/refcounttree.c
+@@ -4288,9 +4288,16 @@ static int ocfs2_reflink(struct dentry *
  		goto out;
  	}
  
-+	ret = o2net_set_usertimeout(sock);
-+	if (ret) {
-+		mlog(ML_ERROR, "set TCP_USER_TIMEOUT failed with %d\n", ret);
++	error = ocfs2_rw_lock(inode, 1);
++	if (error) {
++		mlog_errno(error);
 +		goto out;
 +	}
 +
- 	o2net_register_callbacks(sc->sc_sock->sk, sc);
- 
- 	spin_lock(&nn->nn_lock);
-@@ -1844,6 +1858,12 @@ static int o2net_accept_one(struct socke
+ 	error = ocfs2_inode_lock(inode, &old_bh, 1);
+ 	if (error) {
+ 		mlog_errno(error);
++		ocfs2_rw_unlock(inode, 1);
  		goto out;
  	}
  
-+	ret = o2net_set_usertimeout(new_sock);
-+	if (ret) {
-+		mlog(ML_ERROR, "set TCP_USER_TIMEOUT failed with %d\n", ret);
-+		goto out;
-+	}
-+
- 	slen = sizeof(sin);
- 	ret = new_sock->ops->getname(new_sock, (struct sockaddr *) &sin,
- 				       &slen, 1);
-diff -puN fs/ocfs2/cluster/tcp.h~ocfs2-o2net-set-tcp-user-timeout-to-max-value fs/ocfs2/cluster/tcp.h
---- a/fs/ocfs2/cluster/tcp.h~ocfs2-o2net-set-tcp-user-timeout-to-max-value
-+++ a/fs/ocfs2/cluster/tcp.h
-@@ -63,6 +63,7 @@ typedef void (o2net_post_msg_handler_fun
- #define O2NET_KEEPALIVE_DELAY_MS_DEFAULT	2000
- #define O2NET_IDLE_TIMEOUT_MS_DEFAULT		30000
+@@ -4302,6 +4309,7 @@ static int ocfs2_reflink(struct dentry *
+ 	up_write(&OCFS2_I(inode)->ip_xattr_sem);
  
-+#define O2NET_TCP_USER_TIMEOUT			0x7fffffff
+ 	ocfs2_inode_unlock(inode, 1);
++	ocfs2_rw_unlock(inode, 1);
+ 	brelse(old_bh);
  
- /* TODO: figure this out.... */
- static inline int o2net_link_down(int err, struct socket *sock)
+ 	if (error) {
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from wen.gang.wang@oracle.com are
 
-ocfs2-o2net-dont-shutdown-connection-when-idle-timeout.patch
-ocfs2-o2net-set-tcp-user-timeout-to-max-value.patch
-ocfs2-quorum-add-a-log-for-node-not-fenced.patch
+refcount-take-rw_lock-in-ocfs2_reflink.patch
 
