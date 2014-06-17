@@ -1,136 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
- added to -mm tree
-Date: Tue, 17 Jun 2014 13:14:51 -0700
-Message-ID: <53a0a1bb.Qii6+gYOwjzh24E7%akpm@linux-foundation.org>
+Subject: [nacked] refcount-take-inode_lock-until-write-io-issued.patch
+ removed from -mm tree
+Date: Tue, 17 Jun 2014 13:29:16 -0700
+Message-ID: <53a0a51c.5lJ1ternkhrlQdAr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55994 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56021 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964943AbaFQUOw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 16:14:52 -0400
+	with ESMTP id S932927AbaFQU3R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 16:29:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hughd@google.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, wen.gang.wang@oracle.com
 
 
 The patch titled
-     Subject: mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
+     Subject: ocfs2: refcount: take inode_lock until write io issued
+has been removed from the -mm tree.  Its filename was
+     refcount-take-inode_lock-until-write-io-issued.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes
+From: Wengang Wang <wen.gang.wang@oracle.com>
+Subject: ocfs2: refcount: take inode_lock until write io issued
 
-WARNING: Missing a blank line after declarations
-#46: FILE: mm/huge_memory.c:954:
-+		struct page *endpage = page + HPAGE_PMD_NR;
-+		atomic_add(HPAGE_PMD_NR, &page->_count);
+This patch tries to fix this crash:
 
-WARNING: Missing a blank line after declarations
-#57: FILE: mm/huge_memory.c:965:
-+		struct page *endpage = page + HPAGE_PMD_NR;
-+		while (page < endpage)
+ #5 [ffff88003c1cd690] do_invalid_op at ffffffff810166d5
+ #6 [ffff88003c1cd730] invalid_op at ffffffff8159b2de
+    [exception RIP: ocfs2_direct_IO_get_blocks+359]
+    RIP: ffffffffa05dfa27  RSP: ffff88003c1cd7e8  RFLAGS: 00010202
+    RAX: 0000000000000000  RBX: ffff88003c1cdaa8  RCX: 0000000000000000
+    RDX: 000000000000000c  RSI: ffff880027a95000  RDI: ffff88003c79b540
+    RBP: ffff88003c1cd858   R8: 0000000000000000   R9: ffffffff815f6ba0
+    R10: 00000000000001c9  R11: 00000000000001c9  R12: ffff88002d271500
+    R13: 0000000000000001  R14: 0000000000000000  R15: 0000000000001000
+    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
+ #7 [ffff88003c1cd860] do_direct_IO at ffffffff811cd31b
+ #8 [ffff88003c1cd950] direct_IO_iovec at ffffffff811cde9c
+ #9 [ffff88003c1cd9b0] do_blockdev_direct_IO at ffffffff811ce764
+#10 [ffff88003c1cdb80] __blockdev_direct_IO at ffffffff811ce7cc
+#11 [ffff88003c1cdbb0] ocfs2_direct_IO at ffffffffa05df756 [ocfs2]
+#12 [ffff88003c1cdbe0] generic_file_direct_write_iter at ffffffff8112f935
+#13 [ffff88003c1cdc40] ocfs2_file_write_iter at ffffffffa0600ccc [ocfs2]
+#14 [ffff88003c1cdd50] do_aio_write at ffffffff8119126c
+#15 [ffff88003c1cddc0] aio_rw_vect_retry at ffffffff811d9bb4
+#16 [ffff88003c1cddf0] aio_run_iocb at ffffffff811db880
+#17 [ffff88003c1cde30] io_submit_one at ffffffff811dc238
+#18 [ffff88003c1cde80] do_io_submit at ffffffff811dc437
+#19 [ffff88003c1cdf70] sys_io_submit at ffffffff811dc530
+#20 [ffff88003c1cdf80] system_call_fastpath at ffffffff8159a159
 
-total: 0 errors, 2 warnings, 65 lines checked
+It crashes at
+	BUG_ON(create && (ext_flags & OCFS2_EXT_REFCOUNTED));
+in ocfs2_direct_IO_get_blocks.
 
-./patches/mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep.patch has style problems, please review.
+ocfs2_direct_IO_get_blocks is expecting the OCFS2_EXT_REFCOUNTED be
+removed in ocfs2_prepare_inode_for_write() if it was there.  But no
+cluster lock is taken during the time before (or inside)
+ocfs2_prepare_inode_for_write() and after ocfs2_direct_IO_get_blocks().
 
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
+It can happen in this case:
 
-Please run checkpatch prior to sending patches
+Node A(which crashes)				Node B
+------------------------                 ---------------------------
+ocfs2_file_aio_write
+  ocfs2_prepare_inode_for_write
+    ocfs2_inode_lock
+    ...
+    ocfs2_inode_unlock
+  #no refcount found
+....					ocfs2_reflink
+					  ocfs2_inode_lock
+					  ...
+					  ocfs2_inode_unlock
+					  #now, refcount flag set on extent
 
-Cc: Hugh Dickins <hughd@google.com>
+					...
+					flush change to disk
+
+ocfs2_direct_IO_get_blocks
+  ocfs2_get_clusters
+    #extent map miss
+    #buffer_head miss
+    read extents from disk
+  found refcount flag on extent
+  crash..
+
+Fix: We have to take the inode_lock long enough until
+ocfs2_direct_IO_get_blocks finished.
+
+Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/ocfs2/file.c     |   20 ++++++++++++++++++--
+ fs/ocfs2/ocfs2_fs.h |    2 +-
+ 2 files changed, 19 insertions(+), 3 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes
-+++ a/mm/huge_memory.c
-@@ -951,21 +951,25 @@ static void get_user_huge_page(struct pa
+diff -puN fs/ocfs2/file.c~refcount-take-inode_lock-until-write-io-issued fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~refcount-take-inode_lock-until-write-io-issued
++++ a/fs/ocfs2/file.c
+@@ -2104,13 +2104,16 @@ static int ocfs2_prepare_inode_for_write
+ 					 size_t count,
+ 					 int appending,
+ 					 int *direct_io,
+-					 int *has_refcount)
++					 int *has_refcount,
++					 int *meta_level_out)
  {
- 	if (IS_ENABLED(CONFIG_DEBUG_PAGEALLOC)) {
- 		struct page *endpage = page + HPAGE_PMD_NR;
-+
- 		atomic_add(HPAGE_PMD_NR, &page->_count);
- 		while (++page < endpage)
- 			get_huge_page_tail(page);
--	} else
-+	} else {
- 		get_page(page);
-+	}
- }
+ 	int ret = 0, meta_level = 0;
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+ 	loff_t saved_pos = 0, end;
  
- static void put_user_huge_page(struct page *page)
- {
- 	if (IS_ENABLED(CONFIG_DEBUG_PAGEALLOC)) {
- 		struct page *endpage = page + HPAGE_PMD_NR;
-+
- 		while (page < endpage)
- 			put_page(page++);
--	} else
-+	} else {
- 		put_page(page);
-+	}
- }
++	if (meta_level_out)
++		*meta_level_out = -1;
+ 	/*
+ 	 * We start with a read level meta lock and only jump to an ex
+ 	 * if we need to make modifications here.
+@@ -2226,6 +2229,15 @@ out_unlock:
+ 					    saved_pos, appending, count,
+ 					    direct_io, has_refcount);
  
- static int do_huge_pmd_wp_page_fallback(struct mm_struct *mm,
++	/*
++	 * If direct IO would be done later, we have to keep inode_lock locked.
++	 * Buffer'd IO is fine since the COW work will be done again in
++	 * ocfs2_write_begin.
++	 */
++	if (direct_io && *direct_io && meta_level_out && !ret) {
++		*meta_level_out = meta_level;
++		meta_level = -1;
++	}
+ 	if (meta_level >= 0)
+ 		ocfs2_inode_unlock(inode, meta_level);
+ 
+@@ -2248,6 +2260,7 @@ static ssize_t ocfs2_file_write_iter(str
+ 	int full_coherency = !(osb->s_mount_opt &
+ 			       OCFS2_MOUNT_COHERENCY_BUFFERED);
+ 	int unaligned_dio = 0;
++	int meta_level = -1;
+ 
+ 	trace_ocfs2_file_aio_write(inode, file, file->f_path.dentry,
+ 		(unsigned long long)OCFS2_I(inode)->ip_blkno,
+@@ -2307,7 +2320,8 @@ relock:
+ 	can_do_direct = direct_io;
+ 	ret = ocfs2_prepare_inode_for_write(file, ppos,
+ 					    iocb->ki_nbytes, appending,
+-					    &can_do_direct, &has_refcount);
++					    &can_do_direct, &has_refcount,
++					    &meta_level);
+ 	if (ret < 0) {
+ 		mlog_errno(ret);
+ 		goto out;
+@@ -2423,6 +2437,8 @@ out_sems:
+ 	if (have_alloc_sem)
+ 		ocfs2_iocb_clear_sem_locked(iocb);
+ 
++	if (meta_level >= 0)
++		ocfs2_inode_unlock(inode, meta_level);
+ 	mutex_unlock(&inode->i_mutex);
+ 
+ 	if (written)
+diff -puN fs/ocfs2/ocfs2_fs.h~refcount-take-inode_lock-until-write-io-issued fs/ocfs2/ocfs2_fs.h
+--- a/fs/ocfs2/ocfs2_fs.h~refcount-take-inode_lock-until-write-io-issued
++++ a/fs/ocfs2/ocfs2_fs.h
+@@ -724,7 +724,7 @@ struct ocfs2_dinode {
+ 	__le64 i_xattr_loc;
+ /*80*/	struct ocfs2_block_check i_check;	/* Error checking */
+ /*88*/	__le64 i_dx_root;		/* Pointer to dir index root block */
+-/*90*/	__le64 i_refcount_loc;
++/*90*/	__le64 i_refcount_loc;		/* Root block of the refcount tree */
+ 	__le64 i_suballoc_loc;		/* Suballocator block group this
+ 					   inode belongs to.  Only valid
+ 					   if allocated from a
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wen.gang.wang@oracle.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
