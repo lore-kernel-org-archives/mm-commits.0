@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch added to -mm tree
-Date: Tue, 17 Jun 2014 13:32:52 -0700
-Message-ID: <53a0a5f4.SemwRY2fZFW56FoI%akpm@linux-foundation.org>
+Subject: + shmem-fix-faulting-into-a-hole-while-its-punched.patch added to -mm tree
+Date: Tue, 17 Jun 2014 13:37:32 -0700
+Message-ID: <53a0a70c.3Gp5lI+tZ+aP1wo6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56033 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56181 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933833AbaFQUcx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 16:32:53 -0400
+	with ESMTP id S964977AbaFQUhd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 16:37:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, rientjes@google.com, mgorman@suse.de, koct9i@gmail.com, kirill.shutemov@linux.intel.com, davej@redhat.com, cl@gentwo.org, bob.liu@oracle.com, hughd@google.com
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, davej@redhat.com, hughd@google.com
 
 
 The patch titled
-     Subject: mm: let mm_find_pmd fix buggy race with THP fault
+     Subject: shmem: fix faulting into a hole while it's punched
 has been added to the -mm tree.  Its filename is
-     mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
+     shmem-fix-faulting-into-a-hole-while-its-punched.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/shmem-fix-faulting-into-a-hole-while-its-punched.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-fix-faulting-into-a-hole-while-its-punched.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,168 +39,144 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: let mm_find_pmd fix buggy race with THP fault
+Subject: shmem: fix faulting into a hole while it's punched
 
-Trinity has reported:
+Trinity finds that mmap access to a hole while it's punched from shmem can
+prevent the madvise(MADV_REMOVE) or fallocate(FALLOC_FL_PUNCH_HOLE) from
+completing, until the reader chooses to stop; with the puncher's hold on
+i_mutex locking out all other writers until it can complete.
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
-IP: __lock_acquire (kernel/locking/lockdep.c:3070 (discriminator 1))
-CPU: 6 PID: 16173 Comm: trinity-c364 Tainted: G        W
-                        3.15.0-rc1-next-20140415-sasha-00020-gaa90d09 #398
-lock_acquire (arch/x86/include/asm/current.h:14
-              kernel/locking/lockdep.c:3602)
-_raw_spin_lock (include/linux/spinlock_api_smp.h:143
-                kernel/locking/spinlock.c:151)
-remove_migration_pte (mm/migrate.c:137)
-rmap_walk (mm/rmap.c:1628 mm/rmap.c:1699)
-remove_migration_ptes (mm/migrate.c:224)
-migrate_pages (mm/migrate.c:922 mm/migrate.c:960 mm/migrate.c:1126)
-migrate_misplaced_page (mm/migrate.c:1733)
-__handle_mm_fault (mm/memory.c:3762 mm/memory.c:3812 mm/memory.c:3925)
-handle_mm_fault (mm/memory.c:3948)
-__get_user_pages (mm/memory.c:1851)
-__mlock_vma_pages_range (mm/mlock.c:255)
-__mm_populate (mm/mlock.c:711)
-SyS_mlockall (include/linux/mm.h:1799 mm/mlock.c:817 mm/mlock.c:791)
+It appears that the tmpfs fault path is too light in comparison with its
+hole-punching path, lacking an i_data_sem to obstruct it; but we don't
+want to slow down the common case.
 
-I believe this comes about because, whereas collapsing and splitting THP
-functions take anon_vma lock in write mode (which excludes concurrent rmap
-walks), faulting THP functions (write protection and misplaced NUMA) do
-not - and mostly they do not need to.
-
-But they do use a pmdp_clear_flush(), set_pmd_at() sequence which, for an
-instant (indeed, for a long instant, given the inter-CPU TLB flush in
-there), leaves *pmd neither present not trans_huge.
-
-Which can confuse a concurrent rmap walk, as when removing migration ptes,
-seen in the dumped trace.  Although that rmap walk has a 4k page to
-insert, anon_vmas containing THPs are in no way segregated from 4k-page
-anon_vmas, so the 4k-intent mm_find_pmd() does need to cope with that
-instant when a trans_huge pmd is temporarily absent.
-
-I don't think we need strengthen the locking at the THP end: it's easily
-handled with an ACCESS_ONCE() before testing both conditions.
-
-And since mm_find_pmd() had only one caller who wanted a THP rather than a
-pmd, let's slightly repurpose it to fail when it hits a THP or non-present
-pmd, and open code split_huge_page_address() again.
+Extend shmem_fallocate()'s existing range notification mechanism, so
+shmem_fault() can refrain from faulting pages into the hole while it's
+punched, waiting instead on i_mutex (when safe to sleep; or repeatedly
+faulting when not).
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Bob Liu <bob.liu@oracle.com>
-Cc: Christoph Lameter <cl@gentwo.org>
+Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Cc: Dave Jones <davej@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   18 ++++++++++++------
- mm/ksm.c         |    1 -
- mm/migrate.c     |    2 --
- mm/rmap.c        |   12 ++++++++----
- 4 files changed, 20 insertions(+), 13 deletions(-)
+ mm/shmem.c |   55 +++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 51 insertions(+), 4 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/huge_memory.c
---- a/mm/huge_memory.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
-+++ a/mm/huge_memory.c
-@@ -2423,8 +2423,6 @@ static void collapse_huge_page(struct mm
- 	pmd = mm_find_pmd(mm, address);
- 	if (!pmd)
- 		goto out;
--	if (pmd_trans_huge(*pmd))
--		goto out;
+diff -puN mm/shmem.c~shmem-fix-faulting-into-a-hole-while-its-punched mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-faulting-into-a-hole-while-its-punched
++++ a/mm/shmem.c
+@@ -80,11 +80,12 @@ static struct vfsmount *shm_mnt;
+ #define SHORT_SYMLINK_LEN 128
  
- 	anon_vma_lock_write(vma->anon_vma);
+ /*
+- * shmem_fallocate and shmem_writepage communicate via inode->i_private
+- * (with i_mutex making sure that it has only one user at a time):
+- * we would prefer not to enlarge the shmem inode just for that.
++ * shmem_fallocate communicates with shmem_fault or shmem_writepage via
++ * inode->i_private (with i_mutex making sure that it has only one user at
++ * a time): we would prefer not to enlarge the shmem inode just for that.
+  */
+ struct shmem_falloc {
++	int	mode;		/* FALLOC_FL mode currently operating */
+ 	pgoff_t start;		/* start of range currently being fallocated */
+ 	pgoff_t next;		/* the next page offset to be fallocated */
+ 	pgoff_t nr_falloced;	/* how many new pages have been fallocated */
+@@ -759,6 +760,7 @@ static int shmem_writepage(struct page *
+ 			spin_lock(&inode->i_lock);
+ 			shmem_falloc = inode->i_private;
+ 			if (shmem_falloc &&
++			    !shmem_falloc->mode &&
+ 			    index >= shmem_falloc->start &&
+ 			    index < shmem_falloc->next)
+ 				shmem_falloc->nr_unswapped++;
+@@ -1233,6 +1235,43 @@ static int shmem_fault(struct vm_area_st
+ 	int error;
+ 	int ret = VM_FAULT_LOCKED;
  
-@@ -2523,8 +2521,6 @@ static int khugepaged_scan_pmd(struct mm
- 	pmd = mm_find_pmd(mm, address);
- 	if (!pmd)
- 		goto out;
--	if (pmd_trans_huge(*pmd))
--		goto out;
- 
- 	memset(khugepaged_node_load, 0, sizeof(khugepaged_node_load));
- 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
-@@ -2877,12 +2873,22 @@ void split_huge_page_pmd_mm(struct mm_st
- static void split_huge_page_address(struct mm_struct *mm,
- 				    unsigned long address)
- {
-+	pgd_t *pgd;
-+	pud_t *pud;
- 	pmd_t *pmd;
- 
- 	VM_BUG_ON(!(address & ~HPAGE_PMD_MASK));
- 
--	pmd = mm_find_pmd(mm, address);
--	if (!pmd)
-+	pgd = pgd_offset(mm, address);
-+	if (!pgd_present(*pgd))
-+		return;
-+
-+	pud = pud_offset(pgd, address);
-+	if (!pud_present(*pud))
-+		return;
-+
-+	pmd = pmd_offset(pud, address);
-+	if (!pmd_present(*pmd))
- 		return;
- 	/*
- 	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
-diff -puN mm/ksm.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/ksm.c
---- a/mm/ksm.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
-+++ a/mm/ksm.c
-@@ -945,7 +945,6 @@ static int replace_page(struct vm_area_s
- 	pmd = mm_find_pmd(mm, addr);
- 	if (!pmd)
- 		goto out;
--	BUG_ON(pmd_trans_huge(*pmd));
- 
- 	mmun_start = addr;
- 	mmun_end   = addr + PAGE_SIZE;
-diff -puN mm/migrate.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/migrate.c
---- a/mm/migrate.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
-+++ a/mm/migrate.c
-@@ -120,8 +120,6 @@ static int remove_migration_pte(struct p
- 		pmd = mm_find_pmd(mm, addr);
- 		if (!pmd)
- 			goto out;
--		if (pmd_trans_huge(*pmd))
--			goto out;
- 
- 		ptep = pte_offset_map(pmd, addr);
- 
-diff -puN mm/rmap.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/rmap.c
---- a/mm/rmap.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
-+++ a/mm/rmap.c
-@@ -569,6 +569,7 @@ pmd_t *mm_find_pmd(struct mm_struct *mm,
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd = NULL;
-+	pmd_t pmde;
- 
- 	pgd = pgd_offset(mm, address);
- 	if (!pgd_present(*pgd))
-@@ -579,7 +580,13 @@ pmd_t *mm_find_pmd(struct mm_struct *mm,
- 		goto out;
- 
- 	pmd = pmd_offset(pud, address);
--	if (!pmd_present(*pmd))
 +	/*
-+	 * Some THP functions use the sequence pmdp_clear_flush(), set_pmd_at()
-+	 * without holding anon_vma lock for write.  So when looking for a
-+	 * genuine pmde (in which to find pte), test present and !THP together.
++	 * Trinity finds that probing a hole which tmpfs is punching can
++	 * prevent the hole-punch from ever completing: which in turn
++	 * locks writers out with its hold on i_mutex.  So refrain from
++	 * faulting pages into the hole while it's being punched, and
++	 * wait on i_mutex to be released if vmf->flags permits, 
 +	 */
-+	pmde = ACCESS_ONCE(*pmd);
-+	if (!pmd_present(pmde) || pmd_trans_huge(pmde))
- 		pmd = NULL;
- out:
- 	return pmd;
-@@ -615,9 +622,6 @@ pte_t *__page_check_address(struct page
- 	if (!pmd)
- 		return NULL;
++	if (unlikely(inode->i_private)) {
++		struct shmem_falloc *shmem_falloc;
++		spin_lock(&inode->i_lock);
++		shmem_falloc = inode->i_private;
++		if (!shmem_falloc ||
++		    shmem_falloc->mode != FALLOC_FL_PUNCH_HOLE ||
++		    vmf->pgoff < shmem_falloc->start ||
++		    vmf->pgoff >= shmem_falloc->next)
++			shmem_falloc = NULL;
++		spin_unlock(&inode->i_lock);
++		/*
++		 * i_lock has protected us from taking shmem_falloc seriously
++		 * once return from shmem_fallocate() went back up that stack.
++		 * i_lock does not serialize with i_mutex at all, but it does
++		 * not matter if sometimes we wait unnecessarily, or sometimes
++		 * miss out on waiting: we just need to make those cases rare.
++		 */
++		if (shmem_falloc) {
++			if ((vmf->flags & FAULT_FLAG_ALLOW_RETRY) &&
++			   !(vmf->flags & FAULT_FLAG_RETRY_NOWAIT)) {
++				up_read(&vma->vm_mm->mmap_sem);
++				mutex_lock(&inode->i_mutex);
++				mutex_unlock(&inode->i_mutex);
++				return VM_FAULT_RETRY;
++			}
++			/* cond_resched? Leave that to GUP or return to user */
++			return VM_FAULT_NOPAGE;
++		}
++	}
++
+ 	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
+ 	if (error)
+ 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
+@@ -1729,18 +1768,26 @@ static long shmem_fallocate(struct file
  
--	if (pmd_trans_huge(*pmd))
--		return NULL;
+ 	mutex_lock(&inode->i_mutex);
+ 
++	shmem_falloc.mode = mode & ~FALLOC_FL_KEEP_SIZE;
++
+ 	if (mode & FALLOC_FL_PUNCH_HOLE) {
+ 		struct address_space *mapping = file->f_mapping;
+ 		loff_t unmap_start = round_up(offset, PAGE_SIZE);
+ 		loff_t unmap_end = round_down(offset + len, PAGE_SIZE) - 1;
+ 
++		shmem_falloc.start = unmap_start >> PAGE_SHIFT;
++		shmem_falloc.next = (unmap_end + 1) >> PAGE_SHIFT;
++		spin_lock(&inode->i_lock);
++		inode->i_private = &shmem_falloc;
++		spin_unlock(&inode->i_lock);
++
+ 		if ((u64)unmap_end > (u64)unmap_start)
+ 			unmap_mapping_range(mapping, unmap_start,
+ 					    1 + unmap_end - unmap_start, 0);
+ 		shmem_truncate_range(inode, offset, offset + len - 1);
+ 		/* No need to unmap again: hole-punching leaves COWed pages */
+ 		error = 0;
+-		goto out;
++		goto undone;
+ 	}
+ 
+ 	/* We need to check rlimit even when FALLOC_FL_KEEP_SIZE */
+_
+
+Patches currently in -mm which might be from hughd@google.com are
+
+tmpfs-zero_range-and-collapse_range-not-currently-supported.patch
+hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry.patch
+mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep.patch
+mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
+mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
+shmem-fix-faulting-into-a-hole-while-its-punched.patch
+mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
+list-use-argument-hlist_add_after-names-from-rcu-variant.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
+klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+
