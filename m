@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-dlm-fix-misuse-of-list_move_tail-in-dlm_run_purge_list.patch added to -mm tree
-Date: Tue, 17 Jun 2014 15:50:44 -0700
-Message-ID: <53a0c644.5NtBLINEzhQNQLiE%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2.patch
+ added to -mm tree
+Date: Tue, 17 Jun 2014 15:55:48 -0700
+Message-ID: <53a0c774.kuCm/D+cwpovPHQM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57935 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57946 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965516AbaFQWup (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 18:50:45 -0400
+	with ESMTP id S1756634AbaFQWzt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 18:55:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.de, jlbec@evilplan.org, jiangyiwen@huawei.com, xuejiufei@huawei.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.de, joseph.qi@huawei.com, jlbec@evilplan.org, jiangyiwen@huawei.com
 
 
 The patch titled
-     Subject: ocfs2/dlm: fix misuse of list_move_tail() in dlm_run_purge_list()
+     Subject: ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlm-fix-misuse-of-list_move_tail-in-dlm_run_purge_list.patch
+     ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-fix-misuse-of-list_move_tail-in-dlm_run_purge_list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-fix-misuse-of-list_move_tail-in-dlm_run_purge_list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2/dlm: fix misuse of list_move_tail() in dlm_run_purge_list()
-
-When a lockres in purge list but is still in use, it should be moved to
-the tail of purge list.  dlm_thread will continue to check next lockres in
-purge list.  However, code list_move_tail(&dlm->purge_list,
-&lockres->purge) will do *no* movements, so dlm_thread will purge the same
-lockres in this loop again and again.  If it is in use for a long time,
-other lockres will not be processed.
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2
 
 Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Signed-off-by: joyce.xue <xuejiufei@huawei.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Joel Becker <jlbec@evilplan.org>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmthread.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/namei.c       |    7 +++----
+ fs/ocfs2/ocfs2_trace.h |    2 ++
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-fix-misuse-of-list_move_tail-in-dlm_run_purge_list fs/ocfs2/dlm/dlmthread.c
---- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-fix-misuse-of-list_move_tail-in-dlm_run_purge_list
-+++ a/fs/ocfs2/dlm/dlmthread.c
-@@ -264,7 +264,7 @@ static void dlm_run_purge_list(struct dl
- 			     "used %d, state %d\n", dlm->name,
- 			     lockres->lockname.len, lockres->lockname.name,
- 			     !unused, lockres->state);
--			list_move_tail(&dlm->purge_list, &lockres->purge);
-+			list_move_tail(&lockres->purge, &dlm->purge_list);
- 			spin_unlock(&lockres->spinlock);
- 			continue;
+diff -puN fs/ocfs2/namei.c~ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2 fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2
++++ a/fs/ocfs2/namei.c
+@@ -1222,10 +1222,9 @@ static int ocfs2_rename(struct inode *ol
+ 			goto bail;
+ 		} else if (status == 1) {
+ 			status = -EPERM;
+-			mlog(ML_ERROR, "src inode %llu should not be ancestor "
+-				"of new dir inode %llu\n",
+-				(unsigned long long)old_inode->i_ino,
+-				(unsigned long long)new_dir->i_ino);
++			trace_ocfs2_rename_not_permitted(
++					(unsigned long long)old_inode->i_ino,
++					(unsigned long long)new_dir->i_ino);
+ 			goto bail;
  		}
+ 	}
+diff -puN fs/ocfs2/ocfs2_trace.h~ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2 fs/ocfs2/ocfs2_trace.h
+--- a/fs/ocfs2/ocfs2_trace.h~ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2
++++ a/fs/ocfs2/ocfs2_trace.h
+@@ -2292,6 +2292,8 @@ TRACE_EVENT(ocfs2_rename,
+ 		  __entry->new_len, __get_str(new_name))
+ );
+ 
++DEFINE_OCFS2_ULL_ULL_EVENT(ocfs2_rename_not_permitted);
++
+ TRACE_EVENT(ocfs2_rename_target_exists,
+ 	TP_PROTO(int new_len, const char *new_name),
+ 	TP_ARGS(new_len, new_name),
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
-ocfs2-revert-the-patch-fix-null-pointer-dereference-when-dismount-and-ocfs2rec-simultaneously.patch
 ocfs2-dlm-fix-misuse-of-list_move_tail-in-dlm_run_purge_list.patch
+ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
+ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2.patch
 ocfs2-remove-convertion-of-total_backoff-in-dlm_join_domain.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
 ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+ocfs2-manually-do-the-iput-once-ocfs2_add_entry-failed-in-ocfs2_symlink-and-ocfs2_mknod.patch
 
