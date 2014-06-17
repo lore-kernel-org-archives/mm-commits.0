@@ -1,187 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] refcount-take-inode_lock-until-write-io-issued.patch
- removed from -mm tree
-Date: Tue, 17 Jun 2014 13:29:16 -0700
-Message-ID: <53a0a51c.5lJ1ternkhrlQdAr%akpm@linux-foundation.org>
+Subject: + mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch added to -mm tree
+Date: Tue, 17 Jun 2014 13:32:52 -0700
+Message-ID: <53a0a5f4.SemwRY2fZFW56FoI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56033 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932927AbaFQU3R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 16:29:17 -0400
+	with ESMTP id S933833AbaFQUcx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 16:32:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, wen.gang.wang@oracle.com
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, rientjes@google.com, mgorman@suse.de, koct9i@gmail.com, kirill.shutemov@linux.intel.com, davej@redhat.com, cl@gentwo.org, bob.liu@oracle.com, hughd@google.com
 
 
 The patch titled
-     Subject: ocfs2: refcount: take inode_lock until write io issued
-has been removed from the -mm tree.  Its filename was
-     refcount-take-inode_lock-until-write-io-issued.patch
+     Subject: mm: let mm_find_pmd fix buggy race with THP fault
+has been added to the -mm tree.  Its filename is
+     mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Wengang Wang <wen.gang.wang@oracle.com>
-Subject: ocfs2: refcount: take inode_lock until write io issued
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: let mm_find_pmd fix buggy race with THP fault
 
-This patch tries to fix this crash:
+Trinity has reported:
 
- #5 [ffff88003c1cd690] do_invalid_op at ffffffff810166d5
- #6 [ffff88003c1cd730] invalid_op at ffffffff8159b2de
-    [exception RIP: ocfs2_direct_IO_get_blocks+359]
-    RIP: ffffffffa05dfa27  RSP: ffff88003c1cd7e8  RFLAGS: 00010202
-    RAX: 0000000000000000  RBX: ffff88003c1cdaa8  RCX: 0000000000000000
-    RDX: 000000000000000c  RSI: ffff880027a95000  RDI: ffff88003c79b540
-    RBP: ffff88003c1cd858   R8: 0000000000000000   R9: ffffffff815f6ba0
-    R10: 00000000000001c9  R11: 00000000000001c9  R12: ffff88002d271500
-    R13: 0000000000000001  R14: 0000000000000000  R15: 0000000000001000
-    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
- #7 [ffff88003c1cd860] do_direct_IO at ffffffff811cd31b
- #8 [ffff88003c1cd950] direct_IO_iovec at ffffffff811cde9c
- #9 [ffff88003c1cd9b0] do_blockdev_direct_IO at ffffffff811ce764
-#10 [ffff88003c1cdb80] __blockdev_direct_IO at ffffffff811ce7cc
-#11 [ffff88003c1cdbb0] ocfs2_direct_IO at ffffffffa05df756 [ocfs2]
-#12 [ffff88003c1cdbe0] generic_file_direct_write_iter at ffffffff8112f935
-#13 [ffff88003c1cdc40] ocfs2_file_write_iter at ffffffffa0600ccc [ocfs2]
-#14 [ffff88003c1cdd50] do_aio_write at ffffffff8119126c
-#15 [ffff88003c1cddc0] aio_rw_vect_retry at ffffffff811d9bb4
-#16 [ffff88003c1cddf0] aio_run_iocb at ffffffff811db880
-#17 [ffff88003c1cde30] io_submit_one at ffffffff811dc238
-#18 [ffff88003c1cde80] do_io_submit at ffffffff811dc437
-#19 [ffff88003c1cdf70] sys_io_submit at ffffffff811dc530
-#20 [ffff88003c1cdf80] system_call_fastpath at ffffffff8159a159
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
+IP: __lock_acquire (kernel/locking/lockdep.c:3070 (discriminator 1))
+CPU: 6 PID: 16173 Comm: trinity-c364 Tainted: G        W
+                        3.15.0-rc1-next-20140415-sasha-00020-gaa90d09 #398
+lock_acquire (arch/x86/include/asm/current.h:14
+              kernel/locking/lockdep.c:3602)
+_raw_spin_lock (include/linux/spinlock_api_smp.h:143
+                kernel/locking/spinlock.c:151)
+remove_migration_pte (mm/migrate.c:137)
+rmap_walk (mm/rmap.c:1628 mm/rmap.c:1699)
+remove_migration_ptes (mm/migrate.c:224)
+migrate_pages (mm/migrate.c:922 mm/migrate.c:960 mm/migrate.c:1126)
+migrate_misplaced_page (mm/migrate.c:1733)
+__handle_mm_fault (mm/memory.c:3762 mm/memory.c:3812 mm/memory.c:3925)
+handle_mm_fault (mm/memory.c:3948)
+__get_user_pages (mm/memory.c:1851)
+__mlock_vma_pages_range (mm/mlock.c:255)
+__mm_populate (mm/mlock.c:711)
+SyS_mlockall (include/linux/mm.h:1799 mm/mlock.c:817 mm/mlock.c:791)
 
-It crashes at
-	BUG_ON(create && (ext_flags & OCFS2_EXT_REFCOUNTED));
-in ocfs2_direct_IO_get_blocks.
+I believe this comes about because, whereas collapsing and splitting THP
+functions take anon_vma lock in write mode (which excludes concurrent rmap
+walks), faulting THP functions (write protection and misplaced NUMA) do
+not - and mostly they do not need to.
 
-ocfs2_direct_IO_get_blocks is expecting the OCFS2_EXT_REFCOUNTED be
-removed in ocfs2_prepare_inode_for_write() if it was there.  But no
-cluster lock is taken during the time before (or inside)
-ocfs2_prepare_inode_for_write() and after ocfs2_direct_IO_get_blocks().
+But they do use a pmdp_clear_flush(), set_pmd_at() sequence which, for an
+instant (indeed, for a long instant, given the inter-CPU TLB flush in
+there), leaves *pmd neither present not trans_huge.
 
-It can happen in this case:
+Which can confuse a concurrent rmap walk, as when removing migration ptes,
+seen in the dumped trace.  Although that rmap walk has a 4k page to
+insert, anon_vmas containing THPs are in no way segregated from 4k-page
+anon_vmas, so the 4k-intent mm_find_pmd() does need to cope with that
+instant when a trans_huge pmd is temporarily absent.
 
-Node A(which crashes)				Node B
-------------------------                 ---------------------------
-ocfs2_file_aio_write
-  ocfs2_prepare_inode_for_write
-    ocfs2_inode_lock
-    ...
-    ocfs2_inode_unlock
-  #no refcount found
-....					ocfs2_reflink
-					  ocfs2_inode_lock
-					  ...
-					  ocfs2_inode_unlock
-					  #now, refcount flag set on extent
+I don't think we need strengthen the locking at the THP end: it's easily
+handled with an ACCESS_ONCE() before testing both conditions.
 
-					...
-					flush change to disk
+And since mm_find_pmd() had only one caller who wanted a THP rather than a
+pmd, let's slightly repurpose it to fail when it hits a THP or non-present
+pmd, and open code split_huge_page_address() again.
 
-ocfs2_direct_IO_get_blocks
-  ocfs2_get_clusters
-    #extent map miss
-    #buffer_head miss
-    read extents from disk
-  found refcount flag on extent
-  crash..
-
-Fix: We have to take the inode_lock long enough until
-ocfs2_direct_IO_get_blocks finished.
-
-Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Bob Liu <bob.liu@oracle.com>
+Cc: Christoph Lameter <cl@gentwo.org>
+Cc: Dave Jones <davej@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c     |   20 ++++++++++++++++++--
- fs/ocfs2/ocfs2_fs.h |    2 +-
- 2 files changed, 19 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |   18 ++++++++++++------
+ mm/ksm.c         |    1 -
+ mm/migrate.c     |    2 --
+ mm/rmap.c        |   12 ++++++++----
+ 4 files changed, 20 insertions(+), 13 deletions(-)
 
-diff -puN fs/ocfs2/file.c~refcount-take-inode_lock-until-write-io-issued fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~refcount-take-inode_lock-until-write-io-issued
-+++ a/fs/ocfs2/file.c
-@@ -2104,13 +2104,16 @@ static int ocfs2_prepare_inode_for_write
- 					 size_t count,
- 					 int appending,
- 					 int *direct_io,
--					 int *has_refcount)
-+					 int *has_refcount,
-+					 int *meta_level_out)
- {
- 	int ret = 0, meta_level = 0;
- 	struct dentry *dentry = file->f_path.dentry;
- 	struct inode *inode = dentry->d_inode;
- 	loff_t saved_pos = 0, end;
- 
-+	if (meta_level_out)
-+		*meta_level_out = -1;
- 	/*
- 	 * We start with a read level meta lock and only jump to an ex
- 	 * if we need to make modifications here.
-@@ -2226,6 +2229,15 @@ out_unlock:
- 					    saved_pos, appending, count,
- 					    direct_io, has_refcount);
- 
-+	/*
-+	 * If direct IO would be done later, we have to keep inode_lock locked.
-+	 * Buffer'd IO is fine since the COW work will be done again in
-+	 * ocfs2_write_begin.
-+	 */
-+	if (direct_io && *direct_io && meta_level_out && !ret) {
-+		*meta_level_out = meta_level;
-+		meta_level = -1;
-+	}
- 	if (meta_level >= 0)
- 		ocfs2_inode_unlock(inode, meta_level);
- 
-@@ -2248,6 +2260,7 @@ static ssize_t ocfs2_file_write_iter(str
- 	int full_coherency = !(osb->s_mount_opt &
- 			       OCFS2_MOUNT_COHERENCY_BUFFERED);
- 	int unaligned_dio = 0;
-+	int meta_level = -1;
- 
- 	trace_ocfs2_file_aio_write(inode, file, file->f_path.dentry,
- 		(unsigned long long)OCFS2_I(inode)->ip_blkno,
-@@ -2307,7 +2320,8 @@ relock:
- 	can_do_direct = direct_io;
- 	ret = ocfs2_prepare_inode_for_write(file, ppos,
- 					    iocb->ki_nbytes, appending,
--					    &can_do_direct, &has_refcount);
-+					    &can_do_direct, &has_refcount,
-+					    &meta_level);
- 	if (ret < 0) {
- 		mlog_errno(ret);
+diff -puN mm/huge_memory.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
++++ a/mm/huge_memory.c
+@@ -2423,8 +2423,6 @@ static void collapse_huge_page(struct mm
+ 	pmd = mm_find_pmd(mm, address);
+ 	if (!pmd)
  		goto out;
-@@ -2423,6 +2437,8 @@ out_sems:
- 	if (have_alloc_sem)
- 		ocfs2_iocb_clear_sem_locked(iocb);
+-	if (pmd_trans_huge(*pmd))
+-		goto out;
  
-+	if (meta_level >= 0)
-+		ocfs2_inode_unlock(inode, meta_level);
- 	mutex_unlock(&inode->i_mutex);
+ 	anon_vma_lock_write(vma->anon_vma);
  
- 	if (written)
-diff -puN fs/ocfs2/ocfs2_fs.h~refcount-take-inode_lock-until-write-io-issued fs/ocfs2/ocfs2_fs.h
---- a/fs/ocfs2/ocfs2_fs.h~refcount-take-inode_lock-until-write-io-issued
-+++ a/fs/ocfs2/ocfs2_fs.h
-@@ -724,7 +724,7 @@ struct ocfs2_dinode {
- 	__le64 i_xattr_loc;
- /*80*/	struct ocfs2_block_check i_check;	/* Error checking */
- /*88*/	__le64 i_dx_root;		/* Pointer to dir index root block */
--/*90*/	__le64 i_refcount_loc;
-+/*90*/	__le64 i_refcount_loc;		/* Root block of the refcount tree */
- 	__le64 i_suballoc_loc;		/* Suballocator block group this
- 					   inode belongs to.  Only valid
- 					   if allocated from a
-_
-
-Patches currently in -mm which might be from wen.gang.wang@oracle.com are
-
-
+@@ -2523,8 +2521,6 @@ static int khugepaged_scan_pmd(struct mm
+ 	pmd = mm_find_pmd(mm, address);
+ 	if (!pmd)
+ 		goto out;
+-	if (pmd_trans_huge(*pmd))
+-		goto out;
+ 
+ 	memset(khugepaged_node_load, 0, sizeof(khugepaged_node_load));
+ 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+@@ -2877,12 +2873,22 @@ void split_huge_page_pmd_mm(struct mm_st
+ static void split_huge_page_address(struct mm_struct *mm,
+ 				    unsigned long address)
+ {
++	pgd_t *pgd;
++	pud_t *pud;
+ 	pmd_t *pmd;
+ 
+ 	VM_BUG_ON(!(address & ~HPAGE_PMD_MASK));
+ 
+-	pmd = mm_find_pmd(mm, address);
+-	if (!pmd)
++	pgd = pgd_offset(mm, address);
++	if (!pgd_present(*pgd))
++		return;
++
++	pud = pud_offset(pgd, address);
++	if (!pud_present(*pud))
++		return;
++
++	pmd = pmd_offset(pud, address);
++	if (!pmd_present(*pmd))
+ 		return;
+ 	/*
+ 	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
+diff -puN mm/ksm.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/ksm.c
+--- a/mm/ksm.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
++++ a/mm/ksm.c
+@@ -945,7 +945,6 @@ static int replace_page(struct vm_area_s
+ 	pmd = mm_find_pmd(mm, addr);
+ 	if (!pmd)
+ 		goto out;
+-	BUG_ON(pmd_trans_huge(*pmd));
+ 
+ 	mmun_start = addr;
+ 	mmun_end   = addr + PAGE_SIZE;
+diff -puN mm/migrate.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/migrate.c
+--- a/mm/migrate.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
++++ a/mm/migrate.c
+@@ -120,8 +120,6 @@ static int remove_migration_pte(struct p
+ 		pmd = mm_find_pmd(mm, addr);
+ 		if (!pmd)
+ 			goto out;
+-		if (pmd_trans_huge(*pmd))
+-			goto out;
+ 
+ 		ptep = pte_offset_map(pmd, addr);
+ 
+diff -puN mm/rmap.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/rmap.c
+--- a/mm/rmap.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
++++ a/mm/rmap.c
+@@ -569,6 +569,7 @@ pmd_t *mm_find_pmd(struct mm_struct *mm,
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd = NULL;
++	pmd_t pmde;
+ 
+ 	pgd = pgd_offset(mm, address);
+ 	if (!pgd_present(*pgd))
+@@ -579,7 +580,13 @@ pmd_t *mm_find_pmd(struct mm_struct *mm,
+ 		goto out;
+ 
+ 	pmd = pmd_offset(pud, address);
+-	if (!pmd_present(*pmd))
++	/*
++	 * Some THP functions use the sequence pmdp_clear_flush(), set_pmd_at()
++	 * without holding anon_vma lock for write.  So when looking for a
++	 * genuine pmde (in which to find pte), test present and !THP together.
++	 */
++	pmde = ACCESS_ONCE(*pmd);
++	if (!pmd_present(pmde) || pmd_trans_huge(pmde))
+ 		pmd = NULL;
+ out:
+ 	return pmd;
+@@ -615,9 +622,6 @@ pte_t *__page_check_address(struct page
+ 	if (!pmd)
+ 		return NULL;
+ 
+-	if (pmd_trans_huge(*pmd))
+-		return NULL;
