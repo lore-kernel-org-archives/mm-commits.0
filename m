@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-cleanup-memcg_cache_params-refcnt-usage.patch added to
- -mm tree
-Date: Tue, 17 Jun 2014 14:44:21 -0700
-Message-ID: <53a0b6b5.r5c+PXXAi6eMlJzR%akpm@linux-foundation.org>
+Subject: + memcg-destroy-kmem-caches-when-last-slab-is-freed.patch added
+ to -mm tree
+Date: Tue, 17 Jun 2014 14:44:23 -0700
+Message-ID: <53a0b6b7.X3N/tJwZSdch+Awp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57437 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964931AbaFQVoW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 17:44:22 -0400
+	with ESMTP id S964931AbaFQVoY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 17:44:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, mhocko@suse.cz, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, cl@linux.com, vdavydov@parallels.com
 
 
 The patch titled
-     Subject: memcg: cleanup memcg_cache_params refcnt usage
+     Subject: memcg: destroy kmem caches when last slab is freed
 has been added to the -mm tree.  Its filename is
-     memcg-cleanup-memcg_cache_params-refcnt-usage.patch
+     memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-cleanup-memcg_cache_params-refcnt-usage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-cleanup-memcg_cache_params-refcnt-usage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,68 +40,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: cleanup memcg_cache_params refcnt usage
+Subject: memcg: destroy kmem caches when last slab is freed
 
-When a memcg is turned offline, some of its kmem caches can still have
-active objects and therefore cannot be destroyed immediately.  Currently,
-we simply leak such caches along with the owner memcg, which is bad and
-should be resolved.
+When the memcg_cache_params->refcnt goes to 0, schedule the worker that
+will unregister the cache.  To prevent this from happening when the owner
+memcg is alive, keep the refcnt incremented during memcg lifetime.
 
-It would be perfect if we could move all slab pages of such dead caches to
-the root/parent cache on memcg offline.  However, when I tried to
-implement such re-parenting, I was pointed out by Christoph that the
-overhead of this would be unacceptable, at least for SLUB (see
-https://lkml.org/lkml/2014/5/13/446)
-
-The problem with re-parenting of individual slabs is that it requires
-tracking of all slabs allocated to a cache, but SLUB doesn't track full
-slabs if !debug.  Changing this behavior would result in significant
-performance degradation of regular alloc/free paths, because it would make
-alloc/free take per node list locks more often.
-
-After pondering about this problem for some time, I think we should return
-to dead caches self-destruction, i.e.  scheduling cache destruction work
-when the last slab page is freed.
-
-This is the behavior we had before commit 5bd93da9917f ("memcg, slab:
-simplify synchronization scheme").  The reason why it was removed was that
-it simply didn't work, because SL[AU]B are implemented in such a way that
-they don't discard empty slabs immediately, but prefer keeping them cached
-for indefinite time to speed up further allocations.
-
-However, we can change this w/o noticeable performance impact for both
-SLAB and SLUB by making them drop free slabs as soon as they become empty.
- Since dead caches should never be allocated from, removing empty slabs
-from them shouldn't result in noticeable performance degradation.
-
-So, this patch set reintroduces dead cache self-destruction and adds some
-tweaks to SL[AU]B to prevent dead caches from hanging around indefinitely.
- It is organized as follows:
-
- - patches 1-3 reintroduce dead memcg cache self-destruction;
- - patch 4 makes SLUB's version of kmem_cache_shrink always drop empty
-   slabs, even if it fails to allocate a temporary array;
- - patches 5 and 6 fix possible use-after-free connected with
-   asynchronous cache destruction;
- - patches 7 and 8 disable caching of empty slabs for dead memcg caches
-   for SLUB and SLAB respectively.
-
-Note, this doesn't resolve the problem of memcgs pinned by dead kmem
-caches. I'm planning to solve this by re-parenting dead kmem caches to
-the parent memcg.
-
-
-
-This patch (of 8):
-
-Currently, we count the number of pages allocated to a per memcg cache in
-memcg_cache_params->nr_pages.  We only use this counter to find out if the
-cache is empty and can be destroyed.  So let's rename it to refcnt and
-make it count not pages, but slabs so that we can use atomic_inc/dec
-instead of atomic_add/sub in memcg_charge/uncharge_slab.
-
-Also, as the number of slabs theoretically can be greater than INT_MAX,
-let's use atomic_long for the counter.
+Note, this doesn't guarantee that the cache that belongs to a dead memcg
+will go away as soon as the last object is freed, because SL[AU]B
+implementation can cache empty slabs for performance reasons.  Hence the
+cache may be hanging around indefinitely after memcg offline.  This is to
+be resolved by the next patches.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Acked-by: Christoph Lameter <cl@linux.com>
@@ -113,57 +62,86 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    4 ++--
- mm/memcontrol.c      |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ include/linux/slab.h |    2 ++
+ mm/memcontrol.c      |   22 ++++++++++++++++++++--
+ 2 files changed, 22 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/slab.h~memcg-cleanup-memcg_cache_params-refcnt-usage include/linux/slab.h
---- a/include/linux/slab.h~memcg-cleanup-memcg_cache_params-refcnt-usage
+diff -puN include/linux/slab.h~memcg-destroy-kmem-caches-when-last-slab-is-freed include/linux/slab.h
+--- a/include/linux/slab.h~memcg-destroy-kmem-caches-when-last-slab-is-freed
 +++ a/include/linux/slab.h
-@@ -526,7 +526,7 @@ static __always_inline void *kmalloc_nod
-  * @memcg: pointer to the memcg this cache belongs to
+@@ -527,6 +527,7 @@ static __always_inline void *kmalloc_nod
   * @list: list_head for the list of all caches in this memcg
   * @root_cache: pointer to the global, root cache, this cache was derived from
-- * @nr_pages: number of pages that belongs to this cache.
-+ * @refcnt: reference counter
+  * @refcnt: reference counter
++ * @unregister_work: worker to destroy the cache
   */
  struct memcg_cache_params {
  	bool is_root_cache;
-@@ -539,7 +539,7 @@ struct memcg_cache_params {
- 			struct mem_cgroup *memcg;
+@@ -540,6 +541,7 @@ struct memcg_cache_params {
  			struct list_head list;
  			struct kmem_cache *root_cache;
--			atomic_t nr_pages;
-+			atomic_long_t refcnt;
+ 			atomic_long_t refcnt;
++			struct work_struct unregister_work;
  		};
  	};
  };
-diff -puN mm/memcontrol.c~memcg-cleanup-memcg_cache_params-refcnt-usage mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-cleanup-memcg_cache_params-refcnt-usage
+diff -puN mm/memcontrol.c~memcg-destroy-kmem-caches-when-last-slab-is-freed mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-destroy-kmem-caches-when-last-slab-is-freed
 +++ a/mm/memcontrol.c
-@@ -3241,7 +3241,7 @@ static void memcg_unregister_all_caches(
+@@ -3076,6 +3076,8 @@ int memcg_update_cache_size(struct kmem_
+ 	return 0;
+ }
+ 
++static void memcg_unregister_cache_func(struct work_struct *work);
++
+ int memcg_alloc_cache_params(struct mem_cgroup *memcg, struct kmem_cache *s,
+ 			     struct kmem_cache *root_cache)
+ {
+@@ -3097,6 +3099,9 @@ int memcg_alloc_cache_params(struct mem_
+ 	if (memcg) {
+ 		s->memcg_params->memcg = memcg;
+ 		s->memcg_params->root_cache = root_cache;
++		atomic_long_set(&s->memcg_params->refcnt, 1);
++		INIT_WORK(&s->memcg_params->unregister_work,
++			  memcg_unregister_cache_func);
+ 		css_get(&memcg->css);
+ 	} else
+ 		s->memcg_params->is_root_cache = true;
+@@ -3178,6 +3183,17 @@ static void memcg_unregister_cache(struc
+ 	kmem_cache_destroy(cachep);
+ }
+ 
++static void memcg_unregister_cache_func(struct work_struct *work)
++{
++	struct memcg_cache_params *params =
++		container_of(work, struct memcg_cache_params, unregister_work);
++	struct kmem_cache *cachep = memcg_params_to_cache(params);
++
++	mutex_lock(&memcg_slab_mutex);
++	memcg_unregister_cache(cachep);
++	mutex_unlock(&memcg_slab_mutex);
++}
++
+ /*
+  * During the creation a new cache, we need to disable our accounting mechanism
+  * altogether. This is true even if we are not creating, but rather just
+@@ -3241,7 +3257,7 @@ static void memcg_unregister_all_caches(
  	list_for_each_entry_safe(params, tmp, &memcg->memcg_slab_caches, list) {
  		cachep = memcg_params_to_cache(params);
  		kmem_cache_shrink(cachep);
--		if (atomic_read(&cachep->memcg_params->nr_pages) == 0)
-+		if (atomic_long_read(&cachep->memcg_params->refcnt) == 0)
+-		if (atomic_long_read(&cachep->memcg_params->refcnt) == 0)
++		if (atomic_long_dec_and_test(&cachep->memcg_params->refcnt))
  			memcg_unregister_cache(cachep);
  	}
  	mutex_unlock(&memcg_slab_mutex);
-@@ -3315,14 +3315,14 @@ int __memcg_charge_slab(struct kmem_cach
- 	res = memcg_charge_kmem(cachep->memcg_params->memcg, gfp,
- 				PAGE_SIZE << order);
- 	if (!res)
--		atomic_add(1 << order, &cachep->memcg_params->nr_pages);
-+		atomic_long_inc(&cachep->memcg_params->refcnt);
- 	return res;
- }
- 
+@@ -3322,7 +3338,9 @@ int __memcg_charge_slab(struct kmem_cach
  void __memcg_uncharge_slab(struct kmem_cache *cachep, int order)
  {
  	memcg_uncharge_kmem(cachep->memcg_params->memcg, PAGE_SIZE << order);
--	atomic_sub(1 << order, &cachep->memcg_params->nr_pages);
-+	atomic_long_dec(&cachep->memcg_params->refcnt);
+-	atomic_long_dec(&cachep->memcg_params->refcnt);
++
++	if (unlikely(atomic_long_dec_and_test(&cachep->memcg_params->refcnt)))
++		schedule_work(&cachep->memcg_params->unregister_work);
  }
  
  /*
