@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
- added to -mm tree
-Date: Tue, 17 Jun 2014 14:44:27 -0700
-Message-ID: <53a0b6bb.xBDjgKwyusROq9ax%akpm@linux-foundation.org>
+Subject: +
+ slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch added to -mm tree
+Date: Tue, 17 Jun 2014 14:44:25 -0700
+Message-ID: <53a0b6b9.UyDjn2ze529GRz8S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57451 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965160AbaFQVo2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 17:44:28 -0400
+	with ESMTP id S964931AbaFQVo0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 17:44:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, mhocko@suse.cz, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, cl@linux.com, vdavydov@parallels.com
 
 
 The patch titled
-     Subject: memcg: wait for kfree's to finish before destroying cache
+     Subject: slub: don't fail kmem_cache_shrink if slab placement optimization fails
 has been added to the -mm tree.  Its filename is
-     memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
+     slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,113 +40,78 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: wait for kfree's to finish before destroying cache
+Subject: slub: don't fail kmem_cache_shrink if slab placement optimization fails
 
-kmem_cache_free doesn't expect that the cache can be destroyed as soon as
-the object is freed, e.g.  SLUB's implementation may want to update cache
-stats after putting the object to the free list.
+SLUB's kmem_cache_shrink not only removes empty slabs from the cache, but
+also sorts slabs by the number of objects in-use to cope with
+fragmentation.  To achieve that, it tries to allocate a temporary array. 
+If it fails, it will abort the whole procedure.
 
-Therefore we should wait for all kmem_cache_free's to finish before
-proceeding to cache destruction.  Since both SLAB and SLUB versions of
-kmem_cache_free are non-preemptable, we wait for rcu-sched grace period to
-elapse.
+This is unacceptable for kmemcg, where we want to be sure that all empty
+slabs are removed from the cache on memcg offline, so let's just skip the
+slab placement optimization step if the allocation fails, but still get
+rid of empty slabs.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    6 ++----
- mm/memcontrol.c      |   34 ++++++++++++++++++++++++++++++++--
- 2 files changed, 34 insertions(+), 6 deletions(-)
+ mm/slub.c |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/slab.h~memcg-wait-for-kfrees-to-finish-before-destroying-cache include/linux/slab.h
---- a/include/linux/slab.h~memcg-wait-for-kfrees-to-finish-before-destroying-cache
-+++ a/include/linux/slab.h
-@@ -532,11 +532,9 @@ static __always_inline void *kmalloc_nod
-  */
- struct memcg_cache_params {
- 	bool is_root_cache;
-+	struct rcu_head rcu_head;
- 	union {
--		struct {
--			struct rcu_head rcu_head;
--			struct kmem_cache *memcg_caches[0];
--		};
-+		struct kmem_cache *memcg_caches[0];
- 		struct {
- 			struct mem_cgroup *memcg;
- 			struct list_head list;
-diff -puN mm/memcontrol.c~memcg-wait-for-kfrees-to-finish-before-destroying-cache mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-wait-for-kfrees-to-finish-before-destroying-cache
-+++ a/mm/memcontrol.c
-@@ -3194,6 +3194,14 @@ static void memcg_unregister_cache_func(
- 	mutex_unlock(&memcg_slab_mutex);
- }
+diff -puN mm/slub.c~slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails mm/slub.c
+--- a/mm/slub.c~slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails
++++ a/mm/slub.c
+@@ -3392,12 +3392,20 @@ int __kmem_cache_shrink(struct kmem_cach
+ 	struct page *page;
+ 	struct page *t;
+ 	int objects = oo_objects(s->max);
++	struct list_head empty_slabs;
+ 	struct list_head *slabs_by_inuse =
+ 		kmalloc(sizeof(struct list_head) * objects, GFP_KERNEL);
+ 	unsigned long flags;
  
-+static void memcg_unregister_cache_rcu_func(struct rcu_head *rcu)
-+{
-+	struct memcg_cache_params *params =
-+		container_of(rcu, struct memcg_cache_params, rcu_head);
-+
-+	schedule_work(&params->unregister_work);
-+}
-+
- /*
-  * During the creation a new cache, we need to disable our accounting mechanism
-  * altogether. This is true even if we are not creating, but rather just
-@@ -3249,6 +3257,7 @@ static void memcg_unregister_all_caches(
- {
- 	struct kmem_cache *cachep;
- 	struct memcg_cache_params *params, *tmp;
-+	LIST_HEAD(empty_caches);
- 
- 	if (!memcg_kmem_is_active(memcg))
- 		return;
-@@ -3261,7 +3270,26 @@ static void memcg_unregister_all_caches(
- 		kmem_cache_shrink(cachep);
- 
- 		if (atomic_long_dec_and_test(&cachep->memcg_params->refcnt))
--			memcg_unregister_cache(cachep);
-+			list_move(&cachep->memcg_params->list, &empty_caches);
+-	if (!slabs_by_inuse)
+-		return -ENOMEM;
++	if (!slabs_by_inuse) {
++		/*
++		 * Do not fail shrinking empty slabs if allocation of the
++		 * temporary array failed. Just skip the slab placement
++		 * optimization then.
++		 */
++		slabs_by_inuse = &empty_slabs;
++		objects = 1;
 +	}
-+
-+	/*
-+	 * kmem_cache_free doesn't expect that the cache can be destroyed as
-+	 * soon as the object is freed, e.g. SLUB's implementation may want to
-+	 * update cache stats after putting the object to the free list.
-+	 *
-+	 * Therefore we should wait for all kmem_cache_free's to finish before
-+	 * proceeding to cache destruction. Since both SLAB and SLUB versions
-+	 * of kmem_cache_free are non-preemptable, we wait for rcu-sched grace
-+	 * period to elapse.
-+	 */
-+	synchronize_sched();
-+
-+	while (!list_empty(&empty_caches)) {
-+		params = list_first_entry(&empty_caches,
-+					  struct memcg_cache_params, list);
-+		cachep = memcg_params_to_cache(params);
-+		memcg_unregister_cache(cachep);
+ 
+ 	flush_all(s);
+ 	for_each_kmem_cache_node(s, node, n) {
+@@ -3416,7 +3424,9 @@ int __kmem_cache_shrink(struct kmem_cach
+ 		 * list_lock. page->inuse here is the upper limit.
+ 		 */
+ 		list_for_each_entry_safe(page, t, &n->partial, lru) {
+-			list_move(&page->lru, slabs_by_inuse + page->inuse);
++			if (page->inuse < objects)
++				list_move(&page->lru,
++					  slabs_by_inuse + page->inuse);
+ 			if (!page->inuse)
+ 				n->nr_partial--;
+ 		}
+@@ -3435,7 +3445,8 @@ int __kmem_cache_shrink(struct kmem_cach
+ 			discard_slab(s, page);
  	}
- 	mutex_unlock(&memcg_slab_mutex);
- }
-@@ -3343,7 +3371,9 @@ void __memcg_uncharge_slab(struct kmem_c
- 	memcg_uncharge_kmem(cachep->memcg_params->memcg, PAGE_SIZE << order);
  
- 	if (unlikely(atomic_long_dec_and_test(&cachep->memcg_params->refcnt)))
--		schedule_work(&cachep->memcg_params->unregister_work);
-+		/* see memcg_unregister_all_caches */
-+		call_rcu_sched(&cachep->memcg_params->rcu_head,
-+			       memcg_unregister_cache_rcu_func);
+-	kfree(slabs_by_inuse);
++	if (slabs_by_inuse != &empty_slabs)
++		kfree(slabs_by_inuse);
+ 	return 0;
  }
  
- /*
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
