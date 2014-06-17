@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + slub-make-slab_free-non-preemptable.patch added to -mm tree
-Date: Tue, 17 Jun 2014 14:44:26 -0700
-Message-ID: <53a0b6ba.1oAWBvpgSKKkXiXq%akpm@linux-foundation.org>
+Subject: +
+ slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch added to
+ -mm tree
+Date: Tue, 17 Jun 2014 14:44:28 -0700
+Message-ID: <53a0b6bc.4wMS15JAhWM4TeEV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57461 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57473 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965125AbaFQVo1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 17:44:27 -0400
+	with ESMTP id S965160AbaFQVo3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 17:44:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, mhocko@suse.cz, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, cl@linux.com, vdavydov@parallels.com
 
 
 The patch titled
-     Subject: slub: make slab_free non-preemptable
+     Subject: slub: make dead memcg caches discard free slabs immediately
 has been added to the -mm tree.  Its filename is
-     slub-make-slab_free-non-preemptable.patch
+     slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-make-slab_free-non-preemptable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-make-slab_free-non-preemptable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,97 +41,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slub: make slab_free non-preemptable
+Subject: slub: make dead memcg caches discard free slabs immediately
 
-Since per memcg cache destruction is scheduled when the last slab is
-freed, to avoid use-after-free in kmem_cache_free we should either
-rearrange code in kmem_cache_free so that it won't dereference the cache
-ptr after freeing the object, or wait for all kmem_cache_free's to
-complete before proceeding to cache destruction.
+Since a dead memcg cache is destroyed only after the last slab allocated
+to it is freed, we must disable caching of empty slabs for such caches,
+otherwise they will be hanging around forever.
 
-The former approach isn't a good option from the future development point
-of view, because every modifications to kmem_cache_free must be done with
-great care then.  Hence we should provide a method to wait for all
-currently executing kmem_cache_free's to finish.
+This patch makes SLUB discard dead memcg caches' slabs as soon as they
+become empty.  To achieve that, it disables per cpu partial lists for dead
+caches (see put_cpu_partial) and forbids keeping empty slabs on per node
+partial lists by setting cache's min_partial to 0 on kmem_cache_shrink,
+which is always called on memcg offline (see memcg_unregister_all_caches).
 
-This patch makes SLUB's implementation of kmem_cache_free non-preemptable.
- As a result, synchronize_sched() will work as a barrier against
-kmem_cache_free's in flight, so that issuing it before cache destruction
-will protect us against the use-after-free.
-
-This won't affect performance of kmem_cache_free, because we already
-disable preemption there, and this patch only moves preempt_enable to the
-end of the function.  Neither should it affect the system latency, because
-kmem_cache_free is extremely short, even in its slow path.
-
-SLAB's version of kmem_cache_free already proceeds with irqs disabled, so
-we only add a comment explaining why it's necessary for kmemcg there.
+Thanks to Joonsoo Kim.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    6 ++++++
- mm/slub.c |   12 ++++++------
- 2 files changed, 12 insertions(+), 6 deletions(-)
+ mm/slub.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/slab.c~slub-make-slab_free-non-preemptable mm/slab.c
---- a/mm/slab.c~slub-make-slab_free-non-preemptable
-+++ a/mm/slab.c
-@@ -3495,6 +3495,12 @@ static inline void __cache_free(struct k
- {
- 	struct array_cache *ac = cpu_cache_get(cachep);
- 
-+	/*
-+	 * Since we free objects with irqs and therefore preemption disabled,
-+	 * we can use synchronize_sched() to wait for all currently executing
-+	 * kfree's to finish. This is necessary to avoid use-after-free on
-+	 * per memcg cache destruction.
-+	 */
- 	check_irq_off();
- 	kmemleak_free_recursive(objp, cachep->flags);
- 	objp = cache_free_debugcheck(cachep, objp, caller);
-diff -puN mm/slub.c~slub-make-slab_free-non-preemptable mm/slub.c
---- a/mm/slub.c~slub-make-slab_free-non-preemptable
+diff -puN mm/slub.c~slub-make-dead-memcg-caches-discard-free-slabs-immediately mm/slub.c
+--- a/mm/slub.c~slub-make-dead-memcg-caches-discard-free-slabs-immediately
 +++ a/mm/slub.c
-@@ -2665,18 +2665,17 @@ static __always_inline void slab_free(st
+@@ -2059,6 +2059,14 @@ static void put_cpu_partial(struct kmem_
  
- 	slab_free_hook(s, x);
- 
--redo:
- 	/*
--	 * Determine the currently cpus per cpu slab.
--	 * The cpu may change afterward. However that does not matter since
--	 * data is retrieved via this pointer. If we are on the same cpu
--	 * during the cmpxchg then the free will succedd.
-+	 * We could make this function fully preemptable, but then we wouldn't
-+	 * have a method to wait for all currently executing kfree's to finish,
-+	 * which is necessary to avoid use-after-free on per memcg cache
-+	 * destruction.
- 	 */
- 	preempt_disable();
-+redo:
- 	c = this_cpu_ptr(s->cpu_slab);
- 
- 	tid = c->tid;
--	preempt_enable();
- 
- 	if (likely(page == c->page)) {
- 		set_freepointer(s, object, c->freelist);
-@@ -2693,6 +2692,7 @@ redo:
- 	} else
- 		__slab_free(s, page, x, addr);
- 
-+	preempt_enable();
+ 	} while (this_cpu_cmpxchg(s->cpu_slab->partial, oldpage, page)
+ 								!= oldpage);
++
++	if (memcg_cache_dead(s)) {
++		unsigned long flags;
++
++		local_irq_save(flags);
++		unfreeze_partials(s, this_cpu_ptr(s->cpu_slab));
++		local_irq_restore(flags);
++	}
+ #endif
  }
  
- void kmem_cache_free(struct kmem_cache *s, void *x)
+@@ -3397,6 +3405,9 @@ int __kmem_cache_shrink(struct kmem_cach
+ 		kmalloc(sizeof(struct list_head) * objects, GFP_KERNEL);
+ 	unsigned long flags;
+ 
++	if (memcg_cache_dead(s))
++		s->min_partial = 0;
++
+ 	if (!slabs_by_inuse) {
+ 		/*
+ 		 * Do not fail shrinking empty slabs if allocation of the
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
