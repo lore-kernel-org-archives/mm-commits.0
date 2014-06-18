@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch added
- to -mm tree
-Date: Wed, 18 Jun 2014 15:29:41 -0700
-Message-ID: <53a212d5.KrsOUtT5IgWuwlHJ%akpm@linux-foundation.org>
+ ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch added to -mm tree
+Date: Wed, 18 Jun 2014 15:37:45 -0700
+Message-ID: <53a214b9.SbMNOhpmwbqK335v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42749 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42800 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462AbaFRW3n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 18:29:43 -0400
+	with ESMTP id S1752027AbaFRWhq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 18:37:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, steven@uplinklabs.net, richard.guenther@gmail.com, polacek@redhat.com, pmladek@suse.cz, peterz@infradead.org, paulmck@linux.vnet.ibm.com, mjambor@suse.cz, jakub@redhat.com, dan.carpenter@oracle.com, jkosina@suse.cz
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, vicky.yangwenfang@huawei.com
 
 
 The patch titled
-     Subject: ./Makefile: tell gcc optimizer to never introduce new data races
+     Subject: ocfs2: call ocfs2_journal_access_di() before ocfs2_journal_dirty() in ocfs2_write_end_nolock()
 has been added to the -mm tree.  Its filename is
-     makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch
+     ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,188 +39,130 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: ./Makefile: tell gcc optimizer to never introduce new data races
+From: yangwenfang <vicky.yangwenfang@huawei.com>
+Subject: ocfs2: call ocfs2_journal_access_di() before ocfs2_journal_dirty() in ocfs2_write_end_nolock()
 
-We have been chasing a memory corruption bug, which turned out to be
-caused by very old gcc (4.3.4), which happily turned conditional load into
-a non-conditional one, and that broke correctness (the condition was met
-only if lock was held) and corrupted memory.
+After we call ocfs2_journal_access_di() in ocfs2_write_begin(),
+jbd2_journal_restart() may also be called, in this function transaction
+A's t_updates-- and obtains a new transaction B.  If
+jbd2_journal_commit_transaction() is happened to commit transaction A,
+when t_updates==0, it will continue to complete commit and unfile buffer.
 
-This particular problem with that particular code did not happen when
-never gccs were used.  I've brought this up with our gcc folks, as I
-wanted to make sure that this can't really happen again, and it turns out
-it actually can.
+So when jbd2_journal_dirty_metadata(), the handle is pointed a new
+transaction B, and the buffer head's journal head is already freed,
+jh->b_transaction == NULL, jh->b_next_transaction == NULL, it returns
+EINVAL, So it triggers the BUG_ON(status).
 
-Quoting Martin Jambor <mjambor@suse.cz>:
+thread 1:                             jbd2:
+ocfs2_write_begin                     jbd2_journal_commit_transaction
+ocfs2_write_begin_nolock
+  ocfs2_start_trans
+    jbd2__journal_start(t_updates+1,
+                       transaction A)
+    ocfs2_journal_access_di
+    ocfs2_write_cluster_by_desc
+      ocfs2_mark_extent_written
+        ocfs2_change_extent_flag
+          ocfs2_split_extent
+            ocfs2_extend_rotate_transaction
+              jbd2_journal_restart
+              (t_updates-1,transaction B) t_updates==0
+                                        __jbd2_journal_refile_buffer
 
-====
-More current GCCs are more careful when it comes to replacing a
-conditional load with a non-conditional one, most notably they check
-that a store happens in each iteration of _a_ loop but they assume
-loops are executed.  They also perform a simple check whether the
-store cannot trap which currently passes only for non-const
-variables.  A simple testcase demonstrating it on an x86_64 is for
-example the following:
+ocfs2_write_end
+ocfs2_write_end_nolock
+    ocfs2_journal_dirty
+        jbd2_journal_dirty_metadata(bug)
+   ocfs2_commit_trans
 
-$ cat cond_store.c
+In ext4, I found that: jbd2_journal_get_write_access() called by
 
-int g_1 = 1;
+ext4_write_end.
+ext4_write_begin
+    ext4_journal_start
+        __ext4_journal_start_sb
+            ext4_journal_check_start
+            jbd2__journal_start
 
-int g_2[1024] __attribute__((section ("safe_section"), aligned (4096)));
+ext4_write_end
+    ext4_mark_inode_dirty
+        ext4_reserve_inode_write
+            ext4_journal_get_write_access
+                jbd2_journal_get_write_access
+        ext4_mark_iloc_dirty
+            ext4_do_update_inode
+                ext4_handle_dirty_metadata
+                    jbd2_journal_dirty_metadata
 
-int c = 4;
 
-int __attribute__ ((noinline))
-foo (void)
-{
-  int l;
-  for (l = 0; (l != 4); l++) {
-    if (g_1)
-      return l;
-    for (g_2[0] = 0; (g_2[0] >= 26); ++g_2[0])
-      ;
-  }
-  return 2;
-}
+So I think we should put ocfs2_journal_access_di before
+  ocfs2_journal_dirty in the ocfs2_write_end.  and it works well after my
+  modification.
 
-int main (int argc, char* argv[])
-{
-  if (mprotect (g_2, sizeof(g_2), PROT_READ) == -1)
-    {
-      int e = errno;
-      error (e, e, "mprotect error %i", e);
-    }
-  foo ();
-  __builtin_printf("OK\n");
-  return 0;
-}
-/* EOF */
-$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=0
-$ ./a.out
-OK
-$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=1
-$ ./a.out
-Segmentation fault
-
-The testcase fails the same at least with 4.9, 4.8 and 4.7.  Therefore
-I would suggest building kernels with this parameter set to zero. I
-also agree with Jikos that the default should be changed for -O2.  I
-have run most of the SPEC 2k6 CPU benchmarks (gamess and dealII
-failed, at -O2, not sure why) compiled with and without this option
-and did not see any real difference between respective run-times.
-====
-
-Hopefully the default will be changed in newer gccs, but let's force
-it for kernel builds so that we are on a safe side even when older
-gcc are used.
-
-The code in question was out-of-tree printk-in-NMI (yeah, surprise
-suprise, once again) patch written by Petr Mladek, let me quote his
-comment from our internal bugzilla:
-
-===
-I have spent few days investigating inconsistent state of kernel ring buffer.
-It went out that it was caused by speculative store generated by
-gcc-4.3.4.
-
-The problem is in assembly generated for make_free_space(). The functions is
-called the following way:
-
-+ vprintk_emit();
-    + log = MAIN_LOG; // with logbuf_lock
-       or
-       log = NMI_LOG; // with nmi_logbuf_lock
-       cont_add(log, ...);
-        + cont_flush(log, ...);
-            + log_store(log, ...);
-                  + log_make_free_space(log, ...);
-
-If called with log = NMI_LOG then only nmi_log_* global variables are safe to
-modify but the generated code does store also into (main_)log_* global
-variables:
-
-<log_make_free_space>:
-       55                      push   %rbp
-       89 f6                   mov    %esi,%esi
-
-       48 8b 05 03 99 51 01    mov    0x1519903(%rip),%rax       # ffffffff82620868 <nmi_log_next_id>
-       44 8b 1d ec 98 51 01    mov    0x15198ec(%rip),%r11d      # ffffffff82620858 <log_next_idx>
-       8b 35 36 60 14 01       mov    0x1146036(%rip),%esi       # ffffffff8224cfa8 <log_buf_len>
-       44 8b 35 33 60 14 01    mov    0x1146033(%rip),%r14d      # ffffffff8224cfac <nmi_log_buf_len>
-       4c 8b 2d d0 98 51 01    mov    0x15198d0(%rip),%r13       # ffffffff82620850 <log_next_seq>
-       4c 8b 25 11 61 14 01    mov    0x1146111(%rip),%r12       # ffffffff8224d098 <log_buf>
-       49 89 c2                mov    %rax,%r10
-       48 21 c2                and    %rax,%rdx
-       48 8b 1d 0c 99 55 01    mov    0x155990c(%rip),%rbx       # ffffffff826608a0 <nmi_log_buf>
-       49 c1 ea 20             shr    $0x20,%r10
-       48 89 55 d0             mov    %rdx,-0x30(%rbp)
-       44 29 de                sub    %r11d,%esi
-       45 29 d6                sub    %r10d,%r14d
-       4c 8b 0d 97 98 51 01    mov    0x1519897(%rip),%r9	# ffffffff82620840 <log_first_seq>
-       eb 7e                   jmp    ffffffff81107029	<log_make_free_space+0xe9>
-[...]
-       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
-       4c 89 e8                mov    %r13,%rax
-       4c 89 ca                mov    %r9,%rdx
-       74 0a                   je     ffffffff8110703d	<log_make_free_space+0xfd>
-       8b 15 27 98 51 01       mov    0x1519827(%rip),%edx       # ffffffff82620860 <nmi_log_first_id>
-       48 8b 45 d0             mov    -0x30(%rbp),%rax
-       48 39 c2                cmp    %rax,%rdx                  # end of loop
-       0f 84 da 00 00 00       je     ffffffff81107120 <log_make_free_space+0x1e0>
-[...]
-       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
-       4c 89 0d 17 97 51 01    mov    %r9,0x1519717(%rip)        # ffffffff82620840 <log_first_seq>
-                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
-                               KABOOOM
-       74 35                   je     ffffffff81107160		 <log_make_free_space+0x220>
-
-It stores log_first_seq when edi == NMI_LOG. This instructions are used also
-when edi == MAIN_LOG but the store is done speculatively before the condition
-is decided.  It is unsafe because we do not have "logbuf_lock" in NMI context
-and some other process migh modify "log_first_seq" in parallel.
-===
-
-I believe that the best course of action is both
-
-- building kernel (and anything multi-threaded, I guess) with that
-  optimization turned off
-- persuade gcc folks to change the default for future releases
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Martin Jambor <mjambor@suse.cz>
-Cc: Petr Mladek <pmladek@suse.cz>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Marek Polacek <polacek@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Steven Noonan <steven@uplinklabs.net>
-Cc: Richard Biener <richard.guenther@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: vicky <vicky.yangwenfang@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/aops.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN Makefile~makefile-tell-gcc-optimizer-to-never-introduce-new-data-races Makefile
---- a/Makefile~makefile-tell-gcc-optimizer-to-never-introduce-new-data-races
-+++ a/Makefile
-@@ -615,6 +615,9 @@ else
- KBUILD_CFLAGS	+= -O2
- endif
+diff -puN fs/ocfs2/aops.c~ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock
++++ a/fs/ocfs2/aops.c
+@@ -1817,16 +1817,6 @@ try_again:
+ 		if (ret)
+ 			goto out_commit;
+ 	}
+-	/*
+-	 * We don't want this to fail in ocfs2_write_end(), so do it
+-	 * here.
+-	 */
+-	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), wc->w_di_bh,
+-				      OCFS2_JOURNAL_ACCESS_WRITE);
+-	if (ret) {
+-		mlog_errno(ret);
+-		goto out_quota;
+-	}
  
-+# Tell gcc to never replace conditional load with a non-conditional one
-+KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
+ 	/*
+ 	 * Fill our page array first. That way we've grabbed enough so
+@@ -1977,7 +1967,7 @@ int ocfs2_write_end_nolock(struct addres
+ 			   loff_t pos, unsigned len, unsigned copied,
+ 			   struct page *page, void *fsdata)
+ {
+-	int i;
++	int i, ret;
+ 	unsigned from, to, start = pos & (PAGE_CACHE_SIZE - 1);
+ 	struct inode *inode = mapping->host;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+@@ -2027,6 +2017,14 @@ int ocfs2_write_end_nolock(struct addres
+ 		}
+ 	}
+ 
++	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), wc->w_di_bh,
++				      OCFS2_JOURNAL_ACCESS_WRITE);
++	if (ret) {
++		copied = ret;
++		mlog_errno(ret);
++		goto out;
++	}
 +
- ifdef CONFIG_READABLE_ASM
- # Disable optimizations that make assembler listings hard to read.
- # reorder blocks reorders the control in the function
+ out_write_size:
+ 	pos += copied;
+ 	if (pos > i_size_read(inode)) {
+@@ -2041,6 +2039,7 @@ out_write_size:
+ 	ocfs2_update_inode_fsync_trans(handle, inode, 1);
+ 	ocfs2_journal_dirty(handle, wc->w_di_bh);
+ 
++out:
+ 	ocfs2_commit_trans(osb, handle);
+ 
+ 	ocfs2_run_deallocs(osb, &wc->w_dealloc);
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from vicky.yangwenfang@huawei.com are
 
-makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch
-linux-next.patch
+ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
 
