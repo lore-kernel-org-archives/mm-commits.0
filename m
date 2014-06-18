@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-mark-enable_cpucache-as-init-text.patch added to -mm
+Subject: + mm-slub-mark-resiliency_test-as-init-text.patch added to -mm
  tree
-Date: Wed, 18 Jun 2014 16:39:26 -0700
-Message-ID: <53a2232e.oEsXu5Y85tjYb+88%akpm@linux-foundation.org>
+Date: Wed, 18 Jun 2014 16:39:27 -0700
+Message-ID: <53a2232f.kBikhkIdjjAc3ZBG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43177 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43183 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753095AbaFRXj1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 19:39:27 -0400
+	with ESMTP id S1753506AbaFRXj2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 19:39:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, penberg@kernel.org, iamjoonsoo.kim@lge.com, cl@linux.com, rientjes@google.com
 
 
 The patch titled
-     Subject: mm, slab: mark enable_cpucache as init text
+     Subject: mm, slub: mark resiliency_test as init text
 has been added to the -mm tree.  Its filename is
-     mm-slab-mark-enable_cpucache-as-init-text.patch
+     mm-slub-mark-resiliency_test-as-init-text.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-mark-enable_cpucache-as-init-text.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-mark-resiliency_test-as-init-text.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-mark-enable_cpucache-as-init-text.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-mark-resiliency_test-as-init-text.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, slab: mark enable_cpucache as init text
+Subject: mm, slub: mark resiliency_test as init text
 
-enable_cpucache() is only called for bootstrap, so it may be moved to init.text
-and freed after boot.
+resiliency_test() is only called for bootstrap, so it may be moved to
+init.text and freed after boot.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -52,21 +52,21 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
+ mm/slub.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~mm-slab-mark-enable_cpucache-as-init-text mm/slab.c
---- a/mm/slab.c~mm-slab-mark-enable_cpucache-as-init-text
-+++ a/mm/slab.c
-@@ -3911,7 +3911,7 @@ static int do_tune_cpucache(struct kmem_
- }
+diff -puN mm/slub.c~mm-slub-mark-resiliency_test-as-init-text mm/slub.c
+--- a/mm/slub.c~mm-slub-mark-resiliency_test-as-init-text
++++ a/mm/slub.c
+@@ -4187,7 +4187,7 @@ static int list_locations(struct kmem_ca
+ #endif
  
- /* Called with slab_mutex held always */
--static int enable_cpucache(struct kmem_cache *cachep, gfp_t gfp)
-+static int __init enable_cpucache(struct kmem_cache *cachep, gfp_t gfp)
+ #ifdef SLUB_RESILIENCY_TEST
+-static void resiliency_test(void)
++static void __init resiliency_test(void)
  {
- 	int err;
- 	int limit = 0;
+ 	u8 *p;
+ 
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
