@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch added
- to -mm tree
-Date: Wed, 18 Jun 2014 13:32:06 -0700
-Message-ID: <53a1f746.KBtdo7wdYVzyYlhB%akpm@linux-foundation.org>
+Subject: +
+ fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch added to
+ -mm tree
+Date: Wed, 18 Jun 2014 13:32:31 -0700
+Message-ID: <53a1f75f.PGSQzYjJpK8iSoj/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41461 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41464 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754564AbaFRUcH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 16:32:07 -0400
+	with ESMTP id S1754564AbaFRUcb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 16:32:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wsa@the-dreams.de, linus.walleij@linaro.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
 
 The patch titled
-     Subject: drivers/parport/parport_ip32.c: use PTR_ERR_OR_ZERO
+     Subject: fs/adfs/dir_fplus.c: use ARRAY_SIZE instead of sizeof/sizeof[0]
 has been added to the -mm tree.  Its filename is
-     drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+     fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +41,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: drivers/parport/parport_ip32.c: use PTR_ERR_OR_ZERO
+Subject: fs/adfs/dir_fplus.c: use ARRAY_SIZE instead of sizeof/sizeof[0]
 
-replace IS_ERR/PTR_ERR
+Use kernel.h definition.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Wolfram Sang <wsa@the-dreams.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_ip32.c |    2 +-
+ fs/adfs/dir_fplus.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/parport/parport_ip32.c~drivers-parport-parport_ip32c-use-ptr_err_or_zero drivers/parport/parport_ip32.c
---- a/drivers/parport/parport_ip32.c~drivers-parport-parport_ip32c-use-ptr_err_or_zero
-+++ a/drivers/parport/parport_ip32.c
-@@ -2204,7 +2204,7 @@ static int __init parport_ip32_init(void
- {
- 	pr_info(PPIP32 "SGI IP32 built-in parallel port driver v0.6\n");
- 	this_port = parport_ip32_probe_port();
--	return IS_ERR(this_port) ? PTR_ERR(this_port) : 0;
-+	return PTR_ERR_OR_ZERO(this_port);
- }
+diff -puN fs/adfs/dir_fplus.c~fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof fs/adfs/dir_fplus.c
+--- a/fs/adfs/dir_fplus.c~fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof
++++ a/fs/adfs/dir_fplus.c
+@@ -55,7 +55,7 @@ adfs_fplus_read(struct super_block *sb,
+ 	}
  
- /**
+ 	size >>= sb->s_blocksize_bits;
+-	if (size > sizeof(dir->bh)/sizeof(dir->bh[0])) {
++	if (size > ARRAY_SIZE(dir->bh)) {
+ 		/* this directory is too big for fixed bh set, must allocate */
+ 		struct buffer_head **bh_fplus =
+ 			kzalloc(size * sizeof(struct buffer_head *),
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -89,6 +88,7 @@ fs-isofs-logging-clean-up.patch
 fs-isofs-logging-clean-up-fix.patch
 fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
 fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
 drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
 fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
 fs-cachefiles-bindc-remove-unnecessary-assertions.patch
@@ -98,5 +98,4 @@ fs-qnx6-update-debugging-to-current-functions.patch
 linux-next.patch
 init-mainc-code-clean-up.patch
 kernel-kprobesc-convert-printk-to-pr_foo.patch
-fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
 
