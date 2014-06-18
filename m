@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dma-cma-fix-possible-memory-leak.patch added to -mm tree
-Date: Wed, 18 Jun 2014 13:53:09 -0700
-Message-ID: <53a1fc35.1itGOgGKK69O7dki%akpm@linux-foundation.org>
+Subject: + dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
+ added to -mm tree
+Date: Wed, 18 Jun 2014 13:53:10 -0700
+Message-ID: <53a1fc36.1nTF7dBbfE/VUGl6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41683 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41700 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895AbaFRUxK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 16:53:10 -0400
+	with ESMTP id S1755268AbaFRUxL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 16:53:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, stable@vger.kernel.org, pbonzini@redhat.com, paulus@samba.org, minchan@kernel.org, mina86@mina86.com, m.szyprowski@samsung.com, gleb@kernel.org, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, agraf@suse.de, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, pbonzini@redhat.com, paulus@samba.org, minchan@kernel.org, mina86@mina86.com, m.szyprowski@samsung.com, gleb@kernel.org, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, agraf@suse.de, iamjoonsoo.kim@lge.com
 
 
 The patch titled
-     Subject: DMA, CMA: fix possible memory leak
+     Subject: DMA, CMA: separate core CMA management codes from DMA APIs
 has been added to the -mm tree.  Its filename is
-     dma-cma-fix-possible-memory-leak.patch
+     dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-cma-fix-possible-memory-leak.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-cma-fix-possible-memory-leak.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +40,211 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: DMA, CMA: fix possible memory leak
+Subject: DMA, CMA: separate core CMA management codes from DMA APIs
 
-We should free memory for bitmap when we find zone mismatch, otherwise
-this memory will leak.
-
-Additionally, I copy code comment from PPC KVM's CMA code to inform
-why we need to check zone mis-match.
+To prepare future generalization work on CMA area management code, we need
+to separate core CMA management codes from DMA APIs.  We will extend these
+core functions to cover requirements of PPC KVM's CMA area management
+functionality in following patches.  This separation helps us not to touch
+DMA APIs while extending core functions.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Reviewed-by: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
 Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Gleb Natapov <gleb@kernel.org>
 Cc: Alexander Graf <agraf@suse.de>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Gleb Natapov <gleb@kernel.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dma-contiguous.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/base/dma-contiguous.c |  125 +++++++++++++++++++-------------
+ 1 file changed, 77 insertions(+), 48 deletions(-)
 
-diff -puN drivers/base/dma-contiguous.c~dma-cma-fix-possible-memory-leak drivers/base/dma-contiguous.c
---- a/drivers/base/dma-contiguous.c~dma-cma-fix-possible-memory-leak
+diff -puN drivers/base/dma-contiguous.c~dma-cma-separate-core-cma-management-codes-from-dma-apis drivers/base/dma-contiguous.c
+--- a/drivers/base/dma-contiguous.c~dma-cma-separate-core-cma-management-codes-from-dma-apis
 +++ a/drivers/base/dma-contiguous.c
-@@ -176,14 +176,24 @@ static int __init cma_activate_area(stru
- 		base_pfn = pfn;
- 		for (j = pageblock_nr_pages; j; --j, pfn++) {
- 			WARN_ON_ONCE(!pfn_valid(pfn));
-+			/*
-+			 * alloc_contig_range requires the pfn range
-+			 * specified to be in the same zone. Make this
-+			 * simple by forcing the entire CMA resv range
-+			 * to be in the same zone.
-+			 */
- 			if (page_zone(pfn_to_page(pfn)) != zone)
--				return -EINVAL;
-+				goto err;
- 		}
- 		init_cma_reserved_pageblock(pfn_to_page(base_pfn));
- 	} while (--i);
+@@ -213,26 +213,9 @@ static int __init cma_init_reserved_area
+ }
+ core_initcall(cma_init_reserved_areas);
  
- 	mutex_init(&cma->lock);
+-/**
+- * dma_contiguous_reserve_area() - reserve custom contiguous area
+- * @size: Size of the reserved area (in bytes),
+- * @base: Base address of the reserved area optional, use 0 for any
+- * @limit: End address of the reserved memory (optional, 0 for any).
+- * @res_cma: Pointer to store the created cma region.
+- * @fixed: hint about where to place the reserved area
+- *
+- * This function reserves memory from early allocator. It should be
+- * called by arch specific code once the early allocator (memblock or bootmem)
+- * has been activated and all other subsystems have already allocated/reserved
+- * memory. This function allows to create custom reserved areas for specific
+- * devices.
+- *
+- * If @fixed is true, reserve contiguous area at exactly @base.  If false,
+- * reserve in range from @base to @limit.
+- */
+-int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
+-				       phys_addr_t limit, struct cma **res_cma,
+-				       bool fixed)
++static int __init __dma_contiguous_reserve_area(phys_addr_t size,
++				phys_addr_t base, phys_addr_t limit,
++				struct cma **res_cma, bool fixed)
+ {
+ 	struct cma *cma = &cma_areas[cma_area_count];
+ 	phys_addr_t alignment;
+@@ -286,15 +269,47 @@ int __init dma_contiguous_reserve_area(p
+ 
+ 	pr_info("CMA: reserved %ld MiB at %08lx\n", (unsigned long)size / SZ_1M,
+ 		(unsigned long)base);
+-
+-	/* Architecture specific contiguous memory fixup. */
+-	dma_contiguous_early_fixup(base, size);
  	return 0;
 +
-+err:
-+	kfree(cma->bitmap);
-+	return -EINVAL;
+ err:
+ 	pr_err("CMA: failed to reserve %ld MiB\n", (unsigned long)size / SZ_1M);
+ 	return ret;
  }
  
- static struct cma cma_areas[MAX_CMA_AREAS];
++/**
++ * dma_contiguous_reserve_area() - reserve custom contiguous area
++ * @size: Size of the reserved area (in bytes),
++ * @base: Base address of the reserved area optional, use 0 for any
++ * @limit: End address of the reserved memory (optional, 0 for any).
++ * @res_cma: Pointer to store the created cma region.
++ * @fixed: hint about where to place the reserved area
++ *
++ * This function reserves memory from early allocator. It should be
++ * called by arch specific code once the early allocator (memblock or bootmem)
++ * has been activated and all other subsystems have already allocated/reserved
++ * memory. This function allows to create custom reserved areas for specific
++ * devices.
++ *
++ * If @fixed is true, reserve contiguous area at exactly @base.  If false,
++ * reserve in range from @base to @limit.
++ */
++int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
++				       phys_addr_t limit, struct cma **res_cma,
++				       bool fixed)
++{
++	int ret;
++
++	ret = __dma_contiguous_reserve_area(size, base, limit, res_cma, fixed);
++	if (ret)
++		return ret;
++
++	/* Architecture specific contiguous memory fixup. */
++	dma_contiguous_early_fixup(PFN_PHYS((*res_cma)->base_pfn),
++				(*res_cma)->count << PAGE_SHIFT);
++
++	return 0;
++}
++
+ static void clear_cma_bitmap(struct cma *cma, unsigned long pfn, int count)
+ {
+ 	mutex_lock(&cma->lock);
+@@ -302,31 +317,16 @@ static void clear_cma_bitmap(struct cma
+ 	mutex_unlock(&cma->lock);
+ }
+ 
+-/**
+- * dma_alloc_from_contiguous() - allocate pages from contiguous area
+- * @dev:   Pointer to device for which the allocation is performed.
+- * @count: Requested number of pages.
+- * @align: Requested alignment of pages (in PAGE_SIZE order).
+- *
+- * This function allocates memory buffer for specified device. It uses
+- * device specific contiguous memory area if available or the default
+- * global one. Requires architecture specific dev_get_cma_area() helper
+- * function.
+- */
+-struct page *dma_alloc_from_contiguous(struct device *dev, int count,
++static struct page *__dma_alloc_from_contiguous(struct cma *cma, int count,
+ 				       unsigned int align)
+ {
+ 	unsigned long mask, pfn, pageno, start = 0;
+-	struct cma *cma = dev_get_cma_area(dev);
+ 	struct page *page = NULL;
+ 	int ret;
+ 
+ 	if (!cma || !cma->count)
+ 		return NULL;
+ 
+-	if (align > CONFIG_CMA_ALIGNMENT)
+-		align = CONFIG_CMA_ALIGNMENT;
+-
+ 	pr_debug("%s(cma %p, count %d, align %d)\n", __func__, (void *)cma,
+ 		 count, align);
+ 
+@@ -375,19 +375,30 @@ struct page *dma_alloc_from_contiguous(s
+ }
+ 
+ /**
+- * dma_release_from_contiguous() - release allocated pages
+- * @dev:   Pointer to device for which the pages were allocated.
+- * @pages: Allocated pages.
+- * @count: Number of allocated pages.
++ * dma_alloc_from_contiguous() - allocate pages from contiguous area
++ * @dev:   Pointer to device for which the allocation is performed.
++ * @count: Requested number of pages.
++ * @align: Requested alignment of pages (in PAGE_SIZE order).
+  *
+- * This function releases memory allocated by dma_alloc_from_contiguous().
+- * It returns false when provided pages do not belong to contiguous area and
+- * true otherwise.
++ * This function allocates memory buffer for specified device. It uses
++ * device specific contiguous memory area if available or the default
++ * global one. Requires architecture specific dev_get_cma_area() helper
++ * function.
+  */
+-bool dma_release_from_contiguous(struct device *dev, struct page *pages,
+-				 int count)
++struct page *dma_alloc_from_contiguous(struct device *dev, int count,
++				       unsigned int align)
+ {
+ 	struct cma *cma = dev_get_cma_area(dev);
++
++	if (align > CONFIG_CMA_ALIGNMENT)
++		align = CONFIG_CMA_ALIGNMENT;
++
++	return __dma_alloc_from_contiguous(cma, count, align);
++}
++
++static bool __dma_release_from_contiguous(struct cma *cma, struct page *pages,
++				 int count)
++{
+ 	unsigned long pfn;
+ 
+ 	if (!cma || !pages)
+@@ -407,3 +418,21 @@ bool dma_release_from_contiguous(struct
+ 
+ 	return true;
+ }
++
++/**
++ * dma_release_from_contiguous() - release allocated pages
++ * @dev:   Pointer to device for which the pages were allocated.
++ * @pages: Allocated pages.
++ * @count: Number of allocated pages.
++ *
++ * This function releases memory allocated by dma_alloc_from_contiguous().
++ * It returns false when provided pages do not belong to contiguous area and
++ * true otherwise.
++ */
++bool dma_release_from_contiguous(struct device *dev, struct page *pages,
++				 int count)
++{
++	struct cma *cma = dev_get_cma_area(dev);
++
++	return __dma_release_from_contiguous(cma, pages, count);
++}
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
