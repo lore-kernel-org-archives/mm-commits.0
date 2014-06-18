@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-internalh-use-nth_page.patch added to -mm tree
-Date: Wed, 18 Jun 2014 13:31:38 -0700
-Message-ID: <53a1f72a.JZvAChnb9JYvzqrY%akpm@linux-foundation.org>
+Subject: + drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch added
+ to -mm tree
+Date: Wed, 18 Jun 2014 13:32:06 -0700
+Message-ID: <53a1f746.KBtdo7wdYVzyYlhB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41456 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41461 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754874AbaFRUbj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 16:31:39 -0400
+	with ESMTP id S1754564AbaFRUcH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 16:32:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, wsa@the-dreams.de, linus.walleij@linaro.org, fabf@skynet.be
 
 
 The patch titled
-     Subject: mm/internal.h: use nth_page
+     Subject: drivers/parport/parport_ip32.c: use PTR_ERR_OR_ZERO
 has been added to the -mm tree.  Its filename is
-     mm-internalh-use-nth_page.patch
+     drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-internalh-use-nth_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-internalh-use-nth_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +40,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: mm/internal.h: use nth_page
+Subject: drivers/parport/parport_ip32.c: use PTR_ERR_OR_ZERO
 
-Use nth_page instead of pfn_to_page(page_to_pfn
+replace IS_ERR/PTR_ERR
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
+ drivers/parport/parport_ip32.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/internal.h~mm-internalh-use-nth_page mm/internal.h
---- a/mm/internal.h~mm-internalh-use-nth_page
-+++ a/mm/internal.h
-@@ -247,7 +247,7 @@ static inline void mlock_migrate_page(st
- static inline struct page *mem_map_offset(struct page *base, int offset)
+diff -puN drivers/parport/parport_ip32.c~drivers-parport-parport_ip32c-use-ptr_err_or_zero drivers/parport/parport_ip32.c
+--- a/drivers/parport/parport_ip32.c~drivers-parport-parport_ip32c-use-ptr_err_or_zero
++++ a/drivers/parport/parport_ip32.c
+@@ -2204,7 +2204,7 @@ static int __init parport_ip32_init(void
  {
- 	if (unlikely(offset >= MAX_ORDER_NR_PAGES))
--		return pfn_to_page(page_to_pfn(base) + offset);
-+		return nth_page(base, offset);
- 	return base + offset;
+ 	pr_info(PPIP32 "SGI IP32 built-in parallel port driver v0.6\n");
+ 	this_port = parport_ip32_probe_port();
+-	return IS_ERR(this_port) ? PTR_ERR(this_port) : 0;
++	return PTR_ERR_OR_ZERO(this_port);
  }
  
+ /**
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -87,6 +89,7 @@ fs-isofs-logging-clean-up.patch
 fs-isofs-logging-clean-up-fix.patch
 fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
 fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
 fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
 fs-cachefiles-bindc-remove-unnecessary-assertions.patch
 fs-qnx6-convert-printk-to-pr_foo.patch
@@ -95,6 +98,5 @@ fs-qnx6-update-debugging-to-current-functions.patch
 linux-next.patch
 init-mainc-code-clean-up.patch
 kernel-kprobesc-convert-printk-to-pr_foo.patch
-drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
 fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
 
