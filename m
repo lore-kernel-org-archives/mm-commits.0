@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh.patch added to -mm tree
-Date: Wed, 18 Jun 2014 16:21:32 -0700
-Message-ID: <53a21efc.+gcqV2f8fQh+Ea92%akpm__26577.5853804827$1403133702$gmane$org@linux-foundation.org>
+Subject: + mm-slab-mark-enable_cpucache-as-init-text.patch added to -mm
+ tree
+Date: Wed, 18 Jun 2014 16:39:26 -0700
+Message-ID: <53a2232e.oEsXu5Y85tjYb+88%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43177 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753794AbaFRXVd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 19:21:33 -0400
+	with ESMTP id S1753095AbaFRXj1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 19:39:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wwoods@redhat.com, tony.luck@intel.com, stable@vger.kernel.org, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, penberg@kernel.org, iamjoonsoo.kim@lge.com, cl@linux.com, rientjes@google.com
 
 
 The patch titled
-     Subject: ia64: arch/ia64/include/uapi/asm/fcntl.h needs personality.h
+     Subject: mm, slab: mark enable_cpucache as init text
 has been added to the -mm tree.  Its filename is
-     ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh.patch
+     mm-slab-mark-enable_cpucache-as-init-text.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-mark-enable_cpucache-as-init-text.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-mark-enable_cpucache-as-init-text.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,73 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ia64: arch/ia64/include/uapi/asm/fcntl.h needs personality.h
+From: David Rientjes <rientjes@google.com>
+Subject: mm, slab: mark enable_cpucache as init text
 
-fs/notify/fanotify/fanotify_user.c: In function 'SYSC_fanotify_init':
-fs/notify/fanotify/fanotify_user.c:726: error: implicit declaration of function 'personality'
-fs/notify/fanotify/fanotify_user.c:726: error: 'PER_LINUX32' undeclared (first use in this function)
-fs/notify/fanotify/fanotify_user.c:726: error: (Each undeclared identifier is reported only once
-fs/notify/fanotify/fanotify_user.c:726: error: for each function it appears in.)
+enable_cpucache() is only called for bootstrap, so it may be moved to init.text
+and freed after boot.
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Will Woods <wwoods@redhat.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: <stable@vger.kernel.org>	[3.15.x]
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/uapi/asm/fcntl.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/include/uapi/asm/fcntl.h~ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh arch/ia64/include/uapi/asm/fcntl.h
---- a/arch/ia64/include/uapi/asm/fcntl.h~ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh
-+++ a/arch/ia64/include/uapi/asm/fcntl.h
-@@ -8,6 +8,7 @@
- #define force_o_largefile()	\
- 		(personality(current->personality) != PER_LINUX32)
+diff -puN mm/slab.c~mm-slab-mark-enable_cpucache-as-init-text mm/slab.c
+--- a/mm/slab.c~mm-slab-mark-enable_cpucache-as-init-text
++++ a/mm/slab.c
+@@ -3911,7 +3911,7 @@ static int do_tune_cpucache(struct kmem_
+ }
  
-+#include <linux/personality.h>
- #include <asm-generic/fcntl.h>
- 
- #endif /* _ASM_IA64_FCNTL_H */
+ /* Called with slab_mutex held always */
+-static int enable_cpucache(struct kmem_cache *cachep, gfp_t gfp)
++static int __init enable_cpucache(struct kmem_cache *cachep, gfp_t gfp)
+ {
+ 	int err;
+ 	int limit = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
-shmem-fix-faulting-into-a-hole-while-its-punched-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
+mm-nommu-per-thread-vma-cache-fix.patch
+mm-hotplug-probe-interface-is-available-on-several-platforms.patch
+slab-maintainer-update.patch
+watchdog-remove-preemption-restrictions-when-restarting-lockup-detector.patch
+mm-pcp-allow-restoring-percpu_pagelist_fraction-default.patch
+mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep.patch
+mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
+slab-fix-oops-when-reading-proc-slab_allocators.patch
+mm-slabc-add-__init-to-init_lock_keys.patch
+slab-common-add-functions-for-kmem_cache_node-access.patch
+slub-use-new-node-functions.patch
+slub-use-new-node-functions-fix.patch
+slab-use-get_node-and-kmem_cache_node-functions.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix.patch
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+mm-slab-mark-enable_cpucache-as-init-text.patch
+mm-slub-mark-resiliency_test-as-init-text.patch
+mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
 mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-fs-isofs-logging-clean-up-fix.patch
-initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes.patch
+mm-page_alloc-simplify-drain_zone_pages-by-using-min.patch
+memcg-cleanup-memcg_cache_params-refcnt-usage.patch
+memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
+memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
+slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
+slub-make-slab_free-non-preemptable.patch
+memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
+slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
+slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
+include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
+mm-utilc-add-kstrimdup.patch
+lib-add-size-unit-t-p-e-to-memparse.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+proc-stat-convert-to-single_open_size.patch
+fs-seq_file-fallback-to-vmalloc-allocation.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
