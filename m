@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch added to -mm tree
-Date: Wed, 18 Jun 2014 16:54:49 -0700
-Message-ID: <53a226c9.5wM9i4CiYvFkA424%akpm@linux-foundation.org>
+Subject: + mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch added to -mm tree
+Date: Wed, 18 Jun 2014 16:54:48 -0700
+Message-ID: <53a226c8.KqanydfUgJmQYkBu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43326 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43322 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756555AbaFRXyu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 19:54:50 -0400
+	with ESMTP id S1756555AbaFRXyt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 19:54:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vdavydov@parallels.com, tj@kernel.org, mhocko@suse.cz, hughd@google.com, hannes@cmpxchg.org
 
 
 The patch titled
-     Subject: mm: memcontrol: retry reclaim for oom-disabled and __GFP_NOFAIL charges
+     Subject: mm: huge_memory: use GFP_TRANSHUGE when charging huge pages
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+     mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +39,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: retry reclaim for oom-disabled and __GFP_NOFAIL charges
+Subject: mm: huge_memory: use GFP_TRANSHUGE when charging huge pages
 
-There is no reason why oom-disabled and __GFP_NOFAIL charges should try to
-reclaim only once when every other charge tries several times before
-giving up.  Make them all retry the same number of times.
+Transparent huge page charges prefer falling back to regular pages rather
+than spending a lot of time in direct reclaim.
+
+Desired reclaim behavior is usually declared in the gfp mask, but THP
+charges use GFP_KERNEL and then rely on the fact that OOM is disabled for
+THP charges, and that OOM-disabled charges don't retry reclaim.  Needless
+to say, this is anything but obvious and quite error prone.
+
+Convert THP charges to use GFP_TRANSHUGE instead, which implies
+__GFP_NORETRY, to indicate the low-latency requirement.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
@@ -54,41 +60,39 @@ Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges
-+++ a/mm/memcontrol.c
-@@ -2566,7 +2566,7 @@ static int mem_cgroup_try_charge(struct
- 				 bool oom)
- {
- 	unsigned int batch = max(CHARGE_BATCH, nr_pages);
--	int nr_oom_retries = MEM_CGROUP_RECLAIM_RETRIES;
-+	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
- 	struct mem_cgroup *mem_over_limit;
- 	struct res_counter *fail_res;
- 	unsigned long nr_reclaimed;
-@@ -2638,6 +2638,9 @@ retry:
- 	if (mem_cgroup_wait_acct_move(mem_over_limit))
- 		goto retry;
+diff -puN mm/huge_memory.c~mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages
++++ a/mm/huge_memory.c
+@@ -827,7 +827,7 @@ int do_huge_pmd_anonymous_page(struct mm
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		return VM_FAULT_FALLBACK;
+ 	}
+-	if (unlikely(mem_cgroup_charge_anon(page, mm, GFP_KERNEL))) {
++	if (unlikely(mem_cgroup_charge_anon(page, mm, GFP_TRANSHUGE))) {
+ 		put_page(page);
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		return VM_FAULT_FALLBACK;
+@@ -1132,7 +1132,7 @@ alloc:
+ 		goto out;
+ 	}
  
-+	if (nr_retries--)
-+		goto retry;
-+
- 	if (gfp_mask & __GFP_NOFAIL)
- 		goto bypass;
+-	if (unlikely(mem_cgroup_charge_anon(new_page, mm, GFP_KERNEL))) {
++	if (unlikely(mem_cgroup_charge_anon(new_page, mm, GFP_TRANSHUGE))) {
+ 		put_page(new_page);
+ 		if (page) {
+ 			split_huge_page(page);
+@@ -2399,7 +2399,7 @@ static void collapse_huge_page(struct mm
+ 	if (!new_page)
+ 		return;
  
-@@ -2647,9 +2650,6 @@ retry:
- 	if (!oom)
- 		goto nomem;
+-	if (unlikely(mem_cgroup_charge_anon(new_page, mm, GFP_KERNEL)))
++	if (unlikely(mem_cgroup_charge_anon(new_page, mm, GFP_TRANSHUGE)))
+ 		return;
  
--	if (nr_oom_retries--)
--		goto retry;
--
- 	mem_cgroup_oom(mem_over_limit, gfp_mask, get_order(batch));
- nomem:
- 	if (!(gfp_mask & __GFP_NOFAIL))
+ 	/*
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
