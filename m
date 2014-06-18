@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-seq_file-fallback-to-vmalloc-allocation.patch added to -mm
- tree
-Date: Wed, 18 Jun 2014 14:29:42 -0700
-Message-ID: <53a204c6.wrBOThNDuNcHnIhh%akpm@linux-foundation.org>
+Subject: + fs-romfs-superc-use-pr_fmt-in-logging.patch added to -mm tree
+Date: Wed, 18 Jun 2014 14:31:04 -0700
+Message-ID: <53a20518.XELAgzTLHQ5wqbVA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42292 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756068AbaFRV3n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 17:29:43 -0400
+	with ESMTP id S1755558AbaFRVbF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 17:31:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, thorsten.diehl@de.ibm.com, stefan.bader@canonical.com, stable@vger.kernel.org, rientjes@google.com, raven@themaw.net, hch@infradead.org, brueckner@linux.vnet.ibm.com, andrea@betterlinux.com, heiko.carstens@de.ibm.com
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
 
 The patch titled
-     Subject: fs/seq_file: fallback to vmalloc allocation
+     Subject: fs/romfs/super.c: use pr_fmt in logging
 has been added to the -mm tree.  Its filename is
-     fs-seq_file-fallback-to-vmalloc-allocation.patch
+     fs-romfs-superc-use-pr_fmt-in-logging.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-seq_file-fallback-to-vmalloc-allocation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-romfs-superc-use-pr_fmt-in-logging.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-seq_file-fallback-to-vmalloc-allocation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-romfs-superc-use-pr_fmt-in-logging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,164 +38,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: fs/seq_file: fallback to vmalloc allocation
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/romfs/super.c: use pr_fmt in logging
 
-There are a couple of seq_files which use the single_open() interface. 
-This interface requires that the whole output must fit into a single
-buffer.
+- Remove "Error" in format logging (already in pr_ level)
 
-E.g.  for /proc/stat allocation failures have been observed because an
-order-4 memory allocation failed due to memory fragmentation.  In such
-situations reading /proc/stat is not possible anymore.
+- Use modulename in pr_fmt instead of ROMFS: in each pr_ callsites.
 
-Therefore change the seq_file code to fallback to vmalloc allocations
-which will usually result in a couple of order-0 allocations and hence
-also work if memory is fragmented.
-
-For reference a call trace where reading from /proc/stat failed:
-
-[62129.701569] sadc: page allocation failure: order:4, mode:0x1040d0
-[62129.701573] CPU: 1 PID: 192063 Comm: sadc Not tainted 3.10.0-123.el7.s390x #1
-[...]
-[62129.701586] Call Trace:
-[62129.701588] ([<0000000000111fbe>] show_trace+0xe6/0x130)
-[62129.701591] [<0000000000112074>] show_stack+0x6c/0xe8
-[62129.701593] [<000000000020d356>] warn_alloc_failed+0xd6/0x138
-[62129.701596] [<00000000002114d2>] __alloc_pages_nodemask+0x9da/0xb68
-[62129.701598] [<000000000021168e>] __get_free_pages+0x2e/0x58
-[62129.701599] [<000000000025a05c>] kmalloc_order_trace+0x44/0xc0
-[62129.701602] [<00000000002f3ffa>] stat_open+0x5a/0xd8
-[62129.701604] [<00000000002e9aaa>] proc_reg_open+0x8a/0x140
-[62129.701606] [<0000000000273b64>] do_dentry_open+0x1bc/0x2c8
-[62129.701608] [<000000000027411e>] finish_open+0x46/0x60
-[62129.701610] [<000000000028675a>] do_last+0x382/0x10d0
-[62129.701612] [<0000000000287570>] path_openat+0xc8/0x4f8
-[62129.701614] [<0000000000288bde>] do_filp_open+0x46/0xa8
-[62129.701616] [<000000000027541c>] do_sys_open+0x114/0x1f0
-[62129.701618] [<00000000005b1c1c>] sysc_tracego+0x14/0x1a
-
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ian Kent <raven@themaw.net>
-Cc: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
-Cc: Thorsten Diehl <thorsten.diehl@de.ibm.com>
-Cc: Andrea Righi <andrea@betterlinux.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Stefan Bader <stefan.bader@canonical.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   30 +++++++++++++++++++++---------
- 1 file changed, 21 insertions(+), 9 deletions(-)
+ fs/romfs/super.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN fs/seq_file.c~fs-seq_file-fallback-to-vmalloc-allocation fs/seq_file.c
---- a/fs/seq_file.c~fs-seq_file-fallback-to-vmalloc-allocation
-+++ a/fs/seq_file.c
-@@ -8,8 +8,10 @@
+diff -puN fs/romfs/super.c~fs-romfs-superc-use-pr_fmt-in-logging fs/romfs/super.c
+--- a/fs/romfs/super.c~fs-romfs-superc-use-pr_fmt-in-logging
++++ a/fs/romfs/super.c
+@@ -56,6 +56,8 @@
+  * 2 of the Licence, or (at your option) any later version.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/string.h>
  #include <linux/fs.h>
- #include <linux/export.h>
- #include <linux/seq_file.h>
-+#include <linux/vmalloc.h>
- #include <linux/slab.h>
- #include <linux/cred.h>
-+#include <linux/mm.h>
- 
- #include <asm/uaccess.h>
- #include <asm/page.h>
-@@ -30,6 +32,16 @@ static void seq_set_overflow(struct seq_
- 	m->count = m->size;
+@@ -380,7 +382,7 @@ static struct inode *romfs_iget(struct s
+ eio:
+ 	ret = -EIO;
+ error:
+-	pr_err("ROMFS: read error for inode 0x%lx\n", pos);
++	pr_err("read error for inode 0x%lx\n", pos);
+ 	return ERR_PTR(ret);
  }
  
-+static void *seq_buf_alloc(unsigned long size)
-+{
-+	void *buf;
-+
-+	buf = kmalloc(size, GFP_KERNEL | __GFP_NOWARN);
-+	if (!buf && size > PAGE_SIZE)
-+		buf = vmalloc(size);
-+	return buf;
-+}
-+
- /**
-  *	seq_open -	initialize sequential file
-  *	@file: file we initialize
-@@ -96,7 +108,7 @@ static int traverse(struct seq_file *m,
- 		return 0;
+@@ -513,8 +515,7 @@ static int romfs_fill_super(struct super
  	}
- 	if (!m->buf) {
--		m->buf = kmalloc(m->size = PAGE_SIZE, GFP_KERNEL);
-+		m->buf = seq_buf_alloc(m->size = PAGE_SIZE);
- 		if (!m->buf)
- 			return -ENOMEM;
+ 
+ 	if (romfs_checksum(rsb, min_t(size_t, img_size, 512))) {
+-		pr_err("ROMFS: bad initial checksum on dev %s.\n",
+-		       sb->s_id);
++		pr_err("bad initial checksum on dev %s.\n", sb->s_id);
+ 		goto error_rsb_inval;
  	}
-@@ -135,9 +147,9 @@ static int traverse(struct seq_file *m,
  
- Eoverflow:
- 	m->op->stop(m, p);
--	kfree(m->buf);
-+	kvfree(m->buf);
- 	m->count = 0;
--	m->buf = kmalloc(m->size <<= 1, GFP_KERNEL);
-+	m->buf = seq_buf_alloc(m->size <<= 1);
- 	return !m->buf ? -ENOMEM : -EAGAIN;
- }
+@@ -522,8 +523,8 @@ static int romfs_fill_super(struct super
  
-@@ -192,7 +204,7 @@ ssize_t seq_read(struct file *file, char
+ 	len = strnlen(rsb->name, ROMFS_MAXFN);
+ 	if (!silent)
+-		pr_notice("ROMFS: Mounting image '%*.*s' through %s\n",
+-		       (unsigned) len, (unsigned) len, rsb->name, storage);
++		pr_notice("Mounting image '%*.*s' through %s\n",
++			  (unsigned) len, (unsigned) len, rsb->name, storage);
  
- 	/* grab buffer if we didn't have one */
- 	if (!m->buf) {
--		m->buf = kmalloc(m->size = PAGE_SIZE, GFP_KERNEL);
-+		m->buf = seq_buf_alloc(m->size = PAGE_SIZE);
- 		if (!m->buf)
- 			goto Enomem;
- 	}
-@@ -232,9 +244,9 @@ ssize_t seq_read(struct file *file, char
- 		if (m->count < m->size)
- 			goto Fill;
- 		m->op->stop(m, p);
--		kfree(m->buf);
-+		kvfree(m->buf);
- 		m->count = 0;
--		m->buf = kmalloc(m->size <<= 1, GFP_KERNEL);
-+		m->buf = seq_buf_alloc(m->size <<= 1);
- 		if (!m->buf)
- 			goto Enomem;
- 		m->version = 0;
-@@ -350,7 +362,7 @@ EXPORT_SYMBOL(seq_lseek);
- int seq_release(struct inode *inode, struct file *file)
- {
- 	struct seq_file *m = file->private_data;
--	kfree(m->buf);
-+	kvfree(m->buf);
- 	kfree(m);
- 	return 0;
- }
-@@ -605,13 +617,13 @@ EXPORT_SYMBOL(single_open);
- int single_open_size(struct file *file, int (*show)(struct seq_file *, void *),
- 		void *data, size_t size)
- {
--	char *buf = kmalloc(size, GFP_KERNEL);
-+	char *buf = seq_buf_alloc(size);
- 	int ret;
- 	if (!buf)
+ 	kfree(rsb);
+ 	rsb = NULL;
+@@ -622,12 +623,12 @@ static int __init init_romfs_fs(void)
+ 				  romfs_i_init_once);
+ 
+ 	if (!romfs_inode_cachep) {
+-		pr_err("ROMFS error: Failed to initialise inode cache\n");
++		pr_err("Failed to initialise inode cache\n");
  		return -ENOMEM;
- 	ret = single_open(file, show, data);
- 	if (ret) {
--		kfree(buf);
-+		kvfree(buf);
- 		return ret;
  	}
- 	((struct seq_file *)file->private_data)->buf = buf;
+ 	ret = register_filesystem(&romfs_fs_type);
+ 	if (ret) {
+-		pr_err("ROMFS error: Failed to register filesystem\n");
++		pr_err("Failed to register filesystem\n");
+ 		goto error_register;
+ 	}
+ 	return 0;
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-proc-stat-convert-to-single_open_size.patch
-fs-seq_file-fallback-to-vmalloc-allocation.patch
-lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
-lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-slabc-add-__init-to-init_lock_keys.patch
+mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
+mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
+mm-internalh-use-nth_page.patch
+mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
+fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+kernel-test_kprobesc-use-current-logging-functions.patch
+fs-isofs-logging-clean-up.patch
+fs-isofs-logging-clean-up-fix.patch
+fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
+drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
+fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+fs-romfs-superc-convert-printk-to-pr_foo.patch
+fs-romfs-superc-use-pr_fmt-in-logging.patch
+fs-romfs-superc-add-blank-line-after-declarations.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
 linux-next.patch
+init-mainc-code-clean-up.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
