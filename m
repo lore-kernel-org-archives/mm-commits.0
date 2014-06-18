@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-clean-up-log-message.patch added to -mm tree
-Date: Wed, 18 Jun 2014 13:53:18 -0700
-Message-ID: <53a1fc3e.H1BfHN7GYq0OVAUV%akpm@linux-foundation.org>
+Subject: + mm-cma-clean-up-cma-allocation-error-path.patch added to -mm
+ tree
+Date: Wed, 18 Jun 2014 13:53:16 -0700
+Message-ID: <53a1fc3c.HU+DvicVMnvj52zJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41782 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41762 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755601AbaFRUxT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 16:53:19 -0400
+	with ESMTP id S1755701AbaFRUxR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 16:53:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, pbonzini@redhat.com, paulus@samba.org, minchan@kernel.org, mina86@mina86.com, m.szyprowski@samsung.com, gleb@kernel.org, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, agraf@suse.de, iamjoonsoo.kim@lge.com
 
 
 The patch titled
-     Subject: mm, CMA: clean-up log message
+     Subject: mm, CMA: clean-up CMA allocation error path
 has been added to the -mm tree.  Its filename is
-     mm-cma-clean-up-log-message.patch
+     mm-cma-clean-up-cma-allocation-error-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-clean-up-log-message.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-clean-up-cma-allocation-error-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-clean-up-log-message.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-clean-up-cma-allocation-error-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +40,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm, CMA: clean-up log message
+Subject: mm, CMA: clean-up CMA allocation error path
 
-We don't need explicit 'CMA:' prefix, since we already define prefix
-'cma:' in pr_fmt. So remove it.
+We can remove one call sites for clear_cma_bitmap() if we first
+call it before checking error number.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Michal Nazarewicz <mina86@mina86.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Alexander Graf <agraf@suse.de>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Gleb Natapov <gleb@kernel.org>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/cma.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/cma.c~mm-cma-clean-up-log-message mm/cma.c
---- a/mm/cma.c~mm-cma-clean-up-log-message
+diff -puN mm/cma.c~mm-cma-clean-up-cma-allocation-error-path mm/cma.c
+--- a/mm/cma.c~mm-cma-clean-up-cma-allocation-error-path
 +++ a/mm/cma.c
-@@ -225,12 +225,12 @@ int __init cma_declare_contiguous(phys_a
- 	*res_cma = cma;
- 	cma_area_count++;
- 
--	pr_info("CMA: reserved %ld MiB at %08lx\n", (unsigned long)size / SZ_1M,
-+	pr_info("Reserved %ld MiB at %08lx\n", (unsigned long)size / SZ_1M,
- 		(unsigned long)base);
- 	return 0;
- 
- err:
--	pr_err("CMA: failed to reserve %ld MiB\n", (unsigned long)size / SZ_1M);
-+	pr_err("Failed to reserve %ld MiB\n", (unsigned long)size / SZ_1M);
- 	return ret;
- }
- 
+@@ -285,11 +285,12 @@ struct page *cma_alloc(struct cma *cma,
+ 		if (ret == 0) {
+ 			page = pfn_to_page(pfn);
+ 			break;
+-		} else if (ret != -EBUSY) {
+-			cma_clear_bitmap(cma, pfn, count);
+-			break;
+ 		}
++
+ 		cma_clear_bitmap(cma, pfn, count);
++		if (ret != -EBUSY)
++			break;
++
+ 		pr_debug("%s(): memory range at %p is busy, retrying\n",
+ 			 __func__, pfn_to_page(pfn));
+ 		/* try again with a bit different memory target */
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
