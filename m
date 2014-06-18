@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
- added to -mm tree
-Date: Wed, 18 Jun 2014 14:31:41 -0700
-Message-ID: <53a2053d.Ab5uKIVeJAeLAVdi%akpm@linux-foundation.org>
+ makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch added
+ to -mm tree
+Date: Wed, 18 Jun 2014 15:29:41 -0700
+Message-ID: <53a212d5.KrsOUtT5IgWuwlHJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42302 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42749 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755588AbaFRVbm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 17:31:42 -0400
+	with ESMTP id S1752462AbaFRW3n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 18:29:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, phillip@squashfs.org.uk, joe@perches.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, steven@uplinklabs.net, richard.guenther@gmail.com, polacek@redhat.com, pmladek@suse.cz, peterz@infradead.org, paulmck@linux.vnet.ibm.com, mjambor@suse.cz, jakub@redhat.com, dan.carpenter@oracle.com, jkosina@suse.cz
 
 
 The patch titled
-     Subject: fs/squashfs/file_direct.c: replace count*size kmalloc by  kmalloc_array
+     Subject: ./Makefile: tell gcc optimizer to never introduce new data races
 has been added to the -mm tree.  Its filename is
-     fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+     makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,68 +40,188 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/squashfs/file_direct.c: replace count*size kmalloc by  kmalloc_array
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: ./Makefile: tell gcc optimizer to never introduce new data races
 
-kmalloc_array() manages count*sizeof overflow.
+We have been chasing a memory corruption bug, which turned out to be
+caused by very old gcc (4.3.4), which happily turned conditional load into
+a non-conditional one, and that broke correctness (the condition was met
+only if lock was held) and corrupted memory.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: Joe Perches <joe@perches.com>
+This particular problem with that particular code did not happen when
+never gccs were used.  I've brought this up with our gcc folks, as I
+wanted to make sure that this can't really happen again, and it turns out
+it actually can.
+
+Quoting Martin Jambor <mjambor@suse.cz>:
+
+====
+More current GCCs are more careful when it comes to replacing a
+conditional load with a non-conditional one, most notably they check
+that a store happens in each iteration of _a_ loop but they assume
+loops are executed.  They also perform a simple check whether the
+store cannot trap which currently passes only for non-const
+variables.  A simple testcase demonstrating it on an x86_64 is for
+example the following:
+
+$ cat cond_store.c
+
+int g_1 = 1;
+
+int g_2[1024] __attribute__((section ("safe_section"), aligned (4096)));
+
+int c = 4;
+
+int __attribute__ ((noinline))
+foo (void)
+{
+  int l;
+  for (l = 0; (l != 4); l++) {
+    if (g_1)
+      return l;
+    for (g_2[0] = 0; (g_2[0] >= 26); ++g_2[0])
+      ;
+  }
+  return 2;
+}
+
+int main (int argc, char* argv[])
+{
+  if (mprotect (g_2, sizeof(g_2), PROT_READ) == -1)
+    {
+      int e = errno;
+      error (e, e, "mprotect error %i", e);
+    }
+  foo ();
+  __builtin_printf("OK\n");
+  return 0;
+}
+/* EOF */
+$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=0
+$ ./a.out
+OK
+$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=1
+$ ./a.out
+Segmentation fault
+
+The testcase fails the same at least with 4.9, 4.8 and 4.7.  Therefore
+I would suggest building kernels with this parameter set to zero. I
+also agree with Jikos that the default should be changed for -O2.  I
+have run most of the SPEC 2k6 CPU benchmarks (gamess and dealII
+failed, at -O2, not sure why) compiled with and without this option
+and did not see any real difference between respective run-times.
+====
+
+Hopefully the default will be changed in newer gccs, but let's force
+it for kernel builds so that we are on a safe side even when older
+gcc are used.
+
+The code in question was out-of-tree printk-in-NMI (yeah, surprise
+suprise, once again) patch written by Petr Mladek, let me quote his
+comment from our internal bugzilla:
+
+===
+I have spent few days investigating inconsistent state of kernel ring buffer.
+It went out that it was caused by speculative store generated by
+gcc-4.3.4.
+
+The problem is in assembly generated for make_free_space(). The functions is
+called the following way:
+
++ vprintk_emit();
+    + log = MAIN_LOG; // with logbuf_lock
+       or
+       log = NMI_LOG; // with nmi_logbuf_lock
+       cont_add(log, ...);
+        + cont_flush(log, ...);
+            + log_store(log, ...);
+                  + log_make_free_space(log, ...);
+
+If called with log = NMI_LOG then only nmi_log_* global variables are safe to
+modify but the generated code does store also into (main_)log_* global
+variables:
+
+<log_make_free_space>:
+       55                      push   %rbp
+       89 f6                   mov    %esi,%esi
+
+       48 8b 05 03 99 51 01    mov    0x1519903(%rip),%rax       # ffffffff82620868 <nmi_log_next_id>
+       44 8b 1d ec 98 51 01    mov    0x15198ec(%rip),%r11d      # ffffffff82620858 <log_next_idx>
+       8b 35 36 60 14 01       mov    0x1146036(%rip),%esi       # ffffffff8224cfa8 <log_buf_len>
+       44 8b 35 33 60 14 01    mov    0x1146033(%rip),%r14d      # ffffffff8224cfac <nmi_log_buf_len>
+       4c 8b 2d d0 98 51 01    mov    0x15198d0(%rip),%r13       # ffffffff82620850 <log_next_seq>
+       4c 8b 25 11 61 14 01    mov    0x1146111(%rip),%r12       # ffffffff8224d098 <log_buf>
+       49 89 c2                mov    %rax,%r10
+       48 21 c2                and    %rax,%rdx
+       48 8b 1d 0c 99 55 01    mov    0x155990c(%rip),%rbx       # ffffffff826608a0 <nmi_log_buf>
+       49 c1 ea 20             shr    $0x20,%r10
+       48 89 55 d0             mov    %rdx,-0x30(%rbp)
+       44 29 de                sub    %r11d,%esi
+       45 29 d6                sub    %r10d,%r14d
+       4c 8b 0d 97 98 51 01    mov    0x1519897(%rip),%r9	# ffffffff82620840 <log_first_seq>
+       eb 7e                   jmp    ffffffff81107029	<log_make_free_space+0xe9>
+[...]
+       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
+       4c 89 e8                mov    %r13,%rax
+       4c 89 ca                mov    %r9,%rdx
+       74 0a                   je     ffffffff8110703d	<log_make_free_space+0xfd>
+       8b 15 27 98 51 01       mov    0x1519827(%rip),%edx       # ffffffff82620860 <nmi_log_first_id>
+       48 8b 45 d0             mov    -0x30(%rbp),%rax
+       48 39 c2                cmp    %rax,%rdx                  # end of loop
+       0f 84 da 00 00 00       je     ffffffff81107120 <log_make_free_space+0x1e0>
+[...]
+       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
+       4c 89 0d 17 97 51 01    mov    %r9,0x1519717(%rip)        # ffffffff82620840 <log_first_seq>
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               KABOOOM
+       74 35                   je     ffffffff81107160		 <log_make_free_space+0x220>
+
+It stores log_first_seq when edi == NMI_LOG. This instructions are used also
+when edi == MAIN_LOG but the store is done speculatively before the condition
+is decided.  It is unsafe because we do not have "logbuf_lock" in NMI context
+and some other process migh modify "log_first_seq" in parallel.
+===
+
+I believe that the best course of action is both
+
+- building kernel (and anything multi-threaded, I guess) with that
+  optimization turned off
+- persuade gcc folks to change the default for future releases
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Martin Jambor <mjambor@suse.cz>
+Cc: Petr Mladek <pmladek@suse.cz>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Marek Polacek <polacek@redhat.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Steven Noonan <steven@uplinklabs.net>
+Cc: Richard Biener <richard.guenther@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/file_direct.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Makefile |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/squashfs/file_direct.c~fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array fs/squashfs/file_direct.c
---- a/fs/squashfs/file_direct.c~fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array
-+++ a/fs/squashfs/file_direct.c
-@@ -44,7 +44,7 @@ int squashfs_readpage_block(struct page
+diff -puN Makefile~makefile-tell-gcc-optimizer-to-never-introduce-new-data-races Makefile
+--- a/Makefile~makefile-tell-gcc-optimizer-to-never-introduce-new-data-races
++++ a/Makefile
+@@ -615,6 +615,9 @@ else
+ KBUILD_CFLAGS	+= -O2
+ endif
  
- 	pages = end_index - start_index + 1;
- 
--	page = kmalloc(sizeof(void *) * pages, GFP_KERNEL);
-+	page = kmalloc_array(pages, sizeof(void *), GFP_KERNEL);
- 	if (page == NULL)
- 		return res;
- 
++# Tell gcc to never replace conditional load with a non-conditional one
++KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
++
+ ifdef CONFIG_READABLE_ASM
+ # Disable optimizations that make assembler listings hard to read.
+ # reorder blocks reorders the control in the function
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
-mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
-mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
-mm-internalh-use-nth_page.patch
-mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
-fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
-kernel-test_kprobesc-use-current-logging-functions.patch
-fs-isofs-logging-clean-up.patch
-fs-isofs-logging-clean-up-fix.patch
-fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
-drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
-fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
-fs-cachefiles-bindc-remove-unnecessary-assertions.patch
-fs-romfs-superc-convert-printk-to-pr_foo.patch
-fs-romfs-superc-use-pr_fmt-in-logging.patch
-fs-romfs-superc-add-blank-line-after-declarations.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
+makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch
 linux-next.patch
-init-mainc-code-clean-up.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
 
