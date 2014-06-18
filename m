@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes.patch
- added to -mm tree
-Date: Tue, 17 Jun 2014 16:20:58 -0700
-Message-ID: <53a0cd5a.WHXbZB1FMcxkg/Z0%akpm@linux-foundation.org>
+ watchdog-remove-preemption-restrictions-when-restarting-lockup-detector.patch added to -mm tree
+Date: Wed, 18 Jun 2014 13:16:53 -0700
+Message-ID: <53a1f3b5.hDtMR+vi5toDLRm/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58190 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41426 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756675AbaFQXU7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jun 2014 19:20:59 -0400
+	with ESMTP id S1754839AbaFRUQy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 16:16:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, peter@lekensteyn.nl, mhocko@suse.cz, dzickus@redhat.com
 
 
 The patch titled
-     Subject: initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
+     Subject: kernel/watchdog.c: remove preemption restrictions when restarting lockup detector
 has been added to the -mm tree.  Its filename is
-     initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes.patch
+     watchdog-remove-preemption-restrictions-when-restarting-lockup-detector.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-remove-preemption-restrictions-when-restarting-lockup-detector.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-remove-preemption-restrictions-when-restarting-lockup-detector.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,439 +39,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
+From: Don Zickus <dzickus@redhat.com>
+Subject: kernel/watchdog.c: remove preemption restrictions when restarting lockup detector
 
-WARNING: quoted string split across lines
-#60: FILE: fs/isofs/compress.c:163:
- 					       " page idx = %d, bh idx = %d,"
-+					       " avail_in = %ld,"
+Peter Wu noticed the following splat on his machine when updating
+/proc/sys/kernel/watchdog_thresh:
 
-WARNING: quoted string split across lines
-#61: FILE: fs/isofs/compress.c:164:
-+					       " avail_in = %ld,"
-+					       " avail_out = %ld\n",
+[    0.676701] BUG: sleeping function called from invalid context at mm/slub.c:965
+[    0.679396] in_atomic(): 1, irqs_disabled(): 0, pid: 1, name: init
+[    0.681204] 3 locks held by init/1:
+[    0.682371]  #0:  (sb_writers#3){.+.+.+}, at: [<ffffffff8117b663>] vfs_write+0x143/0x180
+[    0.685887]  #1:  (watchdog_proc_mutex){+.+.+.}, at: [<ffffffff810e02d3>] proc_dowatchdog+0x33/0x110
+[    0.689631]  #2:  (cpu_hotplug.lock){.+.+.+}, at: [<ffffffff810589c2>] get_online_cpus+0x32/0x80
+[    0.693117] Preemption disabled at:[<ffffffff810e0384>] proc_dowatchdog+0xe4/0x110
+[    0.695753]
+[    0.696588] CPU: 0 PID: 1 Comm: init Not tainted 3.16.0-rc1-testing #34
+[    0.698404] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+[    0.704622]  ffff88003f250000 ffff88003f1ffd10 ffffffff81624c59 0000000000000000
+[    0.707749]  ffff88003f1ffd30 ffffffff8108df1d 0000000000000010 ffffffff81c56360
+[    0.711010]  ffff88003f1ffd78 ffffffff8116a5de ffffffff811159a5 ffffffff810a5f4a
+[    0.714053] Call Trace:
+[    0.715015]  [<ffffffff81624c59>] dump_stack+0x4e/0x7a
+[    0.716619]  [<ffffffff8108df1d>] __might_sleep+0x11d/0x190
+[    0.718232]  [<ffffffff8116a5de>] kmem_cache_alloc_trace+0x4e/0x1e0
+[    0.720214]  [<ffffffff811159a5>] ? perf_event_alloc+0x55/0x440
+[    0.721910]  [<ffffffff810a5f4a>] ? mark_held_locks+0x6a/0x90
+[    0.723558]  [<ffffffff811159a5>] perf_event_alloc+0x55/0x440
+[    0.725304]  [<ffffffff810e0050>] ? restart_watchdog_hrtimer+0x50/0x50
+[    0.727279]  [<ffffffff81116d16>] perf_event_create_kernel_counter+0x26/0xe0
+[    0.729269]  [<ffffffff810dfe05>] watchdog_nmi_enable+0x75/0x140
+[    0.730965]  [<ffffffff810dffb3>] update_timers_all_cpus+0x53/0xa0
+[    0.732953]  [<ffffffff810e0384>] proc_dowatchdog+0xe4/0x110
+[    0.738408]  [<ffffffff811d8c93>] proc_sys_call_handler+0xb3/0xc0
+[    0.740266]  [<ffffffff811d8cb4>] proc_sys_write+0x14/0x20
+[    0.742086]  [<ffffffff8117b5cd>] vfs_write+0xad/0x180
+[    0.743669]  [<ffffffff810a606d>] ? trace_hardirqs_on_caller+0xfd/0x1c0
+[    0.745593]  [<ffffffff8117b799>] SyS_write+0x49/0xb0
+[    0.747101]  [<ffffffff8162fe92>] system_call_fastpath+0x16/0x1b
+[    0.749069] NMI watchdog: disabled (cpu0): hardware events not enabled
 
-WARNING: missing space after return type
-#76: FILE: include/linux/decompress/bunzip2.h:5:
-+	    long(*fill)(void*, unsigned long),
+What happened is after updating the watchdog_thresh, the lockup detector
+is restarted to utilize the new value.  Part of this process involved
+disabling preemption.  Once preemption was disabled, perf tried to
+allocate a new event (as part of the restart).  This caused the above
+BUG_ON as you can't sleep with preemption disabled.
 
-WARNING: missing space after return type
-#77: FILE: include/linux/decompress/bunzip2.h:6:
-+	    long(*flush)(void*, unsigned long),
+The preemption restriction seemed agressive as we are not doing anything
+on that particular cpu, but with all the online cpus (which are protected
+by the get_online_cpus lock).  Remove the restriction and the BUG_ON goes
+away.
 
-WARNING: missing space after return type
-#94: FILE: include/linux/decompress/generic.h:5:
-+			      long(*fill)(void*, unsigned long),
-
-WARNING: missing space after return type
-#95: FILE: include/linux/decompress/generic.h:6:
-+			      long(*flush)(void*, unsigned long),
-
-WARNING: missing space after return type
-#122: FILE: include/linux/decompress/inflate.h:5:
-+	   long(*fill)(void*, unsigned long),
-
-WARNING: missing space after return type
-#123: FILE: include/linux/decompress/inflate.h:6:
-+	   long(*flush)(void*, unsigned long),
-
-WARNING: missing space after return type
-#140: FILE: include/linux/decompress/unlz4.h:5:
-+	long(*fill)(void*, unsigned long),
-
-WARNING: missing space after return type
-#141: FILE: include/linux/decompress/unlz4.h:6:
-+	long(*flush)(void*, unsigned long),
-
-WARNING: missing space after return type
-#158: FILE: include/linux/decompress/unlzma.h:5:
-+	   long(*fill)(void*, unsigned long),
-
-WARNING: missing space after return type
-#159: FILE: include/linux/decompress/unlzma.h:6:
-+	   long(*flush)(void*, unsigned long),
-
-WARNING: missing space after return type
-#177: FILE: include/linux/decompress/unlzo.h:5:
-+	long(*fill)(void*, unsigned long),
-
-WARNING: missing space after return type
-#178: FILE: include/linux/decompress/unlzo.h:6:
-+	long(*flush)(void*, unsigned long),
-
-WARNING: please, no spaces at the start of a line
-#210: FILE: include/linux/zlib.h:86:
-+    uLong     avail_in;  /* number of bytes available at next_in */$
-
-WARNING: please, no spaces at the start of a line
-#215: FILE: include/linux/zlib.h:90:
-+    uLong     avail_out; /* remaining free space at next_out */$
-
-WARNING: __initdata should be placed after count
-#259: FILE: init/initramfs.c:177:
-+static __initdata unsigned long count;
-
-WARNING: __initdata should be placed after remains
-#268: FILE: init/initramfs.c:189:
-+static __initdata long remains;
-
-WARNING: missing space after return type
-#385: FILE: lib/decompress_bunzip2.c:679:
-+			long(*fill)(void*, unsigned long),
-
-WARNING: missing space after return type
-#386: FILE: lib/decompress_bunzip2.c:680:
-+			long(*flush)(void*, unsigned long),
-
-WARNING: missing space after return type
-#401: FILE: lib/decompress_bunzip2.c:747:
-+			long(*fill)(void*, unsigned long),
-
-WARNING: missing space after return type
-#402: FILE: lib/decompress_bunzip2.c:748:
-+			long(*flush)(void*, unsigned long),
-
-WARNING: missing space after return type
-#427: FILE: lib/decompress_inflate.c:37:
-+		       long(*fill)(void*, unsigned long),
-
-WARNING: missing space after return type
-#428: FILE: lib/decompress_inflate.c:38:
-+		       long(*flush)(void*, unsigned long),
-
-WARNING: Unnecessary space before function pointer arguments
-#456: FILE: lib/decompress_unlz4.c:35:
-+				long (*fill) (void *, unsigned long),
-
-WARNING: Unnecessary space before function pointer arguments
-#457: FILE: lib/decompress_unlz4.c:36:
-+				long (*flush) (void *, unsigned long),
-
-WARNING: missing space after return type
-#479: FILE: lib/decompress_unlz4.c:179:
-+			      long(*fill)(void*, unsigned long),
-
-WARNING: missing space after return type
-#480: FILE: lib/decompress_unlz4.c:180:
-+			      long(*flush)(void*, unsigned long),
-
-WARNING: missing space after return type
-#529: FILE: lib/decompress_unlzma.c:283:
-+	long(*flush)(void*, unsigned long);
-
-WARNING: missing space after return type
-#541: FILE: lib/decompress_unlzma.c:538:
-+			      long(*fill)(void*, unsigned long),
-
-WARNING: missing space after return type
-#542: FILE: lib/decompress_unlzma.c:539:
-+			      long(*flush)(void*, unsigned long),
-
-WARNING: missing space after return type
-#557: FILE: lib/decompress_unlzma.c:671:
-+			      long(*fill)(void*, unsigned long),
-
-WARNING: missing space after return type
-#558: FILE: lib/decompress_unlzma.c:672:
-+			      long(*flush)(void*, unsigned long),
-
-WARNING: Unnecessary space before function pointer arguments
-#586: FILE: lib/decompress_unlzo.c:112:
-+				long (*fill) (void *, unsigned long),
-
-WARNING: Unnecessary space before function pointer arguments
-#587: FILE: lib/decompress_unlzo.c:113:
-+				long (*flush) (void *, unsigned long),
-
-total: 0 errors, 35 warnings, 479 lines checked
-
-./patches/initramfs-support-initramfs-that-is-more-than-2g.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Peter Wu <peter@lekensteyn.nl>
+Tested-by: Peter Wu <peter@lekensteyn.nl>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>		[3.13+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/decompress/bunzip2.h |    6 +++---
- include/linux/decompress/generic.h |    6 +++---
- include/linux/decompress/inflate.h |    6 +++---
- include/linux/decompress/unlz4.h   |    6 +++---
- include/linux/decompress/unlzma.h  |    6 +++---
- include/linux/decompress/unlzo.h   |    6 +++---
- init/initramfs.c                   |    6 +++---
- lib/decompress_bunzip2.c           |   12 ++++++------
- lib/decompress_inflate.c           |    6 +++---
- lib/decompress_unlz4.c             |    6 +++---
- lib/decompress_unlzma.c            |   14 +++++++-------
- 11 files changed, 40 insertions(+), 40 deletions(-)
+ kernel/watchdog.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/decompress/bunzip2.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes include/linux/decompress/bunzip2.h
---- a/include/linux/decompress/bunzip2.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
-+++ a/include/linux/decompress/bunzip2.h
-@@ -2,9 +2,9 @@
- #define DECOMPRESS_BUNZIP2_H
+diff -puN kernel/watchdog.c~watchdog-remove-preemption-restrictions-when-restarting-lockup-detector kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-remove-preemption-restrictions-when-restarting-lockup-detector
++++ a/kernel/watchdog.c
+@@ -527,10 +527,8 @@ static void update_timers_all_cpus(void)
+ 	int cpu;
  
- int bunzip2(unsigned char *inbuf, long len,
--	    long(*fill)(void*, unsigned long),
--	    long(*flush)(void*, unsigned long),
-+	    long (*fill)(void*, unsigned long),
-+	    long (*flush)(void*, unsigned long),
- 	    unsigned char *output,
- 	    long *pos,
--	    void(*error)(char *x));
-+	    void (*error)(char *x));
- #endif
-diff -puN include/linux/decompress/generic.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes include/linux/decompress/generic.h
---- a/include/linux/decompress/generic.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
-+++ a/include/linux/decompress/generic.h
-@@ -2,11 +2,11 @@
- #define DECOMPRESS_GENERIC_H
- 
- typedef int (*decompress_fn) (unsigned char *inbuf, long len,
--			      long(*fill)(void*, unsigned long),
--			      long(*flush)(void*, unsigned long),
-+			      long (*fill)(void*, unsigned long),
-+			      long (*flush)(void*, unsigned long),
- 			      unsigned char *outbuf,
- 			      long *posp,
--			      void(*error)(char *x));
-+			      void (*error)(char *x));
- 
- /* inbuf   - input buffer
-  *len     - len of pre-read data in inbuf
-diff -puN include/linux/decompress/inflate.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes include/linux/decompress/inflate.h
---- a/include/linux/decompress/inflate.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
-+++ a/include/linux/decompress/inflate.h
-@@ -2,9 +2,9 @@
- #define LINUX_DECOMPRESS_INFLATE_H
- 
- int gunzip(unsigned char *inbuf, long len,
--	   long(*fill)(void*, unsigned long),
--	   long(*flush)(void*, unsigned long),
-+	   long (*fill)(void*, unsigned long),
-+	   long (*flush)(void*, unsigned long),
- 	   unsigned char *output,
- 	   long *pos,
--	   void(*error_fn)(char *x));
-+	   void (*error_fn)(char *x));
- #endif
-diff -puN include/linux/decompress/unlz4.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes include/linux/decompress/unlz4.h
---- a/include/linux/decompress/unlz4.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
-+++ a/include/linux/decompress/unlz4.h
-@@ -2,9 +2,9 @@
- #define DECOMPRESS_UNLZ4_H
- 
- int unlz4(unsigned char *inbuf, long len,
--	long(*fill)(void*, unsigned long),
--	long(*flush)(void*, unsigned long),
-+	long (*fill)(void*, unsigned long),
-+	long (*flush)(void*, unsigned long),
- 	unsigned char *output,
- 	long *pos,
--	void(*error)(char *x));
-+	void (*error)(char *x));
- #endif
-diff -puN include/linux/decompress/unlzma.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes include/linux/decompress/unlzma.h
---- a/include/linux/decompress/unlzma.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
-+++ a/include/linux/decompress/unlzma.h
-@@ -2,11 +2,11 @@
- #define DECOMPRESS_UNLZMA_H
- 
- int unlzma(unsigned char *, long,
--	   long(*fill)(void*, unsigned long),
--	   long(*flush)(void*, unsigned long),
-+	   long (*fill)(void*, unsigned long),
-+	   long (*flush)(void*, unsigned long),
- 	   unsigned char *output,
- 	   long *posp,
--	   void(*error)(char *x)
-+	   void (*error)(char *x)
- 	);
- 
- #endif
-diff -puN include/linux/decompress/unlzo.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes include/linux/decompress/unlzo.h
---- a/include/linux/decompress/unlzo.h~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
-+++ a/include/linux/decompress/unlzo.h
-@@ -2,9 +2,9 @@
- #define DECOMPRESS_UNLZO_H
- 
- int unlzo(unsigned char *inbuf, long len,
--	long(*fill)(void*, unsigned long),
--	long(*flush)(void*, unsigned long),
-+	long (*fill)(void*, unsigned long),
-+	long (*flush)(void*, unsigned long),
- 	unsigned char *output,
- 	long *pos,
--	void(*error)(char *x));
-+	void (*error)(char *x));
- #endif
-diff -puN init/initramfs.c~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes init/initramfs.c
---- a/init/initramfs.c~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
-+++ a/init/initramfs.c
-@@ -173,9 +173,9 @@ static __initdata enum state {
- 	Reset
- } state, next_state;
- 
--static __initdata char *victim;
--static __initdata unsigned long count;
--static __initdata loff_t this_header, next_header;
-+static char *victim __initdata;
-+static unsigned long count __initdata;
-+static loff_t this_header, next_header __initdata;
- 
- static inline void __init eat(unsigned n)
- {
-diff -puN lib/decompress_bunzip2.c~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes lib/decompress_bunzip2.c
---- a/lib/decompress_bunzip2.c~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
-+++ a/lib/decompress_bunzip2.c
-@@ -676,11 +676,11 @@ static int INIT start_bunzip(struct bunz
- /* Example usage: decompress src_fd to dst_fd.  (Stops at end of bzip2 data,
-    not end of file.) */
- STATIC int INIT bunzip2(unsigned char *buf, long len,
--			long(*fill)(void*, unsigned long),
--			long(*flush)(void*, unsigned long),
-+			long (*fill)(void*, unsigned long),
-+			long (*flush)(void*, unsigned long),
- 			unsigned char *outbuf,
- 			long *pos,
--			void(*error)(char *x))
-+			void (*error)(char *x))
- {
- 	struct bunzip_data *bd;
- 	int i = -1;
-@@ -744,11 +744,11 @@ exit_0:
- 
- #ifdef PREBOOT
- STATIC int INIT decompress(unsigned char *buf, long len,
--			long(*fill)(void*, unsigned long),
--			long(*flush)(void*, unsigned long),
-+			long (*fill)(void*, unsigned long),
-+			long (*flush)(void*, unsigned long),
- 			unsigned char *outbuf,
- 			long *pos,
--			void(*error)(char *x))
-+			void (*error)(char *x))
- {
- 	return bunzip2(buf, len - 4, fill, flush, outbuf, pos, error);
+ 	get_online_cpus();
+-	preempt_disable();
+ 	for_each_online_cpu(cpu)
+ 		update_timers(cpu);
+-	preempt_enable();
+ 	put_online_cpus();
  }
-diff -puN lib/decompress_inflate.c~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes lib/decompress_inflate.c
---- a/lib/decompress_inflate.c~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
-+++ a/lib/decompress_inflate.c
-@@ -34,11 +34,11 @@ static long INIT nofill(void *buffer, un
  
- /* Included from initramfs et al code */
- STATIC int INIT gunzip(unsigned char *buf, long len,
--		       long(*fill)(void*, unsigned long),
--		       long(*flush)(void*, unsigned long),
-+		       long (*fill)(void*, unsigned long),
-+		       long (*flush)(void*, unsigned long),
- 		       unsigned char *out_buf,
- 		       long *pos,
--		       void(*error)(char *x)) {
-+		       void (*error)(char *x)) {
- 	u8 *zbuf;
- 	struct z_stream_s *strm;
- 	int rc;
-diff -puN lib/decompress_unlz4.c~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes lib/decompress_unlz4.c
---- a/lib/decompress_unlz4.c~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
-+++ a/lib/decompress_unlz4.c
-@@ -176,11 +176,11 @@ exit_0:
- 
- #ifdef PREBOOT
- STATIC int INIT decompress(unsigned char *buf, long in_len,
--			      long(*fill)(void*, unsigned long),
--			      long(*flush)(void*, unsigned long),
-+			      long (*fill)(void*, unsigned long),
-+			      long (*flush)(void*, unsigned long),
- 			      unsigned char *output,
- 			      long *posp,
--			      void(*error)(char *x)
-+			      void (*error)(char *x)
- 	)
- {
- 	return unlz4(buf, in_len - 4, fill, flush, output, posp, error);
-diff -puN lib/decompress_unlzma.c~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes lib/decompress_unlzma.c
---- a/lib/decompress_unlzma.c~initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes
-+++ a/lib/decompress_unlzma.c
-@@ -280,7 +280,7 @@ struct writer {
- 	size_t buffer_pos;
- 	int bufsize;
- 	size_t global_pos;
--	long(*flush)(void*, unsigned long);
-+	long (*flush)(void*, unsigned long);
- 	struct lzma_header *header;
- };
- 
-@@ -535,11 +535,11 @@ static inline int INIT process_bit1(stru
- 
- 
- STATIC inline int INIT unlzma(unsigned char *buf, long in_len,
--			      long(*fill)(void*, unsigned long),
--			      long(*flush)(void*, unsigned long),
-+			      long (*fill)(void*, unsigned long),
-+			      long (*flush)(void*, unsigned long),
- 			      unsigned char *output,
- 			      long *posp,
--			      void(*error)(char *x)
-+			      void (*error)(char *x)
- 	)
- {
- 	struct lzma_header header;
-@@ -668,11 +668,11 @@ exit_0:
- 
- #ifdef PREBOOT
- STATIC int INIT decompress(unsigned char *buf, long in_len,
--			      long(*fill)(void*, unsigned long),
--			      long(*flush)(void*, unsigned long),
-+			      long (*fill)(void*, unsigned long),
-+			      long (*flush)(void*, unsigned long),
- 			      unsigned char *output,
- 			      long *posp,
--			      void(*error)(char *x)
-+			      void (*error)(char *x)
- 	)
- {
- 	return unlzma(buf, in_len - 4, fill, flush, output, posp, error);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dzickus@redhat.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
+watchdog-remove-preemption-restrictions-when-restarting-lockup-detector.patch
+nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
+nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
 kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
-shmem-fix-faulting-into-a-hole-while-its-punched-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-fs-isofs-logging-clean-up-fix.patch
-initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
