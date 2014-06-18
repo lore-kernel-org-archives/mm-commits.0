@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch added to -mm tree
-Date: Wed, 18 Jun 2014 16:54:54 -0700
-Message-ID: <53a226ce.Bh2lS2RuXHdwZ92n%akpm@linux-foundation.org>
+ mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch added to -mm tree
+Date: Wed, 18 Jun 2014 16:54:55 -0700
+Message-ID: <53a226cf.zDZKn2J2LzxgAJ0j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43355 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43359 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756837AbaFRXyz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 19:54:55 -0400
+	with ESMTP id S1756837AbaFRXy4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 19:54:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vdavydov@parallels.com, tj@kernel.org, mhocko@suse.cz, hughd@google.com, hannes@cmpxchg.org
 
 
 The patch titled
-     Subject: mm: memcontrol: remove ordering between pc->mem_cgroup and PageCgroupUsed
+     Subject: mm: memcontrol: do not acquire page_cgroup lock for kmem pages
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+     mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,56 +40,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: remove ordering between pc->mem_cgroup and PageCgroupUsed
+Subject: mm: memcontrol: do not acquire page_cgroup lock for kmem pages
 
-There is a write barrier between setting pc->mem_cgroup and
-PageCgroupUsed, which was added to allow LRU operations to lookup the
-memcg LRU list of a page without acquiring the page_cgroup lock.
-
-But ever since 38c5d72f3ebe ("memcg: simplify LRU handling by new rule"),
-pages are ensured to be off-LRU while charging, so nobody else is changing
-LRU state while pc->mem_cgroup is being written, and there are no read
-barriers anymore.
-
-Remove the unnecessary write barrier.
+Kmem page charging and uncharging is serialized by means of exclusive
+access to the page.  Do not take the page_cgroup lock and don't set
+pc->flags atomically.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ mm/memcontrol.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused
+diff -puN mm/memcontrol.c~mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages
 +++ a/mm/memcontrol.c
-@@ -2795,14 +2795,6 @@ static void __mem_cgroup_commit_charge(s
+@@ -3458,12 +3458,13 @@ void __memcg_kmem_commit_charge(struct p
+ 		memcg_uncharge_kmem(memcg, PAGE_SIZE << order);
+ 		return;
  	}
- 
+-
++	/*
++	 * The page is freshly allocated and not visible to any
++	 * outside callers yet.  Set up pc non-atomically.
++	 */
+ 	pc = lookup_page_cgroup(page);
+-	lock_page_cgroup(pc);
  	pc->mem_cgroup = memcg;
--	/*
--	 * We access a page_cgroup asynchronously without lock_page_cgroup().
--	 * Especially when a page_cgroup is taken from a page, pc->mem_cgroup
--	 * is accessed after testing USED bit. To make pc->mem_cgroup visible
--	 * before USED bit, we need memory barrier here.
--	 * See mem_cgroup_add_lru_list(), etc.
--	 */
--	smp_wmb();
- 	SetPageCgroupUsed(pc);
+-	SetPageCgroupUsed(pc);
+-	unlock_page_cgroup(pc);
++	pc->flags = PCG_USED;
+ }
  
- 	if (lrucare) {
-@@ -3534,7 +3526,6 @@ void mem_cgroup_split_huge_fixup(struct
- 	for (i = 1; i < HPAGE_PMD_NR; i++) {
- 		pc = head_pc + i;
- 		pc->mem_cgroup = memcg;
--		smp_wmb();/* see __commit_charge() */
- 		pc->flags = head_pc->flags & ~PCGF_NOCOPY_AT_SPLIT;
- 	}
- 	__this_cpu_sub(memcg->stat->count[MEM_CGROUP_STAT_RSS_HUGE],
+ void __memcg_kmem_uncharge_pages(struct page *page, int order)
+@@ -3473,19 +3474,11 @@ void __memcg_kmem_uncharge_pages(struct
+ 
+ 
+ 	pc = lookup_page_cgroup(page);
+-	/*
+-	 * Fast unlocked return. Theoretically might have changed, have to
+-	 * check again after locking.
+-	 */
+ 	if (!PageCgroupUsed(pc))
+ 		return;
+ 
+-	lock_page_cgroup(pc);
+-	if (PageCgroupUsed(pc)) {
+-		memcg = pc->mem_cgroup;
+-		ClearPageCgroupUsed(pc);
+-	}
+-	unlock_page_cgroup(pc);
++	memcg = pc->mem_cgroup;
++	pc->flags = 0;
+ 
+ 	/*
+ 	 * We trust that only if there is a memcg associated with the page, it
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
