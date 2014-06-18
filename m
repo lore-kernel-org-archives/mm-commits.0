@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + dma-cma-support-arbitrary-bitmap-granularity.patch added to -mm tree
-Date: Wed, 18 Jun 2014 13:53:12 -0700
-Message-ID: <53a1fc38.iEUKt2esZgkmqiWi%akpm@linux-foundation.org>
+Subject: + dma-cma-support-arbitrary-bitmap-granularity-fix.patch added to -mm tree
+Date: Wed, 18 Jun 2014 13:53:13 -0700
+Message-ID: <53a1fc39.2cGjmY8af8kib2vS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41723 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41732 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755268AbaFRUxN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 16:53:13 -0400
+	with ESMTP id S1755625AbaFRUxO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 16:53:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, pbonzini@redhat.com, paulus@samba.org, minchan@kernel.org, mina86@mina86.com, m.szyprowski@samsung.com, gleb@kernel.org, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, agraf@suse.de, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, pbonzini@redhat.com, paulus@samba.org, minchan@kernel.org, mina86@mina86.com, m.szyprowski@samsung.com, iamjoonsoo.kim@lge.com, gleb@kernel.org, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, agraf@suse.de, akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: DMA, CMA: support arbitrary bitmap granularity
+     Subject: dma-cma-support-arbitrary-bitmap-granularity-fix
 has been added to the -mm tree.  Its filename is
-     dma-cma-support-arbitrary-bitmap-granularity.patch
+     dma-cma-support-arbitrary-bitmap-granularity-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-cma-support-arbitrary-bitmap-granularity.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-cma-support-arbitrary-bitmap-granularity-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-cma-support-arbitrary-bitmap-granularity.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-cma-support-arbitrary-bitmap-granularity-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,237 +38,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: DMA, CMA: support arbitrary bitmap granularity
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dma-cma-support-arbitrary-bitmap-granularity-fix
 
-PPC KVM's CMA area management requires arbitrary bitmap granularity, since
-they want to reserve very large memory and manage this region with bitmap
-that one bit for several pages to reduce management overheads.  So support
-arbitrary bitmap granularity for following generalization.
+s/1/1UL/
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Alexander Graf <agraf@suse.de>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Gleb Natapov <gleb@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dma-contiguous.c |   77 ++++++++++++++++++++++----------
- 1 file changed, 53 insertions(+), 24 deletions(-)
+ drivers/base/dma-contiguous.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/base/dma-contiguous.c~dma-cma-support-arbitrary-bitmap-granularity drivers/base/dma-contiguous.c
---- a/drivers/base/dma-contiguous.c~dma-cma-support-arbitrary-bitmap-granularity
+diff -puN drivers/base/dma-contiguous.c~dma-cma-support-arbitrary-bitmap-granularity-fix drivers/base/dma-contiguous.c
+--- a/drivers/base/dma-contiguous.c~dma-cma-support-arbitrary-bitmap-granularity-fix
 +++ a/drivers/base/dma-contiguous.c
-@@ -38,6 +38,7 @@ struct cma {
- 	unsigned long	base_pfn;
- 	unsigned long	count;
- 	unsigned long	*bitmap;
-+	unsigned int order_per_bit; /* Order of pages represented by one bit */
- 	struct mutex	lock;
- };
+@@ -160,7 +160,7 @@ static DEFINE_MUTEX(cma_mutex);
  
-@@ -157,9 +158,37 @@ void __init dma_contiguous_reserve(phys_
- 
- static DEFINE_MUTEX(cma_mutex);
- 
-+static unsigned long cma_bitmap_aligned_mask(struct cma *cma, int align_order)
-+{
-+	return (1 << (align_order >> cma->order_per_bit)) - 1;
-+}
-+
-+static unsigned long cma_bitmap_maxno(struct cma *cma)
-+{
-+	return cma->count >> cma->order_per_bit;
-+}
-+
-+static unsigned long cma_bitmap_pages_to_bits(struct cma *cma,
-+						unsigned long pages)
-+{
-+	return ALIGN(pages, 1 << cma->order_per_bit) >> cma->order_per_bit;
-+}
-+
-+static void cma_clear_bitmap(struct cma *cma, unsigned long pfn, int count)
-+{
-+	unsigned long bitmap_no, bitmap_count;
-+
-+	bitmap_no = (pfn - cma->base_pfn) >> cma->order_per_bit;
-+	bitmap_count = cma_bitmap_pages_to_bits(cma, count);
-+
-+	mutex_lock(&cma->lock);
-+	bitmap_clear(cma->bitmap, bitmap_no, bitmap_count);
-+	mutex_unlock(&cma->lock);
-+}
-+
- static int __init cma_activate_area(struct cma *cma)
+ static unsigned long cma_bitmap_aligned_mask(struct cma *cma, int align_order)
  {
--	int bitmap_size = BITS_TO_LONGS(cma->count) * sizeof(long);
-+	int bitmap_size = BITS_TO_LONGS(cma_bitmap_maxno(cma)) * sizeof(long);
- 	unsigned long base_pfn = cma->base_pfn, pfn = base_pfn;
- 	unsigned i = cma->count >> pageblock_order;
- 	struct zone *zone;
-@@ -215,9 +244,9 @@ static int __init cma_init_reserved_area
- core_initcall(cma_init_reserved_areas);
- 
- static int __init __dma_contiguous_reserve_area(phys_addr_t size,
--				phys_addr_t base, phys_addr_t limit,
--				phys_addr_t alignment,
--				struct cma **res_cma, bool fixed)
-+			phys_addr_t base, phys_addr_t limit,
-+			phys_addr_t alignment, unsigned int order_per_bit,
-+			struct cma **res_cma, bool fixed)
- {
- 	struct cma *cma = &cma_areas[cma_area_count];
- 	int ret = 0;
-@@ -249,6 +278,10 @@ static int __init __dma_contiguous_reser
- 	size = ALIGN(size, alignment);
- 	limit &= ~(alignment - 1);
- 
-+	/* size should be aligned with order_per_bit */
-+	if (!IS_ALIGNED(size >> PAGE_SHIFT, 1 << order_per_bit))
-+		return -EINVAL;
-+
- 	/* Reserve memory */
- 	if (base && fixed) {
- 		if (memblock_is_region_reserved(base, size) ||
-@@ -273,6 +306,7 @@ static int __init __dma_contiguous_reser
- 	 */
- 	cma->base_pfn = PFN_DOWN(base);
- 	cma->count = size >> PAGE_SHIFT;
-+	cma->order_per_bit = order_per_bit;
- 	*res_cma = cma;
- 	cma_area_count++;
- 
-@@ -308,7 +342,7 @@ int __init dma_contiguous_reserve_area(p
- {
- 	int ret;
- 
--	ret = __dma_contiguous_reserve_area(size, base, limit, 0,
-+	ret = __dma_contiguous_reserve_area(size, base, limit, 0, 0,
- 						res_cma, fixed);
- 	if (ret)
- 		return ret;
-@@ -320,17 +354,11 @@ int __init dma_contiguous_reserve_area(p
- 	return 0;
+-	return (1 << (align_order >> cma->order_per_bit)) - 1;
++	return (1UL << (align_order >> cma->order_per_bit)) - 1;
  }
  
--static void clear_cma_bitmap(struct cma *cma, unsigned long pfn, int count)
--{
--	mutex_lock(&cma->lock);
--	bitmap_clear(cma->bitmap, pfn - cma->base_pfn, count);
--	mutex_unlock(&cma->lock);
--}
--
- static struct page *__dma_alloc_from_contiguous(struct cma *cma, int count,
- 				       unsigned int align)
+ static unsigned long cma_bitmap_maxno(struct cma *cma)
+@@ -171,7 +171,7 @@ static unsigned long cma_bitmap_maxno(st
+ static unsigned long cma_bitmap_pages_to_bits(struct cma *cma,
+ 						unsigned long pages)
  {
--	unsigned long mask, pfn, pageno, start = 0;
-+	unsigned long mask, pfn, start = 0;
-+	unsigned long bitmap_maxno, bitmap_no, bitmap_count;
- 	struct page *page = NULL;
- 	int ret;
- 
-@@ -343,18 +371,19 @@ static struct page *__dma_alloc_from_con
- 	if (!count)
- 		return NULL;
- 
--	mask = (1 << align) - 1;
--
-+	mask = cma_bitmap_aligned_mask(cma, align);
-+	bitmap_maxno = cma_bitmap_maxno(cma);
-+	bitmap_count = cma_bitmap_pages_to_bits(cma, count);
- 
- 	for (;;) {
- 		mutex_lock(&cma->lock);
--		pageno = bitmap_find_next_zero_area(cma->bitmap, cma->count,
--						    start, count, mask);
--		if (pageno >= cma->count) {
-+		bitmap_no = bitmap_find_next_zero_area(cma->bitmap,
-+				bitmap_maxno, start, bitmap_count, mask);
-+		if (bitmap_no >= bitmap_maxno) {
- 			mutex_unlock(&cma->lock);
- 			break;
- 		}
--		bitmap_set(cma->bitmap, pageno, count);
-+		bitmap_set(cma->bitmap, bitmap_no, bitmap_count);
- 		/*
- 		 * It's safe to drop the lock here. We've marked this region for
- 		 * our exclusive use. If the migration fails we will take the
-@@ -362,7 +391,7 @@ static struct page *__dma_alloc_from_con
- 		 */
- 		mutex_unlock(&cma->lock);
- 
--		pfn = cma->base_pfn + pageno;
-+		pfn = cma->base_pfn + (bitmap_no << cma->order_per_bit);
- 		mutex_lock(&cma_mutex);
- 		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA);
- 		mutex_unlock(&cma_mutex);
-@@ -370,14 +399,14 @@ static struct page *__dma_alloc_from_con
- 			page = pfn_to_page(pfn);
- 			break;
- 		} else if (ret != -EBUSY) {
--			clear_cma_bitmap(cma, pfn, count);
-+			cma_clear_bitmap(cma, pfn, count);
- 			break;
- 		}
--		clear_cma_bitmap(cma, pfn, count);
-+		cma_clear_bitmap(cma, pfn, count);
- 		pr_debug("%s(): memory range at %p is busy, retrying\n",
- 			 __func__, pfn_to_page(pfn));
- 		/* try again with a bit different memory target */
--		start = pageno + mask + 1;
-+		start = bitmap_no + mask + 1;
- 	}
- 
- 	pr_debug("%s(): returned %p\n", __func__, page);
-@@ -424,7 +453,7 @@ static bool __dma_release_from_contiguou
- 	VM_BUG_ON(pfn + count > cma->base_pfn + cma->count);
- 
- 	free_contig_range(pfn, count);
--	clear_cma_bitmap(cma, pfn, count);
-+	cma_clear_bitmap(cma, pfn, count);
- 
- 	return true;
+-	return ALIGN(pages, 1 << cma->order_per_bit) >> cma->order_per_bit;
++	return ALIGN(pages, 1UL << cma->order_per_bit) >> cma->order_per_bit;
  }
+ 
+ static void cma_clear_bitmap(struct cma *cma, unsigned long pfn, int count)
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slab-maintainer-update.patch
-slab-fix-oops-when-reading-proc-slab_allocators.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-slab-common-add-functions-for-kmem_cache_node-access.patch
-slub-use-new-node-functions.patch
-slub-use-new-node-functions-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix.patch
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-memcg-cleanup-memcg_cache_params-refcnt-usage.patch
-memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
-memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
-slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
-slub-make-slab_free-non-preemptable.patch
-memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
-slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
-slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
-dma-cma-fix-possible-memory-leak.patch
-dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
-dma-cma-support-alignment-constraint-on-cma-region.patch
-dma-cma-support-arbitrary-bitmap-granularity.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
+shmem-fix-faulting-into-a-hole-while-its-punched-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
+mm.patch
+slub-use-new-node-functions-checkpatch-fixes.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
 dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-cma-generalize-cma-reserved-area-management-functionality.patch
-ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
-mm-cma-clean-up-cma-allocation-error-path.patch
-mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
-mm-cma-clean-up-log-message.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
-page-owners-correct-page-order-when-to-free-page.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+fs-isofs-logging-clean-up-fix.patch
+initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
