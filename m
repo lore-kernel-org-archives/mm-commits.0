@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic.patch added
+Subject: + slab-fix-oops-when-reading-proc-slab_allocators-v2.patch added
  to -mm tree
-Date: Wed, 18 Jun 2014 16:45:22 -0700
-Message-ID: <53a22492.JLeRY38PxSZ9da6T%akpm@linux-foundation.org>
+Date: Wed, 18 Jun 2014 16:47:46 -0700
+Message-ID: <53a22522.RsciTsthixrSIUSr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43285 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753095AbaFRXpX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 19:45:23 -0400
+	with ESMTP id S1756218AbaFRXrr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jun 2014 19:47:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, scott.norton@hp.com, riel@redhat.com, mgorman@suse.de, kirill.shutemov@linux.intel.com, aarcange@redhat.com, Waiman.Long@hp.com
+To: mm-commits@vger.kernel.org, vdavydov@parallels.com, stable@vger.kernel.org, rientjes@google.com, penguin-kernel@I-love.SAKURA.ne.jp, penberg@kernel.org, davej@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com
 
 
 The patch titled
-     Subject: mm, thp: replace smp_mb after atomic_add by smp_mb__after_atomic
+     Subject: slab-fix-oops-when-reading-proc-slab_allocators-v2
 has been added to the -mm tree.  Its filename is
-     mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic.patch
+     slab-fix-oops-when-reading-proc-slab_allocators-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-fix-oops-when-reading-proc-slab_allocators-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-fix-oops-when-reading-proc-slab_allocators-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,48 +39,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <Waiman.Long@hp.com>
-Subject: mm, thp: replace smp_mb after atomic_add by smp_mb__after_atomic
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: slab-fix-oops-when-reading-proc-slab_allocators-v2
 
-In some architectures like x86, atomic_add() is a full memory barrier.  In
-that case, an additional smp_mb() is just a waste of time.  This patch
-replaces that smp_mb() by smp_mb__after_atomic() which will avoid the
-redundant memory barrier in some architectures.
+v2: edit one more function, calculate_slab_order(), that wants to know
+    how much space per object is spent for freelist management.
 
-With a 3.16-rc1 based kernel, this patch reduced the execution time of
-breaking 1000 transparent huge pages from 38,245us to 30,964us.  A
-reduction of 19% which is quite sizeable.  It also reduces the %cpu time
-of the __split_huge_page_refcount function in the perf profile from 2.18%
-to 1.15%.
-
-Signed-off-by: Waiman Long <Waiman.Long@hp.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Scott J Norton <scott.norton@hp.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reported-by: Dave Jones <davej@redhat.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic
-+++ a/mm/huge_memory.c
-@@ -1681,7 +1681,7 @@ static void __split_huge_page_refcount(s
- 			   &page_tail->_count);
+diff -puN mm/slab.c~slab-fix-oops-when-reading-proc-slab_allocators-v2 mm/slab.c
+--- a/mm/slab.c~slab-fix-oops-when-reading-proc-slab_allocators-v2
++++ a/mm/slab.c
+@@ -2093,13 +2093,16 @@ static size_t calculate_slab_order(struc
+ 			break;
  
- 		/* after clearing PageTail the gup refcount can be released */
--		smp_mb();
-+		smp_mb__after_atomic();
+ 		if (flags & CFLGS_OFF_SLAB) {
++			size_t freelist_size_per_obj = sizeof(freelist_idx_t);
+ 			/*
+ 			 * Max number of objs-per-slab for caches which
+ 			 * use off-slab slabs. Needed to avoid a possible
+ 			 * looping condition in cache_grow().
+ 			 */
++			if (IS_ENABLED(CONFIG_DEBUG_SLAB_LEAK))
++				freelist_size_per_obj += sizeof(char);
+ 			offslab_limit = size;
+-			offslab_limit /= sizeof(freelist_idx_t);
++			offslab_limit /= freelist_size_per_obj;
  
- 		/*
- 		 * retain hwpoison flag of the poisoned tail page:
+  			if (num > offslab_limit)
+ 				break;
 _
 
-Patches currently in -mm which might be from Waiman.Long@hp.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-mm-thp-move-invariant-bug-check-out-of-loop-in-__split_huge_page_map.patch
-mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic.patch
+slab-maintainer-update.patch
+slab-fix-oops-when-reading-proc-slab_allocators.patch
+slab-fix-oops-when-reading-proc-slab_allocators-v2.patch
+dma-cma-fix-possible-memory-leak.patch
+mm-slabc-add-__init-to-init_lock_keys.patch
+slab-common-add-functions-for-kmem_cache_node-access.patch
+slub-use-new-node-functions.patch
+slub-use-new-node-functions-fix.patch
+slab-use-get_node-and-kmem_cache_node-functions.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix.patch
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+mm-slab-mark-enable_cpucache-as-init-text.patch
+mm-slub-mark-resiliency_test-as-init-text.patch
+vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
+memcg-cleanup-memcg_cache_params-refcnt-usage.patch
+memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
+memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
+slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
+slub-make-slab_free-non-preemptable.patch
+memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
+slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
+slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
+dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
+dma-cma-support-alignment-constraint-on-cma-region.patch
+dma-cma-support-arbitrary-bitmap-granularity.patch
+dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+cma-generalize-cma-reserved-area-management-functionality.patch
+ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
+mm-cma-clean-up-cma-allocation-error-path.patch
+mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
+mm-cma-clean-up-log-message.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
