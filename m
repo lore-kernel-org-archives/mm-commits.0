@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fork-exec-cleanup-mm-initialization.patch added to -mm tree
-Date: Thu, 19 Jun 2014 13:59:20 -0700
-Message-ID: <53a34f28.09iO57v1WrG5XB9H%akpm@linux-foundation.org>
+Subject: + fs-squashfs-superc-logging-clean-up.patch added to -mm tree
+Date: Thu, 19 Jun 2014 14:11:41 -0700
+Message-ID: <53a3520d.l54ZBhY7BuLIwmYP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51497 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932343AbaFSU7V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jun 2014 16:59:21 -0400
+	with ESMTP id S934434AbaFSVLm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jun 2014 17:11:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, oleg@redhat.com, cl@linux.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, phillip@squashfs.org.uk, fabf@skynet.be
 
 
 The patch titled
-     Subject: fork/exec: cleanup mm initialization
+     Subject: fs/squashfs/super.c: logging cleanup
 has been added to the -mm tree.  Its filename is
-     fork-exec-cleanup-mm-initialization.patch
+     fs-squashfs-superc-logging-clean-up.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fork-exec-cleanup-mm-initialization.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-squashfs-superc-logging-clean-up.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fork-exec-cleanup-mm-initialization.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-squashfs-superc-logging-clean-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,204 +38,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: fork/exec: cleanup mm initialization
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/squashfs/super.c: logging cleanup
 
-mm initialization on fork/exec is spread all over the place, which makes
-the code look inconsistent.
+- Convert printk to pr_foo()
+- Add pr_fmt for future logging entries
+- Coalesce formats
 
-We have mm_init(), which is supposed to init/nullify mm's internals, but
-it doesn't init all the fields it should:
-
- - on fork ->mmap,mm_rb,vmacache_seqnum,map_count,mm_cpumask,locked_vm
-   are zeroed in dup_mmap();
-
- - on fork ->pmd_huge_pte is zeroed in dup_mm(), immediately before
-   calling mm_init();
-
- - ->cpu_vm_mask_var ptr is initialized by mm_init_cpumask(), which is
-   called before mm_init() on both fork and exec;
-
- - ->context is initialized by init_new_context(), which is called after
-   mm_init() on both fork and exec;
-
-Let's consolidate all the initializations in mm_init() to make the code
-look cleaner.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c                |    4 ---
- include/linux/mm_types.h |    1 
- kernel/fork.c            |   47 +++++++++++++++----------------------
- 3 files changed, 21 insertions(+), 31 deletions(-)
+ fs/squashfs/super.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/exec.c~fork-exec-cleanup-mm-initialization fs/exec.c
---- a/fs/exec.c~fork-exec-cleanup-mm-initialization
-+++ a/fs/exec.c
-@@ -368,10 +368,6 @@ static int bprm_mm_init(struct linux_bin
- 	if (!mm)
- 		goto err;
+diff -puN fs/squashfs/super.c~fs-squashfs-superc-logging-clean-up fs/squashfs/super.c
+--- a/fs/squashfs/super.c~fs-squashfs-superc-logging-clean-up
++++ a/fs/squashfs/super.c
+@@ -27,6 +27,8 @@
+  * the filesystem.
+  */
  
--	err = init_new_context(current, mm);
--	if (err)
--		goto err;
--
- 	err = __bprm_mm_init(bprm);
- 	if (err)
- 		goto err;
-diff -puN include/linux/mm_types.h~fork-exec-cleanup-mm-initialization include/linux/mm_types.h
---- a/include/linux/mm_types.h~fork-exec-cleanup-mm-initialization
-+++ a/include/linux/mm_types.h
-@@ -461,6 +461,7 @@ static inline void mm_init_cpumask(struc
- #ifdef CONFIG_CPUMASK_OFFSTACK
- 	mm->cpu_vm_mask_var = &mm->cpumask_allocation;
- #endif
-+	cpumask_clear(mm->cpu_vm_mask_var);
- }
- 
- /* Future-safe accessor for struct mm_struct's cpu_vm_mask. */
-diff -puN kernel/fork.c~fork-exec-cleanup-mm-initialization kernel/fork.c
---- a/kernel/fork.c~fork-exec-cleanup-mm-initialization
-+++ a/kernel/fork.c
-@@ -365,12 +365,6 @@ static int dup_mmap(struct mm_struct *mm
- 	 */
- 	down_write_nested(&mm->mmap_sem, SINGLE_DEPTH_NESTING);
- 
--	mm->locked_vm = 0;
--	mm->mmap = NULL;
--	mm->vmacache_seqnum = 0;
--	mm->map_count = 0;
--	cpumask_clear(mm_cpumask(mm));
--	mm->mm_rb = RB_ROOT;
- 	rb_link = &mm->mm_rb.rb_node;
- 	rb_parent = NULL;
- 	pprev = &mm->mmap;
-@@ -529,17 +523,27 @@ static void mm_init_aio(struct mm_struct
- 
- static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p)
- {
-+	mm->mmap = NULL;
-+	mm->mm_rb = RB_ROOT;
-+	mm->vmacache_seqnum = 0;
- 	atomic_set(&mm->mm_users, 1);
- 	atomic_set(&mm->mm_count, 1);
- 	init_rwsem(&mm->mmap_sem);
- 	INIT_LIST_HEAD(&mm->mmlist);
- 	mm->core_state = NULL;
- 	atomic_long_set(&mm->nr_ptes, 0);
-+	mm->map_count = 0;
-+	mm->locked_vm = 0;
- 	memset(&mm->rss_stat, 0, sizeof(mm->rss_stat));
- 	spin_lock_init(&mm->page_table_lock);
-+	mm_init_cpumask(mm);
- 	mm_init_aio(mm);
- 	mm_init_owner(mm, p);
-+	mmu_notifier_mm_init(mm);
- 	clear_tlb_flush_pending(mm);
-+#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
-+	mm->pmd_huge_pte = NULL;
-+#endif
- 
- 	if (current->mm) {
- 		mm->flags = current->mm->flags & MMF_INIT_MASK;
-@@ -549,11 +553,17 @@ static struct mm_struct *mm_init(struct
- 		mm->def_flags = 0;
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/fs.h>
+ #include <linux/vfs.h>
+ #include <linux/slab.h>
+@@ -448,8 +450,7 @@ static int __init init_squashfs_fs(void)
+ 		return err;
  	}
  
--	if (likely(!mm_alloc_pgd(mm))) {
--		mmu_notifier_mm_init(mm);
--		return mm;
--	}
-+	if (mm_alloc_pgd(mm))
-+		goto fail_nopgd;
-+
-+	if (init_new_context(p, mm))
-+		goto fail_nocontext;
+-	printk(KERN_INFO "squashfs: version 4.0 (2009/01/31) "
+-		"Phillip Lougher\n");
++	pr_info("version 4.0 (2009/01/31) Phillip Lougher\n");
  
-+	return mm;
-+
-+fail_nocontext:
-+	mm_free_pgd(mm);
-+fail_nopgd:
- 	free_mm(mm);
- 	return NULL;
+ 	return 0;
  }
-@@ -587,7 +597,6 @@ struct mm_struct *mm_alloc(void)
- 		return NULL;
- 
- 	memset(mm, 0, sizeof(*mm));
--	mm_init_cpumask(mm);
- 	return mm_init(mm, current);
- }
- 
-@@ -819,17 +828,10 @@ static struct mm_struct *dup_mm(struct t
- 		goto fail_nomem;
- 
- 	memcpy(mm, oldmm, sizeof(*mm));
--	mm_init_cpumask(mm);
- 
--#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
--	mm->pmd_huge_pte = NULL;
--#endif
- 	if (!mm_init(mm, tsk))
- 		goto fail_nomem;
- 
--	if (init_new_context(tsk, mm))
--		goto fail_nocontext;
--
- 	dup_mm_exe_file(oldmm, mm);
- 
- 	err = dup_mmap(mm, oldmm);
-@@ -851,15 +853,6 @@ free_pt:
- 
- fail_nomem:
- 	return NULL;
--
--fail_nocontext:
--	/*
--	 * If init_new_context() failed, we cannot use mmput() to free the mm
--	 * because it calls destroy_context()
--	 */
--	mm_free_pgd(mm);
--	free_mm(mm);
--	return NULL;
- }
- 
- static int copy_mm(unsigned long clone_flags, struct task_struct *tsk)
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-slab-fix-oops-when-reading-proc-slab_allocators.patch
-slab-fix-oops-when-reading-proc-slab_allocators-v2.patch
-memcg-cleanup-memcg_cache_params-refcnt-usage.patch
-memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
-memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
-slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
-slub-make-slab_free-non-preemptable.patch
-memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
-slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
-slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-fork-exec-cleanup-mm-initialization.patch
-fork-reset-mm-pinned_vm.patch
-fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
+fs-cifs-remove-obsolete-__constant.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-squashfs-superc-logging-clean-up.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-slabc-add-__init-to-init_lock_keys.patch
+mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
+mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
+mm-internalh-use-nth_page.patch
+mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
+fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+kernel-test_kprobesc-use-current-logging-functions.patch
+fs-isofs-logging-clean-up.patch
+fs-isofs-logging-clean-up-fix.patch
+fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
+drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
+fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+fs-romfs-superc-convert-printk-to-pr_foo.patch
+fs-romfs-superc-use-pr_fmt-in-logging.patch
+fs-romfs-superc-add-blank-line-after-declarations.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
 linux-next.patch
+init-mainc-code-clean-up.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
