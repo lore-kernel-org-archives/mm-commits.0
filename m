@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fork-copy-mms-vm-usage-counters-under-mmap_sem.patch added to
- -mm tree
-Date: Thu, 19 Jun 2014 14:50:11 -0700
-Message-ID: <53a35b13.f9AezP+Gfk0CzGed%akpm@linux-foundation.org>
+Subject: + slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
+ added to -mm tree
+Date: Thu, 19 Jun 2014 15:49:38 -0700
+Message-ID: <53a36902.3KPMLh1vVn5Hh5T6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52003 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52573 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964833AbaFSVuM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jun 2014 17:50:12 -0400
+	with ESMTP id S965631AbaFSWtj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jun 2014 18:49:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, oleg@redhat.com, cl@linux.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, iamjoonsoo.kim@lge.com, cl@linux.com, cl@gentwo.org, akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: fork: copy mm's vm usage counters under mmap_sem
+     Subject: slab-use-get_node-and-kmem_cache_node-functions-fix-2
 has been added to the -mm tree.  Its filename is
-     fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+     slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,74 +39,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: fork: copy mm's vm usage counters under mmap_sem
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: slab-use-get_node-and-kmem_cache_node-functions-fix-2
 
-If a forking process has a thread calling (un)mmap (silly but still),
-the child process may have some of its mm's vm usage counters (total_vm
-and friends) screwed up, because currently they are copied from oldmm
-w/o holding any locks (memcpy in dup_mm).
+mm/slab.c: In function 'slab_set_debugobj_lock_classes':
+mm/slab.c:524: error: 'h' undeclared (first use in this function)
+mm/slab.c:524: error: (Each undeclared identifier is reported only once
+mm/slab.c:524: error: for each function it appears in.)
+mm/slab.c:524: warning: left-hand operand of comma expression has no effect
+mm/slab.c: In function 'cpuup_prepare':
+mm/slab.c:1308: warning: passing argument 2 of 'slab_set_debugobj_lock_classes_node' makes pointer from integer without a cast
+mm/slab.c:513: note: expected 'struct kmem_cache_node *' but argument is of type 'int'
 
-This patch moves the counters initialization to dup_mmap() to be called
-under oldmm->mmap_sem, which eliminates any possibility of race.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@gentwo.org>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/slab.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/fork.c~fork-copy-mms-vm-usage-counters-under-mmap_sem kernel/fork.c
---- a/kernel/fork.c~fork-copy-mms-vm-usage-counters-under-mmap_sem
-+++ a/kernel/fork.c
-@@ -365,6 +365,11 @@ static int dup_mmap(struct mm_struct *mm
- 	 */
- 	down_write_nested(&mm->mmap_sem, SINGLE_DEPTH_NESTING);
+diff -puN mm/slab.c~slab-use-get_node-and-kmem_cache_node-functions-fix-2 mm/slab.c
+--- a/mm/slab.c~slab-use-get_node-and-kmem_cache_node-functions-fix-2
++++ a/mm/slab.c
+@@ -521,7 +521,7 @@ static void slab_set_debugobj_lock_class
+ 	int node;
+ 	struct kmem_cache_node *n;
  
-+	mm->total_vm = oldmm->total_vm;
-+	mm->shared_vm = oldmm->shared_vm;
-+	mm->exec_vm = oldmm->exec_vm;
-+	mm->stack_vm = oldmm->stack_vm;
-+
- 	rb_link = &mm->mm_rb.rb_node;
- 	rb_parent = NULL;
- 	pprev = &mm->mmap;
+-	for_each_kmem_cache_node(cachep, node, h)
++	for_each_kmem_cache_node(cachep, node, n)
+ 		slab_set_debugobj_lock_classes_node(cachep, n);
+ }
+ 
+@@ -1305,7 +1305,7 @@ static int cpuup_prepare(long cpu)
+ 		kfree(shared);
+ 		free_alien_cache(alien);
+ 		if (cachep->flags & SLAB_DEBUG_OBJECTS)
+-			slab_set_debugobj_lock_classes_node(cachep, node);
++			slab_set_debugobj_lock_classes_node(cachep, n);
+ 		else if (!OFF_SLAB(cachep) &&
+ 			 !(cachep->flags & SLAB_DESTROY_BY_RCU))
+ 			on_slab_lock_classes_node(cachep, n);
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slab-fix-oops-when-reading-proc-slab_allocators.patch
-slab-fix-oops-when-reading-proc-slab_allocators-v2.patch
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-memcg-cleanup-memcg_cache_params-refcnt-usage.patch
-memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
-memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
-slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
-slub-make-slab_free-non-preemptable.patch
-memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
-slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
-slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
+shmem-fix-faulting-into-a-hole-while-its-punched-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
+mm.patch
+slub-use-new-node-functions-checkpatch-fixes.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
 mm-memcontrol-rewrite-charge-api-fix.patch
-mm-memcontrol-rewrite-uncharge-api.patch
 mm-memcontrol-rewrite-uncharge-api-fix.patch
-fork-exec-cleanup-mm-initialization.patch
-fork-reset-mm-pinned_vm.patch
-fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+fs-isofs-logging-clean-up-fix.patch
+initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes.patch
 linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
