@@ -1,96 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] mm-slab-mark-enable_cpucache-as-init-text.patch removed
- from -mm tree
-Date: Thu, 19 Jun 2014 13:32:50 -0700
-Message-ID: <53a348f2.6qGSdWcp55pWnDi2%akpm@linux-foundation.org>
+Subject: +
+ mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch added to -mm tree
+Date: Thu, 19 Jun 2014 13:38:01 -0700
+Message-ID: <53a34a29.9EXKCT4Z9nXoUA7q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51295 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51307 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932071AbaFSUcv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jun 2014 16:32:51 -0400
+	with ESMTP id S932343AbaFSUiC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jun 2014 16:38:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, iamjoonsoo.kim@lge.com, cl@linux.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, iamjoonsoo.kim@lge.com, cl@linux.com, a.ryabinin@samsung.com
 
 
 The patch titled
-     Subject: mm, slab: mark enable_cpucache as init text
-has been removed from the -mm tree.  Its filename was
-     mm-slab-mark-enable_cpucache-as-init-text.patch
+     Subject: mm: slub: SLUB_DEBUG=n: use the same alloc/free hooks as for SLUB_DEBUG=y
+has been added to the -mm tree.  Its filename is
+     mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, slab: mark enable_cpucache as init text
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: mm: slub: SLUB_DEBUG=n: use the same alloc/free hooks as for SLUB_DEBUG=y
 
-enable_cpucache() is only called for bootstrap, so it may be moved to init.text
-and freed after boot.
+There are two versions of alloc/free hooks now - one for
+CONFIG_SLUB_DEBUG=y and another one for CONFIG_SLUB_DEBUG=n.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+I see no reason why calls to other debugging subsystems (LOCKDEP,
+DEBUG_ATOMIC_SLEEP, KMEMCHECK and FAILSLAB) are hidden under SLUB_DEBUG. 
+All this features should work regardless of SLUB_DEBUG config, as all of
+them already have own Kconfig options.
+
+This also fixes failslab for CONFIG_SLUB_DEBUG=n configuration.  It simply
+has not worked before because should_failslab() call was in a hook hidden
+under "#ifdef CONFIG_SLUB_DEBUG #else".
+
+Note: There is one concealed change in allocation path for SLUB_DEBUG=n
+and all other debugging features disabled.  The might_sleep_if() call can
+generate some code even if DEBUG_ATOMIC_SLEEP=n.  For PREEMPT_VOLUNTARY=y
+might_sleep() inserts _cond_resched() call, but I think it should be ok.
+
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   97 +++++++++++++++++++---------------------------------
+ 1 file changed, 36 insertions(+), 61 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-mark-enable_cpucache-as-init-text mm/slab.c
---- a/mm/slab.c~mm-slab-mark-enable_cpucache-as-init-text
-+++ a/mm/slab.c
-@@ -3911,7 +3911,7 @@ static int do_tune_cpucache(struct kmem_
+diff -puN mm/slub.c~mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y mm/slub.c
+--- a/mm/slub.c~mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y
++++ a/mm/slub.c
+@@ -940,60 +940,6 @@ static void trace(struct kmem_cache *s,
  }
  
- /* Called with slab_mutex held always */
--static int enable_cpucache(struct kmem_cache *cachep, gfp_t gfp)
-+static int __init enable_cpucache(struct kmem_cache *cachep, gfp_t gfp)
+ /*
+- * Hooks for other subsystems that check memory allocations. In a typical
+- * production configuration these hooks all should produce no code at all.
+- */
+-static inline void kmalloc_large_node_hook(void *ptr, size_t size, gfp_t flags)
+-{
+-	kmemleak_alloc(ptr, size, 1, flags);
+-}
+-
+-static inline void kfree_hook(const void *x)
+-{
+-	kmemleak_free(x);
+-}
+-
+-static inline int slab_pre_alloc_hook(struct kmem_cache *s, gfp_t flags)
+-{
+-	flags &= gfp_allowed_mask;
+-	lockdep_trace_alloc(flags);
+-	might_sleep_if(flags & __GFP_WAIT);
+-
+-	return should_failslab(s->object_size, flags, s->flags);
+-}
+-
+-static inline void slab_post_alloc_hook(struct kmem_cache *s,
+-					gfp_t flags, void *object)
+-{
+-	flags &= gfp_allowed_mask;
+-	kmemcheck_slab_alloc(s, flags, object, slab_ksize(s));
+-	kmemleak_alloc_recursive(object, s->object_size, 1, s->flags, flags);
+-}
+-
+-static inline void slab_free_hook(struct kmem_cache *s, void *x)
+-{
+-	kmemleak_free_recursive(x, s->flags);
+-
+-	/*
+-	 * Trouble is that we may no longer disable interrupts in the fast path
+-	 * So in order to make the debug calls that expect irqs to be
+-	 * disabled we need to disable interrupts temporarily.
+-	 */
+-#if defined(CONFIG_KMEMCHECK) || defined(CONFIG_LOCKDEP)
+-	{
+-		unsigned long flags;
+-
+-		local_irq_save(flags);
+-		kmemcheck_slab_free(s, x, s->object_size);
+-		debug_check_no_locks_freed(x, s->object_size);
+-		local_irq_restore(flags);
+-	}
+-#endif
+-	if (!(s->flags & SLAB_DEBUG_OBJECTS))
+-		debug_check_no_obj_freed(x, s->object_size);
+-}
+-
+-/*
+  * Tracking of fully allocated slabs for debugging purposes.
+  */
+ static void add_full(struct kmem_cache *s,
+@@ -1277,6 +1223,12 @@ static inline void inc_slabs_node(struct
+ static inline void dec_slabs_node(struct kmem_cache *s, int node,
+ 							int objects) {}
+ 
++#endif /* CONFIG_SLUB_DEBUG */
++
++/*
++ * Hooks for other subsystems that check memory allocations. In a typical
++ * production configuration these hooks all should produce no code at all.
++ */
+ static inline void kmalloc_large_node_hook(void *ptr, size_t size, gfp_t flags)
  {
- 	int err;
- 	int limit = 0;
+ 	kmemleak_alloc(ptr, size, 1, flags);
+@@ -1288,21 +1240,44 @@ static inline void kfree_hook(const void
+ }
+ 
+ static inline int slab_pre_alloc_hook(struct kmem_cache *s, gfp_t flags)
+-							{ return 0; }
++{
++	flags &= gfp_allowed_mask;
++	lockdep_trace_alloc(flags);
++	might_sleep_if(flags & __GFP_WAIT);
+ 
+-static inline void slab_post_alloc_hook(struct kmem_cache *s, gfp_t flags,
+-		void *object)
++	return should_failslab(s->object_size, flags, s->flags);
++}
++
++static inline void slab_post_alloc_hook(struct kmem_cache *s,
++					gfp_t flags, void *object)
+ {
+-	kmemleak_alloc_recursive(object, s->object_size, 1, s->flags,
+-		flags & gfp_allowed_mask);
++	flags &= gfp_allowed_mask;
++	kmemcheck_slab_alloc(s, flags, object, slab_ksize(s));
++	kmemleak_alloc_recursive(object, s->object_size, 1, s->flags, flags);
+ }
+ 
+ static inline void slab_free_hook(struct kmem_cache *s, void *x)
+ {
+ 	kmemleak_free_recursive(x, s->flags);
+-}
+ 
+-#endif /* CONFIG_SLUB_DEBUG */
++	/*
++	 * Trouble is that we may no longer disable interrupts in the fast path
++	 * So in order to make the debug calls that expect irqs to be
++	 * disabled we need to disable interrupts temporarily.
++	 */
++#if defined(CONFIG_KMEMCHECK) || defined(CONFIG_LOCKDEP)
++	{
++		unsigned long flags;
++
++		local_irq_save(flags);
++		kmemcheck_slab_free(s, x, s->object_size);
++		debug_check_no_locks_freed(x, s->object_size);
++		local_irq_restore(flags);
++	}
++#endif
++	if (!(s->flags & SLAB_DEBUG_OBJECTS))
++		debug_check_no_obj_freed(x, s->object_size);
++}
+ 
+ /*
+  * Slab allocation and freeing
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
-mm-nommu-per-thread-vma-cache-fix.patch
-mm-hotplug-probe-interface-is-available-on-several-platforms.patch
-slab-maintainer-update.patch
-watchdog-remove-preemption-restrictions-when-restarting-lockup-detector.patch
-mm-pcp-allow-restoring-percpu_pagelist_fraction-default.patch
-mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep.patch
-mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
-slab-fix-oops-when-reading-proc-slab_allocators.patch
-slab-fix-oops-when-reading-proc-slab_allocators-v2.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-slab-common-add-functions-for-kmem_cache_node-access.patch
-slub-use-new-node-functions.patch
-slub-use-new-node-functions-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix.patch
 mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-mm-slub-mark-resiliency_test-as-init-text.patch
-mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
-mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-mm-page_alloc-simplify-drain_zone_pages-by-using-min.patch
-memcg-cleanup-memcg_cache_params-refcnt-usage.patch
-memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
-memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
-slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
-slub-make-slab_free-non-preemptable.patch
-memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
-slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
-slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-mm-utilc-add-kstrimdup.patch
-lib-add-size-unit-t-p-e-to-memparse.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-proc-stat-convert-to-single_open_size.patch
-fs-seq_file-fallback-to-vmalloc-allocation.patch
-linux-next.patch
+mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
 
