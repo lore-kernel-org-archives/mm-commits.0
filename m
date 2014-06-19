@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch added to -mm tree
-Date: Thu, 19 Jun 2014 13:38:01 -0700
-Message-ID: <53a34a29.9EXKCT4Z9nXoUA7q%akpm@linux-foundation.org>
+Subject: + mm-mem-hotplug-replace-simple_strtoull-with-kstrtoull.patch
+ added to -mm tree
+Date: Thu, 19 Jun 2014 13:40:47 -0700
+Message-ID: <53a34acf.Dk9B2n4zm2Gvmn9P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51307 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51316 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932343AbaFSUiC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jun 2014 16:38:02 -0400
+	with ESMTP id S1757184AbaFSUkr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jun 2014 16:40:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, iamjoonsoo.kim@lge.com, cl@linux.com, a.ryabinin@samsung.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, zhenzhang.zhang@huawei.com
 
 
 The patch titled
-     Subject: mm: slub: SLUB_DEBUG=n: use the same alloc/free hooks as for SLUB_DEBUG=y
+     Subject: mm/mem-hotplug: replace simple_strtoull() with kstrtoull()
 has been added to the -mm tree.  Its filename is
-     mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
+     mm-mem-hotplug-replace-simple_strtoull-with-kstrtoull.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mem-hotplug-replace-simple_strtoull-with-kstrtoull.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mem-hotplug-replace-simple_strtoull-with-kstrtoull.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,170 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: mm: slub: SLUB_DEBUG=n: use the same alloc/free hooks as for SLUB_DEBUG=y
+From: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Subject: mm/mem-hotplug: replace simple_strtoull() with kstrtoull()
 
-There are two versions of alloc/free hooks now - one for
-CONFIG_SLUB_DEBUG=y and another one for CONFIG_SLUB_DEBUG=n.
+use the newer and more pleasant kstrtoull() to replace simple_strtoull(),
+because simple_strtoull() is marked for obsoletion.
 
-I see no reason why calls to other debugging subsystems (LOCKDEP,
-DEBUG_ATOMIC_SLEEP, KMEMCHECK and FAILSLAB) are hidden under SLUB_DEBUG. 
-All this features should work regardless of SLUB_DEBUG config, as all of
-them already have own Kconfig options.
-
-This also fixes failslab for CONFIG_SLUB_DEBUG=n configuration.  It simply
-has not worked before because should_failslab() call was in a hook hidden
-under "#ifdef CONFIG_SLUB_DEBUG #else".
-
-Note: There is one concealed change in allocation path for SLUB_DEBUG=n
-and all other debugging features disabled.  The might_sleep_if() call can
-generate some code even if DEBUG_ATOMIC_SLEEP=n.  For PREEMPT_VOLUNTARY=y
-might_sleep() inserts _cond_resched() call, but I think it should be ok.
-
-Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   97 +++++++++++++++++++---------------------------------
- 1 file changed, 36 insertions(+), 61 deletions(-)
+ drivers/base/memory.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y mm/slub.c
---- a/mm/slub.c~mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y
-+++ a/mm/slub.c
-@@ -940,60 +940,6 @@ static void trace(struct kmem_cache *s,
- }
+diff -puN drivers/base/memory.c~mm-mem-hotplug-replace-simple_strtoull-with-kstrtoull drivers/base/memory.c
+--- a/drivers/base/memory.c~mm-mem-hotplug-replace-simple_strtoull-with-kstrtoull
++++ a/drivers/base/memory.c
+@@ -406,7 +406,9 @@ memory_probe_store(struct device *dev, s
+ 	int i, ret;
+ 	unsigned long pages_per_block = PAGES_PER_SECTION * sections_per_block;
  
- /*
-- * Hooks for other subsystems that check memory allocations. In a typical
-- * production configuration these hooks all should produce no code at all.
-- */
--static inline void kmalloc_large_node_hook(void *ptr, size_t size, gfp_t flags)
--{
--	kmemleak_alloc(ptr, size, 1, flags);
--}
--
--static inline void kfree_hook(const void *x)
--{
--	kmemleak_free(x);
--}
--
--static inline int slab_pre_alloc_hook(struct kmem_cache *s, gfp_t flags)
--{
--	flags &= gfp_allowed_mask;
--	lockdep_trace_alloc(flags);
--	might_sleep_if(flags & __GFP_WAIT);
--
--	return should_failslab(s->object_size, flags, s->flags);
--}
--
--static inline void slab_post_alloc_hook(struct kmem_cache *s,
--					gfp_t flags, void *object)
--{
--	flags &= gfp_allowed_mask;
--	kmemcheck_slab_alloc(s, flags, object, slab_ksize(s));
--	kmemleak_alloc_recursive(object, s->object_size, 1, s->flags, flags);
--}
--
--static inline void slab_free_hook(struct kmem_cache *s, void *x)
--{
--	kmemleak_free_recursive(x, s->flags);
--
--	/*
--	 * Trouble is that we may no longer disable interrupts in the fast path
--	 * So in order to make the debug calls that expect irqs to be
--	 * disabled we need to disable interrupts temporarily.
--	 */
--#if defined(CONFIG_KMEMCHECK) || defined(CONFIG_LOCKDEP)
--	{
--		unsigned long flags;
--
--		local_irq_save(flags);
--		kmemcheck_slab_free(s, x, s->object_size);
--		debug_check_no_locks_freed(x, s->object_size);
--		local_irq_restore(flags);
--	}
--#endif
--	if (!(s->flags & SLAB_DEBUG_OBJECTS))
--		debug_check_no_obj_freed(x, s->object_size);
--}
--
--/*
-  * Tracking of fully allocated slabs for debugging purposes.
-  */
- static void add_full(struct kmem_cache *s,
-@@ -1277,6 +1223,12 @@ static inline void inc_slabs_node(struct
- static inline void dec_slabs_node(struct kmem_cache *s, int node,
- 							int objects) {}
+-	phys_addr = simple_strtoull(buf, NULL, 0);
++	ret = kstrtoull(buf, 0, &phys_addr);
++	if (ret)
++		return ret;
  
-+#endif /* CONFIG_SLUB_DEBUG */
-+
-+/*
-+ * Hooks for other subsystems that check memory allocations. In a typical
-+ * production configuration these hooks all should produce no code at all.
-+ */
- static inline void kmalloc_large_node_hook(void *ptr, size_t size, gfp_t flags)
- {
- 	kmemleak_alloc(ptr, size, 1, flags);
-@@ -1288,21 +1240,44 @@ static inline void kfree_hook(const void
- }
- 
- static inline int slab_pre_alloc_hook(struct kmem_cache *s, gfp_t flags)
--							{ return 0; }
-+{
-+	flags &= gfp_allowed_mask;
-+	lockdep_trace_alloc(flags);
-+	might_sleep_if(flags & __GFP_WAIT);
- 
--static inline void slab_post_alloc_hook(struct kmem_cache *s, gfp_t flags,
--		void *object)
-+	return should_failslab(s->object_size, flags, s->flags);
-+}
-+
-+static inline void slab_post_alloc_hook(struct kmem_cache *s,
-+					gfp_t flags, void *object)
- {
--	kmemleak_alloc_recursive(object, s->object_size, 1, s->flags,
--		flags & gfp_allowed_mask);
-+	flags &= gfp_allowed_mask;
-+	kmemcheck_slab_alloc(s, flags, object, slab_ksize(s));
-+	kmemleak_alloc_recursive(object, s->object_size, 1, s->flags, flags);
- }
- 
- static inline void slab_free_hook(struct kmem_cache *s, void *x)
- {
- 	kmemleak_free_recursive(x, s->flags);
--}
- 
--#endif /* CONFIG_SLUB_DEBUG */
-+	/*
-+	 * Trouble is that we may no longer disable interrupts in the fast path
-+	 * So in order to make the debug calls that expect irqs to be
-+	 * disabled we need to disable interrupts temporarily.
-+	 */
-+#if defined(CONFIG_KMEMCHECK) || defined(CONFIG_LOCKDEP)
-+	{
-+		unsigned long flags;
-+
-+		local_irq_save(flags);
-+		kmemcheck_slab_free(s, x, s->object_size);
-+		debug_check_no_locks_freed(x, s->object_size);
-+		local_irq_restore(flags);
-+	}
-+#endif
-+	if (!(s->flags & SLAB_DEBUG_OBJECTS))
-+		debug_check_no_obj_freed(x, s->object_size);
-+}
- 
- /*
-  * Slab allocation and freeing
+ 	if (phys_addr & ((pages_per_block << PAGE_SHIFT) - 1))
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from a.ryabinin@samsung.com are
+Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
 
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
+mm-mem-hotplug-replace-simple_strtoull-with-kstrtoull.patch
+linux-next.patch
 
