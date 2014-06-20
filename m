@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch
+Subject: + checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
  added to -mm tree
-Date: Fri, 20 Jun 2014 15:28:03 -0700
-Message-ID: <53a4b573.uw0Z8CPas3td5zUN%akpm@linux-foundation.org>
+Date: Fri, 20 Jun 2014 15:29:16 -0700
+Message-ID: <53a4b5bc.zzDS+JoJ2cFBT+OG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33295 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965046AbaFTW2E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 18:28:04 -0400
+	with ESMTP id S1030220AbaFTW3R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 18:29:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rostedt@goodmis.org, mingo@redhat.com, mgorman@suse.de, masbock@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, joe@perches.com, linux@rasmusvillemoes.dk
 
 
 The patch titled
-     Subject: mm tracing: tell mm_migrate_pages event about numa_misplaced
+     Subject: checkpatch.pl: also suggest 'else if' when if follows brace
 has been added to the -mm tree.  Its filename is
-     tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch
+     checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,43 +39,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Max Asbock <masbock@linux.vnet.ibm.com>
-Subject: mm tracing: tell mm_migrate_pages event about numa_misplaced
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: checkpatch.pl: also suggest 'else if' when if follows brace
 
-The mm_migrate_pages trace event reports a reason for the migration,
-typically as a symbolic string.  The exception is the reason
-MR_NUMA_MISPLACED for which it just displays the numeric value:
-mm_migrate_pages: nr_succeeded=1 nr_failed=0 mode=MIGRATE_ASYNC reason=0x5
+This might help a kernel hacker think twice before blindly adding a
+newline.
 
-This patch makes the output consistent by introducing a string value for
-MR_NUMA_MISPLACED.  The event is then reported as: mm_migrate_pages:
-nr_succeeded=1 nr_failed=0 mode=MIGRATE_ASYNC reason=numa_misplaced
-
-Signed-off-by: Max Asbock <masbock@linux.vnet.ibm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/migrate.h |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/trace/events/migrate.h~tracing-tell-mm_migrate_pages-event-about-numa_misplaced include/trace/events/migrate.h
---- a/include/trace/events/migrate.h~tracing-tell-mm_migrate_pages-event-about-numa_misplaced
-+++ a/include/trace/events/migrate.h
-@@ -17,6 +17,7 @@
- 	{MR_MEMORY_HOTPLUG,	"memory_hotplug"},		\
- 	{MR_SYSCALL,		"syscall_or_cpuset"},		\
- 	{MR_MEMPOLICY_MBIND,	"mempolicy_mbind"},		\
-+	{MR_NUMA_MISPLACED,	"numa_misplaced"},		\
- 	{MR_CMA,		"cma"}
- 
- TRACE_EVENT(mm_migrate_pages,
-diff -puN /dev/null /dev/null
+diff -puN scripts/checkpatch.pl~checkpatchpl-also-suggest-else-if-when-if-follows-brace scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatchpl-also-suggest-else-if-when-if-follows-brace
++++ a/scripts/checkpatch.pl
+@@ -3629,7 +3629,7 @@ sub process {
+ # if should not continue a brace
+ 		if ($line =~ /}\s*if\b/) {
+ 			ERROR("TRAILING_STATEMENTS",
+-			      "trailing statements should be on next line\n" .
++			      "trailing statements should be on next line (or did you mean 'else if'?)\n" .
+ 				$herecurr);
+ 		}
+ # case and default should not have general statements after them
 _
 
-Patches currently in -mm which might be from masbock@linux.vnet.ibm.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch
+checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
 
