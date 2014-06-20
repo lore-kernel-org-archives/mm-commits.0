@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
- added to -mm tree
-Date: Fri, 20 Jun 2014 15:24:50 -0700
-Message-ID: <53a4b4b2.nvw7j+BOGlRi6OHv%akpm@linux-foundation.org>
+ mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch added
+ to -mm tree
+Date: Fri, 20 Jun 2014 15:24:51 -0700
+Message-ID: <53a4b4b3.anzYQXjrHt9/8+N6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33266 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33271 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756196AbaFTWYv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 18:24:51 -0400
+	with ESMTP id S1756196AbaFTWYw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 18:24:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vbabka@suse.cz, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, hannes@cmpxchg.org
 
 
 The patch titled
-     Subject: mm: vmscan: remove remains of kswapd-managed zone->all_unreclaimable
+     Subject: mm: vmscan: rework compaction-ready signaling in direct reclaim
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+     mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,49 +41,194 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: remove remains of kswapd-managed zone->all_unreclaimable
+Subject: mm: vmscan: rework compaction-ready signaling in direct reclaim
 
-shrink_zones() has a special branch to skip the all_unreclaimable() check
-during hibernation, because a frozen kswapd can't mark a zone
-unreclaimable.
+Page reclaim for a higher-order page runs until compaction is ready, then
+aborts and signals this situation through the return value of
+shrink_zones().  This is an oddly specific signal to encode in the return
+value of shrink_zones(), though, and can be quite confusing.
 
-But ever since 6e543d5780e3 ("mm: vmscan: fix do_try_to_free_pages()
-livelock"), determining a zone to be unreclaimable is done by directly
-looking at its scan history and no longer relies on kswapd setting the
-per-zone flag.
-
-Remove this branch and let shrink_zones() check the reclaimability of the
-target zones regardless of hibernation state.
+Introduce sc->compaction_ready and signal the compactability of the zones
+out-of-band to free up the return value of shrink_zones() for actual zone
+reclaimability.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    8 --------
- 1 file changed, 8 deletions(-)
+ mm/vmscan.c |   67 +++++++++++++++++++++++---------------------------
+ 1 file changed, 31 insertions(+), 36 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable
+diff -puN mm/vmscan.c~mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim
 +++ a/mm/vmscan.c
-@@ -2540,14 +2540,6 @@ out:
- 	if (sc->nr_reclaimed)
+@@ -65,6 +65,9 @@ struct scan_control {
+ 	/* Number of pages freed so far during a call to shrink_zones() */
+ 	unsigned long nr_reclaimed;
+ 
++	/* One of the zones is ready for compaction */
++	int compaction_ready;
++
+ 	/* How many pages shrink_list() should reclaim */
+ 	unsigned long nr_to_reclaim;
+ 
+@@ -2298,15 +2301,11 @@ static void shrink_zone(struct zone *zon
+ }
+ 
+ /* Returns true if compaction should go ahead for a high-order request */
+-static inline bool compaction_ready(struct zone *zone, struct scan_control *sc)
++static inline bool compaction_ready(struct zone *zone, int order)
+ {
+ 	unsigned long balance_gap, watermark;
+ 	bool watermark_ok;
+ 
+-	/* Do not consider compaction for orders reclaim is meant to satisfy */
+-	if (sc->order <= PAGE_ALLOC_COSTLY_ORDER)
+-		return false;
+-
+ 	/*
+ 	 * Compaction takes time to run and there are potentially other
+ 	 * callers using the pages just freed. Continue reclaiming until
+@@ -2315,18 +2314,18 @@ static inline bool compaction_ready(stru
+ 	 */
+ 	balance_gap = min(low_wmark_pages(zone), DIV_ROUND_UP(
+ 			zone->managed_pages, KSWAPD_ZONE_BALANCE_GAP_RATIO));
+-	watermark = high_wmark_pages(zone) + balance_gap + (2UL << sc->order);
++	watermark = high_wmark_pages(zone) + balance_gap + (2UL << order);
+ 	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, 0, 0);
+ 
+ 	/*
+ 	 * If compaction is deferred, reclaim up to a point where
+ 	 * compaction will have a chance of success when re-enabled
+ 	 */
+-	if (compaction_deferred(zone, sc->order))
++	if (compaction_deferred(zone, order))
+ 		return watermark_ok;
+ 
+ 	/* If compaction is not ready to start, keep reclaiming */
+-	if (!compaction_suitable(zone, sc->order))
++	if (!compaction_suitable(zone, order))
+ 		return false;
+ 
+ 	return watermark_ok;
+@@ -2347,20 +2346,14 @@ static inline bool compaction_ready(stru
+  *
+  * If a zone is deemed to be full of pinned pages then just give it a light
+  * scan then give up on it.
+- *
+- * This function returns true if a zone is being reclaimed for a costly
+- * high-order allocation and compaction is ready to begin. This indicates to
+- * the caller that it should consider retrying the allocation instead of
+- * further reclaim.
+  */
+-static bool shrink_zones(struct zonelist *zonelist, struct scan_control *sc)
++static void shrink_zones(struct zonelist *zonelist, struct scan_control *sc)
+ {
+ 	struct zoneref *z;
+ 	struct zone *zone;
+ 	unsigned long nr_soft_reclaimed;
+ 	unsigned long nr_soft_scanned;
+ 	unsigned long lru_pages = 0;
+-	bool aborted_reclaim = false;
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+ 	gfp_t orig_mask;
+ 	struct shrink_control shrink = {
+@@ -2397,22 +2390,24 @@ static bool shrink_zones(struct zonelist
+ 			if (sc->priority != DEF_PRIORITY &&
+ 			    !zone_reclaimable(zone))
+ 				continue;	/* Let kswapd poll it */
+-			if (IS_ENABLED(CONFIG_COMPACTION)) {
+-				/*
+-				 * If we already have plenty of memory free for
+-				 * compaction in this zone, don't free any more.
+-				 * Even though compaction is invoked for any
+-				 * non-zero order, only frequent costly order
+-				 * reclamation is disruptive enough to become a
+-				 * noticeable problem, like transparent huge
+-				 * page allocations.
+-				 */
+-				if ((zonelist_zone_idx(z) <= requested_highidx)
+-				    && compaction_ready(zone, sc)) {
+-					aborted_reclaim = true;
+-					continue;
+-				}
++
++			/*
++			 * If we already have plenty of memory free for
++			 * compaction in this zone, don't free any more.
++			 * Even though compaction is invoked for any
++			 * non-zero order, only frequent costly order
++			 * reclamation is disruptive enough to become a
++			 * noticeable problem, like transparent huge
++			 * page allocations.
++			 */
++			if (IS_ENABLED(CONFIG_COMPACTION) &&
++			    sc->order > PAGE_ALLOC_COSTLY_ORDER &&
++			    zonelist_zone_idx(z) <= requested_highidx &&
++			    compaction_ready(zone, sc->order)) {
++				sc->compaction_ready = true;
++				continue;
+ 			}
++
+ 			/*
+ 			 * This steals pages from memory cgroups over softlimit
+ 			 * and returns the number of reclaimed pages and
+@@ -2450,8 +2445,6 @@ static bool shrink_zones(struct zonelist
+ 	 * promoted it to __GFP_HIGHMEM.
+ 	 */
+ 	sc->gfp_mask = orig_mask;
+-
+-	return aborted_reclaim;
+ }
+ 
+ /* All zones in zonelist are unreclaimable? */
+@@ -2495,7 +2488,6 @@ static unsigned long do_try_to_free_page
+ {
+ 	unsigned long total_scanned = 0;
+ 	unsigned long writeback_threshold;
+-	bool aborted_reclaim;
+ 
+ 	delayacct_freepages_start();
+ 
+@@ -2506,12 +2498,15 @@ static unsigned long do_try_to_free_page
+ 		vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
+ 				sc->priority);
+ 		sc->nr_scanned = 0;
+-		aborted_reclaim = shrink_zones(zonelist, sc);
++		shrink_zones(zonelist, sc);
+ 
+ 		total_scanned += sc->nr_scanned;
+ 		if (sc->nr_reclaimed >= sc->nr_to_reclaim)
+ 			goto out;
+ 
++		if (sc->compaction_ready)
++			goto out;
++
+ 		/*
+ 		 * If we're getting trouble reclaiming, start doing
+ 		 * writepage even in laptop mode.
+@@ -2532,7 +2527,7 @@ static unsigned long do_try_to_free_page
+ 						WB_REASON_TRY_TO_FREE_PAGES);
+ 			sc->may_writepage = 1;
+ 		}
+-	} while (--sc->priority >= 0 && !aborted_reclaim);
++	} while (--sc->priority >= 0);
+ 
+ out:
+ 	delayacct_freepages_end();
+@@ -2541,7 +2536,7 @@ out:
  		return sc->nr_reclaimed;
  
--	/*
--	 * As hibernation is going on, kswapd is freezed so that it can't mark
--	 * the zone into all_unreclaimable. Thus bypassing all_unreclaimable
--	 * check.
--	 */
--	if (oom_killer_disabled)
--		return 0;
--
  	/* Aborted reclaim to try compaction? don't OOM, then */
- 	if (aborted_reclaim)
+-	if (aborted_reclaim)
++	if (sc->compaction_ready)
  		return 1;
+ 
+ 	/* top priority shrink_zones still had more to do? don't OOM, then */
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
