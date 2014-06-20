@@ -1,105 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] mm-memcontrol-rewrite-uncharge-api-fix.patch removed
- from -mm tree
-Date: Fri, 20 Jun 2014 14:36:47 -0700
-Message-ID: <53a4a96f.Z+uOVozST7KCohUG%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-rewrite-charge-api-fix-3.patch added to -mm tree
+Date: Fri, 20 Jun 2014 14:40:52 -0700
+Message-ID: <53a4aa64.bnMKJj37Y7LWSU8+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33007 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33012 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966128AbaFTVgs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 17:36:48 -0400
+	with ESMTP id S1754357AbaFTVkx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 17:40:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vdavydov@parallels.com, tj@kernel.org, mhocko@suse.cz, hughd@google.com, hannes@cmpxchg.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, hannes@cmpxchg.org
 
 
 The patch titled
-     Subject: mm-memcontrol-rewrite-uncharge-api-fix
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-rewrite-uncharge-api-fix.patch
+     Subject: kernel: uprobes: switch to new memcg charge protocol
+has been added to the -mm tree.  Its filename is
+     mm-memcontrol-rewrite-charge-api-fix-3.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-charge-api-fix-3.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-charge-api-fix-3.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-rewrite-uncharge-api-fix
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: kernel: uprobes: switch to new memcg charge protocol
 
-kernel/events/uprobes.c: In function 'uprobe_write_opcode':
-kernel/events/uprobes.c:328: error: implicit declaration of function 'mem_cgroup_uncharge_page'
-kernel/events/uprobes.c:330: warning: label 'put_new' defined but not used
-
-bodge this so it compiles
-
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/events/uprobes.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/events/uprobes.c~mm-memcontrol-rewrite-uncharge-api-fix kernel/events/uprobes.c
---- a/kernel/events/uprobes.c~mm-memcontrol-rewrite-uncharge-api-fix
+diff -puN kernel/events/uprobes.c~mm-memcontrol-rewrite-charge-api-fix-3 kernel/events/uprobes.c
+--- a/kernel/events/uprobes.c~mm-memcontrol-rewrite-charge-api-fix-3
 +++ a/kernel/events/uprobes.c
-@@ -324,8 +324,8 @@ retry:
+@@ -167,6 +167,11 @@ static int __replace_page(struct vm_area
+ 	/* For mmu_notifiers */
+ 	const unsigned long mmun_start = addr;
+ 	const unsigned long mmun_end   = addr + PAGE_SIZE;
++	struct mem_cgroup *memcg;
++
++	err = mem_cgroup_try_charge(kpage, vma->vm_mm, GFP_KERNEL, &memcg);
++	if (err)
++		return err;
+ 
+ 	/* For try_to_free_swap() and munlock_vma_page() below */
+ 	lock_page(page);
+@@ -179,6 +184,7 @@ static int __replace_page(struct vm_area
+ 
+ 	get_page(kpage);
+ 	page_add_new_anon_rmap(kpage, vma, addr);
++	mem_cgroup_commit_charge(kpage, memcg, false);
+ 	lru_cache_add_active_or_unevictable(kpage, vma);
+ 
+ 	if (!PageAnon(page)) {
+@@ -201,6 +207,7 @@ static int __replace_page(struct vm_area
+ 
+ 	err = 0;
+  unlock:
++	mem_cgroup_cancel_charge(kpage, memcg);
+ 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ 	unlock_page(page);
+ 	return err;
+@@ -316,18 +323,11 @@ retry:
+ 	if (!new_page)
+ 		goto put_old;
+ 
+-	if (mem_cgroup_charge_anon(new_page, mm, GFP_KERNEL))
+-		goto put_new;
+-
+ 	__SetPageUptodate(new_page);
+ 	copy_highpage(new_page, old_page);
  	copy_to_page(new_page, vaddr, &opcode, UPROBE_SWBP_INSN_SIZE);
  
  	ret = __replace_page(vma, vaddr, old_page, new_page);
 -	if (ret)
 -		mem_cgroup_uncharge_page(new_page);
-+//	if (ret)
-+//		mem_cgroup_uncharge_page(new_page);
- 
- put_new:
+-
+-put_new:
  	page_cache_release(new_page);
+ put_old:
+ 	put_page(old_page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
-shmem-fix-faulting-into-a-hole-while-its-punched-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
+memcg-cleanup-memcg_cache_params-refcnt-usage.patch
+memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
+memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
+slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
+slub-make-slab_free-non-preemptable.patch
+memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
+slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
+slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
 mm-memcontrol-rewrite-charge-api-fix-3.patch
 mm-memcontrol-rewrite-charge-api-fix-2.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-memcontrol-rewrite-uncharge-api-fix-2.patch
+memcg-deprecate-memoryforce_empty-knob.patch
 memcg-deprecate-memoryforce_empty-knob-fix.patch
 debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
