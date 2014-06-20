@@ -1,37 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] mm-memcontrol-rewrite-charge-api-fix.patch removed
+Subject: [obsolete] mm-memcontrol-rewrite-uncharge-api-fix.patch removed
  from -mm tree
-Date: Fri, 20 Jun 2014 14:36:37 -0700
-Message-ID: <53a4a965.XQu+RcumNVSFb4pc%akpm@linux-foundation.org>
+Date: Fri, 20 Jun 2014 14:36:47 -0700
+Message-ID: <53a4a96f.Z+uOVozST7KCohUG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32998 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33007 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966128AbaFTVgi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 17:36:38 -0400
+	with ESMTP id S966128AbaFTVgs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 17:36:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vdavydov@parallels.com, tj@kernel.org, mhocko@suse.cz, hughd@google.com, hannes@cmpxchg.org, akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: mm-memcontrol-rewrite-charge-api-fix
+     Subject: mm-memcontrol-rewrite-uncharge-api-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-rewrite-charge-api-fix.patch
+     mm-memcontrol-rewrite-uncharge-api-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-rewrite-charge-api-fix
+Subject: mm-memcontrol-rewrite-uncharge-api-fix
 
 kernel/events/uprobes.c: In function 'uprobe_write_opcode':
-kernel/events/uprobes.c:319: error: implicit declaration of function 'mem_cgroup_charge_anon'
+kernel/events/uprobes.c:328: error: implicit declaration of function 'mem_cgroup_uncharge_page'
+kernel/events/uprobes.c:330: warning: label 'put_new' defined but not used
 
-bodge things so it compiles
+bodge this so it compiles
 
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -44,20 +45,20 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/events/uprobes.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/events/uprobes.c~mm-memcontrol-rewrite-charge-api-fix kernel/events/uprobes.c
---- a/kernel/events/uprobes.c~mm-memcontrol-rewrite-charge-api-fix
+diff -puN kernel/events/uprobes.c~mm-memcontrol-rewrite-uncharge-api-fix kernel/events/uprobes.c
+--- a/kernel/events/uprobes.c~mm-memcontrol-rewrite-uncharge-api-fix
 +++ a/kernel/events/uprobes.c
-@@ -316,8 +316,8 @@ retry:
- 	if (!new_page)
- 		goto put_old;
+@@ -324,8 +324,8 @@ retry:
+ 	copy_to_page(new_page, vaddr, &opcode, UPROBE_SWBP_INSN_SIZE);
  
--	if (mem_cgroup_charge_anon(new_page, mm, GFP_KERNEL))
--		goto put_new;
-+//	if (mem_cgroup_charge_anon(new_page, mm, GFP_KERNEL))
-+//		goto put_new;
+ 	ret = __replace_page(vma, vaddr, old_page, new_page);
+-	if (ret)
+-		mem_cgroup_uncharge_page(new_page);
++//	if (ret)
++//		mem_cgroup_uncharge_page(new_page);
  
- 	__SetPageUptodate(new_page);
- 	copy_highpage(new_page, old_page);
+ put_new:
+ 	page_cache_release(new_page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +85,6 @@ dma-cma-support-arbitrary-bitmap-granularity-fix.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
 mm-memcontrol-rewrite-charge-api-fix-3.patch
 mm-memcontrol-rewrite-charge-api-fix-2.patch
-mm-memcontrol-rewrite-uncharge-api-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
