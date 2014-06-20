@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + initramfs-support-initramfs-that-is-more-than-2g-fix.patch
+Subject: + initramfs-support-initramfs-that-is-more-than-2g-fix-2.patch
  added to -mm tree
-Date: Fri, 20 Jun 2014 12:20:54 -0700
-Message-ID: <53a48996.u1QT10GIGdsG+QxB%akpm@linux-foundation.org>
+Date: Fri, 20 Jun 2014 12:52:42 -0700
+Message-ID: <53a4910a.xORJxdL2O1d7KK0l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60318 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60611 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932877AbaFTTUz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 15:20:55 -0400
+	with ESMTP id S1754805AbaFTTwn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 15:52:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, fengguang.wu@intel.com, akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: initramfs-support-initramfs-that-is-more-than-2g-fix
+     Subject: initramfs-support-initramfs-that-is-more-than-2g-fix-2
 has been added to the -mm tree.  Its filename is
-     initramfs-support-initramfs-that-is-more-than-2g-fix.patch
+     initramfs-support-initramfs-that-is-more-than-2g-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-support-initramfs-that-is-more-than-2g-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-support-initramfs-that-is-more-than-2g-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-support-initramfs-that-is-more-than-2g-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-support-initramfs-that-is-more-than-2g-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,71 +40,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: initramfs-support-initramfs-that-is-more-than-2g-fix
+Subject: initramfs-support-initramfs-that-is-more-than-2g-fix-2
 
-crypto/zlib.c: In function 'zlib_compress_update':
-crypto/zlib.c:171:2: warning: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uLong' [-Wformat]
-crypto/zlib.c:171:2: warning: format '%u' expects argument of type 'unsigned int', but argument 5 has type 'uLong' [-Wformat]
-crypto/zlib.c:171:2: warning: format '%u' expects argument of type 'unsigned int', but argument 6 has type 'long unsigned int' [-Wformat]
-crypto/zlib.c: In function 'zlib_compress_final':
-crypto/zlib.c:201:2: warning: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uLong' [-Wformat]
-crypto/zlib.c:201:2: warning: format '%u' expects argument of type 'unsigned int', but argument 5 has type 'uLong' [-Wformat]
-crypto/zlib.c:201:2: warning: format '%u' expects argument of type 'unsigned int', but argument 6 has type 'long unsigned int' [-Wformat]
-crypto/zlib.c: In function 'zlib_decompress_update':
-crypto/zlib.c:286:2: warning: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uLong' [-Wformat]
-crypto/zlib.c:286:2: warning: format '%u' expects argument of type 'unsigned int', but argument 5 has type 'uLong' [-Wformat]
-crypto/zlib.c:286:2: warning: format '%u' expects argument of type 'unsigned int', but argument 6 has type 'long unsigned int' [-Wformat]
-crypto/zlib.c: In function 'zlib_decompress_final':
-crypto/zlib.c:334:2: warning: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uLong' [-Wformat]
-crypto/zlib.c:334:2: warning: format '%u' expects argument of type 'unsigned int', but argument 5 has type 'uLong' [-Wformat]
-crypto/zlib.c:334:2: warning: format '%u' expects argument of type 'unsigned int', but argument 6 has type 'long unsigned int' [-Wformat]
+   In file included from arch/powerpc/boot/ops.h:15:0,
+                    from arch/powerpc/boot/gunzip_util.c:14:
+   arch/powerpc/boot/gunzip_util.c: In function 'gunzip_partial':
+>> arch/powerpc/boot/types.h:18:14: warning: comparison of distinct pointer types lacks a cast [enabled by default]
 
 Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/zlib.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/powerpc/boot/gunzip_util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN crypto/zlib.c~initramfs-support-initramfs-that-is-more-than-2g-fix crypto/zlib.c
---- a/crypto/zlib.c~initramfs-support-initramfs-that-is-more-than-2g-fix
-+++ a/crypto/zlib.c
-@@ -168,7 +168,7 @@ static int zlib_compress_update(struct c
- 	}
- 
- 	ret = req->avail_out - stream->avail_out;
--	pr_debug("avail_in %u, avail_out %u (consumed %u, produced %u)\n",
-+	pr_debug("avail_in %lu, avail_out %lu (consumed %lu, produced %u)\n",
- 		 stream->avail_in, stream->avail_out,
- 		 req->avail_in - stream->avail_in, ret);
- 	req->next_in = stream->next_in;
-@@ -198,7 +198,7 @@ static int zlib_compress_final(struct cr
- 	}
- 
- 	ret = req->avail_out - stream->avail_out;
--	pr_debug("avail_in %u, avail_out %u (consumed %u, produced %u)\n",
-+	pr_debug("avail_in %lu, avail_out %lu (consumed %lu, produced %u)\n",
- 		 stream->avail_in, stream->avail_out,
- 		 req->avail_in - stream->avail_in, ret);
- 	req->next_in = stream->next_in;
-@@ -283,7 +283,7 @@ static int zlib_decompress_update(struct
- 	}
- 
- 	ret = req->avail_out - stream->avail_out;
--	pr_debug("avail_in %u, avail_out %u (consumed %u, produced %u)\n",
-+	pr_debug("avail_in %lu, avail_out %lu (consumed %lu, produced %u)\n",
- 		 stream->avail_in, stream->avail_out,
- 		 req->avail_in - stream->avail_in, ret);
- 	req->next_in = stream->next_in;
-@@ -331,7 +331,7 @@ static int zlib_decompress_final(struct
- 	}
- 
- 	ret = req->avail_out - stream->avail_out;
--	pr_debug("avail_in %u, avail_out %u (consumed %u, produced %u)\n",
-+	pr_debug("avail_in %lu, avail_out %lu (consumed %lu, produced %u)\n",
- 		 stream->avail_in, stream->avail_out,
- 		 req->avail_in - stream->avail_in, ret);
- 	req->next_in = stream->next_in;
+diff -puN arch/powerpc/boot/gunzip_util.c~initramfs-support-initramfs-that-is-more-than-2g-fix-2 arch/powerpc/boot/gunzip_util.c
+--- a/arch/powerpc/boot/gunzip_util.c~initramfs-support-initramfs-that-is-more-than-2g-fix-2
++++ a/arch/powerpc/boot/gunzip_util.c
+@@ -115,7 +115,7 @@ int gunzip_partial(struct gunzip_state *
+ 		len = state->s.next_out - (unsigned char *)dst;
+ 	} else {
+ 		/* uncompressed image */
+-		len = min(state->s.avail_in, (unsigned)dstlen);
++		len = min_t(unsigned long, state->s.avail_in, dstlen);
+ 		memcpy(dst, state->s.next_in, len);
+ 		state->s.next_in += len;
+ 		state->s.avail_in -= len;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -137,6 +99,7 @@ list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
 fs-isofs-logging-clean-up-fix.patch
 initramfs-support-initramfs-that-is-more-than-2g-fix.patch
 initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes.patch
+initramfs-support-initramfs-that-is-more-than-2g-fix-2.patch
 linux-next.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
