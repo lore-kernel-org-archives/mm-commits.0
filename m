@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-rewrite-charge-api-fix-3.patch added to -mm tree
-Date: Fri, 20 Jun 2014 14:40:52 -0700
-Message-ID: <53a4aa64.bnMKJj37Y7LWSU8+%akpm@linux-foundation.org>
+Subject: + mm-fix-crashes-from-mbind-merging-vmas.patch added to -mm tree
+Date: Fri, 20 Jun 2014 14:52:52 -0700
+Message-ID: <53a4ad34.atbY9240dgYDSsb8%akpm__24160.0094749176$1403301183$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33012 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33110 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754357AbaFTVkx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 17:40:53 -0400
+	with ESMTP id S965046AbaFTVwx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 17:52:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, n-horiguchi@ah.jp.nec.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, cl@linux.com, hughd@google.com
 
 
 The patch titled
-     Subject: kernel: uprobes: switch to new memcg charge protocol
+     Subject: mm: fix crashes from mbind() merging vmas
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-rewrite-charge-api-fix-3.patch
+     mm-fix-crashes-from-mbind-merging-vmas.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-charge-api-fix-3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-crashes-from-mbind-merging-vmas.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-charge-api-fix-3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-crashes-from-mbind-merging-vmas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,79 +38,166 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: kernel: uprobes: switch to new memcg charge protocol
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix crashes from mbind() merging vmas
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+v2.6.34's 9d8cebd4bcd7 ("mm: fix mbind vma merge problem") introduced vma
+merging to mbind(), but it should have also changed the convention of
+passing start vma from queue_pages_range() (formerly check_range()) to
+new_vma_page(): vma merging may have already freed that structure,
+resulting in BUG at mm/mempolicy.c:1738 and probably worse crashes.
+
+Fixes: 9d8cebd4bcd7 ("mm: fix mbind vma merge problem")
+Reported-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Tested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: <stable@vger.kernel.org>	[2.6.34+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/mempolicy.c |   46 ++++++++++++++++++++--------------------------
+ 1 file changed, 20 insertions(+), 26 deletions(-)
 
-diff -puN kernel/events/uprobes.c~mm-memcontrol-rewrite-charge-api-fix-3 kernel/events/uprobes.c
---- a/kernel/events/uprobes.c~mm-memcontrol-rewrite-charge-api-fix-3
-+++ a/kernel/events/uprobes.c
-@@ -167,6 +167,11 @@ static int __replace_page(struct vm_area
- 	/* For mmu_notifiers */
- 	const unsigned long mmun_start = addr;
- 	const unsigned long mmun_end   = addr + PAGE_SIZE;
-+	struct mem_cgroup *memcg;
-+
-+	err = mem_cgroup_try_charge(kpage, vma->vm_mm, GFP_KERNEL, &memcg);
-+	if (err)
-+		return err;
- 
- 	/* For try_to_free_swap() and munlock_vma_page() below */
- 	lock_page(page);
-@@ -179,6 +184,7 @@ static int __replace_page(struct vm_area
- 
- 	get_page(kpage);
- 	page_add_new_anon_rmap(kpage, vma, addr);
-+	mem_cgroup_commit_charge(kpage, memcg, false);
- 	lru_cache_add_active_or_unevictable(kpage, vma);
- 
- 	if (!PageAnon(page)) {
-@@ -201,6 +207,7 @@ static int __replace_page(struct vm_area
- 
- 	err = 0;
-  unlock:
-+	mem_cgroup_cancel_charge(kpage, memcg);
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- 	unlock_page(page);
- 	return err;
-@@ -316,18 +323,11 @@ retry:
- 	if (!new_page)
- 		goto put_old;
- 
--	if (mem_cgroup_charge_anon(new_page, mm, GFP_KERNEL))
--		goto put_new;
+diff -puN mm/mempolicy.c~mm-fix-crashes-from-mbind-merging-vmas mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-fix-crashes-from-mbind-merging-vmas
++++ a/mm/mempolicy.c
+@@ -656,19 +656,18 @@ static unsigned long change_prot_numa(st
+  * @nodes and @flags,) it's isolated and queued to the pagelist which is
+  * passed via @private.)
+  */
+-static struct vm_area_struct *
++static int
+ queue_pages_range(struct mm_struct *mm, unsigned long start, unsigned long end,
+ 		const nodemask_t *nodes, unsigned long flags, void *private)
+ {
+-	int err;
+-	struct vm_area_struct *first, *vma, *prev;
 -
- 	__SetPageUptodate(new_page);
- 	copy_highpage(new_page, old_page);
- 	copy_to_page(new_page, vaddr, &opcode, UPROBE_SWBP_INSN_SIZE);
++	int err = 0;
++	struct vm_area_struct *vma, *prev;
  
- 	ret = __replace_page(vma, vaddr, old_page, new_page);
--	if (ret)
--		mem_cgroup_uncharge_page(new_page);
+-	first = find_vma(mm, start);
+-	if (!first)
+-		return ERR_PTR(-EFAULT);
++	vma = find_vma(mm, start);
++	if (!vma)
++		return -EFAULT;
+ 	prev = NULL;
+-	for (vma = first; vma && vma->vm_start < end; vma = vma->vm_next) {
++	for (; vma && vma->vm_start < end; vma = vma->vm_next) {
+ 		unsigned long endvma = vma->vm_end;
+ 
+ 		if (endvma > end)
+@@ -678,9 +677,9 @@ queue_pages_range(struct mm_struct *mm,
+ 
+ 		if (!(flags & MPOL_MF_DISCONTIG_OK)) {
+ 			if (!vma->vm_next && vma->vm_end < end)
+-				return ERR_PTR(-EFAULT);
++				return -EFAULT;
+ 			if (prev && prev->vm_end < vma->vm_start)
+-				return ERR_PTR(-EFAULT);
++				return -EFAULT;
+ 		}
+ 
+ 		if (flags & MPOL_MF_LAZY) {
+@@ -694,15 +693,13 @@ queue_pages_range(struct mm_struct *mm,
+ 
+ 			err = queue_pages_pgd_range(vma, start, endvma, nodes,
+ 						flags, private);
+-			if (err) {
+-				first = ERR_PTR(err);
++			if (err)
+ 				break;
+-			}
+ 		}
+ next:
+ 		prev = vma;
+ 	}
+-	return first;
++	return err;
+ }
+ 
+ /*
+@@ -1156,16 +1153,17 @@ out:
+ 
+ /*
+  * Allocate a new page for page migration based on vma policy.
+- * Start assuming that page is mapped by vma pointed to by @private.
++ * Start by assuming the page is mapped by the same vma as contains @start.
+  * Search forward from there, if not.  N.B., this assumes that the
+  * list of pages handed to migrate_pages()--which is how we get here--
+  * is in virtual address order.
+  */
+-static struct page *new_vma_page(struct page *page, unsigned long private, int **x)
++static struct page *new_page(struct page *page, unsigned long start, int **x)
+ {
+-	struct vm_area_struct *vma = (struct vm_area_struct *)private;
++	struct vm_area_struct *vma;
+ 	unsigned long uninitialized_var(address);
+ 
++	vma = find_vma(current->mm, start);
+ 	while (vma) {
+ 		address = page_address_in_vma(page, vma);
+ 		if (address != -EFAULT)
+@@ -1195,7 +1193,7 @@ int do_migrate_pages(struct mm_struct *m
+ 	return -ENOSYS;
+ }
+ 
+-static struct page *new_vma_page(struct page *page, unsigned long private, int **x)
++static struct page *new_page(struct page *page, unsigned long start, int **x)
+ {
+ 	return NULL;
+ }
+@@ -1205,7 +1203,6 @@ static long do_mbind(unsigned long start
+ 		     unsigned short mode, unsigned short mode_flags,
+ 		     nodemask_t *nmask, unsigned long flags)
+ {
+-	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+ 	struct mempolicy *new;
+ 	unsigned long end;
+@@ -1271,11 +1268,9 @@ static long do_mbind(unsigned long start
+ 	if (err)
+ 		goto mpol_out;
+ 
+-	vma = queue_pages_range(mm, start, end, nmask,
++	err = queue_pages_range(mm, start, end, nmask,
+ 			  flags | MPOL_MF_INVERT, &pagelist);
 -
--put_new:
- 	page_cache_release(new_page);
- put_old:
- 	put_page(old_page);
+-	err = PTR_ERR(vma);	/* maybe ... */
+-	if (!IS_ERR(vma))
++	if (!err)
+ 		err = mbind_range(mm, start, end, new);
+ 
+ 	if (!err) {
+@@ -1283,9 +1278,8 @@ static long do_mbind(unsigned long start
+ 
+ 		if (!list_empty(&pagelist)) {
+ 			WARN_ON_ONCE(flags & MPOL_MF_LAZY);
+-			nr_failed = migrate_pages(&pagelist, new_vma_page,
+-					NULL, (unsigned long)vma,
+-					MIGRATE_SYNC, MR_MEMPOLICY_MBIND);
++			nr_failed = migrate_pages(&pagelist, new_page, NULL,
++				start, MIGRATE_SYNC, MR_MEMPOLICY_MBIND);
+ 			if (nr_failed)
+ 				putback_movable_pages(&pagelist);
+ 		}
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-memcg-cleanup-memcg_cache_params-refcnt-usage.patch
-memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
-memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
-slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
-slub-make-slab_free-non-preemptable.patch
-memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
-slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
-slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
+tmpfs-zero_range-and-collapse_range-not-currently-supported.patch
+hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry.patch
+mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep.patch
+mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
+mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
+shmem-fix-faulting-into-a-hole-while-its-punched.patch
+shmem-fix-faulting-into-a-hole-while-its-punched-checkpatch-fixes.patch
+mm-fix-crashes-from-mbind-merging-vmas.patch
+mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
 mm-memcontrol-fold-mem_cgroup_do_charge.patch
 mm-memcontrol-rearrange-charging-fast-path.patch
 mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
@@ -123,11 +210,9 @@ mm-memcontrol-use-root_mem_cgroup-res_counter.patch
 mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
 mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
 mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-charge-api-fix-3.patch
-mm-memcontrol-rewrite-charge-api-fix-2.patch
 mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-rewrite-uncharge-api-fix-2.patch
-memcg-deprecate-memoryforce_empty-knob.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-debugging-keep-track-of-page-owners.patch
+list-use-argument-hlist_add_after-names-from-rcu-variant.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
+klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
