@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-ignore-email-headers-better.patch added to -mm tree
-Date: Fri, 20 Jun 2014 15:16:11 -0700
-Message-ID: <53a4b2ab.QDD9BHIz+e5GdxI+%akpm@linux-foundation.org>
+Subject: + mem-hotplug-improve-zone_movable_is_highmem-logic.patch added
+ to -mm tree
+Date: Fri, 20 Jun 2014 15:18:27 -0700
+Message-ID: <53a4b333.2ovew6zflEKfzRty%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33174 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33180 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965046AbaFTWQL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 18:16:11 -0400
+	with ESMTP id S1757948AbaFTWS2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 18:18:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, zhangzhen@huawei.com, yinghai@kernel.org, mgorman@suse.de, lizefan@huawei.com, liuj97@gmail.com, wangnan0@huawei.com
 
 
 The patch titled
-     Subject: checkpatch: Ignore email headers better
+     Subject: mem-hotplug: improve zone_movable_is_highmem logic
 has been added to the -mm tree.  Its filename is
-     checkpatch-ignore-email-headers-better.patch
+     mem-hotplug-improve-zone_movable_is_highmem-logic.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-ignore-email-headers-better.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-improve-zone_movable_is_highmem-logic.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-ignore-email-headers-better.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-improve-zone_movable_is_highmem-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,66 +39,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Ignore email headers better
+From: Wang Nan <wangnan0@huawei.com>
+Subject: mem-hotplug: improve zone_movable_is_highmem logic
 
-There are some patches created by git format-patch that when scanned by
-checkpatch report errors on lines like
+In original code, zone_movable_is_highmem() assumes ZONE_MOVABLE not
+highmem if CONFIG_HAVE_MEMBLOCK_NODE_MAP is not set.  In online_pages, it
+extracts pages from the previous zone before ZONE_MOVABLE.  Which is
+logically inconsistent:
 
-To:	address.tld
+If HAVE_MEMBLOCK_NODE_MAP is turned off but HIGHMEM is on,
+zone_movable_is_highmem() makes movable zone not highmem, but
+online_pages() extracts pages from ZONE_HIGHMEM.
 
-This is a checkpatch false positive.
+This inconsistency doesn't cause real problem currently, because all
+architectures support online_pages also have HAVE_MEMBLOCK_NODE_MAP. 
+However, fixing it makes code clear, and also helps futher coding.
 
-Improve the logic a bit to ignore folded email headers to avoid emitting
-these messages.
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Wang Nan <wangnan0@huawei.com>
+Cc: Zhang Zhen <zhangzhen@huawei.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Jiang Liu <liuj97@gmail.com>
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-ignore-email-headers-better scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-ignore-email-headers-better
-+++ a/scripts/checkpatch.pl
-@@ -1637,7 +1637,7 @@ sub process {
- 	my $signoff = 0;
- 	my $is_patch = 0;
- 
--	my $in_header_lines = 1;
-+	my $in_header_lines = $file ? 0 : 1;
- 	my $in_commit_log = 0;		#Scanning lines before patch
- 
- 	my $non_utf8_charset = 0;
-@@ -2001,7 +2001,8 @@ sub process {
- # Check if it's the start of a commit log
- # (not a header line and we haven't seen the patch filename)
- 		if ($in_header_lines && $realfile =~ /^$/ &&
--		    $rawline !~ /^(commit\b|from\b|[\w-]+:).+$/i) {
-+		    !($rawline =~ /^\s+\S/ ||
-+		      $rawline =~ /^(commit\b|from\b|[\w-]+:).*$/i)) {
- 			$in_header_lines = 0;
- 			$in_commit_log = 1;
- 		}
+diff -puN include/linux/mmzone.h~mem-hotplug-improve-zone_movable_is_highmem-logic include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mem-hotplug-improve-zone_movable_is_highmem-logic
++++ a/include/linux/mmzone.h
+@@ -872,6 +872,8 @@ static inline int zone_movable_is_highme
+ {
+ #if defined(CONFIG_HIGHMEM) && defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
+ 	return movable_zone == ZONE_HIGHMEM;
++#elif defined(CONFIG_HIGHMEM)
++	return (ZONE_MOVABLE - 1) == ZONE_HIGHMEM;
+ #else
+ 	return 0;
+ #endif
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from wangnan0@huawei.com are
 
-checkpatch-check-git-commit-descriptions.patch
-checkpatch-reduce-false-positives-when-checking-void-function-return-statements.patch
-fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
-checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
-checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
-checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
-checkpatch-ignore-email-headers-better.patch
-fs-isofs-logging-clean-up.patch
-sysctl-remove-now-unused-typedef-ctl_table.patch
-sysctl-remove-now-unused-typedef-ctl_table-fix.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-linux-next.patch
+mem-hotplug-improve-zone_movable_is_highmem-logic.patch
 
