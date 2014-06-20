@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ufs-superc-use-__func__-in-logging.patch added to -mm tree
-Date: Fri, 20 Jun 2014 15:31:58 -0700
-Message-ID: <53a4b65e.KMzZUpCR4SIX6FDO%akpm@linux-foundation.org>
+Subject: + fs-ufs-use-pr_fmt.patch added to -mm tree
+Date: Fri, 20 Jun 2014 15:31:57 -0700
+Message-ID: <53a4b65d.vpX6Xk4DQ3b9EqXG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33307 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965046AbaFTWb7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 18:31:59 -0400
+	with ESMTP id S1756196AbaFTWb6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 18:31:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, dushistov@mail.ru, fabf@skynet.be
 
 
 The patch titled
-     Subject: fs/ufs/super.c: use __func__ in logging
+     Subject: fs/ufs: use pr_fmt
 has been added to the -mm tree.  Its filename is
-     fs-ufs-superc-use-__func__-in-logging.patch
+     fs-ufs-use-pr_fmt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ufs-superc-use-__func__-in-logging.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ufs-use-pr_fmt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ufs-superc-use-__func__-in-logging.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ufs-use-pr_fmt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,103 +39,103 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/ufs/super.c: use __func__ in logging
+Subject: fs/ufs: use pr_fmt
 
-Replace approximate function name by __func__ using standard format
-"function():"
+Replace UFS-fs, UFS-fs: and UFS: by pr_fmt with module name "ufs: "
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ fs/ufs/super.c |   15 +++++++--------
+ fs/ufs/ufs.h   |    6 ++++++
+ 2 files changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN fs/ufs/super.c~fs-ufs-superc-use-__func__-in-logging fs/ufs/super.c
---- a/fs/ufs/super.c~fs-ufs-superc-use-__func__-in-logging
+diff -puN fs/ufs/super.c~fs-ufs-use-pr_fmt fs/ufs/super.c
+--- a/fs/ufs/super.c~fs-ufs-use-pr_fmt
 +++ a/fs/ufs/super.c
-@@ -1030,7 +1030,7 @@ again:
- 		goto again;
- 	}
- 	if (!silent)
--		pr_err("ufs_read_super: bad magic number\n");
-+		pr_err("%s(): bad magic number\n", __func__);
- 	goto failed;
+@@ -65,7 +65,6 @@
+  * Evgeniy Dushistov <dushistov@mail.ru>, 2007
+  */
  
- magic_found:
-@@ -1044,33 +1044,33 @@ magic_found:
- 	uspi->s_fshift = fs32_to_cpu(sb, usb1->fs_fshift);
+-
+ #include <linux/exportfs.h>
+ #include <linux/module.h>
+ #include <linux/bitops.h>
+@@ -310,13 +309,13 @@ void ufs_error (struct super_block * sb,
+ 	va_end (args);
+ 	switch (UFS_SB(sb)->s_mount_opt & UFS_MOUNT_ONERROR) {
+ 	case UFS_MOUNT_ONERROR_PANIC:
+-		panic ("UFS-fs panic (device %s): %s: %s\n", 
++		panic("panic (device %s): %s: %s\n",
+ 			sb->s_id, function, error_buf);
  
- 	if (!is_power_of_2(uspi->s_fsize)) {
--		pr_err("ufs_read_super: fragment size %u is not a power of 2\n",
--		       uspi->s_fsize);
-+		pr_err("%s(): fragment size %u is not a power of 2\n",
-+		       __func__, uspi->s_fsize);
- 		goto failed;
- 	}
- 	if (uspi->s_fsize < 512) {
--		pr_err("ufs_read_super: fragment size %u is too small\n",
--		       uspi->s_fsize);
-+		pr_err("%s(): fragment size %u is too small\n",
-+		       __func__, uspi->s_fsize);
- 		goto failed;
- 	}
- 	if (uspi->s_fsize > 4096) {
--		pr_err("ufs_read_super: fragment size %u is too large\n",
--		       uspi->s_fsize);
-+		pr_err("%s(): fragment size %u is too large\n",
-+		       __func__, uspi->s_fsize);
- 		goto failed;
- 	}
- 	if (!is_power_of_2(uspi->s_bsize)) {
--		pr_err("ufs_read_super: block size %u is not a power of 2\n",
--		       uspi->s_bsize);
-+		pr_err("%s(): block size %u is not a power of 2\n",
-+		       __func__, uspi->s_bsize);
- 		goto failed;
- 	}
- 	if (uspi->s_bsize < 4096) {
--		pr_err("ufs_read_super: block size %u is too small\n",
--		       uspi->s_bsize);
-+		pr_err("%s(): block size %u is too small\n",
-+		       __func__, uspi->s_bsize);
- 		goto failed;
- 	}
- 	if (uspi->s_bsize / uspi->s_fsize > 8) {
--		pr_err("ufs_read_super: too many fragments per block (%u)\n",
--		       uspi->s_bsize / uspi->s_fsize);
-+		pr_err("%s(): too many fragments per block (%u)\n",
-+		       __func__, uspi->s_bsize / uspi->s_fsize);
- 		goto failed;
- 	}
- 	if (uspi->s_fsize != block_size || uspi->s_sbsize != super_block_size) {
-@@ -1109,21 +1109,21 @@ magic_found:
- 			UFSD("fs is DEC OSF/1\n");
+ 	case UFS_MOUNT_ONERROR_LOCK:
+ 	case UFS_MOUNT_ONERROR_UMOUNT:
+ 	case UFS_MOUNT_ONERROR_REPAIR:
+-		pr_crit("UFS-fs error (device %s): %s: %s\n",
++		pr_crit("error (device %s): %s: %s\n",
+ 			sb->s_id, function, error_buf);
+ 	}		
+ }
+@@ -340,7 +339,7 @@ void ufs_panic (struct super_block * sb,
+ 	vsnprintf (error_buf, sizeof(error_buf), fmt, args);
+ 	va_end (args);
+ 	sb->s_flags |= MS_RDONLY;
+-	pr_crit("UFS-fs panic (device %s): %s: %s\n",
++	pr_crit("panic (device %s): %s: %s\n",
+ 		sb->s_id, function, error_buf);
+ }
+ 
+@@ -352,7 +351,7 @@ void ufs_warning (struct super_block * s
+ 	va_start (args, fmt);
+ 	vsnprintf (error_buf, sizeof(error_buf), fmt, args);
+ 	va_end (args);
+-	pr_warn("UFS-fs warning (device %s): %s: %s\n",
++	pr_warn("warning (device %s): %s: %s\n",
+ 		sb->s_id, function, error_buf);
+ }
+ 
+@@ -464,12 +463,12 @@ static int ufs_parse_options (char * opt
+ 			ufs_set_opt (*mount_options, ONERROR_UMOUNT);
  			break;
- 		case UFS_FSACTIVE:
--			pr_err("ufs_read_super: fs is active\n");
-+			pr_err("%s(): fs is active\n", __func__);
- 			sb->s_flags |= MS_RDONLY;
- 			break;
- 		case UFS_FSBAD:
--			pr_err("ufs_read_super: fs is bad\n");
-+			pr_err("%s(): fs is bad\n", __func__);
- 			sb->s_flags |= MS_RDONLY;
+ 		case Opt_onerror_repair:
+-			pr_err("UFS-fs: Unable to do repair on error, will lock lock instead\n");
++			pr_err("Unable to do repair on error, will lock lock instead\n");
+ 			ufs_clear_opt (*mount_options, ONERROR);
+ 			ufs_set_opt (*mount_options, ONERROR_REPAIR);
  			break;
  		default:
--			pr_err("ufs_read_super: can't grok fs_clean 0x%x\n",
--			       usb1->fs_clean);
-+			pr_err("%s(): can't grok fs_clean 0x%x\n",
-+			       __func__, usb1->fs_clean);
- 			sb->s_flags |= MS_RDONLY;
- 			break;
+-			pr_err("UFS-fs: Invalid option: \"%s\" or missing value\n", p);
++			pr_err("Invalid option: \"%s\" or missing value\n", p);
+ 			return 0;
  		}
- 	} else {
--		pr_err("ufs_read_super: fs needs fsck\n");
-+		pr_err("%s(): fs needs fsck\n", __func__);
- 		sb->s_flags |= MS_RDONLY;
  	}
+@@ -972,7 +971,7 @@ static int ufs_fill_super(struct super_b
+ 	
+ again:	
+ 	if (!sb_set_blocksize(sb, block_size)) {
+-		pr_err("UFS: failed to set blocksize\n");
++		pr_err("failed to set blocksize\n");
+ 		goto failed;
+ 	}
+ 
+diff -puN fs/ufs/ufs.h~fs-ufs-use-pr_fmt fs/ufs/ufs.h
+--- a/fs/ufs/ufs.h~fs-ufs-use-pr_fmt
++++ a/fs/ufs/ufs.h
+@@ -1,6 +1,12 @@
+ #ifndef _UFS_UFS_H
+ #define _UFS_UFS_H 1
+ 
++#ifdef pr_fmt
++#undef pr_fmt
++#endif
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #define UFS_MAX_GROUP_LOADED 8
+ #define UFS_CGNO_EMPTY ((unsigned)-1)
  
 _
 
