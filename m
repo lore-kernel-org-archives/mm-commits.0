@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-rewrite-uncharge-api-fix-2.patch added to -mm
- tree
-Date: Fri, 20 Jun 2014 12:00:10 -0700
-Message-ID: <53a484ba.lCDwDaFLAAu+m9/6%akpm@linux-foundation.org>
+Subject: + initramfs-support-initramfs-that-is-more-than-2g-fix.patch
+ added to -mm tree
+Date: Fri, 20 Jun 2014 12:20:54 -0700
+Message-ID: <53a48996.u1QT10GIGdsG+QxB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60275 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60318 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229AbaFTTAL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 15:00:11 -0400
+	with ESMTP id S932877AbaFTTUz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 15:20:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, fengguang.wu@intel.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: mm: memcontrol: rewrite uncharge API fix 2
+     Subject: initramfs-support-initramfs-that-is-more-than-2g-fix
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-rewrite-uncharge-api-fix-2.patch
+     initramfs-support-initramfs-that-is-more-than-2g-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-support-initramfs-that-is-more-than-2g-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-support-initramfs-that-is-more-than-2g-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,108 +39,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: rewrite uncharge API fix 2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: initramfs-support-initramfs-that-is-more-than-2g-fix
 
-It's not entirely clear whether do_swap_account or PCG_MEMSW is the
-authoritative answer to whether a page is swap-accounted or not.  This
-currently leads to the following memsw counter underflow when swap
-accounting is disabled:
+crypto/zlib.c: In function 'zlib_compress_update':
+crypto/zlib.c:171:2: warning: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uLong' [-Wformat]
+crypto/zlib.c:171:2: warning: format '%u' expects argument of type 'unsigned int', but argument 5 has type 'uLong' [-Wformat]
+crypto/zlib.c:171:2: warning: format '%u' expects argument of type 'unsigned int', but argument 6 has type 'long unsigned int' [-Wformat]
+crypto/zlib.c: In function 'zlib_compress_final':
+crypto/zlib.c:201:2: warning: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uLong' [-Wformat]
+crypto/zlib.c:201:2: warning: format '%u' expects argument of type 'unsigned int', but argument 5 has type 'uLong' [-Wformat]
+crypto/zlib.c:201:2: warning: format '%u' expects argument of type 'unsigned int', but argument 6 has type 'long unsigned int' [-Wformat]
+crypto/zlib.c: In function 'zlib_decompress_update':
+crypto/zlib.c:286:2: warning: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uLong' [-Wformat]
+crypto/zlib.c:286:2: warning: format '%u' expects argument of type 'unsigned int', but argument 5 has type 'uLong' [-Wformat]
+crypto/zlib.c:286:2: warning: format '%u' expects argument of type 'unsigned int', but argument 6 has type 'long unsigned int' [-Wformat]
+crypto/zlib.c: In function 'zlib_decompress_final':
+crypto/zlib.c:334:2: warning: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uLong' [-Wformat]
+crypto/zlib.c:334:2: warning: format '%u' expects argument of type 'unsigned int', but argument 5 has type 'uLong' [-Wformat]
+crypto/zlib.c:334:2: warning: format '%u' expects argument of type 'unsigned int', but argument 6 has type 'long unsigned int' [-Wformat]
 
-[    2.753355] WARNING: CPU: 0 PID: 1 at kernel/res_counter.c:28 res_counter_uncharge_locked+0x48/0x74()
-[    2.753355] CPU: 0 PID: 1 Comm: init Not tainted 3.16.0-rc1-00238-gddc5bfe #1
-[    2.753355] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
-[    2.753355]  0000000000000000 ffff880012073c50 ffffffff81a23b9d ffff880012073c88
-[    2.753355]  ffffffff810bc765 ffffffff8111fac8 0000000000001000 ffff88001200fa50
-[    2.753355]  0000000000000001 ffff88001200fa01 ffff880012073c98 ffffffff810bc84b
-[    2.753355] Call Trace:
-[    2.753355]  [<ffffffff81a23b9d>] dump_stack+0x19/0x1b
-[    2.753355]  [<ffffffff810bc765>] warn_slowpath_common+0x73/0x8c
-[    2.753355]  [<ffffffff8111fac8>] ? res_counter_uncharge_locked+0x48/0x74
-[    2.753355]  [<ffffffff810bc84b>] warn_slowpath_null+0x1a/0x1c
-[    2.753355]  [<ffffffff8111fac8>] res_counter_uncharge_locked+0x48/0x74
-[    2.753355]  [<ffffffff8111fd02>] res_counter_uncharge_until+0x4e/0xa9
-[    2.753355]  [<ffffffff8111fd70>] res_counter_uncharge+0x13/0x15
-[    2.753355]  [<ffffffff8119499c>] mem_cgroup_uncharge_end+0x73/0x8d
-[    2.753355]  [<ffffffff8115735e>] release_pages+0x1f2/0x20d
-[    2.753355]  [<ffffffff8116cc3a>] tlb_flush_mmu_free+0x28/0x43
-[    2.753355]  [<ffffffff8116d5e5>] tlb_flush_mmu+0x20/0x23
-[    2.753355]  [<ffffffff8116d5fc>] tlb_finish_mmu+0x14/0x39
-[    2.753355]  [<ffffffff811730c1>] unmap_region+0xcd/0xdf
-[    2.753355]  [<ffffffff81172b0e>] ? vma_gap_callbacks_propagate+0x18/0x33
-[    2.753355]  [<ffffffff81174bf1>] do_munmap+0x252/0x2e0
-[    2.753355]  [<ffffffff81174cc3>] vm_munmap+0x44/0x5c
-[    2.753355]  [<ffffffff81174cfe>] SyS_munmap+0x23/0x29
-[    2.753355]  [<ffffffff81a31567>] system_call_fastpath+0x16/0x1b
-[    2.753355] ---[ end trace cfeb07101f6fbdfb ]---
-
-Don't set PCG_MEMSW when swap accounting is disabled, so that uncharging
-only has to look at this per-page flag.
-
-mem_cgroup_swapout() could also fully rely on this flag, but as it can
-bail out before even looking up the page_cgroup, check do_swap_account as
-a performance optimization and only sanity test for PCG_MEMSW.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ crypto/zlib.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-2 mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-2
-+++ a/mm/memcontrol.c
-@@ -2740,7 +2740,7 @@ static void commit_charge(struct page *p
- 	 *   have the page locked
- 	 */
- 	pc->mem_cgroup = memcg;
--	pc->flags = PCG_USED | PCG_MEM | PCG_MEMSW;
-+	pc->flags = PCG_USED | PCG_MEM | (do_swap_account ? PCG_MEMSW : 0);
+diff -puN crypto/zlib.c~initramfs-support-initramfs-that-is-more-than-2g-fix crypto/zlib.c
+--- a/crypto/zlib.c~initramfs-support-initramfs-that-is-more-than-2g-fix
++++ a/crypto/zlib.c
+@@ -168,7 +168,7 @@ static int zlib_compress_update(struct c
+ 	}
  
- 	if (lrucare) {
- 		if (was_on_lru) {
-@@ -6649,7 +6649,7 @@ void mem_cgroup_migrate(struct page *old
- 		return;
+ 	ret = req->avail_out - stream->avail_out;
+-	pr_debug("avail_in %u, avail_out %u (consumed %u, produced %u)\n",
++	pr_debug("avail_in %lu, avail_out %lu (consumed %lu, produced %u)\n",
+ 		 stream->avail_in, stream->avail_out,
+ 		 req->avail_in - stream->avail_in, ret);
+ 	req->next_in = stream->next_in;
+@@ -198,7 +198,7 @@ static int zlib_compress_final(struct cr
+ 	}
  
- 	VM_BUG_ON_PAGE(!(pc->flags & PCG_MEM), oldpage);
--	VM_BUG_ON_PAGE(!(pc->flags & PCG_MEMSW), oldpage);
-+	VM_BUG_ON_PAGE(do_swap_account && !(pc->flags & PCG_MEMSW), oldpage);
- 	pc->flags &= ~(PCG_MEM | PCG_MEMSW);
+ 	ret = req->avail_out - stream->avail_out;
+-	pr_debug("avail_in %u, avail_out %u (consumed %u, produced %u)\n",
++	pr_debug("avail_in %lu, avail_out %lu (consumed %lu, produced %u)\n",
+ 		 stream->avail_in, stream->avail_out,
+ 		 req->avail_in - stream->avail_in, ret);
+ 	req->next_in = stream->next_in;
+@@ -283,7 +283,7 @@ static int zlib_decompress_update(struct
+ 	}
  
- 	if (PageTransHuge(oldpage)) {
+ 	ret = req->avail_out - stream->avail_out;
+-	pr_debug("avail_in %u, avail_out %u (consumed %u, produced %u)\n",
++	pr_debug("avail_in %lu, avail_out %lu (consumed %lu, produced %u)\n",
+ 		 stream->avail_in, stream->avail_out,
+ 		 req->avail_in - stream->avail_in, ret);
+ 	req->next_in = stream->next_in;
+@@ -331,7 +331,7 @@ static int zlib_decompress_final(struct
+ 	}
+ 
+ 	ret = req->avail_out - stream->avail_out;
+-	pr_debug("avail_in %u, avail_out %u (consumed %u, produced %u)\n",
++	pr_debug("avail_in %lu, avail_out %lu (consumed %lu, produced %u)\n",
+ 		 stream->avail_in, stream->avail_out,
+ 		 req->avail_in - stream->avail_in, ret);
+ 	req->next_in = stream->next_in;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-memcg-cleanup-memcg_cache_params-refcnt-usage.patch
-memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
-memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
-slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
-slub-make-slab_free-non-preemptable.patch
-memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
-slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
-slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
+mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
+shmem-fix-faulting-into-a-hole-while-its-punched-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
+mm.patch
+slub-use-new-node-functions-checkpatch-fixes.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
 mm-memcontrol-rewrite-charge-api-fix.patch
-mm-memcontrol-rewrite-uncharge-api.patch
 mm-memcontrol-rewrite-uncharge-api-fix.patch
-mm-memcontrol-rewrite-uncharge-api-fix-2.patch
-memcg-deprecate-memoryforce_empty-knob.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+fs-isofs-logging-clean-up-fix.patch
+initramfs-support-initramfs-that-is-more-than-2g-fix.patch
+initramfs-support-initramfs-that-is-more-than-2g-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 memcg-deprecate-memoryforce_empty-knob-fix.patch
 debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
