@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch added to -mm tree
-Date: Fri, 20 Jun 2014 14:10:23 -0700
-Message-ID: <53a4a33f.xKOwG4yd5t6+EfjJ%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-rewrite-charge-api-fix-2.patch added to -mm tree
+Date: Fri, 20 Jun 2014 14:14:26 -0700
+Message-ID: <53a4a432.yzcBu9c6etjg1fT4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32881 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32892 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753502AbaFTVKY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 17:10:24 -0400
+	with ESMTP id S1756143AbaFTVO1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jun 2014 17:14:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, cl@linux.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, fengguang.wu@intel.com, akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix
+     Subject: mm-memcontrol-rewrite-charge-api-fix-2
 has been added to the -mm tree.  Its filename is
-     slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
+     mm-memcontrol-rewrite-charge-api-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-charge-api-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-charge-api-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,27 +39,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix
+Subject: mm-memcontrol-rewrite-charge-api-fix-2
 
-Cc: Christoph Lameter <cl@linux.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+fix CONFIG_MMU=n build
+
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/swap.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/slab.c~slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix mm/slab.c
---- a/mm/slab.c~slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix
-+++ a/mm/slab.c
-@@ -590,7 +590,8 @@ static inline void on_slab_lock_classes_
- {
- }
+diff -puN mm/swap.c~mm-memcontrol-rewrite-charge-api-fix-2 mm/swap.c
+--- a/mm/swap.c~mm-memcontrol-rewrite-charge-api-fix-2
++++ a/mm/swap.c
+@@ -716,6 +716,7 @@ void lru_cache_add_active_or_unevictable
+ 		return;
+ 	}
  
--static void slab_set_debugobj_lock_classes_node(struct kmem_cache *cachep, int node)
-+static void slab_set_debugobj_lock_classes_node(struct kmem_cache *cachep,
-+	struct kmem_cache_node *n)
- {
++#ifdef CONFIG_MMU
+ 	if (!TestSetPageMlocked(page)) {
+ 		/*
+ 		 * We use the irq-unsafe __mod_zone_page_stat because this
+@@ -726,6 +727,7 @@ void lru_cache_add_active_or_unevictable
+ 				    hpage_nr_pages(page));
+ 		count_vm_event(UNEVICTABLE_PGMLOCKED);
+ 	}
++#else
+ 	add_page_to_unevictable_list(page);
  }
  
 _
@@ -87,6 +95,7 @@ mm-page_allocc-unexport-alloc_pages_exact_nid.patch
 dma-cma-support-arbitrary-bitmap-granularity-fix.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
 mm-memcontrol-rewrite-charge-api-fix.patch
+mm-memcontrol-rewrite-charge-api-fix-2.patch
 mm-memcontrol-rewrite-uncharge-api-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
