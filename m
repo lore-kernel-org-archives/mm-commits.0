@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch added to
- -mm tree
-Date: Mon, 23 Jun 2014 15:44:46 -0700
-Message-ID: <53a8adde.JJSozsu5aLUw5KGa%akpm@linux-foundation.org>
+ printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch added to -mm tree
+Date: Mon, 23 Jun 2014 15:44:45 -0700
+Message-ID: <53a8addd.R9uVF7zhUjBcGIpg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53749 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751147AbaFWWor (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 18:44:47 -0400
+	with ESMTP id S1751147AbaFWWoq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 18:44:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mcgrof@suse.com, andrew@lunn.ch, arunks.linux@gmail.com, cmetcalf@tilera.com, davidlohr@hp.com, gregkh@linuxfoundation.org, jack@suse.cz, joe@perches.com, keescook@chromium.org, mhocko@suse.cz, pmladek@suse.cz, swarren@wwwdotorg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: make dynamic units clear for the kernel ring buffer
+     Subject: printk: move power of 2 practice of ring buffer size to a helper
 has been added to the -mm tree.  Its filename is
-     printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+     printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,10 +40,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: printk: make dynamic units clear for the kernel ring buffer
+Subject: printk: move power of 2 practice of ring buffer size to a helper
+
+In practice the power of 2 practice of the size of the kernel ring buffer
+remains purely historical but not a requirement, specially now that we
+have LOG_ALIGN and use it for both static and dynamic allocations.  It
+could have helped with implicit alignment back in the days given the even
+the dynamically sized ring buffer was guaranteed to be aligned so long as
+CONFIG_LOG_BUF_SHIFT was set to produce a __LOG_BUF_LEN which is
+architecture aligned, since log_buf_len=n would be allowed only if it was
+> __LOG_BUF_LEN and we always ended up rounding the log_buf_len=n to the
+next power of 2 with roundup_pow_of_two(), any multiple of 2 then should
+be also architecture aligned.  These assumptions of course relied heavily
+on CONFIG_LOG_BUF_SHIFT producing an aligned value but users can always
+change this.
+
+We now have precise alignment requirements set for the log buffer size for
+both static and dynamic allocations, but lets upkeep the old practice of
+using powers of 2 for its size to help with easy expected scalable values
+and the allocators for dynamic allocations.  We'll reuse this later so
+move this into a helper.
 
 Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
-Suggested-by: Davidlohr Bueso <davidlohr@hp.com>
 Cc: Andrew Lunn <andrew@lunn.ch>
 Cc: Stephen Warren <swarren@wwwdotorg.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -59,27 +76,19 @@ Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/printk/printk.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-make-dynamic-units-clear-for-the-kernel-ring-buffer kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-make-dynamic-units-clear-for-the-kernel-ring-buffer
+diff -puN kernel/printk/printk.c~printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper
 +++ a/kernel/printk/printk.c
-@@ -879,7 +879,7 @@ void __init setup_log_buf(int early)
- 	memcpy(log_buf, __log_buf, __LOG_BUF_LEN);
- 	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
+@@ -828,15 +828,21 @@ void log_buf_kexec_setup(void)
+ /* requested log_buf_len from kernel cmdline */
+ static unsigned long __initdata new_log_buf_len;
  
--	pr_info("log_buf_len: %d\n", log_buf_len);
-+	pr_info("log_buf_len: %d bytes\n", log_buf_len);
- 	pr_info("early log buf free: %d(%d%%)\n",
- 		free, (free * 100) / __LOG_BUF_LEN);
- }
-_
-
-Patches currently in -mm which might be from mcgrof@suse.com are
-
-printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
-printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
-printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
-printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
-
+-/* save requested log_buf_len since it's too early to process it */
+-static int __init log_buf_len_setup(char *str)
++/* we practice scaling the ring buffer by powers of 2 */
++static void __init log_buf_len_update(unsigned size)
+ {
+-	unsigned size = memparse(str, &str);
