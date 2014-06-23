@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch added to -mm tree
-Date: Mon, 23 Jun 2014 15:44:45 -0700
-Message-ID: <53a8addd.R9uVF7zhUjBcGIpg%akpm@linux-foundation.org>
+Subject: + initrd-fix-lz4-decompress-with-initrd.patch added to -mm tree
+Date: Mon, 23 Jun 2014 16:01:25 -0700
+Message-ID: <53a8b1c5.JaQY+VYZC43/yq0i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53749 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53804 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751147AbaFWWoq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 18:44:46 -0400
+	with ESMTP id S1750931AbaFWXB0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 19:01:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mcgrof@suse.com, andrew@lunn.ch, arunks.linux@gmail.com, cmetcalf@tilera.com, davidlohr@hp.com, gregkh@linuxfoundation.org, jack@suse.cz, joe@perches.com, keescook@chromium.org, mhocko@suse.cz, pmladek@suse.cz, swarren@wwwdotorg.org, mm-commits@vger.kernel.org
+To: yinghai@kernel.org, kyungsik.lee@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: move power of 2 practice of ring buffer size to a helper
+     Subject: initrd: Fix lz4 decompress with initrd
 has been added to the -mm tree.  Its filename is
-     printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+     initrd-fix-lz4-decompress-with-initrd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/initrd-fix-lz4-decompress-with-initrd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/initrd-fix-lz4-decompress-with-initrd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +38,130 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: printk: move power of 2 practice of ring buffer size to a helper
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: initrd: Fix lz4 decompress with initrd
 
-In practice the power of 2 practice of the size of the kernel ring buffer
-remains purely historical but not a requirement, specially now that we
-have LOG_ALIGN and use it for both static and dynamic allocations.  It
-could have helped with implicit alignment back in the days given the even
-the dynamically sized ring buffer was guaranteed to be aligned so long as
-CONFIG_LOG_BUF_SHIFT was set to produce a __LOG_BUF_LEN which is
-architecture aligned, since log_buf_len=n would be allowed only if it was
-> __LOG_BUF_LEN and we always ended up rounding the log_buf_len=n to the
-next power of 2 with roundup_pow_of_two(), any multiple of 2 then should
-be also architecture aligned.  These assumptions of course relied heavily
-on CONFIG_LOG_BUF_SHIFT producing an aligned value but users can always
-change this.
+During testing initrd (>2G) support, find decompress/lz4 does not work
+with initrd at all.
 
-We now have precise alignment requirements set for the log buffer size for
-both static and dynamic allocations, but lets upkeep the old practice of
-using powers of 2 for its size to help with easy expected scalable values
-and the allocators for dynamic allocations.  We'll reuse this later so
-move this into a helper.
+decompress_* should support:
+1. inbuf[]/outbuf[] for kernel preboot.
+2. inbuf[]/flush() for initramfs
+3. fill()/flush() for initrd.
 
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
-Cc: Andrew Lunn <andrew@lunn.ch>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Petr Mladek <pmladek@suse.cz>
-Cc: Joe Perches <joe@perches.com>
-Cc: Arun KS <arunks.linux@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Jan Kara <jack@suse.cz>
+in the unlz4 does not handle case 3, as input len is passed as 0, and it
+failed in first try.
+
+Fix that add one extra if (fill) checking, and get out if EOF from the
+fill().
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Kyungsik Lee <kyungsik.lee@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ lib/decompress_unlz4.c |   65 +++++++++++++++++++++++++--------------
+ 1 file changed, 43 insertions(+), 22 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper
-+++ a/kernel/printk/printk.c
-@@ -828,15 +828,21 @@ void log_buf_kexec_setup(void)
- /* requested log_buf_len from kernel cmdline */
- static unsigned long __initdata new_log_buf_len;
+diff -puN lib/decompress_unlz4.c~initrd-fix-lz4-decompress-with-initrd lib/decompress_unlz4.c
+--- a/lib/decompress_unlz4.c~initrd-fix-lz4-decompress-with-initrd
++++ a/lib/decompress_unlz4.c
+@@ -83,13 +83,20 @@ STATIC inline int INIT unlz4(u8 *input,
+ 	if (posp)
+ 		*posp = 0;
  
--/* save requested log_buf_len since it's too early to process it */
--static int __init log_buf_len_setup(char *str)
-+/* we practice scaling the ring buffer by powers of 2 */
-+static void __init log_buf_len_update(unsigned size)
- {
--	unsigned size = memparse(str, &str);
+-	if (fill)
+-		fill(inp, 4);
++	if (fill) {
++		size = fill(inp, 4);
++		if (size < 4) {
++			error("data corrupted");
++			goto exit_2;
++		}
++	}
+ 
+ 	chunksize = get_unaligned_le32(inp);
+ 	if (chunksize == ARCHIVE_MAGICNUMBER) {
+-		inp += 4;
+-		size -= 4;
++		if (!fill) {
++			inp += 4;
++			size -= 4;
++		}
+ 	} else {
+ 		error("invalid header");
+ 		goto exit_2;
+@@ -100,29 +107,44 @@ STATIC inline int INIT unlz4(u8 *input,
+ 
+ 	for (;;) {
+ 
+-		if (fill)
+-			fill(inp, 4);
++		if (fill) {
++			size = fill(inp, 4);
++			if (size == 0)
++				break;
++			if (size < 4) {
++				error("data corrupted");
++				goto exit_2;
++			}
++		}
+ 
+ 		chunksize = get_unaligned_le32(inp);
+ 		if (chunksize == ARCHIVE_MAGICNUMBER) {
+-			inp += 4;
+-			size -= 4;
++			if (!fill) {
++				inp += 4;
++				size -= 4;
++			}
+ 			if (posp)
+ 				*posp += 4;
+ 			continue;
+ 		}
+-		inp += 4;
+-		size -= 4;
++
+ 
+ 		if (posp)
+ 			*posp += 4;
+ 
+-		if (fill) {
++		if (!fill) {
++			inp += 4;
++			size -= 4;
++		} else {
+ 			if (chunksize > lz4_compressbound(uncomp_chunksize)) {
+ 				error("chunk length is longer than allocated");
+ 				goto exit_2;
+ 			}
+-			fill(inp, chunksize);
++			size = fill(inp, chunksize);
++			if (size < chunksize) {
++				error("data corrupted");
++				goto exit_2;
++			}
+ 		}
+ #ifdef PREBOOT
+ 		if (out_len >= uncomp_chunksize) {
+@@ -149,18 +171,17 @@ STATIC inline int INIT unlz4(u8 *input,
+ 		if (posp)
+ 			*posp += chunksize;
+ 
+-		size -= chunksize;
++		if (!fill) {
++			size -= chunksize;
+ 
+-		if (size == 0)
+-			break;
+-		else if (size < 0) {
+-			error("data corrupted");
+-			goto exit_2;
++			if (size == 0)
++				break;
++			else if (size < 0) {
++				error("data corrupted");
++				goto exit_2;
++			}
++			inp += chunksize;
+ 		}
