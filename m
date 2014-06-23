@@ -1,104 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 23 Jun 2014 13:09:19 -0700
-Message-ID: <53a8896f.ovK9UW6H1DaN5ADL%akpm@linux-foundation.org>
+ nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch removed from -mm tree
+Date: Mon, 23 Jun 2014 13:09:52 -0700
+Message-ID: <53a88990.wBDlAwjDn5IzrIPj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52572 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753812AbaFWUJU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 16:09:20 -0400
+	with ESMTP id S1753812AbaFWUJx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 16:09:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, oleg@redhat.com, mguzik@redhat.com, dzickus@redhat.com, davem@davemloft.net, atomlin@redhat.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes
+     Subject: nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes.patch
+     nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix.patch
 
-This patch was dropped because it was folded into hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry.patch
+This patch was dropped because it was folded into nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix
 
-WARNING: Missing a blank line after declarations
-#65: FILE: mm/hugetlb.c:2593:
-+			swp_entry_t swp_entry = pte_to_swp_entry(entry);
-+			if (is_write_migration_entry(swp_entry) && cow) {
+undo C99ism
 
-total: 0 errors, 1 warnings, 90 lines checked
-
-./patches/hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Mateusz Guzik <mguzik@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/sparc/kernel/process_64.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry-checkpatch-fixes
-+++ a/mm/hugetlb.c
-@@ -2590,6 +2590,7 @@ int copy_hugetlb_page_range(struct mm_st
- 		} else if (unlikely(is_hugetlb_entry_migration(entry) ||
- 				    is_hugetlb_entry_hwpoisoned(entry))) {
- 			swp_entry_t swp_entry = pte_to_swp_entry(entry);
+diff -puN arch/sparc/kernel/process_64.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix arch/sparc/kernel/process_64.c
+--- a/arch/sparc/kernel/process_64.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current-fix
++++ a/arch/sparc/kernel/process_64.c
+@@ -261,10 +261,12 @@ void arch_trigger_all_cpu_backtrace(bool
+ 	smp_fetch_global_regs();
+ 
+ 	for_each_online_cpu(cpu) {
++		struct global_reg_snapshot *gp;
 +
- 			if (is_write_migration_entry(swp_entry) && cow) {
- 				/*
- 				 * COW mappings require pages in both
+ 		if (!include_self && cpu == this_cpu)
+ 			continue;
+ 
+-		struct global_reg_snapshot *gp = &global_cpu_snapshot[cpu].reg;
++		gp = &global_cpu_snapshot[cpu].reg;
+ 
+ 		__global_reg_poll(gp);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
-hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry.patch
-kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection-fix.patch
-mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep-checkpatch-fixes.patch
-shmem-fix-faulting-into-a-hole-while-its-punched-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-fs-isofs-logging-clean-up-fix.patch
+nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
+cma-generalize-cma-reserved-area-management-functionality-fix.patch
+lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-3.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
