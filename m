@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch added to -mm tree
-Date: Mon, 23 Jun 2014 15:06:59 -0700
-Message-ID: <53a8a503.OAhBERJrZxhKKcrU%akpm@linux-foundation.org>
+Subject: + panic-add-taint_softlockup.patch added to -mm tree
+Date: Mon, 23 Jun 2014 15:11:44 -0700
+Message-ID: <53a8a620.3t7q0TkGT6CBrLPv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53567 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53585 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750775AbaFWWG7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 18:06:59 -0400
+	with ESMTP id S1751607AbaFWWLp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 18:11:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: johunt@akamai.com, jbaron@akamai.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test-kstrtox.c: use ARRAY_SIZE instead of sizeof/sizeof[0]
+     Subject: panic: add TAINT_SOFTLOCKUP
 has been added to the -mm tree.  Its filename is
-     lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
+     panic-add-taint_softlockup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/panic-add-taint_softlockup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/panic-add-taint_softlockup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,74 +38,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: lib/test-kstrtox.c: use ARRAY_SIZE instead of sizeof/sizeof[0]
+From: Josh Hunt <johunt@akamai.com>
+Subject: panic: add TAINT_SOFTLOCKUP
 
-Use kernel.h definition.
+This taint flag will be set if the system has ever entered a softlockup
+state.  Similar to TAINT_WARN it is useful to know whether or not the
+system has been in a softlockup state when debugging.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Josh Hunt <johunt@akamai.com>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test-kstrtox.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/oops-tracing.txt  |    2 ++
+ Documentation/sysctl/kernel.txt |    1 +
+ include/linux/kernel.h          |    1 +
+ kernel/panic.c                  |    1 +
+ kernel/watchdog.c               |    1 +
+ 5 files changed, 6 insertions(+)
 
-diff -puN lib/test-kstrtox.c~lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof lib/test-kstrtox.c
---- a/lib/test-kstrtox.c~lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof
-+++ a/lib/test-kstrtox.c
-@@ -3,7 +3,7 @@
- #include <linux/module.h>
+diff -puN Documentation/oops-tracing.txt~panic-add-taint_softlockup Documentation/oops-tracing.txt
+--- a/Documentation/oops-tracing.txt~panic-add-taint_softlockup
++++ a/Documentation/oops-tracing.txt
+@@ -268,6 +268,8 @@ characters, each representing a particul
+  14: 'E' if an unsigned module has been loaded in a kernel supporting
+      module signature.
  
- #define for_each_test(i, test)	\
--	for (i = 0; i < sizeof(test) / sizeof(test[0]); i++)
-+	for (i = 0; i < ARRAY_SIZE(test); i++)
++ 15: 'L' if a soft lockup has previously occurred on the system.
++
+ The primary reason for the 'Tainted: ' string is to tell kernel
+ debuggers if this is a clean kernel or if anything unusual has
+ occurred.  Tainting is permanent: even if an offending module is
+diff -puN Documentation/sysctl/kernel.txt~panic-add-taint_softlockup Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~panic-add-taint_softlockup
++++ a/Documentation/sysctl/kernel.txt
+@@ -826,6 +826,7 @@ can be ORed together:
+ 4096 - An out-of-tree module has been loaded.
+ 8192 - An unsigned module has been loaded in a kernel supporting module
+        signature.
++16384 - A soft lockup has previously occurred on the system.
  
- struct test_fail {
- 	const char *str;
+ ==============================================================
+ 
+diff -puN include/linux/kernel.h~panic-add-taint_softlockup include/linux/kernel.h
+--- a/include/linux/kernel.h~panic-add-taint_softlockup
++++ a/include/linux/kernel.h
+@@ -470,6 +470,7 @@ extern enum system_states {
+ #define TAINT_FIRMWARE_WORKAROUND	11
+ #define TAINT_OOT_MODULE		12
+ #define TAINT_UNSIGNED_MODULE		13
++#define TAINT_SOFTLOCKUP		14
+ 
+ extern const char hex_asc[];
+ #define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
+diff -puN kernel/panic.c~panic-add-taint_softlockup kernel/panic.c
+--- a/kernel/panic.c~panic-add-taint_softlockup
++++ a/kernel/panic.c
+@@ -224,6 +224,7 @@ static const struct tnt tnts[] = {
+ 	{ TAINT_FIRMWARE_WORKAROUND,	'I', ' ' },
+ 	{ TAINT_OOT_MODULE,		'O', ' ' },
+ 	{ TAINT_UNSIGNED_MODULE,	'E', ' ' },
++	{ TAINT_SOFTLOCKUP,		'L', ' ' },
+ };
+ 
+ /**
+diff -puN kernel/watchdog.c~panic-add-taint_softlockup kernel/watchdog.c
+--- a/kernel/watchdog.c~panic-add-taint_softlockup
++++ a/kernel/watchdog.c
+@@ -370,6 +370,7 @@ static enum hrtimer_restart watchdog_tim
+ 
+ 		if (softlockup_panic)
+ 			panic("softlockup: hung tasks");
++		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
+ 		__this_cpu_write(soft_watchdog_warn, true);
+ 	} else
+ 		__this_cpu_write(soft_watchdog_warn, false);
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from johunt@akamai.com are
 
-kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
-fs-cifs-remove-obsolete-__constant.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-squashfs-superc-logging-clean-up.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
-mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
-mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
-mm-internalh-use-nth_page.patch
-mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
-lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
-fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
-kernel-test_kprobesc-use-current-logging-functions.patch
-fs-isofs-logging-clean-up.patch
-fs-isofs-logging-clean-up-fix.patch
-fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
-fs-ufs-convert-printk-to-pr_foo.patch
-fs-ufs-use-pr_fmt.patch
-fs-ufs-superc-use-__func__-in-logging.patch
-fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
-fs-ufs-convert-ufsd-printk-to-pr_debug.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
-drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
-fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
-fs-cachefiles-bindc-remove-unnecessary-assertions.patch
-fs-romfs-superc-convert-printk-to-pr_foo.patch
-fs-romfs-superc-use-pr_fmt-in-logging.patch
-fs-romfs-superc-add-blank-line-after-declarations.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-linux-next.patch
-init-mainc-code-clean-up.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+panic-add-taint_softlockup.patch
+panic-add-taint_softlockup-fix.patch
 
