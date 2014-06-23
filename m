@@ -1,118 +1,88 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ocfs2-manually-do-the-iput-once-ocfs2_add_entry-failed-in-ocfs2_symlink-and-ocfs2_mknod-v2.patch removed from -mm tree
-Date: Mon, 23 Jun 2014 13:13:34 -0700
-Message-ID: <53a88a6e.RPUrzOl2ykYSBIOy%akpm@linux-foundation.org>
+ ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master-fix.patch
+ removed from -mm tree
+Date: Mon, 23 Jun 2014 13:13:57 -0700
+Message-ID: <53a88a85.MHVIoPPEEsDOSzon%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52661 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52663 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754116AbaFWUNf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 16:13:35 -0400
+	with ESMTP id S1753812AbaFWUN6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 16:13:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.de, jlbec@evilplan.org, jiangyiwen@huawei.com
+To: mm-commits@vger.kernel.org, xuejiufei@huawei.com, fengguang.wu@intel.com
 
 
 The patch titled
-     Subject: ocfs2: manually do the iput once ocfs2_add_entry failed in ocfs2_symlink and ocfs2_mknod
+     Subject: ocfs2/dlm: dlm_lockres_grab_inflight_worker() can be static
 has been removed from the -mm tree.  Its filename was
-     ocfs2-manually-do-the-iput-once-ocfs2_add_entry-failed-in-ocfs2_symlink-and-ocfs2_mknod-v2.patch
+     ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master-fix.patch
 
-This patch was dropped because it was folded into ocfs2-manually-do-the-iput-once-ocfs2_add_entry-failed-in-ocfs2_symlink-and-ocfs2_mknod.patch
+This patch was dropped because it was folded into ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
 
 ------------------------------------------------------
-From: jiangyiwen <jiangyiwen@huawei.com>
-Subject: ocfs2: manually do the iput once ocfs2_add_entry failed in ocfs2_symlink and ocfs2_mknod
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: ocfs2/dlm: dlm_lockres_grab_inflight_worker() can be static
 
-When the call to ocfs2_add_entry() failed in ocfs2_symlink() and
-ocfs2_mknod(), iput() will not be called during dput(dentry) because no
-d_instantiate(), and this will lead to umount hung.
-
-Signed-off-by: jiangyiwen <jiangyiwen@huawei.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Xue jiufei <xuejiufei@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |   41 +++++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 20 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-manually-do-the-iput-once-ocfs2_add_entry-failed-in-ocfs2_symlink-and-ocfs2_mknod-v2 fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-manually-do-the-iput-once-ocfs2_add_entry-failed-in-ocfs2_symlink-and-ocfs2_mknod-v2
-+++ a/fs/ocfs2/namei.c
-@@ -205,6 +205,21 @@ static struct inode *ocfs2_get_init_inod
- 	return inode;
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master-fix fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master-fix
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -694,7 +694,7 @@ void __dlm_lockres_grab_inflight_worker(
+ 			res->inflight_assert_workers);
  }
  
-+static void ocfs2_cleanup_add_entry_failure(struct ocfs2_super *osb,
-+		struct dentry *dentry, struct inode *inode)
-+{
-+	struct ocfs2_dentry_lock *dl = dentry->d_fsdata;
-+
-+	ocfs2_simple_drop_lockres(osb, &dl->dl_lockres);
-+	ocfs2_lock_res_free(&dl->dl_lockres);
-+	BUG_ON(dl->dl_count != 1);
-+	spin_lock(&dentry_attach_lock);
-+	dentry->d_fsdata = NULL;
-+	spin_unlock(&dentry_attach_lock);
-+	kfree(dl);
-+	iput(inode);
-+}
-+
- static int ocfs2_mknod(struct inode *dir,
- 		       struct dentry *dentry,
- 		       umode_t mode,
-@@ -472,16 +487,9 @@ leave:
- 	 * ocfs2_delete_inode will mutex_lock again.
- 	 */
- 	if ((status < 0) && inode) {
--		if (dl) {
--			ocfs2_simple_drop_lockres(osb, &dl->dl_lockres);
--			ocfs2_lock_res_free(&dl->dl_lockres);
--			BUG_ON(dl->dl_count != 1);
--			spin_lock(&dentry_attach_lock);
--			dentry->d_fsdata = NULL;
--			spin_unlock(&dentry_attach_lock);
--			kfree(dl);
--			iput(inode);
--		}
-+		if (dl)
-+			ocfs2_cleanup_add_entry_failure(osb, dentry, inode);
-+
- 		OCFS2_I(inode)->ip_flags |= OCFS2_INODE_SKIP_ORPHAN_DIR;
- 		clear_nlink(inode);
- 		iput(inode);
-@@ -1972,16 +1980,9 @@ bail:
- 	if (xattr_ac)
- 		ocfs2_free_alloc_context(xattr_ac);
- 	if ((status < 0) && inode) {
--		if (dl) {
--			ocfs2_simple_drop_lockres(osb, &dl->dl_lockres);
--			ocfs2_lock_res_free(&dl->dl_lockres);
--			BUG_ON(dl->dl_count != 1);
--			spin_lock(&dentry_attach_lock);
--			dentry->d_fsdata = NULL;
--			spin_unlock(&dentry_attach_lock);
--			kfree(dl);
--			iput(inode);
--		}
-+		if (dl)
-+			ocfs2_cleanup_add_entry_failure(osb, dentry, inode);
-+
- 		OCFS2_I(inode)->ip_flags |= OCFS2_INODE_SKIP_ORPHAN_DIR;
- 		clear_nlink(inode);
- 		iput(inode);
+-void dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
++static void dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
+ 		struct dlm_lock_resource *res)
+ {
+ 	spin_lock(&res->spinlock);
+@@ -702,7 +702,7 @@ void dlm_lockres_grab_inflight_worker(st
+ 	spin_unlock(&res->spinlock);
+ }
+ 
+-void __dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
++static void __dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
+ 		struct dlm_lock_resource *res)
+ {
+ 	assert_spin_locked(&res->spinlock);
+@@ -713,7 +713,7 @@ void __dlm_lockres_drop_inflight_worker(
+ 			res->inflight_assert_workers);
+ }
+ 
+-void dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
++static void dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
+ 		struct dlm_lock_resource *res)
+ {
+ 	spin_lock(&res->spinlock);
 _
 
-Patches currently in -mm which might be from jiangyiwen@huawei.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-ocfs2-dlm-fix-misuse-of-list_move_tail-in-dlm_run_purge_list.patch
-ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
-ocfs2-manually-do-the-iput-once-ocfs2_add_entry-failed-in-ocfs2_symlink-and-ocfs2_mknod.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-ocfs2-remove-convertion-of-total_backoff-in-dlm_join_domain.patch
+kexec-save-pg_head_mask-in-vmcoreinfo.patch
+ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh.patch
+ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
+slab-common-add-functions-for-kmem_cache_node-access-fix.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
+mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+mm-memcontrol-rewrite-uncharge-api-fix-2.patch
+include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max-fix.patch
+add-lib-globc-fix.patch
+lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix.patch
+lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2.patch
+linux-next.patch
+mm-add-strictlimit-knob-v2.patch
+debugging-keep-track-of-page-owners.patch
 
