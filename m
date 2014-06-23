@@ -1,108 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- slab-fix-oops-when-reading-proc-slab_allocators-v2.patch removed from -mm
- tree
-Date: Mon, 23 Jun 2014 13:12:50 -0700
-Message-ID: <53a88a42.ZENq1ip1mC26hsVd%akpm__30158.7463975467$1403554391$gmane$org@linux-foundation.org>
+ ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2.patch removed from -mm tree
+Date: Mon, 23 Jun 2014 13:13:14 -0700
+Message-ID: <53a88a5a.6NzaDyxpBD5ANxwA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52651 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52656 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754116AbaFWUMw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 16:12:52 -0400
+	with ESMTP id S1754116AbaFWUNO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 16:13:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vdavydov@parallels.com, stable@vger.kernel.org, rientjes@google.com, penguin-kernel@I-love.SAKURA.ne.jp, penberg@kernel.org, davej@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.de, joseph.qi@huawei.com, jlbec@evilplan.org, jiangyiwen@huawei.com
 
 
 The patch titled
-     Subject: slab-fix-oops-when-reading-proc-slab_allocators-v2
+     Subject: ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2
 has been removed from the -mm tree.  Its filename was
-     slab-fix-oops-when-reading-proc-slab_allocators-v2.patch
+     ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2.patch
 
-This patch was dropped because it was folded into slab-fix-oops-when-reading-proc-slab_allocators.patch
+This patch was dropped because it was folded into ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: slab-fix-oops-when-reading-proc-slab_allocators-v2
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2
 
-v2: edit one more function, calculate_slab_order(), that wants to know
-    how much space per object is spent for freelist management.
-
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Dave Jones <davej@redhat.com>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/ocfs2/namei.c       |    7 +++----
+ fs/ocfs2/ocfs2_trace.h |    2 ++
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/slab.c~slab-fix-oops-when-reading-proc-slab_allocators-v2 mm/slab.c
---- a/mm/slab.c~slab-fix-oops-when-reading-proc-slab_allocators-v2
-+++ a/mm/slab.c
-@@ -2093,13 +2093,16 @@ static size_t calculate_slab_order(struc
- 			break;
+diff -puN fs/ocfs2/namei.c~ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2 fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2
++++ a/fs/ocfs2/namei.c
+@@ -1222,10 +1222,9 @@ static int ocfs2_rename(struct inode *ol
+ 			goto bail;
+ 		} else if (status == 1) {
+ 			status = -EPERM;
+-			mlog(ML_ERROR, "src inode %llu should not be ancestor "
+-				"of new dir inode %llu\n",
+-				(unsigned long long)old_inode->i_ino,
+-				(unsigned long long)new_dir->i_ino);
++			trace_ocfs2_rename_not_permitted(
++					(unsigned long long)old_inode->i_ino,
++					(unsigned long long)new_dir->i_ino);
+ 			goto bail;
+ 		}
+ 	}
+diff -puN fs/ocfs2/ocfs2_trace.h~ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2 fs/ocfs2/ocfs2_trace.h
+--- a/fs/ocfs2/ocfs2_trace.h~ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer-v2
++++ a/fs/ocfs2/ocfs2_trace.h
+@@ -2292,6 +2292,8 @@ TRACE_EVENT(ocfs2_rename,
+ 		  __entry->new_len, __get_str(new_name))
+ );
  
- 		if (flags & CFLGS_OFF_SLAB) {
-+			size_t freelist_size_per_obj = sizeof(freelist_idx_t);
- 			/*
- 			 * Max number of objs-per-slab for caches which
- 			 * use off-slab slabs. Needed to avoid a possible
- 			 * looping condition in cache_grow().
- 			 */
-+			if (IS_ENABLED(CONFIG_DEBUG_SLAB_LEAK))
-+				freelist_size_per_obj += sizeof(char);
- 			offslab_limit = size;
--			offslab_limit /= sizeof(freelist_idx_t);
-+			offslab_limit /= freelist_size_per_obj;
- 
-  			if (num > offslab_limit)
- 				break;
++DEFINE_OCFS2_ULL_ULL_EVENT(ocfs2_rename_not_permitted);
++
+ TRACE_EVENT(ocfs2_rename_target_exists,
+ 	TP_PROTO(int new_len, const char *new_name),
+ 	TP_ARGS(new_len, new_name),
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
-slab-maintainer-update.patch
-slab-fix-oops-when-reading-proc-slab_allocators.patch
-dma-cma-fix-possible-memory-leak.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-slab-common-add-functions-for-kmem_cache_node-access.patch
-slub-use-new-node-functions.patch
-slub-use-new-node-functions-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-mm-slub-mark-resiliency_test-as-init-text.patch
-mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
-vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-memcg-cleanup-memcg_cache_params-refcnt-usage.patch
-memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
-memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
-slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
-slub-make-slab_free-non-preemptable.patch
-memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
-slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
-slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
-dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
-dma-cma-support-alignment-constraint-on-cma-region.patch
-dma-cma-support-arbitrary-bitmap-granularity.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-cma-generalize-cma-reserved-area-management-functionality.patch
-cma-generalize-cma-reserved-area-management-functionality-fix.patch
-ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
-mm-cma-clean-up-cma-allocation-error-path.patch
-mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
-mm-cma-clean-up-log-message.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-page-owners-correct-page-order-when-to-free-page.patch
+ocfs2-dlm-fix-misuse-of-list_move_tail-in-dlm_run_purge_list.patch
+ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
+ocfs2-manually-do-the-iput-once-ocfs2_add_entry-failed-in-ocfs2_symlink-and-ocfs2_mknod.patch
+ocfs2-manually-do-the-iput-once-ocfs2_add_entry-failed-in-ocfs2_symlink-and-ocfs2_mknod-v2.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+ocfs2-remove-convertion-of-total_backoff-in-dlm_join_domain.patch
 
