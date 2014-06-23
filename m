@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-add-sys-fs-nilfs2-device-segctor-group.patch added to
- -mm tree
-Date: Mon, 23 Jun 2014 14:05:32 -0700
-Message-ID: <53a8969c.R+BEIHxiICPI4ePn%akpm@linux-foundation.org>
+Subject: + nilfs2-integrate-sysfs-support-into-driver.patch added to -mm
+ tree
+Date: Mon, 23 Jun 2014 14:05:39 -0700
+Message-ID: <53a896a3.0Xis04SQrKPKJ7Uq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53154 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53174 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754483AbaFWVFd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 17:05:33 -0400
+	with ESMTP id S1754941AbaFWVFk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 17:05:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Vyacheslav.Dubeyko@hgst.com, konishi.ryusuke@lab.ntt.co.jp, mlsemon35@gmail.com, slava@dubeyko.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add /sys/fs/nilfs2/<device>/segctor group
+     Subject: nilfs2: integrate sysfs support into driver
 has been added to the -mm tree.  Its filename is
-     nilfs2-add-sys-fs-nilfs2-device-segctor-group.patch
+     nilfs2-integrate-sysfs-support-into-driver.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-sys-fs-nilfs2-device-segctor-group.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-integrate-sysfs-support-into-driver.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-sys-fs-nilfs2-device-segctor-group.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-integrate-sysfs-support-into-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,488 +40,189 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <Vyacheslav.Dubeyko@hgst.com>
-Subject: nilfs2: add /sys/fs/nilfs2/<device>/segctor group
+Subject: nilfs2: integrate sysfs support into driver
 
-This patch adds creation of /sys/fs/nilfs2/<device>/segctor
-group.
+This patch integrates creation of sysfs groups and
+attributes into NILFS file system driver.
 
-The segctor group contains attributes that describe
-segctor thread activity details:
-(1) last_pseg_block - show start block number of the latest segment.
-(2) last_seg_sequence - show sequence value of the latest segment.
-(3) last_seg_checkpoint - show checkpoint number of the latest segment.
-(4) current_seg_sequence - show segment sequence counter.
-(5) current_last_full_seg - show index number of the latest full segment.
-(6) next_full_seg - show index number of the full segment index
-to be used next.
-(7) next_pseg_offset - show offset of next partial segment in
-the current full segment.
-(8) next_checkpoint - show next checkpoint number.
-(9) last_seg_write_time - show write time of the last segment
-in human-readable format.
-(10) last_seg_write_time_secs - show write time of the last segment
-in seconds.
-(11) last_nongc_write_time - show write time of the last segment
-not for cleaner operation in human-readable format.
-(12) last_nongc_write_time_secs - show write time of the last segment
-not for cleaner operation in seconds.
-(13) dirty_data_blocks_count - show number of dirty data blocks.
+It was found the issue with nilfs_sysfs_{create/delete}_snapshot_group
+functions by Michael L. Semon <mlsemon35@gmail.com> in the first
+version of the patch:
 
+[ 4928.585682] BUG: sleeping function called from invalid context at kernel/locking/mutex.c:579
+[ 4928.585693] in_atomic(): 1, irqs_disabled(): 0, pid: 32676, name: umount.nilfs2
+[ 4928.585698] 2 locks held by umount.nilfs2/32676:
+[ 4928.585703]  #0:  (&type->s_umount_key#21){++++..}, at: [<790c18e2>] deactivate_super+0x37/0x58
+[ 4928.585732]  #1:  (&(&nilfs->ns_cptree_lock)->rlock){+.+...}, at: [<791bf659>] nilfs_put_root+0x23/0x5a
+[ 4928.585749] Preemption disabled at:[<791bf659>] nilfs_put_root+0x23/0x5a
+
+[ 4928.585766] CPU: 0 PID: 32676 Comm: umount.nilfs2 Not tainted 3.14.0+ #2
+[ 4928.585771] Hardware name: Dell Computer Corporation Dimension 2350/07W080, BIOS A01 12/17/2002
+[ 4928.585777]  00000000 00000000 93cdddf8 793ff0bd c14dd780 93cdde20 7904bf38 794d5224
+[ 4928.585795]  791bf659 791bf659 00007fa4 c14dda00 00000000 78025360 79552b80 93cdde68
+[ 4928.585811]  7940136e 00000000 00000002 c14dd780 79552d10 c14ddc00 93cdde68 00000246
+[ 4928.585828] Call Trace:
+[ 4928.585842]  [<793ff0bd>] dump_stack+0x4b/0x75
+[ 4928.585854]  [<7904bf38>] __might_sleep+0x111/0x16f
+[ 4928.585862]  [<791bf659>] ? nilfs_put_root+0x23/0x5a
+[ 4928.585870]  [<791bf659>] ? nilfs_put_root+0x23/0x5a
+[ 4928.585880]  [<7940136e>] mutex_lock_nested+0x1e/0x3ad
+[ 4928.585893]  [<7911186e>] ? sysfs_remove_dir+0x25/0x62
+[ 4928.585901]  [<7910fdb8>] kernfs_remove+0x12/0x26
+[ 4928.585908]  [<79111886>] sysfs_remove_dir+0x3d/0x62
+[ 4928.585918]  [<792953bb>] kobject_del+0x13/0x38
+[ 4928.585926]  [<791cabd4>] nilfs_sysfs_delete_snapshot_group+0xb/0xd
+[ 4928.585934]  [<791bf660>] nilfs_put_root+0x2a/0x5a
+[ 4928.585942]  [<791c3827>] nilfs_detach_log_writer+0x1ab/0x2c1
+[ 4928.585953]  [<7906c283>] ? call_rcu+0x17/0x19
+[ 4928.585963]  [<790d5c4b>] ? dispose_list+0x27/0x31
+[ 4928.585973]  [<791b4312>] nilfs_put_super+0x13/0x68
+[ 4928.585980]  [<790c1bc8>] generic_shutdown_super+0x60/0xd1
+[ 4928.585988]  [<790c29dd>] kill_block_super+0x1d/0x60
+[ 4928.585996]  [<790c188e>] deactivate_locked_super+0x22/0x3f
+[ 4928.586096]  [<790c18e9>] deactivate_super+0x3e/0x58
+[ 4928.586107]  [<790d95af>] mntput_no_expire+0xe2/0x141
+[ 4928.586115]  [<790d94db>] ? mntput_no_expire+0xe/0x141
+[ 4928.586123]  [<790dabed>] SyS_oldumount+0x70/0xa5
+[ 4928.586131]  [<794050ff>] syscall_call+0x7/0xb
+
+The reason of the issue was placement of
+nilfs_sysfs_{create/delete}_snapshot_group() call under
+nilfs->ns_cptree_lock protection.  But this protection is unnecessary and
+wrong solution.  The second version of the patch fixes this issue.
+
+Reported-by: Michael L. Semon <mlsemon35@gmail.com>
 Signed-off-by: Vyacheslav Dubeyko <Vyacheslav.Dubeyko@hgst.com>
 Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
 Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Michael L. Semon <mlsemon35@gmail.com>
+Tested-by: Michael L. Semon <mlsemon35@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-fs-nilfs2 |   90 ++++++
- fs/nilfs2/sysfs.c                         |  270 ++++++++++++++++++++
- fs/nilfs2/sysfs.h                         |   16 +
- 3 files changed, 376 insertions(+)
+ fs/nilfs2/Makefile    |    2 +-
+ fs/nilfs2/nilfs.h     |    8 ++++++++
+ fs/nilfs2/super.c     |    9 ++++++++-
+ fs/nilfs2/the_nilfs.c |   16 +++++++++++++++-
+ 4 files changed, 32 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-fs-nilfs2~nilfs2-add-sys-fs-nilfs2-device-segctor-group Documentation/ABI/testing/sysfs-fs-nilfs2
---- a/Documentation/ABI/testing/sysfs-fs-nilfs2~nilfs2-add-sys-fs-nilfs2-device-segctor-group
-+++ a/Documentation/ABI/testing/sysfs-fs-nilfs2
-@@ -89,3 +89,93 @@ Contact:	"Vyacheslav Dubeyko" <slava@dub
- Description:
- 		Describe attributes of /sys/fs/nilfs2/<device>/superblock
- 		group.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/last_pseg_block
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show start block number of the latest segment.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/last_seg_sequence
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show sequence value of the latest segment.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/last_seg_checkpoint
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show checkpoint number of the latest segment.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/current_seg_sequence
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show segment sequence counter.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/current_last_full_seg
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show index number of the latest full segment.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/next_full_seg
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show index number of the full segment index
-+		to be used next.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/next_pseg_offset
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show offset of next partial segment in the current
-+		full segment.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/next_checkpoint
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show next checkpoint number.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/last_seg_write_time
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show write time of the last segment in
-+		human-readable format.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/last_seg_write_time_secs
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show write time of the last segment in seconds.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/last_nongc_write_time
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show write time of the last segment not for cleaner
-+		operation in human-readable format.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/last_nongc_write_time_secs
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show write time of the last segment not for cleaner
-+		operation in seconds.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/dirty_data_blocks_count
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Show number of dirty data blocks.
-+
-+What:		/sys/fs/nilfs2/<device>/segctor/README
-+Date:		April 2014
-+Contact:	"Vyacheslav Dubeyko" <slava@dubeyko.com>
-+Description:
-+		Describe attributes of /sys/fs/nilfs2/<device>/segctor
-+		group.
-diff -puN fs/nilfs2/sysfs.c~nilfs2-add-sys-fs-nilfs2-device-segctor-group fs/nilfs2/sysfs.c
---- a/fs/nilfs2/sysfs.c~nilfs2-add-sys-fs-nilfs2-device-segctor-group
-+++ a/fs/nilfs2/sysfs.c
-@@ -112,6 +112,268 @@ void nilfs_sysfs_delete_##name##_group(s
- }
+diff -puN fs/nilfs2/Makefile~nilfs2-integrate-sysfs-support-into-driver fs/nilfs2/Makefile
+--- a/fs/nilfs2/Makefile~nilfs2-integrate-sysfs-support-into-driver
++++ a/fs/nilfs2/Makefile
+@@ -2,4 +2,4 @@ obj-$(CONFIG_NILFS2_FS) += nilfs2.o
+ nilfs2-y := inode.o file.o dir.o super.o namei.o page.o mdt.o \
+ 	btnode.o bmap.o btree.o direct.o dat.o recovery.o \
+ 	the_nilfs.o segbuf.o segment.o cpfile.o sufile.o \
+-	ifile.o alloc.o gcinode.o ioctl.o
++	ifile.o alloc.o gcinode.o ioctl.o sysfs.o
+diff -puN fs/nilfs2/nilfs.h~nilfs2-integrate-sysfs-support-into-driver fs/nilfs2/nilfs.h
+--- a/fs/nilfs2/nilfs.h~nilfs2-integrate-sysfs-support-into-driver
++++ a/fs/nilfs2/nilfs.h
+@@ -320,6 +320,14 @@ int nilfs_gccache_wait_and_mark_dirty(st
+ int nilfs_init_gcinode(struct inode *inode);
+ void nilfs_remove_all_gcinodes(struct the_nilfs *nilfs);
  
- /************************************************************************
-+ *                        NILFS segctor attrs                           *
-+ ************************************************************************/
++/* sysfs.c */
++int __init nilfs_sysfs_init(void);
++void nilfs_sysfs_exit(void);
++int nilfs_sysfs_create_device_group(struct super_block *);
++void nilfs_sysfs_delete_device_group(struct the_nilfs *);
++int nilfs_sysfs_create_snapshot_group(struct nilfs_root *);
++void nilfs_sysfs_delete_snapshot_group(struct nilfs_root *);
 +
-+static ssize_t
-+nilfs_segctor_last_pseg_block_show(struct nilfs_segctor_attr *attr,
-+				    struct the_nilfs *nilfs,
-+				    char *buf)
-+{
-+	sector_t last_pseg;
-+
-+	spin_lock(&nilfs->ns_last_segment_lock);
-+	last_pseg = nilfs->ns_last_pseg;
-+	spin_unlock(&nilfs->ns_last_segment_lock);
-+
-+	return snprintf(buf, PAGE_SIZE, "%llu\n",
-+			(unsigned long long)last_pseg);
-+}
-+
-+static ssize_t
-+nilfs_segctor_last_seg_sequence_show(struct nilfs_segctor_attr *attr,
-+					struct the_nilfs *nilfs,
-+					char *buf)
-+{
-+	u64 last_seq;
-+
-+	spin_lock(&nilfs->ns_last_segment_lock);
-+	last_seq = nilfs->ns_last_seq;
-+	spin_unlock(&nilfs->ns_last_segment_lock);
-+
-+	return snprintf(buf, PAGE_SIZE, "%llu\n", last_seq);
-+}
-+
-+static ssize_t
-+nilfs_segctor_last_seg_checkpoint_show(struct nilfs_segctor_attr *attr,
-+					struct the_nilfs *nilfs,
-+					char *buf)
-+{
-+	__u64 last_cno;
-+
-+	spin_lock(&nilfs->ns_last_segment_lock);
-+	last_cno = nilfs->ns_last_cno;
-+	spin_unlock(&nilfs->ns_last_segment_lock);
-+
-+	return snprintf(buf, PAGE_SIZE, "%llu\n", last_cno);
-+}
-+
-+static ssize_t
-+nilfs_segctor_current_seg_sequence_show(struct nilfs_segctor_attr *attr,
-+					struct the_nilfs *nilfs,
-+					char *buf)
-+{
-+	u64 seg_seq;
-+
-+	down_read(&nilfs->ns_sem);
-+	seg_seq = nilfs->ns_seg_seq;
-+	up_read(&nilfs->ns_sem);
-+
-+	return snprintf(buf, PAGE_SIZE, "%llu\n", seg_seq);
-+}
-+
-+static ssize_t
-+nilfs_segctor_current_last_full_seg_show(struct nilfs_segctor_attr *attr,
-+					 struct the_nilfs *nilfs,
-+					 char *buf)
-+{
-+	__u64 segnum;
-+
-+	down_read(&nilfs->ns_sem);
-+	segnum = nilfs->ns_segnum;
-+	up_read(&nilfs->ns_sem);
-+
-+	return snprintf(buf, PAGE_SIZE, "%llu\n", segnum);
-+}
-+
-+static ssize_t
-+nilfs_segctor_next_full_seg_show(struct nilfs_segctor_attr *attr,
-+				 struct the_nilfs *nilfs,
-+				 char *buf)
-+{
-+	__u64 nextnum;
-+
-+	down_read(&nilfs->ns_sem);
-+	nextnum = nilfs->ns_nextnum;
-+	up_read(&nilfs->ns_sem);
-+
-+	return snprintf(buf, PAGE_SIZE, "%llu\n", nextnum);
-+}
-+
-+static ssize_t
-+nilfs_segctor_next_pseg_offset_show(struct nilfs_segctor_attr *attr,
-+					struct the_nilfs *nilfs,
-+					char *buf)
-+{
-+	unsigned long pseg_offset;
-+
-+	down_read(&nilfs->ns_sem);
-+	pseg_offset = nilfs->ns_pseg_offset;
-+	up_read(&nilfs->ns_sem);
-+
-+	return snprintf(buf, PAGE_SIZE, "%lu\n", pseg_offset);
-+}
-+
-+static ssize_t
-+nilfs_segctor_next_checkpoint_show(struct nilfs_segctor_attr *attr,
-+					struct the_nilfs *nilfs,
-+					char *buf)
-+{
-+	__u64 cno;
-+
-+	down_read(&nilfs->ns_sem);
-+	cno = nilfs->ns_cno;
-+	up_read(&nilfs->ns_sem);
-+
-+	return snprintf(buf, PAGE_SIZE, "%llu\n", cno);
-+}
-+
-+static ssize_t
-+nilfs_segctor_last_seg_write_time_show(struct nilfs_segctor_attr *attr,
-+					struct the_nilfs *nilfs,
-+					char *buf)
-+{
-+	time_t ctime;
-+
-+	down_read(&nilfs->ns_sem);
-+	ctime = nilfs->ns_ctime;
-+	up_read(&nilfs->ns_sem);
-+
-+	return NILFS_SHOW_TIME(ctime, buf);
-+}
-+
-+static ssize_t
-+nilfs_segctor_last_seg_write_time_secs_show(struct nilfs_segctor_attr *attr,
-+					    struct the_nilfs *nilfs,
-+					    char *buf)
-+{
-+	time_t ctime;
-+
-+	down_read(&nilfs->ns_sem);
-+	ctime = nilfs->ns_ctime;
-+	up_read(&nilfs->ns_sem);
-+
-+	return snprintf(buf, PAGE_SIZE, "%llu\n", (unsigned long long)ctime);
-+}
-+
-+static ssize_t
-+nilfs_segctor_last_nongc_write_time_show(struct nilfs_segctor_attr *attr,
-+					 struct the_nilfs *nilfs,
-+					 char *buf)
-+{
-+	time_t nongc_ctime;
-+
-+	down_read(&nilfs->ns_sem);
-+	nongc_ctime = nilfs->ns_nongc_ctime;
-+	up_read(&nilfs->ns_sem);
-+
-+	return NILFS_SHOW_TIME(nongc_ctime, buf);
-+}
-+
-+static ssize_t
-+nilfs_segctor_last_nongc_write_time_secs_show(struct nilfs_segctor_attr *attr,
-+						struct the_nilfs *nilfs,
-+						char *buf)
-+{
-+	time_t nongc_ctime;
-+
-+	down_read(&nilfs->ns_sem);
-+	nongc_ctime = nilfs->ns_nongc_ctime;
-+	up_read(&nilfs->ns_sem);
-+
-+	return snprintf(buf, PAGE_SIZE, "%llu\n",
-+			(unsigned long long)nongc_ctime);
-+}
-+
-+static ssize_t
-+nilfs_segctor_dirty_data_blocks_count_show(struct nilfs_segctor_attr *attr,
-+					    struct the_nilfs *nilfs,
-+					    char *buf)
-+{
-+	u32 ndirtyblks;
-+
-+	down_read(&nilfs->ns_sem);
-+	ndirtyblks = atomic_read(&nilfs->ns_ndirtyblks);
-+	up_read(&nilfs->ns_sem);
-+
-+	return snprintf(buf, PAGE_SIZE, "%u\n", ndirtyblks);
-+}
-+
-+static const char segctor_readme_str[] =
-+	"The segctor group contains attributes that describe\n"
-+	"segctor thread activity details.\n\n"
-+	"(1) last_pseg_block\n"
-+	"\tshow start block number of the latest segment.\n\n"
-+	"(2) last_seg_sequence\n"
-+	"\tshow sequence value of the latest segment.\n\n"
-+	"(3) last_seg_checkpoint\n"
-+	"\tshow checkpoint number of the latest segment.\n\n"
-+	"(4) current_seg_sequence\n\tshow segment sequence counter.\n\n"
-+	"(5) current_last_full_seg\n"
-+	"\tshow index number of the latest full segment.\n\n"
-+	"(6) next_full_seg\n"
-+	"\tshow index number of the full segment index to be used next.\n\n"
-+	"(7) next_pseg_offset\n"
-+	"\tshow offset of next partial segment in the current full segment.\n\n"
-+	"(8) next_checkpoint\n\tshow next checkpoint number.\n\n"
-+	"(9) last_seg_write_time\n"
-+	"\tshow write time of the last segment in human-readable format.\n\n"
-+	"(10) last_seg_write_time_secs\n"
-+	"\tshow write time of the last segment in seconds.\n\n"
-+	"(11) last_nongc_write_time\n"
-+	"\tshow write time of the last segment not for cleaner operation "
-+	"in human-readable format.\n\n"
-+	"(12) last_nongc_write_time_secs\n"
-+	"\tshow write time of the last segment not for cleaner operation "
-+	"in seconds.\n\n"
-+	"(13) dirty_data_blocks_count\n"
-+	"\tshow number of dirty data blocks.\n\n";
-+
-+static ssize_t
-+nilfs_segctor_README_show(struct nilfs_segctor_attr *attr,
-+			  struct the_nilfs *nilfs, char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, segctor_readme_str);
-+}
-+
-+NILFS_SEGCTOR_RO_ATTR(last_pseg_block);
-+NILFS_SEGCTOR_RO_ATTR(last_seg_sequence);
-+NILFS_SEGCTOR_RO_ATTR(last_seg_checkpoint);
-+NILFS_SEGCTOR_RO_ATTR(current_seg_sequence);
-+NILFS_SEGCTOR_RO_ATTR(current_last_full_seg);
-+NILFS_SEGCTOR_RO_ATTR(next_full_seg);
-+NILFS_SEGCTOR_RO_ATTR(next_pseg_offset);
-+NILFS_SEGCTOR_RO_ATTR(next_checkpoint);
-+NILFS_SEGCTOR_RO_ATTR(last_seg_write_time);
-+NILFS_SEGCTOR_RO_ATTR(last_seg_write_time_secs);
-+NILFS_SEGCTOR_RO_ATTR(last_nongc_write_time);
-+NILFS_SEGCTOR_RO_ATTR(last_nongc_write_time_secs);
-+NILFS_SEGCTOR_RO_ATTR(dirty_data_blocks_count);
-+NILFS_SEGCTOR_RO_ATTR(README);
-+
-+static struct attribute *nilfs_segctor_attrs[] = {
-+	NILFS_SEGCTOR_ATTR_LIST(last_pseg_block),
-+	NILFS_SEGCTOR_ATTR_LIST(last_seg_sequence),
-+	NILFS_SEGCTOR_ATTR_LIST(last_seg_checkpoint),
-+	NILFS_SEGCTOR_ATTR_LIST(current_seg_sequence),
-+	NILFS_SEGCTOR_ATTR_LIST(current_last_full_seg),
-+	NILFS_SEGCTOR_ATTR_LIST(next_full_seg),
-+	NILFS_SEGCTOR_ATTR_LIST(next_pseg_offset),
-+	NILFS_SEGCTOR_ATTR_LIST(next_checkpoint),
-+	NILFS_SEGCTOR_ATTR_LIST(last_seg_write_time),
-+	NILFS_SEGCTOR_ATTR_LIST(last_seg_write_time_secs),
-+	NILFS_SEGCTOR_ATTR_LIST(last_nongc_write_time),
-+	NILFS_SEGCTOR_ATTR_LIST(last_nongc_write_time_secs),
-+	NILFS_SEGCTOR_ATTR_LIST(dirty_data_blocks_count),
-+	NILFS_SEGCTOR_ATTR_LIST(README),
-+	NULL,
-+};
-+
-+NILFS_DEV_INT_GROUP_OPS(segctor, dev);
-+NILFS_DEV_INT_GROUP_TYPE(segctor, dev);
-+NILFS_DEV_INT_GROUP_FNS(segctor, dev);
-+
-+/************************************************************************
-  *                        NILFS superblock attrs                        *
-  ************************************************************************/
- 
-@@ -406,8 +668,15 @@ int nilfs_sysfs_create_device_group(stru
+ /*
+  * Inodes and files operations
+  */
+diff -puN fs/nilfs2/super.c~nilfs2-integrate-sysfs-support-into-driver fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-integrate-sysfs-support-into-driver
++++ a/fs/nilfs2/super.c
+@@ -1452,13 +1452,19 @@ static int __init init_nilfs_fs(void)
  	if (err)
- 		goto cleanup_dev_kobject;
+ 		goto fail;
  
-+	err = nilfs_sysfs_create_segctor_group(nilfs);
+-	err = register_filesystem(&nilfs_fs_type);
++	err = nilfs_sysfs_init();
+ 	if (err)
+ 		goto free_cachep;
+ 
++	err = register_filesystem(&nilfs_fs_type);
 +	if (err)
-+		goto delete_superblock_group;
++		goto deinit_sysfs_entry;
 +
+ 	printk(KERN_INFO "NILFS version 2 loaded\n");
  	return 0;
  
-+delete_superblock_group:
-+	nilfs_sysfs_delete_superblock_group(nilfs);
-+
- cleanup_dev_kobject:
- 	kobject_del(&nilfs->ns_dev_kobj);
- 
-@@ -421,6 +690,7 @@ failed_create_device_group:
- void nilfs_sysfs_delete_device_group(struct the_nilfs *nilfs)
++deinit_sysfs_entry:
++	nilfs_sysfs_exit();
+ free_cachep:
+ 	nilfs_destroy_cachep();
+ fail:
+@@ -1468,6 +1474,7 @@ fail:
+ static void __exit exit_nilfs_fs(void)
  {
- 	nilfs_sysfs_delete_superblock_group(nilfs);
-+	nilfs_sysfs_delete_segctor_group(nilfs);
- 	kobject_del(&nilfs->ns_dev_kobj);
- 	kfree(nilfs->ns_dev_subgroups);
+ 	nilfs_destroy_cachep();
++	nilfs_sysfs_exit();
+ 	unregister_filesystem(&nilfs_fs_type);
  }
-diff -puN fs/nilfs2/sysfs.h~nilfs2-add-sys-fs-nilfs2-device-segctor-group fs/nilfs2/sysfs.h
---- a/fs/nilfs2/sysfs.h~nilfs2-add-sys-fs-nilfs2-device-segctor-group
-+++ a/fs/nilfs2/sysfs.h
-@@ -28,11 +28,17 @@
-  * struct nilfs_sysfs_dev_subgroups - device subgroup kernel objects
-  * @sg_superblock_kobj: /sys/fs/<nilfs>/<device>/superblock
-  * @sg_superblock_kobj_unregister: completion state
-+ * @sg_segctor_kobj: /sys/fs/<nilfs>/<device>/segctor
-+ * @sg_segctor_kobj_unregister: completion state
-  */
- struct nilfs_sysfs_dev_subgroups {
- 	/* /sys/fs/<nilfs>/<device>/superblock */
- 	struct kobject sg_superblock_kobj;
- 	struct completion sg_superblock_kobj_unregister;
+ 
+diff -puN fs/nilfs2/the_nilfs.c~nilfs2-integrate-sysfs-support-into-driver fs/nilfs2/the_nilfs.c
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-integrate-sysfs-support-into-driver
++++ a/fs/nilfs2/the_nilfs.c
+@@ -98,6 +98,7 @@ void destroy_nilfs(struct the_nilfs *nil
+ {
+ 	might_sleep();
+ 	if (nilfs_init(nilfs)) {
++		nilfs_sysfs_delete_device_group(nilfs);
+ 		brelse(nilfs->ns_sbh[0]);
+ 		brelse(nilfs->ns_sbh[1]);
+ 	}
+@@ -641,6 +642,10 @@ int init_nilfs(struct the_nilfs *nilfs,
+ 	if (err)
+ 		goto failed_sbh;
+ 
++	err = nilfs_sysfs_create_device_group(sb);
++	if (err)
++		goto failed_sbh;
 +
-+	/* /sys/fs/<nilfs>/<device>/segctor */
-+	struct kobject sg_segctor_kobj;
-+	struct completion sg_segctor_kobj_unregister;
- };
+ 	set_nilfs_init(nilfs);
+ 	err = 0;
+  out:
+@@ -741,12 +746,13 @@ nilfs_find_or_create_root(struct the_nil
+ {
+ 	struct rb_node **p, *parent;
+ 	struct nilfs_root *root, *new;
++	int err;
  
- #define NILFS_COMMON_ATTR_STRUCT(name) \
-@@ -57,6 +63,7 @@ struct nilfs_##name##_attr { \
+ 	root = nilfs_lookup_root(nilfs, cno);
+ 	if (root)
+ 		return root;
  
- NILFS_DEV_ATTR_STRUCT(dev);
- NILFS_DEV_ATTR_STRUCT(superblock);
-+NILFS_DEV_ATTR_STRUCT(segctor);
+-	new = kmalloc(sizeof(*root), GFP_KERNEL);
++	new = kzalloc(sizeof(*root), GFP_KERNEL);
+ 	if (!new)
+ 		return NULL;
  
- #define NILFS_ATTR(type, name, mode, show, store) \
- 	static struct nilfs_##type##_attr nilfs_##type##_attr_##name = \
-@@ -90,11 +97,20 @@ NILFS_DEV_ATTR_STRUCT(superblock);
- #define NILFS_SUPERBLOCK_RW_ATTR(name) \
- 	NILFS_RW_ATTR(superblock, name)
+@@ -783,6 +789,12 @@ nilfs_find_or_create_root(struct the_nil
  
-+#define NILFS_SEGCTOR_INFO_ATTR(name) \
-+	NILFS_INFO_ATTR(segctor, name)
-+#define NILFS_SEGCTOR_RO_ATTR(name) \
-+	NILFS_RO_ATTR(segctor, name)
-+#define NILFS_SEGCTOR_RW_ATTR(name) \
-+	NILFS_RW_ATTR(segctor, name)
+ 	spin_unlock(&nilfs->ns_cptree_lock);
+ 
++	err = nilfs_sysfs_create_snapshot_group(new);
++	if (err) {
++		kfree(new);
++		new = NULL;
++	}
 +
- #define NILFS_FEATURE_ATTR_LIST(name) \
- 	(&nilfs_feature_attr_##name.attr)
- #define NILFS_DEV_ATTR_LIST(name) \
- 	(&nilfs_dev_attr_##name.attr)
- #define NILFS_SUPERBLOCK_ATTR_LIST(name) \
- 	(&nilfs_superblock_attr_##name.attr)
-+#define NILFS_SEGCTOR_ATTR_LIST(name) \
-+	(&nilfs_segctor_attr_##name.attr)
+ 	return new;
+ }
  
- #endif /* _NILFS_SYSFS_H */
+@@ -791,6 +803,8 @@ void nilfs_put_root(struct nilfs_root *r
+ 	if (atomic_dec_and_test(&root->count)) {
+ 		struct the_nilfs *nilfs = root->nilfs;
+ 
++		nilfs_sysfs_delete_snapshot_group(root);
++
+ 		spin_lock(&nilfs->ns_cptree_lock);
+ 		rb_erase(&root->rb_node, &nilfs->ns_cptree);
+ 		spin_unlock(&nilfs->ns_cptree_lock);
 _
 
 Patches currently in -mm which might be from Vyacheslav.Dubeyko@hgst.com are
