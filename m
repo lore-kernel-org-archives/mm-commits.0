@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + panic-add-taint_softlockup.patch added to -mm tree
-Date: Mon, 23 Jun 2014 15:11:44 -0700
-Message-ID: <53a8a620.3t7q0TkGT6CBrLPv%akpm@linux-foundation.org>
+Subject: + panic-add-taint_softlockup-fix.patch added to -mm tree
+Date: Mon, 23 Jun 2014 15:11:45 -0700
+Message-ID: <53a8a621.fL24QRfMwiJPvOie%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53585 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53589 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751607AbaFWWLp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 18:11:45 -0400
+	with ESMTP id S1751650AbaFWWLq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 18:11:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johunt@akamai.com, jbaron@akamai.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jbaron@akamai.com, johunt@akamai.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic: add TAINT_SOFTLOCKUP
+     Subject: panic-add-taint_softlockup-fix
 has been added to the -mm tree.  Its filename is
-     panic-add-taint_softlockup.patch
+     panic-add-taint_softlockup-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/panic-add-taint_softlockup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/panic-add-taint_softlockup-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/panic-add-taint_softlockup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/panic-add-taint_softlockup-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,87 +38,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Josh Hunt <johunt@akamai.com>
-Subject: panic: add TAINT_SOFTLOCKUP
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: panic-add-taint_softlockup-fix
 
-This taint flag will be set if the system has ever entered a softlockup
-state.  Similar to TAINT_WARN it is useful to know whether or not the
-system has been in a softlockup state when debugging.
+apply the tain before calling panic()
 
-Signed-off-by: Josh Hunt <johunt@akamai.com>
 Cc: Jason Baron <jbaron@akamai.com>
+Cc: Josh Hunt <johunt@akamai.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/oops-tracing.txt  |    2 ++
- Documentation/sysctl/kernel.txt |    1 +
- include/linux/kernel.h          |    1 +
- kernel/panic.c                  |    1 +
- kernel/watchdog.c               |    1 +
- 5 files changed, 6 insertions(+)
+ kernel/watchdog.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/oops-tracing.txt~panic-add-taint_softlockup Documentation/oops-tracing.txt
---- a/Documentation/oops-tracing.txt~panic-add-taint_softlockup
-+++ a/Documentation/oops-tracing.txt
-@@ -268,6 +268,8 @@ characters, each representing a particul
-  14: 'E' if an unsigned module has been loaded in a kernel supporting
-      module signature.
- 
-+ 15: 'L' if a soft lockup has previously occurred on the system.
-+
- The primary reason for the 'Tainted: ' string is to tell kernel
- debuggers if this is a clean kernel or if anything unusual has
- occurred.  Tainting is permanent: even if an offending module is
-diff -puN Documentation/sysctl/kernel.txt~panic-add-taint_softlockup Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~panic-add-taint_softlockup
-+++ a/Documentation/sysctl/kernel.txt
-@@ -826,6 +826,7 @@ can be ORed together:
- 4096 - An out-of-tree module has been loaded.
- 8192 - An unsigned module has been loaded in a kernel supporting module
-        signature.
-+16384 - A soft lockup has previously occurred on the system.
- 
- ==============================================================
- 
-diff -puN include/linux/kernel.h~panic-add-taint_softlockup include/linux/kernel.h
---- a/include/linux/kernel.h~panic-add-taint_softlockup
-+++ a/include/linux/kernel.h
-@@ -470,6 +470,7 @@ extern enum system_states {
- #define TAINT_FIRMWARE_WORKAROUND	11
- #define TAINT_OOT_MODULE		12
- #define TAINT_UNSIGNED_MODULE		13
-+#define TAINT_SOFTLOCKUP		14
- 
- extern const char hex_asc[];
- #define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
-diff -puN kernel/panic.c~panic-add-taint_softlockup kernel/panic.c
---- a/kernel/panic.c~panic-add-taint_softlockup
-+++ a/kernel/panic.c
-@@ -224,6 +224,7 @@ static const struct tnt tnts[] = {
- 	{ TAINT_FIRMWARE_WORKAROUND,	'I', ' ' },
- 	{ TAINT_OOT_MODULE,		'O', ' ' },
- 	{ TAINT_UNSIGNED_MODULE,	'E', ' ' },
-+	{ TAINT_SOFTLOCKUP,		'L', ' ' },
- };
- 
- /**
-diff -puN kernel/watchdog.c~panic-add-taint_softlockup kernel/watchdog.c
---- a/kernel/watchdog.c~panic-add-taint_softlockup
+diff -puN kernel/watchdog.c~panic-add-taint_softlockup-fix kernel/watchdog.c
+--- a/kernel/watchdog.c~panic-add-taint_softlockup-fix
 +++ a/kernel/watchdog.c
-@@ -370,6 +370,7 @@ static enum hrtimer_restart watchdog_tim
+@@ -368,9 +368,9 @@ static enum hrtimer_restart watchdog_tim
+ 			smp_mb__after_atomic();
+ 		}
  
++		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
  		if (softlockup_panic)
  			panic("softlockup: hung tasks");
-+		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
+-		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
  		__this_cpu_write(soft_watchdog_warn, true);
  	} else
  		__this_cpu_write(soft_watchdog_warn, false);
 _
 
-Patches currently in -mm which might be from johunt@akamai.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-panic-add-taint_softlockup.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry.patch
+kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
+mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep.patch
+shmem-fix-faulting-into-a-hole-while-its-punched.patch
+ia64-arch-ia64-include-uapi-asm-fcntlh-needs-personalityh.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
+mm.patch
+slub-use-new-node-functions-checkpatch-fixes.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc-fix.patch
+mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+add-lib-globc-fix.patch
+fs-isofs-logging-clean-up-fix.patch
 panic-add-taint_softlockup-fix.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
