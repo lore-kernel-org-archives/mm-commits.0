@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zbud-change-zbud_alloc-size-type-to-size_t.patch added to
- -mm tree
-Date: Mon, 23 Jun 2014 14:49:05 -0700
-Message-ID: <53a8a0d1.QSUH5q7kaxdE92TC%akpm@linux-foundation.org>
+Subject: + mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
+ added to -mm tree
+Date: Mon, 23 Jun 2014 14:49:06 -0700
+Message-ID: <53a8a0d2.72jQo67Wik/Nbkj9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53418 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754211AbaFWVtG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 17:49:06 -0400
+	with ESMTP id S1753242AbaFWVtH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 17:49:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ddstreet@ieee.org, bob.liu@oracle.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, minchan@kernel.org, ngupta@vflare.org, riel@redhat.com, sergey.senozhatsky@gmail.com, sjennings@variantweb.net, weijie.yang@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zbud: change zbud_alloc size type to size_t
+     Subject: mm/zpool: implement common zpool api to zbud/zsmalloc
 has been added to the -mm tree.  Its filename is
-     mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+     mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,69 +40,521 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Streetman <ddstreet@ieee.org>
-Subject: mm/zbud: change zbud_alloc size type to size_t
+Subject: mm/zpool: implement common zpool api to zbud/zsmalloc
 
-Change the type of the zbud_alloc() size param from unsigned int
-to size_t.
+Add zpool api.
 
-Technically, this should not make any difference, as the zbud
-implementation already restricts the size to well within either
-type's limits; but as zsmalloc (and kmalloc) use size_t, and
-zpool will use size_t, this brings the size parameter type
-in line with zsmalloc/zpool.
+zpool provides an interface for memory storage, typically of compressed
+memory.  Users can select what backend to use; currently the only
+implementations are zbud, a low density implementation with up to two
+compressed pages per storage page, and zsmalloc, a higher density
+implementation with multiple compressed pages per storage page.
 
 Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Acked-by: Seth Jennings <sjennings@variantweb.net>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Weijie Yang <weijie.yang@samsung.com>
 Reviewed-by: Bob Liu <bob.liu@oracle.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zbud.h |    2 +-
- mm/zbud.c            |    5 ++---
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ include/linux/zpool.h |  219 ++++++++++++++++++++++++++++++++++++++++
+ mm/Kconfig            |   41 ++++---
+ mm/zpool.c            |  198 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 441 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/zbud.h~mm-zbud-change-zbud_alloc-size-type-to-size_t include/linux/zbud.h
---- a/include/linux/zbud.h~mm-zbud-change-zbud_alloc-size-type-to-size_t
-+++ a/include/linux/zbud.h
-@@ -11,7 +11,7 @@ struct zbud_ops {
+diff -puN /dev/null include/linux/zpool.h
+--- /dev/null
++++ a/include/linux/zpool.h
+@@ -0,0 +1,219 @@
++/*
++ * zpool memory storage api
++ *
++ * Copyright (C) 2014 Dan Streetman
++ *
++ * This is a common frontend for the zbud and zsmalloc memory
++ * storage pool implementations.  Typically, this is used to
++ * store compressed memory.
++ */
++
++#ifndef _ZPOOL_H_
++#define _ZPOOL_H_
++
++struct zpool;
++
++struct zpool_ops {
++	int (*evict)(struct zpool *pool, unsigned long handle);
++};
++
++/*
++ * Control how a handle is mapped.  It will be ignored if the
++ * implementation does not support it.  Its use is optional.
++ * Note that this does not refer to memory protection, it
++ * refers to how the memory will be copied in/out if copying
++ * is necessary during mapping; read-write is the safest as
++ * it copies the existing memory in on map, and copies the
++ * changed memory back out on unmap.  Write-only does not copy
++ * in the memory and should only be used for initialization.
++ * If in doubt, use ZPOOL_MM_DEFAULT which is read-write.
++ */
++enum zpool_mapmode {
++	ZPOOL_MM_RW, /* normal read-write mapping */
++	ZPOOL_MM_RO, /* read-only (no copy-out at unmap time) */
++	ZPOOL_MM_WO, /* write-only (no copy-in at map time) */
++
++	ZPOOL_MM_DEFAULT = ZPOOL_MM_RW
++};
++
++/**
++ * zpool_create_pool() - Create a new zpool
++ * @type	The type of the zpool to create (e.g. zbud, zsmalloc)
++ * @flags	What GFP flags should be used when the zpool allocates memory.
++ * @ops		The optional ops callback.
++ *
++ * This creates a new zpool of the specified type.  The zpool will use the
++ * given flags when allocating any memory.  If the ops param is NULL, then
++ * the created zpool will not be shrinkable.
++ *
++ * Returns: New zpool on success, NULL on failure.
++ */
++struct zpool *zpool_create_pool(char *type, gfp_t flags,
++			struct zpool_ops *ops);
++
++/**
++ * zpool_get_type() - Get the type of the zpool
++ * @pool	The zpool to check
++ *
++ * This returns the type of the pool.
++ *
++ * Returns: The type of zpool.
++ */
++char *zpool_get_type(struct zpool *pool);
++
++/**
++ * zpool_destroy_pool() - Destroy a zpool
++ * @pool	The zpool to destroy.
++ *
++ * This destroys an existing zpool.  The zpool should not be in use.
++ */
++void zpool_destroy_pool(struct zpool *pool);
++
++/**
++ * zpool_malloc() - Allocate memory
++ * @pool	The zpool to allocate from.
++ * @size	The amount of memory to allocate.
++ * @handle	Pointer to the handle to set
++ *
++ * This allocates the requested amount of memory from the pool.
++ * The provided @handle will be set to the allocated object handle.
++ *
++ * Returns: 0 on success, negative value on error.
++ */
++int zpool_malloc(struct zpool *pool, size_t size, unsigned long *handle);
++
++/**
++ * zpool_free() - Free previously allocated memory
++ * @pool	The zpool that allocated the memory.
++ * @handle	The handle to the memory to free.
++ *
++ * This frees previously allocated memory.  This does not guarantee
++ * that the pool will actually free memory, only that the memory
++ * in the pool will become available for use by the pool.
++ */
++void zpool_free(struct zpool *pool, unsigned long handle);
++
++/**
++ * zpool_shrink() - Shrink the pool size
++ * @pool	The zpool to shrink.
++ * @pages	The number of pages to shrink the pool.
++ * @reclaimed	The number of pages successfully evicted.
++ *
++ * This attempts to shrink the actual memory size of the pool
++ * by evicting currently used handle(s).  If the pool was
++ * created with no zpool_ops, or the evict call fails for any
++ * of the handles, this will fail.  If non-NULL, the @reclaimed
++ * parameter will be set to the number of pages reclaimed,
++ * which may be more than the number of pages requested.
++ *
++ * Returns: 0 on success, negative value on error/failure.
++ */
++int zpool_shrink(struct zpool *pool, unsigned int pages,
++			unsigned int *reclaimed);
++
++/**
++ * zpool_map_handle() - Map a previously allocated handle into memory
++ * @pool	The zpool that the handle was allocated from
++ * @handle	The handle to map
++ * @mm	How the memory should be mapped
++ *
++ * This maps a previously allocated handle into memory.  The @mm
++ * param indicates to the implemenation how the memory will be
++ * used, i.e. read-only, write-only, read-write.  If the
++ * implementation does not support it, the memory will be treated
++ * as read-write.
++ *
++ * This may hold locks, disable interrupts, and/or preemption,
++ * and the zpool_unmap_handle() must be called to undo those
++ * actions.  The code that uses the mapped handle should complete
++ * its operatons on the mapped handle memory quickly and unmap
++ * as soon as possible.  Multiple handles should not be mapped
++ * concurrently on a cpu.
++ *
++ * Returns: A pointer to the handle's mapped memory area.
++ */
++void *zpool_map_handle(struct zpool *pool, unsigned long handle,
++			enum zpool_mapmode mm);
++
++/**
++ * zpool_unmap_handle() - Unmap a previously mapped handle
++ * @pool	The zpool that the handle was allocated from
++ * @handle	The handle to unmap
++ *
++ * This unmaps a previously mapped handle.  Any locks or other
++ * actions that the implemenation took in zpool_map_handle()
++ * will be undone here.  The memory area returned from
++ * zpool_map_handle() should no longer be used after this.
++ */
++void zpool_unmap_handle(struct zpool *pool, unsigned long handle);
++
++/**
++ * zpool_get_total_size() - The total size of the pool
++ * @pool	The zpool to check
++ *
++ * This returns the total size in bytes of the pool.
++ *
++ * Returns: Total size of the zpool in bytes.
++ */
++u64 zpool_get_total_size(struct zpool *pool);
++
++
++/**
++ * struct zpool_driver - driver implementation for zpool
++ * @type:	name of the driver.
++ * @list:	entry in the list of zpool drivers.
++ * @create:	create a new pool.
++ * @destroy:	destroy a pool.
++ * @malloc:	allocate mem from a pool.
++ * @free:	free mem from a pool.
++ * @shrink:	shrink the pool.
++ * @map:	map a handle.
++ * @unmap:	unmap a handle.
++ * @total_size:	get total size of a pool.
++ *
++ * This is created by a zpool implementation and registered
++ * with zpool.
++ */
++struct zpool_driver {
++	char *type;
++	struct list_head list;
++
++	void *(*create)(gfp_t gfp, struct zpool_ops *ops);
++	void (*destroy)(void *pool);
++
++	int (*malloc)(void *pool, size_t size, unsigned long *handle);
++	void (*free)(void *pool, unsigned long handle);
++
++	int (*shrink)(void *pool, unsigned int pages,
++				unsigned int *reclaimed);
++
++	void *(*map)(void *pool, unsigned long handle,
++				enum zpool_mapmode mm);
++	void (*unmap)(void *pool, unsigned long handle);
++
++	u64 (*total_size)(void *pool);
++};
++
++/**
++ * zpool_register_driver() - register a zpool implementation.
++ * @driver:	driver to register
++ */
++void zpool_register_driver(struct zpool_driver *driver);
++
++/**
++ * zpool_unregister_driver() - unregister a zpool implementation.
++ * @driver:	driver to unregister.
++ */
++void zpool_unregister_driver(struct zpool_driver *driver);
++
++/**
++ * zpool_evict() - evict callback from a zpool implementation.
++ * @pool:	pool to evict from.
++ * @handle:	handle to evict.
++ *
++ * This can be used by zpool implementations to call the
++ * user's evict zpool_ops struct evict callback.
++ */
++int zpool_evict(void *pool, unsigned long handle);
++
++#endif
+diff -puN mm/Kconfig~mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc mm/Kconfig
+--- a/mm/Kconfig~mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc
++++ a/mm/Kconfig
+@@ -519,15 +519,17 @@ config CMA_AREAS
  
- struct zbud_pool *zbud_create_pool(gfp_t gfp, struct zbud_ops *ops);
- void zbud_destroy_pool(struct zbud_pool *pool);
--int zbud_alloc(struct zbud_pool *pool, unsigned int size,
-+int zbud_alloc(struct zbud_pool *pool, size_t size,
- 	unsigned long *handle);
- void zbud_free(struct zbud_pool *pool, unsigned long handle);
- int zbud_reclaim_page(struct zbud_pool *pool, unsigned int retries);
-diff -puN mm/zbud.c~mm-zbud-change-zbud_alloc-size-type-to-size_t mm/zbud.c
---- a/mm/zbud.c~mm-zbud-change-zbud_alloc-size-type-to-size_t
-+++ a/mm/zbud.c
-@@ -123,7 +123,7 @@ enum buddy {
- };
+ 	  If unsure, leave the default value "7".
  
- /* Converts an allocation size in bytes to size in zbud chunks */
--static int size_to_chunks(int size)
-+static int size_to_chunks(size_t size)
- {
- 	return (size + CHUNK_SIZE - 1) >> CHUNK_SHIFT;
- }
-@@ -250,8 +250,7 @@ void zbud_destroy_pool(struct zbud_pool
-  * -EINVAL if the @size is 0, or -ENOMEM if the pool was unable to
-  * allocate a new page.
-  */
--int zbud_alloc(struct zbud_pool *pool, unsigned int size,
--			unsigned long *handle)
-+int zbud_alloc(struct zbud_pool *pool, size_t size, unsigned long *handle)
- {
- 	int chunks, i, freechunks;
- 	struct zbud_header *zhdr = NULL;
+-config ZBUD
+-	tristate
+-	default n
++config MEM_SOFT_DIRTY
++	bool "Track memory changes"
++	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY && PROC_FS
++	select PROC_PAGE_MONITOR
+ 	help
+-	  A special purpose allocator for storing compressed pages.
+-	  It is designed to store up to two compressed pages per physical
+-	  page.  While this design limits storage density, it has simple and
+-	  deterministic reclaim properties that make it preferable to a higher
+-	  density approach when reclaim will be used.
++	  This option enables memory changes tracking by introducing a
++	  soft-dirty bit on pte-s. This bit it set when someone writes
++	  into a page just as regular dirty bit, but unlike the latter
++	  it can be cleared by hands.
++
++	  See Documentation/vm/soft-dirty.txt for more details.
+ 
+ config ZSWAP
+ 	bool "Compressed cache for swap pages (EXPERIMENTAL)"
+@@ -549,17 +551,22 @@ config ZSWAP
+ 	  they have not be fully explored on the large set of potential
+ 	  configurations and workloads that exist.
+ 
+-config MEM_SOFT_DIRTY
+-	bool "Track memory changes"
+-	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY && PROC_FS
+-	select PROC_PAGE_MONITOR
++config ZPOOL
++	tristate "Common API for compressed memory storage"
++	default n
+ 	help
+-	  This option enables memory changes tracking by introducing a
+-	  soft-dirty bit on pte-s. This bit it set when someone writes
+-	  into a page just as regular dirty bit, but unlike the latter
+-	  it can be cleared by hands.
++	  Compressed memory storage API.  This allows using either zbud or
++	  zsmalloc.
+ 
+-	  See Documentation/vm/soft-dirty.txt for more details.
++config ZBUD
++	tristate "Low density storage for compressed pages"
++	default n
++	help
++	  A special purpose allocator for storing compressed pages.
++	  It is designed to store up to two compressed pages per physical
++	  page.  While this design limits storage density, it has simple and
++	  deterministic reclaim properties that make it preferable to a higher
++	  density approach when reclaim will be used.
+ 
+ config ZSMALLOC
+ 	tristate "Memory allocator for compressed pages"
+diff -puN /dev/null mm/zpool.c
+--- /dev/null
++++ a/mm/zpool.c
+@@ -0,0 +1,198 @@
++/*
++ * zpool memory storage api
++ *
++ * Copyright (C) 2014 Dan Streetman
++ *
++ * This is a common frontend for memory storage pool implementations.
++ * Typically, this is used to store compressed memory.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/list.h>
++#include <linux/types.h>
++#include <linux/mm.h>
++#include <linux/slab.h>
++#include <linux/spinlock.h>
++#include <linux/module.h>
++#include <linux/zpool.h>
++
++struct zpool {
++	char *type;
++
++	struct zpool_driver *driver;
++	void *pool;
++	struct zpool_ops *ops;
++
++	struct list_head list;
++};
++
++static LIST_HEAD(drivers_head);
++static DEFINE_SPINLOCK(drivers_lock);
++
++static LIST_HEAD(pools_head);
++static DEFINE_SPINLOCK(pools_lock);
++
++void zpool_register_driver(struct zpool_driver *driver)
++{
++	spin_lock(&drivers_lock);
++	list_add(&driver->list, &drivers_head);
++	spin_unlock(&drivers_lock);
++}
++EXPORT_SYMBOL(zpool_register_driver);
++
++void zpool_unregister_driver(struct zpool_driver *driver)
++{
++	spin_lock(&drivers_lock);
++	list_del(&driver->list);
++	spin_unlock(&drivers_lock);
++}
++EXPORT_SYMBOL(zpool_unregister_driver);
++
++int zpool_evict(void *pool, unsigned long handle)
++{
++	struct zpool *zpool;
++
++	spin_lock(&pools_lock);
++	list_for_each_entry(zpool, &pools_head, list) {
++		if (zpool->pool == pool) {
++			spin_unlock(&pools_lock);
++			if (!zpool->ops || !zpool->ops->evict)
++				return -EINVAL;
++			return zpool->ops->evict(zpool, handle);
++		}
++	}
++	spin_unlock(&pools_lock);
++
++	return -ENOENT;
++}
++EXPORT_SYMBOL(zpool_evict);
++
++static struct zpool_driver *zpool_get_driver(char *type)
++{
++	struct zpool_driver *driver;
++
++	assert_spin_locked(&drivers_lock);
++	list_for_each_entry(driver, &drivers_head, list) {
++		if (!strcmp(driver->type, type))
++			return driver;
++	}
++
++	return NULL;
++}
++
++struct zpool *zpool_create_pool(char *type, gfp_t flags,
++			struct zpool_ops *ops)
++{
++	struct zpool_driver *driver;
++	struct zpool *zpool;
++
++	pr_info("creating pool type %s\n", type);
++
++	spin_lock(&drivers_lock);
++	driver = zpool_get_driver(type);
++	spin_unlock(&drivers_lock);
++
++	if (!driver) {
++		request_module(type);
++		spin_lock(&drivers_lock);
++		driver = zpool_get_driver(type);
++		spin_unlock(&drivers_lock);
++	}
++
++	if (!driver) {
++		pr_err("no driver for type %s\n", type);
++		return NULL;
++	}
++
++	zpool = kmalloc(sizeof(*zpool), GFP_KERNEL);
++	if (!zpool) {
++		pr_err("couldn't create zpool - out of memory\n");
++		return NULL;
++	}
++
++	zpool->type = driver->type;
++	zpool->driver = driver;
++	zpool->pool = driver->create(flags, ops);
++	zpool->ops = ops;
++
++	if (!zpool->pool) {
++		pr_err("couldn't create %s pool\n", type);
++		kfree(zpool);
++		return NULL;
++	}
++
++	pr_info("created %s pool\n", type);
++
++	spin_lock(&pools_lock);
++	list_add(&zpool->list, &pools_head);
++	spin_unlock(&pools_lock);
++
++	return zpool;
++}
++
++void zpool_destroy_pool(struct zpool *zpool)
++{
++	pr_info("destroying pool type %s\n", zpool->type);
++
++	spin_lock(&pools_lock);
++	list_del(&zpool->list);
++	spin_unlock(&pools_lock);
++	zpool->driver->destroy(zpool->pool);
++	kfree(zpool);
++}
++
++char *zpool_get_type(struct zpool *zpool)
++{
++	return zpool->type;
++}
++
++int zpool_malloc(struct zpool *zpool, size_t size, unsigned long *handle)
++{
++	return zpool->driver->malloc(zpool->pool, size, handle);
++}
++
++void zpool_free(struct zpool *zpool, unsigned long handle)
++{
++	zpool->driver->free(zpool->pool, handle);
++}
++
++int zpool_shrink(struct zpool *zpool, unsigned int pages,
++			unsigned int *reclaimed)
++{
++	return zpool->driver->shrink(zpool->pool, pages, reclaimed);
++}
++
++void *zpool_map_handle(struct zpool *zpool, unsigned long handle,
++			enum zpool_mapmode mapmode)
++{
++	return zpool->driver->map(zpool->pool, handle, mapmode);
++}
++
++void zpool_unmap_handle(struct zpool *zpool, unsigned long handle)
++{
++	zpool->driver->unmap(zpool->pool, handle);
++}
++
++u64 zpool_get_total_size(struct zpool *zpool)
++{
++	return zpool->driver->total_size(zpool->pool);
++}
++
++static int __init init_zpool(void)
++{
++	pr_info("loaded\n");
++	return 0;
++}
++
++static void __exit exit_zpool(void)
++{
++	pr_info("unloaded\n");
++}
++
++module_init(init_zpool);
++module_exit(exit_zpool);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Dan Streetman <ddstreet@ieee.org>");
++MODULE_DESCRIPTION("Common API for compressed memory storage");
 _
 
 Patches currently in -mm which might be from ddstreet@ieee.org are
