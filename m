@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + net-sunrpc-replace-strict_strto-calls.patch added to -mm tree
-Date: Mon, 23 Jun 2014 16:29:51 -0700
-Message-ID: <53a8b86f.fICF+ssM6+6eRpeG%akpm@linux-foundation.org>
+Subject: + initramfs-support-initrd-that-is-bigger-than-2gib.patch added
+ to -mm tree
+Date: Mon, 23 Jun 2014 16:47:12 -0700
+Message-ID: <53a8bc80.H1JDlgmeZTv2E/pS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53965 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54091 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753130AbaFWX3w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 19:29:52 -0400
+	with ESMTP id S1752186AbaFWXrN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 19:47:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalter@google.com, trond.myklebust@primarydata.com, mm-commits@vger.kernel.org
+To: yinghai@kernel.org, dan@danweeks.net, geert@linux-m68k.org, hpa@zytor.com, mingo@elte.hu, penguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net/sunrpc: replace strict_strto calls
+     Subject: initramfs: support initrd that is bigger than 2GiB
 has been added to the -mm tree.  Its filename is
-     net-sunrpc-replace-strict_strto-calls.patch
+     initramfs-support-initrd-that-is-bigger-than-2gib.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/net-sunrpc-replace-strict_strto-calls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-support-initrd-that-is-bigger-than-2gib.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/net-sunrpc-replace-strict_strto-calls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-support-initrd-that-is-bigger-than-2gib.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,122 +39,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Walter <dwalter@google.com>
-Subject: net/sunrpc: replace strict_strto calls
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: initramfs: support initrd that is bigger than 2GiB
 
-Replace obsolete strict_strto calls with appropriate kstrto calls
+When initrd (compressed or not) is used, kernel report data corrupted with
+/dev/ram0.
 
-Signed-off-by: Daniel Walter <dwalter@google.com>
-Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+The root cause:
+During initramfs checking, if it is initrd, it will be transferred to
+/initrd.image with sys_write.
+sys_write only support 2G-4K write, so if the initrd ram is more than
+that, /initrd.image will not complete at all.
+
+Add local xwrite to loop calling sys_write to workaround the problem.
+
+Also need to use xwrite in write_buffer() to handle:
+image is uncompressed cpio and there is one big file (>2G) in it.
+   unpack_to_rootfs ===> write_buffer ===> actions[]/do_copy
+
+At the same time, we don't need to worry about sys_read/sys_write in
+do_mounts_rd.c::crd_load.  As decompressor will have fill/flush and local
+buffer that is smaller than 2G.
+
+Test with uncompressed initrd, and compressed ones with gz, bz2, lzma,xz,
+lzop.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: "Daniel M. Weeks" <dan@danweeks.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/addr.c     |   16 ++++++----------
- net/sunrpc/auth.c     |    2 +-
- net/sunrpc/xprtsock.c |    4 ++--
- 3 files changed, 9 insertions(+), 13 deletions(-)
+ init/initramfs.c |   36 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 32 insertions(+), 4 deletions(-)
 
-diff -puN net/sunrpc/addr.c~net-sunrpc-replace-strict_strto-calls net/sunrpc/addr.c
---- a/net/sunrpc/addr.c~net-sunrpc-replace-strict_strto-calls
-+++ a/net/sunrpc/addr.c
-@@ -176,7 +176,7 @@ static int rpc_parse_scope_id(struct net
- 	len = (buf + buflen) - delim - 1;
- 	p = kstrndup(delim + 1, len, GFP_KERNEL);
- 	if (p) {
--		unsigned long scope_id = 0;
-+		u32 scope_id = 0;
- 		struct net_device *dev;
+diff -puN init/initramfs.c~initramfs-support-initrd-that-is-bigger-than-2gib init/initramfs.c
+--- a/init/initramfs.c~initramfs-support-initrd-that-is-bigger-than-2gib
++++ a/init/initramfs.c
+@@ -19,6 +19,29 @@
+ #include <linux/syscalls.h>
+ #include <linux/utime.h>
  
- 		dev = dev_get_by_name(net, p);
-@@ -184,7 +184,7 @@ static int rpc_parse_scope_id(struct net
- 			scope_id = dev->ifindex;
- 			dev_put(dev);
- 		} else {
--			if (strict_strtoul(p, 10, &scope_id) == 0) {
-+			if (kstrtou32(p, 10, &scope_id) == 0) {
- 				kfree(p);
- 				return 0;
- 			}
-@@ -304,7 +304,7 @@ char *rpc_sockaddr2uaddr(const struct so
-  * @sap: buffer into which to plant socket address
-  * @salen: size of buffer
-  *
-- * @uaddr does not have to be '\0'-terminated, but strict_strtoul() and
-+ * @uaddr does not have to be '\0'-terminated, but kstrtou8() and
-  * rpc_pton() require proper string termination to be successful.
-  *
-  * Returns the size of the socket address if successful; otherwise
-@@ -315,7 +315,7 @@ size_t rpc_uaddr2sockaddr(struct net *ne
- 			  const size_t salen)
++static ssize_t __init xwrite(int fd, const char *p, size_t count)
++{
++	ssize_t out = 0;
++
++	/* sys_write only can write MAX_RW_COUNT aka 2G-4K bytes at most */
++	while (count) {
++		ssize_t rv = sys_write(fd, p, count);
++
++		if (rv < 0) {
++			if (rv == -EINTR || rv == -EAGAIN)
++				continue;
++			return out ? out : rv;
++		} else if (rv == 0)
++			break;
++
++		p += rv;
++		out += rv;
++		count -= rv;
++	}
++
++	return out;
++}
++
+ static __initdata char *message;
+ static void __init error(char *x)
  {
- 	char *c, buf[RPCBIND_MAXUADDRLEN + sizeof('\0')];
--	unsigned long portlo, porthi;
-+	u8 portlo, porthi;
- 	unsigned short port;
- 
- 	if (uaddr_len > RPCBIND_MAXUADDRLEN)
-@@ -327,18 +327,14 @@ size_t rpc_uaddr2sockaddr(struct net *ne
- 	c = strrchr(buf, '.');
- 	if (unlikely(c == NULL))
- 		return 0;
--	if (unlikely(strict_strtoul(c + 1, 10, &portlo) != 0))
--		return 0;
--	if (unlikely(portlo > 255))
-+	if (unlikely(kstrtou8(c + 1, 10, &portlo) != 0))
- 		return 0;
- 
- 	*c = '\0';
- 	c = strrchr(buf, '.');
- 	if (unlikely(c == NULL))
- 		return 0;
--	if (unlikely(strict_strtoul(c + 1, 10, &porthi) != 0))
--		return 0;
--	if (unlikely(porthi > 255))
-+	if (unlikely(kstrtou8(c + 1, 10, &porthi) != 0))
- 		return 0;
- 
- 	port = (unsigned short)((porthi << 8) | portlo);
-diff -puN net/sunrpc/auth.c~net-sunrpc-replace-strict_strto-calls net/sunrpc/auth.c
---- a/net/sunrpc/auth.c~net-sunrpc-replace-strict_strto-calls
-+++ a/net/sunrpc/auth.c
-@@ -48,7 +48,7 @@ static int param_set_hashtbl_sz(const ch
- 
- 	if (!val)
- 		goto out_inval;
--	ret = strict_strtoul(val, 0, &num);
-+	ret = kstrtoul(val, 0, &num);
- 	if (ret == -EINVAL)
- 		goto out_inval;
- 	nbits = fls(num);
-diff -puN net/sunrpc/xprtsock.c~net-sunrpc-replace-strict_strto-calls net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~net-sunrpc-replace-strict_strto-calls
-+++ a/net/sunrpc/xprtsock.c
-@@ -3054,12 +3054,12 @@ static int param_set_uint_minmax(const c
- 		const struct kernel_param *kp,
- 		unsigned int min, unsigned int max)
+@@ -346,7 +369,7 @@ static int __init do_name(void)
+ static int __init do_copy(void)
  {
--	unsigned long num;
-+	unsigned int num;
- 	int ret;
- 
- 	if (!val)
- 		return -EINVAL;
--	ret = strict_strtoul(val, 0, &num);
-+	ret = kstrtouint(val, 0, &num);
- 	if (ret == -EINVAL || num < min || num > max)
- 		return -EINVAL;
- 	*((unsigned int *)kp->arg) = num;
+ 	if (count >= body_len) {
+-		sys_write(wfd, victim, body_len);
++		xwrite(wfd, victim, body_len);
+ 		sys_close(wfd);
+ 		do_utime(vcollected, mtime);
+ 		kfree(vcollected);
+@@ -354,7 +377,7 @@ static int __init do_copy(void)
+ 		state = SkipIt;
+ 		return 0;
+ 	} else {
+-		sys_write(wfd, victim, count);
++		xwrite(wfd, victim, count);
+ 		body_len -= count;
+ 		eat(count);
+ 		return 1;
+@@ -603,8 +626,13 @@ static int __init populate_rootfs(void)
+ 		fd = sys_open("/initrd.image",
+ 			      O_WRONLY|O_CREAT, 0700);
+ 		if (fd >= 0) {
+-			sys_write(fd, (char *)initrd_start,
+-					initrd_end - initrd_start);
++			ssize_t written = xwrite(fd, (char *)initrd_start,
++						initrd_end - initrd_start);
++
++			if (written != initrd_end - initrd_start)
++				pr_err("/initrd.image: incomplete write (%zd != %ld)\n",
++				       written, initrd_end - initrd_start);
++
+ 			sys_close(fd);
+ 			free_initrd();
+ 		}
 _
 
-Patches currently in -mm which might be from dwalter@google.com are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
-arch-arm-mach-omap2-replace-strict_strto-with-kstrto.patch
-arch-arm-mach-pxa-replace-strict_strto-call-with-kstrto.patch
-arch-arm-mach-s3c24xx-mach-jivec-replace-strict_strto-with-kstrto.patch
-arch-arm-mach-w90x900-cpuc-replace-obsolete-strict_strto.patch
-arch-powerpc-replace-obsolete-strict_strto-calls.patch
-arch-x86-replace-strict_strto-calls.patch
-drivers-scsi-replace-strict_strto-calls.patch
-net-sunrpc-replace-strict_strto-calls.patch
-include-linux-remove-strict_strto-definitions.patch
+mem-hotplug-improve-zone_movable_is_highmem-logic.patch
+initrd-fix-lz4-decompress-with-initrd.patch
+initramfs-support-initrd-that-is-bigger-than-2gib.patch
 
