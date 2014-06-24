@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock.patch added to -mm tree
-Date: Tue, 24 Jun 2014 14:53:05 -0700
-Message-ID: <53a9f341.EHgyyGpdW7YJ/8bx%akpm@linux-foundation.org>
+Subject: + slub-reduce-duplicate-creation-on-the-first-object.patch added
+ to -mm tree
+Date: Tue, 24 Jun 2014 14:56:55 -0700
+Message-ID: <53a9f427.Eq83sqa+5UAuINPd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37104 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37135 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbaFXVxG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 17:53:06 -0400
+	with ESMTP id S1751419AbaFXV44 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 17:56:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: weiyang@linux.vnet.ibm.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: kmem_cache_shrink: check if partial list is empty under list_lock
+     Subject: slub: reduce duplicate creation on the first object
 has been added to the -mm tree.  Its filename is
-     slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock.patch
+     slub-reduce-duplicate-creation-on-the-first-object.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-reduce-duplicate-creation-on-the-first-object.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-reduce-duplicate-creation-on-the-first-object.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +39,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slub: kmem_cache_shrink: check if partial list is empty under list_lock
+From: Wei Yang <weiyang@linux.vnet.ibm.com>
+Subject: slub: reduce duplicate creation on the first object
 
-SLUB's implementation of kmem_cache_shrink skips nodes that have
-nr_partial=0, because they surely don't have any empty slabs to free. 
-This check is done w/o holding any locks, therefore it can race with
-concurrent kfree adding an empty slab to a partial list.  As a result, a
-just shrinked cache can have empty slabs.
+When a kmem_cache is created with ctor, each object in the kmem_cache will
+be initialized before use.  In the slub implementation, the first object
+will be initialized twice.
 
-This is unacceptable for kmemcg, which needs to be sure that there will be
-no empty slabs on dead memcg caches after kmem_cache_shrink was called,
-because otherwise we may leak a dead cache.
+This patch avoids the duplication of initialization of the first object.
 
-Let's fix this race by checking if node partial list is empty under
-node->list_lock.  Since the nr_partial!=0 branch of kmem_cache_shrink does
-nothing if the list is empty, we can simply remove the nr_partial=0 check.
+Fixes commit 7656c72b5a63: ("SLUB: add macros for scanning objects in a
+slab").
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Wei Yang <weiyang@linux.vnet.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock mm/slub.c
---- a/mm/slub.c~slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock
+diff -puN mm/slub.c~slub-reduce-duplicate-creation-on-the-first-object mm/slub.c
+--- a/mm/slub.c~slub-reduce-duplicate-creation-on-the-first-object
 +++ a/mm/slub.c
-@@ -3395,9 +3395,6 @@ int __kmem_cache_shrink(struct kmem_cach
+@@ -1403,7 +1403,7 @@ static struct page *new_slab(struct kmem
+ 		memset(start, POISON_INUSE, PAGE_SIZE << order);
  
- 	flush_all(s);
- 	for_each_kmem_cache_node(s, node, n) {
--		if (!n->nr_partial)
--			continue;
--
- 		for (i = 0; i < objects; i++)
- 			INIT_LIST_HEAD(slabs_by_inuse + i);
- 
+ 	last = start;
+-	for_each_object(p, s, start, page->objects) {
++	for_each_object(p, s, start + s->size, page->objects - 1) {
+ 		setup_object(s, page, last);
+ 		set_freepointer(s, last, p);
+ 		last = p;
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from weiyang@linux.vnet.ibm.com are
 
-origin.patch
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-slub-fix-off-by-one-in-number-of-slab-tests.patch
-memcg-cleanup-memcg_cache_params-refcnt-usage.patch
-memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
-memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
-slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
-slub-make-slab_free-non-preemptable.patch
-memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
-slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
-slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock.patch
-slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
-slab-set-free_limit-for-dead-caches-to-0.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-fork-exec-cleanup-mm-initialization.patch
-fork-reset-mm-pinned_vm.patch
-fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
-linux-next.patch
+slub-reduce-duplicate-creation-on-the-first-object.patch
 
