@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc.patch
- added to -mm tree
-Date: Tue, 24 Jun 2014 14:39:04 -0700
-Message-ID: <53a9eff8.rutZRO+toq3I6E5P%akpm@linux-foundation.org>
+Subject: + fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch added to -mm tree
+Date: Tue, 24 Jun 2014 14:39:47 -0700
+Message-ID: <53a9f023.ldXV3PYwdIBsqpbl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37047 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37051 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752771AbaFXVjF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 17:39:05 -0400
+	with ESMTP id S1752581AbaFXVjr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 17:39:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, axel.lin@ingics.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [PATCH 1/1] fs/ocfs2/slot_map.c: replace count*size kzalloc by kcalloc
+     Subject: fs/ramfs/file-nommu.c: replace count*size kzalloc by kcalloc
 has been added to the -mm tree.  Its filename is
-     fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc.patch
+     fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +39,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: [PATCH 1/1] fs/ocfs2/slot_map.c: replace count*size kzalloc by kcalloc
-
-kcalloc manages count*sizeof overflow.
+Subject: fs/ramfs/file-nommu.c: replace count*size kzalloc by kcalloc
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Axel Lin <axel.lin@ingics.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/slot_map.c |    2 +-
+ fs/ramfs/file-nommu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/slot_map.c~fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc fs/ocfs2/slot_map.c
---- a/fs/ocfs2/slot_map.c~fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc
-+++ a/fs/ocfs2/slot_map.c
-@@ -382,7 +382,7 @@ static int ocfs2_map_slot_buffers(struct
+diff -puN fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc
++++ a/fs/ramfs/file-nommu.c
+@@ -222,7 +222,7 @@ static unsigned long ramfs_nommu_get_unm
  
- 	trace_ocfs2_map_slot_buffers(bytes, si->si_blocks);
+ 	/* gang-find the pages */
+ 	ret = -ENOMEM;
+-	pages = kzalloc(lpages * sizeof(struct page *), GFP_KERNEL);
++	pages = kcalloc(lpages, sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages)
+ 		goto out_free;
  
--	si->si_bh = kzalloc(sizeof(struct buffer_head *) * si->si_blocks,
-+	si->si_bh = kcalloc(si->si_blocks, sizeof(struct buffer_head *),
- 			    GFP_KERNEL);
- 	if (!si->si_bh) {
- 		status = -ENOMEM;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -89,6 +85,7 @@ mm-internalh-use-nth_page.patch
 mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
 lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
 fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
 kernel-test_kprobesc-use-current-logging-functions.patch
 fs-isofs-logging-clean-up.patch
 fs-isofs-logging-clean-up-fix.patch
