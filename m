@@ -1,273 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-nommu-per-thread-vma-cache-fix.patch removed from -mm tree
-Date: Tue, 24 Jun 2014 12:02:08 -0700
-Message-ID: <53a9cb30.A43wEVNlwTQLpMwE%akpm__33057.3063497015$1403636560$gmane$org@linux-foundation.org>
+Subject: [merged]
+ watchdog-remove-preemption-restrictions-when-restarting-lockup-detector.patch removed from -mm tree
+Date: Tue, 24 Jun 2014 12:02:21 -0700
+Message-ID: <53a9cb3d.+wVQcAJpXbwMENSD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35533 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35578 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750762AbaFXTCJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:09 -0400
+	with ESMTP id S1752135AbaFXTCW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: realmz6@gmail.com, davidlohr@hp.com, riel@redhat.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: dzickus@redhat.com, mhocko@suse.cz, peter@lekensteyn.nl, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: nommu: per-thread vma cache fix
+     Subject: kernel/watchdog.c: remove preemption restrictions when restarting lockup detector
 has been removed from the -mm tree.  Its filename was
-     mm-nommu-per-thread-vma-cache-fix.patch
+     watchdog-remove-preemption-restrictions-when-restarting-lockup-detector.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Steven Miao <realmz6@gmail.com>
-Subject: mm: nommu: per-thread vma cache fix
+From: Don Zickus <dzickus@redhat.com>
+Subject: kernel/watchdog.c: remove preemption restrictions when restarting lockup detector
 
-mm could be removed from current task struct, using previous vma->vm_mm
+Peter Wu noticed the following splat on his machine when updating
+/proc/sys/kernel/watchdog_thresh:
 
-It will crash on blackfin after updated to Linux 3.15.  The commit "mm:
-per-thread vma caching" caused the crash.  mm could be removed from
-current task struct before
+[    0.676701] BUG: sleeping function called from invalid context at mm/slub.c:965
+[    0.679396] in_atomic(): 1, irqs_disabled(): 0, pid: 1, name: init
+[    0.681204] 3 locks held by init/1:
+[    0.682371]  #0:  (sb_writers#3){.+.+.+}, at: [<ffffffff8117b663>] vfs_write+0x143/0x180
+[    0.685887]  #1:  (watchdog_proc_mutex){+.+.+.}, at: [<ffffffff810e02d3>] proc_dowatchdog+0x33/0x110
+[    0.689631]  #2:  (cpu_hotplug.lock){.+.+.+}, at: [<ffffffff810589c2>] get_online_cpus+0x32/0x80
+[    0.693117] Preemption disabled at:[<ffffffff810e0384>] proc_dowatchdog+0xe4/0x110
+[    0.695753]
+[    0.696588] CPU: 0 PID: 1 Comm: init Not tainted 3.16.0-rc1-testing #34
+[    0.698404] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+[    0.704622]  ffff88003f250000 ffff88003f1ffd10 ffffffff81624c59 0000000000000000
+[    0.707749]  ffff88003f1ffd30 ffffffff8108df1d 0000000000000010 ffffffff81c56360
+[    0.711010]  ffff88003f1ffd78 ffffffff8116a5de ffffffff811159a5 ffffffff810a5f4a
+[    0.714053] Call Trace:
+[    0.715015]  [<ffffffff81624c59>] dump_stack+0x4e/0x7a
+[    0.716619]  [<ffffffff8108df1d>] __might_sleep+0x11d/0x190
+[    0.718232]  [<ffffffff8116a5de>] kmem_cache_alloc_trace+0x4e/0x1e0
+[    0.720214]  [<ffffffff811159a5>] ? perf_event_alloc+0x55/0x440
+[    0.721910]  [<ffffffff810a5f4a>] ? mark_held_locks+0x6a/0x90
+[    0.723558]  [<ffffffff811159a5>] perf_event_alloc+0x55/0x440
+[    0.725304]  [<ffffffff810e0050>] ? restart_watchdog_hrtimer+0x50/0x50
+[    0.727279]  [<ffffffff81116d16>] perf_event_create_kernel_counter+0x26/0xe0
+[    0.729269]  [<ffffffff810dfe05>] watchdog_nmi_enable+0x75/0x140
+[    0.730965]  [<ffffffff810dffb3>] update_timers_all_cpus+0x53/0xa0
+[    0.732953]  [<ffffffff810e0384>] proc_dowatchdog+0xe4/0x110
+[    0.738408]  [<ffffffff811d8c93>] proc_sys_call_handler+0xb3/0xc0
+[    0.740266]  [<ffffffff811d8cb4>] proc_sys_write+0x14/0x20
+[    0.742086]  [<ffffffff8117b5cd>] vfs_write+0xad/0x180
+[    0.743669]  [<ffffffff810a606d>] ? trace_hardirqs_on_caller+0xfd/0x1c0
+[    0.745593]  [<ffffffff8117b799>] SyS_write+0x49/0xb0
+[    0.747101]  [<ffffffff8162fe92>] system_call_fastpath+0x16/0x1b
+[    0.749069] NMI watchdog: disabled (cpu0): hardware events not enabled
 
-mmput()->
-	exit_mmap()->
-		   delete_vma_from_mm()
+What happened is after updating the watchdog_thresh, the lockup detector
+is restarted to utilize the new value.  Part of this process involved
+disabling preemption.  Once preemption was disabled, perf tried to
+allocate a new event (as part of the restart).  This caused the above
+BUG_ON as you can't sleep with preemption disabled.
 
-the detailed booting log:
+The preemption restriction seemed agressive as we are not doing anything
+on that particular cpu, but with all the online cpus (which are protected
+by the get_online_cpus lock).  Remove the restriction and the BUG_ON goes
+away.
 
-## Booting kernel from Legacy Image at 01000000 ...
-   Image Name:   bf609-0.0-3.15.0-ADI-2014R1-pre-
-   Image Type:   Blackfin Linux Kernel Image (gzip compressed)
-   Data Size:    10293222 Bytes = 9.8 MiB
-   Load Address: 00001000
-   Entry Point:  002e796c
-   Verifying Checksum ... OK
-   Uncompressing Kernel Image ... OK
-Starting Kernel at = 002e796c
-Linux version 3.15.0-ADI-2014R1-pre-00345-gea9f446 (steven@steven-OptiPlex-390) (gcc version 4.3.5 (ADI-trunk/svn-5962) ) #25 Tue Jun 10 17:47:46 CST 2014
-register early platform devices
-bootconsole [early_shadow0] enabled
-ERROR: Not running on ADSP-BF609: unknown CPUID 0x0000 Rev 0.0
-bootconsole [early_BFuart0] enabled
-early printk enabled on early_BFuart0
-Board Memory: 128MB
-Kernel Managed Memory: 128MB
-Memory map:
-  fixedcode = 0x00000400-0x00000490
-  text      = 0x00001000-0x001fa910
-  rodata    = 0x001fa934-0x002a1ea8
-  bss       = 0x002a2000-0x002b9bc0
-  data      = 0x002b9bc0-0x002e4000
-    stack   = 0x002e2000-0x002e4000
-  init      = 0x002e4000-0x00b45000
-  available = 0x00b45000-0x07f00000
-  DMA Zone  = 0x07f00000-0x08000000
-Hardware Trace active and enabled
-Blackfin support (C) 2004-2010 Analog Devices, Inc.
-Compiled for ADSP-BF609 Rev 0.0
-Blackfin Linux support by http://blackfin.uclinux.org/
-Processor Speed: 500 MHz core clock, 125 MHz SCLk, 125 MHz SCLK0, 125 MHz SCLK1 and 250 MHz DCLK
-NOMPU: setting up cplb tables
-Instruction Cache Enabled for CPU0
-  External memory: cacheable in instruction cache
-  L2 SRAM        : uncacheable in instruction cache
-Data Cache Enabled for CPU0
-  External memory: cacheable (write-back) in data cache
-  L2 SRAM        : uncacheable in data cache
-Built 1 zonelists in Zone order, mobility grouping off.  Total pages: 32258
-Kernel command line: root=/dev/mtdblock0 rw clkin_hz=(25000000) earlyprintk=serial,uart0,57600 console=ttyBF0,57600 ip=10.99.24.159:10.99.24.86:10.99.24.1:255.255.255.0:"bf609-ezkit":eth0:off
-PID hash table entries: 512 (order: -1, 2048 bytes)
-Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
-Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
-Memory: 117340K/130048K available (2022K kernel code, 169K rwdata, 669K rodata, 8580K init, 94K bss, 12708K reserved, 1024K DMA)
-NR_IRQS:291
-Configuring Blackfin Priority Driven Interrupts
-Console: colour dummy device 80x25
-Calibrating delay loop... 995.32 BogoMIPS (lpj=1990656)
-pid_max: default: 32768 minimum: 301
-Mount-cache hash table entries: 1024 (order: 0, 4096 bytes)
-Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes)
-devtmpfs: initialized
-Blackfin Scratchpad data SRAM: 4 KB
-Blackfin L1 Data A SRAM: 16 KB (9 KB free)
-Blackfin L1 Data B SRAM: 16 KB (16 KB free)
-Blackfin L1 Instruction SRAM: 64 KB (49 KB free)
-Blackfin L2 SRAM: 256 KB (256 KB free)
-pinctrl core: initialized pinctrl subsystem
-NET: Registered protocol family 16
-Blackfin DMA Controller
-ezkit_init(): registering device resources
-SCSI subsystem initialized
-usbcore: registered new interface driver usbfs
-usbcore: registered new interface driver hub
-usbcore: registered new device driver usb
-i2c-bfin-twi i2c-bfin-twi.0: Blackfin on-chip I2C TWI Contoller, regs_base@ffc01e00
-i2c-bfin-twi i2c-bfin-twi.1: Blackfin on-chip I2C TWI Contoller, regs_base@ffc01f00
-pps_core: LinuxPPS API ver. 1 registered
-pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
-PTP clock support registered
-NET: Registered protocol family 23
-Switched to clocksource bfin_cs_cycles
-NET: Registered protocol family 2
-TCP established hash table entries: 1024 (order: 0, 4096 bytes)
-TCP bind hash table entries: 1024 (order: 0, 4096 bytes)
-TCP: Hash tables configured (established 1024 bind 1024)
-TCP: reno registered
-UDP hash table entries: 256 (order: 0, 4096 bytes)
-UDP-Lite hash table entries: 256 (order: 0, 4096 bytes)
-NET: Registered protocol family 1
-msgmni has been set to 229
-io scheduler noop registered (default)
-bfin-uart: Blackfin serial driver
-bfin-uart.0: ttyBF0 at MMIO 0xffc02000 (irq = 88, base_baud = 7812500) is a BFIN-UART
-console [ttyBF0] enabled
-console [ttyBF0] enabled
-bootconsole [early_BFuart0] disabled
-bootconsole [early_BFuart0] disabled
-bootconsole [early_shadow0] disabled
-CAN device driver interface
-bfin_can bfin_can.0: bfin_can device registered(&reg_base=ffc00a00, rx_irq=47, tx_irq=48, err_irq=49, sclk=125000000)
-stmmaceth stmmaceth.0: no reset control found
-stmmac - user ID: 0x10, Synopsys ID: 0x36
- Ring mode enabled
- DMA HW capability register supported
- Enhanced/Alternate descriptors
-	Enabled extended descriptors
- RX Checksum Offload Engine supported (type 2)
- Wake-Up On Lan supported
- Enable RX Mitigation via HW Watchdog Timer
-NULL pointer access
-Kernel OOPS in progress
-Deferred Exception context
-CURRENT PROCESS:
-COMM=modprobe PID=278  CPU=0
-invalid mm
-return address: [0x000531de]; contents of:
-0x000531b0:  c727  acea  0c42  181d  0000  0000  0000  a0a8
-0x000531c0:  b090  acaa  0c42  1806  0000  0000  0000  a0e8
-0x000531d0:  b0d0  e801  0000  05b3  0010  e522  0046 [a090]
-0x000531e0:  6408  b090  0c00  17cc  3042  e3ff  f37b  2fc8
-
-CPU: 0 PID: 278 Comm: modprobe Not tainted 3.15.0-ADI-2014R1-pre-00345-gea9f446 #25
-task: 0572b720 ti: 0569e000 task.ti: 0569e000
-Compiled for cpu family 0x27fe (Rev 0), but running on:0x0000 (Rev 0)
-ADSP-BF609-0.0 500(MHz CCLK) 125(MHz SCLK) (mpu off)
-Linux version 3.15.0-ADI-2014R1-pre-00345-gea9f446 (steven@steven-OptiPlex-390) (gcc version 4.3.5 (ADI-trunk/svn-5962) ) #25 Tue Jun 10 17:47:46 CST 2014
-
-SEQUENCER STATUS:		Not tainted
- SEQSTAT: 00000027  IPEND: 8008  IMASK: ffff  SYSCFG: 2806
-  EXCAUSE   : 0x27
-  physical IVG3 asserted : <0xffa00744> { _trap + 0x0 }
-  physical IVG15 asserted : <0xffa00d68> { _evt_system_call + 0x0 }
-  logical irq   6 mapped  : <0xffa003bc> { _bfin_coretmr_interrupt + 0x0 }
-  logical irq   7 mapped  : <0x00008828> { _bfin_fault_routine + 0x0 }
-  logical irq  11 mapped  : <0x00007724> { _l2_ecc_err + 0x0 }
-  logical irq  13 mapped  : <0x00008828> { _bfin_fault_routine + 0x0 }
-  logical irq  39 mapped  : <0x00150788> { _bfin_twi_interrupt_entry + 0x0 }
-  logical irq  40 mapped  : <0x00150788> { _bfin_twi_interrupt_entry + 0x0 }
- RETE: <0x00000000> /* Maybe null pointer? */
- RETN: <0x0569fe50> /* kernel dynamic memory (maybe user-space) */
- RETX: <0x00000480> /* Maybe fixed code section */
- RETS: <0x00053384> { _exit_mmap + 0x28 }
- PC  : <0x000531de> { _delete_vma_from_mm + 0x92 }
-DCPLB_FAULT_ADDR: <0x00000008> /* Maybe null pointer? */
-ICPLB_FAULT_ADDR: <0x000531de> { _delete_vma_from_mm + 0x92 }
-PROCESSOR STATE:
- R0 : 00000004    R1 : 0569e000    R2 : 00bf3db4    R3 : 00000000
- R4 : 057f9800    R5 : 00000001    R6 : 0569ddd0    R7 : 0572b720
- P0 : 0572b854    P1 : 00000004    P2 : 00000000    P3 : 0569dda0
- P4 : 0572b720    P5 : 0566c368    FP : 0569fe5c    SP : 0569fd74
- LB0: 057f523f    LT0: 057f523e    LC0: 00000000
- LB1: 0005317c    LT1: 00053172    LC1: 00000002
- B0 : 00000000    L0 : 00000000    M0 : 0566f5bc    I0 : 00000000
- B1 : 00000000    L1 : 00000000    M1 : 00000000    I1 : ffffffff
- B2 : 00000001    L2 : 00000000    M2 : 00000000    I2 : 00000000
- B3 : 00000000    L3 : 00000000    M3 : 00000000    I3 : 057f8000
-A0.w: 00000000   A0.x: 00000000   A1.w: 00000000   A1.x: 00000000
-USP : 056ffcf8  ASTAT: 02003024
-
-Hardware Trace:
-   0 Target : <0x00003fb8> { _trap_c + 0x0 }
-     Source : <0xffa006d8> { _exception_to_level5 + 0xa0 } JUMP.L
-   1 Target : <0xffa00638> { _exception_to_level5 + 0x0 }
-     Source : <0xffa004f2> { _bfin_return_from_exception + 0x6 } RTX
-   2 Target : <0xffa004ec> { _bfin_return_from_exception + 0x0 }
-     Source : <0xffa00590> { _ex_trap_c + 0x70 } JUMP.S
-   3 Target : <0xffa00520> { _ex_trap_c + 0x0 }
-     Source : <0xffa0076e> { _trap + 0x2a } JUMP (P4)
-   4 Target : <0xffa00744> { _trap + 0x0 }
-      FAULT : <0x000531de> { _delete_vma_from_mm + 0x92 } P0 = W[P2 + 2]
-     Source : <0x000531da> { _delete_vma_from_mm + 0x8e } P2 = [P4 + 0x18]
-   5 Target : <0x000531da> { _delete_vma_from_mm + 0x8e }
-     Source : <0x00053176> { _delete_vma_from_mm + 0x2a } IF CC JUMP pcrel
-   6 Target : <0x0005314c> { _delete_vma_from_mm + 0x0 }
-     Source : <0x00053380> { _exit_mmap + 0x24 } JUMP.L
-   7 Target : <0x00053378> { _exit_mmap + 0x1c }
-     Source : <0x00053394> { _exit_mmap + 0x38 } IF !CC JUMP pcrel (BP)
-   8 Target : <0x00053390> { _exit_mmap + 0x34 }
-     Source : <0xffa020e0> { __cond_resched + 0x20 } RTS
-   9 Target : <0xffa020c0> { __cond_resched + 0x0 }
-     Source : <0x0005338c> { _exit_mmap + 0x30 } JUMP.L
-  10 Target : <0x0005338c> { _exit_mmap + 0x30 }
-     Source : <0x0005333a> { _delete_vma + 0xb2 } RTS
-  11 Target : <0x00053334> { _delete_vma + 0xac }
-     Source : <0x0005507a> { _kmem_cache_free + 0xba } RTS
-  12 Target : <0x00055068> { _kmem_cache_free + 0xa8 }
-     Source : <0x0005505e> { _kmem_cache_free + 0x9e } IF !CC JUMP pcrel (BP)
-  13 Target : <0x00055052> { _kmem_cache_free + 0x92 }
-     Source : <0x0005501a> { _kmem_cache_free + 0x5a } IF CC JUMP pcrel
-  14 Target : <0x00054ff4> { _kmem_cache_free + 0x34 }
-     Source : <0x00054fce> { _kmem_cache_free + 0xe } IF CC JUMP pcrel (BP)
-  15 Target : <0x00054fc0> { _kmem_cache_free + 0x0 }
-     Source : <0x00053330> { _delete_vma + 0xa8 } JUMP.L
-Kernel Stack
-Stack info:
- SP: [0x0569ff24] <0x0569ff24> /* kernel dynamic memory (maybe user-space) */
- Memory from 0x0569ff20 to 056a0000
-0569ff20: 00000001 [04e8da5a] 00008000  00000000  00000000  056a0000  04e8da5a  04e8da5a
-0569ff40: 04eb9eea  ffa00dce  02003025  04ea09c5  057f523f  04ea09c4  057f523e  00000000
-0569ff60: 00000000  00000000  00000000  00000000  00000000  00000000  00000001  00000000
-0569ff80: 00000000  00000000  00000000  00000000  00000000  00000000  00000000  00000000
-0569ffa0: 0566f5bc  057f8000  057f8000  00000001  04ec0170  056ffcf8  056ffd04  057f9800
-0569ffc0: 04d1d498  057f9800  057f8fe4  057f8ef0  00000001  057f928c  00000001  00000001
-0569ffe0: 057f9800  00000000  00000008  00000007  00000001  00000001  00000001 <00002806>
-Return addresses in stack:
-    address : <0x00002806> { _show_cpuinfo + 0x2d2 }
-Modules linked in:
-Kernel panic - not syncing: Kernel exception
-[ end Kernel panic - not syncing: Kernel exception
-
-Signed-off-by: Steven Miao <realmz6@gmail.com>
-Acked-by: Davidlohr Bueso <davidlohr@hp.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Peter Wu <peter@lekensteyn.nl>
+Tested-by: Peter Wu <peter@lekensteyn.nl>
 Acked-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[3.15.x]
+Cc: <stable@vger.kernel.org>		[3.13+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/watchdog.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/nommu.c~mm-nommu-per-thread-vma-cache-fix mm/nommu.c
---- a/mm/nommu.c~mm-nommu-per-thread-vma-cache-fix
-+++ a/mm/nommu.c
-@@ -786,7 +786,7 @@ static void delete_vma_from_mm(struct vm
- 	for (i = 0; i < VMACACHE_SIZE; i++) {
- 		/* if the vma is cached, invalidate the entire cache */
- 		if (curr->vmacache[i] == vma) {
--			vmacache_invalidate(curr->mm);
-+			vmacache_invalidate(mm);
- 			break;
- 		}
- 	}
+diff -puN kernel/watchdog.c~watchdog-remove-preemption-restrictions-when-restarting-lockup-detector kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-remove-preemption-restrictions-when-restarting-lockup-detector
++++ a/kernel/watchdog.c
+@@ -527,10 +527,8 @@ static void update_timers_all_cpus(void)
+ 	int cpu;
+ 
+ 	get_online_cpus();
+-	preempt_disable();
+ 	for_each_online_cpu(cpu)
+ 		update_timers(cpu);
+-	preempt_enable();
+ 	put_online_cpus();
+ }
+ 
 _
 
-Patches currently in -mm which might be from realmz6@gmail.com are
+Patches currently in -mm which might be from dzickus@redhat.com are
 
 origin.patch
-linux-next.patch
 
