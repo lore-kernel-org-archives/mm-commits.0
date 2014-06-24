@@ -1,122 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-cma-fix-possible-memory-leak.patch removed from -mm
- tree
-Date: Tue, 24 Jun 2014 12:02:43 -0700
-Message-ID: <53a9cb53.Nyk6t+6Ks1LfTCGW%akpm@linux-foundation.org>
+Subject: [merged]
+ deadlock-when-two-nodes-are-converting-same-lock-from-pr-to-ex-and-idletimeout-closes-conn.patch removed from -mm tree
+Date: Tue, 24 Jun 2014 12:02:53 -0700
+Message-ID: <53a9cb5d.x7YaAK3Jf/qkPTn0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35640 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35662 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752955AbaFXTCo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:44 -0400
+	with ESMTP id S1753302AbaFXTCy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, agraf@suse.de, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, gleb@kernel.org, m.szyprowski@samsung.com, mina86@mina86.com, minchan@kernel.org, paulus@samba.org, pbonzini@redhat.com, stable@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: tariq.x.saeed@oracle.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: DMA, CMA: fix possible memory leak
+     Subject: ocfs2: fix deadlock when two nodes are converting same lock from PR to EX and idletimeout closes conn
 has been removed from the -mm tree.  Its filename was
-     dma-cma-fix-possible-memory-leak.patch
+     deadlock-when-two-nodes-are-converting-same-lock-from-pr-to-ex-and-idletimeout-closes-conn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: DMA, CMA: fix possible memory leak
+From: Tariq Saeed <tariq.x.saeed@oracle.com>
+Subject: ocfs2: fix deadlock when two nodes are converting same lock from PR to EX and idletimeout closes conn
 
-We should free memory for bitmap when we find zone mismatch, otherwise
-this memory will leak.
+Orabug: 18639535
 
-Additionally, I copy code comment from PPC KVM's CMA code to inform
-why we need to check zone mis-match.
+Two node cluster and both nodes hold a lock at PR level and both want to
+convert to EX at the same time.  Master node 1 has sent BAST and then
+closes the connection due to idletime out.  Node 0 receives BAST, sends
+unlock req with cancel flag but gets error -ENOTCONN.  The problem is this
+error is ignored in dlm_send_remote_unlock_request() on the **incorrect**
+assumption that the master is dead.  See NOTE in comment why it returns
+DLM_NORMAL.  Upon getting DLM_NORMAL, node 0 proceeds to sends convert
+(without cancel flg) which fails with -ENOTCONN.  waits 5 sec and resends.
+ This time gets DLM_IVLOCKID from the master since lock not found in grant
+, it had been moved to converting queue in response to conv PR->EX req. 
+No way out.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Reviewed-by: Michal Nazarewicz <mina86@mina86.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Gleb Natapov <gleb@kernel.org>
-Cc: Alexander Graf <agraf@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: <stable@vger.kernel.org>
+Node 1 (master)				Node 0
+==============				======
+
+lock mode PR				PR
+
+convert PR -> EX
+mv grant -> convert and que BAST
+...
+                     <-------- convert PR -> EX
+convert que looks like this: ((node 1, PR -> EX) (node 0, PR -> EX))
+...
+			BAST (want PR -> NL)
+                     ------------------>
+...
+idle timout, conn closed
+                                ...
+				In response to BAST,
+				sends unlock with cancel convert flag
+				gets -ENOTCONN. Ignores and
+                                sends remote convert request
+                                gets -ENOTCONN, waits 5 Sec, retries
+...
+reconnects
+                   <----------------- convert req goes through on next try
+does not find lock on grant que
+                   status DLM_IVLOCKID
+                   ------------------>
+...
+
+No way out.  Fix is to keep retrying unlock with cancel flag until it
+succeeds or the master dies.
+
+Signed-off-by: Tariq Saeed <tariq.x.saeed@oracle.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dma-contiguous.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmunlock.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN drivers/base/dma-contiguous.c~dma-cma-fix-possible-memory-leak drivers/base/dma-contiguous.c
---- a/drivers/base/dma-contiguous.c~dma-cma-fix-possible-memory-leak
-+++ a/drivers/base/dma-contiguous.c
-@@ -176,14 +176,24 @@ static int __init cma_activate_area(stru
- 		base_pfn = pfn;
- 		for (j = pageblock_nr_pages; j; --j, pfn++) {
- 			WARN_ON_ONCE(!pfn_valid(pfn));
-+			/*
-+			 * alloc_contig_range requires the pfn range
-+			 * specified to be in the same zone. Make this
-+			 * simple by forcing the entire CMA resv range
-+			 * to be in the same zone.
-+			 */
- 			if (page_zone(pfn_to_page(pfn)) != zone)
--				return -EINVAL;
-+				goto err;
+diff -puN fs/ocfs2/dlm/dlmunlock.c~deadlock-when-two-nodes-are-converting-same-lock-from-pr-to-ex-and-idletimeout-closes-conn fs/ocfs2/dlm/dlmunlock.c
+--- a/fs/ocfs2/dlm/dlmunlock.c~deadlock-when-two-nodes-are-converting-same-lock-from-pr-to-ex-and-idletimeout-closes-conn
++++ a/fs/ocfs2/dlm/dlmunlock.c
+@@ -191,7 +191,9 @@ static enum dlm_status dlmunlock_common(
+ 				     DLM_UNLOCK_CLEAR_CONVERT_TYPE);
+ 		} else if (status == DLM_RECOVERING ||
+ 			   status == DLM_MIGRATING ||
+-			   status == DLM_FORWARD) {
++			   status == DLM_FORWARD ||
++			   status == DLM_NOLOCKMGR
++			   ) {
+ 			/* must clear the actions because this unlock
+ 			 * is about to be retried.  cannot free or do
+ 			 * any list manipulation. */
+@@ -200,7 +202,8 @@ static enum dlm_status dlmunlock_common(
+ 			     res->lockname.name,
+ 			     status==DLM_RECOVERING?"recovering":
+ 			     (status==DLM_MIGRATING?"migrating":
+-			      "forward"));
++				(status == DLM_FORWARD ? "forward" :
++						"nolockmanager")));
+ 			actions = 0;
  		}
- 		init_cma_reserved_pageblock(pfn_to_page(base_pfn));
- 	} while (--i);
+ 		if (flags & LKM_CANCEL)
+@@ -364,7 +367,10 @@ static enum dlm_status dlm_send_remote_u
+ 			 * updated state to the recovery master.  this thread
+ 			 * just needs to finish out the operation and call
+ 			 * the unlockast. */
+-			ret = DLM_NORMAL;
++			if (dlm_is_node_dead(dlm, owner))
++				ret = DLM_NORMAL;
++			else
++				ret = DLM_NOLOCKMGR;
+ 		} else {
+ 			/* something bad.  this will BUG in ocfs2 */
+ 			ret = dlm_err_to_dlm_status(tmpret);
+@@ -638,7 +644,9 @@ retry:
  
- 	mutex_init(&cma->lock);
- 	return 0;
+ 	if (status == DLM_RECOVERING ||
+ 	    status == DLM_MIGRATING ||
+-	    status == DLM_FORWARD) {
++	    status == DLM_FORWARD ||
++	    status == DLM_NOLOCKMGR) {
 +
-+err:
-+	kfree(cma->bitmap);
-+	return -EINVAL;
- }
+ 		/* We want to go away for a tiny bit to allow recovery
+ 		 * / migration to complete on this resource. I don't
+ 		 * know of any wait queue we could sleep on as this
+@@ -650,7 +658,7 @@ retry:
+ 		msleep(50);
  
- static struct cma cma_areas[MAX_CMA_AREAS];
+ 		mlog(0, "retrying unlock due to pending recovery/"
+-		     "migration/in-progress\n");
++		     "migration/in-progress/reconnect\n");
+ 		goto retry;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from tariq.x.saeed@oracle.com are
 
 origin.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-slab-common-add-functions-for-kmem_cache_node-access.patch
-slub-use-new-node-functions.patch
-slub-use-new-node-functions-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-mm-slub-mark-resiliency_test-as-init-text.patch
-mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
-vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-memcg-cleanup-memcg_cache_params-refcnt-usage.patch
-memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
-memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
-slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
-slub-make-slab_free-non-preemptable.patch
-memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
-slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
-slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
-dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
-dma-cma-support-alignment-constraint-on-cma-region.patch
-dma-cma-support-arbitrary-bitmap-granularity.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-cma-generalize-cma-reserved-area-management-functionality.patch
-cma-generalize-cma-reserved-area-management-functionality-fix.patch
-ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
-mm-cma-clean-up-cma-allocation-error-path.patch
-mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
-mm-cma-clean-up-log-message.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-page-owners-correct-page-order-when-to-free-page.patch
 
