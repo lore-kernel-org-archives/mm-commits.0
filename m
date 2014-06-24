@@ -1,139 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename.patch removed from -mm tree
-Date: Tue, 24 Jun 2014 12:02:51 -0700
-Message-ID: <53a9cb5b.bW29/KsRVDKQtbIU%akpm@linux-foundation.org>
+Subject: [merged] refcount-take-rw_lock-in-ocfs2_reflink.patch removed
+ from -mm tree
+Date: Tue, 24 Jun 2014 12:02:57 -0700
+Message-ID: <53a9cb61.5cTN7qMx+fdTGmMA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35657 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35669 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753210AbaFXTCw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:52 -0400
+	with ESMTP id S1753302AbaFXTC6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: wen.gang.wang@oracle.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: should add inode into orphan dir after updating entry in ocfs2_rename()
+     Subject: ocfs2: refcount: take rw_lock in ocfs2_reflink
 has been removed from the -mm tree.  Its filename was
-     ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename.patch
+     refcount-take-rw_lock-in-ocfs2_reflink.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2: should add inode into orphan dir after updating entry in ocfs2_rename()
+From: Wengang Wang <wen.gang.wang@oracle.com>
+Subject: ocfs2: refcount: take rw_lock in ocfs2_reflink
 
-There are two files a and b in dir /mnt/ocfs2.
-    node A                           node B
-mv a b
-In ocfs2_rename(), after calling
-ocfs2_orphan_add(), the inode of
-file b will be added into orphan
-dir.
+This patch tries to fix this crash:
 
-If ocfs2_update_entry() fails,
-ocfs2_rename return error and mv
-operation fails. But file b still
-exists in the parent dir.
+ #5 [ffff88003c1cd690] do_invalid_op at ffffffff810166d5
+ #6 [ffff88003c1cd730] invalid_op at ffffffff8159b2de
+    [exception RIP: ocfs2_direct_IO_get_blocks+359]
+    RIP: ffffffffa05dfa27  RSP: ffff88003c1cd7e8  RFLAGS: 00010202
+    RAX: 0000000000000000  RBX: ffff88003c1cdaa8  RCX: 0000000000000000
+    RDX: 000000000000000c  RSI: ffff880027a95000  RDI: ffff88003c79b540
+    RBP: ffff88003c1cd858   R8: 0000000000000000   R9: ffffffff815f6ba0
+    R10: 00000000000001c9  R11: 00000000000001c9  R12: ffff88002d271500
+    R13: 0000000000000001  R14: 0000000000000000  R15: 0000000000001000
+    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
+ #7 [ffff88003c1cd860] do_direct_IO at ffffffff811cd31b
+ #8 [ffff88003c1cd950] direct_IO_iovec at ffffffff811cde9c
+ #9 [ffff88003c1cd9b0] do_blockdev_direct_IO at ffffffff811ce764
+#10 [ffff88003c1cdb80] __blockdev_direct_IO at ffffffff811ce7cc
+#11 [ffff88003c1cdbb0] ocfs2_direct_IO at ffffffffa05df756 [ocfs2]
+#12 [ffff88003c1cdbe0] generic_file_direct_write_iter at ffffffff8112f935
+#13 [ffff88003c1cdc40] ocfs2_file_write_iter at ffffffffa0600ccc [ocfs2]
+#14 [ffff88003c1cdd50] do_aio_write at ffffffff8119126c
+#15 [ffff88003c1cddc0] aio_rw_vect_retry at ffffffff811d9bb4
+#16 [ffff88003c1cddf0] aio_run_iocb at ffffffff811db880
+#17 [ffff88003c1cde30] io_submit_one at ffffffff811dc238
+#18 [ffff88003c1cde80] do_io_submit at ffffffff811dc437
+#19 [ffff88003c1cdf70] sys_io_submit at ffffffff811dc530
+#20 [ffff88003c1cdf80] system_call_fastpath at ffffffff8159a159
 
-ocfs2_queue_orphan_scan
--> ocfs2_queue_recovery_completion
--> ocfs2_complete_recovery
--> ocfs2_recover_orphans
-The inode of the file b will be
-put with iput().
+It crashes at
+	BUG_ON(create && (ext_flags & OCFS2_EXT_REFCOUNTED));
+in ocfs2_direct_IO_get_blocks.
 
-ocfs2_evict_inode
--> ocfs2_delete_inode
--> ocfs2_wipe_inode
--> ocfs2_remove_inode
-OCFS2_VALID_FL in the inode
-i_flags will be cleared.
+ocfs2_direct_IO_get_blocks is expecting the OCFS2_EXT_REFCOUNTED be removed in
+ocfs2_prepare_inode_for_write() if it was there. But no cluster lock is taken
+during the time before (or inside) ocfs2_prepare_inode_for_write() and after
+ocfs2_direct_IO_get_blocks().
 
-                                   The file b still can be accessed
-                                   on node B.
-                                   ls /mnt/ocfs2
-                                   When first read the file b with
-                                   ocfs2_read_inode_block(). It will
-                                   validate the inode using
-                                   ocfs2_validate_inode_block().
-                                   Because OCFS2_VALID_FL not set in
-                                   the inode i_flags, so the file
-                                   system will be readonly.
+It can happen in this case:
 
-So we should add inode into orphan dir after updating entry in
-ocfs2_rename().
+Node A(which crashes)				Node B
+------------------------                 ---------------------------
+ocfs2_file_aio_write
+  ocfs2_prepare_inode_for_write
+    ocfs2_inode_lock
+    ...
+    ocfs2_inode_unlock
+  #no refcount found
+....					ocfs2_reflink
+					  ocfs2_inode_lock
+					  ...
+					  ocfs2_inode_unlock
+					  #now, refcount flag set on extent
 
-Signed-off-by: alex.chen <alex.chen@huawei.com>
+					...
+					flush change to disk
+
+ocfs2_direct_IO_get_blocks
+  ocfs2_get_clusters
+    #extent map miss
+    #buffer_head miss
+    read extents from disk
+  found refcount flag on extent
+  crash..
+
+Fix:
+Take rw_lock in ocfs2_reflink path
+
+Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
 Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ fs/ocfs2/refcounttree.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename
-+++ a/fs/ocfs2/namei.c
-@@ -1098,6 +1098,7 @@ static int ocfs2_rename(struct inode *ol
- 	struct ocfs2_dir_lookup_result old_entry_lookup = { NULL, };
- 	struct ocfs2_dir_lookup_result orphan_insert = { NULL, };
- 	struct ocfs2_dir_lookup_result target_insert = { NULL, };
-+	bool should_add_orphan = false;
+diff -puN fs/ocfs2/refcounttree.c~refcount-take-rw_lock-in-ocfs2_reflink fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~refcount-take-rw_lock-in-ocfs2_reflink
++++ a/fs/ocfs2/refcounttree.c
+@@ -4288,9 +4288,16 @@ static int ocfs2_reflink(struct dentry *
+ 		goto out;
+ 	}
  
- 	/* At some point it might be nice to break this function up a
- 	 * bit. */
-@@ -1304,6 +1305,7 @@ static int ocfs2_rename(struct inode *ol
- 				mlog_errno(status);
- 				goto bail;
- 			}
-+			should_add_orphan = true;
- 		}
- 	} else {
- 		BUG_ON(new_dentry->d_parent->d_inode != new_dir);
-@@ -1348,17 +1350,6 @@ static int ocfs2_rename(struct inode *ol
- 			goto bail;
- 		}
++	error = ocfs2_rw_lock(inode, 1);
++	if (error) {
++		mlog_errno(error);
++		goto out;
++	}
++
+ 	error = ocfs2_inode_lock(inode, &old_bh, 1);
+ 	if (error) {
+ 		mlog_errno(error);
++		ocfs2_rw_unlock(inode, 1);
+ 		goto out;
+ 	}
  
--		if (S_ISDIR(new_inode->i_mode) ||
--		    (ocfs2_read_links_count(newfe) == 1)) {
--			status = ocfs2_orphan_add(osb, handle, new_inode,
--						  newfe_bh, orphan_name,
--						  &orphan_insert, orphan_dir);
--			if (status < 0) {
--				mlog_errno(status);
--				goto bail;
--			}
--		}
--
- 		/* change the dirent to point to the correct inode */
- 		status = ocfs2_update_entry(new_dir, handle, &target_lookup_res,
- 					    old_inode);
-@@ -1373,6 +1364,15 @@ static int ocfs2_rename(struct inode *ol
- 		else
- 			ocfs2_add_links_count(newfe, -1);
- 		ocfs2_journal_dirty(handle, newfe_bh);
-+		if (should_add_orphan) {
-+			status = ocfs2_orphan_add(osb, handle, new_inode,
-+					newfe_bh, orphan_name,
-+					&orphan_insert, orphan_dir);
-+			if (status < 0) {
-+				mlog_errno(status);
-+				goto bail;
-+			}
-+		}
- 	} else {
- 		/* if the name was not found in new_dir, add it now */
- 		status = ocfs2_add_entry(handle, new_dentry, old_inode,
+@@ -4302,6 +4309,7 @@ static int ocfs2_reflink(struct dentry *
+ 	up_write(&OCFS2_I(inode)->ip_xattr_sem);
+ 
+ 	ocfs2_inode_unlock(inode, 1);
++	ocfs2_rw_unlock(inode, 1);
+ 	brelse(old_bh);
+ 
+ 	if (error) {
 _
 
-Patches currently in -mm which might be from alex.chen@huawei.com are
+Patches currently in -mm which might be from wen.gang.wang@oracle.com are
 
 origin.patch
 
