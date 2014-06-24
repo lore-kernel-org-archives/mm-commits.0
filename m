@@ -1,109 +1,256 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- watchdog-remove-preemption-restrictions-when-restarting-lockup-detector.patch removed from -mm tree
-Date: Tue, 24 Jun 2014 12:02:21 -0700
-Message-ID: <53a9cb3d.+wVQcAJpXbwMENSD%akpm@linux-foundation.org>
+ cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
+ removed from -mm tree
+Date: Tue, 24 Jun 2014 12:02:10 -0700
+Message-ID: <53a9cb32.A6slsFvsmswx4uzt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35578 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35542 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752135AbaFXTCW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:22 -0400
+	with ESMTP id S1752597AbaFXTCL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dzickus@redhat.com, mhocko@suse.cz, peter@lekensteyn.nl, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: srivatsa.bhat@linux.vnet.ibm.com, bp@suse.de, ego@linux.vnet.ibm.com, fweisbec@gmail.com, hch@infradead.org, mgalbraith@suse.de, mgorman@suse.de, mingo@kernel.org, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, riel@redhat.com, rjw@rjwysocki.net, rostedt@goodmis.org, rusty@rustcorp.com.au, sachin.kamat@samsung.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog.c: remove preemption restrictions when restarting lockup detector
+     Subject: CPU hotplug, smp: flush any pending IPI callbacks before CPU offline
 has been removed from the -mm tree.  Its filename was
-     watchdog-remove-preemption-restrictions-when-restarting-lockup-detector.patch
+     cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Don Zickus <dzickus@redhat.com>
-Subject: kernel/watchdog.c: remove preemption restrictions when restarting lockup detector
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: CPU hotplug, smp: flush any pending IPI callbacks before CPU offline
 
-Peter Wu noticed the following splat on his machine when updating
-/proc/sys/kernel/watchdog_thresh:
+There is a race between the CPU offline code (within stop-machine) and the
+smp-call-function code, which can lead to getting IPIs on the outgoing
+CPU, *after* it has gone offline.
 
-[    0.676701] BUG: sleeping function called from invalid context at mm/slub.c:965
-[    0.679396] in_atomic(): 1, irqs_disabled(): 0, pid: 1, name: init
-[    0.681204] 3 locks held by init/1:
-[    0.682371]  #0:  (sb_writers#3){.+.+.+}, at: [<ffffffff8117b663>] vfs_write+0x143/0x180
-[    0.685887]  #1:  (watchdog_proc_mutex){+.+.+.}, at: [<ffffffff810e02d3>] proc_dowatchdog+0x33/0x110
-[    0.689631]  #2:  (cpu_hotplug.lock){.+.+.+}, at: [<ffffffff810589c2>] get_online_cpus+0x32/0x80
-[    0.693117] Preemption disabled at:[<ffffffff810e0384>] proc_dowatchdog+0xe4/0x110
-[    0.695753]
-[    0.696588] CPU: 0 PID: 1 Comm: init Not tainted 3.16.0-rc1-testing #34
-[    0.698404] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-[    0.704622]  ffff88003f250000 ffff88003f1ffd10 ffffffff81624c59 0000000000000000
-[    0.707749]  ffff88003f1ffd30 ffffffff8108df1d 0000000000000010 ffffffff81c56360
-[    0.711010]  ffff88003f1ffd78 ffffffff8116a5de ffffffff811159a5 ffffffff810a5f4a
-[    0.714053] Call Trace:
-[    0.715015]  [<ffffffff81624c59>] dump_stack+0x4e/0x7a
-[    0.716619]  [<ffffffff8108df1d>] __might_sleep+0x11d/0x190
-[    0.718232]  [<ffffffff8116a5de>] kmem_cache_alloc_trace+0x4e/0x1e0
-[    0.720214]  [<ffffffff811159a5>] ? perf_event_alloc+0x55/0x440
-[    0.721910]  [<ffffffff810a5f4a>] ? mark_held_locks+0x6a/0x90
-[    0.723558]  [<ffffffff811159a5>] perf_event_alloc+0x55/0x440
-[    0.725304]  [<ffffffff810e0050>] ? restart_watchdog_hrtimer+0x50/0x50
-[    0.727279]  [<ffffffff81116d16>] perf_event_create_kernel_counter+0x26/0xe0
-[    0.729269]  [<ffffffff810dfe05>] watchdog_nmi_enable+0x75/0x140
-[    0.730965]  [<ffffffff810dffb3>] update_timers_all_cpus+0x53/0xa0
-[    0.732953]  [<ffffffff810e0384>] proc_dowatchdog+0xe4/0x110
-[    0.738408]  [<ffffffff811d8c93>] proc_sys_call_handler+0xb3/0xc0
-[    0.740266]  [<ffffffff811d8cb4>] proc_sys_write+0x14/0x20
-[    0.742086]  [<ffffffff8117b5cd>] vfs_write+0xad/0x180
-[    0.743669]  [<ffffffff810a606d>] ? trace_hardirqs_on_caller+0xfd/0x1c0
-[    0.745593]  [<ffffffff8117b799>] SyS_write+0x49/0xb0
-[    0.747101]  [<ffffffff8162fe92>] system_call_fastpath+0x16/0x1b
-[    0.749069] NMI watchdog: disabled (cpu0): hardware events not enabled
+Specifically, this can happen when using smp_call_function_single_async()
+to send the IPI, since this API allows sending asynchronous IPIs from IRQ
+disabled contexts.  The exact race condition is described below.
 
-What happened is after updating the watchdog_thresh, the lockup detector
-is restarted to utilize the new value.  Part of this process involved
-disabling preemption.  Once preemption was disabled, perf tried to
-allocate a new event (as part of the restart).  This caused the above
-BUG_ON as you can't sleep with preemption disabled.
+During CPU offline, in stop-machine, we don't enforce any rule in the
+_DISABLE_IRQ stage, regarding the order in which the outgoing CPU and the
+other CPUs disable their local interrupts.  Due to this, we can encounter
+a situation in which an IPI is sent by one of the other CPUs to the
+outgoing CPU (while it is *still* online), but the outgoing CPU ends up
+noticing it only *after* it has gone offline.
 
-The preemption restriction seemed agressive as we are not doing anything
-on that particular cpu, but with all the online cpus (which are protected
-by the get_online_cpus lock).  Remove the restriction and the BUG_ON goes
-away.
+              CPU 1                                         CPU 2
+          (Online CPU)                               (CPU going offline)
 
-Signed-off-by: Don Zickus <dzickus@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Peter Wu <peter@lekensteyn.nl>
-Tested-by: Peter Wu <peter@lekensteyn.nl>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>		[3.13+]
+       Enter _PREPARE stage                          Enter _PREPARE stage
+
+                                                     Enter _DISABLE_IRQ stage
+
+                                                   =
+       Got a device interrupt, and                 | Didn't notice the IPI
+       the interrupt handler sent an               | since interrupts were
+       IPI to CPU 2 using                          | disabled on this CPU.
+       smp_call_function_single_async()            |
+                                                   =
+
+       Enter _DISABLE_IRQ stage
+
+       Enter _RUN stage                              Enter _RUN stage
+
+                                  =
+       Busy loop with interrupts  |                  Invoke take_cpu_down()
+       disabled.                  |                  and take CPU 2 offline
+                                  =
+
+       Enter _EXIT stage                             Enter _EXIT stage
+
+       Re-enable interrupts                          Re-enable interrupts
+
+                                                     The pending IPI is noted
+                                                     immediately, but alas,
+                                                     the CPU is offline at
+                                                     this point.
+
+This of course, makes the smp-call-function IPI handler code running on
+CPU 2 unhappy and it complains about "receiving an IPI on an offline CPU".
+ One real example of the scenario on CPU 1 is the block layer's
+complete-request call-path:
+
+	__blk_complete_request() [interrupt-handler]
+	    raise_blk_irq()
+	        smp_call_function_single_async()
+
+However, if we look closely, the block layer does check that the target
+CPU is online before firing the IPI.  So in this case, it is actually the
+unfortunate ordering/timing of events in the stop-machine phase that leads
+to receiving IPIs after the target CPU has gone offline.
+
+In reality, getting a late IPI on an offline CPU is not too bad by itself
+(this can happen even due to hardware latencies in IPI send-receive).  It
+is a bug only if the target CPU really went offline without executing all
+the callbacks queued on its list.  (Note that a CPU is free to execute its
+pending smp-call-function callbacks in a batch, without waiting for the
+corresponding IPIs to arrive for each one of those callbacks).
+
+So, fixing this issue can be broken up into two parts:
+1. Ensure that a CPU goes offline only after executing all the callbacks
+   queued on it.
+2. Modify the warning condition in the smp-call-function IPI handler code
+   such that it warns only if an offline CPU got an IPI *and* that CPU had
+   gone offline with callbacks still pending in its queue.
+
+Achieving part 1 is straight-forward - just flush (execute) all the queued
+callbacks on the outgoing CPU in the CPU_DYING stage[1], including those
+callbacks for which the source CPU's IPIs might not have been received on
+the outgoing CPU yet.  Once we do this, an IPI that arrives late on the
+CPU going offline (either due to the race mentioned above, or due to
+hardware latencies) will be completely harmless, since the outgoing CPU
+would have executed all the queued callbacks before going offline.
+
+Overall, this fix (parts 1 and 2 put together) additionally guarantees
+that we will see a warning only when the *IPI-sender code* is buggy - that
+is, if it queues the callback _after_ the target CPU has gone offline.
+
+[1]. The CPU_DYING part needs a little more explanation: by the time we
+execute the CPU_DYING notifier callbacks, the CPU would have already been
+marked offline. But we want to flush out the pending callbacks at this stage,
+ignoring the fact that the CPU is offline. So restructure the IPI handler
+code so that we can by-pass the "is-cpu-offline?" check in this particular
+case. (Of course, the right solution here is to fix CPU hotplug to mark the
+CPU offline _after_ invoking the CPU_DYING notifiers, but this requires a
+lot of audit to ensure that this change doesn't break any existing code;
+hence lets go with the solution proposed above until that is done).
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Suggested-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Mike Galbraith <mgalbraith@suse.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Tested-by: Sachin Kamat <sachin.kamat@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/smp.c |   57 ++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 49 insertions(+), 8 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-remove-preemption-restrictions-when-restarting-lockup-detector kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-remove-preemption-restrictions-when-restarting-lockup-detector
-+++ a/kernel/watchdog.c
-@@ -527,10 +527,8 @@ static void update_timers_all_cpus(void)
- 	int cpu;
+diff -puN kernel/smp.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline kernel/smp.c
+--- a/kernel/smp.c~cpu-hotplug-smp-flush-any-pending-ipi-callbacks-before-cpu-offline
++++ a/kernel/smp.c
+@@ -29,6 +29,8 @@ static DEFINE_PER_CPU_SHARED_ALIGNED(str
  
- 	get_online_cpus();
--	preempt_disable();
- 	for_each_online_cpu(cpu)
- 		update_timers(cpu);
--	preempt_enable();
- 	put_online_cpus();
+ static DEFINE_PER_CPU_SHARED_ALIGNED(struct llist_head, call_single_queue);
+ 
++static void flush_smp_call_function_queue(bool warn_cpu_offline);
++
+ static int
+ hotplug_cfd(struct notifier_block *nfb, unsigned long action, void *hcpu)
+ {
+@@ -51,12 +53,27 @@ hotplug_cfd(struct notifier_block *nfb,
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	case CPU_UP_CANCELED:
+ 	case CPU_UP_CANCELED_FROZEN:
++		/* Fall-through to the CPU_DEAD[_FROZEN] case. */
+ 
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN:
+ 		free_cpumask_var(cfd->cpumask);
+ 		free_percpu(cfd->csd);
+ 		break;
++
++	case CPU_DYING:
++	case CPU_DYING_FROZEN:
++		/*
++		 * The IPIs for the smp-call-function callbacks queued by other
++		 * CPUs might arrive late, either due to hardware latencies or
++		 * because this CPU disabled interrupts (inside stop-machine)
++		 * before the IPIs were sent. So flush out any pending callbacks
++		 * explicitly (without waiting for the IPIs to arrive), to
++		 * ensure that the outgoing CPU doesn't go offline with work
++		 * still pending.
++		 */
++		flush_smp_call_function_queue(false);
++		break;
+ #endif
+ 	};
+ 
+@@ -177,23 +194,47 @@ static int generic_exec_single(int cpu,
+ 	return 0;
  }
+ 
+-/*
+- * Invoked by arch to handle an IPI for call function single. Must be
+- * called from the arch with interrupts disabled.
++/**
++ * generic_smp_call_function_single_interrupt - Execute SMP IPI callbacks
++ *
++ * Invoked by arch to handle an IPI for call function single.
++ * Must be called with interrupts disabled.
+  */
+ void generic_smp_call_function_single_interrupt(void)
+ {
++	flush_smp_call_function_queue(true);
++}
++
++/**
++ * flush_smp_call_function_queue - Flush pending smp-call-function callbacks
++ *
++ * @warn_cpu_offline: If set to 'true', warn if callbacks were queued on an
++ *		      offline CPU. Skip this check if set to 'false'.
++ *
++ * Flush any pending smp-call-function callbacks queued on this CPU. This is
++ * invoked by the generic IPI handler, as well as by a CPU about to go offline,
++ * to ensure that all pending IPI callbacks are run before it goes completely
++ * offline.
++ *
++ * Loop through the call_single_queue and run all the queued callbacks.
++ * Must be called with interrupts disabled.
++ */
++static void flush_smp_call_function_queue(bool warn_cpu_offline)
++{
++	struct llist_head *head;
+ 	struct llist_node *entry;
+ 	struct call_single_data *csd, *csd_next;
+ 	static bool warned;
+ 
+-	entry = llist_del_all(&__get_cpu_var(call_single_queue));
++	WARN_ON(!irqs_disabled());
++
++	head = &__get_cpu_var(call_single_queue);
++	entry = llist_del_all(head);
+ 	entry = llist_reverse_order(entry);
+ 
+-	/*
+-	 * Shouldn't receive this interrupt on a cpu that is not yet online.
+-	 */
+-	if (unlikely(!cpu_online(smp_processor_id()) && !warned)) {
++	/* There shouldn't be any pending callbacks on an offline CPU. */
++	if (unlikely(warn_cpu_offline && !cpu_online(smp_processor_id()) &&
++		     !warned && !llist_empty(head))) {
+ 		warned = true;
+ 		WARN(1, "IPI on offline CPU %d\n", smp_processor_id());
  
 _
 
-Patches currently in -mm which might be from dzickus@redhat.com are
+Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
 
 origin.patch
 
