@@ -1,227 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
- removed from -mm tree
-Date: Tue, 24 Jun 2014 12:02:37 -0700
-Message-ID: <53a9cb4d.27MBPJyNPai4YC34%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-reduce-false-positives-when-checking-void-function-return-statements.patch removed from -mm tree
+Date: Tue, 24 Jun 2014 12:02:47 -0700
+Message-ID: <53a9cb57.KJM26fwLBU2rFGWs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35613 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35647 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752638AbaFXTCi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:38 -0400
+	with ESMTP id S1753210AbaFXTCr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, bob.liu@oracle.com, cl@gentwo.org, davej@redhat.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@suse.de, rientjes@google.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: joe@perches.com, anish@chelsio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: let mm_find_pmd fix buggy race with THP fault
+     Subject: checkpatch: reduce false positives when checking void function return statements
 has been removed from the -mm tree.  Its filename was
-     mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault.patch
+     checkpatch-reduce-false-positives-when-checking-void-function-return-statements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: let mm_find_pmd fix buggy race with THP fault
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: reduce false positives when checking void function return statements
 
-Trinity has reported:
+The previous patch had a few too many false positives on styles that
+should be acceptable.
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
-IP: __lock_acquire (kernel/locking/lockdep.c:3070 (discriminator 1))
-CPU: 6 PID: 16173 Comm: trinity-c364 Tainted: G        W
-                        3.15.0-rc1-next-20140415-sasha-00020-gaa90d09 #398
-lock_acquire (arch/x86/include/asm/current.h:14
-              kernel/locking/lockdep.c:3602)
-_raw_spin_lock (include/linux/spinlock_api_smp.h:143
-                kernel/locking/spinlock.c:151)
-remove_migration_pte (mm/migrate.c:137)
-rmap_walk (mm/rmap.c:1628 mm/rmap.c:1699)
-remove_migration_ptes (mm/migrate.c:224)
-migrate_pages (mm/migrate.c:922 mm/migrate.c:960 mm/migrate.c:1126)
-migrate_misplaced_page (mm/migrate.c:1733)
-__handle_mm_fault (mm/memory.c:3762 mm/memory.c:3812 mm/memory.c:3925)
-handle_mm_fault (mm/memory.c:3948)
-__get_user_pages (mm/memory.c:1851)
-__mlock_vma_pages_range (mm/mlock.c:255)
-__mm_populate (mm/mlock.c:711)
-SyS_mlockall (include/linux/mm.h:1799 mm/mlock.c:817 mm/mlock.c:791)
-
-I believe this comes about because, whereas collapsing and splitting THP
-functions take anon_vma lock in write mode (which excludes concurrent rmap
-walks), faulting THP functions (write protection and misplaced NUMA) do
-not - and mostly they do not need to.
-
-But they do use a pmdp_clear_flush(), set_pmd_at() sequence which, for an
-instant (indeed, for a long instant, given the inter-CPU TLB flush in
-there), leaves *pmd neither present not trans_huge.
-
-Which can confuse a concurrent rmap walk, as when removing migration ptes,
-seen in the dumped trace.  Although that rmap walk has a 4k page to
-insert, anon_vmas containing THPs are in no way segregated from 4k-page
-anon_vmas, so the 4k-intent mm_find_pmd() does need to cope with that
-instant when a trans_huge pmd is temporarily absent.
-
-I don't think we need strengthen the locking at the THP end: it's easily
-handled with an ACCESS_ONCE() before testing both conditions.
-
-And since mm_find_pmd() had only one caller who wanted a THP rather than a
-pmd, let's slightly repurpose it to fail when it hits a THP or non-present
-pmd, and open code split_huge_page_address() again.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Bob Liu <bob.liu@oracle.com>
-Cc: Christoph Lameter <cl@gentwo.org>
-Cc: Dave Jones <davej@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Tested-by: Anish Bhatt <anish@chelsio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   18 ++++++++++++------
- mm/ksm.c         |    1 -
- mm/migrate.c     |    2 --
- mm/rmap.c        |   12 ++++++++----
- 4 files changed, 20 insertions(+), 13 deletions(-)
+ scripts/checkpatch.pl |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/huge_memory.c
---- a/mm/huge_memory.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
-+++ a/mm/huge_memory.c
-@@ -2423,8 +2423,6 @@ static void collapse_huge_page(struct mm
- 	pmd = mm_find_pmd(mm, address);
- 	if (!pmd)
- 		goto out;
--	if (pmd_trans_huge(*pmd))
--		goto out;
+diff -puN scripts/checkpatch.pl~checkpatch-reduce-false-positives-when-checking-void-function-return-statements scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-reduce-false-positives-when-checking-void-function-return-statements
++++ a/scripts/checkpatch.pl
+@@ -3484,12 +3484,17 @@ sub process {
+ 			}
+ 		}
  
- 	anon_vma_lock_write(vma->anon_vma);
+-# unnecessary return in a void function? (a single leading tab, then return;)
+-		if ($sline =~ /^\+\treturn\s*;\s*$/ &&
+-		    $prevline =~ /^\+/) {
++# unnecessary return in a void function
++# at end-of-function, with the previous line a single leading tab, then return;
++# and the line before that not a goto label target like "out:"
++		if ($sline =~ /^[ \+]}\s*$/ &&
++		    $prevline =~ /^\+\treturn\s*;\s*$/ &&
++		    $linenr >= 3 &&
++		    $lines[$linenr - 3] =~ /^[ +]/ &&
++		    $lines[$linenr - 3] !~ /^[ +]\s*$Ident\s*:/) {
+ 			WARN("RETURN_VOID",
+-			     "void function return statements are not generally useful\n" . $herecurr);
+-		}
++			     "void function return statements are not generally useful\n" . $hereprev);
++               }
  
-@@ -2523,8 +2521,6 @@ static int khugepaged_scan_pmd(struct mm
- 	pmd = mm_find_pmd(mm, address);
- 	if (!pmd)
- 		goto out;
--	if (pmd_trans_huge(*pmd))
--		goto out;
- 
- 	memset(khugepaged_node_load, 0, sizeof(khugepaged_node_load));
- 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
-@@ -2877,12 +2873,22 @@ void split_huge_page_pmd_mm(struct mm_st
- static void split_huge_page_address(struct mm_struct *mm,
- 				    unsigned long address)
- {
-+	pgd_t *pgd;
-+	pud_t *pud;
- 	pmd_t *pmd;
- 
- 	VM_BUG_ON(!(address & ~HPAGE_PMD_MASK));
- 
--	pmd = mm_find_pmd(mm, address);
--	if (!pmd)
-+	pgd = pgd_offset(mm, address);
-+	if (!pgd_present(*pgd))
-+		return;
-+
-+	pud = pud_offset(pgd, address);
-+	if (!pud_present(*pud))
-+		return;
-+
-+	pmd = pmd_offset(pud, address);
-+	if (!pmd_present(*pmd))
- 		return;
- 	/*
- 	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
-diff -puN mm/ksm.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/ksm.c
---- a/mm/ksm.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
-+++ a/mm/ksm.c
-@@ -945,7 +945,6 @@ static int replace_page(struct vm_area_s
- 	pmd = mm_find_pmd(mm, addr);
- 	if (!pmd)
- 		goto out;
--	BUG_ON(pmd_trans_huge(*pmd));
- 
- 	mmun_start = addr;
- 	mmun_end   = addr + PAGE_SIZE;
-diff -puN mm/migrate.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/migrate.c
---- a/mm/migrate.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
-+++ a/mm/migrate.c
-@@ -120,8 +120,6 @@ static int remove_migration_pte(struct p
- 		pmd = mm_find_pmd(mm, addr);
- 		if (!pmd)
- 			goto out;
--		if (pmd_trans_huge(*pmd))
--			goto out;
- 
- 		ptep = pte_offset_map(pmd, addr);
- 
-diff -puN mm/rmap.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault mm/rmap.c
---- a/mm/rmap.c~mm-let-mm_find_pmd-fix-buggy-race-with-thp-fault
-+++ a/mm/rmap.c
-@@ -569,6 +569,7 @@ pmd_t *mm_find_pmd(struct mm_struct *mm,
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd = NULL;
-+	pmd_t pmde;
- 
- 	pgd = pgd_offset(mm, address);
- 	if (!pgd_present(*pgd))
-@@ -579,7 +580,13 @@ pmd_t *mm_find_pmd(struct mm_struct *mm,
- 		goto out;
- 
- 	pmd = pmd_offset(pud, address);
--	if (!pmd_present(*pmd))
-+	/*
-+	 * Some THP functions use the sequence pmdp_clear_flush(), set_pmd_at()
-+	 * without holding anon_vma lock for write.  So when looking for a
-+	 * genuine pmde (in which to find pte), test present and !THP together.
-+	 */
-+	pmde = ACCESS_ONCE(*pmd);
-+	if (!pmd_present(pmde) || pmd_trans_huge(pmde))
- 		pmd = NULL;
- out:
- 	return pmd;
-@@ -615,9 +622,6 @@ pte_t *__page_check_address(struct page
- 	if (!pmd)
- 		return NULL;
- 
--	if (pmd_trans_huge(*pmd))
--		return NULL;
--
- 	pte = pte_offset_map(pmd, address);
- 	/* Make a quick check before getting the lock */
- 	if (!sync && !pte_present(*pte)) {
+ # if statements using unnecessary parentheses - ie: if ((foo == bar))
+ 		if ($^V && $^V ge 5.10.0 &&
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-mm-zbud-zbud_alloc-minor-param-change.patch
-mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
-mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
-mm-zpool-zbud-zsmalloc-implement-zpool.patch
-mm-zpool-update-zswap-to-use-zpool.patch
-mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
-list-use-argument-hlist_add_after-names-from-rcu-variant.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
-klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+checkpatch-check-git-commit-descriptions.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
+printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
+checkpatch-ignore-email-headers-better.patch
+checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
+fs-isofs-logging-clean-up.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+linux-next.patch
 
