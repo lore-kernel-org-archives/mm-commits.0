@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + slub-reduce-duplicate-creation-on-the-first-object.patch added
- to -mm tree
-Date: Tue, 24 Jun 2014 14:56:55 -0700
-Message-ID: <53a9f427.Eq83sqa+5UAuINPd%akpm@linux-foundation.org>
+Subject: + bio-remove-unused-macro-bip_vec_idx.patch added to -mm tree
+Date: Tue, 24 Jun 2014 14:58:21 -0700
+Message-ID: <53a9f47d.JXDlzVdlivYEsfqv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37135 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37195 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751419AbaFXV44 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 17:56:56 -0400
+	with ESMTP id S1752423AbaFXV6V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 17:58:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: weiyang@linux.vnet.ibm.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: guz.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: reduce duplicate creation on the first object
+     Subject: include/linux/bio.h: remove unused macro bip_vec_idx()
 has been added to the -mm tree.  Its filename is
-     slub-reduce-duplicate-creation-on-the-first-object.patch
+     bio-remove-unused-macro-bip_vec_idx.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-reduce-duplicate-creation-on-the-first-object.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bio-remove-unused-macro-bip_vec_idx.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-reduce-duplicate-creation-on-the-first-object.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bio-remove-unused-macro-bip_vec_idx.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +38,26 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <weiyang@linux.vnet.ibm.com>
-Subject: slub: reduce duplicate creation on the first object
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: include/linux/bio.h: remove unused macro bip_vec_idx()
 
-When a kmem_cache is created with ctor, each object in the kmem_cache will
-be initialized before use.  In the slub implementation, the first object
-will be initialized twice.
+Macro bip_vec_idx() was used by bio integrity originally, but no longer
+used now. So remove it.
 
-This patch avoids the duplication of initialization of the first object.
-
-Fixes commit 7656c72b5a63: ("SLUB: add macros for scanning objects in a
-slab").
-
-Signed-off-by: Wei Yang <weiyang@linux.vnet.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bio.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/slub.c~slub-reduce-duplicate-creation-on-the-first-object mm/slub.c
---- a/mm/slub.c~slub-reduce-duplicate-creation-on-the-first-object
-+++ a/mm/slub.c
-@@ -1403,7 +1403,7 @@ static struct page *new_slab(struct kmem
- 		memset(start, POISON_INUSE, PAGE_SIZE << order);
+diff -puN include/linux/bio.h~bio-remove-unused-macro-bip_vec_idx include/linux/bio.h
+--- a/include/linux/bio.h~bio-remove-unused-macro-bip_vec_idx
++++ a/include/linux/bio.h
+@@ -644,10 +644,6 @@ struct biovec_slab {
  
- 	last = start;
--	for_each_object(p, s, start, page->objects) {
-+	for_each_object(p, s, start + s->size, page->objects - 1) {
- 		setup_object(s, page, last);
- 		set_freepointer(s, last, p);
- 		last = p;
-_
-
-Patches currently in -mm which might be from weiyang@linux.vnet.ibm.com are
-
-slub-reduce-duplicate-creation-on-the-first-object.patch
-
+ #if defined(CONFIG_BLK_DEV_INTEGRITY)
+ 
+-
+-
+-#define bip_vec_idx(bip, idx)	(&(bip->bip_vec[(idx)]))
