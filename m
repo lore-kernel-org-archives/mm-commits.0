@@ -1,139 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: [merged] refcount-take-rw_lock-in-ocfs2_reflink.patch removed
- from -mm tree
-Date: Tue, 24 Jun 2014 12:02:57 -0700
-Message-ID: <53a9cb61.5cTN7qMx+fdTGmMA%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
+ removed from -mm tree
+Date: Tue, 24 Jun 2014 12:03:07 -0700
+Message-ID: <53a9cb6b.vQCl24jWI0d4bxAl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35669 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35686 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753302AbaFXTC6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:58 -0400
+	with ESMTP id S1753302AbaFXTDH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:03:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wen.gang.wang@oracle.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: refcount: take rw_lock in ocfs2_reflink
+     Subject: ocfs2/dlm: do not purge lockres that is queued for assert master
 has been removed from the -mm tree.  Its filename was
-     refcount-take-rw_lock-in-ocfs2_reflink.patch
+     ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wengang Wang <wen.gang.wang@oracle.com>
-Subject: ocfs2: refcount: take rw_lock in ocfs2_reflink
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2/dlm: do not purge lockres that is queued for assert master
 
-This patch tries to fix this crash:
+When workqueue is delayed, it may occur that a lockres is purged while it
+is still queued for master assert.  it may trigger BUG() as follows.
 
- #5 [ffff88003c1cd690] do_invalid_op at ffffffff810166d5
- #6 [ffff88003c1cd730] invalid_op at ffffffff8159b2de
-    [exception RIP: ocfs2_direct_IO_get_blocks+359]
-    RIP: ffffffffa05dfa27  RSP: ffff88003c1cd7e8  RFLAGS: 00010202
-    RAX: 0000000000000000  RBX: ffff88003c1cdaa8  RCX: 0000000000000000
-    RDX: 000000000000000c  RSI: ffff880027a95000  RDI: ffff88003c79b540
-    RBP: ffff88003c1cd858   R8: 0000000000000000   R9: ffffffff815f6ba0
-    R10: 00000000000001c9  R11: 00000000000001c9  R12: ffff88002d271500
-    R13: 0000000000000001  R14: 0000000000000000  R15: 0000000000001000
-    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
- #7 [ffff88003c1cd860] do_direct_IO at ffffffff811cd31b
- #8 [ffff88003c1cd950] direct_IO_iovec at ffffffff811cde9c
- #9 [ffff88003c1cd9b0] do_blockdev_direct_IO at ffffffff811ce764
-#10 [ffff88003c1cdb80] __blockdev_direct_IO at ffffffff811ce7cc
-#11 [ffff88003c1cdbb0] ocfs2_direct_IO at ffffffffa05df756 [ocfs2]
-#12 [ffff88003c1cdbe0] generic_file_direct_write_iter at ffffffff8112f935
-#13 [ffff88003c1cdc40] ocfs2_file_write_iter at ffffffffa0600ccc [ocfs2]
-#14 [ffff88003c1cdd50] do_aio_write at ffffffff8119126c
-#15 [ffff88003c1cddc0] aio_rw_vect_retry at ffffffff811d9bb4
-#16 [ffff88003c1cddf0] aio_run_iocb at ffffffff811db880
-#17 [ffff88003c1cde30] io_submit_one at ffffffff811dc238
-#18 [ffff88003c1cde80] do_io_submit at ffffffff811dc437
-#19 [ffff88003c1cdf70] sys_io_submit at ffffffff811dc530
-#20 [ffff88003c1cdf80] system_call_fastpath at ffffffff8159a159
+N1                                         N2
+dlm_get_lockres()
+->dlm_do_master_requery
+                                  is the master of lockres,
+                                  so queue assert_master work
 
-It crashes at
-	BUG_ON(create && (ext_flags & OCFS2_EXT_REFCOUNTED));
-in ocfs2_direct_IO_get_blocks.
+                                  dlm_thread() start running
+                                  and purge the lockres
 
-ocfs2_direct_IO_get_blocks is expecting the OCFS2_EXT_REFCOUNTED be removed in
-ocfs2_prepare_inode_for_write() if it was there. But no cluster lock is taken
-during the time before (or inside) ocfs2_prepare_inode_for_write() and after
-ocfs2_direct_IO_get_blocks().
+                                  dlm_assert_master_worker()
+                                  send assert master message
+                                  to other nodes
+receiving the assert_master
+message, set master to N2
 
-It can happen in this case:
+dlmlock_remote() send create_lock message to N2, but receive DLM_IVLOCKID,
+if it is RECOVERY lockres, it triggers the BUG().
 
-Node A(which crashes)				Node B
-------------------------                 ---------------------------
-ocfs2_file_aio_write
-  ocfs2_prepare_inode_for_write
-    ocfs2_inode_lock
-    ...
-    ocfs2_inode_unlock
-  #no refcount found
-....					ocfs2_reflink
-					  ocfs2_inode_lock
-					  ...
-					  ocfs2_inode_unlock
-					  #now, refcount flag set on extent
+Another BUG() is triggered when N3 become the new master and send
+assert_master to N1, N1 will trigger the BUG() because owner doesn't
+match.  So we should not purge lockres when it is queued for assert
+master.
 
-					...
-					flush change to disk
-
-ocfs2_direct_IO_get_blocks
-  ocfs2_get_clusters
-    #extent map miss
-    #buffer_head miss
-    read extents from disk
-  found refcount flag on extent
-  crash..
-
-Fix:
-Take rw_lock in ocfs2_reflink path
-
-Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
 Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/ocfs2/dlm/dlmcommon.h   |    4 +++
+ fs/ocfs2/dlm/dlmmaster.c   |   43 ++++++++++++++++++++++++++++++++++-
+ fs/ocfs2/dlm/dlmrecovery.c |    3 +-
+ fs/ocfs2/dlm/dlmthread.c   |   11 +++++---
+ 4 files changed, 55 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/refcounttree.c~refcount-take-rw_lock-in-ocfs2_reflink fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~refcount-take-rw_lock-in-ocfs2_reflink
-+++ a/fs/ocfs2/refcounttree.c
-@@ -4288,9 +4288,16 @@ static int ocfs2_reflink(struct dentry *
- 		goto out;
- 	}
+diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmcommon.h
+--- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
++++ a/fs/ocfs2/dlm/dlmcommon.h
+@@ -331,6 +331,7 @@ struct dlm_lock_resource
+ 	u16 state;
+ 	char lvb[DLM_LVB_LEN];
+ 	unsigned int inflight_locks;
++	unsigned int inflight_assert_workers;
+ 	unsigned long refmap[BITS_TO_LONGS(O2NM_MAX_NODES)];
+ };
  
-+	error = ocfs2_rw_lock(inode, 1);
-+	if (error) {
-+		mlog_errno(error);
-+		goto out;
-+	}
+@@ -910,6 +911,9 @@ void dlm_lockres_drop_inflight_ref(struc
+ void dlm_lockres_grab_inflight_ref(struct dlm_ctxt *dlm,
+ 				   struct dlm_lock_resource *res);
+ 
++void __dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res);
 +
- 	error = ocfs2_inode_lock(inode, &old_bh, 1);
- 	if (error) {
- 		mlog_errno(error);
-+		ocfs2_rw_unlock(inode, 1);
- 		goto out;
- 	}
+ void dlm_queue_ast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
+ void dlm_queue_bast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
+ void __dlm_queue_ast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -581,6 +581,7 @@ static void dlm_init_lockres(struct dlm_
+ 	atomic_set(&res->asts_reserved, 0);
+ 	res->migration_pending = 0;
+ 	res->inflight_locks = 0;
++	res->inflight_assert_workers = 0;
  
-@@ -4302,6 +4309,7 @@ static int ocfs2_reflink(struct dentry *
- 	up_write(&OCFS2_I(inode)->ip_xattr_sem);
+ 	res->dlm = dlm;
  
- 	ocfs2_inode_unlock(inode, 1);
-+	ocfs2_rw_unlock(inode, 1);
- 	brelse(old_bh);
+@@ -683,6 +684,43 @@ void dlm_lockres_drop_inflight_ref(struc
+ 	wake_up(&res->wq);
+ }
  
- 	if (error) {
++void __dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res)
++{
++	assert_spin_locked(&res->spinlock);
++	res->inflight_assert_workers++;
++	mlog(0, "%s:%.*s: inflight assert worker++: now %u\n",
++			dlm->name, res->lockname.len, res->lockname.name,
++			res->inflight_assert_workers);
++}
++
++static void dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res)
++{
++	spin_lock(&res->spinlock);
++	__dlm_lockres_grab_inflight_worker(dlm, res);
++	spin_unlock(&res->spinlock);
++}
++
++static void __dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res)
++{
++	assert_spin_locked(&res->spinlock);
++	BUG_ON(res->inflight_assert_workers == 0);
++	res->inflight_assert_workers--;
++	mlog(0, "%s:%.*s: inflight assert worker--: now %u\n",
++			dlm->name, res->lockname.len, res->lockname.name,
++			res->inflight_assert_workers);
++}
++
++static void dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res)
++{
++	spin_lock(&res->spinlock);
++	__dlm_lockres_drop_inflight_worker(dlm, res);
++	spin_unlock(&res->spinlock);
++}
++
+ /*
+  * lookup a lock resource by name.
+  * may already exist in the hashtable.
+@@ -1603,7 +1641,8 @@ send_response:
+ 			mlog(ML_ERROR, "failed to dispatch assert master work\n");
+ 			response = DLM_MASTER_RESP_ERROR;
+ 			dlm_lockres_put(res);
+-		}
++		} else
++			dlm_lockres_grab_inflight_worker(dlm, res);
+ 	} else {
+ 		if (res)
+ 			dlm_lockres_put(res);
+@@ -2118,6 +2157,8 @@ static void dlm_assert_master_worker(str
+ 	dlm_lockres_release_ast(dlm, res);
+ 
+ put:
++	dlm_lockres_drop_inflight_worker(dlm, res);
++
+ 	dlm_lockres_put(res);
+ 
+ 	mlog(0, "finished with dlm_assert_master_worker\n");
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -1708,7 +1708,8 @@ int dlm_master_requery_handler(struct o2
+ 				mlog_errno(-ENOMEM);
+ 				/* retry!? */
+ 				BUG();
+-			}
++			} else
++				__dlm_lockres_grab_inflight_worker(dlm, res);
+ 		} else /* put.. incase we are not the master */
+ 			dlm_lockres_put(res);
+ 		spin_unlock(&res->spinlock);
+diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmthread.c
+--- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
++++ a/fs/ocfs2/dlm/dlmthread.c
+@@ -259,11 +259,14 @@ static void dlm_run_purge_list(struct dl
+ 		 * refs on it. */
+ 		unused = __dlm_lockres_unused(lockres);
+ 		if (!unused ||
+-		    (lockres->state & DLM_LOCK_RES_MIGRATING)) {
++		    (lockres->state & DLM_LOCK_RES_MIGRATING) ||
++		    (lockres->inflight_assert_workers != 0)) {
+ 			mlog(0, "%s: res %.*s is in use or being remastered, "
+-			     "used %d, state %d\n", dlm->name,
+-			     lockres->lockname.len, lockres->lockname.name,
+-			     !unused, lockres->state);
++			     "used %d, state %d, assert master workers %u\n",
++			     dlm->name, lockres->lockname.len,
++			     lockres->lockname.name,
++			     !unused, lockres->state,
++			     lockres->inflight_assert_workers);
+ 			list_move_tail(&lockres->purge, &dlm->purge_list);
+ 			spin_unlock(&lockres->spinlock);
+ 			continue;
 _
 
-Patches currently in -mm which might be from wen.gang.wang@oracle.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
 origin.patch
+ocfs2-remove-convertion-of-total_backoff-in-dlm_join_domain.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
 
