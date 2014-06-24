@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-rewrite-uncharge-api-fix-5.patch added to -mm
- tree
-Date: Tue, 24 Jun 2014 16:21:02 -0700
-Message-ID: <53aa07de.0Mu8y/MFIObIiAND%akpm@linux-foundation.org>
+Subject: + page-cgroup-trivial-cleanup.patch added to -mm tree
+Date: Tue, 24 Jun 2014 16:22:33 -0700
+Message-ID: <53aa0839.tazZQ7nNIuPHHVul%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37613 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751805AbaFXXVD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 19:21:03 -0400
+	with ESMTP id S1751855AbaFXXWe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 19:22:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, hughd@google.com, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-cgroup: fix flags definition
+     Subject: page-cgroup: trivial cleanup
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+     page-cgroup-trivial-cleanup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-cgroup-trivial-cleanup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-cgroup-trivial-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,48 +39,86 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: page-cgroup: fix flags definition
+Subject: page-cgroup: trivial cleanup
 
-Since commit a9ce315aaec1f ("mm: memcontrol: rewrite uncharge API"),
-PCG_* flags are used as bit masks, but they are still defined in a enum
-as bit numbers. Fix it.
+Add forward declarations for struct pglist_data, mem_cgroup.
+
+Remove __init, __meminit from function prototypes and inline functions.
+
+Remove redundant inclusion of bit_spinlock.h.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_cgroup.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/page_cgroup.h |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/page_cgroup.h~mm-memcontrol-rewrite-uncharge-api-fix-5 include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~mm-memcontrol-rewrite-uncharge-api-fix-5
+diff -puN include/linux/page_cgroup.h~page-cgroup-trivial-cleanup include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~page-cgroup-trivial-cleanup
 +++ a/include/linux/page_cgroup.h
-@@ -3,9 +3,9 @@
+@@ -12,8 +12,10 @@ enum {
+ #ifndef __GENERATING_BOUNDS_H
+ #include <generated/bounds.h>
  
- enum {
- 	/* flags for mem_cgroup */
--	PCG_USED,	/* This page is charged to a memcg */
--	PCG_MEM,	/* This page holds a memory charge */
--	PCG_MEMSW,	/* This page holds a memory+swap charge */
-+	PCG_USED = 0x01,	/* This page is charged to a memcg */
-+	PCG_MEM = 0x02,		/* This page holds a memory charge */
-+	PCG_MEMSW = 0x04,	/* This page holds a memory+swap charge */
- 	__NR_PCG_FLAGS,
++struct pglist_data;
++
+ #ifdef CONFIG_MEMCG
+-#include <linux/bit_spinlock.h>
++struct mem_cgroup;
+ 
+ /*
+  * Page Cgroup can be considered as an extended mem_map.
+@@ -27,16 +29,16 @@ struct page_cgroup {
+ 	struct mem_cgroup *mem_cgroup;
  };
  
-@@ -46,7 +46,7 @@ struct page *lookup_cgroup_page(struct p
+-void __meminit pgdat_page_cgroup_init(struct pglist_data *pgdat);
++extern void pgdat_page_cgroup_init(struct pglist_data *pgdat);
  
- static inline int PageCgroupUsed(struct page_cgroup *pc)
+ #ifdef CONFIG_SPARSEMEM
+-static inline void __init page_cgroup_init_flatmem(void)
++static inline void page_cgroup_init_flatmem(void)
  {
--	return test_bit(PCG_USED, &pc->flags);
-+	return !!(pc->flags & PCG_USED);
+ }
+-extern void __init page_cgroup_init(void);
++extern void page_cgroup_init(void);
+ #else
+-void __init page_cgroup_init_flatmem(void);
+-static inline void __init page_cgroup_init(void)
++extern void page_cgroup_init_flatmem(void);
++static inline void page_cgroup_init(void)
+ {
+ }
+ #endif
+@@ -48,11 +50,10 @@ static inline int PageCgroupUsed(struct
+ {
+ 	return !!(pc->flags & PCG_USED);
+ }
+-
+-#else /* CONFIG_MEMCG */
++#else /* !CONFIG_MEMCG */
+ struct page_cgroup;
+ 
+-static inline void __meminit pgdat_page_cgroup_init(struct pglist_data *pgdat)
++static inline void pgdat_page_cgroup_init(struct pglist_data *pgdat)
+ {
  }
  
- #else /* CONFIG_MEMCG */
+@@ -65,10 +66,9 @@ static inline void page_cgroup_init(void
+ {
+ }
+ 
+-static inline void __init page_cgroup_init_flatmem(void)
++static inline void page_cgroup_init_flatmem(void)
+ {
+ }
+-
+ #endif /* CONFIG_MEMCG */
+ 
+ #include <linux/swap.h>
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
@@ -113,10 +150,10 @@ mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
 mm-memcontrol-rewrite-charge-api.patch
 mm-memcontrol-rewrite-uncharge-api.patch
 mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+page-cgroup-trivial-cleanup.patch
+page-cgroup-get-rid-of-nr_pcg_flags.patch
 fork-exec-cleanup-mm-initialization.patch
 fork-reset-mm-pinned_vm.patch
 fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
 linux-next.patch
-page-cgroup-trivial-cleanup.patch
-page-cgroup-get-rid-of-nr_pcg_flags.patch
 
