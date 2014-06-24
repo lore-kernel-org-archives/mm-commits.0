@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-rename-struct-table-to-zram_table_entry.patch added to -mm tree
-Date: Tue, 24 Jun 2014 13:29:37 -0700
-Message-ID: <53a9dfb1.LnxvKtXj4Ek/dJBX%akpm@linux-foundation.org>
+Subject: + zram-remove-unused-sector_size-define.patch added to -mm tree
+Date: Tue, 24 Jun 2014 13:29:38 -0700
+Message-ID: <53a9dfb2.+KlvBEkp7/LaUhgP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36538 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925AbaFXU3i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 16:29:38 -0400
+	with ESMTP id S1750925AbaFXU3j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 16:29:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, weijie.yang@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: rename struct `table' to `zram_table_entry'
+     Subject: zram: remove unused SECTOR_SIZE define
 has been added to the -mm tree.  Its filename is
-     zram-rename-struct-table-to-zram_table_entry.patch
+     zram-remove-unused-sector_size-define.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-rename-struct-table-to-zram_table_entry.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-remove-unused-sector_size-define.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-rename-struct-table-to-zram_table_entry.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-remove-unused-sector_size-define.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,10 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: rename struct `table' to `zram_table_entry'
+Subject: zram: remove unused SECTOR_SIZE define
 
-Andrew Morton has recently noted that `struct table' actually represents
-table entry and, thus, should be renamed.  Rename to `zram_table_entry'.
+Drop SECTOR_SIZE define, because it's not used.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -51,30 +50,20 @@ Cc: Weijie Yang <weijie.yang@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/block/zram/zram_drv.h~zram-rename-struct-table-to-zram_table_entry drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-rename-struct-table-to-zram_table_entry
+diff -puN drivers/block/zram/zram_drv.h~zram-remove-unused-sector_size-define drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-remove-unused-sector_size-define
 +++ a/drivers/block/zram/zram_drv.h
-@@ -62,7 +62,7 @@ enum zram_pageflags {
- /*-- Data structures */
+@@ -43,7 +43,6 @@ static const size_t max_zpage_size = PAG
+ /*-- End of configurable params */
  
- /* Allocated for each disk page */
--struct table {
-+struct zram_table_entry {
- 	unsigned long handle;
- 	u16 size;	/* object size (excluding header) */
- 	u8 flags;
-@@ -82,7 +82,7 @@ struct zram_stats {
- 
- struct zram_meta {
- 	rwlock_t tb_lock;	/* protect table */
--	struct table *table;
-+	struct zram_table_entry *table;
- 	struct zs_pool *mem_pool;
- };
- 
+ #define SECTOR_SHIFT		9
+-#define SECTOR_SIZE		(1 << SECTOR_SHIFT)
+ #define SECTORS_PER_PAGE_SHIFT	(PAGE_SHIFT - SECTOR_SHIFT)
+ #define SECTORS_PER_PAGE	(1 << SECTORS_PER_PAGE_SHIFT)
+ #define ZRAM_LOGICAL_BLOCK_SHIFT 12
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
