@@ -1,215 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch removed from -mm tree
-Date: Tue, 24 Jun 2014 12:02:31 -0700
-Message-ID: <53a9cb47.40fwoKVyXzQ9yiM1%akpm@linux-foundation.org>
+Subject: [merged] shmem-fix-faulting-into-a-hole-while-its-punched.patch
+ removed from -mm tree
+Date: Tue, 24 Jun 2014 12:02:39 -0700
+Message-ID: <53a9cb4f.19LqfivMmq7yYczD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35597 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35620 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752686AbaFXTCc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:32 -0400
+	with ESMTP id S1752899AbaFXTCk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: atomlin@redhat.com, davem@davemloft.net, dzickus@redhat.com, mguzik@redhat.com, oleg@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: hughd@google.com, davej@redhat.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nmi: provide the option to issue an NMI back trace to every cpu but current
+     Subject: shmem: fix faulting into a hole while it's punched
 has been removed from the -mm tree.  Its filename was
-     nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current.patch
+     shmem-fix-faulting-into-a-hole-while-its-punched.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Aaron Tomlin <atomlin@redhat.com>
-Subject: nmi: provide the option to issue an NMI back trace to every cpu but current
+From: Hugh Dickins <hughd@google.com>
+Subject: shmem: fix faulting into a hole while it's punched
 
-Sometimes it is preferred not to use the trigger_all_cpu_backtrace()
-routine when one wants to avoid capturing a back trace for current.  For
-instance if one was previously captured recently.
+Trinity finds that mmap access to a hole while it's punched from shmem can
+prevent the madvise(MADV_REMOVE) or fallocate(FALLOC_FL_PUNCH_HOLE) from
+completing, until the reader chooses to stop; with the puncher's hold on
+i_mutex locking out all other writers until it can complete.
 
-This patch provides a new routine namely
-trigger_allbutself_cpu_backtrace() which offers the flexibility to issue
-an NMI to every cpu but current and capture a back trace accordingly.
+It appears that the tmpfs fault path is too light in comparison with its
+hole-punching path, lacking an i_data_sem to obstruct it; but we don't
+want to slow down the common case.
 
-Patch x86 and sparc to support new routine.
+Extend shmem_fallocate()'s existing range notification mechanism, so
+shmem_fault() can refrain from faulting pages into the hole while it's
+punched, waiting instead on i_mutex (when safe to sleep; or repeatedly
+faulting when not).
 
-[dzickus@redhat.com: add stub in #else clause]
-[dzickus@redhat.com: don't print message in single processor case, wrap with get/put_cpu based on Oleg's suggestion]
-[sfr@canb.auug.org.au: undo C99ism]
-Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Mateusz Guzik <mguzik@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Tested-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Dave Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/irq_64.h |    2 +-
- arch/sparc/kernel/process_64.c  |   18 ++++++++++++------
- arch/x86/include/asm/irq.h      |    2 +-
- arch/x86/kernel/apic/hw_nmi.c   |   18 ++++++++++++++----
- include/linux/nmi.h             |   11 ++++++++++-
- 5 files changed, 38 insertions(+), 13 deletions(-)
+ mm/shmem.c |   56 +++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 52 insertions(+), 4 deletions(-)
 
-diff -puN arch/sparc/include/asm/irq_64.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current arch/sparc/include/asm/irq_64.h
---- a/arch/sparc/include/asm/irq_64.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current
-+++ a/arch/sparc/include/asm/irq_64.h
-@@ -89,7 +89,7 @@ static inline unsigned long get_softint(
- 	return retval;
- }
+diff -puN mm/shmem.c~shmem-fix-faulting-into-a-hole-while-its-punched mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-faulting-into-a-hole-while-its-punched
++++ a/mm/shmem.c
+@@ -80,11 +80,12 @@ static struct vfsmount *shm_mnt;
+ #define SHORT_SYMLINK_LEN 128
  
--void arch_trigger_all_cpu_backtrace(void);
-+void arch_trigger_all_cpu_backtrace(bool);
- #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
+ /*
+- * shmem_fallocate and shmem_writepage communicate via inode->i_private
+- * (with i_mutex making sure that it has only one user at a time):
+- * we would prefer not to enlarge the shmem inode just for that.
++ * shmem_fallocate communicates with shmem_fault or shmem_writepage via
++ * inode->i_private (with i_mutex making sure that it has only one user at
++ * a time): we would prefer not to enlarge the shmem inode just for that.
+  */
+ struct shmem_falloc {
++	int	mode;		/* FALLOC_FL mode currently operating */
+ 	pgoff_t start;		/* start of range currently being fallocated */
+ 	pgoff_t next;		/* the next page offset to be fallocated */
+ 	pgoff_t nr_falloced;	/* how many new pages have been fallocated */
+@@ -759,6 +760,7 @@ static int shmem_writepage(struct page *
+ 			spin_lock(&inode->i_lock);
+ 			shmem_falloc = inode->i_private;
+ 			if (shmem_falloc &&
++			    !shmem_falloc->mode &&
+ 			    index >= shmem_falloc->start &&
+ 			    index < shmem_falloc->next)
+ 				shmem_falloc->nr_unswapped++;
+@@ -1233,6 +1235,44 @@ static int shmem_fault(struct vm_area_st
+ 	int error;
+ 	int ret = VM_FAULT_LOCKED;
  
- extern void *hardirq_stack[NR_CPUS];
-diff -puN arch/sparc/kernel/process_64.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current arch/sparc/kernel/process_64.c
---- a/arch/sparc/kernel/process_64.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current
-+++ a/arch/sparc/kernel/process_64.c
-@@ -239,7 +239,7 @@ static void __global_reg_poll(struct glo
- 	}
- }
- 
--void arch_trigger_all_cpu_backtrace(void)
-+void arch_trigger_all_cpu_backtrace(bool include_self)
- {
- 	struct thread_info *tp = current_thread_info();
- 	struct pt_regs *regs = get_irq_regs();
-@@ -251,16 +251,22 @@ void arch_trigger_all_cpu_backtrace(void
- 
- 	spin_lock_irqsave(&global_cpu_snapshot_lock, flags);
- 
--	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
--
- 	this_cpu = raw_smp_processor_id();
- 
--	__global_reg_self(tp, regs, this_cpu);
-+	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
++	/*
++	 * Trinity finds that probing a hole which tmpfs is punching can
++	 * prevent the hole-punch from ever completing: which in turn
++	 * locks writers out with its hold on i_mutex.  So refrain from
++	 * faulting pages into the hole while it's being punched, and
++	 * wait on i_mutex to be released if vmf->flags permits.
++	 */
++	if (unlikely(inode->i_private)) {
++		struct shmem_falloc *shmem_falloc;
 +
-+	if (include_self)
-+		__global_reg_self(tp, regs, this_cpu);
- 
- 	smp_fetch_global_regs();
- 
- 	for_each_online_cpu(cpu) {
--		struct global_reg_snapshot *gp = &global_cpu_snapshot[cpu].reg;
-+		struct global_reg_snapshot *gp;
-+
-+		if (!include_self && cpu == this_cpu)
-+			continue;
-+
-+		gp = &global_cpu_snapshot[cpu].reg;
- 
- 		__global_reg_poll(gp);
- 
-@@ -292,7 +298,7 @@ void arch_trigger_all_cpu_backtrace(void
- 
- static void sysrq_handle_globreg(int key)
- {
--	arch_trigger_all_cpu_backtrace();
-+	arch_trigger_all_cpu_backtrace(true);
- }
- 
- static struct sysrq_key_op sparc_globalreg_op = {
-diff -puN arch/x86/include/asm/irq.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current arch/x86/include/asm/irq.h
---- a/arch/x86/include/asm/irq.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current
-+++ a/arch/x86/include/asm/irq.h
-@@ -43,7 +43,7 @@ extern int vector_used_by_percpu_irq(uns
- extern void init_ISA_irqs(void);
- 
- #ifdef CONFIG_X86_LOCAL_APIC
--void arch_trigger_all_cpu_backtrace(void);
-+void arch_trigger_all_cpu_backtrace(bool);
- #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
- #endif
- 
-diff -puN arch/x86/kernel/apic/hw_nmi.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current arch/x86/kernel/apic/hw_nmi.c
---- a/arch/x86/kernel/apic/hw_nmi.c~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current
-+++ a/arch/x86/kernel/apic/hw_nmi.c
-@@ -33,31 +33,41 @@ static DECLARE_BITMAP(backtrace_mask, NR
- /* "in progress" flag of arch_trigger_all_cpu_backtrace */
- static unsigned long backtrace_flag;
- 
--void arch_trigger_all_cpu_backtrace(void)
-+void arch_trigger_all_cpu_backtrace(bool include_self)
- {
- 	int i;
-+	int cpu = get_cpu();
- 
--	if (test_and_set_bit(0, &backtrace_flag))
-+	if (test_and_set_bit(0, &backtrace_flag)) {
- 		/*
- 		 * If there is already a trigger_all_cpu_backtrace() in progress
- 		 * (backtrace_flag == 1), don't output double cpu dump infos.
- 		 */
-+		put_cpu();
- 		return;
++		spin_lock(&inode->i_lock);
++		shmem_falloc = inode->i_private;
++		if (!shmem_falloc ||
++		    shmem_falloc->mode != FALLOC_FL_PUNCH_HOLE ||
++		    vmf->pgoff < shmem_falloc->start ||
++		    vmf->pgoff >= shmem_falloc->next)
++			shmem_falloc = NULL;
++		spin_unlock(&inode->i_lock);
++		/*
++		 * i_lock has protected us from taking shmem_falloc seriously
++		 * once return from shmem_fallocate() went back up that stack.
++		 * i_lock does not serialize with i_mutex at all, but it does
++		 * not matter if sometimes we wait unnecessarily, or sometimes
++		 * miss out on waiting: we just need to make those cases rare.
++		 */
++		if (shmem_falloc) {
++			if ((vmf->flags & FAULT_FLAG_ALLOW_RETRY) &&
++			   !(vmf->flags & FAULT_FLAG_RETRY_NOWAIT)) {
++				up_read(&vma->vm_mm->mmap_sem);
++				mutex_lock(&inode->i_mutex);
++				mutex_unlock(&inode->i_mutex);
++				return VM_FAULT_RETRY;
++			}
++			/* cond_resched? Leave that to GUP or return to user */
++			return VM_FAULT_NOPAGE;
++		}
 +	}
++
+ 	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
+ 	if (error)
+ 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
+@@ -1729,18 +1769,26 @@ static long shmem_fallocate(struct file
  
- 	cpumask_copy(to_cpumask(backtrace_mask), cpu_online_mask);
-+	if (!include_self)
-+		cpumask_clear_cpu(cpu, to_cpumask(backtrace_mask));
+ 	mutex_lock(&inode->i_mutex);
  
--	printk(KERN_INFO "sending NMI to all CPUs:\n");
--	apic->send_IPI_all(NMI_VECTOR);
-+	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
-+		pr_info("sending NMI to %s CPUs:\n",
-+			(include_self ? "all" : "other"));
-+		apic->send_IPI_mask(to_cpumask(backtrace_mask), NMI_VECTOR);
-+	}
++	shmem_falloc.mode = mode & ~FALLOC_FL_KEEP_SIZE;
++
+ 	if (mode & FALLOC_FL_PUNCH_HOLE) {
+ 		struct address_space *mapping = file->f_mapping;
+ 		loff_t unmap_start = round_up(offset, PAGE_SIZE);
+ 		loff_t unmap_end = round_down(offset + len, PAGE_SIZE) - 1;
  
- 	/* Wait for up to 10 seconds for all CPUs to do the backtrace */
- 	for (i = 0; i < 10 * 1000; i++) {
- 		if (cpumask_empty(to_cpumask(backtrace_mask)))
- 			break;
- 		mdelay(1);
-+		touch_softlockup_watchdog();
++		shmem_falloc.start = unmap_start >> PAGE_SHIFT;
++		shmem_falloc.next = (unmap_end + 1) >> PAGE_SHIFT;
++		spin_lock(&inode->i_lock);
++		inode->i_private = &shmem_falloc;
++		spin_unlock(&inode->i_lock);
++
+ 		if ((u64)unmap_end > (u64)unmap_start)
+ 			unmap_mapping_range(mapping, unmap_start,
+ 					    1 + unmap_end - unmap_start, 0);
+ 		shmem_truncate_range(inode, offset, offset + len - 1);
+ 		/* No need to unmap again: hole-punching leaves COWed pages */
+ 		error = 0;
+-		goto out;
++		goto undone;
  	}
  
- 	clear_bit(0, &backtrace_flag);
- 	smp_mb__after_atomic();
-+	put_cpu();
- }
- 
- static int
-diff -puN include/linux/nmi.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current include/linux/nmi.h
---- a/include/linux/nmi.h~nmi-provide-the-option-to-issue-an-nmi-back-trace-to-every-cpu-but-current
-+++ a/include/linux/nmi.h
-@@ -32,15 +32,24 @@ static inline void touch_nmi_watchdog(vo
- #ifdef arch_trigger_all_cpu_backtrace
- static inline bool trigger_all_cpu_backtrace(void)
- {
--	arch_trigger_all_cpu_backtrace();
-+	arch_trigger_all_cpu_backtrace(true);
- 
- 	return true;
- }
-+static inline bool trigger_allbutself_cpu_backtrace(void)
-+{
-+	arch_trigger_all_cpu_backtrace(false);
-+	return true;
-+}
- #else
- static inline bool trigger_all_cpu_backtrace(void)
- {
- 	return false;
- }
-+static inline bool trigger_allbutself_cpu_backtrace(void)
-+{
-+	return false;
-+}
- #endif
- 
- #ifdef CONFIG_LOCKUP_DETECTOR
+ 	/* We need to check rlimit even when FALLOC_FL_KEEP_SIZE */
 _
 
-Patches currently in -mm which might be from atomlin@redhat.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
+mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-zbud-zbud_alloc-minor-param-change.patch
+mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
+mm-zpool-zbud-zsmalloc-implement-zpool.patch
+mm-zpool-update-zswap-to-use-zpool.patch
+mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
+list-use-argument-hlist_add_after-names-from-rcu-variant.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
+klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
