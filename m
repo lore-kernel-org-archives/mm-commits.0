@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bio-remove-unused-macro-bip_vec_idx.patch added to -mm tree
-Date: Tue, 24 Jun 2014 14:58:21 -0700
-Message-ID: <53a9f47d.JXDlzVdlivYEsfqv%akpm@linux-foundation.org>
+Subject: + mm-vmallocc-add-a-schedule-point-to-vmalloc.patch added to -mm
+ tree
+Date: Tue, 24 Jun 2014 15:10:41 -0700
+Message-ID: <53a9f761.niOuC8+VUMs0utDe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37195 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37296 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752423AbaFXV6V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 17:58:21 -0400
+	with ESMTP id S1751699AbaFXWKl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 18:10:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guz.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: edumazet@google.com, hughd@google.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/bio.h: remove unused macro bip_vec_idx()
+     Subject: mm/vmalloc.c: add a schedule point to vmalloc()
 has been added to the -mm tree.  Its filename is
-     bio-remove-unused-macro-bip_vec_idx.patch
+     mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bio-remove-unused-macro-bip_vec_idx.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bio-remove-unused-macro-bip_vec_idx.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,26 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: include/linux/bio.h: remove unused macro bip_vec_idx()
+From: Eric Dumazet <edumazet@google.com>
+Subject: mm/vmalloc.c: add a schedule point to vmalloc()
 
-Macro bip_vec_idx() was used by bio integrity originally, but no longer
-used now. So remove it.
+It is not uncommon on busy servers to get stuck hundred of ms in vmalloc()
+calls (like file descriptor expansions).
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Add a cond_resched() to __vmalloc_area_node() to be gentle to
+other tasks.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bio.h |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/vmalloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/bio.h~bio-remove-unused-macro-bip_vec_idx include/linux/bio.h
---- a/include/linux/bio.h~bio-remove-unused-macro-bip_vec_idx
-+++ a/include/linux/bio.h
-@@ -644,10 +644,6 @@ struct biovec_slab {
+diff -puN mm/vmalloc.c~mm-vmallocc-add-a-schedule-point-to-vmalloc mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-add-a-schedule-point-to-vmalloc
++++ a/mm/vmalloc.c
+@@ -1602,6 +1602,7 @@ static void *__vmalloc_area_node(struct
+ 			goto fail;
+ 		}
+ 		area->pages[i] = page;
++		cond_resched();
+ 	}
  
- #if defined(CONFIG_BLK_DEV_INTEGRITY)
- 
--
--
--#define bip_vec_idx(bip, idx)	(&(bip->bip_vec[(idx)]))
+ 	if (map_vm_area(area, prot, &pages))
+_
+
+Patches currently in -mm which might be from edumazet@google.com are
+
+vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
+linux-next.patch
+
