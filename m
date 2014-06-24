@@ -1,89 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-save-pg_head_mask-in-vmcoreinfo.patch removed from -mm tree
-Date: Tue, 24 Jun 2014 12:02:11 -0700
-Message-ID: <53a9cb33.ayac2NMPtp4BW5NJ%akpm@linux-foundation.org>
+Subject: [merged]
+ hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry.patch removed from -mm tree
+Date: Tue, 24 Jun 2014 12:02:17 -0700
+Message-ID: <53a9cb39.xYTKoSNcXrLsZy6r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35568 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752599AbaFXTCM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:12 -0400
+	with ESMTP id S1751211AbaFXTCS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ptesarik@suse.cz, aik@ozlabs.ru, benh@kernel.crashing.org, ebiederm@xmission.com, fengguang.wu@intel.com, paulus@samba.org, sasha.levin@oracle.com, shli@kernel.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, cl@linux.com, hughd@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: save PG_head_mask in VMCOREINFO
+     Subject: hugetlb: fix copy_hugetlb_page_range() to handle migration/hwpoisoned entry
 has been removed from the -mm tree.  Its filename was
-     kexec-save-pg_head_mask-in-vmcoreinfo.patch
+     hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Petr Tesarik <ptesarik@suse.cz>
-Subject: kexec: save PG_head_mask in VMCOREINFO
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: hugetlb: fix copy_hugetlb_page_range() to handle migration/hwpoisoned entry
 
-To allow filtering of huge pages, makedumpfile must be able to identify
-them in the dump.  This can be done by checking the appropriate page flag,
-so communicate its value to makedumpfile through the VMCOREINFO interface.
+There's a race between fork() and hugepage migration, as a result we try
+to "dereference" a swap entry as a normal pte, causing kernel panic.  The
+cause of the problem is that copy_hugetlb_page_range() can't handle "swap
+entry" family (migration entry and hwpoisoned entry,) so let's fix it.
 
-There's only one small catch.  Depending on how many page flags are
-available on a given architecture, this bit can be called PG_head or
-PG_compound.
-
-I sent a similar patch back in 2012, but Eric Biederman did not like using
-an #ifdef.  So, this time I'm adding a common symbol (PG_head_mask)
-instead.
-
-See https://lkml.org/lkml/2012/11/28/91 for the previous version.
-
-Signed-off-by: Petr Tesarik <ptesarik@suse.cz>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Alexey Kardashevskiy <aik@ozlabs.ru>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: <stable@vger.kernel.org>	[2.6.37+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    3 +++
- kernel/kexec.c             |    1 +
- 2 files changed, 4 insertions(+)
+ mm/hugetlb.c |   71 +++++++++++++++++++++++++++++--------------------
+ 1 file changed, 43 insertions(+), 28 deletions(-)
 
-diff -puN include/linux/page-flags.h~kexec-save-pg_head_mask-in-vmcoreinfo include/linux/page-flags.h
---- a/include/linux/page-flags.h~kexec-save-pg_head_mask-in-vmcoreinfo
-+++ a/include/linux/page-flags.h
-@@ -360,6 +360,9 @@ static inline void ClearPageCompound(str
- 	ClearPageHead(page);
+diff -puN mm/hugetlb.c~hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry
++++ a/mm/hugetlb.c
+@@ -2520,6 +2520,31 @@ static void set_huge_ptep_writable(struc
+ 		update_mmu_cache(vma, address, ptep);
  }
- #endif
-+
-+#define PG_head_mask ((1L << PG_head))
-+
- #else
- /*
-  * Reduce page flag use as much as possible by overlapping
-diff -puN kernel/kexec.c~kexec-save-pg_head_mask-in-vmcoreinfo kernel/kexec.c
---- a/kernel/kexec.c~kexec-save-pg_head_mask-in-vmcoreinfo
-+++ a/kernel/kexec.c
-@@ -1617,6 +1617,7 @@ static int __init crash_save_vmcoreinfo_
- #ifdef CONFIG_MEMORY_FAILURE
- 	VMCOREINFO_NUMBER(PG_hwpoison);
- #endif
-+	VMCOREINFO_NUMBER(PG_head_mask);
- 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
  
- 	arch_crash_save_vmcoreinfo();
-_
-
-Patches currently in -mm which might be from ptesarik@suse.cz are
-
-origin.patch
-
++static int is_hugetlb_entry_migration(pte_t pte)
++{
++	swp_entry_t swp;
++
++	if (huge_pte_none(pte) || pte_present(pte))
++		return 0;
++	swp = pte_to_swp_entry(pte);
++	if (non_swap_entry(swp) && is_migration_entry(swp))
++		return 1;
++	else
++		return 0;
++}
++
++static int is_hugetlb_entry_hwpoisoned(pte_t pte)
++{
++	swp_entry_t swp;
++
++	if (huge_pte_none(pte) || pte_present(pte))
++		return 0;
++	swp = pte_to_swp_entry(pte);
++	if (non_swap_entry(swp) && is_hwpoison_entry(swp))
++		return 1;
++	else
++		return 0;
++}
+ 
+ int copy_hugetlb_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 			    struct vm_area_struct *vma)
+@@ -2559,10 +2584,26 @@ int copy_hugetlb_page_range(struct mm_st
+ 		dst_ptl = huge_pte_lock(h, dst, dst_pte);
+ 		src_ptl = huge_pte_lockptr(h, src, src_pte);
+ 		spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
+-		if (!huge_pte_none(huge_ptep_get(src_pte))) {
++		entry = huge_ptep_get(src_pte);
++		if (huge_pte_none(entry)) { /* skip none entry */
++			;
++		} else if (unlikely(is_hugetlb_entry_migration(entry) ||
++				    is_hugetlb_entry_hwpoisoned(entry))) {
++			swp_entry_t swp_entry = pte_to_swp_entry(entry);
++
++			if (is_write_migration_entry(swp_entry) && cow) {
++				/*
++				 * COW mappings require pages in both
++				 * parent and child to be set to read.
++				 */
++				make_migration_entry_read(&swp_entry);
++				entry = swp_entry_to_pte(swp_entry);
++				set_huge_pte_at(src, addr, src_pte, entry);
++			}
++			set_huge_pte_at(dst, addr, dst_pte, entry);
++		} else {
+ 			if (cow)
+ 				huge_ptep_set_wrprotect(src, addr, src_pte);
+-			entry = huge_ptep_get(src_pte);
+ 			ptepage = pte_page(entry);
+ 			get_page(ptepage);
+ 			page_dup_rmap(ptepage);
+@@ -2578,32 +2619,6 @@ int copy_hugetlb_page_range(struct mm_st
+ 	return ret;
+ }
+ 
+-static int is_hugetlb_entry_migration(pte_t pte)
+-{
+-	swp_entry_t swp;
+-
+-	if (huge_pte_none(pte) || pte_present(pte))
+-		return 0;
+-	swp = pte_to_swp_entry(pte);
+-	if (non_swap_entry(swp) && is_migration_entry(swp))
+-		return 1;
+-	else
+-		return 0;
+-}
+-
+-static int is_hugetlb_entry_hwpoisoned(pte_t pte)
+-{
+-	swp_entry_t swp;
+-
+-	if (huge_pte_none(pte) || pte_present(pte))
+-		return 0;
+-	swp = pte_to_swp_entry(pte);
+-	if (non_swap_entry(swp) && is_hwpoison_entry(swp))
+-		return 1;
+-	else
+-		return 0;
+-}
