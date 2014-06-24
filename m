@@ -1,139 +1,88 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry.patch removed from -mm tree
-Date: Tue, 24 Jun 2014 12:02:17 -0700
-Message-ID: <53a9cb39.xYTKoSNcXrLsZy6r%akpm@linux-foundation.org>
+ tmpfs-zero_range-and-collapse_range-not-currently-supported.patch removed
+ from -mm tree
+Date: Tue, 24 Jun 2014 12:02:15 -0700
+Message-ID: <53a9cb37.bzu/iIcyZGgzuaP9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35568 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35564 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751211AbaFXTCS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:18 -0400
+	with ESMTP id S1752049AbaFXTCQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, cl@linux.com, hughd@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: hughd@google.com, lczerner@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix copy_hugetlb_page_range() to handle migration/hwpoisoned entry
+     Subject: tmpfs: ZERO_RANGE and COLLAPSE_RANGE not currently supported
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry.patch
+     tmpfs-zero_range-and-collapse_range-not-currently-supported.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: hugetlb: fix copy_hugetlb_page_range() to handle migration/hwpoisoned entry
+From: Hugh Dickins <hughd@google.com>
+Subject: tmpfs: ZERO_RANGE and COLLAPSE_RANGE not currently supported
 
-There's a race between fork() and hugepage migration, as a result we try
-to "dereference" a swap entry as a normal pte, causing kernel panic.  The
-cause of the problem is that copy_hugetlb_page_range() can't handle "swap
-entry" family (migration entry and hwpoisoned entry,) so let's fix it.
+I was well aware of FALLOC_FL_ZERO_RANGE and FALLOC_FL_COLLAPSE_RANGE
+support being added to fallocate(); but didn't realize until now that I
+had been too stupid to future-proof shmem_fallocate() against new
+additions.  -EOPNOTSUPP instead of going on to ordinary fallocation.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: <stable@vger.kernel.org>	[2.6.37+]
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Lukas Czerner <lczerner@redhat.com>
+Cc: <stable@vger.kernel.org>	[3.15]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   71 +++++++++++++++++++++++++++++--------------------
- 1 file changed, 43 insertions(+), 28 deletions(-)
+ mm/shmem.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-copy_hugetlb_page_range-to-handle-migration-hwpoisoned-entry
-+++ a/mm/hugetlb.c
-@@ -2520,6 +2520,31 @@ static void set_huge_ptep_writable(struc
- 		update_mmu_cache(vma, address, ptep);
- }
+diff -puN mm/shmem.c~tmpfs-zero_range-and-collapse_range-not-currently-supported mm/shmem.c
+--- a/mm/shmem.c~tmpfs-zero_range-and-collapse_range-not-currently-supported
++++ a/mm/shmem.c
+@@ -1724,6 +1724,9 @@ static long shmem_fallocate(struct file
+ 	pgoff_t start, index, end;
+ 	int error;
  
-+static int is_hugetlb_entry_migration(pte_t pte)
-+{
-+	swp_entry_t swp;
++	if (mode & ~(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE))
++		return -EOPNOTSUPP;
 +
-+	if (huge_pte_none(pte) || pte_present(pte))
-+		return 0;
-+	swp = pte_to_swp_entry(pte);
-+	if (non_swap_entry(swp) && is_migration_entry(swp))
-+		return 1;
-+	else
-+		return 0;
-+}
-+
-+static int is_hugetlb_entry_hwpoisoned(pte_t pte)
-+{
-+	swp_entry_t swp;
-+
-+	if (huge_pte_none(pte) || pte_present(pte))
-+		return 0;
-+	swp = pte_to_swp_entry(pte);
-+	if (non_swap_entry(swp) && is_hwpoison_entry(swp))
-+		return 1;
-+	else
-+		return 0;
-+}
+ 	mutex_lock(&inode->i_mutex);
  
- int copy_hugetlb_page_range(struct mm_struct *dst, struct mm_struct *src,
- 			    struct vm_area_struct *vma)
-@@ -2559,10 +2584,26 @@ int copy_hugetlb_page_range(struct mm_st
- 		dst_ptl = huge_pte_lock(h, dst, dst_pte);
- 		src_ptl = huge_pte_lockptr(h, src, src_pte);
- 		spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
--		if (!huge_pte_none(huge_ptep_get(src_pte))) {
-+		entry = huge_ptep_get(src_pte);
-+		if (huge_pte_none(entry)) { /* skip none entry */
-+			;
-+		} else if (unlikely(is_hugetlb_entry_migration(entry) ||
-+				    is_hugetlb_entry_hwpoisoned(entry))) {
-+			swp_entry_t swp_entry = pte_to_swp_entry(entry);
-+
-+			if (is_write_migration_entry(swp_entry) && cow) {
-+				/*
-+				 * COW mappings require pages in both
-+				 * parent and child to be set to read.
-+				 */
-+				make_migration_entry_read(&swp_entry);
-+				entry = swp_entry_to_pte(swp_entry);
-+				set_huge_pte_at(src, addr, src_pte, entry);
-+			}
-+			set_huge_pte_at(dst, addr, dst_pte, entry);
-+		} else {
- 			if (cow)
- 				huge_ptep_set_wrprotect(src, addr, src_pte);
--			entry = huge_ptep_get(src_pte);
- 			ptepage = pte_page(entry);
- 			get_page(ptepage);
- 			page_dup_rmap(ptepage);
-@@ -2578,32 +2619,6 @@ int copy_hugetlb_page_range(struct mm_st
- 	return ret;
- }
- 
--static int is_hugetlb_entry_migration(pte_t pte)
--{
--	swp_entry_t swp;
--
--	if (huge_pte_none(pte) || pte_present(pte))
--		return 0;
--	swp = pte_to_swp_entry(pte);
--	if (non_swap_entry(swp) && is_migration_entry(swp))
--		return 1;
--	else
--		return 0;
--}
--
--static int is_hugetlb_entry_hwpoisoned(pte_t pte)
--{
--	swp_entry_t swp;
--
--	if (huge_pte_none(pte) || pte_present(pte))
--		return 0;
--	swp = pte_to_swp_entry(pte);
--	if (non_swap_entry(swp) && is_hwpoison_entry(swp))
--		return 1;
--	else
--		return 0;
--}
+ 	if (mode & FALLOC_FL_PUNCH_HOLE) {
+_
+
+Patches currently in -mm which might be from hughd@google.com are
+
+origin.patch
+mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-zbud-zbud_alloc-minor-param-change.patch
+mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
+mm-zpool-zbud-zsmalloc-implement-zpool.patch
+mm-zpool-update-zswap-to-use-zpool.patch
+mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
+list-use-argument-hlist_add_after-names-from-rcu-variant.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
+klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+
