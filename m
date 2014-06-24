@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + page-cgroup-trivial-cleanup.patch added to -mm tree
-Date: Tue, 24 Jun 2014 16:22:33 -0700
-Message-ID: <53aa0839.tazZQ7nNIuPHHVul%akpm@linux-foundation.org>
+Subject: + page-cgroup-get-rid-of-nr_pcg_flags.patch added to -mm tree
+Date: Tue, 24 Jun 2014 16:23:47 -0700
+Message-ID: <53aa0883.vdnLsc+M+h3epGK9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37613 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37619 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751855AbaFXXWe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 19:22:34 -0400
+	with ESMTP id S1752088AbaFXXXs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 19:23:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-cgroup: trivial cleanup
+     Subject: page-cgroup: get rid of NR_PCG_FLAGS
 has been added to the -mm tree.  Its filename is
-     page-cgroup-trivial-cleanup.patch
+     page-cgroup-get-rid-of-nr_pcg_flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-cgroup-trivial-cleanup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-cgroup-get-rid-of-nr_pcg_flags.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-cgroup-trivial-cleanup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-cgroup-get-rid-of-nr_pcg_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,13 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: page-cgroup: trivial cleanup
+Subject: page-cgroup: get rid of NR_PCG_FLAGS
 
-Add forward declarations for struct pglist_data, mem_cgroup.
-
-Remove __init, __meminit from function prototypes and inline functions.
-
-Remove redundant inclusion of bit_spinlock.h.
+It's not used anywhere today, so let's remove it.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -53,72 +49,52 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_cgroup.h |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ include/linux/page_cgroup.h |    6 ------
+ kernel/bounds.c             |    2 --
+ 2 files changed, 8 deletions(-)
 
-diff -puN include/linux/page_cgroup.h~page-cgroup-trivial-cleanup include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~page-cgroup-trivial-cleanup
+diff -puN include/linux/page_cgroup.h~page-cgroup-get-rid-of-nr_pcg_flags include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~page-cgroup-get-rid-of-nr_pcg_flags
 +++ a/include/linux/page_cgroup.h
-@@ -12,8 +12,10 @@ enum {
- #ifndef __GENERATING_BOUNDS_H
- #include <generated/bounds.h>
- 
-+struct pglist_data;
-+
- #ifdef CONFIG_MEMCG
--#include <linux/bit_spinlock.h>
-+struct mem_cgroup;
- 
- /*
-  * Page Cgroup can be considered as an extended mem_map.
-@@ -27,16 +29,16 @@ struct page_cgroup {
- 	struct mem_cgroup *mem_cgroup;
+@@ -6,12 +6,8 @@ enum {
+ 	PCG_USED = 0x01,	/* This page is charged to a memcg */
+ 	PCG_MEM = 0x02,		/* This page holds a memory charge */
+ 	PCG_MEMSW = 0x04,	/* This page holds a memory+swap charge */
+-	__NR_PCG_FLAGS,
  };
  
--void __meminit pgdat_page_cgroup_init(struct pglist_data *pgdat);
-+extern void pgdat_page_cgroup_init(struct pglist_data *pgdat);
+-#ifndef __GENERATING_BOUNDS_H
+-#include <generated/bounds.h>
+-
+ struct pglist_data;
  
- #ifdef CONFIG_SPARSEMEM
--static inline void __init page_cgroup_init_flatmem(void)
-+static inline void page_cgroup_init_flatmem(void)
- {
- }
--extern void __init page_cgroup_init(void);
-+extern void page_cgroup_init(void);
- #else
--void __init page_cgroup_init_flatmem(void);
--static inline void __init page_cgroup_init(void)
-+extern void page_cgroup_init_flatmem(void);
-+static inline void page_cgroup_init(void)
- {
- }
+ #ifdef CONFIG_MEMCG
+@@ -107,6 +103,4 @@ static inline void swap_cgroup_swapoff(i
+ 
+ #endif /* CONFIG_MEMCG_SWAP */
+ 
+-#endif /* !__GENERATING_BOUNDS_H */
+-
+ #endif /* __LINUX_PAGE_CGROUP_H */
+diff -puN kernel/bounds.c~page-cgroup-get-rid-of-nr_pcg_flags kernel/bounds.c
+--- a/kernel/bounds.c~page-cgroup-get-rid-of-nr_pcg_flags
++++ a/kernel/bounds.c
+@@ -9,7 +9,6 @@
+ #include <linux/page-flags.h>
+ #include <linux/mmzone.h>
+ #include <linux/kbuild.h>
+-#include <linux/page_cgroup.h>
+ #include <linux/log2.h>
+ #include <linux/spinlock_types.h>
+ 
+@@ -18,7 +17,6 @@ void foo(void)
+ 	/* The enum constants to put into include/generated/bounds.h */
+ 	DEFINE(NR_PAGEFLAGS, __NR_PAGEFLAGS);
+ 	DEFINE(MAX_NR_ZONES, __MAX_NR_ZONES);
+-	DEFINE(NR_PCG_FLAGS, __NR_PCG_FLAGS);
+ #ifdef CONFIG_SMP
+ 	DEFINE(NR_CPUS_BITS, ilog2(CONFIG_NR_CPUS));
  #endif
-@@ -48,11 +50,10 @@ static inline int PageCgroupUsed(struct
- {
- 	return !!(pc->flags & PCG_USED);
- }
--
--#else /* CONFIG_MEMCG */
-+#else /* !CONFIG_MEMCG */
- struct page_cgroup;
- 
--static inline void __meminit pgdat_page_cgroup_init(struct pglist_data *pgdat)
-+static inline void pgdat_page_cgroup_init(struct pglist_data *pgdat)
- {
- }
- 
-@@ -65,10 +66,9 @@ static inline void page_cgroup_init(void
- {
- }
- 
--static inline void __init page_cgroup_init_flatmem(void)
-+static inline void page_cgroup_init_flatmem(void)
- {
- }
--
- #endif /* CONFIG_MEMCG */
- 
- #include <linux/swap.h>
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
