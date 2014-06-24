@@ -1,240 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
+Subject: [merged] mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep.patch
  removed from -mm tree
-Date: Tue, 24 Jun 2014 12:02:33 -0700
-Message-ID: <53a9cb49.jmgV0XC3S8A9URAV%akpm@linux-foundation.org>
+Date: Tue, 24 Jun 2014 12:02:35 -0700
+Message-ID: <53a9cb4b.qzPQFcvkIQkdwhpC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35605 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35608 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752721AbaFXTCe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:34 -0400
+	with ESMTP id S1752721AbaFXTCg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: atomlin@redhat.com, davem@davemloft.net, dzickus@redhat.com, mguzik@redhat.com, mq@suse.cz, oleg@redhat.com, mm-commits@vger.kernel.org
+To: hughd@google.com, aarcange@redhat.com, davej@redhat.com, kirill.shutemov@linux.intel.com, rientjes@google.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog.c: print traces for all cpus on lockup detection
+     Subject: mm: thp: fix DEBUG_PAGEALLOC oops in copy_page_rep()
 has been removed from the -mm tree.  Its filename was
-     kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection.patch
+     mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Aaron Tomlin <atomlin@redhat.com>
-Subject: kernel/watchdog.c: print traces for all cpus on lockup detection
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: thp: fix DEBUG_PAGEALLOC oops in copy_page_rep()
 
-A 'softlockup' is defined as a bug that causes the kernel to loop in
-kernel mode for more than a predefined period to time, without giving
-other tasks a chance to run.
+Trinity has for over a year been reporting a CONFIG_DEBUG_PAGEALLOC oops
+in copy_page_rep() called from copy_user_huge_page() called from
+do_huge_pmd_wp_page().
 
-Currently, upon detection of this condition by the per-cpu watchdog task,
-debug information (including a stack trace) is sent to the system log.
+I believe this is a DEBUG_PAGEALLOC false positive, due to the source page
+being split, and a tail page freed, while copy is in progress; and not a
+problem without DEBUG_PAGEALLOC, since the pmd_same() check will prevent a
+miscopy from being made visible.
 
-On some occasions, we have observed that the "victim" rather than the
-actual "culprit" (i.e.  the owner/holder of the contended resource) is
-reported to the user.  Often this information has proven to be
-insufficient to assist debugging efforts.
+Fix by adding get_user_huge_page() and put_user_huge_page(): reducing to
+the usual get_page() and put_page() on head page in the usual config; but
+get and put references to all of the tail pages when DEBUG_PAGEALLOC.
 
-To avoid loss of useful debug information, for architectures which support
-NMI, this patch makes it possible to improve soft lockup reporting.  This
-is accomplished by issuing an NMI to each cpu to obtain a stack trace.
-
-If NMI is not supported we just revert back to the old method.  A sysctl
-and boot-time parameter is available to toggle this feature.
-
-[dzickus@redhat.com: add CONFIG_SMP in certain areas]
-[akpm@linux-foundation.org: additional CONFIG_SMP=n optimisations]
-[mq@suse.cz: fix warning]
-Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Mateusz Guzik <mguzik@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Signed-off-by: Jan Moskyto Matejka <mq@suse.cz>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Tested-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    5 +++
- Documentation/sysctl/kernel.txt     |   17 +++++++++++
- include/linux/nmi.h                 |    1 
- kernel/sysctl.c                     |   11 +++++++
- kernel/watchdog.c                   |   39 ++++++++++++++++++++++++++
- 5 files changed, 73 insertions(+)
+ mm/huge_memory.c |   39 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection
-+++ a/Documentation/kernel-parameters.txt
-@@ -3130,6 +3130,11 @@ bytes respectively. Such letter suffixes
- 			[KNL] Should the soft-lockup detector generate panics.
- 			Format: <integer>
- 
-+	softlockup_all_cpu_backtrace=
-+			[KNL] Should the soft-lockup detector generate
-+			backtraces on all cpus.
-+			Format: <integer>
-+
- 	sonypi.*=	[HW] Sony Programmable I/O Control Device driver
- 			See Documentation/laptops/sonypi.txt
- 
-diff -puN Documentation/sysctl/kernel.txt~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection
-+++ a/Documentation/sysctl/kernel.txt
-@@ -75,6 +75,7 @@ show up in /proc/sys/kernel:
- - shmall
- - shmmax                      [ sysv ipc ]
- - shmmni
-+- softlockup_all_cpu_backtrace
- - stop-a                      [ SPARC only ]
- - sysrq                       ==> Documentation/sysrq.txt
- - sysctl_writes_strict
-@@ -783,6 +784,22 @@ via the /proc/sys interface:
- 
- ==============================================================
- 
-+softlockup_all_cpu_backtrace:
-+
-+This value controls the soft lockup detector thread's behavior
-+when a soft lockup condition is detected as to whether or not
-+to gather further debug information. If enabled, each cpu will
-+be issued an NMI and instructed to capture stack trace.
-+
-+This feature is only applicable for architectures which support
-+NMI.
-+
-+0: do nothing. This is the default behavior.
-+
-+1: on detection capture more debug information.
-+
-+==============================================================
-+
- tainted:
- 
- Non-zero if the kernel has been tainted.  Numeric values, which
-diff -puN include/linux/nmi.h~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection include/linux/nmi.h
---- a/include/linux/nmi.h~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection
-+++ a/include/linux/nmi.h
-@@ -57,6 +57,7 @@ int hw_nmi_is_cpu_stuck(struct pt_regs *
- u64 hw_nmi_get_sample_period(int watchdog_thresh);
- extern int watchdog_user_enabled;
- extern int watchdog_thresh;
-+extern int sysctl_softlockup_all_cpu_backtrace;
- struct ctl_table;
- extern int proc_dowatchdog(struct ctl_table *, int ,
- 			   void __user *, size_t *, loff_t *);
-diff -puN kernel/sysctl.c~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection kernel/sysctl.c
---- a/kernel/sysctl.c~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection
-+++ a/kernel/sysctl.c
-@@ -860,6 +860,17 @@ static struct ctl_table kern_table[] = {
- 		.extra1		= &zero,
- 		.extra2		= &one,
- 	},
-+#ifdef CONFIG_SMP
-+	{
-+		.procname	= "softlockup_all_cpu_backtrace",
-+		.data		= &sysctl_softlockup_all_cpu_backtrace,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &zero,
-+		.extra2		= &one,
-+	},
-+#endif /* CONFIG_SMP */
- 	{
- 		.procname       = "nmi_watchdog",
- 		.data           = &watchdog_user_enabled,
-diff -puN kernel/watchdog.c~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdogc-print-traces-for-all-cpus-on-lockup-detection
-+++ a/kernel/watchdog.c
-@@ -31,6 +31,12 @@
- 
- int watchdog_user_enabled = 1;
- int __read_mostly watchdog_thresh = 10;
-+#ifdef CONFIG_SMP
-+int __read_mostly sysctl_softlockup_all_cpu_backtrace;
-+#else
-+#define sysctl_softlockup_all_cpu_backtrace 0
-+#endif
-+
- static int __read_mostly watchdog_running;
- static u64 __read_mostly sample_period;
- 
-@@ -47,6 +53,7 @@ static DEFINE_PER_CPU(bool, watchdog_nmi
- static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
- static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
- #endif
-+static unsigned long soft_lockup_nmi_warn;
- 
- /* boot commands */
- /*
-@@ -95,6 +102,15 @@ static int __init nosoftlockup_setup(cha
+diff -puN mm/huge_memory.c~mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-fix-debug_pagealloc-oops-in-copy_page_rep
++++ a/mm/huge_memory.c
+@@ -941,6 +941,37 @@ unlock:
+ 	spin_unlock(ptl);
  }
- __setup("nosoftlockup", nosoftlockup_setup);
- /*  */
-+#ifdef CONFIG_SMP
-+static int __init softlockup_all_cpu_backtrace_setup(char *str)
+ 
++/*
++ * Save CONFIG_DEBUG_PAGEALLOC from faulting falsely on tail pages
++ * during copy_user_huge_page()'s copy_page_rep(): in the case when
++ * the source page gets split and a tail freed before copy completes.
++ * Called under pmd_lock of checked pmd, so safe from splitting itself.
++ */
++static void get_user_huge_page(struct page *page)
 +{
-+	sysctl_softlockup_all_cpu_backtrace =
-+		!!simple_strtol(str, NULL, 0);
-+	return 1;
++	if (IS_ENABLED(CONFIG_DEBUG_PAGEALLOC)) {
++		struct page *endpage = page + HPAGE_PMD_NR;
++
++		atomic_add(HPAGE_PMD_NR, &page->_count);
++		while (++page < endpage)
++			get_huge_page_tail(page);
++	} else {
++		get_page(page);
++	}
 +}
-+__setup("softlockup_all_cpu_backtrace=", softlockup_all_cpu_backtrace_setup);
-+#endif
- 
- /*
-  * Hard-lockup warnings should be triggered after just a few seconds. Soft-
-@@ -271,6 +287,7 @@ static enum hrtimer_restart watchdog_tim
- 	unsigned long touch_ts = __this_cpu_read(watchdog_touch_ts);
- 	struct pt_regs *regs = get_irq_regs();
- 	int duration;
-+	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
- 
- 	/* kick the hardlockup detector */
- 	watchdog_interrupt_count();
-@@ -317,6 +334,17 @@ static enum hrtimer_restart watchdog_tim
- 		if (__this_cpu_read(soft_watchdog_warn) == true)
- 			return HRTIMER_RESTART;
- 
-+		if (softlockup_all_cpu_backtrace) {
-+			/* Prevent multiple soft-lockup reports if one cpu is already
-+			 * engaged in dumping cpu back traces
-+			 */
-+			if (test_and_set_bit(0, &soft_lockup_nmi_warn)) {
-+				/* Someone else will report us. Let's give up */
-+				__this_cpu_write(soft_watchdog_warn, true);
-+				return HRTIMER_RESTART;
-+			}
-+		}
 +
- 		printk(KERN_EMERG "BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
- 			smp_processor_id(), duration,
- 			current->comm, task_pid_nr(current));
-@@ -327,6 +355,17 @@ static enum hrtimer_restart watchdog_tim
- 		else
- 			dump_stack();
++static void put_user_huge_page(struct page *page)
++{
++	if (IS_ENABLED(CONFIG_DEBUG_PAGEALLOC)) {
++		struct page *endpage = page + HPAGE_PMD_NR;
++
++		while (page < endpage)
++			put_page(page++);
++	} else {
++		put_page(page);
++	}
++}
++
+ static int do_huge_pmd_wp_page_fallback(struct mm_struct *mm,
+ 					struct vm_area_struct *vma,
+ 					unsigned long address,
+@@ -1074,7 +1105,7 @@ int do_huge_pmd_wp_page(struct mm_struct
+ 		ret |= VM_FAULT_WRITE;
+ 		goto out_unlock;
+ 	}
+-	get_page(page);
++	get_user_huge_page(page);
+ 	spin_unlock(ptl);
+ alloc:
+ 	if (transparent_hugepage_enabled(vma) &&
+@@ -1095,7 +1126,7 @@ alloc:
+ 				split_huge_page(page);
+ 				ret |= VM_FAULT_FALLBACK;
+ 			}
+-			put_page(page);
++			put_user_huge_page(page);
+ 		}
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		goto out;
+@@ -1105,7 +1136,7 @@ alloc:
+ 		put_page(new_page);
+ 		if (page) {
+ 			split_huge_page(page);
+-			put_page(page);
++			put_user_huge_page(page);
+ 		} else
+ 			split_huge_page_pmd(vma, address, pmd);
+ 		ret |= VM_FAULT_FALLBACK;
+@@ -1127,7 +1158,7 @@ alloc:
  
-+		if (softlockup_all_cpu_backtrace) {
-+			/* Avoid generating two back traces for current
-+			 * given that one is already made above
-+			 */
-+			trigger_allbutself_cpu_backtrace();
-+
-+			clear_bit(0, &soft_lockup_nmi_warn);
-+			/* Barrier to sync with other cpus */
-+			smp_mb__after_atomic();
-+		}
-+
- 		if (softlockup_panic)
- 			panic("softlockup: hung tasks");
- 		__this_cpu_write(soft_watchdog_warn, true);
+ 	spin_lock(ptl);
+ 	if (page)
+-		put_page(page);
++		put_user_huge_page(page);
+ 	if (unlikely(!pmd_same(*pmd, orig_pmd))) {
+ 		spin_unlock(ptl);
+ 		mem_cgroup_uncharge_page(new_page);
 _
 
-Patches currently in -mm which might be from atomlin@redhat.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
+mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-zbud-zbud_alloc-minor-param-change.patch
+mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
+mm-zpool-zbud-zsmalloc-implement-zpool.patch
+mm-zpool-update-zswap-to-use-zpool.patch
+mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
+list-use-argument-hlist_add_after-names-from-rcu-variant.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
+klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
