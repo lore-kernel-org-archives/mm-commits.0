@@ -1,153 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + initramfs-support-initrd-that-is-bigger-than-2gib.patch added
- to -mm tree
-Date: Mon, 23 Jun 2014 16:47:12 -0700
-Message-ID: <53a8bc80.H1JDlgmeZTv2E/pS%akpm@linux-foundation.org>
+Subject: [merged] kexec-save-pg_head_mask-in-vmcoreinfo.patch removed from -mm tree
+Date: Tue, 24 Jun 2014 12:02:11 -0700
+Message-ID: <53a9cb33.ayac2NMPtp4BW5NJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54091 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35556 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752186AbaFWXrN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jun 2014 19:47:13 -0400
+	with ESMTP id S1752599AbaFXTCM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:02:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, dan@danweeks.net, geert@linux-m68k.org, hpa@zytor.com, mingo@elte.hu, penguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
+To: ptesarik@suse.cz, aik@ozlabs.ru, benh@kernel.crashing.org, ebiederm@xmission.com, fengguang.wu@intel.com, paulus@samba.org, sasha.levin@oracle.com, shli@kernel.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: initramfs: support initrd that is bigger than 2GiB
-has been added to the -mm tree.  Its filename is
-     initramfs-support-initrd-that-is-bigger-than-2gib.patch
+     Subject: kexec: save PG_head_mask in VMCOREINFO
+has been removed from the -mm tree.  Its filename was
+     kexec-save-pg_head_mask-in-vmcoreinfo.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-support-initrd-that-is-bigger-than-2gib.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-support-initrd-that-is-bigger-than-2gib.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: initramfs: support initrd that is bigger than 2GiB
+From: Petr Tesarik <ptesarik@suse.cz>
+Subject: kexec: save PG_head_mask in VMCOREINFO
 
-When initrd (compressed or not) is used, kernel report data corrupted with
-/dev/ram0.
+To allow filtering of huge pages, makedumpfile must be able to identify
+them in the dump.  This can be done by checking the appropriate page flag,
+so communicate its value to makedumpfile through the VMCOREINFO interface.
 
-The root cause:
-During initramfs checking, if it is initrd, it will be transferred to
-/initrd.image with sys_write.
-sys_write only support 2G-4K write, so if the initrd ram is more than
-that, /initrd.image will not complete at all.
+There's only one small catch.  Depending on how many page flags are
+available on a given architecture, this bit can be called PG_head or
+PG_compound.
 
-Add local xwrite to loop calling sys_write to workaround the problem.
+I sent a similar patch back in 2012, but Eric Biederman did not like using
+an #ifdef.  So, this time I'm adding a common symbol (PG_head_mask)
+instead.
 
-Also need to use xwrite in write_buffer() to handle:
-image is uncompressed cpio and there is one big file (>2G) in it.
-   unpack_to_rootfs ===> write_buffer ===> actions[]/do_copy
+See https://lkml.org/lkml/2012/11/28/91 for the previous version.
 
-At the same time, we don't need to worry about sys_read/sys_write in
-do_mounts_rd.c::crd_load.  As decompressor will have fill/flush and local
-buffer that is smaller than 2G.
-
-Test with uncompressed initrd, and compressed ones with gz, bz2, lzma,xz,
-lzop.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: "Daniel M. Weeks" <dan@danweeks.net>
+Signed-off-by: Petr Tesarik <ptesarik@suse.cz>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Alexey Kardashevskiy <aik@ozlabs.ru>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |   36 ++++++++++++++++++++++++++++++++----
- 1 file changed, 32 insertions(+), 4 deletions(-)
+ include/linux/page-flags.h |    3 +++
+ kernel/kexec.c             |    1 +
+ 2 files changed, 4 insertions(+)
 
-diff -puN init/initramfs.c~initramfs-support-initrd-that-is-bigger-than-2gib init/initramfs.c
---- a/init/initramfs.c~initramfs-support-initrd-that-is-bigger-than-2gib
-+++ a/init/initramfs.c
-@@ -19,6 +19,29 @@
- #include <linux/syscalls.h>
- #include <linux/utime.h>
+diff -puN include/linux/page-flags.h~kexec-save-pg_head_mask-in-vmcoreinfo include/linux/page-flags.h
+--- a/include/linux/page-flags.h~kexec-save-pg_head_mask-in-vmcoreinfo
++++ a/include/linux/page-flags.h
+@@ -360,6 +360,9 @@ static inline void ClearPageCompound(str
+ 	ClearPageHead(page);
+ }
+ #endif
++
++#define PG_head_mask ((1L << PG_head))
++
+ #else
+ /*
+  * Reduce page flag use as much as possible by overlapping
+diff -puN kernel/kexec.c~kexec-save-pg_head_mask-in-vmcoreinfo kernel/kexec.c
+--- a/kernel/kexec.c~kexec-save-pg_head_mask-in-vmcoreinfo
++++ a/kernel/kexec.c
+@@ -1617,6 +1617,7 @@ static int __init crash_save_vmcoreinfo_
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	VMCOREINFO_NUMBER(PG_hwpoison);
+ #endif
++	VMCOREINFO_NUMBER(PG_head_mask);
+ 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
  
-+static ssize_t __init xwrite(int fd, const char *p, size_t count)
-+{
-+	ssize_t out = 0;
-+
-+	/* sys_write only can write MAX_RW_COUNT aka 2G-4K bytes at most */
-+	while (count) {
-+		ssize_t rv = sys_write(fd, p, count);
-+
-+		if (rv < 0) {
-+			if (rv == -EINTR || rv == -EAGAIN)
-+				continue;
-+			return out ? out : rv;
-+		} else if (rv == 0)
-+			break;
-+
-+		p += rv;
-+		out += rv;
-+		count -= rv;
-+	}
-+
-+	return out;
-+}
-+
- static __initdata char *message;
- static void __init error(char *x)
- {
-@@ -346,7 +369,7 @@ static int __init do_name(void)
- static int __init do_copy(void)
- {
- 	if (count >= body_len) {
--		sys_write(wfd, victim, body_len);
-+		xwrite(wfd, victim, body_len);
- 		sys_close(wfd);
- 		do_utime(vcollected, mtime);
- 		kfree(vcollected);
-@@ -354,7 +377,7 @@ static int __init do_copy(void)
- 		state = SkipIt;
- 		return 0;
- 	} else {
--		sys_write(wfd, victim, count);
-+		xwrite(wfd, victim, count);
- 		body_len -= count;
- 		eat(count);
- 		return 1;
-@@ -603,8 +626,13 @@ static int __init populate_rootfs(void)
- 		fd = sys_open("/initrd.image",
- 			      O_WRONLY|O_CREAT, 0700);
- 		if (fd >= 0) {
--			sys_write(fd, (char *)initrd_start,
--					initrd_end - initrd_start);
-+			ssize_t written = xwrite(fd, (char *)initrd_start,
-+						initrd_end - initrd_start);
-+
-+			if (written != initrd_end - initrd_start)
-+				pr_err("/initrd.image: incomplete write (%zd != %ld)\n",
-+				       written, initrd_end - initrd_start);
-+
- 			sys_close(fd);
- 			free_initrd();
- 		}
+ 	arch_crash_save_vmcoreinfo();
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from ptesarik@suse.cz are
 
-mem-hotplug-improve-zone_movable_is_highmem-logic.patch
-initrd-fix-lz4-decompress-with-initrd.patch
-initramfs-support-initrd-that-is-bigger-than-2gib.patch
+origin.patch
 
