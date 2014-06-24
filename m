@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch added to -mm tree
-Date: Tue, 24 Jun 2014 14:31:36 -0700
-Message-ID: <53a9ee38.ek4608oMNoYkH/A+%akpm@linux-foundation.org>
+Subject: + fs-reiserfs-use-linux-uaccessh.patch added to -mm tree
+Date: Tue, 24 Jun 2014 14:31:34 -0700
+Message-ID: <53a9ee36.voNGRyocvnqw9rZ0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36898 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36896 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751136AbaFXVbh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 17:31:37 -0400
+	with ESMTP id S1750974AbaFXVbf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 17:31:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/reiserfs/xattr.c: fix blank line missing after declarations
+     Subject: fs/reiserfs: use linux/uaccess.h
 has been added to the -mm tree.  Its filename is
-     fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
+     fs-reiserfs-use-linux-uaccessh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-reiserfs-use-linux-uaccessh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-reiserfs-use-linux-uaccessh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,177 +39,200 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/reiserfs/xattr.c: fix blank line missing after declarations
+Subject: fs/reiserfs: use linux/uaccess.h
 
-Fix checkpatch warning:
-
-"WARNING: Missing a blank line after declarations"
+Fix checkpatch warning
+WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/xattr.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ fs/reiserfs/dir.c            |    2 +-
+ fs/reiserfs/do_balan.c       |    2 +-
+ fs/reiserfs/file.c           |    2 +-
+ fs/reiserfs/ibalance.c       |    2 +-
+ fs/reiserfs/inode.c          |    2 +-
+ fs/reiserfs/ioctl.c          |    2 +-
+ fs/reiserfs/lbalance.c       |    2 +-
+ fs/reiserfs/procfs.c         |    2 +-
+ fs/reiserfs/super.c          |    2 +-
+ fs/reiserfs/xattr.c          |    2 +-
+ fs/reiserfs/xattr_acl.c      |    2 +-
+ fs/reiserfs/xattr_security.c |    2 +-
+ fs/reiserfs/xattr_trusted.c  |    2 +-
+ fs/reiserfs/xattr_user.c     |    2 +-
+ 14 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/reiserfs/xattr.c~fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations fs/reiserfs/xattr.c
---- a/fs/reiserfs/xattr.c~fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations
+diff -puN fs/reiserfs/dir.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/dir.c
+--- a/fs/reiserfs/dir.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/dir.c
+@@ -9,7 +9,7 @@
+ #include <linux/stat.h>
+ #include <linux/buffer_head.h>
+ #include <linux/slab.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ 
+ extern const struct reiserfs_key MIN_KEY;
+ 
+diff -puN fs/reiserfs/do_balan.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/do_balan.c
+--- a/fs/reiserfs/do_balan.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/do_balan.c
+@@ -10,7 +10,7 @@
+  * and using buffers obtained after all above.
+  */
+ 
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/time.h>
+ #include "reiserfs.h"
+ #include <linux/buffer_head.h>
+diff -puN fs/reiserfs/file.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/file.c
+--- a/fs/reiserfs/file.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/file.c
+@@ -6,7 +6,7 @@
+ #include "reiserfs.h"
+ #include "acl.h"
+ #include "xattr.h"
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/pagemap.h>
+ #include <linux/swap.h>
+ #include <linux/writeback.h>
+diff -puN fs/reiserfs/ibalance.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/ibalance.c
+--- a/fs/reiserfs/ibalance.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/ibalance.c
+@@ -2,7 +2,7 @@
+  * Copyright 2000 by Hans Reiser, licensing governed by reiserfs/README
+  */
+ 
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/string.h>
+ #include <linux/time.h>
+ #include "reiserfs.h"
+diff -puN fs/reiserfs/inode.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/inode.c
+@@ -11,7 +11,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/highmem.h>
+ #include <linux/slab.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <asm/unaligned.h>
+ #include <linux/buffer_head.h>
+ #include <linux/mpage.h>
+diff -puN fs/reiserfs/ioctl.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/ioctl.c
+--- a/fs/reiserfs/ioctl.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/ioctl.c
+@@ -7,7 +7,7 @@
+ #include <linux/mount.h>
+ #include "reiserfs.h"
+ #include <linux/time.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/pagemap.h>
+ #include <linux/compat.h>
+ 
+diff -puN fs/reiserfs/lbalance.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/lbalance.c
+--- a/fs/reiserfs/lbalance.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/lbalance.c
+@@ -2,7 +2,7 @@
+  * Copyright 2000 by Hans Reiser, licensing governed by reiserfs/README
+  */
+ 
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/string.h>
+ #include <linux/time.h>
+ #include "reiserfs.h"
+diff -puN fs/reiserfs/procfs.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/procfs.c
+--- a/fs/reiserfs/procfs.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/procfs.c
+@@ -11,7 +11,7 @@
+ #include <linux/module.h>
+ #include <linux/time.h>
+ #include <linux/seq_file.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include "reiserfs.h"
+ #include <linux/init.h>
+ #include <linux/proc_fs.h>
+diff -puN fs/reiserfs/super.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/super.c
+@@ -15,7 +15,7 @@
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+ #include <linux/time.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include "reiserfs.h"
+ #include "acl.h"
+ #include "xattr.h"
+diff -puN fs/reiserfs/xattr.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~fs-reiserfs-use-linux-uaccessh
 +++ a/fs/reiserfs/xattr.c
-@@ -84,6 +84,7 @@ static int xattr_mkdir(struct inode *dir
- static int xattr_unlink(struct inode *dir, struct dentry *dentry)
- {
- 	int error;
-+
- 	BUG_ON(!mutex_is_locked(&dir->i_mutex));
+@@ -45,7 +45,7 @@
+ #include <linux/xattr.h>
+ #include "xattr.h"
+ #include "acl.h"
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <net/checksum.h>
+ #include <linux/stat.h>
+ #include <linux/quotaops.h>
+diff -puN fs/reiserfs/xattr_acl.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/xattr_acl.c
+--- a/fs/reiserfs/xattr_acl.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/xattr_acl.c
+@@ -9,7 +9,7 @@
+ #include <linux/posix_acl_xattr.h>
+ #include "xattr.h"
+ #include "acl.h"
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
- 	mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_CHILD);
-@@ -98,6 +99,7 @@ static int xattr_unlink(struct inode *di
- static int xattr_rmdir(struct inode *dir, struct dentry *dentry)
- {
- 	int error;
-+
- 	BUG_ON(!mutex_is_locked(&dir->i_mutex));
+ static int __reiserfs_set_acl(struct reiserfs_transaction_handle *th,
+ 			    struct inode *inode, int type,
+diff -puN fs/reiserfs/xattr_security.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/xattr_security.c
+--- a/fs/reiserfs/xattr_security.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/xattr_security.c
+@@ -6,7 +6,7 @@
+ #include <linux/slab.h>
+ #include "xattr.h"
+ #include <linux/security.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
- 	mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_CHILD);
-@@ -117,6 +119,7 @@ static struct dentry *open_xa_root(struc
- {
- 	struct dentry *privroot = REISERFS_SB(sb)->priv_root;
- 	struct dentry *xaroot;
-+
- 	if (!privroot->d_inode)
- 		return ERR_PTR(-ENODATA);
+ static int
+ security_get(struct dentry *dentry, const char *name, void *buffer, size_t size,
+diff -puN fs/reiserfs/xattr_trusted.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/xattr_trusted.c
+--- a/fs/reiserfs/xattr_trusted.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/xattr_trusted.c
+@@ -5,7 +5,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/xattr.h>
+ #include "xattr.h"
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
-@@ -127,6 +130,7 @@ static struct dentry *open_xa_root(struc
- 		xaroot = ERR_PTR(-ENODATA);
- 	else if (!xaroot->d_inode) {
- 		int err = -ENODATA;
-+
- 		if (xattr_may_create(flags))
- 			err = xattr_mkdir(privroot->d_inode, xaroot, 0700);
- 		if (err) {
-@@ -157,6 +161,7 @@ static struct dentry *open_xa_dir(const
- 	xadir = lookup_one_len(namebuf, xaroot, strlen(namebuf));
- 	if (!IS_ERR(xadir) && !xadir->d_inode) {
- 		int err = -ENODATA;
-+
- 		if (xattr_may_create(flags))
- 			err = xattr_mkdir(xaroot->d_inode, xadir, 0700);
- 		if (err) {
-@@ -188,6 +193,7 @@ fill_with_dentries(void *buf, const char
- {
- 	struct reiserfs_dentry_buf *dbuf = buf;
- 	struct dentry *dentry;
-+
- 	WARN_ON_ONCE(!mutex_is_locked(&dbuf->xadir->d_inode->i_mutex));
+ static int
+ trusted_get(struct dentry *dentry, const char *name, void *buffer, size_t size,
+diff -puN fs/reiserfs/xattr_user.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/xattr_user.c
+--- a/fs/reiserfs/xattr_user.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/xattr_user.c
+@@ -4,7 +4,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/xattr.h>
+ #include "xattr.h"
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
- 	if (dbuf->count == ARRAY_SIZE(dbuf->dentries))
-@@ -218,6 +224,7 @@ static void
- cleanup_dentry_buf(struct reiserfs_dentry_buf *buf)
- {
- 	int i;
-+
- 	for (i = 0; i < buf->count; i++)
- 		if (buf->dentries[i])
- 			dput(buf->dentries[i]);
-@@ -283,11 +290,13 @@ static int reiserfs_for_each_xattr(struc
- 		int blocks = JOURNAL_PER_BALANCE_CNT * 2 + 2 +
- 			     4 * REISERFS_QUOTA_TRANS_BLOCKS(inode->i_sb);
- 		struct reiserfs_transaction_handle th;
-+
- 		reiserfs_write_lock(inode->i_sb);
- 		err = journal_begin(&th, inode->i_sb, blocks);
- 		reiserfs_write_unlock(inode->i_sb);
- 		if (!err) {
- 			int jerror;
-+
- 			mutex_lock_nested(&dir->d_parent->d_inode->i_mutex,
- 					  I_MUTEX_XATTR);
- 			err = action(dir, data);
-@@ -340,6 +349,7 @@ static int chown_one_xattr(struct dentry
- int reiserfs_delete_xattrs(struct inode *inode)
- {
- 	int err = reiserfs_for_each_xattr(inode, delete_one_xattr, NULL);
-+
- 	if (err)
- 		reiserfs_warning(inode->i_sb, "jdm-20004",
- 				 "Couldn't delete all xattrs (%d)\n", err);
-@@ -350,6 +360,7 @@ int reiserfs_delete_xattrs(struct inode
- int reiserfs_chown_xattrs(struct inode *inode, struct iattr *attrs)
- {
- 	int err = reiserfs_for_each_xattr(inode, chown_one_xattr, attrs);
-+
- 	if (err)
- 		reiserfs_warning(inode->i_sb, "jdm-20007",
- 				 "Couldn't chown all xattrs (%d)\n", err);
-@@ -439,6 +450,7 @@ int reiserfs_commit_write(struct file *f
- static void update_ctime(struct inode *inode)
- {
- 	struct timespec now = current_fs_time(inode->i_sb);
-+
- 	if (inode_unhashed(inode) || !inode->i_nlink ||
- 	    timespec_equal(&inode->i_ctime, &now))
- 		return;
-@@ -514,6 +526,7 @@ reiserfs_xattr_set_handle(struct reiserf
- 		size_t chunk;
- 		size_t skip = 0;
- 		size_t page_offset = (file_pos & (PAGE_CACHE_SIZE - 1));
-+
- 		if (buffer_size - buffer_pos > PAGE_CACHE_SIZE)
- 			chunk = PAGE_CACHE_SIZE;
- 		else
-@@ -530,6 +543,7 @@ reiserfs_xattr_set_handle(struct reiserf
- 
- 		if (file_pos == 0) {
- 			struct reiserfs_xattr_header *rxh;
-+
- 			skip = file_pos = sizeof(struct reiserfs_xattr_header);
- 			if (chunk + skip > PAGE_CACHE_SIZE)
- 				chunk = PAGE_CACHE_SIZE - skip;
-@@ -659,6 +673,7 @@ reiserfs_xattr_get(struct inode *inode,
- 		size_t chunk;
- 		char *data;
- 		size_t skip = 0;
-+
- 		if (isize - file_pos > PAGE_CACHE_SIZE)
- 			chunk = PAGE_CACHE_SIZE;
- 		else
-@@ -792,6 +807,7 @@ reiserfs_setxattr(struct dentry *dentry,
- int reiserfs_removexattr(struct dentry *dentry, const char *name)
- {
- 	const struct xattr_handler *handler;
-+
- 	handler = find_xattr_handler_prefix(dentry->d_sb->s_xattr, name);
- 
- 	if (!handler || get_inode_sd_version(dentry->d_inode) == STAT_DATA_V1)
-@@ -813,9 +829,11 @@ static int listxattr_filler(void *buf, c
- {
- 	struct listxattr_buf *b = (struct listxattr_buf *)buf;
- 	size_t size;
-+
- 	if (name[0] != '.' ||
- 	    (namelen != 1 && (name[1] != '.' || namelen != 2))) {
- 		const struct xattr_handler *handler;
-+
- 		handler = find_xattr_handler_prefix(b->dentry->d_sb->s_xattr,
- 						    name);
- 		if (!handler)	/* Unsupported xattr name */
-@@ -885,6 +903,7 @@ static int create_privroot(struct dentry
- {
- 	int err;
- 	struct inode *inode = dentry->d_parent->d_inode;
-+
- 	WARN_ON_ONCE(!mutex_is_locked(&inode->i_mutex));
- 
- 	err = xattr_mkdir(inode, dentry, 0700);
-@@ -1015,6 +1034,7 @@ int reiserfs_xattr_init(struct super_blo
- 		mutex_lock(&privroot->d_inode->i_mutex);
- 		if (!REISERFS_SB(s)->xattr_root) {
- 			struct dentry *dentry;
-+
- 			dentry = lookup_one_len(XAROOT_NAME, privroot,
- 						strlen(XAROOT_NAME));
- 			if (!IS_ERR(dentry))
+ static int
+ user_get(struct dentry *dentry, const char *name, void *buffer, size_t size,
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
