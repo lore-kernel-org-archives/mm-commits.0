@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-reiserfs-replace-not-standard-%lu-%ld.patch added to -mm
- tree
-Date: Tue, 24 Jun 2014 14:31:33 -0700
-Message-ID: <53a9ee35.adjb5EnAeadDFAg6%akpm@linux-foundation.org>
+Subject: +
+ fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch added to -mm tree
+Date: Tue, 24 Jun 2014 14:31:36 -0700
+Message-ID: <53a9ee38.ek4608oMNoYkH/A+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36892 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36898 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbaFXVbe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 17:31:34 -0400
+	with ESMTP id S1751136AbaFXVbh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 17:31:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/reiserfs: replace not-standard %Lu/%Ld
+     Subject: fs/reiserfs/xattr.c: fix blank line missing after declarations
 has been added to the -mm tree.  Its filename is
-     fs-reiserfs-replace-not-standard-%lu-%ld.patch
+     fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-reiserfs-replace-not-standard-%lu-%ld.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-reiserfs-replace-not-standard-%lu-%ld.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,108 +40,177 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/reiserfs: replace not-standard %Lu/%Ld
+Subject: fs/reiserfs/xattr.c: fix blank line missing after declarations
 
-Fixes checkpatch warnings:
+Fix checkpatch warning:
 
-"WARNING: %Ld/%Lu are not-standard C, use %lld/%llu"
+"WARNING: Missing a blank line after declarations"
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/item_ops.c |    4 ++--
- fs/reiserfs/prints.c   |    4 ++--
- fs/reiserfs/stree.c    |    2 +-
- fs/reiserfs/super.c    |    7 +++----
- 4 files changed, 8 insertions(+), 9 deletions(-)
+ fs/reiserfs/xattr.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff -puN fs/reiserfs/item_ops.c~fs-reiserfs-replace-not-standard-%lu-%ld fs/reiserfs/item_ops.c
---- a/fs/reiserfs/item_ops.c~fs-reiserfs-replace-not-standard-%lu-%ld
-+++ a/fs/reiserfs/item_ops.c
-@@ -54,7 +54,7 @@ static void sd_print_item(struct item_he
- 	} else {
- 		struct stat_data *sd = (struct stat_data *)item;
- 
--		printk("\t0%-6o | %6Lu | %2u | %d | %s\n", sd_v2_mode(sd),
-+		printk("\t0%-6o | %6llu | %2u | %d | %s\n", sd_v2_mode(sd),
- 		       (unsigned long long)sd_v2_size(sd), sd_v2_nlink(sd),
- 		       sd_v2_rdev(sd), print_time(sd_v2_mtime(sd)));
- 	}
-@@ -408,7 +408,7 @@ static void direntry_print_item(struct i
- 			namebuf[namelen + 2] = 0;
- 		}
- 
--		printk("%d:  %-15s%-15d%-15d%-15Ld%-15Ld(%s)\n",
-+		printk("%d:  %-15s%-15d%-15d%-15lld%-15lld(%s)\n",
- 		       i, namebuf,
- 		       deh_dir_id(deh), deh_objectid(deh),
- 		       GET_HASH_VALUE(deh_offset(deh)),
-diff -puN fs/reiserfs/prints.c~fs-reiserfs-replace-not-standard-%lu-%ld fs/reiserfs/prints.c
---- a/fs/reiserfs/prints.c~fs-reiserfs-replace-not-standard-%lu-%ld
-+++ a/fs/reiserfs/prints.c
-@@ -17,7 +17,7 @@ static char off_buf[80];
- static char *reiserfs_cpu_offset(struct cpu_key *key)
+diff -puN fs/reiserfs/xattr.c~fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations
++++ a/fs/reiserfs/xattr.c
+@@ -84,6 +84,7 @@ static int xattr_mkdir(struct inode *dir
+ static int xattr_unlink(struct inode *dir, struct dentry *dentry)
  {
- 	if (cpu_key_k_type(key) == TYPE_DIRENTRY)
--		sprintf(off_buf, "%Lu(%Lu)",
-+		sprintf(off_buf, "%llu(%llu)",
- 			(unsigned long long)
- 			GET_HASH_VALUE(cpu_key_k_offset(key)),
- 			(unsigned long long)
-@@ -34,7 +34,7 @@ static char *le_offset(struct reiserfs_k
+ 	int error;
++
+ 	BUG_ON(!mutex_is_locked(&dir->i_mutex));
  
- 	version = le_key_version(key);
- 	if (le_key_k_type(version, key) == TYPE_DIRENTRY)
--		sprintf(off_buf, "%Lu(%Lu)",
-+		sprintf(off_buf, "%llu(%llu)",
- 			(unsigned long long)
- 			GET_HASH_VALUE(le_key_k_offset(version, key)),
- 			(unsigned long long)
-diff -puN fs/reiserfs/stree.c~fs-reiserfs-replace-not-standard-%lu-%ld fs/reiserfs/stree.c
---- a/fs/reiserfs/stree.c~fs-reiserfs-replace-not-standard-%lu-%ld
-+++ a/fs/reiserfs/stree.c
-@@ -2006,7 +2006,7 @@ int reiserfs_do_truncate(struct reiserfs
- 					    &s_search_path) == POSITION_FOUND);
+ 	mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_CHILD);
+@@ -98,6 +99,7 @@ static int xattr_unlink(struct inode *di
+ static int xattr_rmdir(struct inode *dir, struct dentry *dentry)
+ {
+ 	int error;
++
+ 	BUG_ON(!mutex_is_locked(&dir->i_mutex));
  
- 	RFALSE(file_size > ROUND_UP(new_file_size),
--	       "PAP-5680: truncate did not finish: new_file_size %Ld, current %Ld, oid %d",
-+	       "PAP-5680: truncate did not finish: new_file_size %lld, current %lld, oid %d",
- 	       new_file_size, file_size, s_item_key.on_disk_key.k_objectid);
+ 	mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_CHILD);
+@@ -117,6 +119,7 @@ static struct dentry *open_xa_root(struc
+ {
+ 	struct dentry *privroot = REISERFS_SB(sb)->priv_root;
+ 	struct dentry *xaroot;
++
+ 	if (!privroot->d_inode)
+ 		return ERR_PTR(-ENODATA);
  
- update_and_out:
-diff -puN fs/reiserfs/super.c~fs-reiserfs-replace-not-standard-%lu-%ld fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~fs-reiserfs-replace-not-standard-%lu-%ld
-+++ a/fs/reiserfs/super.c
-@@ -331,7 +331,7 @@ static int finish_unfinished(struct supe
- 			 * not completed truncate found. New size was
- 			 * committed together with "save" link
- 			 */
--			reiserfs_info(s, "Truncating %k to %Ld ..",
-+			reiserfs_info(s, "Truncating %k to %lld ..",
- 				      INODE_PKEY(inode), inode->i_size);
+@@ -127,6 +130,7 @@ static struct dentry *open_xa_root(struc
+ 		xaroot = ERR_PTR(-ENODATA);
+ 	else if (!xaroot->d_inode) {
+ 		int err = -ENODATA;
++
+ 		if (xattr_may_create(flags))
+ 			err = xattr_mkdir(privroot->d_inode, xaroot, 0700);
+ 		if (err) {
+@@ -157,6 +161,7 @@ static struct dentry *open_xa_dir(const
+ 	xadir = lookup_one_len(namebuf, xaroot, strlen(namebuf));
+ 	if (!IS_ERR(xadir) && !xadir->d_inode) {
+ 		int err = -ENODATA;
++
+ 		if (xattr_may_create(flags))
+ 			err = xattr_mkdir(xaroot->d_inode, xadir, 0700);
+ 		if (err) {
+@@ -188,6 +193,7 @@ fill_with_dentries(void *buf, const char
+ {
+ 	struct reiserfs_dentry_buf *dbuf = buf;
+ 	struct dentry *dentry;
++
+ 	WARN_ON_ONCE(!mutex_is_locked(&dbuf->xadir->d_inode->i_mutex));
  
- 			/* don't update modification time */
-@@ -1577,7 +1577,7 @@ static int read_super_block(struct super
- 	rs = (struct reiserfs_super_block *)bh->b_data;
- 	if (sb_blocksize(rs) != s->s_blocksize) {
- 		reiserfs_warning(s, "sh-2011", "can't find a reiserfs "
--				 "filesystem on (dev %s, block %Lu, size %lu)",
-+				 "filesystem on (dev %s, block %llu, size %lu)",
- 				 s->s_id,
- 				 (unsigned long long)bh->b_blocknr,
- 				 s->s_blocksize);
-@@ -2441,8 +2441,7 @@ static ssize_t reiserfs_quota_write(stru
- 	struct buffer_head tmp_bh, *bh;
+ 	if (dbuf->count == ARRAY_SIZE(dbuf->dentries))
+@@ -218,6 +224,7 @@ static void
+ cleanup_dentry_buf(struct reiserfs_dentry_buf *buf)
+ {
+ 	int i;
++
+ 	for (i = 0; i < buf->count; i++)
+ 		if (buf->dentries[i])
+ 			dput(buf->dentries[i]);
+@@ -283,11 +290,13 @@ static int reiserfs_for_each_xattr(struc
+ 		int blocks = JOURNAL_PER_BALANCE_CNT * 2 + 2 +
+ 			     4 * REISERFS_QUOTA_TRANS_BLOCKS(inode->i_sb);
+ 		struct reiserfs_transaction_handle th;
++
+ 		reiserfs_write_lock(inode->i_sb);
+ 		err = journal_begin(&th, inode->i_sb, blocks);
+ 		reiserfs_write_unlock(inode->i_sb);
+ 		if (!err) {
+ 			int jerror;
++
+ 			mutex_lock_nested(&dir->d_parent->d_inode->i_mutex,
+ 					  I_MUTEX_XATTR);
+ 			err = action(dir, data);
+@@ -340,6 +349,7 @@ static int chown_one_xattr(struct dentry
+ int reiserfs_delete_xattrs(struct inode *inode)
+ {
+ 	int err = reiserfs_for_each_xattr(inode, delete_one_xattr, NULL);
++
+ 	if (err)
+ 		reiserfs_warning(inode->i_sb, "jdm-20004",
+ 				 "Couldn't delete all xattrs (%d)\n", err);
+@@ -350,6 +360,7 @@ int reiserfs_delete_xattrs(struct inode
+ int reiserfs_chown_xattrs(struct inode *inode, struct iattr *attrs)
+ {
+ 	int err = reiserfs_for_each_xattr(inode, chown_one_xattr, attrs);
++
+ 	if (err)
+ 		reiserfs_warning(inode->i_sb, "jdm-20007",
+ 				 "Couldn't chown all xattrs (%d)\n", err);
+@@ -439,6 +450,7 @@ int reiserfs_commit_write(struct file *f
+ static void update_ctime(struct inode *inode)
+ {
+ 	struct timespec now = current_fs_time(inode->i_sb);
++
+ 	if (inode_unhashed(inode) || !inode->i_nlink ||
+ 	    timespec_equal(&inode->i_ctime, &now))
+ 		return;
+@@ -514,6 +526,7 @@ reiserfs_xattr_set_handle(struct reiserf
+ 		size_t chunk;
+ 		size_t skip = 0;
+ 		size_t page_offset = (file_pos & (PAGE_CACHE_SIZE - 1));
++
+ 		if (buffer_size - buffer_pos > PAGE_CACHE_SIZE)
+ 			chunk = PAGE_CACHE_SIZE;
+ 		else
+@@ -530,6 +543,7 @@ reiserfs_xattr_set_handle(struct reiserf
  
- 	if (!current->journal_info) {
--		printk(KERN_WARNING "reiserfs: Quota write (off=%Lu, len=%Lu)"
--			" cancelled because transaction is not started.\n",
-+		printk(KERN_WARNING "reiserfs: Quota write (off=%llu, len=%llu) cancelled because transaction is not started.\n",
- 			(unsigned long long)off, (unsigned long long)len);
- 		return -EIO;
- 	}
+ 		if (file_pos == 0) {
+ 			struct reiserfs_xattr_header *rxh;
++
+ 			skip = file_pos = sizeof(struct reiserfs_xattr_header);
+ 			if (chunk + skip > PAGE_CACHE_SIZE)
+ 				chunk = PAGE_CACHE_SIZE - skip;
+@@ -659,6 +673,7 @@ reiserfs_xattr_get(struct inode *inode,
+ 		size_t chunk;
+ 		char *data;
+ 		size_t skip = 0;
++
+ 		if (isize - file_pos > PAGE_CACHE_SIZE)
+ 			chunk = PAGE_CACHE_SIZE;
+ 		else
+@@ -792,6 +807,7 @@ reiserfs_setxattr(struct dentry *dentry,
+ int reiserfs_removexattr(struct dentry *dentry, const char *name)
+ {
+ 	const struct xattr_handler *handler;
++
+ 	handler = find_xattr_handler_prefix(dentry->d_sb->s_xattr, name);
+ 
+ 	if (!handler || get_inode_sd_version(dentry->d_inode) == STAT_DATA_V1)
+@@ -813,9 +829,11 @@ static int listxattr_filler(void *buf, c
+ {
+ 	struct listxattr_buf *b = (struct listxattr_buf *)buf;
+ 	size_t size;
++
+ 	if (name[0] != '.' ||
+ 	    (namelen != 1 && (name[1] != '.' || namelen != 2))) {
+ 		const struct xattr_handler *handler;
++
+ 		handler = find_xattr_handler_prefix(b->dentry->d_sb->s_xattr,
+ 						    name);
+ 		if (!handler)	/* Unsupported xattr name */
+@@ -885,6 +903,7 @@ static int create_privroot(struct dentry
+ {
+ 	int err;
+ 	struct inode *inode = dentry->d_parent->d_inode;
++
+ 	WARN_ON_ONCE(!mutex_is_locked(&inode->i_mutex));
+ 
+ 	err = xattr_mkdir(inode, dentry, 0700);
+@@ -1015,6 +1034,7 @@ int reiserfs_xattr_init(struct super_blo
+ 		mutex_lock(&privroot->d_inode->i_mutex);
+ 		if (!REISERFS_SB(s)->xattr_root) {
+ 			struct dentry *dentry;
++
+ 			dentry = lookup_one_len(XAROOT_NAME, privroot,
+ 						strlen(XAROOT_NAME));
+ 			if (!IS_ERR(dentry))
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
