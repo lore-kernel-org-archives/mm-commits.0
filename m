@@ -1,208 +1,102 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
- removed from -mm tree
-Date: Tue, 24 Jun 2014 12:03:07 -0700
-Message-ID: <53a9cb6b.vQCl24jWI0d4bxAl%akpm@linux-foundation.org>
+ ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch removed from -mm tree
+Date: Tue, 24 Jun 2014 12:03:05 -0700
+Message-ID: <53a9cb69.MUDSqxpyRHbtfwqJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35683 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753302AbaFXTDH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:03:07 -0400
+	with ESMTP id S1753302AbaFXTDG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jun 2014 15:03:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xuejiufei@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: jiangyiwen@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: do not purge lockres that is queued for assert master
+     Subject: ocfs2: do not return DLM_MIGRATE_RESPONSE_MASTERY_REF to avoid endless,loop during umount
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master.patch
+     ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2/dlm: do not purge lockres that is queued for assert master
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2: do not return DLM_MIGRATE_RESPONSE_MASTERY_REF to avoid endless,loop during umount
 
-When workqueue is delayed, it may occur that a lockres is purged while it
-is still queued for master assert.  it may trigger BUG() as follows.
+The following case may lead to endless loop during umount.
 
-N1                                         N2
-dlm_get_lockres()
-->dlm_do_master_requery
-                                  is the master of lockres,
-                                  so queue assert_master work
+node A         node B               node C       node D
+umount volume,
+migrate lockres1
+to B
+                                                 want to lock lockres1,
+                                                 send
+                                                 MASTER_REQUEST_MSG
+                                                 to C
+                                    init block mle
+               send
+               MIGRATE_REQUEST_MSG
+               to C
+                                    find a block
+                                    mle, and then
+                                    return
+                                    DLM_MIGRATE_RESPONSE_MASTERY_REF
+                                    to B
+               set C in refmap
+                                    umount successfully
+               try to umount, endless
+               loop occurs when migrate
+               lockres1 since C is in
+               refmap
 
-                                  dlm_thread() start running
-                                  and purge the lockres
+So we can fix this endless loop case by only returning
+DLM_MIGRATE_RESPONSE_MASTERY_REF if it has a mastery mle when receiving
+MIGRATE_REQUEST_MSG.
 
-                                  dlm_assert_master_worker()
-                                  send assert master message
-                                  to other nodes
-receiving the assert_master
-message, set master to N2
-
-dlmlock_remote() send create_lock message to N2, but receive DLM_IVLOCKID,
-if it is RECOVERY lockres, it triggers the BUG().
-
-Another BUG() is triggered when N3 become the new master and send
-assert_master to N1, N1 will trigger the BUG() because owner doesn't
-match.  So we should not purge lockres when it is queued for assert
-master.
-
-Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: jiangyiwen <jiangyiwen@huawei.com>
 Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Xue jiufei <xuejiufei@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmcommon.h   |    4 +++
- fs/ocfs2/dlm/dlmmaster.c   |   43 ++++++++++++++++++++++++++++++++++-
- fs/ocfs2/dlm/dlmrecovery.c |    3 +-
- fs/ocfs2/dlm/dlmthread.c   |   11 +++++---
- 4 files changed, 55 insertions(+), 6 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmcommon.h
---- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
-+++ a/fs/ocfs2/dlm/dlmcommon.h
-@@ -331,6 +331,7 @@ struct dlm_lock_resource
- 	u16 state;
- 	char lvb[DLM_LVB_LEN];
- 	unsigned int inflight_locks;
-+	unsigned int inflight_assert_workers;
- 	unsigned long refmap[BITS_TO_LONGS(O2NM_MAX_NODES)];
- };
- 
-@@ -910,6 +911,9 @@ void dlm_lockres_drop_inflight_ref(struc
- void dlm_lockres_grab_inflight_ref(struct dlm_ctxt *dlm,
- 				   struct dlm_lock_resource *res);
- 
-+void __dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
-+		struct dlm_lock_resource *res);
-+
- void dlm_queue_ast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
- void dlm_queue_bast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
- void __dlm_queue_ast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount
 +++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -581,6 +581,7 @@ static void dlm_init_lockres(struct dlm_
- 	atomic_set(&res->asts_reserved, 0);
- 	res->migration_pending = 0;
- 	res->inflight_locks = 0;
-+	res->inflight_assert_workers = 0;
- 
- 	res->dlm = dlm;
- 
-@@ -683,6 +684,43 @@ void dlm_lockres_drop_inflight_ref(struc
- 	wake_up(&res->wq);
- }
- 
-+void __dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
-+		struct dlm_lock_resource *res)
-+{
-+	assert_spin_locked(&res->spinlock);
-+	res->inflight_assert_workers++;
-+	mlog(0, "%s:%.*s: inflight assert worker++: now %u\n",
-+			dlm->name, res->lockname.len, res->lockname.name,
-+			res->inflight_assert_workers);
-+}
-+
-+static void dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
-+		struct dlm_lock_resource *res)
-+{
-+	spin_lock(&res->spinlock);
-+	__dlm_lockres_grab_inflight_worker(dlm, res);
-+	spin_unlock(&res->spinlock);
-+}
-+
-+static void __dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
-+		struct dlm_lock_resource *res)
-+{
-+	assert_spin_locked(&res->spinlock);
-+	BUG_ON(res->inflight_assert_workers == 0);
-+	res->inflight_assert_workers--;
-+	mlog(0, "%s:%.*s: inflight assert worker--: now %u\n",
-+			dlm->name, res->lockname.len, res->lockname.name,
-+			res->inflight_assert_workers);
-+}
-+
-+static void dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
-+		struct dlm_lock_resource *res)
-+{
-+	spin_lock(&res->spinlock);
-+	__dlm_lockres_drop_inflight_worker(dlm, res);
-+	spin_unlock(&res->spinlock);
-+}
-+
- /*
-  * lookup a lock resource by name.
-  * may already exist in the hashtable.
-@@ -1603,7 +1641,8 @@ send_response:
- 			mlog(ML_ERROR, "failed to dispatch assert master work\n");
- 			response = DLM_MASTER_RESP_ERROR;
- 			dlm_lockres_put(res);
--		}
-+		} else
-+			dlm_lockres_grab_inflight_worker(dlm, res);
- 	} else {
- 		if (res)
- 			dlm_lockres_put(res);
-@@ -2118,6 +2157,8 @@ static void dlm_assert_master_worker(str
- 	dlm_lockres_release_ast(dlm, res);
- 
- put:
-+	dlm_lockres_drop_inflight_worker(dlm, res);
-+
- 	dlm_lockres_put(res);
- 
- 	mlog(0, "finished with dlm_assert_master_worker\n");
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -1708,7 +1708,8 @@ int dlm_master_requery_handler(struct o2
- 				mlog_errno(-ENOMEM);
- 				/* retry!? */
- 				BUG();
--			}
-+			} else
-+				__dlm_lockres_grab_inflight_worker(dlm, res);
- 		} else /* put.. incase we are not the master */
- 			dlm_lockres_put(res);
- 		spin_unlock(&res->spinlock);
-diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master fs/ocfs2/dlm/dlmthread.c
---- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-do-not-purge-lockres-that-is-queued-for-assert-master
-+++ a/fs/ocfs2/dlm/dlmthread.c
-@@ -259,11 +259,14 @@ static void dlm_run_purge_list(struct dl
- 		 * refs on it. */
- 		unused = __dlm_lockres_unused(lockres);
- 		if (!unused ||
--		    (lockres->state & DLM_LOCK_RES_MIGRATING)) {
-+		    (lockres->state & DLM_LOCK_RES_MIGRATING) ||
-+		    (lockres->inflight_assert_workers != 0)) {
- 			mlog(0, "%s: res %.*s is in use or being remastered, "
--			     "used %d, state %d\n", dlm->name,
--			     lockres->lockname.len, lockres->lockname.name,
--			     !unused, lockres->state);
-+			     "used %d, state %d, assert master workers %u\n",
-+			     dlm->name, lockres->lockname.len,
-+			     lockres->lockname.name,
-+			     !unused, lockres->state,
-+			     lockres->inflight_assert_workers);
- 			list_move_tail(&lockres->purge, &dlm->purge_list);
- 			spin_unlock(&lockres->spinlock);
- 			continue;
+@@ -3088,11 +3088,15 @@ static int dlm_add_migration_mle(struct
+ 			/* remove it so that only one mle will be found */
+ 			__dlm_unlink_mle(dlm, tmp);
+ 			__dlm_mle_detach_hb_events(dlm, tmp);
+-			ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
+-			mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
+-			    "telling master to get ref for cleared out mle "
+-			    "during migration\n", dlm->name, namelen, name,
+-			    master, new_master);
++			if (tmp->type == DLM_MLE_MASTER) {
++				ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
++				mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
++						"telling master to get ref "
++						"for cleared out mle during "
++						"migration\n", dlm->name,
++						namelen, name, master,
++						new_master);
++			}
+ 		}
+ 		spin_unlock(&tmp->spinlock);
+ 	}
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
 origin.patch
 ocfs2-remove-convertion-of-total_backoff-in-dlm_join_domain.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
 
