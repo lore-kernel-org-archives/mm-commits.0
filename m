@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + vme-bridges-use-pci_zalloc_consistent.patch added to -mm tree
-Date: Wed, 25 Jun 2014 12:30:27 -0700
-Message-ID: <53ab2353.0rrhw/7WyQndQpuP%akpm@linux-foundation.org>
+Subject: + mwl8k-use-pci_zalloc_consistent.patch added to -mm tree
+Date: Wed, 25 Jun 2014 12:30:20 -0700
+Message-ID: <53ab234c./Dw6T4O5oSt0J2Ct%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46940 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46915 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755284AbaFYTa2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:28 -0400
+	with ESMTP id S1755269AbaFYTaV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, gregkh@linuxfoundation.org, manohar.vanga@gmail.com, martyn.welch@ge.com, mm-commits@vger.kernel.org
+To: joe@perches.com, buytenh@wantstofly.org, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vme: bridges: use pci_zalloc_consistent
+     Subject: mwl8k: use pci_zalloc_consistent
 has been added to the -mm tree.  Its filename is
-     vme-bridges-use-pci_zalloc_consistent.patch
+     mwl8k-use-pci_zalloc_consistent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vme-bridges-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mwl8k-use-pci_zalloc_consistent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vme-bridges-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mwl8k-use-pci_zalloc_consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +39,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: vme: bridges: use pci_zalloc_consistent
+Subject: mwl8k: use pci_zalloc_consistent
 
 Remove the now unnecessary memset too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Martyn Welch <martyn.welch@ge.com>
-Cc: Manohar Vanga <manohar.vanga@gmail.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Lennert Buytenhek <buytenh@wantstofly.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vme/bridges/vme_ca91cx42.c |    6 ++----
- drivers/vme/bridges/vme_tsi148.c   |    6 ++----
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/net/wireless/mwl8k.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/vme/bridges/vme_ca91cx42.c~vme-bridges-use-pci_zalloc_consistent drivers/vme/bridges/vme_ca91cx42.c
---- a/drivers/vme/bridges/vme_ca91cx42.c~vme-bridges-use-pci_zalloc_consistent
-+++ a/drivers/vme/bridges/vme_ca91cx42.c
-@@ -1555,16 +1555,14 @@ static int ca91cx42_crcsr_init(struct vm
- 	}
+diff -puN drivers/net/wireless/mwl8k.c~mwl8k-use-pci_zalloc_consistent drivers/net/wireless/mwl8k.c
+--- a/drivers/net/wireless/mwl8k.c~mwl8k-use-pci_zalloc_consistent
++++ a/drivers/net/wireless/mwl8k.c
+@@ -1159,12 +1159,11 @@ static int mwl8k_rxq_init(struct ieee802
  
- 	/* Allocate mem for CR/CSR image */
--	bridge->crcsr_kernel = pci_alloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
--		&bridge->crcsr_bus);
-+	bridge->crcsr_kernel = pci_zalloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
-+						     &bridge->crcsr_bus);
- 	if (bridge->crcsr_kernel == NULL) {
- 		dev_err(&pdev->dev, "Failed to allocate memory for CR/CSR "
- 			"image\n");
+ 	size = MWL8K_RX_DESCS * priv->rxd_ops->rxd_size;
+ 
+-	rxq->rxd = pci_alloc_consistent(priv->pdev, size, &rxq->rxd_dma);
++	rxq->rxd = pci_zalloc_consistent(priv->pdev, size, &rxq->rxd_dma);
+ 	if (rxq->rxd == NULL) {
+ 		wiphy_err(hw->wiphy, "failed to alloc RX descriptors\n");
  		return -ENOMEM;
  	}
+-	memset(rxq->rxd, 0, size);
  
--	memset(bridge->crcsr_kernel, 0, VME_CRCSR_BUF_SIZE);
--
- 	crcsr_addr = slot * (512 * 1024);
- 	iowrite32(bridge->crcsr_bus - crcsr_addr, bridge->base + VCSR_TO);
+ 	rxq->buf = kcalloc(MWL8K_RX_DESCS, sizeof(*rxq->buf), GFP_KERNEL);
+ 	if (rxq->buf == NULL) {
+@@ -1451,12 +1450,11 @@ static int mwl8k_txq_init(struct ieee802
  
-diff -puN drivers/vme/bridges/vme_tsi148.c~vme-bridges-use-pci_zalloc_consistent drivers/vme/bridges/vme_tsi148.c
---- a/drivers/vme/bridges/vme_tsi148.c~vme-bridges-use-pci_zalloc_consistent
-+++ a/drivers/vme/bridges/vme_tsi148.c
-@@ -2275,16 +2275,14 @@ static int tsi148_crcsr_init(struct vme_
- 	bridge = tsi148_bridge->driver_priv;
+ 	size = MWL8K_TX_DESCS * sizeof(struct mwl8k_tx_desc);
  
- 	/* Allocate mem for CR/CSR image */
--	bridge->crcsr_kernel = pci_alloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
--		&bridge->crcsr_bus);
-+	bridge->crcsr_kernel = pci_zalloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
-+						     &bridge->crcsr_bus);
- 	if (bridge->crcsr_kernel == NULL) {
- 		dev_err(tsi148_bridge->parent, "Failed to allocate memory for "
- 			"CR/CSR image\n");
+-	txq->txd = pci_alloc_consistent(priv->pdev, size, &txq->txd_dma);
++	txq->txd = pci_zalloc_consistent(priv->pdev, size, &txq->txd_dma);
+ 	if (txq->txd == NULL) {
+ 		wiphy_err(hw->wiphy, "failed to alloc TX descriptors\n");
  		return -ENOMEM;
  	}
+-	memset(txq->txd, 0, size);
  
--	memset(bridge->crcsr_kernel, 0, VME_CRCSR_BUF_SIZE);
--
- 	reg_split(bridge->crcsr_bus, &crcsr_bus_high, &crcsr_bus_low);
- 
- 	iowrite32be(crcsr_bus_high, bridge->base + TSI148_LCSR_CROU);
+ 	txq->skb = kcalloc(MWL8K_TX_DESCS, sizeof(*txq->skb), GFP_KERNEL);
+ 	if (txq->skb == NULL) {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
