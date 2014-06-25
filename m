@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
- added to -mm tree
-Date: Wed, 25 Jun 2014 14:17:54 -0700
-Message-ID: <53ab3c82.xoBgZf/EMPGiPQoL%akpm@linux-foundation.org>
+Subject: + fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array.patch added to -mm tree
+Date: Wed, 25 Jun 2014 14:24:04 -0700
+Message-ID: <53ab3df4.ex9TMDQsYJnymrTJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47856 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47874 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753174AbaFYVRy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:17:54 -0400
+	with ESMTP id S1754810AbaFYVYF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:24:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/adfs/dir_fplus.c: replace count*size kzalloc by kcalloc
+     Subject: fs/binfmt_elf.c: replace count*size kmalloc by kmalloc_array
 has been added to the -mm tree.  Its filename is
-     fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
+     fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,29 +39,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/adfs/dir_fplus.c: replace count*size kzalloc by kcalloc
+Subject: fs/binfmt_elf.c: replace count*size kmalloc by kmalloc_array
 
-kcalloc manages count*sizeof overflow.
+kmalloc_array manages count*sizeof overflow.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/dir_fplus.c |    2 +-
+ fs/binfmt_elf.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/adfs/dir_fplus.c~fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc fs/adfs/dir_fplus.c
---- a/fs/adfs/dir_fplus.c~fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc
-+++ a/fs/adfs/dir_fplus.c
-@@ -58,7 +58,7 @@ adfs_fplus_read(struct super_block *sb,
- 	if (size > ARRAY_SIZE(dir->bh)) {
- 		/* this directory is too big for fixed bh set, must allocate */
- 		struct buffer_head **bh_fplus =
--			kzalloc(size * sizeof(struct buffer_head *),
-+			kcalloc(size, sizeof(struct buffer_head *),
- 				GFP_KERNEL);
- 		if (!bh_fplus) {
- 			adfs_error(sb, "not enough memory for"
+diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array
++++ a/fs/binfmt_elf.c
+@@ -1835,7 +1835,7 @@ static int elf_note_info_init(struct elf
+ 	INIT_LIST_HEAD(&info->thread_list);
+ 
+ 	/* Allocate space for ELF notes */
+-	info->notes = kmalloc(8 * sizeof(struct memelfnote), GFP_KERNEL);
++	info->notes = kmalloc_array(8, sizeof(struct memelfnote), GFP_KERNEL);
+ 	if (!info->notes)
+ 		return 0;
+ 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -118,4 +117,7 @@ fs-qnx6-update-debugging-to-current-functions.patch
 linux-next.patch
 init-mainc-code-clean-up.patch
 kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-jbd-replace-countsize-kmalloc-by-kmalloc_array.patch
 
