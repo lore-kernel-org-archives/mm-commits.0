@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + amd-neaten-and-remove-unnecessary-oom-messages.patch added to
- -mm tree
-Date: Wed, 25 Jun 2014 12:31:00 -0700
-Message-ID: <53ab2374.W1Z5PLbHXCUPN9gM%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch added to -mm tree
+Date: Wed, 25 Jun 2014 12:53:44 -0700
+Message-ID: <53ab28c8.rP1P8lfn53E8qSjV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46951 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47070 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752529AbaFYTbA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:31:00 -0400
+	with ESMTP id S1750807AbaFYTxp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:53:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, pcnet32@frontier.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/net/ethernet/amd/pcnet32.c: neaten and remove unnecessary OOM messages
+     Subject: checkpatch: warn on unnecessary parentheses around references of foo->bar
 has been added to the -mm tree.  Its filename is
-     amd-neaten-and-remove-unnecessary-oom-messages.patch
+     checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/amd-neaten-and-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/amd-neaten-and-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,109 +40,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: drivers/net/ethernet/amd/pcnet32.c: neaten and remove unnecessary OOM messages
+Subject: checkpatch: warn on unnecessary parentheses around references of foo->bar
 
-Make the code flow a little better for 80 columns.
-
-Use a consistent style for the RX and TX rings allocation.
-Use BIT macro.
-Use a temporary unsiged int entries for (1<<size).
-Remove the OOM messages as they duplicate the generic
-OOM and dump_stack() provided by the memory subsystem.
-Reflow allocs to 80 columns.
+Parentheses around &(foo->bar) and *(foo->bar) are unnecessary.  Emit a
+--strict only message on these uses.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Don Fry <pcnet32@frontier.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/amd/pcnet32.c |   43 +++++++++++----------------
- 1 file changed, 18 insertions(+), 25 deletions(-)
+ scripts/checkpatch.pl |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/net/ethernet/amd/pcnet32.c~amd-neaten-and-remove-unnecessary-oom-messages drivers/net/ethernet/amd/pcnet32.c
---- a/drivers/net/ethernet/amd/pcnet32.c~amd-neaten-and-remove-unnecessary-oom-messages
-+++ a/drivers/net/ethernet/amd/pcnet32.c
-@@ -481,36 +481,32 @@ static void pcnet32_realloc_tx_ring(stru
- 	dma_addr_t *new_dma_addr_list;
- 	struct pcnet32_tx_head *new_tx_ring;
- 	struct sk_buff **new_skb_list;
-+	unsigned int entries = BIT(size);
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar
++++ a/scripts/checkpatch.pl
+@@ -3498,6 +3498,14 @@ sub process {
+ 			}
+ 		}
  
- 	pcnet32_purge_tx_ring(dev);
- 
--	new_tx_ring = pci_zalloc_consistent(lp->pci_dev,
--					    sizeof(struct pcnet32_tx_head) *
--					    (1 << size),
--					    &new_ring_dma_addr);
--	if (new_tx_ring == NULL) {
--		netif_err(lp, drv, dev, "Consistent memory allocation failed\n");
-+	new_tx_ring =
-+		pci_zalloc_consistent(lp->pci_dev,
-+				      sizeof(struct pcnet32_tx_head) * entries,
-+				      &new_ring_dma_addr);
-+	if (new_tx_ring == NULL)
- 		return;
--	}
- 
--	new_dma_addr_list = kcalloc(1 << size, sizeof(dma_addr_t),
--				    GFP_ATOMIC);
-+	new_dma_addr_list = kcalloc(entries, sizeof(dma_addr_t), GFP_ATOMIC);
- 	if (!new_dma_addr_list)
- 		goto free_new_tx_ring;
- 
--	new_skb_list = kcalloc(1 << size, sizeof(struct sk_buff *),
--			       GFP_ATOMIC);
-+	new_skb_list = kcalloc(entries, sizeof(struct sk_buff *), GFP_ATOMIC);
- 	if (!new_skb_list)
- 		goto free_new_lists;
- 
- 	kfree(lp->tx_skbuff);
- 	kfree(lp->tx_dma_addr);
- 	pci_free_consistent(lp->pci_dev,
--			    sizeof(struct pcnet32_tx_head) *
--			    lp->tx_ring_size, lp->tx_ring,
--			    lp->tx_ring_dma_addr);
-+			    sizeof(struct pcnet32_tx_head) * lp->tx_ring_size,
-+			    lp->tx_ring, lp->tx_ring_dma_addr);
- 
--	lp->tx_ring_size = (1 << size);
-+	lp->tx_ring_size = entries;
- 	lp->tx_mod_mask = lp->tx_ring_size - 1;
- 	lp->tx_len_bits = (size << 12);
- 	lp->tx_ring = new_tx_ring;
-@@ -523,8 +519,7 @@ free_new_lists:
- 	kfree(new_dma_addr_list);
- free_new_tx_ring:
- 	pci_free_consistent(lp->pci_dev,
--			    sizeof(struct pcnet32_tx_head) *
--			    (1 << size),
-+			    sizeof(struct pcnet32_tx_head) * entries,
- 			    new_tx_ring,
- 			    new_ring_dma_addr);
- }
-@@ -548,16 +543,14 @@ static void pcnet32_realloc_rx_ring(stru
- 	struct pcnet32_rx_head *new_rx_ring;
- 	struct sk_buff **new_skb_list;
- 	int new, overlap;
--	unsigned int entries = 1 << size;
-+	unsigned int entries = BIT(size);
- 
--	new_rx_ring = pci_zalloc_consistent(lp->pci_dev,
--					    sizeof(struct pcnet32_rx_head) *
--					    entries,
--					    &new_ring_dma_addr);
--	if (new_rx_ring == NULL) {
--		netif_err(lp, drv, dev, "Consistent memory allocation failed\n");
-+	new_rx_ring =
-+		pci_zalloc_consistent(lp->pci_dev,
-+				      sizeof(struct pcnet32_rx_head) * entries,
-+				      &new_ring_dma_addr);
-+	if (new_rx_ring == NULL)
- 		return;
--	}
- 
- 	new_dma_addr_list = kcalloc(entries, sizeof(dma_addr_t), GFP_ATOMIC);
- 	if (!new_dma_addr_list)
++# check unnecessary parentheses around addressof/dereference single $Lvals
++# ie: &(foo->bar) should be &foo->bar and *(foo->bar) should be *foo->bar
++
++		while ($line =~ /(?:[^&]&\s*|\*)\(\s*($Ident\s*(?:$Member\s*)+)\s*\)/g) {
++			CHK("UNNECESSARY_PARENTHESES",
++			    "Unnecessary parentheses around $1\n" . $herecurr);
++		    }
++
+ #goto labels aren't indented, allow a single space however
+ 		if ($line=~/^.\s+[A-Za-z\d_]+:(?![0-9]+)/ and
+ 		   !($line=~/^. [A-Za-z\d_]+:/) and !($line=~/^.\s+default:/)) {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -166,6 +93,7 @@ checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
 checkpatch-add-a-multiple-blank-lines-test.patch
 checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
 checkpatch-quiet-kconfig-help-message-checking.patch
+checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
 fs-isofs-logging-clean-up.patch
 sysctl-remove-now-unused-typedef-ctl_table.patch
 sysctl-remove-now-unused-typedef-ctl_table-fix.patch
