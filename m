@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mwl8k-use-pci_zalloc_consistent.patch added to -mm tree
-Date: Wed, 25 Jun 2014 12:30:20 -0700
-Message-ID: <53ab234c./Dw6T4O5oSt0J2Ct%akpm@linux-foundation.org>
+Subject: + amd-neaten-and-remove-unnecessary-oom-messages.patch added to
+ -mm tree
+Date: Wed, 25 Jun 2014 12:31:00 -0700
+Message-ID: <53ab2374.W1Z5PLbHXCUPN9gM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46915 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46951 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755269AbaFYTaV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:21 -0400
+	with ESMTP id S1752529AbaFYTbA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:31:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, buytenh@wantstofly.org, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: joe@perches.com, pcnet32@frontier.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mwl8k: use pci_zalloc_consistent
+     Subject: drivers/net/ethernet/amd/pcnet32.c: neaten and remove unnecessary OOM messages
 has been added to the -mm tree.  Its filename is
-     mwl8k-use-pci_zalloc_consistent.patch
+     amd-neaten-and-remove-unnecessary-oom-messages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mwl8k-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/amd-neaten-and-remove-unnecessary-oom-messages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mwl8k-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/amd-neaten-and-remove-unnecessary-oom-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +40,109 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: mwl8k: use pci_zalloc_consistent
+Subject: drivers/net/ethernet/amd/pcnet32.c: neaten and remove unnecessary OOM messages
 
-Remove the now unnecessary memset too.
+Make the code flow a little better for 80 columns.
+
+Use a consistent style for the RX and TX rings allocation.
+Use BIT macro.
+Use a temporary unsiged int entries for (1<<size).
+Remove the OOM messages as they duplicate the generic
+OOM and dump_stack() provided by the memory subsystem.
+Reflow allocs to 80 columns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Lennert Buytenhek <buytenh@wantstofly.org>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Acked-by: Don Fry <pcnet32@frontier.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/mwl8k.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/amd/pcnet32.c |   43 +++++++++++----------------
+ 1 file changed, 18 insertions(+), 25 deletions(-)
 
-diff -puN drivers/net/wireless/mwl8k.c~mwl8k-use-pci_zalloc_consistent drivers/net/wireless/mwl8k.c
---- a/drivers/net/wireless/mwl8k.c~mwl8k-use-pci_zalloc_consistent
-+++ a/drivers/net/wireless/mwl8k.c
-@@ -1159,12 +1159,11 @@ static int mwl8k_rxq_init(struct ieee802
+diff -puN drivers/net/ethernet/amd/pcnet32.c~amd-neaten-and-remove-unnecessary-oom-messages drivers/net/ethernet/amd/pcnet32.c
+--- a/drivers/net/ethernet/amd/pcnet32.c~amd-neaten-and-remove-unnecessary-oom-messages
++++ a/drivers/net/ethernet/amd/pcnet32.c
+@@ -481,36 +481,32 @@ static void pcnet32_realloc_tx_ring(stru
+ 	dma_addr_t *new_dma_addr_list;
+ 	struct pcnet32_tx_head *new_tx_ring;
+ 	struct sk_buff **new_skb_list;
++	unsigned int entries = BIT(size);
  
- 	size = MWL8K_RX_DESCS * priv->rxd_ops->rxd_size;
+ 	pcnet32_purge_tx_ring(dev);
  
--	rxq->rxd = pci_alloc_consistent(priv->pdev, size, &rxq->rxd_dma);
-+	rxq->rxd = pci_zalloc_consistent(priv->pdev, size, &rxq->rxd_dma);
- 	if (rxq->rxd == NULL) {
- 		wiphy_err(hw->wiphy, "failed to alloc RX descriptors\n");
- 		return -ENOMEM;
- 	}
--	memset(rxq->rxd, 0, size);
+-	new_tx_ring = pci_zalloc_consistent(lp->pci_dev,
+-					    sizeof(struct pcnet32_tx_head) *
+-					    (1 << size),
+-					    &new_ring_dma_addr);
+-	if (new_tx_ring == NULL) {
+-		netif_err(lp, drv, dev, "Consistent memory allocation failed\n");
++	new_tx_ring =
++		pci_zalloc_consistent(lp->pci_dev,
++				      sizeof(struct pcnet32_tx_head) * entries,
++				      &new_ring_dma_addr);
++	if (new_tx_ring == NULL)
+ 		return;
+-	}
  
- 	rxq->buf = kcalloc(MWL8K_RX_DESCS, sizeof(*rxq->buf), GFP_KERNEL);
- 	if (rxq->buf == NULL) {
-@@ -1451,12 +1450,11 @@ static int mwl8k_txq_init(struct ieee802
+-	new_dma_addr_list = kcalloc(1 << size, sizeof(dma_addr_t),
+-				    GFP_ATOMIC);
++	new_dma_addr_list = kcalloc(entries, sizeof(dma_addr_t), GFP_ATOMIC);
+ 	if (!new_dma_addr_list)
+ 		goto free_new_tx_ring;
  
- 	size = MWL8K_TX_DESCS * sizeof(struct mwl8k_tx_desc);
+-	new_skb_list = kcalloc(1 << size, sizeof(struct sk_buff *),
+-			       GFP_ATOMIC);
++	new_skb_list = kcalloc(entries, sizeof(struct sk_buff *), GFP_ATOMIC);
+ 	if (!new_skb_list)
+ 		goto free_new_lists;
  
--	txq->txd = pci_alloc_consistent(priv->pdev, size, &txq->txd_dma);
-+	txq->txd = pci_zalloc_consistent(priv->pdev, size, &txq->txd_dma);
- 	if (txq->txd == NULL) {
- 		wiphy_err(hw->wiphy, "failed to alloc TX descriptors\n");
- 		return -ENOMEM;
- 	}
--	memset(txq->txd, 0, size);
+ 	kfree(lp->tx_skbuff);
+ 	kfree(lp->tx_dma_addr);
+ 	pci_free_consistent(lp->pci_dev,
+-			    sizeof(struct pcnet32_tx_head) *
+-			    lp->tx_ring_size, lp->tx_ring,
+-			    lp->tx_ring_dma_addr);
++			    sizeof(struct pcnet32_tx_head) * lp->tx_ring_size,
++			    lp->tx_ring, lp->tx_ring_dma_addr);
  
- 	txq->skb = kcalloc(MWL8K_TX_DESCS, sizeof(*txq->skb), GFP_KERNEL);
- 	if (txq->skb == NULL) {
+-	lp->tx_ring_size = (1 << size);
++	lp->tx_ring_size = entries;
+ 	lp->tx_mod_mask = lp->tx_ring_size - 1;
+ 	lp->tx_len_bits = (size << 12);
+ 	lp->tx_ring = new_tx_ring;
+@@ -523,8 +519,7 @@ free_new_lists:
+ 	kfree(new_dma_addr_list);
+ free_new_tx_ring:
+ 	pci_free_consistent(lp->pci_dev,
+-			    sizeof(struct pcnet32_tx_head) *
+-			    (1 << size),
++			    sizeof(struct pcnet32_tx_head) * entries,
+ 			    new_tx_ring,
+ 			    new_ring_dma_addr);
+ }
+@@ -548,16 +543,14 @@ static void pcnet32_realloc_rx_ring(stru
+ 	struct pcnet32_rx_head *new_rx_ring;
+ 	struct sk_buff **new_skb_list;
+ 	int new, overlap;
+-	unsigned int entries = 1 << size;
++	unsigned int entries = BIT(size);
+ 
+-	new_rx_ring = pci_zalloc_consistent(lp->pci_dev,
+-					    sizeof(struct pcnet32_rx_head) *
+-					    entries,
+-					    &new_ring_dma_addr);
+-	if (new_rx_ring == NULL) {
+-		netif_err(lp, drv, dev, "Consistent memory allocation failed\n");
++	new_rx_ring =
++		pci_zalloc_consistent(lp->pci_dev,
++				      sizeof(struct pcnet32_rx_head) * entries,
++				      &new_ring_dma_addr);
++	if (new_rx_ring == NULL)
+ 		return;
+-	}
+ 
+ 	new_dma_addr_list = kcalloc(entries, sizeof(dma_addr_t), GFP_ATOMIC);
+ 	if (!new_dma_addr_list)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
