@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch added
+Subject: + fs-jbd-replace-countsize-kmalloc-by-kmalloc_array.patch added
  to -mm tree
-Date: Wed, 25 Jun 2014 14:24:05 -0700
-Message-ID: <53ab3df5.R+gYFimFUdpzG5O5%akpm@linux-foundation.org>
+Date: Wed, 25 Jun 2014 14:24:06 -0700
+Message-ID: <53ab3df6.fivjswGmhE5rILbI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47877 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47880 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754810AbaFYVYG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:24:06 -0400
+	with ESMTP id S1755730AbaFYVYH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:24:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, anton@enomsg.org, ccross@android.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/pstore/ram_core.c: replace count*size kmalloc by kmalloc_array
+     Subject: FS/JBD:replace count*size kmalloc by kmalloc_array
 has been added to the -mm tree.  Its filename is
-     fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
+     fs-jbd-replace-countsize-kmalloc-by-kmalloc_array.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-jbd-replace-countsize-kmalloc-by-kmalloc_array.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-jbd-replace-countsize-kmalloc-by-kmalloc_array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,31 +40,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/pstore/ram_core.c: replace count*size kmalloc by kmalloc_array
+Subject: FS/JBD:replace count*size kmalloc by kmalloc_array
 
 kmalloc_array manages count*sizeof overflow.
 
+This patch also fixes checkpatch warnings:
+ERROR: "(foo*)" should be "(foo *)"
+
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: Colin Cross <ccross@android.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pstore/ram_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/jbd/journal.c |    6 ++++--
+ fs/jbd/revoke.c  |    2 +-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/pstore/ram_core.c~fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array fs/pstore/ram_core.c
---- a/fs/pstore/ram_core.c~fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array
-+++ a/fs/pstore/ram_core.c
-@@ -394,7 +394,7 @@ static void *persistent_ram_vmap(phys_ad
- 
- 	prot = pgprot_noncached(PAGE_KERNEL);
- 
--	pages = kmalloc(sizeof(struct page *) * page_count, GFP_KERNEL);
-+	pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
- 	if (!pages) {
- 		pr_err("%s: Failed to allocate array for %u pages\n",
- 		       __func__, page_count);
+diff -puN fs/jbd/journal.c~fs-jbd-replace-countsize-kmalloc-by-kmalloc_array fs/jbd/journal.c
+--- a/fs/jbd/journal.c~fs-jbd-replace-countsize-kmalloc-by-kmalloc_array
++++ a/fs/jbd/journal.c
+@@ -810,7 +810,8 @@ journal_t * journal_init_dev(struct bloc
+ 	journal->j_blocksize = blocksize;
+ 	n = journal->j_blocksize / sizeof(journal_block_tag_t);
+ 	journal->j_wbufsize = n;
+-	journal->j_wbuf = kmalloc(n * sizeof(struct buffer_head*), GFP_KERNEL);
++	journal->j_wbuf = kmalloc_array(n, sizeof(struct buffer_head *),
++					GFP_KERNEL);
+ 	if (!journal->j_wbuf) {
+ 		printk(KERN_ERR "%s: Can't allocate bhs for commit thread\n",
+ 			__func__);
+@@ -871,7 +872,8 @@ journal_t * journal_init_inode (struct i
+ 	/* journal descriptor can store up to n blocks -bzzz */
+ 	n = journal->j_blocksize / sizeof(journal_block_tag_t);
+ 	journal->j_wbufsize = n;
+-	journal->j_wbuf = kmalloc(n * sizeof(struct buffer_head*), GFP_KERNEL);
++	journal->j_wbuf = kmalloc_array(n, sizeof(struct buffer_head *),
++					GFP_KERNEL);
+ 	if (!journal->j_wbuf) {
+ 		printk(KERN_ERR "%s: Can't allocate bhs for commit thread\n",
+ 			__func__);
+diff -puN fs/jbd/revoke.c~fs-jbd-replace-countsize-kmalloc-by-kmalloc_array fs/jbd/revoke.c
+--- a/fs/jbd/revoke.c~fs-jbd-replace-countsize-kmalloc-by-kmalloc_array
++++ a/fs/jbd/revoke.c
+@@ -241,7 +241,7 @@ static struct jbd_revoke_table_s *journa
+ 	table->hash_size = hash_size;
+ 	table->hash_shift = ilog2(hash_size);
+ 	table->hash_table =
+-		kmalloc(hash_size * sizeof(struct list_head), GFP_KERNEL);
++		kmalloc_array(hash_size, sizeof(struct list_head), GFP_KERNEL);
+ 	if (!table->hash_table) {
+ 		kmem_cache_free(revoke_table_cache, table);
+ 		table = NULL;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
