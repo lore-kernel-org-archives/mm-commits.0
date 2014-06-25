@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + irda-use-pci_zalloc_consistent.patch added to -mm tree
-Date: Wed, 25 Jun 2014 12:30:18 -0700
-Message-ID: <53ab234a.ZtzvuYFl44xNr5lD%akpm@linux-foundation.org>
+Subject: + rtl818x-use-pci_zalloc_consistent.patch added to -mm tree
+Date: Wed, 25 Jun 2014 12:30:21 -0700
+Message-ID: <53ab234d.zWURh25Kx26c1i2L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46917 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755119AbaFYTaT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:19 -0400
+	with ESMTP id S1754072AbaFYTaW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, davem@davemloft.net, samuel@sortiz.org, mm-commits@vger.kernel.org
+To: joe@perches.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: irda: use pci_zalloc_consistent
+     Subject: rtl818x: use pci_zalloc_consistent
 has been added to the -mm tree.  Its filename is
-     irda-use-pci_zalloc_consistent.patch
+     rtl818x-use-pci_zalloc_consistent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/irda-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtl818x-use-pci_zalloc_consistent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/irda-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtl818x-use-pci_zalloc_consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +39,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: irda: use pci_zalloc_consistent
+Subject: rtl818x: use pci_zalloc_consistent
 
 Remove the now unnecessary memset too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
-Acked-by: David S. Miller <davem@davemloft.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/vlsi_ir.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/wireless/rtl818x/rtl8180/dev.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/irda/vlsi_ir.c~irda-use-pci_zalloc_consistent drivers/net/irda/vlsi_ir.c
---- a/drivers/net/irda/vlsi_ir.c~irda-use-pci_zalloc_consistent
-+++ a/drivers/net/irda/vlsi_ir.c
-@@ -485,13 +485,13 @@ static int vlsi_create_hwif(vlsi_irda_de
- 	idev->virtaddr = NULL;
- 	idev->busaddr = 0;
+diff -puN drivers/net/wireless/rtl818x/rtl8180/dev.c~rtl818x-use-pci_zalloc_consistent drivers/net/wireless/rtl818x/rtl8180/dev.c
+--- a/drivers/net/wireless/rtl818x/rtl8180/dev.c~rtl818x-use-pci_zalloc_consistent
++++ a/drivers/net/wireless/rtl818x/rtl8180/dev.c
+@@ -964,16 +964,13 @@ static int rtl8180_init_rx_ring(struct i
+ 	else
+ 		priv->rx_ring_sz = sizeof(struct rtl8180_rx_desc);
  
--	ringarea = pci_alloc_consistent(idev->pdev, HW_RING_AREA_SIZE, &idev->busaddr);
-+	ringarea = pci_zalloc_consistent(idev->pdev, HW_RING_AREA_SIZE,
-+					 &idev->busaddr);
- 	if (!ringarea) {
- 		IRDA_ERROR("%s: insufficient memory for descriptor rings\n",
- 			   __func__);
- 		goto out;
+-	priv->rx_ring = pci_alloc_consistent(priv->pdev,
+-					     priv->rx_ring_sz * 32,
+-					     &priv->rx_ring_dma);
+-
++	priv->rx_ring = pci_zalloc_consistent(priv->pdev, priv->rx_ring_sz * 32,
++					      &priv->rx_ring_dma);
+ 	if (!priv->rx_ring || (unsigned long)priv->rx_ring & 0xFF) {
+ 		wiphy_err(dev->wiphy, "Cannot allocate RX ring\n");
+ 		return -ENOMEM;
  	}
--	memset(ringarea, 0, HW_RING_AREA_SIZE);
  
- 	hwmap = (struct ring_descr_hw *)ringarea;
- 	idev->rx_ring = vlsi_alloc_ring(idev->pdev, hwmap, ringsize[1],
+-	memset(priv->rx_ring, 0, priv->rx_ring_sz * 32);
+ 	priv->rx_idx = 0;
+ 
+ 	for (i = 0; i < 32; i++) {
+@@ -1032,14 +1029,14 @@ static int rtl8180_init_tx_ring(struct i
+ 	dma_addr_t dma;
+ 	int i;
+ 
+-	ring = pci_alloc_consistent(priv->pdev, sizeof(*ring) * entries, &dma);
++	ring = pci_zalloc_consistent(priv->pdev, sizeof(*ring) * entries,
++				     &dma);
+ 	if (!ring || (unsigned long)ring & 0xFF) {
+ 		wiphy_err(dev->wiphy, "Cannot allocate TX ring (prio = %d)\n",
+ 			  prio);
+ 		return -ENOMEM;
+ 	}
+ 
+-	memset(ring, 0, sizeof(*ring)*entries);
+ 	priv->tx_ring[prio].desc = ring;
+ 	priv->tx_ring[prio].dma = dma;
+ 	priv->tx_ring[prio].idx = 0;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
