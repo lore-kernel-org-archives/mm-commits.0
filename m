@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array.patch added to -mm tree
-Date: Wed, 25 Jun 2014 14:24:04 -0700
-Message-ID: <53ab3df4.ex9TMDQsYJnymrTJ%akpm@linux-foundation.org>
+Subject: +
+ fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch added
+ to -mm tree
+Date: Wed, 25 Jun 2014 14:24:05 -0700
+Message-ID: <53ab3df5.R+gYFimFUdpzG5O5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47874 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47877 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754810AbaFYVYF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:24:05 -0400
+	with ESMTP id S1754810AbaFYVYG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:24:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mm-commits@vger.kernel.org
+To: fabf@skynet.be, anton@enomsg.org, ccross@android.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/binfmt_elf.c: replace count*size kmalloc by kmalloc_array
+     Subject: fs/pstore/ram_core.c: replace count*size kmalloc by kmalloc_array
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array.patch
+     fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +41,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/binfmt_elf.c: replace count*size kmalloc by kmalloc_array
+Subject: fs/pstore/ram_core.c: replace count*size kmalloc by kmalloc_array
 
 kmalloc_array manages count*sizeof overflow.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Anton Vorontsov <anton@enomsg.org>
+Cc: Colin Cross <ccross@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
+ fs/pstore/ram_core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-binfmt_elfc-replace-countsize-kmalloc-by-kmalloc_array
-+++ a/fs/binfmt_elf.c
-@@ -1835,7 +1835,7 @@ static int elf_note_info_init(struct elf
- 	INIT_LIST_HEAD(&info->thread_list);
+diff -puN fs/pstore/ram_core.c~fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array fs/pstore/ram_core.c
+--- a/fs/pstore/ram_core.c~fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array
++++ a/fs/pstore/ram_core.c
+@@ -394,7 +394,7 @@ static void *persistent_ram_vmap(phys_ad
  
- 	/* Allocate space for ELF notes */
--	info->notes = kmalloc(8 * sizeof(struct memelfnote), GFP_KERNEL);
-+	info->notes = kmalloc_array(8, sizeof(struct memelfnote), GFP_KERNEL);
- 	if (!info->notes)
- 		return 0;
- 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
+ 	prot = pgprot_noncached(PAGE_KERNEL);
+ 
+-	pages = kmalloc(sizeof(struct page *) * page_count, GFP_KERNEL);
++	pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages) {
+ 		pr_err("%s: Failed to allocate array for %u pages\n",
+ 		       __func__, page_count);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
