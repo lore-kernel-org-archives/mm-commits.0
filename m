@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + synclink_gt-use-pci_zalloc_consistent.patch added to -mm tree
-Date: Wed, 25 Jun 2014 12:30:26 -0700
-Message-ID: <53ab2352.ZO4+si16kO+0JSmu%akpm@linux-foundation.org>
+Subject: + i810-use-pci_zalloc_consistent.patch added to -mm tree
+Date: Wed, 25 Jun 2014 12:30:10 -0700
+Message-ID: <53ab2342.NyUlyu4m5h2TvwXa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46881 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755269AbaFYTa1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:27 -0400
+	with ESMTP id S1754646AbaFYTaL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, gregkh@linuxfoundation.org, jslaby@suse.cz, mm-commits@vger.kernel.org
+To: joe@perches.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: synclink_gt: use pci_zalloc_consistent
+     Subject: i810: use pci_zalloc_consistent
 has been added to the -mm tree.  Its filename is
-     synclink_gt-use-pci_zalloc_consistent.patch
+     i810-use-pci_zalloc_consistent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/synclink_gt-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/i810-use-pci_zalloc_consistent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/synclink_gt-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/i810-use-pci_zalloc_consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,37 +39,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: synclink_gt: use pci_zalloc_consistent
+Subject: i810: use pci_zalloc_consistent
 
 Remove the now unnecessary memset too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/synclink_gt.c |    5 ++---
+ drivers/gpu/drm/i810/i810_dma.c |    5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/tty/synclink_gt.c~synclink_gt-use-pci_zalloc_consistent drivers/tty/synclink_gt.c
---- a/drivers/tty/synclink_gt.c~synclink_gt-use-pci_zalloc_consistent
-+++ a/drivers/tty/synclink_gt.c
-@@ -3387,12 +3387,11 @@ static int alloc_desc(struct slgt_info *
- 	unsigned int pbufs;
+diff -puN drivers/gpu/drm/i810/i810_dma.c~i810-use-pci_zalloc_consistent drivers/gpu/drm/i810/i810_dma.c
+--- a/drivers/gpu/drm/i810/i810_dma.c~i810-use-pci_zalloc_consistent
++++ a/drivers/gpu/drm/i810/i810_dma.c
+@@ -393,15 +393,14 @@ static int i810_dma_initialize(struct dr
  
- 	/* allocate memory to hold descriptor lists */
--	info->bufs = pci_alloc_consistent(info->pdev, DESC_LIST_SIZE, &info->bufs_dma_addr);
-+	info->bufs = pci_zalloc_consistent(info->pdev, DESC_LIST_SIZE,
-+					   &info->bufs_dma_addr);
- 	if (info->bufs == NULL)
+ 	/* Program Hardware Status Page */
+ 	dev_priv->hw_status_page =
+-	    pci_alloc_consistent(dev->pdev, PAGE_SIZE,
+-				 &dev_priv->dma_status_page);
++		pci_zalloc_consistent(dev->pdev, PAGE_SIZE,
++				      &dev_priv->dma_status_page);
+ 	if (!dev_priv->hw_status_page) {
+ 		dev->dev_private = (void *)dev_priv;
+ 		i810_dma_cleanup(dev);
+ 		DRM_ERROR("Can not allocate hardware status page\n");
  		return -ENOMEM;
+ 	}
+-	memset(dev_priv->hw_status_page, 0, PAGE_SIZE);
+ 	DRM_DEBUG("hw status page @ %p\n", dev_priv->hw_status_page);
  
--	memset(info->bufs, 0, DESC_LIST_SIZE);
--
- 	info->rbufs = (struct slgt_desc*)info->bufs;
- 	info->tbufs = ((struct slgt_desc*)info->bufs) + info->rbuf_count;
- 
+ 	I810_WRITE(0x02080, dev_priv->dma_status_page);
 _
 
 Patches currently in -mm which might be from joe@perches.com are
