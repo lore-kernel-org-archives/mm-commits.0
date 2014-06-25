@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ipw2100-use-pci_zalloc_consistent.patch added to -mm tree
-Date: Wed, 25 Jun 2014 12:30:19 -0700
-Message-ID: <53ab234b.5PlmeLONHodQq2eF%akpm@linux-foundation.org>
+Subject: + synclink_gt-use-pci_zalloc_consistent.patch added to -mm tree
+Date: Wed, 25 Jun 2014 12:30:26 -0700
+Message-ID: <53ab2352.ZO4+si16kO+0JSmu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46911 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46938 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754550AbaFYTaU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:20 -0400
+	with ESMTP id S1755269AbaFYTa1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, linville@tuxdriver.com, stas.yakovlev@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, gregkh@linuxfoundation.org, jslaby@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipw2100: use pci_zalloc_consistent
+     Subject: synclink_gt: use pci_zalloc_consistent
 has been added to the -mm tree.  Its filename is
-     ipw2100-use-pci_zalloc_consistent.patch
+     synclink_gt-use-pci_zalloc_consistent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipw2100-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/synclink_gt-use-pci_zalloc_consistent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipw2100-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/synclink_gt-use-pci_zalloc_consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,75 +39,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: ipw2100: use pci_zalloc_consistent
+Subject: synclink_gt: use pci_zalloc_consistent
 
 Remove the now unnecessary memset too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Stanislav Yakovlev <stas.yakovlev@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ipw2x00/ipw2100.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ drivers/tty/synclink_gt.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/wireless/ipw2x00/ipw2100.c~ipw2100-use-pci_zalloc_consistent drivers/net/wireless/ipw2x00/ipw2100.c
---- a/drivers/net/wireless/ipw2x00/ipw2100.c~ipw2100-use-pci_zalloc_consistent
-+++ a/drivers/net/wireless/ipw2x00/ipw2100.c
-@@ -3449,8 +3449,9 @@ static int ipw2100_msg_allocate(struct i
+diff -puN drivers/tty/synclink_gt.c~synclink_gt-use-pci_zalloc_consistent drivers/tty/synclink_gt.c
+--- a/drivers/tty/synclink_gt.c~synclink_gt-use-pci_zalloc_consistent
++++ a/drivers/tty/synclink_gt.c
+@@ -3387,12 +3387,11 @@ static int alloc_desc(struct slgt_info *
+ 	unsigned int pbufs;
+ 
+ 	/* allocate memory to hold descriptor lists */
+-	info->bufs = pci_alloc_consistent(info->pdev, DESC_LIST_SIZE, &info->bufs_dma_addr);
++	info->bufs = pci_zalloc_consistent(info->pdev, DESC_LIST_SIZE,
++					   &info->bufs_dma_addr);
+ 	if (info->bufs == NULL)
  		return -ENOMEM;
  
- 	for (i = 0; i < IPW_COMMAND_POOL_SIZE; i++) {
--		v = pci_alloc_consistent(priv->pci_dev,
--					 sizeof(struct ipw2100_cmd_header), &p);
-+		v = pci_zalloc_consistent(priv->pci_dev,
-+					  sizeof(struct ipw2100_cmd_header),
-+					  &p);
- 		if (!v) {
- 			printk(KERN_ERR DRV_NAME ": "
- 			       "%s: PCI alloc failed for msg "
-@@ -3459,8 +3460,6 @@ static int ipw2100_msg_allocate(struct i
- 			break;
- 		}
- 
--		memset(v, 0, sizeof(struct ipw2100_cmd_header));
+-	memset(info->bufs, 0, DESC_LIST_SIZE);
 -
- 		priv->msg_buffers[i].type = COMMAND;
- 		priv->msg_buffers[i].info.c_struct.cmd =
- 		    (struct ipw2100_cmd_header *)v;
-@@ -4336,16 +4335,12 @@ static int status_queue_allocate(struct
- 	IPW_DEBUG_INFO("enter\n");
- 
- 	q->size = entries * sizeof(struct ipw2100_status);
--	q->drv =
--	    (struct ipw2100_status *)pci_alloc_consistent(priv->pci_dev,
--							  q->size, &q->nic);
-+	q->drv = pci_zalloc_consistent(priv->pci_dev, q->size, &q->nic);
- 	if (!q->drv) {
- 		IPW_DEBUG_WARNING("Can not allocate status queue.\n");
- 		return -ENOMEM;
- 	}
- 
--	memset(q->drv, 0, q->size);
--
- 	IPW_DEBUG_INFO("exit\n");
- 
- 	return 0;
-@@ -4374,13 +4369,12 @@ static int bd_queue_allocate(struct ipw2
- 
- 	q->entries = entries;
- 	q->size = entries * sizeof(struct ipw2100_bd);
--	q->drv = pci_alloc_consistent(priv->pci_dev, q->size, &q->nic);
-+	q->drv = pci_zalloc_consistent(priv->pci_dev, q->size, &q->nic);
- 	if (!q->drv) {
- 		IPW_DEBUG_INFO
- 		    ("can't allocate shared memory for buffer descriptors\n");
- 		return -ENOMEM;
- 	}
--	memset(q->drv, 0, q->size);
- 
- 	IPW_DEBUG_INFO("exit\n");
+ 	info->rbufs = (struct slgt_desc*)info->bufs;
+ 	info->tbufs = ((struct slgt_desc*)info->bufs) + info->rbuf_count;
  
 _
 
