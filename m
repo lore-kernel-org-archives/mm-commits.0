@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
- added to -mm tree
-Date: Wed, 25 Jun 2014 14:15:32 -0700
-Message-ID: <53ab3bf4.mi+JDE8XQGCYrmY5%akpm@linux-foundation.org>
+Subject: + fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch added to -mm tree
+Date: Wed, 25 Jun 2014 14:16:48 -0700
+Message-ID: <53ab3c40.jd/tZczgcZ/KGZUW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47754 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47851 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753181AbaFYVPd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:15:33 -0400
+	with ESMTP id S1753174AbaFYVQt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:16:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, bharrosh@panasas.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, me@bobcopeland.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/exofs/ore_raid.c: replace count*size kzalloc by kcalloc
+     Subject: fs/omfs/inode.c: replace count*size kzalloc by kcalloc
 has been added to the -mm tree.  Its filename is
-     fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
+     fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/exofs/ore_raid.c: replace count*size kzalloc by kcalloc
+Subject: fs/omfs/inode.c: replace count*size kzalloc by kcalloc
 
 kcalloc manages count*sizeof overflow.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Boaz Harrosh <bharrosh@panasas.com>
+Acked-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exofs/ore_raid.c |    2 +-
+ fs/omfs/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exofs/ore_raid.c~fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc fs/exofs/ore_raid.c
---- a/fs/exofs/ore_raid.c~fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc
-+++ a/fs/exofs/ore_raid.c
-@@ -116,7 +116,7 @@ static int _sp2d_alloc(unsigned pages_in
- 			num_a1pa = min_t(unsigned, PAGE_SIZE / sizeof__a1pa,
- 							pages_in_unit - i);
+diff -puN fs/omfs/inode.c~fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc fs/omfs/inode.c
+--- a/fs/omfs/inode.c~fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc
++++ a/fs/omfs/inode.c
+@@ -321,7 +321,7 @@ static int omfs_get_imap(struct super_bl
+ 		goto out;
  
--			__a1pa = kzalloc(num_a1pa * sizeof__a1pa, GFP_KERNEL);
-+			__a1pa = kcalloc(num_a1pa, sizeof__a1pa, GFP_KERNEL);
- 			if (unlikely(!__a1pa)) {
- 				ORE_DBGMSG("!! Failed to _alloc_1p_arrays=%d\n",
- 					   num_a1pa);
+ 	sbi->s_imap_size = array_size;
+-	sbi->s_imap = kzalloc(array_size * sizeof(unsigned long *), GFP_KERNEL);
++	sbi->s_imap = kcalloc(array_size, sizeof(unsigned long *), GFP_KERNEL);
+ 	if (!sbi->s_imap)
+ 		goto nomem;
+ 
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -108,6 +107,7 @@ fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
 drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
 fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
 fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
 fs-romfs-superc-convert-printk-to-pr_foo.patch
 fs-romfs-superc-use-pr_fmt-in-logging.patch
 fs-romfs-superc-add-blank-line-after-declarations.patch
