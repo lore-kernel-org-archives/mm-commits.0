@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch added to -mm tree
-Date: Wed, 25 Jun 2014 14:16:48 -0700
-Message-ID: <53ab3c40.jd/tZczgcZ/KGZUW%akpm@linux-foundation.org>
+Subject: + fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
+ added to -mm tree
+Date: Wed, 25 Jun 2014 14:17:54 -0700
+Message-ID: <53ab3c82.xoBgZf/EMPGiPQoL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47851 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47856 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753174AbaFYVQt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:16:49 -0400
+	with ESMTP id S1753174AbaFYVRy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:17:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, me@bobcopeland.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/omfs/inode.c: replace count*size kzalloc by kcalloc
+     Subject: fs/adfs/dir_fplus.c: replace count*size kzalloc by kcalloc
 has been added to the -mm tree.  Its filename is
-     fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
+     fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +40,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/omfs/inode.c: replace count*size kzalloc by kcalloc
+Subject: fs/adfs/dir_fplus.c: replace count*size kzalloc by kcalloc
 
 kcalloc manages count*sizeof overflow.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Acked-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/omfs/inode.c |    2 +-
+ fs/adfs/dir_fplus.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/omfs/inode.c~fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc fs/omfs/inode.c
---- a/fs/omfs/inode.c~fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc
-+++ a/fs/omfs/inode.c
-@@ -321,7 +321,7 @@ static int omfs_get_imap(struct super_bl
- 		goto out;
- 
- 	sbi->s_imap_size = array_size;
--	sbi->s_imap = kzalloc(array_size * sizeof(unsigned long *), GFP_KERNEL);
-+	sbi->s_imap = kcalloc(array_size, sizeof(unsigned long *), GFP_KERNEL);
- 	if (!sbi->s_imap)
- 		goto nomem;
- 
+diff -puN fs/adfs/dir_fplus.c~fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc fs/adfs/dir_fplus.c
+--- a/fs/adfs/dir_fplus.c~fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc
++++ a/fs/adfs/dir_fplus.c
+@@ -58,7 +58,7 @@ adfs_fplus_read(struct super_block *sb,
+ 	if (size > ARRAY_SIZE(dir->bh)) {
+ 		/* this directory is too big for fixed bh set, must allocate */
+ 		struct buffer_head **bh_fplus =
+-			kzalloc(size * sizeof(struct buffer_head *),
++			kcalloc(size, sizeof(struct buffer_head *),
+ 				GFP_KERNEL);
+ 		if (!bh_fplus) {
+ 			adfs_error(sb, "not enough memory for"
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -104,6 +104,7 @@ fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
 fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
 fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
 fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
+fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
 drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
 fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
 fs-cachefiles-bindc-remove-unnecessary-assertions.patch
