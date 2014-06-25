@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + enic-use-pci_zalloc_consistent.patch added to -mm tree
-Date: Wed, 25 Jun 2014 12:30:14 -0700
-Message-ID: <53ab2346.54VEv2N8qJgc+KSC%akpm@linux-foundation.org>
+Subject: + atl1e-use-pci_zalloc_consistent.patch added to -mm tree
+Date: Wed, 25 Jun 2014 12:30:13 -0700
+Message-ID: <53ab2345.i5l0b7AyxTVRnw7q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46892 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754550AbaFYTaP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:15 -0400
+	with ESMTP id S1755076AbaFYTaO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, _govind@gmx.com, benve@cisco.com, davem@davemloft.net, neepatel@cisco.com, ssujith@cisco.com, mm-commits@vger.kernel.org
+To: joe@perches.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: enic: use pci_zalloc_consistent
+     Subject: atl1e: use pci_zalloc_consistent
 has been added to the -mm tree.  Its filename is
-     enic-use-pci_zalloc_consistent.patch
+     atl1e-use-pci_zalloc_consistent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/enic-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/atl1e-use-pci_zalloc_consistent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/enic-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/atl1e-use-pci_zalloc_consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,43 +39,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: enic: use pci_zalloc_consistent
+Subject: atl1e: use pci_zalloc_consistent
 
 Remove the now unnecessary memset too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Christian Benvenuti <benve@cisco.com>
-Cc: Sujith Sankar <ssujith@cisco.com>
-Cc: Govindarajulu Varadarajan <_govind@gmx.com>
-Cc: Neel Patel <neepatel@cisco.com>
 Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/cisco/enic/vnic_dev.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/atheros/atl1e/atl1e_main.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/ethernet/cisco/enic/vnic_dev.c~enic-use-pci_zalloc_consistent drivers/net/ethernet/cisco/enic/vnic_dev.c
---- a/drivers/net/ethernet/cisco/enic/vnic_dev.c~enic-use-pci_zalloc_consistent
-+++ a/drivers/net/ethernet/cisco/enic/vnic_dev.c
-@@ -432,14 +432,12 @@ int vnic_dev_fw_info(struct vnic_dev *vd
- 	int err = 0;
+diff -puN drivers/net/ethernet/atheros/atl1e/atl1e_main.c~atl1e-use-pci_zalloc_consistent drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+--- a/drivers/net/ethernet/atheros/atl1e/atl1e_main.c~atl1e-use-pci_zalloc_consistent
++++ a/drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+@@ -831,17 +831,14 @@ static int atl1e_setup_ring_resources(st
+ 	/* real ring DMA buffer */
  
- 	if (!vdev->fw_info) {
--		vdev->fw_info = pci_alloc_consistent(vdev->pdev,
--			sizeof(struct vnic_devcmd_fw_info),
--			&vdev->fw_info_pa);
-+		vdev->fw_info = pci_zalloc_consistent(vdev->pdev,
-+						      sizeof(struct vnic_devcmd_fw_info),
-+						      &vdev->fw_info_pa);
- 		if (!vdev->fw_info)
- 			return -ENOMEM;
- 
--		memset(vdev->fw_info, 0, sizeof(struct vnic_devcmd_fw_info));
+ 	size = adapter->ring_size;
+-	adapter->ring_vir_addr = pci_alloc_consistent(pdev,
+-			adapter->ring_size, &adapter->ring_dma);
 -
- 		a0 = vdev->fw_info_pa;
- 		a1 = sizeof(struct vnic_devcmd_fw_info);
++	adapter->ring_vir_addr = pci_zalloc_consistent(pdev, adapter->ring_size,
++						       &adapter->ring_dma);
+ 	if (adapter->ring_vir_addr == NULL) {
+ 		netdev_err(adapter->netdev,
+ 			   "pci_alloc_consistent failed, size = D%d\n", size);
+ 		return -ENOMEM;
+ 	}
  
+-	memset(adapter->ring_vir_addr, 0, adapter->ring_size);
+-
+ 	rx_page_desc = rx_ring->rx_page_desc;
+ 
+ 	/* Init TPD Ring */
 _
 
 Patches currently in -mm which might be from joe@perches.com are
