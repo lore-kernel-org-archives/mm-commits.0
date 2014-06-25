@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + amd-use-pci_zalloc_consistent.patch added to -mm tree
-Date: Wed, 25 Jun 2014 12:30:12 -0700
-Message-ID: <53ab2344.2tPoeozrt2BI/yp7%akpm@linux-foundation.org>
+Subject: + micrel-use-pci_zalloc_consistent.patch added to -mm tree
+Date: Wed, 25 Jun 2014 12:30:16 -0700
+Message-ID: <53ab2348.026uRS5FD/PJSCPy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46887 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46903 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754550AbaFYTaN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:13 -0400
+	with ESMTP id S1755197AbaFYTaR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, davem@davemloft.net, pcnet32@frontier.com, mm-commits@vger.kernel.org
+To: joe@perches.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: amd: use pci_zalloc_consistent
+     Subject: micrel: use pci_zalloc_consistent
 has been added to the -mm tree.  Its filename is
-     amd-use-pci_zalloc_consistent.patch
+     micrel-use-pci_zalloc_consistent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/amd-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/micrel-use-pci_zalloc_consistent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/amd-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/micrel-use-pci_zalloc_consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +39,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: amd: use pci_zalloc_consistent
+Subject: micrel: use pci_zalloc_consistent
 
 Remove the now unnecessary memset too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Don Fry <pcnet32@frontier.com>
 Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/amd/pcnet32.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ drivers/net/ethernet/micrel/ksz884x.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/ethernet/amd/pcnet32.c~amd-use-pci_zalloc_consistent drivers/net/ethernet/amd/pcnet32.c
---- a/drivers/net/ethernet/amd/pcnet32.c~amd-use-pci_zalloc_consistent
-+++ a/drivers/net/ethernet/amd/pcnet32.c
-@@ -484,15 +484,14 @@ static void pcnet32_realloc_tx_ring(stru
+diff -puN drivers/net/ethernet/micrel/ksz884x.c~micrel-use-pci_zalloc_consistent drivers/net/ethernet/micrel/ksz884x.c
+--- a/drivers/net/ethernet/micrel/ksz884x.c~micrel-use-pci_zalloc_consistent
++++ a/drivers/net/ethernet/micrel/ksz884x.c
+@@ -4409,14 +4409,13 @@ static int ksz_alloc_desc(struct dev_inf
+ 		DESC_ALIGNMENT;
  
- 	pcnet32_purge_tx_ring(dev);
- 
--	new_tx_ring = pci_alloc_consistent(lp->pci_dev,
--					   sizeof(struct pcnet32_tx_head) *
--					   (1 << size),
--					   &new_ring_dma_addr);
-+	new_tx_ring = pci_zalloc_consistent(lp->pci_dev,
-+					    sizeof(struct pcnet32_tx_head) *
-+					    (1 << size),
-+					    &new_ring_dma_addr);
- 	if (new_tx_ring == NULL) {
- 		netif_err(lp, drv, dev, "Consistent memory allocation failed\n");
- 		return;
+ 	adapter->desc_pool.alloc_virt =
+-		pci_alloc_consistent(
+-			adapter->pdev, adapter->desc_pool.alloc_size,
+-			&adapter->desc_pool.dma_addr);
++		pci_zalloc_consistent(adapter->pdev,
++				      adapter->desc_pool.alloc_size,
++				      &adapter->desc_pool.dma_addr);
+ 	if (adapter->desc_pool.alloc_virt == NULL) {
+ 		adapter->desc_pool.alloc_size = 0;
+ 		return 1;
  	}
--	memset(new_tx_ring, 0, sizeof(struct pcnet32_tx_head) * (1 << size));
+-	memset(adapter->desc_pool.alloc_virt, 0, adapter->desc_pool.alloc_size);
  
- 	new_dma_addr_list = kcalloc(1 << size, sizeof(dma_addr_t),
- 				    GFP_ATOMIC);
-@@ -551,15 +550,14 @@ static void pcnet32_realloc_rx_ring(stru
- 	int new, overlap;
- 	unsigned int entries = 1 << size;
- 
--	new_rx_ring = pci_alloc_consistent(lp->pci_dev,
--					   sizeof(struct pcnet32_rx_head) *
--					   entries,
--					   &new_ring_dma_addr);
-+	new_rx_ring = pci_zalloc_consistent(lp->pci_dev,
-+					    sizeof(struct pcnet32_rx_head) *
-+					    entries,
-+					    &new_ring_dma_addr);
- 	if (new_rx_ring == NULL) {
- 		netif_err(lp, drv, dev, "Consistent memory allocation failed\n");
- 		return;
- 	}
--	memset(new_rx_ring, 0, sizeof(struct pcnet32_rx_head) * entries);
- 
- 	new_dma_addr_list = kcalloc(entries, sizeof(dma_addr_t), GFP_ATOMIC);
- 	if (!new_dma_addr_list)
+ 	/* Align to the next cache line boundary. */
+ 	offset = (((ulong) adapter->desc_pool.alloc_virt % DESC_ALIGNMENT) ?
 _
 
 Patches currently in -mm which might be from joe@perches.com are
