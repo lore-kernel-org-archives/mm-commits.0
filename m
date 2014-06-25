@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + staging-use-pci_zalloc_consistent.patch added to -mm tree
-Date: Wed, 25 Jun 2014 12:30:25 -0700
-Message-ID: <53ab2351.Xn4iXRWWeKFPCkvu%akpm@linux-foundation.org>
+Subject: + infiniband-use-pci_zalloc_consistent.patch added to -mm tree
+Date: Wed, 25 Jun 2014 12:30:09 -0700
+Message-ID: <53ab2341.UzcFu09b5F/0FUvh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46932 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46875 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754072AbaFYTa0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:26 -0400
+	with ESMTP id S1752609AbaFYTaK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, charrer@alacritech.com, forest@alittletooquiet.net, gregkh@linuxfoundation.org, liodot@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, faisal.latif@intel.com, hal.rosenstock@gmail.com, roland@kernel.org, sean.hefty@intel.com, swise@opengridcomputing.com, tom@opengridcomputing.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: staging: use pci_zalloc_consistent
+     Subject: infiniband: use pci_zalloc_consistent
 has been added to the -mm tree.  Its filename is
-     staging-use-pci_zalloc_consistent.patch
+     infiniband-use-pci_zalloc_consistent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/staging-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/infiniband-use-pci_zalloc_consistent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/staging-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/infiniband-use-pci_zalloc_consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,351 +39,106 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: staging: use pci_zalloc_consistent
+Subject: infiniband: use pci_zalloc_consistent
 
 Remove the now unnecessary memset too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Lior Dotan <liodot@gmail.com>
-Cc: Christopher Harrer <charrer@alacritech.com>
-Cc: Forest Bond <forest@alittletooquiet.net>
+Cc: Tom Tucker <tom@opengridcomputing.com>
+Acked-by: Steve Wise <swise@opengridcomputing.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Faisal Latif <faisal.latif@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rtl8192e/rtl8192e/rtl_core.c |   15 ++----
- drivers/staging/rtl8192ee/pci.c              |   37 +++++----------
- drivers/staging/rtl8821ae/pci.c              |   36 +++++----------
- drivers/staging/slicoss/slicoss.c            |    9 +--
- drivers/staging/vt6655/device_main.c         |   40 +++++------------
- 5 files changed, 44 insertions(+), 93 deletions(-)
+ drivers/infiniband/hw/amso1100/c2.c   |    6 ++----
+ drivers/infiniband/hw/nes/nes_hw.c    |   12 ++++++------
+ drivers/infiniband/hw/nes/nes_verbs.c |    5 ++---
+ 3 files changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN drivers/staging/rtl8192e/rtl8192e/rtl_core.c~staging-use-pci_zalloc_consistent drivers/staging/rtl8192e/rtl8192e/rtl_core.c
---- a/drivers/staging/rtl8192e/rtl8192e/rtl_core.c~staging-use-pci_zalloc_consistent
-+++ a/drivers/staging/rtl8192e/rtl8192e/rtl_core.c
-@@ -2065,20 +2065,16 @@ static short rtl8192_alloc_rx_desc_ring(
- 	int i, rx_queue_idx;
+diff -puN drivers/infiniband/hw/amso1100/c2.c~infiniband-use-pci_zalloc_consistent drivers/infiniband/hw/amso1100/c2.c
+--- a/drivers/infiniband/hw/amso1100/c2.c~infiniband-use-pci_zalloc_consistent
++++ a/drivers/infiniband/hw/amso1100/c2.c
+@@ -604,16 +604,14 @@ static int c2_up(struct net_device *netd
+ 	tx_size = c2_port->tx_ring.count * sizeof(struct c2_tx_desc);
  
- 	for (rx_queue_idx = 0; rx_queue_idx < MAX_RX_QUEUE; rx_queue_idx++) {
--		priv->rx_ring[rx_queue_idx] = pci_alloc_consistent(priv->pdev,
--					sizeof(*priv->rx_ring[rx_queue_idx]) *
--					priv->rxringcount,
--					&priv->rx_ring_dma[rx_queue_idx]);
--
-+		priv->rx_ring[rx_queue_idx] =
-+			pci_zalloc_consistent(priv->pdev,
-+					      sizeof(*priv->rx_ring[rx_queue_idx]) * priv->rxringcount,
-+					      &priv->rx_ring_dma[rx_queue_idx]);
- 		if (!priv->rx_ring[rx_queue_idx] ||
- 		    (unsigned long)priv->rx_ring[rx_queue_idx] & 0xFF) {
- 			RT_TRACE(COMP_ERR, "Cannot allocate RX ring\n");
- 			return -ENOMEM;
- 		}
- 
--		memset(priv->rx_ring[rx_queue_idx], 0,
--		       sizeof(*priv->rx_ring[rx_queue_idx]) *
--		       priv->rxringcount);
- 		priv->rx_idx[rx_queue_idx] = 0;
- 
- 		for (i = 0; i < priv->rxringcount; i++) {
-@@ -2118,14 +2114,13 @@ static int rtl8192_alloc_tx_desc_ring(st
- 	dma_addr_t dma;
- 	int i;
- 
--	ring = pci_alloc_consistent(priv->pdev, sizeof(*ring) * entries, &dma);
-+	ring = pci_zalloc_consistent(priv->pdev, sizeof(*ring) * entries, &dma);
- 	if (!ring || (unsigned long)ring & 0xFF) {
- 		RT_TRACE(COMP_ERR, "Cannot allocate TX ring (prio = %d)\n",
- 			 prio);
+ 	c2_port->mem_size = tx_size + rx_size;
+-	c2_port->mem = pci_alloc_consistent(c2dev->pcidev, c2_port->mem_size,
+-					    &c2_port->dma);
++	c2_port->mem = pci_zalloc_consistent(c2dev->pcidev, c2_port->mem_size,
++					     &c2_port->dma);
+ 	if (c2_port->mem == NULL) {
+ 		pr_debug("Unable to allocate memory for "
+ 			"host descriptor rings\n");
  		return -ENOMEM;
  	}
  
--	memset(ring, 0, sizeof(*ring)*entries);
- 	priv->tx_ring[prio].desc = ring;
- 	priv->tx_ring[prio].dma = dma;
- 	priv->tx_ring[prio].idx = 0;
-diff -puN drivers/staging/rtl8192ee/pci.c~staging-use-pci_zalloc_consistent drivers/staging/rtl8192ee/pci.c
---- a/drivers/staging/rtl8192ee/pci.c~staging-use-pci_zalloc_consistent
-+++ a/drivers/staging/rtl8192ee/pci.c
-@@ -1224,10 +1224,10 @@ static int _rtl_pci_init_tx_ring(struct
- 
- 	/* alloc tx buffer desc for new trx flow*/
- 	if (rtlpriv->use_new_trx_flow) {
--		buffer_desc = pci_alloc_consistent(rtlpci->pdev,
--					sizeof(*buffer_desc) * entries,
--					&buffer_desc_dma);
+-	memset(c2_port->mem, 0, c2_port->mem_size);
 -
-+		buffer_desc =
-+			pci_zalloc_consistent(rtlpci->pdev,
-+					      sizeof(*buffer_desc) * entries,
-+					      &buffer_desc_dma);
- 		if (!buffer_desc || (unsigned long)buffer_desc & 0xFF) {
- 			RT_TRACE(COMP_ERR, DBG_EMERG,
- 				 ("Cannot allocate TX ring (prio = %d)\n",
-@@ -1235,7 +1235,6 @@ static int _rtl_pci_init_tx_ring(struct
- 			return -ENOMEM;
- 		}
+ 	/* Create the Rx host descriptor ring */
+ 	if ((ret =
+ 	     c2_rx_ring_alloc(&c2_port->rx_ring, c2_port->mem, c2_port->dma,
+diff -puN drivers/infiniband/hw/nes/nes_hw.c~infiniband-use-pci_zalloc_consistent drivers/infiniband/hw/nes/nes_hw.c
+--- a/drivers/infiniband/hw/nes/nes_hw.c~infiniband-use-pci_zalloc_consistent
++++ a/drivers/infiniband/hw/nes/nes_hw.c
+@@ -1003,13 +1003,13 @@ int nes_init_cqp(struct nes_device *nesd
+ 			(sizeof(struct nes_hw_aeqe) * nesadapter->max_qp) +
+ 			sizeof(struct nes_hw_cqp_qp_context);
  
--		memset(buffer_desc, 0, sizeof(*buffer_desc) * entries);
- 		rtlpci->tx_ring[prio].buffer_desc = buffer_desc;
- 		rtlpci->tx_ring[prio].buffer_desc_dma = buffer_desc_dma;
- 
-@@ -1245,16 +1244,14 @@ static int _rtl_pci_init_tx_ring(struct
- 	}
- 
- 	/* alloc dma for this ring */
--	desc = pci_alloc_consistent(rtlpci->pdev,
--				    sizeof(*desc) * entries, &desc_dma);
--
-+	desc = pci_zalloc_consistent(rtlpci->pdev, sizeof(*desc) * entries,
-+				     &desc_dma);
- 	if (!desc || (unsigned long)desc & 0xFF) {
- 		RT_TRACE(COMP_ERR, DBG_EMERG,
- 			 ("Cannot allocate TX ring (prio = %d)\n", prio));
+-	nesdev->cqp_vbase = pci_alloc_consistent(nesdev->pcidev, nesdev->cqp_mem_size,
+-			&nesdev->cqp_pbase);
++	nesdev->cqp_vbase = pci_zalloc_consistent(nesdev->pcidev,
++						  nesdev->cqp_mem_size,
++						  &nesdev->cqp_pbase);
+ 	if (!nesdev->cqp_vbase) {
+ 		nes_debug(NES_DBG_INIT, "Unable to allocate memory for host descriptor rings\n");
  		return -ENOMEM;
  	}
+-	memset(nesdev->cqp_vbase, 0, nesdev->cqp_mem_size);
  
--	memset(desc, 0, sizeof(*desc) * entries);
- 	rtlpci->tx_ring[prio].desc = desc;
- 	rtlpci->tx_ring[prio].dma = desc_dma;
+ 	/* Allocate a twice the number of CQP requests as the SQ size */
+ 	nesdev->nes_cqp_requests = kzalloc(sizeof(struct nes_cqp_request) *
+@@ -1691,13 +1691,13 @@ int nes_init_nic_qp(struct nes_device *n
+ 			(NES_NIC_WQ_SIZE * 2 * sizeof(struct nes_hw_nic_cqe)) +
+ 			sizeof(struct nes_hw_nic_qp_context);
  
-@@ -1290,11 +1287,9 @@ static int _rtl_pci_init_rx_ring(struct
- 		struct rtl_rx_buffer_desc *entry = NULL;
- 		/* alloc dma for this ring */
- 		rtlpci->rx_ring[rxring_idx].buffer_desc =
--		    pci_alloc_consistent(rtlpci->pdev,
--					 sizeof(*rtlpci->rx_ring[rxring_idx].
--						buffer_desc) *
--						rtlpci->rxringcount,
--					 &rtlpci->rx_ring[rxring_idx].dma);
-+			pci_zalloc_consistent(rtlpci->pdev,
-+					      sizeof(*rtlpci->rx_ring[rxring_idx].buffer_desc) * rtlpci->rxringcount,
-+					      &rtlpci->rx_ring[rxring_idx].dma);
- 		if (!rtlpci->rx_ring[rxring_idx].buffer_desc ||
- 		    (unsigned long)rtlpci->rx_ring[rxring_idx].buffer_desc & 0xFF) {
- 			RT_TRACE(COMP_ERR, DBG_EMERG,
-@@ -1302,10 +1297,6 @@ static int _rtl_pci_init_rx_ring(struct
- 			return -ENOMEM;
- 		}
- 
--		memset(rtlpci->rx_ring[rxring_idx].buffer_desc, 0,
--		       sizeof(*rtlpci->rx_ring[rxring_idx].buffer_desc) *
--		       rtlpci->rxringcount);
--
- 		/* init every desc in this ring */
- 		rtlpci->rx_ring[rxring_idx].idx = 0;
- 
-@@ -1320,19 +1311,15 @@ static int _rtl_pci_init_rx_ring(struct
- 		u8 tmp_one = 1;
- 		/* alloc dma for this ring */
- 		rtlpci->rx_ring[rxring_idx].desc =
--		    pci_alloc_consistent(rtlpci->pdev,
--					 sizeof(*rtlpci->rx_ring[rxring_idx].
--					desc) * rtlpci->rxringcount,
--					 &rtlpci->rx_ring[rxring_idx].dma);
-+			pci_zalloc_consistent(rtlpci->pdev,
-+					      sizeof(*rtlpci->rx_ring[rxring_idx].desc) * rtlpci->rxringcount,
-+					      &rtlpci->rx_ring[rxring_idx].dma);
- 		if (!rtlpci->rx_ring[rxring_idx].desc ||
- 		    (unsigned long)rtlpci->rx_ring[rxring_idx].desc & 0xFF) {
- 			RT_TRACE(COMP_ERR, DBG_EMERG,
- 				 ("Cannot allocate RX ring\n"));
- 			return -ENOMEM;
- 		}
--		memset(rtlpci->rx_ring[rxring_idx].desc, 0,
--		       sizeof(*rtlpci->rx_ring[rxring_idx].desc) *
--		       rtlpci->rxringcount);
- 
- 		/* init every desc in this ring */
- 		rtlpci->rx_ring[rxring_idx].idx = 0;
-diff -puN drivers/staging/rtl8821ae/pci.c~staging-use-pci_zalloc_consistent drivers/staging/rtl8821ae/pci.c
---- a/drivers/staging/rtl8821ae/pci.c~staging-use-pci_zalloc_consistent
-+++ a/drivers/staging/rtl8821ae/pci.c
-@@ -1248,9 +1248,10 @@ static int _rtl_pci_init_tx_ring(struct
- 
- 	/* alloc tx buffer desc for new trx flow*/
- 	if (rtlpriv->use_new_trx_flow) {
--		buffer_desc = pci_alloc_consistent(rtlpci->pdev,
--					    sizeof(*buffer_desc) * entries,
--					    &buffer_desc_dma);
-+		buffer_desc =
-+			pci_zalloc_consistent(rtlpci->pdev,
-+					      sizeof(*buffer_desc) * entries,
-+					      &buffer_desc_dma);
- 
- 		if (!buffer_desc || (unsigned long)buffer_desc & 0xFF) {
- 			RT_TRACE(COMP_ERR, DBG_EMERG,
-@@ -1259,7 +1260,6 @@ static int _rtl_pci_init_tx_ring(struct
- 			return -ENOMEM;
- 		}
- 
--		memset(buffer_desc, 0, sizeof(*buffer_desc) * entries);
- 		rtlpci->tx_ring[prio].buffer_desc = buffer_desc;
- 		rtlpci->tx_ring[prio].buffer_desc_dma = buffer_desc_dma;
- 
-@@ -1270,8 +1270,8 @@ static int _rtl_pci_init_tx_ring(struct
- 	}
- 
- 	/* alloc dma for this ring */
--	desc = pci_alloc_consistent(rtlpci->pdev,
--				    sizeof(*desc) * entries, &desc_dma);
-+	desc = pci_zalloc_consistent(rtlpci->pdev, sizeof(*desc) * entries,
-+				     &desc_dma);
- 
- 	if (!desc || (unsigned long)desc & 0xFF) {
- 		RT_TRACE(COMP_ERR, DBG_EMERG,
-@@ -1279,7 +1279,6 @@ static int _rtl_pci_init_tx_ring(struct
+-	nesvnic->nic_vbase = pci_alloc_consistent(nesdev->pcidev, nesvnic->nic_mem_size,
+-			&nesvnic->nic_pbase);
++	nesvnic->nic_vbase = pci_zalloc_consistent(nesdev->pcidev,
++						   nesvnic->nic_mem_size,
++						   &nesvnic->nic_pbase);
+ 	if (!nesvnic->nic_vbase) {
+ 		nes_debug(NES_DBG_INIT, "Unable to allocate memory for NIC host descriptor rings\n");
  		return -ENOMEM;
  	}
+-	memset(nesvnic->nic_vbase, 0, nesvnic->nic_mem_size);
+ 	nes_debug(NES_DBG_INIT, "Allocated NIC QP structures at %p (phys = %016lX), size = %u.\n",
+ 			nesvnic->nic_vbase, (unsigned long)nesvnic->nic_pbase, nesvnic->nic_mem_size);
  
--	memset(desc, 0, sizeof(*desc) * entries);
- 	rtlpci->tx_ring[prio].desc = desc;
- 	rtlpci->tx_ring[prio].dma = desc_dma;
+diff -puN drivers/infiniband/hw/nes/nes_verbs.c~infiniband-use-pci_zalloc_consistent drivers/infiniband/hw/nes/nes_verbs.c
+--- a/drivers/infiniband/hw/nes/nes_verbs.c~infiniband-use-pci_zalloc_consistent
++++ a/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -1616,8 +1616,8 @@ static struct ib_cq *nes_create_cq(struc
+ 				entries, nescq->cq_mem_size, nescq->hw_cq.cq_number);
  
-@@ -1316,21 +1315,15 @@ static int _rtl_pci_init_rx_ring(struct
- 		struct rtl_rx_buffer_desc *entry = NULL;
- 		/* alloc dma for this ring */
- 		rtlpci->rx_ring[rxring_idx].buffer_desc =
--		    pci_alloc_consistent(rtlpci->pdev,
--					 sizeof(*rtlpci->rx_ring[rxring_idx].
--					        buffer_desc) *
--					        rtlpci->rxringcount,
--					 &rtlpci->rx_ring[rxring_idx].dma);
-+			pci_zalloc_consistent(rtlpci->pdev,
-+					      sizeof(*rtlpci->rx_ring[rxring_idx].buffer_desc) * rtlpci->rxringcount,
-+					      &rtlpci->rx_ring[rxring_idx].dma);
- 		if (!rtlpci->rx_ring[rxring_idx].buffer_desc ||
- 		    (unsigned long)rtlpci->rx_ring[rxring_idx].buffer_desc & 0xFF) {
- 			RT_TRACE(COMP_ERR, DBG_EMERG, ("Cannot allocate RX ring\n"));
- 			return -ENOMEM;
+ 		/* allocate the physical buffer space */
+-		mem = pci_alloc_consistent(nesdev->pcidev, nescq->cq_mem_size,
+-				&nescq->hw_cq.cq_pbase);
++		mem = pci_zalloc_consistent(nesdev->pcidev, nescq->cq_mem_size,
++					    &nescq->hw_cq.cq_pbase);
+ 		if (!mem) {
+ 			printk(KERN_ERR PFX "Unable to allocate pci memory for cq\n");
+ 			nes_free_resource(nesadapter, nesadapter->allocated_cqs, cq_num);
+@@ -1625,7 +1625,6 @@ static struct ib_cq *nes_create_cq(struc
+ 			return ERR_PTR(-ENOMEM);
  		}
  
--		memset(rtlpci->rx_ring[rxring_idx].buffer_desc, 0,
--		       sizeof(*rtlpci->rx_ring[rxring_idx].buffer_desc) *
--		       rtlpci->rxringcount);
--
- 		/* init every desc in this ring */
- 		rtlpci->rx_ring[rxring_idx].idx = 0;
- 		for (i = 0; i < rtlpci->rxringcount; i++) {
-@@ -1344,10 +1337,9 @@ static int _rtl_pci_init_rx_ring(struct
- 		u8 tmp_one = 1;
- 		/* alloc dma for this ring */
- 		rtlpci->rx_ring[rxring_idx].desc =
--		    pci_alloc_consistent(rtlpci->pdev,
--					 sizeof(*rtlpci->rx_ring[rxring_idx].
--					        desc) * rtlpci->rxringcount,
--					 &rtlpci->rx_ring[rxring_idx].dma);
-+			pci_zalloc_consistent(rtlpci->pdev,
-+					      sizeof(*rtlpci->rx_ring[rxring_idx].desc) * rtlpci->rxringcount,
-+					      &rtlpci->rx_ring[rxring_idx].dma);
- 		if (!rtlpci->rx_ring[rxring_idx].desc ||
- 		    (unsigned long)rtlpci->rx_ring[rxring_idx].desc & 0xFF) {
- 			RT_TRACE(COMP_ERR, DBG_EMERG,
-@@ -1355,10 +1347,6 @@ static int _rtl_pci_init_rx_ring(struct
- 			return -ENOMEM;
- 		}
- 
--		memset(rtlpci->rx_ring[rxring_idx].desc, 0,
--		       sizeof(*rtlpci->rx_ring[rxring_idx].desc) *
--		       rtlpci->rxringcount);
--
- 		/* init every desc in this ring */
- 		rtlpci->rx_ring[rxring_idx].idx = 0;
- 		for (i = 0; i < rtlpci->rxringcount; i++) {
-diff -puN drivers/staging/slicoss/slicoss.c~staging-use-pci_zalloc_consistent drivers/staging/slicoss/slicoss.c
---- a/drivers/staging/slicoss/slicoss.c~staging-use-pci_zalloc_consistent
-+++ a/drivers/staging/slicoss/slicoss.c
-@@ -1190,18 +1190,15 @@ static int slic_rspqueue_init(struct ada
- 	rspq->num_pages = SLIC_RSPQ_PAGES_GB;
- 
- 	for (i = 0; i < rspq->num_pages; i++) {
--		rspq->vaddr[i] = pci_alloc_consistent(adapter->pcidev,
--						      PAGE_SIZE,
--						      &rspq->paddr[i]);
-+		rspq->vaddr[i] = pci_zalloc_consistent(adapter->pcidev,
-+						       PAGE_SIZE,
-+						       &rspq->paddr[i]);
- 		if (!rspq->vaddr[i]) {
- 			dev_err(&adapter->pcidev->dev,
- 				"pci_alloc_consistent failed\n");
- 			slic_rspqueue_free(adapter);
- 			return -ENOMEM;
- 		}
--		/* FIXME:
--		 * do we really need this assertions (4K PAGE_SIZE aligned addr)? */
--		memset(rspq->vaddr[i], 0, PAGE_SIZE);
- 
- 		if (paddrh == 0) {
- 			slic_reg32_write(&slic_regs->slic_rbar,
-diff -puN drivers/staging/vt6655/device_main.c~staging-use-pci_zalloc_consistent drivers/staging/vt6655/device_main.c
---- a/drivers/staging/vt6655/device_main.c~staging-use-pci_zalloc_consistent
-+++ a/drivers/staging/vt6655/device_main.c
-@@ -1091,25 +1091,17 @@ static bool device_init_rings(PSDevice p
- 	void *vir_pool;
- 
- 	/*allocate all RD/TD rings a single pool*/
--	vir_pool = pci_alloc_consistent(pDevice->pcid,
--					pDevice->sOpts.nRxDescs0 * sizeof(SRxDesc) +
--					pDevice->sOpts.nRxDescs1 * sizeof(SRxDesc) +
--					pDevice->sOpts.nTxDescs[0] * sizeof(STxDesc) +
--					pDevice->sOpts.nTxDescs[1] * sizeof(STxDesc),
--					&pDevice->pool_dma);
--
-+	vir_pool = pci_zalloc_consistent(pDevice->pcid,
-+					 pDevice->sOpts.nRxDescs0 * sizeof(SRxDesc) +
-+					 pDevice->sOpts.nRxDescs1 * sizeof(SRxDesc) +
-+					 pDevice->sOpts.nTxDescs[0] * sizeof(STxDesc) +
-+					 pDevice->sOpts.nTxDescs[1] * sizeof(STxDesc),
-+					 &pDevice->pool_dma);
- 	if (vir_pool == NULL) {
- 		DBG_PRT(MSG_LEVEL_ERR, KERN_ERR "%s : allocate desc dma memory failed\n", pDevice->dev->name);
- 		return false;
- 	}
- 
--	memset(vir_pool, 0,
--	       pDevice->sOpts.nRxDescs0 * sizeof(SRxDesc) +
--	       pDevice->sOpts.nRxDescs1 * sizeof(SRxDesc) +
--	       pDevice->sOpts.nTxDescs[0] * sizeof(STxDesc) +
--	       pDevice->sOpts.nTxDescs[1] * sizeof(STxDesc)
--		);
--
- 	pDevice->aRD0Ring = vir_pool;
- 	pDevice->aRD1Ring = vir_pool +
- 		pDevice->sOpts.nRxDescs0 * sizeof(SRxDesc);
-@@ -1118,13 +1110,12 @@ static bool device_init_rings(PSDevice p
- 	pDevice->rd1_pool_dma = pDevice->rd0_pool_dma +
- 		pDevice->sOpts.nRxDescs0 * sizeof(SRxDesc);
- 
--	pDevice->tx0_bufs = pci_alloc_consistent(pDevice->pcid,
--						 pDevice->sOpts.nTxDescs[0] * PKT_BUF_SZ +
--						 pDevice->sOpts.nTxDescs[1] * PKT_BUF_SZ +
--						 CB_BEACON_BUF_SIZE +
--						 CB_MAX_BUF_SIZE,
--						 &pDevice->tx_bufs_dma0);
--
-+	pDevice->tx0_bufs = pci_zalloc_consistent(pDevice->pcid,
-+						  pDevice->sOpts.nTxDescs[0] * PKT_BUF_SZ +
-+						  pDevice->sOpts.nTxDescs[1] * PKT_BUF_SZ +
-+						  CB_BEACON_BUF_SIZE +
-+						  CB_MAX_BUF_SIZE,
-+						  &pDevice->tx_bufs_dma0);
- 	if (pDevice->tx0_bufs == NULL) {
- 		DBG_PRT(MSG_LEVEL_ERR, KERN_ERR "%s: allocate buf dma memory failed\n", pDevice->dev->name);
- 		pci_free_consistent(pDevice->pcid,
-@@ -1137,13 +1128,6 @@ static bool device_init_rings(PSDevice p
- 		return false;
- 	}
- 
--	memset(pDevice->tx0_bufs, 0,
--	       pDevice->sOpts.nTxDescs[0] * PKT_BUF_SZ +
--	       pDevice->sOpts.nTxDescs[1] * PKT_BUF_SZ +
--	       CB_BEACON_BUF_SIZE +
--	       CB_MAX_BUF_SIZE
--		);
--
- 	pDevice->td0_pool_dma = pDevice->rd1_pool_dma +
- 		pDevice->sOpts.nRxDescs1 * sizeof(SRxDesc);
- 
+-		memset(mem, 0, nescq->cq_mem_size);
+ 		nescq->hw_cq.cq_vbase = mem;
+ 		nescq->hw_cq.cq_head = 0;
+ 		nes_debug(NES_DBG_CQ, "CQ%u virtual address @ %p, phys = 0x%08X\n",
 _
 
 Patches currently in -mm which might be from joe@perches.com are
