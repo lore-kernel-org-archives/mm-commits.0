@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rtlwifi-use-pci_zalloc_consistent.patch added to -mm tree
-Date: Wed, 25 Jun 2014 12:30:22 -0700
-Message-ID: <53ab234e.Q2LfE8a6jEF/dlRS%akpm@linux-foundation.org>
+Subject: + irda-use-pci_zalloc_consistent.patch added to -mm tree
+Date: Wed, 25 Jun 2014 12:30:18 -0700
+Message-ID: <53ab234a.ZtzvuYFl44xNr5lD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46921 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46908 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755274AbaFYTaX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:23 -0400
+	with ESMTP id S1755119AbaFYTaT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 15:30:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, Larry.Finger@lwfinger.net, chaoming_li@realsil.com.cn, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: joe@perches.com, davem@davemloft.net, samuel@sortiz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtlwifi: use pci_zalloc_consistent
+     Subject: irda: use pci_zalloc_consistent
 has been added to the -mm tree.  Its filename is
-     rtlwifi-use-pci_zalloc_consistent.patch
+     irda-use-pci_zalloc_consistent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtlwifi-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/irda-use-pci_zalloc_consistent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtlwifi-use-pci_zalloc_consistent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/irda-use-pci_zalloc_consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,67 +39,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: rtlwifi: use pci_zalloc_consistent
+Subject: irda: use pci_zalloc_consistent
 
 Remove the now unnecessary memset too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Larry Finger <Larry.Finger@lwfinger.net>
-Cc: Chaoming Li <chaoming_li@realsil.com.cn>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Samuel Ortiz <samuel@sortiz.org>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/rtlwifi/pci.c |   17 +++++------------
- 1 file changed, 5 insertions(+), 12 deletions(-)
+ drivers/net/irda/vlsi_ir.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/rtlwifi/pci.c~rtlwifi-use-pci_zalloc_consistent drivers/net/wireless/rtlwifi/pci.c
---- a/drivers/net/wireless/rtlwifi/pci.c~rtlwifi-use-pci_zalloc_consistent
-+++ a/drivers/net/wireless/rtlwifi/pci.c
-@@ -1092,16 +1092,14 @@ static int _rtl_pci_init_tx_ring(struct
- 	u32 nextdescaddress;
- 	int i;
+diff -puN drivers/net/irda/vlsi_ir.c~irda-use-pci_zalloc_consistent drivers/net/irda/vlsi_ir.c
+--- a/drivers/net/irda/vlsi_ir.c~irda-use-pci_zalloc_consistent
++++ a/drivers/net/irda/vlsi_ir.c
+@@ -485,13 +485,13 @@ static int vlsi_create_hwif(vlsi_irda_de
+ 	idev->virtaddr = NULL;
+ 	idev->busaddr = 0;
  
--	ring = pci_alloc_consistent(rtlpci->pdev,
--				    sizeof(*ring) * entries, &dma);
--
-+	ring = pci_zalloc_consistent(rtlpci->pdev, sizeof(*ring) * entries,
-+				     &dma);
- 	if (!ring || (unsigned long)ring & 0xFF) {
- 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
- 			 "Cannot allocate TX ring (prio = %d)\n", prio);
- 		return -ENOMEM;
+-	ringarea = pci_alloc_consistent(idev->pdev, HW_RING_AREA_SIZE, &idev->busaddr);
++	ringarea = pci_zalloc_consistent(idev->pdev, HW_RING_AREA_SIZE,
++					 &idev->busaddr);
+ 	if (!ringarea) {
+ 		IRDA_ERROR("%s: insufficient memory for descriptor rings\n",
+ 			   __func__);
+ 		goto out;
  	}
+-	memset(ringarea, 0, HW_RING_AREA_SIZE);
  
--	memset(ring, 0, sizeof(*ring) * entries);
- 	rtlpci->tx_ring[prio].desc = ring;
- 	rtlpci->tx_ring[prio].dma = dma;
- 	rtlpci->tx_ring[prio].idx = 0;
-@@ -1139,10 +1137,9 @@ static int _rtl_pci_init_rx_ring(struct
- 	for (rx_queue_idx = 0; rx_queue_idx < RTL_PCI_MAX_RX_QUEUE;
- 	     rx_queue_idx++) {
- 		rtlpci->rx_ring[rx_queue_idx].desc =
--		    pci_alloc_consistent(rtlpci->pdev,
--					 sizeof(*rtlpci->rx_ring[rx_queue_idx].
--						desc) * rtlpci->rxringcount,
--					 &rtlpci->rx_ring[rx_queue_idx].dma);
-+			pci_zalloc_consistent(rtlpci->pdev,
-+					      sizeof(*rtlpci->rx_ring[rx_queue_idx].desc) * rtlpci->rxringcount,
-+					      &rtlpci->rx_ring[rx_queue_idx].dma);
- 
- 		if (!rtlpci->rx_ring[rx_queue_idx].desc ||
- 		    (unsigned long)rtlpci->rx_ring[rx_queue_idx].desc & 0xFF) {
-@@ -1151,10 +1148,6 @@ static int _rtl_pci_init_rx_ring(struct
- 			return -ENOMEM;
- 		}
- 
--		memset(rtlpci->rx_ring[rx_queue_idx].desc, 0,
--		       sizeof(*rtlpci->rx_ring[rx_queue_idx].desc) *
--		       rtlpci->rxringcount);
--
- 		rtlpci->rx_ring[rx_queue_idx].idx = 0;
- 
- 		/* If amsdu_8k is disabled, set buffersize to 4096. This
+ 	hwmap = (struct ring_descr_hw *)ringarea;
+ 	idev->rx_ring = vlsi_alloc_ring(idev->pdev, hwmap, ringsize[1],
 _
 
 Patches currently in -mm which might be from joe@perches.com are
