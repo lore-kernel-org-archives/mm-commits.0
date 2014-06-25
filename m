@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch added
- to -mm tree
-Date: Wed, 25 Jun 2014 14:14:35 -0700
-Message-ID: <53ab3bbb.ACUJNpsMOMyQvNIr%akpm@linux-foundation.org>
+Subject: + fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+ added to -mm tree
+Date: Wed, 25 Jun 2014 14:15:04 -0700
+Message-ID: <53ab3bd8.4OtUvw/EM5CSRfwX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47671 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47751 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754810AbaFYVOg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:14:36 -0400
+	with ESMTP id S1753932AbaFYVPF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jun 2014 17:15:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, sfrench@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/cifs/file.c: replace count*size kzalloc by kcalloc
+     Subject: fs/cifs/smb2file.c: replace count*size kzalloc by kcalloc
 has been added to the -mm tree.  Its filename is
-     fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+     fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/cifs/file.c: replace count*size kzalloc by kcalloc
+Subject: fs/cifs/smb2file.c: replace count*size kzalloc by kcalloc
 
 kcalloc manages count*sizeof overflow.
 
@@ -49,30 +49,30 @@ Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/file.c |    4 ++--
+ fs/cifs/smb2file.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/cifs/file.c~fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc fs/cifs/file.c
---- a/fs/cifs/file.c~fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc
-+++ a/fs/cifs/file.c
-@@ -1058,7 +1058,7 @@ cifs_push_mandatory_locks(struct cifsFil
+diff -puN fs/cifs/smb2file.c~fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc fs/cifs/smb2file.c
+--- a/fs/cifs/smb2file.c~fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc
++++ a/fs/cifs/smb2file.c
+@@ -111,7 +111,7 @@ smb2_unlock_range(struct cifsFileInfo *c
+ 		return -EINVAL;
  
- 	max_num = (max_buf - sizeof(struct smb_hdr)) /
- 						sizeof(LOCKING_ANDX_RANGE);
--	buf = kzalloc(max_num * sizeof(LOCKING_ANDX_RANGE), GFP_KERNEL);
-+	buf = kcalloc(max_num, sizeof(LOCKING_ANDX_RANGE), GFP_KERNEL);
- 	if (!buf) {
- 		free_xid(xid);
- 		return -ENOMEM;
-@@ -1393,7 +1393,7 @@ cifs_unlock_range(struct cifsFileInfo *c
- 
- 	max_num = (max_buf - sizeof(struct smb_hdr)) /
- 						sizeof(LOCKING_ANDX_RANGE);
--	buf = kzalloc(max_num * sizeof(LOCKING_ANDX_RANGE), GFP_KERNEL);
-+	buf = kcalloc(max_num, sizeof(LOCKING_ANDX_RANGE), GFP_KERNEL);
+ 	max_num = max_buf / sizeof(struct smb2_lock_element);
+-	buf = kzalloc(max_num * sizeof(struct smb2_lock_element), GFP_KERNEL);
++	buf = kcalloc(max_num, sizeof(struct smb2_lock_element), GFP_KERNEL);
  	if (!buf)
  		return -ENOMEM;
  
+@@ -247,7 +247,7 @@ smb2_push_mandatory_locks(struct cifsFil
+ 	}
+ 
+ 	max_num = max_buf / sizeof(struct smb2_lock_element);
+-	buf = kzalloc(max_num * sizeof(struct smb2_lock_element), GFP_KERNEL);
++	buf = kcalloc(max_num, sizeof(struct smb2_lock_element), GFP_KERNEL);
+ 	if (!buf) {
+ 		free_xid(xid);
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -80,6 +80,7 @@ Patches currently in -mm which might be from fabf@skynet.be are
 kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
 fs-cifs-remove-obsolete-__constant.patch
 fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
 kernel-posix-timersc-code-clean-up.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
 fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
@@ -124,4 +125,5 @@ fs-qnx6-update-debugging-to-current-functions.patch
 linux-next.patch
 init-mainc-code-clean-up.patch
 kernel-kprobesc-convert-printk-to-pr_foo.patch
+fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
 
