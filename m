@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-support-for-kexec-on-panic-using-new-system-call.patch
- added to -mm tree
-Date: Thu, 26 Jun 2014 14:12:12 -0700
-Message-ID: <53ac8cac.evxFkwXCXC0RU1DL%akpm@linux-foundation.org>
+Subject: + kexec-support-kexec-kdump-on-efi-systems.patch added to -mm
+ tree
+Date: Thu, 26 Jun 2014 14:12:16 -0700
+Message-ID: <53ac8cb0.aUTsKjwyHa7yfnKb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32816 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32826 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbaFZVMN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 17:12:13 -0400
+	with ESMTP id S1751604AbaFZVMR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 17:12:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: support for kexec on panic using new system call
+     Subject: kexec: support kexec/kdump on EFI systems
 has been added to the -mm tree.  Its filename is
-     kexec-support-for-kexec-on-panic-using-new-system-call.patch
+     kexec-support-kexec-kdump-on-efi-systems.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-support-for-kexec-on-panic-using-new-system-call.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-support-kexec-kdump-on-efi-systems.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-support-for-kexec-on-panic-using-new-system-call.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-support-kexec-kdump-on-efi-systems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +40,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec: support for kexec on panic using new system call
+Subject: kexec: support kexec/kdump on EFI systems
 
-This patch adds support for loading a kexec on panic (kdump) kernel usning
-new system call.
+This patch does two things.  It passes EFI run time mappings to second
+kernel in bootparams efi_info.  Second kernel parse this info and create
+new mappings in second kernel.  That means mappings in first and second
+kernel will be same.  This paves the way to enable EFI in kexec kernel.
 
-It prepares ELF headers for memory areas to be dumped and for saved cpu
-registers.  Also prepares the memory map for second kernel and limits its
-boot to reserved areas only.
+This patch also prepares and passes EFI setup data through bootparams. 
+This contains bunch of information about various tables and their
+addresses.
+
+These information gathering and passing has been written along the lines
+of what current kexec-tools is doing to make kexec work with UEFI.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Cc: Borislav Petkov <bp@suse.de>
@@ -64,971 +69,315 @@ Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/crash.h       |    9 
- arch/x86/include/asm/kexec.h       |   19 
- arch/x86/kernel/crash.c            |  563 +++++++++++++++++++++++++++
- arch/x86/kernel/kexec-bzimage64.c  |   55 ++
- arch/x86/kernel/machine_kexec_64.c |   40 +
- kernel/kexec.c                     |   46 +-
- 6 files changed, 713 insertions(+), 19 deletions(-)
+ arch/x86/kernel/kexec-bzimage64.c  |  146 ++++++++++++++++++++++++---
+ drivers/firmware/efi/runtime-map.c |   21 +++
+ include/linux/efi.h                |   19 +++
+ 3 files changed, 174 insertions(+), 12 deletions(-)
 
-diff -puN /dev/null arch/x86/include/asm/crash.h
---- /dev/null
-+++ a/arch/x86/include/asm/crash.h
-@@ -0,0 +1,9 @@
-+#ifndef _ASM_X86_CRASH_H
-+#define _ASM_X86_CRASH_H
-+
-+int crash_load_segments(struct kimage *image);
-+int crash_copy_backup_region(struct kimage *image);
-+int crash_setup_memmap_entries(struct kimage *image,
-+		struct boot_params *params);
-+
-+#endif /* _ASM_X86_CRASH_H */
-diff -puN arch/x86/include/asm/kexec.h~kexec-support-for-kexec-on-panic-using-new-system-call arch/x86/include/asm/kexec.h
---- a/arch/x86/include/asm/kexec.h~kexec-support-for-kexec-on-panic-using-new-system-call
-+++ a/arch/x86/include/asm/kexec.h
-@@ -25,6 +25,8 @@
- #include <asm/ptrace.h>
- #include <asm/bootparam.h>
- 
-+struct kimage;
-+
- /*
-  * KEXEC_SOURCE_MEMORY_LIMIT maximum page get_free_page can return.
-  * I.e. Maximum page that is mapped directly into kernel memory,
-@@ -62,6 +64,10 @@
- # define KEXEC_ARCH KEXEC_ARCH_X86_64
- #endif
- 
-+/* Memory to backup during crash kdump */
-+#define KEXEC_BACKUP_SRC_START	(0UL)
-+#define KEXEC_BACKUP_SRC_END	(640 * 1024UL)	/* 640K */
-+
- /*
-  * CPU does not save ss and sp on stack if execution is already
-  * running in kernel mode at the time of NMI occurrence. This code
-@@ -161,8 +167,21 @@ struct kimage_arch {
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-+	/* Details of backup region */
-+	unsigned long backup_src_start;
-+	unsigned long backup_src_sz;
-+
-+	/* Physical address of backup segment */
-+	unsigned long backup_load_addr;
-+
-+	/* Core ELF header buffer */
-+	void *elf_headers;
-+	unsigned long elf_headers_sz;
-+	unsigned long elf_load_addr;
- };
-+#endif /* CONFIG_X86_32 */
- 
-+#ifdef CONFIG_X86_64
- struct kexec_entry64_regs {
- 	uint64_t rax;
- 	uint64_t rbx;
-diff -puN arch/x86/kernel/crash.c~kexec-support-for-kexec-on-panic-using-new-system-call arch/x86/kernel/crash.c
---- a/arch/x86/kernel/crash.c~kexec-support-for-kexec-on-panic-using-new-system-call
-+++ a/arch/x86/kernel/crash.c
-@@ -4,9 +4,14 @@
-  * Created by: Hariprasad Nellitheertha (hari@in.ibm.com)
-  *
-  * Copyright (C) IBM Corporation, 2004. All rights reserved.
-+ * Copyright (C) Red Hat Inc., 2014. All rights reserved.
-+ * Authors:
-+ *      Vivek Goyal <vgoyal@redhat.com>
-  *
-  */
- 
-+#define pr_fmt(fmt)	"kexec: " fmt
-+
- #include <linux/types.h>
- #include <linux/kernel.h>
- #include <linux/smp.h>
-@@ -16,6 +21,7 @@
- #include <linux/elf.h>
- #include <linux/elfcore.h>
- #include <linux/module.h>
-+#include <linux/slab.h>
- 
- #include <asm/processor.h>
- #include <asm/hardirq.h>
-@@ -28,6 +34,45 @@
- #include <asm/reboot.h>
- #include <asm/virtext.h>
- 
-+/* Alignment required for elf header segment */
-+#define ELF_CORE_HEADER_ALIGN   4096
-+
-+/* This primarily represents number of split ranges due to exclusion */
-+#define CRASH_MAX_RANGES	16
-+
-+struct crash_mem_range {
-+	u64 start, end;
-+};
-+
-+struct crash_mem {
-+	unsigned int nr_ranges;
-+	struct crash_mem_range ranges[CRASH_MAX_RANGES];
-+};
-+
-+/* Misc data about ram ranges needed to prepare elf headers */
-+struct crash_elf_data {
-+	struct kimage *image;
-+	/*
-+	 * Total number of ram ranges we have after various adjustments for
-+	 * GART, crash reserved region etc.
-+	 */
-+	unsigned int max_nr_ranges;
-+	unsigned long gart_start, gart_end;
-+
-+	/* Pointer to elf header */
-+	void *ehdr;
-+	/* Pointer to next phdr */
-+	void *bufp;
-+	struct crash_mem mem;
-+};
-+
-+/* Used while preparing memory map entries for second kernel */
-+struct crash_memmap_data {
-+	struct boot_params *params;
-+	/* Type of memory */
-+	unsigned int type;
-+};
-+
- int in_crash_kexec;
- 
- /*
-@@ -39,6 +84,7 @@ int in_crash_kexec;
-  */
- crash_vmclear_fn __rcu *crash_vmclear_loaded_vmcss = NULL;
- EXPORT_SYMBOL_GPL(crash_vmclear_loaded_vmcss);
-+unsigned long crash_zero_bytes;
- 
- static inline void cpu_crash_vmclear_loaded_vmcss(void)
- {
-@@ -135,3 +181,520 @@ void native_machine_crash_shutdown(struc
- #endif
- 	crash_save_cpu(regs, safe_smp_processor_id());
- }
-+
-+#ifdef CONFIG_X86_64
-+
-+static int get_nr_ram_ranges_callback(unsigned long start_pfn,
-+				unsigned long nr_pfn, void *arg)
-+{
-+	int *nr_ranges = arg;
-+
-+	(*nr_ranges)++;
-+	return 0;
-+}
-+
-+static int get_gart_ranges_callback(u64 start, u64 end, void *arg)
-+{
-+	struct crash_elf_data *ced = arg;
-+
-+	ced->gart_start = start;
-+	ced->gart_end = end;
-+
-+	/* Not expecting more than 1 gart aperture */
-+	return 1;
-+}
-+
-+
-+/* Gather all the required information to prepare elf headers for ram regions */
-+static void fill_up_crash_elf_data(struct crash_elf_data *ced,
-+				   struct kimage *image)
-+{
-+	unsigned int nr_ranges = 0;
-+
-+	ced->image = image;
-+
-+	walk_system_ram_range(0, -1, &nr_ranges,
-+				get_nr_ram_ranges_callback);
-+
-+	ced->max_nr_ranges = nr_ranges;
-+
-+	/*
-+	 * We don't create ELF headers for GART aperture as an attempt
-+	 * to dump this memory in second kernel leads to hang/crash.
-+	 * If gart aperture is present, one needs to exclude that region
-+	 * and that could lead to need of extra phdr.
-+	 */
-+	walk_iomem_res("GART", IORESOURCE_MEM, 0, -1,
-+				ced, get_gart_ranges_callback);
-+
-+	/*
-+	 * If we have gart region, excluding that could potentially split
-+	 * a memory range, resulting in extra header. Account for  that.
-+	 */
-+	if (ced->gart_end)
-+		ced->max_nr_ranges++;
-+
-+	/* Exclusion of crash region could split memory ranges */
-+	ced->max_nr_ranges++;
-+
-+	/* If crashk_low_res is not 0, another range split possible */
-+	if (crashk_low_res.end != 0)
-+		ced->max_nr_ranges++;
-+}
-+
-+static int exclude_mem_range(struct crash_mem *mem,
-+		unsigned long long mstart, unsigned long long mend)
-+{
-+	int i, j;
-+	unsigned long long start, end;
-+	struct crash_mem_range temp_range = {0, 0};
-+
-+	for (i = 0; i < mem->nr_ranges; i++) {
-+		start = mem->ranges[i].start;
-+		end = mem->ranges[i].end;
-+
-+		if (mstart > end || mend < start)
-+			continue;
-+
-+		/* Truncate any area outside of range */
-+		if (mstart < start)
-+			mstart = start;
-+		if (mend > end)
-+			mend = end;
-+
-+		/* Found completely overlapping range */
-+		if (mstart == start && mend == end) {
-+			mem->ranges[i].start = 0;
-+			mem->ranges[i].end = 0;
-+			if (i < mem->nr_ranges - 1) {
-+				/* Shift rest of the ranges to left */
-+				for (j = i; j < mem->nr_ranges - 1; j++) {
-+					mem->ranges[j].start =
-+						mem->ranges[j+1].start;
-+					mem->ranges[j].end =
-+							mem->ranges[j+1].end;
-+				}
-+			}
-+			mem->nr_ranges--;
-+			return 0;
-+		}
-+
-+		if (mstart > start && mend < end) {
-+			/* Split original range */
-+			mem->ranges[i].end = mstart - 1;
-+			temp_range.start = mend + 1;
-+			temp_range.end = end;
-+		} else if (mstart != start)
-+			mem->ranges[i].end = mstart - 1;
-+		else
-+			mem->ranges[i].start = mend + 1;
-+		break;
-+	}
-+
-+	/* If a split happend, add the split to array */
-+	if (!temp_range.end)
-+		return 0;
-+
-+	/* Split happened */
-+	if (i == CRASH_MAX_RANGES - 1) {
-+		pr_err("Too many crash ranges after split\n");
-+		return -ENOMEM;
-+	}
-+
-+	/* Location where new range should go */
-+	j = i + 1;
-+	if (j < mem->nr_ranges) {
-+		/* Move over all ranges one slot towards the end */
-+		for (i = mem->nr_ranges - 1; i >= j; i--)
-+			mem->ranges[i + 1] = mem->ranges[i];
-+	}
-+
-+	mem->ranges[j].start = temp_range.start;
-+	mem->ranges[j].end = temp_range.end;
-+	mem->nr_ranges++;
-+	return 0;
-+}
-+
-+/*
-+ * Look for any unwanted ranges between mstart, mend and remove them. This
-+ * might lead to split and split ranges are put in ced->mem.ranges[] array
-+ */
-+static int elf_header_exclude_ranges(struct crash_elf_data *ced,
-+		unsigned long long mstart, unsigned long long mend)
-+{
-+	struct crash_mem *cmem = &ced->mem;
-+	int ret = 0;
-+
-+	memset(cmem->ranges, 0, sizeof(cmem->ranges));
-+
-+	cmem->ranges[0].start = mstart;
-+	cmem->ranges[0].end = mend;
-+	cmem->nr_ranges = 1;
-+
-+	/* Exclude crashkernel region */
-+	ret = exclude_mem_range(cmem, crashk_res.start, crashk_res.end);
-+	if (ret)
-+		return ret;
-+
-+	ret = exclude_mem_range(cmem, crashk_low_res.start, crashk_low_res.end);
-+	if (ret)
-+		return ret;
-+
-+	/* Exclude GART region */
-+	if (ced->gart_end) {
-+		ret = exclude_mem_range(cmem, ced->gart_start, ced->gart_end);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return ret;
-+}
-+
-+static int prepare_elf64_ram_headers_callback(u64 start, u64 end, void *arg)
-+{
-+	struct crash_elf_data *ced = arg;
-+	Elf64_Ehdr *ehdr;
-+	Elf64_Phdr *phdr;
-+	unsigned long mstart, mend;
-+	struct kimage *image = ced->image;
-+	struct crash_mem *cmem;
-+	int ret, i;
-+
-+	ehdr = ced->ehdr;
-+
-+	/* Exclude unwanted mem ranges */
-+	ret = elf_header_exclude_ranges(ced, start, end);
-+	if (ret)
-+		return ret;
-+
-+	/* Go through all the ranges in ced->mem.ranges[] and prepare phdr */
-+	cmem = &ced->mem;
-+
-+	for (i = 0; i < cmem->nr_ranges; i++) {
-+		mstart = cmem->ranges[i].start;
-+		mend = cmem->ranges[i].end;
-+
-+		phdr = ced->bufp;
-+		ced->bufp += sizeof(Elf64_Phdr);
-+
-+		phdr->p_type = PT_LOAD;
-+		phdr->p_flags = PF_R|PF_W|PF_X;
-+		phdr->p_offset  = mstart;
-+
-+		/*
-+		 * If a range matches backup region, adjust offset to backup
-+		 * segment.
-+		 */
-+		if (mstart == image->arch.backup_src_start &&
-+		    (mend - mstart + 1) == image->arch.backup_src_sz)
-+			phdr->p_offset = image->arch.backup_load_addr;
-+
-+		phdr->p_paddr = mstart;
-+		phdr->p_vaddr = (unsigned long long) __va(mstart);
-+		phdr->p_filesz = phdr->p_memsz = mend - mstart + 1;
-+		phdr->p_align = 0;
-+		ehdr->e_phnum++;
-+		pr_debug("Crash PT_LOAD elf header. phdr=%p vaddr=0x%llx, paddr=0x%llx, sz=0x%llx e_phnum=%d p_offset=0x%llx\n",
-+			phdr, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesz,
-+			ehdr->e_phnum, phdr->p_offset);
-+	}
-+
-+	return ret;
-+}
-+
-+static int prepare_elf64_headers(struct crash_elf_data *ced,
-+		void **addr, unsigned long *sz)
-+{
-+	Elf64_Ehdr *ehdr;
-+	Elf64_Phdr *phdr;
-+	unsigned long nr_cpus = num_possible_cpus(), nr_phdr, elf_sz;
-+	unsigned char *buf, *bufp;
-+	unsigned int cpu;
-+	unsigned long long notes_addr;
-+	int ret;
-+
-+	/* extra phdr for vmcoreinfo elf note */
-+	nr_phdr = nr_cpus + 1;
-+	nr_phdr += ced->max_nr_ranges;
-+
-+	/*
-+	 * kexec-tools creates an extra PT_LOAD phdr for kernel text mapping
-+	 * area on x86_64 (ffffffff80000000 - ffffffffa0000000).
-+	 * I think this is required by tools like gdb. So same physical
-+	 * memory will be mapped in two elf headers. One will contain kernel
-+	 * text virtual addresses and other will have __va(physical) addresses.
-+	 */
-+
-+	nr_phdr++;
-+	elf_sz = sizeof(Elf64_Ehdr) + nr_phdr * sizeof(Elf64_Phdr);
-+	elf_sz = ALIGN(elf_sz, ELF_CORE_HEADER_ALIGN);
-+
-+	buf = vzalloc(elf_sz);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	bufp = buf;
-+	ehdr = (Elf64_Ehdr *)bufp;
-+	bufp += sizeof(Elf64_Ehdr);
-+	memcpy(ehdr->e_ident, ELFMAG, SELFMAG);
-+	ehdr->e_ident[EI_CLASS] = ELFCLASS64;
-+	ehdr->e_ident[EI_DATA] = ELFDATA2LSB;
-+	ehdr->e_ident[EI_VERSION] = EV_CURRENT;
-+	ehdr->e_ident[EI_OSABI] = ELF_OSABI;
-+	memset(ehdr->e_ident + EI_PAD, 0, EI_NIDENT - EI_PAD);
-+	ehdr->e_type = ET_CORE;
-+	ehdr->e_machine = ELF_ARCH;
-+	ehdr->e_version = EV_CURRENT;
-+	ehdr->e_phoff = sizeof(Elf64_Ehdr);
-+	ehdr->e_ehsize = sizeof(Elf64_Ehdr);
-+	ehdr->e_phentsize = sizeof(Elf64_Phdr);
-+
-+	/* Prepare one phdr of type PT_NOTE for each present cpu */
-+	for_each_present_cpu(cpu) {
-+		phdr = (Elf64_Phdr *)bufp;
-+		bufp += sizeof(Elf64_Phdr);
-+		phdr->p_type = PT_NOTE;
-+		notes_addr = per_cpu_ptr_to_phys(per_cpu_ptr(crash_notes, cpu));
-+		phdr->p_offset = phdr->p_paddr = notes_addr;
-+		phdr->p_filesz = phdr->p_memsz = sizeof(note_buf_t);
-+		(ehdr->e_phnum)++;
-+	}
-+
-+	/* Prepare one PT_NOTE header for vmcoreinfo */
-+	phdr = (Elf64_Phdr *)bufp;
-+	bufp += sizeof(Elf64_Phdr);
-+	phdr->p_type = PT_NOTE;
-+	phdr->p_offset = phdr->p_paddr = paddr_vmcoreinfo_note();
-+	phdr->p_filesz = phdr->p_memsz = sizeof(vmcoreinfo_note);
-+	(ehdr->e_phnum)++;
-+
-+#ifdef CONFIG_X86_64
-+	/* Prepare PT_LOAD type program header for kernel text region */
-+	phdr = (Elf64_Phdr *)bufp;
-+	bufp += sizeof(Elf64_Phdr);
-+	phdr->p_type = PT_LOAD;
-+	phdr->p_flags = PF_R|PF_W|PF_X;
-+	phdr->p_vaddr = (Elf64_Addr)_text;
-+	phdr->p_filesz = phdr->p_memsz = _end - _text;
-+	phdr->p_offset = phdr->p_paddr = __pa_symbol(_text);
-+	(ehdr->e_phnum)++;
-+#endif
-+
-+	/* Prepare PT_LOAD headers for system ram chunks. */
-+	ced->ehdr = ehdr;
-+	ced->bufp = bufp;
-+	ret = walk_system_ram_res(0, -1, ced,
-+			prepare_elf64_ram_headers_callback);
-+	if (ret < 0)
-+		return ret;
-+
-+	*addr = buf;
-+	*sz = elf_sz;
-+	return 0;
-+}
-+
-+/* Prepare elf headers. Return addr and size */
-+static int prepare_elf_headers(struct kimage *image, void **addr,
-+					unsigned long *sz)
-+{
-+	struct crash_elf_data *ced;
-+	int ret;
-+
-+	ced = kzalloc(sizeof(*ced), GFP_KERNEL);
-+	if (!ced)
-+		return -ENOMEM;
-+
-+	fill_up_crash_elf_data(ced, image);
-+
-+	/* By default prepare 64bit headers */
-+	ret =  prepare_elf64_headers(ced, addr, sz);
-+	kfree(ced);
-+	return ret;
-+}
-+
-+static int add_e820_entry(struct boot_params *params, struct e820entry *entry)
-+{
-+	unsigned int nr_e820_entries;
-+
-+	nr_e820_entries = params->e820_entries;
-+	if (nr_e820_entries >= E820MAX)
-+		return 1;
-+
-+	memcpy(&params->e820_map[nr_e820_entries], entry,
-+			sizeof(struct e820entry));
-+	params->e820_entries++;
-+	return 0;
-+}
-+
-+static int memmap_entry_callback(u64 start, u64 end, void *arg)
-+{
-+	struct crash_memmap_data *cmd = arg;
-+	struct boot_params *params = cmd->params;
-+	struct e820entry ei;
-+
-+	ei.addr = start;
-+	ei.size = end - start + 1;
-+	ei.type = cmd->type;
-+	add_e820_entry(params, &ei);
-+
-+	return 0;
-+}
-+
-+static int memmap_exclude_ranges(struct kimage *image, struct crash_mem *cmem,
-+				 unsigned long long mstart,
-+				 unsigned long long mend)
-+{
-+	unsigned long start, end;
-+	int ret = 0;
-+
-+	cmem->ranges[0].start = mstart;
-+	cmem->ranges[0].end = mend;
-+	cmem->nr_ranges = 1;
-+
-+	/* Exclude Backup region */
-+	start = image->arch.backup_load_addr;
-+	end = start + image->arch.backup_src_sz - 1;
-+	ret = exclude_mem_range(cmem, start, end);
-+	if (ret)
-+		return ret;
-+
-+	/* Exclude elf header region */
-+	start = image->arch.elf_load_addr;
-+	end = start + image->arch.elf_headers_sz - 1;
-+	return exclude_mem_range(cmem, start, end);
-+}
-+
-+/* Prepare memory map for crash dump kernel */
-+int crash_setup_memmap_entries(struct kimage *image, struct boot_params *params)
-+{
-+	int i, ret = 0;
-+	unsigned long flags;
-+	struct e820entry ei;
-+	struct crash_memmap_data cmd;
-+	struct crash_mem *cmem;
-+
-+	cmem = vzalloc(sizeof(struct crash_mem));
-+	if (!cmem)
-+		return -ENOMEM;
-+
-+	memset(&cmd, 0, sizeof(struct crash_memmap_data));
-+	cmd.params = params;
-+
-+	/* Add first 640K segment */
-+	ei.addr = image->arch.backup_src_start;
-+	ei.size = image->arch.backup_src_sz;
-+	ei.type = E820_RAM;
-+	add_e820_entry(params, &ei);
-+
-+	/* Add ACPI tables */
-+	cmd.type = E820_ACPI;
-+	flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-+	walk_iomem_res("ACPI Tables", flags, 0, -1, &cmd,
-+		       memmap_entry_callback);
-+
-+	/* Add ACPI Non-volatile Storage */
-+	cmd.type = E820_NVS;
-+	walk_iomem_res("ACPI Non-volatile Storage", flags, 0, -1, &cmd,
-+			memmap_entry_callback);
-+
-+	/* Add crashk_low_res region */
-+	if (crashk_low_res.end) {
-+		ei.addr = crashk_low_res.start;
-+		ei.size = crashk_low_res.end - crashk_low_res.start + 1;
-+		ei.type = E820_RAM;
-+		add_e820_entry(params, &ei);
-+	}
-+
-+	/* Exclude some ranges from crashk_res and add rest to memmap */
-+	ret = memmap_exclude_ranges(image, cmem, crashk_res.start,
-+						crashk_res.end);
-+	if (ret)
-+		goto out;
-+
-+	for (i = 0; i < cmem->nr_ranges; i++) {
-+		ei.size = cmem->ranges[i].end - cmem->ranges[i].start + 1;
-+
-+		/* If entry is less than a page, skip it */
-+		if (ei.size < PAGE_SIZE)
-+			continue;
-+		ei.addr = cmem->ranges[i].start;
-+		ei.type = E820_RAM;
-+		add_e820_entry(params, &ei);
-+	}
-+
-+out:
-+	vfree(cmem);
-+	return ret;
-+}
-+
-+static int determine_backup_region(u64 start, u64 end, void *arg)
-+{
-+	struct kimage *image = arg;
-+
-+	image->arch.backup_src_start = start;
-+	image->arch.backup_src_sz = end - start + 1;
-+
-+	/* Expecting only one range for backup region */
-+	return 1;
-+}
-+
-+int crash_load_segments(struct kimage *image)
-+{
-+	unsigned long src_start, src_sz, elf_sz;
-+	void *elf_addr;
-+	int ret;
-+
-+	/*
-+	 * Determine and load a segment for backup area. First 640K RAM
-+	 * region is backup source
-+	 */
-+
-+	ret = walk_system_ram_res(KEXEC_BACKUP_SRC_START, KEXEC_BACKUP_SRC_END,
-+				image, determine_backup_region);
-+
-+	/* Zero or postive return values are ok */
-+	if (ret < 0)
-+		return ret;
-+
-+	src_start = image->arch.backup_src_start;
-+	src_sz = image->arch.backup_src_sz;
-+
-+	/* Add backup segment. */
-+	if (src_sz) {
-+		/*
-+		 * Ideally there is no source for backup segment. This is
-+		 * copied in purgatory after crash. Just add a zero filled
-+		 * segment for now to make sure checksum logic works fine.
-+		 */
-+		ret = kexec_add_buffer(image, (char *)&crash_zero_bytes,
-+				       sizeof(crash_zero_bytes), src_sz,
-+				       PAGE_SIZE, 0, -1, 0,
-+				       &image->arch.backup_load_addr);
-+		if (ret)
-+			return ret;
-+		pr_debug("Loaded backup region at 0x%lx backup_start=0x%lx memsz=0x%lx\n",
-+			 image->arch.backup_load_addr, src_start, src_sz);
-+	}
-+
-+	/* Prepare elf headers and add a segment */
-+	ret = prepare_elf_headers(image, &elf_addr, &elf_sz);
-+	if (ret)
-+		return ret;
-+
-+	image->arch.elf_headers = elf_addr;
-+	image->arch.elf_headers_sz = elf_sz;
-+
-+	ret = kexec_add_buffer(image, (char *)elf_addr, elf_sz, elf_sz,
-+			ELF_CORE_HEADER_ALIGN, 0, -1, 0,
-+			&image->arch.elf_load_addr);
-+	if (ret) {
-+		vfree((void *)image->arch.elf_headers);
-+		return ret;
-+	}
-+	pr_debug("Loaded ELF headers at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
-+		 image->arch.elf_load_addr, elf_sz, elf_sz);
-+
-+	return ret;
-+}
-+
-+#endif /* CONFIG_X86_64 */
-diff -puN arch/x86/kernel/kexec-bzimage64.c~kexec-support-for-kexec-on-panic-using-new-system-call arch/x86/kernel/kexec-bzimage64.c
---- a/arch/x86/kernel/kexec-bzimage64.c~kexec-support-for-kexec-on-panic-using-new-system-call
+diff -puN arch/x86/kernel/kexec-bzimage64.c~kexec-support-kexec-kdump-on-efi-systems arch/x86/kernel/kexec-bzimage64.c
+--- a/arch/x86/kernel/kexec-bzimage64.c~kexec-support-kexec-kdump-on-efi-systems
 +++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -21,6 +21,9 @@
+@@ -18,10 +18,12 @@
+ #include <linux/kexec.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
++#include <linux/efi.h>
  
  #include <asm/bootparam.h>
  #include <asm/setup.h>
-+#include <asm/crash.h>
-+
-+#define MAX_ELFCOREHDR_STR_LEN	30	/* elfcorehdr=0x<64bit-value> */
+ #include <asm/crash.h>
++#include <asm/efi.h>
  
- /*
-  * Defines lowest physical address for various segments. Not sure where
-@@ -58,18 +61,24 @@ static int setup_initrd(struct boot_para
+ #define MAX_ELFCOREHDR_STR_LEN	30	/* elfcorehdr=0x<64bit-value> */
+ 
+@@ -90,7 +92,7 @@ static int setup_cmdline(struct kimage *
  	return 0;
  }
  
--static int setup_cmdline(struct boot_params *params,
-+static int setup_cmdline(struct kimage *image, struct boot_params *params,
- 			 unsigned long bootparams_load_addr,
- 			 unsigned long cmdline_offset, char *cmdline,
- 			 unsigned long cmdline_len)
+-static int setup_memory_map_entries(struct boot_params *params)
++static int setup_e820_entries(struct boot_params *params)
  {
- 	char *cmdline_ptr = ((char *)params) + cmdline_offset;
--	unsigned long cmdline_ptr_phys;
-+	unsigned long cmdline_ptr_phys, len;
- 	uint32_t cmdline_low_32, cmdline_ext_32;
+ 	unsigned int nr_e820_entries;
  
- 	memcpy(cmdline_ptr, cmdline, cmdline_len);
-+	if (image->type == KEXEC_TYPE_CRASH) {
-+		len = sprintf(cmdline_ptr + cmdline_len - 1,
-+			" elfcorehdr=0x%lx", image->arch.elf_load_addr);
-+		cmdline_len += len;
-+	}
- 	cmdline_ptr[cmdline_len - 1] = '\0';
- 
-+	pr_debug("Final command line is: %s\n", cmdline_ptr);
- 	cmdline_ptr_phys = bootparams_load_addr + cmdline_offset;
- 	cmdline_low_32 = cmdline_ptr_phys & 0xffffffffUL;
- 	cmdline_ext_32 = cmdline_ptr_phys >> 32;
-@@ -98,11 +107,12 @@ static int setup_memory_map_entries(stru
+@@ -107,8 +109,93 @@ static int setup_memory_map_entries(stru
  	return 0;
  }
  
--static int setup_boot_parameters(struct boot_params *params)
-+static int setup_boot_parameters(struct kimage *image,
-+				 struct boot_params *params)
+-static int setup_boot_parameters(struct kimage *image,
+-				 struct boot_params *params)
++#ifdef CONFIG_EFI
++static int setup_efi_info_memmap(struct boot_params *params,
++				  unsigned long params_load_addr,
++				  unsigned int efi_map_offset,
++				  unsigned int efi_map_sz)
++{
++	void *efi_map = (void *)params + efi_map_offset;
++	unsigned long efi_map_phys_addr = params_load_addr + efi_map_offset;
++	struct efi_info *ei = &params->efi_info;
++
++	if (!efi_map_sz)
++		return 0;
++
++	efi_runtime_map_copy(efi_map, efi_map_sz);
++
++	ei->efi_memmap = efi_map_phys_addr & 0xffffffff;
++	ei->efi_memmap_hi = efi_map_phys_addr >> 32;
++	ei->efi_memmap_size = efi_map_sz;
++
++	return 0;
++}
++
++static int
++prepare_add_efi_setup_data(struct boot_params *params,
++		       unsigned long params_load_addr,
++		       unsigned int efi_setup_data_offset)
++{
++	unsigned long setup_data_phys;
++	struct setup_data *sd = (void *)params + efi_setup_data_offset;
++	struct efi_setup_data *esd = (void *)sd + sizeof(struct setup_data);
++
++	esd->fw_vendor = efi.fw_vendor;
++	esd->runtime = efi.runtime;
++	esd->tables = efi.config_table;
++	esd->smbios = efi.smbios;
++
++	sd->type = SETUP_EFI;
++	sd->len = sizeof(struct efi_setup_data);
++
++	/* Add setup data */
++	setup_data_phys = params_load_addr + efi_setup_data_offset;
++	sd->next = params->hdr.setup_data;
++	params->hdr.setup_data = setup_data_phys;
++
++	return 0;
++}
++
++static int
++setup_efi_state(struct boot_params *params, unsigned long params_load_addr,
++		unsigned int efi_map_offset, unsigned int efi_map_sz,
++		unsigned int efi_setup_data_offset)
++{
++	struct efi_info *current_ei = &boot_params.efi_info;
++	struct efi_info *ei = &params->efi_info;
++
++	if (!current_ei->efi_memmap_size)
++		return 0;
++
++	/*
++	 * If 1:1 mapping is not enabled, second kernel can not setup EFI
++	 * and use EFI run time services. User space will have to pass
++	 * acpi_rsdp=<addr> on kernel command line to make second kernel boot
++	 * without efi.
++	 */
++	if (efi_enabled(EFI_OLD_MEMMAP))
++		return 0;
++
++	ei->efi_loader_signature = current_ei->efi_loader_signature;
++	ei->efi_systab = current_ei->efi_systab;
++	ei->efi_systab_hi = current_ei->efi_systab_hi;
++
++	ei->efi_memdesc_version = current_ei->efi_memdesc_version;
++	ei->efi_memdesc_size = get_efi_runtime_map_desc_size();
++
++	setup_efi_info_memmap(params, params_load_addr, efi_map_offset,
++			      efi_map_sz);
++	prepare_add_efi_setup_data(params, params_load_addr,
++				   efi_setup_data_offset);
++	return 0;
++}
++#endif /* CONFIG_EFI */
++
++static int
++setup_boot_parameters(struct kimage *image, struct boot_params *params,
++		      unsigned long params_load_addr,
++		      unsigned int efi_map_offset, unsigned int efi_map_sz,
++		      unsigned int efi_setup_data_offset)
  {
  	unsigned int nr_e820_entries;
  	unsigned long long mem_k, start, end;
--	int i;
-+	int i, ret = 0;
+@@ -140,7 +227,7 @@ static int setup_boot_parameters(struct
+ 		if (ret)
+ 			return ret;
+ 	} else
+-		setup_memory_map_entries(params);
++		setup_e820_entries(params);
  
- 	/* Get subarch from existing bootparams */
- 	params->hdr.hardware_subarch = boot_params.hdr.hardware_subarch;
-@@ -125,7 +135,13 @@ static int setup_boot_parameters(struct
- 	/* Default sysdesc table */
- 	params->sys_desc_table.length = 0;
- 
--	setup_memory_map_entries(params);
-+	if (image->type == KEXEC_TYPE_CRASH) {
-+		ret = crash_setup_memmap_entries(image, params);
-+		if (ret)
-+			return ret;
-+	} else
-+		setup_memory_map_entries(params);
-+
  	nr_e820_entries = params->e820_entries;
  
- 	for (i = 0; i < nr_e820_entries; i++) {
-@@ -153,7 +169,7 @@ static int setup_boot_parameters(struct
- 	memcpy(params->edd_mbr_sig_buffer, boot_params.edd_mbr_sig_buffer,
- 	       EDD_MBR_SIG_MAX * sizeof(unsigned int));
- 
--	return 0;
-+	return ret;
- }
- 
- int bzImage64_probe(const char *buf, unsigned long len)
-@@ -241,6 +257,22 @@ void *bzImage64_load(struct kimage *imag
+@@ -161,6 +248,12 @@ static int setup_boot_parameters(struct
+ 		}
  	}
  
- 	/*
-+	 * In case of crash dump, we will append elfcorehdr=<addr> to
-+	 * command line. Make sure it does not overflow
-+	 */
-+	if (cmdline_len + MAX_ELFCOREHDR_STR_LEN > header->cmdline_size) {
-+		pr_debug("Appending elfcorehdr=<addr> to command line exceeds maximum allowed length\n");
-+		return ERR_PTR(-EINVAL);
-+	}
++#ifdef CONFIG_EFI
++	/* Setup EFI state */
++	setup_efi_state(params, params_load_addr, efi_map_offset, efi_map_sz,
++			efi_setup_data_offset);
++#endif
 +
-+	/* Allocate and load backup region */
-+	if (image->type == KEXEC_TYPE_CRASH) {
-+		ret = crash_load_segments(image);
-+		if (ret)
-+			return ERR_PTR(ret);
-+	}
-+
+ 	/* Setup EDD info */
+ 	memcpy(params->eddbuf, boot_params.eddbuf,
+ 				EDDMAXNR * sizeof(struct edd_info));
+@@ -214,6 +307,15 @@ int bzImage64_probe(const char *buf, uns
+ 		return ret;
+ 	}
+ 
 +	/*
- 	 * Load purgatory. For 64bit entry point, purgatory  code can be
- 	 * anywhere.
- 	 */
-@@ -254,7 +286,8 @@ void *bzImage64_load(struct kimage *imag
++	 * Can't handle 32bit EFI as it does not allow loading kernel
++	 * above 4G. This should be handled by 32bit bzImage loader
++	 */
++	if (efi_enabled(EFI_RUNTIME_SERVICES) && !efi_enabled(EFI_64BIT)) {
++		pr_debug("EFI is 32 bit. Can't load kernel above 4G.\n");
++		return ret;
++	}
++
+ 	/* I've got a bzImage */
+ 	pr_debug("It's a relocatable bzImage64\n");
+ 	ret = 0;
+@@ -229,7 +331,7 @@ void *bzImage64_load(struct kimage *imag
+ 
+ 	struct setup_header *header;
+ 	int setup_sects, kern16_size, ret = 0;
+-	unsigned long setup_header_size, params_cmdline_sz;
++	unsigned long setup_header_size, params_cmdline_sz, params_misc_sz;
+ 	struct boot_params *params;
+ 	unsigned long bootparam_load_addr, kernel_load_addr, initrd_load_addr;
+ 	unsigned long purgatory_load_addr;
+@@ -239,6 +341,7 @@ void *bzImage64_load(struct kimage *imag
+ 	struct kexec_entry64_regs regs64;
+ 	void *stack;
+ 	unsigned int setup_hdr_offset = offsetof(struct boot_params, hdr);
++	unsigned int efi_map_offset, efi_map_sz, efi_setup_data_offset;
+ 
+ 	header = (struct setup_header *)(kernel + setup_hdr_offset);
+ 	setup_sects = header->setup_sects;
+@@ -285,12 +388,29 @@ void *bzImage64_load(struct kimage *imag
+ 
  	pr_debug("Loaded purgatory at 0x%lx\n", purgatory_load_addr);
  
- 	/* Load Bootparams and cmdline */
--	params_cmdline_sz = sizeof(struct boot_params) + cmdline_len;
-+	params_cmdline_sz = sizeof(struct boot_params) + cmdline_len +
-+				MAX_ELFCOREHDR_STR_LEN;
- 	params = kzalloc(params_cmdline_sz, GFP_KERNEL);
+-	/* Load Bootparams and cmdline */
++
++	/*
++	 * Load Bootparams and cmdline and space for efi stuff.
++	 *
++	 * Allocate memory together for multiple data structures so
++	 * that they all can go in single area/segment and we don't
++	 * have to create separate segment for each. Keeps things
++	 * little bit simple
++	 */
++	efi_map_sz = get_efi_runtime_map_size();
++	efi_map_sz = ALIGN(efi_map_sz, 16);
+ 	params_cmdline_sz = sizeof(struct boot_params) + cmdline_len +
+ 				MAX_ELFCOREHDR_STR_LEN;
+-	params = kzalloc(params_cmdline_sz, GFP_KERNEL);
++	params_cmdline_sz = ALIGN(params_cmdline_sz, 16);
++	params_misc_sz = params_cmdline_sz + efi_map_sz +
++				sizeof(struct setup_data) +
++				sizeof(struct efi_setup_data);
++
++	params = kzalloc(params_misc_sz, GFP_KERNEL);
  	if (!params)
  		return ERR_PTR(-ENOMEM);
-@@ -303,8 +336,8 @@ void *bzImage64_load(struct kimage *imag
- 		setup_initrd(params, initrd_load_addr, initrd_len);
- 	}
++	efi_map_offset = params_cmdline_sz;
++	efi_setup_data_offset = efi_map_offset + efi_map_sz;
  
--	setup_cmdline(params, bootparam_load_addr, sizeof(struct boot_params),
--		      cmdline, cmdline_len);
-+	setup_cmdline(image, params, bootparam_load_addr,
-+		      sizeof(struct boot_params), cmdline, cmdline_len);
+ 	/* Copy setup header onto bootparams. Documentation/x86/boot.txt */
+ 	setup_header_size = 0x0202 + kernel[0x0201] - setup_hdr_offset;
+@@ -298,13 +418,13 @@ void *bzImage64_load(struct kimage *imag
+ 	/* Is there a limit on setup header size? */
+ 	memcpy(&params->hdr, (kernel + setup_hdr_offset), setup_header_size);
  
- 	/* bootloader info. Do we need a separate ID for kexec kernel loader? */
- 	params->hdr.type_of_loader = 0x0D << 4;
-@@ -332,7 +365,9 @@ void *bzImage64_load(struct kimage *imag
+-	ret = kexec_add_buffer(image, (char *)params, params_cmdline_sz,
+-			       params_cmdline_sz, 16, MIN_BOOTPARAM_ADDR,
++	ret = kexec_add_buffer(image, (char *)params, params_misc_sz,
++			       params_misc_sz, 16, MIN_BOOTPARAM_ADDR,
+ 			       ULONG_MAX, 1, &bootparam_load_addr);
+ 	if (ret)
+ 		goto out_free_params;
+-	pr_debug("Loaded boot_param and command line at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
+-		 bootparam_load_addr, params_cmdline_sz, params_cmdline_sz);
++	pr_debug("Loaded boot_param, command line and misc at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
++		 bootparam_load_addr, params_misc_sz, params_misc_sz);
+ 
+ 	/* Load kernel */
+ 	kernel_buf = kernel + kern16_size;
+@@ -365,7 +485,9 @@ void *bzImage64_load(struct kimage *imag
  	if (ret)
  		goto out_free_params;
  
--	setup_boot_parameters(params);
-+	ret = setup_boot_parameters(image, params);
-+	if (ret)
-+		goto out_free_params;
+-	ret = setup_boot_parameters(image, params);
++	ret = setup_boot_parameters(image, params, bootparam_load_addr,
++				    efi_map_offset, efi_map_sz,
++				    efi_setup_data_offset);
+ 	if (ret)
+ 		goto out_free_params;
  
- 	/* Allocate loader specific data */
- 	ldata = kzalloc(sizeof(struct bzimage64_data), GFP_KERNEL);
-diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-support-for-kexec-on-panic-using-new-system-call arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kexec-support-for-kexec-on-panic-using-new-system-call
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -178,6 +178,38 @@ static void load_segments(void)
- 		);
+diff -puN drivers/firmware/efi/runtime-map.c~kexec-support-kexec-kdump-on-efi-systems drivers/firmware/efi/runtime-map.c
+--- a/drivers/firmware/efi/runtime-map.c~kexec-support-kexec-kdump-on-efi-systems
++++ a/drivers/firmware/efi/runtime-map.c
+@@ -138,6 +138,27 @@ add_sysfs_runtime_map_entry(struct kobje
+ 	return entry;
  }
  
-+/* Update purgatory as needed after various image segments have been prepared */
-+static int arch_update_purgatory(struct kimage *image)
++int get_efi_runtime_map_size(void)
 +{
-+	int ret = 0;
-+
-+	if (!image->file_mode)
-+		return 0;
-+
-+	/* Setup copying of backup region */
-+	if (image->type == KEXEC_TYPE_CRASH) {
-+		ret = kexec_purgatory_get_set_symbol(image, "backup_dest",
-+				&image->arch.backup_load_addr,
-+				sizeof(image->arch.backup_load_addr), 0);
-+		if (ret)
-+			return ret;
-+
-+		ret = kexec_purgatory_get_set_symbol(image, "backup_src",
-+				&image->arch.backup_src_start,
-+				sizeof(image->arch.backup_src_start), 0);
-+		if (ret)
-+			return ret;
-+
-+		ret = kexec_purgatory_get_set_symbol(image, "backup_sz",
-+				&image->arch.backup_src_sz,
-+				sizeof(image->arch.backup_src_sz), 0);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return ret;
++	return nr_efi_runtime_map * efi_memdesc_size;
 +}
 +
- int machine_kexec_prepare(struct kimage *image)
++int get_efi_runtime_map_desc_size(void)
++{
++	return efi_memdesc_size;
++}
++
++int efi_runtime_map_copy(void *buf, size_t bufsz)
++{
++	size_t sz = get_efi_runtime_map_size();
++
++	if (sz > bufsz)
++		sz = bufsz;
++
++	memcpy(buf, efi_runtime_map, sz);
++	return 0;
++}
++
+ void efi_runtime_map_setup(void *map, int nr_entries, u32 desc_size)
  {
- 	unsigned long start_pgtable;
-@@ -191,6 +223,11 @@ int machine_kexec_prepare(struct kimage
- 	if (result)
- 		return result;
- 
-+	/* update purgatory as needed */
-+	result = arch_update_purgatory(image);
-+	if (result)
-+		return result;
-+
- 	return 0;
- }
- 
-@@ -315,6 +352,9 @@ int arch_kexec_kernel_image_probe(struct
- 
- void *arch_kexec_kernel_image_load(struct kimage *image)
+ 	efi_runtime_map = map;
+diff -puN include/linux/efi.h~kexec-support-kexec-kdump-on-efi-systems include/linux/efi.h
+--- a/include/linux/efi.h~kexec-support-kexec-kdump-on-efi-systems
++++ a/include/linux/efi.h
+@@ -1151,6 +1151,9 @@ int efivars_sysfs_init(void);
+ #ifdef CONFIG_EFI_RUNTIME_MAP
+ int efi_runtime_map_init(struct kobject *);
+ void efi_runtime_map_setup(void *, int, u32);
++int get_efi_runtime_map_size(void);
++int get_efi_runtime_map_desc_size(void);
++int efi_runtime_map_copy(void *buf, size_t bufsz);
+ #else
+ static inline int efi_runtime_map_init(struct kobject *kobj)
  {
-+	vfree(image->arch.elf_headers);
-+	image->arch.elf_headers = NULL;
+@@ -1159,6 +1162,22 @@ static inline int efi_runtime_map_init(s
+ 
+ static inline void
+ efi_runtime_map_setup(void *map, int nr_entries, u32 desc_size) {}
 +
- 	if (!image->fops || !image->fops->load)
- 		return ERR_PTR(-ENOEXEC);
- 
-diff -puN kernel/kexec.c~kexec-support-for-kexec-on-panic-using-new-system-call kernel/kexec.c
---- a/kernel/kexec.c~kexec-support-for-kexec-on-panic-using-new-system-call
-+++ a/kernel/kexec.c
-@@ -533,6 +533,7 @@ kimage_file_alloc_init(struct kimage **r
- {
- 	int ret;
- 	struct kimage *image;
-+	bool kexec_on_panic = flags & KEXEC_FILE_ON_CRASH;
- 
- 	image = do_kimage_alloc_init();
- 	if (!image)
-@@ -540,6 +541,12 @@ kimage_file_alloc_init(struct kimage **r
- 
- 	image->file_mode = 1;
- 
-+	if (kexec_on_panic) {
-+		/* Enable special crash kernel control page alloc policy. */
-+		image->control_page = crashk_res.start;
-+		image->type = KEXEC_TYPE_CRASH;
-+	}
++static inline int get_efi_runtime_map_size(void)
++{
++	return 0;
++}
 +
- 	ret = kimage_file_prepare_segments(image, kernel_fd, initrd_fd,
- 					   cmdline_ptr, cmdline_len, flags);
- 	if (ret)
-@@ -557,10 +564,12 @@ kimage_file_alloc_init(struct kimage **r
- 		goto out_free_post_load_bufs;
- 	}
- 
--	image->swap_page = kimage_alloc_control_pages(image, 0);
--	if (!image->swap_page) {
--		pr_err(KERN_ERR "Could not allocate swap buffer\n");
--		goto out_free_control_pages;
-+	if (!kexec_on_panic) {
-+		image->swap_page = kimage_alloc_control_pages(image, 0);
-+		if (!image->swap_page) {
-+			pr_err(KERN_ERR "Could not allocate swap buffer\n");
-+			goto out_free_control_pages;
-+		}
- 	}
- 
- 	*rimage = image;
-@@ -1101,10 +1110,14 @@ static int kimage_load_crash_segment(str
- 	unsigned long maddr;
- 	size_t ubytes, mbytes;
- 	int result;
--	unsigned char __user *buf;
-+	unsigned char __user *buf = NULL;
-+	unsigned char *kbuf = NULL;
- 
- 	result = 0;
--	buf = segment->buf;
-+	if (image->file_mode)
-+		kbuf = segment->kbuf;
-+	else
-+		buf = segment->buf;
- 	ubytes = segment->bufsz;
- 	mbytes = segment->memsz;
- 	maddr = segment->mem;
-@@ -1127,7 +1140,12 @@ static int kimage_load_crash_segment(str
- 			/* Zero the trailing part of the page */
- 			memset(ptr + uchunk, 0, mchunk - uchunk);
- 		}
--		result = copy_from_user(ptr, buf, uchunk);
++static inline int get_efi_runtime_map_desc_size(void)
++{
++	return 0;
++}
 +
-+		/* For file based kexec, source pages are in kernel memory */
-+		if (image->file_mode)
-+			memcpy(ptr, kbuf, uchunk);
-+		else
-+			result = copy_from_user(ptr, buf, uchunk);
- 		kexec_flush_icache_page(page);
- 		kunmap(page);
- 		if (result) {
-@@ -1136,7 +1154,10 @@ static int kimage_load_crash_segment(str
- 		}
- 		ubytes -= uchunk;
- 		maddr  += mchunk;
--		buf += mchunk;
-+		if (image->file_mode)
-+			kbuf += mchunk;
-+		else
-+			buf += mchunk;
- 		mbytes -= mchunk;
- 	}
- out:
-@@ -2112,7 +2133,14 @@ int kexec_add_buffer(struct kimage *imag
- 	kbuf->top_down = top_down;
++static inline int efi_runtime_map_copy(void *buf, size_t bufsz)
++{
++	return 0;
++}
++
+ #endif
  
- 	/* Walk the RAM ranges and allocate a suitable range for the buffer */
--	ret = walk_system_ram_res(0, -1, kbuf, locate_mem_hole_callback);
-+	if (image->type == KEXEC_TYPE_CRASH)
-+		ret = walk_iomem_res("Crash kernel",
-+				     IORESOURCE_MEM | IORESOURCE_BUSY,
-+				     crashk_res.start, crashk_res.end, kbuf,
-+				     locate_mem_hole_callback);
-+	else
-+		ret = walk_system_ram_res(0, -1, kbuf,
-+					  locate_mem_hole_callback);
- 	if (ret != 1) {
- 		/* A suitable memory range could not be found for buffer */
- 		return -EADDRNOTAVAIL;
+ #endif /* _LINUX_EFI_H */
 _
 
 Patches currently in -mm which might be from vgoyal@redhat.com are
