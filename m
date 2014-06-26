@@ -1,116 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment-fix.patch removed from -mm tree
-Date: Thu, 26 Jun 2014 13:19:33 -0700
-Message-ID: <53ac8055.CKLb4TzDUAnsYQ0F%akpm@linux-foundation.org>
+Subject: + zram-revalidate-disk-after-capacity-change.patch added to -mm
+ tree
+Date: Thu, 26 Jun 2014 13:27:07 -0700
+Message-ID: <53ac821b.4sym8wZspdnz1Eco%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59644 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750898AbaFZUTe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:19:34 -0400
+	with ESMTP id S1750974AbaFZU1I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:27:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ming.lei@canonical.com, axboe@kernel.dk, dongsu.park@profitbricks.com, hch@lst.de, jet.chen@intel.com, kmo@daterainc.com, mlombard@redhat.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, ngupta@vflare.org, patrakov@gmail.com, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block/bio.c: update bi_iter.bi_size before recounting segments
-has been removed from the -mm tree.  Its filename was
-     bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment-fix.patch
+     Subject: zram: revalidate disk after capacity change
+has been added to the -mm tree.  Its filename is
+     zram-revalidate-disk-after-capacity-change.patch
 
-This patch was dropped because it was folded into bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-revalidate-disk-after-capacity-change.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-revalidate-disk-after-capacity-change.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Ming Lei <ming.lei@canonical.com>
-Subject: block/bio.c: update bi_iter.bi_size before recounting segments
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: revalidate disk after capacity change
 
-The patch of "bio: modify __bio_add_page() to accept pages that
-don't start a new segment" changes the way for adding one page
-to bio:
+Alexander reported mkswap on /dev/zram0 is failed if other process is
+opening the block device file.
 
-	- previously by adding page after checking successfully
-	- now by trying to add page and recover if it fails
+Step is as follows,
 
-Unfortunately the patch forgets to update bio->bi_iter.bi_size
-before trying to add page, then the last vector for holding
-the added page may not be covered if recouning segments is needed,
-so bio->bi_phys_segments may become not consistent with the
-actual bio page buffers after the page is added successfully
-to the bio(after bi_iter.bi_size is added by 'len')
+0. Reset the unused zram device.
+1. Use a program that opens /dev/zram0 with O_RDWR and sleeps
+   until killed.
+2. While that program sleeps, echo the correct value to
+   /sys/block/zram0/disksize.
+3. Verify (e.g. in /proc/partitions) that the disk size is applied
+   correctly. It is.
+4. While that program still sleeps, attempt to mkswap /dev/zram0.
+   This fails: mkswap: error: swap area needs to be at least 40 KiB
 
-Suppose the page in the last vector can't be merged to bio, tragedy
-will happen when __bio_add_page() is called to add another page:
+When I investigated, the size get by ioctl(fd, BLKGETSIZE64, xxx) on
+mkswap to get a size of blockdev was zero although zram0 has right size by
+2.
 
-	- blk_recount_segments() is called and the actual segments get
-	figured out correctly
+The reason is zram didn't revalidate disk after changing capacity so that
+size of blockdev's inode is not uptodate until all of file is close.
 
-	- the actual segments may become queue_max_segments(q) plus one
-	in failure path
+This patch should fix the BUG.
 
-	- driver will find the segment count is too big to handle.
-
-The patch fixes the virtio-blk oops bug reported from Jet Chen in
-below link:
-
-	http://marc.info/?l=linux-kernel&m=140113053817095&w=2
-
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
-Reported-by: Jet Chen <jet.chen@intel.com>
-Tested-by: Jet Chen <jet.chen@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Maurizio Lombardi <mlombard@redhat.com>
-Tested-by: Dongsu Park <dongsu.park@profitbricks.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Kent Overstreet <kmo@daterainc.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Alexander E. Patrakov <patrakov@gmail.com>
+Tested-by: Alexander E. Patrakov <patrakov@gmail.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc; Jerome Marchand <jmarchan@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bio.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN block/bio.c~bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment-fix block/bio.c
---- a/block/bio.c~bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment-fix
-+++ a/block/bio.c
-@@ -744,6 +744,7 @@ static int __bio_add_page(struct request
- 				}
- 			}
+diff -puN drivers/block/zram/zram_drv.c~zram-revalidate-disk-after-capacity-change drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-revalidate-disk-after-capacity-change
++++ a/drivers/block/zram/zram_drv.c
+@@ -622,8 +622,10 @@ static void zram_reset_device(struct zra
+ 	memset(&zram->stats, 0, sizeof(zram->stats));
  
-+			bio->bi_iter.bi_size += len;
- 			goto done;
- 		}
- 	}
-@@ -761,6 +762,7 @@ static int __bio_add_page(struct request
- 	bvec->bv_offset = offset;
- 	bio->bi_vcnt++;
- 	bio->bi_phys_segments++;
-+	bio->bi_iter.bi_size += len;
+ 	zram->disksize = 0;
+-	if (reset_capacity)
++	if (reset_capacity) {
+ 		set_capacity(zram->disk, 0);
++		revalidate_disk(zram->disk);
++	}
+ 	up_write(&zram->init_lock);
+ }
  
- 	/*
- 	 * Perform a recount if the number of segments is greater
-@@ -802,7 +804,6 @@ static int __bio_add_page(struct request
- 		bio->bi_flags &= ~(1 << BIO_SEG_VALID);
- 
-  done:
--	bio->bi_iter.bi_size += len;
+@@ -664,6 +666,7 @@ static ssize_t disksize_store(struct dev
+ 	zram->comp = comp;
+ 	zram->disksize = disksize;
+ 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
++	revalidate_disk(zram->disk);
+ 	up_write(&zram->init_lock);
  	return len;
  
-  failed:
-@@ -810,6 +811,7 @@ static int __bio_add_page(struct request
- 	bvec->bv_len = 0;
- 	bvec->bv_offset = 0;
- 	bio->bi_vcnt--;
-+	bio->bi_iter.bi_size -= len;
- 	blk_recount_segments(q, bio);
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from ming.lei@canonical.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-block-bioc-update-bi_iterbi_size-before-recounting-segments.patch
-bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch
+origin.patch
+zram-revalidate-disk-after-capacity-change.patch
+dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
+dma-cma-support-alignment-constraint-on-cma-region.patch
+dma-cma-support-arbitrary-bitmap-granularity.patch
+dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+cma-generalize-cma-reserved-area-management-functionality.patch
+ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
+mm-cma-clean-up-cma-allocation-error-path.patch
+mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
+mm-cma-clean-up-log-message.patch
+mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
+mm-vmscan-remove-all_unreclaimable.patch
+mm-vmscan-move-swappiness-out-of-scan_control.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+zram-rename-struct-table-to-zram_table_entry.patch
+zram-remove-unused-sector_size-define.patch
+mm-zbud-zbud_alloc-minor-param-change.patch
+mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
+mm-zpool-zbud-zsmalloc-implement-zpool.patch
+mm-zpool-update-zswap-to-use-zpool.patch
+mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
+debugging-keep-track-of-page-owners.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
