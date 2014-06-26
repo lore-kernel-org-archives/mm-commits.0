@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zpool-update-zswap-to-use-zpool-fix.patch added to -mm tree
-Date: Thu, 26 Jun 2014 12:27:46 -0700
-Message-ID: <53ac7432.KHMPySLme0ZHT68P%akpm@linux-foundation.org>
+Subject: + nilfs2-integrate-sysfs-support-into-driver-fix.patch added to
+ -mm tree
+Date: Thu, 26 Jun 2014 12:34:11 -0700
+Message-ID: <53ac75b3.QpAiAq7e9Swfv4XV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58882 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58900 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbaFZT1r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 15:27:47 -0400
+	with ESMTP id S1750737AbaFZTeM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 15:34:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, Vyacheslav.Dubeyko@hgst.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zpool: zbud_zpool_destroy() can be static
+     Subject: nilfs2: nilfs_sysfs_create_mounted_snapshots_group can be static
 has been added to the -mm tree.  Its filename is
-     mm-zpool-update-zswap-to-use-zpool-fix.patch
+     nilfs2-integrate-sysfs-support-into-driver-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zpool-update-zswap-to-use-zpool-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-integrate-sysfs-support-into-driver-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zpool-update-zswap-to-use-zpool-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-integrate-sysfs-support-into-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +40,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: mm/zpool: zbud_zpool_destroy() can be static
+Subject: nilfs2: nilfs_sysfs_create_mounted_snapshots_group can be static
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Vyacheslav Dubeyko <Vyacheslav.Dubeyko@hgst.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zbud.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/nilfs2/sysfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/zbud.c~mm-zpool-update-zswap-to-use-zpool-fix mm/zbud.c
---- a/mm/zbud.c~mm-zpool-update-zswap-to-use-zpool-fix
-+++ a/mm/zbud.c
-@@ -134,21 +134,21 @@ static void *zbud_zpool_create(gfp_t gfp
- 	return zbud_create_pool(gfp, &zbud_zpool_ops);
- }
+diff -puN fs/nilfs2/sysfs.c~nilfs2-integrate-sysfs-support-into-driver-fix fs/nilfs2/sysfs.c
+--- a/fs/nilfs2/sysfs.c~nilfs2-integrate-sysfs-support-into-driver-fix
++++ a/fs/nilfs2/sysfs.c
+@@ -87,7 +87,7 @@ static struct kobj_type nilfs_##name##_k
+ };
  
--void zbud_zpool_destroy(void *pool)
-+static void zbud_zpool_destroy(void *pool)
- {
- 	zbud_destroy_pool(pool);
- }
- 
--int zbud_zpool_malloc(void *pool, size_t size, unsigned long *handle)
-+static int zbud_zpool_malloc(void *pool, size_t size, unsigned long *handle)
- {
- 	return zbud_alloc(pool, size, handle);
- }
--void zbud_zpool_free(void *pool, unsigned long handle)
-+static void zbud_zpool_free(void *pool, unsigned long handle)
- {
- 	zbud_free(pool, handle);
- }
- 
--int zbud_zpool_shrink(void *pool, unsigned int pages,
-+static int zbud_zpool_shrink(void *pool, unsigned int pages,
- 			unsigned int *reclaimed)
- {
- 	unsigned int total = 0;
-@@ -167,17 +167,17 @@ int zbud_zpool_shrink(void *pool, unsign
- 	return ret;
- }
- 
--void *zbud_zpool_map(void *pool, unsigned long handle,
-+static void *zbud_zpool_map(void *pool, unsigned long handle,
- 			enum zpool_mapmode mm)
- {
- 	return zbud_map(pool, handle);
- }
--void zbud_zpool_unmap(void *pool, unsigned long handle)
-+static void zbud_zpool_unmap(void *pool, unsigned long handle)
- {
- 	zbud_unmap(pool, handle);
- }
- 
--u64 zbud_zpool_total_size(void *pool)
-+static u64 zbud_zpool_total_size(void *pool)
- {
- 	return zbud_get_pool_size(pool) * PAGE_SIZE;
+ #define NILFS_DEV_INT_GROUP_FNS(name, parent_name) \
+-int nilfs_sysfs_create_##name##_group(struct the_nilfs *nilfs) \
++static int nilfs_sysfs_create_##name##_group(struct the_nilfs *nilfs) \
+ { \
+ 	struct kobject *parent; \
+ 	struct kobject *kobj; \
+@@ -106,7 +106,7 @@ int nilfs_sysfs_create_##name##_group(st
+ 		return err; \
+ 	return 0; \
+ } \
+-void nilfs_sysfs_delete_##name##_group(struct the_nilfs *nilfs) \
++static void nilfs_sysfs_delete_##name##_group(struct the_nilfs *nilfs) \
+ { \
+ 	kobject_del(&nilfs->ns_##parent_name##_subgroups->sg_##name##_kobj); \
  }
 _
 
@@ -112,6 +85,7 @@ mm-memcontrol-rewrite-uncharge-api-fix-2.patch
 mm-zpool-update-zswap-to-use-zpool-fix.patch
 include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max-fix.patch
 add-lib-globc-fix.patch
+nilfs2-integrate-sysfs-support-into-driver-fix.patch
 lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix.patch
 lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2.patch
 linux-next.patch
