@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-catch-memory-commitment-underflow-fix.patch added to -mm
- tree
-Date: Thu, 26 Jun 2014 13:10:10 -0700
-Message-ID: <53ac7e22.UzsLgfm4Tp8zdoCt%akpm@linux-foundation.org>
+Subject: + include-linux-mmdebugh-add-vm_warn_once.patch added to -mm tree
+Date: Thu, 26 Jun 2014 13:10:08 -0700
+Message-ID: <53ac7e20.M8DYiVSzKo8HrdeF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59402 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750930AbaFZUKL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:10:11 -0400
+	with ESMTP id S1750930AbaFZUKJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:10:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dave.hansen@intel.com, hughd@google.com, koct9i@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-catch-memory-commitment-underflow-fix
+     Subject: include/linux/mmdebug.h: add VM_WARN_ONCE()
 has been added to the -mm tree.  Its filename is
-     mm-catch-memory-commitment-underflow-fix.patch
+     include-linux-mmdebugh-add-vm_warn_once.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-catch-memory-commitment-underflow-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-mmdebugh-add-vm_warn_once.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-catch-memory-commitment-underflow-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-mmdebugh-add-vm_warn_once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +39,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-catch-memory-commitment-underflow-fix
+Subject: include/linux/mmdebug.h: add VM_WARN_ONCE()
 
-Use VM_WARN_ONCE, per Dave.
+It was missing...
 
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/mmdebug.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/mmap.c~mm-catch-memory-commitment-underflow-fix mm/mmap.c
---- a/mm/mmap.c~mm-catch-memory-commitment-underflow-fix
-+++ a/mm/mmap.c
-@@ -31,6 +31,7 @@
- #include <linux/mempolicy.h>
- #include <linux/rmap.h>
- #include <linux/mmu_notifier.h>
-+#include <linux/mmdebug.h>
- #include <linux/perf_event.h>
- #include <linux/audit.h>
- #include <linux/khugepaged.h>
-@@ -134,11 +135,9 @@ int __vm_enough_memory(struct mm_struct
- {
- 	unsigned long free, allowed, reserve;
+diff -puN include/linux/mmdebug.h~include-linux-mmdebugh-add-vm_warn_once include/linux/mmdebug.h
+--- a/include/linux/mmdebug.h~include-linux-mmdebugh-add-vm_warn_once
++++ a/include/linux/mmdebug.h
+@@ -20,11 +20,13 @@ extern void dump_page_badflags(struct pa
+ 	} while (0)
+ #define VM_WARN_ON(cond) WARN_ON(cond)
+ #define VM_WARN_ON_ONCE(cond) WARN_ON_ONCE(cond)
++#define VM_WARN_ONCE(cond, format...) WARN_ONCE(cond, format)
+ #else
+ #define VM_BUG_ON(cond) BUILD_BUG_ON_INVALID(cond)
+ #define VM_BUG_ON_PAGE(cond, page) VM_BUG_ON(cond)
+ #define VM_WARN_ON(cond) BUILD_BUG_ON_INVALID(cond)
+ #define VM_WARN_ON_ONCE(cond) BUILD_BUG_ON_INVALID(cond)
++#define VM_WARN_ONCE(cond, format...) BUILD_BUG_ON_INVALID(cond)
+ #endif
  
--#ifdef CONFIG_DEBUG_VM
--	WARN_ONCE(percpu_counter_read(&vm_committed_as) <
-+	VM_WARN_ONCE(percpu_counter_read(&vm_committed_as) <
- 			-(s64)vm_committed_as_batch * num_online_cpus(),
- 			"memory commitment underflow");
--#endif
- 
- 	vm_acct_memory(pages);
- 
+ #ifdef CONFIG_DEBUG_VIRTUAL
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
