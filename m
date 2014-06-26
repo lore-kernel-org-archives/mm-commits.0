@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- adfs-add-__printf-verification-fix-format-argument-mismatches.patch added
- to -mm tree
-Date: Thu, 26 Jun 2014 13:31:53 -0700
-Message-ID: <53ac8339.mfnrvzz0qsL5gwep%akpm@linux-foundation.org>
+ checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch added to -mm tree
+Date: Thu, 26 Jun 2014 13:37:15 -0700
+Message-ID: <53ac847b.lgLYjOONfVfx3Bfo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59668 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59875 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751312AbaFZUby (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:31:54 -0400
+	with ESMTP id S1751327AbaFZUhQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:37:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: adfs: add __printf verification, fix format/argument mismatches
+     Subject: checkpatch: add test for blank lines after function/struct/union/enum declarations
 has been added to the -mm tree.  Its filename is
-     adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+     checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,57 +40,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: adfs: add __printf verification, fix format/argument mismatches
+Subject: checkpatch: add test for blank lines after function/struct/union/enum declarations
 
-Might as well do the right thing.
+V2: Fix a problem with patch context lines by checking
+    the line after the closing brace is an insertion.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/adfs.h      |    1 +
- fs/adfs/dir.c       |    2 +-
- fs/adfs/dir_fplus.c |    5 ++---
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/adfs/adfs.h~adfs-add-__printf-verification-fix-format-argument-mismatches fs/adfs/adfs.h
---- a/fs/adfs/adfs.h~adfs-add-__printf-verification-fix-format-argument-mismatches
-+++ a/fs/adfs/adfs.h
-@@ -153,6 +153,7 @@ extern int adfs_map_lookup(struct super_
- extern unsigned int adfs_map_free(struct super_block *sb);
- 
- /* Misc */
-+__printf(3, 4)
- void __adfs_error(struct super_block *sb, const char *function,
- 		  const char *fmt, ...);
- #define adfs_error(sb, fmt...) __adfs_error(sb, __func__, fmt)
-diff -puN fs/adfs/dir.c~adfs-add-__printf-verification-fix-format-argument-mismatches fs/adfs/dir.c
---- a/fs/adfs/dir.c~adfs-add-__printf-verification-fix-format-argument-mismatches
-+++ a/fs/adfs/dir.c
-@@ -138,7 +138,7 @@ adfs_dir_lookup_byname(struct inode *ino
- 		goto out;
- 
- 	if (ADFS_I(inode)->parent_id != dir.parent_id) {
--		adfs_error(sb, "parent directory changed under me! (%lx but got %lx)\n",
-+		adfs_error(sb, "parent directory changed under me! (%lx but got %x)\n",
- 			   ADFS_I(inode)->parent_id, dir.parent_id);
- 		ret = -EIO;
- 		goto free_out;
-diff -puN fs/adfs/dir_fplus.c~adfs-add-__printf-verification-fix-format-argument-mismatches fs/adfs/dir_fplus.c
---- a/fs/adfs/dir_fplus.c~adfs-add-__printf-verification-fix-format-argument-mismatches
-+++ a/fs/adfs/dir_fplus.c
-@@ -79,9 +79,8 @@ adfs_fplus_read(struct super_block *sb,
- 
- 		dir->bh_fplus[blk] = sb_bread(sb, block);
- 		if (!dir->bh_fplus[blk]) {
--			adfs_error(sb,	"dir object %X failed read for"
--					" offset %d, mapped block %X",
--					id, blk, block);
-+			adfs_error(sb,	"dir object %x failed read for offset %d, mapped block %lX",
-+				   id, blk, block);
- 			goto out;
- 		}
- 
+diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations
++++ a/scripts/checkpatch.pl
+@@ -2303,6 +2303,7 @@ sub process {
+ # check for missing blank lines after struct/union declarations
+ # with exceptions for various attributes and macros
+ 		if ($prevline =~ /^[\+ ]};?\s*$/ &&
++		    $line =~ /^\+/ &&
+ 		    !($line =~ /^\+\s*$/ ||
+ 		      $line =~ /^\+\s*EXPORT_SYMBOL/ ||
+ 		      $line =~ /^\+\s*MODULE_/i ||
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -112,6 +83,7 @@ checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.pa
 checkpatch-ignore-email-headers-better.patch
 checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
 checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
 checkpatch-add-a-multiple-blank-lines-test.patch
 checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
 checkpatch-quiet-kconfig-help-message-checking.patch
