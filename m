@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-make-kexec_segment-user-buffer-pointer-a-union.patch
- added to -mm tree
-Date: Thu, 26 Jun 2014 14:08:52 -0700
-Message-ID: <53ac8be4.tQ0M+/Y5m0qVB+bZ%akpm@linux-foundation.org>
+Subject: + kexec-new-syscall-kexec_file_load-declaration.patch added to
+ -mm tree
+Date: Thu, 26 Jun 2014 14:08:54 -0700
+Message-ID: <53ac8be6.GE/WhxalVpxVSMMH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60963 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60973 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720AbaFZVIx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 17:08:53 -0400
+	with ESMTP id S1751720AbaFZVIz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 17:08:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: make kexec_segment user buffer pointer a union
+     Subject: kexec: new syscall kexec_file_load() declaration
 has been added to the -mm tree.  Its filename is
-     kexec-make-kexec_segment-user-buffer-pointer-a-union.patch
+     kexec-new-syscall-kexec_file_load-declaration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-make-kexec_segment-user-buffer-pointer-a-union.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-new-syscall-kexec_file_load-declaration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-make-kexec_segment-user-buffer-pointer-a-union.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-new-syscall-kexec_file_load-declaration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,24 +40,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec: make kexec_segment user buffer pointer a union
+Subject: kexec: new syscall kexec_file_load() declaration
 
-So far kexec_segment->buf was always a user space pointer as user space
-passed the array of kexec_segment structures and kernel copied it.
-
-But with new system call, list of kexec segments will be prepared by
-kernel and kexec_segment->buf will point to a kernel memory.
-
-So while I was adding code where I made assumption that ->buf is pointing
-to kernel memory, sparse started giving warning.
-
-Make ->buf a union.  And where a user space pointer is expected, access it
-using ->buf and where a kernel space pointer is expected, access it using
-->kbuf.  That takes care of sparse warnings.
+This is the new syscall kexec_file_load() declaration/interface.  I have
+reserved the syscall number only for x86_64 so far.  Other architectures
+(including i386) can reserve syscall number when they enable the support
+for this new syscall.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Borislav Petkov <bp@suse.de>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Borislav Petkov <bp@suse.de>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: H. Peter Anvin <hpa@zytor.com>
@@ -70,32 +62,65 @@ Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ arch/x86/syscalls/syscall_64.tbl |    1 +
+ include/linux/syscalls.h         |    4 ++++
+ kernel/kexec.c                   |    7 +++++++
+ kernel/sys_ni.c                  |    1 +
+ 4 files changed, 13 insertions(+)
 
-diff -puN include/linux/kexec.h~kexec-make-kexec_segment-user-buffer-pointer-a-union include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-make-kexec_segment-user-buffer-pointer-a-union
-+++ a/include/linux/kexec.h
-@@ -69,7 +69,18 @@ typedef unsigned long kimage_entry_t;
- #define IND_SOURCE       0x8
+diff -puN arch/x86/syscalls/syscall_64.tbl~kexec-new-syscall-kexec_file_load-declaration arch/x86/syscalls/syscall_64.tbl
+--- a/arch/x86/syscalls/syscall_64.tbl~kexec-new-syscall-kexec_file_load-declaration
++++ a/arch/x86/syscalls/syscall_64.tbl
+@@ -323,6 +323,7 @@
+ 314	common	sched_setattr		sys_sched_setattr
+ 315	common	sched_getattr		sys_sched_getattr
+ 316	common	renameat2		sys_renameat2
++317	common	kexec_file_load		sys_kexec_file_load
  
- struct kexec_segment {
--	void __user *buf;
-+	/*
-+	 * This pointer can point to user memory if kexec_load() system
-+	 * call is used or will point to kernel memory if
-+	 * kexec_file_load() system call is used.
-+	 *
-+	 * Use ->buf when expecting to deal with user memory and use ->kbuf
-+	 * when expecting to deal with kernel memory.
-+	 */
-+	union {
-+		void __user *buf;
-+		void *kbuf;
-+	};
- 	size_t bufsz;
- 	unsigned long mem;
- 	size_t memsz;
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+diff -puN include/linux/syscalls.h~kexec-new-syscall-kexec_file_load-declaration include/linux/syscalls.h
+--- a/include/linux/syscalls.h~kexec-new-syscall-kexec_file_load-declaration
++++ a/include/linux/syscalls.h
+@@ -317,6 +317,10 @@ asmlinkage long sys_restart_syscall(void
+ asmlinkage long sys_kexec_load(unsigned long entry, unsigned long nr_segments,
+ 				struct kexec_segment __user *segments,
+ 				unsigned long flags);
++asmlinkage long sys_kexec_file_load(int kernel_fd, int initrd_fd,
++				    unsigned long cmdline_len,
++				    const char __user *cmdline_ptr,
++				    unsigned long flags);
+ 
+ asmlinkage long sys_exit(int error_code);
+ asmlinkage long sys_exit_group(int error_code);
+diff -puN kernel/kexec.c~kexec-new-syscall-kexec_file_load-declaration kernel/kexec.c
+--- a/kernel/kexec.c~kexec-new-syscall-kexec_file_load-declaration
++++ a/kernel/kexec.c
+@@ -1057,6 +1057,13 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compa
+ }
+ #endif
+ 
++SYSCALL_DEFINE5(kexec_file_load, int, kernel_fd, int, initrd_fd,
++		unsigned long, cmdline_len, const char __user *, cmdline_ptr,
++		unsigned long, flags)
++{
++	return -ENOSYS;
++}
++
+ void crash_kexec(struct pt_regs *regs)
+ {
+ 	/* Take the kexec_mutex here to prevent sys_kexec_load
+diff -puN kernel/sys_ni.c~kexec-new-syscall-kexec_file_load-declaration kernel/sys_ni.c
+--- a/kernel/sys_ni.c~kexec-new-syscall-kexec_file_load-declaration
++++ a/kernel/sys_ni.c
+@@ -25,6 +25,7 @@ cond_syscall(sys_swapon);
+ cond_syscall(sys_swapoff);
+ cond_syscall(sys_kexec_load);
+ cond_syscall(compat_sys_kexec_load);
++cond_syscall(sys_kexec_file_load);
+ cond_syscall(sys_init_module);
+ cond_syscall(sys_finit_module);
+ cond_syscall(sys_delete_module);
 _
 
 Patches currently in -mm which might be from vgoyal@redhat.com are
