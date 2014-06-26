@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: +
- bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment-fix.patch added to -mm tree
-Date: Thu, 26 Jun 2014 13:18:56 -0700
-Message-ID: <53ac8030.NLoFyVwv9wbkFxf2%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment-fix.patch removed from -mm tree
+Date: Thu, 26 Jun 2014 13:19:33 -0700
+Message-ID: <53ac8055.CKLb4TzDUAnsYQ0F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59570 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750898AbaFZUS5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:18:57 -0400
+	with ESMTP id S1750898AbaFZUTe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:19:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ming.lei@canonical.com, axboe@kernel.dk, dongsu.park@profitbricks.com, hch@lst.de, jet.chen@intel.com, kmo@daterainc.com, mlombard@redhat.com, mm-commits@vger.kernel.org
@@ -19,24 +19,10 @@ To: ming.lei@canonical.com, axboe@kernel.dk, dongsu.park@profitbricks.com, hch@l
 
 The patch titled
      Subject: block/bio.c: update bi_iter.bi_size before recounting segments
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch
 
 ------------------------------------------------------
 From: Ming Lei <ming.lei@canonical.com>
@@ -126,5 +112,5 @@ _
 Patches currently in -mm which might be from ming.lei@canonical.com are
 
 block-bioc-update-bi_iterbi_size-before-recounting-segments.patch
-bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment-fix.patch
+bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch
 
