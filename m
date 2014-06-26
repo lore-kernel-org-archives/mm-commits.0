@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- purgatory-sha256-provide-implementation-of-sha256-in-purgaotory-context.patch added to -mm tree
-Date: Thu, 26 Jun 2014 14:09:44 -0700
-Message-ID: <53ac8c18.r9IfD8RtZsFNgrMR%akpm@linux-foundation.org>
+Subject: + purgatory-core-purgatory-functionality.patch added to -mm tree
+Date: Thu, 26 Jun 2014 14:09:47 -0700
+Message-ID: <53ac8c1b.4SYQfLKNbk5DU3MG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32774 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32780 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751654AbaFZVJp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 17:09:45 -0400
+	with ESMTP id S1750986AbaFZVJs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 17:09:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: purgatory/sha256: provide implementation of sha256 in purgaotory context
+     Subject: purgatory: core purgatory functionality
 has been added to the -mm tree.  Its filename is
-     purgatory-sha256-provide-implementation-of-sha256-in-purgaotory-context.patch
+     purgatory-core-purgatory-functionality.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/purgatory-sha256-provide-implementation-of-sha256-in-purgaotory-context.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/purgatory-core-purgatory-functionality.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/purgatory-sha256-provide-implementation-of-sha256-in-purgaotory-context.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/purgatory-core-purgatory-functionality.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +39,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: purgatory/sha256: provide implementation of sha256 in purgaotory context
+Subject: purgatory: core purgatory functionality
 
-Next two patches provide code for purgatory.  This is a code which does
-not link against the kernel and runs stand alone.  This code runs between
-two kernels.  One of the primary purpose of this code is to verify the
-digest of newly loaded kernel and making sure it matches the digest
-computed at kernel load time.
+Create a stand alone relocatable object purgatory which runs between two
+kernels.  This name, concept and some code has been taken from
+kexec-tools.  Idea is that this code runs after a crash and it runs in
+minimal environment.  So keep it separate from rest of the kernel and in
+long term we will have to practically do no maintenance of this code.
 
-We use sha256 for calculating digest of kexec segmetns.  Purgatory can't
-use stanard crypto API as that API is not available in purgatory context.
+This code also has the logic to do verify sha256 hashes of various
+segments which have been loaded into memory.  So first we verify that the
+kernel we are jumping to is fine and has not been corrupted and make
+progress only if checsums are verified.
 
-Hence, I have copied code from crypto/sha256_generic.c and compiled it
-with purgaotry code so that it could be used.  I could not #include
-sha256_generic.c file here as some of the function signature requiered
-little tweaking.  Original functions work with crypto API but these ones
-don't
-
-So instead of doing #include on sha256_generic.c I just copied relevant
-portions of code into arch/x86/purgatory/sha256.c.  Now we shouldn't have
-to touch this code at all.  Do let me know if there are better ways to
-handle it.
-
-This patch does not enable compiling of this code.  That happens in next
-patch.  I wanted to highlight this change in a separate patch for easy
-review.
+This code also takes care of copying some memory contents to backup region.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Cc: Borislav Petkov <bp@suse.de>
@@ -81,323 +69,362 @@ Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/purgatory/sha256.c |  283 ++++++++++++++++++++++++++++++++++
- arch/x86/purgatory/sha256.h |   22 ++
- 2 files changed, 305 insertions(+)
+ arch/x86/Kbuild                   |    4 +
+ arch/x86/Makefile                 |    8 ++
+ arch/x86/purgatory/Makefile       |   30 ++++++++
+ arch/x86/purgatory/entry64.S      |  101 ++++++++++++++++++++++++++++
+ arch/x86/purgatory/purgatory.c    |   72 +++++++++++++++++++
+ arch/x86/purgatory/setup-x86_64.S |   58 ++++++++++++++++
+ arch/x86/purgatory/stack.S        |   19 +++++
+ arch/x86/purgatory/string.c       |   13 +++
+ 8 files changed, 305 insertions(+)
 
-diff -puN /dev/null arch/x86/purgatory/sha256.c
+diff -puN arch/x86/Kbuild~purgatory-core-purgatory-functionality arch/x86/Kbuild
+--- a/arch/x86/Kbuild~purgatory-core-purgatory-functionality
++++ a/arch/x86/Kbuild
+@@ -16,3 +16,7 @@ obj-$(CONFIG_IA32_EMULATION) += ia32/
+ 
+ obj-y += platform/
+ obj-y += net/
++
++ifeq ($(CONFIG_X86_64),y)
++obj-$(CONFIG_KEXEC) += purgatory/
++endif
+diff -puN arch/x86/Makefile~purgatory-core-purgatory-functionality arch/x86/Makefile
+--- a/arch/x86/Makefile~purgatory-core-purgatory-functionality
++++ a/arch/x86/Makefile
+@@ -186,6 +186,14 @@ archscripts: scripts_basic
+ archheaders:
+ 	$(Q)$(MAKE) $(build)=arch/x86/syscalls all
+ 
++archprepare:
++ifeq ($(CONFIG_KEXEC),y)
++# Build only for 64bit. No loaders for 32bit yet.
++ ifeq ($(CONFIG_X86_64),y)
++	$(Q)$(MAKE) $(build)=arch/x86/purgatory arch/x86/purgatory/kexec-purgatory.c
++ endif
++endif
++
+ ###
+ # Kernel objects
+ 
+diff -puN /dev/null arch/x86/purgatory/Makefile
 --- /dev/null
-+++ a/arch/x86/purgatory/sha256.c
-@@ -0,0 +1,283 @@
-+/*
-+ * SHA-256, as specified in
-+ * http://csrc.nist.gov/groups/STM/cavp/documents/shs/sha256-384-512.pdf
-+ *
-+ * SHA-256 code by Jean-Luc Cooke <jlcooke@certainkey.com>.
-+ *
-+ * Copyright (c) Jean-Luc Cooke <jlcooke@certainkey.com>
-+ * Copyright (c) Andrew McDonald <andrew@mcdonald.org.uk>
-+ * Copyright (c) 2002 James Morris <jmorris@intercode.com.au>
-+ * Copyright (c) 2014 Red Hat Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the Free
-+ * Software Foundation; either version 2 of the License, or (at your option)
-+ * any later version.
-+ */
++++ a/arch/x86/purgatory/Makefile
+@@ -0,0 +1,30 @@
++purgatory-y := purgatory.o stack.o setup-x86_$(BITS).o sha256.o entry64.o string.o
 +
-+#include <linux/bitops.h>
-+#include <asm/byteorder.h>
-+#include "sha256.h"
-+#include "../boot/string.h"
++targets += $(purgatory-y)
++PURGATORY_OBJS = $(addprefix $(obj)/,$(purgatory-y))
 +
-+static inline u32 Ch(u32 x, u32 y, u32 z)
-+{
-+	return z ^ (x & (y ^ z));
-+}
++LDFLAGS_purgatory.ro := -e purgatory_start -r --no-undefined -nostdlib -z nodefaultlib
++targets += purgatory.ro
 +
-+static inline u32 Maj(u32 x, u32 y, u32 z)
-+{
-+	return (x & y) | (z & (x | y));
-+}
++# Default KBUILD_CFLAGS can have -pg option set when FTRACE is enabled. That
++# in turn leaves some undefined symbols like __fentry__ in purgatory and not
++# sure how to relocate those. Like kexec-tools, use custom flags.
 +
-+#define e0(x)       (ror32(x, 2) ^ ror32(x, 13) ^ ror32(x, 22))
-+#define e1(x)       (ror32(x, 6) ^ ror32(x, 11) ^ ror32(x, 25))
-+#define s0(x)       (ror32(x, 7) ^ ror32(x, 18) ^ (x >> 3))
-+#define s1(x)       (ror32(x, 17) ^ ror32(x, 19) ^ (x >> 10))
++KBUILD_CFLAGS := -fno-strict-aliasing -Wall -Wstrict-prototypes -fno-zero-initialized-in-bss -fno-builtin -ffreestanding -c -MD -Os -mcmodel=large
 +
-+static inline void LOAD_OP(int I, u32 *W, const u8 *input)
-+{
-+	W[I] = __be32_to_cpu(((__be32 *)(input))[I]);
-+}
++$(obj)/purgatory.ro: $(PURGATORY_OBJS) FORCE
++		$(call if_changed,ld)
 +
-+static inline void BLEND_OP(int I, u32 *W)
-+{
-+	W[I] = s1(W[I-2]) + W[I-7] + s0(W[I-15]) + W[I-16];
-+}
++targets += kexec-purgatory.c
 +
-+static void sha256_transform(u32 *state, const u8 *input)
-+{
-+	u32 a, b, c, d, e, f, g, h, t1, t2;
-+	u32 W[64];
-+	int i;
++quiet_cmd_bin2c = BIN2C   $@
++      cmd_bin2c = cat $(obj)/purgatory.ro | $(srctree)/scripts/basic/bin2c kexec_purgatory > $(obj)/kexec-purgatory.c
 +
-+	/* load the input */
-+	for (i = 0; i < 16; i++)
-+		LOAD_OP(i, W, input);
++$(obj)/kexec-purgatory.c: $(obj)/purgatory.ro FORCE
++	$(call if_changed,bin2c)
 +
-+	/* now blend */
-+	for (i = 16; i < 64; i++)
-+		BLEND_OP(i, W);
 +
-+	/* load the state into our registers */
-+	a = state[0];  b = state[1];  c = state[2];  d = state[3];
-+	e = state[4];  f = state[5];  g = state[6];  h = state[7];
-+
-+	/* now iterate */
-+	t1 = h + e1(e) + Ch(e, f, g) + 0x428a2f98 + W[0];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1 + t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0x71374491 + W[1];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1 + t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0xb5c0fbcf + W[2];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1 + t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0xe9b5dba5 + W[3];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1 + t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x3956c25b + W[4];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1 + t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0x59f111f1 + W[5];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1 + t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x923f82a4 + W[6];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1 + t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0xab1c5ed5 + W[7];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1 + t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0xd807aa98 + W[8];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1 + t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0x12835b01 + W[9];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1 + t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0x243185be + W[10];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1 + t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0x550c7dc3 + W[11];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1 + t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x72be5d74 + W[12];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1 + t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0x80deb1fe + W[13];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1 + t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x9bdc06a7 + W[14];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1 + t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0xc19bf174 + W[15];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0xe49b69c1 + W[16];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0xefbe4786 + W[17];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0x0fc19dc6 + W[18];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0x240ca1cc + W[19];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x2de92c6f + W[20];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0x4a7484aa + W[21];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x5cb0a9dc + W[22];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0x76f988da + W[23];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0x983e5152 + W[24];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0xa831c66d + W[25];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0xb00327c8 + W[26];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0xbf597fc7 + W[27];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0xc6e00bf3 + W[28];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0xd5a79147 + W[29];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x06ca6351 + W[30];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0x14292967 + W[31];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0x27b70a85 + W[32];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0x2e1b2138 + W[33];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0x4d2c6dfc + W[34];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0x53380d13 + W[35];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x650a7354 + W[36];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0x766a0abb + W[37];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x81c2c92e + W[38];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0x92722c85 + W[39];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0xa2bfe8a1 + W[40];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0xa81a664b + W[41];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0xc24b8b70 + W[42];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0xc76c51a3 + W[43];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0xd192e819 + W[44];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0xd6990624 + W[45];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0xf40e3585 + W[46];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0x106aa070 + W[47];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0x19a4c116 + W[48];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0x1e376c08 + W[49];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0x2748774c + W[50];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0x34b0bcb5 + W[51];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x391c0cb3 + W[52];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0x4ed8aa4a + W[53];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x5b9cca4f + W[54];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0x682e6ff3 + W[55];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0x748f82ee + W[56];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0x78a5636f + W[57];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0x84c87814 + W[58];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0x8cc70208 + W[59];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x90befffa + W[60];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0xa4506ceb + W[61];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0xbef9a3f7 + W[62];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0xc67178f2 + W[63];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	state[0] += a; state[1] += b; state[2] += c; state[3] += d;
-+	state[4] += e; state[5] += f; state[6] += g; state[7] += h;
-+
-+	/* clear any sensitive info... */
-+	a = b = c = d = e = f = g = h = t1 = t2 = 0;
-+	memset(W, 0, 64 * sizeof(u32));
-+}
-+
-+int sha256_init(struct sha256_state *sctx)
-+{
-+	sctx->state[0] = SHA256_H0;
-+	sctx->state[1] = SHA256_H1;
-+	sctx->state[2] = SHA256_H2;
-+	sctx->state[3] = SHA256_H3;
-+	sctx->state[4] = SHA256_H4;
-+	sctx->state[5] = SHA256_H5;
-+	sctx->state[6] = SHA256_H6;
-+	sctx->state[7] = SHA256_H7;
-+	sctx->count = 0;
-+
-+	return 0;
-+}
-+
-+int sha256_update(struct sha256_state *sctx, const u8 *data, unsigned int len)
-+{
-+	unsigned int partial, done;
-+	const u8 *src;
-+
-+	partial = sctx->count & 0x3f;
-+	sctx->count += len;
-+	done = 0;
-+	src = data;
-+
-+	if ((partial + len) > 63) {
-+		if (partial) {
-+			done = -partial;
-+			memcpy(sctx->buf + partial, data, done + 64);
-+			src = sctx->buf;
-+		}
-+
-+		do {
-+			sha256_transform(sctx->state, src);
-+			done += 64;
-+			src = data + done;
-+		} while (done + 63 < len);
-+
-+		partial = 0;
-+	}
-+	memcpy(sctx->buf + partial, src, len - done);
-+
-+	return 0;
-+}
-+
-+int sha256_final(struct sha256_state *sctx, u8 *out)
-+{
-+	__be32 *dst = (__be32 *)out;
-+	__be64 bits;
-+	unsigned int index, pad_len;
-+	int i;
-+	static const u8 padding[64] = { 0x80, };
-+
-+	/* Save number of bits */
-+	bits = cpu_to_be64(sctx->count << 3);
-+
-+	/* Pad out to 56 mod 64. */
-+	index = sctx->count & 0x3f;
-+	pad_len = (index < 56) ? (56 - index) : ((64+56) - index);
-+	sha256_update(sctx, padding, pad_len);
-+
-+	/* Append length (before padding) */
-+	sha256_update(sctx, (const u8 *)&bits, sizeof(bits));
-+
-+	/* Store state in digest */
-+	for (i = 0; i < 8; i++)
-+		dst[i] = cpu_to_be32(sctx->state[i]);
-+
-+	/* Zeroize sensitive information. */
-+	memset(sctx, 0, sizeof(*sctx));
-+
-+	return 0;
-+}
-diff -puN /dev/null arch/x86/purgatory/sha256.h
++# No loaders for 32bits yet.
++ifeq ($(CONFIG_X86_64),y)
++ obj-$(CONFIG_KEXEC)		+= kexec-purgatory.o
++endif
+diff -puN /dev/null arch/x86/purgatory/entry64.S
 --- /dev/null
-+++ a/arch/x86/purgatory/sha256.h
-@@ -0,0 +1,22 @@
++++ a/arch/x86/purgatory/entry64.S
+@@ -0,0 +1,101 @@
 +/*
-+ *  Copyright (C) 2014 Red Hat Inc.
++ * Copyright (C) 2003,2004  Eric Biederman (ebiederm@xmission.com)
++ * Copyright (C) 2014  Red Hat Inc.
++
++ * Author(s): Vivek Goyal <vgoyal@redhat.com>
 + *
-+ *  Author: Vivek Goyal <vgoyal@redhat.com>
++ * This code has been taken from kexec-tools.
 + *
 + * This source code is licensed under the GNU General Public License,
 + * Version 2.  See the file COPYING for more details.
 + */
 +
-+#ifndef SHA256_H
-+#define SHA256_H
++	.text
++	.balign 16
++	.code64
++	.globl entry64, entry64_regs
 +
 +
-+#include <linux/types.h>
-+#include <crypto/sha.h>
++entry64:
++	/* Setup a gdt that should be preserved */
++	lgdt gdt(%rip)
 +
-+extern int sha256_init(struct sha256_state *sctx);
-+extern int sha256_update(struct sha256_state *sctx, const u8 *input,
-+				unsigned int length);
-+extern int sha256_final(struct sha256_state *sctx, u8 *hash);
++	/* load the data segments */
++	movl    $0x18, %eax     /* data segment */
++	movl    %eax, %ds
++	movl    %eax, %es
++	movl    %eax, %ss
++	movl    %eax, %fs
++	movl    %eax, %gs
 +
-+#endif /* SHA256_H */
++	/* Setup new stack */
++	leaq    stack_init(%rip), %rsp
++	pushq   $0x10 /* CS */
++	leaq    new_cs_exit(%rip), %rax
++	pushq   %rax
++	lretq
++new_cs_exit:
++
++	/* Load the registers */
++	movq	rax(%rip), %rax
++	movq	rbx(%rip), %rbx
++	movq	rcx(%rip), %rcx
++	movq	rdx(%rip), %rdx
++	movq	rsi(%rip), %rsi
++	movq	rdi(%rip), %rdi
++	movq    rsp(%rip), %rsp
++	movq	rbp(%rip), %rbp
++	movq	r8(%rip), %r8
++	movq	r9(%rip), %r9
++	movq	r10(%rip), %r10
++	movq	r11(%rip), %r11
++	movq	r12(%rip), %r12
++	movq	r13(%rip), %r13
++	movq	r14(%rip), %r14
++	movq	r15(%rip), %r15
++
++	/* Jump to the new code... */
++	jmpq	*rip(%rip)
++
++	.section ".rodata"
++	.balign 4
++entry64_regs:
++rax:	.quad 0x0
++rbx:	.quad 0x0
++rcx:	.quad 0x0
++rdx:	.quad 0x0
++rsi:	.quad 0x0
++rdi:	.quad 0x0
++rsp:	.quad 0x0
++rbp:	.quad 0x0
++r8:	.quad 0x0
++r9:	.quad 0x0
++r10:	.quad 0x0
++r11:	.quad 0x0
++r12:	.quad 0x0
++r13:	.quad 0x0
++r14:	.quad 0x0
++r15:	.quad 0x0
++rip:	.quad 0x0
++	.size entry64_regs, . - entry64_regs
++
++	/* GDT */
++	.section ".rodata"
++	.balign 16
++gdt:
++	/* 0x00 unusable segment
++	 * 0x08 unused
++	 * so use them as gdt ptr
++	 */
++	.word gdt_end - gdt - 1
++	.quad gdt
++	.word 0, 0, 0
++
++	/* 0x10 4GB flat code segment */
++	.word 0xFFFF, 0x0000, 0x9A00, 0x00AF
++
++	/* 0x18 4GB flat data segment */
++	.word 0xFFFF, 0x0000, 0x9200, 0x00CF
++gdt_end:
++stack:	.quad   0, 0
++stack_init:
+diff -puN /dev/null arch/x86/purgatory/purgatory.c
+--- /dev/null
++++ a/arch/x86/purgatory/purgatory.c
+@@ -0,0 +1,72 @@
++/*
++ * purgatory: Runs between two kernels
++ *
++ * Copyright (C) 2014 Red Hat Inc.
++ *
++ * Author:
++ *       Vivek Goyal <vgoyal@redhat.com>
++ *
++ * This source code is licensed under the GNU General Public License,
++ * Version 2.  See the file COPYING for more details.
++ */
++
++#include "sha256.h"
++#include "../boot/string.h"
++
++struct sha_region {
++	unsigned long start;
++	unsigned long len;
++};
++
++unsigned long backup_dest = 0;
++unsigned long backup_src = 0;
++unsigned long backup_sz = 0;
++
++u8 sha256_digest[SHA256_DIGEST_SIZE] = { 0 };
++
++struct sha_region sha_regions[16] = {};
++
++/*
++ * On x86, second kernel requries first 640K of memory to boot. Copy
++ * first 640K to a backup region in reserved memory range so that second
++ * kernel can use first 640K.
++ */
++static int copy_backup_region(void)
++{
++	if (backup_dest)
++		memcpy((void *)backup_dest, (void *)backup_src, backup_sz);
++
++	return 0;
++}
++
++int verify_sha256_digest(void)
++{
++	struct sha_region *ptr, *end;
++	u8 digest[SHA256_DIGEST_SIZE];
++	struct sha256_state sctx;
++
++	sha256_init(&sctx);
++	end = &sha_regions[sizeof(sha_regions)/sizeof(sha_regions[0])];
++	for (ptr = sha_regions; ptr < end; ptr++)
++		sha256_update(&sctx, (uint8_t *)(ptr->start), ptr->len);
++
++	sha256_final(&sctx, digest);
++
++	if (memcmp(digest, sha256_digest, sizeof(digest)))
++		return 1;
++
++	return 0;
++}
++
++void purgatory(void)
++{
++	int ret;
++
++	ret = verify_sha256_digest();
++	if (ret) {
++		/* loop forever */
++		for (;;)
++			;
++	}
++	copy_backup_region();
++}
+diff -puN /dev/null arch/x86/purgatory/setup-x86_64.S
+--- /dev/null
++++ a/arch/x86/purgatory/setup-x86_64.S
+@@ -0,0 +1,58 @@
++/*
++ * purgatory:  setup code
++ *
++ * Copyright (C) 2003,2004  Eric Biederman (ebiederm@xmission.com)
++ * Copyright (C) 2014 Red Hat Inc.
++ *
++ * This code has been taken from kexec-tools.
++ *
++ * This source code is licensed under the GNU General Public License,
++ * Version 2.  See the file COPYING for more details.
++ */
++
++	.text
++	.globl purgatory_start
++	.balign 16
++purgatory_start:
++	.code64
++
++	/* Load a gdt so I know what the segment registers are */
++	lgdt	gdt(%rip)
++
++	/* load the data segments */
++	movl	$0x18, %eax	/* data segment */
++	movl	%eax, %ds
++	movl	%eax, %es
++	movl	%eax, %ss
++	movl	%eax, %fs
++	movl	%eax, %gs
++
++	/* Setup a stack */
++	leaq	lstack_end(%rip), %rsp
++
++	/* Call the C code */
++	call purgatory
++	jmp	entry64
++
++	.section ".rodata"
++	.balign 16
++gdt:	/* 0x00 unusable segment
++	 * 0x08 unused
++	 * so use them as the gdt ptr
++	 */
++	.word	gdt_end - gdt - 1
++	.quad	gdt
++	.word	0, 0, 0
++
++	/* 0x10 4GB flat code segment */
++	.word	0xFFFF, 0x0000, 0x9A00, 0x00AF
++
++	/* 0x18 4GB flat data segment */
++	.word	0xFFFF, 0x0000, 0x9200, 0x00CF
++gdt_end:
++
++	.bss
++	.balign 4096
++lstack:
++	.skip 4096
++lstack_end:
+diff -puN /dev/null arch/x86/purgatory/stack.S
+--- /dev/null
++++ a/arch/x86/purgatory/stack.S
+@@ -0,0 +1,19 @@
++/*
++ * purgatory:  stack
++ *
++ * Copyright (C) 2014 Red Hat Inc.
++ *
++ * This source code is licensed under the GNU General Public License,
++ * Version 2.  See the file COPYING for more details.
++ */
++
++	/* A stack for the loaded kernel.
++	 * Seperate and in the data section so it can be prepopulated.
++	 */
++	.data
++	.balign 4096
++	.globl stack, stack_end
++
++stack:
++	.skip 4096
++stack_end:
+diff -puN /dev/null arch/x86/purgatory/string.c
+--- /dev/null
++++ a/arch/x86/purgatory/string.c
+@@ -0,0 +1,13 @@
++/*
++ * Simple string functions.
++ *
++ * Copyright (C) 2014 Red Hat Inc.
++ *
++ * Author:
++ *       Vivek Goyal <vgoyal@redhat.com>
++ *
++ * This source code is licensed under the GNU General Public License,
++ * Version 2.  See the file COPYING for more details.
++ */
++
++#include "../boot/string.c"
 _
 
 Patches currently in -mm which might be from vgoyal@redhat.com are
