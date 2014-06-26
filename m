@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bin2c-move-bin2c-in-scripts-basic.patch added to -mm tree
-Date: Thu, 26 Jun 2014 14:08:40 -0700
-Message-ID: <53ac8bd8./gBWyPKLw1HdfLwQ%akpm@linux-foundation.org>
+Subject: +
+ kernel-build-bin2c-based-on-config-option-config_build_bin2c.patch added to -mm tree
+Date: Thu, 26 Jun 2014 14:08:42 -0700
+Message-ID: <53ac8bda.JH5iWWoDyLXZ+Xco%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60906 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60917 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751504AbaFZVIl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 17:08:41 -0400
+	with ESMTP id S1751720AbaFZVIn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 17:08:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bin2c: move bin2c in scripts/basic
+     Subject: kernel: build bin2c based on config option CONFIG_BUILD_BIN2C
 has been added to the -mm tree.  Its filename is
-     bin2c-move-bin2c-in-scripts-basic.patch
+     kernel-build-bin2c-based-on-config-option-config_build_bin2c.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bin2c-move-bin2c-in-scripts-basic.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-build-bin2c-based-on-config-option-config_build_bin2c.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bin2c-move-bin2c-in-scripts-basic.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-build-bin2c-based-on-config-option-config_build_bin2c.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,13 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: bin2c: move bin2c in scripts/basic
+Subject: kernel: build bin2c based on config option CONFIG_BUILD_BIN2C
 
-Kexec wants to use bin2c and it wants to use it really early in the build
-process. See arch/x86/purgatory/ code in later patches.
-
-So move bin2c in scripts/basic so that it can be built very early and
-be usable by arch/x86/purgatory/
+currently bin2c builds only if CONFIG_IKCONFIG=y. But bin2c will now be
+used by kexec too.  So make it compilation dependent on CONFIG_BUILD_BIN2C
+and this config option can be selected by CONFIG_KEXEC and CONFIG_IKCONFIG.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Cc: Borislav Petkov <bp@suse.de>
@@ -62,139 +61,70 @@ Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile          |    2 +-
- scripts/.gitignore       |    1 -
- scripts/Makefile         |    1 -
- scripts/basic/.gitignore |    1 +
- scripts/basic/Makefile   |    1 +
- scripts/basic/bin2c.c    |   35 +++++++++++++++++++++++++++++++++++
- scripts/bin2c.c          |   36 ------------------------------------
- 7 files changed, 38 insertions(+), 39 deletions(-)
+ arch/x86/Kconfig       |    1 +
+ init/Kconfig           |    5 +++++
+ scripts/basic/Makefile |    2 +-
+ 3 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN kernel/Makefile~bin2c-move-bin2c-in-scripts-basic kernel/Makefile
---- a/kernel/Makefile~bin2c-move-bin2c-in-scripts-basic
-+++ a/kernel/Makefile
-@@ -105,7 +105,7 @@ targets += config_data.gz
- $(obj)/config_data.gz: $(KCONFIG_CONFIG) FORCE
- 	$(call if_changed,gzip)
+diff -puN arch/x86/Kconfig~kernel-build-bin2c-based-on-config-option-config_build_bin2c arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kernel-build-bin2c-based-on-config-option-config_build_bin2c
++++ a/arch/x86/Kconfig
+@@ -1576,6 +1576,7 @@ source kernel/Kconfig.hz
  
--      filechk_ikconfiggz = (echo "static const char kernel_config_data[] __used = MAGIC_START"; cat $< | scripts/bin2c; echo "MAGIC_END;")
-+      filechk_ikconfiggz = (echo "static const char kernel_config_data[] __used = MAGIC_START"; cat $< | scripts/basic/bin2c; echo "MAGIC_END;")
- targets += config_data.h
- $(obj)/config_data.h: $(obj)/config_data.gz FORCE
- 	$(call filechk,ikconfiggz)
-diff -puN scripts/.gitignore~bin2c-move-bin2c-in-scripts-basic scripts/.gitignore
---- a/scripts/.gitignore~bin2c-move-bin2c-in-scripts-basic
-+++ a/scripts/.gitignore
-@@ -4,7 +4,6 @@
- conmakehash
- kallsyms
- pnmtologo
--bin2c
- unifdef
- ihex2fw
- recordmcount
-diff -puN scripts/Makefile~bin2c-move-bin2c-in-scripts-basic scripts/Makefile
---- a/scripts/Makefile~bin2c-move-bin2c-in-scripts-basic
-+++ a/scripts/Makefile
-@@ -13,7 +13,6 @@ HOST_EXTRACFLAGS += -I$(srctree)/tools/i
- hostprogs-$(CONFIG_KALLSYMS)     += kallsyms
- hostprogs-$(CONFIG_LOGO)         += pnmtologo
- hostprogs-$(CONFIG_VT)           += conmakehash
--hostprogs-$(CONFIG_IKCONFIG)     += bin2c
- hostprogs-$(BUILD_C_RECORDMCOUNT) += recordmcount
- hostprogs-$(CONFIG_BUILDTIME_EXTABLE_SORT) += sortextable
- hostprogs-$(CONFIG_ASN1)	 += asn1_compiler
-diff -puN scripts/basic/.gitignore~bin2c-move-bin2c-in-scripts-basic scripts/basic/.gitignore
---- a/scripts/basic/.gitignore~bin2c-move-bin2c-in-scripts-basic
-+++ a/scripts/basic/.gitignore
-@@ -1 +1,2 @@
- fixdep
-+bin2c
-diff -puN scripts/basic/Makefile~bin2c-move-bin2c-in-scripts-basic scripts/basic/Makefile
---- a/scripts/basic/Makefile~bin2c-move-bin2c-in-scripts-basic
+ config KEXEC
+ 	bool "kexec system call"
++	select BUILD_BIN2C
+ 	---help---
+ 	  kexec is a system call that implements the ability to shutdown your
+ 	  current kernel, and to start another kernel.  It is like a reboot
+diff -puN init/Kconfig~kernel-build-bin2c-based-on-config-option-config_build_bin2c init/Kconfig
+--- a/init/Kconfig~kernel-build-bin2c-based-on-config-option-config_build_bin2c
++++ a/init/Kconfig
+@@ -783,8 +783,13 @@ endchoice
+ 
+ endmenu # "RCU Subsystem"
+ 
++config BUILD_BIN2C
++	bool
++	default n
++
+ config IKCONFIG
+ 	tristate "Kernel .config support"
++	select BUILD_BIN2C
+ 	---help---
+ 	  This option enables the complete Linux kernel ".config" file
+ 	  contents to be saved in the kernel. It provides documentation
+diff -puN scripts/basic/Makefile~kernel-build-bin2c-based-on-config-option-config_build_bin2c scripts/basic/Makefile
+--- a/scripts/basic/Makefile~kernel-build-bin2c-based-on-config-option-config_build_bin2c
 +++ a/scripts/basic/Makefile
-@@ -9,6 +9,7 @@
+@@ -9,7 +9,7 @@
  # fixdep: 	 Used to generate dependency information during build process
  
  hostprogs-y	:= fixdep
-+hostprogs-$(CONFIG_IKCONFIG)     += bin2c
+-hostprogs-$(CONFIG_IKCONFIG)     += bin2c
++hostprogs-$(CONFIG_BUILD_BIN2C)     += bin2c
  always		:= $(hostprogs-y)
  
  # fixdep is needed to compile other host programs
-diff -puN /dev/null scripts/basic/bin2c.c
---- /dev/null
-+++ a/scripts/basic/bin2c.c
-@@ -0,0 +1,35 @@
-+/*
-+ * Unloved program to convert a binary on stdin to a C include on stdout
-+ *
-+ * Jan 1999 Matt Mackall <mpm@selenic.com>
-+ *
-+ * This software may be used and distributed according to the terms
-+ * of the GNU General Public License, incorporated herein by reference.
-+ */
-+
-+#include <stdio.h>
-+
-+int main(int argc, char *argv[])
-+{
-+	int ch, total = 0;
-+
-+	if (argc > 1)
-+		printf("const char %s[] %s=\n",
-+			argv[1], argc > 2 ? argv[2] : "");
-+
-+	do {
-+		printf("\t\"");
-+		while ((ch = getchar()) != EOF) {
-+			total++;
-+			printf("\\x%02x", ch);
-+			if (total % 16 == 0)
-+				break;
-+		}
-+		printf("\"\n");
-+	} while (ch != EOF);
-+
-+	if (argc > 1)
-+		printf("\t;\n\nconst int %s_size = %d;\n", argv[1], total);
-+
-+	return 0;
-+}
-diff -puN scripts/bin2c.c~bin2c-move-bin2c-in-scripts-basic /dev/null
---- a/scripts/bin2c.c
-+++ /dev/null
-@@ -1,36 +0,0 @@
--/*
-- * Unloved program to convert a binary on stdin to a C include on stdout
-- *
-- * Jan 1999 Matt Mackall <mpm@selenic.com>
-- *
-- * This software may be used and distributed according to the terms
-- * of the GNU General Public License, incorporated herein by reference.
-- */
--
--#include <stdio.h>
--
--int main(int argc, char *argv[])
--{
--	int ch, total=0;
--
--	if (argc > 1)
--		printf("const char %s[] %s=\n",
--			argv[1], argc > 2 ? argv[2] : "");
--
--	do {
--		printf("\t\"");
--		while ((ch = getchar()) != EOF)
--		{
--			total++;
--			printf("\\x%02x",ch);
--			if (total % 16 == 0)
--				break;
--		}
--		printf("\"\n");
--	} while (ch != EOF);
--
--	if (argc > 1)
--		printf("\t;\n\nconst int %s_size = %d;\n", argv[1], total);
+_
+
+Patches currently in -mm which might be from vgoyal@redhat.com are
+
+origin.patch
+bin2c-move-bin2c-in-scripts-basic.patch
+kernel-build-bin2c-based-on-config-option-config_build_bin2c.patch
+kexec-rename-unusebale_pages-to-unusable_pages.patch
+kexec-move-segment-verification-code-in-a-separate-function.patch
+kexec-use-common-function-for-kimage_normal_alloc-and-kimage_crash_alloc.patch
+resource-provide-new-functions-to-walk-through-resources.patch
+kexec-make-kexec_segment-user-buffer-pointer-a-union.patch
+kexec-new-syscall-kexec_file_load-declaration.patch
+kexec-implementation-of-new-syscall-kexec_file_load.patch
+purgatory-sha256-provide-implementation-of-sha256-in-purgaotory-context.patch
+purgatory-core-purgatory-functionality.patch
+kexec-load-and-relocate-purgatory-at-kernel-load-time.patch
+kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry.patch
+kexec-support-for-kexec-on-panic-using-new-system-call.patch
+kexec-support-kexec-kdump-on-efi-systems.patch
+linux-next.patch
+
