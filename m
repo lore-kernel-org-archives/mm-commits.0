@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+ fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
  added to -mm tree
-Date: Thu, 26 Jun 2014 13:12:09 -0700
-Message-ID: <53ac7e99.bjZCZq/3+Yp8EYKP%akpm@linux-foundation.org>
+Date: Thu, 26 Jun 2014 13:12:51 -0700
+Message-ID: <53ac7ec3.QvKMFuGNCyHeK0MK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59427 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878AbaFZUMK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:12:10 -0400
+	with ESMTP id S1750974AbaFZUMw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:12:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, oberpar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, ccaulfie@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/gcov/fs.c: remove unnecessary null test before debugfs_remove
+     Subject: fs/dlm/debug_fs.c: remove unnecessary null test before debugfs_remove
 has been added to the -mm tree.  Its filename is
-     kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+     fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,33 +41,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/gcov/fs.c: remove unnecessary null test before debugfs_remove
+Subject: fs/dlm/debug_fs.c: remove unnecessary null test before debugfs_remove
 
 This fixes checkpatch warning:
 
 "WARNING: debugfs_remove(NULL) is safe this check is probably not required"
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Cc: Christine Caulfield <ccaulfie@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/fs.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/dlm/debug_fs.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN kernel/gcov/fs.c~kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove kernel/gcov/fs.c
---- a/kernel/gcov/fs.c~kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove
-+++ a/kernel/gcov/fs.c
-@@ -784,8 +784,7 @@ static __init int gcov_fs_init(void)
+diff -puN fs/dlm/debug_fs.c~fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove fs/dlm/debug_fs.c
+--- a/fs/dlm/debug_fs.c~fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove
++++ a/fs/dlm/debug_fs.c
+@@ -718,16 +718,11 @@ static const struct file_operations wait
  
- err_remove:
- 	pr_err("init failed\n");
--	if (root_node.dentry)
--		debugfs_remove(root_node.dentry);
-+	debugfs_remove(root_node.dentry);
- 
- 	return rc;
+ void dlm_delete_debug_file(struct dlm_ls *ls)
+ {
+-	if (ls->ls_debug_rsb_dentry)
+-		debugfs_remove(ls->ls_debug_rsb_dentry);
+-	if (ls->ls_debug_waiters_dentry)
+-		debugfs_remove(ls->ls_debug_waiters_dentry);
+-	if (ls->ls_debug_locks_dentry)
+-		debugfs_remove(ls->ls_debug_locks_dentry);
+-	if (ls->ls_debug_all_dentry)
+-		debugfs_remove(ls->ls_debug_all_dentry);
+-	if (ls->ls_debug_toss_dentry)
+-		debugfs_remove(ls->ls_debug_toss_dentry);
++	debugfs_remove(ls->ls_debug_rsb_dentry);
++	debugfs_remove(ls->ls_debug_waiters_dentry);
++	debugfs_remove(ls->ls_debug_locks_dentry);
++	debugfs_remove(ls->ls_debug_all_dentry);
++	debugfs_remove(ls->ls_debug_toss_dentry);
  }
+ 
+ int dlm_create_debug_file(struct dlm_ls *ls)
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -124,6 +136,7 @@ fs-romfs-superc-add-blank-line-after-declarations.patch
 fs-qnx6-convert-printk-to-pr_foo.patch
 fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
 fs-qnx6-update-debugging-to-current-functions.patch
+fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
 linux-next.patch
 init-mainc-code-clean-up.patch
 kernel-kprobesc-convert-printk-to-pr_foo.patch
