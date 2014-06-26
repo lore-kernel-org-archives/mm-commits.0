@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + zram-revalidate-disk-after-capacity-change.patch added to -mm
- tree
-Date: Thu, 26 Jun 2014 13:27:07 -0700
-Message-ID: <53ac821b.4sym8wZspdnz1Eco%akpm@linux-foundation.org>
+Subject: +
+ adfs-add-__printf-verification-fix-format-argument-mismatches.patch added
+ to -mm tree
+Date: Thu, 26 Jun 2014 13:31:53 -0700
+Message-ID: <53ac8339.mfnrvzz0qsL5gwep%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59668 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbaFZU1I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:27:08 -0400
+	with ESMTP id S1751312AbaFZUby (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jun 2014 16:31:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, ngupta@vflare.org, patrakov@gmail.com, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: revalidate disk after capacity change
+     Subject: adfs: add __printf verification, fix format/argument mismatches
 has been added to the -mm tree.  Its filename is
-     zram-revalidate-disk-after-capacity-change.patch
+     adfs-add-__printf-verification-fix-format-argument-mismatches.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-revalidate-disk-after-capacity-change.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/adfs-add-__printf-verification-fix-format-argument-mismatches.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-revalidate-disk-after-capacity-change.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/adfs-add-__printf-verification-fix-format-argument-mismatches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,97 +40,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: revalidate disk after capacity change
+From: Joe Perches <joe@perches.com>
+Subject: adfs: add __printf verification, fix format/argument mismatches
 
-Alexander reported mkswap on /dev/zram0 is failed if other process is
-opening the block device file.
+Might as well do the right thing.
 
-Step is as follows,
-
-0. Reset the unused zram device.
-1. Use a program that opens /dev/zram0 with O_RDWR and sleeps
-   until killed.
-2. While that program sleeps, echo the correct value to
-   /sys/block/zram0/disksize.
-3. Verify (e.g. in /proc/partitions) that the disk size is applied
-   correctly. It is.
-4. While that program still sleeps, attempt to mkswap /dev/zram0.
-   This fails: mkswap: error: swap area needs to be at least 40 KiB
-
-When I investigated, the size get by ioctl(fd, BLKGETSIZE64, xxx) on
-mkswap to get a size of blockdev was zero although zram0 has right size by
-2.
-
-The reason is zram didn't revalidate disk after changing capacity so that
-size of blockdev's inode is not uptodate until all of file is close.
-
-This patch should fix the BUG.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Alexander E. Patrakov <patrakov@gmail.com>
-Tested-by: Alexander E. Patrakov <patrakov@gmail.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc; Jerome Marchand <jmarchan@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/adfs/adfs.h      |    1 +
+ fs/adfs/dir.c       |    2 +-
+ fs/adfs/dir_fplus.c |    5 ++---
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-revalidate-disk-after-capacity-change drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-revalidate-disk-after-capacity-change
-+++ a/drivers/block/zram/zram_drv.c
-@@ -622,8 +622,10 @@ static void zram_reset_device(struct zra
- 	memset(&zram->stats, 0, sizeof(zram->stats));
+diff -puN fs/adfs/adfs.h~adfs-add-__printf-verification-fix-format-argument-mismatches fs/adfs/adfs.h
+--- a/fs/adfs/adfs.h~adfs-add-__printf-verification-fix-format-argument-mismatches
++++ a/fs/adfs/adfs.h
+@@ -153,6 +153,7 @@ extern int adfs_map_lookup(struct super_
+ extern unsigned int adfs_map_free(struct super_block *sb);
  
- 	zram->disksize = 0;
--	if (reset_capacity)
-+	if (reset_capacity) {
- 		set_capacity(zram->disk, 0);
-+		revalidate_disk(zram->disk);
-+	}
- 	up_write(&zram->init_lock);
- }
+ /* Misc */
++__printf(3, 4)
+ void __adfs_error(struct super_block *sb, const char *function,
+ 		  const char *fmt, ...);
+ #define adfs_error(sb, fmt...) __adfs_error(sb, __func__, fmt)
+diff -puN fs/adfs/dir.c~adfs-add-__printf-verification-fix-format-argument-mismatches fs/adfs/dir.c
+--- a/fs/adfs/dir.c~adfs-add-__printf-verification-fix-format-argument-mismatches
++++ a/fs/adfs/dir.c
+@@ -138,7 +138,7 @@ adfs_dir_lookup_byname(struct inode *ino
+ 		goto out;
  
-@@ -664,6 +666,7 @@ static ssize_t disksize_store(struct dev
- 	zram->comp = comp;
- 	zram->disksize = disksize;
- 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
-+	revalidate_disk(zram->disk);
- 	up_write(&zram->init_lock);
- 	return len;
+ 	if (ADFS_I(inode)->parent_id != dir.parent_id) {
+-		adfs_error(sb, "parent directory changed under me! (%lx but got %lx)\n",
++		adfs_error(sb, "parent directory changed under me! (%lx but got %x)\n",
+ 			   ADFS_I(inode)->parent_id, dir.parent_id);
+ 		ret = -EIO;
+ 		goto free_out;
+diff -puN fs/adfs/dir_fplus.c~adfs-add-__printf-verification-fix-format-argument-mismatches fs/adfs/dir_fplus.c
+--- a/fs/adfs/dir_fplus.c~adfs-add-__printf-verification-fix-format-argument-mismatches
++++ a/fs/adfs/dir_fplus.c
+@@ -79,9 +79,8 @@ adfs_fplus_read(struct super_block *sb,
+ 
+ 		dir->bh_fplus[blk] = sb_bread(sb, block);
+ 		if (!dir->bh_fplus[blk]) {
+-			adfs_error(sb,	"dir object %X failed read for"
+-					" offset %d, mapped block %X",
+-					id, blk, block);
++			adfs_error(sb,	"dir object %x failed read for offset %d, mapped block %lX",
++				   id, blk, block);
+ 			goto out;
+ 		}
  
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-zram-revalidate-disk-after-capacity-change.patch
-dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
-dma-cma-support-alignment-constraint-on-cma-region.patch
-dma-cma-support-arbitrary-bitmap-granularity.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-cma-generalize-cma-reserved-area-management-functionality.patch
-ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
-mm-cma-clean-up-cma-allocation-error-path.patch
-mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
-mm-cma-clean-up-log-message.patch
-mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
-mm-vmscan-remove-all_unreclaimable.patch
-mm-vmscan-move-swappiness-out-of-scan_control.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-zram-rename-struct-table-to-zram_table_entry.patch
-zram-remove-unused-sector_size-define.patch
-mm-zbud-zbud_alloc-minor-param-change.patch
-mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
-mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
-mm-zpool-zbud-zsmalloc-implement-zpool.patch
-mm-zpool-update-zswap-to-use-zpool.patch
-mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
-debugging-keep-track-of-page-owners.patch
-page-owners-correct-page-order-when-to-free-page.patch
+checkpatch-check-git-commit-descriptions.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
+printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
+mm-utilc-add-kstrimdup.patch
+kernelh-remove-deprecated-pack_hex_byte.patch
+checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
+checkpatch-ignore-email-headers-better.patch
+checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
+checkpatch-add-a-multiple-blank-lines-test.patch
+checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
+checkpatch-quiet-kconfig-help-message-checking.patch
+checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
+fs-isofs-logging-clean-up.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+linux-next.patch
+pci-dma-compat-add-pci_zalloc_consistent-helper.patch
+atm-use-pci_zalloc_consistent.patch
+block-use-pci_zalloc_consistent.patch
+crypto-use-pci_zalloc_consistent.patch
+infiniband-use-pci_zalloc_consistent.patch
+i810-use-pci_zalloc_consistent.patch
+media-use-pci_zalloc_consistent.patch
+amd-use-pci_zalloc_consistent.patch
+atl1e-use-pci_zalloc_consistent.patch
+enic-use-pci_zalloc_consistent.patch
+sky2-use-pci_zalloc_consistent.patch
+micrel-use-pci_zalloc_consistent.patch
+qlogic-use-pci_zalloc_consistent.patch
+irda-use-pci_zalloc_consistent.patch
+ipw2100-use-pci_zalloc_consistent.patch
+mwl8k-use-pci_zalloc_consistent.patch
+rtl818x-use-pci_zalloc_consistent.patch
+rtlwifi-use-pci_zalloc_consistent.patch
+scsi-use-pci_zalloc_consistent.patch
+staging-use-pci_zalloc_consistent.patch
+synclink_gt-use-pci_zalloc_consistent.patch
+vme-bridges-use-pci_zalloc_consistent.patch
+amd-neaten-and-remove-unnecessary-oom-messages.patch
 
