@@ -1,34 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch added to
- -mm tree
-Date: Fri, 27 Jun 2014 11:44:47 -0700
-Message-ID: <53adbb9f.D93g6pXHqXr7Mc4f%akpm@linux-foundation.org>
+Subject: + checkpatch-allow-multiple-const-types.patch added to -mm tree
+Date: Fri, 27 Jun 2014 12:00:45 -0700
+Message-ID: <53adbf5d.XLc6s4yUOQMjGuB6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:33782 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374AbaF0Sos (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jun 2014 14:44:48 -0400
-Received: by mail-ve0-f202.google.com with SMTP id oy12so496628veb.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2014 11:44:47 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:34460 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751231AbaF0TAq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jun 2014 15:00:46 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so1235331obb.4
+        for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2014 12:00:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: joe@perches.com, HartleyS@visionengravers.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec-bzimage64: Fix the ordering of registers
+     Subject: checkpatch: allow multiple const * types
 has been added to the -mm tree.  Its filename is
-     kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch
+     checkpatch-allow-multiple-const-types.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-allow-multiple-const-types.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-allow-multiple-const-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,87 +40,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec-bzimage64: Fix the ordering of registers
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: allow multiple const * types
 
-hpa suggested to fix the ordering of register declaration.
+checkpatch's $Type variable does not match declarations
+of multiple const * types.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+This can produce false positives for things like:
+
+$ ./scripts/checkpatch.pl -f drivers/staging/comedi/comedidev.h
+WARNING: Missing a blank line after declarations
+#60: FILE: drivers/staging/comedi/comedidev.h:60:
++       const struct comedi_lrange *range_table;
++       const struct comedi_lrange *const *range_table_list;
+
+Fix the $Type variable to support matching multiple "* const" uses.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Hartley Sweeten <HartleyS@visionengravers.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/kexec.h |   11 ++++++++---
- arch/x86/purgatory/entry64.S |    6 +++---
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/kexec.h~kexec-support-for-kexec-on-panic-using-new-system-call-fix arch/x86/include/asm/kexec.h
---- a/arch/x86/include/asm/kexec.h~kexec-support-for-kexec-on-panic-using-new-system-call-fix
-+++ a/arch/x86/include/asm/kexec.h
-@@ -182,15 +182,20 @@ struct kimage_arch {
- #endif /* CONFIG_X86_32 */
- 
- #ifdef CONFIG_X86_64
-+/*
-+ * Number of elements and order of elements in this structure should match
-+ * with the ones in arch/x86/purgatory/entry64.S. If you make a change here
-+ * make an appropriate change in purgatory too.
-+ */
- struct kexec_entry64_regs {
- 	uint64_t rax;
--	uint64_t rbx;
- 	uint64_t rcx;
- 	uint64_t rdx;
--	uint64_t rsi;
--	uint64_t rdi;
-+	uint64_t rbx;
- 	uint64_t rsp;
- 	uint64_t rbp;
-+	uint64_t rsi;
-+	uint64_t rdi;
- 	uint64_t r8;
- 	uint64_t r9;
- 	uint64_t r10;
-diff -puN arch/x86/purgatory/entry64.S~kexec-support-for-kexec-on-panic-using-new-system-call-fix arch/x86/purgatory/entry64.S
---- a/arch/x86/purgatory/entry64.S~kexec-support-for-kexec-on-panic-using-new-system-call-fix
-+++ a/arch/x86/purgatory/entry64.S
-@@ -61,13 +61,13 @@ new_cs_exit:
- 	.balign 4
- entry64_regs:
- rax:	.quad 0x0
--rbx:	.quad 0x0
- rcx:	.quad 0x0
- rdx:	.quad 0x0
--rsi:	.quad 0x0
--rdi:	.quad 0x0
-+rbx:	.quad 0x0
- rsp:	.quad 0x0
- rbp:	.quad 0x0
-+rsi:	.quad 0x0
-+rdi:	.quad 0x0
- r8:	.quad 0x0
- r9:	.quad 0x0
- r10:	.quad 0x0
+diff -puN scripts/checkpatch.pl~checkpatch-allow-multiple-const-types scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-multiple-const-types
++++ a/scripts/checkpatch.pl
+@@ -435,7 +435,7 @@ sub build_types {
+ 		  }x;
+ 	$Type	= qr{
+ 			$NonptrType
+-			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*|\[\])+|(?:\s*\[\s*\])+)?
++			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*\s*(?:const\s*)?|\[\])+|(?:\s*\[\s*\])+)?
+ 			(?:\s+$Inline|\s+$Modifier)*
+ 		  }x;
+ 	$Declare	= qr{(?:$Storage\s+(?:$Inline\s+)?)?$Type};
 _
 
-Patches currently in -mm which might be from vgoyal@redhat.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-bin2c-move-bin2c-in-scripts-basic.patch
-kernel-build-bin2c-based-on-config-option-config_build_bin2c.patch
-kexec-rename-unusebale_pages-to-unusable_pages.patch
-kexec-move-segment-verification-code-in-a-separate-function.patch
-kexec-use-common-function-for-kimage_normal_alloc-and-kimage_crash_alloc.patch
-resource-provide-new-functions-to-walk-through-resources.patch
-kexec-make-kexec_segment-user-buffer-pointer-a-union.patch
-kexec-new-syscall-kexec_file_load-declaration.patch
-kexec-implementation-of-new-syscall-kexec_file_load.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-purgatory-sha256-provide-implementation-of-sha256-in-purgaotory-context.patch
-purgatory-core-purgatory-functionality.patch
-kexec-load-and-relocate-purgatory-at-kernel-load-time.patch
-kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry.patch
-kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix.patch
-kexec-support-for-kexec-on-panic-using-new-system-call.patch
-kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch
-kexec-support-kexec-kdump-on-efi-systems.patch
+checkpatch-check-git-commit-descriptions.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
+printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
+mm-utilc-add-kstrimdup.patch
+kernelh-remove-deprecated-pack_hex_byte.patch
+checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
+checkpatch-ignore-email-headers-better.patch
+checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
+checkpatch-add-a-multiple-blank-lines-test.patch
+checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
+checkpatch-quiet-kconfig-help-message-checking.patch
+checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
+checkpatch-allow-multiple-const-types.patch
+fs-isofs-logging-clean-up.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+linux-next.patch
+pci-dma-compat-add-pci_zalloc_consistent-helper.patch
+atm-use-pci_zalloc_consistent.patch
+block-use-pci_zalloc_consistent.patch
+crypto-use-pci_zalloc_consistent.patch
+infiniband-use-pci_zalloc_consistent.patch
+i810-use-pci_zalloc_consistent.patch
+media-use-pci_zalloc_consistent.patch
+amd-use-pci_zalloc_consistent.patch
+atl1e-use-pci_zalloc_consistent.patch
+enic-use-pci_zalloc_consistent.patch
+sky2-use-pci_zalloc_consistent.patch
+micrel-use-pci_zalloc_consistent.patch
+qlogic-use-pci_zalloc_consistent.patch
+irda-use-pci_zalloc_consistent.patch
+ipw2100-use-pci_zalloc_consistent.patch
+mwl8k-use-pci_zalloc_consistent.patch
+rtl818x-use-pci_zalloc_consistent.patch
+rtlwifi-use-pci_zalloc_consistent.patch
+scsi-use-pci_zalloc_consistent.patch
+staging-use-pci_zalloc_consistent.patch
+synclink_gt-use-pci_zalloc_consistent.patch
+vme-bridges-use-pci_zalloc_consistent.patch
+amd-neaten-and-remove-unnecessary-oom-messages.patch
 
