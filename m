@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
 Subject: +
- kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix.patch
- added to -mm tree
-Date: Fri, 27 Jun 2014 11:28:21 -0700
-Message-ID: <53adb7c5.pOkHCZczPeoRP1M8%akpm@linux-foundation.org>
+ kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch added to
+ -mm tree
+Date: Fri, 27 Jun 2014 11:44:47 -0700
+Message-ID: <53adbb9f.D93g6pXHqXr7Mc4f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pb0-f74.google.com ([209.85.160.74]:47978 "EHLO
-	mail-pb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751616AbaF0S2W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jun 2014 14:28:22 -0400
-Received: by mail-pb0-f74.google.com with SMTP id rq2so747295pbb.5
-        for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2014 11:28:21 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:33782 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751374AbaF0Sos (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jun 2014 14:44:48 -0400
+Received: by mail-ve0-f202.google.com with SMTP id oy12so496628veb.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2014 11:44:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: fix freeing up for image loader data loading
+     Subject: kexec-bzimage64: Fix the ordering of registers
 has been added to the -mm tree.  Its filename is
-     kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix.patch
+     kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,102 +43,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec: fix freeing up for image loader data loading
+Subject: kexec-bzimage64: Fix the ordering of registers
 
-During testing I noticed a crash. Which in turn showed that there are
-problems with how I am freeing up image->image_loader_data.
-
-In one case I am freeing up kimage->image_loader_data first and then
-calling up arch to free up which might have been contained in that
-structure. That's wrong.
-
-I have done little cleanup and this should fix the issues around
-freeing up of loader data.
+hpa suggested to fix the ordering of register declaration.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kexec-bzimage64.c  |    4 ++--
- arch/x86/kernel/machine_kexec_64.c |    2 +-
- include/linux/kexec.h              |    2 +-
- kernel/kexec.c                     |   11 ++++++++---
- 4 files changed, 12 insertions(+), 7 deletions(-)
+ arch/x86/include/asm/kexec.h |   11 ++++++++---
+ arch/x86/purgatory/entry64.S |    6 +++---
+ 2 files changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/kernel/kexec-bzimage64.c~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix arch/x86/kernel/kexec-bzimage64.c
---- a/arch/x86/kernel/kexec-bzimage64.c~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -355,9 +355,9 @@ out_free_params:
- }
+diff -puN arch/x86/include/asm/kexec.h~kexec-support-for-kexec-on-panic-using-new-system-call-fix arch/x86/include/asm/kexec.h
+--- a/arch/x86/include/asm/kexec.h~kexec-support-for-kexec-on-panic-using-new-system-call-fix
++++ a/arch/x86/include/asm/kexec.h
+@@ -182,15 +182,20 @@ struct kimage_arch {
+ #endif /* CONFIG_X86_32 */
  
- /* This cleanup function is called after various segments have been loaded */
--int bzImage64_cleanup(struct kimage *image)
-+int bzImage64_cleanup(void *loader_data)
- {
--	struct bzimage64_data *ldata = image->image_loader_data;
-+	struct bzimage64_data *ldata = loader_data;
- 
- 	if (!ldata)
- 		return 0;
-diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -329,7 +329,7 @@ int arch_kimage_file_post_load_cleanup(s
- 	if (!image->fops || !image->fops->cleanup)
- 		return 0;
- 
--	return image->fops->cleanup(image);
-+	return image->fops->cleanup(image->image_loader_data);
- }
- 
- /*
-diff -puN include/linux/kexec.h~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix
-+++ a/include/linux/kexec.h
-@@ -190,7 +190,7 @@ typedef void *(kexec_load_t)(struct kima
- 			     unsigned long kernel_len, char *initrd,
- 			     unsigned long initrd_len, char *cmdline,
- 			     unsigned long cmdline_len);
--typedef int (kexec_cleanup_t)(struct kimage *image);
-+typedef int (kexec_cleanup_t)(void *loader_data);
- 
- struct kexec_file_ops {
- 	kexec_probe_t *probe;
-diff -puN kernel/kexec.c~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix kernel/kexec.c
---- a/kernel/kexec.c~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix
-+++ a/kernel/kexec.c
-@@ -453,6 +453,14 @@ static void kimage_file_post_load_cleanu
- 
- 	/* See if architecture has anything to cleanup post load */
- 	arch_kimage_file_post_load_cleanup(image);
-+
-+	/*
-+	 * Above call should have called into bootloader to free up
-+	 * any data stored in kimage->image_loader_data. It should
-+	 * be ok now to free it up.
-+	 */
-+	kfree(image->image_loader_data);
-+	image->image_loader_data = NULL;
- }
- 
- /*
-@@ -569,7 +577,6 @@ out_free_control_pages:
- 	kimage_free_page_list(&image->control_pages);
- out_free_post_load_bufs:
- 	kimage_file_post_load_cleanup(image);
--	kfree(image->image_loader_data);
- out_free_image:
- 	kfree(image);
- 	return ret;
-@@ -893,8 +900,6 @@ static void kimage_free(struct kimage *i
- 	/* Free the kexec control pages... */
- 	kimage_free_page_list(&image->control_pages);
- 
--	kfree(image->image_loader_data);
--
- 	/*
- 	 * Free up any temporary buffers allocated. This might hit if
- 	 * error occurred much later after buffer allocation.
+ #ifdef CONFIG_X86_64
++/*
++ * Number of elements and order of elements in this structure should match
++ * with the ones in arch/x86/purgatory/entry64.S. If you make a change here
++ * make an appropriate change in purgatory too.
++ */
+ struct kexec_entry64_regs {
+ 	uint64_t rax;
+-	uint64_t rbx;
+ 	uint64_t rcx;
+ 	uint64_t rdx;
+-	uint64_t rsi;
+-	uint64_t rdi;
++	uint64_t rbx;
+ 	uint64_t rsp;
+ 	uint64_t rbp;
++	uint64_t rsi;
++	uint64_t rdi;
+ 	uint64_t r8;
+ 	uint64_t r9;
+ 	uint64_t r10;
+diff -puN arch/x86/purgatory/entry64.S~kexec-support-for-kexec-on-panic-using-new-system-call-fix arch/x86/purgatory/entry64.S
+--- a/arch/x86/purgatory/entry64.S~kexec-support-for-kexec-on-panic-using-new-system-call-fix
++++ a/arch/x86/purgatory/entry64.S
+@@ -61,13 +61,13 @@ new_cs_exit:
+ 	.balign 4
+ entry64_regs:
+ rax:	.quad 0x0
+-rbx:	.quad 0x0
+ rcx:	.quad 0x0
+ rdx:	.quad 0x0
+-rsi:	.quad 0x0
+-rdi:	.quad 0x0
++rbx:	.quad 0x0
+ rsp:	.quad 0x0
+ rbp:	.quad 0x0
++rsi:	.quad 0x0
++rdi:	.quad 0x0
+ r8:	.quad 0x0
+ r9:	.quad 0x0
+ r10:	.quad 0x0
 _
 
 Patches currently in -mm which might be from vgoyal@redhat.com are
@@ -160,5 +123,6 @@ kexec-load-and-relocate-purgatory-at-kernel-load-time.patch
 kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry.patch
 kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix.patch
 kexec-support-for-kexec-on-panic-using-new-system-call.patch
+kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch
 kexec-support-kexec-kdump-on-efi-systems.patch
 
