@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: +
- bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload.patch
- added to -mm tree
-Date: Fri, 27 Jun 2014 12:31:28 -0700
-Message-ID: <53adc690.qrmPj3ZIVHdyxudA%akpm@linux-foundation.org>
+ ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch added to -mm tree
+Date: Fri, 27 Jun 2014 12:33:39 -0700
+Message-ID: <53adc713.53Bf660EXI2RAYZB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:38988 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862AbaF0Tb3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jun 2014 15:31:29 -0400
-Received: by mail-pd0-f202.google.com with SMTP id r10so761264pdi.3
-        for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2014 12:31:28 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:57348 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751314AbaF0Tdk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jun 2014 15:33:40 -0400
+Received: by mail-ie0-f201.google.com with SMTP id lx4so1246690iec.4
+        for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2014 12:33:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guz.fnst@cn.fujitsu.com, axboe@kernel.dk, kmo@daterainc.com, martin.petersen@oracle.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bio-integrity: add "bip_max_vcnt" into struct bio_integrity_payload
+     Subject: ocfs2/dlm: fix race between dispatched_work and dlm_lockres_grab_inflight_worker
 has been added to the -mm tree.  Its filename is
-     bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload.patch
+     ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,89 +41,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: bio-integrity: add "bip_max_vcnt" into struct bio_integrity_payload
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2/dlm: fix race between dispatched_work and dlm_lockres_grab_inflight_worker
 
-Commit 08778795 ("block: Fix nr_vecs for inline integrity vectors") from
-Martin introduces the function bip_integrity_vecs(get the useful vectors)
-to fix the issue about nr_vecs for inline integrity vectors that reported
-by David Milburn.
+ac4fef4d23ed ("ocfs2/dlm: do not purge lockres that is queued for assert
+master") may have the following possible race case:
 
-But it seems that bip_integrity_vecs() will return the wrong number if the
-bio is not based on any bio_set for some reason(bio->bi_pool == NULL),
-because in that case, the bip_inline_vecs[0] is malloced directly.  So
-here we add the bip_max_vcnt to record the count of vector slots, and
-cleanup the function bip_integrity_vecs().
+dlm_dispatch_assert_master       dlm_wq
+========================================================================
+queue_work(dlm->quedlm_worker,
+	&dlm->dispatched_work);
+                                 dispatch work,
+				 dlm_lockres_drop_inflight_worker
+				 *BUG_ON(res->inflight_assert_workers == 0)*
+dlm_lockres_grab_inflight_worker
+inflight_assert_workers++
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
-Cc: Kent Overstreet <kmo@daterainc.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+So ensure inflight_assert_workers to be increased first.
+
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Xue jiufei <xuejiufei@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bio-integrity.c |   12 +++---------
- include/linux/bio.h   |    1 +
- 2 files changed, 4 insertions(+), 9 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN block/bio-integrity.c~bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload block/bio-integrity.c
---- a/block/bio-integrity.c~bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload
-+++ a/block/bio-integrity.c
-@@ -70,8 +70,10 @@ struct bio_integrity_payload *bio_integr
- 					  bs->bvec_integrity_pool);
- 		if (!bip->bip_vec)
- 			goto err;
-+		bip->bip_max_vcnt = bvec_nr_vecs(idx);
- 	} else {
- 		bip->bip_vec = bip->bip_inline_vecs;
-+		bip->bip_max_vcnt = inline_vecs;
- 	}
- 
- 	bip->bip_slab = idx;
-@@ -114,14 +116,6 @@ void bio_integrity_free(struct bio *bio)
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -694,14 +694,6 @@ void __dlm_lockres_grab_inflight_worker(
+ 			res->inflight_assert_workers);
  }
- EXPORT_SYMBOL(bio_integrity_free);
  
--static inline unsigned int bip_integrity_vecs(struct bio_integrity_payload *bip)
+-static void dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
+-		struct dlm_lock_resource *res)
 -{
--	if (bip->bip_slab == BIO_POOL_NONE)
--		return BIP_INLINE_VECS;
--
--	return bvec_nr_vecs(bip->bip_slab);
+-	spin_lock(&res->spinlock);
+-	__dlm_lockres_grab_inflight_worker(dlm, res);
+-	spin_unlock(&res->spinlock);
 -}
 -
- /**
-  * bio_integrity_add_page - Attach integrity metadata
-  * @bio:	bio to update
-@@ -137,7 +131,7 @@ int bio_integrity_add_page(struct bio *b
- 	struct bio_integrity_payload *bip = bio->bi_integrity;
- 	struct bio_vec *iv;
- 
--	if (bip->bip_vcnt >= bip_integrity_vecs(bip)) {
-+	if (bip->bip_vcnt >= bip->bip_max_vcnt) {
- 		printk(KERN_ERR "%s: bip_vec full\n", __func__);
- 		return 0;
- 	}
-diff -puN include/linux/bio.h~bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload include/linux/bio.h
---- a/include/linux/bio.h~bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload
-+++ a/include/linux/bio.h
-@@ -308,6 +308,7 @@ struct bio_integrity_payload {
- 
- 	unsigned short		bip_slab;	/* slab the bip came from */
- 	unsigned short		bip_vcnt;	/* # of integrity bio_vecs */
-+	unsigned short		bip_max_vcnt;	/* integrity bio_vec slots */
- 	unsigned		bip_owns_buf:1;	/* should free bip_buf */
- 
- 	struct work_struct	bip_work;	/* I/O completion */
+ static void __dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
+ 		struct dlm_lock_resource *res)
+ {
+@@ -1635,6 +1627,7 @@ send_response:
+ 		}
+ 		mlog(0, "%u is the owner of %.*s, cleaning everyone else\n",
+ 			     dlm->node_num, res->lockname.len, res->lockname.name);
++		spin_lock(&res->spinlock);
+ 		ret = dlm_dispatch_assert_master(dlm, res, 0, request->node_idx,
+ 						 DLM_ASSERT_MASTER_MLE_CLEANUP);
+ 		if (ret < 0) {
+@@ -1642,7 +1635,8 @@ send_response:
+ 			response = DLM_MASTER_RESP_ERROR;
+ 			dlm_lockres_put(res);
+ 		} else
+-			dlm_lockres_grab_inflight_worker(dlm, res);
++			__dlm_lockres_grab_inflight_worker(dlm, res);
++		spin_unlock(&res->spinlock);
+ 	} else {
+ 		if (res)
+ 			dlm_lockres_put(res);
 _
 
-Patches currently in -mm which might be from guz.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
 origin.patch
-x86mem-hotplug-pass-sync_global_pgds-a-correct-argument-in-remove_pagetable.patch
-x86mem-hotplug-modify-pgd-entry-when-removing-memory.patch
-mem-hotplug-avoid-illegal-state-prefixed-with-legal-state-when-changing-state-of-memory_block.patch
-mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1.patch
-linux-next.patch
-bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload.patch
+ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list.patch
+ocfs2-o2net-dont-shutdown-connection-when-idle-timeout.patch
+ocfs2-o2net-set-tcp-user-timeout-to-max-value.patch
+ocfs2-quorum-add-a-log-for-node-not-fenced.patch
+ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
 
