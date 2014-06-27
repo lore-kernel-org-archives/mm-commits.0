@@ -1,22 +1,22 @@
 From: akpm@linux-foundation.org
 Subject: + mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
  added to -mm tree
-Date: Fri, 27 Jun 2014 12:47:24 -0700
-Message-ID: <53adca4c.5AdqVim3Sy5M/9Rm%akpm@linux-foundation.org>
+Date: Fri, 27 Jun 2014 12:47:41 -0700
+Message-ID: <53adca5d.GbKapDqlyPHNSmgt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:44878 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752155AbaF0TrZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jun 2014 15:47:25 -0400
-Received: by mail-pd0-f202.google.com with SMTP id r10so764836pdi.5
-        for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2014 12:47:25 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:51434 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752242AbaF0Trn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jun 2014 15:47:43 -0400
+Received: by mail-yh0-f74.google.com with SMTP id b6so503736yha.5
+        for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2014 12:47:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aquini@redhat.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: aquini@redhat.com, hannes@cmpxchg.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -65,6 +65,7 @@ Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
