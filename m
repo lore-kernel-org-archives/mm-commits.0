@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
- added to -mm tree
-Date: Fri, 27 Jun 2014 12:47:41 -0700
-Message-ID: <53adca5d.GbKapDqlyPHNSmgt%akpm@linux-foundation.org>
+Subject: +
+ x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch added to
+ -mm tree
+Date: Mon, 30 Jun 2014 12:40:17 -0700
+Message-ID: <53b1bd21.pjjV7htxL9FK4Bk5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:51434 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752242AbaF0Trn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jun 2014 15:47:43 -0400
-Received: by mail-yh0-f74.google.com with SMTP id b6so503736yha.5
-        for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2014 12:47:41 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:64240 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752392AbaF3TkT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 15:40:19 -0400
+Received: by mail-ve0-f201.google.com with SMTP id jz11so859525veb.0
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 12:40:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aquini@redhat.com, hannes@cmpxchg.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: lcapitulino@redhat.com, andi@firstfloor.org, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, mingo@elte.hu, riel@redhat.com, rientjes@google.com, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: export NR_SHMEM via sysinfo(2) / si_meminfo() interfaces
+     Subject: x86: numa: setup_node_data(): drop dead code and rename function
 has been added to the -mm tree.  Its filename is
-     mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
+     x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,86 +42,228 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: mm: export NR_SHMEM via sysinfo(2) / si_meminfo() interfaces
+From: Luiz Capitulino <lcapitulino@redhat.com>
+Subject: x86: numa: setup_node_data(): drop dead code and rename function
 
-Historically, we exported shared pages to userspace via sysinfo(2)
-sharedram and /proc/meminfo's "MemShared" fields.  With the advent of
-tmpfs, from kernel v2.4 onward, that old way for accounting shared mem was
-deemed inaccurate and we started to export a hard-coded 0 for
-sysinfo.sharedram.  Later on, during the 2.6 timeframe, "MemShared" got
-re-introduced to /proc/meminfo re-branded as "Shmem", but we're still
-reporting sysinfo.sharedmem as that old hard-coded zero, which makes the
-"shared memory" report inconsistent across interfaces.
+setup_node_data() allocates a pg_data_t object, inserts it into the
+node_data[] array and initializes the following fields: node_id,
+node_start_pfn and node_spanned_pages.
 
-This patch leverages the addition of explicit accounting for pages used by
-shmem/tmpfs -- "4b02108 mm: oom analysis: add shmem vmstat" -- in order to
-make the users of sysinfo(2) and si_meminfo*() friends aware of that
-vmstat entry and make them report it consistently across the interfaces,
-as well to make sysinfo(2) returned data consistent with our current API
-documentation states.
+However, a few function calls later during the kernel boot,
+free_area_init_node() re-initializes those fields, possibly with
+setup_node_data() is not used.
 
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
+This causes a small glitch when running Linux as a hyperv numa guest:
+
+[    0.000000] SRAT: PXM 0 -> APIC 0x00 -> Node 0
+[    0.000000] SRAT: PXM 0 -> APIC 0x01 -> Node 0
+[    0.000000] SRAT: PXM 1 -> APIC 0x02 -> Node 1
+[    0.000000] SRAT: PXM 1 -> APIC 0x03 -> Node 1
+[    0.000000] SRAT: Node 0 PXM 0 [mem 0x00000000-0x7fffffff]
+[    0.000000] SRAT: Node 1 PXM 1 [mem 0x80200000-0xf7ffffff]
+[    0.000000] SRAT: Node 1 PXM 1 [mem 0x100000000-0x1081fffff]
+[    0.000000] NUMA: Node 1 [mem 0x80200000-0xf7ffffff] + [mem 0x100000000-0x1081fffff] -> [mem 0x80200000-0x1081fffff]
+[    0.000000] Initmem setup node 0 [mem 0x00000000-0x7fffffff]
+[    0.000000]   NODE_DATA [mem 0x7ffec000-0x7ffeffff]
+[    0.000000] Initmem setup node 1 [mem 0x80800000-0x1081fffff]
+[    0.000000]   NODE_DATA [mem 0x1081fa000-0x1081fdfff]
+[    0.000000] crashkernel: memory value expected
+[    0.000000]  [ffffea0000000000-ffffea0001ffffff] PMD -> [ffff88007de00000-ffff88007fdfffff] on node 0
+[    0.000000]  [ffffea0002000000-ffffea00043fffff] PMD -> [ffff880105600000-ffff8801077fffff] on node 1
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x00001000-0x00ffffff]
+[    0.000000]   DMA32    [mem 0x01000000-0xffffffff]
+[    0.000000]   Normal   [mem 0x100000000-0x1081fffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x00001000-0x0009efff]
+[    0.000000]   node   0: [mem 0x00100000-0x7ffeffff]
+[    0.000000]   node   1: [mem 0x80200000-0xf7ffffff]
+[    0.000000]   node   1: [mem 0x100000000-0x1081fffff]
+[    0.000000] On node 0 totalpages: 524174
+[    0.000000]   DMA zone: 64 pages used for memmap
+[    0.000000]   DMA zone: 21 pages reserved
+[    0.000000]   DMA zone: 3998 pages, LIFO batch:0
+[    0.000000]   DMA32 zone: 8128 pages used for memmap
+[    0.000000]   DMA32 zone: 520176 pages, LIFO batch:31
+[    0.000000] On node 1 totalpages: 524288
+[    0.000000]   DMA32 zone: 7672 pages used for memmap
+[    0.000000]   DMA32 zone: 491008 pages, LIFO batch:31
+[    0.000000]   Normal zone: 520 pages used for memmap
+[    0.000000]   Normal zone: 33280 pages, LIFO batch:7
+
+In this dmesg, the SRAT table reports that the memory range for node 1
+starts at 0x80200000.  However, the line starting with "Initmem" reports
+that node 1 memory range starts at 0x80800000.  The "Initmem" line is
+reported by setup_node_data() and is wrong, because the kernel ends up
+using the range as reported in the SRAT table.
+
+This commit drops all that dead code from setup_node_data(), renames it to
+alloc_node_data() and adds a printk() to free_area_init_node() so that we
+report a node's memory range accurately.
+
+Here's the same dmesg section with this patch applied:
+
+[    0.000000] SRAT: PXM 0 -> APIC 0x00 -> Node 0
+[    0.000000] SRAT: PXM 0 -> APIC 0x01 -> Node 0
+[    0.000000] SRAT: PXM 1 -> APIC 0x02 -> Node 1
+[    0.000000] SRAT: PXM 1 -> APIC 0x03 -> Node 1
+[    0.000000] SRAT: Node 0 PXM 0 [mem 0x00000000-0x7fffffff]
+[    0.000000] SRAT: Node 1 PXM 1 [mem 0x80200000-0xf7ffffff]
+[    0.000000] SRAT: Node 1 PXM 1 [mem 0x100000000-0x1081fffff]
+[    0.000000] NUMA: Node 1 [mem 0x80200000-0xf7ffffff] + [mem 0x100000000-0x1081fffff] -> [mem 0x80200000-0x1081fffff]
+[    0.000000] NODE_DATA(0) allocated [mem 0x7ffec000-0x7ffeffff]
+[    0.000000] NODE_DATA(1) allocated [mem 0x1081fa000-0x1081fdfff]
+[    0.000000] crashkernel: memory value expected
+[    0.000000]  [ffffea0000000000-ffffea0001ffffff] PMD -> [ffff88007de00000-ffff88007fdfffff] on node 0
+[    0.000000]  [ffffea0002000000-ffffea00043fffff] PMD -> [ffff880105600000-ffff8801077fffff] on node 1
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x00001000-0x00ffffff]
+[    0.000000]   DMA32    [mem 0x01000000-0xffffffff]
+[    0.000000]   Normal   [mem 0x100000000-0x1081fffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x00001000-0x0009efff]
+[    0.000000]   node   0: [mem 0x00100000-0x7ffeffff]
+[    0.000000]   node   1: [mem 0x80200000-0xf7ffffff]
+[    0.000000]   node   1: [mem 0x100000000-0x1081fffff]
+[    0.000000] Node 0 memory range 0x00001000-0x7ffeffff
+[    0.000000] On node 0 totalpages: 524174
+[    0.000000]   DMA zone: 64 pages used for memmap
+[    0.000000]   DMA zone: 21 pages reserved
+[    0.000000]   DMA zone: 3998 pages, LIFO batch:0
+[    0.000000]   DMA32 zone: 8128 pages used for memmap
+[    0.000000]   DMA32 zone: 520176 pages, LIFO batch:31
+[    0.000000] Node 1 memory range 0x80200000-0x1081fffff
+[    0.000000] On node 1 totalpages: 524288
+[    0.000000]   DMA32 zone: 7672 pages used for memmap
+[    0.000000]   DMA32 zone: 491008 pages, LIFO batch:31
+[    0.000000]   Normal zone: 520 pages used for memmap
+[    0.000000]   Normal zone: 33280 pages, LIFO batch:7
+
+This commit was tested on a two node bare-metal NUMA machine and Linux as
+a numa guest on hyperv and qemu/kvm.
+
+PS: The wrong memory range reported by setup_node_data() seems to be
+    harmless in the current kernel because it's just not used. However,
+    that bad range is used in kernel 2.6.32 to initialize the old boot
+    memory allocator, which causes a crash during boot.
+
+Signed-off-by: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    2 +-
- fs/proc/meminfo.c   |    2 +-
- mm/page_alloc.c     |    3 ++-
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/numa.h |    1 -
+ arch/x86/mm/numa.c          |   34 ++++++++++++++--------------------
+ mm/page_alloc.c             |    2 ++
+ 3 files changed, 16 insertions(+), 21 deletions(-)
 
-diff -puN drivers/base/node.c~mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces drivers/base/node.c
---- a/drivers/base/node.c~mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces
-+++ a/drivers/base/node.c
-@@ -126,7 +126,7 @@ static ssize_t node_read_meminfo(struct
- 		       nid, K(node_page_state(nid, NR_FILE_PAGES)),
- 		       nid, K(node_page_state(nid, NR_FILE_MAPPED)),
- 		       nid, K(node_page_state(nid, NR_ANON_PAGES)),
--		       nid, K(node_page_state(nid, NR_SHMEM)),
-+		       nid, K(i.sharedram),
- 		       nid, node_page_state(nid, NR_KERNEL_STACK) *
- 				THREAD_SIZE / 1024,
- 		       nid, K(node_page_state(nid, NR_PAGETABLE)),
-diff -puN fs/proc/meminfo.c~mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces
-+++ a/fs/proc/meminfo.c
-@@ -168,7 +168,7 @@ static int meminfo_proc_show(struct seq_
- 		K(global_page_state(NR_WRITEBACK)),
- 		K(global_page_state(NR_ANON_PAGES)),
- 		K(global_page_state(NR_FILE_MAPPED)),
--		K(global_page_state(NR_SHMEM)),
-+		K(i.sharedram),
- 		K(global_page_state(NR_SLAB_RECLAIMABLE) +
- 				global_page_state(NR_SLAB_UNRECLAIMABLE)),
- 		K(global_page_state(NR_SLAB_RECLAIMABLE)),
-diff -puN mm/page_alloc.c~mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces mm/page_alloc.c
---- a/mm/page_alloc.c~mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces
-+++ a/mm/page_alloc.c
-@@ -3047,7 +3047,7 @@ static inline void show_node(struct zone
- void si_meminfo(struct sysinfo *val)
+diff -puN arch/x86/include/asm/numa.h~x86-numa-setup_node_data-drop-dead-code-and-rename-function arch/x86/include/asm/numa.h
+--- a/arch/x86/include/asm/numa.h~x86-numa-setup_node_data-drop-dead-code-and-rename-function
++++ a/arch/x86/include/asm/numa.h
+@@ -9,7 +9,6 @@
+ #ifdef CONFIG_NUMA
+ 
+ #define NR_NODE_MEMBLKS		(MAX_NUMNODES*2)
+-#define ZONE_ALIGN (1UL << (MAX_ORDER+PAGE_SHIFT))
+ 
+ /*
+  * Too small node sizes may confuse the VM badly. Usually they
+diff -puN arch/x86/mm/numa.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function
++++ a/arch/x86/mm/numa.c
+@@ -185,8 +185,8 @@ int __init numa_add_memblk(int nid, u64
+ 	return numa_add_memblk_to(nid, start, end, &numa_meminfo);
+ }
+ 
+-/* Initialize NODE_DATA for a node on the local memory */
+-static void __init setup_node_data(int nid, u64 start, u64 end)
++/* Allocate NODE_DATA for a node on the local memory */
++static void __init alloc_node_data(int nid)
  {
- 	val->totalram = totalram_pages;
--	val->sharedram = 0;
-+	val->sharedram = global_page_state(NR_SHMEM);
- 	val->freeram = global_page_state(NR_FREE_PAGES);
- 	val->bufferram = nr_blockdev_pages();
- 	val->totalhigh = totalhigh_pages;
-@@ -3067,6 +3067,7 @@ void si_meminfo_node(struct sysinfo *val
- 	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++)
- 		managed_pages += pgdat->node_zones[zone_type].managed_pages;
- 	val->totalram = managed_pages;
-+	val->sharedram = node_page_state(nid, NR_SHMEM);
- 	val->freeram = node_page_state(nid, NR_FREE_PAGES);
- #ifdef CONFIG_HIGHMEM
- 	val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].managed_pages;
+ 	const size_t nd_size = roundup(sizeof(pg_data_t), PAGE_SIZE);
+ 	u64 nd_pa;
+@@ -194,18 +194,6 @@ static void __init setup_node_data(int n
+ 	int tnid;
+ 
+ 	/*
+-	 * Don't confuse VM with a node that doesn't have the
+-	 * minimum amount of memory:
+-	 */
+-	if (end && (end - start) < NODE_MIN_SIZE)
+-		return;
+-
+-	start = roundup(start, ZONE_ALIGN);
+-
+-	printk(KERN_INFO "Initmem setup node %d [mem %#010Lx-%#010Lx]\n",
+-	       nid, start, end - 1);
+-
+-	/*
+ 	 * Allocate node data.  Try node-local memory and then any node.
+ 	 * Never allocate in DMA zone.
+ 	 */
+@@ -222,7 +210,7 @@ static void __init setup_node_data(int n
+ 	nd = __va(nd_pa);
+ 
+ 	/* report and initialize */
+-	printk(KERN_INFO "  NODE_DATA [mem %#010Lx-%#010Lx]\n",
++	printk(KERN_INFO "NODE_DATA(%d) allocated [mem %#010Lx-%#010Lx]\n", nid,
+ 	       nd_pa, nd_pa + nd_size - 1);
+ 	tnid = early_pfn_to_nid(nd_pa >> PAGE_SHIFT);
+ 	if (tnid != nid)
+@@ -230,9 +218,6 @@ static void __init setup_node_data(int n
+ 
+ 	node_data[nid] = nd;
+ 	memset(NODE_DATA(nid), 0, sizeof(pg_data_t));
+-	NODE_DATA(nid)->node_id = nid;
+-	NODE_DATA(nid)->node_start_pfn = start >> PAGE_SHIFT;
+-	NODE_DATA(nid)->node_spanned_pages = (end - start) >> PAGE_SHIFT;
+ 
+ 	node_set_online(nid);
+ }
+@@ -523,8 +508,17 @@ static int __init numa_register_memblks(
+ 			end = max(mi->blk[i].end, end);
+ 		}
+ 
+-		if (start < end)
+-			setup_node_data(nid, start, end);
++		if (start >= end)
++			continue;
++
++		/*
++		 * Don't confuse VM with a node that doesn't have the
++		 * minimum amount of memory:
++		 */
++		if (end && (end - start) < NODE_MIN_SIZE)
++			continue;
++
++		alloc_node_data(nid);
+ 	}
+ 
+ 	/* Dump memblock with node info and return. */
+diff -puN mm/page_alloc.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function mm/page_alloc.c
+--- a/mm/page_alloc.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function
++++ a/mm/page_alloc.c
+@@ -4969,6 +4969,8 @@ void __paginginit free_area_init_node(in
+ 	pgdat->node_start_pfn = node_start_pfn;
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
++	printk(KERN_INFO "Node %d memory range %#010Lx-%#010Lx\n", nid,
++			(u64) start_pfn << PAGE_SHIFT, (u64) (end_pfn << PAGE_SHIFT) - 1);
+ #endif
+ 	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
+ 				  zones_size, zholes_size);
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from lcapitulino@redhat.com are
 
-mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
 
