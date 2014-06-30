@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch
+Subject: + mm-replace-init_page_accessed-by-__setpagereferenced.patch
  added to -mm tree
-Date: Mon, 30 Jun 2014 14:19:35 -0700
-Message-ID: <53b1d467.dPndB4FHsK0v3LuF%akpm@linux-foundation.org>
+Date: Mon, 30 Jun 2014 14:19:36 -0700
+Message-ID: <53b1d468.eieEmlKFXldwq02k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:42316 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751264AbaF3VTh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 17:19:37 -0400
-Received: by mail-qa0-f73.google.com with SMTP id m5so880682qaj.0
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 14:19:36 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:52223 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751401AbaF3VTi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 17:19:38 -0400
+Received: by mail-oa0-f74.google.com with SMTP id i7so2013093oag.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 14:19:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, dave.hansen@intel.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, prabhakar.csengg@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: fix init_page_accessed use to stop !PageLRU bug
+     Subject: mm: replace init_page_accessed by __SetPageReferenced
 has been added to the -mm tree.  Its filename is
-     shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch
+     mm-replace-init_page_accessed-by-__setpagereferenced.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-replace-init_page_accessed-by-__setpagereferenced.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-replace-init_page_accessed-by-__setpagereferenced.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,24 +42,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: shmem: fix init_page_accessed use to stop !PageLRU bug
+Subject: mm: replace init_page_accessed by __SetPageReferenced
 
-Under shmem swapping load, I sometimes hit the VM_BUG_ON_PAGE(!PageLRU) in
-isolate_lru_pages() at mm/vmscan.c:1281!
-
-Commit 2457aec63745 ("mm: non-atomically mark page accessed during page
-cache allocation where possible") looks like interrupted work-in-progress.
-
-mm/filemap.c's call to init_page_accessed() is fine, but not mm/shmem.c's
-- shmem_write_begin() is clearly wrong to use it after shmem_getpage(),
-when the page is always visible in radix_tree, and often already on LRU.
-
-Revert change to shmem_write_begin(), and use init_page_accessed() or
-mark_page_accessed() appropriately for SGP_WRITE in shmem_getpage_gfp().
-
-SGP_WRITE also covers shmem_symlink(), which did not mark_page_accessed()
-before; but since many other filesystems use [__]page_symlink(), which did
-and does mark the page accessed, consider this as rectifying an oversight.
+Do we really need an exported alias for __SetPageReferenced()?
+Its callers better know what they're doing, in which case the page
+would not be already marked referenced.  Kill init_page_accessed(),
+just __SetPageReferenced() inline.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -71,57 +59,81 @@ Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ include/linux/swap.h |    1 -
+ mm/filemap.c         |    4 ++--
+ mm/shmem.c           |    2 +-
+ mm/swap.c            |   14 +++-----------
+ 4 files changed, 6 insertions(+), 15 deletions(-)
 
-diff -puN mm/shmem.c~shmem-fix-init_page_accessed-use-to-stop-pagelru-bug mm/shmem.c
---- a/mm/shmem.c~shmem-fix-init_page_accessed-use-to-stop-pagelru-bug
+diff -puN include/linux/swap.h~mm-replace-init_page_accessed-by-__setpagereferenced include/linux/swap.h
+--- a/include/linux/swap.h~mm-replace-init_page_accessed-by-__setpagereferenced
++++ a/include/linux/swap.h
+@@ -311,7 +311,6 @@ extern void lru_add_page_tail(struct pag
+ 			 struct lruvec *lruvec, struct list_head *head);
+ extern void activate_page(struct page *);
+ extern void mark_page_accessed(struct page *);
+-extern void init_page_accessed(struct page *page);
+ extern void lru_add_drain(void);
+ extern void lru_add_drain_cpu(int cpu);
+ extern void lru_add_drain_all(void);
+diff -puN mm/filemap.c~mm-replace-init_page_accessed-by-__setpagereferenced mm/filemap.c
+--- a/mm/filemap.c~mm-replace-init_page_accessed-by-__setpagereferenced
++++ a/mm/filemap.c
+@@ -1100,9 +1100,9 @@ no_page:
+ 		if (WARN_ON_ONCE(!(fgp_flags & FGP_LOCK)))
+ 			fgp_flags |= FGP_LOCK;
+ 
+-		/* Init accessed so avoit atomic mark_page_accessed later */
++		/* Init accessed so avoid atomic mark_page_accessed later */
+ 		if (fgp_flags & FGP_ACCESSED)
+-			init_page_accessed(page);
++			__SetPageReferenced(page);
+ 
+ 		err = add_to_page_cache_lru(page, mapping, offset, radix_gfp_mask);
+ 		if (unlikely(err)) {
+diff -puN mm/shmem.c~mm-replace-init_page_accessed-by-__setpagereferenced mm/shmem.c
+--- a/mm/shmem.c~mm-replace-init_page_accessed-by-__setpagereferenced
 +++ a/mm/shmem.c
-@@ -1029,6 +1029,9 @@ repeat:
- 		goto failed;
- 	}
- 
-+	if (page && sgp == SGP_WRITE)
-+		mark_page_accessed(page);
-+
- 	/* fallocated page? */
- 	if (page && !PageUptodate(page)) {
- 		if (sgp != SGP_READ)
-@@ -1110,6 +1113,9 @@ repeat:
- 		shmem_recalc_inode(inode);
- 		spin_unlock(&info->lock);
- 
-+		if (sgp == SGP_WRITE)
-+			mark_page_accessed(page);
-+
- 		delete_from_swap_cache(page);
- 		set_page_dirty(page);
- 		swap_free(swap);
-@@ -1136,6 +1142,9 @@ repeat:
- 
+@@ -1143,7 +1143,7 @@ repeat:
  		__SetPageSwapBacked(page);
  		__set_page_locked(page);
-+		if (sgp == SGP_WRITE)
-+			init_page_accessed(page);
-+
+ 		if (sgp == SGP_WRITE)
+-			init_page_accessed(page);
++			__SetPageReferenced(page);
+ 
  		error = mem_cgroup_charge_file(page, current->mm,
  						gfp & GFP_RECLAIM_MASK);
- 		if (error)
-@@ -1412,13 +1421,9 @@ shmem_write_begin(struct file *file, str
- 			loff_t pos, unsigned len, unsigned flags,
- 			struct page **pagep, void **fsdata)
+diff -puN mm/swap.c~mm-replace-init_page_accessed-by-__setpagereferenced mm/swap.c
+--- a/mm/swap.c~mm-replace-init_page_accessed-by-__setpagereferenced
++++ a/mm/swap.c
+@@ -589,6 +589,9 @@ static void __lru_cache_activate_page(st
+  * inactive,unreferenced	->	inactive,referenced
+  * inactive,referenced		->	active,unreferenced
+  * active,unreferenced		->	active,referenced
++ *
++ * When a newly allocated page is not yet visible, so safe for non-atomic ops,
++ * __SetPageReferenced(page) may be substituted for mark_page_accessed(page).
+  */
+ void mark_page_accessed(struct page *page)
  {
--	int ret;
- 	struct inode *inode = mapping->host;
- 	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
--	ret = shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
--	if (ret == 0 && *pagep)
--		init_page_accessed(*pagep);
--	return ret;
-+	return shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
+@@ -614,17 +617,6 @@ void mark_page_accessed(struct page *pag
  }
+ EXPORT_SYMBOL(mark_page_accessed);
  
- static int
+-/*
+- * Used to mark_page_accessed(page) that is not visible yet and when it is
+- * still safe to use non-atomic ops
+- */
+-void init_page_accessed(struct page *page)
+-{
+-	if (!PageReferenced(page))
+-		__SetPageReferenced(page);
+-}
+-EXPORT_SYMBOL(init_page_accessed);
+-
+ static void __lru_cache_add(struct page *page)
+ {
+ 	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
