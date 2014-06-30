@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch added to -mm tree
-Date: Mon, 30 Jun 2014 14:14:18 -0700
-Message-ID: <53b1d32a.4uIaODmtHVZyX+c0%akpm@linux-foundation.org>
+ mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch added to -mm tree
+Date: Mon, 30 Jun 2014 14:14:22 -0700
+Message-ID: <53b1d32e.c2K3D7UMMM3kjhmq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:61747 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752830AbaF3VOU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 17:14:20 -0400
-Received: by mail-vc0-f202.google.com with SMTP id id10so855392vcb.5
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 14:14:19 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:50752 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752830AbaF3VOX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 17:14:23 -0400
+Received: by mail-ob0-f202.google.com with SMTP id va2so2012907obc.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 14:14:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rearrange zone fields into read-only, page alloc, statistics and page reclaim lines
+     Subject: mm: page_alloc: reduce cost of the fair zone allocation policy
 has been added to the -mm tree.  Its filename is
-     mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+     mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,377 +42,279 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: rearrange zone fields into read-only, page alloc, statistics and page reclaim lines
+Subject: mm: page_alloc: reduce cost of the fair zone allocation policy
 
-The arrangement of struct zone has changed over time and now it has
-reached the point where there is some inappropriate sharing going on.  On
-x86-64 for example
+The fair zone allocation policy round-robins allocations between zones
+within a node to avoid age inversion problems during reclaim.  If the
+first allocation fails, the batch counts are reset and a second attempt
+made before entering the slow path.
 
-o The zone->node field is shared with the zone lock and zone->node is
-  accessed frequently from the page allocator due to the fair zone
-  allocation policy.
+One assumption made with this scheme is that batches expire at roughly the
+same time and the resets each time are justified.  This assumption does
+not hold when zones reach their low watermark as the batches will be
+consumed at uneven rates.  Allocation failures due to watermark depletion
+result in additional zonelist scans for the reset and another watermark
+check before hitting the slowpath.
 
-o span_seqlock is almost never used by shares a line with free_area
+This patch makes a number of changes that should reduce the overall cost
 
-o Some zone statistics share a cache line with the LRU lock so
-  reclaim-intensive and allocator-intensive workloads can bounce the cache
-  line on a stat update
+o Abort the fair zone allocation policy once remote zones are
+  encountered
 
-This patch rearranges struct zone to put read-only and read-mostly fields
-together and then splits the page allocator intensive fields, the zone
-statistics and the page reclaim intensive fields into their own cache
-lines.  Note that arguably the biggest change is reducing the size of the
-lowmem_reserve type.  It should still be large enough but by shrinking it
-the fields used by the page allocator fast path all fit in one cache line.
+o Use a simplier scan when resetting NR_ALLOC_BATCH
 
-On the test configuration I used the overall size of struct zone shrunk by
-one cache line.
+o Use a simple flag to identify depleted zones instead of accessing a
+  potentially write-intensive cache line for counters
+
+On UMA machines, the effect on overall performance is marginal.  The main
+impact is on system CPU usage which is small enough on UMA to begin with. 
+This comparison shows the system CPU usage between vanilla, the previous
+patch and this patch.
+
+          3.16.0-rc2  3.16.0-rc2  3.16.0-rc2
+             vanilla checklow-v4 fairzone-v4
+User          390.13      400.85      396.13
+System        404.41      393.60      389.61
+Elapsed      5412.45     5166.12     5163.49
+
+There is a small reduction and it appears consistent.
+
+On NUMA machines, the scanning overhead is higher as zones are scanned
+that are ineligible for use by zone allocation policy.  This patch fixes
+the zone-order zonelist policy and reduces the numbers of zones scanned by
+the allocator leading to an overall reduction of CPU usage.
+
+          3.16.0-rc2  3.16.0-rc2  3.16.0-rc2
+             vanilla checklow-v4 fairzone-v4
+User          744.05      763.26      778.53
+System      70148.60    49331.48    44905.73
+Elapsed     28094.08    27476.72    27378.98
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |  201 +++++++++++++++++++--------------------
- mm/page_alloc.c        |   13 +-
- mm/vmstat.c            |    4 
- 3 files changed, 113 insertions(+), 105 deletions(-)
+ include/linux/mmzone.h |    6 ++
+ mm/page_alloc.c        |  113 ++++++++++++++++++++++-----------------
+ 2 files changed, 70 insertions(+), 49 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines
+diff -puN include/linux/mmzone.h~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy
 +++ a/include/linux/mmzone.h
-@@ -324,19 +324,12 @@ enum zone_type {
- #ifndef __GENERATING_BOUNDS_H
+@@ -534,6 +534,7 @@ typedef enum {
+ 	ZONE_WRITEBACK,			/* reclaim scanning has recently found
+ 					 * many pages under writeback
+ 					 */
++	ZONE_FAIR_DEPLETED,		/* fair zone policy batch depleted */
+ } zone_flags_t;
  
- struct zone {
--	/* Fields commonly accessed by the page allocator */
-+	/* Read-mostly fields */
+ static inline void zone_set_flag(struct zone *zone, zone_flags_t flag)
+@@ -571,6 +572,11 @@ static inline int zone_is_reclaim_locked
+ 	return test_bit(ZONE_RECLAIM_LOCKED, &zone->flags);
+ }
  
- 	/* zone watermarks, access with *_wmark_pages(zone) macros */
- 	unsigned long watermark[NR_WMARK];
- 
- 	/*
--	 * When free pages are below this point, additional steps are taken
--	 * when reading the number of free pages to avoid per-cpu counter
--	 * drift allowing watermarks to be breached
--	 */
--	unsigned long percpu_drift_mark;
--
--	/*
- 	 * We don't know if the memory that we're going to allocate will be freeable
- 	 * or/and it will be released eventually, so to avoid totally wasting several
- 	 * GB of ram we must reserve some of the lower zone memory (otherwise we risk
-@@ -344,41 +337,17 @@ struct zone {
- 	 * on the higher zones). This array is recalculated at runtime if the
- 	 * sysctl_lowmem_reserve_ratio sysctl changes.
- 	 */
--	unsigned long		lowmem_reserve[MAX_NR_ZONES];
--
--	/*
--	 * This is a per-zone reserve of pages that should not be
--	 * considered dirtyable memory.
--	 */
--	unsigned long		dirty_balance_reserve;
-+	unsigned int lowmem_reserve[MAX_NR_ZONES];
- 
-+	struct per_cpu_pageset __percpu *pageset;
- #ifdef CONFIG_NUMA
- 	int node;
--	/*
--	 * zone reclaim becomes active if more unmapped pages exist.
--	 */
--	unsigned long		min_unmapped_pages;
--	unsigned long		min_slab_pages;
- #endif
--	struct per_cpu_pageset __percpu *pageset;
- 	/*
--	 * free areas of different sizes
-+	 * The target ratio of ACTIVE_ANON to INACTIVE_ANON pages on
-+	 * this zone's LRU.  Maintained by the pageout code.
- 	 */
--	spinlock_t		lock;
--#if defined CONFIG_COMPACTION || defined CONFIG_CMA
--	/* Set to true when the PG_migrate_skip bits should be cleared */
--	bool			compact_blockskip_flush;
--
--	/* pfn where compaction free scanner should start */
--	unsigned long		compact_cached_free_pfn;
--	/* pfn where async and sync compaction migration scanner should start */
--	unsigned long		compact_cached_migrate_pfn[2];
--#endif
--#ifdef CONFIG_MEMORY_HOTPLUG
--	/* see spanned/present_pages for more description */
--	seqlock_t		span_seqlock;
--#endif
--	struct free_area	free_area[MAX_ORDER];
-+	unsigned int inactive_ratio;
- 
- #ifndef CONFIG_SPARSEMEM
- 	/*
-@@ -388,74 +357,37 @@ struct zone {
- 	unsigned long		*pageblock_flags;
- #endif /* CONFIG_SPARSEMEM */
- 
--#ifdef CONFIG_COMPACTION
- 	/*
--	 * On compaction failure, 1<<compact_defer_shift compactions
--	 * are skipped before trying again. The number attempted since
--	 * last failure is tracked with compact_considered.
-+	 * This is a per-zone reserve of pages that should not be
-+	 * considered dirtyable memory.
- 	 */
--	unsigned int		compact_considered;
--	unsigned int		compact_defer_shift;
--	int			compact_order_failed;
--#endif
--
--	ZONE_PADDING(_pad1_)
--
--	/* Fields commonly accessed by the page reclaim scanner */
--	spinlock_t		lru_lock;
--	struct lruvec		lruvec;
--
--	/* Evictions & activations on the inactive file list */
--	atomic_long_t		inactive_age;
--
--	unsigned long		pages_scanned;	   /* since last reclaim */
--	unsigned long		flags;		   /* zone flags, see below */
--
--	/* Zone statistics */
--	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
-+	unsigned long		dirty_balance_reserve;
- 
- 	/*
--	 * The target ratio of ACTIVE_ANON to INACTIVE_ANON pages on
--	 * this zone's LRU.  Maintained by the pageout code.
-+	 * When free pages are below this point, additional steps are taken
-+	 * when reading the number of free pages to avoid per-cpu counter
-+	 * drift allowing watermarks to be breached
- 	 */
--	unsigned int inactive_ratio;
--
--
--	ZONE_PADDING(_pad2_)
--	/* Rarely used or read-mostly fields */
-+	unsigned long percpu_drift_mark;
- 
-+#ifdef CONFIG_NUMA
- 	/*
--	 * wait_table		-- the array holding the hash table
--	 * wait_table_hash_nr_entries	-- the size of the hash table array
--	 * wait_table_bits	-- wait_table_size == (1 << wait_table_bits)
--	 *
--	 * The purpose of all these is to keep track of the people
--	 * waiting for a page to become available and make them
--	 * runnable again when possible. The trouble is that this
--	 * consumes a lot of space, especially when so few things
--	 * wait on pages at a given time. So instead of using
--	 * per-page waitqueues, we use a waitqueue hash table.
--	 *
--	 * The bucket discipline is to sleep on the same queue when
--	 * colliding and wake all in that wait queue when removing.
--	 * When something wakes, it must check to be sure its page is
--	 * truly available, a la thundering herd. The cost of a
--	 * collision is great, but given the expected load of the
--	 * table, they should be so rare as to be outweighed by the
--	 * benefits from the saved space.
--	 *
--	 * __wait_on_page_locked() and unlock_page() in mm/filemap.c, are the
--	 * primary users of these fields, and in mm/page_alloc.c
--	 * free_area_init_core() performs the initialization of them.
-+	 * zone reclaim becomes active if more unmapped pages exist.
- 	 */
--	wait_queue_head_t	* wait_table;
--	unsigned long		wait_table_hash_nr_entries;
--	unsigned long		wait_table_bits;
-+	unsigned long		min_unmapped_pages;
-+	unsigned long		min_slab_pages;
-+#endif /* CONFIG_NUMA */
++static inline int zone_is_fair_depleted(const struct zone *zone)
++{
++	return test_bit(ZONE_FAIR_DEPLETED, &zone->flags);
++}
 +
-+	const char		*name;
- 
- 	/*
--	 * Discontig memory support fields.
-+	 * Number of MIGRATE_RESEVE page block. To maintain for just
-+	 * optimization. Protected by zone->lock.
- 	 */
-+	int			nr_migrate_reserve_block;
-+
- 	struct pglist_data	*zone_pgdat;
-+
- 	/* zone_start_pfn == zone_start_paddr >> PAGE_SHIFT */
- 	unsigned long		zone_start_pfn;
- 
-@@ -504,16 +436,89 @@ struct zone {
- 	unsigned long		present_pages;
- 	unsigned long		managed_pages;
- 
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+	/* see spanned/present_pages for more description */
-+	seqlock_t		span_seqlock;
-+#endif
-+
- 	/*
--	 * Number of MIGRATE_RESEVE page block. To maintain for just
--	 * optimization. Protected by zone->lock.
-+	 * wait_table		-- the array holding the hash table
-+	 * wait_table_hash_nr_entries	-- the size of the hash table array
-+	 * wait_table_bits	-- wait_table_size == (1 << wait_table_bits)
-+	 *
-+	 * The purpose of all these is to keep track of the people
-+	 * waiting for a page to become available and make them
-+	 * runnable again when possible. The trouble is that this
-+	 * consumes a lot of space, especially when so few things
-+	 * wait on pages at a given time. So instead of using
-+	 * per-page waitqueues, we use a waitqueue hash table.
-+	 *
-+	 * The bucket discipline is to sleep on the same queue when
-+	 * colliding and wake all in that wait queue when removing.
-+	 * When something wakes, it must check to be sure its page is
-+	 * truly available, a la thundering herd. The cost of a
-+	 * collision is great, but given the expected load of the
-+	 * table, they should be so rare as to be outweighed by the
-+	 * benefits from the saved space.
-+	 *
-+	 * __wait_on_page_locked() and unlock_page() in mm/filemap.c, are the
-+	 * primary users of these fields, and in mm/page_alloc.c
-+	 * free_area_init_core() performs the initialization of them.
- 	 */
--	int			nr_migrate_reserve_block;
-+	wait_queue_head_t	*wait_table;
-+	unsigned long		wait_table_hash_nr_entries;
-+	unsigned long		wait_table_bits;
-+
-+	ZONE_PADDING(_pad1_)
-+
-+	/* Write-intensive fields used from the page allocator */
-+	spinlock_t		lock;
-+
-+	/* free areas of different sizes */
-+	struct free_area	free_area[MAX_ORDER];
-+
-+	/* zone flags, see below */
-+	unsigned long		flags;
-+
-+	ZONE_PADDING(_pad2_)
-+
-+	/* Write-intensive fields used by page reclaim */
- 
-+	/* Fields commonly accessed by the page reclaim scanner */
-+	spinlock_t		lru_lock;
-+	struct lruvec		lruvec;
-+
-+	/* Evictions & activations on the inactive file list */
-+	atomic_long_t		inactive_age;
-+
-+	unsigned long		pages_scanned;	   /* since last reclaim */
-+
-+#if defined CONFIG_COMPACTION || defined CONFIG_CMA
-+	/* pfn where compaction free scanner should start */
-+	unsigned long		compact_cached_free_pfn;
-+	/* pfn where async and sync compaction migration scanner should start */
-+	unsigned long		compact_cached_migrate_pfn[2];
-+#endif
-+
-+#ifdef CONFIG_COMPACTION
- 	/*
--	 * rarely used fields:
-+	 * On compaction failure, 1<<compact_defer_shift compactions
-+	 * are skipped before trying again. The number attempted since
-+	 * last failure is tracked with compact_considered.
- 	 */
--	const char		*name;
-+	unsigned int		compact_considered;
-+	unsigned int		compact_defer_shift;
-+	int			compact_order_failed;
-+#endif
-+
-+#if defined CONFIG_COMPACTION || defined CONFIG_CMA
-+	/* Set to true when the PG_migrate_skip bits should be cleared */
-+	bool			compact_blockskip_flush;
-+#endif
-+
-+	ZONE_PADDING(_pad3_)
-+	/* Zone statistics */
-+	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
- } ____cacheline_internodealigned_in_smp;
- 
- typedef enum {
-diff -puN mm/page_alloc.c~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines mm/page_alloc.c
---- a/mm/page_alloc.c~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines
-+++ a/mm/page_alloc.c
-@@ -1708,7 +1708,6 @@ static bool __zone_watermark_ok(struct z
+ static inline int zone_is_oom_locked(const struct zone *zone)
  {
- 	/* free_pages my go negative - that's OK */
- 	long min = mark;
--	long lowmem_reserve = z->lowmem_reserve[classzone_idx];
- 	int o;
- 	long free_cma = 0;
- 
-@@ -1723,7 +1722,7 @@ static bool __zone_watermark_ok(struct z
- 		free_cma = zone_page_state(z, NR_FREE_CMA_PAGES);
- #endif
- 
--	if (free_pages - free_cma <= min + lowmem_reserve)
-+	if (free_pages - free_cma <= min + z->lowmem_reserve[classzone_idx])
- 		return false;
- 	for (o = 0; o < order; o++) {
- 		/* At the next order, this order's pages become unavailable */
-@@ -3254,7 +3253,7 @@ void show_free_areas(unsigned int filter
- 			);
- 		printk("lowmem_reserve[]:");
- 		for (i = 0; i < MAX_NR_ZONES; i++)
--			printk(" %lu", zone->lowmem_reserve[i]);
-+			printk(" %u", zone->lowmem_reserve[i]);
- 		printk("\n");
+ 	return test_bit(ZONE_OOM_LOCKED, &zone->flags);
+diff -puN mm/page_alloc.c~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy
++++ a/mm/page_alloc.c
+@@ -1606,6 +1606,8 @@ again:
  	}
  
-@@ -5577,7 +5576,7 @@ static void calculate_totalreserve_pages
- 	for_each_online_pgdat(pgdat) {
- 		for (i = 0; i < MAX_NR_ZONES; i++) {
- 			struct zone *zone = pgdat->node_zones + i;
--			unsigned long max = 0;
-+			unsigned int max = 0;
+ 	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
++	if (zone_page_state(zone, NR_ALLOC_BATCH) == 0)
++		zone_set_flag(zone, ZONE_FAIR_DEPLETED);
  
- 			/* Find valid and maximum lowmem_reserve in the zone */
- 			for (j = i; j < MAX_NR_ZONES; j++) {
-@@ -5628,6 +5627,7 @@ static void setup_per_zone_lowmem_reserv
- 			idx = j;
- 			while (idx) {
- 				struct zone *lower_zone;
-+				unsigned long reserve;
+ 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
+ 	zone_statistics(preferred_zone, zone, gfp_flags);
+@@ -1917,6 +1919,20 @@ static bool zone_allows_reclaim(struct z
  
- 				idx--;
+ #endif	/* CONFIG_NUMA */
  
-@@ -5635,8 +5635,11 @@ static void setup_per_zone_lowmem_reserv
- 					sysctl_lowmem_reserve_ratio[idx] = 1;
++static void reset_alloc_batches(struct zone *preferred_zone)
++{
++	struct zone *zone = preferred_zone->zone_pgdat->node_zones;
++
++	do {
++		if (!zone_is_fair_depleted(zone))
++			continue;
++		mod_zone_page_state(zone, NR_ALLOC_BATCH,
++			high_wmark_pages(zone) - low_wmark_pages(zone) -
++			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
++		zone_clear_flag(zone, ZONE_FAIR_DEPLETED);
++	} while (zone++ != preferred_zone);
++}
++
+ /*
+  * get_page_from_freelist goes through the zonelist trying to allocate
+  * a page.
+@@ -1934,8 +1950,11 @@ get_page_from_freelist(gfp_t gfp_mask, n
+ 	int did_zlc_setup = 0;		/* just call zlc_setup() one time */
+ 	bool consider_zone_dirty = (alloc_flags & ALLOC_WMARK_LOW) &&
+ 				(gfp_mask & __GFP_WRITE);
++	int nr_fair_skipped = 0;
++	bool zonelist_rescan;
  
- 				lower_zone = pgdat->node_zones + idx;
--				lower_zone->lowmem_reserve[j] = managed_pages /
-+				reserve = managed_pages /
- 					sysctl_lowmem_reserve_ratio[idx];
-+				if (WARN_ON(reserve > UINT_MAX))
-+					reserve = UINT_MAX;
-+				lower_zone->lowmem_reserve[j] = reserve;
- 				managed_pages += lower_zone->managed_pages;
- 			}
+ zonelist_scan:
++	zonelist_rescan = false;
+ 	/*
+ 	 * Scan zonelist, looking for a zone with enough free.
+ 	 * See also __cpuset_node_allowed_softwall() comment in kernel/cpuset.c.
+@@ -1959,9 +1978,12 @@ zonelist_scan:
+ 		 */
+ 		if (alloc_flags & ALLOC_FAIR) {
+ 			if (!zone_local(preferred_zone, zone))
++				break;
++
++			if (zone_is_fair_depleted(zone)) {
++				nr_fair_skipped++;
+ 				continue;
+-			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
+-				continue;
++			}
  		}
-diff -puN mm/vmstat.c~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines mm/vmstat.c
---- a/mm/vmstat.c~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines
-+++ a/mm/vmstat.c
-@@ -1077,10 +1077,10 @@ static void zoneinfo_show_print(struct s
- 				zone_page_state(zone, i));
+ 		/*
+ 		 * When allocating a page cache page for writing, we
+@@ -2067,13 +2089,7 @@ this_zone_full:
+ 			zlc_mark_zone_full(zonelist, z);
+ 	}
  
- 	seq_printf(m,
--		   "\n        protection: (%lu",
-+		   "\n        protection: (%u",
- 		   zone->lowmem_reserve[0]);
- 	for (i = 1; i < ARRAY_SIZE(zone->lowmem_reserve); i++)
--		seq_printf(m, ", %lu", zone->lowmem_reserve[i]);
-+		seq_printf(m, ", %u", zone->lowmem_reserve[i]);
- 	seq_printf(m,
- 		   ")"
- 		   "\n  pagesets");
+-	if (unlikely(IS_ENABLED(CONFIG_NUMA) && page == NULL && zlc_active)) {
+-		/* Disable zlc cache for second zonelist scan */
+-		zlc_active = 0;
+-		goto zonelist_scan;
+-	}
+-
+-	if (page)
++	if (page) {
+ 		/*
+ 		 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was
+ 		 * necessary to allocate the page. The expectation is
+@@ -2082,8 +2098,37 @@ this_zone_full:
+ 		 * for !PFMEMALLOC purposes.
+ 		 */
+ 		page->pfmemalloc = !!(alloc_flags & ALLOC_NO_WATERMARKS);
++		return page;
++	}
+ 
+-	return page;
++	/*
++	 * The first pass makes sure allocations are spread fairly within the
++	 * local node.  However, the local node might have free pages left
++	 * after the fairness batches are exhausted, and remote zones haven't
++	 * even been considered yet.  Try once more without fairness, and
++	 * include remote zones now, before entering the slowpath and waking
++	 * kswapd: prefer spilling to a remote zone over swapping locally.
++	 */
++	if (alloc_flags & ALLOC_FAIR) {
++		alloc_flags &= ~ALLOC_FAIR;
++		if (nr_fair_skipped) {
++			zonelist_rescan = true;
++			reset_alloc_batches(preferred_zone);
++		}
++		if (nr_online_nodes > 1)
++			zonelist_rescan = true;
++	}
++
++	if (unlikely(IS_ENABLED(CONFIG_NUMA) && zlc_active)) {
++		/* Disable zlc cache for second zonelist scan */
++		zlc_active = 0;
++		zonelist_rescan = true;
++	}
++
++	if (zonelist_rescan)
++		goto zonelist_scan;
++
++	return NULL;
+ }
+ 
+ /*
+@@ -2404,28 +2449,6 @@ __alloc_pages_high_priority(gfp_t gfp_ma
+ 	return page;
+ }
+ 
+-static void reset_alloc_batches(struct zonelist *zonelist,
+-				enum zone_type high_zoneidx,
+-				struct zone *preferred_zone)
+-{
+-	struct zoneref *z;
+-	struct zone *zone;
+-
+-	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
+-		/*
+-		 * Only reset the batches of zones that were actually
+-		 * considered in the fairness pass, we don't want to
+-		 * trash fairness information for zones that are not
+-		 * actually part of this zonelist's round-robin cycle.
+-		 */
+-		if (!zone_local(preferred_zone, zone))
+-			continue;
+-		mod_zone_page_state(zone, NR_ALLOC_BATCH,
+-			high_wmark_pages(zone) - low_wmark_pages(zone) -
+-			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
+-	}
+-}
+-
+ static void wake_all_kswapds(unsigned int order,
+ 			     struct zonelist *zonelist,
+ 			     enum zone_type high_zoneidx,
+@@ -2723,6 +2746,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+ 	struct zone *preferred_zone;
+ 	struct zoneref *preferred_zoneref;
++	struct zoneref *second_zoneref;
+ 	struct page *page = NULL;
+ 	int migratetype = allocflags_to_migratetype(gfp_mask);
+ 	unsigned int cpuset_mems_cookie;
+@@ -2757,33 +2781,24 @@ retry_cpuset:
+ 		goto out;
+ 	classzone_idx = zonelist_zone_idx(preferred_zoneref);
+ 
++	/*
++	 * Only apply the fair zone allocation policy if there is more than
++	 * one local eligible zone
++	 */
++	second_zoneref = preferred_zoneref + 1;
++	if (zonelist_zone(second_zoneref) &&
++	    zone_local(preferred_zone, zonelist_zone(second_zoneref)))
++		alloc_flags |= ALLOC_FAIR;
+ #ifdef CONFIG_CMA
+ 	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
+ 		alloc_flags |= ALLOC_CMA;
+ #endif
+-retry:
+ 	/* First allocation attempt */
+ 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
+ 			zonelist, high_zoneidx, alloc_flags,
+ 			preferred_zone, classzone_idx, migratetype);
+ 	if (unlikely(!page)) {
+ 		/*
+-		 * The first pass makes sure allocations are spread
+-		 * fairly within the local node.  However, the local
+-		 * node might have free pages left after the fairness
+-		 * batches are exhausted, and remote zones haven't
+-		 * even been considered yet.  Try once more without
+-		 * fairness, and include remote zones now, before
+-		 * entering the slowpath and waking kswapd: prefer
+-		 * spilling to a remote zone over swapping locally.
+-		 */
+-		if (alloc_flags & ALLOC_FAIR) {
+-			reset_alloc_batches(zonelist, high_zoneidx,
+-					    preferred_zone);
+-			alloc_flags &= ~ALLOC_FAIR;
+-			goto retry;
+-		}
+-		/*
+ 		 * Runtime PM, block IO and its error handling path
+ 		 * can deadlock because I/O on the device might not
+ 		 * complete.
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
