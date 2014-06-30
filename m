@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch added to -mm tree
-Date: Mon, 30 Jun 2014 13:20:38 -0700
-Message-ID: <53b1c696.cneal+KJMu4eAwuP%akpm@linux-foundation.org>
+Subject: + proc-constify-seq_operations.patch added to -mm tree
+Date: Mon, 30 Jun 2014 13:57:55 -0700
+Message-ID: <53b1cf53.bttsM0y828NhoxMh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:53342 "EHLO
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:35941 "EHLO
 	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750815AbaF3U2K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 16:28:10 -0400
-Received: by mail-qc0-f201.google.com with SMTP id c9so869345qcz.4
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 13:28:09 -0700 (PDT)
+	with ESMTP id S1752202AbaF3U54 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 16:57:56 -0400
+Received: by mail-qc0-f201.google.com with SMTP id c9so875976qcz.2
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 13:57:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aeb@debian.org, jack@suse.cz, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/printk/printk.c: revert "printk: enable interrupts before calling console_trylock_for_printk()"
+     Subject: proc: constify seq_operations
 has been added to the -mm tree.  Its filename is
-     kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+     proc-constify-seq_operations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-constify-seq_operations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-constify-seq_operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,155 +40,141 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/printk/printk.c: revert "printk: enable interrupts before calling console_trylock_for_printk()"
+From: Fabian Frederick <fabf@skynet.be>
+Subject: proc: constify seq_operations
 
-Revert 939f04bec1a4 ("printk: enable interrupts before calling
-console_trylock_for_printk()").
+proc_uid_seq_operations, proc_gid_seq_operations and
+proc_projid_seq_operations are only called in proc_id_map_open with
+seq_open as const struct seq_operations so we can constify the 3
+structures and update proc_id_map_open prototype.
 
-Andreas reported:
+   text    data     bss     dec     hex filename
+   6817     404    1984    9205    23f5 kernel/user_namespace.o-before
+   6913     308    1984    9205    23f5 kernel/user_namespace.o-after
 
-: None of the post 3.15 kernel boot for me. They all hang at the GRUB
-: screen telling me it loaded and started the kernel, but the kernel
-: itself stops before it prints anything (or even replaces the GRUB
-: background graphics).
-
-939f04bec1a4 is modest latency reduction.  Revert it until we understand
-the reason for these failures.
-
-Reported-by: Andreas Bombe <aeb@debian.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   44 +++++++++++++++------------------------
- 1 file changed, 18 insertions(+), 26 deletions(-)
+ fs/proc/base.c                 |    2 +-
+ include/linux/user_namespace.h |    6 +++---
+ kernel/user_namespace.c        |    6 +++---
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/printk/printk.c~kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk kernel/printk/printk.c
---- a/kernel/printk/printk.c~kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk
-+++ a/kernel/printk/printk.c
-@@ -1416,9 +1416,10 @@ static int have_callable_console(void)
- /*
-  * Can we actually use the console at this time on this cpu?
-  *
-- * Console drivers may assume that per-cpu resources have been allocated. So
-- * unless they're explicitly marked as being able to cope (CON_ANYTIME) don't
-- * call them until this CPU is officially up.
-+ * Console drivers may assume that per-cpu resources have
-+ * been allocated. So unless they're explicitly marked as
-+ * being able to cope (CON_ANYTIME) don't call them until
-+ * this CPU is officially up.
-  */
- static inline int can_use_console(unsigned int cpu)
+diff -puN fs/proc/base.c~proc-constify-seq_operations fs/proc/base.c
+--- a/fs/proc/base.c~proc-constify-seq_operations
++++ a/fs/proc/base.c
+@@ -2449,7 +2449,7 @@ static int proc_tgid_io_accounting(struc
+ 
+ #ifdef CONFIG_USER_NS
+ static int proc_id_map_open(struct inode *inode, struct file *file,
+-	struct seq_operations *seq_ops)
++	const struct seq_operations *seq_ops)
  {
-@@ -1431,10 +1432,8 @@ static inline int can_use_console(unsign
-  * console_lock held, and 'console_locked' set) if it
-  * is successful, false otherwise.
-  */
--static int console_trylock_for_printk(void)
-+static int console_trylock_for_printk(unsigned int cpu)
- {
--	unsigned int cpu = smp_processor_id();
--
- 	if (!console_trylock())
- 		return 0;
- 	/*
-@@ -1609,8 +1608,7 @@ asmlinkage int vprintk_emit(int facility
- 		 */
- 		if (!oops_in_progress && !lockdep_recursing(current)) {
- 			recursion_bug = 1;
--			local_irq_restore(flags);
--			return 0;
-+			goto out_restore_irqs;
- 		}
- 		zap_locks();
- 	}
-@@ -1718,27 +1716,21 @@ asmlinkage int vprintk_emit(int facility
- 
- 	logbuf_cpu = UINT_MAX;
- 	raw_spin_unlock(&logbuf_lock);
--	lockdep_on();
--	local_irq_restore(flags);
- 
- 	/* If called from the scheduler, we can not call up(). */
--	if (in_sched)
--		return printed_len;
--
--	/*
--	 * Disable preemption to avoid being preempted while holding
--	 * console_sem which would prevent anyone from printing to console
--	 */
--	preempt_disable();
--	/*
--	 * Try to acquire and then immediately release the console semaphore.
--	 * The release will print out buffers and wake up /dev/kmsg and syslog()
--	 * users.
--	 */
--	if (console_trylock_for_printk())
--		console_unlock();
--	preempt_enable();
-+	if (!in_sched) {
-+		/*
-+		 * Try to acquire and then immediately release the console
-+		 * semaphore.  The release will print out buffers and wake up
-+		 * /dev/kmsg and syslog() users.
-+		 */
-+		if (console_trylock_for_printk(this_cpu))
-+			console_unlock();
-+	}
- 
-+	lockdep_on();
-+out_restore_irqs:
-+	local_irq_restore(flags);
- 	return printed_len;
+ 	struct user_namespace *ns = NULL;
+ 	struct task_struct *task;
+diff -puN include/linux/user_namespace.h~proc-constify-seq_operations include/linux/user_namespace.h
+--- a/include/linux/user_namespace.h~proc-constify-seq_operations
++++ a/include/linux/user_namespace.h
+@@ -57,9 +57,9 @@ static inline void put_user_ns(struct us
  }
- EXPORT_SYMBOL(vprintk_emit);
+ 
+ struct seq_operations;
+-extern struct seq_operations proc_uid_seq_operations;
+-extern struct seq_operations proc_gid_seq_operations;
+-extern struct seq_operations proc_projid_seq_operations;
++extern const struct seq_operations proc_uid_seq_operations;
++extern const struct seq_operations proc_gid_seq_operations;
++extern const struct seq_operations proc_projid_seq_operations;
+ extern ssize_t proc_uid_map_write(struct file *, const char __user *, size_t, loff_t *);
+ extern ssize_t proc_gid_map_write(struct file *, const char __user *, size_t, loff_t *);
+ extern ssize_t proc_projid_map_write(struct file *, const char __user *, size_t, loff_t *);
+diff -puN kernel/user_namespace.c~proc-constify-seq_operations kernel/user_namespace.c
+--- a/kernel/user_namespace.c~proc-constify-seq_operations
++++ a/kernel/user_namespace.c
+@@ -526,21 +526,21 @@ static void m_stop(struct seq_file *seq,
+ 	return;
+ }
+ 
+-struct seq_operations proc_uid_seq_operations = {
++const struct seq_operations proc_uid_seq_operations = {
+ 	.start = uid_m_start,
+ 	.stop = m_stop,
+ 	.next = m_next,
+ 	.show = uid_m_show,
+ };
+ 
+-struct seq_operations proc_gid_seq_operations = {
++const struct seq_operations proc_gid_seq_operations = {
+ 	.start = gid_m_start,
+ 	.stop = m_stop,
+ 	.next = m_next,
+ 	.show = gid_m_show,
+ };
+ 
+-struct seq_operations proc_projid_seq_operations = {
++const struct seq_operations proc_projid_seq_operations = {
+ 	.start = projid_m_start,
+ 	.stop = m_stop,
+ 	.next = m_next,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
-x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes.patch
+kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-posix-timersc-code-clean-up.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-squashfs-superc-logging-clean-up.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+mm-slabc-add-__init-to-init_lock_keys.patch
+mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
+mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
 mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc-fix.patch
-mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
+include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
+mm-internalh-use-nth_page.patch
+mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
+lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
+fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-test_kprobesc-use-current-logging-functions.patch
+fs-isofs-logging-clean-up.patch
 fs-isofs-logging-clean-up-fix.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-panic-add-taint_softlockup-fix.patch
+fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+fs-ufs-convert-printk-to-pr_foo.patch
+fs-ufs-use-pr_fmt.patch
+fs-ufs-superc-use-__func__-in-logging.patch
+fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
+fs-ufs-convert-ufsd-printk-to-pr_debug.patch
+fs-reiserfs-replace-not-standard-%lu-%ld.patch
+fs-reiserfs-use-linux-uaccessh.patch
+fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+proc-constify-seq_operations.patch
+fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
+fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
+drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
+fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-romfs-superc-convert-printk-to-pr_foo.patch
+fs-romfs-superc-use-pr_fmt-in-logging.patch
+fs-romfs-superc-add-blank-line-after-declarations.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-drivers-staging-emxx_udc-emxx_udcc-replace-strict_strto-with-kstrto.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+init-mainc-code-clean-up.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
