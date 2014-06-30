@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmscan-do-not-reclaim-from-lower-zones-if-they-are-balanced.patch added
- to -mm tree
-Date: Mon, 30 Jun 2014 14:14:20 -0700
-Message-ID: <53b1d32c.N8t+CMkUgkNC525a%akpm@linux-foundation.org>
+Subject: + shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch
+ added to -mm tree
+Date: Mon, 30 Jun 2014 14:19:35 -0700
+Message-ID: <53b1d467.dPndB4FHsK0v3LuF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:40631 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752064AbaF3VOV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 17:14:21 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so1432516pab.3
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 14:14:21 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:42316 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751264AbaF3VTh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 17:19:37 -0400
+Received: by mail-qa0-f73.google.com with SMTP id m5so880682qaj.0
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 14:19:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: hughd@google.com, dave.hansen@intel.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, prabhakar.csengg@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: do not reclaim from lower zones if they are balanced
+     Subject: shmem: fix init_page_accessed use to stop !PageLRU bug
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-do-not-reclaim-from-lower-zones-if-they-are-balanced.patch
+     shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-do-not-reclaim-from-lower-zones-if-they-are-balanced.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-do-not-reclaim-from-lower-zones-if-they-are-balanced.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,268 +41,124 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmscan: do not reclaim from lower zones if they are balanced
+From: Hugh Dickins <hughd@google.com>
+Subject: shmem: fix init_page_accessed use to stop !PageLRU bug
 
-Historically kswapd scanned from DMA->Movable in the opposite direction to
-the page allocator to avoid allocating behind kswapd direction of
-progress.  The fair zone allocation policy altered this in a non-obvious
-manner.
+Under shmem swapping load, I sometimes hit the VM_BUG_ON_PAGE(!PageLRU) in
+isolate_lru_pages() at mm/vmscan.c:1281!
 
-Traditionally, the page allocator prefers to use the highest eligible
-zones in order until the low watermarks are reached and then wakes kswapd.
- Once kswapd is awake, it scans zones in the opposite direction so the
-scanning lists on 64-bit look like this;
+Commit 2457aec63745 ("mm: non-atomically mark page accessed during page
+cache allocation where possible") looks like interrupted work-in-progress.
 
-Page alloc		Kswapd
-----------              ------
-Movable			DMA
-Normal			DMA32
-DMA32			Normal
-DMA			Movable
+mm/filemap.c's call to init_page_accessed() is fine, but not mm/shmem.c's
+- shmem_write_begin() is clearly wrong to use it after shmem_getpage(),
+when the page is always visible in radix_tree, and often already on LRU.
 
-If kswapd scanned in the same direction as the page allocator then it is
-possible that kswapd would proportionally reclaim the lower zones that
-were never used as the page allocator was always allocating behind the
-reclaim.  This would work as follows
+Revert change to shmem_write_begin(), and use init_page_accessed() or
+mark_page_accessed() appropriately for SGP_WRITE in shmem_getpage_gfp().
 
-	pgalloc hits Normal low wmark
-					kswapd reclaims Normal
-					kswapd reclaims DMA32
-	pgalloc hits Normal low wmark
-					kswapd reclaims Normal
-					kswapd reclaims DMA32
+SGP_WRITE also covers shmem_symlink(), which did not mark_page_accessed()
+before; but since many other filesystems use [__]page_symlink(), which did
+and does mark the page accessed, consider this as rectifying an oversight.
 
-The introduction of the fair zone allocation policy fundamentally altered
-this problem by interleaving between zones until the low watermark is
-reached.  There are at least two issues with this
-
-o The page allocator can allocate behind kswapds progress
-  (scans/reclaims lower zone and fair zone allocation policy then uses
-  those pages)
-
-o When the low watermark of the high zone is reached there may recently
-  allocated pages allocated from the lower zone but as kswapd scans
-  dma->highmem to the highest zone needing balancing it'll reclaim the
-  lower zone even if it was balanced.
-
-Let N = high_wmark(Normal) + high_wmark(DMA32).  Of the last N
-allocations, some percentage will be allocated from Normal and some from
-DMA32.  The percentage depends on the ratio of the zone sizes and when
-their watermarks were hit.  If Normal is unbalanced, DMA32 will be shrunk
-by kswapd.  If DMA32 is unbalanced only DMA32 will be shrunk.  This leads
-to a difference of ages between DMA32 and Normal.  Relatively young pages
-are then continually rotated and reclaimed from DMA32 due to the higher
-zone being unbalanced.  Some of these pages may be recently read-ahead
-pages requiring that the page be re-read from disk and impacting overall
-performance.
-
-The problem is fundamental to the fact we have per-zone LRU and allocation
-policies and ideally we would only have per-node allocation and LRU lists.
- This would avoid the need for the fair zone allocation policy but the
-low-memory-starvation issue would have to be addressed again from scratch.
-
-kswapd shrinks equally from all zones up to the high watermark plus a
-balance gap and the lowmem reserves.  This patch removes the additional
-reclaim from lower zones on the grounds that the fair zone allocation
-policy will typically be interleaving between the zones.  This should not
-break the normal page aging as the proportional allocations due to the
-fair zone allocation policy should compensate.
-
-tiobench was used to evaluate this because it includes a simple sequential
-reader which is the most obvious regression.  It also has threaded readers
-that produce reasonably steady figures.
-
-                                      3.16.0-rc2                 3.0.0            3.16.0-rc2
-                                         vanilla               vanilla           checklow-v4
-Min    SeqRead-MB/sec-1         120.92 (  0.00%)      133.65 ( 10.53%)      140.64 ( 16.31%)
-Min    SeqRead-MB/sec-2         100.25 (  0.00%)      121.74 ( 21.44%)      117.67 ( 17.38%)
-Min    SeqRead-MB/sec-4          96.27 (  0.00%)      113.48 ( 17.88%)      107.56 ( 11.73%)
-Min    SeqRead-MB/sec-8          83.55 (  0.00%)       97.87 ( 17.14%)       88.08 (  5.42%)
-Min    SeqRead-MB/sec-16         66.77 (  0.00%)       82.59 ( 23.69%)       71.04 (  6.40%)
-
-There are still regressions for higher number of threads but this is
-related to changes in the CFQ IO scheduler.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    9 --------
- mm/vmscan.c          |   46 ++++++++++++++---------------------------
- 2 files changed, 16 insertions(+), 39 deletions(-)
+ mm/shmem.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/swap.h~mm-vmscan-do-not-reclaim-from-lower-zones-if-they-are-balanced include/linux/swap.h
---- a/include/linux/swap.h~mm-vmscan-do-not-reclaim-from-lower-zones-if-they-are-balanced
-+++ a/include/linux/swap.h
-@@ -165,15 +165,6 @@ enum {
- #define SWAP_CLUSTER_MAX 32UL
- #define COMPACT_CLUSTER_MAX SWAP_CLUSTER_MAX
+diff -puN mm/shmem.c~shmem-fix-init_page_accessed-use-to-stop-pagelru-bug mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-init_page_accessed-use-to-stop-pagelru-bug
++++ a/mm/shmem.c
+@@ -1029,6 +1029,9 @@ repeat:
+ 		goto failed;
+ 	}
  
--/*
-- * Ratio between zone->managed_pages and the "gap" that above the per-zone
-- * "high_wmark". While balancing nodes, We allow kswapd to shrink zones that
-- * do not meet the (high_wmark + gap) watermark, even which already met the
-- * high_wmark, in order to provide better per-zone lru behavior. We are ok to
-- * spend not more than 1% of the memory for this zone balancing "gap".
-- */
--#define KSWAPD_ZONE_BALANCE_GAP_RATIO 100
--
- #define SWAP_MAP_MAX	0x3e	/* Max duplication count, in first swap_map */
- #define SWAP_MAP_BAD	0x3f	/* Note pageblock is bad, in first swap_map */
- #define SWAP_HAS_CACHE	0x40	/* Flag page is cached, in first swap_map */
-diff -puN mm/vmscan.c~mm-vmscan-do-not-reclaim-from-lower-zones-if-they-are-balanced mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-reclaim-from-lower-zones-if-they-are-balanced
-+++ a/mm/vmscan.c
-@@ -2307,7 +2307,7 @@ static unsigned long shrink_zone(struct
- /* Returns true if compaction should go ahead for a high-order request */
- static inline bool compaction_ready(struct zone *zone, int order)
++	if (page && sgp == SGP_WRITE)
++		mark_page_accessed(page);
++
+ 	/* fallocated page? */
+ 	if (page && !PageUptodate(page)) {
+ 		if (sgp != SGP_READ)
+@@ -1110,6 +1113,9 @@ repeat:
+ 		shmem_recalc_inode(inode);
+ 		spin_unlock(&info->lock);
+ 
++		if (sgp == SGP_WRITE)
++			mark_page_accessed(page);
++
+ 		delete_from_swap_cache(page);
+ 		set_page_dirty(page);
+ 		swap_free(swap);
+@@ -1136,6 +1142,9 @@ repeat:
+ 
+ 		__SetPageSwapBacked(page);
+ 		__set_page_locked(page);
++		if (sgp == SGP_WRITE)
++			init_page_accessed(page);
++
+ 		error = mem_cgroup_charge_file(page, current->mm,
+ 						gfp & GFP_RECLAIM_MASK);
+ 		if (error)
+@@ -1412,13 +1421,9 @@ shmem_write_begin(struct file *file, str
+ 			loff_t pos, unsigned len, unsigned flags,
+ 			struct page **pagep, void **fsdata)
  {
--	unsigned long balance_gap, watermark;
-+	unsigned long watermark;
- 	bool watermark_ok;
- 
- 	/*
-@@ -2316,9 +2316,7 @@ static inline bool compaction_ready(stru
- 	 * there is a buffer of free pages available to give compaction
- 	 * a reasonable chance of completing and allocating the page
- 	 */
--	balance_gap = min(low_wmark_pages(zone), DIV_ROUND_UP(
--			zone->managed_pages, KSWAPD_ZONE_BALANCE_GAP_RATIO));
--	watermark = high_wmark_pages(zone) + balance_gap + (2UL << order);
-+	watermark = high_wmark_pages(zone) + (2UL << order);
- 	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, 0, 0);
- 
- 	/*
-@@ -2806,11 +2804,9 @@ static void age_active_anon(struct zone
- 	} while (memcg);
+-	int ret;
+ 	struct inode *inode = mapping->host;
+ 	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
+-	ret = shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
+-	if (ret == 0 && *pagep)
+-		init_page_accessed(*pagep);
+-	return ret;
++	return shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
  }
  
--static bool zone_balanced(struct zone *zone, int order,
--			  unsigned long balance_gap, int classzone_idx)
-+static bool zone_balanced(struct zone *zone, int order)
- {
--	if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone) +
--				    balance_gap, classzone_idx, 0))
-+	if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone), 0, 0))
- 		return false;
- 
- 	if (IS_ENABLED(CONFIG_COMPACTION) && order &&
-@@ -2867,7 +2863,7 @@ static bool pgdat_balanced(pg_data_t *pg
- 			continue;
- 		}
- 
--		if (zone_balanced(zone, order, 0, i))
-+		if (zone_balanced(zone, order))
- 			balanced_pages += zone->managed_pages;
- 		else if (!order)
- 			return false;
-@@ -2924,7 +2920,6 @@ static bool kswapd_shrink_zone(struct zo
- 			       unsigned long *nr_attempted)
- {
- 	int testorder = sc->order;
--	unsigned long balance_gap;
- 	struct reclaim_state *reclaim_state = current->reclaim_state;
- 	struct shrink_control shrink = {
- 		.gfp_mask = sc->gfp_mask,
-@@ -2946,21 +2941,11 @@ static bool kswapd_shrink_zone(struct zo
- 		testorder = 0;
- 
- 	/*
--	 * We put equal pressure on every zone, unless one zone has way too
--	 * many pages free already. The "too many pages" is defined as the
--	 * high wmark plus a "gap" where the gap is either the low
--	 * watermark or 1% of the zone, whichever is smaller.
--	 */
--	balance_gap = min(low_wmark_pages(zone), DIV_ROUND_UP(
--			zone->managed_pages, KSWAPD_ZONE_BALANCE_GAP_RATIO));
--
--	/*
- 	 * If there is no low memory pressure or the zone is balanced then no
- 	 * reclaim is necessary
- 	 */
- 	lowmem_pressure = (buffer_heads_over_limit && is_highmem(zone));
--	if (!lowmem_pressure && zone_balanced(zone, testorder,
--						balance_gap, classzone_idx))
-+	if (!lowmem_pressure && zone_balanced(zone, testorder))
- 		return true;
- 
- 	shrink_zone(zone, sc);
-@@ -2983,7 +2968,7 @@ static bool kswapd_shrink_zone(struct zo
- 	 * waits.
- 	 */
- 	if (zone_reclaimable(zone) &&
--	    zone_balanced(zone, testorder, 0, classzone_idx)) {
-+	    zone_balanced(zone, testorder)) {
- 		zone_clear_flag(zone, ZONE_CONGESTED);
- 		zone_clear_flag(zone, ZONE_TAIL_LRU_DIRTY);
- 	}
-@@ -3069,7 +3054,7 @@ static unsigned long balance_pgdat(pg_da
- 				break;
- 			}
- 
--			if (!zone_balanced(zone, order, 0, 0)) {
-+			if (!zone_balanced(zone, order)) {
- 				end_zone = i;
- 				break;
- 			} else {
-@@ -3114,12 +3099,13 @@ static unsigned long balance_pgdat(pg_da
- 
- 		/*
- 		 * Now scan the zone in the dma->highmem direction, stopping
--		 * at the last zone which needs scanning.
--		 *
--		 * We do this because the page allocator works in the opposite
--		 * direction.  This prevents the page allocator from allocating
--		 * pages behind kswapd's direction of progress, which would
--		 * cause too much scanning of the lower zones.
-+		 * at the last zone which needs scanning. We do this because
-+		 * the page allocators prefers to work in the opposite
-+		 * direction and we want to avoid the page allocator reclaiming
-+		 * behind kswapd's direction of progress. Due to the fair zone
-+		 * allocation policy interleaving allocations between zones
-+		 * we no longer proportionally scan the lower zones if the
-+		 * watermarks are ok.
- 		 */
- 		for (i = 0; i <= end_zone; i++) {
- 			struct zone *zone = pgdat->node_zones + i;
-@@ -3387,7 +3373,7 @@ void wakeup_kswapd(struct zone *zone, in
- 	}
- 	if (!waitqueue_active(&pgdat->kswapd_wait))
- 		return;
--	if (zone_balanced(zone, order, 0, 0))
-+	if (zone_balanced(zone, order))
- 		return;
- 
- 	trace_mm_vmscan_wakeup_kswapd(pgdat->node_id, zone_idx(zone), order);
+ static int
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-page_alloc-fix-cma-area-initialisation-when-pageblock-max_order.patch
-mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
-mm-thp-move-invariant-bug-check-out-of-loop-in-__split_huge_page_map.patch
-mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic.patch
-mem-hotplug-improve-zone_movable_is_highmem-logic.patch
-mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
-mm-vmscan-remove-all_unreclaimable.patch
-mm-vmscan-move-swappiness-out-of-scan_control.patch
-tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch
+shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch
+mm-replace-init_page_accessed-by-__setpagereferenced.patch
+mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
+include-linux-mmdebugh-add-vm_warn_once.patch
+shmem-fix-double-uncharge-in-__shmem_file_setup.patch
+shmem-update-memory-reservation-on-truncate.patch
+mm-catch-memory-commitment-underflow.patch
+mm-catch-memory-commitment-underflow-fix.patch
 mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
-mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
-mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
-mm-vmscan-do-not-reclaim-from-lower-zones-if-they-are-balanced.patch
-mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
 mm-zbud-zbud_alloc-minor-param-change.patch
 mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
 mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
 mm-zpool-zbud-zsmalloc-implement-zpool.patch
 mm-zpool-update-zswap-to-use-zpool.patch
 mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-linux-next.patch
+list-use-argument-hlist_add_after-names-from-rcu-variant.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
+klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
