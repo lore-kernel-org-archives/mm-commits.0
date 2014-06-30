@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + proc-constify-seq_operations.patch added to -mm tree
-Date: Mon, 30 Jun 2014 13:57:55 -0700
-Message-ID: <53b1cf53.bttsM0y828NhoxMh%akpm@linux-foundation.org>
+Subject: +
+ mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch added to -mm tree
+Date: Mon, 30 Jun 2014 14:14:16 -0700
+Message-ID: <53b1d328.7fyBKT4e5BI4TrDP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:35941 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752202AbaF3U54 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 16:57:56 -0400
-Received: by mail-qc0-f201.google.com with SMTP id c9so875976qcz.2
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 13:57:55 -0700 (PDT)
+Received: from mail-yk0-f201.google.com ([209.85.160.201]:57806 "EHLO
+	mail-yk0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752064AbaF3VOS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 17:14:18 -0400
+Received: by mail-yk0-f201.google.com with SMTP id 9so293446ykp.2
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 14:14:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, joe@perches.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: constify seq_operations
+     Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
 has been added to the -mm tree.  Its filename is
-     proc-constify-seq_operations.patch
+     mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-constify-seq_operations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-constify-seq_operations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,141 +41,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: proc: constify seq_operations
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
 
-proc_uid_seq_operations, proc_gid_seq_operations and
-proc_projid_seq_operations are only called in proc_id_map_open with
-seq_open as const struct seq_operations so we can constify the 3
-structures and update proc_id_map_open prototype.
+IO performance since 3.0 has been a mixed bag.  In many respects we are
+better and in some we are worse and one of those places is sequential read
+throughput.  This is visible in a number of benchmarks but I looked at
+tiobench the closest.  This is using ext3 on a mid-range desktop and the
+series applied.
 
-   text    data     bss     dec     hex filename
-   6817     404    1984    9205    23f5 kernel/user_namespace.o-before
-   6913     308    1984    9205    23f5 kernel/user_namespace.o-after
+                                      3.16.0-rc2                 3.0.0            3.16.0-rc2
+                                         vanilla               vanilla         fairzone-v4r5
+Min    SeqRead-MB/sec-1         120.92 (  0.00%)      133.65 ( 10.53%)      140.68 ( 16.34%)
+Min    SeqRead-MB/sec-2         100.25 (  0.00%)      121.74 ( 21.44%)      118.13 ( 17.84%)
+Min    SeqRead-MB/sec-4          96.27 (  0.00%)      113.48 ( 17.88%)      109.84 ( 14.10%)
+Min    SeqRead-MB/sec-8          83.55 (  0.00%)       97.87 ( 17.14%)       89.62 (  7.27%)
+Min    SeqRead-MB/sec-16         66.77 (  0.00%)       82.59 ( 23.69%)       70.49 (  5.57%)
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Joe Perches <joe@perches.com>
+Overall system CPU usage is reduced
+
+          3.16.0-rc2       3.0.0  3.16.0-rc2
+             vanilla     vanilla fairzone-v4
+User          390.13      251.45      396.13
+System        404.41      295.13      389.61
+Elapsed      5412.45     5072.42     5163.49
+
+This series does not fully restore throughput performance to 3.0 levels
+but it brings it close for lower thread counts.  Higher thread counts are
+known to be worse than 3.0 due to CFQ changes but there is no appetite for
+changing the defaults there.
+
+
+
+This patch (of 4):
+
+The LRU insertion and activate tracepoints take PFN as a parameter forcing
+the overhead to the caller.  Move the overhead to the tracepoint
+fast-assign method to ensure the cost is only incurred when the tracepoint
+is active.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c                 |    2 +-
- include/linux/user_namespace.h |    6 +++---
- kernel/user_namespace.c        |    6 +++---
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ include/trace/events/pagemap.h |   16 +++++++---------
+ mm/swap.c                      |    4 ++--
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN fs/proc/base.c~proc-constify-seq_operations fs/proc/base.c
---- a/fs/proc/base.c~proc-constify-seq_operations
-+++ a/fs/proc/base.c
-@@ -2449,7 +2449,7 @@ static int proc_tgid_io_accounting(struc
+diff -puN include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated include/trace/events/pagemap.h
+--- a/include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
++++ a/include/trace/events/pagemap.h
+@@ -28,12 +28,10 @@ TRACE_EVENT(mm_lru_insertion,
  
- #ifdef CONFIG_USER_NS
- static int proc_id_map_open(struct inode *inode, struct file *file,
--	struct seq_operations *seq_ops)
-+	const struct seq_operations *seq_ops)
- {
- 	struct user_namespace *ns = NULL;
- 	struct task_struct *task;
-diff -puN include/linux/user_namespace.h~proc-constify-seq_operations include/linux/user_namespace.h
---- a/include/linux/user_namespace.h~proc-constify-seq_operations
-+++ a/include/linux/user_namespace.h
-@@ -57,9 +57,9 @@ static inline void put_user_ns(struct us
+ 	TP_PROTO(
+ 		struct page *page,
+-		unsigned long pfn,
+-		int lru,
+-		unsigned long flags
++		int lru
+ 	),
+ 
+-	TP_ARGS(page, pfn, lru, flags),
++	TP_ARGS(page, lru),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(struct page *,	page	)
+@@ -44,9 +42,9 @@ TRACE_EVENT(mm_lru_insertion,
+ 
+ 	TP_fast_assign(
+ 		__entry->page	= page;
+-		__entry->pfn	= pfn;
++		__entry->pfn	= page_to_pfn(page);
+ 		__entry->lru	= lru;
+-		__entry->flags	= flags;
++		__entry->flags	= trace_pagemap_flags(page);
+ 	),
+ 
+ 	/* Flag format is based on page-types.c formatting for pagemap */
+@@ -64,9 +62,9 @@ TRACE_EVENT(mm_lru_insertion,
+ 
+ TRACE_EVENT(mm_lru_activate,
+ 
+-	TP_PROTO(struct page *page, unsigned long pfn),
++	TP_PROTO(struct page *page),
+ 
+-	TP_ARGS(page, pfn),
++	TP_ARGS(page),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(struct page *,	page	)
+@@ -75,7 +73,7 @@ TRACE_EVENT(mm_lru_activate,
+ 
+ 	TP_fast_assign(
+ 		__entry->page	= page;
+-		__entry->pfn	= pfn;
++		__entry->pfn	= page_to_pfn(page);
+ 	),
+ 
+ 	/* Flag format is based on page-types.c formatting for pagemap */
+diff -puN mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated mm/swap.c
+--- a/mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
++++ a/mm/swap.c
+@@ -502,7 +502,7 @@ static void __activate_page(struct page
+ 		SetPageActive(page);
+ 		lru += LRU_ACTIVE;
+ 		add_page_to_lru_list(page, lruvec, lru);
+-		trace_mm_lru_activate(page, page_to_pfn(page));
++		trace_mm_lru_activate(page);
+ 
+ 		__count_vm_event(PGACTIVATE);
+ 		update_page_reclaim_stat(lruvec, file, 1);
+@@ -1036,7 +1036,7 @@ static void __pagevec_lru_add_fn(struct
+ 	SetPageLRU(page);
+ 	add_page_to_lru_list(page, lruvec, lru);
+ 	update_page_reclaim_stat(lruvec, file, active);
+-	trace_mm_lru_insertion(page, page_to_pfn(page), lru, trace_pagemap_flags(page));
++	trace_mm_lru_insertion(page, lru);
  }
  
- struct seq_operations;
--extern struct seq_operations proc_uid_seq_operations;
--extern struct seq_operations proc_gid_seq_operations;
--extern struct seq_operations proc_projid_seq_operations;
-+extern const struct seq_operations proc_uid_seq_operations;
-+extern const struct seq_operations proc_gid_seq_operations;
-+extern const struct seq_operations proc_projid_seq_operations;
- extern ssize_t proc_uid_map_write(struct file *, const char __user *, size_t, loff_t *);
- extern ssize_t proc_gid_map_write(struct file *, const char __user *, size_t, loff_t *);
- extern ssize_t proc_projid_map_write(struct file *, const char __user *, size_t, loff_t *);
-diff -puN kernel/user_namespace.c~proc-constify-seq_operations kernel/user_namespace.c
---- a/kernel/user_namespace.c~proc-constify-seq_operations
-+++ a/kernel/user_namespace.c
-@@ -526,21 +526,21 @@ static void m_stop(struct seq_file *seq,
- 	return;
- }
- 
--struct seq_operations proc_uid_seq_operations = {
-+const struct seq_operations proc_uid_seq_operations = {
- 	.start = uid_m_start,
- 	.stop = m_stop,
- 	.next = m_next,
- 	.show = uid_m_show,
- };
- 
--struct seq_operations proc_gid_seq_operations = {
-+const struct seq_operations proc_gid_seq_operations = {
- 	.start = gid_m_start,
- 	.stop = m_stop,
- 	.next = m_next,
- 	.show = gid_m_show,
- };
- 
--struct seq_operations proc_projid_seq_operations = {
-+const struct seq_operations proc_projid_seq_operations = {
- 	.start = projid_m_start,
- 	.stop = m_stop,
- 	.next = m_next,
+ /*
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-squashfs-superc-logging-clean-up.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
-mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
+mm-page_alloc-fix-cma-area-initialisation-when-pageblock-max_order.patch
 mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
-mm-internalh-use-nth_page.patch
-mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
-lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
-fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
-fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-test_kprobesc-use-current-logging-functions.patch
-fs-isofs-logging-clean-up.patch
-fs-isofs-logging-clean-up-fix.patch
-fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
-fs-ufs-convert-printk-to-pr_foo.patch
-fs-ufs-use-pr_fmt.patch
-fs-ufs-superc-use-__func__-in-logging.patch
-fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
-fs-ufs-convert-ufsd-printk-to-pr_debug.patch
-fs-reiserfs-replace-not-standard-%lu-%ld.patch
-fs-reiserfs-use-linux-uaccessh.patch
-fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-proc-constify-seq_operations.patch
-fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
-fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
-fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
-drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
-fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
-fs-cachefiles-bindc-remove-unnecessary-assertions.patch
-fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-romfs-superc-convert-printk-to-pr_foo.patch
-fs-romfs-superc-use-pr_fmt-in-logging.patch
-fs-romfs-superc-add-blank-line-after-declarations.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+mm-thp-move-invariant-bug-check-out-of-loop-in-__split_huge_page_map.patch
+mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic.patch
+mem-hotplug-improve-zone_movable_is_highmem-logic.patch
+mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
+mm-vmscan-remove-all_unreclaimable.patch
+mm-vmscan-move-swappiness-out-of-scan_control.patch
+tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch
+mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
+mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
+mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+mm-vmscan-do-not-reclaim-from-lower-zones-if-they-are-balanced.patch
+mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-zbud-zbud_alloc-minor-param-change.patch
+mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
+mm-zpool-zbud-zsmalloc-implement-zpool.patch
+mm-zpool-update-zswap-to-use-zpool.patch
+mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
-init-mainc-code-clean-up.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
 
