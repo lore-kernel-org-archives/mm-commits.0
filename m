@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch added to -mm tree
-Date: Mon, 30 Jun 2014 16:02:29 -0700
-Message-ID: <53b1ec85.gXuqcutgf2R/O7Fb%akpm@linux-foundation.org>
+Subject: +
+ fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch added to -mm tree
+Date: Mon, 30 Jun 2014 16:19:51 -0700
+Message-ID: <53b1f097.aQYlPIJDn9Znm3ab%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:50002 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754172AbaF3XCa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 19:02:30 -0400
-Received: by mail-ie0-f202.google.com with SMTP id tr6so2041965ieb.3
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 16:02:29 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:62574 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756302AbaF3XTw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 19:19:52 -0400
+Received: by mail-pd0-f201.google.com with SMTP id v10so1470294pde.2
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 16:19:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: joe@perches.com, kronos.it@gmail.com, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: rewrite charge API: fix shmem_unuse
+     Subject: fs.h, drivers/hwmon/asus_atk0110.c: fix DEFINE_SIMPLE_ATTRIBUTE semicolon definition and use
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
+     fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,127 +41,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: memcontrol: rewrite charge API: fix shmem_unuse
+From: Joe Perches <joe@perches.com>
+Subject: fs.h, drivers/hwmon/asus_atk0110.c: fix DEFINE_SIMPLE_ATTRIBUTE semicolon definition and use
 
-Under shmem swapping and swapoff load, I sometimes hit the
-VM_BUG_ON_PAGE(!page->mapping) in mem_cgroup_commit_charge() at
-mm/memcontrol.c:6502!  Each time it has been a call from shmem_unuse().
+The DEFINE_SIMPLE_ATTRIBUTE macro should not end in a ; Fix the one use in
+the kernel tree that did not have a semicolon.
 
-Yes, there are some cases (most commonly when the page being unswapped is
-in a file being unlinked and evicted at that time) when the charge should
-not be committed.  In the old scheme, the page got uncharged again on
-release; but in the new scheme, it hits that BUG beforehand.
-
-It's a useful BUG, so adapt shmem_unuse() to allow for it.  Which needs
-more info from shmem_unuse_inode(): so abuse -EAGAIN internally to replace
-the previous !found state (-ENOENT would be a more natural code, but
-that's exactly what you get when the swap has been evicted).
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Luca Tettamanti <kronos.it@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/hwmon/asus_atk0110.c |    2 +-
+ include/linux/fs.h           |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~mm-memcontrol-rewrite-charge-api-fix-shmem_unuse mm/shmem.c
---- a/mm/shmem.c~mm-memcontrol-rewrite-charge-api-fix-shmem_unuse
-+++ a/mm/shmem.c
-@@ -594,7 +594,7 @@ static int shmem_unuse_inode(struct shme
- 	radswap = swp_to_radix_entry(swap);
- 	index = radix_tree_locate_item(&mapping->page_tree, radswap);
- 	if (index == -1)
--		return 0;
-+		return -EAGAIN;
+diff -puN drivers/hwmon/asus_atk0110.c~fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use drivers/hwmon/asus_atk0110.c
+--- a/drivers/hwmon/asus_atk0110.c~fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use
++++ a/drivers/hwmon/asus_atk0110.c
+@@ -688,7 +688,7 @@ static int atk_debugfs_gitm_get(void *p,
+ DEFINE_SIMPLE_ATTRIBUTE(atk_debugfs_gitm,
+ 			atk_debugfs_gitm_get,
+ 			NULL,
+-			"0x%08llx\n")
++			"0x%08llx\n");
  
- 	/*
- 	 * Move _head_ to start search for next from here.
-@@ -653,7 +653,6 @@ static int shmem_unuse_inode(struct shme
- 			spin_unlock(&info->lock);
- 			swap_free(swap);
- 		}
--		error = 1;	/* not an error, but entry was found */
- 	}
- 	return error;
- }
-@@ -666,7 +665,6 @@ int shmem_unuse(swp_entry_t swap, struct
- 	struct list_head *this, *next;
- 	struct shmem_inode_info *info;
- 	struct mem_cgroup *memcg;
--	int found = 0;
- 	int error = 0;
+ static int atk_acpi_print(char *buf, size_t sz, union acpi_object *obj)
+ {
+diff -puN include/linux/fs.h~fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use include/linux/fs.h
+--- a/include/linux/fs.h~fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use
++++ a/include/linux/fs.h
+@@ -2688,7 +2688,7 @@ static const struct file_operations __fo
+ 	.read	 = simple_attr_read,					\
+ 	.write	 = simple_attr_write,					\
+ 	.llseek	 = generic_file_llseek,					\
+-};
++}
  
- 	/*
-@@ -685,22 +683,24 @@ int shmem_unuse(swp_entry_t swap, struct
- 	if (error)
- 		goto out;
- 	/* No radix_tree_preload: swap entry keeps a place for page in tree */
-+	error = -EAGAIN;
- 
- 	mutex_lock(&shmem_swaplist_mutex);
- 	list_for_each_safe(this, next, &shmem_swaplist) {
- 		info = list_entry(this, struct shmem_inode_info, swaplist);
- 		if (info->swapped)
--			found = shmem_unuse_inode(info, swap, &page);
-+			error = shmem_unuse_inode(info, swap, &page);
- 		else
- 			list_del_init(&info->swaplist);
- 		cond_resched();
--		if (found)
-+		if (error != -EAGAIN)
- 			break;
- 	}
- 	mutex_unlock(&shmem_swaplist_mutex);
- 
--	if (found < 0) {
--		error = found;
-+	if (error) {
-+		if (error != -ENOMEM)
-+			error = 0;
- 		mem_cgroup_cancel_charge(page, memcg);
- 	} else
- 		mem_cgroup_commit_charge(page, memcg, true);
+ static inline __printf(1, 2)
+ void __simple_attr_check_format(const char *fmt, ...)
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch
-mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-rewrite-uncharge-api-fix-5.patch
-mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-shmem-fix-double-uncharge-in-__shmem_file_setup.patch
-shmem-update-memory-reservation-on-truncate.patch
-mm-catch-memory-commitment-underflow.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
-mm-replace-init_page_accessed-by-__setpagereferenced.patch
-mm-zbud-zbud_alloc-minor-param-change.patch
-mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
-mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
-mm-zpool-zbud-zsmalloc-implement-zpool.patch
-mm-zpool-update-zswap-to-use-zpool.patch
-mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
-list-use-argument-hlist_add_after-names-from-rcu-variant.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
-klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+checkpatch-check-git-commit-descriptions.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
+printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
+printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
+printk-tweak-do_syslog-to-match-comments.patch
+mm-utilc-add-kstrimdup.patch
+kernelh-remove-deprecated-pack_hex_byte.patch
+checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
+checkpatch-ignore-email-headers-better.patch
+checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
+checkpatch-add-a-multiple-blank-lines-test.patch
+checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
+checkpatch-quiet-kconfig-help-message-checking.patch
+checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
+checkpatch-allow-multiple-const-types.patch
+fs-isofs-logging-clean-up.patch
+proc-constify-seq_operations.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+linux-next.patch
+pci-dma-compat-add-pci_zalloc_consistent-helper.patch
+atm-use-pci_zalloc_consistent.patch
+block-use-pci_zalloc_consistent.patch
+crypto-use-pci_zalloc_consistent.patch
+infiniband-use-pci_zalloc_consistent.patch
+i810-use-pci_zalloc_consistent.patch
+media-use-pci_zalloc_consistent.patch
+amd-use-pci_zalloc_consistent.patch
+atl1e-use-pci_zalloc_consistent.patch
+enic-use-pci_zalloc_consistent.patch
+sky2-use-pci_zalloc_consistent.patch
+micrel-use-pci_zalloc_consistent.patch
+qlogic-use-pci_zalloc_consistent.patch
+irda-use-pci_zalloc_consistent.patch
+ipw2100-use-pci_zalloc_consistent.patch
+mwl8k-use-pci_zalloc_consistent.patch
+rtl818x-use-pci_zalloc_consistent.patch
+rtlwifi-use-pci_zalloc_consistent.patch
+scsi-use-pci_zalloc_consistent.patch
+staging-use-pci_zalloc_consistent.patch
+synclink_gt-use-pci_zalloc_consistent.patch
+vme-bridges-use-pci_zalloc_consistent.patch
+amd-neaten-and-remove-unnecessary-oom-messages.patch
 
