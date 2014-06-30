@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch added to -mm tree
-Date: Mon, 30 Jun 2014 16:19:51 -0700
-Message-ID: <53b1f097.aQYlPIJDn9Znm3ab%akpm@linux-foundation.org>
+Subject: + maintainers-remove-two-ancient-eata-sections.patch added to -mm tree
+Date: Mon, 30 Jun 2014 16:28:30 -0700
+Message-ID: <53b1f29e.Zv2WTH13LoVIQEXb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:62574 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756302AbaF3XTw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 19:19:52 -0400
-Received: by mail-pd0-f201.google.com with SMTP id v10so1470294pde.2
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 16:19:51 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:39171 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751539AbaF3X2b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 19:28:31 -0400
+Received: by mail-ve0-f201.google.com with SMTP id jz11so903508veb.4
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 16:28:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, kronos.it@gmail.com, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs.h, drivers/hwmon/asus_atk0110.c: fix DEFINE_SIMPLE_ATTRIBUTE semicolon definition and use
+     Subject: MAINTAINERS: remove two ancient EATA sections
 has been added to the -mm tree.  Its filename is
-     fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
+     maintainers-remove-two-ancient-eata-sections.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-two-ancient-eata-sections.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-two-ancient-eata-sections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,45 +41,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: fs.h, drivers/hwmon/asus_atk0110.c: fix DEFINE_SIMPLE_ATTRIBUTE semicolon definition and use
+Subject: MAINTAINERS: remove two ancient EATA sections
 
-The DEFINE_SIMPLE_ATTRIBUTE macro should not end in a ; Fix the one use in
-the kernel tree that did not have a semicolon.
+These haven't had a single ack by the listed maintainer in all git history
+and the email addresses don't work.
+
+An EATA entry for Michael Neuffer is already in CREDITS.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Guenter Roeck <linux@roeck-us.net>
-Acked-by: Luca Tettamanti <kronos.it@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/asus_atk0110.c |    2 +-
- include/linux/fs.h           |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN drivers/hwmon/asus_atk0110.c~fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use drivers/hwmon/asus_atk0110.c
---- a/drivers/hwmon/asus_atk0110.c~fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use
-+++ a/drivers/hwmon/asus_atk0110.c
-@@ -688,7 +688,7 @@ static int atk_debugfs_gitm_get(void *p,
- DEFINE_SIMPLE_ATTRIBUTE(atk_debugfs_gitm,
- 			atk_debugfs_gitm_get,
- 			NULL,
--			"0x%08llx\n")
-+			"0x%08llx\n");
+diff -puN MAINTAINERS~maintainers-remove-two-ancient-eata-sections MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-two-ancient-eata-sections
++++ a/MAINTAINERS
+@@ -3172,26 +3172,12 @@ T:	git git://linuxtv.org/anttip/media_tr
+ S:	Maintained
+ F:	drivers/media/tuners/e4000*
  
- static int atk_acpi_print(char *buf, size_t sz, union acpi_object *obj)
- {
-diff -puN include/linux/fs.h~fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use include/linux/fs.h
---- a/include/linux/fs.h~fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use
-+++ a/include/linux/fs.h
-@@ -2688,7 +2688,7 @@ static const struct file_operations __fo
- 	.read	 = simple_attr_read,					\
- 	.write	 = simple_attr_write,					\
- 	.llseek	 = generic_file_llseek,					\
--};
-+}
+-EATA-DMA SCSI DRIVER
+-M:	Michael Neuffer <mike@i-Connect.Net>
+-L:	linux-eata@i-connect.net
+-L:	linux-scsi@vger.kernel.org
+-S:	Maintained
+-F:	drivers/scsi/eata*
+-
+ EATA ISA/EISA/PCI SCSI DRIVER
+ M:	Dario Ballabio <ballabio_dario@emc.com>
+ L:	linux-scsi@vger.kernel.org
+ S:	Maintained
+ F:	drivers/scsi/eata.c
  
- static inline __printf(1, 2)
- void __simple_attr_check_format(const char *fmt, ...)
+-EATA-PIO SCSI DRIVER
+-M:	Michael Neuffer <mike@i-Connect.Net>
+-L:	linux-eata@i-connect.net
+-L:	linux-scsi@vger.kernel.org
+-S:	Maintained
+-F:	drivers/scsi/eata_pio.*
+-
+ EC100 MEDIA DRIVER
+ M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -93,6 +97,7 @@ printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
 printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
 printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
 printk-tweak-do_syslog-to-match-comments.patch
+maintainers-remove-two-ancient-eata-sections.patch
 mm-utilc-add-kstrimdup.patch
 kernelh-remove-deprecated-pack_hex_byte.patch
 checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
