@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: +
- x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 30 Jun 2014 12:41:24 -0700
-Message-ID: <53b1bd64.JvanQAbtInUFGoIW%akpm@linux-foundation.org>
+ kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch added to -mm tree
+Date: Mon, 30 Jun 2014 13:20:38 -0700
+Message-ID: <53b1c696.cneal+KJMu4eAwuP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:54466 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299AbaF3Tl0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 15:41:26 -0400
-Received: by mail-ie0-f202.google.com with SMTP id tr6so1982207ieb.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 12:41:25 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:53342 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750815AbaF3U2K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jun 2014 16:28:10 -0400
+Received: by mail-qc0-f201.google.com with SMTP id c9so869345qcz.4
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2014 13:28:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, lcapitulino@redhat.com, mingo@elte.hu, riel@redhat.com, rientjes@google.com, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aeb@debian.org, jack@suse.cz, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes
+     Subject: kernel/printk/printk.c: revert "printk: enable interrupts before calling console_trylock_for_printk()"
 has been added to the -mm tree.  Its filename is
-     x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes.patch
+     kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,58 +42,109 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes
+Subject: kernel/printk/printk.c: revert "printk: enable interrupts before calling console_trylock_for_printk()"
 
-WARNING: Prefer [subsystem eg: netdev]_info([subsystem]dev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
-#174: FILE: arch/x86/mm/numa.c:213:
-+	printk(KERN_INFO "NODE_DATA(%d) allocated [mem %#010Lx-%#010Lx]\n", nid,
+Revert 939f04bec1a4 ("printk: enable interrupts before calling
+console_trylock_for_printk()").
 
-WARNING: Prefer [subsystem eg: netdev]_info([subsystem]dev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
-#215: FILE: mm/page_alloc.c:4972:
-+	printk(KERN_INFO "Node %d memory range %#010Lx-%#010Lx\n", nid,
+Andreas reported:
 
-WARNING: line over 80 characters
-#216: FILE: mm/page_alloc.c:4973:
-+			(u64) start_pfn << PAGE_SHIFT, (u64) (end_pfn << PAGE_SHIFT) - 1);
+: None of the post 3.15 kernel boot for me. They all hang at the GRUB
+: screen telling me it loaded and started the kernel, but the kernel
+: itself stops before it prints anything (or even replaces the GRUB
+: background graphics).
 
-total: 0 errors, 3 warnings, 79 lines checked
+939f04bec1a4 is modest latency reduction.  Revert it until we understand
+the reason for these failures.
 
-./patches/x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Reported-by: Andreas Bombe <aeb@debian.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/printk/printk.c |   44 +++++++++++++++------------------------
+ 1 file changed, 18 insertions(+), 26 deletions(-)
 
-diff -puN mm/page_alloc.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes
-+++ a/mm/page_alloc.c
-@@ -4969,8 +4969,8 @@ void __paginginit free_area_init_node(in
- 	pgdat->node_start_pfn = node_start_pfn;
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
--	printk(KERN_INFO "Node %d memory range %#010Lx-%#010Lx\n", nid,
--			(u64) start_pfn << PAGE_SHIFT, (u64) (end_pfn << PAGE_SHIFT) - 1);
-+	pr_info("Node %d memory range %#010Lx-%#010Lx\n", nid,
-+		(u64)start_pfn << PAGE_SHIFT, (u64)(end_pfn << PAGE_SHIFT) - 1);
- #endif
- 	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
- 				  zones_size, zholes_size);
+diff -puN kernel/printk/printk.c~kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk kernel/printk/printk.c
+--- a/kernel/printk/printk.c~kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk
++++ a/kernel/printk/printk.c
+@@ -1416,9 +1416,10 @@ static int have_callable_console(void)
+ /*
+  * Can we actually use the console at this time on this cpu?
+  *
+- * Console drivers may assume that per-cpu resources have been allocated. So
+- * unless they're explicitly marked as being able to cope (CON_ANYTIME) don't
+- * call them until this CPU is officially up.
++ * Console drivers may assume that per-cpu resources have
++ * been allocated. So unless they're explicitly marked as
++ * being able to cope (CON_ANYTIME) don't call them until
++ * this CPU is officially up.
+  */
+ static inline int can_use_console(unsigned int cpu)
+ {
+@@ -1431,10 +1432,8 @@ static inline int can_use_console(unsign
+  * console_lock held, and 'console_locked' set) if it
+  * is successful, false otherwise.
+  */
+-static int console_trylock_for_printk(void)
++static int console_trylock_for_printk(unsigned int cpu)
+ {
+-	unsigned int cpu = smp_processor_id();
+-
+ 	if (!console_trylock())
+ 		return 0;
+ 	/*
+@@ -1609,8 +1608,7 @@ asmlinkage int vprintk_emit(int facility
+ 		 */
+ 		if (!oops_in_progress && !lockdep_recursing(current)) {
+ 			recursion_bug = 1;
+-			local_irq_restore(flags);
+-			return 0;
++			goto out_restore_irqs;
+ 		}
+ 		zap_locks();
+ 	}
+@@ -1718,27 +1716,21 @@ asmlinkage int vprintk_emit(int facility
+ 
+ 	logbuf_cpu = UINT_MAX;
+ 	raw_spin_unlock(&logbuf_lock);
+-	lockdep_on();
+-	local_irq_restore(flags);
+ 
+ 	/* If called from the scheduler, we can not call up(). */
+-	if (in_sched)
+-		return printed_len;
+-
+-	/*
+-	 * Disable preemption to avoid being preempted while holding
+-	 * console_sem which would prevent anyone from printing to console
+-	 */
+-	preempt_disable();
+-	/*
+-	 * Try to acquire and then immediately release the console semaphore.
+-	 * The release will print out buffers and wake up /dev/kmsg and syslog()
+-	 * users.
+-	 */
+-	if (console_trylock_for_printk())
+-		console_unlock();
+-	preempt_enable();
++	if (!in_sched) {
++		/*
++		 * Try to acquire and then immediately release the console
++		 * semaphore.  The release will print out buffers and wake up
++		 * /dev/kmsg and syslog() users.
++		 */
++		if (console_trylock_for_printk(this_cpu))
++			console_unlock();
++	}
+ 
++	lockdep_on();
++out_restore_irqs:
++	local_irq_restore(flags);
+ 	return printed_len;
+ }
+ EXPORT_SYMBOL(vprintk_emit);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +152,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 maintainers-akpm-maintenance.patch
+kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
 input-route-kbd-leds-through-the-generic-leds-layer.patch
