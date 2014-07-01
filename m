@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + slab-introduce-alien_cache.patch added to -mm tree
-Date: Tue, 01 Jul 2014 15:16:47 -0700
-Message-ID: <53b3334f.u7MYbM2Kf/wsg/XW%akpm@linux-foundation.org>
+Subject: + slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
+ added to -mm tree
+Date: Tue, 01 Jul 2014 15:16:49 -0700
+Message-ID: <53b33351.2DzPV9uAoDEA5Tmq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:45542 "EHLO
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:53960 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753879AbaGAWQs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2014 18:16:48 -0400
-Received: by mail-ob0-f202.google.com with SMTP id va2so2375169obc.5
-        for <mm-commits@vger.kernel.org>; Tue, 01 Jul 2014 15:16:47 -0700 (PDT)
+	with ESMTP id S1759047AbaGAWQu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2014 18:16:50 -0400
+Received: by mail-ob0-f202.google.com with SMTP id va2so2375175obc.5
+        for <mm-commits@vger.kernel.org>; Tue, 01 Jul 2014 15:16:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: introduce alien_cache
+     Subject: slab: destroy a slab without holding any alien cache lock
 has been added to the -mm tree.  Its filename is
-     slab-introduce-alien_cache.patch
+     slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-introduce-alien_cache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-introduce-alien_cache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,15 +42,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: slab: introduce alien_cache
+Subject: slab: destroy a slab without holding any alien cache lock
 
-Currently, we use array_cache for alien_cache.  Although they are mostly
-similar, there is one difference, that is, need for spinlock.  We don't
-need spinlock for array_cache itself, but to use array_cache for
-alien_cache, array_cache structure should have spinlock.  This is needless
-overhead, so removing it would be better.  This patch prepare it by
-introducing alien_cache and using it.  In the following patch, we remove
-spinlock in array_cache.
+I haven't heard that this alien cache lock is contended, but to reduce
+chance of contention would be better generally.  And with this change, we
+can simplify complex lockdep annotation in slab code.  In the following
+patch, it will be implemented.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Christoph Lameter <cl@linux.com>
@@ -58,240 +56,78 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |  106 ++++++++++++++++++++++++++++++++--------------------
- mm/slab.h |    2 
- 2 files changed, 67 insertions(+), 41 deletions(-)
+ mm/slab.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN mm/slab.c~slab-introduce-alien_cache mm/slab.c
---- a/mm/slab.c~slab-introduce-alien_cache
+diff -puN mm/slab.c~slab-destroy-a-slab-without-holding-any-alien-cache-lock mm/slab.c
+--- a/mm/slab.c~slab-destroy-a-slab-without-holding-any-alien-cache-lock
 +++ a/mm/slab.c
-@@ -203,6 +203,11 @@ struct array_cache {
- 			 */
- };
- 
-+struct alien_cache {
-+	spinlock_t lock;
-+	struct array_cache ac;
-+};
-+
- #define SLAB_OBJ_PFMEMALLOC	1
- static inline bool is_obj_pfmemalloc(void *objp)
- {
-@@ -491,7 +496,7 @@ static void slab_set_lock_classes(struct
- 		struct lock_class_key *l3_key, struct lock_class_key *alc_key,
- 		struct kmem_cache_node *n)
- {
--	struct array_cache **alc;
-+	struct alien_cache **alc;
- 	int r;
- 
- 	lockdep_set_class(&n->list_lock, l3_key);
-@@ -507,7 +512,7 @@ static void slab_set_lock_classes(struct
- 		return;
- 	for_each_node(r) {
- 		if (alc[r])
--			lockdep_set_class(&alc[r]->lock, alc_key);
-+			lockdep_set_class(&(alc[r]->ac.lock), alc_key);
- 	}
- }
- 
-@@ -965,12 +970,13 @@ static int transfer_objects(struct array
- #define drain_alien_cache(cachep, alien) do { } while (0)
- #define reap_alien(cachep, n) do { } while (0)
- 
--static inline struct array_cache **alloc_alien_cache(int node, int limit, gfp_t gfp)
-+static inline struct alien_cache **alloc_alien_cache(int node,
-+						int limit, gfp_t gfp)
- {
--	return (struct array_cache **)BAD_ALIEN_MAGIC;
-+	return (struct alien_cache **)BAD_ALIEN_MAGIC;
- }
- 
--static inline void free_alien_cache(struct array_cache **ac_ptr)
-+static inline void free_alien_cache(struct alien_cache **ac_ptr)
- {
- }
- 
-@@ -996,40 +1002,52 @@ static inline void *____cache_alloc_node
- static void *____cache_alloc_node(struct kmem_cache *, gfp_t, int);
- static void *alternate_node_alloc(struct kmem_cache *, gfp_t);
- 
--static struct array_cache **alloc_alien_cache(int node, int limit, gfp_t gfp)
-+static struct alien_cache *__alloc_alien_cache(int node, int entries,
-+						int batch, gfp_t gfp)
- {
--	struct array_cache **ac_ptr;
-+	int memsize = sizeof(void *) * entries + sizeof(struct alien_cache);
-+	struct alien_cache *alc = NULL;
-+
-+	alc = kmalloc_node(memsize, gfp, node);
-+	init_arraycache(&alc->ac, entries, batch);
-+	return alc;
-+}
-+
-+static struct alien_cache **alloc_alien_cache(int node, int limit, gfp_t gfp)
-+{
-+	struct alien_cache **alc_ptr;
- 	int memsize = sizeof(void *) * nr_node_ids;
- 	int i;
- 
- 	if (limit > 1)
- 		limit = 12;
--	ac_ptr = kzalloc_node(memsize, gfp, node);
--	if (ac_ptr) {
--		for_each_node(i) {
--			if (i == node || !node_online(i))
--				continue;
--			ac_ptr[i] = alloc_arraycache(node, limit, 0xbaadf00d, gfp);
--			if (!ac_ptr[i]) {
--				for (i--; i >= 0; i--)
--					kfree(ac_ptr[i]);
--				kfree(ac_ptr);
--				return NULL;
--			}
-+	alc_ptr = kzalloc_node(memsize, gfp, node);
-+	if (!alc_ptr)
-+		return NULL;
-+
-+	for_each_node(i) {
-+		if (i == node || !node_online(i))
-+			continue;
-+		alc_ptr[i] = __alloc_alien_cache(node, limit, 0xbaadf00d, gfp);
-+		if (!alc_ptr[i]) {
-+			for (i--; i >= 0; i--)
-+				kfree(alc_ptr[i]);
-+			kfree(alc_ptr);
-+			return NULL;
- 		}
- 	}
--	return ac_ptr;
-+	return alc_ptr;
- }
- 
--static void free_alien_cache(struct array_cache **ac_ptr)
-+static void free_alien_cache(struct alien_cache **alc_ptr)
- {
- 	int i;
- 
--	if (!ac_ptr)
-+	if (!alc_ptr)
- 		return;
- 	for_each_node(i)
--	    kfree(ac_ptr[i]);
--	kfree(ac_ptr);
-+	    kfree(alc_ptr[i]);
-+	kfree(alc_ptr);
+@@ -1050,10 +1050,10 @@ static void free_alien_cache(struct alie
  }
  
  static void __drain_alien_cache(struct kmem_cache *cachep,
-@@ -1063,25 +1081,31 @@ static void reap_alien(struct kmem_cache
- 	int node = __this_cpu_read(slab_reap_node);
+-				struct array_cache *ac, int node)
++				struct array_cache *ac, int node,
++				struct list_head *list)
+ {
+ 	struct kmem_cache_node *n = get_node(cachep, node);
+-	LIST_HEAD(list);
  
- 	if (n->alien) {
--		struct array_cache *ac = n->alien[node];
-+		struct alien_cache *alc = n->alien[node];
-+		struct array_cache *ac;
+ 	if (ac->avail) {
+ 		spin_lock(&n->list_lock);
+@@ -1065,10 +1065,9 @@ static void __drain_alien_cache(struct k
+ 		if (n->shared)
+ 			transfer_objects(n->shared, ac, ac->limit);
  
--		if (ac && ac->avail && spin_trylock_irq(&ac->lock)) {
--			__drain_alien_cache(cachep, ac, node);
--			spin_unlock_irq(&ac->lock);
-+		if (alc) {
-+			ac = &alc->ac;
-+			if (ac->avail && spin_trylock_irq(&ac->lock)) {
-+				__drain_alien_cache(cachep, ac, node);
-+				spin_unlock_irq(&ac->lock);
-+			}
- 		}
+-		free_block(cachep, ac->entry, ac->avail, node, &list);
++		free_block(cachep, ac->entry, ac->avail, node, list);
+ 		ac->avail = 0;
+ 		spin_unlock(&n->list_lock);
+-		slabs_destroy(cachep, &list);
  	}
  }
  
- static void drain_alien_cache(struct kmem_cache *cachep,
--				struct array_cache **alien)
-+				struct alien_cache **alien)
- {
- 	int i = 0;
-+	struct alien_cache *alc;
- 	struct array_cache *ac;
- 	unsigned long flags;
- 
- 	for_each_online_node(i) {
--		ac = alien[i];
--		if (ac) {
-+		alc = alien[i];
-+		if (alc) {
-+			ac = &alc->ac;
- 			spin_lock_irqsave(&ac->lock, flags);
- 			__drain_alien_cache(cachep, ac, i);
- 			spin_unlock_irqrestore(&ac->lock, flags);
-@@ -1093,7 +1117,8 @@ static inline int cache_free_alien(struc
- {
- 	int nodeid = page_to_nid(virt_to_page(objp));
- 	struct kmem_cache_node *n;
--	struct array_cache *alien = NULL;
-+	struct alien_cache *alien = NULL;
-+	struct array_cache *ac;
- 	int node;
- 	LIST_HEAD(list);
- 
-@@ -1110,13 +1135,14 @@ static inline int cache_free_alien(struc
- 	STATS_INC_NODEFREES(cachep);
- 	if (n->alien && n->alien[nodeid]) {
- 		alien = n->alien[nodeid];
--		spin_lock(&alien->lock);
--		if (unlikely(alien->avail == alien->limit)) {
-+		ac = &alien->ac;
-+		spin_lock(&ac->lock);
-+		if (unlikely(ac->avail == ac->limit)) {
- 			STATS_INC_ACOVERFLOW(cachep);
--			__drain_alien_cache(cachep, alien, nodeid);
-+			__drain_alien_cache(cachep, ac, nodeid);
+@@ -1086,8 +1085,11 @@ static void reap_alien(struct kmem_cache
+ 		if (alc) {
+ 			ac = &alc->ac;
+ 			if (ac->avail && spin_trylock_irq(&alc->lock)) {
+-				__drain_alien_cache(cachep, ac, node);
++				LIST_HEAD(list);
++
++				__drain_alien_cache(cachep, ac, node, &list);
+ 				spin_unlock_irq(&alc->lock);
++				slabs_destroy(cachep, &list);
+ 			}
  		}
--		ac_put_obj(cachep, alien, objp);
--		spin_unlock(&alien->lock);
-+		ac_put_obj(cachep, ac, objp);
-+		spin_unlock(&ac->lock);
+ 	}
+@@ -1104,10 +1106,13 @@ static void drain_alien_cache(struct kme
+ 	for_each_online_node(i) {
+ 		alc = alien[i];
+ 		if (alc) {
++			LIST_HEAD(list);
++
+ 			ac = &alc->ac;
+ 			spin_lock_irqsave(&alc->lock, flags);
+-			__drain_alien_cache(cachep, ac, i);
++			__drain_alien_cache(cachep, ac, i, &list);
+ 			spin_unlock_irqrestore(&alc->lock, flags);
++			slabs_destroy(cachep, &list);
+ 		}
+ 	}
+ }
+@@ -1138,10 +1143,11 @@ static inline int cache_free_alien(struc
+ 		spin_lock(&alien->lock);
+ 		if (unlikely(ac->avail == ac->limit)) {
+ 			STATS_INC_ACOVERFLOW(cachep);
+-			__drain_alien_cache(cachep, ac, nodeid);
++			__drain_alien_cache(cachep, ac, nodeid, &list);
+ 		}
+ 		ac_put_obj(cachep, ac, objp);
+ 		spin_unlock(&alien->lock);
++		slabs_destroy(cachep, &list);
  	} else {
  		n = get_node(cachep, nodeid);
  		spin_lock(&n->list_lock);
-@@ -1193,7 +1219,7 @@ static void cpuup_canceled(long cpu)
- 	list_for_each_entry(cachep, &slab_caches, list) {
- 		struct array_cache *nc;
- 		struct array_cache *shared;
--		struct array_cache **alien;
-+		struct alien_cache **alien;
- 		LIST_HEAD(list);
- 
- 		/* cpu is dead; no one can alloc from it. */
-@@ -1275,7 +1301,7 @@ static int cpuup_prepare(long cpu)
- 	list_for_each_entry(cachep, &slab_caches, list) {
- 		struct array_cache *nc;
- 		struct array_cache *shared = NULL;
--		struct array_cache **alien = NULL;
-+		struct alien_cache **alien = NULL;
- 
- 		if (memcg_cache_dead(cachep))
- 			continue;
-@@ -3799,7 +3825,7 @@ static int alloc_kmem_cache_node(struct
- 	int node;
- 	struct kmem_cache_node *n;
- 	struct array_cache *new_shared;
--	struct array_cache **new_alien = NULL;
-+	struct alien_cache **new_alien = NULL;
- 
- 	for_each_online_node(node) {
- 
-diff -puN mm/slab.h~slab-introduce-alien_cache mm/slab.h
---- a/mm/slab.h~slab-introduce-alien_cache
-+++ a/mm/slab.h
-@@ -301,7 +301,7 @@ struct kmem_cache_node {
- 	unsigned int free_limit;
- 	unsigned int colour_next;	/* Per-node cache coloring */
- 	struct array_cache *shared;	/* shared per node */
--	struct array_cache **alien;	/* on other nodes */
-+	struct alien_cache **alien;	/* on other nodes */
- 	unsigned long next_reap;	/* updated without locking */
- 	int free_touched;		/* updated without locking */
- #endif
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
