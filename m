@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
- added to -mm tree
-Date: Tue, 01 Jul 2014 15:16:48 -0700
-Message-ID: <53b33350.JjvdtiqnRgeSTnhF%akpm@linux-foundation.org>
+Subject: + slab-remove-a-useless-lockdep-annotation.patch added to -mm
+ tree
+Date: Tue, 01 Jul 2014 15:16:50 -0700
+Message-ID: <53b33352.9e2RpDXhRr+kvEQS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:37011 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759045AbaGAWQt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2014 18:16:49 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f10so1118459yha.2
-        for <mm-commits@vger.kernel.org>; Tue, 01 Jul 2014 15:16:48 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:50233 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753879AbaGAWQv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2014 18:16:51 -0400
+Received: by mail-vc0-f202.google.com with SMTP id id10so1089053vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 01 Jul 2014 15:16:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: use the lock on alien_cache, instead of the lock on array_cache
+     Subject: slab: remove a useless lockdep annotation
 has been added to the -mm tree.  Its filename is
-     slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
+     slab-remove-a-useless-lockdep-annotation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-remove-a-useless-lockdep-annotation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-remove-a-useless-lockdep-annotation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,11 +42,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: slab: use the lock on alien_cache, instead of the lock on array_cache
+Subject: slab: remove a useless lockdep annotation
 
-Now, we have separate alien_cache structure, so it'd be better to hold the
-lock on alien_cache while manipulating alien_cache.  After that, we don't
-need the lock on array_cache, so remove it.
+Now, there is no code to hold two lock simultaneously, since we don't call
+slab_destroy() with holding any lock.  So, lockdep annotation is useless
+now.  Remove it.
+
+v2: don't remove BAD_ALIEN_MAGIC in this patch. It will be removed
+    in the following patch.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Christoph Lameter <cl@linux.com>
@@ -56,107 +58,194 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ mm/slab.c |  153 ----------------------------------------------------
+ 1 file changed, 153 deletions(-)
 
-diff -puN mm/slab.c~slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache mm/slab.c
---- a/mm/slab.c~slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache
+diff -puN mm/slab.c~slab-remove-a-useless-lockdep-annotation mm/slab.c
+--- a/mm/slab.c~slab-remove-a-useless-lockdep-annotation
 +++ a/mm/slab.c
-@@ -191,7 +191,6 @@ struct array_cache {
- 	unsigned int limit;
- 	unsigned int batchcount;
- 	unsigned int touched;
--	spinlock_t lock;
- 	void *entry[];	/*
- 			 * Must have this definition in here for the proper
- 			 * alignment of array_cache. Also simplifies accessing
-@@ -512,7 +511,7 @@ static void slab_set_lock_classes(struct
- 		return;
- 	for_each_node(r) {
- 		if (alc[r])
--			lockdep_set_class(&(alc[r]->ac.lock), alc_key);
-+			lockdep_set_class(&(alc[r]->lock), alc_key);
+@@ -472,139 +472,6 @@ static struct kmem_cache kmem_cache_boot
+ 
+ #define BAD_ALIEN_MAGIC 0x01020304ul
+ 
+-#ifdef CONFIG_LOCKDEP
+-
+-/*
+- * Slab sometimes uses the kmalloc slabs to store the slab headers
+- * for other slabs "off slab".
+- * The locking for this is tricky in that it nests within the locks
+- * of all other slabs in a few places; to deal with this special
+- * locking we put on-slab caches into a separate lock-class.
+- *
+- * We set lock class for alien array caches which are up during init.
+- * The lock annotation will be lost if all cpus of a node goes down and
+- * then comes back up during hotplug
+- */
+-static struct lock_class_key on_slab_l3_key;
+-static struct lock_class_key on_slab_alc_key;
+-
+-static struct lock_class_key debugobj_l3_key;
+-static struct lock_class_key debugobj_alc_key;
+-
+-static void slab_set_lock_classes(struct kmem_cache *cachep,
+-		struct lock_class_key *l3_key, struct lock_class_key *alc_key,
+-		struct kmem_cache_node *n)
+-{
+-	struct alien_cache **alc;
+-	int r;
+-
+-	lockdep_set_class(&n->list_lock, l3_key);
+-	alc = n->alien;
+-	/*
+-	 * FIXME: This check for BAD_ALIEN_MAGIC
+-	 * should go away when common slab code is taught to
+-	 * work even without alien caches.
+-	 * Currently, non NUMA code returns BAD_ALIEN_MAGIC
+-	 * for alloc_alien_cache,
+-	 */
+-	if (!alc || (unsigned long)alc == BAD_ALIEN_MAGIC)
+-		return;
+-	for_each_node(r) {
+-		if (alc[r])
+-			lockdep_set_class(&(alc[r]->lock), alc_key);
+-	}
+-}
+-
+-static void slab_set_debugobj_lock_classes_node(struct kmem_cache *cachep,
+-	struct kmem_cache_node *n)
+-{
+-	slab_set_lock_classes(cachep, &debugobj_l3_key, &debugobj_alc_key, n);
+-}
+-
+-static void slab_set_debugobj_lock_classes(struct kmem_cache *cachep)
+-{
+-	int node;
+-	struct kmem_cache_node *n;
+-
+-	for_each_kmem_cache_node(cachep, node, n)
+-		slab_set_debugobj_lock_classes_node(cachep, n);
+-}
+-
+-static void init_node_lock_keys(int q)
+-{
+-	int i;
+-
+-	if (slab_state < UP)
+-		return;
+-
+-	for (i = 1; i <= KMALLOC_SHIFT_HIGH; i++) {
+-		struct kmem_cache_node *n;
+-		struct kmem_cache *cache = kmalloc_caches[i];
+-
+-		if (!cache)
+-			continue;
+-
+-		n = get_node(cache, q);
+-		if (!n || OFF_SLAB(cache))
+-			continue;
+-
+-		slab_set_lock_classes(cache, &on_slab_l3_key,
+-				&on_slab_alc_key, n);
+-	}
+-}
+-
+-static void on_slab_lock_classes_node(struct kmem_cache *cachep,
+-	struct kmem_cache_node *n)
+-{
+-	slab_set_lock_classes(cachep, &on_slab_l3_key,
+-			&on_slab_alc_key, n);
+-}
+-
+-static inline void on_slab_lock_classes(struct kmem_cache *cachep)
+-{
+-	int node;
+-	struct kmem_cache_node *n;
+-
+-	VM_BUG_ON(OFF_SLAB(cachep));
+-	for_each_kmem_cache_node(cachep, node, n)
+-		on_slab_lock_classes_node(cachep, n);
+-}
+-
+-static inline void __init init_lock_keys(void)
+-{
+-	int node;
+-
+-	for_each_node(node)
+-		init_node_lock_keys(node);
+-}
+-#else
+-static void __init init_node_lock_keys(int q)
+-{
+-}
+-
+-static inline void init_lock_keys(void)
+-{
+-}
+-
+-static inline void on_slab_lock_classes(struct kmem_cache *cachep)
+-{
+-}
+-
+-static inline void on_slab_lock_classes_node(struct kmem_cache *cachep,
+-	struct kmem_cache_node *n)
+-{
+-}
+-
+-static void slab_set_debugobj_lock_classes_node(struct kmem_cache *cachep,
+-	struct kmem_cache_node *n)
+-{
+-}
+-
+-static void slab_set_debugobj_lock_classes(struct kmem_cache *cachep)
+-{
+-}
+-#endif
+-
+ static DEFINE_PER_CPU(struct delayed_work, slab_reap_work);
+ 
+ static inline struct array_cache *cpu_cache_get(struct kmem_cache *cachep)
+@@ -1354,13 +1221,7 @@ static int cpuup_prepare(long cpu)
+ 		spin_unlock_irq(&n->list_lock);
+ 		kfree(shared);
+ 		free_alien_cache(alien);
+-		if (cachep->flags & SLAB_DEBUG_OBJECTS)
+-			slab_set_debugobj_lock_classes_node(cachep, n);
+-		else if (!OFF_SLAB(cachep) &&
+-			 !(cachep->flags & SLAB_DESTROY_BY_RCU))
+-			on_slab_lock_classes_node(cachep, n);
  	}
- }
+-	init_node_lock_keys(node);
  
-@@ -811,7 +810,6 @@ static void init_arraycache(struct array
- 		ac->limit = limit;
- 		ac->batchcount = batch;
- 		ac->touched = 0;
--		spin_lock_init(&ac->lock);
+ 	return 0;
+ bad:
+@@ -1669,9 +1530,6 @@ void __init kmem_cache_init_late(void)
+ 			BUG();
+ 	mutex_unlock(&slab_mutex);
+ 
+-	/* Annotate slab for lockdep -- annotate the malloc caches */
+-	init_lock_keys();
+-
+ 	/* Done! */
+ 	slab_state = FULL;
+ 
+@@ -2452,17 +2310,6 @@ __kmem_cache_create (struct kmem_cache *
+ 		return err;
  	}
- }
  
-@@ -1010,6 +1008,7 @@ static struct alien_cache *__alloc_alien
- 
- 	alc = kmalloc_node(memsize, gfp, node);
- 	init_arraycache(&alc->ac, entries, batch);
-+	spin_lock_init(&alc->lock);
- 	return alc;
- }
- 
-@@ -1086,9 +1085,9 @@ static void reap_alien(struct kmem_cache
- 
- 		if (alc) {
- 			ac = &alc->ac;
--			if (ac->avail && spin_trylock_irq(&ac->lock)) {
-+			if (ac->avail && spin_trylock_irq(&alc->lock)) {
- 				__drain_alien_cache(cachep, ac, node);
--				spin_unlock_irq(&ac->lock);
-+				spin_unlock_irq(&alc->lock);
- 			}
- 		}
- 	}
-@@ -1106,9 +1105,9 @@ static void drain_alien_cache(struct kme
- 		alc = alien[i];
- 		if (alc) {
- 			ac = &alc->ac;
--			spin_lock_irqsave(&ac->lock, flags);
-+			spin_lock_irqsave(&alc->lock, flags);
- 			__drain_alien_cache(cachep, ac, i);
--			spin_unlock_irqrestore(&ac->lock, flags);
-+			spin_unlock_irqrestore(&alc->lock, flags);
- 		}
- 	}
- }
-@@ -1136,13 +1135,13 @@ static inline int cache_free_alien(struc
- 	if (n->alien && n->alien[nodeid]) {
- 		alien = n->alien[nodeid];
- 		ac = &alien->ac;
--		spin_lock(&ac->lock);
-+		spin_lock(&alien->lock);
- 		if (unlikely(ac->avail == ac->limit)) {
- 			STATS_INC_ACOVERFLOW(cachep);
- 			__drain_alien_cache(cachep, ac, nodeid);
- 		}
- 		ac_put_obj(cachep, ac, objp);
--		spin_unlock(&ac->lock);
-+		spin_unlock(&alien->lock);
- 	} else {
- 		n = get_node(cachep, nodeid);
- 		spin_lock(&n->list_lock);
-@@ -1619,10 +1618,6 @@ void __init kmem_cache_init(void)
- 
- 		memcpy(ptr, cpu_cache_get(kmem_cache),
- 		       sizeof(struct arraycache_init));
+-	if (flags & SLAB_DEBUG_OBJECTS) {
 -		/*
--		 * Do not assume that spinlocks can be initialized via memcpy:
+-		 * Would deadlock through slab_destroy()->call_rcu()->
+-		 * debug_object_activate()->kmem_cache_alloc().
 -		 */
--		spin_lock_init(&ptr->lock);
+-		WARN_ON_ONCE(flags & SLAB_DESTROY_BY_RCU);
+-
+-		slab_set_debugobj_lock_classes(cachep);
+-	} else if (!OFF_SLAB(cachep) && !(flags & SLAB_DESTROY_BY_RCU))
+-		on_slab_lock_classes(cachep);
+-
+ 	return 0;
+ }
  
- 		kmem_cache->array[smp_processor_id()] = ptr;
- 
-@@ -1632,10 +1627,6 @@ void __init kmem_cache_init(void)
- 		       != &initarray_generic.cache);
- 		memcpy(ptr, cpu_cache_get(kmalloc_caches[INDEX_AC]),
- 		       sizeof(struct arraycache_init));
--		/*
--		 * Do not assume that spinlocks can be initialized via memcpy:
--		 */
--		spin_lock_init(&ptr->lock);
- 
- 		kmalloc_caches[INDEX_AC]->array[smp_processor_id()] = ptr;
- 	}
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
