@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-generalize-writes-to-nr_hugepages.patch added to -mm tree
-Date: Tue, 01 Jul 2014 15:35:42 -0700
-Message-ID: <53b337be.XWauVyWmP/I/vwWf%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch added to -mm tree
+Date: Tue, 01 Jul 2014 15:35:43 -0700
+Message-ID: <53b337bf.uAX2uGX4vg3MvWWk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:41217 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751454AbaGAWfo (ORCPT
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:62009 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753319AbaGAWfo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2014 18:35:44 -0400
-Received: by mail-oa0-f73.google.com with SMTP id eb12so2377540oac.2
-        for <mm-commits@vger.kernel.org>; Tue, 01 Jul 2014 15:35:43 -0700 (PDT)
+Received: by mail-ie0-f201.google.com with SMTP id lx4so2379459iec.4
+        for <mm-commits@vger.kernel.org>; Tue, 01 Jul 2014 15:35:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, lcapitulino@redhat.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb: generalize writes to nr_hugepages
+     Subject: mm, hugetlb: remove hugetlb_zero and hugetlb_infinity
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-generalize-writes-to-nr_hugepages.patch
+     mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-generalize-writes-to-nr_hugepages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-generalize-writes-to-nr_hugepages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,25 +41,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, hugetlb: generalize writes to nr_hugepages
+Subject: mm, hugetlb: remove hugetlb_zero and hugetlb_infinity
 
-Three different interfaces alter the maximum number of hugepages for an
-hstate:
-
- - /proc/sys/vm/nr_hugepages for global number of hugepages of the default
-   hstate,
-
- - /sys/kernel/mm/hugepages/hugepages-X/nr_hugepages for global number of
-   hugepages for a specific hstate, and
-
- - /sys/kernel/mm/hugepages/hugepages-X/nr_hugepages/mempolicy for number of
-   hugepages for a specific hstate over the set of allowed nodes.
-
-Generalize the code so that a single function handles all of these writes
-instead of duplicating the code in two different functions.
-
-This decreases the number of lines of code, but also reduces the size of
-.text by about half a percent since set_max_huge_pages() can be inlined.
+They are unnecessary: "zero" can be used in place of "hugetlb_zero" and
+passing extra2 == NULL is equivalent to infinity.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -69,120 +54,66 @@ Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   61 ++++++++++++++++++++-----------------------------
- 1 file changed, 26 insertions(+), 35 deletions(-)
+ include/linux/hugetlb.h |    1 -
+ kernel/sysctl.c         |    9 +++------
+ mm/hugetlb.c            |    1 -
+ 3 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-generalize-writes-to-nr_hugepages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-generalize-writes-to-nr_hugepages
-+++ a/mm/hugetlb.c
-@@ -1735,21 +1735,13 @@ static ssize_t nr_hugepages_show_common(
- 	return sprintf(buf, "%lu\n", nr_huge_pages);
- }
- 
--static ssize_t nr_hugepages_store_common(bool obey_mempolicy,
--			struct kobject *kobj, struct kobj_attribute *attr,
--			const char *buf, size_t len)
-+static ssize_t __nr_hugepages_store_common(bool obey_mempolicy,
-+					   struct hstate *h, int nid,
-+					   unsigned long count, size_t len)
- {
- 	int err;
--	int nid;
--	unsigned long count;
--	struct hstate *h;
- 	NODEMASK_ALLOC(nodemask_t, nodes_allowed, GFP_KERNEL | __GFP_NORETRY);
- 
--	err = kstrtoul(buf, 10, &count);
--	if (err)
--		goto out;
--
--	h = kobj_to_hstate(kobj, &nid);
- 	if (hstate_is_gigantic(h) && !gigantic_page_supported()) {
- 		err = -EINVAL;
- 		goto out;
-@@ -1785,6 +1777,23 @@ out:
- 	return err;
- }
- 
-+static ssize_t nr_hugepages_store_common(bool obey_mempolicy,
-+					 struct kobject *kobj, const char *buf,
-+					 size_t len)
-+{
-+	struct hstate *h;
-+	unsigned long count;
-+	int nid;
-+	int err;
-+
-+	err = kstrtoul(buf, 10, &count);
-+	if (err)
-+		return err;
-+
-+	h = kobj_to_hstate(kobj, &nid);
-+	return __nr_hugepages_store_common(obey_mempolicy, h, nid, count, len);
-+}
-+
- static ssize_t nr_hugepages_show(struct kobject *kobj,
- 				       struct kobj_attribute *attr, char *buf)
- {
-@@ -1794,7 +1803,7 @@ static ssize_t nr_hugepages_show(struct
- static ssize_t nr_hugepages_store(struct kobject *kobj,
- 	       struct kobj_attribute *attr, const char *buf, size_t len)
- {
--	return nr_hugepages_store_common(false, kobj, attr, buf, len);
-+	return nr_hugepages_store_common(false, kobj, buf, len);
- }
- HSTATE_ATTR(nr_hugepages);
- 
-@@ -1813,7 +1822,7 @@ static ssize_t nr_hugepages_mempolicy_sh
- static ssize_t nr_hugepages_mempolicy_store(struct kobject *kobj,
- 	       struct kobj_attribute *attr, const char *buf, size_t len)
- {
--	return nr_hugepages_store_common(true, kobj, attr, buf, len);
-+	return nr_hugepages_store_common(true, kobj, buf, len);
- }
- HSTATE_ATTR(nr_hugepages_mempolicy);
+diff -puN include/linux/hugetlb.h~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity
++++ a/include/linux/hugetlb.h
+@@ -84,7 +84,6 @@ pte_t *huge_pmd_share(struct mm_struct *
  #endif
-@@ -2249,36 +2258,18 @@ static int hugetlb_sysctl_handler_common
- 			 void __user *buffer, size_t *length, loff_t *ppos)
- {
- 	struct hstate *h = &default_hstate;
--	unsigned long tmp;
-+	unsigned long tmp = h->max_huge_pages;
- 	int ret;
  
--	if (!hugepages_supported())
--		return -ENOTSUPP;
--
--	tmp = h->max_huge_pages;
--
--	if (write && hstate_is_gigantic(h) && !gigantic_page_supported())
--		return -EINVAL;
--
- 	table->data = &tmp;
- 	table->maxlen = sizeof(unsigned long);
- 	ret = proc_doulongvec_minmax(table, write, buffer, length, ppos);
- 	if (ret)
- 		goto out;
+ extern unsigned long hugepages_treat_as_movable;
+-extern const unsigned long hugetlb_zero, hugetlb_infinity;
+ extern int sysctl_hugetlb_shm_group;
+ extern struct list_head huge_boot_pages;
  
--	if (write) {
--		NODEMASK_ALLOC(nodemask_t, nodes_allowed,
--						GFP_KERNEL | __GFP_NORETRY);
--		if (!(obey_mempolicy &&
--			       init_nodemask_of_mempolicy(nodes_allowed))) {
--			NODEMASK_FREE(nodes_allowed);
--			nodes_allowed = &node_states[N_MEMORY];
--		}
--		h->max_huge_pages = set_max_huge_pages(h, tmp, nodes_allowed);
--
--		if (nodes_allowed != &node_states[N_MEMORY])
--			NODEMASK_FREE(nodes_allowed);
--	}
-+	if (write)
-+		ret = __nr_hugepages_store_common(obey_mempolicy, h,
-+						  NUMA_NO_NODE, tmp, *length);
- out:
- 	return ret;
- }
+diff -puN kernel/sysctl.c~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity
++++ a/kernel/sysctl.c
+@@ -1240,8 +1240,7 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(unsigned long),
+ 		.mode		= 0644,
+ 		.proc_handler	= hugetlb_sysctl_handler,
+-		.extra1		= (void *)&hugetlb_zero,
+-		.extra2		= (void *)&hugetlb_infinity,
++		.extra1		= &zero,
+ 	},
+ #ifdef CONFIG_NUMA
+ 	{
+@@ -1250,8 +1249,7 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen         = sizeof(unsigned long),
+ 		.mode           = 0644,
+ 		.proc_handler   = &hugetlb_mempolicy_sysctl_handler,
+-		.extra1		= (void *)&hugetlb_zero,
+-		.extra2		= (void *)&hugetlb_infinity,
++		.extra1		= &zero,
+ 	},
+ #endif
+ 	 {
+@@ -1274,8 +1272,7 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(unsigned long),
+ 		.mode		= 0644,
+ 		.proc_handler	= hugetlb_overcommit_handler,
+-		.extra1		= (void *)&hugetlb_zero,
+-		.extra2		= (void *)&hugetlb_infinity,
++		.extra1		= &zero,
+ 	},
+ #endif
+ 	{
+diff -puN mm/hugetlb.c~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity
++++ a/mm/hugetlb.c
+@@ -36,7 +36,6 @@
+ #include <linux/node.h>
+ #include "internal.h"
+ 
+-const unsigned long hugetlb_zero = 0, hugetlb_infinity = ~0UL;
+ unsigned long hugepages_treat_as_movable;
+ 
+ int hugetlb_max_hstate __read_mostly;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
