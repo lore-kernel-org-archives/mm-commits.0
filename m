@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-bfs-use-bfs-prefix-for-dump_imap.patch added to -mm tree
-Date: Wed, 02 Jul 2014 13:03:20 -0700
-Message-ID: <53b46588.qG8IBegL8FOPa9Ee%akpm@linux-foundation.org>
+Subject: + fs-coda-use-linux-uaccessh.patch added to -mm tree
+Date: Wed, 02 Jul 2014 13:06:43 -0700
+Message-ID: <53b46653.C0cKxWOyYEUwabHl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:63794 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757821AbaGBUDV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 16:03:21 -0400
-Received: by mail-pd0-f201.google.com with SMTP id v10so1993749pde.0
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 13:03:20 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:60114 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754511AbaGBUGo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 16:06:44 -0400
+Received: by mail-ie0-f202.google.com with SMTP id tr6so2697912ieb.1
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 13:06:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, tigran@aivazian.fsnet.co.uk, mm-commits@vger.kernel.org
+To: fabf@skynet.be, jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/bfs: use bfs prefix for dump_imap
+     Subject: fs/coda: use linux/uaccess.h
 has been added to the -mm tree.  Its filename is
-     fs-bfs-use-bfs-prefix-for-dump_imap.patch
+     fs-coda-use-linux-uaccessh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-bfs-use-bfs-prefix-for-dump_imap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-coda-use-linux-uaccessh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-bfs-use-bfs-prefix-for-dump_imap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-coda-use-linux-uaccessh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,95 +41,125 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/bfs: use bfs prefix for dump_imap
+Subject: fs/coda: use linux/uaccess.h
 
-All bfs related functions use bfs_ prefix.  This patch also moves extern
-declaration to bfs.h and removes prototype from inode.c
-
-This fixes checkpatch warning:
-'WARNING: externs should be avoided in .c files'
+Fix checkpatch warning
+WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: "Tigran A. Aivazian" <tigran@aivazian.fsnet.co.uk>
+Cc: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bfs/bfs.h   |    1 +
- fs/bfs/dir.c   |    4 +---
- fs/bfs/inode.c |    8 +++-----
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ fs/coda/cache.c      |    2 +-
+ fs/coda/coda_linux.c |    2 +-
+ fs/coda/dir.c        |    3 +--
+ fs/coda/file.c       |    2 +-
+ fs/coda/inode.c      |    4 +---
+ fs/coda/pioctl.c     |    2 +-
+ fs/coda/psdev.c      |    2 +-
+ fs/coda/upcall.c     |    2 +-
+ 8 files changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN fs/bfs/bfs.h~fs-bfs-use-bfs-prefix-for-dump_imap fs/bfs/bfs.h
---- a/fs/bfs/bfs.h~fs-bfs-use-bfs-prefix-for-dump_imap
-+++ a/fs/bfs/bfs.h
-@@ -46,6 +46,7 @@ static inline struct bfs_inode_info *BFS
+diff -puN fs/coda/cache.c~fs-coda-use-linux-uaccessh fs/coda/cache.c
+--- a/fs/coda/cache.c~fs-coda-use-linux-uaccessh
++++ a/fs/coda/cache.c
+@@ -13,7 +13,7 @@
+ #include <linux/fs.h>
+ #include <linux/stat.h>
+ #include <linux/errno.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/string.h>
+ #include <linux/list.h>
+ #include <linux/sched.h>
+diff -puN fs/coda/coda_linux.c~fs-coda-use-linux-uaccessh fs/coda/coda_linux.c
+--- a/fs/coda/coda_linux.c~fs-coda-use-linux-uaccessh
++++ a/fs/coda/coda_linux.c
+@@ -13,7 +13,7 @@
+ #include <linux/fs.h>
+ #include <linux/stat.h>
+ #include <linux/errno.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/string.h>
  
- /* inode.c */
- extern struct inode *bfs_iget(struct super_block *sb, unsigned long ino);
-+extern void bfs_dump_imap(const char *, struct super_block *);
- 
- /* file.c */
- extern const struct inode_operations bfs_file_inops;
-diff -puN fs/bfs/dir.c~fs-bfs-use-bfs-prefix-for-dump_imap fs/bfs/dir.c
---- a/fs/bfs/dir.c~fs-bfs-use-bfs-prefix-for-dump_imap
-+++ a/fs/bfs/dir.c
-@@ -75,8 +75,6 @@ const struct file_operations bfs_dir_ope
- 	.llseek		= generic_file_llseek,
- };
- 
--extern void dump_imap(const char *, struct super_block *);
+ #include <linux/coda.h>
+diff -puN fs/coda/dir.c~fs-coda-use-linux-uaccessh fs/coda/dir.c
+--- a/fs/coda/dir.c~fs-coda-use-linux-uaccessh
++++ a/fs/coda/dir.c
+@@ -19,8 +19,7 @@
+ #include <linux/string.h>
+ #include <linux/spinlock.h>
+ #include <linux/namei.h>
 -
- static int bfs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
- 						bool excl)
- {
-@@ -110,7 +108,7 @@ static int bfs_create(struct inode *dir,
- 	BFS_I(inode)->i_eblock = 0;
- 	insert_inode_hash(inode);
-         mark_inode_dirty(inode);
--	dump_imap("create", s);
-+	bfs_dump_imap("create", s);
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
- 	err = bfs_add_entry(dir, dentry->d_name.name, dentry->d_name.len,
- 							inode->i_ino);
-diff -puN fs/bfs/inode.c~fs-bfs-use-bfs-prefix-for-dump_imap fs/bfs/inode.c
---- a/fs/bfs/inode.c~fs-bfs-use-bfs-prefix-for-dump_imap
-+++ a/fs/bfs/inode.c
-@@ -30,8 +30,6 @@ MODULE_LICENSE("GPL");
- #define dprintf(x...)
- #endif
+ #include <linux/coda.h>
+ #include <linux/coda_psdev.h>
+diff -puN fs/coda/file.c~fs-coda-use-linux-uaccessh fs/coda/file.c
+--- a/fs/coda/file.c~fs-coda-use-linux-uaccessh
++++ a/fs/coda/file.c
+@@ -18,7 +18,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
--void dump_imap(const char *prefix, struct super_block *s);
+ #include <linux/coda.h>
+ #include <linux/coda_psdev.h>
+diff -puN fs/coda/inode.c~fs-coda-use-linux-uaccessh fs/coda/inode.c
+--- a/fs/coda/inode.c~fs-coda-use-linux-uaccessh
++++ a/fs/coda/inode.c
+@@ -21,9 +21,7 @@
+ #include <linux/vfs.h>
+ #include <linux/slab.h>
+ #include <linux/pid_namespace.h>
 -
- struct inode *bfs_iget(struct super_block *sb, unsigned long ino)
- {
- 	struct bfs_inode *di;
-@@ -194,7 +192,7 @@ static void bfs_evict_inode(struct inode
- 			info->si_freeb += bi->i_eblock + 1 - bi->i_sblock;
- 		info->si_freei++;
- 		clear_bit(ino, info->si_imap);
--		dump_imap("delete_inode", s);
-+		bfs_dump_imap("delete_inode", s);
-         }
+-#include <asm/uaccess.h>
+-
++#include <linux/uaccess.h>
+ #include <linux/fs.h>
+ #include <linux/vmalloc.h>
  
- 	/*
-@@ -297,7 +295,7 @@ static const struct super_operations bfs
- 	.statfs		= bfs_statfs,
- };
+diff -puN fs/coda/pioctl.c~fs-coda-use-linux-uaccessh fs/coda/pioctl.c
+--- a/fs/coda/pioctl.c~fs-coda-use-linux-uaccessh
++++ a/fs/coda/pioctl.c
+@@ -16,7 +16,7 @@
+ #include <linux/string.h>
+ #include <linux/namei.h>
+ #include <linux/module.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
--void dump_imap(const char *prefix, struct super_block *s)
-+void bfs_dump_imap(const char *prefix, struct super_block *s)
- {
- #ifdef DEBUG
- 	int i;
-@@ -443,7 +441,7 @@ static int bfs_fill_super(struct super_b
- 	}
- 	brelse(bh);
- 	brelse(sbh);
--	dump_imap("read_super", s);
-+	bfs_dump_imap("read_super", s);
- 	return 0;
+ #include <linux/coda.h>
+ #include <linux/coda_psdev.h>
+diff -puN fs/coda/psdev.c~fs-coda-use-linux-uaccessh fs/coda/psdev.c
+--- a/fs/coda/psdev.c~fs-coda-use-linux-uaccessh
++++ a/fs/coda/psdev.c
+@@ -40,7 +40,7 @@
+ #include <linux/pid_namespace.h>
+ #include <asm/io.h>
+ #include <asm/poll.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
- out3:
+ #include <linux/coda.h>
+ #include <linux/coda_psdev.h>
+diff -puN fs/coda/upcall.c~fs-coda-use-linux-uaccessh fs/coda/upcall.c
+--- a/fs/coda/upcall.c~fs-coda-use-linux-uaccessh
++++ a/fs/coda/upcall.c
+@@ -27,7 +27,7 @@
+ #include <linux/string.h>
+ #include <linux/slab.h>
+ #include <linux/mutex.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/vmalloc.h>
+ #include <linux/vfs.h>
+ 
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -161,6 +191,7 @@ fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
 kernel-test_kprobesc-use-current-logging-functions.patch
 fs-isofs-logging-clean-up.patch
 fs-isofs-logging-clean-up-fix.patch
+fs-coda-use-linux-uaccessh.patch
 fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
 fs-ufs-convert-printk-to-pr_foo.patch
 fs-ufs-use-pr_fmt.patch
