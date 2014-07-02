@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-coda-use-linux-uaccessh.patch added to -mm tree
-Date: Wed, 02 Jul 2014 13:06:43 -0700
-Message-ID: <53b46653.C0cKxWOyYEUwabHl%akpm@linux-foundation.org>
+Subject: + fs-efs-nameic-return-is-not-a-function.patch added to -mm tree
+Date: Wed, 02 Jul 2014 13:07:08 -0700
+Message-ID: <53b4666c.RMVAsRdTPhXEnDni%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:60114 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754511AbaGBUGo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 16:06:44 -0400
-Received: by mail-ie0-f202.google.com with SMTP id tr6so2697912ieb.1
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 13:06:43 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:41520 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757652AbaGBUHJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 16:07:09 -0400
+Received: by mail-qa0-f73.google.com with SMTP id m5so1339430qaj.0
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 13:07:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/coda: use linux/uaccess.h
+     Subject: fs/efs/namei.c: return is not a function
 has been added to the -mm tree.  Its filename is
-     fs-coda-use-linux-uaccessh.patch
+     fs-efs-nameic-return-is-not-a-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-coda-use-linux-uaccessh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-efs-nameic-return-is-not-a-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-coda-use-linux-uaccessh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-efs-nameic-return-is-not-a-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,125 +41,60 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/coda: use linux/uaccess.h
+Subject: fs/efs/namei.c: return is not a function
 
-Fix checkpatch warning
-WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
+Fix checkpatch errors:
+
+"ERROR: return is not a function, parentheses are not required"
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/cache.c      |    2 +-
- fs/coda/coda_linux.c |    2 +-
- fs/coda/dir.c        |    3 +--
- fs/coda/file.c       |    2 +-
- fs/coda/inode.c      |    4 +---
- fs/coda/pioctl.c     |    2 +-
- fs/coda/psdev.c      |    2 +-
- fs/coda/upcall.c     |    2 +-
- 8 files changed, 8 insertions(+), 11 deletions(-)
+ fs/efs/namei.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/coda/cache.c~fs-coda-use-linux-uaccessh fs/coda/cache.c
---- a/fs/coda/cache.c~fs-coda-use-linux-uaccessh
-+++ a/fs/coda/cache.c
-@@ -13,7 +13,7 @@
- #include <linux/fs.h>
- #include <linux/stat.h>
- #include <linux/errno.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <linux/string.h>
- #include <linux/list.h>
- #include <linux/sched.h>
-diff -puN fs/coda/coda_linux.c~fs-coda-use-linux-uaccessh fs/coda/coda_linux.c
---- a/fs/coda/coda_linux.c~fs-coda-use-linux-uaccessh
-+++ a/fs/coda/coda_linux.c
-@@ -13,7 +13,7 @@
- #include <linux/fs.h>
- #include <linux/stat.h>
- #include <linux/errno.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <linux/string.h>
+diff -puN fs/efs/namei.c~fs-efs-nameic-return-is-not-a-function fs/efs/namei.c
+--- a/fs/efs/namei.c~fs-efs-nameic-return-is-not-a-function
++++ a/fs/efs/namei.c
+@@ -12,7 +12,8 @@
+ #include "efs.h"
  
- #include <linux/coda.h>
-diff -puN fs/coda/dir.c~fs-coda-use-linux-uaccessh fs/coda/dir.c
---- a/fs/coda/dir.c~fs-coda-use-linux-uaccessh
-+++ a/fs/coda/dir.c
-@@ -19,8 +19,7 @@
- #include <linux/string.h>
- #include <linux/spinlock.h>
- #include <linux/namei.h>
--
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
  
- #include <linux/coda.h>
- #include <linux/coda_psdev.h>
-diff -puN fs/coda/file.c~fs-coda-use-linux-uaccessh fs/coda/file.c
---- a/fs/coda/file.c~fs-coda-use-linux-uaccessh
-+++ a/fs/coda/file.c
-@@ -18,7 +18,7 @@
- #include <linux/spinlock.h>
- #include <linux/string.h>
- #include <linux/slab.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
+-static efs_ino_t efs_find_entry(struct inode *inode, const char *name, int len) {
++static efs_ino_t efs_find_entry(struct inode *inode, const char *name, int len)
++{
+ 	struct buffer_head *bh;
  
- #include <linux/coda.h>
- #include <linux/coda_psdev.h>
-diff -puN fs/coda/inode.c~fs-coda-use-linux-uaccessh fs/coda/inode.c
---- a/fs/coda/inode.c~fs-coda-use-linux-uaccessh
-+++ a/fs/coda/inode.c
-@@ -21,9 +21,7 @@
- #include <linux/vfs.h>
- #include <linux/slab.h>
- #include <linux/pid_namespace.h>
--
--#include <asm/uaccess.h>
--
-+#include <linux/uaccess.h>
- #include <linux/fs.h>
- #include <linux/vmalloc.h>
+ 	int			slot, namelen;
+@@ -40,10 +41,10 @@ static efs_ino_t efs_find_entry(struct i
+ 		if (be16_to_cpu(dirblock->magic) != EFS_DIRBLK_MAGIC) {
+ 			pr_err("%s(): invalid directory block\n", __func__);
+ 			brelse(bh);
+-			return(0);
++			return 0;
+ 		}
  
-diff -puN fs/coda/pioctl.c~fs-coda-use-linux-uaccessh fs/coda/pioctl.c
---- a/fs/coda/pioctl.c~fs-coda-use-linux-uaccessh
-+++ a/fs/coda/pioctl.c
-@@ -16,7 +16,7 @@
- #include <linux/string.h>
- #include <linux/namei.h>
- #include <linux/module.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
+-		for(slot = 0; slot < dirblock->slots; slot++) {
++		for (slot = 0; slot < dirblock->slots; slot++) {
+ 			dirslot  = (struct efs_dentry *) (((char *) bh->b_data) + EFS_SLOTAT(dirblock, slot));
  
- #include <linux/coda.h>
- #include <linux/coda_psdev.h>
-diff -puN fs/coda/psdev.c~fs-coda-use-linux-uaccessh fs/coda/psdev.c
---- a/fs/coda/psdev.c~fs-coda-use-linux-uaccessh
-+++ a/fs/coda/psdev.c
-@@ -40,7 +40,7 @@
- #include <linux/pid_namespace.h>
- #include <asm/io.h>
- #include <asm/poll.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
+ 			namelen  = dirslot->namelen;
+@@ -52,12 +53,12 @@ static efs_ino_t efs_find_entry(struct i
+ 			if ((namelen == len) && (!memcmp(name, nameptr, len))) {
+ 				inodenum = be32_to_cpu(dirslot->inode);
+ 				brelse(bh);
+-				return(inodenum);
++				return inodenum;
+ 			}
+ 		}
+ 		brelse(bh);
+ 	}
+-	return(0);
++	return 0;
+ }
  
- #include <linux/coda.h>
- #include <linux/coda_psdev.h>
-diff -puN fs/coda/upcall.c~fs-coda-use-linux-uaccessh fs/coda/upcall.c
---- a/fs/coda/upcall.c~fs-coda-use-linux-uaccessh
-+++ a/fs/coda/upcall.c
-@@ -27,7 +27,7 @@
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/mutex.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <linux/vmalloc.h>
- #include <linux/vfs.h>
- 
+ struct dentry *efs_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags)
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -187,6 +122,7 @@ mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
 lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
 fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
 checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
+fs-efs-nameic-return-is-not-a-function.patch
 fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
 kernel-test_kprobesc-use-current-logging-functions.patch
 fs-isofs-logging-clean-up.patch
