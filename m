@@ -1,203 +1,207 @@
 From: akpm@linux-foundation.org
-Subject: [failures]
- revert-x86-vdso-remove-some-redundant-in-memory-section-headers.patch
- removed from -mm tree
-Date: Wed, 02 Jul 2014 15:03:41 -0700
-Message-ID: <53b481bd.XIK7Vz5o2aoaY/DX%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+ added to -mm tree
+Date: Wed, 02 Jul 2014 15:04:23 -0700
+Message-ID: <53b481e7.lSuSrMRUVQdHUERV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:40388 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752264AbaGBWDm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 18:03:42 -0400
-Received: by mail-pd0-f202.google.com with SMTP id r10so2026974pdi.3
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 15:03:41 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:52421 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751303AbaGBWEY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 18:04:24 -0400
+Received: by mail-vc0-f201.google.com with SMTP id ij19so1282950vcb.4
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 15:04:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "x86/vdso: Remove some redundant in-memory section headers"
-has been removed from the -mm tree.  Its filename was
-     revert-x86-vdso-remove-some-redundant-in-memory-section-headers.patch
+     Subject: checkpatch: add test for commit id formatting style in commit log
+has been added to the -mm tree.  Its filename is
+     checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "x86/vdso: Remove some redundant in-memory section headers"
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add test for commit id formatting style in commit log
 
-getting some work done here..
+Commit logs have various forms of commit id references.
 
+Try to standardize on a 12 character long lower case commit id along with
+a description of parentheses and the quoted subject line
 
+ie: commit 0123456789ab ("commit description")
 
+If git and a git tree exists, look up the commit id an emit the
+appropriate line as part of the message.
 
+Signed-off-by: Joe Perches <joe@perches.com>
+Requested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/vdso/vdso-fakesections.c |    3 +
- arch/x86/vdso/vdso-layout.lds.S   |   43 +++++++++++++---------------
- arch/x86/vdso/vdso2c.h            |    4 --
- 3 files changed, 24 insertions(+), 26 deletions(-)
+ scripts/checkpatch.pl |   54 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
-diff -puN arch/x86/vdso/vdso-fakesections.c~revert-x86-vdso-remove-some-redundant-in-memory-section-headers arch/x86/vdso/vdso-fakesections.c
---- a/arch/x86/vdso/vdso-fakesections.c~revert-x86-vdso-remove-some-redundant-in-memory-section-headers
-+++ a/arch/x86/vdso/vdso-fakesections.c
-@@ -16,6 +16,9 @@ const char fake_shstrtab[] __attribute__
- 	".rodata\0"
- 	".fake_shstrtab\0"  /* Yay, self-referential code. */
- 	".note\0"
-+	".data\0"
-+	".altinstructions\0"
-+	".altinstr_replacement\0"
- 	".eh_frame_hdr\0"
- 	".eh_frame\0"
- 	".text";
-diff -puN arch/x86/vdso/vdso-layout.lds.S~revert-x86-vdso-remove-some-redundant-in-memory-section-headers arch/x86/vdso/vdso-layout.lds.S
---- a/arch/x86/vdso/vdso-layout.lds.S~revert-x86-vdso-remove-some-redundant-in-memory-section-headers
-+++ a/arch/x86/vdso/vdso-layout.lds.S
-@@ -14,7 +14,7 @@
- # error unknown VDSO target
- #endif
+diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-commit-id-formatting-style-in-commit-log scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-test-for-commit-id-formatting-style-in-commit-log
++++ a/scripts/checkpatch.pl
+@@ -550,6 +550,34 @@ sub seed_camelcase_includes {
+ 	}
+ }
  
--#define NUM_FAKE_SHDRS 13
-+#define NUM_FAKE_SHDRS 16
- 
- SECTIONS
- {
-@@ -28,17 +28,15 @@ SECTIONS
- 	.gnu.version_d	: { *(.gnu.version_d) }
- 	.gnu.version_r	: { *(.gnu.version_r) }
- 
-+	.note		: { *(.note.*) }		:text	:note
++sub git_commit_info {
++	my ($commit, $id, $desc) = @_;
 +
-+	.eh_frame_hdr	: { *(.eh_frame_hdr) }		:text	:eh_frame_hdr
-+	.eh_frame	: { KEEP (*(.eh_frame)) }	:text
++	return ($id, $desc) if ((which("git") eq "") || !(-e ".git"));
 +
- 	.dynamic	: { *(.dynamic) }		:text	:dynamic
- 
- 	.rodata		: {
- 		*(.rodata*)
--		*(.data*)
--		*(.sdata*)
--		*(.got.plt) *(.got)
--		*(.gnu.linkonce.d.*)
--		*(.bss*)
--		*(.dynbss*)
--		*(.gnu.linkonce.b.*)
- 
- 		/*
- 		 * Ideally this would live in a C file, but that won't
-@@ -52,29 +50,28 @@ SECTIONS
- 
- 	.fake_shstrtab	: { *(.fake_shstrtab) }		:text
- 
-+	.data		: {
-+		*(.data*)
-+		*(.sdata*)
-+		*(.got.plt) *(.got)
-+		*(.gnu.linkonce.d.*)
-+		*(.bss*)
-+		*(.dynbss*)
-+		*(.gnu.linkonce.b.*)
++	my $output = `git log --no-color --format='%H %s' -1 $commit 2>&1`;
++	$output =~ s/^\s*//gm;
++	my @lines = split("\n", $output);
++
++	if ($lines[0] =~ /^error: short SHA1 $commit is ambiguous\./) {
++# Maybe one day convert this block of bash into something that returns
++# all matching commit ids, but it's very slow...
++#
++#		echo "checking commits $1..."
++#		git rev-list --remotes | grep -i "^$1" |
++#		while read line ; do
++#		    git log --format='%H %s' -1 $line |
++#		    echo "commit $(cut -c 1-12,41-)"
++#		done
++	} elsif ($lines[0] =~ /^fatal: ambiguous argument '$commit': unknown revision or path not in the working tree\./) {
++	} else {
++		$id = substr($lines[0], 0, 12);
++		$desc = substr($lines[0], 41);
 +	}
++
++	return ($id, $desc);
++}
++
+ $chk_signoff = 0 if ($file);
  
--	.note		: { *(.note.*) }		:text	:note
--
--	.eh_frame_hdr	: { *(.eh_frame_hdr) }		:text	:eh_frame_hdr
--	.eh_frame	: { KEEP (*(.eh_frame)) }	:text
--
-+	.altinstructions	: { *(.altinstructions) }
-+	.altinstr_replacement	: { *(.altinstr_replacement) }
+ my @rawlines = ();
+@@ -674,6 +702,18 @@ sub format_email {
+ 	return $formatted_email;
+ }
  
- 	/*
--	 * Text is well-separated from actual data: there's plenty of
--	 * stuff that isn't used at runtime in between.
-+	 * Align the actual code well away from the non-instruction data.
-+	 * This is the best thing for the I-cache.
- 	 */
-+	. = ALIGN(0x100);
++sub which {
++    my ($bin) = @_;
++
++    foreach my $path (split(/:/, $ENV{PATH})) {
++	if (-e "$path/$bin") {
++	    return "$path/$bin";
++	}
++    }
++
++    return "";
++}
++
+ sub which_conf {
+ 	my ($conf) = @_;
  
- 	.text		: { *(.text*) }			:text	=0x90909090,
+@@ -1958,6 +1998,20 @@ sub process {
+ 			      "Remove Gerrit Change-Id's before submitting upstream.\n" . $herecurr);
+ 		}
  
- 	/*
--	 * At the end so that eu-elflint stays happy when vdso2c strips
--	 * these.  A better implementation would avoid allocating space
--	 * for these.
--	 */
--	.altinstructions	: { *(.altinstructions) }	:text
--	.altinstr_replacement	: { *(.altinstr_replacement) }	:text
--
--	/*
- 	 * The remainder of the vDSO consists of special pages that are
- 	 * shared between the kernel and userspace.  It needs to be at the
- 	 * end so that it doesn't overlap the mapping of the actual
-diff -puN arch/x86/vdso/vdso2c.h~revert-x86-vdso-remove-some-redundant-in-memory-section-headers arch/x86/vdso/vdso2c.h
---- a/arch/x86/vdso/vdso2c.h~revert-x86-vdso-remove-some-redundant-in-memory-section-headers
-+++ a/arch/x86/vdso/vdso2c.h
-@@ -92,9 +92,7 @@ static void BITSFUNC(copy_section)(struc
- {
- 	uint64_t flags = GET_LE(&in->sh_flags);
- 
--	bool copy = flags & SHF_ALLOC &&
--		strcmp(name, ".altinstructions") &&
--		strcmp(name, ".altinstr_replacement");
-+	bool copy = flags & SHF_ALLOC;
- 
- 	if (!copy)
- 		return;
++# Check for improperly formed commit descriptions
++		if ($in_commit_log &&
++		    $line =~ /\bcommit\s+[0-9a-f]{5,}/i &&
++		    $line !~ /\b[Cc]ommit [0-9a-f]{12,16} \("/) {
++			$line =~ /\b(c)ommit\s+([0-9a-f]{5,})/i;
++			my $init_char = $1;
++			my $orig_commit = lc($2);
++			my $id = '01234567890ab';
++			my $desc = 'commit description';
++		        ($id, $desc) = git_commit_info($orig_commit, $id, $desc);
++			ERROR("GIT_COMMIT_ID",
++			      "Please use 12 to 16 chars for the git commit ID like: '${init_char}ommit $id (\"$desc\")'\n" . $herecurr);
++		}
++
+ # Check for wrappage within a valid hunk of the file
+ 		if ($realcnt != 0 && $line !~ m{^(?:\+|-| |\\ No newline|$)}) {
+ 			ERROR("CORRUPTED_PATCH",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
-x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc-fix.patch
-mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
+printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
+printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
+printk-tweak-do_syslog-to-match-comments.patch
+maintainers-remove-two-ancient-eata-sections.patch
+mm-utilc-add-kstrimdup.patch
+kernelh-remove-deprecated-pack_hex_byte.patch
+checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
+checkpatch-ignore-email-headers-better.patch
+checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
+checkpatch-add-a-multiple-blank-lines-test.patch
+checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
+checkpatch-quiet-kconfig-help-message-checking.patch
+checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
+checkpatch-allow-multiple-const-types.patch
+checkpatch-improve-no-space-after-cast-test.patch
+checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
 checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-panic-add-taint_softlockup-fix.patch
+fs-isofs-logging-clean-up.patch
+proc-constify-seq_operations.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-drivers-staging-emxx_udc-emxx_udcc-replace-strict_strto-with-kstrto.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+pci-dma-compat-add-pci_zalloc_consistent-helper.patch
+atm-use-pci_zalloc_consistent.patch
+block-use-pci_zalloc_consistent.patch
+crypto-use-pci_zalloc_consistent.patch
+infiniband-use-pci_zalloc_consistent.patch
+i810-use-pci_zalloc_consistent.patch
+media-use-pci_zalloc_consistent.patch
+amd-use-pci_zalloc_consistent.patch
+atl1e-use-pci_zalloc_consistent.patch
+enic-use-pci_zalloc_consistent.patch
+sky2-use-pci_zalloc_consistent.patch
+micrel-use-pci_zalloc_consistent.patch
+qlogic-use-pci_zalloc_consistent.patch
+irda-use-pci_zalloc_consistent.patch
+ipw2100-use-pci_zalloc_consistent.patch
+mwl8k-use-pci_zalloc_consistent.patch
+rtl818x-use-pci_zalloc_consistent.patch
+rtlwifi-use-pci_zalloc_consistent.patch
+scsi-use-pci_zalloc_consistent.patch
+staging-use-pci_zalloc_consistent.patch
+synclink_gt-use-pci_zalloc_consistent.patch
+vme-bridges-use-pci_zalloc_consistent.patch
+amd-neaten-and-remove-unnecessary-oom-messages.patch
 
