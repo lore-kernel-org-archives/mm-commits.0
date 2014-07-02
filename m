@@ -1,152 +1,307 @@
 From: akpm@linux-foundation.org
 Subject: [withdrawn]
- mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch removed from -mm tree
-Date: Wed, 02 Jul 2014 12:26:59 -0700
-Message-ID: <53b45d03.yLwQ5VwQxL4FAPcP%akpm@linux-foundation.org>
+ mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch removed
+ from -mm tree
+Date: Wed, 02 Jul 2014 12:27:05 -0700
+Message-ID: <53b45d09.yiVf1YHOpzeDRmiK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:43978 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809AbaGBT1A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 15:27:00 -0400
-Received: by mail-ob0-f202.google.com with SMTP id va2so2684342obc.5
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 12:27:00 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:59858 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754452AbaGBT1G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 15:27:06 -0400
+Received: by mail-pd0-f202.google.com with SMTP id r10so1980312pdi.1
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 12:27:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
+     Subject: mm: page_alloc: reduce cost of the fair zone allocation policy
 has been removed from the -mm tree.  Its filename was
-     mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
+     mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
+Subject: mm: page_alloc: reduce cost of the fair zone allocation policy
 
-IO performance since 3.0 has been a mixed bag.  In many respects we are
-better and in some we are worse and one of those places is sequential read
-throughput.  This is visible in a number of benchmarks but I looked at
-tiobench the closest.  This is using ext3 on a mid-range desktop and the
-series applied.
+The fair zone allocation policy round-robins allocations between zones
+within a node to avoid age inversion problems during reclaim.  If the
+first allocation fails, the batch counts are reset and a second attempt
+made before entering the slow path.
 
-                                      3.16.0-rc2                 3.0.0            3.16.0-rc2
-                                         vanilla               vanilla         fairzone-v4r5
-Min    SeqRead-MB/sec-1         120.92 (  0.00%)      133.65 ( 10.53%)      140.68 ( 16.34%)
-Min    SeqRead-MB/sec-2         100.25 (  0.00%)      121.74 ( 21.44%)      118.13 ( 17.84%)
-Min    SeqRead-MB/sec-4          96.27 (  0.00%)      113.48 ( 17.88%)      109.84 ( 14.10%)
-Min    SeqRead-MB/sec-8          83.55 (  0.00%)       97.87 ( 17.14%)       89.62 (  7.27%)
-Min    SeqRead-MB/sec-16         66.77 (  0.00%)       82.59 ( 23.69%)       70.49 (  5.57%)
+One assumption made with this scheme is that batches expire at roughly the
+same time and the resets each time are justified.  This assumption does
+not hold when zones reach their low watermark as the batches will be
+consumed at uneven rates.  Allocation failures due to watermark depletion
+result in additional zonelist scans for the reset and another watermark
+check before hitting the slowpath.
 
-Overall system CPU usage is reduced
+This patch makes a number of changes that should reduce the overall cost
 
-          3.16.0-rc2       3.0.0  3.16.0-rc2
-             vanilla     vanilla fairzone-v4
-User          390.13      251.45      396.13
-System        404.41      295.13      389.61
-Elapsed      5412.45     5072.42     5163.49
+o Abort the fair zone allocation policy once remote zones are
+  encountered
 
-This series does not fully restore throughput performance to 3.0 levels
-but it brings it close for lower thread counts.  Higher thread counts are
-known to be worse than 3.0 due to CFQ changes but there is no appetite for
-changing the defaults there.
+o Use a simplier scan when resetting NR_ALLOC_BATCH
 
+o Use a simple flag to identify depleted zones instead of accessing a
+  potentially write-intensive cache line for counters
 
+On UMA machines, the effect on overall performance is marginal.  The main
+impact is on system CPU usage which is small enough on UMA to begin with. 
+This comparison shows the system CPU usage between vanilla, the previous
+patch and this patch.
 
-This patch (of 4):
+          3.16.0-rc2  3.16.0-rc2  3.16.0-rc2
+             vanilla checklow-v4 fairzone-v4
+User          390.13      400.85      396.13
+System        404.41      393.60      389.61
+Elapsed      5412.45     5166.12     5163.49
 
-The LRU insertion and activate tracepoints take PFN as a parameter forcing
-the overhead to the caller.  Move the overhead to the tracepoint
-fast-assign method to ensure the cost is only incurred when the tracepoint
-is active.
+There is a small reduction and it appears consistent.
+
+On NUMA machines, the scanning overhead is higher as zones are scanned
+that are ineligible for use by zone allocation policy.  This patch fixes
+the zone-order zonelist policy and reduces the numbers of zones scanned by
+the allocator leading to an overall reduction of CPU usage.
+
+          3.16.0-rc2  3.16.0-rc2  3.16.0-rc2
+             vanilla checklow-v4 fairzone-v4
+User          744.05      763.26      778.53
+System      70148.60    49331.48    44905.73
+Elapsed     28094.08    27476.72    27378.98
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/pagemap.h |   16 +++++++---------
- mm/swap.c                      |    4 ++--
- 2 files changed, 9 insertions(+), 11 deletions(-)
+ include/linux/mmzone.h |    6 ++
+ mm/page_alloc.c        |  113 ++++++++++++++++++++++-----------------
+ 2 files changed, 70 insertions(+), 49 deletions(-)
 
-diff -puN include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated include/trace/events/pagemap.h
---- a/include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
-+++ a/include/trace/events/pagemap.h
-@@ -28,12 +28,10 @@ TRACE_EVENT(mm_lru_insertion,
+diff -puN include/linux/mmzone.h~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy
++++ a/include/linux/mmzone.h
+@@ -534,6 +534,7 @@ typedef enum {
+ 	ZONE_WRITEBACK,			/* reclaim scanning has recently found
+ 					 * many pages under writeback
+ 					 */
++	ZONE_FAIR_DEPLETED,		/* fair zone policy batch depleted */
+ } zone_flags_t;
  
- 	TP_PROTO(
- 		struct page *page,
--		unsigned long pfn,
--		int lru,
--		unsigned long flags
-+		int lru
- 	),
+ static inline void zone_set_flag(struct zone *zone, zone_flags_t flag)
+@@ -571,6 +572,11 @@ static inline int zone_is_reclaim_locked
+ 	return test_bit(ZONE_RECLAIM_LOCKED, &zone->flags);
+ }
  
--	TP_ARGS(page, pfn, lru, flags),
-+	TP_ARGS(page, lru),
++static inline int zone_is_fair_depleted(const struct zone *zone)
++{
++	return test_bit(ZONE_FAIR_DEPLETED, &zone->flags);
++}
++
+ static inline int zone_is_oom_locked(const struct zone *zone)
+ {
+ 	return test_bit(ZONE_OOM_LOCKED, &zone->flags);
+diff -puN mm/page_alloc.c~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy
++++ a/mm/page_alloc.c
+@@ -1606,6 +1606,8 @@ again:
+ 	}
  
- 	TP_STRUCT__entry(
- 		__field(struct page *,	page	)
-@@ -44,9 +42,9 @@ TRACE_EVENT(mm_lru_insertion,
+ 	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
++	if (zone_page_state(zone, NR_ALLOC_BATCH) == 0)
++		zone_set_flag(zone, ZONE_FAIR_DEPLETED);
  
- 	TP_fast_assign(
- 		__entry->page	= page;
--		__entry->pfn	= pfn;
-+		__entry->pfn	= page_to_pfn(page);
- 		__entry->lru	= lru;
--		__entry->flags	= flags;
-+		__entry->flags	= trace_pagemap_flags(page);
- 	),
+ 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
+ 	zone_statistics(preferred_zone, zone, gfp_flags);
+@@ -1917,6 +1919,20 @@ static bool zone_allows_reclaim(struct z
  
- 	/* Flag format is based on page-types.c formatting for pagemap */
-@@ -64,9 +62,9 @@ TRACE_EVENT(mm_lru_insertion,
+ #endif	/* CONFIG_NUMA */
  
- TRACE_EVENT(mm_lru_activate,
++static void reset_alloc_batches(struct zone *preferred_zone)
++{
++	struct zone *zone = preferred_zone->zone_pgdat->node_zones;
++
++	do {
++		if (!zone_is_fair_depleted(zone))
++			continue;
++		mod_zone_page_state(zone, NR_ALLOC_BATCH,
++			high_wmark_pages(zone) - low_wmark_pages(zone) -
++			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
++		zone_clear_flag(zone, ZONE_FAIR_DEPLETED);
++	} while (zone++ != preferred_zone);
++}
++
+ /*
+  * get_page_from_freelist goes through the zonelist trying to allocate
+  * a page.
+@@ -1934,8 +1950,11 @@ get_page_from_freelist(gfp_t gfp_mask, n
+ 	int did_zlc_setup = 0;		/* just call zlc_setup() one time */
+ 	bool consider_zone_dirty = (alloc_flags & ALLOC_WMARK_LOW) &&
+ 				(gfp_mask & __GFP_WRITE);
++	int nr_fair_skipped = 0;
++	bool zonelist_rescan;
  
--	TP_PROTO(struct page *page, unsigned long pfn),
-+	TP_PROTO(struct page *page),
+ zonelist_scan:
++	zonelist_rescan = false;
+ 	/*
+ 	 * Scan zonelist, looking for a zone with enough free.
+ 	 * See also __cpuset_node_allowed_softwall() comment in kernel/cpuset.c.
+@@ -1959,9 +1978,12 @@ zonelist_scan:
+ 		 */
+ 		if (alloc_flags & ALLOC_FAIR) {
+ 			if (!zone_local(preferred_zone, zone))
++				break;
++
++			if (zone_is_fair_depleted(zone)) {
++				nr_fair_skipped++;
+ 				continue;
+-			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
+-				continue;
++			}
+ 		}
+ 		/*
+ 		 * When allocating a page cache page for writing, we
+@@ -2067,13 +2089,7 @@ this_zone_full:
+ 			zlc_mark_zone_full(zonelist, z);
+ 	}
  
--	TP_ARGS(page, pfn),
-+	TP_ARGS(page),
+-	if (unlikely(IS_ENABLED(CONFIG_NUMA) && page == NULL && zlc_active)) {
+-		/* Disable zlc cache for second zonelist scan */
+-		zlc_active = 0;
+-		goto zonelist_scan;
+-	}
+-
+-	if (page)
++	if (page) {
+ 		/*
+ 		 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was
+ 		 * necessary to allocate the page. The expectation is
+@@ -2082,8 +2098,37 @@ this_zone_full:
+ 		 * for !PFMEMALLOC purposes.
+ 		 */
+ 		page->pfmemalloc = !!(alloc_flags & ALLOC_NO_WATERMARKS);
++		return page;
++	}
  
- 	TP_STRUCT__entry(
- 		__field(struct page *,	page	)
-@@ -75,7 +73,7 @@ TRACE_EVENT(mm_lru_activate,
- 
- 	TP_fast_assign(
- 		__entry->page	= page;
--		__entry->pfn	= pfn;
-+		__entry->pfn	= page_to_pfn(page);
- 	),
- 
- 	/* Flag format is based on page-types.c formatting for pagemap */
-diff -puN mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated mm/swap.c
---- a/mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
-+++ a/mm/swap.c
-@@ -502,7 +502,7 @@ static void __activate_page(struct page
- 		SetPageActive(page);
- 		lru += LRU_ACTIVE;
- 		add_page_to_lru_list(page, lruvec, lru);
--		trace_mm_lru_activate(page, page_to_pfn(page));
-+		trace_mm_lru_activate(page);
- 
- 		__count_vm_event(PGACTIVATE);
- 		update_page_reclaim_stat(lruvec, file, 1);
-@@ -1036,7 +1036,7 @@ static void __pagevec_lru_add_fn(struct
- 	SetPageLRU(page);
- 	add_page_to_lru_list(page, lruvec, lru);
- 	update_page_reclaim_stat(lruvec, file, active);
--	trace_mm_lru_insertion(page, page_to_pfn(page), lru, trace_pagemap_flags(page));
-+	trace_mm_lru_insertion(page, lru);
+-	return page;
++	/*
++	 * The first pass makes sure allocations are spread fairly within the
++	 * local node.  However, the local node might have free pages left
++	 * after the fairness batches are exhausted, and remote zones haven't
++	 * even been considered yet.  Try once more without fairness, and
++	 * include remote zones now, before entering the slowpath and waking
++	 * kswapd: prefer spilling to a remote zone over swapping locally.
++	 */
++	if (alloc_flags & ALLOC_FAIR) {
++		alloc_flags &= ~ALLOC_FAIR;
++		if (nr_fair_skipped) {
++			zonelist_rescan = true;
++			reset_alloc_batches(preferred_zone);
++		}
++		if (nr_online_nodes > 1)
++			zonelist_rescan = true;
++	}
++
++	if (unlikely(IS_ENABLED(CONFIG_NUMA) && zlc_active)) {
++		/* Disable zlc cache for second zonelist scan */
++		zlc_active = 0;
++		zonelist_rescan = true;
++	}
++
++	if (zonelist_rescan)
++		goto zonelist_scan;
++
++	return NULL;
  }
  
  /*
+@@ -2404,28 +2449,6 @@ __alloc_pages_high_priority(gfp_t gfp_ma
+ 	return page;
+ }
+ 
+-static void reset_alloc_batches(struct zonelist *zonelist,
+-				enum zone_type high_zoneidx,
+-				struct zone *preferred_zone)
+-{
+-	struct zoneref *z;
+-	struct zone *zone;
+-
+-	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
+-		/*
+-		 * Only reset the batches of zones that were actually
+-		 * considered in the fairness pass, we don't want to
+-		 * trash fairness information for zones that are not
+-		 * actually part of this zonelist's round-robin cycle.
+-		 */
+-		if (!zone_local(preferred_zone, zone))
+-			continue;
+-		mod_zone_page_state(zone, NR_ALLOC_BATCH,
+-			high_wmark_pages(zone) - low_wmark_pages(zone) -
+-			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
+-	}
+-}
+-
+ static void wake_all_kswapds(unsigned int order,
+ 			     struct zonelist *zonelist,
+ 			     enum zone_type high_zoneidx,
+@@ -2723,6 +2746,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+ 	struct zone *preferred_zone;
+ 	struct zoneref *preferred_zoneref;
++	struct zoneref *second_zoneref;
+ 	struct page *page = NULL;
+ 	int migratetype = allocflags_to_migratetype(gfp_mask);
+ 	unsigned int cpuset_mems_cookie;
+@@ -2757,33 +2781,24 @@ retry_cpuset:
+ 		goto out;
+ 	classzone_idx = zonelist_zone_idx(preferred_zoneref);
+ 
++	/*
++	 * Only apply the fair zone allocation policy if there is more than
++	 * one local eligible zone
++	 */
++	second_zoneref = preferred_zoneref + 1;
++	if (zonelist_zone(second_zoneref) &&
++	    zone_local(preferred_zone, zonelist_zone(second_zoneref)))
++		alloc_flags |= ALLOC_FAIR;
+ #ifdef CONFIG_CMA
+ 	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
+ 		alloc_flags |= ALLOC_CMA;
+ #endif
+-retry:
+ 	/* First allocation attempt */
+ 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
+ 			zonelist, high_zoneidx, alloc_flags,
+ 			preferred_zone, classzone_idx, migratetype);
+ 	if (unlikely(!page)) {
+ 		/*
+-		 * The first pass makes sure allocations are spread
+-		 * fairly within the local node.  However, the local
+-		 * node might have free pages left after the fairness
+-		 * batches are exhausted, and remote zones haven't
+-		 * even been considered yet.  Try once more without
+-		 * fairness, and include remote zones now, before
+-		 * entering the slowpath and waking kswapd: prefer
+-		 * spilling to a remote zone over swapping locally.
+-		 */
+-		if (alloc_flags & ALLOC_FAIR) {
+-			reset_alloc_batches(zonelist, high_zoneidx,
+-					    preferred_zone);
+-			alloc_flags &= ~ALLOC_FAIR;
+-			goto retry;
+-		}
+-		/*
+ 		 * Runtime PM, block IO and its error handling path
+ 		 * can deadlock because I/O on the device might not
+ 		 * complete.
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
@@ -163,9 +318,6 @@ mm-vmscan-remove-all_unreclaimable.patch
 mm-vmscan-move-swappiness-out-of-scan_control.patch
 tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch
 mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
-mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
-mm-vmscan-do-not-reclaim-from-lower-zones-if-they-are-balanced.patch
-mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
 mm-replace-init_page_accessed-by-__setpagereferenced.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
