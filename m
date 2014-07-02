@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-fix-faulting-into-a-hole-while-its-punched-take-2.patch
- added to -mm tree
-Date: Wed, 02 Jul 2014 12:25:15 -0700
-Message-ID: <53b45c9b.2rlA0uGYBLzlXEeS%akpm@linux-foundation.org>
+Subject: + mm-fs-fix-pessimization-in-hole-punching-pagecache.patch added
+ to -mm tree
+Date: Wed, 02 Jul 2014 12:25:16 -0700
+Message-ID: <53b45c9c.WudrGfi63yjqc05o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:53629 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754307AbaGBTZQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 15:25:16 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f10so1330105yha.0
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 12:25:15 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:43270 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751809AbaGBTZR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 15:25:17 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so2681594obb.2
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 12:25:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, davej@redhat.com, koct9i@gmail.com, lczerner@redhat.com, sasha.levin@oracle.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: hughd@google.com, davej@redhat.com, koct9i@gmail.com, lczerner@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: fix faulting into a hole while it's punched, take 2
+     Subject: mm/fs: fix pessimization in hole-punching pagecache
 has been added to the -mm tree.  Its filename is
-     shmem-fix-faulting-into-a-hole-while-its-punched-take-2.patch
+     mm-fs-fix-pessimization-in-hole-punching-pagecache.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/shmem-fix-faulting-into-a-hole-while-its-punched-take-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fs-fix-pessimization-in-hole-punching-pagecache.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-fix-faulting-into-a-hole-while-its-punched-take-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fs-fix-pessimization-in-hole-punching-pagecache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,96 +42,79 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: shmem: fix faulting into a hole while it's punched, take 2
+Subject: mm/fs: fix pessimization in hole-punching pagecache
 
-Trinity finds that mmap access to a hole while it's punched from shmem can
-prevent the madvise(MADV_REMOVE) or fallocate(FALLOC_FL_PUNCH_HOLE) from
-completing, until the (killable) reader stops; with the puncher's hold on
-i_mutex locking out all other writers until it can complete.  This issue
-was tagged with CVE-2014-4171.
+I wanted to revert my v3.1 commit d0823576bf4b ("mm: pincer in
+truncate_inode_pages_range"), to keep truncate_inode_pages_range() in
+synch with shmem_undo_range(); but have stepped back - a change to
+hole-punching in truncate_inode_pages_range() is a change to hole-punching
+in every filesystem (except tmpfs) that supports it.
 
-It appears that the tmpfs fault path is too light in comparison with its
-hole-punching path, lacking an i_data_sem to obstruct it; but we don't
-want to slow down the common case.  It is not a problem in truncation,
-because there the SIGBUS beyond i_size stops pages from being appended.
+If there's a logical proof why no filesystem can depend for its own
+correctness on the pincer guarantee in truncate_inode_pages_range() - an
+instant when the entire hole is removed from pagecache - then let's
+revisit later.  But the evidence is that only tmpfs suffered from the
+livelock, and we have no intention of extending hole-punch to ramfs.  So
+for now just add a few comments (to match or differ from those in
+shmem_undo_range()), and fix one silliness noticed in d0823576bf4b...
 
-The origin of this problem is my v3.1 commit d0823576bf4b ("mm: pincer in
-truncate_inode_pages_range"), once it was duplicated into shmem.c.  It
-seemed like a nice idea at the time, to ensure (barring RCU lookup
-fuzziness) that there's an instant when the entire hole is empty; but the
-indefinitely repeated scans to ensure that make it vulnerable.
+Its "index == start" addition to the hole-punch termination test was
+incomplete: it opened a way for the end condition to be missed, and the
+loop go on looking through the radix_tree, all the way to end of file. 
+Fix that pessimization by resetting index when detected in inner loop.
 
-Revert that "enhancement" to hole-punch from shmem_undo_range(), but
-retain the unproblematic rescanning when it's truncating; add a couple of
-comments there.
+Note that it's actually hard to hit this case, without the obsessive
+concurrent faulting that trinity does: normally all pages are removed in
+the initial trylock_page() pass, and this loop finds nothing to do.  I had
+to "#if 0" out the initial pass to reproduce bug and test fix.
 
-Remove the "indices[0] >= end" test: that is now handled satisfactorily by
-the inner loop, and mem_cgroup_uncharge_start()/end() are too light to be
-worth avoiding here.
-
-But if we do not always loop indefinitely, we do need to handle the case
-of swap swizzled back to page before shmem_free_swap() gets it: add a
-retry for that case, as suggested by Konstantin Khlebnikov.
-
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Suggested-and-Tested-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Lukas Czerner <lczerner@redhat.com>
 Cc: Dave Jones <davej@redhat.com>
-Cc: <stable@vger.kernel.org>	[3.1+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ mm/truncate.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/shmem.c~shmem-fix-faulting-into-a-hole-while-its-punched-take-2 mm/shmem.c
---- a/mm/shmem.c~shmem-fix-faulting-into-a-hole-while-its-punched-take-2
-+++ a/mm/shmem.c
-@@ -467,23 +467,20 @@ static void shmem_undo_range(struct inod
- 		return;
- 
- 	index = start;
--	for ( ; ; ) {
-+	while (index < end) {
+diff -puN mm/truncate.c~mm-fs-fix-pessimization-in-hole-punching-pagecache mm/truncate.c
+--- a/mm/truncate.c~mm-fs-fix-pessimization-in-hole-punching-pagecache
++++ a/mm/truncate.c
+@@ -355,14 +355,16 @@ void truncate_inode_pages_range(struct a
+ 	for ( ; ; ) {
  		cond_resched();
- 
- 		pvec.nr = find_get_entries(mapping, index,
- 				min(end - index, (pgoff_t)PAGEVEC_SIZE),
- 				pvec.pages, indices);
- 		if (!pvec.nr) {
--			if (index == start || unfalloc)
-+			/* If all gone or hole-punch or unfalloc, we're done */
-+			if (index == start || end != -1)
+ 		if (!pagevec_lookup_entries(&pvec, mapping, index,
+-			min(end - index, (pgoff_t)PAGEVEC_SIZE),
+-			indices)) {
++			min(end - index, (pgoff_t)PAGEVEC_SIZE), indices)) {
++			/* If all gone from start onwards, we're done */
+ 			if (index == start)
  				break;
-+			/* But if truncating, restart to make sure all gone */
++			/* Otherwise restart to make sure all gone */
  			index = start;
  			continue;
  		}
--		if ((index == start || unfalloc) && indices[0] >= end) {
--			pagevec_remove_exceptionals(&pvec);
--			pagevec_release(&pvec);
--			break;
--		}
- 		mem_cgroup_uncharge_start();
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
-@@ -495,8 +492,12 @@ static void shmem_undo_range(struct inod
- 			if (radix_tree_exceptional_entry(page)) {
- 				if (unfalloc)
- 					continue;
--				nr_swaps_freed += !shmem_free_swap(mapping,
--								index, page);
-+				if (shmem_free_swap(mapping, index, page)) {
-+					/* Swap was replaced by page: retry */
-+					index--;
-+					break;
-+				}
-+				nr_swaps_freed++;
- 				continue;
- 			}
+ 		if (index == start && indices[0] >= end) {
++			/* All gone out of hole to be punched, we're done */
+ 			pagevec_remove_exceptionals(&pvec);
+ 			pagevec_release(&pvec);
+ 			break;
+@@ -373,8 +375,11 @@ void truncate_inode_pages_range(struct a
  
+ 			/* We rely upon deletion not changing page->index */
+ 			index = indices[i];
+-			if (index >= end)
++			if (index >= end) {
++				/* Restart punch to make sure all gone */
++				index = start - 1;
+ 				break;
++			}
+ 
+ 			if (radix_tree_exceptional_entry(page)) {
+ 				clear_exceptional_entry(mapping, index, page);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
