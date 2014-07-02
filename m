@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hpfs-dnodec-fix-suspect-code-indent.patch added to -mm tree
-Date: Wed, 02 Jul 2014 13:22:33 -0700
-Message-ID: <53b46a09.nOcCT+9n94z8+K4Z%akpm@linux-foundation.org>
+Subject: + slab-defer-slab_destroy-in-free_block-v4.patch added to -mm
+ tree
+Date: Wed, 02 Jul 2014 13:44:07 -0700
+Message-ID: <53b46f17.xyWc+e7yHppqP5L8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:36429 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932394AbaGBUWe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 16:22:34 -0400
-Received: by mail-pd0-f202.google.com with SMTP id r10so1997093pdi.1
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 13:22:33 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:46788 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752660AbaGBUoJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 16:44:09 -0400
+Received: by mail-vc0-f201.google.com with SMTP id ij19so1266739vcb.4
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 13:44:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mikulas@artax.karlin.mff.cuni.cz, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/hpfs/dnode.c: fix suspect code indent
+     Subject: slab-defer-slab_destroy-in-free_block-v4
 has been added to the -mm tree.  Its filename is
-     fs-hpfs-dnodec-fix-suspect-code-indent.patch
+     slab-defer-slab_destroy-in-free_block-v4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-hpfs-dnodec-fix-suspect-code-indent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-defer-slab_destroy-in-free_block-v4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hpfs-dnodec-fix-suspect-code-indent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-defer-slab_destroy-in-free_block-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,118 +41,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hpfs/dnode.c: fix suspect code indent
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: slab-defer-slab_destroy-in-free_block-v4
 
-Fix 2 checkpatch warnings:
-"WARNING: suspect code indent for conditional statements"
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/dnode.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ mm/slab.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/hpfs/dnode.c~fs-hpfs-dnodec-fix-suspect-code-indent fs/hpfs/dnode.c
---- a/fs/hpfs/dnode.c~fs-hpfs-dnodec-fix-suspect-code-indent
-+++ a/fs/hpfs/dnode.c
-@@ -545,12 +545,13 @@ static void delete_empty_dnode(struct in
- 			struct dnode *d1;
- 			struct quad_buffer_head qbh1;
- 			if (hpfs_sb(i->i_sb)->sb_chk)
--			    if (up != i->i_ino) {
--				hpfs_error(i->i_sb,
--					"bad pointer to fnode, dnode %08x, pointing to %08x, should be %08lx",
--					dno, up, (unsigned long)i->i_ino);
--				return;
--			    }
-+				if (up != i->i_ino) {
-+					hpfs_error(i->i_sb,
-+						   "bad pointer to fnode, dnode %08x, pointing to %08x, should be %08lx",
-+						   dno, up,
-+						   (unsigned long)i->i_ino);
-+					return;
-+				}
- 			if ((d1 = hpfs_map_dnode(i->i_sb, down, &qbh1))) {
- 				d1->up = cpu_to_le32(up);
- 				d1->root_dnode = 1;
-@@ -1061,8 +1062,8 @@ struct hpfs_dirent *map_fnode_dirent(str
- 		hpfs_brelse4(qbh);
- 		if (hpfs_sb(s)->sb_chk)
- 			if (hpfs_stop_cycles(s, dno, &c1, &c2, "map_fnode_dirent #1")) {
--			kfree(name2);
--			return NULL;
-+				kfree(name2);
-+				return NULL;
- 		}
- 		goto go_down;
- 	}
+diff -puN mm/slab.c~slab-defer-slab_destroy-in-free_block-v4 mm/slab.c
+--- a/mm/slab.c~slab-defer-slab_destroy-in-free_block-v4
++++ a/mm/slab.c
+@@ -3431,6 +3431,7 @@ slab_alloc(struct kmem_cache *cachep, gf
+ 
+ /*
+  * Caller needs to acquire correct kmem_cache_node's list_lock
++ * @list: List of detached free slabs should be freed by caller
+  */
+ static void free_block(struct kmem_cache *cachep, void **objpp,
+ 			int nr_objects, int node, struct list_head *list)
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-squashfs-superc-logging-clean-up.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+slub-fix-off-by-one-in-number-of-slab-tests.patch
 mm-slabc-add-__init-to-init_lock_keys.patch
-mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
-mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
-mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
-mm-internalh-use-nth_page.patch
-mm-hwpoison-injectc-remove-unnecessary-null-test-before-debugfs_remove_recursive.patch
-mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
-lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
-fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
-checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
-fs-efs-nameic-return-is-not-a-function.patch
-fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-test_kprobesc-use-current-logging-functions.patch
-fs-isofs-logging-clean-up.patch
-fs-isofs-logging-clean-up-fix.patch
-fs-coda-use-linux-uaccessh.patch
-fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
-fs-ufs-convert-printk-to-pr_foo.patch
-fs-ufs-use-pr_fmt.patch
-fs-ufs-superc-use-__func__-in-logging.patch
-fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
-fs-ufs-convert-ufsd-printk-to-pr_debug.patch
-fs-reiserfs-replace-not-standard-%lu-%ld.patch
-fs-reiserfs-use-linux-uaccessh.patch
-fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
-fs-hpfs-dnodec-fix-suspect-code-indent.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-proc-constify-seq_operations.patch
-fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
-fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
-fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
-fs-bfs-use-bfs-prefix-for-dump_imap.patch
-drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
-fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
-fs-cachefiles-bindc-remove-unnecessary-assertions.patch
-fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-romfs-superc-convert-printk-to-pr_foo.patch
-fs-romfs-superc-use-pr_fmt-in-logging.patch
-fs-romfs-superc-add-blank-line-after-declarations.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
-fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
-linux-next.patch
-init-mainc-code-clean-up.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
+slab-common-add-functions-for-kmem_cache_node-access.patch
+slub-use-new-node-functions.patch
+slub-use-new-node-functions-fix.patch
+slab-use-get_node-and-kmem_cache_node-functions.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+mm-slub-mark-resiliency_test-as-init-text.patch
+mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
+memcg-cleanup-memcg_cache_params-refcnt-usage.patch
+memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
+memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
+slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
+slub-make-slab_free-non-preemptable.patch
+memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
+slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
+slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock.patch
+slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
+slab-set-free_limit-for-dead-caches-to-0.patch
+slab-add-unlikely-macro-to-help-compiler.patch
+slab-move-up-code-to-get-kmem_cache_node-in-free_block.patch
+slab-defer-slab_destroy-in-free_block.patch
+slab-defer-slab_destroy-in-free_block-v4.patch
+slab-factor-out-initialization-of-arracy-cache.patch
+slab-introduce-alien_cache.patch
+slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
+slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
+slab-remove-a-useless-lockdep-annotation.patch
+slab-remove-bad_alien_magic.patch
+slub-reduce-duplicate-creation-on-the-first-object.patch
+vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
+dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
+dma-cma-support-alignment-constraint-on-cma-region.patch
+dma-cma-support-arbitrary-bitmap-granularity.patch
+dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+cma-generalize-cma-reserved-area-management-functionality.patch
+cma-generalize-cma-reserved-area-management-functionality-fix.patch
+ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
+ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix.patch
+mm-cma-clean-up-cma-allocation-error-path.patch
+mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
+mm-cma-clean-up-log-message.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages.patch
+mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
