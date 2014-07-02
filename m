@@ -1,114 +1,166 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload.patch
- removed from -mm tree
-Date: Wed, 02 Jul 2014 11:03:59 -0700
-Message-ID: <53b4498f.bTkAMI+9YejycK6u%akpm@linux-foundation.org>
+ bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch removed from -mm tree
+Date: Wed, 02 Jul 2014 11:04:01 -0700
+Message-ID: <53b44991.SIEQPxlz66POsX4n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:35510 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754420AbaGBSEA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 14:04:00 -0400
-Received: by mail-ve0-f202.google.com with SMTP id oy12so1308855veb.5
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 11:04:00 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:44540 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756711AbaGBSED (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 14:04:03 -0400
+Received: by mail-qc0-f202.google.com with SMTP id x13so1308891qcv.3
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 11:04:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guz.fnst@cn.fujitsu.com, axboe@kernel.dk, kmo@daterainc.com, martin.petersen@oracle.com, mm-commits@vger.kernel.org
+To: mlombard@redhat.com, axboe@kernel.dk, dongsu.park@profitbricks.com, hch@lst.de, jet.chen@intel.com, kmo@daterainc.com, ming.lei@canonical.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bio-integrity: add "bip_max_vcnt" into struct bio_integrity_payload
+     Subject: bio: modify __bio_add_page() to accept pages that don't start a new segment
 has been removed from the -mm tree.  Its filename was
-     bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload.patch
+     bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: bio-integrity: add "bip_max_vcnt" into struct bio_integrity_payload
+From: Maurizio Lombardi <mlombard@redhat.com>
+Subject: bio: modify __bio_add_page() to accept pages that don't start a new segment
 
-Commit 08778795 ("block: Fix nr_vecs for inline integrity vectors") from
-Martin introduces the function bip_integrity_vecs(get the useful vectors)
-to fix the issue about nr_vecs for inline integrity vectors that reported
-by David Milburn.
+The original behaviour is to refuse to add a new page if the maximum
+number of segments has been reached, regardless of the fact the page we
+are going to add can be merged into the last segment or not.
 
-But it seems that bip_integrity_vecs() will return the wrong number if the
-bio is not based on any bio_set for some reason(bio->bi_pool == NULL),
-because in that case, the bip_inline_vecs[0] is malloced directly.  So
-here we add the bip_max_vcnt to record the count of vector slots, and
-cleanup the function bip_integrity_vecs().
+Unfortunately, when the system runs under heavy memory fragmentation
+conditions, a driver may try to add multiple pages to the last segment. 
+The original code won't accept them and EBUSY will be reported to
+userspace.
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
+This patch modifies the function so it refuses to add a page only in case
+the latter starts a new segment and the maximum number of segments has
+already been reached.
+
+The bug can be easily reproduced with the st driver:
+
+1) set CONFIG_SCSI_MPT2SAS_MAX_SGE or CONFIG_SCSI_MPT3SAS_MAX_SGE  to 16
+2) modprobe st buffer_kbs=1024
+3) #dd if=/dev/zero of=/dev/st0 bs=1M count=10
+   dd: error writing `/dev/st0': Device or resource busy
+
+[ming.lei@canonical.com: update bi_iter.bi_size before recounting segments]
+Signed-off-by: Maurizio Lombardi <mlombard@redhat.com>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Tested-by: Dongsu Park <dongsu.park@profitbricks.com>
+Tested-by: Jet Chen <jet.chen@intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Kent Overstreet <kmo@daterainc.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bio-integrity.c |   12 +++---------
- include/linux/bio.h   |    1 +
- 2 files changed, 4 insertions(+), 9 deletions(-)
+ block/bio.c |   52 +++++++++++++++++++++++++++-----------------------
+ 1 file changed, 29 insertions(+), 23 deletions(-)
 
-diff -puN block/bio-integrity.c~bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload block/bio-integrity.c
---- a/block/bio-integrity.c~bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload
-+++ a/block/bio-integrity.c
-@@ -70,8 +70,10 @@ struct bio_integrity_payload *bio_integr
- 					  bs->bvec_integrity_pool);
- 		if (!bip->bip_vec)
- 			goto err;
-+		bip->bip_max_vcnt = bvec_nr_vecs(idx);
- 	} else {
- 		bip->bip_vec = bip->bip_inline_vecs;
-+		bip->bip_max_vcnt = inline_vecs;
- 	}
+diff -puN block/bio.c~bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment block/bio.c
+--- a/block/bio.c~bio-modify-__bio_add_page-to-accept-pages-that-dont-start-a-new-segment
++++ a/block/bio.c
+@@ -745,6 +745,7 @@ static int __bio_add_page(struct request
+ 				}
+ 			}
  
- 	bip->bip_slab = idx;
-@@ -114,14 +116,6 @@ void bio_integrity_free(struct bio *bio)
- }
- EXPORT_SYMBOL(bio_integrity_free);
++			bio->bi_iter.bi_size += len;
+ 			goto done;
+ 		}
  
--static inline unsigned int bip_integrity_vecs(struct bio_integrity_payload *bip)
--{
--	if (bip->bip_slab == BIO_POOL_NONE)
--		return BIP_INLINE_VECS;
--
--	return bvec_nr_vecs(bip->bip_slab);
--}
--
- /**
-  * bio_integrity_add_page - Attach integrity metadata
-  * @bio:	bio to update
-@@ -137,7 +131,7 @@ int bio_integrity_add_page(struct bio *b
- 	struct bio_integrity_payload *bip = bio->bi_integrity;
- 	struct bio_vec *iv;
- 
--	if (bip->bip_vcnt >= bip_integrity_vecs(bip)) {
-+	if (bip->bip_vcnt >= bip->bip_max_vcnt) {
- 		printk(KERN_ERR "%s: bip_vec full\n", __func__);
+@@ -761,29 +762,32 @@ static int __bio_add_page(struct request
  		return 0;
+ 
+ 	/*
+-	 * we might lose a segment or two here, but rather that than
+-	 * make this too complex.
++	 * setup the new entry, we might clear it again later if we
++	 * cannot add the page
++	 */
++	bvec = &bio->bi_io_vec[bio->bi_vcnt];
++	bvec->bv_page = page;
++	bvec->bv_len = len;
++	bvec->bv_offset = offset;
++	bio->bi_vcnt++;
++	bio->bi_phys_segments++;
++	bio->bi_iter.bi_size += len;
++
++	/*
++	 * Perform a recount if the number of segments is greater
++	 * than queue_max_segments(q).
+ 	 */
+ 
+-	while (bio->bi_phys_segments >= queue_max_segments(q)) {
++	while (bio->bi_phys_segments > queue_max_segments(q)) {
+ 
+ 		if (retried_segments)
+-			return 0;
++			goto failed;
+ 
+ 		retried_segments = 1;
+ 		blk_recount_segments(q, bio);
  	}
-diff -puN include/linux/bio.h~bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload include/linux/bio.h
---- a/include/linux/bio.h~bio-integrity-add-bip_max_vcnt-into-struct-bio_integrity_payload
-+++ a/include/linux/bio.h
-@@ -308,6 +308,7 @@ struct bio_integrity_payload {
  
- 	unsigned short		bip_slab;	/* slab the bip came from */
- 	unsigned short		bip_vcnt;	/* # of integrity bio_vecs */
-+	unsigned short		bip_max_vcnt;	/* integrity bio_vec slots */
- 	unsigned		bip_owns_buf:1;	/* should free bip_buf */
+ 	/*
+-	 * setup the new entry, we might clear it again later if we
+-	 * cannot add the page
+-	 */
+-	bvec = &bio->bi_io_vec[bio->bi_vcnt];
+-	bvec->bv_page = page;
+-	bvec->bv_len = len;
+-	bvec->bv_offset = offset;
+-
+-	/*
+ 	 * if queue has other restrictions (eg varying max sector size
+ 	 * depending on offset), it can specify a merge_bvec_fn in the
+ 	 * queue to get further control
+@@ -800,23 +804,25 @@ static int __bio_add_page(struct request
+ 		 * merge_bvec_fn() returns number of bytes it can accept
+ 		 * at this offset
+ 		 */
+-		if (q->merge_bvec_fn(q, &bvm, bvec) < bvec->bv_len) {
+-			bvec->bv_page = NULL;
+-			bvec->bv_len = 0;
+-			bvec->bv_offset = 0;
+-			return 0;
+-		}
++		if (q->merge_bvec_fn(q, &bvm, bvec) < bvec->bv_len)
++			goto failed;
+ 	}
  
- 	struct work_struct	bip_work;	/* I/O completion */
+ 	/* If we may be able to merge these biovecs, force a recount */
+-	if (bio->bi_vcnt && (BIOVEC_PHYS_MERGEABLE(bvec-1, bvec)))
++	if (bio->bi_vcnt > 1 && (BIOVEC_PHYS_MERGEABLE(bvec-1, bvec)))
+ 		bio->bi_flags &= ~(1 << BIO_SEG_VALID);
+ 
+-	bio->bi_vcnt++;
+-	bio->bi_phys_segments++;
+  done:
+-	bio->bi_iter.bi_size += len;
+ 	return len;
++
++ failed:
++	bvec->bv_page = NULL;
++	bvec->bv_len = 0;
++	bvec->bv_offset = 0;
++	bio->bi_vcnt--;
++	bio->bi_iter.bi_size -= len;
++	blk_recount_segments(q, bio);
++	return 0;
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from guz.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from mlombard@redhat.com are
 
-x86mem-hotplug-pass-sync_global_pgds-a-correct-argument-in-remove_pagetable.patch
-x86mem-hotplug-modify-pgd-entry-when-removing-memory.patch
-mem-hotplug-avoid-illegal-state-prefixed-with-legal-state-when-changing-state-of-memory_block.patch
-mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1.patch
 linux-next.patch
 
