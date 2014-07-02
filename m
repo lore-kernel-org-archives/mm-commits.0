@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-efs-nameic-return-is-not-a-function.patch added to -mm tree
-Date: Wed, 02 Jul 2014 13:07:08 -0700
-Message-ID: <53b4666c.RMVAsRdTPhXEnDni%akpm@linux-foundation.org>
+Subject: + fs-hpfs-dnodec-fix-suspect-code-indent.patch added to -mm tree
+Date: Wed, 02 Jul 2014 13:22:33 -0700
+Message-ID: <53b46a09.nOcCT+9n94z8+K4Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:41520 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757652AbaGBUHJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 16:07:09 -0400
-Received: by mail-qa0-f73.google.com with SMTP id m5so1339430qaj.0
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 13:07:08 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:36429 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932394AbaGBUWe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 16:22:34 -0400
+Received: by mail-pd0-f202.google.com with SMTP id r10so1997093pdi.1
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 13:22:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mikulas@artax.karlin.mff.cuni.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/efs/namei.c: return is not a function
+     Subject: fs/hpfs/dnode.c: fix suspect code indent
 has been added to the -mm tree.  Its filename is
-     fs-efs-nameic-return-is-not-a-function.patch
+     fs-hpfs-dnodec-fix-suspect-code-indent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-efs-nameic-return-is-not-a-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-hpfs-dnodec-fix-suspect-code-indent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-efs-nameic-return-is-not-a-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hpfs-dnodec-fix-suspect-code-indent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,60 +41,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/efs/namei.c: return is not a function
+Subject: fs/hpfs/dnode.c: fix suspect code indent
 
-Fix checkpatch errors:
-
-"ERROR: return is not a function, parentheses are not required"
+Fix 2 checkpatch warnings:
+"WARNING: suspect code indent for conditional statements"
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/namei.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/hpfs/dnode.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN fs/efs/namei.c~fs-efs-nameic-return-is-not-a-function fs/efs/namei.c
---- a/fs/efs/namei.c~fs-efs-nameic-return-is-not-a-function
-+++ a/fs/efs/namei.c
-@@ -12,7 +12,8 @@
- #include "efs.h"
- 
- 
--static efs_ino_t efs_find_entry(struct inode *inode, const char *name, int len) {
-+static efs_ino_t efs_find_entry(struct inode *inode, const char *name, int len)
-+{
- 	struct buffer_head *bh;
- 
- 	int			slot, namelen;
-@@ -40,10 +41,10 @@ static efs_ino_t efs_find_entry(struct i
- 		if (be16_to_cpu(dirblock->magic) != EFS_DIRBLK_MAGIC) {
- 			pr_err("%s(): invalid directory block\n", __func__);
- 			brelse(bh);
--			return(0);
-+			return 0;
+diff -puN fs/hpfs/dnode.c~fs-hpfs-dnodec-fix-suspect-code-indent fs/hpfs/dnode.c
+--- a/fs/hpfs/dnode.c~fs-hpfs-dnodec-fix-suspect-code-indent
++++ a/fs/hpfs/dnode.c
+@@ -545,12 +545,13 @@ static void delete_empty_dnode(struct in
+ 			struct dnode *d1;
+ 			struct quad_buffer_head qbh1;
+ 			if (hpfs_sb(i->i_sb)->sb_chk)
+-			    if (up != i->i_ino) {
+-				hpfs_error(i->i_sb,
+-					"bad pointer to fnode, dnode %08x, pointing to %08x, should be %08lx",
+-					dno, up, (unsigned long)i->i_ino);
+-				return;
+-			    }
++				if (up != i->i_ino) {
++					hpfs_error(i->i_sb,
++						   "bad pointer to fnode, dnode %08x, pointing to %08x, should be %08lx",
++						   dno, up,
++						   (unsigned long)i->i_ino);
++					return;
++				}
+ 			if ((d1 = hpfs_map_dnode(i->i_sb, down, &qbh1))) {
+ 				d1->up = cpu_to_le32(up);
+ 				d1->root_dnode = 1;
+@@ -1061,8 +1062,8 @@ struct hpfs_dirent *map_fnode_dirent(str
+ 		hpfs_brelse4(qbh);
+ 		if (hpfs_sb(s)->sb_chk)
+ 			if (hpfs_stop_cycles(s, dno, &c1, &c2, "map_fnode_dirent #1")) {
+-			kfree(name2);
+-			return NULL;
++				kfree(name2);
++				return NULL;
  		}
- 
--		for(slot = 0; slot < dirblock->slots; slot++) {
-+		for (slot = 0; slot < dirblock->slots; slot++) {
- 			dirslot  = (struct efs_dentry *) (((char *) bh->b_data) + EFS_SLOTAT(dirblock, slot));
- 
- 			namelen  = dirslot->namelen;
-@@ -52,12 +53,12 @@ static efs_ino_t efs_find_entry(struct i
- 			if ((namelen == len) && (!memcmp(name, nameptr, len))) {
- 				inodenum = be32_to_cpu(dirslot->inode);
- 				brelse(bh);
--				return(inodenum);
-+				return inodenum;
- 			}
- 		}
- 		brelse(bh);
+ 		goto go_down;
  	}
--	return(0);
-+	return 0;
- }
- 
- struct dentry *efs_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags)
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -137,6 +130,7 @@ fs-ufs-convert-ufsd-printk-to-pr_debug.patch
 fs-reiserfs-replace-not-standard-%lu-%ld.patch
 fs-reiserfs-use-linux-uaccessh.patch
 fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
+fs-hpfs-dnodec-fix-suspect-code-indent.patch
 fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
 proc-constify-seq_operations.patch
 fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
