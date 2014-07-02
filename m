@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: +
- slab-change-int-to-size_t-for-representing-allocation-size.patch added to
- -mm tree
-Date: Wed, 02 Jul 2014 13:49:22 -0700
-Message-ID: <53b47052.+UHoyLle5w6B1Qvf%akpm@linux-foundation.org>
+ revert-x86-vdso-remove-some-redundant-in-memory-section-headers.patch added to -mm tree
+Date: Wed, 02 Jul 2014 14:11:02 -0700
+Message-ID: <53b47566.dA/VPr7QtziProzH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:60763 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753304AbaGBUtX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 16:49:23 -0400
-Received: by mail-oa0-f74.google.com with SMTP id i7so2705527oag.5
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 13:49:22 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:35747 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753363AbaGBVLE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 17:11:04 -0400
+Received: by mail-ie0-f201.google.com with SMTP id lx4so2720353iec.2
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 14:11:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, akpm@linux-foundation.org, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: change int to size_t for representing allocation size
+     Subject: revert "x86/vdso: Remove some redundant in-memory section headers"
 has been added to the -mm tree.  Its filename is
-     slab-change-int-to-size_t-for-representing-allocation-size.patch
+     revert-x86-vdso-remove-some-redundant-in-memory-section-headers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-change-int-to-size_t-for-representing-allocation-size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-x86-vdso-remove-some-redundant-in-memory-section-headers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-change-int-to-size_t-for-representing-allocation-size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-x86-vdso-remove-some-redundant-in-memory-section-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,113 +41,176 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: slab: change int to size_t for representing allocation size
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "x86/vdso: Remove some redundant in-memory section headers"
 
-It is better to represent allocation size in size_t rather than int.
-So change it.
+getting some work done here..
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/vdso/vdso-fakesections.c |    3 +
+ arch/x86/vdso/vdso-layout.lds.S   |   43 +++++++++++++---------------
+ arch/x86/vdso/vdso2c.h            |    4 --
+ 3 files changed, 24 insertions(+), 26 deletions(-)
 
-diff -puN mm/slab.c~slab-change-int-to-size_t-for-representing-allocation-size mm/slab.c
---- a/mm/slab.c~slab-change-int-to-size_t-for-representing-allocation-size
-+++ a/mm/slab.c
-@@ -681,7 +681,7 @@ static void init_arraycache(struct array
- static struct array_cache *alloc_arraycache(int node, int entries,
- 					    int batchcount, gfp_t gfp)
- {
--	int memsize = sizeof(void *) * entries + sizeof(struct array_cache);
-+	size_t memsize = sizeof(void *) * entries + sizeof(struct array_cache);
- 	struct array_cache *ac = NULL;
+diff -puN arch/x86/vdso/vdso-fakesections.c~revert-x86-vdso-remove-some-redundant-in-memory-section-headers arch/x86/vdso/vdso-fakesections.c
+--- a/arch/x86/vdso/vdso-fakesections.c~revert-x86-vdso-remove-some-redundant-in-memory-section-headers
++++ a/arch/x86/vdso/vdso-fakesections.c
+@@ -16,6 +16,9 @@ const char fake_shstrtab[] __attribute__
+ 	".rodata\0"
+ 	".fake_shstrtab\0"  /* Yay, self-referential code. */
+ 	".note\0"
++	".data\0"
++	".altinstructions\0"
++	".altinstr_replacement\0"
+ 	".eh_frame_hdr\0"
+ 	".eh_frame\0"
+ 	".text";
+diff -puN arch/x86/vdso/vdso-layout.lds.S~revert-x86-vdso-remove-some-redundant-in-memory-section-headers arch/x86/vdso/vdso-layout.lds.S
+--- a/arch/x86/vdso/vdso-layout.lds.S~revert-x86-vdso-remove-some-redundant-in-memory-section-headers
++++ a/arch/x86/vdso/vdso-layout.lds.S
+@@ -14,7 +14,7 @@
+ # error unknown VDSO target
+ #endif
  
- 	ac = kmalloc_node(memsize, gfp, node);
-@@ -868,7 +868,7 @@ static void *alternate_node_alloc(struct
- static struct alien_cache *__alloc_alien_cache(int node, int entries,
- 						int batch, gfp_t gfp)
- {
--	int memsize = sizeof(void *) * entries + sizeof(struct alien_cache);
-+	size_t memsize = sizeof(void *) * entries + sizeof(struct alien_cache);
- 	struct alien_cache *alc = NULL;
+-#define NUM_FAKE_SHDRS 13
++#define NUM_FAKE_SHDRS 16
  
- 	alc = kmalloc_node(memsize, gfp, node);
-@@ -880,7 +880,7 @@ static struct alien_cache *__alloc_alien
- static struct alien_cache **alloc_alien_cache(int node, int limit, gfp_t gfp)
+ SECTIONS
  {
- 	struct alien_cache **alc_ptr;
--	int memsize = sizeof(void *) * nr_node_ids;
-+	size_t memsize = sizeof(void *) * nr_node_ids;
- 	int i;
+@@ -28,17 +28,15 @@ SECTIONS
+ 	.gnu.version_d	: { *(.gnu.version_d) }
+ 	.gnu.version_r	: { *(.gnu.version_r) }
  
- 	if (limit > 1)
-@@ -1037,7 +1037,7 @@ static int init_cache_node_node(int node
- {
- 	struct kmem_cache *cachep;
- 	struct kmem_cache_node *n;
--	const int memsize = sizeof(struct kmem_cache_node);
-+	const size_t memsize = sizeof(struct kmem_cache_node);
++	.note		: { *(.note.*) }		:text	:note
++
++	.eh_frame_hdr	: { *(.eh_frame_hdr) }		:text	:eh_frame_hdr
++	.eh_frame	: { KEEP (*(.eh_frame)) }	:text
++
+ 	.dynamic	: { *(.dynamic) }		:text	:dynamic
  
- 	list_for_each_entry(cachep, &slab_caches, list) {
+ 	.rodata		: {
+ 		*(.rodata*)
+-		*(.data*)
+-		*(.sdata*)
+-		*(.got.plt) *(.got)
+-		*(.gnu.linkonce.d.*)
+-		*(.bss*)
+-		*(.dynbss*)
+-		*(.gnu.linkonce.b.*)
+ 
  		/*
+ 		 * Ideally this would live in a C file, but that won't
+@@ -52,29 +50,28 @@ SECTIONS
+ 
+ 	.fake_shstrtab	: { *(.fake_shstrtab) }		:text
+ 
++	.data		: {
++		*(.data*)
++		*(.sdata*)
++		*(.got.plt) *(.got)
++		*(.gnu.linkonce.d.*)
++		*(.bss*)
++		*(.dynbss*)
++		*(.gnu.linkonce.b.*)
++	}
+ 
+-	.note		: { *(.note.*) }		:text	:note
+-
+-	.eh_frame_hdr	: { *(.eh_frame_hdr) }		:text	:eh_frame_hdr
+-	.eh_frame	: { KEEP (*(.eh_frame)) }	:text
+-
++	.altinstructions	: { *(.altinstructions) }
++	.altinstr_replacement	: { *(.altinstr_replacement) }
+ 
+ 	/*
+-	 * Text is well-separated from actual data: there's plenty of
+-	 * stuff that isn't used at runtime in between.
++	 * Align the actual code well away from the non-instruction data.
++	 * This is the best thing for the I-cache.
+ 	 */
++	. = ALIGN(0x100);
+ 
+ 	.text		: { *(.text*) }			:text	=0x90909090,
+ 
+ 	/*
+-	 * At the end so that eu-elflint stays happy when vdso2c strips
+-	 * these.  A better implementation would avoid allocating space
+-	 * for these.
+-	 */
+-	.altinstructions	: { *(.altinstructions) }	:text
+-	.altinstr_replacement	: { *(.altinstr_replacement) }	:text
+-
+-	/*
+ 	 * The remainder of the vDSO consists of special pages that are
+ 	 * shared between the kernel and userspace.  It needs to be at the
+ 	 * end so that it doesn't overlap the mapping of the actual
+diff -puN arch/x86/vdso/vdso2c.h~revert-x86-vdso-remove-some-redundant-in-memory-section-headers arch/x86/vdso/vdso2c.h
+--- a/arch/x86/vdso/vdso2c.h~revert-x86-vdso-remove-some-redundant-in-memory-section-headers
++++ a/arch/x86/vdso/vdso2c.h
+@@ -92,9 +92,7 @@ static void BITSFUNC(copy_section)(struc
+ {
+ 	uint64_t flags = GET_LE(&in->sh_flags);
+ 
+-	bool copy = flags & SHF_ALLOC &&
+-		strcmp(name, ".altinstructions") &&
+-		strcmp(name, ".altinstr_replacement");
++	bool copy = flags & SHF_ALLOC;
+ 
+ 	if (!copy)
+ 		return;
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slub-fix-off-by-one-in-number-of-slab-tests.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-slab-common-add-functions-for-kmem_cache_node-access.patch
-slub-use-new-node-functions.patch
-slub-use-new-node-functions-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+revert-x86-vdso-remove-some-redundant-in-memory-section-headers.patch
+kernel-printk-printkc-revert-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
+mm.patch
+slub-use-new-node-functions-checkpatch-fixes.patch
 slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-mm-slub-mark-resiliency_test-as-init-text.patch
-mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
-memcg-cleanup-memcg_cache_params-refcnt-usage.patch
-memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
-memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
-slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
-slub-make-slab_free-non-preemptable.patch
-memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
-slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
-slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock.patch
-slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
-slab-set-free_limit-for-dead-caches-to-0.patch
-slab-add-unlikely-macro-to-help-compiler.patch
-slab-move-up-code-to-get-kmem_cache_node-in-free_block.patch
-slab-defer-slab_destroy-in-free_block.patch
-slab-defer-slab_destroy-in-free_block-v4.patch
-slab-factor-out-initialization-of-arracy-cache.patch
-slab-introduce-alien_cache.patch
-slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
-slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
-slab-remove-a-useless-lockdep-annotation.patch
-slab-remove-bad_alien_magic.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
 slab-change-int-to-size_t-for-representing-allocation-size.patch
-slub-reduce-duplicate-creation-on-the-first-object.patch
-vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
-dma-cma-support-alignment-constraint-on-cma-region.patch
-dma-cma-support-arbitrary-bitmap-granularity.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
 dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-cma-generalize-cma-reserved-area-management-functionality.patch
-cma-generalize-cma-reserved-area-management-functionality-fix.patch
-ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
-ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix.patch
-mm-cma-clean-up-cma-allocation-error-path.patch
-mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
-mm-cma-clean-up-log-message.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages.patch
-mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
+include-linux-mmdebugh-add-vm_warn_once.patch
+mm-catch-memory-commitment-underflow-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
-page-owners-correct-page-order-when-to-free-page.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc-fix.patch
+mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+add-lib-globc-fix.patch
+lib-list_sortc-convert-to-pr_foo.patch
+lib-list_sortc-convert-to-pr_foo-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
+fs-isofs-logging-clean-up-fix.patch
+kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
+kexec-support-kexec-kdump-on-efi-systems-fix.patch
+panic-add-taint_softlockup-fix.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+drivers-staging-emxx_udc-emxx_udcc-replace-strict_strto-with-kstrto.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
