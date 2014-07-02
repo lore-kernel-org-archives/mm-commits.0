@@ -2,19 +2,19 @@ From: akpm@linux-foundation.org
 Subject: +
  checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
  added to -mm tree
-Date: Wed, 02 Jul 2014 15:04:23 -0700
-Message-ID: <53b481e7.lSuSrMRUVQdHUERV%akpm@linux-foundation.org>
+Date: Wed, 02 Jul 2014 15:06:53 -0700
+Message-ID: <53b4827d.MBmMKpPHRKfV+lHR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:52421 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751303AbaGBWEY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 18:04:24 -0400
-Received: by mail-vc0-f201.google.com with SMTP id ij19so1282950vcb.4
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 15:04:23 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:39283 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751612AbaGBWGy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2014 18:06:54 -0400
+Received: by mail-ob0-f202.google.com with SMTP id va2so2732921obc.5
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jul 2014 15:06:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
@@ -48,11 +48,11 @@ Subject: checkpatch: add test for commit id formatting style in commit log
 Commit logs have various forms of commit id references.
 
 Try to standardize on a 12 character long lower case commit id along with
-a description of parentheses and the quoted subject line
+a description of parentheses and the quoted subject line.
 
 ie: commit 0123456789ab ("commit description")
 
-If git and a git tree exists, look up the commit id an emit the
+If git and a git tree exists, look up the commit id and emit the
 appropriate line as part of the message.
 
 Signed-off-by: Joe Perches <joe@perches.com>
