@@ -1,159 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-fix-pgoff-calculation-to-handle-hugepage-correctly.patch
- added to -mm tree
-Date: Mon, 07 Jul 2014 12:39:40 -0700
-Message-ID: <53baf77c.15nOi2OTkcEHM01L%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
+ removed from -mm tree
+Date: Mon, 07 Jul 2014 13:00:06 -0700
+Message-ID: <53bafc46.A6N9CjMTbe3fp43P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:52367 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750979AbaGGTjl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 15:39:41 -0400
-Received: by mail-pd0-f202.google.com with SMTP id r10so1023085pdi.1
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 12:39:41 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:42504 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751960AbaGGUAH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 16:00:07 -0400
+Received: by mail-ob0-f202.google.com with SMTP id va2so1027663obc.5
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 13:00:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, dhillf@gmail.com, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, nao.horiguchi@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, riel@redhat.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap.c: fix pgoff calculation to handle hugepage correctly
-has been added to the -mm tree.  Its filename is
-     rmap-fix-pgoff-calculation-to-handle-hugepage-correctly.patch
+     Subject: mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rmap-fix-pgoff-calculation-to-handle-hugepage-correctly.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rmap-fix-pgoff-calculation-to-handle-hugepage-correctly.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/rmap.c: fix pgoff calculation to handle hugepage correctly
+Subject: mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2
 
-I triggered VM_BUG_ON() in vma_address() when I try to migrate an
-anonymous hugepage with mbind() in the kernel v3.16-rc3.  This is because
-pgoff's calculation in rmap_walk_anon() fails to consider compound_order()
-only to have an incorrect value.
-
-This patch introduces page_to_pgoff(), which gets the page's offset in
-PAGE_CACHE_SIZE.  Kirill pointed out that page cache tree should natively
-handle hugepages, and in order to make hugetlbfs fit it, page->index of
-hugetlbfs page should be in PAGE_CACHE_SIZE.  This is beyond this patch,
-but page_to_pgoff() contains the point to be fixed in a single function.
+- fix wrong shift direction
+- introduce page_size_order() and huge_page_size_order()
+- move the declaration of PageHuge() to include/linux/hugetlb_inline.h
+  to avoid macro definition.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   12 ++++++++++++
- mm/memory-failure.c     |    4 ++--
- mm/rmap.c               |   10 +++-------
- 3 files changed, 17 insertions(+), 9 deletions(-)
+ include/linux/hugetlb.h        |    7 -------
+ include/linux/hugetlb_inline.h |   13 +++++++++++++
+ include/linux/pagemap.h        |   17 ++++++++++-------
+ mm/hugetlb.c                   |    5 +++--
+ 4 files changed, 26 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/pagemap.h~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly include/linux/pagemap.h
---- a/include/linux/pagemap.h~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly
-+++ a/include/linux/pagemap.h
-@@ -399,6 +399,18 @@ static inline struct page *read_mapping_
+diff -puN include/linux/hugetlb.h~mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2 include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2
++++ a/include/linux/hugetlb.h
+@@ -41,8 +41,6 @@ extern int hugetlb_max_hstate __read_mos
+ struct hugepage_subpool *hugepage_new_subpool(long nr_blocks);
+ void hugepage_put_subpool(struct hugepage_subpool *spool);
+ 
+-int PageHuge(struct page *page);
+-
+ void reset_vma_resv_huge_pages(struct vm_area_struct *vma);
+ int hugetlb_sysctl_handler(struct ctl_table *, int, void __user *, size_t *, loff_t *);
+ int hugetlb_overcommit_handler(struct ctl_table *, int, void __user *, size_t *, loff_t *);
+@@ -109,11 +107,6 @@ unsigned long hugetlb_change_protection(
+ 
+ #else /* !CONFIG_HUGETLB_PAGE */
+ 
+-static inline int PageHuge(struct page *page)
+-{
+-	return 0;
+-}
+-
+ static inline void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
+ {
+ }
+diff -puN include/linux/hugetlb_inline.h~mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2 include/linux/hugetlb_inline.h
+--- a/include/linux/hugetlb_inline.h~mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2
++++ a/include/linux/hugetlb_inline.h
+@@ -10,12 +10,25 @@ static inline int is_vm_hugetlb_page(str
+ 	return !!(vma->vm_flags & VM_HUGETLB);
  }
  
- /*
-+ * Get the offset in PAGE_SIZE.
-+ * (TODO: hugepage should have ->index in PAGE_SIZE)
-+ */
-+static inline pgoff_t page_to_pgoff(struct page *page)
++int PageHuge(struct page *page);
++unsigned int huge_page_size_order(struct page *page);
++
+ #else
+ 
+ static inline int is_vm_hugetlb_page(struct vm_area_struct *vma)
+ {
+ 	return 0;
+ }
++
++static inline int PageHuge(struct page *page)
 +{
-+	if (unlikely(PageHeadHuge(page)))
-+		return page->index << compound_order(page);
-+	else
-+		return page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	return 0;
 +}
 +
-+/*
-  * Return byte-offset into filesystem object for page.
-  */
- static inline loff_t page_offset(struct page *page)
-diff -puN mm/memory-failure.c~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly mm/memory-failure.c
---- a/mm/memory-failure.c~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly
-+++ a/mm/memory-failure.c
-@@ -435,7 +435,7 @@ static void collect_procs_anon(struct pa
- 	if (av == NULL)	/* Not actually mapped anymore */
- 		return;
++static inline unsigned int huge_page_size_order(struct page *page)
++{
++	return 0;
++}
  
--	pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
-+	pgoff = page_to_pgoff(page);
- 	read_lock(&tasklist_lock);
- 	for_each_process (tsk) {
- 		struct anon_vma_chain *vmac;
-@@ -469,7 +469,7 @@ static void collect_procs_file(struct pa
- 	mutex_lock(&mapping->i_mmap_mutex);
- 	read_lock(&tasklist_lock);
- 	for_each_process(tsk) {
--		pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
-+		pgoff_t pgoff = page_to_pgoff(page);
- 		struct task_struct *t = task_early_kill(tsk, force_early);
+ #endif
  
- 		if (!t)
-diff -puN mm/rmap.c~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly mm/rmap.c
---- a/mm/rmap.c~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly
-+++ a/mm/rmap.c
-@@ -517,11 +517,7 @@ void page_unlock_anon_vma_read(struct an
- static inline unsigned long
- __vma_address(struct page *page, struct vm_area_struct *vma)
- {
--	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
--
--	if (unlikely(is_vm_hugetlb_page(vma)))
--		pgoff = page->index << huge_page_order(page_hstate(page));
--
-+	pgoff_t pgoff = page_to_pgoff(page);
- 	return vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+diff -puN include/linux/pagemap.h~mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2 include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2
++++ a/include/linux/pagemap.h
+@@ -411,18 +411,21 @@ static inline loff_t page_file_offset(st
+ 	return ((loff_t)page_file_index(page)) << PAGE_CACHE_SHIFT;
  }
  
-@@ -1639,7 +1635,7 @@ static struct anon_vma *rmap_walk_anon_l
- static int rmap_walk_anon(struct page *page, struct rmap_walk_control *rwc)
- {
- 	struct anon_vma *anon_vma;
--	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
-+	pgoff_t pgoff = page_to_pgoff(page);
- 	struct anon_vma_chain *avc;
- 	int ret = SWAP_AGAIN;
+-extern pgoff_t hugepage_pgoff(struct page *page);
++static inline unsigned int page_size_order(struct page *page)
++{
++	return unlikely(PageHuge(page)) ?
++		huge_page_size_order(page) :
++		(PAGE_CACHE_SHIFT - PAGE_SHIFT);
++}
  
-@@ -1680,7 +1676,7 @@ static int rmap_walk_anon(struct page *p
- static int rmap_walk_file(struct page *page, struct rmap_walk_control *rwc)
- {
- 	struct address_space *mapping = page->mapping;
--	pgoff_t pgoff = page->index << compound_order(page);
-+	pgoff_t pgoff = page_to_pgoff(page);
- 	struct vm_area_struct *vma;
- 	int ret = SWAP_AGAIN;
+ /*
+  * page->index stores pagecache index whose unit is not always PAGE_SIZE.
+  * This function converts it into PAGE_SIZE offset.
+  */
+-#define page_pgoff(page)					\
+-({								\
+-	unlikely(PageHuge(page)) ?				\
+-		hugepage_pgoff(page) :				\
+-		page->index >> (PAGE_CACHE_SHIFT - PAGE_SHIFT);	\
+-})
++static inline pgoff_t page_pgoff(struct page *page)
++{
++        return page->index << page_size_order(page);
++}
  
+ extern pgoff_t linear_hugepage_index(struct vm_area_struct *vma,
+ 				     unsigned long address);
+diff -puN mm/hugetlb.c~mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2 mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2
++++ a/mm/hugetlb.c
+@@ -31,6 +31,7 @@
+ 
+ #include <linux/io.h>
+ #include <linux/hugetlb.h>
++#include <linux/hugetlb_inline.h>
+ #include <linux/hugetlb_cgroup.h>
+ #include <linux/node.h>
+ #include "internal.h"
+@@ -981,9 +982,9 @@ pgoff_t __basepage_index(struct page *pa
+ 	return (index << compound_order(page_head)) + compound_idx;
+ }
+ 
+-pgoff_t hugepage_pgoff(struct page *page)
++unsigned int huge_page_size_order(struct page *page)
+ {
+-	return page->index << huge_page_order(page_hstate(page));
++	return huge_page_order(page_hstate(page));
+ }
+ 
+ static struct page *alloc_fresh_huge_page_node(struct hstate *h, int nid)
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 rmap-fix-pgoff-calculation-to-handle-hugepage-correctly.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
 mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
 mm-update-the-description-for-madvise_remove.patch
