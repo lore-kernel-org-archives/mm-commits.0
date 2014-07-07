@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero.patch added to
- -mm tree
-Date: Mon, 07 Jul 2014 15:08:41 -0700
-Message-ID: <53bb1a69.J7EkkeeyMCuXzgbu%akpm@linux-foundation.org>
+Subject: + arch-sh-kernel-timec-use-ptr_err_or_zero.patch added to -mm
+ tree
+Date: Mon, 07 Jul 2014 15:14:45 -0700
+Message-ID: <53bb1bd5.uV5+HDxO735teIN4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:47040 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751338AbaGGWIm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 18:08:42 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so1077778pab.1
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 15:08:41 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:58115 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750981AbaGGWOr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 18:14:47 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kq14so1080094pab.4
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 15:14:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/sh/mm/asids-debugfs.c: use PTR_ERR_OR_ZERO
+     Subject: arch/sh/kernel/time.c: use PTR_ERR_OR_ZERO
 has been added to the -mm tree.  Its filename is
-     arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero.patch
+     arch-sh-kernel-timec-use-ptr_err_or_zero.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-sh-kernel-timec-use-ptr_err_or_zero.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-sh-kernel-timec-use-ptr_err_or_zero.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,7 +42,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: arch/sh/mm/asids-debugfs.c: use PTR_ERR_OR_ZERO
+Subject: arch/sh/kernel/time.c: use PTR_ERR_OR_ZERO
 
 Replace IS_ERR/PTR_ERR.
 
@@ -50,23 +50,23 @@ Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/asids-debugfs.c |    4 +---
+ arch/sh/kernel/time.c |    4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/sh/mm/asids-debugfs.c~arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero arch/sh/mm/asids-debugfs.c
---- a/arch/sh/mm/asids-debugfs.c~arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero
-+++ a/arch/sh/mm/asids-debugfs.c
-@@ -67,10 +67,8 @@ static int __init asids_debugfs_init(voi
- 					   NULL, &asids_debugfs_fops);
- 	if (!asids_dentry)
- 		return -ENOMEM;
--	if (IS_ERR(asids_dentry))
--		return PTR_ERR(asids_dentry);
+diff -puN arch/sh/kernel/time.c~arch-sh-kernel-timec-use-ptr_err_or_zero arch/sh/kernel/time.c
+--- a/arch/sh/kernel/time.c~arch-sh-kernel-timec-use-ptr_err_or_zero
++++ a/arch/sh/kernel/time.c
+@@ -80,10 +80,8 @@ static int __init rtc_generic_init(void)
+ 		return -ENODEV;
+ 
+ 	pdev = platform_device_register_simple("rtc-generic", -1, NULL, 0);
+-	if (IS_ERR(pdev))
+-		return PTR_ERR(pdev);
  
 -	return 0;
-+	return PTR_ERR_OR_ZERO(asids_dentry);
++	return PTR_ERR_OR_ZERO(pdev);
  }
- module_init(asids_debugfs_init);
+ module_init(rtc_generic_init);
  
 _
 
@@ -135,4 +135,9 @@ init-mainc-code-clean-up.patch
 kernel-posix-timersc-code-clean-up.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
 kernel-kprobesc-convert-printk-to-pr_foo.patch
+arch-sh-kernel-timec-use-ptr_err_or_zero.patch
+fs-quota-kernel-doc-warning-fixes.patch
+kernfs-kernel-doc-warning-fix.patch
+ntfs-kernel-doc-warning-fixes.patch
+ubifs-kernel-doc-warning-fix.patch
 
