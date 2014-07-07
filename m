@@ -1,76 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] msync-fix-incorrect-fstart-calculation.patch removed
- from -mm tree
-Date: Mon, 07 Jul 2014 11:11:24 -0700
-Message-ID: <53bae2cc.Ng/7aVViIt/u1dIk%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-vmscan-update-the-trace-vmscan-postprocesspl-for-event-vmscan-mm_vmscan_lru_isolate.patch removed from -mm tree
+Date: Mon, 07 Jul 2014 11:11:26 -0700
+Message-ID: <53bae2ce.6jH2sxjW+FY2dQdz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:45371 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751190AbaGGSLZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 14:11:25 -0400
-Received: by mail-vc0-f201.google.com with SMTP id ij19so656918vcb.2
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 11:11:24 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:62994 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205AbaGGSL1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 14:11:27 -0400
+Received: by mail-vc0-f202.google.com with SMTP id id10so656240vcb.3
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 11:11:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: namjae.jeon@samsung.com, a.sangwan@samsung.com, enwlinux@gmail.com, lczerner@redhat.com, matthew.r.wilcox@intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: slaoub@gmail.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: msync: fix incorrect fstart calculation
+     Subject: mm:vmscan: update the trace-vmscan-postprocess.pl for event vmscan/mm_vmscan_lru_isolate
 has been removed from the -mm tree.  Its filename was
-     msync-fix-incorrect-fstart-calculation.patch
+     mm-vmscan-update-the-trace-vmscan-postprocesspl-for-event-vmscan-mm_vmscan_lru_isolate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: msync: fix incorrect fstart calculation
+From: Chen Yucong <slaoub@gmail.com>
+Subject: mm:vmscan: update the trace-vmscan-postprocess.pl for event vmscan/mm_vmscan_lru_isolate
 
-Fix a regression caused by 7fc34a62ca ("mm/msync.c: sync only the
-requested range in msync()").
+When using trace-vmscan-postprocess.pl for checking the file/anon rate of
+scanning, we can find that it can not be performed.  At the same time, the
+following message will be reported.
 
-xfstests generic/075 fail occured on ext4 data=journal mode because the
-intended range was not syncing due to wrong fstart calculation.
+WARNING: Format not as expected for event vmscan/mm_vmscan_lru_isolate
+'file' != 'contig_taken' Fewer fields than expected in format at
+./trace-vmscan-postprocess.pl line 171, <FORMAT> line 76.
 
-Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
-Signed-off-by: Ashish Sangwan <a.sangwan@samsung.com>
-Reported-by: Eric Whitney <enwlinux@gmail.com>
-Tested-by: Eric Whitney <enwlinux@gmail.com>
-Acked-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Reviewed-by: Lukas Czerner <lczerner@redhat.com>
-Tested-by: Lukas Czerner <lczerner@redhat.com>
-Reviewed-by: Theodore Ts'o <tytso@mit.edu>
+In trace-vmscan-postprocess.pl, (contig_taken, contig_dirty, and
+contig_failed) are be associated respectively to (nr_lumpy_taken,
+nr_lumpy_dirty, and nr_lumpy_failed) for lumpy reclaim.  Via c53919adc045b
+("mm: vmscan: remove lumpy reclaim"), lumpy reclaim had already been
+removed by Mel, but the update for trace-vmscan-postprocess.pl was missed.
+
+Signed-off-by: Chen Yucong <slaoub@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/msync.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/trace/postprocess/trace-vmscan-postprocess.pl |   14 +---------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff -puN mm/msync.c~msync-fix-incorrect-fstart-calculation mm/msync.c
---- a/mm/msync.c~msync-fix-incorrect-fstart-calculation
-+++ a/mm/msync.c
-@@ -78,7 +78,8 @@ SYSCALL_DEFINE3(msync, unsigned long, st
- 			goto out_unlock;
+diff -puN Documentation/trace/postprocess/trace-vmscan-postprocess.pl~mm-vmscan-update-the-trace-vmscan-postprocesspl-for-event-vmscan-mm_vmscan_lru_isolate Documentation/trace/postprocess/trace-vmscan-postprocess.pl
+--- a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl~mm-vmscan-update-the-trace-vmscan-postprocesspl-for-event-vmscan-mm_vmscan_lru_isolate
++++ a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl
+@@ -47,7 +47,6 @@ use constant HIGH_KSWAPD_REWAKEUP		=> 21
+ use constant HIGH_NR_SCANNED			=> 22;
+ use constant HIGH_NR_TAKEN			=> 23;
+ use constant HIGH_NR_RECLAIMED			=> 24;
+-use constant HIGH_NR_CONTIG_DIRTY		=> 25;
+ 
+ my %perprocesspid;
+ my %perprocess;
+@@ -105,7 +104,7 @@ my $regex_direct_end_default = 'nr_recla
+ my $regex_kswapd_wake_default = 'nid=([0-9]*) order=([0-9]*)';
+ my $regex_kswapd_sleep_default = 'nid=([0-9]*)';
+ my $regex_wakeup_kswapd_default = 'nid=([0-9]*) zid=([0-9]*) order=([0-9]*)';
+-my $regex_lru_isolate_default = 'isolate_mode=([0-9]*) order=([0-9]*) nr_requested=([0-9]*) nr_scanned=([0-9]*) nr_taken=([0-9]*) contig_taken=([0-9]*) contig_dirty=([0-9]*) contig_failed=([0-9]*)';
++my $regex_lru_isolate_default = 'isolate_mode=([0-9]*) order=([0-9]*) nr_requested=([0-9]*) nr_scanned=([0-9]*) nr_taken=([0-9]*) file=([0-9]*)';
+ my $regex_lru_shrink_inactive_default = 'nid=([0-9]*) zid=([0-9]*) nr_scanned=([0-9]*) nr_reclaimed=([0-9]*) priority=([0-9]*) flags=([A-Z_|]*)';
+ my $regex_lru_shrink_active_default = 'lru=([A-Z_]*) nr_scanned=([0-9]*) nr_rotated=([0-9]*) priority=([0-9]*)';
+ my $regex_writepage_default = 'page=([0-9a-f]*) pfn=([0-9]*) flags=([A-Z_|]*)';
+@@ -200,7 +199,7 @@ $regex_lru_isolate = generate_traceevent
+ 			$regex_lru_isolate_default,
+ 			"isolate_mode", "order",
+ 			"nr_requested", "nr_scanned", "nr_taken",
+-			"contig_taken", "contig_dirty", "contig_failed");
++			"file");
+ $regex_lru_shrink_inactive = generate_traceevent_regex(
+ 			"vmscan/mm_vmscan_lru_shrink_inactive",
+ 			$regex_lru_shrink_inactive_default,
+@@ -375,7 +374,6 @@ EVENT_PROCESS:
+ 			}
+ 			my $isolate_mode = $1;
+ 			my $nr_scanned = $4;
+-			my $nr_contig_dirty = $7;
+ 
+ 			# To closer match vmstat scanning statistics, only count isolate_both
+ 			# and isolate_inactive as scanning. isolate_active is rotation
+@@ -385,7 +383,6 @@ EVENT_PROCESS:
+ 			if ($isolate_mode != 2) {
+ 				$perprocesspid{$process_pid}->{HIGH_NR_SCANNED} += $nr_scanned;
+ 			}
+-			$perprocesspid{$process_pid}->{HIGH_NR_CONTIG_DIRTY} += $nr_contig_dirty;
+ 		} elsif ($tracepoint eq "mm_vmscan_lru_shrink_inactive") {
+ 			$details = $6;
+ 			if ($details !~ /$regex_lru_shrink_inactive/o) {
+@@ -539,13 +536,6 @@ sub dump_stats {
+ 				}
+ 			}
  		}
- 		file = vma->vm_file;
--		fstart = start + ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
-+		fstart = (start - vma->vm_start) +
-+			 ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
- 		fend = fstart + (min(end, vma->vm_end) - start) - 1;
- 		start = vma->vm_end;
- 		if ((flags & MS_SYNC) && file &&
+-		if ($stats{$process_pid}->{HIGH_NR_CONTIG_DIRTY}) {
+-			print "      ";
+-			my $count = $stats{$process_pid}->{HIGH_NR_CONTIG_DIRTY};
+-			if ($count != 0) {
+-				print "contig-dirty=$count ";
+-			}
+-		}
+ 
+ 		print "\n";
+ 	}
 _
 
-Patches currently in -mm which might be from namjae.jeon@samsung.com are
+Patches currently in -mm which might be from slaoub@gmail.com are
 
-fat-add-i_disksize-to-represent-uninitialized-size-v4.patch
-fat-add-fat_fallocate-operation-v4.patch
-fat-zero-out-seek-range-on-_fat_get_block-v4.patch
-fat-fallback-to-buffered-write-in-case-of-fallocated-region-on-direct-io-v4.patch
-fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region-v4.patch
-documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate-v4.patch
 
