@@ -1,187 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-seq_file-fallback-to-vmalloc-allocation.patch removed from -mm tree
-Date: Mon, 07 Jul 2014 11:11:32 -0700
-Message-ID: <53bae2d4.DwKaq08jCpUUj3/A%akpm@linux-foundation.org>
+Subject: [merged]
+ shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch removed from -mm tree
+Date: Mon, 07 Jul 2014 11:11:38 -0700
+Message-ID: <53bae2da.QR5HDfYK6YC4Ge29%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:56375 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751281AbaGGSLd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 14:11:33 -0400
-Received: by mail-vc0-f201.google.com with SMTP id ij19so657215vcb.0
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 11:11:32 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:63412 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751338AbaGGSLj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 14:11:39 -0400
+Received: by mail-ve0-f202.google.com with SMTP id oy12so657287veb.3
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 11:11:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, andrea@betterlinux.com, brueckner@linux.vnet.ibm.com, hch@infradead.org, raven@themaw.net, rientjes@google.com, stable@vger.kernel.org, stefan.bader@canonical.com, thorsten.diehl@de.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hughd@google.com, dave.hansen@intel.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, prabhakar.csengg@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/seq_file: fallback to vmalloc allocation
+     Subject: shmem: fix init_page_accessed use to stop !PageLRU bug
 has been removed from the -mm tree.  Its filename was
-     fs-seq_file-fallback-to-vmalloc-allocation.patch
+     shmem-fix-init_page_accessed-use-to-stop-pagelru-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: fs/seq_file: fallback to vmalloc allocation
+From: Hugh Dickins <hughd@google.com>
+Subject: shmem: fix init_page_accessed use to stop !PageLRU bug
 
-There are a couple of seq_files which use the single_open() interface. 
-This interface requires that the whole output must fit into a single
-buffer.
+Under shmem swapping load, I sometimes hit the VM_BUG_ON_PAGE(!PageLRU) in
+isolate_lru_pages() at mm/vmscan.c:1281!
 
-E.g.  for /proc/stat allocation failures have been observed because an
-order-4 memory allocation failed due to memory fragmentation.  In such
-situations reading /proc/stat is not possible anymore.
+Commit 2457aec63745 ("mm: non-atomically mark page accessed during page
+cache allocation where possible") looks like interrupted work-in-progress.
 
-Therefore change the seq_file code to fallback to vmalloc allocations
-which will usually result in a couple of order-0 allocations and hence
-also work if memory is fragmented.
+mm/filemap.c's call to init_page_accessed() is fine, but not mm/shmem.c's
+- shmem_write_begin() is clearly wrong to use it after shmem_getpage(),
+when the page is always visible in radix_tree, and often already on LRU.
 
-For reference a call trace where reading from /proc/stat failed:
+Revert change to shmem_write_begin(), and use init_page_accessed() or
+mark_page_accessed() appropriately for SGP_WRITE in shmem_getpage_gfp().
 
-[62129.701569] sadc: page allocation failure: order:4, mode:0x1040d0
-[62129.701573] CPU: 1 PID: 192063 Comm: sadc Not tainted 3.10.0-123.el7.s390x #1
-[...]
-[62129.701586] Call Trace:
-[62129.701588] ([<0000000000111fbe>] show_trace+0xe6/0x130)
-[62129.701591] [<0000000000112074>] show_stack+0x6c/0xe8
-[62129.701593] [<000000000020d356>] warn_alloc_failed+0xd6/0x138
-[62129.701596] [<00000000002114d2>] __alloc_pages_nodemask+0x9da/0xb68
-[62129.701598] [<000000000021168e>] __get_free_pages+0x2e/0x58
-[62129.701599] [<000000000025a05c>] kmalloc_order_trace+0x44/0xc0
-[62129.701602] [<00000000002f3ffa>] stat_open+0x5a/0xd8
-[62129.701604] [<00000000002e9aaa>] proc_reg_open+0x8a/0x140
-[62129.701606] [<0000000000273b64>] do_dentry_open+0x1bc/0x2c8
-[62129.701608] [<000000000027411e>] finish_open+0x46/0x60
-[62129.701610] [<000000000028675a>] do_last+0x382/0x10d0
-[62129.701612] [<0000000000287570>] path_openat+0xc8/0x4f8
-[62129.701614] [<0000000000288bde>] do_filp_open+0x46/0xa8
-[62129.701616] [<000000000027541c>] do_sys_open+0x114/0x1f0
-[62129.701618] [<00000000005b1c1c>] sysc_tracego+0x14/0x1a
+SGP_WRITE also covers shmem_symlink(), which did not mark_page_accessed()
+before; but since many other filesystems use [__]page_symlink(), which did
+and does mark the page accessed, consider this as rectifying an oversight.
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Tested-by: David Rientjes <rientjes@google.com>
-Cc: Ian Kent <raven@themaw.net>
-Cc: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
-Cc: Thorsten Diehl <thorsten.diehl@de.ibm.com>
-Cc: Andrea Righi <andrea@betterlinux.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Stefan Bader <stefan.bader@canonical.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   30 +++++++++++++++++++++---------
- 1 file changed, 21 insertions(+), 9 deletions(-)
+ mm/shmem.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN fs/seq_file.c~fs-seq_file-fallback-to-vmalloc-allocation fs/seq_file.c
---- a/fs/seq_file.c~fs-seq_file-fallback-to-vmalloc-allocation
-+++ a/fs/seq_file.c
-@@ -8,8 +8,10 @@
- #include <linux/fs.h>
- #include <linux/export.h>
- #include <linux/seq_file.h>
-+#include <linux/vmalloc.h>
- #include <linux/slab.h>
- #include <linux/cred.h>
-+#include <linux/mm.h>
+diff -puN mm/shmem.c~shmem-fix-init_page_accessed-use-to-stop-pagelru-bug mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-init_page_accessed-use-to-stop-pagelru-bug
++++ a/mm/shmem.c
+@@ -1029,6 +1029,9 @@ repeat:
+ 		goto failed;
+ 	}
  
- #include <asm/uaccess.h>
- #include <asm/page.h>
-@@ -30,6 +32,16 @@ static void seq_set_overflow(struct seq_
- 	m->count = m->size;
- }
- 
-+static void *seq_buf_alloc(unsigned long size)
-+{
-+	void *buf;
++	if (page && sgp == SGP_WRITE)
++		mark_page_accessed(page);
 +
-+	buf = kmalloc(size, GFP_KERNEL | __GFP_NOWARN);
-+	if (!buf && size > PAGE_SIZE)
-+		buf = vmalloc(size);
-+	return buf;
-+}
+ 	/* fallocated page? */
+ 	if (page && !PageUptodate(page)) {
+ 		if (sgp != SGP_READ)
+@@ -1110,6 +1113,9 @@ repeat:
+ 		shmem_recalc_inode(inode);
+ 		spin_unlock(&info->lock);
+ 
++		if (sgp == SGP_WRITE)
++			mark_page_accessed(page);
 +
- /**
-  *	seq_open -	initialize sequential file
-  *	@file: file we initialize
-@@ -96,7 +108,7 @@ static int traverse(struct seq_file *m,
- 		return 0;
- 	}
- 	if (!m->buf) {
--		m->buf = kmalloc(m->size = PAGE_SIZE, GFP_KERNEL);
-+		m->buf = seq_buf_alloc(m->size = PAGE_SIZE);
- 		if (!m->buf)
- 			return -ENOMEM;
- 	}
-@@ -135,9 +147,9 @@ static int traverse(struct seq_file *m,
+ 		delete_from_swap_cache(page);
+ 		set_page_dirty(page);
+ 		swap_free(swap);
+@@ -1136,6 +1142,9 @@ repeat:
  
- Eoverflow:
- 	m->op->stop(m, p);
--	kfree(m->buf);
-+	kvfree(m->buf);
- 	m->count = 0;
--	m->buf = kmalloc(m->size <<= 1, GFP_KERNEL);
-+	m->buf = seq_buf_alloc(m->size <<= 1);
- 	return !m->buf ? -ENOMEM : -EAGAIN;
+ 		__SetPageSwapBacked(page);
+ 		__set_page_locked(page);
++		if (sgp == SGP_WRITE)
++			init_page_accessed(page);
++
+ 		error = mem_cgroup_charge_file(page, current->mm,
+ 						gfp & GFP_RECLAIM_MASK);
+ 		if (error)
+@@ -1412,13 +1421,9 @@ shmem_write_begin(struct file *file, str
+ 			loff_t pos, unsigned len, unsigned flags,
+ 			struct page **pagep, void **fsdata)
+ {
+-	int ret;
+ 	struct inode *inode = mapping->host;
+ 	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
+-	ret = shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
+-	if (ret == 0 && *pagep)
+-		init_page_accessed(*pagep);
+-	return ret;
++	return shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
  }
  
-@@ -192,7 +204,7 @@ ssize_t seq_read(struct file *file, char
- 
- 	/* grab buffer if we didn't have one */
- 	if (!m->buf) {
--		m->buf = kmalloc(m->size = PAGE_SIZE, GFP_KERNEL);
-+		m->buf = seq_buf_alloc(m->size = PAGE_SIZE);
- 		if (!m->buf)
- 			goto Enomem;
- 	}
-@@ -232,9 +244,9 @@ ssize_t seq_read(struct file *file, char
- 		if (m->count < m->size)
- 			goto Fill;
- 		m->op->stop(m, p);
--		kfree(m->buf);
-+		kvfree(m->buf);
- 		m->count = 0;
--		m->buf = kmalloc(m->size <<= 1, GFP_KERNEL);
-+		m->buf = seq_buf_alloc(m->size <<= 1);
- 		if (!m->buf)
- 			goto Enomem;
- 		m->version = 0;
-@@ -350,7 +362,7 @@ EXPORT_SYMBOL(seq_lseek);
- int seq_release(struct inode *inode, struct file *file)
- {
- 	struct seq_file *m = file->private_data;
--	kfree(m->buf);
-+	kvfree(m->buf);
- 	kfree(m);
- 	return 0;
- }
-@@ -605,13 +617,13 @@ EXPORT_SYMBOL(single_open);
- int single_open_size(struct file *file, int (*show)(struct seq_file *, void *),
- 		void *data, size_t size)
- {
--	char *buf = kmalloc(size, GFP_KERNEL);
-+	char *buf = seq_buf_alloc(size);
- 	int ret;
- 	if (!buf)
- 		return -ENOMEM;
- 	ret = single_open(file, show, data);
- 	if (ret) {
--		kfree(buf);
-+		kvfree(buf);
- 		return ret;
- 	}
- 	((struct seq_file *)file->private_data)->buf = buf;
+ static int
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
-lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
-linux-next.patch
+revert-shmem-fix-faulting-into-a-hole-while-its-punched.patch
+shmem-fix-faulting-into-a-hole-while-its-punched-take-2.patch
+mm-fs-fix-pessimization-in-hole-punching-pagecache.patch
+mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
+mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
+include-linux-mmdebugh-add-vm_warn_once.patch
+shmem-fix-double-uncharge-in-__shmem_file_setup.patch
+shmem-update-memory-reservation-on-truncate.patch
+mm-catch-memory-commitment-underflow.patch
+mm-catch-memory-commitment-underflow-fix.patch
+mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
+mm-replace-init_page_accessed-by-__setpagereferenced.patch
+mm-zbud-zbud_alloc-minor-param-change.patch
+mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
+mm-zpool-zbud-zsmalloc-implement-zpool.patch
+mm-zpool-update-zswap-to-use-zpool.patch
+mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
+list-use-argument-hlist_add_after-names-from-rcu-variant.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
+klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
