@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + lib-bitmap-remove-unnecessary-mask-from-bitmap_complement.patch added to -mm tree
-Date: Mon, 07 Jul 2014 16:22:15 -0700
-Message-ID: <53bb2ba7.CaMRy2ga7NG/Ktcu%akpm@linux-foundation.org>
+Subject: + lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned.patch
+ added to -mm tree
+Date: Mon, 07 Jul 2014 16:22:13 -0700
+Message-ID: <53bb2ba5.StD21VBB8T0AWsZN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:48766 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834AbaGGXWQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:22:16 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f10so722671yha.2
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:22:16 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:65096 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752175AbaGGXWO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:22:14 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rd18so904067iec.5
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:22:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: remove unnecessary mask from bitmap_complement
+     Subject: lib: bitmap: make nbits parameter of bitmap_equal unsigned
 has been added to the -mm tree.  Its filename is
-     lib-bitmap-remove-unnecessary-mask-from-bitmap_complement.patch
+     lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-remove-unnecessary-mask-from-bitmap_complement.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-remove-unnecessary-mask-from-bitmap_complement.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,44 +42,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: bitmap: remove unnecessary mask from bitmap_complement
+Subject: lib: bitmap: make nbits parameter of bitmap_equal unsigned
 
-Since the extra bits are "don't care", there is no reason to mask the last
-word to the used bits when complementing.  This shaves off yet a few
-bytes.
+The compiler can generate slightly smaller and simpler code when it knows
+that "nbits" is non-negative.  Since no-one passes a negative bit-count,
+this shouldn't affect the semantics.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/bitmap.h |    2 +-
- lib/bitmap.c           |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ lib/bitmap.c           |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/bitmap.h~lib-bitmap-remove-unnecessary-mask-from-bitmap_complement include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-bitmap-remove-unnecessary-mask-from-bitmap_complement
+diff -puN include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned
 +++ a/include/linux/bitmap.h
-@@ -225,7 +225,7 @@ static inline void bitmap_complement(uns
- 			unsigned int nbits)
- {
- 	if (small_const_nbits(nbits))
--		*dst = ~(*src) & BITMAP_LAST_WORD_MASK(nbits);
-+		*dst = ~(*src);
- 	else
- 		__bitmap_complement(dst, src, nbits);
- }
-diff -puN lib/bitmap.c~lib-bitmap-remove-unnecessary-mask-from-bitmap_complement lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-remove-unnecessary-mask-from-bitmap_complement
+@@ -91,7 +91,7 @@
+ extern int __bitmap_empty(const unsigned long *bitmap, unsigned int nbits);
+ extern int __bitmap_full(const unsigned long *bitmap, unsigned int nbits);
+ extern int __bitmap_equal(const unsigned long *bitmap1,
+-                	const unsigned long *bitmap2, int bits);
++			  const unsigned long *bitmap2, unsigned int nbits);
+ extern void __bitmap_complement(unsigned long *dst, const unsigned long *src,
+ 			int bits);
+ extern void __bitmap_shift_right(unsigned long *dst,
+diff -puN lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned
 +++ a/lib/bitmap.c
-@@ -93,7 +93,7 @@ void __bitmap_complement(unsigned long *
- 		dst[k] = ~src[k];
+@@ -71,9 +71,9 @@ int __bitmap_full(const unsigned long *b
+ EXPORT_SYMBOL(__bitmap_full);
  
- 	if (bits % BITS_PER_LONG)
--		dst[k] = ~src[k] & BITMAP_LAST_WORD_MASK(bits);
-+		dst[k] = ~src[k];
- }
- EXPORT_SYMBOL(__bitmap_complement);
- 
+ int __bitmap_equal(const unsigned long *bitmap1,
+-		const unsigned long *bitmap2, int bits)
++		const unsigned long *bitmap2, unsigned int bits)
+ {
+-	int k, lim = bits/BITS_PER_LONG;
++	unsigned int k, lim = bits/BITS_PER_LONG;
+ 	for (k = 0; k < lim; ++k)
+ 		if (bitmap1[k] != bitmap2[k])
+ 			return 0;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
