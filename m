@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-quota-kernel-doc-warning-fixes.patch added to -mm tree
-Date: Mon, 07 Jul 2014 15:14:46 -0700
-Message-ID: <53bb1bd6.1RV+UZyrq8RnL/Cb%akpm@linux-foundation.org>
+Subject: + ubifs-kernel-doc-warning-fix.patch added to -mm tree
+Date: Mon, 07 Jul 2014 15:14:49 -0700
+Message-ID: <53bb1bd9.8jtfMYJqluX9mEzP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:44617 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751183AbaGGWOr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 18:14:47 -0400
-Received: by mail-qa0-f74.google.com with SMTP id w8so712914qac.3
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 15:14:47 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:42990 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751264AbaGGWOu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 18:14:50 -0400
+Received: by mail-ie0-f201.google.com with SMTP id rl12so657098iec.2
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 15:14:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, jack@suse.cz, mm-commits@vger.kernel.org
+To: fabf@skynet.be, adrian.hunter@intel.com, dedekind1@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/quota: kernel-doc warning fixes
+     Subject: ubifs: kernel-doc warning fix
 has been added to the -mm tree.  Its filename is
-     fs-quota-kernel-doc-warning-fixes.patch
+     ubifs-kernel-doc-warning-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-quota-kernel-doc-warning-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ubifs-kernel-doc-warning-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-quota-kernel-doc-warning-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ubifs-kernel-doc-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,45 +41,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/quota: kernel-doc warning fixes
+Subject: ubifs: kernel-doc warning fix
 
-type and id were removed and qid added to quota_send_warning in commit
-431f19744d15 ("userns: Convert quota netlink aka quota_send_warning").
+No grouped argument in drop_last_node.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/quota/kqid.c    |    2 +-
- fs/quota/netlink.c |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ fs/ubifs/recovery.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/quota/kqid.c~fs-quota-kernel-doc-warning-fixes fs/quota/kqid.c
---- a/fs/quota/kqid.c~fs-quota-kernel-doc-warning-fixes
-+++ a/fs/quota/kqid.c
-@@ -55,7 +55,7 @@ EXPORT_SYMBOL(qid_lt);
- /**
-  *	from_kqid - Create a qid from a kqid user-namespace pair.
-  *	@targ: The user namespace we want a qid in.
-- *	@kuid: The kernel internal quota identifier to start with.
-+ *	@kqid: The kernel internal quota identifier to start with.
+diff -puN fs/ubifs/recovery.c~ubifs-kernel-doc-warning-fix fs/ubifs/recovery.c
+--- a/fs/ubifs/recovery.c~ubifs-kernel-doc-warning-fix
++++ a/fs/ubifs/recovery.c
+@@ -596,7 +596,6 @@ static void drop_last_group(struct ubifs
+  * drop_last_node - drop the last node.
+  * @sleb: scanned LEB information
+  * @offs: offset of dropped nodes is returned here
+- * @grouped: non-zero if whole group of nodes have to be dropped
   *
-  *	Map @kqid into the user-namespace specified by @targ and
-  *	return the resulting qid.
-diff -puN fs/quota/netlink.c~fs-quota-kernel-doc-warning-fixes fs/quota/netlink.c
---- a/fs/quota/netlink.c~fs-quota-kernel-doc-warning-fixes
-+++ a/fs/quota/netlink.c
-@@ -32,8 +32,7 @@ static struct genl_family quota_genl_fam
- 
- /**
-  * quota_send_warning - Send warning to userspace about exceeded quota
-- * @type: The quota type: USRQQUOTA, GRPQUOTA,...
-- * @id: The user or group id of the quota that was exceeded
-+ * @qid: The kernel internal quota identifier.
-  * @dev: The device on which the fs is mounted (sb->s_dev)
-  * @warntype: The type of the warning: QUOTA_NL_...
-  *
+  * This is a helper function for 'ubifs_recover_leb()' which drops the last
+  * node of the scanned LEB.
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
