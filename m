@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned.patch
+Subject: + lib-bitmap-make-nbits-parameter-of-bitmap_full-unsigned.patch
  added to -mm tree
-Date: Mon, 07 Jul 2014 16:22:13 -0700
-Message-ID: <53bb2ba5.StD21VBB8T0AWsZN%akpm@linux-foundation.org>
+Date: Mon, 07 Jul 2014 16:22:12 -0700
+Message-ID: <53bb2ba4.aA+61kmyGc7ecfTu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:65096 "EHLO
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:46338 "EHLO
 	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752175AbaGGXWO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:22:14 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rd18so904067iec.5
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:22:14 -0700 (PDT)
+	with ESMTP id S1751834AbaGGXWN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:22:13 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rd18so904062iec.5
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:22:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: make nbits parameter of bitmap_equal unsigned
+     Subject: lib: bitmap: make nbits parameter of bitmap_full unsigned
 has been added to the -mm tree.  Its filename is
-     lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned.patch
+     lib-bitmap-make-nbits-parameter-of-bitmap_full-unsigned.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-make-nbits-parameter-of-bitmap_full-unsigned.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-make-nbits-parameter-of-bitmap_full-unsigned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,7 +42,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: bitmap: make nbits parameter of bitmap_equal unsigned
+Subject: lib: bitmap: make nbits parameter of bitmap_full unsigned
 
 The compiler can generate slightly smaller and simpler code when it knows
 that "nbits" is non-negative.  Since no-one passes a negative bit-count,
@@ -52,36 +52,45 @@ Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    2 +-
+ include/linux/bitmap.h |    4 ++--
  lib/bitmap.c           |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned
+diff -puN include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_full-unsigned include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_full-unsigned
 +++ a/include/linux/bitmap.h
-@@ -91,7 +91,7 @@
- extern int __bitmap_empty(const unsigned long *bitmap, unsigned int nbits);
- extern int __bitmap_full(const unsigned long *bitmap, unsigned int nbits);
- extern int __bitmap_equal(const unsigned long *bitmap1,
--                	const unsigned long *bitmap2, int bits);
-+			  const unsigned long *bitmap2, unsigned int nbits);
- extern void __bitmap_complement(unsigned long *dst, const unsigned long *src,
- 			int bits);
- extern void __bitmap_shift_right(unsigned long *dst,
-diff -puN lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned
-+++ a/lib/bitmap.c
-@@ -71,9 +71,9 @@ int __bitmap_full(const unsigned long *b
- EXPORT_SYMBOL(__bitmap_full);
+@@ -89,7 +89,7 @@
+  */
  
- int __bitmap_equal(const unsigned long *bitmap1,
--		const unsigned long *bitmap2, int bits)
-+		const unsigned long *bitmap2, unsigned int bits)
+ extern int __bitmap_empty(const unsigned long *bitmap, unsigned int nbits);
+-extern int __bitmap_full(const unsigned long *bitmap, int bits);
++extern int __bitmap_full(const unsigned long *bitmap, unsigned int nbits);
+ extern int __bitmap_equal(const unsigned long *bitmap1,
+                 	const unsigned long *bitmap2, int bits);
+ extern void __bitmap_complement(unsigned long *dst, const unsigned long *src,
+@@ -265,7 +265,7 @@ static inline int bitmap_empty(const uns
+ 		return __bitmap_empty(src, nbits);
+ }
+ 
+-static inline int bitmap_full(const unsigned long *src, int nbits)
++static inline int bitmap_full(const unsigned long *src, unsigned int nbits)
+ {
+ 	if (small_const_nbits(nbits))
+ 		return ! (~(*src) & BITMAP_LAST_WORD_MASK(nbits));
+diff -puN lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_full-unsigned lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_full-unsigned
++++ a/lib/bitmap.c
+@@ -55,9 +55,9 @@ int __bitmap_empty(const unsigned long *
+ }
+ EXPORT_SYMBOL(__bitmap_empty);
+ 
+-int __bitmap_full(const unsigned long *bitmap, int bits)
++int __bitmap_full(const unsigned long *bitmap, unsigned int bits)
  {
 -	int k, lim = bits/BITS_PER_LONG;
 +	unsigned int k, lim = bits/BITS_PER_LONG;
  	for (k = 0; k < lim; ++k)
- 		if (bitmap1[k] != bitmap2[k])
+ 		if (~bitmap[k])
  			return 0;
 _
 
