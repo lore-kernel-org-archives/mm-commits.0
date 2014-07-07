@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kernfs-kernel-doc-warning-fix.patch added to -mm tree
-Date: Mon, 07 Jul 2014 15:14:47 -0700
-Message-ID: <53bb1bd7.t06oOcYVFAkN7Q0J%akpm@linux-foundation.org>
+Subject: + ntfs-kernel-doc-warning-fixes.patch added to -mm tree
+Date: Mon, 07 Jul 2014 15:14:48 -0700
+Message-ID: <53bb1bd8.Gca2fQiJPrKtEFxP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:41028 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbaGGWOs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 18:14:48 -0400
-Received: by mail-ob0-f201.google.com with SMTP id nu7so1072981obb.2
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 15:14:48 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:41848 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751236AbaGGWOt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 18:14:49 -0400
+Received: by mail-qc0-f202.google.com with SMTP id x13so711653qcv.5
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 15:14:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, gregkh@linuxfoundation.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, anton@tuxera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernfs: kernel-doc warning fix
+     Subject: ntfs: kernel-doc warning fixes
 has been added to the -mm tree.  Its filename is
-     kernfs-kernel-doc-warning-fix.patch
+     ntfs-kernel-doc-warning-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernfs-kernel-doc-warning-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ntfs-kernel-doc-warning-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernfs-kernel-doc-warning-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ntfs-kernel-doc-warning-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,31 +41,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernfs: kernel-doc warning fix
+Subject: ntfs: kernel-doc warning fixes
 
-s/static_name/name_is_static
+cached_page and lru_pvec were removed from ntfs_attr_extend_initialized in
+commit 2ec93b0bf35f ("ntfs: clean up ntfs_attr_extend_initialized")
+
+lru_pvec has been removed from __ntfs_grab_cache_pages in commit
+4c99000ac47c ("ntfs: use add_to_page_cache_lru()")
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Anton Altaparmakov <anton@tuxera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/kernfs/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ntfs/file.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/kernfs/file.c~kernfs-kernel-doc-warning-fix fs/kernfs/file.c
---- a/fs/kernfs/file.c~kernfs-kernel-doc-warning-fix
-+++ a/fs/kernfs/file.c
-@@ -896,7 +896,7 @@ const struct file_operations kernfs_file
-  * @ops: kernfs operations for the file
-  * @priv: private data for the file
-  * @ns: optional namespace tag of the file
-- * @static_name: don't copy file name
-+ * @name_is_static: don't copy file name
-  * @key: lockdep key for the file's active_ref, %NULL to disable lockdep
+diff -puN fs/ntfs/file.c~ntfs-kernel-doc-warning-fixes fs/ntfs/file.c
+--- a/fs/ntfs/file.c~ntfs-kernel-doc-warning-fixes
++++ a/fs/ntfs/file.c
+@@ -74,8 +74,6 @@ static int ntfs_file_open(struct inode *
+  * ntfs_attr_extend_initialized - extend the initialized size of an attribute
+  * @ni:			ntfs inode of the attribute to extend
+  * @new_init_size:	requested new initialized size in bytes
+- * @cached_page:	store any allocated but unused page here
+- * @lru_pvec:		lru-buffering pagevec of the caller
   *
-  * Returns the created node on success, ERR_PTR() value on error.
+  * Extend the initialized size of an attribute described by the ntfs inode @ni
+  * to @new_init_size bytes.  This involves zeroing any non-sparse space between
+@@ -395,7 +393,6 @@ static inline void ntfs_fault_in_pages_r
+  * @nr_pages:	number of page cache pages to obtain
+  * @pages:	array of pages in which to return the obtained page cache pages
+  * @cached_page: allocated but as yet unused page
+- * @lru_pvec:	lru-buffering pagevec of caller
+  *
+  * Obtain @nr_pages locked page cache pages from the mapping @mapping and
+  * starting at index @index.
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
