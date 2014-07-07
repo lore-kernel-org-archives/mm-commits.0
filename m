@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + lib-bitmap-add-missing-mask-in-bitmap_and.patch added to -mm
- tree
-Date: Mon, 07 Jul 2014 16:22:27 -0700
-Message-ID: <53bb2bb3.4pkWybUWaVCYOuQA%akpm@linux-foundation.org>
+Subject: + lib-bitmap-add-missing-mask-in-bitmap_shift_right.patch added
+ to -mm tree
+Date: Mon, 07 Jul 2014 16:22:26 -0700
+Message-ID: <53bb2bb2.wewXPF5+Yve/poHi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:50262 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752698AbaGGXW3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:22:29 -0400
-Received: by mail-ie0-f201.google.com with SMTP id rl12so672776iec.4
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:22:28 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:34363 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752672AbaGGXW1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:22:27 -0400
+Received: by mail-ve0-f201.google.com with SMTP id i13so37706veh.4
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:22:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: add missing mask in bitmap_and
+     Subject: lib: bitmap: add missing mask in bitmap_shift_right
 has been added to the -mm tree.  Its filename is
-     lib-bitmap-add-missing-mask-in-bitmap_and.patch
+     lib-bitmap-add-missing-mask-in-bitmap_shift_right.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-add-missing-mask-in-bitmap_and.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-add-missing-mask-in-bitmap_shift_right.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-add-missing-mask-in-bitmap_and.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-add-missing-mask-in-bitmap_shift_right.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,52 +42,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: bitmap: add missing mask in bitmap_and
+Subject: lib: bitmap: add missing mask in bitmap_shift_right
 
-Apparently, bitmap_and is supposed to return whether the new bitmap is
-empty.  But it didn't take potential garbage bits in the last word into
-account.
+There is no guarantee that *src does not contain garbage bits outside the
+lower nbits, so we need to mask it before the shift-and-assign.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/bitmap.h |    2 +-
- lib/bitmap.c           |    7 +++++--
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/bitmap.h~lib-bitmap-add-missing-mask-in-bitmap_and include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-bitmap-add-missing-mask-in-bitmap_and
+diff -puN include/linux/bitmap.h~lib-bitmap-add-missing-mask-in-bitmap_shift_right include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmap-add-missing-mask-in-bitmap_shift_right
 +++ a/include/linux/bitmap.h
-@@ -191,7 +191,7 @@ static inline int bitmap_and(unsigned lo
- 			const unsigned long *src2, unsigned int nbits)
+@@ -284,7 +284,7 @@ static inline void bitmap_shift_right(un
+ 			const unsigned long *src, int n, int nbits)
  {
  	if (small_const_nbits(nbits))
--		return (*dst = *src1 & *src2) != 0;
-+		return (*dst = *src1 & *src2 & BITMAP_LAST_WORD_MASK(nbits)) != 0;
- 	return __bitmap_and(dst, src1, src2, nbits);
+-		*dst = *src >> n;
++		*dst = (*src & BITMAP_LAST_WORD_MASK(nbits)) >> n;
+ 	else
+ 		__bitmap_shift_right(dst, src, n, nbits);
  }
- 
-diff -puN lib/bitmap.c~lib-bitmap-add-missing-mask-in-bitmap_and lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-add-missing-mask-in-bitmap_and
-+++ a/lib/bitmap.c
-@@ -185,11 +185,14 @@ int __bitmap_and(unsigned long *dst, con
- 				const unsigned long *bitmap2, unsigned int bits)
- {
- 	unsigned int k;
--	unsigned int nr = BITS_TO_LONGS(bits);
-+	unsigned int lim = bits/BITS_PER_LONG;
- 	unsigned long result = 0;
- 
--	for (k = 0; k < nr; k++)
-+	for (k = 0; k < lim; k++)
- 		result |= (dst[k] = bitmap1[k] & bitmap2[k]);
-+	if (bits % BITS_PER_LONG)
-+		result |= (dst[k] = bitmap1[k] & bitmap2[k] &
-+			   BITMAP_LAST_WORD_MASK(bits));
- 	return result != 0;
- }
- EXPORT_SYMBOL(__bitmap_and);
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
