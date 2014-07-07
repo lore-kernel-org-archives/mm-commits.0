@@ -1,118 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-update-the-trace-vmscan-postprocesspl-for-event-vmscan-mm_vmscan_lru_isolate.patch removed from -mm tree
-Date: Mon, 07 Jul 2014 11:11:26 -0700
-Message-ID: <53bae2ce.6jH2sxjW+FY2dQdz%akpm@linux-foundation.org>
+ tools-msgque-improve-error-handling-when-not-running-as-root.patch removed
+ from -mm tree
+Date: Mon, 07 Jul 2014 11:11:34 -0700
+Message-ID: <53bae2d6./G+BUubnXJz0jXCS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:62994 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205AbaGGSL1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 14:11:27 -0400
-Received: by mail-vc0-f202.google.com with SMTP id id10so656240vcb.3
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 11:11:26 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:52476 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751311AbaGGSLf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 14:11:35 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rd18so805850iec.1
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 11:11:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: slaoub@gmail.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: shuah.kh@samsung.com, colin.king@canonical.com, davidlohr@hp.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm:vmscan: update the trace-vmscan-postprocess.pl for event vmscan/mm_vmscan_lru_isolate
+     Subject: tools/testing/selftests/ipc/msgque.c: improve error handling when not running as root
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-update-the-trace-vmscan-postprocesspl-for-event-vmscan-mm_vmscan_lru_isolate.patch
+     tools-msgque-improve-error-handling-when-not-running-as-root.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Yucong <slaoub@gmail.com>
-Subject: mm:vmscan: update the trace-vmscan-postprocess.pl for event vmscan/mm_vmscan_lru_isolate
+From: Shuah Khan <shuah.kh@samsung.com>
+Subject: tools/testing/selftests/ipc/msgque.c: improve error handling when not running as root
 
-When using trace-vmscan-postprocess.pl for checking the file/anon rate of
-scanning, we can find that it can not be performed.  At the same time, the
-following message will be reported.
+The test fails in the middle when it is not run as root while accessing
+/proc/sys/kernel/msg_next_id.  Changed it to check for root at the
+beginning of the test and exit if not root.
 
-WARNING: Format not as expected for event vmscan/mm_vmscan_lru_isolate
-'file' != 'contig_taken' Fewer fields than expected in format at
-./trace-vmscan-postprocess.pl line 171, <FORMAT> line 76.
-
-In trace-vmscan-postprocess.pl, (contig_taken, contig_dirty, and
-contig_failed) are be associated respectively to (nr_lumpy_taken,
-nr_lumpy_dirty, and nr_lumpy_failed) for lumpy reclaim.  Via c53919adc045b
-("mm: vmscan: remove lumpy reclaim"), lumpy reclaim had already been
-removed by Mel, but the update for trace-vmscan-postprocess.pl was missed.
-
-Signed-off-by: Chen Yucong <slaoub@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/trace/postprocess/trace-vmscan-postprocess.pl |   14 +---------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ tools/testing/selftests/ipc/msgque.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN Documentation/trace/postprocess/trace-vmscan-postprocess.pl~mm-vmscan-update-the-trace-vmscan-postprocesspl-for-event-vmscan-mm_vmscan_lru_isolate Documentation/trace/postprocess/trace-vmscan-postprocess.pl
---- a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl~mm-vmscan-update-the-trace-vmscan-postprocesspl-for-event-vmscan-mm_vmscan_lru_isolate
-+++ a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl
-@@ -47,7 +47,6 @@ use constant HIGH_KSWAPD_REWAKEUP		=> 21
- use constant HIGH_NR_SCANNED			=> 22;
- use constant HIGH_NR_TAKEN			=> 23;
- use constant HIGH_NR_RECLAIMED			=> 24;
--use constant HIGH_NR_CONTIG_DIRTY		=> 25;
+diff -puN tools/testing/selftests/ipc/msgque.c~tools-msgque-improve-error-handling-when-not-running-as-root tools/testing/selftests/ipc/msgque.c
+--- a/tools/testing/selftests/ipc/msgque.c~tools-msgque-improve-error-handling-when-not-running-as-root
++++ a/tools/testing/selftests/ipc/msgque.c
+@@ -193,6 +193,11 @@ int main(int argc, char **argv)
+ 	int msg, pid, err;
+ 	struct msgque_data msgque;
  
- my %perprocesspid;
- my %perprocess;
-@@ -105,7 +104,7 @@ my $regex_direct_end_default = 'nr_recla
- my $regex_kswapd_wake_default = 'nid=([0-9]*) order=([0-9]*)';
- my $regex_kswapd_sleep_default = 'nid=([0-9]*)';
- my $regex_wakeup_kswapd_default = 'nid=([0-9]*) zid=([0-9]*) order=([0-9]*)';
--my $regex_lru_isolate_default = 'isolate_mode=([0-9]*) order=([0-9]*) nr_requested=([0-9]*) nr_scanned=([0-9]*) nr_taken=([0-9]*) contig_taken=([0-9]*) contig_dirty=([0-9]*) contig_failed=([0-9]*)';
-+my $regex_lru_isolate_default = 'isolate_mode=([0-9]*) order=([0-9]*) nr_requested=([0-9]*) nr_scanned=([0-9]*) nr_taken=([0-9]*) file=([0-9]*)';
- my $regex_lru_shrink_inactive_default = 'nid=([0-9]*) zid=([0-9]*) nr_scanned=([0-9]*) nr_reclaimed=([0-9]*) priority=([0-9]*) flags=([A-Z_|]*)';
- my $regex_lru_shrink_active_default = 'lru=([A-Z_]*) nr_scanned=([0-9]*) nr_rotated=([0-9]*) priority=([0-9]*)';
- my $regex_writepage_default = 'page=([0-9a-f]*) pfn=([0-9]*) flags=([A-Z_|]*)';
-@@ -200,7 +199,7 @@ $regex_lru_isolate = generate_traceevent
- 			$regex_lru_isolate_default,
- 			"isolate_mode", "order",
- 			"nr_requested", "nr_scanned", "nr_taken",
--			"contig_taken", "contig_dirty", "contig_failed");
-+			"file");
- $regex_lru_shrink_inactive = generate_traceevent_regex(
- 			"vmscan/mm_vmscan_lru_shrink_inactive",
- 			$regex_lru_shrink_inactive_default,
-@@ -375,7 +374,6 @@ EVENT_PROCESS:
- 			}
- 			my $isolate_mode = $1;
- 			my $nr_scanned = $4;
--			my $nr_contig_dirty = $7;
- 
- 			# To closer match vmstat scanning statistics, only count isolate_both
- 			# and isolate_inactive as scanning. isolate_active is rotation
-@@ -385,7 +383,6 @@ EVENT_PROCESS:
- 			if ($isolate_mode != 2) {
- 				$perprocesspid{$process_pid}->{HIGH_NR_SCANNED} += $nr_scanned;
- 			}
--			$perprocesspid{$process_pid}->{HIGH_NR_CONTIG_DIRTY} += $nr_contig_dirty;
- 		} elsif ($tracepoint eq "mm_vmscan_lru_shrink_inactive") {
- 			$details = $6;
- 			if ($details !~ /$regex_lru_shrink_inactive/o) {
-@@ -539,13 +536,6 @@ sub dump_stats {
- 				}
- 			}
- 		}
--		if ($stats{$process_pid}->{HIGH_NR_CONTIG_DIRTY}) {
--			print "      ";
--			my $count = $stats{$process_pid}->{HIGH_NR_CONTIG_DIRTY};
--			if ($count != 0) {
--				print "contig-dirty=$count ";
--			}
--		}
- 
- 		print "\n";
- 	}
++	if (getuid() != 0) {
++		printf("Please run the test as root - Exiting.\n");
++		exit(1);
++	}
++
+ 	msgque.key = ftok(argv[0], 822155650);
+ 	if (msgque.key == -1) {
+ 		printf("Can't make key\n");
 _
 
-Patches currently in -mm which might be from slaoub@gmail.com are
+Patches currently in -mm which might be from shuah.kh@samsung.com are
 
 
