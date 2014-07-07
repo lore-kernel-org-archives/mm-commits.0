@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + lib-bitmap-simplify-bitmap_parselist.patch added to -mm tree
-Date: Mon, 07 Jul 2014 16:22:22 -0700
-Message-ID: <53bb2bae.Ui0GYk/QBvlNZhoQ%akpm@linux-foundation.org>
+Subject: + lib-bitmap-change-parameter-of-bitmap__region-to-unsigned.patch added to -mm tree
+Date: Mon, 07 Jul 2014 16:22:24 -0700
+Message-ID: <53bb2bb0.Wsu91BwnChN6nYv2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f201.google.com ([209.85.213.201]:34248 "EHLO
-	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752685AbaGGXWY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:22:24 -0400
-Received: by mail-ig0-f201.google.com with SMTP id h15so5028igd.4
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:22:23 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:60224 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834AbaGGXWZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:22:25 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so1094626pab.3
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:22:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: simplify bitmap_parselist
+     Subject: lib: bitmap: change parameter of bitmap_*_region to unsigned
 has been added to the -mm tree.  Its filename is
-     lib-bitmap-simplify-bitmap_parselist.patch
+     lib-bitmap-change-parameter-of-bitmap__region-to-unsigned.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-simplify-bitmap_parselist.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-change-parameter-of-bitmap__region-to-unsigned.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-simplify-bitmap_parselist.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-change-parameter-of-bitmap__region-to-unsigned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,39 +41,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: bitmap: simplify bitmap_parselist
+Subject: lib: bitmap: change parameter of bitmap_*_region to unsigned
 
-We want len to be the index of the first '\n', or the length of the string
-if there is no newline.  This is a good example of the usefulness of
-strchrnul().  Use that instead, thus eliminating a branch and a call to
-strlen().
+Changing the pos parameter of __reg_op to unsigned allows the compiler to
+generate slightly smaller and simpler code.  Also update its callers
+bitmap_*_region to receive and pass unsigned int.  The return types of
+bitmap_find_free_region and bitmap_allocate_region are still int to allow
+a negative error code to be returned.  An int is certainly capable of
+representing any realistic return value.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ include/linux/bitmap.h |    6 +++---
+ lib/bitmap.c           |   12 ++++++------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN lib/bitmap.c~lib-bitmap-simplify-bitmap_parselist lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-simplify-bitmap_parselist
+diff -puN include/linux/bitmap.h~lib-bitmap-change-parameter-of-bitmap__region-to-unsigned include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmap-change-parameter-of-bitmap__region-to-unsigned
++++ a/include/linux/bitmap.h
+@@ -140,9 +140,9 @@ extern void bitmap_onto(unsigned long *d
+ 		const unsigned long *relmap, int bits);
+ extern void bitmap_fold(unsigned long *dst, const unsigned long *orig,
+ 		int sz, int bits);
+-extern int bitmap_find_free_region(unsigned long *bitmap, int bits, int order);
+-extern void bitmap_release_region(unsigned long *bitmap, int pos, int order);
+-extern int bitmap_allocate_region(unsigned long *bitmap, int pos, int order);
++extern int bitmap_find_free_region(unsigned long *bitmap, unsigned int bits, int order);
++extern void bitmap_release_region(unsigned long *bitmap, unsigned int pos, int order);
++extern int bitmap_allocate_region(unsigned long *bitmap, unsigned int pos, int order);
+ extern void bitmap_copy_le(void *dst, const unsigned long *src, int nbits);
+ extern int bitmap_ord_to_pos(const unsigned long *bitmap, int n, int bits);
+ 
+diff -puN lib/bitmap.c~lib-bitmap-change-parameter-of-bitmap__region-to-unsigned lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-change-parameter-of-bitmap__region-to-unsigned
 +++ a/lib/bitmap.c
-@@ -665,13 +665,8 @@ static int __bitmap_parselist(const char
+@@ -1042,7 +1042,7 @@ enum {
+ 	REG_OP_RELEASE,		/* clear all bits in region */
+ };
  
- int bitmap_parselist(const char *bp, unsigned long *maskp, int nmaskbits)
+-static int __reg_op(unsigned long *bitmap, int pos, int order, int reg_op)
++static int __reg_op(unsigned long *bitmap, unsigned int pos, int order, int reg_op)
  {
--	char *nl  = strchr(bp, '\n');
--	int len;
--
--	if (nl)
--		len = nl - bp;
--	else
--		len = strlen(bp);
-+	char *nl  = strchrnul(bp, '\n');
-+	int len = nl - bp;
+ 	int nbits_reg;		/* number of bits in region */
+ 	int index;		/* index first long of region in bitmap */
+@@ -1108,11 +1108,11 @@ done:
+  * Return the bit offset in bitmap of the allocated region,
+  * or -errno on failure.
+  */
+-int bitmap_find_free_region(unsigned long *bitmap, int bits, int order)
++int bitmap_find_free_region(unsigned long *bitmap, unsigned int bits, int order)
+ {
+-	int pos, end;		/* scans bitmap by regions of size order */
++	unsigned int pos, end;		/* scans bitmap by regions of size order */
  
- 	return __bitmap_parselist(bp, len, 0, maskp, nmaskbits);
+-	for (pos = 0 ; (end = pos + (1 << order)) <= bits; pos = end) {
++	for (pos = 0 ; (end = pos + (1U << order)) <= bits; pos = end) {
+ 		if (!__reg_op(bitmap, pos, order, REG_OP_ISFREE))
+ 			continue;
+ 		__reg_op(bitmap, pos, order, REG_OP_ALLOC);
+@@ -1133,7 +1133,7 @@ EXPORT_SYMBOL(bitmap_find_free_region);
+  *
+  * No return value.
+  */
+-void bitmap_release_region(unsigned long *bitmap, int pos, int order)
++void bitmap_release_region(unsigned long *bitmap, unsigned int pos, int order)
+ {
+ 	__reg_op(bitmap, pos, order, REG_OP_RELEASE);
  }
+@@ -1150,7 +1150,7 @@ EXPORT_SYMBOL(bitmap_release_region);
+  * Return 0 on success, or %-EBUSY if specified region wasn't
+  * free (not all bits were zero).
+  */
+-int bitmap_allocate_region(unsigned long *bitmap, int pos, int order)
++int bitmap_allocate_region(unsigned long *bitmap, unsigned int pos, int order)
+ {
+ 	if (!__reg_op(bitmap, pos, order, REG_OP_ISFREE))
+ 		return -EBUSY;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
