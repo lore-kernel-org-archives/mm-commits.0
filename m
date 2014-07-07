@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + lib-bitmap-add-missing-mask-in-bitmap_shift_right.patch added
+Subject: +
+ x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch added
  to -mm tree
-Date: Mon, 07 Jul 2014 16:22:26 -0700
-Message-ID: <53bb2bb2.wewXPF5+Yve/poHi%akpm@linux-foundation.org>
+Date: Mon, 07 Jul 2014 16:50:05 -0700
+Message-ID: <53bb322d.jyUOyrdl2/k2G9wT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:34363 "EHLO
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:45366 "EHLO
 	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752672AbaGGXW1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:22:27 -0400
-Received: by mail-ve0-f201.google.com with SMTP id i13so37706veh.4
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:22:26 -0700 (PDT)
+	with ESMTP id S1751236AbaGGXuW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:50:22 -0400
+Received: by mail-ve0-f201.google.com with SMTP id i13so42265veh.0
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:50:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: lcapitulino@redhat.com, andi@firstfloor.org, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, mingo@elte.hu, riel@redhat.com, rientjes@google.com, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: add missing mask in bitmap_shift_right
+     Subject: x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2
 has been added to the -mm tree.  Its filename is
-     lib-bitmap-add-missing-mask-in-bitmap_shift_right.patch
+     x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-add-missing-mask-in-bitmap_shift_right.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-add-missing-mask-in-bitmap_shift_right.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,59 +42,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: bitmap: add missing mask in bitmap_shift_right
+From: Luiz Capitulino <lcapitulino@redhat.com>
+Subject: x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2
 
-There is no guarantee that *src does not contain garbage bits outside the
-lower nbits, so we need to mask it before the shift-and-assign.
+Restore Initmem text when reporting the memory range in dmesg [David]
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    2 +-
+ mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/bitmap.h~lib-bitmap-add-missing-mask-in-bitmap_shift_right include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-bitmap-add-missing-mask-in-bitmap_shift_right
-+++ a/include/linux/bitmap.h
-@@ -284,7 +284,7 @@ static inline void bitmap_shift_right(un
- 			const unsigned long *src, int n, int nbits)
- {
- 	if (small_const_nbits(nbits))
--		*dst = *src >> n;
-+		*dst = (*src & BITMAP_LAST_WORD_MASK(nbits)) >> n;
- 	else
- 		__bitmap_shift_right(dst, src, n, nbits);
- }
+diff -puN mm/page_alloc.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2 mm/page_alloc.c
+--- a/mm/page_alloc.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2
++++ a/mm/page_alloc.c
+@@ -4969,7 +4969,7 @@ void __paginginit free_area_init_node(in
+ 	pgdat->node_start_pfn = node_start_pfn;
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
+-	printk(KERN_INFO "Node %d memory range %#010Lx-%#010Lx\n", nid,
++	printk(KERN_INFO "Initmem setup node %d [mem %#010Lx-%#010Lx]\n", nid,
+ 			(u64) start_pfn << PAGE_SHIFT, (u64) (end_pfn << PAGE_SHIFT) - 1);
+ #endif
+ 	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from lcapitulino@redhat.com are
 
-lib-list_sort_test-return-enomem-when-allocation-fails.patch
-lib-list_sort_test-add-extra-corruption-check.patch
-lib-list_sort_test-simplify-and-harden-cleanup.patch
-lib-list_sortc-limit-number-of-unused-cmp-callbacks.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-lib-bitmap-make-nbits-parameter-of-bitmap_empty-unsigned.patch
-lib-bitmap-make-nbits-parameter-of-bitmap_full-unsigned.patch
-lib-bitmap-make-nbits-parameter-of-bitmap_equal-unsigned.patch
-lib-bitmap-make-nbits-parameter-of-bitmap_complement-unsigned.patch
-lib-bitmap-remove-unnecessary-mask-from-bitmap_complement.patch
-lib-bitmap-make-nbits-parameter-of-bitmap_andorxorandnot-unsigned.patch
-lib-bitmap-make-nbits-parameter-of-bitmap_intersects-unsigned.patch
-lib-bitmap-make-nbits-parameter-of-bitmap_subset-unsigned.patch
-lib-bitmap-make-nbits-parameter-of-bitmap_weight-unsigned.patch
-lib-bitmap-make-the-start-index-of-bitmap_set-unsigned.patch
-lib-bitmap-make-the-start-index-of-bitmap_clear-unsigned.patch
-lib-bitmap-simplify-bitmap_parselist.patch
-lib-bitmap-fix-typo-in-kerneldoc-for-bitmap_pos_to_ord.patch
-lib-bitmap-change-parameter-of-bitmap__region-to-unsigned.patch
-lib-bitmap-micro-optimize-bitmap_allocate_region.patch
-lib-bitmap-add-missing-mask-in-bitmap_shift_right.patch
-lib-bitmap-add-missing-mask-in-bitmap_and.patch
-lib-bitmap-add-missing-mask-in-bitmap_andnot.patch
-checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
-linux-next.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages.patch
+mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
 
