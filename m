@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + lib-bitmap-fix-typo-in-kerneldoc-for-bitmap_pos_to_ord.patch
- added to -mm tree
-Date: Mon, 07 Jul 2014 16:22:23 -0700
-Message-ID: <53bb2baf.AvVvVurLouuy9tAt%akpm@linux-foundation.org>
+Subject: + lib-bitmap-micro-optimize-bitmap_allocate_region.patch added to -mm tree
+Date: Mon, 07 Jul 2014 16:22:25 -0700
+Message-ID: <53bb2bb1.n7TMgeK4u0/xGpWw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:46505 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752672AbaGGXWY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:22:24 -0400
-Received: by mail-qc0-f201.google.com with SMTP id i17so45643qcy.4
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:22:24 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:44845 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752689AbaGGXW1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:22:27 -0400
+Received: by mail-yh0-f74.google.com with SMTP id b6so722821yha.3
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:22:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: fix typo in kerneldoc for bitmap_pos_to_ord
+     Subject: lib: bitmap: micro-optimize bitmap_allocate_region
 has been added to the -mm tree.  Its filename is
-     lib-bitmap-fix-typo-in-kerneldoc-for-bitmap_pos_to_ord.patch
+     lib-bitmap-micro-optimize-bitmap_allocate_region.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-fix-typo-in-kerneldoc-for-bitmap_pos_to_ord.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-micro-optimize-bitmap_allocate_region.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-fix-typo-in-kerneldoc-for-bitmap_pos_to_ord.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-micro-optimize-bitmap_allocate_region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,30 +41,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: bitmap: fix typo in kerneldoc for bitmap_pos_to_ord
+Subject: lib: bitmap: micro-optimize bitmap_allocate_region
 
-A few lines above, it was stated that positions for non-set bits are
-mapped to -1, which is obviously also what the code does.
+__reg_op(..., REG_OP_ALLOC) always returns 0, so we might as well use that
+and save an instruction.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/bitmap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN lib/bitmap.c~lib-bitmap-fix-typo-in-kerneldoc-for-bitmap_pos_to_ord lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-fix-typo-in-kerneldoc-for-bitmap_pos_to_ord
+diff -puN lib/bitmap.c~lib-bitmap-micro-optimize-bitmap_allocate_region lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-micro-optimize-bitmap_allocate_region
 +++ a/lib/bitmap.c
-@@ -712,7 +712,7 @@ EXPORT_SYMBOL(bitmap_parselist_user);
-  *
-  * If for example, just bits 4 through 7 are set in @buf, then @pos
-  * values 4 through 7 will get mapped to 0 through 3, respectively,
-- * and other @pos values will get mapped to 0.  When @pos value 7
-+ * and other @pos values will get mapped to -1.  When @pos value 7
-  * gets mapped to (returns) @ord value 3 in this example, that means
-  * that bit 7 is the 3rd (starting with 0th) set bit in @buf.
-  *
+@@ -1154,8 +1154,7 @@ int bitmap_allocate_region(unsigned long
+ {
+ 	if (!__reg_op(bitmap, pos, order, REG_OP_ISFREE))
+ 		return -EBUSY;
+-	__reg_op(bitmap, pos, order, REG_OP_ALLOC);
+-	return 0;
++	return __reg_op(bitmap, pos, order, REG_OP_ALLOC);
+ }
+ EXPORT_SYMBOL(bitmap_allocate_region);
+ 
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
