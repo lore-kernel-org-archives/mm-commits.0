@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-ssbi-pattern.patch added to -mm tree
-Date: Mon, 07 Jul 2014 17:05:56 -0700
-Message-ID: <53bb35e4.KJ/CrU4jJ1zlI7lg%akpm@linux-foundation.org>
+Subject: + maintainers-use-correct-filename-for-sdhci-bcm-kona.patch added to -mm tree
+Date: Mon, 07 Jul 2014 17:05:57 -0700
+Message-ID: <53bb35e5.aqwd3+7os6MPyF/W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:57369 "EHLO
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:34632 "EHLO
 	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754478AbaGHAF5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:05:57 -0400
-Received: by mail-ie0-f201.google.com with SMTP id rl12so683144iec.0
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:05:57 -0700 (PDT)
+	with ESMTP id S1754531AbaGHAF6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:05:58 -0400
+Received: by mail-ie0-f201.google.com with SMTP id rl12so684026iec.2
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:05:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, csd@broadcom.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fix ssbi pattern
+     Subject: MAINTAINERS: use correct filename for sdhci-bcm-kona
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-ssbi-pattern.patch
+     maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-fix-ssbi-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-fix-ssbi-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,29 +41,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: fix ssbi pattern
+Subject: MAINTAINERS: use correct filename for sdhci-bcm-kona
 
-Incorrect pattern used, it's not a directory, it's a file.  Fix it.
+Use dashes not underscores.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Christian Daudt <csd@broadcom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-fix-ssbi-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-ssbi-pattern
+diff -puN MAINTAINERS~maintainers-use-correct-filename-for-sdhci-bcm-kona MAINTAINERS
+--- a/MAINTAINERS~maintainers-use-correct-filename-for-sdhci-bcm-kona
 +++ a/MAINTAINERS
-@@ -1159,7 +1159,7 @@ F:	drivers/mmc/host/msm_sdcc.h
- F:	drivers/tty/serial/msm_serial.h
- F:	drivers/tty/serial/msm_serial.c
- F:	drivers/*/pm8???-*
--F:	drivers/mfd/ssbi/
-+F:	drivers/mfd/ssbi.c
- F:	include/linux/mfd/pm8xxx/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/davidb/linux-msm.git
- S:	Maintained
+@@ -1935,7 +1935,7 @@ F:	arch/arm/boot/dts/bcm113*
+ F:	arch/arm/boot/dts/bcm216*
+ F:	arch/arm/boot/dts/bcm281*
+ F:	arch/arm/configs/bcm_defconfig
+-F:	drivers/mmc/host/sdhci_bcm_kona.c
++F:	drivers/mmc/host/sdhci-bcm-kona.c
+ F:	drivers/clocksource/bcm_kona_timer.c
+ 
+ BROADCOM BCM2835 ARM ARCHICTURE
 _
 
 Patches currently in -mm which might be from joe@perches.com are
