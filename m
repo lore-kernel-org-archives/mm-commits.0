@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-clk-sirf-patterns.patch added to -mm tree
-Date: Mon, 07 Jul 2014 17:05:55 -0700
-Message-ID: <53bb35e3.A8zVKcEnfa95Hseh%akpm@linux-foundation.org>
+Subject: + maintainers-fix-ssbi-pattern.patch added to -mm tree
+Date: Mon, 07 Jul 2014 17:05:56 -0700
+Message-ID: <53bb35e4.KJ/CrU4jJ1zlI7lg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:59223 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754531AbaGHAF4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:05:56 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so1105166pab.3
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:05:56 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:57369 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754478AbaGHAF5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:05:57 -0400
+Received: by mail-ie0-f201.google.com with SMTP id rl12so683144iec.0
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:05:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, Baohua.Song@csr.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update clk/sirf patterns
+     Subject: MAINTAINERS: fix ssbi pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-update-clk-sirf-patterns.patch
+     maintainers-fix-ssbi-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-clk-sirf-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-fix-ssbi-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-clk-sirf-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-fix-ssbi-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,31 +41,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update clk/sirf patterns
+Subject: MAINTAINERS: fix ssbi pattern
 
-Commit 7bf21bc81f28 ("clk: sirf: re-arch to make the codes support
-both prima2 and atlas6") moved the files, update the patterns.
+Incorrect pattern used, it's not a directory, it's a file.  Fix it.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Barry Song <Baohua.Song@csr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-clk-sirf-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-clk-sirf-patterns
+diff -puN MAINTAINERS~maintainers-fix-ssbi-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-ssbi-pattern
 +++ a/MAINTAINERS
-@@ -892,7 +892,7 @@ L:	linux-arm-kernel@lists.infradead.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/baohua/linux.git
+@@ -1159,7 +1159,7 @@ F:	drivers/mmc/host/msm_sdcc.h
+ F:	drivers/tty/serial/msm_serial.h
+ F:	drivers/tty/serial/msm_serial.c
+ F:	drivers/*/pm8???-*
+-F:	drivers/mfd/ssbi/
++F:	drivers/mfd/ssbi.c
+ F:	include/linux/mfd/pm8xxx/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/davidb/linux-msm.git
  S:	Maintained
- F:	arch/arm/mach-prima2/
--F:	drivers/clk/clk-prima2.c
-+F:	drivers/clk/sirf/
- F:	drivers/clocksource/timer-prima2.c
- F:	drivers/clocksource/timer-marco.c
- N:	[^a-z]sirf
 _
 
 Patches currently in -mm which might be from joe@perches.com are
