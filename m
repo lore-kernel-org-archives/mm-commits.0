@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch added
- to -mm tree
-Date: Mon, 07 Jul 2014 17:06:04 -0700
-Message-ID: <53bb35ec.JWVVbM6Klgp/cuss%akpm@linux-foundation.org>
+Subject: + maintainers-update-rcu-torture-patterns.patch added to -mm tree
+Date: Mon, 07 Jul 2014 17:06:06 -0700
+Message-ID: <53bb35ee.i54nfvvfoOKCeDkN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:38132 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbaGHAGF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:05 -0400
-Received: by mail-pd0-f201.google.com with SMTP id v10so1104558pde.2
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:05 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:41321 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754391AbaGHAGH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:07 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f10so729531yha.2
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, sboyd@codeaurora.org, mm-commits@vger.kernel.org
+To: joe@perches.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: remove unusd ARM/QUALCOMM MSM pattern
+     Subject: MAINTAINERS: update rcu torture patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
+     maintainers-update-rcu-torture-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-rcu-torture-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-rcu-torture-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,30 +41,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: remove unusd ARM/QUALCOMM MSM pattern
+Subject: MAINTAINERS: update rcu torture patterns
 
-Commit 87933a68dce6 ("mfd: pm8921: Remove pm8xxx API now that sub-devices
-use regmap") removed the file, remove the pattern.
+Commit 51b1130eb582 ("rcutorture: Abstract rcu_torture_random()")
+moved the file, update the patterns
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-unusd-arm-qualcomm-msm-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-unusd-arm-qualcomm-msm-pattern
+diff -puN MAINTAINERS~maintainers-update-rcu-torture-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-rcu-torture-patterns
 +++ a/MAINTAINERS
-@@ -1160,7 +1160,6 @@ F:	drivers/tty/serial/msm_serial.h
- F:	drivers/tty/serial/msm_serial.c
- F:	drivers/*/pm8???-*
- F:	drivers/mfd/ssbi.c
--F:	include/linux/mfd/pm8xxx/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/davidb/linux-msm.git
- S:	Maintained
+@@ -7377,7 +7377,7 @@ L:	linux-kernel@vger.kernel.org
+ S:	Supported
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-rcu.git
+ F:	Documentation/RCU/torture.txt
+-F:	kernel/rcu/torture.c
++F:	kernel/rcu/rcutorture.c
  
+ RCUTORTURE TEST FRAMEWORK
+ M:	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+@@ -7414,7 +7414,7 @@ X:	Documentation/RCU/torture.txt
+ F:	include/linux/rcu*
+ X:	include/linux/srcu.h
+ F:	kernel/rcu/
+-X:	kernel/rcu/torture.c
++X:	kernel/torture.c
+ 
+ REAL TIME CLOCK (RTC) SUBSYSTEM
+ M:	Alessandro Zummo <a.zummo@towertech.it>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
