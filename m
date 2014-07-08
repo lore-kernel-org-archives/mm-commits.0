@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-picoxcell-patterns.patch added to -mm tree
-Date: Mon, 07 Jul 2014 17:05:59 -0700
-Message-ID: <53bb35e7.e+HyP/99JSz69erM%akpm@linux-foundation.org>
+Subject: + maintainers-update-staging-removals-and-movements.patch added
+ to -mm tree
+Date: Mon, 07 Jul 2014 17:06:00 -0700
+Message-ID: <53bb35e8.7444VHVWT1CeAfdt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:51539 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbaGHAGA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:00 -0400
-Received: by mail-vc0-f201.google.com with SMTP id ij19so729085vcb.4
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:00 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:50295 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754590AbaGHAGB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:01 -0400
+Received: by mail-qa0-f73.google.com with SMTP id m5so729801qaj.0
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, jamie@jamieiles.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update picoxcell patterns
+     Subject: MAINTAINERS: update staging removals and movements
 has been added to the -mm tree.  Its filename is
-     maintainers-update-picoxcell-patterns.patch
+     maintainers-update-staging-removals-and-movements.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-picoxcell-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-staging-removals-and-movements.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-picoxcell-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-staging-removals-and-movements.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,33 +42,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update picoxcell patterns
+Subject: MAINTAINERS: update staging removals and movements
 
-Fix the picoxcell patterns, add the dts directory too.
+3 sections have been deleted by various commits.  The other, echo, has
+been moved to drivers/misc.
+
+The nominal maintainers of the echo subsystem haven't been modifying the
+code or acking/signing patches for several years, so don't keep the
+section either.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jamie Iles <jamie@jamieiles.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |   23 -----------------------
+ 1 file changed, 23 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-picoxcell-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-picoxcell-patterns
+diff -puN MAINTAINERS~maintainers-update-staging-removals-and-movements MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-staging-removals-and-movements
 +++ a/MAINTAINERS
-@@ -6910,9 +6910,9 @@ M:	Jamie Iles <jamie@jamieiles.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- T:	git git://github.com/jamieiles/linux-2.6-ji.git
- S:	Supported
-+F:	arch/arm/boot/dts/picoxcell*
- F:	arch/arm/mach-picoxcell/
--F:	drivers/*/picoxcell*
--F:	drivers/*/*/picoxcell*
-+F:	drivers/crypto/picoxcell*
+@@ -5035,13 +5035,6 @@ S:	Maintained
+ F:	Documentation/hwmon/k8temp
+ F:	drivers/hwmon/k8temp.c
  
- PIN CONTROL SUBSYSTEM
- M:	Linus Walleij <linus.walleij@linaro.org>
+-KTAP
+-M:	Jovi Zhangwei <jovi.zhangwei@gmail.com>
+-W:	http://www.ktap.org
+-L:	ktap@freelists.org
+-S:	Maintained
+-F:	drivers/staging/ktap/
+-
+ KCONFIG
+ M:	"Yann E. MORIN" <yann.morin.1998@free.fr>
+ L:	linux-kbuild@vger.kernel.org
+@@ -8499,11 +8492,6 @@ S:	Odd Fixes
+ F:	drivers/staging/wlags49_h2/
+ F:	drivers/staging/wlags49_h25/
+ 
+-STAGING - ASUS OLED
+-M:	Jakub Schmidtke <sjakub@gmail.com>
+-S:	Odd Fixes
+-F:	drivers/staging/asus_oled/
+-
+ STAGING - COMEDI
+ M:	Ian Abbott <abbotti@mev.co.uk>
+ M:	H Hartley Sweeten <hsweeten@visionengravers.com>
+@@ -8518,12 +8506,6 @@ M:	Manu Abraham <abraham.manu@gmail.com>
+ S:	Odd Fixes
+ F:	drivers/staging/crystalhd/
+ 
+-STAGING - ECHO CANCELLER
+-M:	Steve Underwood <steveu@coppice.org>
+-M:	David Rowe <david@rowetel.com>
+-S:	Odd Fixes
+-F:	drivers/staging/echo/
+-
+ STAGING - ET131X NETWORK DRIVER
+ M:	Mark Einon <mark.einon@gmail.com>
+ S:	Odd Fixes
+@@ -8595,11 +8577,6 @@ L:	linux-wireless@vger.kernel.org
+ S:	Maintained
+ F:	drivers/staging/rtl8723au/
+ 
+-STAGING - SILICON MOTION SM7XX FRAME BUFFER DRIVER
+-M:	Teddy Wang <teddy.wang@siliconmotion.com.cn>
+-S:	Odd Fixes
+-F:	drivers/staging/sm7xxfb/
+-
+ STAGING - SLICOSS
+ M:	Lior Dotan <liodot@gmail.com>
+ M:	Christopher Harrer <charrer@alacritech.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
