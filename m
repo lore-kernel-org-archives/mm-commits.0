@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-an-index-variable-for-fixed-lines.patch added to -mm tree
-Date: Tue, 08 Jul 2014 13:24:54 -0700
-Message-ID: <53bc5396.Qa7WSHmyhUOG9fMK%akpm@linux-foundation.org>
+Subject: +
+ scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
+ added to -mm tree
+Date: Tue, 08 Jul 2014 13:28:25 -0700
+Message-ID: <53bc5469.+SE1+Hn3YnqMY5cK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:56933 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750845AbaGHUY4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 16:24:56 -0400
-Received: by mail-qa0-f73.google.com with SMTP id m5so916445qaj.0
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 13:24:55 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:57131 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754256AbaGHU20 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 16:28:26 -0400
+Received: by mail-oa0-f74.google.com with SMTP id i7so1372273oag.5
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 13:28:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, dan.carpenter@oracle.com, gregkh@linuxfoundation.org, josh@joshtriplett.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, Julia.Lawall@lip6.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add an index variable for fixed lines
+     Subject: scripts/coccinelle/free/ifnullfree.cocci: add copyright information
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-an-index-variable-for-fixed-lines.patch
+     scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-an-index-variable-for-fixed-lines.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-an-index-variable-for-fixed-lines.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,601 +42,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add an index variable for fixed lines
+From: Fabian Frederick <fabf@skynet.be>
+Subject: scripts/coccinelle/free/ifnullfree.cocci: add copyright information
 
-Make the fix code a bit easier to read.
+All coccinelle scripts have a copyright in the header.
 
-This should also start to allow an easier mechanism to insert/delete
-lines eventually too.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Suggested-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Acked-by: Julia Lawall <Julia.Lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |  114 +++++++++++++++++++++-------------------
- 1 file changed, 60 insertions(+), 54 deletions(-)
+ scripts/coccinelle/free/ifnullfree.cocci |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-an-index-variable-for-fixed-lines scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-an-index-variable-for-fixed-lines
-+++ a/scripts/checkpatch.pl
-@@ -583,6 +583,8 @@ $chk_signoff = 0 if ($file);
- my @rawlines = ();
- my @lines = ();
- my @fixed = ();
-+my $fixlinenr = -1;
-+
- my $vname;
- for my $filename (@ARGV) {
- 	my $FILE;
-@@ -611,6 +613,7 @@ for my $filename (@ARGV) {
- 	@rawlines = ();
- 	@lines = ();
- 	@fixed = ();
-+	$fixlinenr = -1;
- }
+diff -puN scripts/coccinelle/free/ifnullfree.cocci~scripts-coccinelle-free-ifnullfreecocci-add-copyright-information scripts/coccinelle/free/ifnullfree.cocci
+--- a/scripts/coccinelle/free/ifnullfree.cocci~scripts-coccinelle-free-ifnullfreecocci-add-copyright-information
++++ a/scripts/coccinelle/free/ifnullfree.cocci
+@@ -4,8 +4,9 @@
+ /// "kfree(NULL) is safe this check is probably not required"
+ /// and kfreeaddr.cocci by Julia Lawall.
+ ///
+-/// Comments: -
+-/// Options: --no-includes --include-headers
++// Copyright: (C) 2014 Fabian Frederick.  GPLv2.
++// Comments: -
++// Options: --no-includes --include-headers
  
- exit($exit);
-@@ -1801,8 +1804,10 @@ sub process {
- 
- 	$realcnt = 0;
- 	$linenr = 0;
-+	$fixlinenr = -1;
- 	foreach my $line (@lines) {
- 		$linenr++;
-+		$fixlinenr++;
- 		my $sline = $line;	#copy of $line
- 		$sline =~ s/$;/ /g;	#with comments as spaces
- 
-@@ -1933,7 +1938,7 @@ sub process {
- 				if (WARN("BAD_SIGN_OFF",
- 					 "Do not use whitespace before $ucfirst_sign_off\n" . $herecurr) &&
- 				    $fix) {
--					$fixed[$linenr - 1] =
-+					$fixed[$fixlinenr] =
- 					    "$ucfirst_sign_off $email";
- 				}
- 			}
-@@ -1941,7 +1946,7 @@ sub process {
- 				if (WARN("BAD_SIGN_OFF",
- 					 "'$ucfirst_sign_off' is the preferred signature form\n" . $herecurr) &&
- 				    $fix) {
--					$fixed[$linenr - 1] =
-+					$fixed[$fixlinenr] =
- 					    "$ucfirst_sign_off $email";
- 				}
- 
-@@ -1950,7 +1955,7 @@ sub process {
- 				if (WARN("BAD_SIGN_OFF",
- 					 "Use a single space after $ucfirst_sign_off\n" . $herecurr) &&
- 				    $fix) {
--					$fixed[$linenr - 1] =
-+					$fixed[$fixlinenr] =
- 					    "$ucfirst_sign_off $email";
- 				}
- 			}
-@@ -2089,14 +2094,14 @@ sub process {
- 			if (ERROR("DOS_LINE_ENDINGS",
- 				  "DOS line endings\n" . $herevet) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/[\s\015]+$//;
-+				$fixed[$fixlinenr] =~ s/[\s\015]+$//;
- 			}
- 		} elsif ($rawline =~ /^\+.*\S\s+$/ || $rawline =~ /^\+\s+$/) {
- 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
- 			if (ERROR("TRAILING_WHITESPACE",
- 				  "trailing whitespace\n" . $herevet) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/\s+$//;
-+				$fixed[$fixlinenr] =~ s/\s+$//;
- 			}
- 
- 			$rpt_cleaners = 1;
-@@ -2235,7 +2240,7 @@ sub process {
- 			if (WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
- 				 "unnecessary whitespace before a quoted newline\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/^(\+.*\".*)\s+\\n/$1\\n/;
-+				$fixed[$fixlinenr] =~ s/^(\+.*\".*)\s+\\n/$1\\n/;
- 			}
- 
- 		}
-@@ -2272,7 +2277,7 @@ sub process {
- 			if (ERROR("CODE_INDENT",
- 				  "code indent should use tabs where possible\n" . $herevet) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/^\+([ \t]+)/"\+" . tabify($1)/e;
-+				$fixed[$fixlinenr] =~ s/^\+([ \t]+)/"\+" . tabify($1)/e;
- 			}
- 		}
- 
-@@ -2282,9 +2287,9 @@ sub process {
- 			if (WARN("SPACE_BEFORE_TAB",
- 				"please, no space before tabs\n" . $herevet) &&
- 			    $fix) {
--				while ($fixed[$linenr - 1] =~
-+				while ($fixed[$fixlinenr] =~
- 					   s/(^\+.*) {8,8}+\t/$1\t\t/) {}
--				while ($fixed[$linenr - 1] =~
-+				while ($fixed[$fixlinenr] =~
- 					   s/(^\+.*) +\t/$1\t/) {}
- 			}
- 		}
-@@ -2318,7 +2323,7 @@ sub process {
- 					if (CHK("PARENTHESIS_ALIGNMENT",
- 						"Alignment should match open parenthesis\n" . $hereprev) &&
- 					    $fix && $line =~ /^\+/) {
--						$fixed[$linenr - 1] =~
-+						$fixed[$fixlinenr] =~
- 						    s/^\+[ \t]*/\+$goodtabindent/;
- 					}
- 				}
-@@ -2329,7 +2334,7 @@ sub process {
- 			if (CHK("SPACING",
- 				"No space is necessary after a cast\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/(\(\s*$Type\s*\))[ \t]+/$1/;
- 			}
- 		}
-@@ -2433,7 +2438,7 @@ sub process {
- 			if (WARN("LEADING_SPACE",
- 				 "please, no spaces at the start of a line\n" . $herevet) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/^\+([ \t]+)/"\+" . tabify($1)/e;
-+				$fixed[$fixlinenr] =~ s/^\+([ \t]+)/"\+" . tabify($1)/e;
- 			}
- 		}
- 
-@@ -2798,10 +2803,10 @@ sub process {
- 			if (ERROR("C99_COMMENTS",
- 				  "do not use C99 // comments\n" . $herecurr) &&
- 			    $fix) {
--				my $line = $fixed[$linenr - 1];
-+				my $line = $fixed[$fixlinenr];
- 				if ($line =~ /\/\/(.*)$/) {
- 					my $comment = trim($1);
--					$fixed[$linenr - 1] =~ s@\/\/(.*)$@/\* $comment \*/@;
-+					$fixed[$fixlinenr] =~ s@\/\/(.*)$@/\* $comment \*/@;
- 				}
- 			}
- 		}
-@@ -2860,7 +2865,7 @@ sub process {
- 				  "do not initialise globals to 0 or NULL\n" .
- 				      $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/($Type\s*$Ident\s*(?:\s+$Modifier))*\s*=\s*(0|NULL|false)\s*;/$1;/;
-+				$fixed[$fixlinenr] =~ s/($Type\s*$Ident\s*(?:\s+$Modifier))*\s*=\s*(0|NULL|false)\s*;/$1;/;
- 			}
- 		}
- # check for static initialisers.
-@@ -2869,7 +2874,7 @@ sub process {
- 				  "do not initialise statics to 0 or NULL\n" .
- 				      $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/(\bstatic\s.*?)\s*=\s*(0|NULL|false)\s*;/$1;/;
-+				$fixed[$fixlinenr] =~ s/(\bstatic\s.*?)\s*=\s*(0|NULL|false)\s*;/$1;/;
- 			}
- 		}
- 
-@@ -2899,7 +2904,7 @@ sub process {
- 			if (ERROR("FUNCTION_WITHOUT_ARGS",
- 				  "Bad function definition - $1() should probably be $1(void)\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/(\b($Type)\s+($Ident))\s*\(\s*\)/$2 $3(void)/;
-+				$fixed[$fixlinenr] =~ s/(\b($Type)\s+($Ident))\s*\(\s*\)/$2 $3(void)/;
- 			}
- 		}
- 
-@@ -2908,7 +2913,7 @@ sub process {
- 			if (WARN("DEFINE_PCI_DEVICE_TABLE",
- 				 "Prefer struct pci_device_id over deprecated DEFINE_PCI_DEVICE_TABLE\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/\b(?:static\s+|)DEFINE_PCI_DEVICE_TABLE\s*\(\s*(\w+)\s*\)\s*=\s*/static const struct pci_device_id $1\[\] = /;
-+				$fixed[$fixlinenr] =~ s/\b(?:static\s+|)DEFINE_PCI_DEVICE_TABLE\s*\(\s*(\w+)\s*\)\s*=\s*/static const struct pci_device_id $1\[\] = /;
- 			}
- 		}
- 
-@@ -2945,7 +2950,7 @@ sub process {
- 					my $sub_from = $ident;
- 					my $sub_to = $ident;
- 					$sub_to =~ s/\Q$from\E/$to/;
--					$fixed[$linenr - 1] =~
-+					$fixed[$fixlinenr] =~
- 					    s@\Q$sub_from\E@$sub_to@;
- 				}
- 			}
-@@ -2973,7 +2978,7 @@ sub process {
- 					my $sub_from = $match;
- 					my $sub_to = $match;
- 					$sub_to =~ s/\Q$from\E/$to/;
--					$fixed[$linenr - 1] =~
-+					$fixed[$fixlinenr] =~
- 					    s@\Q$sub_from\E@$sub_to@;
- 				}
- 			}
-@@ -3035,7 +3040,7 @@ sub process {
- 			if (WARN("PREFER_PR_LEVEL",
- 				 "Prefer pr_warn(... to pr_warning(...\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/\bpr_warning\b/pr_warn/;
- 			}
- 		}
-@@ -3069,7 +3074,7 @@ sub process {
- 			if (WARN("SPACING",
- 				 "missing space after $1 definition\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/^(.\s*(?:typedef\s+)?(?:enum|union|struct)(?:\s+$Ident){1,2})([=\{])/$1 $2/;
- 			}
- 		}
-@@ -3139,7 +3144,7 @@ sub process {
- 			}
- 
- 			if (show_type("SPACING") && $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/^(.\s*)$Declare\s*\(\s*\*\s*$Ident\s*\)\s*\(/$1 . $declare . $post_declare_space . '(*' . $funcname . ')('/ex;
- 			}
- 		}
-@@ -3156,7 +3161,7 @@ sub process {
- 				if (ERROR("BRACKET_SPACE",
- 					  "space prohibited before open square bracket '['\n" . $herecurr) &&
- 				    $fix) {
--				    $fixed[$linenr - 1] =~
-+				    $fixed[$fixlinenr] =~
- 					s/^(\+.*?)\s+\[/$1\[/;
- 				}
- 			}
-@@ -3191,7 +3196,7 @@ sub process {
- 				if (WARN("SPACING",
- 					 "space prohibited between function name and open parenthesis '('\n" . $herecurr) &&
- 					     $fix) {
--					$fixed[$linenr - 1] =~
-+					$fixed[$fixlinenr] =~
- 					    s/\b$name\s+\(/$name\(/;
- 				}
- 			}
-@@ -3459,8 +3464,8 @@ sub process {
- 				$fixed_line = $fixed_line . $fix_elements[$#elements];
- 			}
- 
--			if ($fix && $line_fixed && $fixed_line ne $fixed[$linenr - 1]) {
--				$fixed[$linenr - 1] = $fixed_line;
-+			if ($fix && $line_fixed && $fixed_line ne $fixed[$fixlinenr]) {
-+				$fixed[$fixlinenr] = $fixed_line;
- 			}
- 
- 
-@@ -3471,7 +3476,7 @@ sub process {
- 			if (WARN("SPACING",
- 				 "space prohibited before semicolon\n" . $herecurr) &&
- 			    $fix) {
--				1 while $fixed[$linenr - 1] =~
-+				1 while $fixed[$fixlinenr] =~
- 				    s/^(\+.*\S)\s+;/$1;/;
- 			}
- 		}
-@@ -3504,7 +3509,7 @@ sub process {
- 			if (ERROR("SPACING",
- 				  "space required before the open brace '{'\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/^(\+.*(?:do|\))){/$1 {/;
-+				$fixed[$fixlinenr] =~ s/^(\+.*(?:do|\))){/$1 {/;
- 			}
- 		}
- 
-@@ -3522,7 +3527,7 @@ sub process {
- 			if (ERROR("SPACING",
- 				  "space required after that close brace '}'\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/}((?!(?:,|;|\)))\S)/} $1/;
- 			}
- 		}
-@@ -3532,7 +3537,7 @@ sub process {
- 			if (ERROR("SPACING",
- 				  "space prohibited after that open square bracket '['\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/\[\s+/\[/;
- 			}
- 		}
-@@ -3540,7 +3545,7 @@ sub process {
- 			if (ERROR("SPACING",
- 				  "space prohibited before that close square bracket ']'\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/\s+\]/\]/;
- 			}
- 		}
-@@ -3551,7 +3556,7 @@ sub process {
- 			if (ERROR("SPACING",
- 				  "space prohibited after that open parenthesis '('\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/\(\s+/\(/;
- 			}
- 		}
-@@ -3561,7 +3566,8 @@ sub process {
- 			if (ERROR("SPACING",
- 				  "space prohibited before that close parenthesis ')'\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				print("fixlinenr: <$fixlinenr> fixed[fixlinenr]: <$fixed[$fixlinenr]>\n");
-+				$fixed[$fixlinenr] =~
- 				    s/\s+\)/\)/;
- 			}
- 		}
-@@ -3580,7 +3586,7 @@ sub process {
- 			if (WARN("INDENTED_LABEL",
- 				 "labels should not be indented\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/^(.)\s+/$1/;
- 			}
- 		}
-@@ -3642,7 +3648,7 @@ sub process {
- 			if (ERROR("SPACING",
- 				  "space required before the open parenthesis '('\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/\b(if|while|for|switch)\(/$1 \(/;
- 			}
- 		}
-@@ -3779,7 +3785,7 @@ sub process {
- 					 "Avoid gcc v4.3+ binary constant extension: <$var>\n" . $herecurr) &&
- 				    $fix) {
- 					my $hexval = sprintf("0x%x", oct($var));
--					$fixed[$linenr - 1] =~
-+					$fixed[$fixlinenr] =~
- 					    s/\b$var\b/$hexval/;
- 				}
- 			}
-@@ -3815,7 +3821,7 @@ sub process {
- 			if (WARN("WHITESPACE_AFTER_LINE_CONTINUATION",
- 				 "Whitespace after \\ makes next lines useless\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/\s+$//;
-+				$fixed[$fixlinenr] =~ s/\s+$//;
- 			}
- 		}
- 
-@@ -4170,7 +4176,7 @@ sub process {
- 				      WARN("MISPLACED_INIT",
- 					   "$attr should be placed after $var\n" . $herecurr))) &&
- 				    $fix) {
--					$fixed[$linenr - 1] =~ s/(\bstatic\s+(?:const\s+)?)(?:$attr\s+)?($NonptrTypeWithAttr)\s+(?:$attr\s+)?($Ident(?:\[[^]]*\])?)\s*([=;])\s*/"$1" . trim(string_find_replace($2, "\\s*$attr\\s*", " ")) . " " . trim(string_find_replace($3, "\\s*$attr\\s*", "")) . " $attr" . ("$4" eq ";" ? ";" : " = ")/e;
-+					$fixed[$fixlinenr] =~ s/(\bstatic\s+(?:const\s+)?)(?:$attr\s+)?($NonptrTypeWithAttr)\s+(?:$attr\s+)?($Ident(?:\[[^]]*\])?)\s*([=;])\s*/"$1" . trim(string_find_replace($2, "\\s*$attr\\s*", " ")) . " " . trim(string_find_replace($3, "\\s*$attr\\s*", "")) . " $attr" . ("$4" eq ";" ? ";" : " = ")/e;
- 				}
- 			}
- 		}
-@@ -4184,7 +4190,7 @@ sub process {
- 			if (ERROR("INIT_ATTRIBUTE",
- 				  "Use of const init definition must use ${attr_prefix}initconst\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/$InitAttributeData/${attr_prefix}initconst/;
- 			}
- 		}
-@@ -4195,12 +4201,12 @@ sub process {
- 			if (ERROR("INIT_ATTRIBUTE",
- 				  "Use of $attr requires a separate use of const\n" . $herecurr) &&
- 			    $fix) {
--				my $lead = $fixed[$linenr - 1] =~
-+				my $lead = $fixed[$fixlinenr] =~
- 				    /(^\+\s*(?:static\s+))/;
- 				$lead = rtrim($1);
- 				$lead = "$lead " if ($lead !~ /^\+$/);
- 				$lead = "${lead}const ";
--				$fixed[$linenr - 1] =~ s/(^\+\s*(?:static\s+))/$lead/;
-+				$fixed[$fixlinenr] =~ s/(^\+\s*(?:static\s+))/$lead/;
- 			}
- 		}
- 
-@@ -4213,7 +4219,7 @@ sub process {
- 			if (WARN("CONSTANT_CONVERSION",
- 				 "$constant_func should be $func\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/\b$constant_func\b/$func/g;
-+				$fixed[$fixlinenr] =~ s/\b$constant_func\b/$func/g;
- 			}
- 		}
- 
-@@ -4263,7 +4269,7 @@ sub process {
- 			if (ERROR("SPACING",
- 				  "exactly one space required after that #$1\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
-+				$fixed[$fixlinenr] =~
- 				    s/^(.\s*\#\s*(ifdef|ifndef|elif))\s{2,}/$1 /;
- 			}
- 
-@@ -4311,7 +4317,7 @@ sub process {
- 			if (WARN("INLINE",
- 				 "plain inline is preferred over $1\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/\b(__inline__|__inline)\b/inline/;
-+				$fixed[$fixlinenr] =~ s/\b(__inline__|__inline)\b/inline/;
- 
- 			}
- 		}
-@@ -4336,7 +4342,7 @@ sub process {
- 			if (WARN("PREFER_PRINTF",
- 				 "__printf(string-index, first-to-check) is preferred over __attribute__((format(printf, string-index, first-to-check)))\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*printf\s*,\s*(.*)\)\s*\)\s*\)/"__printf(" . trim($1) . ")"/ex;
-+				$fixed[$fixlinenr] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*printf\s*,\s*(.*)\)\s*\)\s*\)/"__printf(" . trim($1) . ")"/ex;
- 
- 			}
- 		}
-@@ -4347,7 +4353,7 @@ sub process {
- 			if (WARN("PREFER_SCANF",
- 				 "__scanf(string-index, first-to-check) is preferred over __attribute__((format(scanf, string-index, first-to-check)))\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*scanf\s*,\s*(.*)\)\s*\)\s*\)/"__scanf(" . trim($1) . ")"/ex;
-+				$fixed[$fixlinenr] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*scanf\s*,\s*(.*)\)\s*\)\s*\)/"__scanf(" . trim($1) . ")"/ex;
- 			}
- 		}
- 
-@@ -4362,7 +4368,7 @@ sub process {
- 			if (WARN("SIZEOF_PARENTHESIS",
- 				 "sizeof $1 should be sizeof($1)\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/\bsizeof\s+((?:\*\s*|)$Lval|$Type(?:\s+$Lval|))/"sizeof(" . trim($1) . ")"/ex;
-+				$fixed[$fixlinenr] =~ s/\bsizeof\s+((?:\*\s*|)$Lval|$Type(?:\s+$Lval|))/"sizeof(" . trim($1) . ")"/ex;
- 			}
- 		}
- 
-@@ -4385,7 +4391,7 @@ sub process {
- 				if (WARN("PREFER_SEQ_PUTS",
- 					 "Prefer seq_puts to seq_printf\n" . $herecurr) &&
- 				    $fix) {
--					$fixed[$linenr - 1] =~ s/\bseq_printf\b/seq_puts/;
-+					$fixed[$fixlinenr] =~ s/\bseq_printf\b/seq_puts/;
- 				}
- 			}
- 		}
-@@ -4414,7 +4420,7 @@ sub process {
- 			if (WARN("PREFER_ETHER_ADDR_COPY",
- 				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
-+				$fixed[$fixlinenr] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
- 			}
- 		}
- 
-@@ -4502,7 +4508,7 @@ sub process {
- 			if (CHK("AVOID_EXTERNS",
- 				"extern prototypes should be avoided in .h files\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/(.*)\bextern\b\s*(.*)/$1$2/;
-+				$fixed[$fixlinenr] =~ s/(.*)\bextern\b\s*(.*)/$1$2/;
- 			}
- 		}
- 
-@@ -4579,7 +4585,7 @@ sub process {
- 				if (WARN("ALLOC_WITH_MULTIPLY",
- 					 "Prefer $newfunc over $oldfunc with multiply\n" . $herecurr) &&
- 				    $fix) {
--					$fixed[$linenr - 1] =~ s/\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/$1 . ' = ' . "$newfunc(" . trim($r1) . ', ' . trim($r2)/e;
-+					$fixed[$fixlinenr] =~ s/\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/$1 . ' = ' . "$newfunc(" . trim($r1) . ', ' . trim($r2)/e;
- 
- 				}
- 			}
-@@ -4603,7 +4609,7 @@ sub process {
- 			if (WARN("ONE_SEMICOLON",
- 				 "Statements terminations use 1 semicolon\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/(\s*;\s*){2,}$/;/g;
-+				$fixed[$fixlinenr] =~ s/(\s*;\s*){2,}$/;/g;
- 			}
- 		}
- 
-@@ -4651,7 +4657,7 @@ sub process {
- 			if (WARN("USE_FUNC",
- 				 "__func__ should be used instead of gcc specific __FUNCTION__\n"  . $herecurr) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~ s/\b__FUNCTION__\b/__func__/g;
-+				$fixed[$fixlinenr] =~ s/\b__FUNCTION__\b/__func__/g;
- 			}
- 		}
- 
+ virtual patch
+ virtual org
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
+kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+kernfs-kernel-doc-warning-fix.patch
+ntfs-kernel-doc-warning-fixes.patch
+arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero.patch
+arch-sh-kernel-timec-use-ptr_err_or_zero.patch
 fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
-printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
-printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
-printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
-printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
-printk-tweak-do_syslog-to-match-comments.patch
-maintainers-remove-two-ancient-eata-sections.patch
-kernelh-remove-deprecated-pack_hex_byte.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
-checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
-checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
-checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
-checkpatch-ignore-email-headers-better.patch
-checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
-checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
-checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
-checkpatch-add-a-multiple-blank-lines-test.patch
-checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
-checkpatch-quiet-kconfig-help-message-checking.patch
-checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
-checkpatch-allow-multiple-const-types.patch
-checkpatch-improve-no-space-after-cast-test.patch
+fs-squashfs-superc-logging-clean-up.patch
+ubifs-kernel-doc-warning-fix.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+mm-slabc-add-__init-to-init_lock_keys.patch
+mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
+mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
+mm-internalh-use-nth_page.patch
+mm-hwpoison-injectc-remove-unnecessary-null-test-before-debugfs_remove_recursive.patch
+mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
+lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
+fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
 checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-checkpatch-emit-a-warning-on-file-add-move-delete.patch
-checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation.patch
-checkpatch-add-an-index-variable-for-fixed-lines.patch
-checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file.patch
+fs-efs-nameic-return-is-not-a-function.patch
+fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-test_kprobesc-use-current-logging-functions.patch
 fs-isofs-logging-clean-up.patch
+fs-isofs-logging-clean-up-fix.patch
+fs-coda-use-linux-uaccessh.patch
+fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+fs-ufs-convert-printk-to-pr_foo.patch
+fs-ufs-use-pr_fmt.patch
+fs-ufs-superc-use-__func__-in-logging.patch
+fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
+fs-ufs-convert-ufsd-printk-to-pr_debug.patch
+fs-reiserfs-replace-not-standard-%lu-%ld.patch
+fs-reiserfs-use-linux-uaccessh.patch
+fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
+fs-hpfs-dnodec-fix-suspect-code-indent.patch
+fs-quota-kernel-doc-warning-fixes.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
 proc-constify-seq_operations.patch
-sysctl-remove-now-unused-typedef-ctl_table.patch
-sysctl-remove-now-unused-typedef-ctl_table-fix.patch
-adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
+fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
+fs-bfs-use-bfs-prefix-for-dump_imap.patch
+drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
+fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-romfs-superc-convert-printk-to-pr_foo.patch
+fs-romfs-superc-use-pr_fmt-in-logging.patch
+fs-romfs-superc-add-blank-line-after-declarations.patch
 fs-qnx6-convert-printk-to-pr_foo.patch
 fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
 fs-qnx6-update-debugging-to-current-functions.patch
 scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
+scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
+fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
 linux-next.patch
-pci-dma-compat-add-pci_zalloc_consistent-helper.patch
-atm-use-pci_zalloc_consistent.patch
-block-use-pci_zalloc_consistent.patch
-crypto-use-pci_zalloc_consistent.patch
-infiniband-use-pci_zalloc_consistent.patch
-i810-use-pci_zalloc_consistent.patch
-media-use-pci_zalloc_consistent.patch
-amd-use-pci_zalloc_consistent.patch
-atl1e-use-pci_zalloc_consistent.patch
-enic-use-pci_zalloc_consistent.patch
-sky2-use-pci_zalloc_consistent.patch
-micrel-use-pci_zalloc_consistent.patch
-qlogic-use-pci_zalloc_consistent.patch
-irda-use-pci_zalloc_consistent.patch
-ipw2100-use-pci_zalloc_consistent.patch
-mwl8k-use-pci_zalloc_consistent.patch
-rtl818x-use-pci_zalloc_consistent.patch
-rtlwifi-use-pci_zalloc_consistent.patch
-scsi-use-pci_zalloc_consistent.patch
-staging-use-pci_zalloc_consistent.patch
-synclink_gt-use-pci_zalloc_consistent.patch
-vme-bridges-use-pci_zalloc_consistent.patch
-amd-neaten-and-remove-unnecessary-oom-messages.patch
-maintainers-update-microcode-patterns.patch
-maintainers-update-cifs-location.patch
-maintainers-use-the-correct-efi-stub-location.patch
-maintainers-update-clk-sirf-patterns.patch
-maintainers-fix-ssbi-pattern.patch
-maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
-maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
-maintainers-update-picoxcell-patterns.patch
-maintainers-update-staging-removals-and-movements.patch
-maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
-maintainers-remove-metag-imgdafs-pattern.patch
-maintainers-remove-unused-radeon-drm-pattern.patch
-maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
-maintainers-remove-unused-nfsd-pattern.patch
-maintainers-update-rcu-torture-patterns.patch
+init-mainc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
