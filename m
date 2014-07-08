@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + proc-add-and-remove-proc-entry-create-checks.patch added to -mm tree
-Date: Tue, 08 Jul 2014 15:55:06 -0700
-Message-ID: <53bc76ca.Gk9lX7dwg3LuLkYc%akpm@linux-foundation.org>
+Subject: + proc-faster-proc-pid-lookup.patch added to -mm tree
+Date: Tue, 08 Jul 2014 15:55:07 -0700
+Message-ID: <53bc76cb.y32v7KJA+1j7ELS0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:54093 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751151AbaGHWzI (ORCPT
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:53956 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751641AbaGHWzI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 18:55:08 -0400
-Received: by mail-yh0-f74.google.com with SMTP id b6so944744yha.3
+Received: by mail-oa0-f74.google.com with SMTP id i7so1413179oag.1
         for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 15:55:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -19,14 +19,14 @@ To: adobriyan@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: add and remove /proc entry create checks
+     Subject: proc: faster /proc/$PID lookup
 has been added to the -mm tree.  Its filename is
-     proc-add-and-remove-proc-entry-create-checks.patch
+     proc-faster-proc-pid-lookup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-and-remove-proc-entry-create-checks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-faster-proc-pid-lookup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-and-remove-proc-entry-create-checks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-faster-proc-pid-lookup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,23 +41,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: add and remove /proc entry create checks
+Subject: proc: faster /proc/$PID lookup
 
-* remove proc_create(NULL, ...) check, let it oops
+Currently lookup for /proc/$PID first goes through spinlock and whole list
+of misc /proc entries only to confirm that, yes, /proc/42 can not possibly
+match random proc entry.
 
-* warn about proc_create("", ...) and proc_create("very very long name", ...)
-  proc code keeps length as u8, no 256+ name length possible
+List is is several dozens entries long (52 entries on my setup).
 
-* warn about proc_create("123", ...)
-  /proc/$PID and /proc/misc namespaces are separate things,
-  but dumb module might create funky a-la $PID entry.
+None of this is necessary.
 
-* remove post mortem strchr('/') check
-  Triggering it implies either strchr() is buggy or memory corruption.
-  It should be VFS check anyway.
-
-In reality, none of these checks will ever trigger,
-it is preparation for the next patch.
+Try to convert dentry name to integer first.
+If it works, it must be /proc/$PID.
+If it doesn't, it must be random proc entry.
 
 Based on patch from Al Viro.
 
@@ -66,109 +62,38 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c     |    4 ++--
- fs/proc/fd.c       |    2 +-
- fs/proc/generic.c  |   30 +++++++++++++++---------------
- fs/proc/internal.h |    6 +++---
- 4 files changed, 21 insertions(+), 21 deletions(-)
+ fs/proc/base.c |    2 +-
+ fs/proc/root.c |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/base.c~proc-add-and-remove-proc-entry-create-checks fs/proc/base.c
---- a/fs/proc/base.c~proc-add-and-remove-proc-entry-create-checks
+diff -puN fs/proc/base.c~proc-faster-proc-pid-lookup fs/proc/base.c
+--- a/fs/proc/base.c~proc-faster-proc-pid-lookup
 +++ a/fs/proc/base.c
-@@ -2785,7 +2785,7 @@ struct dentry *proc_pid_lookup(struct in
+@@ -2780,7 +2780,7 @@ out:
+ 
+ struct dentry *proc_pid_lookup(struct inode *dir, struct dentry * dentry, unsigned int flags)
+ {
+-	int result = 0;
++	int result = -ENOENT;
+ 	struct task_struct *task;
  	unsigned tgid;
  	struct pid_namespace *ns;
+diff -puN fs/proc/root.c~proc-faster-proc-pid-lookup fs/proc/root.c
+--- a/fs/proc/root.c~proc-faster-proc-pid-lookup
++++ a/fs/proc/root.c
+@@ -199,10 +199,10 @@ static int proc_root_getattr(struct vfsm
  
--	tgid = name_to_int(dentry);
-+	tgid = name_to_int(&dentry->d_name);
- 	if (tgid == ~0U)
- 		goto out;
- 
-@@ -3033,7 +3033,7 @@ static struct dentry *proc_task_lookup(s
- 	if (!leader)
- 		goto out_no_task;
- 
--	tid = name_to_int(dentry);
-+	tid = name_to_int(&dentry->d_name);
- 	if (tid == ~0U)
- 		goto out;
- 
-diff -puN fs/proc/fd.c~proc-add-and-remove-proc-entry-create-checks fs/proc/fd.c
---- a/fs/proc/fd.c~proc-add-and-remove-proc-entry-create-checks
-+++ a/fs/proc/fd.c
-@@ -206,7 +206,7 @@ static struct dentry *proc_lookupfd_comm
+ static struct dentry *proc_root_lookup(struct inode * dir, struct dentry * dentry, unsigned int flags)
  {
- 	struct task_struct *task = get_proc_task(dir);
- 	int result = -ENOENT;
--	unsigned fd = name_to_int(dentry);
-+	unsigned fd = name_to_int(&dentry->d_name);
- 
- 	if (!task)
- 		goto out_no_task;
-diff -puN fs/proc/generic.c~proc-add-and-remove-proc-entry-create-checks fs/proc/generic.c
---- a/fs/proc/generic.c~proc-add-and-remove-proc-entry-create-checks
-+++ a/fs/proc/generic.c
-@@ -330,28 +330,28 @@ static struct proc_dir_entry *__proc_cre
- 					  nlink_t nlink)
- {
- 	struct proc_dir_entry *ent = NULL;
--	const char *fn = name;
--	unsigned int len;
--
--	/* make sure name is valid */
--	if (!name || !strlen(name))
--		goto out;
-+	const char *fn;
-+	struct qstr qstr;
- 
- 	if (xlate_proc_name(name, parent, &fn) != 0)
- 		goto out;
-+	qstr.name = fn;
-+	qstr.len = strlen(fn);
-+	if (qstr.len == 0 || qstr.len >= 256) {
-+		WARN(1, "name len %u\n", qstr.len);
-+		return NULL;
-+	}
-+	if (*parent == &proc_root && name_to_int(&qstr) != ~0U) {
-+		WARN(1, "create '/proc/%s' by hand\n", qstr.name);
-+		return NULL;
-+	}
- 
--	/* At this point there must not be any '/' characters beyond *fn */
--	if (strchr(fn, '/'))
--		goto out;
--
--	len = strlen(fn);
--
--	ent = kzalloc(sizeof(struct proc_dir_entry) + len + 1, GFP_KERNEL);
-+	ent = kzalloc(sizeof(struct proc_dir_entry) + qstr.len + 1, GFP_KERNEL);
- 	if (!ent)
- 		goto out;
- 
--	memcpy(ent->name, fn, len + 1);
--	ent->namelen = len;
-+	memcpy(ent->name, fn, qstr.len + 1);
-+	ent->namelen = qstr.len;
- 	ent->mode = mode;
- 	ent->nlink = nlink;
- 	atomic_set(&ent->count, 1);
-diff -puN fs/proc/internal.h~proc-add-and-remove-proc-entry-create-checks fs/proc/internal.h
---- a/fs/proc/internal.h~proc-add-and-remove-proc-entry-create-checks
-+++ a/fs/proc/internal.h
-@@ -112,10 +112,10 @@ static inline int task_dumpable(struct t
- 	return 0;
+-	if (!proc_lookup(dir, dentry, flags))
++	if (!proc_pid_lookup(dir, dentry, flags))
+ 		return NULL;
+ 	
+-	return proc_pid_lookup(dir, dentry, flags);
++	return proc_lookup(dir, dentry, flags);
  }
  
--static inline unsigned name_to_int(struct dentry *dentry)
-+static inline unsigned name_to_int(const struct qstr *qstr)
- {
--	const char *name = dentry->d_name.name;
--	int len = dentry->d_name.len;
-+	const char *name = qstr->name;
-+	int len = qstr->len;
- 	unsigned n = 0;
- 
- 	if (len > 1 && *name == '0')
+ static int proc_root_readdir(struct file *file, struct dir_context *ctx)
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
