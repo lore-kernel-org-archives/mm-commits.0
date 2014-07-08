@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- scripts-checkstackpl-automatically-handle-32-bit-and-64-bit-mode-for-arch=x86.patch added to -mm tree
-Date: Tue, 08 Jul 2014 13:30:18 -0700
-Message-ID: <53bc54da.VBdzoNSJy216IX/U%akpm@linux-foundation.org>
+Subject: + mm-update-the-description-for-vm_total_pages.patch added to -mm tree
+Date: Tue, 08 Jul 2014 13:41:49 -0700
+Message-ID: <53bc578d.Dhs05nr1b6Y3Tyvz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:60110 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751610AbaGHUaT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 16:30:19 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kq14so1404198pab.0
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 13:30:19 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:40365 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754385AbaGHUlu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 16:41:50 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h15so104870igd.2
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 13:41:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, dwmw2@infradead.org, geert@linux-m68k.org, hpa@zytor.com, richard@nod.at, mm-commits@vger.kernel.org
+To: shhuiw@gmail.com, hannes@cmpxchg.org, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/checkstack.pl: automatically handle 32-bit and 64-bit mode for ARCH=x86
+     Subject: mm: update the description for vm_total_pages
 has been added to the -mm tree.  Its filename is
-     scripts-checkstackpl-automatically-handle-32-bit-and-64-bit-mode-for-arch=x86.patch
+     mm-update-the-description-for-vm_total_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-checkstackpl-automatically-handle-32-bit-and-64-bit-mode-for-arch=x86.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-update-the-description-for-vm_total_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-checkstackpl-automatically-handle-32-bit-and-64-bit-mode-for-arch=x86.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-update-the-description-for-vm_total_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,69 +40,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: scripts/checkstack.pl: automatically handle 32-bit and 64-bit mode for ARCH=x86
+From: Wang Sheng-Hui <shhuiw@gmail.com>
+Subject: mm: update the description for vm_total_pages
 
-This patch adds support for ARCH=x86 into checkstack.
+vm_total_pages is calculated by nr_free_pagecache_pages(), which counts
+the number of pages which are beyond the high watermark within all zones. 
+So vm_total_pages is not equal to total number of pages which the VM
+controls.
 
-commit ffee0de411fd4f7 ("x86: Default to ARCH=x86 to avoid overriding
-CONFIG_64BIT") had merged ARCH=i386 and ARCH=x86_64 into one ARCH=x86. 
-checkstack.pl searches patterns of machine instructions which are usually
-used for allocating stack frames.  checkstalk.pl needs either i386 or
-x86_64, x86 isn't enough:
-
-$ make checkstack
-objdump -d vmlinux $(find . -name '*.ko') | \
-perl linux/scripts/checkstack.pl x86
-wrong or unknown architecture "x86"
-
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Wang Sheng-Hui <shhuiw@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkstack.pl |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ mm/vmscan.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkstack.pl~scripts-checkstackpl-automatically-handle-32-bit-and-64-bit-mode-for-arch=x86 scripts/checkstack.pl
---- a/scripts/checkstack.pl~scripts-checkstackpl-automatically-handle-32-bit-and-64-bit-mode-for-arch=x86
-+++ a/scripts/checkstack.pl
-@@ -52,14 +52,12 @@ my (@stack, $re, $dre, $x, $xs, $funcre)
- 		#8000008a:       20 1d           sub sp,4
- 		#80000ca8:       fa cd 05 b0     sub sp,sp,1456
- 		$re = qr/^.*sub.*sp.*,([0-9]{1,8})/o;
--	} elsif ($arch =~ /^i[3456]86$/) {
-+	} elsif ($arch =~ /^x86(_64)?$/ || $arch =~ /^i[3456]86$/) {
- 		#c0105234:       81 ec ac 05 00 00       sub    $0x5ac,%esp
--		$re = qr/^.*[as][du][db]    \$(0x$x{1,8}),\%esp$/o;
--		$dre = qr/^.*[as][du][db]    (%.*),\%esp$/o;
--	} elsif ($arch eq 'x86_64') {
--		#    2f60:	48 81 ec e8 05 00 00 	sub    $0x5e8,%rsp
--		$re = qr/^.*[as][du][db]    \$(0x$x{1,8}),\%rsp$/o;
--		$dre = qr/^.*[as][du][db]    (\%.*),\%rsp$/o;
-+		# or
-+		#    2f60:    48 81 ec e8 05 00 00       sub    $0x5e8,%rsp
-+		$re = qr/^.*[as][du][db]    \$(0x$x{1,8}),\%(e|r)sp$/o;
-+		$dre = qr/^.*[as][du][db]    (%.*),\%(e|r)sp$/o;
- 	} elsif ($arch eq 'ia64') {
- 		#e0000000044011fc:       01 0f fc 8c     adds r12=-384,r12
- 		$re = qr/.*adds.*r12=-(([0-9]{2}|[3-9])[0-9]{2}),r12/o;
+diff -puN mm/vmscan.c~mm-update-the-description-for-vm_total_pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-update-the-description-for-vm_total_pages
++++ a/mm/vmscan.c
+@@ -136,7 +136,11 @@ struct scan_control {
+  * From 0 .. 100.  Higher means more swappy.
+  */
+ int vm_swappiness = 60;
+-unsigned long vm_total_pages;	/* The total number of pages which the VM controls */
++/*
++ * The total number of pages which are beyond the high watermark within all
++ * zones.
++ */
++unsigned long vm_total_pages;
+ 
+ static LIST_HEAD(shrinker_list);
+ static DECLARE_RWSEM(shrinker_rwsem);
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from shhuiw@gmail.com are
 
-revert-shmem-fix-faulting-into-a-hole-while-its-punched.patch
-shmem-fix-faulting-into-a-hole-while-its-punched-take-2.patch
-mm-fs-fix-pessimization-in-hole-punching-pagecache.patch
-mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-shmem-fix-double-uncharge-in-__shmem_file_setup.patch
-shmem-update-memory-reservation-on-truncate.patch
-mm-catch-memory-commitment-underflow.patch
-mm-catch-memory-commitment-underflow-fix.patch
-lib-idr-fix-out-of-bounds-pointer-dereference.patch
-scripts-checkstackpl-automatically-handle-32-bit-and-64-bit-mode-for-arch=x86.patch
+mm-update-the-description-for-madvise_remove.patch
+mm-update-the-description-for-vm_total_pages.patch
 
