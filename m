@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-cramfs-inodec-use-linux-uaccessh.patch added to -mm tree
-Date: Tue, 08 Jul 2014 15:24:23 -0700
-Message-ID: <53bc6f97.0//dWEA7aoXnr1hr%akpm@linux-foundation.org>
+Subject: + fs-cramfs-convert-printk-to-pr_foo.patch added to -mm tree
+Date: Tue, 08 Jul 2014 15:24:19 -0700
+Message-ID: <53bc6f93.L/do0mirQSkkdKUq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:60467 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751163AbaGHWYY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 18:24:24 -0400
-Received: by mail-ob0-f202.google.com with SMTP id va2so1415834obc.5
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 15:24:24 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:34781 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751163AbaGHWYV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 18:24:21 -0400
+Received: by mail-ve0-f202.google.com with SMTP id oy12so940031veb.3
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 15:24:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, sasha.levin@oracle.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/cramfs/inode.c: use linux/uaccess.h
+     Subject: fs/cramfs: convert printk to pr_foo()
 has been added to the -mm tree.  Its filename is
-     fs-cramfs-inodec-use-linux-uaccessh.patch
+     fs-cramfs-convert-printk-to-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-cramfs-inodec-use-linux-uaccessh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-cramfs-convert-printk-to-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-cramfs-inodec-use-linux-uaccessh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-cramfs-convert-printk-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,11 +41,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/cramfs/inode.c: use linux/uaccess.h
+Subject: fs/cramfs: convert printk to pr_foo()
 
-Fixes checkpatch warning:
-
-WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
+Use current logging functions.  No level printk converted to pr_err
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
@@ -53,20 +51,86 @@ Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cramfs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/cramfs/inode.c      |   14 +++++++-------
+ fs/cramfs/uncompress.c |    6 +++---
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/cramfs/inode.c~fs-cramfs-inodec-use-linux-uaccessh fs/cramfs/inode.c
---- a/fs/cramfs/inode.c~fs-cramfs-inodec-use-linux-uaccessh
+diff -puN fs/cramfs/inode.c~fs-cramfs-convert-printk-to-pr_foo fs/cramfs/inode.c
+--- a/fs/cramfs/inode.c~fs-cramfs-convert-printk-to-pr_foo
 +++ a/fs/cramfs/inode.c
-@@ -23,7 +23,7 @@
- #include <linux/vfs.h>
- #include <linux/mutex.h>
- #include <uapi/linux/cramfs_fs.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
+@@ -277,7 +277,7 @@ static int cramfs_fill_super(struct supe
+ 		/* check for wrong endianness */
+ 		if (super.magic == CRAMFS_MAGIC_WEND) {
+ 			if (!silent)
+-				printk(KERN_ERR "cramfs: wrong endianness\n");
++				pr_err("cramfs: wrong endianness\n");
+ 			return -EINVAL;
+ 		}
  
- #include "internal.h"
+@@ -287,22 +287,22 @@ static int cramfs_fill_super(struct supe
+ 		mutex_unlock(&read_mutex);
+ 		if (super.magic != CRAMFS_MAGIC) {
+ 			if (super.magic == CRAMFS_MAGIC_WEND && !silent)
+-				printk(KERN_ERR "cramfs: wrong endianness\n");
++				pr_err("cramfs: wrong endianness\n");
+ 			else if (!silent)
+-				printk(KERN_ERR "cramfs: wrong magic\n");
++				pr_err("cramfs: wrong magic\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+ 
+ 	/* get feature flags first */
+ 	if (super.flags & ~CRAMFS_SUPPORTED_FLAGS) {
+-		printk(KERN_ERR "cramfs: unsupported filesystem features\n");
++		pr_err("cramfs: unsupported filesystem features\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	/* Check that the root inode is in a sane state */
+ 	if (!S_ISDIR(super.root.mode)) {
+-		printk(KERN_ERR "cramfs: root is not a directory\n");
++		pr_err("cramfs: root is not a directory\n");
+ 		return -EINVAL;
+ 	}
+ 	/* correct strange, hard-coded permissions of mkcramfs */
+@@ -321,12 +321,12 @@ static int cramfs_fill_super(struct supe
+ 	sbi->magic=super.magic;
+ 	sbi->flags=super.flags;
+ 	if (root_offset == 0)
+-		printk(KERN_INFO "cramfs: empty filesystem");
++		pr_info("cramfs: empty filesystem");
+ 	else if (!(super.flags & CRAMFS_FLAG_SHIFTED_ROOT_OFFSET) &&
+ 		 ((root_offset != sizeof(struct cramfs_super)) &&
+ 		  (root_offset != 512 + sizeof(struct cramfs_super))))
+ 	{
+-		printk(KERN_ERR "cramfs: bad root offset %lu\n", root_offset);
++		pr_err("cramfs: bad root offset %lu\n", root_offset);
+ 		return -EINVAL;
+ 	}
+ 
+diff -puN fs/cramfs/uncompress.c~fs-cramfs-convert-printk-to-pr_foo fs/cramfs/uncompress.c
+--- a/fs/cramfs/uncompress.c~fs-cramfs-convert-printk-to-pr_foo
++++ a/fs/cramfs/uncompress.c
+@@ -37,7 +37,7 @@ int cramfs_uncompress_block(void *dst, i
+ 
+ 	err = zlib_inflateReset(&stream);
+ 	if (err != Z_OK) {
+-		printk("zlib_inflateReset error %d\n", err);
++		pr_err("zlib_inflateReset error %d\n", err);
+ 		zlib_inflateEnd(&stream);
+ 		zlib_inflateInit(&stream);
+ 	}
+@@ -48,8 +48,8 @@ int cramfs_uncompress_block(void *dst, i
+ 	return stream.total_out;
+ 
+ err:
+-	printk("Error %d while decompressing!\n", err);
+-	printk("%p(%d)->%p(%d)\n", src, srclen, dst, dstlen);
++	pr_err("Error %d while decompressing!\n", err);
++	pr_err("%p(%d)->%p(%d)\n", src, srclen, dst, dstlen);
+ 	return -EIO;
+ }
  
 _
 
