@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file.patch added to -mm tree
-Date: Tue, 08 Jul 2014 13:24:55 -0700
-Message-ID: <53bc5397.QMRv7E78Ttes3Xvd%akpm@linux-foundation.org>
+Subject: + checkpatch-add-an-index-variable-for-fixed-lines.patch added to -mm tree
+Date: Tue, 08 Jul 2014 13:24:54 -0700
+Message-ID: <53bc5396.Qa7WSHmyhUOG9fMK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:63405 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753710AbaGHUY5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 16:24:57 -0400
-Received: by mail-ve0-f202.google.com with SMTP id oy12so916883veb.1
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 13:24:56 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:56933 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750845AbaGHUY4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 16:24:56 -0400
+Received: by mail-qa0-f73.google.com with SMTP id m5so916445qaj.0
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 13:24:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, apw@canonical.com, dan.carpenter@oracle.com, gregkh@linuxfoundation.org, josh@joshtriplett.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add ability to insert and delete lines to patch/file
+     Subject: checkpatch: add an index variable for fixed lines
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file.patch
+     checkpatch-add-an-index-variable-for-fixed-lines.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-an-index-variable-for-fixed-lines.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-an-index-variable-for-fixed-lines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,15 +41,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add ability to insert and delete lines to patch/file
+Subject: checkpatch: add an index variable for fixed lines
 
-This can be valuable to insert or delete blank lines as well as fix
-misplaced brace or else uses.
+Make the fix code a bit easier to read.
 
-Store indexes of lines to be added/deleted and the new lines.
-
-When creating the --fix file, insert or delete the appropriate lines and
-update the patch range information.
+This should also start to allow an easier mechanism to insert/delete
+lines eventually too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Andy Whitcroft <apw@canonical.com>
@@ -60,227 +56,505 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |  141 ++++++++++++++++++++++++++++++++++++----
- 1 file changed, 130 insertions(+), 11 deletions(-)
+ scripts/checkpatch.pl |  114 +++++++++++++++++++++-------------------
+ 1 file changed, 60 insertions(+), 54 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file
+diff -puN scripts/checkpatch.pl~checkpatch-add-an-index-variable-for-fixed-lines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-an-index-variable-for-fixed-lines
 +++ a/scripts/checkpatch.pl
 @@ -583,6 +583,8 @@ $chk_signoff = 0 if ($file);
  my @rawlines = ();
  my @lines = ();
  my @fixed = ();
-+my @fixed_inserted = ();
-+my @fixed_deleted = ();
- my $fixlinenr = -1;
- 
++my $fixlinenr = -1;
++
  my $vname;
-@@ -613,6 +615,8 @@ for my $filename (@ARGV) {
+ for my $filename (@ARGV) {
+ 	my $FILE;
+@@ -611,6 +613,7 @@ for my $filename (@ARGV) {
  	@rawlines = ();
  	@lines = ();
  	@fixed = ();
-+	@fixed_inserted = ();
-+	@fixed_deleted = ();
- 	$fixlinenr = -1;
++	$fixlinenr = -1;
  }
  
-@@ -1526,6 +1530,69 @@ sub report_dump {
- 	our @report;
- }
+ exit($exit);
+@@ -1801,8 +1804,10 @@ sub process {
  
-+sub fixup_current_range {
-+	my ($lineRef, $offset, $length) = @_;
-+
-+	if ($$lineRef =~ /^\@\@ -\d+,\d+ \+(\d+),(\d+) \@\@/) {
-+		my $o = $1;
-+		my $l = $2;
-+		my $no = $o + $offset;
-+		my $nl = $l + $length;
-+		$$lineRef =~ s/\+$o,$l \@\@/\+$no,$nl \@\@/;
-+	}
-+}
-+
-+sub fix_inserted_deleted_lines {
-+	my ($linesRef, $insertedRef, $deletedRef) = @_;
-+
-+	my $range_last_linenr = 0;
-+	my $delta_offset = 0;
-+
-+	my $old_linenr = 0;
-+	my $new_linenr = 0;
-+
-+	my $next_insert = 0;
-+	my $next_delete = 0;
-+
-+	my @lines = ();
-+
-+	my $inserted = @{$insertedRef}[$next_insert++];
-+	my $deleted = @{$deletedRef}[$next_delete++];
-+
-+	foreach my $old_line (@{$linesRef}) {
-+		my $save_line = 1;
-+		my $line = $old_line;	#don't modify the array
-+		if ($line =~ /^(?:\+\+\+\|\-\-\-)\s+\S+/) {	#new filename
-+			$delta_offset = 0;
-+		} elsif ($line =~ /^\@\@ -\d+,\d+ \+\d+,\d+ \@\@/) {	#new hunk
-+			$range_last_linenr = $new_linenr;
-+			fixup_current_range(\$line, $delta_offset, 0);
-+		}
-+
-+		while (defined($deleted) && ${$deleted}{'LINENR'} == $old_linenr) {
-+			$deleted = @{$deletedRef}[$next_delete++];
-+			$save_line = 0;
-+			fixup_current_range(\$lines[$range_last_linenr], $delta_offset--, -1);
-+		}
-+
-+		while (defined($inserted) && ${$inserted}{'LINENR'} == $old_linenr) {
-+			push(@lines, ${$inserted}{'LINE'});
-+			$inserted = @{$insertedRef}[$next_insert++];
-+			$new_linenr++;
-+			fixup_current_range(\$lines[$range_last_linenr], $delta_offset++, 1);
-+		}
-+
-+		if ($save_line) {
-+			push(@lines, $line);
-+			$new_linenr++;
-+		}
-+
-+		$old_linenr++;
-+	}
-+
-+	return @lines;
-+}
-+
- sub ERROR {
- 	my ($type, $msg) = @_;
+ 	$realcnt = 0;
+ 	$linenr = 0;
++	$fixlinenr = -1;
+ 	foreach my $line (@lines) {
+ 		$linenr++;
++		$fixlinenr++;
+ 		my $sline = $line;	#copy of $line
+ 		$sline =~ s/$;/ /g;	#with comments as spaces
  
-@@ -2377,16 +2444,31 @@ sub process {
- 		      $line =~ /^\+\s*(?:static\s+)?[A-Z_]*ATTR/ ||
- 		      $line =~ /^\+\s*DECLARE/ ||
- 		      $line =~ /^\+\s*__setup/)) {
--			CHK("LINE_SPACING",
--			    "Please use a blank line after function/struct/union/enum declarations\n" . $hereprev);
-+			if (CHK("LINE_SPACING",
-+				"Please use a blank line after function/struct/union/enum declarations\n" . $hereprev) &&
-+			    $fix) {
-+			my $inserted = {
-+				LINENR => $fixlinenr,
-+				LINE => "\+",
-+			};
-+			push(@fixed_inserted, $inserted);
-+			}
- 		}
- 
- # check for multiple consecutive blank lines
- 		if ($prevline =~ /^[\+ ]\s*$/ &&
- 		    $line =~ /^\+\s*$/ &&
- 		    $last_blank_line != ($linenr - 1)) {
--			CHK("LINE_SPACING",
--			    "Please don't use multiple blank lines\n" . $hereprev);
-+			if (CHK("LINE_SPACING",
-+				"Please don't use multiple blank lines\n" . $hereprev) &&
-+			    $fix) {
-+			my $deleted = {
-+				LINENR => $fixlinenr,
-+				LINE => $rawline,
-+			};
-+			push(@fixed_deleted, $deleted);
-+			}
-+
- 			$last_blank_line = $linenr;
- 		}
- 
-@@ -2424,8 +2506,15 @@ sub process {
- 		      $sline =~ /^\+\s+\(?\s*(?:$Compare|$Assignment|$Operators)/) &&
- 			# indentation of previous and current line are the same
- 		    (($prevline =~ /\+(\s+)\S/) && $sline =~ /^\+$1\S/)) {
--			WARN("LINE_SPACING",
--			     "Missing a blank line after declarations\n" . $hereprev);
-+			if (WARN("LINE_SPACING",
-+				 "Missing a blank line after declarations\n" . $hereprev) &&
-+			    $fix) {
-+			my $inserted = {
-+				LINENR => $fixlinenr,
-+				LINE => "\+",
-+			};
-+			push(@fixed_inserted, $inserted);
-+			}
- 		}
- 
- # check for spaces at the beginning of a line.
-@@ -2627,7 +2716,7 @@ sub process {
- 			#print "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
- 			#print "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
- 
--			if ($ctx !~ /{\s*/ && defined($lines[$ctx_ln -1]) && $lines[$ctx_ln - 1] =~ /^\+\s*{/) {
-+			if ($ctx !~ /{\s*/ && defined($lines[$ctx_ln - 1]) && $lines[$ctx_ln - 1] =~ /^\+\s*{/) {
- 				ERROR("OPEN_BRACE",
- 				      "that open brace { should be on the previous line\n" .
- 					"$here\n$ctx\n$rawlines[$ctx_ln - 1]\n");
-@@ -2777,8 +2866,34 @@ sub process {
- # check for initialisation to aggregates open brace on the next line
- 		if ($line =~ /^.\s*{/ &&
- 		    $prevline =~ /(?:^|[^=])=\s*$/) {
--			ERROR("OPEN_BRACE",
--			      "that open brace { should be on the previous line\n" . $hereprev);
-+			if (ERROR("OPEN_BRACE",
-+				  "that open brace { should be on the previous line\n" . $hereprev) &&
-+			    $fix && $prevline =~ /^\+/) {
-+				my $deleted = {
-+					LINENR => $fixlinenr - 1,
-+					LINE => $prevrawline,
-+				};
-+				push(@fixed_deleted, $deleted);
-+				$deleted = {
-+					LINENR => $fixlinenr,
-+					LINE => $rawline,
-+				};
-+				push(@fixed_deleted, $deleted);
-+				my $fixedline = $prevrawline;
-+				$fixedline =~ s/\s*=\s*$/ = {/;
-+				my $inserted = {
-+					LINENR => $fixlinenr,
-+					LINE => $fixedline,
-+				};
-+				push(@fixed_inserted, $inserted);
-+				$fixedline = $line;
-+				$fixedline =~ s/^(.\s*){\s*/$1/;
-+				$inserted = {
-+					LINENR => $fixlinenr,
-+					LINE => $fixedline,
-+				};
-+				push(@fixed_inserted, $inserted);
-+			}
- 		}
- 
- #
-@@ -4900,12 +5015,16 @@ sub process {
- 	hash_show_words(\%use_type, "Used");
- 	hash_show_words(\%ignore_type, "Ignored");
- 
--	if ($clean == 0 && $fix && "@rawlines" ne "@fixed") {
-+	if ($clean == 0 && $fix &&
-+	    ("@rawlines" ne "@fixed" ||
-+	     $#fixed_inserted >= 0 || $#fixed_deleted >= 0)) {
- 		my $newfile = $filename;
- 		$newfile .= ".EXPERIMENTAL-checkpatch-fixes" if (!$fix_inplace);
- 		my $linecount = 0;
- 		my $f;
- 
-+		@fixed = fix_inserted_deleted_lines(\@fixed, \@fixed_inserted, \@fixed_deleted);
-+
- 		open($f, '>', $newfile)
- 		    or die "$P: Can't open $newfile for write\n";
- 		foreach my $fixed_line (@fixed) {
-@@ -4913,7 +5032,7 @@ sub process {
- 			if ($file) {
- 				if ($linecount > 3) {
- 					$fixed_line =~ s/^\+//;
--					print $f $fixed_line. "\n";
-+					print $f $fixed_line . "\n";
+@@ -1933,7 +1938,7 @@ sub process {
+ 				if (WARN("BAD_SIGN_OFF",
+ 					 "Do not use whitespace before $ucfirst_sign_off\n" . $herecurr) &&
+ 				    $fix) {
+-					$fixed[$linenr - 1] =
++					$fixed[$fixlinenr] =
+ 					    "$ucfirst_sign_off $email";
  				}
- 			} else {
- 				print $f $fixed_line . "\n";
+ 			}
+@@ -1941,7 +1946,7 @@ sub process {
+ 				if (WARN("BAD_SIGN_OFF",
+ 					 "'$ucfirst_sign_off' is the preferred signature form\n" . $herecurr) &&
+ 				    $fix) {
+-					$fixed[$linenr - 1] =
++					$fixed[$fixlinenr] =
+ 					    "$ucfirst_sign_off $email";
+ 				}
+ 
+@@ -1950,7 +1955,7 @@ sub process {
+ 				if (WARN("BAD_SIGN_OFF",
+ 					 "Use a single space after $ucfirst_sign_off\n" . $herecurr) &&
+ 				    $fix) {
+-					$fixed[$linenr - 1] =
++					$fixed[$fixlinenr] =
+ 					    "$ucfirst_sign_off $email";
+ 				}
+ 			}
+@@ -2089,14 +2094,14 @@ sub process {
+ 			if (ERROR("DOS_LINE_ENDINGS",
+ 				  "DOS line endings\n" . $herevet) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/[\s\015]+$//;
++				$fixed[$fixlinenr] =~ s/[\s\015]+$//;
+ 			}
+ 		} elsif ($rawline =~ /^\+.*\S\s+$/ || $rawline =~ /^\+\s+$/) {
+ 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+ 			if (ERROR("TRAILING_WHITESPACE",
+ 				  "trailing whitespace\n" . $herevet) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/\s+$//;
++				$fixed[$fixlinenr] =~ s/\s+$//;
+ 			}
+ 
+ 			$rpt_cleaners = 1;
+@@ -2235,7 +2240,7 @@ sub process {
+ 			if (WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
+ 				 "unnecessary whitespace before a quoted newline\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/^(\+.*\".*)\s+\\n/$1\\n/;
++				$fixed[$fixlinenr] =~ s/^(\+.*\".*)\s+\\n/$1\\n/;
+ 			}
+ 
+ 		}
+@@ -2272,7 +2277,7 @@ sub process {
+ 			if (ERROR("CODE_INDENT",
+ 				  "code indent should use tabs where possible\n" . $herevet) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/^\+([ \t]+)/"\+" . tabify($1)/e;
++				$fixed[$fixlinenr] =~ s/^\+([ \t]+)/"\+" . tabify($1)/e;
+ 			}
+ 		}
+ 
+@@ -2282,9 +2287,9 @@ sub process {
+ 			if (WARN("SPACE_BEFORE_TAB",
+ 				"please, no space before tabs\n" . $herevet) &&
+ 			    $fix) {
+-				while ($fixed[$linenr - 1] =~
++				while ($fixed[$fixlinenr] =~
+ 					   s/(^\+.*) {8,8}+\t/$1\t\t/) {}
+-				while ($fixed[$linenr - 1] =~
++				while ($fixed[$fixlinenr] =~
+ 					   s/(^\+.*) +\t/$1\t/) {}
+ 			}
+ 		}
+@@ -2318,7 +2323,7 @@ sub process {
+ 					if (CHK("PARENTHESIS_ALIGNMENT",
+ 						"Alignment should match open parenthesis\n" . $hereprev) &&
+ 					    $fix && $line =~ /^\+/) {
+-						$fixed[$linenr - 1] =~
++						$fixed[$fixlinenr] =~
+ 						    s/^\+[ \t]*/\+$goodtabindent/;
+ 					}
+ 				}
+@@ -2329,7 +2334,7 @@ sub process {
+ 			if (CHK("SPACING",
+ 				"No space is necessary after a cast\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/(\(\s*$Type\s*\))[ \t]+/$1/;
+ 			}
+ 		}
+@@ -2433,7 +2438,7 @@ sub process {
+ 			if (WARN("LEADING_SPACE",
+ 				 "please, no spaces at the start of a line\n" . $herevet) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/^\+([ \t]+)/"\+" . tabify($1)/e;
++				$fixed[$fixlinenr] =~ s/^\+([ \t]+)/"\+" . tabify($1)/e;
+ 			}
+ 		}
+ 
+@@ -2798,10 +2803,10 @@ sub process {
+ 			if (ERROR("C99_COMMENTS",
+ 				  "do not use C99 // comments\n" . $herecurr) &&
+ 			    $fix) {
+-				my $line = $fixed[$linenr - 1];
++				my $line = $fixed[$fixlinenr];
+ 				if ($line =~ /\/\/(.*)$/) {
+ 					my $comment = trim($1);
+-					$fixed[$linenr - 1] =~ s@\/\/(.*)$@/\* $comment \*/@;
++					$fixed[$fixlinenr] =~ s@\/\/(.*)$@/\* $comment \*/@;
+ 				}
+ 			}
+ 		}
+@@ -2860,7 +2865,7 @@ sub process {
+ 				  "do not initialise globals to 0 or NULL\n" .
+ 				      $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/($Type\s*$Ident\s*(?:\s+$Modifier))*\s*=\s*(0|NULL|false)\s*;/$1;/;
++				$fixed[$fixlinenr] =~ s/($Type\s*$Ident\s*(?:\s+$Modifier))*\s*=\s*(0|NULL|false)\s*;/$1;/;
+ 			}
+ 		}
+ # check for static initialisers.
+@@ -2869,7 +2874,7 @@ sub process {
+ 				  "do not initialise statics to 0 or NULL\n" .
+ 				      $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/(\bstatic\s.*?)\s*=\s*(0|NULL|false)\s*;/$1;/;
++				$fixed[$fixlinenr] =~ s/(\bstatic\s.*?)\s*=\s*(0|NULL|false)\s*;/$1;/;
+ 			}
+ 		}
+ 
+@@ -2899,7 +2904,7 @@ sub process {
+ 			if (ERROR("FUNCTION_WITHOUT_ARGS",
+ 				  "Bad function definition - $1() should probably be $1(void)\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/(\b($Type)\s+($Ident))\s*\(\s*\)/$2 $3(void)/;
++				$fixed[$fixlinenr] =~ s/(\b($Type)\s+($Ident))\s*\(\s*\)/$2 $3(void)/;
+ 			}
+ 		}
+ 
+@@ -2908,7 +2913,7 @@ sub process {
+ 			if (WARN("DEFINE_PCI_DEVICE_TABLE",
+ 				 "Prefer struct pci_device_id over deprecated DEFINE_PCI_DEVICE_TABLE\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/\b(?:static\s+|)DEFINE_PCI_DEVICE_TABLE\s*\(\s*(\w+)\s*\)\s*=\s*/static const struct pci_device_id $1\[\] = /;
++				$fixed[$fixlinenr] =~ s/\b(?:static\s+|)DEFINE_PCI_DEVICE_TABLE\s*\(\s*(\w+)\s*\)\s*=\s*/static const struct pci_device_id $1\[\] = /;
+ 			}
+ 		}
+ 
+@@ -2945,7 +2950,7 @@ sub process {
+ 					my $sub_from = $ident;
+ 					my $sub_to = $ident;
+ 					$sub_to =~ s/\Q$from\E/$to/;
+-					$fixed[$linenr - 1] =~
++					$fixed[$fixlinenr] =~
+ 					    s@\Q$sub_from\E@$sub_to@;
+ 				}
+ 			}
+@@ -2973,7 +2978,7 @@ sub process {
+ 					my $sub_from = $match;
+ 					my $sub_to = $match;
+ 					$sub_to =~ s/\Q$from\E/$to/;
+-					$fixed[$linenr - 1] =~
++					$fixed[$fixlinenr] =~
+ 					    s@\Q$sub_from\E@$sub_to@;
+ 				}
+ 			}
+@@ -3035,7 +3040,7 @@ sub process {
+ 			if (WARN("PREFER_PR_LEVEL",
+ 				 "Prefer pr_warn(... to pr_warning(...\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/\bpr_warning\b/pr_warn/;
+ 			}
+ 		}
+@@ -3069,7 +3074,7 @@ sub process {
+ 			if (WARN("SPACING",
+ 				 "missing space after $1 definition\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/^(.\s*(?:typedef\s+)?(?:enum|union|struct)(?:\s+$Ident){1,2})([=\{])/$1 $2/;
+ 			}
+ 		}
+@@ -3139,7 +3144,7 @@ sub process {
+ 			}
+ 
+ 			if (show_type("SPACING") && $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/^(.\s*)$Declare\s*\(\s*\*\s*$Ident\s*\)\s*\(/$1 . $declare . $post_declare_space . '(*' . $funcname . ')('/ex;
+ 			}
+ 		}
+@@ -3156,7 +3161,7 @@ sub process {
+ 				if (ERROR("BRACKET_SPACE",
+ 					  "space prohibited before open square bracket '['\n" . $herecurr) &&
+ 				    $fix) {
+-				    $fixed[$linenr - 1] =~
++				    $fixed[$fixlinenr] =~
+ 					s/^(\+.*?)\s+\[/$1\[/;
+ 				}
+ 			}
+@@ -3191,7 +3196,7 @@ sub process {
+ 				if (WARN("SPACING",
+ 					 "space prohibited between function name and open parenthesis '('\n" . $herecurr) &&
+ 					     $fix) {
+-					$fixed[$linenr - 1] =~
++					$fixed[$fixlinenr] =~
+ 					    s/\b$name\s+\(/$name\(/;
+ 				}
+ 			}
+@@ -3459,8 +3464,8 @@ sub process {
+ 				$fixed_line = $fixed_line . $fix_elements[$#elements];
+ 			}
+ 
+-			if ($fix && $line_fixed && $fixed_line ne $fixed[$linenr - 1]) {
+-				$fixed[$linenr - 1] = $fixed_line;
++			if ($fix && $line_fixed && $fixed_line ne $fixed[$fixlinenr]) {
++				$fixed[$fixlinenr] = $fixed_line;
+ 			}
+ 
+ 
+@@ -3471,7 +3476,7 @@ sub process {
+ 			if (WARN("SPACING",
+ 				 "space prohibited before semicolon\n" . $herecurr) &&
+ 			    $fix) {
+-				1 while $fixed[$linenr - 1] =~
++				1 while $fixed[$fixlinenr] =~
+ 				    s/^(\+.*\S)\s+;/$1;/;
+ 			}
+ 		}
+@@ -3504,7 +3509,7 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "space required before the open brace '{'\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/^(\+.*(?:do|\))){/$1 {/;
++				$fixed[$fixlinenr] =~ s/^(\+.*(?:do|\))){/$1 {/;
+ 			}
+ 		}
+ 
+@@ -3522,7 +3527,7 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "space required after that close brace '}'\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/}((?!(?:,|;|\)))\S)/} $1/;
+ 			}
+ 		}
+@@ -3532,7 +3537,7 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "space prohibited after that open square bracket '['\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/\[\s+/\[/;
+ 			}
+ 		}
+@@ -3540,7 +3545,7 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "space prohibited before that close square bracket ']'\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/\s+\]/\]/;
+ 			}
+ 		}
+@@ -3551,7 +3556,7 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "space prohibited after that open parenthesis '('\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/\(\s+/\(/;
+ 			}
+ 		}
+@@ -3561,7 +3566,8 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "space prohibited before that close parenthesis ')'\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				print("fixlinenr: <$fixlinenr> fixed[fixlinenr]: <$fixed[$fixlinenr]>\n");
++				$fixed[$fixlinenr] =~
+ 				    s/\s+\)/\)/;
+ 			}
+ 		}
+@@ -3580,7 +3586,7 @@ sub process {
+ 			if (WARN("INDENTED_LABEL",
+ 				 "labels should not be indented\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/^(.)\s+/$1/;
+ 			}
+ 		}
+@@ -3642,7 +3648,7 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "space required before the open parenthesis '('\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/\b(if|while|for|switch)\(/$1 \(/;
+ 			}
+ 		}
+@@ -3779,7 +3785,7 @@ sub process {
+ 					 "Avoid gcc v4.3+ binary constant extension: <$var>\n" . $herecurr) &&
+ 				    $fix) {
+ 					my $hexval = sprintf("0x%x", oct($var));
+-					$fixed[$linenr - 1] =~
++					$fixed[$fixlinenr] =~
+ 					    s/\b$var\b/$hexval/;
+ 				}
+ 			}
+@@ -3815,7 +3821,7 @@ sub process {
+ 			if (WARN("WHITESPACE_AFTER_LINE_CONTINUATION",
+ 				 "Whitespace after \\ makes next lines useless\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/\s+$//;
++				$fixed[$fixlinenr] =~ s/\s+$//;
+ 			}
+ 		}
+ 
+@@ -4170,7 +4176,7 @@ sub process {
+ 				      WARN("MISPLACED_INIT",
+ 					   "$attr should be placed after $var\n" . $herecurr))) &&
+ 				    $fix) {
+-					$fixed[$linenr - 1] =~ s/(\bstatic\s+(?:const\s+)?)(?:$attr\s+)?($NonptrTypeWithAttr)\s+(?:$attr\s+)?($Ident(?:\[[^]]*\])?)\s*([=;])\s*/"$1" . trim(string_find_replace($2, "\\s*$attr\\s*", " ")) . " " . trim(string_find_replace($3, "\\s*$attr\\s*", "")) . " $attr" . ("$4" eq ";" ? ";" : " = ")/e;
++					$fixed[$fixlinenr] =~ s/(\bstatic\s+(?:const\s+)?)(?:$attr\s+)?($NonptrTypeWithAttr)\s+(?:$attr\s+)?($Ident(?:\[[^]]*\])?)\s*([=;])\s*/"$1" . trim(string_find_replace($2, "\\s*$attr\\s*", " ")) . " " . trim(string_find_replace($3, "\\s*$attr\\s*", "")) . " $attr" . ("$4" eq ";" ? ";" : " = ")/e;
+ 				}
+ 			}
+ 		}
+@@ -4184,7 +4190,7 @@ sub process {
+ 			if (ERROR("INIT_ATTRIBUTE",
+ 				  "Use of const init definition must use ${attr_prefix}initconst\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/$InitAttributeData/${attr_prefix}initconst/;
+ 			}
+ 		}
+@@ -4195,12 +4201,12 @@ sub process {
+ 			if (ERROR("INIT_ATTRIBUTE",
+ 				  "Use of $attr requires a separate use of const\n" . $herecurr) &&
+ 			    $fix) {
+-				my $lead = $fixed[$linenr - 1] =~
++				my $lead = $fixed[$fixlinenr] =~
+ 				    /(^\+\s*(?:static\s+))/;
+ 				$lead = rtrim($1);
+ 				$lead = "$lead " if ($lead !~ /^\+$/);
+ 				$lead = "${lead}const ";
+-				$fixed[$linenr - 1] =~ s/(^\+\s*(?:static\s+))/$lead/;
++				$fixed[$fixlinenr] =~ s/(^\+\s*(?:static\s+))/$lead/;
+ 			}
+ 		}
+ 
+@@ -4213,7 +4219,7 @@ sub process {
+ 			if (WARN("CONSTANT_CONVERSION",
+ 				 "$constant_func should be $func\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/\b$constant_func\b/$func/g;
++				$fixed[$fixlinenr] =~ s/\b$constant_func\b/$func/g;
+ 			}
+ 		}
+ 
+@@ -4263,7 +4269,7 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "exactly one space required after that #$1\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
++				$fixed[$fixlinenr] =~
+ 				    s/^(.\s*\#\s*(ifdef|ifndef|elif))\s{2,}/$1 /;
+ 			}
+ 
+@@ -4311,7 +4317,7 @@ sub process {
+ 			if (WARN("INLINE",
+ 				 "plain inline is preferred over $1\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/\b(__inline__|__inline)\b/inline/;
++				$fixed[$fixlinenr] =~ s/\b(__inline__|__inline)\b/inline/;
+ 
+ 			}
+ 		}
+@@ -4336,7 +4342,7 @@ sub process {
+ 			if (WARN("PREFER_PRINTF",
+ 				 "__printf(string-index, first-to-check) is preferred over __attribute__((format(printf, string-index, first-to-check)))\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*printf\s*,\s*(.*)\)\s*\)\s*\)/"__printf(" . trim($1) . ")"/ex;
++				$fixed[$fixlinenr] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*printf\s*,\s*(.*)\)\s*\)\s*\)/"__printf(" . trim($1) . ")"/ex;
+ 
+ 			}
+ 		}
+@@ -4347,7 +4353,7 @@ sub process {
+ 			if (WARN("PREFER_SCANF",
+ 				 "__scanf(string-index, first-to-check) is preferred over __attribute__((format(scanf, string-index, first-to-check)))\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*scanf\s*,\s*(.*)\)\s*\)\s*\)/"__scanf(" . trim($1) . ")"/ex;
++				$fixed[$fixlinenr] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*scanf\s*,\s*(.*)\)\s*\)\s*\)/"__scanf(" . trim($1) . ")"/ex;
+ 			}
+ 		}
+ 
+@@ -4362,7 +4368,7 @@ sub process {
+ 			if (WARN("SIZEOF_PARENTHESIS",
+ 				 "sizeof $1 should be sizeof($1)\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/\bsizeof\s+((?:\*\s*|)$Lval|$Type(?:\s+$Lval|))/"sizeof(" . trim($1) . ")"/ex;
++				$fixed[$fixlinenr] =~ s/\bsizeof\s+((?:\*\s*|)$Lval|$Type(?:\s+$Lval|))/"sizeof(" . trim($1) . ")"/ex;
+ 			}
+ 		}
+ 
+@@ -4385,7 +4391,7 @@ sub process {
+ 				if (WARN("PREFER_SEQ_PUTS",
+ 					 "Prefer seq_puts to seq_printf\n" . $herecurr) &&
+ 				    $fix) {
+-					$fixed[$linenr - 1] =~ s/\bseq_printf\b/seq_puts/;
++					$fixed[$fixlinenr] =~ s/\bseq_printf\b/seq_puts/;
+ 				}
+ 			}
+ 		}
+@@ -4414,7 +4420,7 @@ sub process {
+ 			if (WARN("PREFER_ETHER_ADDR_COPY",
+ 				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
++				$fixed[$fixlinenr] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
+ 			}
+ 		}
+ 
+@@ -4502,7 +4508,7 @@ sub process {
+ 			if (CHK("AVOID_EXTERNS",
+ 				"extern prototypes should be avoided in .h files\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/(.*)\bextern\b\s*(.*)/$1$2/;
++				$fixed[$fixlinenr] =~ s/(.*)\bextern\b\s*(.*)/$1$2/;
+ 			}
+ 		}
+ 
+@@ -4579,7 +4585,7 @@ sub process {
+ 				if (WARN("ALLOC_WITH_MULTIPLY",
+ 					 "Prefer $newfunc over $oldfunc with multiply\n" . $herecurr) &&
+ 				    $fix) {
+-					$fixed[$linenr - 1] =~ s/\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/$1 . ' = ' . "$newfunc(" . trim($r1) . ', ' . trim($r2)/e;
++					$fixed[$fixlinenr] =~ s/\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/$1 . ' = ' . "$newfunc(" . trim($r1) . ', ' . trim($r2)/e;
+ 
+ 				}
+ 			}
+@@ -4603,7 +4609,7 @@ sub process {
+ 			if (WARN("ONE_SEMICOLON",
+ 				 "Statements terminations use 1 semicolon\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/(\s*;\s*){2,}$/;/g;
++				$fixed[$fixlinenr] =~ s/(\s*;\s*){2,}$/;/g;
+ 			}
+ 		}
+ 
+@@ -4651,7 +4657,7 @@ sub process {
+ 			if (WARN("USE_FUNC",
+ 				 "__func__ should be used instead of gcc specific __FUNCTION__\n"  . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/\b__FUNCTION__\b/__func__/g;
++				$fixed[$fixlinenr] =~ s/\b__FUNCTION__\b/__func__/g;
+ 			}
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
