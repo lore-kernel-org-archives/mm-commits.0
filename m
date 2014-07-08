@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-cifs-location.patch added to -mm tree
-Date: Mon, 07 Jul 2014 17:05:53 -0700
-Message-ID: <53bb35e1.gOTTt+XtIjO6WXNy%akpm@linux-foundation.org>
+Subject: + maintainers-update-clk-sirf-patterns.patch added to -mm tree
+Date: Mon, 07 Jul 2014 17:05:55 -0700
+Message-ID: <53bb35e3.A8zVKcEnfa95Hseh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:65003 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754478AbaGHAFy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:05:54 -0400
-Received: by mail-vc0-f201.google.com with SMTP id ij19so729075vcb.4
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:05:54 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:59223 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754531AbaGHAF4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:05:56 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so1105166pab.3
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:05:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, Baohua.Song@csr.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update cifs location
+     Subject: MAINTAINERS: update clk/sirf patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-cifs-location.patch
+     maintainers-update-clk-sirf-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-cifs-location.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-clk-sirf-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-cifs-location.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-clk-sirf-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,30 +41,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update cifs location
+Subject: MAINTAINERS: update clk/sirf patterns
 
-Commit 30706a545417 ("cifs: create a new Documentation/ directory
-and move docfiles into it") moved the files, update the pattern.
+Commit 7bf21bc81f28 ("clk: sirf: re-arch to make the codes support
+both prima2 and atlas6") moved the files, update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Barry Song <Baohua.Song@csr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-cifs-location MAINTAINERS
---- a/MAINTAINERS~maintainers-update-cifs-location
+diff -puN MAINTAINERS~maintainers-update-clk-sirf-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-clk-sirf-patterns
 +++ a/MAINTAINERS
-@@ -2367,7 +2367,7 @@ W:	http://linux-cifs.samba.org/
- Q:	http://patchwork.ozlabs.org/project/linux-cifs-client/list/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sfrench/cifs-2.6.git
- S:	Supported
--F:	Documentation/filesystems/cifs.txt
-+F:	Documentation/filesystems/cifs/
- F:	fs/cifs/
- 
- COMPACTPCI HOTPLUG CORE
+@@ -892,7 +892,7 @@ L:	linux-arm-kernel@lists.infradead.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/baohua/linux.git
+ S:	Maintained
+ F:	arch/arm/mach-prima2/
+-F:	drivers/clk/clk-prima2.c
++F:	drivers/clk/sirf/
+ F:	drivers/clocksource/timer-prima2.c
+ F:	drivers/clocksource/timer-marco.c
+ N:	[^a-z]sirf
 _
 
 Patches currently in -mm which might be from joe@perches.com are
