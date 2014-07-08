@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-cramfs-code-clean-up.patch added to -mm tree
-Date: Tue, 08 Jul 2014 15:24:21 -0700
-Message-ID: <53bc6f95.b7Ui0S+XIUjXKCSh%akpm@linux-foundation.org>
+Subject: + fs-cramfs-use-pr_fmt.patch added to -mm tree
+Date: Tue, 08 Jul 2014 15:24:20 -0700
+Message-ID: <53bc6f94.S0CSgn/AggZUXkMs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:36799 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752836AbaGHWYX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 18:24:23 -0400
-Received: by mail-oa0-f74.google.com with SMTP id i7so1406193oag.3
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 15:24:22 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:58877 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751540AbaGHWYV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 18:24:21 -0400
+Received: by mail-qa0-f73.google.com with SMTP id m5so939860qaj.2
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 15:24:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, sasha.levin@oracle.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/cramfs: code clean-up
+     Subject: fs/cramfs: use pr_fmt
 has been added to the -mm tree.  Its filename is
-     fs-cramfs-code-clean-up.patch
+     fs-cramfs-use-pr_fmt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-cramfs-code-clean-up.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-cramfs-use-pr_fmt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-cramfs-code-clean-up.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-cramfs-use-pr_fmt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,14 +41,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/cramfs: code clean-up
+Subject: fs/cramfs: use pr_fmt
 
-Fixes some checkpatch errors/warnings:
-
-WARNING: Missing a blank line after declarations
-ERROR: spaces required around that '=' (ctx:VxV)
-ERROR: "foo * bar" should be "foo *bar"
-ERROR: space prohibited after that open parenthesis '('
+Use module name for "cramfs: " prefix.  (note that uncompress.c printk had
+no prefix).
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
@@ -56,101 +52,94 @@ Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cramfs/inode.c      |   25 ++++++++++++++-----------
- fs/cramfs/uncompress.c |    2 +-
- 2 files changed, 15 insertions(+), 12 deletions(-)
+ fs/cramfs/inode.c      |   18 ++++++++++--------
+ fs/cramfs/uncompress.c |    2 ++
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN fs/cramfs/inode.c~fs-cramfs-code-clean-up fs/cramfs/inode.c
---- a/fs/cramfs/inode.c~fs-cramfs-code-clean-up
+diff -puN fs/cramfs/inode.c~fs-cramfs-use-pr_fmt fs/cramfs/inode.c
+--- a/fs/cramfs/inode.c~fs-cramfs-use-pr_fmt
 +++ a/fs/cramfs/inode.c
-@@ -155,7 +155,7 @@ static struct inode *get_cramfs_inode(st
- 
- static unsigned char read_buffers[READ_BUFFERS][BUFFER_SIZE];
- static unsigned buffer_blocknr[READ_BUFFERS];
--static struct super_block * buffer_dev[READ_BUFFERS];
-+static struct super_block *buffer_dev[READ_BUFFERS];
- static int next_buffer;
- 
- /*
-@@ -207,6 +207,7 @@ static void *cramfs_read(struct super_bl
- 
- 	for (i = 0; i < BLKS_PER_BUF; i++) {
- 		struct page *page = pages[i];
-+
- 		if (page) {
- 			wait_on_page_locked(page);
- 			if (!PageUptodate(page)) {
-@@ -225,6 +226,7 @@ static void *cramfs_read(struct super_bl
- 	data = read_buffers[buffer];
- 	for (i = 0; i < BLKS_PER_BUF; i++) {
- 		struct page *page = pages[i];
-+
- 		if (page) {
- 			memcpy(data, kmap(page), PAGE_CACHE_SIZE);
- 			kunmap(page);
-@@ -239,6 +241,7 @@ static void *cramfs_read(struct super_bl
- static void cramfs_kill_sb(struct super_block *sb)
- {
- 	struct cramfs_sb_info *sbi = CRAMFS_SB(sb);
-+
- 	kill_block_super(sb);
- 	kfree(sbi);
- }
-@@ -312,16 +315,16 @@ static int cramfs_fill_super(struct supe
- 
- 	root_offset = super.root.offset << 2;
- 	if (super.flags & CRAMFS_FLAG_FSID_VERSION_2) {
--		sbi->size=super.size;
--		sbi->blocks=super.fsid.blocks;
--		sbi->files=super.fsid.files;
-+		sbi->size = super.size;
-+		sbi->blocks = super.fsid.blocks;
-+		sbi->files = super.fsid.files;
- 	} else {
--		sbi->size=1<<28;
--		sbi->blocks=0;
--		sbi->files=0;
-+		sbi->size = 1<<28;
-+		sbi->blocks = 0;
-+		sbi->files = 0;
- 	}
--	sbi->magic=super.magic;
--	sbi->flags=super.flags;
-+	sbi->magic = super.magic;
-+	sbi->flags = super.flags;
- 	if (root_offset == 0)
- 		pr_info("empty filesystem");
- 	else if (!(super.flags & CRAMFS_FLAG_SHIFTED_ROOT_OFFSET) &&
-@@ -427,7 +430,7 @@ static int cramfs_readdir(struct file *f
- /*
-  * Lookup and fill in the inode data..
+@@ -11,6 +11,8 @@
+  * The actual compression is based on zlib, see the other files.
   */
--static struct dentry * cramfs_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags)
-+static struct dentry *cramfs_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags)
- {
- 	unsigned int offset = 0;
- 	struct inode *inode = NULL;
-@@ -485,7 +488,7 @@ out:
- 	return NULL;
- }
  
--static int cramfs_readpage(struct file *file, struct page * page)
-+static int cramfs_readpage(struct file *file, struct page *page)
- {
- 	struct inode *inode = page->mapping->host;
- 	u32 maxblock;
-diff -puN fs/cramfs/uncompress.c~fs-cramfs-code-clean-up fs/cramfs/uncompress.c
---- a/fs/cramfs/uncompress.c~fs-cramfs-code-clean-up
-+++ a/fs/cramfs/uncompress.c
-@@ -59,7 +59,7 @@ int cramfs_uncompress_init(void)
- {
- 	if (!initialized++) {
- 		stream.workspace = vmalloc(zlib_inflate_workspacesize());
--		if ( !stream.workspace ) {
-+		if (!stream.workspace) {
- 			initialized = 0;
- 			return -ENOMEM;
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/fs.h>
+ #include <linux/pagemap.h>
+@@ -277,7 +279,7 @@ static int cramfs_fill_super(struct supe
+ 		/* check for wrong endianness */
+ 		if (super.magic == CRAMFS_MAGIC_WEND) {
+ 			if (!silent)
+-				pr_err("cramfs: wrong endianness\n");
++				pr_err("wrong endianness\n");
+ 			return -EINVAL;
  		}
+ 
+@@ -287,22 +289,22 @@ static int cramfs_fill_super(struct supe
+ 		mutex_unlock(&read_mutex);
+ 		if (super.magic != CRAMFS_MAGIC) {
+ 			if (super.magic == CRAMFS_MAGIC_WEND && !silent)
+-				pr_err("cramfs: wrong endianness\n");
++				pr_err("wrong endianness\n");
+ 			else if (!silent)
+-				pr_err("cramfs: wrong magic\n");
++				pr_err("wrong magic\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+ 
+ 	/* get feature flags first */
+ 	if (super.flags & ~CRAMFS_SUPPORTED_FLAGS) {
+-		pr_err("cramfs: unsupported filesystem features\n");
++		pr_err("unsupported filesystem features\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	/* Check that the root inode is in a sane state */
+ 	if (!S_ISDIR(super.root.mode)) {
+-		pr_err("cramfs: root is not a directory\n");
++		pr_err("root is not a directory\n");
+ 		return -EINVAL;
+ 	}
+ 	/* correct strange, hard-coded permissions of mkcramfs */
+@@ -321,12 +323,12 @@ static int cramfs_fill_super(struct supe
+ 	sbi->magic=super.magic;
+ 	sbi->flags=super.flags;
+ 	if (root_offset == 0)
+-		pr_info("cramfs: empty filesystem");
++		pr_info("empty filesystem");
+ 	else if (!(super.flags & CRAMFS_FLAG_SHIFTED_ROOT_OFFSET) &&
+ 		 ((root_offset != sizeof(struct cramfs_super)) &&
+ 		  (root_offset != 512 + sizeof(struct cramfs_super))))
+ 	{
+-		pr_err("cramfs: bad root offset %lu\n", root_offset);
++		pr_err("bad root offset %lu\n", root_offset);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -511,7 +513,7 @@ static int cramfs_readpage(struct file *
+ 		if (compr_len == 0)
+ 			; /* hole */
+ 		else if (unlikely(compr_len > (PAGE_CACHE_SIZE << 1))) {
+-			pr_err("cramfs: bad compressed blocksize %u\n",
++			pr_err("bad compressed blocksize %u\n",
+ 				compr_len);
+ 			goto err;
+ 		} else {
+diff -puN fs/cramfs/uncompress.c~fs-cramfs-use-pr_fmt fs/cramfs/uncompress.c
+--- a/fs/cramfs/uncompress.c~fs-cramfs-use-pr_fmt
++++ a/fs/cramfs/uncompress.c
+@@ -15,6 +15,8 @@
+  * then is used by multiple filesystems.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #include <linux/vmalloc.h>
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
