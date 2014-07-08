@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-metag-imgdafs-pattern.patch added to -mm
- tree
-Date: Mon, 07 Jul 2014 17:06:02 -0700
-Message-ID: <53bb35ea.IbZosv9mS/CSNSpF%akpm@linux-foundation.org>
+Subject: + maintainers-update-staging-removals-and-movements.patch added
+ to -mm tree
+Date: Mon, 07 Jul 2014 17:08:25 -0700
+Message-ID: <53bb3679.kVI2TbOtu2aY/UIT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:36546 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754601AbaGHAGD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:03 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so8406igi.5
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:03 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:47920 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754502AbaGHAI1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:08:27 -0400
+Received: by mail-vc0-f201.google.com with SMTP id ij19so729412vcb.4
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:08:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, james.hogan@imgtec.com, mm-commits@vger.kernel.org
+To: joe@perches.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: remove METAG imgdafs pattern
+     Subject: MAINTAINERS: update staging removals and movements
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-metag-imgdafs-pattern.patch
+     maintainers-update-staging-removals-and-movements.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-metag-imgdafs-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-staging-removals-and-movements.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-metag-imgdafs-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-staging-removals-and-movements.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,29 +42,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: remove METAG imgdafs pattern
+Subject: MAINTAINERS: update staging removals and movements
 
-This never made it into the kernel tree.  Remove it.
+3 sections have been deleted by various commits.  The other, echo, has
+been moved to drivers/misc.
+
+The nominal maintainers of the echo subsystem haven't been modifying the
+code or acking/signing patches for several years, so don't keep the
+section either.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: James Hogan <james.hogan@imgtec.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |   23 -----------------------
+ 1 file changed, 23 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-metag-imgdafs-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-metag-imgdafs-pattern
+diff -puN MAINTAINERS~maintainers-update-staging-removals-and-movements MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-staging-removals-and-movements
 +++ a/MAINTAINERS
-@@ -5812,7 +5812,6 @@ F:	drivers/clocksource/metag_generic.c
- F:	drivers/irqchip/irq-metag.c
- F:	drivers/irqchip/irq-metag-ext.c
- F:	drivers/tty/metag_da.c
--F:	fs/imgdafs/
+@@ -5052,13 +5052,6 @@ S:	Maintained
+ F:	Documentation/hwmon/k8temp
+ F:	drivers/hwmon/k8temp.c
  
- MICROBLAZE ARCHITECTURE
- M:	Michal Simek <monstr@monstr.eu>
+-KTAP
+-M:	Jovi Zhangwei <jovi.zhangwei@gmail.com>
+-W:	http://www.ktap.org
+-L:	ktap@freelists.org
+-S:	Maintained
+-F:	drivers/staging/ktap/
+-
+ KCONFIG
+ M:	"Yann E. MORIN" <yann.morin.1998@free.fr>
+ L:	linux-kbuild@vger.kernel.org
+@@ -8517,23 +8510,12 @@ L:	devel@driverdev.osuosl.org
+ S:	Supported
+ F:	drivers/staging/
+ 
+-STAGING - ASUS OLED
+-M:	Jakub Schmidtke <sjakub@gmail.com>
+-S:	Odd Fixes
+-F:	drivers/staging/asus_oled/
+-
+ STAGING - COMEDI
+ M:	Ian Abbott <abbotti@mev.co.uk>
+ M:	H Hartley Sweeten <hsweeten@visionengravers.com>
+ S:	Odd Fixes
+ F:	drivers/staging/comedi/
+ 
+-STAGING - ECHO CANCELLER
+-M:	Steve Underwood <steveu@coppice.org>
+-M:	David Rowe <david@rowetel.com>
+-S:	Odd Fixes
+-F:	drivers/staging/echo/
+-
+ STAGING - ET131X NETWORK DRIVER
+ M:	Mark Einon <mark.einon@gmail.com>
+ S:	Odd Fixes
+@@ -8605,11 +8587,6 @@ L:	linux-wireless@vger.kernel.org
+ S:	Maintained
+ F:	drivers/staging/rtl8723au/
+ 
+-STAGING - SILICON MOTION SM7XX FRAME BUFFER DRIVER
+-M:	Teddy Wang <teddy.wang@siliconmotion.com.cn>
+-S:	Odd Fixes
+-F:	drivers/staging/sm7xxfb/
+-
+ STAGING - SLICOSS
+ M:	Lior Dotan <liodot@gmail.com>
+ M:	Christopher Harrer <charrer@alacritech.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -77,21 +124,6 @@ printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
 printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
 printk-tweak-do_syslog-to-match-comments.patch
 maintainers-remove-two-ancient-eata-sections.patch
-maintainers-update-microcode-patterns.patch
-maintainers-update-cifs-location.patch
-maintainers-use-the-correct-efi-stub-location.patch
-maintainers-update-clk-sirf-patterns.patch
-maintainers-fix-ssbi-pattern.patch
-maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
-maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
-maintainers-update-picoxcell-patterns.patch
-maintainers-update-staging-removals-and-movements.patch
-maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
-maintainers-remove-metag-imgdafs-pattern.patch
-maintainers-remove-unused-radeon-drm-pattern.patch
-maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
-maintainers-remove-unused-nfsd-pattern.patch
-maintainers-update-rcu-torture-patterns.patch
 kernelh-remove-deprecated-pack_hex_byte.patch
 mm-utilc-add-kstrimdup.patch
 checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
@@ -144,4 +176,19 @@ staging-use-pci_zalloc_consistent.patch
 synclink_gt-use-pci_zalloc_consistent.patch
 vme-bridges-use-pci_zalloc_consistent.patch
 amd-neaten-and-remove-unnecessary-oom-messages.patch
+maintainers-update-microcode-patterns.patch
+maintainers-update-cifs-location.patch
+maintainers-use-the-correct-efi-stub-location.patch
+maintainers-update-clk-sirf-patterns.patch
+maintainers-fix-ssbi-pattern.patch
+maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
+maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
+maintainers-update-picoxcell-patterns.patch
+maintainers-update-staging-removals-and-movements.patch
+maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
+maintainers-remove-metag-imgdafs-pattern.patch
+maintainers-remove-unused-radeon-drm-pattern.patch
+maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
+maintainers-remove-unused-nfsd-pattern.patch
+maintainers-update-rcu-torture-patterns.patch
 
