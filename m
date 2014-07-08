@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-staging-removals-and-movements.patch added
- to -mm tree
-Date: Mon, 07 Jul 2014 17:06:00 -0700
-Message-ID: <53bb35e8.7444VHVWT1CeAfdt%akpm@linux-foundation.org>
+Subject: + maintainers-remove-unused-radeon-drm-pattern.patch added to -mm tree
+Date: Mon, 07 Jul 2014 17:06:03 -0700
+Message-ID: <53bb35eb.qzxiXAfcXaym0fei%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:50295 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754590AbaGHAGB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:01 -0400
-Received: by mail-qa0-f73.google.com with SMTP id m5so729801qaj.0
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:01 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:37328 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754603AbaGHAGE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:04 -0400
+Received: by mail-yh0-f74.google.com with SMTP id b6so728751yha.5
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update staging removals and movements
+     Subject: MAINTAINERS: remove unused radeon drm pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-update-staging-removals-and-movements.patch
+     maintainers-remove-unused-radeon-drm-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-staging-removals-and-movements.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-unused-radeon-drm-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-staging-removals-and-movements.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-unused-radeon-drm-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,76 +41,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update staging removals and movements
+Subject: MAINTAINERS: remove unused radeon drm pattern
 
-3 sections have been deleted by various commits.  The other, echo, has
-been moved to drivers/misc.
-
-The nominal maintainers of the echo subsystem haven't been modifying the
-code or acking/signing patches for several years, so don't keep the
-section either.
+Commit 8dcedd7e87f4 ("UAPI: (Scripted) Disintegrate include/drm") moved
+the file, remove the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   23 -----------------------
- 1 file changed, 23 deletions(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-staging-removals-and-movements MAINTAINERS
---- a/MAINTAINERS~maintainers-update-staging-removals-and-movements
+diff -puN MAINTAINERS~maintainers-remove-unused-radeon-drm-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-unused-radeon-drm-pattern
 +++ a/MAINTAINERS
-@@ -5035,13 +5035,6 @@ S:	Maintained
- F:	Documentation/hwmon/k8temp
- F:	drivers/hwmon/k8temp.c
+@@ -2990,7 +2990,6 @@ L:	dri-devel@lists.freedesktop.org
+ T:	git git://people.freedesktop.org/~agd5f/linux
+ S:	Supported
+ F:	drivers/gpu/drm/radeon/
+-F:	include/drm/radeon*
+ F:	include/uapi/drm/radeon*
  
--KTAP
--M:	Jovi Zhangwei <jovi.zhangwei@gmail.com>
--W:	http://www.ktap.org
--L:	ktap@freelists.org
--S:	Maintained
--F:	drivers/staging/ktap/
--
- KCONFIG
- M:	"Yann E. MORIN" <yann.morin.1998@free.fr>
- L:	linux-kbuild@vger.kernel.org
-@@ -8499,11 +8492,6 @@ S:	Odd Fixes
- F:	drivers/staging/wlags49_h2/
- F:	drivers/staging/wlags49_h25/
- 
--STAGING - ASUS OLED
--M:	Jakub Schmidtke <sjakub@gmail.com>
--S:	Odd Fixes
--F:	drivers/staging/asus_oled/
--
- STAGING - COMEDI
- M:	Ian Abbott <abbotti@mev.co.uk>
- M:	H Hartley Sweeten <hsweeten@visionengravers.com>
-@@ -8518,12 +8506,6 @@ M:	Manu Abraham <abraham.manu@gmail.com>
- S:	Odd Fixes
- F:	drivers/staging/crystalhd/
- 
--STAGING - ECHO CANCELLER
--M:	Steve Underwood <steveu@coppice.org>
--M:	David Rowe <david@rowetel.com>
--S:	Odd Fixes
--F:	drivers/staging/echo/
--
- STAGING - ET131X NETWORK DRIVER
- M:	Mark Einon <mark.einon@gmail.com>
- S:	Odd Fixes
-@@ -8595,11 +8577,6 @@ L:	linux-wireless@vger.kernel.org
- S:	Maintained
- F:	drivers/staging/rtl8723au/
- 
--STAGING - SILICON MOTION SM7XX FRAME BUFFER DRIVER
--M:	Teddy Wang <teddy.wang@siliconmotion.com.cn>
--S:	Odd Fixes
--F:	drivers/staging/sm7xxfb/
--
- STAGING - SLICOSS
- M:	Lior Dotan <liodot@gmail.com>
- M:	Christopher Harrer <charrer@alacritech.com>
+ DRM PANEL DRIVERS
 _
 
 Patches currently in -mm which might be from joe@perches.com are
