@@ -1,34 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- tools-selftests-create-a-separate-hotplug-target-for-full-range-test.patch
- added to -mm tree
-Date: Tue, 08 Jul 2014 15:31:16 -0700
-Message-ID: <53bc7134.6sWgeAPH82Dmyycd%akpm@linux-foundation.org>
+Subject: + proc-add-and-remove-proc-entry-create-checks.patch added to -mm tree
+Date: Tue, 08 Jul 2014 15:55:06 -0700
+Message-ID: <53bc76ca.Gk9lX7dwg3LuLkYc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:32821 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702AbaGHWbR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 18:31:17 -0400
-Received: by mail-oa0-f74.google.com with SMTP id i7so1407881oag.3
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 15:31:16 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:54093 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751151AbaGHWzI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 18:55:08 -0400
+Received: by mail-yh0-f74.google.com with SMTP id b6so944744yha.3
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 15:55:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shuah.kh@samsung.com, benh@kernel.crashing.org, fweisbec@gmail.com, gregkh@linuxfoundation.org, keescook@chromium.org, michael@ellerman.id.au, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: selftests - create a separate hotplug target for full range test
+     Subject: proc: add and remove /proc entry create checks
 has been added to the -mm tree.  Its filename is
-     tools-selftests-create-a-separate-hotplug-target-for-full-range-test.patch
+     proc-add-and-remove-proc-entry-create-checks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-selftests-create-a-separate-hotplug-target-for-full-range-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-and-remove-proc-entry-create-checks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-selftests-create-a-separate-hotplug-target-for-full-range-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-and-remove-proc-entry-create-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,275 +40,143 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shuah Khan <shuah.kh@samsung.com>
-Subject: tools: selftests - create a separate hotplug target for full range test
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: add and remove /proc entry create checks
 
-On some systems, hotplug tests can hang forever waiting for cpu and memory
-to be ready to be offlined.
+* remove proc_create(NULL, ...) check, let it oops
 
-A special hot-plug target is created to run the full range of hotplug
-tests.  In default mode, hotplug tests run in safe mode with a limited
-scope.  In limited mode, cpu-hotplug test is run on a single cpu as
-opposed to all hotplug capable cpus, and memory hotplug test is run on 2%
-of hotplug capable memory instead of 10%.  In addition to the above
-change, cpu-hotplug is changed to change processor affinity to cpu 0 so it
-doesn't impact itself while the test runs.
+* warn about proc_create("", ...) and proc_create("very very long name", ...)
+  proc code keeps length as u8, no 256+ name length possible
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Michael Ellerman <michael@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
+* warn about proc_create("123", ...)
+  /proc/$PID and /proc/misc namespaces are separate things,
+  but dumb module might create funky a-la $PID entry.
+
+* remove post mortem strchr('/') check
+  Triggering it implies either strchr() is buggy or memory corruption.
+  It should be VFS check anyway.
+
+In reality, none of these checks will ever trigger,
+it is preparation for the next patch.
+
+Based on patch from Al Viro.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile                      |   18 +++
- tools/testing/selftests/README.txt                    |   27 ++++-
- tools/testing/selftests/cpu-hotplug/Makefile          |    3 
- tools/testing/selftests/cpu-hotplug/on-off-test.sh    |   52 +++++++++-
- tools/testing/selftests/memory-hotplug/Makefile       |    3 
- tools/testing/selftests/memory-hotplug/on-off-test.sh |    8 +
- 6 files changed, 105 insertions(+), 6 deletions(-)
+ fs/proc/base.c     |    4 ++--
+ fs/proc/fd.c       |    2 +-
+ fs/proc/generic.c  |   30 +++++++++++++++---------------
+ fs/proc/internal.h |    6 +++---
+ 4 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN tools/testing/selftests/Makefile~tools-selftests-create-a-separate-hotplug-target-for-full-range-test tools/testing/selftests/Makefile
---- a/tools/testing/selftests/Makefile~tools-selftests-create-a-separate-hotplug-target-for-full-range-test
-+++ a/tools/testing/selftests/Makefile
-@@ -12,6 +12,9 @@ TARGETS += powerpc
- TARGETS += user
- TARGETS += sysctl
+diff -puN fs/proc/base.c~proc-add-and-remove-proc-entry-create-checks fs/proc/base.c
+--- a/fs/proc/base.c~proc-add-and-remove-proc-entry-create-checks
++++ a/fs/proc/base.c
+@@ -2785,7 +2785,7 @@ struct dentry *proc_pid_lookup(struct in
+ 	unsigned tgid;
+ 	struct pid_namespace *ns;
  
-+TARGETS_HOTPLUG = cpu-hotplug
-+TARGETS_HOTPLUG += memory-hotplug
-+
- all:
- 	for TARGET in $(TARGETS); do \
- 		make -C $$TARGET; \
-@@ -22,6 +25,21 @@ run_tests: all
- 		make -C $$TARGET run_tests; \
- 	done;
+-	tgid = name_to_int(dentry);
++	tgid = name_to_int(&dentry->d_name);
+ 	if (tgid == ~0U)
+ 		goto out;
  
-+hotplug:
-+	for TARGET in $(TARGETS_HOTPLUG); do \
-+		make -C $$TARGET; \
-+	done;
-+
-+run_hotplug: hotplug
-+	for TARGET in $(TARGETS_HOTPLUG); do \
-+		make -C $$TARGET run_full_test; \
-+	done;
-+
-+clean_hotplug:
-+	for TARGET in $(TARGETS_HOTPLUG); do \
-+		make -C $$TARGET clean; \
-+	done;
-+
- clean:
- 	for TARGET in $(TARGETS); do \
- 		make -C $$TARGET clean; \
-diff -puN tools/testing/selftests/README.txt~tools-selftests-create-a-separate-hotplug-target-for-full-range-test tools/testing/selftests/README.txt
---- a/tools/testing/selftests/README.txt~tools-selftests-create-a-separate-hotplug-target-for-full-range-test
-+++ a/tools/testing/selftests/README.txt
-@@ -4,8 +4,15 @@ The kernel contains a set of "self tests
- directory. These are intended to be small unit tests to exercise individual
- code paths in the kernel.
+@@ -3033,7 +3033,7 @@ static struct dentry *proc_task_lookup(s
+ 	if (!leader)
+ 		goto out_no_task;
  
--Running the selftests
--=====================
-+On some systems, hot-plug tests could hang forever waiting for cpu and
-+memory to be ready to be offlined. A special hot-plug target is created
-+to run full range of hot-plug tests. In default mode, hot-plug tests run
-+in safe mode with a limited scope. In limited mode, cpu-hotplug test is
-+run on a single cpu as opposed to all hotplug capable cpus, and memory
-+hotplug test is run on 2% of hotplug capable memory instead of 10%.
-+
-+Running the selftests (hotplug tests are run in limited mode)
-+=============================================================
+-	tid = name_to_int(dentry);
++	tid = name_to_int(&dentry->d_name);
+ 	if (tid == ~0U)
+ 		goto out;
  
- To build the tests:
+diff -puN fs/proc/fd.c~proc-add-and-remove-proc-entry-create-checks fs/proc/fd.c
+--- a/fs/proc/fd.c~proc-add-and-remove-proc-entry-create-checks
++++ a/fs/proc/fd.c
+@@ -206,7 +206,7 @@ static struct dentry *proc_lookupfd_comm
+ {
+ 	struct task_struct *task = get_proc_task(dir);
+ 	int result = -ENOENT;
+-	unsigned fd = name_to_int(dentry);
++	unsigned fd = name_to_int(&dentry->d_name);
  
-@@ -18,14 +25,26 @@ To run the tests:
- 
- - note that some tests will require root privileges.
- 
+ 	if (!task)
+ 		goto out_no_task;
+diff -puN fs/proc/generic.c~proc-add-and-remove-proc-entry-create-checks fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-add-and-remove-proc-entry-create-checks
++++ a/fs/proc/generic.c
+@@ -330,28 +330,28 @@ static struct proc_dir_entry *__proc_cre
+ 					  nlink_t nlink)
+ {
+ 	struct proc_dir_entry *ent = NULL;
+-	const char *fn = name;
+-	unsigned int len;
 -
--To run only tests targetted for a single subsystem:
-+To run only tests targeted for a single subsystem: (including
-+hotplug targets in limited mode)
+-	/* make sure name is valid */
+-	if (!name || !strlen(name))
+-		goto out;
++	const char *fn;
++	struct qstr qstr;
  
-   $  make -C tools/testing/selftests TARGETS=cpu-hotplug run_tests
+ 	if (xlate_proc_name(name, parent, &fn) != 0)
+ 		goto out;
++	qstr.name = fn;
++	qstr.len = strlen(fn);
++	if (qstr.len == 0 || qstr.len >= 256) {
++		WARN(1, "name len %u\n", qstr.len);
++		return NULL;
++	}
++	if (*parent == &proc_root && name_to_int(&qstr) != ~0U) {
++		WARN(1, "create '/proc/%s' by hand\n", qstr.name);
++		return NULL;
++	}
  
- See the top-level tools/testing/selftests/Makefile for the list of all possible
- targets.
+-	/* At this point there must not be any '/' characters beyond *fn */
+-	if (strchr(fn, '/'))
+-		goto out;
+-
+-	len = strlen(fn);
+-
+-	ent = kzalloc(sizeof(struct proc_dir_entry) + len + 1, GFP_KERNEL);
++	ent = kzalloc(sizeof(struct proc_dir_entry) + qstr.len + 1, GFP_KERNEL);
+ 	if (!ent)
+ 		goto out;
  
-+Running the full range hotplug selftests
-+========================================
-+
-+To build the tests:
-+
-+  $ make -C tools/testing/selftests hotplug
-+
-+To run the tests:
-+
-+  $ make -C tools/testing/selftests run_hotplug
-+
-+- note that some tests will require root privileges.
- 
- Contributing new tests
- ======================
-diff -puN tools/testing/selftests/cpu-hotplug/Makefile~tools-selftests-create-a-separate-hotplug-target-for-full-range-test tools/testing/selftests/cpu-hotplug/Makefile
---- a/tools/testing/selftests/cpu-hotplug/Makefile~tools-selftests-create-a-separate-hotplug-target-for-full-range-test
-+++ a/tools/testing/selftests/cpu-hotplug/Makefile
-@@ -3,4 +3,7 @@ all:
- run_tests:
- 	@/bin/bash ./on-off-test.sh || echo "cpu-hotplug selftests: [FAIL]"
- 
-+run_full_test:
-+	@/bin/bash ./on-off-test.sh -a || echo "cpu-hotplug selftests: [FAIL]"
-+
- clean:
-diff -puN tools/testing/selftests/cpu-hotplug/on-off-test.sh~tools-selftests-create-a-separate-hotplug-target-for-full-range-test tools/testing/selftests/cpu-hotplug/on-off-test.sh
---- a/tools/testing/selftests/cpu-hotplug/on-off-test.sh~tools-selftests-create-a-separate-hotplug-target-for-full-range-test
-+++ a/tools/testing/selftests/cpu-hotplug/on-off-test.sh
-@@ -11,6 +11,8 @@ prerequisite()
- 		exit 0
- 	fi
- 
-+	taskset -p 01 $$
-+
- 	SYSFS=`mount -t sysfs | head -1 | awk '{ print $3 }'`
- 
- 	if [ ! -d "$SYSFS" ]; then
-@@ -22,6 +24,19 @@ prerequisite()
- 		echo $msg cpu hotplug is not supported >&2
- 		exit 0
- 	fi
-+
-+	echo "CPU online/offline summary:"
-+	online_cpus=`cat $SYSFS/devices/system/cpu/online`
-+	online_max=${online_cpus##*-}
-+	echo -e "\t Cpus in online state: $online_cpus"
-+
-+	offline_cpus=`cat $SYSFS/devices/system/cpu/offline`
-+	if [[ "a$offline_cpus" = "a" ]]; then
-+		offline_cpus=0
-+	else
-+		offline_max=${offline_cpus##*-}
-+	fi
-+	echo -e "\t Cpus in offline state: $offline_cpus"
+-	memcpy(ent->name, fn, len + 1);
+-	ent->namelen = len;
++	memcpy(ent->name, fn, qstr.len + 1);
++	ent->namelen = qstr.len;
+ 	ent->mode = mode;
+ 	ent->nlink = nlink;
+ 	atomic_set(&ent->count, 1);
+diff -puN fs/proc/internal.h~proc-add-and-remove-proc-entry-create-checks fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-add-and-remove-proc-entry-create-checks
++++ a/fs/proc/internal.h
+@@ -112,10 +112,10 @@ static inline int task_dumpable(struct t
+ 	return 0;
  }
  
- #
-@@ -113,15 +128,25 @@ offline_cpu_expect_fail()
- }
+-static inline unsigned name_to_int(struct dentry *dentry)
++static inline unsigned name_to_int(const struct qstr *qstr)
+ {
+-	const char *name = dentry->d_name.name;
+-	int len = dentry->d_name.len;
++	const char *name = qstr->name;
++	int len = qstr->len;
+ 	unsigned n = 0;
  
- error=-12
-+allcpus=0
- priority=0
-+online_cpus=0
-+online_max=0
-+offline_cpus=0
-+offline_max=0
- 
--while getopts e:hp: opt; do
-+while getopts e:ahp: opt; do
- 	case $opt in
- 	e)
- 		error=$OPTARG
- 		;;
-+	a)
-+		allcpus=1
-+		;;
- 	h)
--		echo "Usage $0 [ -e errno ] [ -p notifier-priority ]"
-+		echo "Usage $0 [ -a ] [ -e errno ] [ -p notifier-priority ]"
-+		echo -e "\t default offline one cpu"
-+		echo -e "\t run with -a option to offline all cpus"
- 		exit
- 		;;
- 	p)
-@@ -138,6 +163,29 @@ fi
- prerequisite
- 
- #
-+# Safe test (default) - offline and online one cpu
-+#
-+if [ $allcpus -eq 0 ]; then
-+	echo "Limited scope test: one hotplug cpu"
-+	echo -e "\t (leaves cpu in the original state):"
-+	echo -e "\t online to offline to online: cpu $online_max"
-+	offline_cpu_expect_success $online_max
-+	online_cpu_expect_success $online_max
-+
-+	if [[ $offline_cpus -gt 0 ]]; then
-+		echo -e "\t offline to online to offline: cpu $offline_max"
-+		online_cpu_expect_success $offline_max
-+		offline_cpu_expect_success $offline_max
-+	fi
-+	exit 0
-+else
-+	echo "Full scope test: all hotplug cpus"
-+	echo -e "\t online all offline cpus"
-+	echo -e "\t offline all online cpus"
-+	echo -e "\t online all offline cpus"
-+fi
-+
-+#
- # Online all hot-pluggable CPUs
- #
- for cpu in `hotplaggable_offline_cpus`; do
-diff -puN tools/testing/selftests/memory-hotplug/Makefile~tools-selftests-create-a-separate-hotplug-target-for-full-range-test tools/testing/selftests/memory-hotplug/Makefile
---- a/tools/testing/selftests/memory-hotplug/Makefile~tools-selftests-create-a-separate-hotplug-target-for-full-range-test
-+++ a/tools/testing/selftests/memory-hotplug/Makefile
-@@ -1,6 +1,9 @@
- all:
- 
- run_tests:
-+	@/bin/bash ./on-off-test.sh -r 2 || echo "memory-hotplug selftests: [FAIL]"
-+
-+run_full_test:
- 	@/bin/bash ./on-off-test.sh || echo "memory-hotplug selftests: [FAIL]"
- 
- clean:
-diff -puN tools/testing/selftests/memory-hotplug/on-off-test.sh~tools-selftests-create-a-separate-hotplug-target-for-full-range-test tools/testing/selftests/memory-hotplug/on-off-test.sh
---- a/tools/testing/selftests/memory-hotplug/on-off-test.sh~tools-selftests-create-a-separate-hotplug-target-for-full-range-test
-+++ a/tools/testing/selftests/memory-hotplug/on-off-test.sh
-@@ -142,10 +142,16 @@ fi
- 
- prerequisite
- 
-+echo "Test scope: $ratio% hotplug memory"
-+echo -e "\t online all hotplug memory in offline state"
-+echo -e "\t offline $ratio% hotplug memory in online state"
-+echo -e "\t online all hotplug memory in offline state"
-+
- #
- # Online all hot-pluggable memory
- #
- for memory in `hotplaggable_offline_memory`; do
-+	echo offline-online $memory
- 	online_memory_expect_success $memory
- done
- 
-@@ -154,6 +160,7 @@ done
- #
- for memory in `hotpluggable_online_memory`; do
- 	if [ $((RANDOM % 100)) -lt $ratio ]; then
-+		echo online-offline $memory
- 		offline_memory_expect_success $memory
- 	fi
- done
-@@ -162,6 +169,7 @@ done
- # Online all hot-pluggable memory again
- #
- for memory in `hotplaggable_offline_memory`; do
-+	echo offline-online $memory
- 	online_memory_expect_success $memory
- done
- 
+ 	if (len > 1 && *name == '0')
 _
 
-Patches currently in -mm which might be from shuah.kh@samsung.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-tools-selftests-create-a-separate-hotplug-target-for-full-range-test.patch
+lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
+proc-add-and-remove-proc-entry-create-checks.patch
+proc-faster-proc-pid-lookup.patch
+proc-make-proc_subdir_lock-static.patch
+proc-remove-proc_tty_ldisc-variable.patch
+proc-remove-proc_tty_ldisc-variable-fix.patch
 
