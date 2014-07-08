@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch added to -mm tree
-Date: Mon, 07 Jul 2014 17:05:58 -0700
-Message-ID: <53bb35e6.0Fot11p0Ikln+dPb%akpm@linux-foundation.org>
+Subject: + maintainers-remove-metag-imgdafs-pattern.patch added to -mm
+ tree
+Date: Mon, 07 Jul 2014 17:06:02 -0700
+Message-ID: <53bb35ea.IbZosv9mS/CSNSpF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:48557 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754478AbaGHAF7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:05:59 -0400
-Received: by mail-ie0-f201.google.com with SMTP id rl12so684032iec.2
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:05:59 -0700 (PDT)
+Received: from mail-ig0-f202.google.com ([209.85.213.202]:36546 "EHLO
+	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754601AbaGHAGD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:03 -0400
+Received: by mail-ig0-f202.google.com with SMTP id r2so8406igi.5
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, james.hogan@imgtec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fix PXA3xx NAND FLASH DRIVER pattern
+     Subject: MAINTAINERS: remove METAG imgdafs pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
+     maintainers-remove-metag-imgdafs-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-metag-imgdafs-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-metag-imgdafs-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,29 +42,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: fix PXA3xx NAND FLASH DRIVER pattern
+Subject: MAINTAINERS: remove METAG imgdafs pattern
 
-Use underscore, not dash
+This never made it into the kernel tree.  Remove it.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: James Hogan <james.hogan@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-fix-pxa3xx-nand-flash-driver-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-pxa3xx-nand-flash-driver-pattern
+diff -puN MAINTAINERS~maintainers-remove-metag-imgdafs-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-metag-imgdafs-pattern
 +++ a/MAINTAINERS
-@@ -7188,7 +7188,7 @@ PXA3xx NAND FLASH DRIVER
- M:	Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
- L:	linux-mtd@lists.infradead.org
- S:	Maintained
--F:	drivers/mtd/nand/pxa3xx-nand.c
-+F:	drivers/mtd/nand/pxa3xx_nand.c
+@@ -5812,7 +5812,6 @@ F:	drivers/clocksource/metag_generic.c
+ F:	drivers/irqchip/irq-metag.c
+ F:	drivers/irqchip/irq-metag-ext.c
+ F:	drivers/tty/metag_da.c
+-F:	fs/imgdafs/
  
- MMP SUPPORT
- M:	Eric Miao <eric.y.miao@gmail.com>
+ MICROBLAZE ARCHITECTURE
+ M:	Michal Simek <monstr@monstr.eu>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
