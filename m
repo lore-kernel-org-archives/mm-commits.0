@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-use-correct-filename-for-sdhci-bcm-kona.patch added to -mm tree
-Date: Mon, 07 Jul 2014 17:05:57 -0700
-Message-ID: <53bb35e5.aqwd3+7os6MPyF/W%akpm@linux-foundation.org>
+Subject: +
+ maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
+ added to -mm tree
+Date: Mon, 07 Jul 2014 17:06:01 -0700
+Message-ID: <53bb35e9.DEQy4mosxjLedNJB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:34632 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754531AbaGHAF6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:05:58 -0400
-Received: by mail-ie0-f201.google.com with SMTP id rl12so684026iec.2
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:05:58 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:50332 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754418AbaGHAGC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:02 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kq14so1105378pab.0
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, csd@broadcom.com, mm-commits@vger.kernel.org
+To: joe@perches.com, hartleys@visionengravers.com, kernel@wantstofly.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: use correct filename for sdhci-bcm-kona
+     Subject: MAINTAINERS: remove section CIRRUS LOGIC EP93XX OHCI USB HOST DRIVER
 has been added to the -mm tree.  Its filename is
-     maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
+     maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,30 +43,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: use correct filename for sdhci-bcm-kona
+Subject: MAINTAINERS: remove section CIRRUS LOGIC EP93XX OHCI USB HOST DRIVER
 
-Use dashes not underscores.
+Commit e55f7cd24676 ("usb: ohci: remove ep93xx bus glue platform driver")
+removed the file, remove the section.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Christian Daudt <csd@broadcom.com>
+Cc: H Hartley Sweeten <hartleys@visionengravers.com>
+Cc: Lennert Buytenhek <kernel@wantstofly.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-use-correct-filename-for-sdhci-bcm-kona MAINTAINERS
---- a/MAINTAINERS~maintainers-use-correct-filename-for-sdhci-bcm-kona
+diff -puN MAINTAINERS~maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver
 +++ a/MAINTAINERS
-@@ -1935,7 +1935,7 @@ F:	arch/arm/boot/dts/bcm113*
- F:	arch/arm/boot/dts/bcm216*
- F:	arch/arm/boot/dts/bcm281*
- F:	arch/arm/configs/bcm_defconfig
--F:	drivers/mmc/host/sdhci_bcm_kona.c
-+F:	drivers/mmc/host/sdhci-bcm-kona.c
- F:	drivers/clocksource/bcm_kona_timer.c
+@@ -2277,12 +2277,6 @@ L:	netdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/net/ethernet/cirrus/ep93xx_eth.c
  
- BROADCOM BCM2835 ARM ARCHICTURE
+-CIRRUS LOGIC EP93XX OHCI USB HOST DRIVER
+-M:	Lennert Buytenhek <kernel@wantstofly.org>
+-L:	linux-usb@vger.kernel.org
+-S:	Maintained
+-F:	drivers/usb/host/ohci-ep93xx.c
+-
+ CIRRUS LOGIC AUDIO CODEC DRIVERS
+ M:	Brian Austin <brian.austin@cirrus.com>
+ M:	Paul Handrigan <Paul.Handrigan@cirrus.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
