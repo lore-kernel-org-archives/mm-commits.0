@@ -1,132 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 07 Jul 2014 16:50:25 -0700
-Message-ID: <53bb3241.a9Qi8Z4vkZpoMBV0%akpm@linux-foundation.org>
+Subject: + maintainers-use-the-correct-efi-stub-location.patch added to
+ -mm tree
+Date: Mon, 07 Jul 2014 17:05:54 -0700
+Message-ID: <53bb35e2.Z2bBIlwjU0TywW5Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:62663 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbaGGXu1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 19:50:27 -0400
-Received: by mail-qc0-f202.google.com with SMTP id x13so728208qcv.1
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 16:50:26 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:40782 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754287AbaGHAFz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:05:55 -0400
+Received: by mail-pd0-f201.google.com with SMTP id v10so1104526pde.2
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:05:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, lcapitulino@redhat.com, mingo@elte.hu, riel@redhat.com, rientjes@google.com, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, roy.franz@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes.patch
+     Subject: MAINTAINERS: use the correct efi-stub location
+has been added to the -mm tree.  Its filename is
+     maintainers-use-the-correct-efi-stub-location.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-use-the-correct-efi-stub-location.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-use-the-correct-efi-stub-location.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: use the correct efi-stub location
 
-WARNING: Prefer [subsystem eg: netdev]_info([subsystem]dev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
-#174: FILE: arch/x86/mm/numa.c:213:
-+	printk(KERN_INFO "NODE_DATA(%d) allocated [mem %#010Lx-%#010Lx]\n", nid,
+Commit 4171fe2f8a47 ("EFI stub documentation updates") moved
+the file, update the pattern.
 
-WARNING: Prefer [subsystem eg: netdev]_info([subsystem]dev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
-#215: FILE: mm/page_alloc.c:4972:
-+	printk(KERN_INFO "Node %d memory range %#010Lx-%#010Lx\n", nid,
-
-WARNING: line over 80 characters
-#216: FILE: mm/page_alloc.c:4973:
-+			(u64) start_pfn << PAGE_SHIFT, (u64) (end_pfn << PAGE_SHIFT) - 1);
-
-total: 0 errors, 3 warnings, 79 lines checked
-
-./patches/x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Roy Franz <roy.franz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function-checkpatch-fixes
-+++ a/mm/page_alloc.c
-@@ -4969,8 +4969,8 @@ void __paginginit free_area_init_node(in
- 	pgdat->node_start_pfn = node_start_pfn;
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
--	printk(KERN_INFO "Node %d memory range %#010Lx-%#010Lx\n", nid,
--			(u64) start_pfn << PAGE_SHIFT, (u64) (end_pfn << PAGE_SHIFT) - 1);
-+	pr_info("Node %d memory range %#010Lx-%#010Lx\n", nid,
-+		(u64)start_pfn << PAGE_SHIFT, (u64)(end_pfn << PAGE_SHIFT) - 1);
- #endif
- 	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
- 				  zones_size, zholes_size);
+diff -puN MAINTAINERS~maintainers-use-the-correct-efi-stub-location MAINTAINERS
+--- a/MAINTAINERS~maintainers-use-the-correct-efi-stub-location
++++ a/MAINTAINERS
+@@ -3363,7 +3363,7 @@ M:	Matt Fleming <matt.fleming@intel.com>
+ L:	linux-efi@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mfleming/efi.git
+ S:	Maintained
+-F:	Documentation/x86/efi-stub.txt
++F:	Documentation/efi-stub.txt
+ F:	arch/ia64/kernel/efi.c
+ F:	arch/x86/boot/compressed/eboot.[ch]
+ F:	arch/x86/include/asm/efi.h
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc-fix.patch
-mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
+printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
+printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
+printk-tweak-do_syslog-to-match-comments.patch
+maintainers-remove-two-ancient-eata-sections.patch
+maintainers-update-microcode-patterns.patch
+maintainers-update-cifs-location.patch
+maintainers-use-the-correct-efi-stub-location.patch
+maintainers-update-clk-sirf-patterns.patch
+maintainers-fix-ssbi-pattern.patch
+maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
+maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
+maintainers-update-picoxcell-patterns.patch
+maintainers-update-staging-removals-and-movements.patch
+maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
+maintainers-remove-metag-imgdafs-pattern.patch
+maintainers-remove-unused-radeon-drm-pattern.patch
+maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
+maintainers-remove-unused-nfsd-pattern.patch
+maintainers-update-rcu-torture-patterns.patch
+kernelh-remove-deprecated-pack_hex_byte.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
+checkpatch-ignore-email-headers-better.patch
+checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
+checkpatch-add-a-multiple-blank-lines-test.patch
+checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
+checkpatch-quiet-kconfig-help-message-checking.patch
+checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
+checkpatch-allow-multiple-const-types.patch
+checkpatch-improve-no-space-after-cast-test.patch
+checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
 checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-documentation-fix-typo-in-docbook-mtdnandtmpl-checkpatch-fixes.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-panic-add-taint_softlockup-fix.patch
+checkpatch-emit-a-warning-on-file-add-move-delete.patch
+fs-isofs-logging-clean-up.patch
+proc-constify-seq_operations.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-drivers-staging-emxx_udc-emxx_udcc-replace-strict_strto-with-kstrto.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+pci-dma-compat-add-pci_zalloc_consistent-helper.patch
+atm-use-pci_zalloc_consistent.patch
+block-use-pci_zalloc_consistent.patch
+crypto-use-pci_zalloc_consistent.patch
+infiniband-use-pci_zalloc_consistent.patch
+i810-use-pci_zalloc_consistent.patch
+media-use-pci_zalloc_consistent.patch
+amd-use-pci_zalloc_consistent.patch
+atl1e-use-pci_zalloc_consistent.patch
+enic-use-pci_zalloc_consistent.patch
+sky2-use-pci_zalloc_consistent.patch
+micrel-use-pci_zalloc_consistent.patch
+qlogic-use-pci_zalloc_consistent.patch
+irda-use-pci_zalloc_consistent.patch
+ipw2100-use-pci_zalloc_consistent.patch
+mwl8k-use-pci_zalloc_consistent.patch
+rtl818x-use-pci_zalloc_consistent.patch
+rtlwifi-use-pci_zalloc_consistent.patch
+scsi-use-pci_zalloc_consistent.patch
+staging-use-pci_zalloc_consistent.patch
+synclink_gt-use-pci_zalloc_consistent.patch
+vme-bridges-use-pci_zalloc_consistent.patch
+amd-neaten-and-remove-unnecessary-oom-messages.patch
 
