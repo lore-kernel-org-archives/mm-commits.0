@@ -1,130 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- documentation-fix-typo-in-docbook-mtdnandtmpl-checkpatch-fixes.patch
- removed from -mm tree
-Date: Tue, 08 Jul 2014 12:26:19 -0700
-Message-ID: <53bc45db.Q0cge33mtf9WCsv5%akpm@linux-foundation.org>
+Subject: + zram-avoid-lockdep-splat-by-revalidate_disk.patch added to -mm
+ tree
+Date: Tue, 08 Jul 2014 13:03:21 -0700
+Message-ID: <53bc4e89.cBTS//LepFqBSFdH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:65385 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755440AbaGHT0U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 15:26:20 -0400
-Received: by mail-qc0-f201.google.com with SMTP id i17so226564qcy.4
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 12:26:19 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:45168 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754005AbaGHUDW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jul 2014 16:03:22 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kq14so1399214pab.4
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jul 2014 13:03:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, standby24x7@gmail.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, jmarchan@redhat.com, ngupta@vflare.org, patrakov@gmail.com, sasha.levin@oracle.com, sergey.senozhatsky@gmail.com, stable@vger.kerbel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: documentation-fix-typo-in-docbook-mtdnandtmpl-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     documentation-fix-typo-in-docbook-mtdnandtmpl-checkpatch-fixes.patch
+     Subject: zram: avoid lockdep splat by revalidate_disk
+has been added to the -mm tree.  Its filename is
+     zram-avoid-lockdep-splat-by-revalidate_disk.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-avoid-lockdep-splat-by-revalidate_disk.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-avoid-lockdep-splat-by-revalidate_disk.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: documentation-fix-typo-in-docbook-mtdnandtmpl-checkpatch-fixes
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: avoid lockdep splat by revalidate_disk
 
-ERROR: trailing whitespace
-#48: FILE: Documentation/DocBook/mtdnand.tmpl:267:
-+^I^I^IThe structure(s) have to be zeroed out first and then filled with the necessary $
+Sasha reported lockdep warning [1] introduced by [2].
 
-ERROR: trailing whitespace
-#84: FILE: Documentation/DocBook/mtdnand.tmpl:557:
-+^I^I^I^IIt may be desired or necessary to keep a bad block table in FLASH. $
+It could be fixed by doing disk revalidation out of the init_lock.
+It's okay because disk capacity change is protected by init_lock
+so that revalidate_disk always sees up-to-date value so there is
+no race.
 
-total: 2 errors, 0 warnings, 113 lines checked
+[1] https://lkml.org/lkml/2014/7/3/735
+[2] zram: revalidate disk after capacity change
 
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
+Fixes 2e32baea46ce542c56 ("zram: revalidate disk after capacity change").
 
-./patches/documentation-fix-typo-in-docbook-mtdnandtmpl.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Masanari Iida <standby24x7@gmail.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: "Alexander E. Patrakov" <patrakov@gmail.com>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+CC: <stable@vger.kerbel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/mtdnand.tmpl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |   22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/DocBook/mtdnand.tmpl~documentation-fix-typo-in-docbook-mtdnandtmpl-checkpatch-fixes Documentation/DocBook/mtdnand.tmpl
---- a/Documentation/DocBook/mtdnand.tmpl~documentation-fix-typo-in-docbook-mtdnandtmpl-checkpatch-fixes
-+++ a/Documentation/DocBook/mtdnand.tmpl
-@@ -264,7 +264,7 @@ static void board_hwcontrol(struct mtd_i
- 			is set up nand_scan() is called. This function tries to
- 			detect and identify then chip. If a chip is found all the
- 			internal data fields are initialized accordingly.
--			The structure(s) have to be zeroed out first and then filled with the necessary 
-+			The structure(s) have to be zeroed out first and then filled with the necessary
- 			information about the device.
- 		</para>
- 		<programlisting>
-@@ -554,7 +554,7 @@ static void board_select_chip (struct mt
- 		<sect2 id="Flash_based_tables">
- 			<title>Flash based tables</title>
- 			<para>
--				It may be desired or necessary to keep a bad block table in FLASH. 
-+				It may be desired or necessary to keep a bad block table in FLASH.
- 				For AG-AND chips this is mandatory, as they have no factory marked
- 				bad blocks. They have factory marked good blocks. The marker pattern
- 				is erased when the block is erased to be reused. So in case of
+diff -puN drivers/block/zram/zram_drv.c~zram-avoid-lockdep-splat-by-revalidate_disk drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-avoid-lockdep-splat-by-revalidate_disk
++++ a/drivers/block/zram/zram_drv.c
+@@ -622,11 +622,18 @@ static void zram_reset_device(struct zra
+ 	memset(&zram->stats, 0, sizeof(zram->stats));
+ 
+ 	zram->disksize = 0;
+-	if (reset_capacity) {
++	if (reset_capacity)
+ 		set_capacity(zram->disk, 0);
+-		revalidate_disk(zram->disk);
+-	}
++
+ 	up_write(&zram->init_lock);
++
++	/*
++	 * Revalidate disk out of the init_lock to avoid lockdep splat.
++	 * It's okay because disk's capacity is protected by init_lock
++	 * so that revalidate_disk always sees up-to-date capacity.
++	 */
++	if (reset_capacity)
++		revalidate_disk(zram->disk);
+ }
+ 
+ static ssize_t disksize_store(struct device *dev,
+@@ -666,8 +673,15 @@ static ssize_t disksize_store(struct dev
+ 	zram->comp = comp;
+ 	zram->disksize = disksize;
+ 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
+-	revalidate_disk(zram->disk);
+ 	up_write(&zram->init_lock);
++
++	/*
++	 * Revalidate disk out of the init_lock to avoid lockdep splat.
++	 * It's okay because disk's capacity is protected by init_lock
++	 * so that revalidate_disk always sees up-to-date capacity.
++	 */
++	revalidate_disk(zram->disk);
++
+ 	return len;
+ 
+ out_destroy_comp:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+zram-avoid-lockdep-splat-by-revalidate_disk.patch
+dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
+dma-cma-support-alignment-constraint-on-cma-region.patch
+dma-cma-support-arbitrary-bitmap-granularity.patch
 dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+cma-generalize-cma-reserved-area-management-functionality.patch
+ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
+mm-cma-clean-up-cma-allocation-error-path.patch
+mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
+mm-cma-clean-up-log-message.patch
+mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
+mm-vmscan-remove-all_unreclaimable.patch
+mm-vmscan-move-swappiness-out-of-scan_control.patch
+mm-vmallocc-clean-up-map_vm_area-third-argument.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc-fix.patch
-mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-panic-add-taint_softlockup-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-drivers-staging-emxx_udc-emxx_udcc-replace-strict_strto-with-kstrto.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-memcg-deprecate-memoryforce_empty-knob-fix.patch
+zram-rename-struct-table-to-zram_table_entry.patch
+zram-remove-unused-sector_size-define.patch
+zram-use-size_t-instead-of-u16.patch
+zram-remove-global-tb_lock-with-fine-grain-lock.patch
+mm-zbud-zbud_alloc-minor-param-change.patch
+mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
+mm-zpool-zbud-zsmalloc-implement-zpool.patch
+mm-zpool-update-zswap-to-use-zpool.patch
+mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
 debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
