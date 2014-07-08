@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-unused-radeon-drm-pattern.patch added to -mm tree
-Date: Mon, 07 Jul 2014 17:06:03 -0700
-Message-ID: <53bb35eb.qzxiXAfcXaym0fei%akpm@linux-foundation.org>
+Subject: + maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch added
+ to -mm tree
+Date: Mon, 07 Jul 2014 17:06:04 -0700
+Message-ID: <53bb35ec.JWVVbM6Klgp/cuss%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:37328 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754603AbaGHAGE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:04 -0400
-Received: by mail-yh0-f74.google.com with SMTP id b6so728751yha.5
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:04 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:38132 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751236AbaGHAGF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:05 -0400
+Received: by mail-pd0-f201.google.com with SMTP id v10so1104558pde.2
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: joe@perches.com, sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: remove unused radeon drm pattern
+     Subject: MAINTAINERS: remove unusd ARM/QUALCOMM MSM pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-unused-radeon-drm-pattern.patch
+     maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-unused-radeon-drm-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-unused-radeon-drm-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,30 +42,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: remove unused radeon drm pattern
+Subject: MAINTAINERS: remove unusd ARM/QUALCOMM MSM pattern
 
-Commit 8dcedd7e87f4 ("UAPI: (Scripted) Disintegrate include/drm") moved
-the file, remove the pattern.
+Commit 87933a68dce6 ("mfd: pm8921: Remove pm8xxx API now that sub-devices
+use regmap") removed the file, remove the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-unused-radeon-drm-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-unused-radeon-drm-pattern
+diff -puN MAINTAINERS~maintainers-remove-unusd-arm-qualcomm-msm-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-unusd-arm-qualcomm-msm-pattern
 +++ a/MAINTAINERS
-@@ -2990,7 +2990,6 @@ L:	dri-devel@lists.freedesktop.org
- T:	git git://people.freedesktop.org/~agd5f/linux
- S:	Supported
- F:	drivers/gpu/drm/radeon/
--F:	include/drm/radeon*
- F:	include/uapi/drm/radeon*
+@@ -1160,7 +1160,6 @@ F:	drivers/tty/serial/msm_serial.h
+ F:	drivers/tty/serial/msm_serial.c
+ F:	drivers/*/pm8???-*
+ F:	drivers/mfd/ssbi.c
+-F:	include/linux/mfd/pm8xxx/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/davidb/linux-msm.git
+ S:	Maintained
  
- DRM PANEL DRIVERS
 _
 
 Patches currently in -mm which might be from joe@perches.com are
