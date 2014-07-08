@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-unused-nfsd-pattern.patch added to -mm tree
-Date: Mon, 07 Jul 2014 17:06:05 -0700
-Message-ID: <53bb35ed.YOQa71wPUEWSd+gB%akpm@linux-foundation.org>
+Subject: + maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch added to -mm tree
+Date: Mon, 07 Jul 2014 17:05:58 -0700
+Message-ID: <53bb35e6.0Fot11p0Ikln+dPb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:40502 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754552AbaGHAGG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:06:06 -0400
-Received: by mail-qa0-f73.google.com with SMTP id m5so730471qaj.4
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:06:06 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:48557 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754478AbaGHAF7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jul 2014 20:05:59 -0400
+Received: by mail-ie0-f201.google.com with SMTP id rl12so684032iec.2
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jul 2014 17:05:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, hch@lst.de, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: remove unused NFSD pattern
+     Subject: MAINTAINERS: fix PXA3xx NAND FLASH DRIVER pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-unused-nfsd-pattern.patch
+     maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-unused-nfsd-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-unused-nfsd-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,30 +41,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: remove unused NFSD pattern
+Subject: MAINTAINERS: fix PXA3xx NAND FLASH DRIVER pattern
 
-A series of commits by Christoph Hellwig removed all the files in this
-directory, remove the pattern.
+Use underscore, not dash
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-unused-nfsd-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-unused-nfsd-pattern
+diff -puN MAINTAINERS~maintainers-fix-pxa3xx-nand-flash-driver-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-pxa3xx-nand-flash-driver-pattern
 +++ a/MAINTAINERS
-@@ -5081,7 +5081,6 @@ L:	linux-nfs@vger.kernel.org
- W:	http://nfs.sourceforge.net/
- S:	Supported
- F:	fs/nfsd/
--F:	include/linux/nfsd/
- F:	include/uapi/linux/nfsd/
- F:	fs/lockd/
- F:	fs/nfs_common/
+@@ -7188,7 +7188,7 @@ PXA3xx NAND FLASH DRIVER
+ M:	Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+ L:	linux-mtd@lists.infradead.org
+ S:	Maintained
+-F:	drivers/mtd/nand/pxa3xx-nand.c
++F:	drivers/mtd/nand/pxa3xx_nand.c
+ 
+ MMP SUPPORT
+ M:	Eric Miao <eric.y.miao@gmail.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
