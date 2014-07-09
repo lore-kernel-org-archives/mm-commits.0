@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + a.patch added to -mm tree
-Date: Wed, 09 Jul 2014 15:52:45 -0700
-Message-ID: <53bdc7bd.FTeRieGk+xEiFTeX%akpm@linux-foundation.org>
+Date: Wed, 09 Jul 2014 16:02:58 -0700
+Message-ID: <53bdca22.BmDyLWX89K4Jl4BH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:34686 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751778AbaGIWwq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jul 2014 18:52:46 -0400
-Received: by mail-qc0-f202.google.com with SMTP id x13so1189667qcv.1
-        for <mm-commits@vger.kernel.org>; Wed, 09 Jul 2014 15:52:45 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:59419 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754457AbaGIXDV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jul 2014 19:03:21 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so231260oah.0
+        for <mm-commits@vger.kernel.org>; Wed, 09 Jul 2014 16:03:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
