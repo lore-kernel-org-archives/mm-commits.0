@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ix86-fix-vdso-build.patch added to -mm tree
-Date: Wed, 09 Jul 2014 15:26:24 -0700
-Message-ID: <53bdc190.gCcYuPpf21wykaRa%akpm@linux-foundation.org>
+Subject: + a.patch added to -mm tree
+Date: Wed, 09 Jul 2014 15:52:45 -0700
+Message-ID: <53bdc7bd.FTeRieGk+xEiFTeX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:64356 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424AbaGIW0Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jul 2014 18:26:25 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so1794696pab.5
-        for <mm-commits@vger.kernel.org>; Wed, 09 Jul 2014 15:26:25 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:34686 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751778AbaGIWwq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jul 2014 18:52:46 -0400
+Received: by mail-qc0-f202.google.com with SMTP id x13so1189667qcv.1
+        for <mm-commits@vger.kernel.org>; Wed, 09 Jul 2014 15:52:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JBeulich@suse.com, boris.ostrovsky@oracle.com, hpa@zytor.com, jbeulich@suse.com, luto@amacapital.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ix86: fix vDSO build
+     Subject: a
 has been added to the -mm tree.  Its filename is
-     ix86-fix-vdso-build.patch
+     a.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ix86-fix-vdso-build.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/a.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ix86-fix-vdso-build.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/a.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,54 +40,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: ix86: fix vDSO build
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: a
 
-Relying on static functions used just once to get inlined (and
-subsequently have dead code paths eliminated) is wrong: Compilers are free
-to decide whether they do this, regardless of optimization level.  With
-this not happening for vdso_addr() (observed with gcc 4.1.x), an
-unresolved reference to align_vdso_addr() causes the build to fail.
-
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Tested-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/vdso/vma.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/open.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/vdso/vma.c~ix86-fix-vdso-build arch/x86/vdso/vma.c
---- a/arch/x86/vdso/vma.c~ix86-fix-vdso-build
-+++ a/arch/x86/vdso/vma.c
-@@ -62,6 +62,9 @@ struct linux_binprm;
-    Only used for the 64-bit and x32 vdsos. */
- static unsigned long vdso_addr(unsigned long start, unsigned len)
- {
-+#ifdef CONFIG_X86_32
-+	return 0;
-+#else
- 	unsigned long addr, end;
- 	unsigned offset;
- 	end = (start + PMD_SIZE - 1) & PMD_MASK;
-@@ -83,6 +86,7 @@ static unsigned long vdso_addr(unsigned
- 	addr = align_vdso_addr(addr);
- 
- 	return addr;
-+#endif
+diff -puN fs/open.c~a fs/open.c
+--- a/fs/open.c~a
++++ a/fs/open.c
+@@ -1107,3 +1107,4 @@ int nonseekable_open(struct inode *inode
  }
  
- static int map_vdso(const struct vdso_image *image, bool calculate_addr)
+ EXPORT_SYMBOL(nonseekable_open);
++Wed Jul  9 15:52:38 PDT 2014
 _
 
-Patches currently in -mm which might be from JBeulich@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-efi-check-for-invalid-data-coming-back-from-uefi.patch
-initramfs-support-initramfs-that-is-bigger-than-2gib.patch
-x86-64-fix-vdso-build.patch
-ix86-fix-vdso-build.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+revert-fs-seq_file-fallback-to-vmalloc-allocation.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+kbuild-explain-stack-protector-strong-config-logic.patch
+ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
+mm.patch
+slub-use-new-node-functions-checkpatch-fixes.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
+slab-change-int-to-size_t-for-representing-allocation-size.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
+include-linux-mmdebugh-add-vm_warn_once.patch
+mm-catch-memory-commitment-underflow-fix.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc-fix.patch
+mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+add-lib-globc-fix.patch
+lib-list_sortc-convert-to-pr_foo.patch
+lib-list_sortc-convert-to-pr_foo-fix.patch
+checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
+fs-isofs-logging-clean-up-fix.patch
+proc-remove-proc_tty_ldisc-variable-fix.patch
+kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
+kexec-support-kexec-kdump-on-efi-systems-fix.patch
+panic-add-taint_softlockup-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+drivers-staging-emxx_udc-emxx_udcc-replace-strict_strto-with-kstrto.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+a.patch
 
