@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch added to -mm tree
-Date: Thu, 10 Jul 2014 15:55:20 -0700
-Message-ID: <53bf19d8.jTUhbxzAlAox1PvH%akpm@linux-foundation.org>
+Subject: + mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
+ added to -mm tree
+Date: Thu, 10 Jul 2014 15:55:24 -0700
+Message-ID: <53bf19dc.f3p4j8Px41whOgG4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:47859 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751535AbaGJWzV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 18:55:21 -0400
-Received: by mail-oa0-f73.google.com with SMTP id g18so72579oah.0
-        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 15:55:21 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:42597 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751701AbaGJWzZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 18:55:25 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so75548pab.3
+        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 15:55:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
+     Subject: mm: vmscan: only update per-cpu thresholds for online CPU
 has been added to the -mm tree.  Its filename is
-     mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
+     mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,130 +42,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
+Subject: mm: vmscan: only update per-cpu thresholds for online CPU
 
-This was formerly the series "Improve sequential read throughput" which
-noted some major differences in performance of tiobench since 3.0.  While
-there are a number of factors, two that dominated were the introduction of
-the fair zone allocation policy and changes to CFQ.
-
-The behaviour of fair zone allocation policy makes more sense than
-tiobench as a benchmark and CFQ defaults were not changed due to
-insufficient benchmarking.
-
-This series is what's left.  It's one functional fix to the fair zone
-allocation policy when used on NUMA machines and a reduction of overhead
-in general.  tiobench was used for the comparison despite its flaws as an
-IO benchmark as in this case we are primarily interested in the overhead
-of page allocator and page reclaim activity.
-
-On UMA, it makes little difference to overhead
-
-          3.16.0-rc3   3.16.0-rc3
-             vanilla lowercost-v5
-User          383.61      386.77
-System        403.83      401.74
-Elapsed      5411.50     5413.11
-
-On a 4-socket NUMA machine it's a bit more noticable
-
-          3.16.0-rc3   3.16.0-rc3
-             vanilla lowercost-v5
-User          746.94      802.00
-System      65336.22    40852.33
-Elapsed     27553.52    27368.46
-
-
-
-
-This patch (of 6):
-
-The LRU insertion and activate tracepoints take PFN as a parameter forcing
-the overhead to the caller.  Move the overhead to the tracepoint
-fast-assign method to ensure the cost is only incurred when the tracepoint
-is active.
+When kswapd is awake reclaiming, the per-cpu stat thresholds are lowered
+to get more accurate counts to avoid breaching watermarks.  This threshold
+update iterates over all possible CPUs which is unnecessary.  Only online
+CPUs need to be updated.  If a new CPU is onlined,
+refresh_zone_stat_thresholds() will set the thresholds correctly.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/pagemap.h |   16 +++++++---------
- mm/swap.c                      |    4 ++--
- 2 files changed, 9 insertions(+), 11 deletions(-)
+ mm/vmstat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated include/trace/events/pagemap.h
---- a/include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
-+++ a/include/trace/events/pagemap.h
-@@ -28,12 +28,10 @@ TRACE_EVENT(mm_lru_insertion,
+diff -puN mm/vmstat.c~mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu
++++ a/mm/vmstat.c
+@@ -200,7 +200,7 @@ void set_pgdat_percpu_threshold(pg_data_
+ 			continue;
  
- 	TP_PROTO(
- 		struct page *page,
--		unsigned long pfn,
--		int lru,
--		unsigned long flags
-+		int lru
- 	),
- 
--	TP_ARGS(page, pfn, lru, flags),
-+	TP_ARGS(page, lru),
- 
- 	TP_STRUCT__entry(
- 		__field(struct page *,	page	)
-@@ -44,9 +42,9 @@ TRACE_EVENT(mm_lru_insertion,
- 
- 	TP_fast_assign(
- 		__entry->page	= page;
--		__entry->pfn	= pfn;
-+		__entry->pfn	= page_to_pfn(page);
- 		__entry->lru	= lru;
--		__entry->flags	= flags;
-+		__entry->flags	= trace_pagemap_flags(page);
- 	),
- 
- 	/* Flag format is based on page-types.c formatting for pagemap */
-@@ -64,9 +62,9 @@ TRACE_EVENT(mm_lru_insertion,
- 
- TRACE_EVENT(mm_lru_activate,
- 
--	TP_PROTO(struct page *page, unsigned long pfn),
-+	TP_PROTO(struct page *page),
- 
--	TP_ARGS(page, pfn),
-+	TP_ARGS(page),
- 
- 	TP_STRUCT__entry(
- 		__field(struct page *,	page	)
-@@ -75,7 +73,7 @@ TRACE_EVENT(mm_lru_activate,
- 
- 	TP_fast_assign(
- 		__entry->page	= page;
--		__entry->pfn	= pfn;
-+		__entry->pfn	= page_to_pfn(page);
- 	),
- 
- 	/* Flag format is based on page-types.c formatting for pagemap */
-diff -puN mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated mm/swap.c
---- a/mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
-+++ a/mm/swap.c
-@@ -502,7 +502,7 @@ static void __activate_page(struct page
- 		SetPageActive(page);
- 		lru += LRU_ACTIVE;
- 		add_page_to_lru_list(page, lruvec, lru);
--		trace_mm_lru_activate(page, page_to_pfn(page));
-+		trace_mm_lru_activate(page);
- 
- 		__count_vm_event(PGACTIVATE);
- 		update_page_reclaim_stat(lruvec, file, 1);
-@@ -1024,7 +1024,7 @@ static void __pagevec_lru_add_fn(struct
- 	SetPageLRU(page);
- 	add_page_to_lru_list(page, lruvec, lru);
- 	update_page_reclaim_stat(lruvec, file, active);
--	trace_mm_lru_insertion(page, page_to_pfn(page), lru, trace_pagemap_flags(page));
-+	trace_mm_lru_insertion(page, lru);
- }
- 
- /*
+ 		threshold = (*calculate_pressure)(zone);
+-		for_each_possible_cpu(cpu)
++		for_each_online_cpu(cpu)
+ 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
+ 							= threshold;
+ 	}
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
