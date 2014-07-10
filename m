@@ -1,54 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 10 Jul 2014 12:21:28 -0700
-Message-ID: <53bee7b8.8cAimhMaE0fWxt/5%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ drivers-staging-emxx_udc-emxx_udcc-replace-strict_strto-with-kstrto.patch
+ removed from -mm tree
+Date: Thu, 10 Jul 2014 12:22:28 -0700
+Message-ID: <53bee7f4.BNNfZE5lFnsGXSQk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:58375 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752622AbaGJTVa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 15:21:30 -0400
-Received: by mail-qc0-f202.google.com with SMTP id x13so7733qcv.1
-        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 12:21:29 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:64909 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752111AbaGJTWa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 15:22:30 -0400
+Received: by mail-vc0-f201.google.com with SMTP id ij19so7754vcb.2
+        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 12:22:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dwalter@google.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: drivers/staging/emxx_udc/emxx_udc.c: replace strict_strto() with kstrto()
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     drivers-staging-emxx_udc-emxx_udcc-replace-strict_strto-with-kstrto.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: drivers/staging/emxx_udc/emxx_udc.c: replace strict_strto() with kstrto()
 
+Cc: Daniel Walter <dwalter@google.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/namei.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/staging/emxx_udc/emxx_udc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/f2fs/namei.c~linux-next-git-rejects fs/f2fs/namei.c
---- a/fs/f2fs/namei.c~linux-next-git-rejects
-+++ a/fs/f2fs/namei.c
-@@ -470,10 +470,6 @@ static int f2fs_rename(struct inode *old
- 	return 0;
+diff -puN drivers/staging/emxx_udc/emxx_udc.c~drivers-staging-emxx_udc-emxx_udcc-replace-strict_strto-with-kstrto drivers/staging/emxx_udc/emxx_udc.c
+--- a/drivers/staging/emxx_udc/emxx_udc.c~drivers-staging-emxx_udc-emxx_udcc-replace-strict_strto-with-kstrto
++++ a/drivers/staging/emxx_udc/emxx_udc.c
+@@ -3278,14 +3278,13 @@ static void __init nbu2ss_drv_set_ep_inf
+ 	ep->ep.ops = &nbu2ss_ep_ops;
  
- put_out_dir:
--<<<<<<< HEAD
--=======
--	f2fs_unlock_op(sbi);
-->>>>>>> linux-next/akpm-base
- 	kunmap(new_page);
- 	f2fs_put_page(new_page, 0);
- out_dir:
+ 	if (isdigit(name[2])) {
+-
+-		long	num;
++		u32	num;
+ 		int	res;
+ 		char	tempbuf[2];
+ 
+ 		tempbuf[0] = name[2];
+ 		tempbuf[1] = '\0';
+-		res = strict_strtol(tempbuf, 16, &num);
++		res = kstrtou32(tempbuf, 16, &num);
+ 
+ 		if (num == 0)
+ 			ep->ep.maxpacket = EP0_PACKETSIZE;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,7 +99,6 @@ kexec-support-kexec-kdump-on-efi-systems-fix.patch
 panic-add-taint_softlockup-fix.patch
 linux-next.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
-drivers-staging-emxx_udc-emxx_udcc-replace-strict_strto-with-kstrto.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
 mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 memcg-deprecate-memoryforce_empty-knob-fix.patch
