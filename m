@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-logfs-readwritec-kernel-doc-warning-fixes.patch added to -mm tree
-Date: Thu, 10 Jul 2014 13:50:19 -0700
-Message-ID: <53befc8b.fjqn+CltUJM/ZYc+%akpm@linux-foundation.org>
+Subject: + fs-ufs-inodec-kernel-doc-warning-fixes.patch added to -mm tree
+Date: Thu, 10 Jul 2014 13:48:39 -0700
+Message-ID: <53befc27.bMIM/7Q1uvWMLe1b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:44911 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751213AbaGJUuU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 16:50:20 -0400
-Received: by mail-qa0-f74.google.com with SMTP id j15so29301qaq.5
-        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 13:50:19 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:52445 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751213AbaGJU47 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 16:56:59 -0400
+Received: by mail-vc0-f202.google.com with SMTP id id10so32832vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 13:56:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, joern@logfs.org, prasadjoshi.linux@gmail.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, dushistov@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/logfs/readwrite.c: kernel-doc warning fixes
+     Subject: fs/ufs/inode.c: kernel-doc warning fixes
 has been added to the -mm tree.  Its filename is
-     fs-logfs-readwritec-kernel-doc-warning-fixes.patch
+     fs-ufs-inodec-kernel-doc-warning-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-logfs-readwritec-kernel-doc-warning-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ufs-inodec-kernel-doc-warning-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-logfs-readwritec-kernel-doc-warning-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ufs-inodec-kernel-doc-warning-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,52 +41,69 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/logfs/readwrite.c: kernel-doc warning fixes
-
-s/-/:/ and fix variable names.
+Subject: fs/ufs/inode.c: kernel-doc warning fixes
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Prasad Joshi <prasadjoshi.linux@gmail.com>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/logfs/readwrite.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ fs/ufs/inode.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN fs/logfs/readwrite.c~fs-logfs-readwritec-kernel-doc-warning-fixes fs/logfs/readwrite.c
---- a/fs/logfs/readwrite.c~fs-logfs-readwritec-kernel-doc-warning-fixes
-+++ a/fs/logfs/readwrite.c
-@@ -1019,11 +1019,11 @@ static int __logfs_is_valid_block(struct
+diff -puN fs/ufs/inode.c~fs-ufs-inodec-kernel-doc-warning-fixes fs/ufs/inode.c
+--- a/fs/ufs/inode.c~fs-ufs-inodec-kernel-doc-warning-fixes
++++ a/fs/ufs/inode.c
+@@ -158,16 +158,16 @@ out:
+ 
  /**
-  * logfs_is_valid_block - check whether this block is still valid
-  *
-- * @sb	- superblock
-- * @ofs	- block physical offset
-- * @ino	- block inode number
-- * @bix	- block index
-- * @level - block level
-+ * @sb:		superblock
-+ * @ofs:	block physical offset
-+ * @ino:	block inode number
-+ * @bix:	block index
-+ * @gc_level:	block level
-  *
-  * Returns 0 if the block is invalid, 1 if it is valid and 2 if it will
-  * become invalid once the journal is written.
-@@ -2226,10 +2226,9 @@ void btree_write_block(struct logfs_bloc
-  *
-  * @inode:		parent inode (ifile or directory)
-  * @buf:		object to write (inode or dentry)
-- * @n:			object size
-- * @_pos:		object number (file position in blocks/objects)
-+ * @count:		object size
-+ * @bix:		block index
-  * @flags:		write flags
-- * @lock:		0 if write lock is already taken, 1 otherwise
-  * @shadow_tree:	shadow below this inode
-  *
-  * FIXME: All caller of this put a 200-300 byte variable on the stack,
+  * ufs_inode_getfrag() - allocate new fragment(s)
+- * @inode - pointer to inode
+- * @fragment - number of `fragment' which hold pointer
++ * @inode: pointer to inode
++ * @fragment: number of `fragment' which hold pointer
+  *   to new allocated fragment(s)
+- * @new_fragment - number of new allocated fragment(s)
+- * @required - how many fragment(s) we require
+- * @err - we set it if something wrong
+- * @phys - pointer to where we save physical number of new allocated fragments,
++ * @new_fragment: number of new allocated fragment(s)
++ * @required: how many fragment(s) we require
++ * @err: we set it if something wrong
++ * @phys: pointer to where we save physical number of new allocated fragments,
+  *   NULL if we allocate not data(indirect blocks for example).
+- * @new - we set it if we allocate new block
+- * @locked_page - for ufs_new_fragments()
++ * @new: we set it if we allocate new block
++ * @locked_page: for ufs_new_fragments()
+  */
+ static struct buffer_head *
+ ufs_inode_getfrag(struct inode *inode, u64 fragment,
+@@ -315,16 +315,16 @@ repeat2:
+ 
+ /**
+  * ufs_inode_getblock() - allocate new block
+- * @inode - pointer to inode
+- * @bh - pointer to block which hold "pointer" to new allocated block
+- * @fragment - number of `fragment' which hold pointer
++ * @inode: pointer to inode
++ * @bh: pointer to block which hold "pointer" to new allocated block
++ * @fragment: number of `fragment' which hold pointer
+  *   to new allocated block
+- * @new_fragment - number of new allocated fragment
++ * @new_fragment: number of new allocated fragment
+  *  (block will hold this fragment and also uspi->s_fpb-1)
+- * @err - see ufs_inode_getfrag()
+- * @phys - see ufs_inode_getfrag()
+- * @new - see ufs_inode_getfrag()
+- * @locked_page - see ufs_inode_getfrag()
++ * @err: see ufs_inode_getfrag()
++ * @phys: see ufs_inode_getfrag()
++ * @new: see ufs_inode_getfrag()
++ * @locked_page: see ufs_inode_getfrag()
+  */
+ static struct buffer_head *
+ ufs_inode_getblock(struct inode *inode, struct buffer_head *bh,
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -95,7 +112,6 @@ kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
 fs-cifs-remove-obsolete-__constant.patch
 fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
 fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-logfs-readwritec-kernel-doc-warning-fixes.patch
 ntfs-kernel-doc-warning-fixes.patch
 arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero.patch
 arch-sh-kernel-timec-use-ptr_err_or_zero.patch
