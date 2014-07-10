@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-fix-brace-style-misuses-of-else-and-while.patch
- added to -mm tree
-Date: Thu, 10 Jul 2014 14:29:20 -0700
-Message-ID: <53bf05b0./qubBcqJgwJUeltK%akpm@linux-foundation.org>
+Subject: + checkpatch-use-the-correct-indentation-for-which.patch added to -mm tree
+Date: Thu, 10 Jul 2014 14:29:18 -0700
+Message-ID: <53bf05ae.dYgDFBGn7ul0nAJk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:48566 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667AbaGJV3V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 17:29:21 -0400
-Received: by mail-oa0-f74.google.com with SMTP id o6so49104oag.1
-        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 14:29:20 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:60922 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751300AbaGJV3T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 17:29:19 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so48979obb.2
+        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 14:29:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix brace style misuses of else and while
+     Subject: checkpatch: use the correct indentation for which()
 has been added to the -mm tree.  Its filename is
-     checkpatch-fix-brace-style-misuses-of-else-and-while.patch
+     checkpatch-use-the-correct-indentation-for-which.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-fix-brace-style-misuses-of-else-and-while.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-use-the-correct-indentation-for-which.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-fix-brace-style-misuses-of-else-and-while.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-use-the-correct-indentation-for-which.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,99 +41,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: fix brace style misuses of else and while
+Subject: checkpatch: use the correct indentation for which()
 
-Add --fix corrections for ELSE_AFTER_BRACE and WHILE_AFTER_BRACE
-misuses.
+I copied the which subroutine from get_maintainer.pl.
 
-	if (x) {
-		...
-	}
-	else {
-		...
-	}
-is corrected to
-	if (x) {
-		...
-	} else {
-		...
-	}
-
-and
-
-	do {
-		...
-	}
-	while (x);
-is corrected to
-	do {
-		...
-	} while (x);
+Unfortunately, get_maintainer uses a 4 space indentation so use the proper
+tab indentation instead.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   38 ++++++++++++++++++++++++++++++--------
- 1 file changed, 30 insertions(+), 8 deletions(-)
+ scripts/checkpatch.pl |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-brace-style-misuses-of-else-and-while scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-brace-style-misuses-of-else-and-while
+diff -puN scripts/checkpatch.pl~checkpatch-use-the-correct-indentation-for-which scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-use-the-correct-indentation-for-which
 +++ a/scripts/checkpatch.pl
-@@ -3885,14 +3885,26 @@ sub process {
+@@ -710,15 +710,15 @@ sub format_email {
+ }
  
- 		# Check for }<nl>else {, these must be at the same
- 		# indent level to be relevant to each other.
--		if ($prevline=~/}\s*$/ and $line=~/^.\s*else\s*/ and
--						$previndent == $indent) {
--			ERROR("ELSE_AFTER_BRACE",
--			      "else should follow close brace '}'\n" . $hereprev);
-+		if ($prevline=~/}\s*$/ and $line=~/^.\s*else\s*/ &&
-+		    $previndent == $indent) {
-+			if (ERROR("ELSE_AFTER_BRACE",
-+				  "else should follow close brace '}'\n" . $hereprev) &&
-+			    $fix && $prevline =~ /^\+/ && $line =~ /^\+/) {
-+				fix_delete_line($fixlinenr - 1, $prevrawline);
-+				fix_delete_line($fixlinenr, $rawline);
-+				my $fixedline = $prevrawline;
-+				$fixedline =~ s/}\s*$//;
-+				if ($fixedline !~ /^\+\s*$/) {
-+					fix_insert_line($fixlinenr, $fixedline);
-+				}
-+				$fixedline = $rawline;
-+				$fixedline =~ s/^(.\s*)else/$1} else/;
-+				fix_insert_line($fixlinenr, $fixedline);
-+			}
- 		}
+ sub which {
+-    my ($bin) = @_;
++	my ($bin) = @_;
  
--		if ($prevline=~/}\s*$/ and $line=~/^.\s*while\s*/ and
--						$previndent == $indent) {
-+		if ($prevline=~/}\s*$/ and $line=~/^.\s*while\s*/ &&
-+		    $previndent == $indent) {
- 			my ($s, $c) = ctx_statement_block($linenr, $realcnt, 0);
+-    foreach my $path (split(/:/, $ENV{PATH})) {
+-	if (-e "$path/$bin") {
+-	    return "$path/$bin";
++	foreach my $path (split(/:/, $ENV{PATH})) {
++		if (-e "$path/$bin") {
++			return "$path/$bin";
++		}
+ 	}
+-    }
  
- 			# Find out what is on the end of the line after the
-@@ -3901,8 +3913,18 @@ sub process {
- 			$s =~ s/\n.*//g;
+-    return "";
++	return "";
+ }
  
- 			if ($s =~ /^\s*;/) {
--				ERROR("WHILE_AFTER_BRACE",
--				      "while should follow close brace '}'\n" . $hereprev);
-+				if (ERROR("WHILE_AFTER_BRACE",
-+					  "while should follow close brace '}'\n" . $hereprev) &&
-+				    $fix && $prevline =~ /^\+/ && $line =~ /^\+/) {
-+					fix_delete_line($fixlinenr - 1, $prevrawline);
-+					fix_delete_line($fixlinenr, $rawline);
-+					my $fixedline = $prevrawline;
-+					my $trailing = $rawline;
-+					$trailing =~ s/^\+//;
-+					$trailing = trim($trailing);
-+					$fixedline =~ s/}\s*$/} $trailing/;
-+					fix_insert_line($fixlinenr, $fixedline);
-+				}
- 			}
- 		}
- 
+ sub which_conf {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
