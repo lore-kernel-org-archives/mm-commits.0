@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-use-the-correct-indentation-for-which.patch added to -mm tree
-Date: Thu, 10 Jul 2014 14:29:18 -0700
-Message-ID: <53bf05ae.dYgDFBGn7ul0nAJk%akpm@linux-foundation.org>
+Subject: + checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch added to -mm tree
+Date: Thu, 10 Jul 2014 14:29:19 -0700
+Message-ID: <53bf05af.0GqcEPMDNhyIxAeC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:60922 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300AbaGJV3T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 17:29:19 -0400
-Received: by mail-ob0-f201.google.com with SMTP id nu7so48979obb.2
-        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 14:29:18 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:38911 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751300AbaGJV3V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 17:29:21 -0400
+Received: by mail-qc0-f201.google.com with SMTP id i17so39583qcy.2
+        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 14:29:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: use the correct indentation for which()
+     Subject: checkpatch: add --fix option for a couple OPEN_BRACE misuses
 has been added to the -mm tree.  Its filename is
-     checkpatch-use-the-correct-indentation-for-which.patch
+     checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-use-the-correct-indentation-for-which.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-use-the-correct-indentation-for-which.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,45 +41,78 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: use the correct indentation for which()
+Subject: checkpatch: add --fix option for a couple OPEN_BRACE misuses
 
-I copied the which subroutine from get_maintainer.pl.
+Style misuses of these types are corrected:
 
-Unfortunately, get_maintainer uses a 4 space indentation so use the proper
-tab indentation instead.
+typedef struct foo
+{
+	int bar;
+};
+
+int foo(int bar) { return bar+1;
+}
+
+int foo(int bar) {
+	return bar+1;
+}
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl |   33 ++++++++++++++++++++++++++++-----
+ 1 file changed, 28 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-use-the-correct-indentation-for-which scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-use-the-correct-indentation-for-which
+diff -puN scripts/checkpatch.pl~checkpatch-add-fix-option-for-a-couple-open_brace-misuses scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-a-couple-open_brace-misuses
 +++ a/scripts/checkpatch.pl
-@@ -710,15 +710,15 @@ sub format_email {
- }
+@@ -3164,17 +3164,40 @@ sub process {
  
- sub which {
--    my ($bin) = @_;
-+	my ($bin) = @_;
+ # function brace can't be on same line, except for #defines of do while,
+ # or if closed on same line
+-		if (($line=~/$Type\s*$Ident\(.*\).*\s{/) and
++		if (($line=~/$Type\s*$Ident\(.*\).*\s*{/) and
+ 		    !($line=~/\#\s*define.*do\s{/) and !($line=~/}/)) {
+-			ERROR("OPEN_BRACE",
+-			      "open brace '{' following function declarations go on the next line\n" . $herecurr);
++			if (ERROR("OPEN_BRACE",
++				  "open brace '{' following function declarations go on the next line\n" . $herecurr) &&
++			    $fix) {
++				fix_delete_line($fixlinenr, $rawline);
++				my $fixed_line = $rawline;
++				$fixed_line =~ /(^..*$Type\s*$Ident\(.*\)\s*){(.*)$/;
++				my $line1 = $1;
++				my $line2 = $2;
++				fix_insert_line($fixlinenr, ltrim($line1));
++				fix_insert_line($fixlinenr, "\+{");
++				if ($line2 !~ /^\s*$/) {
++					fix_insert_line($fixlinenr, "\+\t" . trim($line2));
++				}
++			}
+ 		}
  
--    foreach my $path (split(/:/, $ENV{PATH})) {
--	if (-e "$path/$bin") {
--	    return "$path/$bin";
-+	foreach my $path (split(/:/, $ENV{PATH})) {
-+		if (-e "$path/$bin") {
-+			return "$path/$bin";
-+		}
- 	}
--    }
+ # open braces for enum, union and struct go on the same line.
+ 		if ($line =~ /^.\s*{/ &&
+ 		    $prevline =~ /^.\s*(?:typedef\s+)?(enum|union|struct)(?:\s+$Ident)?\s*$/) {
+-			ERROR("OPEN_BRACE",
+-			      "open brace '{' following $1 go on the same line\n" . $hereprev);
++			if (ERROR("OPEN_BRACE",
++				  "open brace '{' following $1 go on the same line\n" . $hereprev) &&
++			    $fix && $prevline =~ /^\+/ && $line =~ /^\+/) {
++				fix_delete_line($fixlinenr - 1, $prevrawline);
++				fix_delete_line($fixlinenr, $rawline);
++				my $fixedline = rtrim($prevrawline) . " {";
++				fix_insert_line($fixlinenr, $fixedline);
++				$fixedline = $rawline;
++				$fixedline =~ s/^(.\s*){\s*/$1\t/;
++				if ($fixedline !~ /^\+\s*$/) {
++					fix_insert_line($fixlinenr, $fixedline);
++				}
++			}
+ 		}
  
--    return "";
-+	return "";
- }
- 
- sub which_conf {
+ # missing space after union, struct or enum definition
 _
 
 Patches currently in -mm which might be from joe@perches.com are
