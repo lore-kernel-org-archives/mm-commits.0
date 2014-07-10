@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch added to -mm tree
-Date: Thu, 10 Jul 2014 15:55:21 -0700
-Message-ID: <53bf19d9.sCHPzibm7va/c4UM%akpm@linux-foundation.org>
+ mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch added to -mm tree
+Date: Thu, 10 Jul 2014 15:55:20 -0700
+Message-ID: <53bf19d8.jTUhbxzAlAox1PvH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:36778 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701AbaGJWzW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 18:55:22 -0400
-Received: by mail-pd0-f201.google.com with SMTP id v10so75346pde.4
-        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 15:55:22 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:47859 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751535AbaGJWzV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 18:55:21 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so72579oah.0
+        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 15:55:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rearrange zone fields into read-only, page alloc, statistics and page reclaim lines
+     Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
 has been added to the -mm tree.  Its filename is
-     mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+     mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,372 +42,130 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: rearrange zone fields into read-only, page alloc, statistics and page reclaim lines
+Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
 
-The arrangement of struct zone has changed over time and now it has
-reached the point where there is some inappropriate sharing going on.  On
-x86-64 for example
+This was formerly the series "Improve sequential read throughput" which
+noted some major differences in performance of tiobench since 3.0.  While
+there are a number of factors, two that dominated were the introduction of
+the fair zone allocation policy and changes to CFQ.
 
-o The zone->node field is shared with the zone lock and zone->node is
-  accessed frequently from the page allocator due to the fair zone
-  allocation policy.
+The behaviour of fair zone allocation policy makes more sense than
+tiobench as a benchmark and CFQ defaults were not changed due to
+insufficient benchmarking.
 
-o span_seqlock is almost never used by shares a line with free_area
+This series is what's left.  It's one functional fix to the fair zone
+allocation policy when used on NUMA machines and a reduction of overhead
+in general.  tiobench was used for the comparison despite its flaws as an
+IO benchmark as in this case we are primarily interested in the overhead
+of page allocator and page reclaim activity.
 
-o Some zone statistics share a cache line with the LRU lock so
-  reclaim-intensive and allocator-intensive workloads can bounce the cache
-  line on a stat update
+On UMA, it makes little difference to overhead
 
-This patch rearranges struct zone to put read-only and read-mostly fields
-together and then splits the page allocator intensive fields, the zone
-statistics and the page reclaim intensive fields into their own cache
-lines.  Note that the type of lowmem_reserve changes due to the watermark
-calculations being signed and avoiding a signed/unsigned conversion there.
+          3.16.0-rc3   3.16.0-rc3
+             vanilla lowercost-v5
+User          383.61      386.77
+System        403.83      401.74
+Elapsed      5411.50     5413.11
 
-On the test configuration I used the overall size of struct zone shrunk by
-one cache line.  On smaller machines, this is not likely to be noticable. 
-However, on a 4-node NUMA machine running tiobench the system CPU overhead
-is reduced by this patch.
+On a 4-socket NUMA machine it's a bit more noticable
 
-          3.16.0-rc3  3.16.0-rc3
-             vanillarearrange-v5r9
-User          746.94      759.78
-System      65336.22    58350.98
-Elapsed     27553.52    27282.02
+          3.16.0-rc3   3.16.0-rc3
+             vanilla lowercost-v5
+User          746.94      802.00
+System      65336.22    40852.33
+Elapsed     27553.52    27368.46
+
+
+
+
+This patch (of 6):
+
+The LRU insertion and activate tracepoints take PFN as a parameter forcing
+the overhead to the caller.  Move the overhead to the tracepoint
+fast-assign method to ensure the cost is only incurred when the tracepoint
+is active.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |  211 +++++++++++++++++++--------------------
- mm/page_alloc.c        |    7 -
- mm/vmstat.c            |    4 
- 3 files changed, 113 insertions(+), 109 deletions(-)
+ include/trace/events/pagemap.h |   16 +++++++---------
+ mm/swap.c                      |    4 ++--
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines
-+++ a/include/linux/mmzone.h
-@@ -324,19 +324,12 @@ enum zone_type {
- #ifndef __GENERATING_BOUNDS_H
+diff -puN include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated include/trace/events/pagemap.h
+--- a/include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
++++ a/include/trace/events/pagemap.h
+@@ -28,12 +28,10 @@ TRACE_EVENT(mm_lru_insertion,
  
- struct zone {
--	/* Fields commonly accessed by the page allocator */
-+	/* Read-mostly fields */
+ 	TP_PROTO(
+ 		struct page *page,
+-		unsigned long pfn,
+-		int lru,
+-		unsigned long flags
++		int lru
+ 	),
  
- 	/* zone watermarks, access with *_wmark_pages(zone) macros */
- 	unsigned long watermark[NR_WMARK];
+-	TP_ARGS(page, pfn, lru, flags),
++	TP_ARGS(page, lru),
  
- 	/*
--	 * When free pages are below this point, additional steps are taken
--	 * when reading the number of free pages to avoid per-cpu counter
--	 * drift allowing watermarks to be breached
--	 */
--	unsigned long percpu_drift_mark;
--
--	/*
- 	 * We don't know if the memory that we're going to allocate will be freeable
- 	 * or/and it will be released eventually, so to avoid totally wasting several
- 	 * GB of ram we must reserve some of the lower zone memory (otherwise we risk
-@@ -344,41 +337,26 @@ struct zone {
- 	 * on the higher zones). This array is recalculated at runtime if the
- 	 * sysctl_lowmem_reserve_ratio sysctl changes.
- 	 */
--	unsigned long		lowmem_reserve[MAX_NR_ZONES];
--
--	/*
--	 * This is a per-zone reserve of pages that should not be
--	 * considered dirtyable memory.
--	 */
--	unsigned long		dirty_balance_reserve;
-+	long lowmem_reserve[MAX_NR_ZONES];
+ 	TP_STRUCT__entry(
+ 		__field(struct page *,	page	)
+@@ -44,9 +42,9 @@ TRACE_EVENT(mm_lru_insertion,
  
- #ifdef CONFIG_NUMA
- 	int node;
-+#endif
-+
- 	/*
--	 * zone reclaim becomes active if more unmapped pages exist.
-+	 * The target ratio of ACTIVE_ANON to INACTIVE_ANON pages on
-+	 * this zone's LRU.  Maintained by the pageout code.
- 	 */
--	unsigned long		min_unmapped_pages;
--	unsigned long		min_slab_pages;
--#endif
-+	unsigned int inactive_ratio;
-+
-+	struct pglist_data	*zone_pgdat;
- 	struct per_cpu_pageset __percpu *pageset;
-+
- 	/*
--	 * free areas of different sizes
-+	 * This is a per-zone reserve of pages that should not be
-+	 * considered dirtyable memory.
- 	 */
--	spinlock_t		lock;
--#if defined CONFIG_COMPACTION || defined CONFIG_CMA
--	/* Set to true when the PG_migrate_skip bits should be cleared */
--	bool			compact_blockskip_flush;
--
--	/* pfn where compaction free scanner should start */
--	unsigned long		compact_cached_free_pfn;
--	/* pfn where async and sync compaction migration scanner should start */
--	unsigned long		compact_cached_migrate_pfn[2];
--#endif
--#ifdef CONFIG_MEMORY_HOTPLUG
--	/* see spanned/present_pages for more description */
--	seqlock_t		span_seqlock;
--#endif
--	struct free_area	free_area[MAX_ORDER];
-+	unsigned long		dirty_balance_reserve;
+ 	TP_fast_assign(
+ 		__entry->page	= page;
+-		__entry->pfn	= pfn;
++		__entry->pfn	= page_to_pfn(page);
+ 		__entry->lru	= lru;
+-		__entry->flags	= flags;
++		__entry->flags	= trace_pagemap_flags(page);
+ 	),
  
- #ifndef CONFIG_SPARSEMEM
- 	/*
-@@ -388,74 +366,14 @@ struct zone {
- 	unsigned long		*pageblock_flags;
- #endif /* CONFIG_SPARSEMEM */
+ 	/* Flag format is based on page-types.c formatting for pagemap */
+@@ -64,9 +62,9 @@ TRACE_EVENT(mm_lru_insertion,
  
--#ifdef CONFIG_COMPACTION
--	/*
--	 * On compaction failure, 1<<compact_defer_shift compactions
--	 * are skipped before trying again. The number attempted since
--	 * last failure is tracked with compact_considered.
--	 */
--	unsigned int		compact_considered;
--	unsigned int		compact_defer_shift;
--	int			compact_order_failed;
--#endif
--
--	ZONE_PADDING(_pad1_)
--
--	/* Fields commonly accessed by the page reclaim scanner */
--	spinlock_t		lru_lock;
--	struct lruvec		lruvec;
--
--	/* Evictions & activations on the inactive file list */
--	atomic_long_t		inactive_age;
--
--	unsigned long		pages_scanned;	   /* since last reclaim */
--	unsigned long		flags;		   /* zone flags, see below */
--
--	/* Zone statistics */
--	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
--
--	/*
--	 * The target ratio of ACTIVE_ANON to INACTIVE_ANON pages on
--	 * this zone's LRU.  Maintained by the pageout code.
--	 */
--	unsigned int inactive_ratio;
--
--
--	ZONE_PADDING(_pad2_)
--	/* Rarely used or read-mostly fields */
--
-+#ifdef CONFIG_NUMA
- 	/*
--	 * wait_table		-- the array holding the hash table
--	 * wait_table_hash_nr_entries	-- the size of the hash table array
--	 * wait_table_bits	-- wait_table_size == (1 << wait_table_bits)
--	 *
--	 * The purpose of all these is to keep track of the people
--	 * waiting for a page to become available and make them
--	 * runnable again when possible. The trouble is that this
--	 * consumes a lot of space, especially when so few things
--	 * wait on pages at a given time. So instead of using
--	 * per-page waitqueues, we use a waitqueue hash table.
--	 *
--	 * The bucket discipline is to sleep on the same queue when
--	 * colliding and wake all in that wait queue when removing.
--	 * When something wakes, it must check to be sure its page is
--	 * truly available, a la thundering herd. The cost of a
--	 * collision is great, but given the expected load of the
--	 * table, they should be so rare as to be outweighed by the
--	 * benefits from the saved space.
--	 *
--	 * __wait_on_page_locked() and unlock_page() in mm/filemap.c, are the
--	 * primary users of these fields, and in mm/page_alloc.c
--	 * free_area_init_core() performs the initialization of them.
-+	 * zone reclaim becomes active if more unmapped pages exist.
- 	 */
--	wait_queue_head_t	* wait_table;
--	unsigned long		wait_table_hash_nr_entries;
--	unsigned long		wait_table_bits;
-+	unsigned long		min_unmapped_pages;
-+	unsigned long		min_slab_pages;
-+#endif /* CONFIG_NUMA */
+ TRACE_EVENT(mm_lru_activate,
  
--	/*
--	 * Discontig memory support fields.
--	 */
--	struct pglist_data	*zone_pgdat;
- 	/* zone_start_pfn == zone_start_paddr >> PAGE_SHIFT */
- 	unsigned long		zone_start_pfn;
+-	TP_PROTO(struct page *page, unsigned long pfn),
++	TP_PROTO(struct page *page),
  
-@@ -500,9 +418,11 @@ struct zone {
- 	 * adjust_managed_page_count() should be used instead of directly
- 	 * touching zone->managed_pages and totalram_pages.
- 	 */
-+	unsigned long		managed_pages;
- 	unsigned long		spanned_pages;
- 	unsigned long		present_pages;
--	unsigned long		managed_pages;
-+
-+	const char		*name;
+-	TP_ARGS(page, pfn),
++	TP_ARGS(page),
  
- 	/*
- 	 * Number of MIGRATE_RESEVE page block. To maintain for just
-@@ -510,10 +430,95 @@ struct zone {
- 	 */
- 	int			nr_migrate_reserve_block;
+ 	TP_STRUCT__entry(
+ 		__field(struct page *,	page	)
+@@ -75,7 +73,7 @@ TRACE_EVENT(mm_lru_activate,
  
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+	/* see spanned/present_pages for more description */
-+	seqlock_t		span_seqlock;
-+#endif
-+
- 	/*
--	 * rarely used fields:
-+	 * wait_table		-- the array holding the hash table
-+	 * wait_table_hash_nr_entries	-- the size of the hash table array
-+	 * wait_table_bits	-- wait_table_size == (1 << wait_table_bits)
-+	 *
-+	 * The purpose of all these is to keep track of the people
-+	 * waiting for a page to become available and make them
-+	 * runnable again when possible. The trouble is that this
-+	 * consumes a lot of space, especially when so few things
-+	 * wait on pages at a given time. So instead of using
-+	 * per-page waitqueues, we use a waitqueue hash table.
-+	 *
-+	 * The bucket discipline is to sleep on the same queue when
-+	 * colliding and wake all in that wait queue when removing.
-+	 * When something wakes, it must check to be sure its page is
-+	 * truly available, a la thundering herd. The cost of a
-+	 * collision is great, but given the expected load of the
-+	 * table, they should be so rare as to be outweighed by the
-+	 * benefits from the saved space.
-+	 *
-+	 * __wait_on_page_locked() and unlock_page() in mm/filemap.c, are the
-+	 * primary users of these fields, and in mm/page_alloc.c
-+	 * free_area_init_core() performs the initialization of them.
- 	 */
--	const char		*name;
-+	wait_queue_head_t	*wait_table;
-+	unsigned long		wait_table_hash_nr_entries;
-+	unsigned long		wait_table_bits;
-+
-+	ZONE_PADDING(_pad1_)
-+
-+	/* Write-intensive fields used from the page allocator */
-+	spinlock_t		lock;
-+
-+	/* free areas of different sizes */
-+	struct free_area	free_area[MAX_ORDER];
-+
-+	/* zone flags, see below */
-+	unsigned long		flags;
-+
-+	ZONE_PADDING(_pad2_)
-+
-+	/* Write-intensive fields used by page reclaim */
-+
-+	/* Fields commonly accessed by the page reclaim scanner */
-+	spinlock_t		lru_lock;
-+	unsigned long		pages_scanned;	   /* since last reclaim */
-+	struct lruvec		lruvec;
-+
-+	/* Evictions & activations on the inactive file list */
-+	atomic_long_t		inactive_age;
-+
-+	/*
-+	 * When free pages are below this point, additional steps are taken
-+	 * when reading the number of free pages to avoid per-cpu counter
-+	 * drift allowing watermarks to be breached
-+	 */
-+	unsigned long percpu_drift_mark;
-+
-+#if defined CONFIG_COMPACTION || defined CONFIG_CMA
-+	/* pfn where compaction free scanner should start */
-+	unsigned long		compact_cached_free_pfn;
-+	/* pfn where async and sync compaction migration scanner should start */
-+	unsigned long		compact_cached_migrate_pfn[2];
-+#endif
-+
-+#ifdef CONFIG_COMPACTION
-+	/*
-+	 * On compaction failure, 1<<compact_defer_shift compactions
-+	 * are skipped before trying again. The number attempted since
-+	 * last failure is tracked with compact_considered.
-+	 */
-+	unsigned int		compact_considered;
-+	unsigned int		compact_defer_shift;
-+	int			compact_order_failed;
-+#endif
-+
-+#if defined CONFIG_COMPACTION || defined CONFIG_CMA
-+	/* Set to true when the PG_migrate_skip bits should be cleared */
-+	bool			compact_blockskip_flush;
-+#endif
-+
-+	ZONE_PADDING(_pad3_)
-+	/* Zone statistics */
-+	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
- } ____cacheline_internodealigned_in_smp;
+ 	TP_fast_assign(
+ 		__entry->page	= page;
+-		__entry->pfn	= pfn;
++		__entry->pfn	= page_to_pfn(page);
+ 	),
  
- typedef enum {
-diff -puN mm/page_alloc.c~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines mm/page_alloc.c
---- a/mm/page_alloc.c~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines
-+++ a/mm/page_alloc.c
-@@ -1708,7 +1708,6 @@ static bool __zone_watermark_ok(struct z
- {
- 	/* free_pages my go negative - that's OK */
- 	long min = mark;
--	long lowmem_reserve = z->lowmem_reserve[classzone_idx];
- 	int o;
- 	long free_cma = 0;
+ 	/* Flag format is based on page-types.c formatting for pagemap */
+diff -puN mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated mm/swap.c
+--- a/mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
++++ a/mm/swap.c
+@@ -502,7 +502,7 @@ static void __activate_page(struct page
+ 		SetPageActive(page);
+ 		lru += LRU_ACTIVE;
+ 		add_page_to_lru_list(page, lruvec, lru);
+-		trace_mm_lru_activate(page, page_to_pfn(page));
++		trace_mm_lru_activate(page);
  
-@@ -1723,7 +1722,7 @@ static bool __zone_watermark_ok(struct z
- 		free_cma = zone_page_state(z, NR_FREE_CMA_PAGES);
- #endif
+ 		__count_vm_event(PGACTIVATE);
+ 		update_page_reclaim_stat(lruvec, file, 1);
+@@ -1024,7 +1024,7 @@ static void __pagevec_lru_add_fn(struct
+ 	SetPageLRU(page);
+ 	add_page_to_lru_list(page, lruvec, lru);
+ 	update_page_reclaim_stat(lruvec, file, active);
+-	trace_mm_lru_insertion(page, page_to_pfn(page), lru, trace_pagemap_flags(page));
++	trace_mm_lru_insertion(page, lru);
+ }
  
--	if (free_pages - free_cma <= min + lowmem_reserve)
-+	if (free_pages - free_cma <= min + z->lowmem_reserve[classzone_idx])
- 		return false;
- 	for (o = 0; o < order; o++) {
- 		/* At the next order, this order's pages become unavailable */
-@@ -3254,7 +3253,7 @@ void show_free_areas(unsigned int filter
- 			);
- 		printk("lowmem_reserve[]:");
- 		for (i = 0; i < MAX_NR_ZONES; i++)
--			printk(" %lu", zone->lowmem_reserve[i]);
-+			printk(" %ld", zone->lowmem_reserve[i]);
- 		printk("\n");
- 	}
- 
-@@ -5577,7 +5576,7 @@ static void calculate_totalreserve_pages
- 	for_each_online_pgdat(pgdat) {
- 		for (i = 0; i < MAX_NR_ZONES; i++) {
- 			struct zone *zone = pgdat->node_zones + i;
--			unsigned long max = 0;
-+			long max = 0;
- 
- 			/* Find valid and maximum lowmem_reserve in the zone */
- 			for (j = i; j < MAX_NR_ZONES; j++) {
-diff -puN mm/vmstat.c~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines mm/vmstat.c
---- a/mm/vmstat.c~mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines
-+++ a/mm/vmstat.c
-@@ -1077,10 +1077,10 @@ static void zoneinfo_show_print(struct s
- 				zone_page_state(zone, i));
- 
- 	seq_printf(m,
--		   "\n        protection: (%lu",
-+		   "\n        protection: (%ld",
- 		   zone->lowmem_reserve[0]);
- 	for (i = 1; i < ARRAY_SIZE(zone->lowmem_reserve); i++)
--		seq_printf(m, ", %lu", zone->lowmem_reserve[i]);
-+		seq_printf(m, ", %ld", zone->lowmem_reserve[i]);
- 	seq_printf(m,
- 		   ")"
- 		   "\n  pagesets");
+ /*
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
