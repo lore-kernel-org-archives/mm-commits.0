@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch added to
- -mm tree
-Date: Thu, 10 Jul 2014 14:29:17 -0700
-Message-ID: <53bf05ad.G/+M5RknWxXbHAeZ%akpm@linux-foundation.org>
+Subject: + checkpatch-fix-brace-style-misuses-of-else-and-while.patch
+ added to -mm tree
+Date: Thu, 10 Jul 2014 14:29:20 -0700
+Message-ID: <53bf05b0./qubBcqJgwJUeltK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:55275 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbaGJV3S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 17:29:18 -0400
-Received: by mail-vc0-f201.google.com with SMTP id ij19so39012vcb.4
-        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 14:29:18 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:48566 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751667AbaGJV3V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 17:29:21 -0400
+Received: by mail-oa0-f74.google.com with SMTP id o6so49104oag.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 14:29:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add fix_insert_line and fix_delete_line helpers
+     Subject: checkpatch: fix brace style misuses of else and while
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch
+     checkpatch-fix-brace-style-misuses-of-else-and-while.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-fix-brace-style-misuses-of-else-and-while.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-fix-brace-style-misuses-of-else-and-while.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,122 +42,96 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add fix_insert_line and fix_delete_line helpers
+Subject: checkpatch: fix brace style misuses of else and while
 
-Neaten the uses of patch/file line insertions or deletions.  Hide the
-mechanism used.
+Add --fix corrections for ELSE_AFTER_BRACE and WHILE_AFTER_BRACE
+misuses.
+
+	if (x) {
+		...
+	}
+	else {
+		...
+	}
+is corrected to
+	if (x) {
+		...
+	} else {
+		...
+	}
+
+and
+
+	do {
+		...
+	}
+	while (x);
+is corrected to
+	do {
+		...
+	} while (x);
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   65 +++++++++++++++++-----------------------
- 1 file changed, 29 insertions(+), 36 deletions(-)
+ scripts/checkpatch.pl |   38 ++++++++++++++++++++++++++++++--------
+ 1 file changed, 30 insertions(+), 8 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-fix_insert_line-and-fix_delete_line-helpers scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-fix_insert_line-and-fix_delete_line-helpers
+diff -puN scripts/checkpatch.pl~checkpatch-fix-brace-style-misuses-of-else-and-while scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-brace-style-misuses-of-else-and-while
 +++ a/scripts/checkpatch.pl
-@@ -1593,6 +1593,27 @@ sub fix_inserted_deleted_lines {
- 	return @lines;
- }
+@@ -3885,14 +3885,26 @@ sub process {
  
-+sub fix_insert_line {
-+	my ($linenr, $line) = @_;
-+
-+	my $inserted = {
-+		LINENR => $linenr,
-+		LINE => $line,
-+	};
-+	push(@fixed_inserted, $inserted);
-+}
-+
-+sub fix_delete_line {
-+	my ($linenr, $line) = @_;
-+
-+	my $deleted = {
-+		LINENR => $linenr,
-+		LINE => $line,
-+	};
-+
-+	push(@fixed_deleted, $deleted);
-+}
-+
- sub ERROR {
- 	my ($type, $msg) = @_;
- 
-@@ -2447,11 +2468,7 @@ sub process {
- 			if (CHK("LINE_SPACING",
- 				"Please use a blank line after function/struct/union/enum declarations\n" . $hereprev) &&
- 			    $fix) {
--			my $inserted = {
--				LINENR => $fixlinenr,
--				LINE => "\+",
--			};
--			push(@fixed_inserted, $inserted);
-+				fix_insert_line($fixlinenr, "\+");
- 			}
- 		}
- 
-@@ -2462,11 +2479,7 @@ sub process {
- 			if (CHK("LINE_SPACING",
- 				"Please don't use multiple blank lines\n" . $hereprev) &&
- 			    $fix) {
--			my $deleted = {
--				LINENR => $fixlinenr,
--				LINE => $rawline,
--			};
--			push(@fixed_deleted, $deleted);
-+				fix_delete_line($fixlinenr, $rawline);
- 			}
- 
- 			$last_blank_line = $linenr;
-@@ -2509,11 +2522,7 @@ sub process {
- 			if (WARN("LINE_SPACING",
- 				 "Missing a blank line after declarations\n" . $hereprev) &&
- 			    $fix) {
--			my $inserted = {
--				LINENR => $fixlinenr,
--				LINE => "\+",
--			};
--			push(@fixed_inserted, $inserted);
-+				fix_insert_line($fixlinenr, "\+");
- 			}
- 		}
- 
-@@ -2868,31 +2877,15 @@ sub process {
- 		    $prevline =~ /(?:^|[^=])=\s*$/) {
- 			if (ERROR("OPEN_BRACE",
- 				  "that open brace { should be on the previous line\n" . $hereprev) &&
--			    $fix && $prevline =~ /^\+/) {
--				my $deleted = {
--					LINENR => $fixlinenr - 1,
--					LINE => $prevrawline,
--				};
--				push(@fixed_deleted, $deleted);
--				$deleted = {
--					LINENR => $fixlinenr,
--					LINE => $rawline,
--				};
--				push(@fixed_deleted, $deleted);
+ 		# Check for }<nl>else {, these must be at the same
+ 		# indent level to be relevant to each other.
+-		if ($prevline=~/}\s*$/ and $line=~/^.\s*else\s*/ and
+-						$previndent == $indent) {
+-			ERROR("ELSE_AFTER_BRACE",
+-			      "else should follow close brace '}'\n" . $hereprev);
++		if ($prevline=~/}\s*$/ and $line=~/^.\s*else\s*/ &&
++		    $previndent == $indent) {
++			if (ERROR("ELSE_AFTER_BRACE",
++				  "else should follow close brace '}'\n" . $hereprev) &&
 +			    $fix && $prevline =~ /^\+/ && $line =~ /^\+/) {
 +				fix_delete_line($fixlinenr - 1, $prevrawline);
 +				fix_delete_line($fixlinenr, $rawline);
- 				my $fixedline = $prevrawline;
- 				$fixedline =~ s/\s*=\s*$/ = {/;
--				my $inserted = {
--					LINENR => $fixlinenr,
--					LINE => $fixedline,
--				};
--				push(@fixed_inserted, $inserted);
++				my $fixedline = $prevrawline;
++				$fixedline =~ s/}\s*$//;
++				if ($fixedline !~ /^\+\s*$/) {
++					fix_insert_line($fixlinenr, $fixedline);
++				}
++				$fixedline = $rawline;
++				$fixedline =~ s/^(.\s*)else/$1} else/;
 +				fix_insert_line($fixlinenr, $fixedline);
- 				$fixedline = $line;
- 				$fixedline =~ s/^(.\s*){\s*/$1/;
--				$inserted = {
--					LINENR => $fixlinenr,
--					LINE => $fixedline,
--				};
--				push(@fixed_inserted, $inserted);
-+				fix_insert_line($fixlinenr, $fixedline);
++			}
+ 		}
+ 
+-		if ($prevline=~/}\s*$/ and $line=~/^.\s*while\s*/ and
+-						$previndent == $indent) {
++		if ($prevline=~/}\s*$/ and $line=~/^.\s*while\s*/ &&
++		    $previndent == $indent) {
+ 			my ($s, $c) = ctx_statement_block($linenr, $realcnt, 0);
+ 
+ 			# Find out what is on the end of the line after the
+@@ -3901,8 +3913,18 @@ sub process {
+ 			$s =~ s/\n.*//g;
+ 
+ 			if ($s =~ /^\s*;/) {
+-				ERROR("WHILE_AFTER_BRACE",
+-				      "while should follow close brace '}'\n" . $hereprev);
++				if (ERROR("WHILE_AFTER_BRACE",
++					  "while should follow close brace '}'\n" . $hereprev) &&
++				    $fix && $prevline =~ /^\+/ && $line =~ /^\+/) {
++					fix_delete_line($fixlinenr - 1, $prevrawline);
++					fix_delete_line($fixlinenr, $rawline);
++					my $fixedline = $prevrawline;
++					my $trailing = $rawline;
++					$trailing =~ s/^\+//;
++					$trailing = trim($trailing);
++					$fixedline =~ s/}\s*$/} $trailing/;
++					fix_insert_line($fixlinenr, $fixedline);
++				}
  			}
  		}
  
