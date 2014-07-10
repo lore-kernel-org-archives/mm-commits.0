@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch added to -mm tree
-Date: Thu, 10 Jul 2014 14:29:19 -0700
-Message-ID: <53bf05af.0GqcEPMDNhyIxAeC%akpm@linux-foundation.org>
+Subject: + printk-rename-default_message_loglevel.patch added to -mm tree
+Date: Thu, 10 Jul 2014 14:41:37 -0700
+Message-ID: <53bf0891.8YUX0esqDOeAMHh8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:38911 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300AbaGJV3V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 17:29:21 -0400
-Received: by mail-qc0-f201.google.com with SMTP id i17so39583qcy.2
-        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 14:29:19 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:41838 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750938AbaGJVlj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 17:41:39 -0400
+Received: by mail-ie0-f201.google.com with SMTP id lx4so44914iec.4
+        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 14:41:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: elder@linaro.org, ak@linux.intel.com, bp@suse.de, jack@suse.cz, john.stultz@linaro.org, pmladek@suse.cz, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add --fix option for a couple OPEN_BRACE misuses
+     Subject: printk: rename DEFAULT_MESSAGE_LOGLEVEL
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
+     printk-rename-default_message_loglevel.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-rename-default_message_loglevel.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-rename-default_message_loglevel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,161 +40,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add --fix option for a couple OPEN_BRACE misuses
+From: Alex Elder <elder@linaro.org>
+Subject: printk: rename DEFAULT_MESSAGE_LOGLEVEL
 
-Style misuses of these types are corrected:
+a8fe19ebfbfd9 ("kernel/printk: use symbolic defines for console
+loglevels") makes consistent use of symbolic values for printk() log
+levels.
 
-typedef struct foo
-{
-	int bar;
-};
+The naming scheme used is different from the one used for
+DEFAULT_MESSAGE_LOGLEVEL though.  Change that symbol name to be
+MESSAGE_LOGLEVEL_DEFAULT for consistency.  And because the value of that
+symbol comes from a similarly-named config option, rename
+CONFIG_DEFAULT_MESSAGE_LOGLEVEL as well.
 
-int foo(int bar) { return bar+1;
-}
-
-int foo(int bar) {
-	return bar+1;
-}
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Alex Elder <elder@linaro.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Petr Mladek <pmladek@suse.cz>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   33 ++++++++++++++++++++++++++++-----
- 1 file changed, 28 insertions(+), 5 deletions(-)
+ include/linux/printk.h |    2 +-
+ kernel/printk/printk.c |    2 +-
+ lib/Kconfig.debug      |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-fix-option-for-a-couple-open_brace-misuses scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-a-couple-open_brace-misuses
-+++ a/scripts/checkpatch.pl
-@@ -3164,17 +3164,40 @@ sub process {
+diff -puN include/linux/printk.h~printk-rename-default_message_loglevel include/linux/printk.h
+--- a/include/linux/printk.h~printk-rename-default_message_loglevel
++++ a/include/linux/printk.h
+@@ -31,7 +31,7 @@ static inline const char *printk_skip_le
+ }
  
- # function brace can't be on same line, except for #defines of do while,
- # or if closed on same line
--		if (($line=~/$Type\s*$Ident\(.*\).*\s{/) and
-+		if (($line=~/$Type\s*$Ident\(.*\).*\s*{/) and
- 		    !($line=~/\#\s*define.*do\s{/) and !($line=~/}/)) {
--			ERROR("OPEN_BRACE",
--			      "open brace '{' following function declarations go on the next line\n" . $herecurr);
-+			if (ERROR("OPEN_BRACE",
-+				  "open brace '{' following function declarations go on the next line\n" . $herecurr) &&
-+			    $fix) {
-+				fix_delete_line($fixlinenr, $rawline);
-+				my $fixed_line = $rawline;
-+				$fixed_line =~ /(^..*$Type\s*$Ident\(.*\)\s*){(.*)$/;
-+				my $line1 = $1;
-+				my $line2 = $2;
-+				fix_insert_line($fixlinenr, ltrim($line1));
-+				fix_insert_line($fixlinenr, "\+{");
-+				if ($line2 !~ /^\s*$/) {
-+					fix_insert_line($fixlinenr, "\+\t" . trim($line2));
-+				}
-+			}
- 		}
+ /* printk's without a loglevel use this.. */
+-#define DEFAULT_MESSAGE_LOGLEVEL CONFIG_DEFAULT_MESSAGE_LOGLEVEL
++#define MESSAGE_LOGLEVEL_DEFAULT CONFIG_MESSAGE_LOGLEVEL_DEFAULT
  
- # open braces for enum, union and struct go on the same line.
- 		if ($line =~ /^.\s*{/ &&
- 		    $prevline =~ /^.\s*(?:typedef\s+)?(enum|union|struct)(?:\s+$Ident)?\s*$/) {
--			ERROR("OPEN_BRACE",
--			      "open brace '{' following $1 go on the same line\n" . $hereprev);
-+			if (ERROR("OPEN_BRACE",
-+				  "open brace '{' following $1 go on the same line\n" . $hereprev) &&
-+			    $fix && $prevline =~ /^\+/ && $line =~ /^\+/) {
-+				fix_delete_line($fixlinenr - 1, $prevrawline);
-+				fix_delete_line($fixlinenr, $rawline);
-+				my $fixedline = rtrim($prevrawline) . " {";
-+				fix_insert_line($fixlinenr, $fixedline);
-+				$fixedline = $rawline;
-+				$fixedline =~ s/^(.\s*){\s*/$1\t/;
-+				if ($fixedline !~ /^\+\s*$/) {
-+					fix_insert_line($fixlinenr, $fixedline);
-+				}
-+			}
- 		}
+ /* We show everything that is MORE important than this.. */
+ #define CONSOLE_LOGLEVEL_SILENT  0 /* Mum's the word */
+diff -puN kernel/printk/printk.c~printk-rename-default_message_loglevel kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-rename-default_message_loglevel
++++ a/kernel/printk/printk.c
+@@ -56,7 +56,7 @@
  
- # missing space after union, struct or enum definition
+ int console_printk[4] = {
+ 	CONSOLE_LOGLEVEL_DEFAULT,	/* console_loglevel */
+-	DEFAULT_MESSAGE_LOGLEVEL,	/* default_message_loglevel */
++	MESSAGE_LOGLEVEL_DEFAULT,	/* default_message_loglevel */
+ 	CONSOLE_LOGLEVEL_MIN,		/* minimum_console_loglevel */
+ 	CONSOLE_LOGLEVEL_DEFAULT,	/* default_console_loglevel */
+ };
+diff -puN lib/Kconfig.debug~printk-rename-default_message_loglevel lib/Kconfig.debug
+--- a/lib/Kconfig.debug~printk-rename-default_message_loglevel
++++ a/lib/Kconfig.debug
+@@ -15,7 +15,7 @@ config PRINTK_TIME
+ 	  The behavior is also controlled by the kernel command line
+ 	  parameter printk.time=1. See Documentation/kernel-parameters.txt
+ 
+-config DEFAULT_MESSAGE_LOGLEVEL
++config MESSAGE_LOGLEVEL_DEFAULT
+ 	int "Default message log level (1-7)"
+ 	range 1 7
+ 	default "4"
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from elder@linaro.org are
 
-fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
-printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
-printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
-printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
-printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
 printk-tweak-do_syslog-to-match-comments.patch
-maintainers-remove-two-ancient-eata-sections.patch
-kernelh-remove-deprecated-pack_hex_byte.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
-checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
-checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
-checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
-checkpatch-ignore-email-headers-better.patch
-checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
-checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
-checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
-checkpatch-add-a-multiple-blank-lines-test.patch
-checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
-checkpatch-quiet-kconfig-help-message-checking.patch
-checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
-checkpatch-allow-multiple-const-types.patch
-checkpatch-improve-no-space-after-cast-test.patch
-checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-checkpatch-emit-a-warning-on-file-add-move-delete.patch
-checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation.patch
-checkpatch-add-an-index-variable-for-fixed-lines.patch
-checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file.patch
-checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch
-checkpatch-use-the-correct-indentation-for-which.patch
-checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
-checkpatch-fix-brace-style-misuses-of-else-and-while.patch
-fs-isofs-logging-clean-up.patch
-proc-constify-seq_operations.patch
-sysctl-remove-now-unused-typedef-ctl_table.patch
-sysctl-remove-now-unused-typedef-ctl_table-fix.patch
-adfs-add-__printf-verification-fix-format-argument-mismatches.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
+printk-rename-default_message_loglevel.patch
+printk-fix-some-comments.patch
+printk-use-a-clever-macro.patch
+printk-miscellaneous-cleanups.patch
 linux-next.patch
-pci-dma-compat-add-pci_zalloc_consistent-helper.patch
-atm-use-pci_zalloc_consistent.patch
-block-use-pci_zalloc_consistent.patch
-crypto-use-pci_zalloc_consistent.patch
-infiniband-use-pci_zalloc_consistent.patch
-i810-use-pci_zalloc_consistent.patch
-media-use-pci_zalloc_consistent.patch
-amd-use-pci_zalloc_consistent.patch
-atl1e-use-pci_zalloc_consistent.patch
-enic-use-pci_zalloc_consistent.patch
-sky2-use-pci_zalloc_consistent.patch
-micrel-use-pci_zalloc_consistent.patch
-qlogic-use-pci_zalloc_consistent.patch
-irda-use-pci_zalloc_consistent.patch
-ipw2100-use-pci_zalloc_consistent.patch
-mwl8k-use-pci_zalloc_consistent.patch
-rtl818x-use-pci_zalloc_consistent.patch
-rtlwifi-use-pci_zalloc_consistent.patch
-scsi-use-pci_zalloc_consistent.patch
-staging-use-pci_zalloc_consistent.patch
-synclink_gt-use-pci_zalloc_consistent.patch
-vme-bridges-use-pci_zalloc_consistent.patch
-amd-neaten-and-remove-unnecessary-oom-messages.patch
-maintainers-update-microcode-patterns.patch
-maintainers-update-cifs-location.patch
-maintainers-use-the-correct-efi-stub-location.patch
-maintainers-update-clk-sirf-patterns.patch
-maintainers-fix-ssbi-pattern.patch
-maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
-maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
-maintainers-update-picoxcell-patterns.patch
-maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
-maintainers-remove-metag-imgdafs-pattern.patch
-maintainers-remove-unused-radeon-drm-pattern.patch
-maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
-maintainers-remove-unused-nfsd-pattern.patch
 
