@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch added to -mm tree
-Date: Thu, 10 Jul 2014 15:55:25 -0700
-Message-ID: <53bf19dd.gAob4erL+60rg+Ex%akpm@linux-foundation.org>
+Subject: + coredump-fix-the-setting-of-pf_dumpcore.patch added to -mm tree
+Date: Fri, 11 Jul 2014 14:27:50 -0700
+Message-ID: <53c056d6.AXZ68uW4+xsMaiU8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:37733 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751682AbaGJWz0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jul 2014 18:55:26 -0400
-Received: by mail-pd0-f201.google.com with SMTP id v10so76845pde.0
-        for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2014 15:55:26 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:33079 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752167AbaGKV1v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Jul 2014 17:27:51 -0400
+Received: by mail-oa0-f74.google.com with SMTP id eb12so161306oac.5
+        for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2014 14:27:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: svellattu@mvista.com, msb@chromium.org, oleg@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: abort fair zone allocation policy when remotes nodes are encountered
+     Subject: coredump: fix the setting of PF_DUMPCORE
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
+     coredump-fix-the-setting-of-pf_dumpcore.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/coredump-fix-the-setting-of-pf_dumpcore.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-fix-the-setting-of-pf_dumpcore.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,67 +40,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: abort fair zone allocation policy when remotes nodes are encountered
+From: Silesh C V <svellattu@mvista.com>
+Subject: coredump: fix the setting of PF_DUMPCORE
 
-The purpose of numa_zonelist_order=zone is to preserve lower zones for use
-with 32-bit devices.  If locality is preferred then the
-numa_zonelist_order=node policy should be used.  Unfortunately, the fair
-zone allocation policy overrides this by skipping zones on remote nodes
-until the lower one is found.  While this makes sense from a page aging
-and performance perspective, it breaks the expected zonelist policy.  This
-patch restores the expected behaviour for zone-list ordering.
+commit 079148b91 ("coredump: factor out the setting of PF_DUMPCORE")
+cleaned up the setting of PF_DUMPCORE by removing it from all the
+linux_binfmt->core_dump() and moving it to zap_threads().But this ended up
+clearing all the previously set flags.  This causes issues during core
+generation when tsk->flags is checked again (eg.  for PF_USED_MATH to dump
+floating point registers).  Fix this.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Silesh C V <svellattu@mvista.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Mandeep Singh Baines <msb@chromium.org>
+Cc: <stable@vger.kernel.org>	[3.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ fs/coredump.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered
-+++ a/mm/page_alloc.c
-@@ -1965,7 +1965,7 @@ zonelist_scan:
- 		 */
- 		if (alloc_flags & ALLOC_FAIR) {
- 			if (!zone_local(preferred_zone, zone))
--				continue;
-+				break;
- 			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
- 				continue;
- 		}
+diff -puN fs/coredump.c~coredump-fix-the-setting-of-pf_dumpcore fs/coredump.c
+--- a/fs/coredump.c~coredump-fix-the-setting-of-pf_dumpcore
++++ a/fs/coredump.c
+@@ -306,7 +306,7 @@ static int zap_threads(struct task_struc
+ 	if (unlikely(nr < 0))
+ 		return nr;
+ 
+-	tsk->flags = PF_DUMPCORE;
++	tsk->flags |= PF_DUMPCORE;
+ 	if (atomic_read(&mm->mm_users) == nr + 1)
+ 		goto done;
+ 	/*
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from svellattu@mvista.com are
 
-mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
-mm-thp-move-invariant-bug-check-out-of-loop-in-__split_huge_page_map.patch
-mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic.patch
-mem-hotplug-improve-zone_movable_is_highmem-logic.patch
-mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
-mm-vmscan-remove-all_unreclaimable.patch
-mm-vmscan-move-swappiness-out-of-scan_control.patch
-tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch
-mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
-mm-replace-init_page_accessed-by-__setpagereferenced.patch
-mm-update-the-description-for-vm_total_pages.patch
-mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
-mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
-mm-move-zone-pages_scanned-into-a-vmstat-counter.patch
-mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
-mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
-mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-zbud-zbud_alloc-minor-param-change.patch
-mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
-mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
-mm-zpool-zbud-zsmalloc-implement-zpool.patch
-mm-zpool-update-zswap-to-use-zpool.patch
-mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-linux-next.patch
+coredump-fix-the-setting-of-pf_dumpcore.patch
 
