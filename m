@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4.patch added to -mm tree
-Date: Fri, 11 Jul 2014 15:11:35 -0700
-Message-ID: <53c06117.NiqwwJRwsBvWTFom%akpm@linux-foundation.org>
+Subject: + mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch added to -mm tree
+Date: Fri, 11 Jul 2014 15:27:59 -0700
+Message-ID: <53c064ef.aNY0sCc/qrTL8Jfk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:33221 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753291AbaGKWLg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Jul 2014 18:11:36 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rd18so360960iec.5
-        for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2014 15:11:35 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:44474 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754151AbaGKW2A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Jul 2014 18:28:00 -0400
+Received: by mail-pd0-f202.google.com with SMTP id r10so384204pdi.3
+        for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2014 15:28:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vkuznets@redhat.com, david.vrabel@citrix.com, drjones@redhat.com, holzheu@linux.vnet.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: MPatlasov@parallels.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, mpatlasov@parallels.com, riel@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4
+     Subject: mm/page-writeback.c: fix divide by zero in bdi_dirty_limits()
 has been added to the -mm tree.  Its filename is
-     mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4.patch
+     mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,166 +40,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4
+From: Maxim Patlasov <MPatlasov@parallels.com>
+Subject: mm/page-writeback.c: fix divide by zero in bdi_dirty_limits()
 
-Changes from v3:
-- multi line comment style changes
-- minor code style changes
+Under memory pressure, it is possible for dirty_thresh, calculated by
+global_dirty_limits() in balance_dirty_pages(), to equal zero.  Then, if
+strictlimit is true, bdi_dirty_limits() tries to resolve the proportion:
 
-Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Reviewed-by: Andrew Jones <drjones@redhat.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
+  bdi_bg_thresh : bdi_thresh = background_thresh : dirty_thresh
+
+by dividing by zero.
+
+Signed-off-by: Maxim Patlasov <mpatlasov@parallels.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   86 +++++++++++++++++++++------------------------
- 1 file changed, 42 insertions(+), 44 deletions(-)
+ mm/page-writeback.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/vmcore.c~mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4 fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4
-+++ a/fs/proc/vmcore.c
-@@ -329,20 +329,20 @@ static inline char *alloc_elfnotes_buf(s
-  */
- #ifdef CONFIG_MMU
- /*
-- * remap_oldmem_pfn_checked - do remap_oldmem_pfn replacing all pages reported
-- * as not being ram with the zero page.
-+ * remap_oldmem_pfn_checked - do remap_oldmem_pfn_range replacing all pages
-+ * reported as not being ram with the zero page.
-  *
-  * @vma: vm_area_struct describing requested mapping
-- * @vma_addr: start remapping from
-+ * @from: start remapping from
-  * @pfn: page frame number to start remapping to
-  * @size: remapping size
-+ * @prot: protection bits
-  *
-- * Returns the remapped length. If no errors were hit during the remapping it
-- * should be equal to size.
-+ * Returns zero on success, -EAGAIN on failure.
-  */
--static u64 remap_oldmem_pfn_checked(struct vm_area_struct *vma,
--				    unsigned long vma_addr, unsigned long pfn,
--				    unsigned long size)
-+int remap_oldmem_pfn_checked(struct vm_area_struct *vma, unsigned long from,
-+			     unsigned long pfn, unsigned long size,
-+			     pgprot_t prot)
- {
- 	size_t map_size;
- 	unsigned long pos_start, pos_end, pos;
-@@ -354,25 +354,25 @@ static u64 remap_oldmem_pfn_checked(stru
+diff -puN mm/page-writeback.c~mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits
++++ a/mm/page-writeback.c
+@@ -1306,9 +1306,9 @@ static inline void bdi_dirty_limits(stru
+ 	*bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh);
  
- 	for (pos = pos_start; pos < pos_end; ++pos) {
- 		if (!pfn_is_ram(pos)) {
--			/* We hit a page which is not ram. Remap the continuous
-+			/*
-+			 * We hit a page which is not ram. Remap the continuous
- 			 * region between pos_start and pos-1 and replace
- 			 * the non-ram page at pos with the zero page.
- 			 */
- 			if (pos > pos_start) {
- 				/* Remap continuous region */
- 				map_size = (pos - pos_start) << PAGE_SHIFT;
--				if (remap_oldmem_pfn_range(vma, vma_addr + len,
-+				if (remap_oldmem_pfn_range(vma, from + len,
- 							   pos_start, map_size,
--							   vma->vm_page_prot))
--					return len;
-+							   prot))
-+					goto fail;
- 				len += map_size;
- 			}
- 			/* Remap the zero page */
--			if (remap_oldmem_pfn_range(vma, vma_addr + len,
-+			if (remap_oldmem_pfn_range(vma, from + len,
- 						   zeropage_pfn,
--						   PAGE_SIZE,
--						   vma->vm_page_prot))
--				return len;
-+						   PAGE_SIZE, prot))
-+				goto fail;
- 			len += PAGE_SIZE;
- 			pos_start = pos + 1;
- 		}
-@@ -380,13 +380,29 @@ static u64 remap_oldmem_pfn_checked(stru
- 	if (pos > pos_start) {
- 		/* Remap the rest */
- 		map_size = (pos - pos_start) << PAGE_SHIFT;
--		if (remap_oldmem_pfn_range(vma, vma_addr + len, pos_start,
--					   map_size,
--					   vma->vm_page_prot))
--			return len;
-+		if (remap_oldmem_pfn_range(vma, from + len, pos_start,
-+					   map_size, vma->vm_page_prot))
-+			goto fail;
- 		len += map_size;
- 	}
--	return len;
-+	return 0;
-+fail:
-+	do_munmap(vma->vm_mm, from, len);
-+	return -EAGAIN;
-+}
-+
-+int vmcore_remap_oldmem_pfn(struct vm_area_struct *vma,
-+			    unsigned long from, unsigned long pfn,
-+			    unsigned long size, pgprot_t prot)
-+{
-+	/*
-+	 * Check if oldmem_pfn_is_ram was registered to avoid
-+	 * looping over all pages without a reason.
-+	 */
-+	if (oldmem_pfn_is_ram)
-+		return remap_oldmem_pfn_checked(vma, from, pfn, size, prot);
-+	else
-+		return remap_oldmem_pfn_range(vma, from, pfn, size, prot);
- }
+ 	if (bdi_bg_thresh)
+-		*bdi_bg_thresh = div_u64((u64)*bdi_thresh *
+-					 background_thresh,
+-					 dirty_thresh);
++		*bdi_bg_thresh = dirty_thresh ? div_u64((u64)*bdi_thresh *
++							background_thresh,
++							dirty_thresh) : 0;
  
- static int mmap_vmcore(struct file *file, struct vm_area_struct *vma)
-@@ -448,31 +464,13 @@ static int mmap_vmcore(struct file *file
- 
- 			tsz = min_t(size_t, m->offset + m->size - start, size);
- 			paddr = m->paddr + start - m->offset;
--
--			/* Check if oldmem_pfn_is_ram was registered to avoid
--			   looping over all pages without a reason. */
--			if (oldmem_pfn_is_ram) {
--				u64 original_len;
--				unsigned long pfn, vma_addr;
--
--				pfn = paddr >> PAGE_SHIFT;
--				vma_addr = vma->vm_start + len;
--				original_len = len;
--				len += remap_oldmem_pfn_checked(vma, vma_addr,
--								pfn, tsz);
--				if (len != original_len + tsz)
--					goto fail;
--			} else {
--				if (remap_oldmem_pfn_range(vma,
--							   vma->vm_start + len,
--							   paddr >> PAGE_SHIFT,
--							   tsz,
--							   vma->vm_page_prot))
--					goto fail;
--				len += tsz;
--			}
-+			if (vmcore_remap_oldmem_pfn(vma, vma->vm_start + len,
-+						    paddr >> PAGE_SHIFT, tsz,
-+						    vma->vm_page_prot))
-+				goto fail;
- 			size -= tsz;
- 			start += tsz;
-+			len += tsz;
- 
- 			if (size == 0)
- 				return 0;
+ 	/*
+ 	 * In order to avoid the stacked BDI deadlock we need
 _
 
-Patches currently in -mm which might be from vkuznets@redhat.com are
+Patches currently in -mm which might be from MPatlasov@parallels.com are
 
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4.patch
+mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
+mm-add-strictlimit-knob-v2.patch
 
