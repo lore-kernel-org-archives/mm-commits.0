@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
- added to -mm tree
-Date: Fri, 11 Jul 2014 15:08:53 -0700
-Message-ID: <53c06075.QFUbQD1wY6PKLG7L%akpm@linux-foundation.org>
+Subject: + mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4.patch added to -mm tree
+Date: Fri, 11 Jul 2014 15:11:35 -0700
+Message-ID: <53c06117.NiqwwJRwsBvWTFom%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:39245 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059AbaGKWIz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Jul 2014 18:08:55 -0400
-Received: by mail-qa0-f73.google.com with SMTP id m5so290546qaj.4
-        for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2014 15:08:53 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:33221 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753291AbaGKWLg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Jul 2014 18:11:36 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rd18so360960iec.5
+        for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2014 15:11:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.ryabinin@samsung.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: vkuznets@redhat.com, david.vrabel@citrix.com, drjones@redhat.com, holzheu@linux.vnet.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move slab related stuff from util.c to slab_common.c
+     Subject: mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4
 has been added to the -mm tree.  Its filename is
-     mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
+     mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,254 +40,166 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: mm: move slab related stuff from util.c to slab_common.c
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4
 
-Functions krealloc(), __krealloc(), kzfree() belongs to slab API, so
-should be placed in slab_common.c
+Changes from v3:
+- multi line comment style changes
+- minor code style changes
 
-Also move slab allocator's tracepoints defenitions to slab_common.c No
-functional changes here.
-
-Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Reviewed-by: Andrew Jones <drjones@redhat.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |  101 ++++++++++++++++++++++++++++++++++++++++++++
- mm/util.c        |  102 ---------------------------------------------
- 2 files changed, 101 insertions(+), 102 deletions(-)
+ fs/proc/vmcore.c |   86 +++++++++++++++++++++------------------------
+ 1 file changed, 42 insertions(+), 44 deletions(-)
 
-diff -puN mm/slab_common.c~mm-move-slab-related-stuff-from-utilc-to-slab_commonc mm/slab_common.c
---- a/mm/slab_common.c~mm-move-slab-related-stuff-from-utilc-to-slab_commonc
-+++ a/mm/slab_common.c
-@@ -19,6 +19,8 @@
- #include <asm/tlbflush.h>
- #include <asm/page.h>
- #include <linux/memcontrol.h>
-+
-+#define CREATE_TRACE_POINTS
- #include <trace/events/kmem.h>
- 
- #include "slab.h"
-@@ -787,3 +789,102 @@ static int __init slab_proc_init(void)
- }
- module_init(slab_proc_init);
- #endif /* CONFIG_SLABINFO */
-+
-+static __always_inline void *__do_krealloc(const void *p, size_t new_size,
-+					   gfp_t flags)
-+{
-+	void *ret;
-+	size_t ks = 0;
-+
-+	if (p)
-+		ks = ksize(p);
-+
-+	if (ks >= new_size)
-+		return (void *)p;
-+
-+	ret = kmalloc_track_caller(new_size, flags);
-+	if (ret && p)
-+		memcpy(ret, p, ks);
-+
-+	return ret;
-+}
-+
-+/**
-+ * __krealloc - like krealloc() but don't free @p.
-+ * @p: object to reallocate memory for.
-+ * @new_size: how many bytes of memory are required.
-+ * @flags: the type of memory to allocate.
-+ *
-+ * This function is like krealloc() except it never frees the originally
-+ * allocated buffer. Use this if you don't want to free the buffer immediately
-+ * like, for example, with RCU.
-+ */
-+void *__krealloc(const void *p, size_t new_size, gfp_t flags)
-+{
-+	if (unlikely(!new_size))
-+		return ZERO_SIZE_PTR;
-+
-+	return __do_krealloc(p, new_size, flags);
-+
-+}
-+EXPORT_SYMBOL(__krealloc);
-+
-+/**
-+ * krealloc - reallocate memory. The contents will remain unchanged.
-+ * @p: object to reallocate memory for.
-+ * @new_size: how many bytes of memory are required.
-+ * @flags: the type of memory to allocate.
-+ *
-+ * The contents of the object pointed to are preserved up to the
-+ * lesser of the new and old sizes.  If @p is %NULL, krealloc()
-+ * behaves exactly like kmalloc().  If @new_size is 0 and @p is not a
-+ * %NULL pointer, the object pointed to is freed.
-+ */
-+void *krealloc(const void *p, size_t new_size, gfp_t flags)
-+{
-+	void *ret;
-+
-+	if (unlikely(!new_size)) {
-+		kfree(p);
-+		return ZERO_SIZE_PTR;
-+	}
-+
-+	ret = __do_krealloc(p, new_size, flags);
-+	if (ret && p != ret)
-+		kfree(p);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(krealloc);
-+
-+/**
-+ * kzfree - like kfree but zero memory
-+ * @p: object to free memory of
-+ *
-+ * The memory of the object @p points to is zeroed before freed.
-+ * If @p is %NULL, kzfree() does nothing.
-+ *
-+ * Note: this function zeroes the whole allocated buffer which can be a good
-+ * deal bigger than the requested buffer size passed to kmalloc(). So be
-+ * careful when using this function in performance sensitive code.
-+ */
-+void kzfree(const void *p)
-+{
-+	size_t ks;
-+	void *mem = (void *)p;
-+
-+	if (unlikely(ZERO_OR_NULL_PTR(mem)))
-+		return;
-+	ks = ksize(mem);
-+	memset(mem, 0, ks);
-+	kfree(mem);
-+}
-+EXPORT_SYMBOL(kzfree);
-+
-+/* Tracepoints definitions. */
-+EXPORT_TRACEPOINT_SYMBOL(kmalloc);
-+EXPORT_TRACEPOINT_SYMBOL(kmem_cache_alloc);
-+EXPORT_TRACEPOINT_SYMBOL(kmalloc_node);
-+EXPORT_TRACEPOINT_SYMBOL(kmem_cache_alloc_node);
-+EXPORT_TRACEPOINT_SYMBOL(kfree);
-+EXPORT_TRACEPOINT_SYMBOL(kmem_cache_free);
-diff -puN mm/util.c~mm-move-slab-related-stuff-from-utilc-to-slab_commonc mm/util.c
---- a/mm/util.c~mm-move-slab-related-stuff-from-utilc-to-slab_commonc
-+++ a/mm/util.c
-@@ -16,9 +16,6 @@
- 
- #include "internal.h"
- 
--#define CREATE_TRACE_POINTS
--#include <trace/events/kmem.h>
--
- /**
-  * kstrdup - allocate space for and copy an existing string
-  * @s: the string to duplicate
-@@ -112,97 +109,6 @@ void *memdup_user(const void __user *src
- }
- EXPORT_SYMBOL(memdup_user);
- 
--static __always_inline void *__do_krealloc(const void *p, size_t new_size,
--					   gfp_t flags)
--{
--	void *ret;
--	size_t ks = 0;
--
--	if (p)
--		ks = ksize(p);
--
--	if (ks >= new_size)
--		return (void *)p;
--
--	ret = kmalloc_track_caller(new_size, flags);
--	if (ret && p)
--		memcpy(ret, p, ks);
--
--	return ret;
--}
--
--/**
-- * __krealloc - like krealloc() but don't free @p.
-- * @p: object to reallocate memory for.
-- * @new_size: how many bytes of memory are required.
-- * @flags: the type of memory to allocate.
-- *
-- * This function is like krealloc() except it never frees the originally
-- * allocated buffer. Use this if you don't want to free the buffer immediately
-- * like, for example, with RCU.
-- */
--void *__krealloc(const void *p, size_t new_size, gfp_t flags)
--{
--	if (unlikely(!new_size))
--		return ZERO_SIZE_PTR;
--
--	return __do_krealloc(p, new_size, flags);
--
--}
--EXPORT_SYMBOL(__krealloc);
--
--/**
-- * krealloc - reallocate memory. The contents will remain unchanged.
-- * @p: object to reallocate memory for.
-- * @new_size: how many bytes of memory are required.
-- * @flags: the type of memory to allocate.
-- *
-- * The contents of the object pointed to are preserved up to the
-- * lesser of the new and old sizes.  If @p is %NULL, krealloc()
-- * behaves exactly like kmalloc().  If @new_size is 0 and @p is not a
-- * %NULL pointer, the object pointed to is freed.
-- */
--void *krealloc(const void *p, size_t new_size, gfp_t flags)
--{
--	void *ret;
--
--	if (unlikely(!new_size)) {
--		kfree(p);
--		return ZERO_SIZE_PTR;
--	}
--
--	ret = __do_krealloc(p, new_size, flags);
--	if (ret && p != ret)
--		kfree(p);
--
--	return ret;
--}
--EXPORT_SYMBOL(krealloc);
--
--/**
-- * kzfree - like kfree but zero memory
-- * @p: object to free memory of
-- *
-- * The memory of the object @p points to is zeroed before freed.
-- * If @p is %NULL, kzfree() does nothing.
-- *
-- * Note: this function zeroes the whole allocated buffer which can be a good
-- * deal bigger than the requested buffer size passed to kmalloc(). So be
-- * careful when using this function in performance sensitive code.
-- */
--void kzfree(const void *p)
--{
--	size_t ks;
--	void *mem = (void *)p;
--
--	if (unlikely(ZERO_OR_NULL_PTR(mem)))
--		return;
--	ks = ksize(mem);
--	memset(mem, 0, ks);
--	kfree(mem);
--}
--EXPORT_SYMBOL(kzfree);
--
+diff -puN fs/proc/vmcore.c~mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4 fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4
++++ a/fs/proc/vmcore.c
+@@ -329,20 +329,20 @@ static inline char *alloc_elfnotes_buf(s
+  */
+ #ifdef CONFIG_MMU
  /*
-  * strndup_user - duplicate an existing string from user space
-  * @s: The string to duplicate
-@@ -504,11 +410,3 @@ out_mm:
- out:
- 	return res;
+- * remap_oldmem_pfn_checked - do remap_oldmem_pfn replacing all pages reported
+- * as not being ram with the zero page.
++ * remap_oldmem_pfn_checked - do remap_oldmem_pfn_range replacing all pages
++ * reported as not being ram with the zero page.
+  *
+  * @vma: vm_area_struct describing requested mapping
+- * @vma_addr: start remapping from
++ * @from: start remapping from
+  * @pfn: page frame number to start remapping to
+  * @size: remapping size
++ * @prot: protection bits
+  *
+- * Returns the remapped length. If no errors were hit during the remapping it
+- * should be equal to size.
++ * Returns zero on success, -EAGAIN on failure.
+  */
+-static u64 remap_oldmem_pfn_checked(struct vm_area_struct *vma,
+-				    unsigned long vma_addr, unsigned long pfn,
+-				    unsigned long size)
++int remap_oldmem_pfn_checked(struct vm_area_struct *vma, unsigned long from,
++			     unsigned long pfn, unsigned long size,
++			     pgprot_t prot)
+ {
+ 	size_t map_size;
+ 	unsigned long pos_start, pos_end, pos;
+@@ -354,25 +354,25 @@ static u64 remap_oldmem_pfn_checked(stru
+ 
+ 	for (pos = pos_start; pos < pos_end; ++pos) {
+ 		if (!pfn_is_ram(pos)) {
+-			/* We hit a page which is not ram. Remap the continuous
++			/*
++			 * We hit a page which is not ram. Remap the continuous
+ 			 * region between pos_start and pos-1 and replace
+ 			 * the non-ram page at pos with the zero page.
+ 			 */
+ 			if (pos > pos_start) {
+ 				/* Remap continuous region */
+ 				map_size = (pos - pos_start) << PAGE_SHIFT;
+-				if (remap_oldmem_pfn_range(vma, vma_addr + len,
++				if (remap_oldmem_pfn_range(vma, from + len,
+ 							   pos_start, map_size,
+-							   vma->vm_page_prot))
+-					return len;
++							   prot))
++					goto fail;
+ 				len += map_size;
+ 			}
+ 			/* Remap the zero page */
+-			if (remap_oldmem_pfn_range(vma, vma_addr + len,
++			if (remap_oldmem_pfn_range(vma, from + len,
+ 						   zeropage_pfn,
+-						   PAGE_SIZE,
+-						   vma->vm_page_prot))
+-				return len;
++						   PAGE_SIZE, prot))
++				goto fail;
+ 			len += PAGE_SIZE;
+ 			pos_start = pos + 1;
+ 		}
+@@ -380,13 +380,29 @@ static u64 remap_oldmem_pfn_checked(stru
+ 	if (pos > pos_start) {
+ 		/* Remap the rest */
+ 		map_size = (pos - pos_start) << PAGE_SHIFT;
+-		if (remap_oldmem_pfn_range(vma, vma_addr + len, pos_start,
+-					   map_size,
+-					   vma->vm_page_prot))
+-			return len;
++		if (remap_oldmem_pfn_range(vma, from + len, pos_start,
++					   map_size, vma->vm_page_prot))
++			goto fail;
+ 		len += map_size;
+ 	}
+-	return len;
++	return 0;
++fail:
++	do_munmap(vma->vm_mm, from, len);
++	return -EAGAIN;
++}
++
++int vmcore_remap_oldmem_pfn(struct vm_area_struct *vma,
++			    unsigned long from, unsigned long pfn,
++			    unsigned long size, pgprot_t prot)
++{
++	/*
++	 * Check if oldmem_pfn_is_ram was registered to avoid
++	 * looping over all pages without a reason.
++	 */
++	if (oldmem_pfn_is_ram)
++		return remap_oldmem_pfn_checked(vma, from, pfn, size, prot);
++	else
++		return remap_oldmem_pfn_range(vma, from, pfn, size, prot);
  }
+ 
+ static int mmap_vmcore(struct file *file, struct vm_area_struct *vma)
+@@ -448,31 +464,13 @@ static int mmap_vmcore(struct file *file
+ 
+ 			tsz = min_t(size_t, m->offset + m->size - start, size);
+ 			paddr = m->paddr + start - m->offset;
+-
+-			/* Check if oldmem_pfn_is_ram was registered to avoid
+-			   looping over all pages without a reason. */
+-			if (oldmem_pfn_is_ram) {
+-				u64 original_len;
+-				unsigned long pfn, vma_addr;
+-
+-				pfn = paddr >> PAGE_SHIFT;
+-				vma_addr = vma->vm_start + len;
+-				original_len = len;
+-				len += remap_oldmem_pfn_checked(vma, vma_addr,
+-								pfn, tsz);
+-				if (len != original_len + tsz)
+-					goto fail;
+-			} else {
+-				if (remap_oldmem_pfn_range(vma,
+-							   vma->vm_start + len,
+-							   paddr >> PAGE_SHIFT,
+-							   tsz,
+-							   vma->vm_page_prot))
+-					goto fail;
+-				len += tsz;
+-			}
++			if (vmcore_remap_oldmem_pfn(vma, vma->vm_start + len,
++						    paddr >> PAGE_SHIFT, tsz,
++						    vma->vm_page_prot))
++				goto fail;
+ 			size -= tsz;
+ 			start += tsz;
++			len += tsz;
+ 
+ 			if (size == 0)
+ 				return 0;
+_
+
+Patches currently in -mm which might be from vkuznets@redhat.com are
+
+mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors.patch
+mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4.patch
+
