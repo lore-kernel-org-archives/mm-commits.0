@@ -1,89 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch added to -mm tree
-Date: Fri, 11 Jul 2014 15:27:59 -0700
-Message-ID: <53c064ef.aNY0sCc/qrTL8Jfk%akpm@linux-foundation.org>
+Subject: [merged] x86-64-fix-vdso-build.patch removed from -mm tree
+Date: Mon, 14 Jul 2014 11:50:04 -0700
+Message-ID: <53c4265c.SFICL1iT5xEt/oKQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:44474 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754151AbaGKW2A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Jul 2014 18:28:00 -0400
-Received: by mail-pd0-f202.google.com with SMTP id r10so384204pdi.3
-        for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2014 15:28:00 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:32944 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756492AbaGNSuG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jul 2014 14:50:06 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so778367pab.2
+        for <mm-commits@vger.kernel.org>; Mon, 14 Jul 2014 11:50:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: MPatlasov@parallels.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, mpatlasov@parallels.com, riel@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: JBeulich@suse.com, boris.ostrovsky@oracle.com, hpa@zytor.com, jbeulich@suse.com, luto@amacapital.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page-writeback.c: fix divide by zero in bdi_dirty_limits()
-has been added to the -mm tree.  Its filename is
-     mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
+     Subject: x86-64: fix vDSO build
+has been removed from the -mm tree.  Its filename was
+     x86-64-fix-vdso-build.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Maxim Patlasov <MPatlasov@parallels.com>
-Subject: mm/page-writeback.c: fix divide by zero in bdi_dirty_limits()
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: x86-64: fix vDSO build
 
-Under memory pressure, it is possible for dirty_thresh, calculated by
-global_dirty_limits() in balance_dirty_pages(), to equal zero.  Then, if
-strictlimit is true, bdi_dirty_limits() tries to resolve the proportion:
+Certain ld versions (observed with 2.20.0) put an empty .rela.dyn section
+into shared object files, breaking the assumption on the number of
+sections to be copied to the final output.  Simply discard any empty
+SHT_REL and SHT_RELA sections to address this.
 
-  bdi_bg_thresh : bdi_thresh = background_thresh : dirty_thresh
-
-by dividing by zero.
-
-Signed-off-by: Maxim Patlasov <mpatlasov@parallels.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Tested-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/vdso/vdso2c.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/page-writeback.c~mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits mm/page-writeback.c
---- a/mm/page-writeback.c~mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits
-+++ a/mm/page-writeback.c
-@@ -1306,9 +1306,9 @@ static inline void bdi_dirty_limits(stru
- 	*bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh);
+diff -puN arch/x86/vdso/vdso2c.h~x86-64-fix-vdso-build arch/x86/vdso/vdso2c.h
+--- a/arch/x86/vdso/vdso2c.h~x86-64-fix-vdso-build
++++ a/arch/x86/vdso/vdso2c.h
+@@ -93,6 +93,9 @@ static void BITSFUNC(copy_section)(struc
+ 	uint64_t flags = GET_LE(&in->sh_flags);
  
- 	if (bdi_bg_thresh)
--		*bdi_bg_thresh = div_u64((u64)*bdi_thresh *
--					 background_thresh,
--					 dirty_thresh);
-+		*bdi_bg_thresh = dirty_thresh ? div_u64((u64)*bdi_thresh *
-+							background_thresh,
-+							dirty_thresh) : 0;
+ 	bool copy = flags & SHF_ALLOC &&
++		(GET_LE(&in->sh_size) ||
++		 (GET_LE(&in->sh_type) != SHT_RELA &&
++		  GET_LE(&in->sh_type) != SHT_REL)) &&
+ 		strcmp(name, ".altinstructions") &&
+ 		strcmp(name, ".altinstr_replacement");
  
- 	/*
- 	 * In order to avoid the stacked BDI deadlock we need
 _
 
-Patches currently in -mm which might be from MPatlasov@parallels.com are
+Patches currently in -mm which might be from JBeulich@suse.com are
 
-mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
-mm-add-strictlimit-knob-v2.patch
+rtc-efi-check-for-invalid-data-coming-back-from-uefi.patch
+initramfs-support-initramfs-that-is-bigger-than-2gib.patch
 
