@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ubifs-superc-replace-seq_printf-by-seq_puts.patch added to
- -mm tree
-Date: Tue, 15 Jul 2014 14:00:37 -0700
-Message-ID: <53c59675.R+wOx1mXL9GMC+9p%akpm@linux-foundation.org>
+Subject: + fs-fscache-make-ctl_table-static.patch added to -mm tree
+Date: Tue, 15 Jul 2014 14:00:41 -0700
+Message-ID: <53c59679.QK8wj1PsuMenjmxJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:46966 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751411AbaGOVAi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 17:00:38 -0400
-Received: by mail-ie0-f201.google.com with SMTP id tr6so973338ieb.0
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 14:00:37 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:36117 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990AbaGOVAm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 17:00:42 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so1309908oah.0
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 14:00:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, adrian.hunter@intel.com, dedekind1@gmail.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, dhowells@redhat.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ubifs/super.c: replace seq_printf by seq_puts
+     Subject: fs/fscache: make ctl_table static
 has been added to the -mm tree.  Its filename is
-     fs-ubifs-superc-replace-seq_printf-by-seq_puts.patch
+     fs-fscache-make-ctl_table-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ubifs-superc-replace-seq_printf-by-seq_puts.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-fscache-make-ctl_table-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ubifs-superc-replace-seq_printf-by-seq_puts.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-fscache-make-ctl_table-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,49 +41,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/ubifs/super.c: replace seq_printf by seq_puts
+Subject: fs/fscache: make ctl_table static
 
-Fix checkpatch warnings:
-"WARNING: Prefer seq_puts to seq_printf"
+fscache_sysctls and fscache_sysctls_root are only used in main.c
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/super.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/fscache/main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ubifs/super.c~fs-ubifs-superc-replace-seq_printf-by-seq_puts fs/ubifs/super.c
---- a/fs/ubifs/super.c~fs-ubifs-superc-replace-seq_printf-by-seq_puts
-+++ a/fs/ubifs/super.c
-@@ -424,19 +424,19 @@ static int ubifs_show_options(struct seq
- 	struct ubifs_info *c = root->d_sb->s_fs_info;
+diff -puN fs/fscache/main.c~fs-fscache-make-ctl_table-static fs/fscache/main.c
+--- a/fs/fscache/main.c~fs-fscache-make-ctl_table-static
++++ a/fs/fscache/main.c
+@@ -67,7 +67,7 @@ static int fscache_max_active_sysctl(str
+ 	return ret;
+ }
  
- 	if (c->mount_opts.unmount_mode == 2)
--		seq_printf(s, ",fast_unmount");
-+		seq_puts(s, ",fast_unmount");
- 	else if (c->mount_opts.unmount_mode == 1)
--		seq_printf(s, ",norm_unmount");
-+		seq_puts(s, ",norm_unmount");
+-struct ctl_table fscache_sysctls[] = {
++static struct ctl_table fscache_sysctls[] = {
+ 	{
+ 		.procname	= "object_max_active",
+ 		.data		= &fscache_object_max_active,
+@@ -87,7 +87,7 @@ struct ctl_table fscache_sysctls[] = {
+ 	{}
+ };
  
- 	if (c->mount_opts.bulk_read == 2)
--		seq_printf(s, ",bulk_read");
-+		seq_puts(s, ",bulk_read");
- 	else if (c->mount_opts.bulk_read == 1)
--		seq_printf(s, ",no_bulk_read");
-+		seq_puts(s, ",no_bulk_read");
- 
- 	if (c->mount_opts.chk_data_crc == 2)
--		seq_printf(s, ",chk_data_crc");
-+		seq_puts(s, ",chk_data_crc");
- 	else if (c->mount_opts.chk_data_crc == 1)
--		seq_printf(s, ",no_chk_data_crc");
-+		seq_puts(s, ",no_chk_data_crc");
- 
- 	if (c->mount_opts.override_compr) {
- 		seq_printf(s, ",compr=%s",
+-struct ctl_table fscache_sysctls_root[] = {
++static struct ctl_table fscache_sysctls_root[] = {
+ 	{
+ 		.procname	= "fscache",
+ 		.mode		= 0555,
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
