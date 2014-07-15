@@ -1,172 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-acct-fix-coding-style-warnings-and-errors.patch added to -mm tree
-Date: Mon, 14 Jul 2014 13:43:21 -0700
-Message-ID: <53c440e9.+gbBc9YPV54mSxkB%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock.patch removed from -mm tree
+Date: Tue, 15 Jul 2014 12:17:13 -0700
+Message-ID: <53c57e39.UFTR+Bn1s9fuSDOZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:62520 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756215AbaGNUnW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jul 2014 16:43:22 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so817792pab.4
-        for <mm-commits@vger.kernel.org>; Mon, 14 Jul 2014 13:43:21 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:60739 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933168AbaGOTRP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 15:17:15 -0400
+Received: by mail-qc0-f201.google.com with SMTP id m20so689242qcx.4
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 12:17:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ionut.m.alexa@gmail.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/acct.c: fix coding style warnings and errors
-has been added to the -mm tree.  Its filename is
-     kernel-acct-fix-coding-style-warnings-and-errors.patch
+     Subject: slub: kmem_cache_shrink: check if partial list is empty under list_lock
+has been removed from the -mm tree.  Its filename was
+     slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-acct-fix-coding-style-warnings-and-errors.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-acct-fix-coding-style-warnings-and-errors.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Ionut Alexa <ionut.m.alexa@gmail.com>
-Subject: kernel/acct.c: fix coding style warnings and errors
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: slub: kmem_cache_shrink: check if partial list is empty under list_lock
 
-Signed-off-by: Ionut Alexa <ionut.m.alexa@gmail.com>
+SLUB's implementation of kmem_cache_shrink skips nodes that have
+nr_partial=0, because they surely don't have any empty slabs to free. 
+This check is done w/o holding any locks, therefore it can race with
+concurrent kfree adding an empty slab to a partial list.  As a result, a
+just shrinked cache can have empty slabs.
+
+This is unacceptable for kmemcg, which needs to be sure that there will be
+no empty slabs on dead memcg caches after kmem_cache_shrink was called,
+because otherwise we may leak a dead cache.
+
+Let's fix this race by checking if node partial list is empty under
+node->list_lock.  Since the nr_partial!=0 branch of kmem_cache_shrink does
+nothing if the list is empty, we can simply remove the nr_partial=0 check.
+
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ mm/slub.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/acct.c~kernel-acct-fix-coding-style-warnings-and-errors kernel/acct.c
---- a/kernel/acct.c~kernel-acct-fix-coding-style-warnings-and-errors
-+++ a/kernel/acct.c
-@@ -141,12 +141,12 @@ static int check_free_space(struct bsd_a
- 	if (acct->active) {
- 		if (act < 0) {
- 			acct->active = 0;
--			printk(KERN_INFO "Process accounting paused\n");
-+			pr_info("Process accounting paused\n");
- 		}
- 	} else {
- 		if (act > 0) {
- 			acct->active = 1;
--			printk(KERN_INFO "Process accounting resumed\n");
-+			pr_info("Process accounting resumed\n");
- 		}
- 	}
+diff -puN mm/slub.c~slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock mm/slub.c
+--- a/mm/slub.c~slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock
++++ a/mm/slub.c
+@@ -3395,9 +3395,6 @@ int __kmem_cache_shrink(struct kmem_cach
  
-@@ -261,6 +261,7 @@ SYSCALL_DEFINE1(acct, const char __user
+ 	flush_all(s);
+ 	for_each_kmem_cache_node(s, node, n) {
+-		if (!n->nr_partial)
+-			continue;
+-
+ 		for (i = 0; i < objects; i++)
+ 			INIT_LIST_HEAD(slabs_by_inuse + i);
  
- 	if (name) {
- 		struct filename *tmp = getname(name);
-+
- 		if (IS_ERR(tmp))
- 			return PTR_ERR(tmp);
- 		error = acct_on(tmp);
-@@ -376,7 +377,7 @@ static comp_t encode_comp_t(unsigned lon
- 	return exp;
- }
- 
--#if ACCT_VERSION==1 || ACCT_VERSION==2
-+#if ACCT_VERSION == 1 || ACCT_VERSION == 2
- /*
-  * encode an u64 into a comp2_t (24 bits)
-  *
-@@ -389,7 +390,7 @@ static comp_t encode_comp_t(unsigned lon
- #define MANTSIZE2       20                      /* 20 bit mantissa. */
- #define EXPSIZE2        5                       /* 5 bit base 2 exponent. */
- #define MAXFRACT2       ((1ul << MANTSIZE2) - 1) /* Maximum fractional value. */
--#define MAXEXP2         ((1 <<EXPSIZE2) - 1)    /* Maximum exponent. */
-+#define MAXEXP2         ((1 << EXPSIZE2) - 1)    /* Maximum exponent. */
- 
- static comp2_t encode_comp2_t(u64 value)
- {
-@@ -420,7 +421,7 @@ static comp2_t encode_comp2_t(u64 value)
- }
- #endif
- 
--#if ACCT_VERSION==3
-+#if ACCT_VERSION == 3
- /*
-  * encode an u64 into a 32 bit IEEE float
-  */
-@@ -429,8 +430,9 @@ static u32 encode_float(u64 value)
- 	unsigned exp = 190;
- 	unsigned u;
- 
--	if (value==0) return 0;
--	while ((s64)value > 0){
-+	if (value == 0)
-+		return 0;
-+	while ((s64)value > 0) {
- 		value <<= 1;
- 		exp--;
- 	}
-@@ -490,16 +492,17 @@ static void do_acct_process(struct bsd_a
- 		       + current->group_leader->start_time.tv_nsec;
- 	/* convert nsec -> AHZ */
- 	elapsed = nsec_to_AHZ(run_time);
--#if ACCT_VERSION==3
-+#if ACCT_VERSION == 3
- 	ac.ac_etime = encode_float(elapsed);
- #else
- 	ac.ac_etime = encode_comp_t(elapsed < (unsigned long) -1l ?
--	                       (unsigned long) elapsed : (unsigned long) -1l);
-+				(unsigned long) elapsed : (unsigned long) -1l);
- #endif
--#if ACCT_VERSION==1 || ACCT_VERSION==2
-+#if ACCT_VERSION == 1 || ACCT_VERSION == 2
- 	{
- 		/* new enlarged etime field */
- 		comp2_t etime = encode_comp2_t(elapsed);
-+
- 		ac.ac_etime_hi = etime >> 16;
- 		ac.ac_etime_lo = (u16) etime;
- 	}
-@@ -509,15 +512,15 @@ static void do_acct_process(struct bsd_a
- 	/* we really need to bite the bullet and change layout */
- 	ac.ac_uid = from_kuid_munged(file->f_cred->user_ns, orig_cred->uid);
- 	ac.ac_gid = from_kgid_munged(file->f_cred->user_ns, orig_cred->gid);
--#if ACCT_VERSION==2
-+#if ACCT_VERSION == 2
- 	ac.ac_ahz = AHZ;
- #endif
--#if ACCT_VERSION==1 || ACCT_VERSION==2
-+#if ACCT_VERSION == 1 || ACCT_VERSION == 2
- 	/* backward-compatible 16 bit fields */
- 	ac.ac_uid16 = ac.ac_uid;
- 	ac.ac_gid16 = ac.ac_gid;
- #endif
--#if ACCT_VERSION==3
-+#if ACCT_VERSION == 3
- 	ac.ac_pid = task_tgid_nr_ns(current, ns);
- 	rcu_read_lock();
- 	ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent), ns);
-@@ -578,6 +581,7 @@ void acct_collect(long exitcode, int gro
- 
- 	if (group_dead && current->mm) {
- 		struct vm_area_struct *vma;
-+
- 		down_read(&current->mm->mmap_sem);
- 		vma = current->mm->mmap;
- 		while (vma) {
 _
 
-Patches currently in -mm which might be from ionut.m.alexa@gmail.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-kernel-acct-fix-coding-style-warnings-and-errors.patch
-kernel-exit-fix-coding-style-warnings-and-errors.patch
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+memcg-cleanup-memcg_cache_params-refcnt-usage.patch
+memcg-destroy-kmem-caches-when-last-slab-is-freed.patch
+memcg-mark-caches-that-belong-to-offline-memcgs-as-dead.patch
+slub-dont-fail-kmem_cache_shrink-if-slab-placement-optimization-fails.patch
+slub-make-slab_free-non-preemptable.patch
+memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
+slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
+slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
+slab-set-free_limit-for-dead-caches-to-0.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching.patch
+page-cgroup-trivial-cleanup.patch
+page-cgroup-get-rid-of-nr_pcg_flags.patch
+fork-exec-cleanup-mm-initialization.patch
+fork-reset-mm-pinned_vm.patch
+fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+fork-make-mm_init_owner-static.patch
+linux-next.patch
 
