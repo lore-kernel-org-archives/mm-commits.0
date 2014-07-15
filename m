@@ -1,21 +1,21 @@
 From: akpm@linux-foundation.org
 Subject: + sh7724-clock-fixes.patch added to -mm tree
-Date: Tue, 15 Jul 2014 14:55:48 -0700
-Message-ID: <53c5a364.VPGMgUvmXL5mqG1R%akpm@linux-foundation.org>
+Date: Tue, 15 Jul 2014 14:58:55 -0700
+Message-ID: <53c5a41f.ouX8uXtwWTj2wSaw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:33569 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933246AbaGOVzt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 17:55:49 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so11814pab.3
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 14:55:48 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:48039 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964884AbaGOV64 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 17:58:56 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so12371oah.0
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 14:58:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: danieruru@gmail.com, pebolle@tiscali.nl, richard@nod.at, mm-commits@vger.kernel.org
+To: danieruru@gmail.com, kuninori.morimoto.gx@renesas.com, pebolle@tiscali.nl, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -49,6 +49,7 @@ Add clocks called usb0 and usb1 so that r8a66597_hcd works again on the
 ecovec24 board
 
 Signed-off-by: Daniel Palmer <danieruru@gmail.com>
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
