@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + sh7724-clock-fixes.patch added to -mm tree
-Date: Tue, 15 Jul 2014 14:58:55 -0700
-Message-ID: <53c5a41f.ouX8uXtwWTj2wSaw%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch added to -mm tree
+Date: Tue, 15 Jul 2014 15:13:21 -0700
+Message-ID: <53c5a781.MdgD+IRxv4pRRqFv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:48039 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964884AbaGOV64 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 17:58:56 -0400
-Received: by mail-oa0-f73.google.com with SMTP id g18so12371oah.0
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 14:58:56 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:59625 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759533AbaGOWNX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 18:13:23 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 29so9108yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 15:13:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: danieruru@gmail.com, kuninori.morimoto.gx@renesas.com, pebolle@tiscali.nl, richard@nod.at, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: SH7724 clock fixes
+     Subject: checkpatch: add for_each tests to indentation and brace tests
 has been added to the -mm tree.  Its filename is
-     sh7724-clock-fixes.patch
+     checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh7724-clock-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh7724-clock-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,48 +41,128 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Palmer <danieruru@gmail.com>
-Subject: sh: SH7724 clock fixes
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add for_each tests to indentation and brace tests
 
-Fix the device name for the CMT.
+All the various for_each loop macros were not tested for
+trailing brace on the following lines and for bad indentation.
 
-Add clocks called usb0 and usb1 so that r8a66597_hcd works again on the
-ecovec24 board
+Add them.
 
-Signed-off-by: Daniel Palmer <danieruru@gmail.com>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Greg KH <gregkh@linuxfoundation.org>
+Cc: Andy Whitcroft <apw@canonical.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/cpu/sh4a/clock-sh7724.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/sh/kernel/cpu/sh4a/clock-sh7724.c~sh7724-clock-fixes arch/sh/kernel/cpu/sh4a/clock-sh7724.c
---- a/arch/sh/kernel/cpu/sh4a/clock-sh7724.c~sh7724-clock-fixes
-+++ a/arch/sh/kernel/cpu/sh4a/clock-sh7724.c
-@@ -307,7 +307,7 @@ static struct clk_lookup lookups[] = {
- 	CLKDEV_ICK_ID("fck", "sh-tmu.0", &mstp_clks[HWBLK_TMU0]),
- 	CLKDEV_ICK_ID("fck", "sh-tmu.1", &mstp_clks[HWBLK_TMU1]),
+diff -puN scripts/checkpatch.pl~checkpatch-add-for_each-tests-to-indentation-and-brace-tests scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-for_each-tests-to-indentation-and-brace-tests
++++ a/scripts/checkpatch.pl
+@@ -2698,7 +2698,7 @@ sub process {
  
--	CLKDEV_ICK_ID("fck", "sh-cmt-16.0", &mstp_clks[HWBLK_CMT]),
-+	CLKDEV_ICK_ID("fck", "sh-cmt-32.0", &mstp_clks[HWBLK_CMT]),
- 	CLKDEV_DEV_ID("sh-wdt.0", &mstp_clks[HWBLK_RWDT]),
- 	CLKDEV_DEV_ID("sh-dma-engine.1", &mstp_clks[HWBLK_DMAC1]),
+ # if/while/etc brace do not go on next line, unless defining a do while loop,
+ # or if that brace on the next line is for something else
+-		if ($line =~ /(.*)\b((?:if|while|for|switch)\s*\(|do\b|else\b)/ && $line !~ /^.\s*\#/) {
++		if ($line =~ /(.*)\b((?:if|while|for|switch|(?:[a-z_]+|)for_each[a-z_]+)\s*\(|do\b|else\b)/ && $line !~ /^.\s*\#/) {
+ 			my $pre_ctx = "$1$2";
  
-@@ -332,6 +332,8 @@ static struct clk_lookup lookups[] = {
- 	CLKDEV_CON_ID("tsif0", &mstp_clks[HWBLK_TSIF]),
- 	CLKDEV_DEV_ID("renesas_usbhs.1", &mstp_clks[HWBLK_USB1]),
- 	CLKDEV_DEV_ID("renesas_usbhs.0", &mstp_clks[HWBLK_USB0]),
-+	CLKDEV_CON_ID("usb1", &mstp_clks[HWBLK_USB1]),
-+	CLKDEV_CON_ID("usb0", &mstp_clks[HWBLK_USB0]),
- 	CLKDEV_CON_ID("2dg0", &mstp_clks[HWBLK_2DG]),
- 	CLKDEV_DEV_ID("sh_mobile_sdhi.0", &mstp_clks[HWBLK_SDHI0]),
- 	CLKDEV_DEV_ID("sh_mobile_sdhi.1", &mstp_clks[HWBLK_SDHI1]),
+ 			my ($level, @ctx) = ctx_statement_level($linenr, $realcnt, 0);
+@@ -2744,7 +2744,7 @@ sub process {
+ 		}
+ 
+ # Check relative indent for conditionals and blocks.
+-		if ($line =~ /\b(?:(?:if|while|for)\s*\(|do\b)/ && $line !~ /^.\s*#/ && $line !~ /\}\s*while\s*/) {
++		if ($line =~ /\b(?:(?:if|while|for|(?:[a-z_]+|)for_each[a-z_]+)\s*\(|do\b)/ && $line !~ /^.\s*#/ && $line !~ /\}\s*while\s*/) {
+ 			($stat, $cond, $line_nr_next, $remain_next, $off_next) =
+ 				ctx_statement_block($linenr, $realcnt, 0)
+ 					if (!defined $stat);
 _
 
-Patches currently in -mm which might be from danieruru@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-sh7724-clock-fixes.patch
+fs-fscache-make-ctl_table-static.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
+printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
+printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
+printk-tweak-do_syslog-to-match-comments.patch
+maintainers-remove-two-ancient-eata-sections.patch
+kernelh-remove-deprecated-pack_hex_byte.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
+checkpatch-ignore-email-headers-better.patch
+checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
+checkpatch-add-a-multiple-blank-lines-test.patch
+checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
+checkpatch-quiet-kconfig-help-message-checking.patch
+checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
+checkpatch-allow-multiple-const-types.patch
+checkpatch-improve-no-space-after-cast-test.patch
+checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
+checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+checkpatch-emit-a-warning-on-file-add-move-delete.patch
+checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation.patch
+checkpatch-add-an-index-variable-for-fixed-lines.patch
+checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file.patch
+checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch
+checkpatch-use-the-correct-indentation-for-which.patch
+checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
+checkpatch-fix-brace-style-misuses-of-else-and-while.patch
+checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
+fs-isofs-logging-clean-up.patch
+proc-constify-seq_operations.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
+linux-next.patch
+pci-dma-compat-add-pci_zalloc_consistent-helper.patch
+atm-use-pci_zalloc_consistent.patch
+block-use-pci_zalloc_consistent.patch
+crypto-use-pci_zalloc_consistent.patch
+infiniband-use-pci_zalloc_consistent.patch
+i810-use-pci_zalloc_consistent.patch
+media-use-pci_zalloc_consistent.patch
+amd-use-pci_zalloc_consistent.patch
+atl1e-use-pci_zalloc_consistent.patch
+enic-use-pci_zalloc_consistent.patch
+sky2-use-pci_zalloc_consistent.patch
+micrel-use-pci_zalloc_consistent.patch
+qlogic-use-pci_zalloc_consistent.patch
+irda-use-pci_zalloc_consistent.patch
+ipw2100-use-pci_zalloc_consistent.patch
+mwl8k-use-pci_zalloc_consistent.patch
+rtl818x-use-pci_zalloc_consistent.patch
+rtlwifi-use-pci_zalloc_consistent.patch
+scsi-use-pci_zalloc_consistent.patch
+staging-use-pci_zalloc_consistent.patch
+synclink_gt-use-pci_zalloc_consistent.patch
+vme-bridges-use-pci_zalloc_consistent.patch
+amd-neaten-and-remove-unnecessary-oom-messages.patch
+maintainers-update-microcode-patterns.patch
+maintainers-update-cifs-location.patch
+maintainers-use-the-correct-efi-stub-location.patch
+maintainers-update-clk-sirf-patterns.patch
+maintainers-fix-ssbi-pattern.patch
+maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
+maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
+maintainers-update-picoxcell-patterns.patch
+maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
+maintainers-remove-metag-imgdafs-pattern.patch
+maintainers-remove-unused-radeon-drm-pattern.patch
+maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
+maintainers-remove-unused-nfsd-pattern.patch
 
