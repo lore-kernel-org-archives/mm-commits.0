@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ubifs-ioc-kernel-doc-warning-fix.patch added to -mm tree
-Date: Tue, 15 Jul 2014 14:00:40 -0700
-Message-ID: <53c59678.Z8qIwc+ux0Xq9xDQ%akpm@linux-foundation.org>
+Subject: + fs-ubifs-superc-replace-seq_printf-by-seq_puts.patch added to
+ -mm tree
+Date: Tue, 15 Jul 2014 14:00:37 -0700
+Message-ID: <53c59675.R+wOx1mXL9GMC+9p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:50037 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750990AbaGOVAl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 17:00:41 -0400
-Received: by mail-pd0-f201.google.com with SMTP id v10so1408954pde.0
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 14:00:41 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:46966 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751411AbaGOVAi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 17:00:38 -0400
+Received: by mail-ie0-f201.google.com with SMTP id tr6so973338ieb.0
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 14:00:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, adrian.hunter@intel.com, dedekind1@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ubifs/io.c: kernel-doc warning fix
+     Subject: fs/ubifs/super.c: replace seq_printf by seq_puts
 has been added to the -mm tree.  Its filename is
-     fs-ubifs-ioc-kernel-doc-warning-fix.patch
+     fs-ubifs-superc-replace-seq_printf-by-seq_puts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ubifs-ioc-kernel-doc-warning-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ubifs-superc-replace-seq_printf-by-seq_puts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ubifs-ioc-kernel-doc-warning-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ubifs-superc-replace-seq_printf-by-seq_puts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,9 +42,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/ubifs/io.c: kernel-doc warning fix
+Subject: fs/ubifs/super.c: replace seq_printf by seq_puts
 
-s/data/timer
+Fix checkpatch warnings:
+"WARNING: Prefer seq_puts to seq_printf"
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Artem Bityutskiy <dedekind1@gmail.com>
@@ -51,21 +53,38 @@ Cc: Adrian Hunter <adrian.hunter@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/io.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ubifs/super.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/ubifs/io.c~fs-ubifs-ioc-kernel-doc-warning-fix fs/ubifs/io.c
---- a/fs/ubifs/io.c~fs-ubifs-ioc-kernel-doc-warning-fix
-+++ a/fs/ubifs/io.c
-@@ -431,7 +431,7 @@ void ubifs_prep_grp_node(struct ubifs_in
+diff -puN fs/ubifs/super.c~fs-ubifs-superc-replace-seq_printf-by-seq_puts fs/ubifs/super.c
+--- a/fs/ubifs/super.c~fs-ubifs-superc-replace-seq_printf-by-seq_puts
++++ a/fs/ubifs/super.c
+@@ -424,19 +424,19 @@ static int ubifs_show_options(struct seq
+ 	struct ubifs_info *c = root->d_sb->s_fs_info;
  
- /**
-  * wbuf_timer_callback - write-buffer timer callback function.
-- * @data: timer data (write-buffer descriptor)
-+ * @timer: timer data (write-buffer descriptor)
-  *
-  * This function is called when the write-buffer timer expires.
-  */
+ 	if (c->mount_opts.unmount_mode == 2)
+-		seq_printf(s, ",fast_unmount");
++		seq_puts(s, ",fast_unmount");
+ 	else if (c->mount_opts.unmount_mode == 1)
+-		seq_printf(s, ",norm_unmount");
++		seq_puts(s, ",norm_unmount");
+ 
+ 	if (c->mount_opts.bulk_read == 2)
+-		seq_printf(s, ",bulk_read");
++		seq_puts(s, ",bulk_read");
+ 	else if (c->mount_opts.bulk_read == 1)
+-		seq_printf(s, ",no_bulk_read");
++		seq_puts(s, ",no_bulk_read");
+ 
+ 	if (c->mount_opts.chk_data_crc == 2)
+-		seq_printf(s, ",chk_data_crc");
++		seq_puts(s, ",chk_data_crc");
+ 	else if (c->mount_opts.chk_data_crc == 1)
+-		seq_printf(s, ",no_chk_data_crc");
++		seq_puts(s, ",no_chk_data_crc");
+ 
+ 	if (c->mount_opts.override_compr) {
+ 		seq_printf(s, ",compr=%s",
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
