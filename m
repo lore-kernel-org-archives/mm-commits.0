@@ -1,52 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- shmem-fix-faulting-into-a-hole-while-its-punched-take-2.patch removed from
- -mm tree
-Date: Tue, 15 Jul 2014 12:37:31 -0700
-Message-ID: <53c582fb.pPYzoRSAZzSsA1hu%akpm@linux-foundation.org>
+Subject: + shmem-fix-splicing-from-a-hole-while-its-punched.patch added to -mm tree
+Date: Tue, 15 Jul 2014 12:39:18 -0700
+Message-ID: <53c58366.027mKKJC/JnqxMzI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:59284 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933172AbaGOThc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 15:37:32 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so90536pab.5
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 12:37:31 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:35147 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933213AbaGOTjT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 15:39:19 -0400
+Received: by mail-qc0-f202.google.com with SMTP id i17so478039qcy.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 12:39:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, davej@redhat.com, koct9i@gmail.com, lczerner@redhat.com, sasha.levin@oracle.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: hughd@google.com, davej@redhat.com, hannes@cmpxchg.org, koct9i@gmail.com, lczerner@redhat.com, sasha.levin@oracle.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: fix faulting into a hole while it's punched, take 2
-has been removed from the -mm tree.  Its filename was
-     shmem-fix-faulting-into-a-hole-while-its-punched-take-2.patch
+     Subject: shmem: fix splicing from a hole while it's punched
+has been added to the -mm tree.  Its filename is
+     shmem-fix-splicing-from-a-hole-while-its-punched.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/shmem-fix-splicing-from-a-hole-while-its-punched.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-fix-splicing-from-a-hole-while-its-punched.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: shmem: fix faulting into a hole while it's punched, take 2
+Subject: shmem: fix splicing from a hole while it's punched
 
-Trinity finds that mmap access to a hole while it's punched from shmem can
-prevent the madvise(MADV_REMOVE) or fallocate(FALLOC_FL_PUNCH_HOLE) from
-completing, until the (killable) reader stops; with the puncher's hold on
-i_mutex locking out all other writers until it can complete.  This issue
-was tagged with CVE-2014-4171.
+shmem_fault() is the actual culprit in trinity's hole-punch starvation,
+and the most significant cause of such problems: since a page faulted is
+one that then appears page_mapped(), needing unmap_mapping_range() and
+i_mmap_mutex to be unmapped again.
 
-It appears that the tmpfs fault path is too light in comparison with its
-hole-punching path, lacking an i_data_sem to obstruct it; but we don't
-want to slow down the common case.  It is not a problem in truncation,
-because there the SIGBUS beyond i_size stops pages from being appended.
+But it is not the only way in which a page can be brought into a hole in
+the radix_tree while that hole is being punched; and Vlastimil's testing
+implies that if enough other processors are busy filling in the hole, then
+shmem_undo_range() can be kept from completing indefinitely.
 
-The origin of this problem is my v3.1 commit d0823576bf4b ("mm: pincer in
-truncate_inode_pages_range"), once it was duplicated into shmem.c.  It
-seemed like a nice idea at the time, to ensure (barring RCU lookup
-fuzziness) that there's an instant when the entire hole is empty; but the
-indefinitely repeated scans to ensure that make it vulnerable.
+shmem_file_splice_read() is the main other user of SGP_CACHE, which can
+instantiate shmem pagecache pages in the read-only case (without holding
+i_mutex, so perhaps concurrently with a hole-punch).  Probably it's silly
+not to use SGP_READ already (using the ZERO_PAGE for holes): which ought
+to be safe, but might bring surprises - not a change to be rushed.
+
+shmem_read_mapping_page_gfp() is an internal interface used by
+drivers/gpu/drm GEM (and next by uprobes): it should be okay.  And
+shmem_file_read_iter() uses the SGP_DIRTY variant of SGP_CACHE, when
+called internally by the kernel (perhaps for a stacking filesystem, which
+might rely on holes to be reserved): it's unclear whether it could be
+provoked to keep hole-punch busy or not.
+
+We could apply the same umbrella as now used in shmem_fault() to
+shmem_file_splice_read() and the others; but it looks ugly, and use over a
+range raises questions - should it actually be per page?  can these get
+starved themselves?
+
+The origin of this part of the problem is my v3.1 commit d0823576bf4b
+("mm: pincer in truncate_inode_pages_range"), once it was duplicated into
+shmem.c.  It seemed like a nice idea at the time, to ensure (barring RCU
+lookup fuzziness) that there's an instant when the entire hole is empty;
+but the indefinitely repeated scans to ensure that make it vulnerable.
 
 Revert that "enhancement" to hole-punch from shmem_undo_range(), but
 retain the unproblematic rescanning when it's truncating; add a couple of
@@ -58,25 +87,27 @@ worth avoiding here.
 
 But if we do not always loop indefinitely, we do need to handle the case
 of swap swizzled back to page before shmem_free_swap() gets it: add a
-retry for that case, as suggested by Konstantin Khlebnikov.
+retry for that case, as suggested by Konstantin Khlebnikov; and for the
+case of page swizzled back to swap, as suggested by Johannes Weiner.
 
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Suggested-and-Tested-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Lukas Czerner <lczerner@redhat.com>
 Cc: Dave Jones <davej@redhat.com>
 Cc: <stable@vger.kernel.org>	[3.1+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ mm/shmem.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN mm/shmem.c~shmem-fix-faulting-into-a-hole-while-its-punched-take-2 mm/shmem.c
---- a/mm/shmem.c~shmem-fix-faulting-into-a-hole-while-its-punched-take-2
+diff -puN mm/shmem.c~shmem-fix-splicing-from-a-hole-while-its-punched mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-splicing-from-a-hole-while-its-punched
 +++ a/mm/shmem.c
-@@ -467,23 +467,20 @@ static void shmem_undo_range(struct inod
+@@ -468,23 +468,20 @@ static void shmem_undo_range(struct inod
  		return;
  
  	index = start;
@@ -104,7 +135,7 @@ diff -puN mm/shmem.c~shmem-fix-faulting-into-a-hole-while-its-punched-take-2 mm/
  		mem_cgroup_uncharge_start();
  		for (i = 0; i < pagevec_count(&pvec); i++) {
  			struct page *page = pvec.pages[i];
-@@ -495,8 +492,12 @@ static void shmem_undo_range(struct inod
+@@ -496,8 +493,12 @@ static void shmem_undo_range(struct inod
  			if (radix_tree_exceptional_entry(page)) {
  				if (unfalloc)
  					continue;
@@ -119,10 +150,24 @@ diff -puN mm/shmem.c~shmem-fix-faulting-into-a-hole-while-its-punched-take-2 mm/
  				continue;
  			}
  
+@@ -506,6 +507,11 @@ static void shmem_undo_range(struct inod
+ 				if (page->mapping == mapping) {
+ 					VM_BUG_ON_PAGE(PageWriteback(page), page);
+ 					truncate_inode_page(mapping, page);
++				} else {
++					/* Page was replaced by swap: retry */
++					unlock_page(page);
++					index--;
++					break;
+ 				}
+ 			}
+ 			unlock_page(page);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
 
+shmem-fix-faulting-into-a-hole-not-taking-i_mutex.patch
+shmem-fix-splicing-from-a-hole-while-its-punched.patch
 mm-fs-fix-pessimization-in-hole-punching-pagecache.patch
 rmap-fix-pgoff-calculation-to-handle-hugepage-correctly.patch
 mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
