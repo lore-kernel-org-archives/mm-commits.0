@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: +
- checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch added to -mm tree
-Date: Tue, 15 Jul 2014 15:13:21 -0700
-Message-ID: <53c5a781.MdgD+IRxv4pRRqFv%akpm@linux-foundation.org>
+ describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers.patch added to -mm tree
+Date: Tue, 15 Jul 2014 15:37:36 -0700
+Message-ID: <53c5ad30.KzY/danlncoNR2qh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:59625 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759533AbaGOWNX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 18:13:23 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 29so9108yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 15:13:21 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:59395 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756855AbaGOWhh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 18:37:37 -0400
+Received: by mail-oa0-f74.google.com with SMTP id eb12so21705oac.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 15:37:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: cassella@cray.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add for_each tests to indentation and brace tests
+     Subject: mm: describe mmap_sem rules for __lock_page_or_retry() and  callers
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
+     describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,128 +41,258 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add for_each tests to indentation and brace tests
+From: Paul Cassella <cassella@cray.com>
+Subject: mm: describe mmap_sem rules for __lock_page_or_retry() and  callers
 
-All the various for_each loop macros were not tested for
-trailing brace on the following lines and for bad indentation.
+Add a comment describing the circumstances in which __lock_page_or_retry()
+will or will not release the mmap_sem when returning 0.
 
-Add them.
+Add comments to lock_page_or_retry()'s callers (filemap_fault(),
+do_swap_page()) noting the impact on VM_FAULT_RETRY returns.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Greg KH <gregkh@linuxfoundation.org>
-Cc: Andy Whitcroft <apw@canonical.com
+Add comments on up the call tree, particularly replacing the false "We
+return with mmap_sem still held" comments.
+
+Signed-off-by: Paul Cassella <cassella@cray.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/mm/fault.c     |    3 ++-
+ include/linux/pagemap.h |    3 +++
+ mm/filemap.c            |   23 +++++++++++++++++++++++
+ mm/gup.c                |   18 +++++++++++++++---
+ mm/memory.c             |   34 +++++++++++++++++++++++++++++++---
+ mm/mlock.c              |    9 ++++++++-
+ 6 files changed, 82 insertions(+), 8 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-for_each-tests-to-indentation-and-brace-tests scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-for_each-tests-to-indentation-and-brace-tests
-+++ a/scripts/checkpatch.pl
-@@ -2698,7 +2698,7 @@ sub process {
+diff -puN arch/x86/mm/fault.c~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers arch/x86/mm/fault.c
+--- a/arch/x86/mm/fault.c~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers
++++ a/arch/x86/mm/fault.c
+@@ -1212,7 +1212,8 @@ good_area:
+ 	/*
+ 	 * If for any reason at all we couldn't handle the fault,
+ 	 * make sure we exit gracefully rather than endlessly redo
+-	 * the fault:
++	 * the fault.  Since we never set FAULT_FLAG_RETRY_NOWAIT, if
++	 * we get VM_FAULT_RETRY back, the mmap_sem has been unlocked.
+ 	 */
+ 	fault = handle_mm_fault(mm, vma, address, flags);
  
- # if/while/etc brace do not go on next line, unless defining a do while loop,
- # or if that brace on the next line is for something else
--		if ($line =~ /(.*)\b((?:if|while|for|switch)\s*\(|do\b|else\b)/ && $line !~ /^.\s*\#/) {
-+		if ($line =~ /(.*)\b((?:if|while|for|switch|(?:[a-z_]+|)for_each[a-z_]+)\s*\(|do\b|else\b)/ && $line !~ /^.\s*\#/) {
- 			my $pre_ctx = "$1$2";
+diff -puN include/linux/pagemap.h~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers include/linux/pagemap.h
+--- a/include/linux/pagemap.h~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers
++++ a/include/linux/pagemap.h
+@@ -484,6 +484,9 @@ static inline int lock_page_killable(str
+ /*
+  * lock_page_or_retry - Lock the page, unless this would block and the
+  * caller indicated that it can handle a retry.
++ *
++ * Return value and mmap_sem implications depend on flags; see
++ * __lock_page_or_retry().
+  */
+ static inline int lock_page_or_retry(struct page *page, struct mm_struct *mm,
+ 				     unsigned int flags)
+diff -puN mm/filemap.c~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers mm/filemap.c
+--- a/mm/filemap.c~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers
++++ a/mm/filemap.c
+@@ -819,6 +819,17 @@ int __lock_page_killable(struct page *pa
+ }
+ EXPORT_SYMBOL_GPL(__lock_page_killable);
  
- 			my ($level, @ctx) = ctx_statement_level($linenr, $realcnt, 0);
-@@ -2744,7 +2744,7 @@ sub process {
- 		}
++/*
++ * Return values:
++ * 1 - page is locked; mmap_sem is still held.
++ * 0 - page is not locked.
++ *     mmap_sem has been released (up_read()), unless flags had both
++ *     FAULT_FLAG_ALLOW_RETRY and FAULT_FLAG_RETRY_NOWAIT set, in
++ *     which case mmap_sem is still held.
++ *
++ * If neither ALLOW_RETRY nor KILLABLE are set, will always return 1
++ * with the page locked and the mmap_sem unperturbed.
++ */
+ int __lock_page_or_retry(struct page *page, struct mm_struct *mm,
+ 			 unsigned int flags)
+ {
+@@ -1835,6 +1846,18 @@ static void do_async_mmap_readahead(stru
+  * The goto's are kind of ugly, but this streamlines the normal case of having
+  * it in the page cache, and handles the special cases reasonably without
+  * having a lot of duplicated code.
++ *
++ * vma->vm_mm->mmap_sem must be held on entry.
++ *
++ * If our return value has VM_FAULT_RETRY set, it's because
++ * lock_page_or_retry() returned 0.
++ * The mmap_sem has usually been released in this case.
++ * See __lock_page_or_retry() for the exception.
++ *
++ * If our return value does not have VM_FAULT_RETRY set, the mmap_sem
++ * has not been released.
++ *
++ * We never return with VM_FAULT_RETRY and a bit from VM_FAULT_ERROR set.
+  */
+ int filemap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+diff -puN mm/gup.c~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers mm/gup.c
+--- a/mm/gup.c~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers
++++ a/mm/gup.c
+@@ -258,6 +258,11 @@ unmap:
+ 	return ret;
+ }
  
- # Check relative indent for conditionals and blocks.
--		if ($line =~ /\b(?:(?:if|while|for)\s*\(|do\b)/ && $line !~ /^.\s*#/ && $line !~ /\}\s*while\s*/) {
-+		if ($line =~ /\b(?:(?:if|while|for|(?:[a-z_]+|)for_each[a-z_]+)\s*\(|do\b)/ && $line !~ /^.\s*#/ && $line !~ /\}\s*while\s*/) {
- 			($stat, $cond, $line_nr_next, $remain_next, $off_next) =
- 				ctx_statement_block($linenr, $realcnt, 0)
- 					if (!defined $stat);
++/*
++ * mmap_sem must be held on entry.  If @nonblocking != NULL and
++ * *@flags does not include FOLL_NOWAIT, the mmap_sem may be released.
++ * If it is, *@nonblocking will be set to 0 and -EBUSY returned.
++ */
+ static int faultin_page(struct task_struct *tsk, struct vm_area_struct *vma,
+ 		unsigned long address, unsigned int *flags, int *nonblocking)
+ {
+@@ -373,7 +378,7 @@ static int check_vma_flags(struct vm_are
+  * with a put_page() call when it is finished with. vmas will only
+  * remain valid while mmap_sem is held.
+  *
+- * Must be called with mmap_sem held for read or write.
++ * Must be called with mmap_sem held.  It may be released.  See below.
+  *
+  * __get_user_pages walks a process's page tables and takes a reference to
+  * each struct page that each user address corresponds to at a given
+@@ -396,7 +401,14 @@ static int check_vma_flags(struct vm_are
+  *
+  * If @nonblocking != NULL, __get_user_pages will not wait for disk IO
+  * or mmap_sem contention, and if waiting is needed to pin all pages,
+- * *@nonblocking will be set to 0.
++ * *@nonblocking will be set to 0.  Further, if @gup_flags does not
++ * include FOLL_NOWAIT, the mmap_sem will be released via up_read() in
++ * this case.
++ *
++ * A caller using such a combination of @nonblocking and @gup_flags
++ * must therefore hold the mmap_sem for reading only, and recognize
++ * when it's been released.  Otherwise, it must be held for either
++ * reading or writing and will not be released.
+  *
+  * In most cases, get_user_pages or get_user_pages_fast should be used
+  * instead of __get_user_pages. __get_user_pages should be used only if
+@@ -528,7 +540,7 @@ EXPORT_SYMBOL(__get_user_pages);
+  * such architectures, gup() will not be enough to make a subsequent access
+  * succeed.
+  *
+- * This should be called with the mm_sem held for read.
++ * This has the same semantics wrt the @mm->mmap_sem as does filemap_fault().
+  */
+ int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
+ 		     unsigned long address, unsigned int fault_flags)
+diff -puN mm/memory.c~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers mm/memory.c
+--- a/mm/memory.c~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers
++++ a/mm/memory.c
+@@ -2400,7 +2400,10 @@ EXPORT_SYMBOL(unmap_mapping_range);
+ /*
+  * We enter with non-exclusive mmap_sem (to exclude vma changes,
+  * but allow concurrent faults), and pte mapped but not yet locked.
+- * We return with mmap_sem still held, but pte unmapped and unlocked.
++ * We return with pte unmapped and unlocked.
++ *
++ * We return with the mmap_sem locked or unlocked in the same cases
++ * as does filemap_fault().
+  */
+ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pte_t *page_table, pmd_t *pmd,
+@@ -2690,6 +2693,11 @@ oom:
+ 	return VM_FAULT_OOM;
+ }
+ 
++/*
++ * The mmap_sem must have been held on entry, and may have been
++ * released depending on flags and vma->vm_ops->fault() return value.
++ * See filemap_fault() and __lock_page_retry().
++ */
+ static int __do_fault(struct vm_area_struct *vma, unsigned long address,
+ 		pgoff_t pgoff, unsigned int flags, struct page **page)
+ {
+@@ -3018,6 +3026,12 @@ static int do_shared_fault(struct mm_str
+ 	return ret;
+ }
+ 
++/*
++ * We enter with non-exclusive mmap_sem (to exclude vma changes,
++ * but allow concurrent faults).
++ * The mmap_sem may have been released depending on flags and our
++ * return value.  See filemap_fault() and __lock_page_or_retry().
++ */
+ static int do_linear_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pte_t *page_table, pmd_t *pmd,
+ 		unsigned int flags, pte_t orig_pte)
+@@ -3042,7 +3056,9 @@ static int do_linear_fault(struct mm_str
+  *
+  * We enter with non-exclusive mmap_sem (to exclude vma changes,
+  * but allow concurrent faults), and pte mapped but not yet locked.
+- * We return with mmap_sem still held, but pte unmapped and unlocked.
++ * We return with pte unmapped and unlocked.
++ * The mmap_sem may have been released depending on flags and our
++ * return value.  See filemap_fault() and __lock_page_or_retry().
+  */
+ static int do_nonlinear_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pte_t *page_table, pmd_t *pmd,
+@@ -3174,7 +3190,10 @@ out:
+  *
+  * We enter with non-exclusive mmap_sem (to exclude vma changes,
+  * but allow concurrent faults), and pte mapped but not yet locked.
+- * We return with mmap_sem still held, but pte unmapped and unlocked.
++ * We return with pte unmapped and unlocked.
++ *
++ * The mmap_sem may have been released depending on flags and our
++ * return value.  See filemap_fault() and __lock_page_or_retry().
+  */
+ static int handle_pte_fault(struct mm_struct *mm,
+ 		     struct vm_area_struct *vma, unsigned long address,
+@@ -3234,6 +3253,9 @@ unlock:
+ 
+ /*
+  * By the time we get here, we already hold the mm semaphore
++ *
++ * The mmap_sem may have been released depending on flags and our
++ * return value.  See filemap_fault() and __lock_page_or_retry().
+  */
+ static int __handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			     unsigned long address, unsigned int flags)
+@@ -3315,6 +3337,12 @@ static int __handle_mm_fault(struct mm_s
+ 	return handle_pte_fault(mm, vma, address, pte, pmd, flags);
+ }
+ 
++/*
++ * By the time we get here, we already hold the mm semaphore
++ *
++ * The mmap_sem may have been released depending on flags and our
++ * return value.  See filemap_fault() and __lock_page_or_retry().
++ */
+ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		    unsigned long address, unsigned int flags)
+ {
+diff -puN mm/mlock.c~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers mm/mlock.c
+--- a/mm/mlock.c~describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers
++++ a/mm/mlock.c
+@@ -210,12 +210,19 @@ out:
+  * @vma:   target vma
+  * @start: start address
+  * @end:   end address
++ * @nonblocking:
+  *
+  * This takes care of making the pages present too.
+  *
+  * return 0 on success, negative error code on error.
+  *
+- * vma->vm_mm->mmap_sem must be held for at least read.
++ * vma->vm_mm->mmap_sem must be held.
++ *
++ * If @nonblocking is NULL, it may be held for read or write and will
++ * be unperturbed.
++ *
++ * If @nonblocking is non-NULL, it must held for read only and may be
++ * released.  If it's released, *@nonblocking will be set to 0.
+  */
+ long __mlock_vma_pages_range(struct vm_area_struct *vma,
+ 		unsigned long start, unsigned long end, int *nonblocking)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from cassella@cray.com are
 
-fs-fscache-make-ctl_table-static.patch
-fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
-printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
-printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
-printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
-printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
-printk-tweak-do_syslog-to-match-comments.patch
-maintainers-remove-two-ancient-eata-sections.patch
-kernelh-remove-deprecated-pack_hex_byte.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
-checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
-checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
-checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
-checkpatch-ignore-email-headers-better.patch
-checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
-checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
-checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
-checkpatch-add-a-multiple-blank-lines-test.patch
-checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
-checkpatch-quiet-kconfig-help-message-checking.patch
-checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
-checkpatch-allow-multiple-const-types.patch
-checkpatch-improve-no-space-after-cast-test.patch
-checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-checkpatch-emit-a-warning-on-file-add-move-delete.patch
-checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation.patch
-checkpatch-add-an-index-variable-for-fixed-lines.patch
-checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file.patch
-checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch
-checkpatch-use-the-correct-indentation-for-which.patch
-checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
-checkpatch-fix-brace-style-misuses-of-else-and-while.patch
-checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
-fs-isofs-logging-clean-up.patch
-proc-constify-seq_operations.patch
-sysctl-remove-now-unused-typedef-ctl_table.patch
-sysctl-remove-now-unused-typedef-ctl_table-fix.patch
-adfs-add-__printf-verification-fix-format-argument-mismatches.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
-linux-next.patch
-pci-dma-compat-add-pci_zalloc_consistent-helper.patch
-atm-use-pci_zalloc_consistent.patch
-block-use-pci_zalloc_consistent.patch
-crypto-use-pci_zalloc_consistent.patch
-infiniband-use-pci_zalloc_consistent.patch
-i810-use-pci_zalloc_consistent.patch
-media-use-pci_zalloc_consistent.patch
-amd-use-pci_zalloc_consistent.patch
-atl1e-use-pci_zalloc_consistent.patch
-enic-use-pci_zalloc_consistent.patch
-sky2-use-pci_zalloc_consistent.patch
-micrel-use-pci_zalloc_consistent.patch
-qlogic-use-pci_zalloc_consistent.patch
-irda-use-pci_zalloc_consistent.patch
-ipw2100-use-pci_zalloc_consistent.patch
-mwl8k-use-pci_zalloc_consistent.patch
-rtl818x-use-pci_zalloc_consistent.patch
-rtlwifi-use-pci_zalloc_consistent.patch
-scsi-use-pci_zalloc_consistent.patch
-staging-use-pci_zalloc_consistent.patch
-synclink_gt-use-pci_zalloc_consistent.patch
-vme-bridges-use-pci_zalloc_consistent.patch
-amd-neaten-and-remove-unnecessary-oom-messages.patch
-maintainers-update-microcode-patterns.patch
-maintainers-update-cifs-location.patch
-maintainers-use-the-correct-efi-stub-location.patch
-maintainers-update-clk-sirf-patterns.patch
-maintainers-fix-ssbi-pattern.patch
-maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
-maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
-maintainers-update-picoxcell-patterns.patch
-maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
-maintainers-remove-metag-imgdafs-pattern.patch
-maintainers-remove-unused-radeon-drm-pattern.patch
-maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
-maintainers-remove-unused-nfsd-pattern.patch
+describe-mmap_sem-rules-for-__lock_page_or_retry-and-callers.patch
 
