@@ -1,75 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock.patch removed from -mm tree
-Date: Tue, 15 Jul 2014 12:17:13 -0700
-Message-ID: <53c57e39.UFTR+Bn1s9fuSDOZ%akpm@linux-foundation.org>
+Subject: [withdrawn] slab-set-free_limit-for-dead-caches-to-0.patch
+ removed from -mm tree
+Date: Tue, 15 Jul 2014 12:17:15 -0700
+Message-ID: <53c57e3b.Kfvrv8eqqBIwDxIM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:60739 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933168AbaGOTRP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 15:17:15 -0400
-Received: by mail-qc0-f201.google.com with SMTP id m20so689242qcx.4
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 12:17:14 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:50118 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933003AbaGOTRQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jul 2014 15:17:16 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so83525pab.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2014 12:17:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: kmem_cache_shrink: check if partial list is empty under list_lock
+     Subject: slab: set free_limit for dead caches to 0
 has been removed from the -mm tree.  Its filename was
-     slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock.patch
+     slab-set-free_limit-for-dead-caches-to-0.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slub: kmem_cache_shrink: check if partial list is empty under list_lock
+Subject: slab: set free_limit for dead caches to 0
 
-SLUB's implementation of kmem_cache_shrink skips nodes that have
-nr_partial=0, because they surely don't have any empty slabs to free. 
-This check is done w/o holding any locks, therefore it can race with
-concurrent kfree adding an empty slab to a partial list.  As a result, a
-just shrinked cache can have empty slabs.
+We mustn't keep empty slabs on dead memcg caches, because otherwise they
+will never be destroyed.
 
-This is unacceptable for kmemcg, which needs to be sure that there will be
-no empty slabs on dead memcg caches after kmem_cache_shrink was called,
-because otherwise we may leak a dead cache.
+Currently, we check if the cache is dead in free_block and drop empty slab
+if so irrespective of the node's free_limit.  This can be pretty
+expensive.  So let's avoid this additional check by zeroing nodes'
+free_limit for dead caches on kmem_cache_shrink.  This way no additional
+overhead is added to free hot path.
 
-Let's fix this race by checking if node partial list is empty under
-node->list_lock.  Since the nr_partial!=0 branch of kmem_cache_shrink does
-nothing if the list is empty, we can simply remove the nr_partial=0 check.
+Note, since ->free_limit can be updated on cpu/memory hotplug, we must
+handle it properly there.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/slab.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN mm/slub.c~slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock mm/slub.c
---- a/mm/slub.c~slub-kmem_cache_shrink-check-if-partial-list-is-empty-under-list_lock
-+++ a/mm/slub.c
-@@ -3395,9 +3395,6 @@ int __kmem_cache_shrink(struct kmem_cach
+diff -puN mm/slab.c~slab-set-free_limit-for-dead-caches-to-0 mm/slab.c
+--- a/mm/slab.c~slab-set-free_limit-for-dead-caches-to-0
++++ a/mm/slab.c
+@@ -1156,11 +1156,13 @@ static int init_cache_node_node(int node
+ 			cachep->node[node] = n;
+ 		}
  
- 	flush_all(s);
- 	for_each_kmem_cache_node(s, node, n) {
--		if (!n->nr_partial)
--			continue;
--
- 		for (i = 0; i < objects; i++)
- 			INIT_LIST_HEAD(slabs_by_inuse + i);
+-		spin_lock_irq(&n->list_lock);
+-		n->free_limit =
+-			(1 + nr_cpus_node(node)) *
+-			cachep->batchcount + cachep->num;
+-		spin_unlock_irq(&n->list_lock);
++		if (!memcg_cache_dead(cachep)) {
++			spin_lock_irq(&n->list_lock);
++			n->free_limit =
++				(1 + nr_cpus_node(node)) *
++				cachep->batchcount + cachep->num;
++			spin_unlock_irq(&n->list_lock);
++		}
+ 	}
+ 	return 0;
+ }
+@@ -1194,7 +1196,8 @@ static void cpuup_canceled(long cpu)
+ 		spin_lock_irq(&n->list_lock);
  
+ 		/* Free limit for this kmem_cache_node */
+-		n->free_limit -= cachep->batchcount;
++		if (!memcg_cache_dead(cachep))
++			n->free_limit -= cachep->batchcount;
+ 		if (nc)
+ 			free_block(cachep, nc->entry, nc->avail, node);
+ 
+@@ -2545,6 +2548,12 @@ int __kmem_cache_shrink(struct kmem_cach
+ 
+ 	check_irq_on();
+ 	for_each_kmem_cache_node(cachep, node, n) {
++		if (memcg_cache_dead(cachep)) {
++			spin_lock_irq(&n->list_lock);
++			n->free_limit = 0;
++			spin_unlock_irq(&n->list_lock);
++		}
++
+ 		drain_freelist(cachep, n, slabs_tofree(cachep, n));
+ 
+ 		ret += !list_empty(&n->slabs_full) ||
+@@ -3427,8 +3436,7 @@ static void free_block(struct kmem_cache
+ 
+ 		/* fixup slab chains */
+ 		if (page->active == 0) {
+-			if (n->free_objects > n->free_limit ||
+-			    memcg_cache_dead(cachep)) {
++			if (n->free_objects > n->free_limit) {
+ 				n->free_objects -= cachep->num;
+ 				/* No need to drop any previously held
+ 				 * lock here, even if we have a off-slab slab
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
@@ -83,7 +123,6 @@ slub-make-slab_free-non-preemptable.patch
 memcg-wait-for-kfrees-to-finish-before-destroying-cache.patch
 slub-make-dead-memcg-caches-discard-free-slabs-immediately.patch
 slab-do-not-keep-free-objects-slabs-on-dead-memcg-caches.patch
-slab-set-free_limit-for-dead-caches-to-0.patch
 mm-memcontrol-fold-mem_cgroup_do_charge.patch
 mm-memcontrol-rearrange-charging-fast-path.patch
 mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
