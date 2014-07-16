@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zpool-zbud-zsmalloc-implement-zpool.patch added to -mm tree
-Date: Wed, 16 Jul 2014 14:52:23 -0700
-Message-ID: <53c6f417.hIwB/OrjQ8VHM/eW%akpm@linux-foundation.org>
+Subject: + mm-zpool-update-zswap-to-use-zpool.patch added to -mm tree
+Date: Wed, 16 Jul 2014 14:52:24 -0700
+Message-ID: <53c6f418.uYkx6LpovdA79jUz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:38096 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752705AbaGPVwY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jul 2014 17:52:24 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so133501pdj.0
-        for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2014 14:52:24 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:39117 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753385AbaGPVw0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jul 2014 17:52:26 -0400
+Received: by mail-vc0-f202.google.com with SMTP id hq11so106965vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2014 14:52:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ddstreet@ieee.org, minchan@kernel.org, ngupta@vflare.org, sjennings@variantweb.net, weijie.yang@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zpool: zbud/zsmalloc implement zpool
+     Subject: mm/zpool: update zswap to use zpool
 has been added to the -mm tree.  Its filename is
-     mm-zpool-zbud-zsmalloc-implement-zpool.patch
+     mm-zpool-update-zswap-to-use-zpool.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zpool-zbud-zsmalloc-implement-zpool.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zpool-update-zswap-to-use-zpool.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zpool-zbud-zsmalloc-implement-zpool.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zpool-update-zswap-to-use-zpool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,262 +41,266 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Streetman <ddstreet@ieee.org>
-Subject: mm/zpool: zbud/zsmalloc implement zpool
+Subject: mm/zpool: update zswap to use zpool
 
-Update zbud and zsmalloc to implement the zpool api.
+Change zswap to use the zpool api instead of directly using zbud.  Add a
+boot-time param to allow selecting which zpool implementation to use, with
+zbud as the default.
 
-[fengguang.wu@intel.com: make functions static]
 Signed-off-by: Dan Streetman <ddstreet@ieee.org>
 Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Weijie Yang <weijie.yang@samsung.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Weijie Yang <weijie.yang@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zbud.c     |   94 ++++++++++++++++++++++++++++++++++++++++++++++++
- mm/zsmalloc.c |   85 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 179 insertions(+)
+ mm/Kconfig |    2 -
+ mm/zswap.c |   75 ++++++++++++++++++++++++++++++---------------------
+ 2 files changed, 46 insertions(+), 31 deletions(-)
 
-diff -puN mm/zbud.c~mm-zpool-zbud-zsmalloc-implement-zpool mm/zbud.c
---- a/mm/zbud.c~mm-zpool-zbud-zsmalloc-implement-zpool
-+++ a/mm/zbud.c
-@@ -51,6 +51,7 @@
- #include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <linux/zbud.h>
+diff -puN mm/Kconfig~mm-zpool-update-zswap-to-use-zpool mm/Kconfig
+--- a/mm/Kconfig~mm-zpool-update-zswap-to-use-zpool
++++ a/mm/Kconfig
+@@ -535,7 +535,7 @@ config ZSWAP
+ 	bool "Compressed cache for swap pages (EXPERIMENTAL)"
+ 	depends on FRONTSWAP && CRYPTO=y
+ 	select CRYPTO_LZO
+-	select ZBUD
++	select ZPOOL
+ 	default n
+ 	help
+ 	  A lightweight compressed cache for swap pages.  It takes
+diff -puN mm/zswap.c~mm-zpool-update-zswap-to-use-zpool mm/zswap.c
+--- a/mm/zswap.c~mm-zpool-update-zswap-to-use-zpool
++++ a/mm/zswap.c
+@@ -34,7 +34,7 @@
+ #include <linux/swap.h>
+ #include <linux/crypto.h>
+ #include <linux/mempool.h>
+-#include <linux/zbud.h>
 +#include <linux/zpool.h>
  
- /*****************
-  * Structures
-@@ -113,6 +114,90 @@ struct zbud_header {
- };
+ #include <linux/mm_types.h>
+ #include <linux/page-flags.h>
+@@ -45,8 +45,8 @@
+ /*********************************
+ * statistics
+ **********************************/
+-/* Number of memory pages used by the compressed pool */
+-static u64 zswap_pool_pages;
++/* Total bytes used by the compressed storage */
++static u64 zswap_pool_total_size;
+ /* The number of compressed pages currently stored in zswap */
+ static atomic_t zswap_stored_pages = ATOMIC_INIT(0);
  
- /*****************
-+ * zpool
-+ ****************/
+@@ -89,8 +89,13 @@ static unsigned int zswap_max_pool_perce
+ module_param_named(max_pool_percent,
+ 			zswap_max_pool_percent, uint, 0644);
+ 
+-/* zbud_pool is shared by all of zswap backend  */
+-static struct zbud_pool *zswap_pool;
++/* Compressed storage to use */
++#define ZSWAP_ZPOOL_DEFAULT "zbud"
++static char *zswap_zpool_type = ZSWAP_ZPOOL_DEFAULT;
++module_param_named(zpool, zswap_zpool_type, charp, 0444);
 +
-+#ifdef CONFIG_ZPOOL
-+
-+static int zbud_zpool_evict(struct zbud_pool *pool, unsigned long handle)
-+{
-+	return zpool_evict(pool, handle);
-+}
-+
-+static struct zbud_ops zbud_zpool_ops = {
-+	.evict =	zbud_zpool_evict
-+};
-+
-+static void *zbud_zpool_create(gfp_t gfp, struct zpool_ops *zpool_ops)
-+{
-+	return zbud_create_pool(gfp, &zbud_zpool_ops);
-+}
-+
-+static void zbud_zpool_destroy(void *pool)
-+{
-+	zbud_destroy_pool(pool);
-+}
-+
-+static int zbud_zpool_malloc(void *pool, size_t size, gfp_t gfp,
-+			unsigned long *handle)
-+{
-+	return zbud_alloc(pool, size, gfp, handle);
-+}
-+static void zbud_zpool_free(void *pool, unsigned long handle)
-+{
-+	zbud_free(pool, handle);
-+}
-+
-+static int zbud_zpool_shrink(void *pool, unsigned int pages,
-+			unsigned int *reclaimed)
-+{
-+	unsigned int total = 0;
-+	int ret = -EINVAL;
-+
-+	while (total < pages) {
-+		ret = zbud_reclaim_page(pool, 8);
-+		if (ret < 0)
-+			break;
-+		total++;
-+	}
-+
-+	if (reclaimed)
-+		*reclaimed = total;
-+
-+	return ret;
-+}
-+
-+static void *zbud_zpool_map(void *pool, unsigned long handle,
-+			enum zpool_mapmode mm)
-+{
-+	return zbud_map(pool, handle);
-+}
-+static void zbud_zpool_unmap(void *pool, unsigned long handle)
-+{
-+	zbud_unmap(pool, handle);
-+}
-+
-+static u64 zbud_zpool_total_size(void *pool)
-+{
-+	return zbud_get_pool_size(pool) * PAGE_SIZE;
-+}
-+
-+static struct zpool_driver zbud_zpool_driver = {
-+	.type =		"zbud",
-+	.owner =	THIS_MODULE,
-+	.create =	zbud_zpool_create,
-+	.destroy =	zbud_zpool_destroy,
-+	.malloc =	zbud_zpool_malloc,
-+	.free =		zbud_zpool_free,
-+	.shrink =	zbud_zpool_shrink,
-+	.map =		zbud_zpool_map,
-+	.unmap =	zbud_zpool_unmap,
-+	.total_size =	zbud_zpool_total_size,
-+};
-+
-+#endif /* CONFIG_ZPOOL */
-+
-+/*****************
-  * Helpers
- *****************/
- /* Just to make the code easier to read */
-@@ -511,11 +596,20 @@ static int __init init_zbud(void)
- 	/* Make sure the zbud header will fit in one chunk */
- 	BUILD_BUG_ON(sizeof(struct zbud_header) > ZHDR_SIZE_ALIGNED);
- 	pr_info("loaded\n");
-+
-+#ifdef CONFIG_ZPOOL
-+	zpool_register_driver(&zbud_zpool_driver);
-+#endif
-+
- 	return 0;
++/* zpool is shared by all of zswap backend  */
++static struct zpool *zswap_pool;
+ 
+ /*********************************
+ * compression functions
+@@ -168,7 +173,7 @@ static void zswap_comp_exit(void)
+  *            be held while changing the refcount.  Since the lock must
+  *            be held, there is no reason to also make refcount atomic.
+  * offset - the swap offset for the entry.  Index into the red-black tree.
+- * handle - zbud allocation handle that stores the compressed page data
++ * handle - zpool allocation handle that stores the compressed page data
+  * length - the length in bytes of the compressed page data.  Needed during
+  *          decompression
+  */
+@@ -284,15 +289,15 @@ static void zswap_rb_erase(struct rb_roo
  }
- 
- static void __exit exit_zbud(void)
- {
-+#ifdef CONFIG_ZPOOL
-+	zpool_unregister_driver(&zbud_zpool_driver);
-+#endif
-+
- 	pr_info("unloaded\n");
- }
- 
-diff -puN mm/zsmalloc.c~mm-zpool-zbud-zsmalloc-implement-zpool mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zpool-zbud-zsmalloc-implement-zpool
-+++ a/mm/zsmalloc.c
-@@ -92,6 +92,7 @@
- #include <linux/spinlock.h>
- #include <linux/types.h>
- #include <linux/zsmalloc.h>
-+#include <linux/zpool.h>
  
  /*
-  * This must be power of 2 and greater than of equal to sizeof(link_free).
-@@ -240,6 +241,82 @@ struct mapping_area {
- 	enum zs_mapmode vm_mm; /* mapping mode */
+- * Carries out the common pattern of freeing and entry's zbud allocation,
++ * Carries out the common pattern of freeing and entry's zpool allocation,
+  * freeing the entry itself, and decrementing the number of stored pages.
+  */
+ static void zswap_free_entry(struct zswap_entry *entry)
+ {
+-	zbud_free(zswap_pool, entry->handle);
++	zpool_free(zswap_pool, entry->handle);
+ 	zswap_entry_cache_free(entry);
+ 	atomic_dec(&zswap_stored_pages);
+-	zswap_pool_pages = zbud_get_pool_size(zswap_pool);
++	zswap_pool_total_size = zpool_get_total_size(zswap_pool);
+ }
+ 
+ /* caller must hold the tree lock */
+@@ -409,7 +414,7 @@ cleanup:
+ static bool zswap_is_full(void)
+ {
+ 	return totalram_pages * zswap_max_pool_percent / 100 <
+-		zswap_pool_pages;
++		DIV_ROUND_UP(zswap_pool_total_size, PAGE_SIZE);
+ }
+ 
+ /*********************************
+@@ -525,7 +530,7 @@ static int zswap_get_swap_cache_page(swp
+  * the swap cache, the compressed version stored by zswap can be
+  * freed.
+  */
+-static int zswap_writeback_entry(struct zbud_pool *pool, unsigned long handle)
++static int zswap_writeback_entry(struct zpool *pool, unsigned long handle)
+ {
+ 	struct zswap_header *zhdr;
+ 	swp_entry_t swpentry;
+@@ -541,9 +546,9 @@ static int zswap_writeback_entry(struct
+ 	};
+ 
+ 	/* extract swpentry from data */
+-	zhdr = zbud_map(pool, handle);
++	zhdr = zpool_map_handle(pool, handle, ZPOOL_MM_RO);
+ 	swpentry = zhdr->swpentry; /* here */
+-	zbud_unmap(pool, handle);
++	zpool_unmap_handle(pool, handle);
+ 	tree = zswap_trees[swp_type(swpentry)];
+ 	offset = swp_offset(swpentry);
+ 
+@@ -573,13 +578,13 @@ static int zswap_writeback_entry(struct
+ 	case ZSWAP_SWAPCACHE_NEW: /* page is locked */
+ 		/* decompress */
+ 		dlen = PAGE_SIZE;
+-		src = (u8 *)zbud_map(zswap_pool, entry->handle) +
+-			sizeof(struct zswap_header);
++		src = (u8 *)zpool_map_handle(zswap_pool, entry->handle,
++				ZPOOL_MM_RO) + sizeof(struct zswap_header);
+ 		dst = kmap_atomic(page);
+ 		ret = zswap_comp_op(ZSWAP_COMPOP_DECOMPRESS, src,
+ 				entry->length, dst, &dlen);
+ 		kunmap_atomic(dst);
+-		zbud_unmap(zswap_pool, entry->handle);
++		zpool_unmap_handle(zswap_pool, entry->handle);
+ 		BUG_ON(ret);
+ 		BUG_ON(dlen != PAGE_SIZE);
+ 
+@@ -652,7 +657,7 @@ static int zswap_frontswap_store(unsigne
+ 	/* reclaim space if needed */
+ 	if (zswap_is_full()) {
+ 		zswap_pool_limit_hit++;
+-		if (zbud_reclaim_page(zswap_pool, 8)) {
++		if (zpool_shrink(zswap_pool, 1, NULL)) {
+ 			zswap_reject_reclaim_fail++;
+ 			ret = -ENOMEM;
+ 			goto reject;
+@@ -679,7 +684,7 @@ static int zswap_frontswap_store(unsigne
+ 
+ 	/* store */
+ 	len = dlen + sizeof(struct zswap_header);
+-	ret = zbud_alloc(zswap_pool, len, __GFP_NORETRY | __GFP_NOWARN,
++	ret = zpool_malloc(zswap_pool, len, __GFP_NORETRY | __GFP_NOWARN,
+ 		&handle);
+ 	if (ret == -ENOSPC) {
+ 		zswap_reject_compress_poor++;
+@@ -689,11 +694,11 @@ static int zswap_frontswap_store(unsigne
+ 		zswap_reject_alloc_fail++;
+ 		goto freepage;
+ 	}
+-	zhdr = zbud_map(zswap_pool, handle);
++	zhdr = zpool_map_handle(zswap_pool, handle, ZPOOL_MM_RW);
+ 	zhdr->swpentry = swp_entry(type, offset);
+ 	buf = (u8 *)(zhdr + 1);
+ 	memcpy(buf, dst, dlen);
+-	zbud_unmap(zswap_pool, handle);
++	zpool_unmap_handle(zswap_pool, handle);
+ 	put_cpu_var(zswap_dstmem);
+ 
+ 	/* populate entry */
+@@ -716,7 +721,7 @@ static int zswap_frontswap_store(unsigne
+ 
+ 	/* update stats */
+ 	atomic_inc(&zswap_stored_pages);
+-	zswap_pool_pages = zbud_get_pool_size(zswap_pool);
++	zswap_pool_total_size = zpool_get_total_size(zswap_pool);
+ 
+ 	return 0;
+ 
+@@ -752,13 +757,13 @@ static int zswap_frontswap_load(unsigned
+ 
+ 	/* decompress */
+ 	dlen = PAGE_SIZE;
+-	src = (u8 *)zbud_map(zswap_pool, entry->handle) +
+-			sizeof(struct zswap_header);
++	src = (u8 *)zpool_map_handle(zswap_pool, entry->handle,
++			ZPOOL_MM_RO) + sizeof(struct zswap_header);
+ 	dst = kmap_atomic(page);
+ 	ret = zswap_comp_op(ZSWAP_COMPOP_DECOMPRESS, src, entry->length,
+ 		dst, &dlen);
+ 	kunmap_atomic(dst);
+-	zbud_unmap(zswap_pool, entry->handle);
++	zpool_unmap_handle(zswap_pool, entry->handle);
+ 	BUG_ON(ret);
+ 
+ 	spin_lock(&tree->lock);
+@@ -811,7 +816,7 @@ static void zswap_frontswap_invalidate_a
+ 	zswap_trees[type] = NULL;
+ }
+ 
+-static struct zbud_ops zswap_zbud_ops = {
++static struct zpool_ops zswap_zpool_ops = {
+ 	.evict = zswap_writeback_entry
  };
  
-+/* zpool driver */
-+
-+#ifdef CONFIG_ZPOOL
-+
-+static void *zs_zpool_create(gfp_t gfp, struct zpool_ops *zpool_ops)
-+{
-+	return zs_create_pool(gfp);
-+}
-+
-+static void zs_zpool_destroy(void *pool)
-+{
-+	zs_destroy_pool(pool);
-+}
-+
-+static int zs_zpool_malloc(void *pool, size_t size, gfp_t gfp,
-+			unsigned long *handle)
-+{
-+	*handle = zs_malloc(pool, size);
-+	return *handle ? 0 : -1;
-+}
-+static void zs_zpool_free(void *pool, unsigned long handle)
-+{
-+	zs_free(pool, handle);
-+}
-+
-+static int zs_zpool_shrink(void *pool, unsigned int pages,
-+			unsigned int *reclaimed)
-+{
-+	return -EINVAL;
-+}
-+
-+static void *zs_zpool_map(void *pool, unsigned long handle,
-+			enum zpool_mapmode mm)
-+{
-+	enum zs_mapmode zs_mm;
-+
-+	switch (mm) {
-+	case ZPOOL_MM_RO:
-+		zs_mm = ZS_MM_RO;
-+		break;
-+	case ZPOOL_MM_WO:
-+		zs_mm = ZS_MM_WO;
-+		break;
-+	case ZPOOL_MM_RW: /* fallthru */
-+	default:
-+		zs_mm = ZS_MM_RW;
-+		break;
-+	}
-+
-+	return zs_map_object(pool, handle, zs_mm);
-+}
-+static void zs_zpool_unmap(void *pool, unsigned long handle)
-+{
-+	zs_unmap_object(pool, handle);
-+}
-+
-+static u64 zs_zpool_total_size(void *pool)
-+{
-+	return zs_get_total_size_bytes(pool);
-+}
-+
-+static struct zpool_driver zs_zpool_driver = {
-+	.type =		"zsmalloc",
-+	.owner =	THIS_MODULE,
-+	.create =	zs_zpool_create,
-+	.destroy =	zs_zpool_destroy,
-+	.malloc =	zs_zpool_malloc,
-+	.free =		zs_zpool_free,
-+	.shrink =	zs_zpool_shrink,
-+	.map =		zs_zpool_map,
-+	.unmap =	zs_zpool_unmap,
-+	.total_size =	zs_zpool_total_size,
-+};
-+
-+#endif /* CONFIG_ZPOOL */
-+
- /* per-cpu VM mapping areas for zspage accesses that cross page boundaries */
- static DEFINE_PER_CPU(struct mapping_area, zs_map_area);
+@@ -869,8 +874,8 @@ static int __init zswap_debugfs_init(voi
+ 			zswap_debugfs_root, &zswap_written_back_pages);
+ 	debugfs_create_u64("duplicate_entry", S_IRUGO,
+ 			zswap_debugfs_root, &zswap_duplicate_entry);
+-	debugfs_create_u64("pool_pages", S_IRUGO,
+-			zswap_debugfs_root, &zswap_pool_pages);
++	debugfs_create_u64("pool_total_size", S_IRUGO,
++			zswap_debugfs_root, &zswap_pool_total_size);
+ 	debugfs_create_atomic_t("stored_pages", S_IRUGO,
+ 			zswap_debugfs_root, &zswap_stored_pages);
  
-@@ -813,6 +890,10 @@ static void zs_exit(void)
+@@ -895,16 +900,26 @@ static void __exit zswap_debugfs_exit(vo
+ **********************************/
+ static int __init init_zswap(void)
  {
- 	int cpu;
- 
-+#ifdef CONFIG_ZPOOL
-+	zpool_unregister_driver(&zs_zpool_driver);
-+#endif
++	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN;
 +
- 	cpu_notifier_register_begin();
+ 	if (!zswap_enabled)
+ 		return 0;
  
- 	for_each_online_cpu(cpu)
-@@ -839,6 +920,10 @@ static int zs_init(void)
+ 	pr_info("loading zswap\n");
  
- 	cpu_notifier_register_done();
+-	zswap_pool = zbud_create_pool(GFP_KERNEL, &zswap_zbud_ops);
++	zswap_pool = zpool_create_pool(zswap_zpool_type, gfp, &zswap_zpool_ops);
++	if (!zswap_pool && strcmp(zswap_zpool_type, ZSWAP_ZPOOL_DEFAULT)) {
++		pr_info("%s zpool not available\n", zswap_zpool_type);
++		zswap_zpool_type = ZSWAP_ZPOOL_DEFAULT;
++		zswap_pool = zpool_create_pool(zswap_zpool_type, gfp,
++					&zswap_zpool_ops);
++	}
+ 	if (!zswap_pool) {
+-		pr_err("zbud pool creation failed\n");
++		pr_err("%s zpool not available\n", zswap_zpool_type);
++		pr_err("zpool creation failed\n");
+ 		goto error;
+ 	}
++	pr_info("using %s pool\n", zswap_zpool_type);
  
-+#ifdef CONFIG_ZPOOL
-+	zpool_register_driver(&zs_zpool_driver);
-+#endif
-+
- 	return 0;
- fail:
- 	zs_exit();
+ 	if (zswap_entry_cache_create()) {
+ 		pr_err("entry cache creation failed\n");
+@@ -928,7 +943,7 @@ pcpufail:
+ compfail:
+ 	zswap_entry_cache_destroy();
+ cachefail:
+-	zbud_destroy_pool(zswap_pool);
++	zpool_destroy_pool(zswap_pool);
+ error:
+ 	return -ENOMEM;
+ }
 _
 
 Patches currently in -mm which might be from ddstreet@ieee.org are
