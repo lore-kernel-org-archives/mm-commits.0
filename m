@@ -1,115 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 16 Jul 2014 14:50:51 -0700
-Message-ID: <53c6f3bb.AIusF/HCAtENtTSb%akpm@linux-foundation.org>
+Subject: + mm-zbud-change-zbud_alloc-size-type-to-size_t.patch added to
+ -mm tree
+Date: Wed, 16 Jul 2014 14:52:20 -0700
+Message-ID: <53c6f414.2jABb7TJQZJ5fV9K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:60490 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751327AbaGPVuw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jul 2014 17:50:52 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so407752pab.3
-        for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2014 14:50:52 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:54976 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753722AbaGPVwW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jul 2014 17:52:22 -0400
+Received: by mail-qc0-f202.google.com with SMTP id i17so217104qcy.3
+        for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2014 14:52:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ddstreet@ieee.org, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, minchan@kernel.org, ngupta@vflare.org, sjennings@variantweb.net, weijie.yang@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes.patch
+     Subject: mm/zbud: change zbud_alloc size type to size_t
+has been added to the -mm tree.  Its filename is
+     mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: mm/zbud: change zbud_alloc size type to size_t
 
-WARNING: Missing a blank line after declarations
-#76: FILE: mm/zpool.c:79:
-+			bool got = try_module_get(driver->owner);
-+			spin_unlock(&drivers_lock);
+Change the type of the zbud_alloc() size param from unsigned int
+to size_t.
 
-total: 0 errors, 1 warnings, 94 lines checked
+Technically, this should not make any difference, as the zbud
+implementation already restricts the size to well within either type's
+limits; but as zsmalloc (and kmalloc) use size_t, and zpool will use
+size_t, this brings the size parameter type in line with zsmalloc/zpool.
 
-./patches/mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dan Streetman <ddstreet@ieee.org>
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Acked-by: Seth Jennings <sjennings@variantweb.net>
+Cc: Weijie Yang <weijie.yang@samsung.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zpool.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/zbud.h |    2 +-
+ mm/zbud.c            |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/zpool.c~mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes mm/zpool.c
---- a/mm/zpool.c~mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes
-+++ a/mm/zpool.c
-@@ -76,6 +76,7 @@ static struct zpool_driver *zpool_get_dr
- 	list_for_each_entry(driver, &drivers_head, list) {
- 		if (!strcmp(driver->type, type)) {
- 			bool got = try_module_get(driver->owner);
-+
- 			spin_unlock(&drivers_lock);
- 			return got ? driver : NULL;
- 		}
+diff -puN include/linux/zbud.h~mm-zbud-change-zbud_alloc-size-type-to-size_t include/linux/zbud.h
+--- a/include/linux/zbud.h~mm-zbud-change-zbud_alloc-size-type-to-size_t
++++ a/include/linux/zbud.h
+@@ -11,7 +11,7 @@ struct zbud_ops {
+ 
+ struct zbud_pool *zbud_create_pool(gfp_t gfp, struct zbud_ops *ops);
+ void zbud_destroy_pool(struct zbud_pool *pool);
+-int zbud_alloc(struct zbud_pool *pool, unsigned int size, gfp_t gfp,
++int zbud_alloc(struct zbud_pool *pool, size_t size, gfp_t gfp,
+ 	unsigned long *handle);
+ void zbud_free(struct zbud_pool *pool, unsigned long handle);
+ int zbud_reclaim_page(struct zbud_pool *pool, unsigned int retries);
+diff -puN mm/zbud.c~mm-zbud-change-zbud_alloc-size-type-to-size_t mm/zbud.c
+--- a/mm/zbud.c~mm-zbud-change-zbud_alloc-size-type-to-size_t
++++ a/mm/zbud.c
+@@ -122,7 +122,7 @@ enum buddy {
+ };
+ 
+ /* Converts an allocation size in bytes to size in zbud chunks */
+-static int size_to_chunks(int size)
++static int size_to_chunks(size_t size)
+ {
+ 	return (size + CHUNK_SIZE - 1) >> CHUNK_SHIFT;
+ }
+@@ -247,7 +247,7 @@ void zbud_destroy_pool(struct zbud_pool
+  * gfp arguments are invalid or -ENOMEM if the pool was unable to allocate
+  * a new page.
+  */
+-int zbud_alloc(struct zbud_pool *pool, unsigned int size, gfp_t gfp,
++int zbud_alloc(struct zbud_pool *pool, size_t size, gfp_t gfp,
+ 			unsigned long *handle)
+ {
+ 	int chunks, i, freechunks;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-revert-fs-seq_file-fallback-to-vmalloc-allocation.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-vmscan-clean-up-struct-scan_control-checkpatch-fixes.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
 mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-proc-remove-proc_tty_ldisc-variable-fix.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-panic-add-taint_softlockup-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-zpool-zbud-zsmalloc-implement-zpool.patch
+mm-zpool-update-zswap-to-use-zpool.patch
 
