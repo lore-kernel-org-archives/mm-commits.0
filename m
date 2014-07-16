@@ -1,123 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: + simple_xattr-permit-0-size-extended-attributes.patch added to
- -mm tree
-Date: Wed, 16 Jul 2014 13:41:34 -0700
-Message-ID: <53c6e37e.9C0IyiQ5xMvrcvav%akpm@linux-foundation.org>
+Subject: [folded-merged] memcg-deprecate-memoryforce_empty-knob-fix.patch
+ removed from -mm tree
+Date: Wed, 16 Jul 2014 13:45:05 -0700
+Message-ID: <53c6e451.VmjHB4wXRondm0Y0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f201.google.com ([209.85.213.201]:57815 "EHLO
-	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751370AbaGPUlf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jul 2014 16:41:35 -0400
-Received: by mail-ig0-f201.google.com with SMTP id h3so150756igd.4
-        for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2014 13:41:35 -0700 (PDT)
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:52684 "EHLO
+	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751084AbaGPUpH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jul 2014 16:45:07 -0400
+Received: by mail-qg0-f73.google.com with SMTP id q107so67472qgd.0
+        for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2014 13:45:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aris@redhat.com, jlayton@poochiereds.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: simple_xattr: permit 0-size extended attributes
-has been added to the -mm tree.  Its filename is
-     simple_xattr-permit-0-size-extended-attributes.patch
+     Subject: memcg-deprecate-memoryforce_empty-knob-fix
+has been removed from the -mm tree.  Its filename was
+     memcg-deprecate-memoryforce_empty-knob-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/simple_xattr-permit-0-size-extended-attributes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/simple_xattr-permit-0-size-extended-attributes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into memcg-deprecate-memoryforce_empty-knob.patch
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: simple_xattr: permit 0-size extended attributes
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-deprecate-memoryforce_empty-knob-fix
 
-If a filesystem uses simple_xattr to support user extended attributes, LTP
-setxattr01 and xfstests generic/062 fail with "Cannot allocate memory":
-simple_xattr_alloc()'s wrap-around test mistakenly excludes values of zero
-size.  Fix that off-by-one (but apparently no filesystem needs them yet).
+- s/pr_info/pr_info_once/
+- fix garbled printk text
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: Aristeu Rozanski <aris@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xattr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/cgroups/memory.txt |    2 +-
+ mm/memcontrol.c                  |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/xattr.c~simple_xattr-permit-0-size-extended-attributes fs/xattr.c
---- a/fs/xattr.c~simple_xattr-permit-0-size-extended-attributes
-+++ a/fs/xattr.c
-@@ -843,7 +843,7 @@ struct simple_xattr *simple_xattr_alloc(
+diff -puN Documentation/cgroups/memory.txt~memcg-deprecate-memoryforce_empty-knob-fix Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-deprecate-memoryforce_empty-knob-fix
++++ a/Documentation/cgroups/memory.txt
+@@ -474,7 +474,7 @@ About use_hierarchy, see Section 6.
+   memory.kmem.usage_in_bytes == memory.usage_in_bytes.
  
- 	/* wrap around? */
- 	len = sizeof(*new_xattr) + size;
--	if (len <= sizeof(*new_xattr))
-+	if (len < sizeof(*new_xattr))
- 		return NULL;
+   Please note that this knob is considered deprecated and will be removed
+-  in future.
++  in the future.
  
- 	new_xattr = kmalloc(len, GFP_KERNEL);
+   About use_hierarchy, see Section 6.
+ 
+diff -puN mm/memcontrol.c~memcg-deprecate-memoryforce_empty-knob-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-deprecate-memoryforce_empty-knob-fix
++++ a/mm/memcontrol.c
+@@ -4086,10 +4086,10 @@ static ssize_t mem_cgroup_force_empty_wr
+ 
+ 	if (mem_cgroup_is_root(memcg))
+ 		return -EINVAL;
+-	pr_info("%s (%d): memory.force_empty is deprecated and will be removed.",
+-			current->comm, task_pid_nr(current));
+-	pr_cont(" Let us know if you know if it needed in your usecase at");
+-	pr_cont(" linux-mm@kvack.org\n");
++	pr_info_once("%s (%d): memory.force_empty is deprecated and will be "
++		     "removed.  Let us know if it is needed in your usecase at "
++		     "linux-mm@kvack.org\n",
++		     current->comm, task_pid_nr(current));
+ 	return mem_cgroup_force_empty(memcg) ?: nbytes;
+ }
+ 
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rmap-fix-pgoff-calculation-to-handle-hugepage-correctly.patch
-mm-do-not-call-do_fault_around-for-non-linear-fault.patch
-shmem-fix-faulting-into-a-hole-not-taking-i_mutex.patch
-shmem-fix-splicing-from-a-hole-while-its-punched.patch
-mm-fs-fix-pessimization-in-hole-punching-pagecache.patch
-simple_xattr-permit-0-size-extended-attributes.patch
-mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-rewrite-uncharge-api-fix-5.patch
-mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
-mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix.patch
-mm-memcontrol-rewrite-uncharge-api-fix-uncharge-from-irq-context.patch
-mm-memcontrol-rewrite-uncharge-api-fix-double-migration.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+revert-fs-seq_file-fallback-to-vmalloc-allocation.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+kbuild-explain-stack-protector-strong-config-logic.patch
+ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
+mm.patch
+slub-use-new-node-functions-checkpatch-fixes.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
+slab-change-int-to-size_t-for-representing-allocation-size.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+mm-vmscan-clean-up-struct-scan_control-checkpatch-fixes.patch
 mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
 include-linux-mmdebugh-add-vm_warn_once.patch
-shmem-fix-double-uncharge-in-__shmem_file_setup.patch
-shmem-update-memory-reservation-on-truncate.patch
-mm-catch-memory-commitment-underflow.patch
 mm-catch-memory-commitment-underflow-fix.patch
-mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
-mm-replace-init_page_accessed-by-__setpagereferenced.patch
-mm-zbud-zbud_alloc-minor-param-change.patch
-mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
-mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
-mm-zpool-zbud-zsmalloc-implement-zpool.patch
-mm-zpool-update-zswap-to-use-zpool.patch
-mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used.patch
-list-use-argument-hlist_add_after-names-from-rcu-variant.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
-klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc-fix.patch
+mm-zpool-prevent-zbud-zsmalloc-from-unloading-when-used-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+add-lib-globc-fix.patch
+lib-list_sortc-convert-to-pr_foo.patch
+lib-list_sortc-convert-to-pr_foo-fix.patch
+checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
+fs-isofs-logging-clean-up-fix.patch
+proc-remove-proc_tty_ldisc-variable-fix.patch
+kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
+kexec-support-kexec-kdump-on-efi-systems-fix.patch
+panic-add-taint_softlockup-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+memcg-deprecate-memoryforce_empty-knob.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
