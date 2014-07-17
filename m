@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-signed-generic-types.patch added to -mm tree
-Date: Thu, 17 Jul 2014 14:02:01 -0700
-Message-ID: <53c839c9.+xYQ1RKdM5jAx8tT%akpm@linux-foundation.org>
+Subject: + checkpatch-add-short-int-to-c-variable-types.patch added to -mm tree
+Date: Thu, 17 Jul 2014 14:02:00 -0700
+Message-ID: <53c839c8.6T+7z6lCyL7a9zLT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:33454 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752591AbaGQVCD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 17:02:03 -0400
-Received: by mail-qc0-f202.google.com with SMTP id i17so421828qcy.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 14:02:02 -0700 (PDT)
+Received: from mail-oi0-f73.google.com ([209.85.218.73]:52840 "EHLO
+	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752420AbaGQVCC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 17:02:02 -0400
+Received: by mail-oi0-f73.google.com with SMTP id u20so289285oif.2
+        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 14:02:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, HartleyS@visionengravers.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add signed generic types
+     Subject: checkpatch: add short int to c variable types
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-signed-generic-types.patch
+     checkpatch-add-short-int-to-c-variable-types.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-signed-generic-types.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-short-int-to-c-variable-types.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-signed-generic-types.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-short-int-to-c-variable-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,48 +41,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add signed generic types
+Subject: checkpatch: add short int to c variable types
 
-Current generic types are unsigned or unspecified.
-Add signed to the types.
+short int is one of the 6.7.2 c90 types.
+Find it appropriately.
 
-Reorder the types to find the longest match first.
+This fixes a defect in checkpatch where it suggests that a
+line break after declaration is required using an input like:
+
+	int foo;
+	short int bar;
+
+Without this change, it warns on the short int line.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Hartley Sweeten <HartleyS@visionengravers.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-signed-generic-types scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-signed-generic-types
+diff -puN scripts/checkpatch.pl~checkpatch-add-short-int-to-c-variable-types scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-short-int-to-c-variable-types
 +++ a/scripts/checkpatch.pl
-@@ -355,15 +355,15 @@ our $signature_tags = qr{(?xi:
- 
+@@ -356,6 +356,7 @@ our $signature_tags = qr{(?xi:
  our @typeList = (
  	qr{void},
--	qr{(?:unsigned\s+)?char},
--	qr{(?:unsigned\s+)?short\s+int},
--	qr{(?:unsigned\s+)?short},
--	qr{(?:unsigned\s+)?int},
--	qr{(?:unsigned\s+)?long},
--	qr{(?:unsigned\s+)?long\s+int},
--	qr{(?:unsigned\s+)?long\s+long},
--	qr{(?:unsigned\s+)?long\s+long\s+int},
--	qr{unsigned},
-+	qr{(?:(?:un)?signed\s+)?char},
-+	qr{(?:(?:un)?signed\s+)?short\s+int},
-+	qr{(?:(?:un)?signed\s+)?short},
-+	qr{(?:(?:un)?signed\s+)?int},
-+	qr{(?:(?:un)?signed\s+)?long\s+int},
-+	qr{(?:(?:un)?signed\s+)?long\s+long\s+int},
-+	qr{(?:(?:un)?signed\s+)?long\s+long},
-+	qr{(?:(?:un)?signed\s+)?long},
-+	qr{(?:un)?signed},
- 	qr{float},
- 	qr{double},
- 	qr{bool},
+ 	qr{(?:unsigned\s+)?char},
++	qr{(?:unsigned\s+)?short\s+int},
+ 	qr{(?:unsigned\s+)?short},
+ 	qr{(?:unsigned\s+)?int},
+ 	qr{(?:unsigned\s+)?long},
 _
 
 Patches currently in -mm which might be from joe@perches.com are
