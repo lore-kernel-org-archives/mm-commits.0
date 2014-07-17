@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-writeback-prevent-race-when-calculating-dirty-limits.patch
- added to -mm tree
-Date: Thu, 17 Jul 2014 15:38:00 -0700
-Message-ID: <53c85048./kxUj6F2YNdCg6nb%akpm@linux-foundation.org>
+Subject: + proc-convert-proc-pid-limits-to-seq_file-interface.patch added
+ to -mm tree
+Date: Thu, 17 Jul 2014 15:54:33 -0700
+Message-ID: <53c85429.cWiuvJKrFLoJCNju%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:46425 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752655AbaGQWiC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 18:38:02 -0400
-Received: by mail-ie0-f201.google.com with SMTP id tr6so1204852ieb.4
-        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 15:38:00 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:64309 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757955AbaGQWye (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 18:54:34 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so826941pab.4
+        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 15:54:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hannes@cmpxchg.org, mhocko@suse.cz, riel@redhat.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, writeback: prevent race when calculating dirty limits
+     Subject: proc: convert /proc/$PID/limits to seq_file interface
 has been added to the -mm tree.  Its filename is
-     mm-writeback-prevent-race-when-calculating-dirty-limits.patch
+     proc-convert-proc-pid-limits-to-seq_file-interface.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-writeback-prevent-race-when-calculating-dirty-limits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-convert-proc-pid-limits-to-seq_file-interface.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-writeback-prevent-race-when-calculating-dirty-limits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-convert-proc-pid-limits-to-seq_file-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,100 +41,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, writeback: prevent race when calculating dirty limits
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: convert /proc/$PID/limits to seq_file interface
 
-Setting vm_dirty_bytes and dirty_background_bytes is not protected by any
-serialization.
-
-Therefore, it's possible for either variable to change value after the
-test in global_dirty_limits() to determine whether available_memory needs
-to be initialized or not.
-
-Always ensure that available_memory is properly initialized.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Rik van Riel <riel@redhat.com
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/proc/base.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-writeback-prevent-race-when-calculating-dirty-limits mm/page-writeback.c
---- a/mm/page-writeback.c~mm-writeback-prevent-race-when-calculating-dirty-limits
-+++ a/mm/page-writeback.c
-@@ -261,14 +261,11 @@ static unsigned long global_dirtyable_me
-  */
- void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty)
- {
-+	const unsigned long available_memory = global_dirtyable_memory();
- 	unsigned long background;
- 	unsigned long dirty;
--	unsigned long uninitialized_var(available_memory);
- 	struct task_struct *tsk;
+diff -puN fs/proc/base.c~proc-convert-proc-pid-limits-to-seq_file-interface fs/proc/base.c
+--- a/fs/proc/base.c~proc-convert-proc-pid-limits-to-seq_file-interface
++++ a/fs/proc/base.c
+@@ -440,12 +440,11 @@ static const struct limit_names lnames[R
+ };
  
--	if (!vm_dirty_bytes || !dirty_background_bytes)
--		available_memory = global_dirtyable_memory();
--
- 	if (vm_dirty_bytes)
- 		dirty = DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE);
- 	else
+ /* Display limits for a process */
+-static int proc_pid_limits(struct task_struct *task, char *buffer)
++static int proc_pid_limits(struct seq_file *m, struct pid_namespace *ns,
++			   struct pid *pid, struct task_struct *task)
+ {
+ 	unsigned int i;
+-	int count = 0;
+ 	unsigned long flags;
+-	char *bufptr = buffer;
+ 
+ 	struct rlimit rlim[RLIM_NLIMITS];
+ 
+@@ -457,31 +456,29 @@ static int proc_pid_limits(struct task_s
+ 	/*
+ 	 * print the file header
+ 	 */
+-	count += sprintf(&bufptr[count], "%-25s %-20s %-20s %-10s\n",
++       seq_printf(m, "%-25s %-20s %-20s %-10s\n",
+ 			"Limit", "Soft Limit", "Hard Limit", "Units");
+ 
+ 	for (i = 0; i < RLIM_NLIMITS; i++) {
+ 		if (rlim[i].rlim_cur == RLIM_INFINITY)
+-			count += sprintf(&bufptr[count], "%-25s %-20s ",
++			seq_printf(m, "%-25s %-20s ",
+ 					 lnames[i].name, "unlimited");
+ 		else
+-			count += sprintf(&bufptr[count], "%-25s %-20lu ",
++			seq_printf(m, "%-25s %-20lu ",
+ 					 lnames[i].name, rlim[i].rlim_cur);
+ 
+ 		if (rlim[i].rlim_max == RLIM_INFINITY)
+-			count += sprintf(&bufptr[count], "%-20s ", "unlimited");
++			seq_printf(m, "%-20s ", "unlimited");
+ 		else
+-			count += sprintf(&bufptr[count], "%-20lu ",
+-					 rlim[i].rlim_max);
++			seq_printf(m, "%-20lu ", rlim[i].rlim_max);
+ 
+ 		if (lnames[i].unit)
+-			count += sprintf(&bufptr[count], "%-10s\n",
+-					 lnames[i].unit);
++			seq_printf(m, "%-10s\n", lnames[i].unit);
+ 		else
+-			count += sprintf(&bufptr[count], "\n");
++			seq_putc(m, '\n');
+ 	}
+ 
+-	return count;
++	return 0;
+ }
+ 
+ #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
+@@ -2558,7 +2555,7 @@ static const struct pid_entry tgid_base_
+ 	ONE("auxv",       S_IRUSR, proc_pid_auxv),
+ 	ONE("status",     S_IRUGO, proc_pid_status),
+ 	ONE("personality", S_IRUSR, proc_pid_personality),
+-	INF("limits",	  S_IRUGO, proc_pid_limits),
++	ONE("limits",	  S_IRUGO, proc_pid_limits),
+ #ifdef CONFIG_SCHED_DEBUG
+ 	REG("sched",      S_IRUGO|S_IWUSR, proc_pid_sched_operations),
+ #endif
+@@ -2897,7 +2894,7 @@ static const struct pid_entry tid_base_s
+ 	ONE("auxv",      S_IRUSR, proc_pid_auxv),
+ 	ONE("status",    S_IRUGO, proc_pid_status),
+ 	ONE("personality", S_IRUSR, proc_pid_personality),
+-	INF("limits",	 S_IRUGO, proc_pid_limits),
++	ONE("limits",	 S_IRUGO, proc_pid_limits),
+ #ifdef CONFIG_SCHED_DEBUG
+ 	REG("sched",     S_IRUGO|S_IWUSR, proc_pid_sched_operations),
+ #endif
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-revert-fs-seq_file-fallback-to-vmalloc-allocation.patch
-x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
-x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-slab-common-add-functions-for-kmem_cache_node-access.patch
-slab-common-add-functions-for-kmem_cache_node-access-fix.patch
-slub-use-new-node-functions.patch
-slub-use-new-node-functions-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-mm-slub-mark-resiliency_test-as-init-text.patch
-mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
-slab-add-unlikely-macro-to-help-compiler.patch
-slab-move-up-code-to-get-kmem_cache_node-in-free_block.patch
-slab-defer-slab_destroy-in-free_block.patch
-slab-defer-slab_destroy-in-free_block-v4.patch
-slab-factor-out-initialization-of-arracy-cache.patch
-slab-introduce-alien_cache.patch
-slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
-slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
-slab-remove-a-useless-lockdep-annotation.patch
-slab-remove-bad_alien_magic.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-slub-reduce-duplicate-creation-on-the-first-object.patch
-mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
-mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
-mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-mm-page_alloc-simplify-drain_zone_pages-by-using-min.patch
-mm-mem-hotplug-replace-simple_strtoull-with-kstrtoull.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-mm-vmalloc-constify-allocation-mask.patch
-mmhugetlb-make-unmap_ref_private-return-void.patch
-mmhugetlb-simplify-error-handling-in-hugetlb_cow.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
-mm-make-copy_pte_range-static-again.patch
-mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch
-mm-writeback-prevent-race-when-calculating-dirty-limits.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-lib-add-size-unit-t-p-e-to-memparse.patch
-mm-utilc-add-kstrimdup.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-fork-exec-cleanup-mm-initialization.patch
-fork-reset-mm-pinned_vm.patch
-fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
-linux-next.patch
+lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
+proc-add-and-remove-proc-entry-create-checks.patch
+proc-faster-proc-pid-lookup.patch
+proc-make-proc_subdir_lock-static.patch
+proc-remove-proc_tty_ldisc-variable.patch
+proc-remove-proc_tty_ldisc-variable-fix.patch
+proc-more-const-char-pointers.patch
+proc-convert-proc-pid-auxv-to-seq_file-interface.patch
+proc-convert-proc-pid-limits-to-seq_file-interface.patch
+proc-convert-proc-pid-syscall-to-seq_file-interface.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline.patch
+proc-convert-proc-pid-wchan-to-seq_file-interface.patch
+proc-convert-proc-pid-schedstat-to-seq_file-interface.patch
+proc-convert-proc-pid-oom_score-to-seq_file-interface.patch
+proc-convert-proc-pid-io-to-seq_file-interface.patch
+proc-convert-proc-pid-hardwall-to-seq_file-interface.patch
+proc-remove-inf-macro.patch
 
