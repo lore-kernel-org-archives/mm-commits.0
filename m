@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-test-for-native-c90-types-in-unusual-order.patch added to -mm tree
-Date: Thu, 17 Jul 2014 14:02:02 -0700
-Message-ID: <53c839ca.AFqvpfV1RsHLGkqq%akpm@linux-foundation.org>
+Subject: + checkpatch-add-signed-generic-types.patch added to -mm tree
+Date: Thu, 17 Jul 2014 14:02:01 -0700
+Message-ID: <53c839c9.+xYQ1RKdM5jAx8tT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:53925 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752862AbaGQVCD (ORCPT
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:33454 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752591AbaGQVCD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 17:02:03 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so798500pab.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 14:02:03 -0700 (PDT)
+Received: by mail-qc0-f202.google.com with SMTP id i17so421828qcy.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 14:02:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add test for native c90 types in unusual order
+     Subject: checkpatch: add signed generic types
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-test-for-native-c90-types-in-unusual-order.patch
+     checkpatch-add-signed-generic-types.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-test-for-native-c90-types-in-unusual-order.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-signed-generic-types.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-test-for-native-c90-types-in-unusual-order.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-signed-generic-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,139 +41,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add test for native c90 types in unusual order
+Subject: checkpatch: add signed generic types
 
-c90 section "6.7.2 Type Specifiers" says:
-    "type specifiers may occur in any order"
+Current generic types are unsigned or unspecified.
+Add signed to the types.
 
-That means that:
-    short int is the same as int short
-    unsigned short int is the same as int unsigned short
-    etc...
-
-checkpatch currently parses only a subset of these allowed types.
-
-For instance: "unsigned short" and "signed short" are found by checkpatch
-as a specific type, but none of the or "int short" or "int signed short"
-variants are found.
-
-Add another table for the "kernel style misordered" variants.
-
-Add this misordered table to the findable types.
-
-Warn when the misordered style is used.
-
-This improves the "Missing a blank line after declarations" test as it
-depends on the correct parsing of the $Declare variable which looks for
-"$Type $Ident;" (ie: declarations like "int foo;").
+Reorder the types to find the longest match first.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   44 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ scripts/checkpatch.pl |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-native-c90-types-in-unusual-order scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-test-for-native-c90-types-in-unusual-order
+diff -puN scripts/checkpatch.pl~checkpatch-add-signed-generic-types scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-signed-generic-types
 +++ a/scripts/checkpatch.pl
-@@ -309,9 +309,12 @@ our $Operators	= qr{
- our $c90_Keywords = qr{do|for|while|if|else|return|goto|continue|switch|default|case|break}x;
+@@ -355,15 +355,15 @@ our $signature_tags = qr{(?xi:
  
- our $NonptrType;
-+our $NonptrTypeMisordered;
- our $NonptrTypeWithAttr;
- our $Type;
-+our $TypeMisordered;
- our $Declare;
-+our $DeclareMisordered;
- 
- our $NON_ASCII_UTF8	= qr{
- 	[\xC2-\xDF][\x80-\xBF]               # non-overlong 2-byte
-@@ -353,6 +356,25 @@ our $signature_tags = qr{(?xi:
- 	Cc:
- )};
- 
-+our @typeListMisordered = (
-+	qr{char\s+(?:un)?signed},
-+	qr{int\s+(?:(?:un)?signed\s+)?short\s},
-+	qr{int\s+short(?:\s+(?:un)?signed)},
-+	qr{short\s+int(?:\s+(?:un)?signed)},
-+	qr{(?:un)?signed\s+int\s+short},
-+	qr{short\s+(?:un)?signed},
-+	qr{long\s+int\s+(?:un)?signed},
-+	qr{int\s+long\s+(?:un)?signed},
-+	qr{long\s+(?:un)?signed\s+int},
-+	qr{int\s+(?:un)?signed\s+long},
-+	qr{int\s+(?:un)?signed},
-+	qr{int\s+long\s+long\s+(?:un)?signed},
-+	qr{long\s+long\s+int\s+(?:un)?signed},
-+	qr{long\s+long\s+(?:un)?signed\s+int},
-+	qr{long\s+long\s+(?:un)?signed},
-+	qr{long\s+(?:un)?signed},
-+);
-+
  our @typeList = (
  	qr{void},
- 	qr{(?:(?:un)?signed\s+)?char},
-@@ -373,6 +395,7 @@ our @typeList = (
- 	qr{${Ident}_t},
- 	qr{${Ident}_handler},
- 	qr{${Ident}_handler_fn},
-+	@typeListMisordered,
- );
- our @typeListWithAttr = (
- 	@typeList,
-@@ -414,6 +437,7 @@ our $allowed_asm_includes = qr{(?x:
- sub build_types {
- 	my $mods = "(?x:  \n" . join("|\n  ", @modifierList) . "\n)";
- 	my $all = "(?x:  \n" . join("|\n  ", @typeList) . "\n)";
-+	my $Misordered = "(?x:  \n" . join("|\n  ", @typeListMisordered) . "\n)";
- 	my $allWithAttr = "(?x:  \n" . join("|\n  ", @typeListWithAttr) . "\n)";
- 	$Modifier	= qr{(?:$Attribute|$Sparse|$mods)};
- 	$NonptrType	= qr{
-@@ -425,6 +449,13 @@ sub build_types {
- 			)
- 			(?:\s+$Modifier|\s+const)*
- 		  }x;
-+	$NonptrTypeMisordered	= qr{
-+			(?:$Modifier\s+|const\s+)*
-+			(?:
-+				(?:${Misordered}\b)
-+			)
-+			(?:\s+$Modifier|\s+const)*
-+		  }x;
- 	$NonptrTypeWithAttr	= qr{
- 			(?:$Modifier\s+|const\s+)*
- 			(?:
-@@ -439,7 +470,13 @@ sub build_types {
- 			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*\s*(?:const\s*)?|\[\])+|(?:\s*\[\s*\])+)?
- 			(?:\s+$Inline|\s+$Modifier)*
- 		  }x;
-+	$TypeMisordered	= qr{
-+			$NonptrTypeMisordered
-+			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*\s*(?:const\s*)?|\[\])+|(?:\s*\[\s*\])+)?
-+			(?:\s+$Inline|\s+$Modifier)*
-+		  }x;
- 	$Declare	= qr{(?:$Storage\s+(?:$Inline\s+)?)?$Type};
-+	$DeclareMisordered	= qr{(?:$Storage\s+(?:$Inline\s+)?)?$TypeMisordered};
- }
- build_types();
- 
-@@ -2987,6 +3024,13 @@ sub process {
- 			}
- 		}
- 
-+# check for misordered declarations of char/short/int/long with signed/unsigned
-+		while ($sline =~ m{(\b$TypeMisordered\b)}g) {
-+			my $tmp = trim($1);
-+			WARN("MISORDERED_TYPE",
-+			     "type '$tmp' should be specified in [[un]signed] [short|int|long|long long] order\n" . $herecurr);
-+		}
-+
- # check for static const char * arrays.
- 		if ($line =~ /\bstatic\s+const\s+char\s*\*\s*(\w+)\s*\[\s*\]\s*=\s*/) {
- 			WARN("STATIC_CONST_CHAR_ARRAY",
+-	qr{(?:unsigned\s+)?char},
+-	qr{(?:unsigned\s+)?short\s+int},
+-	qr{(?:unsigned\s+)?short},
+-	qr{(?:unsigned\s+)?int},
+-	qr{(?:unsigned\s+)?long},
+-	qr{(?:unsigned\s+)?long\s+int},
+-	qr{(?:unsigned\s+)?long\s+long},
+-	qr{(?:unsigned\s+)?long\s+long\s+int},
+-	qr{unsigned},
++	qr{(?:(?:un)?signed\s+)?char},
++	qr{(?:(?:un)?signed\s+)?short\s+int},
++	qr{(?:(?:un)?signed\s+)?short},
++	qr{(?:(?:un)?signed\s+)?int},
++	qr{(?:(?:un)?signed\s+)?long\s+int},
++	qr{(?:(?:un)?signed\s+)?long\s+long\s+int},
++	qr{(?:(?:un)?signed\s+)?long\s+long},
++	qr{(?:(?:un)?signed\s+)?long},
++	qr{(?:un)?signed},
+ 	qr{float},
+ 	qr{double},
+ 	qr{bool},
 _
 
 Patches currently in -mm which might be from joe@perches.com are
