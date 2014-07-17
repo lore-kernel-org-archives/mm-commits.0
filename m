@@ -1,81 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-memcontrol-rewrite-uncharge-api-fix-double-migration.patch removed from
- -mm tree
-Date: Thu, 17 Jul 2014 16:16:32 -0700
-Message-ID: <53c85950./JQGuVDCPYJU06gO%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
+ added to -mm tree
+Date: Thu, 17 Jul 2014 16:17:18 -0700
+Message-ID: <53c8597e.6q4VWZEadN8iXtC/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:47821 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758210AbaGQXQd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 19:16:33 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hq11so332552vcb.5
-        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 16:16:32 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:55673 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754043AbaGQXRT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 19:17:19 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so1213777iec.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 16:17:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: rewrite uncharge API fix - double migration
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-rewrite-uncharge-api-fix-double-migration.patch
+     Subject: mm: memcontrol: rewrite charge API fix - hugetlb charging
+has been added to the -mm tree.  Its filename is
+     mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: rewrite uncharge API fix - double migration
+Subject: mm: memcontrol: rewrite charge API fix - hugetlb charging
 
-Hugh reports:
+Naoya-san reports that hugetlb pages now get charged as file cache,
+which wreaks all kinds of havoc during migration, uncharge etc.
 
-VM_BUG_ON_PAGE(!(pc->flags & PCG_MEM))
-mm/memcontrol.c:6680!
-page had count 1 mapcount 0 mapping anon index 0x196
-flags locked uptodate reclaim swapbacked, pcflags 1, memcg not root
-mem_cgroup_migrate < move_to_new_page < migrate_pages < compact_zone <
-compact_zone_order < try_to_compact_pages < __alloc_pages_direct_compact <
-__alloc_pages_nodemask < alloc_pages_vma < do_huge_pmd_anonymous_page <
-handle_mm_fault < __do_page_fault
+The file-specific charge path used to filter PageCompound(), but it
+wasn't commented and so it got lost when unifying the charge paths.
 
-mem_cgroup_migrate() assumes that a page is only migrated once and
-then freed immediately after.
-
-However, putting the page back on the LRU list and dropping the
-isolation refcount is not done atomically.  This allows a PFN-based
-migrator like compaction to isolate the page, see the expected
-anonymous page refcount of 1, and migrate the page once more.
-
-Catch pages that have already been migrated and abort migration
-gracefully.
+We can't add PageCompound() back into a unified charge path because of
+THP, so filter huge pages directly in add_to_page_cache().
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Hugh Dickins <hughd@google.com>
+Reported-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/filemap.c |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-double-migration mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-double-migration
-+++ a/mm/memcontrol.c
-@@ -6602,7 +6602,10 @@ void mem_cgroup_migrate(struct page *old
- 	if (!PageCgroupUsed(pc))
- 		return;
+diff -puN mm/filemap.c~mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging mm/filemap.c
+--- a/mm/filemap.c~mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging
++++ a/mm/filemap.c
+@@ -31,6 +31,7 @@
+ #include <linux/security.h>
+ #include <linux/cpuset.h>
+ #include <linux/hardirq.h> /* for BUG_ON(!in_atomic()) only */
++#include <linux/hugetlb.h>
+ #include <linux/memcontrol.h>
+ #include <linux/cleancache.h>
+ #include <linux/rmap.h>
+@@ -558,19 +559,24 @@ static int __add_to_page_cache_locked(st
+ 				      pgoff_t offset, gfp_t gfp_mask,
+ 				      void **shadowp)
+ {
++	int huge = PageHuge(page);
+ 	struct mem_cgroup *memcg;
+ 	int error;
  
--	VM_BUG_ON_PAGE(!(pc->flags & PCG_MEM), oldpage);
-+	/* Already migrated */
-+	if (!(pc->flags & PCG_MEM))
-+		return;
-+
- 	VM_BUG_ON_PAGE(do_swap_account && !(pc->flags & PCG_MEMSW), oldpage);
- 	pc->flags &= ~(PCG_MEM | PCG_MEMSW);
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_PAGE(PageSwapBacked(page), page);
  
+-	error = mem_cgroup_try_charge(page, current->mm, gfp_mask, &memcg);
+-	if (error)
+-		return error;
++	if (!huge) {
++		error = mem_cgroup_try_charge(page, current->mm,
++					      gfp_mask, &memcg);
++		if (error)
++			return error;
++	}
+ 
+ 	error = radix_tree_maybe_preload(gfp_mask & ~__GFP_HIGHMEM);
+ 	if (error) {
+-		mem_cgroup_cancel_charge(page, memcg);
++		if (!huge)
++			mem_cgroup_cancel_charge(page, memcg);
+ 		return error;
+ 	}
+ 
+@@ -585,14 +591,16 @@ static int __add_to_page_cache_locked(st
+ 		goto err_insert;
+ 	__inc_zone_page_state(page, NR_FILE_PAGES);
+ 	spin_unlock_irq(&mapping->tree_lock);
+-	mem_cgroup_commit_charge(page, memcg, false);
++	if (!huge)
++		mem_cgroup_commit_charge(page, memcg, false);
+ 	trace_mm_filemap_add_to_page_cache(page);
+ 	return 0;
+ err_insert:
+ 	page->mapping = NULL;
+ 	/* Leave page->index set: truncation relies upon it */
+ 	spin_unlock_irq(&mapping->tree_lock);
+-	mem_cgroup_cancel_charge(page, memcg);
++	if (!huge)
++		mem_cgroup_cancel_charge(page, memcg);
+ 	page_cache_release(page);
+ 	return error;
+ }
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -106,6 +152,7 @@ mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
 mm-memcontrol-rewrite-uncharge-api-fix-uncharge-from-irq-context.patch
 mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
 mm-memcontrol-rewrite-uncharge-api-fix-migrate-before-re-mapping.patch
+mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
 page-cgroup-trivial-cleanup.patch
