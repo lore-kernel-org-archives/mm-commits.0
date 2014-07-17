@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch added to -mm tree
-Date: Thu, 17 Jul 2014 15:32:51 -0700
-Message-ID: <53c84f13.Yl8hcYayxO0aQsBx%akpm@linux-foundation.org>
+Subject: + mm-writeback-prevent-race-when-calculating-dirty-limits.patch
+ added to -mm tree
+Date: Thu, 17 Jul 2014 15:38:00 -0700
+Message-ID: <53c85048./kxUj6F2YNdCg6nb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:63463 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753664AbaGQWcw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 18:32:52 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so828193pab.3
-        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 15:32:52 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:46425 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655AbaGQWiC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 18:38:02 -0400
+Received: by mail-ie0-f201.google.com with SMTP id tr6so1204852ieb.4
+        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 15:38:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, aarcange@redhat.com, bob.liu@oracle.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: rientjes@google.com, hannes@cmpxchg.org, mhocko@suse.cz, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: only collapse hugepages to nodes with affinity for zone_reclaim_mode
+     Subject: mm, writeback: prevent race when calculating dirty limits
 has been added to the -mm tree.  Its filename is
-     mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch
+     mm-writeback-prevent-race-when-calculating-dirty-limits.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-writeback-prevent-race-when-calculating-dirty-limits.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-writeback-prevent-race-when-calculating-dirty-limits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,82 +42,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: only collapse hugepages to nodes with affinity for zone_reclaim_mode
+Subject: mm, writeback: prevent race when calculating dirty limits
 
-Commit 9f1b868a13ac ("mm: thp: khugepaged: add policy for finding target
-node") improved the previous khugepaged logic which allocated a
-transparent hugepages from the node of the first page being collapsed.
+Setting vm_dirty_bytes and dirty_background_bytes is not protected by any
+serialization.
 
-However, it is still possible to collapse pages to remote memory which may
-suffer from additional access latency.  With the current policy, it is
-possible that 255 pages (with PAGE_SHIFT == 12) will be collapsed remotely
-if the majority are allocated from that node.
+Therefore, it's possible for either variable to change value after the
+test in global_dirty_limits() to determine whether available_memory needs
+to be initialized or not.
 
-When zone_reclaim_mode is enabled, it means the VM should make every
-attempt to allocate locally to prevent NUMA performance degradation.  In
-this case, we do not want to collapse hugepages to remote nodes that would
-suffer from increased access latency.  Thus, when zone_reclaim_mode is
-enabled, only allow collapsing to nodes with RECLAIM_DISTANCE or less.
-
-There is no functional change for systems that disable zone_reclaim_mode.
+Always ensure that available_memory is properly initialized.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Bob Liu <bob.liu@oracle.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Rik van Riel <riel@redhat.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ mm/page-writeback.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode
-+++ a/mm/huge_memory.c
-@@ -2246,6 +2246,30 @@ static void khugepaged_alloc_sleep(void)
- 
- static int khugepaged_node_load[MAX_NUMNODES];
- 
-+static bool khugepaged_scan_abort(int nid)
-+{
-+	int i;
-+
-+	/*
-+	 * If zone_reclaim_mode is disabled, then no extra effort is made to
-+	 * allocate memory locally.
-+	 */
-+	if (!zone_reclaim_mode)
-+		return false;
-+
-+	/* If there is a count for this node already, it must be acceptable */
-+	if (khugepaged_node_load[nid])
-+		return false;
-+
-+	for (i = 0; i < MAX_NUMNODES; i++) {
-+		if (!khugepaged_node_load[i])
-+			continue;
-+		if (node_distance(nid, i) > RECLAIM_DISTANCE)
-+			return true;
-+	}
-+	return false;
-+}
-+
- #ifdef CONFIG_NUMA
- static int khugepaged_find_target_node(void)
+diff -puN mm/page-writeback.c~mm-writeback-prevent-race-when-calculating-dirty-limits mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-writeback-prevent-race-when-calculating-dirty-limits
++++ a/mm/page-writeback.c
+@@ -261,14 +261,11 @@ static unsigned long global_dirtyable_me
+  */
+ void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty)
  {
-@@ -2562,6 +2586,8 @@ static int khugepaged_scan_pmd(struct mm
- 		 * hit record.
- 		 */
- 		node = page_to_nid(page);
-+		if (khugepaged_scan_abort(node))
-+			goto out_unmap;
- 		khugepaged_node_load[node]++;
- 		VM_BUG_ON_PAGE(PageCompound(page), page);
- 		if (!PageLRU(page) || PageLocked(page) || !PageAnon(page))
++	const unsigned long available_memory = global_dirtyable_memory();
+ 	unsigned long background;
+ 	unsigned long dirty;
+-	unsigned long uninitialized_var(available_memory);
+ 	struct task_struct *tsk;
+ 
+-	if (!vm_dirty_bytes || !dirty_background_bytes)
+-		available_memory = global_dirtyable_memory();
+-
+ 	if (vm_dirty_bytes)
+ 		dirty = DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE);
+ 	else
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -164,6 +128,7 @@ mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
 mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
 mm-make-copy_pte_range-static-again.patch
 mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch
+mm-writeback-prevent-race-when-calculating-dirty-limits.patch
 include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
 lib-add-size-unit-t-p-e-to-memparse.patch
 mm-utilc-add-kstrimdup.patch
