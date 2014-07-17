@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-on-demand-vmstat-workers-v8-fix.patch added to -mm tree
-Date: Thu, 17 Jul 2014 13:23:38 -0700
-Message-ID: <53c830ca.NF/YNv04jW4nunWV%akpm@linux-foundation.org>
+Subject: + checkpatch-add-test-for-native-c90-types-in-unusual-order.patch added to -mm tree
+Date: Thu, 17 Jul 2014 14:02:02 -0700
+Message-ID: <53c839ca.AFqvpfV1RsHLGkqq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:45866 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750926AbaGQUXj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 16:23:39 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so296773oac.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 13:23:38 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:53925 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752862AbaGQVCD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 17:02:03 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so798500pab.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 14:02:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, cl@linux-foundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpu_stat_off can be static
+     Subject: checkpatch: add test for native c90 types in unusual order
 has been added to the -mm tree.  Its filename is
-     vmstat-on-demand-vmstat-workers-v8-fix.patch
+     checkpatch-add-test-for-native-c90-types-in-unusual-order.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmstat-on-demand-vmstat-workers-v8-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-test-for-native-c90-types-in-unusual-order.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmstat-on-demand-vmstat-workers-v8-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-test-for-native-c90-types-in-unusual-order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,52 +40,227 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: cpu_stat_off can be static
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add test for native c90 types in unusual order
 
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+c90 section "6.7.2 Type Specifiers" says:
+    "type specifiers may occur in any order"
+
+That means that:
+    short int is the same as int short
+    unsigned short int is the same as int unsigned short
+    etc...
+
+checkpatch currently parses only a subset of these allowed types.
+
+For instance: "unsigned short" and "signed short" are found by checkpatch
+as a specific type, but none of the or "int short" or "int signed short"
+variants are found.
+
+Add another table for the "kernel style misordered" variants.
+
+Add this misordered table to the findable types.
+
+Warn when the misordered style is used.
+
+This improves the "Missing a blank line after declarations" test as it
+depends on the correct parsing of the $Declare variable which looks for
+"$Type $Ident;" (ie: declarations like "int foo;").
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   44 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-diff -puN mm/vmstat.c~vmstat-on-demand-vmstat-workers-v8-fix mm/vmstat.c
---- a/mm/vmstat.c~vmstat-on-demand-vmstat-workers-v8-fix
-+++ a/mm/vmstat.c
-@@ -1245,7 +1245,7 @@ static const struct file_operations proc
- #ifdef CONFIG_SMP
- static DEFINE_PER_CPU(struct delayed_work, vmstat_work);
- int sysctl_stat_interval __read_mostly = HZ;
--struct cpumask *cpu_stat_off;
-+static struct cpumask *cpu_stat_off;
+diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-native-c90-types-in-unusual-order scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-test-for-native-c90-types-in-unusual-order
++++ a/scripts/checkpatch.pl
+@@ -309,9 +309,12 @@ our $Operators	= qr{
+ our $c90_Keywords = qr{do|for|while|if|else|return|goto|continue|switch|default|case|break}x;
  
- static void vmstat_update(struct work_struct *w)
- {
+ our $NonptrType;
++our $NonptrTypeMisordered;
+ our $NonptrTypeWithAttr;
+ our $Type;
++our $TypeMisordered;
+ our $Declare;
++our $DeclareMisordered;
+ 
+ our $NON_ASCII_UTF8	= qr{
+ 	[\xC2-\xDF][\x80-\xBF]               # non-overlong 2-byte
+@@ -353,6 +356,25 @@ our $signature_tags = qr{(?xi:
+ 	Cc:
+ )};
+ 
++our @typeListMisordered = (
++	qr{char\s+(?:un)?signed},
++	qr{int\s+(?:(?:un)?signed\s+)?short\s},
++	qr{int\s+short(?:\s+(?:un)?signed)},
++	qr{short\s+int(?:\s+(?:un)?signed)},
++	qr{(?:un)?signed\s+int\s+short},
++	qr{short\s+(?:un)?signed},
++	qr{long\s+int\s+(?:un)?signed},
++	qr{int\s+long\s+(?:un)?signed},
++	qr{long\s+(?:un)?signed\s+int},
++	qr{int\s+(?:un)?signed\s+long},
++	qr{int\s+(?:un)?signed},
++	qr{int\s+long\s+long\s+(?:un)?signed},
++	qr{long\s+long\s+int\s+(?:un)?signed},
++	qr{long\s+long\s+(?:un)?signed\s+int},
++	qr{long\s+long\s+(?:un)?signed},
++	qr{long\s+(?:un)?signed},
++);
++
+ our @typeList = (
+ 	qr{void},
+ 	qr{(?:(?:un)?signed\s+)?char},
+@@ -373,6 +395,7 @@ our @typeList = (
+ 	qr{${Ident}_t},
+ 	qr{${Ident}_handler},
+ 	qr{${Ident}_handler_fn},
++	@typeListMisordered,
+ );
+ our @typeListWithAttr = (
+ 	@typeList,
+@@ -414,6 +437,7 @@ our $allowed_asm_includes = qr{(?x:
+ sub build_types {
+ 	my $mods = "(?x:  \n" . join("|\n  ", @modifierList) . "\n)";
+ 	my $all = "(?x:  \n" . join("|\n  ", @typeList) . "\n)";
++	my $Misordered = "(?x:  \n" . join("|\n  ", @typeListMisordered) . "\n)";
+ 	my $allWithAttr = "(?x:  \n" . join("|\n  ", @typeListWithAttr) . "\n)";
+ 	$Modifier	= qr{(?:$Attribute|$Sparse|$mods)};
+ 	$NonptrType	= qr{
+@@ -425,6 +449,13 @@ sub build_types {
+ 			)
+ 			(?:\s+$Modifier|\s+const)*
+ 		  }x;
++	$NonptrTypeMisordered	= qr{
++			(?:$Modifier\s+|const\s+)*
++			(?:
++				(?:${Misordered}\b)
++			)
++			(?:\s+$Modifier|\s+const)*
++		  }x;
+ 	$NonptrTypeWithAttr	= qr{
+ 			(?:$Modifier\s+|const\s+)*
+ 			(?:
+@@ -439,7 +470,13 @@ sub build_types {
+ 			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*\s*(?:const\s*)?|\[\])+|(?:\s*\[\s*\])+)?
+ 			(?:\s+$Inline|\s+$Modifier)*
+ 		  }x;
++	$TypeMisordered	= qr{
++			$NonptrTypeMisordered
++			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*\s*(?:const\s*)?|\[\])+|(?:\s*\[\s*\])+)?
++			(?:\s+$Inline|\s+$Modifier)*
++		  }x;
+ 	$Declare	= qr{(?:$Storage\s+(?:$Inline\s+)?)?$Type};
++	$DeclareMisordered	= qr{(?:$Storage\s+(?:$Inline\s+)?)?$TypeMisordered};
+ }
+ build_types();
+ 
+@@ -2987,6 +3024,13 @@ sub process {
+ 			}
+ 		}
+ 
++# check for misordered declarations of char/short/int/long with signed/unsigned
++		while ($sline =~ m{(\b$TypeMisordered\b)}g) {
++			my $tmp = trim($1);
++			WARN("MISORDERED_TYPE",
++			     "type '$tmp' should be specified in [[un]signed] [short|int|long|long long] order\n" . $herecurr);
++		}
++
+ # check for static const char * arrays.
+ 		if ($line =~ /\bstatic\s+const\s+char\s*\*\s*(\w+)\s*\[\s*\]\s*=\s*/) {
+ 			WARN("STATIC_CONST_CHAR_ARRAY",
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-origin.patch
-sh-also-try-passing-m4-nofpu-for-sh2a-builds.patch
-mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
-slab-common-add-functions-for-kmem_cache_node-access-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
-ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix.patch
-mm-memcontrol-rewrite-uncharge-api-fix-2.patch
-mm-vmallocc-clean-up-map_vm_area-third-argument-v2.patch
-vmstat-on-demand-vmstat-workers-v8-fix.patch
-mm-zpool-zbud-zsmalloc-implement-zpool.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max-fix.patch
-add-lib-globc-fix.patch
-nilfs2-integrate-sysfs-support-into-driver-fix.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
-lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix.patch
-lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2.patch
+fs-fscache-make-ctl_table-static.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
+printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
+printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
+printk-tweak-do_syslog-to-match-comments.patch
+maintainers-remove-two-ancient-eata-sections.patch
+kernelh-remove-deprecated-pack_hex_byte.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
+checkpatch-ignore-email-headers-better.patch
+checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
+checkpatch-add-a-multiple-blank-lines-test.patch
+checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
+checkpatch-quiet-kconfig-help-message-checking.patch
+checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
+checkpatch-allow-multiple-const-types.patch
+checkpatch-improve-no-space-after-cast-test.patch
+checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
+checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+checkpatch-emit-a-warning-on-file-add-move-delete.patch
+checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation.patch
+checkpatch-add-an-index-variable-for-fixed-lines.patch
+checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file.patch
+checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch
+checkpatch-use-the-correct-indentation-for-which.patch
+checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
+checkpatch-fix-brace-style-misuses-of-else-and-while.patch
+checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
+checkpatch-add-short-int-to-c-variable-types.patch
+checkpatch-add-signed-generic-types.patch
+checkpatch-add-test-for-native-c90-types-in-unusual-order.patch
+fs-isofs-logging-clean-up.patch
+proc-constify-seq_operations.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
 linux-next.patch
-mm-add-strictlimit-knob-v2.patch
-debugging-keep-track-of-page-owners.patch
+pci-dma-compat-add-pci_zalloc_consistent-helper.patch
+atm-use-pci_zalloc_consistent.patch
+block-use-pci_zalloc_consistent.patch
+crypto-use-pci_zalloc_consistent.patch
+infiniband-use-pci_zalloc_consistent.patch
+i810-use-pci_zalloc_consistent.patch
+media-use-pci_zalloc_consistent.patch
+amd-use-pci_zalloc_consistent.patch
+atl1e-use-pci_zalloc_consistent.patch
+enic-use-pci_zalloc_consistent.patch
+sky2-use-pci_zalloc_consistent.patch
+micrel-use-pci_zalloc_consistent.patch
+qlogic-use-pci_zalloc_consistent.patch
+irda-use-pci_zalloc_consistent.patch
+ipw2100-use-pci_zalloc_consistent.patch
+mwl8k-use-pci_zalloc_consistent.patch
+rtl818x-use-pci_zalloc_consistent.patch
+rtlwifi-use-pci_zalloc_consistent.patch
+scsi-use-pci_zalloc_consistent.patch
+staging-use-pci_zalloc_consistent.patch
+synclink_gt-use-pci_zalloc_consistent.patch
+vme-bridges-use-pci_zalloc_consistent.patch
+amd-neaten-and-remove-unnecessary-oom-messages.patch
+maintainers-update-microcode-patterns.patch
+maintainers-update-cifs-location.patch
+maintainers-use-the-correct-efi-stub-location.patch
+maintainers-update-clk-sirf-patterns.patch
+maintainers-fix-ssbi-pattern.patch
+maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
+maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
+maintainers-update-picoxcell-patterns.patch
+maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
+maintainers-remove-metag-imgdafs-pattern.patch
+maintainers-remove-unused-radeon-drm-pattern.patch
+maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
+maintainers-remove-unused-nfsd-pattern.patch
 
