@@ -1,45 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch added to
+Subject: [to-be-updated]
+ mm-memcontrol-rewrite-uncharge-api-fix-double-migration.patch removed from
  -mm tree
-Date: Thu, 17 Jul 2014 16:16:27 -0700
-Message-ID: <53c8594b.xUP2Xm7ut6/qxHls%akpm@linux-foundation.org>
+Date: Thu, 17 Jul 2014 16:16:32 -0700
+Message-ID: <53c85950./JQGuVDCPYJU06gO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:34567 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758210AbaGQXQ2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 19:16:28 -0400
-Received: by mail-qa0-f73.google.com with SMTP id s7so441689qap.0
-        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 16:16:27 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:47821 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758210AbaGQXQd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 19:16:33 -0400
+Received: by mail-vc0-f202.google.com with SMTP id hq11so332552vcb.5
+        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 16:16:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: mm: memcontrol: rewrite uncharge API fix - double migration
-has been added to the -mm tree.  Its filename is
-     mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrol-rewrite-uncharge-api-fix-double-migration.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
@@ -64,43 +50,31 @@ isolation refcount is not done atomically.  This allows a PFN-based
 migrator like compaction to isolate the page, see the expected
 anonymous page refcount of 1, and migrate the page once more.
 
-Properly uncharge the page after it's been migrated, including the
-clearing of PCG_USED, so that a subsequent charge migration attempt
-will be able to detect it and bail out.
+Catch pages that have already been migrated and abort migration
+gracefully.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reported-by: Hugh Dickins <hughd@google.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2 mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2
+diff -puN mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-double-migration mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-double-migration
 +++ a/mm/memcontrol.c
-@@ -6604,7 +6604,6 @@ void mem_cgroup_migrate(struct page *old
+@@ -6602,7 +6602,10 @@ void mem_cgroup_migrate(struct page *old
+ 	if (!PageCgroupUsed(pc))
+ 		return;
  
- 	VM_BUG_ON_PAGE(!(pc->flags & PCG_MEM), oldpage);
+-	VM_BUG_ON_PAGE(!(pc->flags & PCG_MEM), oldpage);
++	/* Already migrated */
++	if (!(pc->flags & PCG_MEM))
++		return;
++
  	VM_BUG_ON_PAGE(do_swap_account && !(pc->flags & PCG_MEMSW), oldpage);
--	pc->flags &= ~(PCG_MEM | PCG_MEMSW);
- 
- 	if (PageTransHuge(oldpage)) {
- 		nr_pages <<= compound_order(oldpage);
-@@ -6612,6 +6611,13 @@ void mem_cgroup_migrate(struct page *old
- 		VM_BUG_ON_PAGE(!PageTransHuge(newpage), newpage);
- 	}
- 
-+	pc->flags = 0;
-+
-+	local_irq_disable();
-+	mem_cgroup_charge_statistics(pc->mem_cgroup, oldpage, -nr_pages);
-+	memcg_check_events(pc->mem_cgroup, oldpage);
-+	local_irq_enable();
-+
- 	commit_charge(newpage, pc->mem_cgroup, nr_pages, lrucare);
- }
+ 	pc->flags &= ~(PCG_MEM | PCG_MEMSW);
  
 _
 
@@ -131,7 +105,6 @@ mm-memcontrol-rewrite-uncharge-api-fix-5.patch
 mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
 mm-memcontrol-rewrite-uncharge-api-fix-uncharge-from-irq-context.patch
 mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
-mm-memcontrol-rewrite-uncharge-api-fix-double-migration.patch
 mm-memcontrol-rewrite-uncharge-api-fix-migrate-before-re-mapping.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
