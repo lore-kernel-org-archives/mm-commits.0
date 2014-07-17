@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + proc-convert-proc-pid-schedstat-to-seq_file-interface.patch
- added to -mm tree
-Date: Thu, 17 Jul 2014 15:54:37 -0700
-Message-ID: <53c8542d.F/VVNQUojQACy4eV%akpm@linux-foundation.org>
+Subject: + proc-convert-proc-pid-io-to-seq_file-interface.patch added to
+ -mm tree
+Date: Thu, 17 Jul 2014 15:54:39 -0700
+Message-ID: <53c8542f.K2IRFFHC/UyOU7C/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:63226 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757983AbaGQWyi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 18:54:38 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so833950pab.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 15:54:38 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:34501 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757955AbaGQWyk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 18:54:40 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so1211359iec.3
+        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 15:54:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: convert /proc/$PID/schedstat to seq_file interface
+     Subject: proc: convert /proc/$PID/io to seq_file interface
 has been added to the -mm tree.  Its filename is
-     proc-convert-proc-pid-schedstat-to-seq_file-interface.patch
+     proc-convert-proc-pid-io-to-seq_file-interface.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-convert-proc-pid-schedstat-to-seq_file-interface.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-convert-proc-pid-io-to-seq_file-interface.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-convert-proc-pid-schedstat-to-seq_file-interface.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-convert-proc-pid-io-to-seq_file-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,49 +42,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: convert /proc/$PID/schedstat to seq_file interface
+Subject: proc: convert /proc/$PID/io to seq_file interface
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/proc/base.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/base.c~proc-convert-proc-pid-schedstat-to-seq_file-interface fs/proc/base.c
---- a/fs/proc/base.c~proc-convert-proc-pid-schedstat-to-seq_file-interface
+diff -puN fs/proc/base.c~proc-convert-proc-pid-io-to-seq_file-interface fs/proc/base.c
+--- a/fs/proc/base.c~proc-convert-proc-pid-io-to-seq_file-interface
 +++ a/fs/proc/base.c
-@@ -311,9 +311,10 @@ static int proc_pid_stack(struct seq_fil
- /*
-  * Provides /proc/PID/schedstat
-  */
--static int proc_pid_schedstat(struct task_struct *task, char *buffer)
-+static int proc_pid_schedstat(struct seq_file *m, struct pid_namespace *ns,
-+			      struct pid *pid, struct task_struct *task)
+@@ -2399,7 +2399,7 @@ static const struct file_operations proc
+ #endif
+ 
+ #ifdef CONFIG_TASK_IO_ACCOUNTING
+-static int do_io_accounting(struct task_struct *task, char *buffer, int whole)
++static int do_io_accounting(struct task_struct *task, struct seq_file *m, int whole)
  {
--	return sprintf(buffer, "%llu %llu %lu\n",
-+	return seq_printf(m, "%llu %llu %lu\n",
- 			(unsigned long long)task->se.sum_exec_runtime,
- 			(unsigned long long)task->sched_info.run_delay,
- 			task->sched_info.pcount);
-@@ -2605,7 +2606,7 @@ static const struct pid_entry tgid_base_
- 	ONE("stack",      S_IRUSR, proc_pid_stack),
+ 	struct task_io_accounting acct = task->ioac;
+ 	unsigned long flags;
+@@ -2423,7 +2423,7 @@ static int do_io_accounting(struct task_
+ 
+ 		unlock_task_sighand(task, &flags);
+ 	}
+-	result = sprintf(buffer,
++	result = seq_printf(m,
+ 			"rchar: %llu\n"
+ 			"wchar: %llu\n"
+ 			"syscr: %llu\n"
+@@ -2443,14 +2443,16 @@ out_unlock:
+ 	return result;
+ }
+ 
+-static int proc_tid_io_accounting(struct task_struct *task, char *buffer)
++static int proc_tid_io_accounting(struct seq_file *m, struct pid_namespace *ns,
++				  struct pid *pid, struct task_struct *task)
+ {
+-	return do_io_accounting(task, buffer, 0);
++	return do_io_accounting(task, m, 0);
+ }
+ 
+-static int proc_tgid_io_accounting(struct task_struct *task, char *buffer)
++static int proc_tgid_io_accounting(struct seq_file *m, struct pid_namespace *ns,
++				   struct pid *pid, struct task_struct *task)
+ {
+-	return do_io_accounting(task, buffer, 1);
++	return do_io_accounting(task, m, 1);
+ }
+ #endif /* CONFIG_TASK_IO_ACCOUNTING */
+ 
+@@ -2632,7 +2634,7 @@ static const struct pid_entry tgid_base_
+ 	REG("coredump_filter", S_IRUGO|S_IWUSR, proc_coredump_filter_operations),
  #endif
- #ifdef CONFIG_SCHEDSTATS
--	INF("schedstat",  S_IRUGO, proc_pid_schedstat),
-+	ONE("schedstat",  S_IRUGO, proc_pid_schedstat),
+ #ifdef CONFIG_TASK_IO_ACCOUNTING
+-	INF("io",	S_IRUSR, proc_tgid_io_accounting),
++	ONE("io",	S_IRUSR, proc_tgid_io_accounting),
  #endif
- #ifdef CONFIG_LATENCYTOP
- 	REG("latency",  S_IRUGO, proc_lstats_operations),
-@@ -2943,7 +2944,7 @@ static const struct pid_entry tid_base_s
- 	ONE("stack",      S_IRUSR, proc_pid_stack),
+ #ifdef CONFIG_HARDWALL
+ 	INF("hardwall",   S_IRUGO, proc_pid_hardwall),
+@@ -2967,7 +2969,7 @@ static const struct pid_entry tid_base_s
+ 	REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
  #endif
- #ifdef CONFIG_SCHEDSTATS
--	INF("schedstat", S_IRUGO, proc_pid_schedstat),
-+	ONE("schedstat", S_IRUGO, proc_pid_schedstat),
+ #ifdef CONFIG_TASK_IO_ACCOUNTING
+-	INF("io",	S_IRUSR, proc_tid_io_accounting),
++	ONE("io",	S_IRUSR, proc_tid_io_accounting),
  #endif
- #ifdef CONFIG_LATENCYTOP
- 	REG("latency",  S_IRUGO, proc_lstats_operations),
+ #ifdef CONFIG_HARDWALL
+ 	INF("hardwall",   S_IRUGO, proc_pid_hardwall),
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
