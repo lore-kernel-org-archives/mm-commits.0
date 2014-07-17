@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-short-int-to-c-variable-types.patch added to -mm tree
-Date: Thu, 17 Jul 2014 14:02:00 -0700
-Message-ID: <53c839c8.6T+7z6lCyL7a9zLT%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch added to -mm tree
+Date: Thu, 17 Jul 2014 14:07:42 -0700
+Message-ID: <53c83b1e.X6+NfTPa/VuHw2R5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f73.google.com ([209.85.218.73]:52840 "EHLO
-	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752420AbaGQVCC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 17:02:02 -0400
-Received: by mail-oi0-f73.google.com with SMTP id u20so289285oif.2
-        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 14:02:01 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:57065 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752816AbaGQVHo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 17:07:44 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so420955yha.2
+        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 14:07:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, HartleyS@visionengravers.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add short int to c variable types
+     Subject: mm: memcontrol: use page lists for uncharge batching fix - hugetlb page->lru
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-short-int-to-c-variable-types.patch
+     mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-short-int-to-c-variable-types.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-short-int-to-c-variable-types.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,126 +41,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add short int to c variable types
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: use page lists for uncharge batching fix - hugetlb page->lru
 
-short int is one of the 6.7.2 c90 types.
-Find it appropriately.
+Naoya-san reports that page->lru of hugetlb pages gets corrupted when they
+hit the uncharge path from put_page().
 
-This fixes a defect in checkpatch where it suggests that a
-line break after declaration is required using an input like:
+Add a preliminary check for whether the page is even a valid memcg page
+before messing with it's ->lru list.
 
-	int foo;
-	short int bar;
-
-Without this change, it warns on the short int line.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Hartley Sweeten <HartleyS@visionengravers.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-short-int-to-c-variable-types scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-short-int-to-c-variable-types
-+++ a/scripts/checkpatch.pl
-@@ -356,6 +356,7 @@ our $signature_tags = qr{(?xi:
- our @typeList = (
- 	qr{void},
- 	qr{(?:unsigned\s+)?char},
-+	qr{(?:unsigned\s+)?short\s+int},
- 	qr{(?:unsigned\s+)?short},
- 	qr{(?:unsigned\s+)?int},
- 	qr{(?:unsigned\s+)?long},
+diff -puN mm/memcontrol.c~mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru
++++ a/mm/memcontrol.c
+@@ -6555,9 +6555,16 @@ static void uncharge_list(struct list_he
+  */
+ void mem_cgroup_uncharge(struct page *page)
+ {
++	struct page_cgroup *pc;
++
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
++	/* Don't touch page->lru of any random page, pre-check: */
++	pc = lookup_page_cgroup(page);
++	if (!PageCgroupUsed(pc))
++		return;
++
+ 	INIT_LIST_HEAD(&page->lru);
+ 	uncharge_list(&page->lru);
+ }
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-fs-fscache-make-ctl_table-static.patch
-fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
-printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
-printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
-printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
-printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
-printk-tweak-do_syslog-to-match-comments.patch
-maintainers-remove-two-ancient-eata-sections.patch
-kernelh-remove-deprecated-pack_hex_byte.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
-checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
-checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
-checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
-checkpatch-ignore-email-headers-better.patch
-checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
-checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
-checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
-checkpatch-add-a-multiple-blank-lines-test.patch
-checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
-checkpatch-quiet-kconfig-help-message-checking.patch
-checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
-checkpatch-allow-multiple-const-types.patch
-checkpatch-improve-no-space-after-cast-test.patch
-checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-checkpatch-emit-a-warning-on-file-add-move-delete.patch
-checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation.patch
-checkpatch-add-an-index-variable-for-fixed-lines.patch
-checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file.patch
-checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch
-checkpatch-use-the-correct-indentation-for-which.patch
-checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
-checkpatch-fix-brace-style-misuses-of-else-and-while.patch
-checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
-checkpatch-add-short-int-to-c-variable-types.patch
-checkpatch-add-signed-generic-types.patch
-checkpatch-add-test-for-native-c90-types-in-unusual-order.patch
-fs-isofs-logging-clean-up.patch
-proc-constify-seq_operations.patch
-sysctl-remove-now-unused-typedef-ctl_table.patch
-sysctl-remove-now-unused-typedef-ctl_table-fix.patch
-adfs-add-__printf-verification-fix-format-argument-mismatches.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
+shmem-fix-faulting-into-a-hole-not-taking-i_mutex.patch
+shmem-fix-splicing-from-a-hole-while-its-punched.patch
+mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
+vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
+mm-page-flags-clean-up-the-page-flag-test-set-clear-macros.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-charge-api-fix-3.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-memcontrol-rewrite-uncharge-api-fix-2.patch
+mm-memcontrol-rewrite-uncharge-api-fix-4.patch
+mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
+mm-memcontrol-rewrite-uncharge-api-fix-uncharge-from-irq-context.patch
+mm-memcontrol-rewrite-uncharge-api-fix-double-migration.patch
+mm-memcontrol-rewrite-uncharge-api-fix-migrate-before-re-mapping.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
+page-cgroup-trivial-cleanup.patch
+page-cgroup-get-rid-of-nr_pcg_flags.patch
+memcg-remove-lookup_cgroup_page-prototype.patch
+mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
+mm-vmscan-remove-all_unreclaimable.patch
+mm-vmscan-remove-all_unreclaimable-fix.patch
+mm-vmscan-move-swappiness-out-of-scan_control.patch
+mm-vmscan-clean-up-struct-scan_control.patch
+mm-vmscan-clean-up-struct-scan_control-checkpatch-fixes.patch
+mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
+mm-replace-init_page_accessed-by-__setpagereferenced.patch
+mm-update-the-description-for-vm_total_pages.patch
+mm-vmscan-report-the-number-of-file-anon-pages-respectively.patch
+mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
+mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+mm-move-zone-pages_scanned-into-a-vmstat-counter.patch
+mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
+mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
+mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
+nilfs2-integrate-sysfs-support-into-driver-fix.patch
 linux-next.patch
-pci-dma-compat-add-pci_zalloc_consistent-helper.patch
-atm-use-pci_zalloc_consistent.patch
-block-use-pci_zalloc_consistent.patch
-crypto-use-pci_zalloc_consistent.patch
-infiniband-use-pci_zalloc_consistent.patch
-i810-use-pci_zalloc_consistent.patch
-media-use-pci_zalloc_consistent.patch
-amd-use-pci_zalloc_consistent.patch
-atl1e-use-pci_zalloc_consistent.patch
-enic-use-pci_zalloc_consistent.patch
-sky2-use-pci_zalloc_consistent.patch
-micrel-use-pci_zalloc_consistent.patch
-qlogic-use-pci_zalloc_consistent.patch
-irda-use-pci_zalloc_consistent.patch
-ipw2100-use-pci_zalloc_consistent.patch
-mwl8k-use-pci_zalloc_consistent.patch
-rtl818x-use-pci_zalloc_consistent.patch
-rtlwifi-use-pci_zalloc_consistent.patch
-scsi-use-pci_zalloc_consistent.patch
-staging-use-pci_zalloc_consistent.patch
-synclink_gt-use-pci_zalloc_consistent.patch
-vme-bridges-use-pci_zalloc_consistent.patch
-amd-neaten-and-remove-unnecessary-oom-messages.patch
-maintainers-update-microcode-patterns.patch
-maintainers-update-cifs-location.patch
-maintainers-use-the-correct-efi-stub-location.patch
-maintainers-update-clk-sirf-patterns.patch
-maintainers-fix-ssbi-pattern.patch
-maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
-maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
-maintainers-update-picoxcell-patterns.patch
-maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
-maintainers-remove-metag-imgdafs-pattern.patch
-maintainers-remove-unused-radeon-drm-pattern.patch
-maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
-maintainers-remove-unused-nfsd-pattern.patch
+debugging-keep-track-of-page-owners.patch
 
