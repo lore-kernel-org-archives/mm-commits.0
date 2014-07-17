@@ -1,327 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 17 Jul 2014 13:01:34 -0700
-Message-ID: <53c82b9e.cuwQo1qKoJBd7mYy%akpm@linux-foundation.org>
+Subject: [merged] fs-quota-kernel-doc-warning-fixes.patch removed from -mm tree
+Date: Thu, 17 Jul 2014 13:01:47 -0700
+Message-ID: <53c82bab.l/zVaQL3ADo06PX+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:46525 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752692AbaGQUBg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 16:01:36 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so395062igi.5
-        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 13:01:35 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:42895 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752604AbaGQUBt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jul 2014 16:01:49 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so408131yha.0
+        for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2014 13:01:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: fs/quota: kernel-doc warning fixes
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     fs-quota-kernel-doc-warning-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/quota: kernel-doc warning fixes
 
+type and id were removed and qid added to quota_send_warning in commit
+431f19744d15 ("userns: Convert quota netlink aka quota_send_warning").
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/mvm/mac80211.c |    3 -
- drivers/net/wireless/iwlwifi/mvm/scan.c     |   38 ------------------
- net/bluetooth/smp.c                         |   27 ------------
- sound/pci/hda/hda_intel.c                   |   20 ---------
- 4 files changed, 88 deletions(-)
+ fs/quota/kqid.c    |    2 +-
+ fs/quota/netlink.c |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/wireless/iwlwifi/mvm/mac80211.c~linux-next-git-rejects drivers/net/wireless/iwlwifi/mvm/mac80211.c
---- a/drivers/net/wireless/iwlwifi/mvm/mac80211.c~linux-next-git-rejects
-+++ a/drivers/net/wireless/iwlwifi/mvm/mac80211.c
-@@ -328,12 +328,9 @@ int iwl_mvm_mac_setup_register(struct iw
- 		hw->uapsd_max_sp_len = IWL_UAPSD_MAX_SP;
- 	}
+diff -puN fs/quota/kqid.c~fs-quota-kernel-doc-warning-fixes fs/quota/kqid.c
+--- a/fs/quota/kqid.c~fs-quota-kernel-doc-warning-fixes
++++ a/fs/quota/kqid.c
+@@ -55,7 +55,7 @@ EXPORT_SYMBOL(qid_lt);
+ /**
+  *	from_kqid - Create a qid from a kqid user-namespace pair.
+  *	@targ: The user namespace we want a qid in.
+- *	@kuid: The kernel internal quota identifier to start with.
++ *	@kqid: The kernel internal quota identifier to start with.
+  *
+  *	Map @kqid into the user-namespace specified by @targ and
+  *	return the resulting qid.
+diff -puN fs/quota/netlink.c~fs-quota-kernel-doc-warning-fixes fs/quota/netlink.c
+--- a/fs/quota/netlink.c~fs-quota-kernel-doc-warning-fixes
++++ a/fs/quota/netlink.c
+@@ -32,8 +32,7 @@ static struct genl_family quota_genl_fam
  
--<<<<<<< HEAD
--=======
- 	if (mvm->fw->ucode_capa.api[0] & IWL_UCODE_TLV_API_LMAC_SCAN)
- 		hw->flags |= IEEE80211_SINGLE_HW_SCAN_ON_ALL_BANDS;
- 
-->>>>>>> linux-next/akpm-base
- 	hw->sta_data_size = sizeof(struct iwl_mvm_sta);
- 	hw->vif_data_size = sizeof(struct iwl_mvm_vif);
- 	hw->chanctx_data_size = sizeof(u16);
-diff -puN drivers/net/wireless/iwlwifi/mvm/scan.c~linux-next-git-rejects drivers/net/wireless/iwlwifi/mvm/scan.c
---- a/drivers/net/wireless/iwlwifi/mvm/scan.c~linux-next-git-rejects
-+++ a/drivers/net/wireless/iwlwifi/mvm/scan.c
-@@ -711,22 +711,6 @@ static void iwl_build_channel_cfg(struct
- 				  u32 ssid_bitmap,
- 				  struct iwl_mvm_scan_params *params)
- {
--<<<<<<< HEAD
--	int i, index = 0;
--
--	for (i = 0; i < req->n_channels; i++) {
--		struct ieee80211_channel *chan = req->channels[i];
--
--		if (chan->band != band)
--			continue;
--
--		index = *head;
--		(*head)++;
--
--		channels->channel_number[index] = cpu_to_le16(chan->hw_value);
--		channels->dwell_time[index][0] = params->dwell[band].active;
--		channels->dwell_time[index][1] = params->dwell[band].passive;
--=======
- 	u32 n_channels = mvm->fw->ucode_capa.n_scan_channels;
- 	__le32 *type = (__le32 *)channels_buffer;
- 	__le16 *channel_number = (__le16 *)(type + n_channels);
-@@ -748,23 +732,11 @@ static void iwl_build_channel_cfg(struct
- 		channel_number[index] = cpu_to_le16(chan->hw_value);
- 		active_dwell[index] = params->dwell[band].active;
- 		passive_dwell[index] = params->dwell[band].passive;
-->>>>>>> linux-next/akpm-base
- 
- 		iter_count[index] = cpu_to_le16(1);
- 		iter_interval[index] = 0;
- 
- 		if (!(chan->flags & IEEE80211_CHAN_NO_IR))
--<<<<<<< HEAD
--			channels->type[index] |=
--				cpu_to_le32(IWL_SCAN_OFFLOAD_CHANNEL_ACTIVE);
--
--		channels->type[index] |=
--				cpu_to_le32(IWL_SCAN_OFFLOAD_CHANNEL_FULL |
--					    IWL_SCAN_OFFLOAD_CHANNEL_PARTIAL);
--
--		if (chan->flags & IEEE80211_CHAN_NO_HT40)
--			channels->type[index] |=
--=======
- 			type[index] |=
- 				cpu_to_le32(IWL_SCAN_OFFLOAD_CHANNEL_ACTIVE);
- 
-@@ -773,7 +745,6 @@ static void iwl_build_channel_cfg(struct
- 
- 		if (chan->flags & IEEE80211_CHAN_NO_HT40)
- 			type[index] |=
-->>>>>>> linux-next/akpm-base
- 				cpu_to_le32(IWL_SCAN_OFFLOAD_CHANNEL_NARROW);
- 
- 		/* scan for all SSIDs from req->ssids */
-@@ -826,13 +797,8 @@ int iwl_mvm_config_sched_scan(struct iwl
- 		iwl_scan_offload_build_tx_cmd(mvm, vif, ies,
- 					      IEEE80211_BAND_2GHZ,
- 					      &scan_cfg->scan_cmd.tx_cmd[0],
--<<<<<<< HEAD
--					      scan_cfg->data);
--		iwl_build_channel_cfg(mvm, req, &scan_cfg->channel_cfg,
--=======
- 					      probes);
- 		iwl_build_channel_cfg(mvm, req, scan_cfg->data,
-->>>>>>> linux-next/akpm-base
- 				      IEEE80211_BAND_2GHZ, &head,
- 				      ssid_bitmap, &params);
- 	}
-@@ -842,11 +808,7 @@ int iwl_mvm_config_sched_scan(struct iwl
- 					      &scan_cfg->scan_cmd.tx_cmd[1],
- 					      probes +
- 						SCAN_OFFLOAD_PROBE_REQ_SIZE);
--<<<<<<< HEAD
--		iwl_build_channel_cfg(mvm, req, &scan_cfg->channel_cfg,
--=======
- 		iwl_build_channel_cfg(mvm, req, scan_cfg->data,
-->>>>>>> linux-next/akpm-base
- 				      IEEE80211_BAND_5GHZ, &head,
- 				      ssid_bitmap, &params);
- 	}
-diff -puN net/bluetooth/smp.c~linux-next-git-rejects net/bluetooth/smp.c
---- a/net/bluetooth/smp.c~linux-next-git-rejects
-+++ a/net/bluetooth/smp.c
-@@ -391,19 +391,12 @@ static const u8 gen_method[5][5] = {
- 
- static u8 get_auth_method(struct smp_chan *smp, u8 local_io, u8 remote_io)
- {
--<<<<<<< HEAD
--	/* If either side has unknown io_caps, use JUST WORKS */
--	if (local_io > SMP_IO_KEYBOARD_DISPLAY ||
--	    remote_io > SMP_IO_KEYBOARD_DISPLAY)
--		return JUST_WORKS;
--=======
- 	/* If either side has unknown io_caps, use JUST_CFM (which gets
- 	 * converted later to JUST_WORKS if we're initiators.
- 	 */
- 	if (local_io > SMP_IO_KEYBOARD_DISPLAY ||
- 	    remote_io > SMP_IO_KEYBOARD_DISPLAY)
- 		return JUST_CFM;
-->>>>>>> linux-next/akpm-base
- 
- 	return gen_method[remote_io][local_io];
- }
-@@ -423,18 +416,6 @@ static int tk_request(struct l2cap_conn
- 
- 	BT_DBG("tk_request: auth:%d lcl:%d rem:%d", auth, local_io, remote_io);
- 
--<<<<<<< HEAD
--	/* If neither side wants MITM, use JUST WORKS */
--	/* Otherwise, look up method from the table */
--	if (!(auth & SMP_AUTH_MITM))
--		method = JUST_WORKS;
--	else
--		method = get_auth_method(smp, local_io, remote_io);
--
--	/* If not bonding, don't ask user to confirm a Zero TK */
--	if (!(auth & SMP_AUTH_BONDING) && method == JUST_CFM)
--		method = JUST_WORKS;
--=======
- 	/* If neither side wants MITM, either "just" confirm an incoming
- 	 * request or use just-works for outgoing ones. The JUST_CFM
- 	 * will be converted to JUST_WORKS if necessary later in this
-@@ -445,7 +426,6 @@ static int tk_request(struct l2cap_conn
- 		method = JUST_CFM;
- 	else
- 		method = get_auth_method(smp, local_io, remote_io);
-->>>>>>> linux-next/akpm-base
- 
- 	/* Don't confirm locally initiated pairing attempts */
- 	if (method == JUST_CFM && test_bit(SMP_FLAG_INITIATOR, &smp->flags))
-@@ -927,12 +907,9 @@ static u8 smp_cmd_security_req(struct l2
- 		return SMP_CMD_NOTSUPP;
- 
- 	sec_level = authreq_to_seclevel(rp->auth_req);
--<<<<<<< HEAD
--=======
- 	if (smp_sufficient_security(hcon, sec_level))
- 		return 0;
- 
-->>>>>>> linux-next/akpm-base
- 	if (sec_level > hcon->pending_sec_level)
- 		hcon->pending_sec_level = sec_level;
- 
-@@ -984,11 +961,7 @@ int smp_conn_security(struct hci_conn *h
- 	if (sec_level > hcon->pending_sec_level)
- 		hcon->pending_sec_level = sec_level;
- 
--<<<<<<< HEAD
--	if (hcon->link_mode & HCI_LM_MASTER)
--=======
- 	if (test_bit(HCI_CONN_MASTER, &hcon->flags))
-->>>>>>> linux-next/akpm-base
- 		if (smp_ltk_encrypt(conn, hcon->pending_sec_level))
- 			return 0;
- 
-diff -puN sound/pci/hda/hda_intel.c~linux-next-git-rejects sound/pci/hda/hda_intel.c
---- a/sound/pci/hda/hda_intel.c~linux-next-git-rejects
-+++ a/sound/pci/hda/hda_intel.c
-@@ -776,11 +776,7 @@ static int azx_suspend(struct device *de
- 	struct hda_intel *hda = container_of(chip, struct hda_intel, chip);
- 	struct azx_pcm *p;
- 
--<<<<<<< HEAD
--	if (chip->disabled || chip->init_failed)
--=======
- 	if (chip->disabled || hda->init_failed)
-->>>>>>> linux-next/akpm-base
- 		return 0;
- 
- 	snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
-@@ -813,11 +809,7 @@ static int azx_resume(struct device *dev
- 	struct azx *chip = card->private_data;
- 	struct hda_intel *hda = container_of(chip, struct hda_intel, chip);
- 
--<<<<<<< HEAD
--	if (chip->disabled || chip->init_failed)
--=======
- 	if (chip->disabled || hda->init_failed)
-->>>>>>> linux-next/akpm-base
- 		return 0;
- 
- 	if (chip->driver_caps & AZX_DCAPS_I915_POWERWELL) {
-@@ -855,11 +847,7 @@ static int azx_runtime_suspend(struct de
- 	struct azx *chip = card->private_data;
- 	struct hda_intel *hda = container_of(chip, struct hda_intel, chip);
- 
--<<<<<<< HEAD
--	if (chip->disabled || chip->init_failed)
--=======
- 	if (chip->disabled || hda->init_failed)
-->>>>>>> linux-next/akpm-base
- 		return 0;
- 
- 	if (!(chip->driver_caps & AZX_DCAPS_PM_RUNTIME))
-@@ -887,11 +875,7 @@ static int azx_runtime_resume(struct dev
- 	struct hda_codec *codec;
- 	int status;
- 
--<<<<<<< HEAD
--	if (chip->disabled || chip->init_failed)
--=======
- 	if (chip->disabled || hda->init_failed)
-->>>>>>> linux-next/akpm-base
- 		return 0;
- 
- 	if (!(chip->driver_caps & AZX_DCAPS_PM_RUNTIME))
-@@ -929,11 +913,7 @@ static int azx_runtime_idle(struct devic
- 	struct azx *chip = card->private_data;
- 	struct hda_intel *hda = container_of(chip, struct hda_intel, chip);
- 
--<<<<<<< HEAD
--	if (chip->disabled || chip->init_failed)
--=======
- 	if (chip->disabled || hda->init_failed)
-->>>>>>> linux-next/akpm-base
- 		return 0;
- 
- 	if (!power_save_controller ||
+ /**
+  * quota_send_warning - Send warning to userspace about exceeded quota
+- * @type: The quota type: USRQQUOTA, GRPQUOTA,...
+- * @id: The user or group id of the quota that was exceeded
++ * @qid: The kernel internal quota identifier.
+  * @dev: The device on which the fs is mounted (sb->s_dev)
+  * @warntype: The type of the warning: QUOTA_NL_...
+  *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-revert-fs-seq_file-fallback-to-vmalloc-allocation.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
+origin.patch
+kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-fscache-make-ctl_table-static.patch
+fs-logfs-readwritec-kernel-doc-warning-fixes.patch
+ntfs-kernel-doc-warning-fixes.patch
+arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero.patch
+arch-sh-kernel-timec-use-ptr_err_or_zero.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-squashfs-superc-logging-clean-up.patch
+ubifs-kernel-doc-warning-fix.patch
+fs-ubifs-superc-replace-seq_printf-by-seq_puts.patch
+fs-ubifs-ioc-kernel-doc-warning-fix.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+mm-slabc-add-__init-to-init_lock_keys.patch
+mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
+mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
 mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-vmscan-clean-up-struct-scan_control-checkpatch-fixes.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
+include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
+mm-internalh-use-nth_page.patch
+mm-hwpoison-injectc-remove-unnecessary-null-test-before-debugfs_remove_recursive.patch
+mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
+lib-test-kstrtoxc-use-array_size-instead-of-sizeof-sizeof.patch
+fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
+fs-efs-nameic-return-is-not-a-function.patch
+fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-test_kprobesc-use-current-logging-functions.patch
+fs-isofs-logging-clean-up.patch
 fs-isofs-logging-clean-up-fix.patch
-proc-remove-proc_tty_ldisc-variable-fix.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-panic-add-taint_softlockup-fix.patch
+fs-coda-use-linux-uaccessh.patch
+fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+fs-ufs-convert-printk-to-pr_foo.patch
+fs-ufs-use-pr_fmt.patch
+fs-ufs-superc-use-__func__-in-logging.patch
+fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
+fs-ufs-convert-ufsd-printk-to-pr_debug.patch
+fs-ufs-inodec-kernel-doc-warning-fixes.patch
+fs-reiserfs-replace-not-standard-%lu-%ld.patch
+fs-reiserfs-use-linux-uaccessh.patch
+fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
+fs-hpfs-dnodec-fix-suspect-code-indent.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+proc-constify-seq_operations.patch
+fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
+fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
+fs-bfs-use-bfs-prefix-for-dump_imap.patch
+drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
+fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cramfs-convert-printk-to-pr_foo.patch
+fs-cramfs-use-pr_fmt.patch
+fs-cramfs-code-clean-up.patch
+fs-cramfs-inodec-use-linux-uaccessh.patch
+fs-romfs-superc-convert-printk-to-pr_foo.patch
+fs-romfs-superc-use-pr_fmt-in-logging.patch
+fs-romfs-superc-add-blank-line-after-declarations.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
+scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
+fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
+init-mainc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
