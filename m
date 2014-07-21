@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + dlm-plock-add-argument-descriptions-to-notify.patch added to
- -mm tree
-Date: Mon, 21 Jul 2014 15:23:59 -0700
-Message-ID: <53cd92ff.+qXO4Rhk/pytQKCz%akpm@linux-foundation.org>
+Subject: + dlm-fs-remove-unused-conf-from-lm_grant.patch added to -mm tree
+Date: Mon, 21 Jul 2014 15:24:00 -0700
+Message-ID: <53cd9300.1o+g21Hgv9r4oLY/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:34130 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753210AbaGUWYA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 18:24:00 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so2013763pab.3
-        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 15:24:00 -0700 (PDT)
+Received: from mail-ig0-f202.google.com ([209.85.213.202]:60501 "EHLO
+	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213AbaGUWYC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 18:24:02 -0400
+Received: by mail-ig0-f202.google.com with SMTP id r2so426827igi.1
+        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 15:24:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, bfields@fieldses.org, ccaulfie@redhat.com, jlayton@poochiereds.net, teigland@redhat.com, trond.myklebust@primarydata.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/dlm/plock.c: add argument descriptions to notify
+     Subject: dlm, lockd: remove unused conf from lm_grant
 has been added to the -mm tree.  Its filename is
-     dlm-plock-add-argument-descriptions-to-notify.patch
+     dlm-fs-remove-unused-conf-from-lm_grant.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dlm-plock-add-argument-descriptions-to-notify.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dlm-fs-remove-unused-conf-from-lm_grant.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dlm-plock-add-argument-descriptions-to-notify.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dlm-fs-remove-unused-conf-from-lm_grant.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,10 +41,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: fs/dlm/plock.c: add argument descriptions to notify
+Subject: dlm, lockd: remove unused conf from lm_grant
 
-Function pointer arguments without type names
-are not very clear.  Add them.
+This argument is always NULL so don't pass it around.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
@@ -57,18 +55,20 @@ Cc: Trond Myklebust <trond.myklebust@primarydata.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/plock.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/dlm/plock.c     |    8 ++++----
+ fs/lockd/svclock.c |   12 +++---------
+ include/linux/fs.h |    2 +-
+ 3 files changed, 8 insertions(+), 14 deletions(-)
 
-diff -puN fs/dlm/plock.c~dlm-plock-add-argument-descriptions-to-notify fs/dlm/plock.c
---- a/fs/dlm/plock.c~dlm-plock-add-argument-descriptions-to-notify
+diff -puN fs/dlm/plock.c~dlm-fs-remove-unused-conf-from-lm_grant fs/dlm/plock.c
+--- a/fs/dlm/plock.c~dlm-fs-remove-unused-conf-from-lm_grant
 +++ a/fs/dlm/plock.c
 @@ -30,7 +30,7 @@ struct plock_op {
  
  struct plock_xop {
  	struct plock_op xop;
--	void *callback;
-+	int (*callback)(struct file_lock *, struct file_lock *, int);
+-	int (*callback)(struct file_lock *, struct file_lock *, int);
++	int (*callback)(struct file_lock *fl, int result);
  	void *fl;
  	void *file;
  	struct file_lock flc;
@@ -76,11 +76,78 @@ diff -puN fs/dlm/plock.c~dlm-plock-add-argument-descriptions-to-notify fs/dlm/pl
  	struct file *file;
  	struct file_lock *fl;
  	struct file_lock *flc;
--	int (*notify)(void *, void *, int) = NULL;
-+	int (*notify)(struct file_lock *fl, struct file_lock *cont, int result) = NULL;
+-	int (*notify)(struct file_lock *fl, struct file_lock *cont, int result) = NULL;
++	int (*notify)(struct file_lock *fl, int result) = NULL;
  	struct plock_xop *xop = (struct plock_xop *)op;
  	int rv = 0;
  
+@@ -209,7 +209,7 @@ static int dlm_plock_callback(struct plo
+ 	notify = xop->callback;
+ 
+ 	if (op->info.rv) {
+-		notify(fl, NULL, op->info.rv);
++		notify(fl, op->info.rv);
+ 		goto out;
+ 	}
+ 
+@@ -228,7 +228,7 @@ static int dlm_plock_callback(struct plo
+ 			  (unsigned long long)op->info.number, file, fl);
+ 	}
+ 
+-	rv = notify(fl, NULL, 0);
++	rv = notify(fl, 0);
+ 	if (rv) {
+ 		/* XXX: We need to cancel the fs lock here: */
+ 		log_print("dlm_plock_callback: lock granted after lock request "
+diff -puN fs/lockd/svclock.c~dlm-fs-remove-unused-conf-from-lm_grant fs/lockd/svclock.c
+--- a/fs/lockd/svclock.c~dlm-fs-remove-unused-conf-from-lm_grant
++++ a/fs/lockd/svclock.c
+@@ -667,22 +667,16 @@ nlmsvc_cancel_blocked(struct net *net, s
+  * deferred rpc for GETLK and SETLK.
+  */
+ static void
+-nlmsvc_update_deferred_block(struct nlm_block *block, struct file_lock *conf,
+-			     int result)
++nlmsvc_update_deferred_block(struct nlm_block *block, int result)
+ {
+ 	block->b_flags |= B_GOT_CALLBACK;
+ 	if (result == 0)
+ 		block->b_granted = 1;
+ 	else
+ 		block->b_flags |= B_TIMED_OUT;
+-	if (conf) {
+-		if (block->b_fl)
+-			__locks_copy_lock(block->b_fl, conf);
+-	}
+ }
+ 
+-static int nlmsvc_grant_deferred(struct file_lock *fl, struct file_lock *conf,
+-					int result)
++static int nlmsvc_grant_deferred(struct file_lock *fl, int result)
+ {
+ 	struct nlm_block *block;
+ 	int rc = -ENOENT;
+@@ -697,7 +691,7 @@ static int nlmsvc_grant_deferred(struct
+ 					rc = -ENOLCK;
+ 					break;
+ 				}
+-				nlmsvc_update_deferred_block(block, conf, result);
++				nlmsvc_update_deferred_block(block, result);
+ 			} else if (result == 0)
+ 				block->b_granted = 1;
+ 
+diff -puN include/linux/fs.h~dlm-fs-remove-unused-conf-from-lm_grant include/linux/fs.h
+--- a/include/linux/fs.h~dlm-fs-remove-unused-conf-from-lm_grant
++++ a/include/linux/fs.h
+@@ -842,7 +842,7 @@ struct lock_manager_operations {
+ 	int (*lm_compare_owner)(struct file_lock *fl1, struct file_lock *fl2);
+ 	unsigned long (*lm_owner_key)(struct file_lock *fl);
+ 	void (*lm_notify)(struct file_lock *fl);	/* unblock callback */
+-	int (*lm_grant)(struct file_lock *fl, struct file_lock *conf, int result);
++	int (*lm_grant)(struct file_lock *fl, int result);
+ 	void (*lm_break)(struct file_lock *fl);
+ 	int (*lm_change)(struct file_lock **fl, int type);
+ };
 _
 
 Patches currently in -mm which might be from joe@perches.com are
