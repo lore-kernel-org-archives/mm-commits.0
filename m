@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ubifs-kernel-doc-warning-fix.patch removed from -mm tree
-Date: Mon, 21 Jul 2014 12:34:36 -0700
-Message-ID: <53cd6b4c.sqTQk1ZDlxCe+uw+%akpm@linux-foundation.org>
+Subject: [merged] fs-ubifs-ioc-kernel-doc-warning-fix.patch removed from
+ -mm tree
+Date: Mon, 21 Jul 2014 12:34:40 -0700
+Message-ID: <53cd6b50.e8mdWgf5olvGzW9T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:61812 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933568AbaGUTei (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 15:34:38 -0400
-Received: by mail-qa0-f74.google.com with SMTP id j15so1052795qaq.1
-        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 12:34:36 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:57280 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933568AbaGUTem (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 15:34:42 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so1580745oah.2
+        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 12:34:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, adrian.hunter@intel.com, dedekind1@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ubifs: kernel-doc warning fix
+     Subject: fs/ubifs/io.c: kernel-doc warning fix
 has been removed from the -mm tree.  Its filename was
-     ubifs-kernel-doc-warning-fix.patch
+     fs-ubifs-ioc-kernel-doc-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: ubifs: kernel-doc warning fix
+Subject: fs/ubifs/io.c: kernel-doc warning fix
 
-No grouped argument in drop_last_node.
+s/data/timer
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Artem Bityutskiy <dedekind1@gmail.com>
@@ -37,20 +38,21 @@ Cc: Adrian Hunter <adrian.hunter@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/recovery.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ubifs/io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ubifs/recovery.c~ubifs-kernel-doc-warning-fix fs/ubifs/recovery.c
---- a/fs/ubifs/recovery.c~ubifs-kernel-doc-warning-fix
-+++ a/fs/ubifs/recovery.c
-@@ -596,7 +596,6 @@ static void drop_last_group(struct ubifs
-  * drop_last_node - drop the last node.
-  * @sleb: scanned LEB information
-  * @offs: offset of dropped nodes is returned here
-- * @grouped: non-zero if whole group of nodes have to be dropped
+diff -puN fs/ubifs/io.c~fs-ubifs-ioc-kernel-doc-warning-fix fs/ubifs/io.c
+--- a/fs/ubifs/io.c~fs-ubifs-ioc-kernel-doc-warning-fix
++++ a/fs/ubifs/io.c
+@@ -431,7 +431,7 @@ void ubifs_prep_grp_node(struct ubifs_in
+ 
+ /**
+  * wbuf_timer_callback - write-buffer timer callback function.
+- * @data: timer data (write-buffer descriptor)
++ * @timer: timer data (write-buffer descriptor)
   *
-  * This is a helper function for 'ubifs_recover_leb()' which drops the last
-  * node of the scanned LEB.
+  * This function is called when the write-buffer timer expires.
+  */
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
