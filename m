@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + slub-remove-kmemcg-id-from-create_unique_id.patch added to -mm
- tree
-Date: Mon, 21 Jul 2014 14:37:36 -0700
-Message-ID: <53cd8820.+pMMn3eBBy5siE4+%akpm@linux-foundation.org>
+Subject: + memcg-make-memcg_cache_id-static.patch added to -mm tree
+Date: Mon, 21 Jul 2014 14:37:38 -0700
+Message-ID: <53cd8822.+/JVl1ifUlC082Mr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:34569 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753987AbaGUVhh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 17:37:37 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so1723869pdj.2
-        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 14:37:37 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:35070 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754773AbaGUVhj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 17:37:39 -0400
+Received: by mail-ie0-f201.google.com with SMTP id tr6so2488207ieb.4
+        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 14:37:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: remove kmemcg id from create_unique_id
+     Subject: memcg: make memcg_cache_id static
 has been added to the -mm tree.  Its filename is
-     slub-remove-kmemcg-id-from-create_unique_id.patch
+     memcg-make-memcg_cache_id-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-remove-kmemcg-id-from-create_unique_id.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-make-memcg_cache_id-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-remove-kmemcg-id-from-create_unique_id.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-make-memcg_cache_id-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,10 +41,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slub: remove kmemcg id from create_unique_id
+Subject: memcg: make memcg_cache_id static
 
-This function is never called for memcg caches, because they are
-unmergeable, so remove the dead code.
+It's not used anywhere outside mm/memcontrol.c.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -57,25 +55,71 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 ------
- 1 file changed, 6 deletions(-)
+ include/linux/memcontrol.h |    7 -------
+ mm/memcontrol.c            |   20 ++++++++++----------
+ 2 files changed, 10 insertions(+), 17 deletions(-)
 
-diff -puN mm/slub.c~slub-remove-kmemcg-id-from-create_unique_id mm/slub.c
---- a/mm/slub.c~slub-remove-kmemcg-id-from-create_unique_id
-+++ a/mm/slub.c
-@@ -5128,12 +5128,6 @@ static char *create_unique_id(struct kme
- 		*p++ = '-';
- 	p += sprintf(p, "%07d", s->size);
+diff -puN include/linux/memcontrol.h~memcg-make-memcg_cache_id-static include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-make-memcg_cache_id-static
++++ a/include/linux/memcontrol.h
+@@ -438,8 +438,6 @@ void __memcg_kmem_commit_charge(struct p
+ 				       struct mem_cgroup *memcg, int order);
+ void __memcg_kmem_uncharge_pages(struct page *page, int order);
  
--#ifdef CONFIG_MEMCG_KMEM
--	if (!is_root_cache(s))
--		p += sprintf(p, "-%08d",
--				memcg_cache_id(s->memcg_params->memcg));
--#endif
+-int memcg_cache_id(struct mem_cgroup *memcg);
 -
- 	BUG_ON(p > name + ID_STR_LENGTH - 1);
- 	return name;
+ int memcg_alloc_cache_params(struct mem_cgroup *memcg, struct kmem_cache *s,
+ 			     struct kmem_cache *root_cache);
+ void memcg_free_cache_params(struct kmem_cache *s);
+@@ -569,11 +567,6 @@ memcg_kmem_commit_charge(struct page *pa
+ {
  }
+ 
+-static inline int memcg_cache_id(struct mem_cgroup *memcg)
+-{
+-	return -1;
+-}
+-
+ static inline int memcg_alloc_cache_params(struct mem_cgroup *memcg,
+ 		struct kmem_cache *s, struct kmem_cache *root_cache)
+ {
+diff -puN mm/memcontrol.c~memcg-make-memcg_cache_id-static mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-make-memcg_cache_id-static
++++ a/mm/memcontrol.c
+@@ -2795,6 +2795,16 @@ static inline bool memcg_can_account_kme
+ }
+ 
+ /*
++ * helper for acessing a memcg's index. It will be used as an index in the
++ * child cache array in kmem_cache, and also to derive its name. This function
++ * will return -1 when this is not a kmem-limited memcg.
++ */
++static inline int memcg_cache_id(struct mem_cgroup *memcg)
++{
++	return memcg ? memcg->kmemcg_id : -1;
++}
++
++/*
+  * This is a bit cumbersome, but it is rarely used and avoids a backpointer
+  * in the memcg_cache_params struct.
+  */
+@@ -2886,16 +2896,6 @@ static void memcg_uncharge_kmem(struct m
+ 		css_put(&memcg->css);
+ }
+ 
+-/*
+- * helper for acessing a memcg's index. It will be used as an index in the
+- * child cache array in kmem_cache, and also to derive its name. This function
+- * will return -1 when this is not a kmem-limited memcg.
+- */
+-int memcg_cache_id(struct mem_cgroup *memcg)
+-{
+-	return memcg ? memcg->kmemcg_id : -1;
+-}
+-
+ static size_t memcg_caches_array_size(int num_groups)
+ {
+ 	ssize_t size;
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
