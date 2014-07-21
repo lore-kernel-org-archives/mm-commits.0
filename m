@@ -1,59 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- proc-fix-page_size-limit-of-proc-pid-cmdline.patch removed from -mm tree
-Date: Mon, 21 Jul 2014 13:00:16 -0700
-Message-ID: <53cd7150.+Y68W/zp+CXNfezA%akpm@linux-foundation.org>
+Subject: + proc-convert-proc-pid-cmdline-to-seq_file-interface.patch added to -mm tree
+Date: Mon, 21 Jul 2014 13:00:45 -0700
+Message-ID: <53cd716d.RFmi/Ah5zeaJzmuP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:64283 "EHLO
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:55987 "EHLO
 	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336AbaGUUAT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 16:00:19 -0400
-Received: by mail-oa0-f73.google.com with SMTP id g18so1592770oah.2
-        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 13:00:17 -0700 (PDT)
+	with ESMTP id S1752958AbaGUUAs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 16:00:48 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so1591161oah.0
+        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 13:00:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: fix PAGE_SIZE limit of /proc/$PID/cmdline
-has been removed from the -mm tree.  Its filename was
-     proc-fix-page_size-limit-of-proc-pid-cmdline.patch
+     Subject: proc: convert /proc/$PID/cmdline to seq_file interface
+has been added to the -mm tree.  Its filename is
+     proc-convert-proc-pid-cmdline-to-seq_file-interface.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-convert-proc-pid-cmdline-to-seq_file-interface.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-convert-proc-pid-cmdline-to-seq_file-interface.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: fix PAGE_SIZE limit of /proc/$PID/cmdline
-
-Convert /proc/$PID/cmdline to seq_file interface.
-
-XXX
-
-This one must be buggy.
-
-seq_file buffer is adjustable, so userspace can execute itself
-with huge command line (which can be arbitrarily long now), then read 1 byte.
-
-Voila, whole command line now is in kmalloced/vmalloced memory.
-
-Imposing limit is trivial but equally lame to current PAGE_SIZE limit.
+Subject: proc: convert /proc/$PID/cmdline to seq_file interface
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ fs/proc/base.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/base.c~proc-fix-page_size-limit-of-proc-pid-cmdline fs/proc/base.c
---- a/fs/proc/base.c~proc-fix-page_size-limit-of-proc-pid-cmdline
+diff -puN fs/proc/base.c~proc-convert-proc-pid-cmdline-to-seq_file-interface fs/proc/base.c
+--- a/fs/proc/base.c~proc-convert-proc-pid-cmdline-to-seq_file-interface
 +++ a/fs/proc/base.c
-@@ -200,9 +200,17 @@ static int proc_root_link(struct dentry
+@@ -200,9 +200,16 @@ static int proc_root_link(struct dentry
  	return result;
  }
  
@@ -65,15 +65,14 @@ diff -puN fs/proc/base.c~proc-fix-page_size-limit-of-proc-pid-cmdline fs/proc/ba
 +	/*
 +	 * Rely on struct seq_operations::show() being called once
 +	 * per internal buffer allocation. See single_open(), traverse().
-+	 *
-+	 * Rely on internal buffer autoexpansion if it was entirely filled.
 +	 */
-+	m->count += get_cmdline(task, m->buf, m->size);
++	BUG_ON(m->size < PAGE_SIZE);
++	m->count += get_cmdline(task, m->buf, PAGE_SIZE);
 +	return 0;
  }
  
  static int proc_pid_auxv(struct seq_file *m, struct pid_namespace *ns,
-@@ -2567,7 +2575,7 @@ static const struct pid_entry tgid_base_
+@@ -2567,7 +2574,7 @@ static const struct pid_entry tgid_base_
  #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
  	ONE("syscall",    S_IRUSR, proc_pid_syscall),
  #endif
@@ -82,7 +81,7 @@ diff -puN fs/proc/base.c~proc-fix-page_size-limit-of-proc-pid-cmdline fs/proc/ba
  	ONE("stat",       S_IRUGO, proc_tgid_stat),
  	ONE("statm",      S_IRUGO, proc_pid_statm),
  	REG("maps",       S_IRUGO, proc_pid_maps_operations),
-@@ -2903,7 +2911,7 @@ static const struct pid_entry tid_base_s
+@@ -2903,7 +2910,7 @@ static const struct pid_entry tid_base_s
  #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
  	ONE("syscall",   S_IRUSR, proc_pid_syscall),
  #endif
@@ -105,6 +104,7 @@ proc-more-const-char-pointers.patch
 proc-convert-proc-pid-auxv-to-seq_file-interface.patch
 proc-convert-proc-pid-limits-to-seq_file-interface.patch
 proc-convert-proc-pid-syscall-to-seq_file-interface.patch
+proc-convert-proc-pid-cmdline-to-seq_file-interface.patch
 proc-convert-proc-pid-wchan-to-seq_file-interface.patch
 proc-convert-proc-pid-schedstat-to-seq_file-interface.patch
 proc-convert-proc-pid-oom_score-to-seq_file-interface.patch
