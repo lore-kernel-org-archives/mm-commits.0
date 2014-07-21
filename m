@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-pcf8563-introducing-readwrite_block_data.patch added to -mm tree
-Date: Mon, 21 Jul 2014 14:04:46 -0700
-Message-ID: <53cd806e.lFmLrJ9a0/fvoJ6O%akpm@linux-foundation.org>
+Subject: + slub-remove-kmemcg-id-from-create_unique_id.patch added to -mm
+ tree
+Date: Mon, 21 Jul 2014 14:37:36 -0700
+Message-ID: <53cd8820.+pMMn3eBBy5siE4+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:58706 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750821AbaGUVEr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 17:04:47 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rl12so2475313iec.3
-        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 14:04:47 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:34569 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753987AbaGUVhh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 17:37:37 -0400
+Received: by mail-pd0-f201.google.com with SMTP id g10so1723869pdj.2
+        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 14:37:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdonnefort@gmail.com, a.zummo@towertech.it, andrew@lunn.ch, jason@lakedaemon.net, simon.guinot@sequanux.org, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf8563.c: introduce read|write_block_data
+     Subject: slub: remove kmemcg id from create_unique_id
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-pcf8563-introducing-readwrite_block_data.patch
+     slub-remove-kmemcg-id-from-create_unique_id.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-pcf8563-introducing-readwrite_block_data.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-remove-kmemcg-id-from-create_unique_id.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-pcf8563-introducing-readwrite_block_data.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-remove-kmemcg-id-from-create_unique_id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,118 +41,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vincent Donnefort <vdonnefort@gmail.com>
-Subject: drivers/rtc/rtc-pcf8563.c: introduce read|write_block_data
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: slub: remove kmemcg id from create_unique_id
 
-This functions allow to factorize I2C I/O operations.
+This function is never called for memcg caches, because they are
+unmergeable, so remove the dead code.
 
-Signed-off-by: Vincent Donnefort <vdonnefort@gmail.com>
-Cc: Simon Guinot <simon.guinot@sequanux.org>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Andrew Lunn <andrew@lunn.ch>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |   74 +++++++++++++++++++++++-------------
- 1 file changed, 48 insertions(+), 26 deletions(-)
+ mm/slub.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-introducing-readwrite_block_data drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-introducing-readwrite_block_data
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -69,35 +69,66 @@ struct pcf8563 {
- 	int voltage_low; /* incicates if a low_voltage was detected */
- };
+diff -puN mm/slub.c~slub-remove-kmemcg-id-from-create_unique_id mm/slub.c
+--- a/mm/slub.c~slub-remove-kmemcg-id-from-create_unique_id
++++ a/mm/slub.c
+@@ -5128,12 +5128,6 @@ static char *create_unique_id(struct kme
+ 		*p++ = '-';
+ 	p += sprintf(p, "%07d", s->size);
  
--/*
-- * In the routines that deal directly with the pcf8563 hardware, we use
-- * rtc_time -- month 0-11, hour 0-23, yr = calendar year-epoch.
-- */
--static int pcf8563_get_datetime(struct i2c_client *client, struct rtc_time *tm)
-+static int pcf8563_read_block_data(struct i2c_client *client, unsigned char reg,
-+				   unsigned char length, unsigned char *buf)
- {
--	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
--	unsigned char buf[13] = { PCF8563_REG_ST1 };
+-#ifdef CONFIG_MEMCG_KMEM
+-	if (!is_root_cache(s))
+-		p += sprintf(p, "-%08d",
+-				memcg_cache_id(s->memcg_params->memcg));
+-#endif
 -
- 	struct i2c_msg msgs[] = {
- 		{/* setup read ptr */
- 			.addr = client->addr,
- 			.len = 1,
--			.buf = buf
-+			.buf = &reg,
- 		},
--		{/* read status + date */
-+		{
- 			.addr = client->addr,
- 			.flags = I2C_M_RD,
--			.len = 13,
-+			.len = length,
- 			.buf = buf
- 		},
- 	};
- 
--	/* read registers */
- 	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
- 		dev_err(&client->dev, "%s: read error\n", __func__);
- 		return -EIO;
- 	}
- 
-+	return 0;
-+}
-+
-+static int pcf8563_write_block_data(struct i2c_client *client,
-+				   unsigned char reg, unsigned char length,
-+				   unsigned char *buf)
-+{
-+	int i, err;
-+
-+	for (i = 0; i < length; i++) {
-+		unsigned char data[2] = { reg + i, buf[i] };
-+
-+		err = i2c_master_send(client, data, sizeof(data));
-+		if (err != sizeof(data)) {
-+			dev_err(&client->dev,
-+				"%s: err=%d addr=%02x, data=%02x\n",
-+				__func__, err, data[0], data[1]);
-+			return -EIO;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * In the routines that deal directly with the pcf8563 hardware, we use
-+ * rtc_time -- month 0-11, hour 0-23, yr = calendar year-epoch.
-+ */
-+static int pcf8563_get_datetime(struct i2c_client *client, struct rtc_time *tm)
-+{
-+	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
-+	unsigned char buf[9];
-+	int err;
-+
-+	err = pcf8563_read_block_data(client, PCF8563_REG_ST1, 9, buf);
-+	if (err)
-+		return err;
-+
- 	if (buf[PCF8563_REG_SC] & PCF8563_SC_LV) {
- 		pcf8563->voltage_low = 1;
- 		dev_info(&client->dev,
-@@ -144,7 +175,7 @@ static int pcf8563_get_datetime(struct i
- static int pcf8563_set_datetime(struct i2c_client *client, struct rtc_time *tm)
- {
- 	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
--	int i, err;
-+	int err;
- 	unsigned char buf[9];
- 
- 	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
-@@ -170,19 +201,10 @@ static int pcf8563_set_datetime(struct i
- 
- 	buf[PCF8563_REG_DW] = tm->tm_wday & 0x07;
- 
--	/* write register's data */
--	for (i = 0; i < 7; i++) {
--		unsigned char data[2] = { PCF8563_REG_SC + i,
--						buf[PCF8563_REG_SC + i] };
+ 	BUG_ON(p > name + ID_STR_LENGTH - 1);
+ 	return name;
+ }
+_
+
+Patches currently in -mm which might be from vdavydov@parallels.com are
+
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
+page-cgroup-trivial-cleanup.patch
+page-cgroup-get-rid-of-nr_pcg_flags.patch
+slub-remove-kmemcg-id-from-create_unique_id.patch
+slab-use-mem_cgroup_id-for-per-memcg-cache-naming.patch
+memcg-make-memcg_cache_id-static.patch
+memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
+memcg-keep-all-children-of-each-root-cache-on-a-list.patch
+memcg-release-memcg_cache_id-on-css-offline.patch
+fork-exec-cleanup-mm-initialization.patch
+fork-reset-mm-pinned_vm.patch
+fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+fork-make-mm_init_owner-static.patch
+linux-next.patch
+
