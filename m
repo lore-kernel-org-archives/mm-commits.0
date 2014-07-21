@@ -1,19 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: +
- fsh-add-argument-names-to-struct-file_lock_operations-funcs.patch added to
- -mm tree
-Date: Mon, 21 Jul 2014 15:23:57 -0700
-Message-ID: <53cd92fd.o6M5aGRf/SEmhLTH%akpm@linux-foundation.org>
+ fsh-add-member-argument-descriptions-to-lock_manager_operations.patch added to -mm tree
+Date: Mon, 21 Jul 2014 15:23:58 -0700
+Message-ID: <53cd92fe.WM7m3Vv18zpT22e1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:38878 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753178AbaGUWX6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 18:23:58 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so2010272pab.1
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:59871 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753179AbaGUWX7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 18:23:59 -0400
+Received: by mail-qc0-f202.google.com with SMTP id i17so986590qcy.1
         for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 15:23:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -21,14 +20,14 @@ To: joe@perches.com, bfields@fieldses.org, ccaulfie@redhat.com, jlayton@poochier
 
 
 The patch titled
-     Subject: fs.h: add argument names to struct file_lock_operations (*funcs)
+     Subject: fs.h: add member argument descriptions to lock_manager_operations
 has been added to the -mm tree.  Its filename is
-     fsh-add-argument-names-to-struct-file_lock_operations-funcs.patch
+     fsh-add-member-argument-descriptions-to-lock_manager_operations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fsh-add-argument-names-to-struct-file_lock_operations-funcs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fsh-add-member-argument-descriptions-to-lock_manager_operations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fsh-add-argument-names-to-struct-file_lock_operations-funcs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fsh-add-member-argument-descriptions-to-lock_manager_operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,7 +42,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: fs.h: add argument names to struct file_lock_operations (*funcs)
+Subject: fs.h: add member argument descriptions to lock_manager_operations
 
 Function pointer struct members without argument type names
 are not very clear.  Add them.
@@ -58,23 +57,31 @@ Cc: Trond Myklebust <trond.myklebust@primarydata.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/fs.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/fs.h~fsh-add-argument-names-to-struct-file_lock_operations-funcs include/linux/fs.h
---- a/include/linux/fs.h~fsh-add-argument-names-to-struct-file_lock_operations-funcs
+diff -puN include/linux/fs.h~fsh-add-member-argument-descriptions-to-lock_manager_operations include/linux/fs.h
+--- a/include/linux/fs.h~fsh-add-member-argument-descriptions-to-lock_manager_operations
 +++ a/include/linux/fs.h
-@@ -834,8 +834,8 @@ static inline struct file *get_file(stru
- typedef void *fl_owner_t;
- 
- struct file_lock_operations {
--	void (*fl_copy_lock)(struct file_lock *, struct file_lock *);
--	void (*fl_release_private)(struct file_lock *);
-+	void (*fl_copy_lock)(struct file_lock *dst, struct file_lock *fl);
-+	void (*fl_release_private)(struct file_lock *fl);
+@@ -839,12 +839,12 @@ struct file_lock_operations {
  };
  
  struct lock_manager_operations {
+-	int (*lm_compare_owner)(struct file_lock *, struct file_lock *);
+-	unsigned long (*lm_owner_key)(struct file_lock *);
+-	void (*lm_notify)(struct file_lock *);	/* unblock callback */
+-	int (*lm_grant)(struct file_lock *, struct file_lock *, int);
+-	void (*lm_break)(struct file_lock *);
+-	int (*lm_change)(struct file_lock **, int);
++	int (*lm_compare_owner)(struct file_lock *fl1, struct file_lock *fl2);
++	unsigned long (*lm_owner_key)(struct file_lock *fl);
++	void (*lm_notify)(struct file_lock *fl);	/* unblock callback */
++	int (*lm_grant)(struct file_lock *fl, struct file_lock *conf, int result);
++	void (*lm_break)(struct file_lock *fl);
++	int (*lm_change)(struct file_lock **fl, int type);
+ };
+ 
+ struct lock_manager {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
