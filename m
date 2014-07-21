@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + dlm-fs-remove-unused-conf-from-lm_grant.patch added to -mm tree
-Date: Mon, 21 Jul 2014 15:24:00 -0700
-Message-ID: <53cd9300.1o+g21Hgv9r4oLY/%akpm@linux-foundation.org>
+Subject: + fs-dlm-lockd-convert-int-result-to-unsigned-char-type.patch
+ added to -mm tree
+Date: Mon, 21 Jul 2014 15:24:02 -0700
+Message-ID: <53cd9302.Ut9g3yE9bU2Ern/C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:60501 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753213AbaGUWYC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 18:24:02 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so426827igi.1
-        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 15:24:01 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:43974 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752645AbaGUWYD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 18:24:03 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so896757oig.5
+        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 15:24:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, bfields@fieldses.org, ccaulfie@redhat.com, jlayton@poochiereds.net, teigland@redhat.com, trond.myklebust@primarydata.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dlm, lockd: remove unused conf from lm_grant
+     Subject: fs: dlm/lockd: convert int result to unsigned char type
 has been added to the -mm tree.  Its filename is
-     dlm-fs-remove-unused-conf-from-lm_grant.patch
+     fs-dlm-lockd-convert-int-result-to-unsigned-char-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dlm-fs-remove-unused-conf-from-lm_grant.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-dlm-lockd-convert-int-result-to-unsigned-char-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dlm-fs-remove-unused-conf-from-lm_grant.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-dlm-lockd-convert-int-result-to-unsigned-char-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,9 +42,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: dlm, lockd: remove unused conf from lm_grant
+Subject: fs: dlm/lockd: convert int result to unsigned char type
 
-This argument is always NULL so don't pass it around.
+op->info.rv is an s32, but it's only used as a u8.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
@@ -55,20 +56,20 @@ Cc: Trond Myklebust <trond.myklebust@primarydata.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/plock.c     |    8 ++++----
- fs/lockd/svclock.c |   12 +++---------
+ fs/dlm/plock.c     |    6 +++---
+ fs/lockd/svclock.c |   10 +++++-----
  include/linux/fs.h |    2 +-
- 3 files changed, 8 insertions(+), 14 deletions(-)
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN fs/dlm/plock.c~dlm-fs-remove-unused-conf-from-lm_grant fs/dlm/plock.c
---- a/fs/dlm/plock.c~dlm-fs-remove-unused-conf-from-lm_grant
+diff -puN fs/dlm/plock.c~fs-dlm-lockd-convert-int-result-to-unsigned-char-type fs/dlm/plock.c
+--- a/fs/dlm/plock.c~fs-dlm-lockd-convert-int-result-to-unsigned-char-type
 +++ a/fs/dlm/plock.c
 @@ -30,7 +30,7 @@ struct plock_op {
  
  struct plock_xop {
  	struct plock_op xop;
--	int (*callback)(struct file_lock *, struct file_lock *, int);
-+	int (*callback)(struct file_lock *fl, int result);
+-	int (*callback)(struct file_lock *fl, int result);
++	int (*callback)(struct file_lock *fl, unsigned char type);
  	void *fl;
  	void *file;
  	struct file_lock flc;
@@ -76,8 +77,8 @@ diff -puN fs/dlm/plock.c~dlm-fs-remove-unused-conf-from-lm_grant fs/dlm/plock.c
  	struct file *file;
  	struct file_lock *fl;
  	struct file_lock *flc;
--	int (*notify)(struct file_lock *fl, struct file_lock *cont, int result) = NULL;
-+	int (*notify)(struct file_lock *fl, int result) = NULL;
+-	int (*notify)(struct file_lock *fl, int result) = NULL;
++	int (*notify)(struct file_lock *fl, unsigned char type) = NULL;
  	struct plock_xop *xop = (struct plock_xop *)op;
  	int rv = 0;
  
@@ -85,66 +86,54 @@ diff -puN fs/dlm/plock.c~dlm-fs-remove-unused-conf-from-lm_grant fs/dlm/plock.c
  	notify = xop->callback;
  
  	if (op->info.rv) {
--		notify(fl, NULL, op->info.rv);
-+		notify(fl, op->info.rv);
+-		notify(fl, op->info.rv);
++		notify(fl, (unsigned char)op->info.rv);
  		goto out;
  	}
  
-@@ -228,7 +228,7 @@ static int dlm_plock_callback(struct plo
- 			  (unsigned long long)op->info.number, file, fl);
- 	}
- 
--	rv = notify(fl, NULL, 0);
-+	rv = notify(fl, 0);
- 	if (rv) {
- 		/* XXX: We need to cancel the fs lock here: */
- 		log_print("dlm_plock_callback: lock granted after lock request "
-diff -puN fs/lockd/svclock.c~dlm-fs-remove-unused-conf-from-lm_grant fs/lockd/svclock.c
---- a/fs/lockd/svclock.c~dlm-fs-remove-unused-conf-from-lm_grant
+diff -puN fs/lockd/svclock.c~fs-dlm-lockd-convert-int-result-to-unsigned-char-type fs/lockd/svclock.c
+--- a/fs/lockd/svclock.c~fs-dlm-lockd-convert-int-result-to-unsigned-char-type
 +++ a/fs/lockd/svclock.c
-@@ -667,22 +667,16 @@ nlmsvc_cancel_blocked(struct net *net, s
+@@ -667,16 +667,16 @@ nlmsvc_cancel_blocked(struct net *net, s
   * deferred rpc for GETLK and SETLK.
   */
  static void
--nlmsvc_update_deferred_block(struct nlm_block *block, struct file_lock *conf,
--			     int result)
-+nlmsvc_update_deferred_block(struct nlm_block *block, int result)
+-nlmsvc_update_deferred_block(struct nlm_block *block, int result)
++nlmsvc_update_deferred_block(struct nlm_block *block, unsigned char type)
  {
  	block->b_flags |= B_GOT_CALLBACK;
- 	if (result == 0)
+-	if (result == 0)
++	if (type == 0)
  		block->b_granted = 1;
  	else
  		block->b_flags |= B_TIMED_OUT;
--	if (conf) {
--		if (block->b_fl)
--			__locks_copy_lock(block->b_fl, conf);
--	}
  }
  
--static int nlmsvc_grant_deferred(struct file_lock *fl, struct file_lock *conf,
--					int result)
-+static int nlmsvc_grant_deferred(struct file_lock *fl, int result)
+-static int nlmsvc_grant_deferred(struct file_lock *fl, int result)
++static int nlmsvc_grant_deferred(struct file_lock *fl, unsigned char type)
  {
  	struct nlm_block *block;
  	int rc = -ENOENT;
-@@ -697,7 +691,7 @@ static int nlmsvc_grant_deferred(struct
+@@ -691,8 +691,8 @@ static int nlmsvc_grant_deferred(struct
  					rc = -ENOLCK;
  					break;
  				}
--				nlmsvc_update_deferred_block(block, conf, result);
-+				nlmsvc_update_deferred_block(block, result);
- 			} else if (result == 0)
+-				nlmsvc_update_deferred_block(block, result);
+-			} else if (result == 0)
++				nlmsvc_update_deferred_block(block, type);
++			} else if (type == 0)
  				block->b_granted = 1;
  
-diff -puN include/linux/fs.h~dlm-fs-remove-unused-conf-from-lm_grant include/linux/fs.h
---- a/include/linux/fs.h~dlm-fs-remove-unused-conf-from-lm_grant
+ 			nlmsvc_insert_block_locked(block, 0);
+diff -puN include/linux/fs.h~fs-dlm-lockd-convert-int-result-to-unsigned-char-type include/linux/fs.h
+--- a/include/linux/fs.h~fs-dlm-lockd-convert-int-result-to-unsigned-char-type
 +++ a/include/linux/fs.h
 @@ -842,7 +842,7 @@ struct lock_manager_operations {
  	int (*lm_compare_owner)(struct file_lock *fl1, struct file_lock *fl2);
  	unsigned long (*lm_owner_key)(struct file_lock *fl);
  	void (*lm_notify)(struct file_lock *fl);	/* unblock callback */
--	int (*lm_grant)(struct file_lock *fl, struct file_lock *conf, int result);
-+	int (*lm_grant)(struct file_lock *fl, int result);
+-	int (*lm_grant)(struct file_lock *fl, int result);
++	int (*lm_grant)(struct file_lock *fl, unsigned char type);
  	void (*lm_break)(struct file_lock *fl);
  	int (*lm_change)(struct file_lock **fl, int type);
  };
