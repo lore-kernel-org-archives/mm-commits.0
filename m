@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- fsh-add-member-argument-descriptions-to-lock_manager_operations.patch added to -mm tree
-Date: Mon, 21 Jul 2014 15:23:58 -0700
-Message-ID: <53cd92fe.WM7m3Vv18zpT22e1%akpm@linux-foundation.org>
+Subject: + dlm-plock-add-argument-descriptions-to-notify.patch added to
+ -mm tree
+Date: Mon, 21 Jul 2014 15:23:59 -0700
+Message-ID: <53cd92ff.+qXO4Rhk/pytQKCz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:59871 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753179AbaGUWX7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 18:23:59 -0400
-Received: by mail-qc0-f202.google.com with SMTP id i17so986590qcy.1
-        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 15:23:58 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:34130 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753210AbaGUWYA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 18:24:00 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so2013763pab.3
+        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 15:24:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, bfields@fieldses.org, ccaulfie@redhat.com, jlayton@poochiereds.net, teigland@redhat.com, trond.myklebust@primarydata.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs.h: add member argument descriptions to lock_manager_operations
+     Subject: fs/dlm/plock.c: add argument descriptions to notify
 has been added to the -mm tree.  Its filename is
-     fsh-add-member-argument-descriptions-to-lock_manager_operations.patch
+     dlm-plock-add-argument-descriptions-to-notify.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fsh-add-member-argument-descriptions-to-lock_manager_operations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dlm-plock-add-argument-descriptions-to-notify.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fsh-add-member-argument-descriptions-to-lock_manager_operations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dlm-plock-add-argument-descriptions-to-notify.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,9 +42,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: fs.h: add member argument descriptions to lock_manager_operations
+Subject: fs/dlm/plock.c: add argument descriptions to notify
 
-Function pointer struct members without argument type names
+Function pointer arguments without type names
 are not very clear.  Add them.
 
 Signed-off-by: Joe Perches <joe@perches.com>
@@ -57,31 +57,30 @@ Cc: Trond Myklebust <trond.myklebust@primarydata.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/dlm/plock.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/fs.h~fsh-add-member-argument-descriptions-to-lock_manager_operations include/linux/fs.h
---- a/include/linux/fs.h~fsh-add-member-argument-descriptions-to-lock_manager_operations
-+++ a/include/linux/fs.h
-@@ -839,12 +839,12 @@ struct file_lock_operations {
- };
+diff -puN fs/dlm/plock.c~dlm-plock-add-argument-descriptions-to-notify fs/dlm/plock.c
+--- a/fs/dlm/plock.c~dlm-plock-add-argument-descriptions-to-notify
++++ a/fs/dlm/plock.c
+@@ -30,7 +30,7 @@ struct plock_op {
  
- struct lock_manager_operations {
--	int (*lm_compare_owner)(struct file_lock *, struct file_lock *);
--	unsigned long (*lm_owner_key)(struct file_lock *);
--	void (*lm_notify)(struct file_lock *);	/* unblock callback */
--	int (*lm_grant)(struct file_lock *, struct file_lock *, int);
--	void (*lm_break)(struct file_lock *);
--	int (*lm_change)(struct file_lock **, int);
-+	int (*lm_compare_owner)(struct file_lock *fl1, struct file_lock *fl2);
-+	unsigned long (*lm_owner_key)(struct file_lock *fl);
-+	void (*lm_notify)(struct file_lock *fl);	/* unblock callback */
-+	int (*lm_grant)(struct file_lock *fl, struct file_lock *conf, int result);
-+	void (*lm_break)(struct file_lock *fl);
-+	int (*lm_change)(struct file_lock **fl, int type);
- };
+ struct plock_xop {
+ 	struct plock_op xop;
+-	void *callback;
++	int (*callback)(struct file_lock *, struct file_lock *, int);
+ 	void *fl;
+ 	void *file;
+ 	struct file_lock flc;
+@@ -190,7 +190,7 @@ static int dlm_plock_callback(struct plo
+ 	struct file *file;
+ 	struct file_lock *fl;
+ 	struct file_lock *flc;
+-	int (*notify)(void *, void *, int) = NULL;
++	int (*notify)(struct file_lock *fl, struct file_lock *cont, int result) = NULL;
+ 	struct plock_xop *xop = (struct plock_xop *)op;
+ 	int rv = 0;
  
- struct lock_manager {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
