@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
 Subject: +
- memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable.patch added to -mm tree
-Date: Mon, 21 Jul 2014 14:54:26 -0700
-Message-ID: <53cd8c12.lZeupY+eVDpciGPG%akpm@linux-foundation.org>
+ memory-hotplug-sh-suitable-memory-should-go-to-zone_movable.patch added to
+ -mm tree
+Date: Mon, 21 Jul 2014 14:54:28 -0700
+Message-ID: <53cd8c14.fxwajJI/s77ydQYX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:54466 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751794AbaGUVy1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 17:54:27 -0400
-Received: by mail-ie0-f201.google.com with SMTP id tr6so2495116ieb.2
-        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 14:54:27 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:41125 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751794AbaGUVy3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 17:54:29 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so2004625pde.5
+        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 14:54:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wangnan0@huawei.com, akpm@linux-foundation.org, benh@kernel.crashing.org, cmetcalf@tilera.com, dave.hansen@intel.com, hpa@zytor.com, mgorman@suse.de, mingo@redhat.com, paulus@samba.org, tglx@linutronix.de, tony.luck@intel.com, yinghai@kernel.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: ppc: suitable memory should go to ZONE_MOVABLE
+     Subject: memory-hotplug: sh: suitable memory should go to ZONE_MOVABLE
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable.patch
+     memory-hotplug-sh-suitable-memory-should-go-to-zone_movable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-sh-suitable-memory-should-go-to-zone_movable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-sh-suitable-memory-should-go-to-zone_movable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,9 +43,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wang Nan <wangnan0@huawei.com>
-Subject: memory-hotplug: ppc: suitable memory should go to ZONE_MOVABLE
+Subject: memory-hotplug: sh: suitable memory should go to ZONE_MOVABLE
 
-This patch introduces zone_for_memory() to arch_add_memory() on powerpc to
+This patch introduces zone_for_memory() to arch_add_memory() on sh to
 ensure new, higher memory added into ZONE_MOVABLE if movable zone has
 already setup.
 
@@ -66,22 +67,24 @@ Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mem.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sh/mm/init.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/mm/mem.c~memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable arch/powerpc/mm/mem.c
---- a/arch/powerpc/mm/mem.c~memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable
-+++ a/arch/powerpc/mm/mem.c
-@@ -128,7 +128,8 @@ int arch_add_memory(int nid, u64 start,
- 		return -EINVAL;
+diff -puN arch/sh/mm/init.c~memory-hotplug-sh-suitable-memory-should-go-to-zone_movable arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~memory-hotplug-sh-suitable-memory-should-go-to-zone_movable
++++ a/arch/sh/mm/init.c
+@@ -495,8 +495,9 @@ int arch_add_memory(int nid, u64 start,
+ 	pgdat = NODE_DATA(nid);
  
- 	/* this should work for most non-highmem platforms */
--	zone = pgdata->node_zones;
-+	zone = pgdata->node_zones +
-+		zone_for_memory(nid, start, size, 0);
+ 	/* We only have ZONE_NORMAL, so this is easy.. */
+-	ret = __add_pages(nid, pgdat->node_zones + ZONE_NORMAL,
+-				start_pfn, nr_pages);
++	ret = __add_pages(nid, pgdat->node_zones +
++			zone_for_memory(nid, start, size, ZONE_NORMAL),
++			start_pfn, nr_pages);
+ 	if (unlikely(ret))
+ 		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
  
- 	return __add_pages(nid, zone, start_pfn, nr_pages);
- }
 _
 
 Patches currently in -mm which might be from wangnan0@huawei.com are
