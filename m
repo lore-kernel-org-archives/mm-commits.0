@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-ubifs-superc-replace-seq_printf-by-seq_puts.patch
- removed from -mm tree
-Date: Mon, 21 Jul 2014 12:34:38 -0700
-Message-ID: <53cd6b4e.DS2yJeJY2obuvT5O%akpm@linux-foundation.org>
+Subject: [merged] ubifs-kernel-doc-warning-fix.patch removed from -mm tree
+Date: Mon, 21 Jul 2014 12:34:36 -0700
+Message-ID: <53cd6b4c.sqTQk1ZDlxCe+uw+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:39598 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933568AbaGUTej (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 15:34:39 -0400
-Received: by mail-ie0-f201.google.com with SMTP id tr6so2432861ieb.4
-        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 12:34:38 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:61812 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933568AbaGUTei (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 15:34:38 -0400
+Received: by mail-qa0-f74.google.com with SMTP id j15so1052795qaq.1
+        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 12:34:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, adrian.hunter@intel.com, dedekind1@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ubifs/super.c: replace seq_printf by seq_puts
+     Subject: ubifs: kernel-doc warning fix
 has been removed from the -mm tree.  Its filename was
-     fs-ubifs-superc-replace-seq_printf-by-seq_puts.patch
+     ubifs-kernel-doc-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/ubifs/super.c: replace seq_printf by seq_puts
+Subject: ubifs: kernel-doc warning fix
 
-Fix checkpatch warnings:
-"WARNING: Prefer seq_puts to seq_printf"
+No grouped argument in drop_last_node.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Artem Bityutskiy <dedekind1@gmail.com>
@@ -39,38 +37,20 @@ Cc: Adrian Hunter <adrian.hunter@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/super.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/ubifs/recovery.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ubifs/super.c~fs-ubifs-superc-replace-seq_printf-by-seq_puts fs/ubifs/super.c
---- a/fs/ubifs/super.c~fs-ubifs-superc-replace-seq_printf-by-seq_puts
-+++ a/fs/ubifs/super.c
-@@ -424,19 +424,19 @@ static int ubifs_show_options(struct seq
- 	struct ubifs_info *c = root->d_sb->s_fs_info;
- 
- 	if (c->mount_opts.unmount_mode == 2)
--		seq_printf(s, ",fast_unmount");
-+		seq_puts(s, ",fast_unmount");
- 	else if (c->mount_opts.unmount_mode == 1)
--		seq_printf(s, ",norm_unmount");
-+		seq_puts(s, ",norm_unmount");
- 
- 	if (c->mount_opts.bulk_read == 2)
--		seq_printf(s, ",bulk_read");
-+		seq_puts(s, ",bulk_read");
- 	else if (c->mount_opts.bulk_read == 1)
--		seq_printf(s, ",no_bulk_read");
-+		seq_puts(s, ",no_bulk_read");
- 
- 	if (c->mount_opts.chk_data_crc == 2)
--		seq_printf(s, ",chk_data_crc");
-+		seq_puts(s, ",chk_data_crc");
- 	else if (c->mount_opts.chk_data_crc == 1)
--		seq_printf(s, ",no_chk_data_crc");
-+		seq_puts(s, ",no_chk_data_crc");
- 
- 	if (c->mount_opts.override_compr) {
- 		seq_printf(s, ",compr=%s",
+diff -puN fs/ubifs/recovery.c~ubifs-kernel-doc-warning-fix fs/ubifs/recovery.c
+--- a/fs/ubifs/recovery.c~ubifs-kernel-doc-warning-fix
++++ a/fs/ubifs/recovery.c
+@@ -596,7 +596,6 @@ static void drop_last_group(struct ubifs
+  * drop_last_node - drop the last node.
+  * @sleb: scanned LEB information
+  * @offs: offset of dropped nodes is returned here
+- * @grouped: non-zero if whole group of nodes have to be dropped
+  *
+  * This is a helper function for 'ubifs_recover_leb()' which drops the last
+  * node of the scanned LEB.
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
