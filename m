@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
+Subject: +
+ memory-hotplug-add-zone_for_memory-for-selecting-zone-for-new-memory.patch
  added to -mm tree
-Date: Mon, 21 Jul 2014 14:37:39 -0700
-Message-ID: <53cd8823.Zny4UatXIRu1sqLE%akpm@linux-foundation.org>
+Date: Mon, 21 Jul 2014 14:54:18 -0700
+Message-ID: <53cd8c0a.BE3Sd28VWV7gSWbn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f74.google.com ([209.85.192.74]:53371 "EHLO
-	mail-qg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753987AbaGUVhk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 17:37:40 -0400
-Received: by mail-qg0-f74.google.com with SMTP id z60so361177qgd.5
-        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 14:37:39 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:53062 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750706AbaGUVyU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 17:54:20 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so1643682oah.2
+        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 14:54:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: wangnan0@huawei.com, akpm@linux-foundation.org, benh@kernel.crashing.org, cmetcalf@tilera.com, dave.hansen@intel.com, hpa@zytor.com, mgorman@suse.de, mingo@redhat.com, paulus@samba.org, tglx@linutronix.de, tony.luck@intel.com, yinghai@kernel.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: add pointer to owner cache to memcg_cache_params
+     Subject: memory-hotplug: add zone_for_memory() for selecting zone for new memory
 has been added to the -mm tree.  Its filename is
-     memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
+     memory-hotplug-add-zone_for_memory-for-selecting-zone-for-new-memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-add-zone_for_memory-for-selecting-zone-for-new-memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-add-zone_for_memory-for-selecting-zone-for-new-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,144 +42,223 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: add pointer to owner cache to memcg_cache_params
+From: Wang Nan <wangnan0@huawei.com>
+Subject: memory-hotplug: add zone_for_memory() for selecting zone for new memory
 
-We don't keep a pointer to the owner kmem cache in the memcg_cache_params
-struct, because we can always get the cache by reading the slot
-corresponding to the owner memcg in the root cache's memcg_caches array
-(see memcg_params_to_cache).
 
-However, this means that offline css's, which can be zombieing around for
-quite a long time, will occupy slots in memcg_caches arrays, making them
-grow larger and larger, which doesn't sound good.  Therefore I'm going to
-make memcg release the slots on offline, which will render
-memcg_params_to_cache invalid.  So I'm removing it and adding a back
-pointer to memcg_cache_params instead.
+This series of patches fixes a problem when adding memory in bad manner. 
+For example: for a x86_64 machine booted with "mem=400M" and with 2GiB
+memory installed, following commands cause problem:
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+  # echo 0x40000000 > /sys/devices/system/memory/probe
+ [   28.613895] init_memory_mapping: [mem 0x40000000-0x47ffffff]
+  # echo 0x48000000 > /sys/devices/system/memory/probe
+ [   28.693675] init_memory_mapping: [mem 0x48000000-0x4fffffff]
+  # echo online_movable > /sys/devices/system/memory/memory9/state
+  # echo 0x50000000 > /sys/devices/system/memory/probe 
+ [   29.084090] init_memory_mapping: [mem 0x50000000-0x57ffffff]
+  # echo 0x58000000 > /sys/devices/system/memory/probe 
+ [   29.151880] init_memory_mapping: [mem 0x58000000-0x5fffffff]
+  # echo online_movable > /sys/devices/system/memory/memory11/state
+  # echo online> /sys/devices/system/memory/memory8/state
+  # echo online> /sys/devices/system/memory/memory10/state
+  # echo offline> /sys/devices/system/memory/memory9/state
+ [   30.558819] Offlined Pages 32768
+  # free
+              total       used       free     shared    buffers     cached
+ Mem:        780588 18014398509432020     830552          0          0      51180
+ -/+ buffers/cache: 18014398509380840     881732
+ Swap:            0          0          0
+
+This is because the above commands probe higher memory after online a
+section with online_movable, which causes ZONE_HIGHMEM (or ZONE_NORMAL for
+systems without ZONE_HIGHMEM) overlaps ZONE_MOVABLE.
+
+After the second online_movable, the problem can be observed from
+zoneinfo:
+
+ # cat /proc/zoneinfo
+...
+Node 0, zone  Movable
+  pages free     65491
+        min      250
+        low      312
+        high     375
+        scanned  0
+        spanned  18446744073709518848
+        present  65536
+        managed  65536
+...
+
+This series of patches solve the problem by checking ZONE_MOVABLE when
+choosing zone for new memory. If new memory is inside or higher than
+ZONE_MOVABLE, makes it go there instead.
+
+After applying this series of patches, following are free and zoneinfo
+result (after offlining memory9):
+
+bash-4.2# free
+              total       used       free     shared    buffers     cached
+ Mem:        780956      80112     700844          0          0      51180
+ -/+ buffers/cache:      28932     752024
+ Swap:            0          0          0
+
+bash-4.2# cat /proc/zoneinfo
+
+Node 0, zone      DMA
+  pages free     3389
+        min      14
+        low      17
+        high     21
+        scanned  0
+        spanned  4095
+        present  3998
+        managed  3977
+    nr_free_pages 3389
+...
+  start_pfn:         1
+  inactive_ratio:    1
+Node 0, zone    DMA32
+  pages free     73724
+        min      341
+        low      426
+        high     511
+        scanned  0
+        spanned  98304
+        present  98304
+        managed  92958
+    nr_free_pages 73724
+...
+  start_pfn:         4096
+  inactive_ratio:    1
+Node 0, zone   Normal
+  pages free     32630
+        min      120
+        low      150
+        high     180
+        scanned  0
+        spanned  32768
+        present  32768
+        managed  32768
+    nr_free_pages 32630
+...
+  start_pfn:         262144
+  inactive_ratio:    1
+Node 0, zone  Movable
+  pages free     65476
+        min      241
+        low      301
+        high     361
+        scanned  0
+        spanned  98304
+        present  65536
+        managed  65536
+    nr_free_pages 65476
+...
+  start_pfn:         294912
+  inactive_ratio:    1
+
+
+
+
+This patch (of 7):
+
+Introduce zone_for_memory() in arch independent code for arch_add_memory()
+use.
+
+Many arch_add_memory() function simply selects ZONE_HIGHMEM or ZONE_NORMAL
+and add new memory into it.  However, with the existance of ZONE_MOVABLE,
+the selection method should be carefully considered: if new, higher memory
+is added after ZONE_MOVABLE is setup, the default zone and ZONE_MOVABLE
+may overlap each other.
+
+should_add_memory_movable() checks the status of ZONE_MOVABLE.  If it has
+already contain memory, compare the address of new memory and movable
+memory.  If new memory is higher than movable, it should be added into
+ZONE_MOVABLE instead of default zone.
+
+Signed-off-by: Wang Nan <wangnan0@huawei.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: "Mel Gorman" <mgorman@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Dave Hansen" <dave.hansen@intel.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    2 ++
- mm/memcontrol.c      |   20 ++++----------------
- 2 files changed, 6 insertions(+), 16 deletions(-)
+ include/linux/memory_hotplug.h |    1 +
+ mm/memory_hotplug.c            |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 29 insertions(+)
 
-diff -puN include/linux/slab.h~memcg-add-pointer-to-owner-cache-to-memcg_cache_params include/linux/slab.h
---- a/include/linux/slab.h~memcg-add-pointer-to-owner-cache-to-memcg_cache_params
-+++ a/include/linux/slab.h
-@@ -523,6 +523,7 @@ static __always_inline void *kmalloc_nod
-  *
-  * Child caches will hold extra metadata needed for its operation. Fields are:
-  *
-+ * @cachep: cache which this struct is for
-  * @memcg: pointer to the memcg this cache belongs to
-  * @list: list_head for the list of all caches in this memcg
-  * @root_cache: pointer to the global, root cache, this cache was derived from
-@@ -536,6 +537,7 @@ struct memcg_cache_params {
- 			struct kmem_cache *memcg_caches[0];
- 		};
- 		struct {
-+			struct kmem_cache *cachep;
- 			struct mem_cgroup *memcg;
- 			struct list_head list;
- 			struct kmem_cache *root_cache;
-diff -puN mm/memcontrol.c~memcg-add-pointer-to-owner-cache-to-memcg_cache_params mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-pointer-to-owner-cache-to-memcg_cache_params
-+++ a/mm/memcontrol.c
-@@ -2804,19 +2804,6 @@ static inline int memcg_cache_id(struct
- 	return memcg ? memcg->kmemcg_id : -1;
+diff -puN include/linux/memory_hotplug.h~memory-hotplug-add-zone_for_memory-for-selecting-zone-for-new-memory include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory-hotplug-add-zone_for_memory-for-selecting-zone-for-new-memory
++++ a/include/linux/memory_hotplug.h
+@@ -259,6 +259,7 @@ static inline void remove_memory(int nid
+ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+ 		void *arg, int (*func)(struct memory_block *, void *));
+ extern int add_memory(int nid, u64 start, u64 size);
++extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default);
+ extern int arch_add_memory(int nid, u64 start, u64 size);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern bool is_memblock_offlined(struct memory_block *mem);
+diff -puN mm/memory_hotplug.c~memory-hotplug-add-zone_for_memory-for-selecting-zone-for-new-memory mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-add-zone_for_memory-for-selecting-zone-for-new-memory
++++ a/mm/memory_hotplug.c
+@@ -1159,6 +1159,34 @@ static int check_hotplug_memory_range(u6
+ 	return 0;
  }
  
--/*
-- * This is a bit cumbersome, but it is rarely used and avoids a backpointer
-- * in the memcg_cache_params struct.
-- */
--static struct kmem_cache *memcg_params_to_cache(struct memcg_cache_params *p)
--{
--	struct kmem_cache *cachep;
--
--	VM_BUG_ON(p->is_root_cache);
--	cachep = p->root_cache;
--	return cache_from_memcg_idx(cachep, memcg_cache_id(p->memcg));
--}
--
- #ifdef CONFIG_SLABINFO
- static int mem_cgroup_slabinfo_read(struct seq_file *m, void *v)
- {
-@@ -2830,7 +2817,7 @@ static int mem_cgroup_slabinfo_read(stru
- 
- 	mutex_lock(&memcg_slab_mutex);
- 	list_for_each_entry(params, &memcg->memcg_slab_caches, list)
--		cache_show(memcg_params_to_cache(params), m);
-+		cache_show(params->cachep, m);
- 	mutex_unlock(&memcg_slab_mutex);
- 
- 	return 0;
-@@ -2993,6 +2980,7 @@ int memcg_alloc_cache_params(struct mem_
- 		return -ENOMEM;
- 
- 	if (memcg) {
-+		s->memcg_params->cachep = s;
- 		s->memcg_params->memcg = memcg;
- 		s->memcg_params->root_cache = root_cache;
- 		css_get(&memcg->css);
-@@ -3138,7 +3126,6 @@ int __memcg_cleanup_cache_params(struct
- 
- static void memcg_unregister_all_caches(struct mem_cgroup *memcg)
- {
--	struct kmem_cache *cachep;
- 	struct memcg_cache_params *params, *tmp;
- 
- 	if (!memcg_kmem_is_active(memcg))
-@@ -3146,7 +3133,8 @@ static void memcg_unregister_all_caches(
- 
- 	mutex_lock(&memcg_slab_mutex);
- 	list_for_each_entry_safe(params, tmp, &memcg->memcg_slab_caches, list) {
--		cachep = memcg_params_to_cache(params);
-+		struct kmem_cache *cachep = params->cachep;
++/*
++ * If movable zone has already been setup, newly added memory should be check.
++ * If its address is higher than movable zone, it should be added as movable.
++ * Without this check, movable zone may overlap with other zone.
++ */
++static int should_add_memory_movable(int nid, u64 start, u64 size)
++{
++	unsigned long start_pfn = start >> PAGE_SHIFT;
++	pg_data_t *pgdat = NODE_DATA(nid);
++	struct zone *movable_zone = pgdat->node_zones + ZONE_MOVABLE;
 +
- 		kmem_cache_shrink(cachep);
- 		if (atomic_read(&cachep->memcg_params->nr_pages) == 0)
- 			memcg_unregister_cache(cachep);
++	if (zone_is_empty(movable_zone))
++		return 0;
++
++	if (movable_zone->zone_start_pfn <= start_pfn)
++		return 1;
++
++	return 0;
++}
++
++int zone_for_memory(int nid, u64 start, u64 size, int zone_default)
++{
++	if (should_add_memory_movable(nid, start, size))
++		return ZONE_MOVABLE;
++
++	return zone_default;
++}
++
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+ int __ref add_memory(int nid, u64 start, u64 size)
+ {
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from wangnan0@huawei.com are
 
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-rewrite-uncharge-api-fix-5.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
-page-cgroup-trivial-cleanup.patch
-page-cgroup-get-rid-of-nr_pcg_flags.patch
-slub-remove-kmemcg-id-from-create_unique_id.patch
-slab-use-mem_cgroup_id-for-per-memcg-cache-naming.patch
-memcg-make-memcg_cache_id-static.patch
-memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
-memcg-keep-all-children-of-each-root-cache-on-a-list.patch
-memcg-release-memcg_cache_id-on-css-offline.patch
-fork-exec-cleanup-mm-initialization.patch
-fork-reset-mm-pinned_vm.patch
-fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
-fork-make-mm_init_owner-static.patch
+mem-hotplug-improve-zone_movable_is_highmem-logic.patch
+memory-hotplug-add-zone_for_memory-for-selecting-zone-for-new-memory.patch
+memory-hotplug-x86_64-suitable-memory-should-go-to-zone_movable.patch
+memory-hotplug-x86_32-suitable-memory-should-go-to-zone_movable.patch
+memory-hotplug-ia64-suitable-memory-should-go-to-zone_movable.patch
+memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable.patch
+memory-hotplug-sh-suitable-memory-should-go-to-zone_movable.patch
+memory-hotplug-tile-suitable-memory-should-go-to-zone_movable.patch
 linux-next.patch
 
