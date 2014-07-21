@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + slab-use-mem_cgroup_id-for-per-memcg-cache-naming.patch added
- to -mm tree
-Date: Mon, 21 Jul 2014 14:37:37 -0700
-Message-ID: <53cd8821./TEC1wPvvbo1rSfc%akpm@linux-foundation.org>
+Subject: + memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
+ added to -mm tree
+Date: Mon, 21 Jul 2014 14:37:39 -0700
+Message-ID: <53cd8823.Zny4UatXIRu1sqLE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:35562 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754536AbaGUVhi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 17:37:38 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so1990431pab.5
-        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 14:37:38 -0700 (PDT)
+Received: from mail-qg0-f74.google.com ([209.85.192.74]:53371 "EHLO
+	mail-qg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753987AbaGUVhk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Jul 2014 17:37:40 -0400
+Received: by mail-qg0-f74.google.com with SMTP id z60so361177qgd.5
+        for <mm-commits@vger.kernel.org>; Mon, 21 Jul 2014 14:37:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: use mem_cgroup_id for per memcg cache naming
+     Subject: memcg: add pointer to owner cache to memcg_cache_params
 has been added to the -mm tree.  Its filename is
-     slab-use-mem_cgroup_id-for-per-memcg-cache-naming.patch
+     memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-use-mem_cgroup_id-for-per-memcg-cache-naming.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-use-mem_cgroup_id-for-per-memcg-cache-naming.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,16 +42,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slab: use mem_cgroup_id for per memcg cache naming
+Subject: memcg: add pointer to owner cache to memcg_cache_params
 
-Currently, we use memcg_cache_id as a part of a per memcg cache name. 
-Since memcg_cache_id is released only on css free, this guarantees cache
-name uniqueness.
+We don't keep a pointer to the owner kmem cache in the memcg_cache_params
+struct, because we can always get the cache by reading the slot
+corresponding to the owner memcg in the root cache's memcg_caches array
+(see memcg_params_to_cache).
 
-However, it's bad practice to keep memcg_cache_id till css free, because
-it occupies a slot in kmem_cache->memcg_params->memcg_caches arrays.  So
-I'm going to make memcg release memcg_cache_id on css offline.  As a
-result, memcg_cache_id won't guarantee cache name uniqueness any more.
+However, this means that offline css's, which can be zombieing around for
+quite a long time, will occupy slots in memcg_caches arrays, making them
+grow larger and larger, which doesn't sound good.  Therefore I'm going to
+make memcg release the slots on offline, which will render
+memcg_params_to_cache invalid.  So I'm removing it and adding a back
+pointer to memcg_cache_params instead.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -63,105 +66,87 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    2 +-
- mm/memcontrol.c      |   13 +++++++++++--
- mm/slab_common.c     |   15 +++------------
- 3 files changed, 15 insertions(+), 15 deletions(-)
+ include/linux/slab.h |    2 ++
+ mm/memcontrol.c      |   20 ++++----------------
+ 2 files changed, 6 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/slab.h~slab-use-mem_cgroup_id-for-per-memcg-cache-naming include/linux/slab.h
---- a/include/linux/slab.h~slab-use-mem_cgroup_id-for-per-memcg-cache-naming
+diff -puN include/linux/slab.h~memcg-add-pointer-to-owner-cache-to-memcg_cache_params include/linux/slab.h
+--- a/include/linux/slab.h~memcg-add-pointer-to-owner-cache-to-memcg_cache_params
 +++ a/include/linux/slab.h
-@@ -118,7 +118,7 @@ struct kmem_cache *kmem_cache_create(con
- #ifdef CONFIG_MEMCG_KMEM
- struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *,
- 					   struct kmem_cache *,
--					   const char *);
-+					   char *);
- #endif
- void kmem_cache_destroy(struct kmem_cache *);
- int kmem_cache_shrink(struct kmem_cache *);
-diff -puN mm/memcontrol.c~slab-use-mem_cgroup_id-for-per-memcg-cache-naming mm/memcontrol.c
---- a/mm/memcontrol.c~slab-use-mem_cgroup_id-for-per-memcg-cache-naming
-+++ a/mm/memcontrol.c
-@@ -3017,6 +3017,7 @@ static void memcg_register_cache(struct
- 	static char memcg_name_buf[NAME_MAX + 1]; /* protected by
- 						     memcg_slab_mutex */
- 	struct kmem_cache *cachep;
-+	char *cache_name;
- 	int id;
- 
- 	lockdep_assert_held(&memcg_slab_mutex);
-@@ -3032,14 +3033,22 @@ static void memcg_register_cache(struct
- 		return;
- 
- 	cgroup_name(memcg->css.cgroup, memcg_name_buf, NAME_MAX + 1);
--	cachep = memcg_create_kmem_cache(memcg, root_cache, memcg_name_buf);
-+
-+	cache_name = kasprintf(GFP_KERNEL, "%s(%d:%s)", root_cache->name,
-+			       mem_cgroup_id(memcg), memcg_name_buf);
-+	if (!cache_name)
-+		return;
-+
-+	cachep = memcg_create_kmem_cache(memcg, root_cache, cache_name);
- 	/*
- 	 * If we could not create a memcg cache, do not complain, because
- 	 * that's not critical at all as we can always proceed with the root
- 	 * cache.
- 	 */
--	if (!cachep)
-+	if (!cachep) {
-+		kfree(cache_name);
- 		return;
-+	}
- 
- 	list_add(&cachep->memcg_params->list, &memcg->memcg_slab_caches);
- 
-diff -puN mm/slab_common.c~slab-use-mem_cgroup_id-for-per-memcg-cache-naming mm/slab_common.c
---- a/mm/slab_common.c~slab-use-mem_cgroup_id-for-per-memcg-cache-naming
-+++ a/mm/slab_common.c
-@@ -266,7 +266,7 @@ EXPORT_SYMBOL(kmem_cache_create);
-  * memcg_create_kmem_cache - Create a cache for a memory cgroup.
-  * @memcg: The memory cgroup the new cache is for.
-  * @root_cache: The parent of the new cache.
-- * @memcg_name: The name of the memory cgroup (used for naming the new cache).
-+ * @cache_name: The string to be used as the new cache name.
+@@ -523,6 +523,7 @@ static __always_inline void *kmalloc_nod
   *
-  * This function attempts to create a kmem cache that will serve allocation
-  * requests going from @memcg to @root_cache. The new cache inherits properties
-@@ -274,31 +274,22 @@ EXPORT_SYMBOL(kmem_cache_create);
-  */
- struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *memcg,
- 					   struct kmem_cache *root_cache,
--					   const char *memcg_name)
-+					   char *cache_name)
- {
- 	struct kmem_cache *s = NULL;
--	char *cache_name;
+  * Child caches will hold extra metadata needed for its operation. Fields are:
+  *
++ * @cachep: cache which this struct is for
+  * @memcg: pointer to the memcg this cache belongs to
+  * @list: list_head for the list of all caches in this memcg
+  * @root_cache: pointer to the global, root cache, this cache was derived from
+@@ -536,6 +537,7 @@ struct memcg_cache_params {
+ 			struct kmem_cache *memcg_caches[0];
+ 		};
+ 		struct {
++			struct kmem_cache *cachep;
+ 			struct mem_cgroup *memcg;
+ 			struct list_head list;
+ 			struct kmem_cache *root_cache;
+diff -puN mm/memcontrol.c~memcg-add-pointer-to-owner-cache-to-memcg_cache_params mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-pointer-to-owner-cache-to-memcg_cache_params
++++ a/mm/memcontrol.c
+@@ -2804,19 +2804,6 @@ static inline int memcg_cache_id(struct
+ 	return memcg ? memcg->kmemcg_id : -1;
+ }
  
- 	get_online_cpus();
- 	get_online_mems();
- 
- 	mutex_lock(&slab_mutex);
- 
--	cache_name = kasprintf(GFP_KERNEL, "%s(%d:%s)", root_cache->name,
--			       memcg_cache_id(memcg), memcg_name);
--	if (!cache_name)
--		goto out_unlock;
+-/*
+- * This is a bit cumbersome, but it is rarely used and avoids a backpointer
+- * in the memcg_cache_params struct.
+- */
+-static struct kmem_cache *memcg_params_to_cache(struct memcg_cache_params *p)
+-{
+-	struct kmem_cache *cachep;
 -
- 	s = do_kmem_cache_create(cache_name, root_cache->object_size,
- 				 root_cache->size, root_cache->align,
- 				 root_cache->flags, root_cache->ctor,
- 				 memcg, root_cache);
--	if (IS_ERR(s)) {
--		kfree(cache_name);
-+	if (IS_ERR(s))
- 		s = NULL;
--	}
+-	VM_BUG_ON(p->is_root_cache);
+-	cachep = p->root_cache;
+-	return cache_from_memcg_idx(cachep, memcg_cache_id(p->memcg));
+-}
+-
+ #ifdef CONFIG_SLABINFO
+ static int mem_cgroup_slabinfo_read(struct seq_file *m, void *v)
+ {
+@@ -2830,7 +2817,7 @@ static int mem_cgroup_slabinfo_read(stru
  
--out_unlock:
- 	mutex_unlock(&slab_mutex);
+ 	mutex_lock(&memcg_slab_mutex);
+ 	list_for_each_entry(params, &memcg->memcg_slab_caches, list)
+-		cache_show(memcg_params_to_cache(params), m);
++		cache_show(params->cachep, m);
+ 	mutex_unlock(&memcg_slab_mutex);
  
- 	put_online_mems();
+ 	return 0;
+@@ -2993,6 +2980,7 @@ int memcg_alloc_cache_params(struct mem_
+ 		return -ENOMEM;
+ 
+ 	if (memcg) {
++		s->memcg_params->cachep = s;
+ 		s->memcg_params->memcg = memcg;
+ 		s->memcg_params->root_cache = root_cache;
+ 		css_get(&memcg->css);
+@@ -3138,7 +3126,6 @@ int __memcg_cleanup_cache_params(struct
+ 
+ static void memcg_unregister_all_caches(struct mem_cgroup *memcg)
+ {
+-	struct kmem_cache *cachep;
+ 	struct memcg_cache_params *params, *tmp;
+ 
+ 	if (!memcg_kmem_is_active(memcg))
+@@ -3146,7 +3133,8 @@ static void memcg_unregister_all_caches(
+ 
+ 	mutex_lock(&memcg_slab_mutex);
+ 	list_for_each_entry_safe(params, tmp, &memcg->memcg_slab_caches, list) {
+-		cachep = memcg_params_to_cache(params);
++		struct kmem_cache *cachep = params->cachep;
++
+ 		kmem_cache_shrink(cachep);
+ 		if (atomic_read(&cachep->memcg_params->nr_pages) == 0)
+ 			memcg_unregister_cache(cachep);
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
