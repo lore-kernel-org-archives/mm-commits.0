@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + slab_common-fix-the-check-for-duplicate-slab-names.patch added
- to -mm tree
-Date: Tue, 22 Jul 2014 16:16:08 -0700
-Message-ID: <53cef0b8.Tbs9lqDBTdagda3I%akpm@linux-foundation.org>
+Subject: +
+ mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch added to
+ -mm tree
+Date: Tue, 22 Jul 2014 16:16:35 -0700
+Message-ID: <53cef0d3.y68NzkOgG1FUK8xj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:40693 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752406AbaGVXQJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jul 2014 19:16:09 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so125295pab.5
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2014 16:16:08 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:38218 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757180AbaGVXQg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jul 2014 19:16:36 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h3so105411igd.4
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2014 16:16:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpatocka@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab_common: fix the check for duplicate slab names
+     Subject: mm, slub: fix false-positive lockdep warning in free_partial()
 has been added to the -mm tree.  Its filename is
-     slab_common-fix-the-check-for-duplicate-slab-names.patch
+     mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab_common-fix-the-check-for-duplicate-slab-names.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab_common-fix-the-check-for-duplicate-slab-names.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,64 +42,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mikulas Patocka <mpatocka@redhat.com>
-Subject: slab_common: fix the check for duplicate slab names
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: mm, slub: fix false-positive lockdep warning in free_partial()
 
-3e374919b314 ("slab_common: Do not check for duplicate slab names") is
-supposed to fix the problem where kmem_cache_create incorrectly reports
-duplicate cache name and fails.  The problem is described in the header of
-that patch.
+Commit c65c1877bd68 ("slub: use lockdep_assert_held") requires
+remove_partial() to be called with n->list_lock held, but free_partial()
+called from kmem_cache_close() on cache destruction does not follow this
+rule, leading to a warning:
 
-However, the patch doesn't really fix the problem because of these
-reasons:
+  WARNING: CPU: 0 PID: 2787 at mm/slub.c:1536 __kmem_cache_shutdown+0x1b2/0x1f0()
+  Modules linked in:
+  CPU: 0 PID: 2787 Comm: modprobe Tainted: G        W    3.14.0-rc1-mm1+ #1
+  Hardware name:
+   0000000000000600 ffff88003ae1dde8 ffffffff816d9583 0000000000000600
+   0000000000000000 ffff88003ae1de28 ffffffff8107c107 0000000000000000
+   ffff880037ab2b00 ffff88007c240d30 ffffea0001ee5280 ffffea0001ee52a0
+  Call Trace:
+   [<ffffffff816d9583>] dump_stack+0x51/0x6e
+   [<ffffffff8107c107>] warn_slowpath_common+0x87/0xb0
+   [<ffffffff8107c145>] warn_slowpath_null+0x15/0x20
+   [<ffffffff811c7fe2>] __kmem_cache_shutdown+0x1b2/0x1f0
+   [<ffffffff811908d3>] kmem_cache_destroy+0x43/0xf0
+   [<ffffffffa013a123>] xfs_destroy_zones+0x103/0x110 [xfs]
+   [<ffffffffa0192b54>] exit_xfs_fs+0x38/0x4e4 [xfs]
+   [<ffffffff811036fa>] SyS_delete_module+0x19a/0x1f0
+   [<ffffffff816dfcd8>] ? retint_swapgs+0x13/0x1b
+   [<ffffffff810d2125>] ? trace_hardirqs_on_caller+0x105/0x1d0
+   [<ffffffff81359efe>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+   [<ffffffff816e8539>] system_call_fastpath+0x16/0x1b
 
-* the logic to test for debugging is reversed. It was intended to perform
-  the check only if slub debugging is enabled (which implies that caches
-  with the same parameters are not merged). Therefore, there should be
-  #if !defined(CONFIG_SLUB) || defined(CONFIG_SLUB_DEBUG_ON)
-  The current code has the condition reversed and performs the test if
-  debugging is disabled.
+Although this cannot actually result in a race, because on cache
+destruction there should not be any concurrent frees or allocations from
+the cache, let's add spin_lock/unlock to free_partial() just to keep
+lockdep happy.
 
-* slub debugging may be enabled or disabled based on kernel command line,
-  CONFIG_SLUB_DEBUG_ON is just the default settings. Therefore the test
-  based on definition of CONFIG_SLUB_DEBUG_ON is unreliable.
-
-This patch fixes the problem by removing the test
-"!defined(CONFIG_SLUB_DEBUG_ON)". Therefore, duplicate names are never
-checked if the SLUB allocator is used.
-
-Note to stable kernel maintainers: when backporint this patch, please
-backport also the patch 3e374919b314f20e2a04f641ebc1093d758f66a4.
-
-Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: <stable@vger.kernel.org>	[3.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/slab_common.c~slab_common-fix-the-check-for-duplicate-slab-names mm/slab_common.c
---- a/mm/slab_common.c~slab_common-fix-the-check-for-duplicate-slab-names
-+++ a/mm/slab_common.c
-@@ -55,7 +55,7 @@ static int kmem_cache_sanity_check(const
- 			continue;
- 		}
+diff -puN mm/slub.c~mm-slub-fix-false-positive-lockdep-warning-in-free_partial mm/slub.c
+--- a/mm/slub.c~mm-slub-fix-false-positive-lockdep-warning-in-free_partial
++++ a/mm/slub.c
+@@ -3166,12 +3166,13 @@ static void list_slab_objects(struct kme
+ /*
+  * Attempt to free all partial slabs on a node.
+  * This is called from kmem_cache_close(). We must be the last thread
+- * using the cache and therefore we do not need to lock anymore.
++ * using the cache, but we still have to lock for lockdep's sake.
+  */
+ static void free_partial(struct kmem_cache *s, struct kmem_cache_node *n)
+ {
+ 	struct page *page, *h;
  
--#if !defined(CONFIG_SLUB) || !defined(CONFIG_SLUB_DEBUG_ON)
-+#if !defined(CONFIG_SLUB)
- 		if (!strcmp(s->name, name)) {
- 			pr_err("%s (%s): Cache name already exists.\n",
- 			       __func__, name);
++	spin_lock_irq(&n->list_lock);
+ 	list_for_each_entry_safe(page, h, &n->partial, lru) {
+ 		if (!page->inuse) {
+ 			__remove_partial(n, page);
+@@ -3181,6 +3182,7 @@ static void free_partial(struct kmem_cac
+ 			"Objects remaining in %s on kmem_cache_close()");
+ 		}
+ 	}
++	spin_unlock_irq(&n->list_lock);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from mpatocka@redhat.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-origin.patch
-slab_common-fix-the-check-for-duplicate-slab-names.patch
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
+page-cgroup-trivial-cleanup.patch
+page-cgroup-get-rid-of-nr_pcg_flags.patch
+slub-remove-kmemcg-id-from-create_unique_id.patch
+slab-use-mem_cgroup_id-for-per-memcg-cache-naming.patch
+memcg-make-memcg_cache_id-static.patch
+memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
+memcg-keep-all-children-of-each-root-cache-on-a-list.patch
+memcg-release-memcg_cache_id-on-css-offline.patch
+fork-exec-cleanup-mm-initialization.patch
+fork-reset-mm-pinned_vm.patch
+fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+fork-make-mm_init_owner-static.patch
 linux-next.patch
 
