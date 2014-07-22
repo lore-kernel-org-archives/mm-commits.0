@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-pcf85063-support-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2014 13:54:17 -0700
-Message-ID: <53cecf79.me9K1eFvm/PFOFEd%akpm@linux-foundation.org>
+Subject: + drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds.patch
+ added to -mm tree
+Date: Tue, 22 Jul 2014 15:36:01 -0700
+Message-ID: <53cee751.gSpg6TIILvlhkpkz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:49511 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755563AbaGVUyS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jul 2014 16:54:18 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so79001oac.3
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2014 13:54:18 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:37225 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932700AbaGVWgC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jul 2014 18:36:02 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 29so70689yhl.5
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2014 15:36:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, san@rosetechnology.dk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, hariprasad@chelsio.com, swise@opengridcomputing.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-add-pcf85063-support-fix
+     Subject: drivers/infiniband/hw/cxgb4/device.c: fix 32-bit builds
 has been added to the -mm tree.  Its filename is
-     rtc-add-pcf85063-support-fix.patch
+     drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-add-pcf85063-support-f=
-ix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-add-pcf85063-support-f=
-ix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,60 +35,84 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-add-pcf85063-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/infiniband/hw/cxgb4/device.c: fix 32-bit builds
 
-fix comment typo, tweak conding style
+ERROR: "__udivdi3" [drivers/infiniband/hw/cxgb4/iw_cxgb4.ko] undefined!
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: S=F8ren Andersen <san@rosetechnology.dk>
+Fixes 7730b4c7e32c0ab4d ("cxgb4/iw_cxgb4: work request logging feature").
+
+Cc: Hariprasad Shenai <hariprasad@chelsio.com>
+Cc: Steve Wise <swise@opengridcomputing.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf85063.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/cxgb4/device.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf85063.c~rtc-add-pcf85063-support-fix drive=
-rs/rtc/rtc-pcf85063.c
---- a/drivers/rtc/rtc-pcf85063.c~rtc-add-pcf85063-support-fix
-+++ a/drivers/rtc/rtc-pcf85063.c
-@@ -36,7 +36,7 @@ static struct i2c_driver pcf85063_driver
- struct pcf85063 {
- 	struct rtc_device *rtc;
- 	int c_polarity;	/* 0: MO_C=3D1 means 19xx, otherwise MO_C=3D1 means 2=
-0xx */
--	int voltage_low; /* incicates if a low_voltage was detected */
-+	int voltage_low; /* indicates if a low_voltage was detected */
- };
-=20
- /*
-@@ -47,7 +47,6 @@ static int pcf85063_get_datetime(struct
- {
- 	struct pcf85063 *pcf85063 =3D i2c_get_clientdata(client);
- 	unsigned char buf[13] =3D { PCF85063_REG_CTRL1 };
--
- 	struct i2c_msg msgs[] =3D {
- 		{/* setup read ptr */
- 			.addr =3D client->addr,
-@@ -61,6 +60,7 @@ static int pcf85063_get_datetime(struct
- 			.buf =3D buf
- 		},
- 	};
+diff -puN drivers/infiniband/hw/cxgb4/device.c~drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds drivers/infiniband/hw/cxgb4/device.c
+--- a/drivers/infiniband/hw/cxgb4/device.c~drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds
++++ a/drivers/infiniband/hw/cxgb4/device.c
+@@ -33,6 +33,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/debugfs.h>
+ #include <linux/vmalloc.h>
++#include <linux/math64.h>
+ 
+ #include <rdma/ib_verbs.h>
+ 
+@@ -142,6 +143,11 @@ void c4iw_log_wr_stats(struct t4_wq *wq,
+ 	wq->rdev->wr_log[idx] = le;
+ }
+ 
++static u64 ts2ns(struct c4iw_dev *dev, u64 ts)
++{
++	return div64_u64(ts * dev->rdev.lldi.cclk_ps, 1000);
++}
 +
- 	/* read registers */
- 	if ((i2c_transfer(client->adapter, msgs, 2)) !=3D 2) {
- 		dev_err(&client->dev, "%s: read error\n", __func__);
+ static int wr_log_show(struct seq_file *seq, void *v)
+ {
+ 	struct c4iw_dev *dev = seq->private;
+@@ -150,8 +156,6 @@ static int wr_log_show(struct seq_file *
+ 	int prev_ts_set = 0;
+ 	int idx, end;
+ 
+-#define ts2ns(ts) ((ts) * dev->rdev.lldi.cclk_ps / 1000)
+-
+ 	idx = atomic_read(&dev->rdev.wr_log_idx) &
+ 		(dev->rdev.wr_log_size - 1);
+ 	end = idx - 1;
+@@ -184,8 +188,10 @@ static int wr_log_show(struct seq_file *
+ 						lep->post_host_ts).tv_nsec,
+ 				   lep->post_sge_ts, lep->cqe_sge_ts,
+ 				   lep->poll_sge_ts,
+-				   ts2ns(lep->poll_sge_ts - lep->post_sge_ts),
+-				   ts2ns(lep->poll_sge_ts - lep->cqe_sge_ts));
++				   ts2ns(dev, lep->poll_sge_ts -
++						lep->post_sge_ts),
++				   ts2ns(dev, lep->poll_sge_ts -
++						lep->cqe_sge_ts));
+ 			prev_ts = lep->poll_host_ts;
+ 		}
+ 		idx++;
+@@ -193,7 +199,6 @@ static int wr_log_show(struct seq_file *
+ 			idx = 0;
+ 		lep = &dev->rdev.wr_log[idx];
+ 	}
+-#undef ts2ns
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
@@ -112,8 +135,7 @@ mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.pa=
-tch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
 add-lib-globc-fix.patch
 lib-list_sortc-convert-to-pr_foo.patch
 lib-list_sortc-convert-to-pr_foo-fix.patch
@@ -127,9 +149,9 @@ panic-add-taint_softlockup-fix.patch
 linux-next.patch
 linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
+drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.pa=
-tch
+kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
 kexec-support-kexec-kdump-on-efi-systems-fix.patch
 mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 debugging-keep-track-of-page-owners.patch
@@ -140,8 +162,3 @@ mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
