@@ -1,101 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 23 Jul 2014 12:00:00 -0700
-Message-ID: <53d00630.Ts7xCr61Y4m/RLaK%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds.patch removed from
+ -mm tree
+Date: Wed, 23 Jul 2014 12:00:12 -0700
+Message-ID: <53d0063c.iQx/n6f723UpwjY+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:35035 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932514AbaGWTAD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 15:00:03 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so454199pab.1
-        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 12:00:02 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:40392 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932514AbaGWTAN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 15:00:13 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so467499oah.4
+        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 12:00:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, hariprasad@chelsio.com, swise@opengridcomputing.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: drivers/infiniband/hw/cxgb4/device.c: fix 32-bit builds
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: drivers/infiniband/hw/cxgb4/device.c: fix 32-bit builds
 
+ERROR: "__udivdi3" [drivers/infiniband/hw/cxgb4/iw_cxgb4.ko] undefined!
+
+Fixes 7730b4c7e32c0ab4d ("cxgb4/iw_cxgb4: work request logging feature").
+
+Cc: Hariprasad Shenai <hariprasad@chelsio.com>
+Cc: Steve Wise <swise@opengridcomputing.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb-frontends/si2168.c      |    3 ---
- drivers/media/dvb-frontends/si2168_priv.h |    4 ----
- drivers/media/tuners/si2157.c             |    8 --------
- 3 files changed, 15 deletions(-)
+ drivers/infiniband/hw/cxgb4/device.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN drivers/media/dvb-frontends/si2168.c~linux-next-git-rejects drivers/media/dvb-frontends/si2168.c
---- a/drivers/media/dvb-frontends/si2168.c~linux-next-git-rejects
-+++ a/drivers/media/dvb-frontends/si2168.c
-@@ -362,8 +362,6 @@ static int si2168_init(struct dvb_fronte
- 	if (ret)
- 		goto err;
+diff -puN drivers/infiniband/hw/cxgb4/device.c~drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds drivers/infiniband/hw/cxgb4/device.c
+--- a/drivers/infiniband/hw/cxgb4/device.c~drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds
++++ a/drivers/infiniband/hw/cxgb4/device.c
+@@ -33,6 +33,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/debugfs.h>
+ #include <linux/vmalloc.h>
++#include <linux/math64.h>
  
--<<<<<<< HEAD
--=======
- 	cmd.args[0] = 0x05;
- 	cmd.args[1] = 0x00;
- 	cmd.args[2] = 0xaa;
-@@ -400,7 +398,6 @@ static int si2168_init(struct dvb_fronte
- 		goto err;
- 	}
+ #include <rdma/ib_verbs.h>
  
-->>>>>>> linux-next/akpm-base
- 	/* cold state - try to download firmware */
- 	dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
- 			KBUILD_MODNAME, si2168_ops.info.name);
-diff -puN drivers/media/dvb-frontends/si2168_priv.h~linux-next-git-rejects drivers/media/dvb-frontends/si2168_priv.h
---- a/drivers/media/dvb-frontends/si2168_priv.h~linux-next-git-rejects
-+++ a/drivers/media/dvb-frontends/si2168_priv.h
-@@ -22,13 +22,9 @@
- #include <linux/firmware.h>
- #include <linux/i2c-mux.h>
+@@ -142,6 +143,11 @@ void c4iw_log_wr_stats(struct t4_wq *wq,
+ 	wq->rdev->wr_log[idx] = le;
+ }
  
--<<<<<<< HEAD
--#define SI2168_FIRMWARE "dvb-demod-si2168-02.fw"
--=======
- #define SI2168_A30_FIRMWARE "dvb-demod-si2168-a30-01.fw"
- #define SI2168_B40_FIRMWARE "dvb-demod-si2168-b40-01.fw"
- #define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
-->>>>>>> linux-next/akpm-base
++static u64 ts2ns(struct c4iw_dev *dev, u64 ts)
++{
++	return div64_u64(ts * dev->rdev.lldi.cclk_ps, 1000);
++}
++
+ static int wr_log_show(struct seq_file *seq, void *v)
+ {
+ 	struct c4iw_dev *dev = seq->private;
+@@ -150,8 +156,6 @@ static int wr_log_show(struct seq_file *
+ 	int prev_ts_set = 0;
+ 	int idx, end;
  
- /* state struct */
- struct si2168 {
-diff -puN drivers/media/tuners/si2157.c~linux-next-git-rejects drivers/media/tuners/si2157.c
---- a/drivers/media/tuners/si2157.c~linux-next-git-rejects
-+++ a/drivers/media/tuners/si2157.c
-@@ -60,18 +60,10 @@ static int si2157_cmd_execute(struct si2
- 				jiffies_to_msecs(jiffies) -
- 				(jiffies_to_msecs(timeout) - TIMEOUT));
- 
--<<<<<<< HEAD
--	if (!((buf[0] >> 7) & 0x01)) {
--		ret = -ETIMEDOUT;
--		goto err_mutex_unlock;
--	} else {
--		ret = 0;
--=======
- 		if (!((cmd->args[0] >> 7) & 0x01)) {
- 			ret = -ETIMEDOUT;
- 			goto err_mutex_unlock;
+-#define ts2ns(ts) ((ts) * dev->rdev.lldi.cclk_ps / 1000)
+-
+ 	idx = atomic_read(&dev->rdev.wr_log_idx) &
+ 		(dev->rdev.wr_log_size - 1);
+ 	end = idx - 1;
+@@ -184,8 +188,10 @@ static int wr_log_show(struct seq_file *
+ 						lep->post_host_ts).tv_nsec,
+ 				   lep->post_sge_ts, lep->cqe_sge_ts,
+ 				   lep->poll_sge_ts,
+-				   ts2ns(lep->poll_sge_ts - lep->post_sge_ts),
+-				   ts2ns(lep->poll_sge_ts - lep->cqe_sge_ts));
++				   ts2ns(dev, lep->poll_sge_ts -
++						lep->post_sge_ts),
++				   ts2ns(dev, lep->poll_sge_ts -
++						lep->cqe_sge_ts));
+ 			prev_ts = lep->poll_host_ts;
  		}
-->>>>>>> linux-next/akpm-base
+ 		idx++;
+@@ -193,7 +199,6 @@ static int wr_log_show(struct seq_file *
+ 			idx = 0;
+ 		lep = &dev->rdev.wr_log[idx];
  	}
+-#undef ts2ns
+ 	return 0;
+ }
  
- 	ret = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -134,7 +135,6 @@ mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
 panic-add-taint_softlockup-fix.patch
 linux-next.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
-drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
 kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
 kexec-support-kexec-kdump-on-efi-systems-fix.patch
