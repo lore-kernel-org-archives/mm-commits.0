@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+Subject: + shmem-fix-faulting-into-a-hole-not-taking-i_mutex-fix.patch
  added to -mm tree
-Date: Wed, 23 Jul 2014 12:17:45 -0700
-Message-ID: <53d00a59.HwebQy1F5B/TLPOg%akpm@linux-foundation.org>
+Date: Wed, 23 Jul 2014 12:18:53 -0700
+Message-ID: <53d00a9d.kPJou+B8XdMf0BhZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:38968 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932514AbaGWTRq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 15:17:46 -0400
-Received: by mail-ie0-f201.google.com with SMTP id tr6so474964ieb.2
-        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 12:17:46 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:44295 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932674AbaGWTSy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 15:18:54 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so474231oah.4
+        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 12:18:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, aeb@debian.org, mm-commits@vger.kernel.org
+To: hughd@google.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: enable interrupts before calling console_trylock_for_printk()
+     Subject: shmem: fix faulting into a hole, not taking i_mutex: fix
 has been added to the -mm tree.  Its filename is
-     printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+     shmem-fix-faulting-into-a-hole-not-taking-i_mutex-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/shmem-fix-faulting-into-a-hole-not-taking-i_mutex-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-fix-faulting-into-a-hole-not-taking-i_mutex-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,126 +41,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: printk: enable interrupts before calling console_trylock_for_printk()
+From: Hugh Dickins <hughd@google.com>
+Subject: shmem: fix faulting into a hole, not taking i_mutex: fix
 
-We need interrupts disabled when calling console_trylock_for_printk() only
-so that cpu id we pass to can_use_console() remains valid (for other
-things console_sem provides all the exclusion we need and deadlocks on
-console_sem due to interrupts are impossible because we use
-down_trylock()).  However if we are rescheduled, we are guaranteed to run
-on an online cpu so we can easily just get the cpu id in
-can_use_console().
+Sasha reports various nasty trinity crashes when shmem_fault() tries to
+finish_wait(), we guess from rare cases when the wait_queue_head on
+shmem_fallocate()'s stack has already gone.  Fix those by using
+TASK_UNINTERRUPIBLE instead of TASK_KILLABLE in prepare_to_wait(), that's
+much simpler and safer: TASK_KILLABLE was a nice aspiration, but not worth
+any more hassle.
 
-We can lose a bit of performance when we enable interrupts in
-vprintk_emit() and then disable them again in console_unlock() but OTOH it
-can somewhat reduce interrupt latency caused by console_unlock().
-
-We differ from (reverted) commit 939f04bec1a4 in that we avoid calling
-console_unlock() from vprintk_emit() with lockdep enabled as that has
-unveiled quite some bugs leading to system freezes during boot (e.g.
-https://lkml.org/lkml/2014/5/30/242,
-https://lkml.org/lkml/2014/6/28/521).
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Tested-by: Andreas Bombe <aeb@debian.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   31 +++++++++++++++++++++----------
- 1 file changed, 21 insertions(+), 10 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/printk/printk.c~printk-enable-interrupts-before-calling-console_trylock_for_printk kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-enable-interrupts-before-calling-console_trylock_for_printk
-+++ a/kernel/printk/printk.c
-@@ -1450,10 +1450,9 @@ static int have_callable_console(void)
- /*
-  * Can we actually use the console at this time on this cpu?
-  *
-- * Console drivers may assume that per-cpu resources have
-- * been allocated. So unless they're explicitly marked as
-- * being able to cope (CON_ANYTIME) don't call them until
-- * this CPU is officially up.
-+ * Console drivers may assume that per-cpu resources have been allocated. So
-+ * unless they're explicitly marked as being able to cope (CON_ANYTIME) don't
-+ * call them until this CPU is officially up.
-  */
- static inline int can_use_console(unsigned int cpu)
- {
-@@ -1466,8 +1465,10 @@ static inline int can_use_console(unsign
-  * console_lock held, and 'console_locked' set) if it
-  * is successful, false otherwise.
-  */
--static int console_trylock_for_printk(unsigned int cpu)
-+static int console_trylock_for_printk(void)
- {
-+	unsigned int cpu = smp_processor_id();
-+
- 	if (!console_trylock())
- 		return 0;
- 	/*
-@@ -1642,7 +1643,8 @@ asmlinkage int vprintk_emit(int facility
- 		 */
- 		if (!oops_in_progress && !lockdep_recursing(current)) {
- 			recursion_bug = 1;
--			goto out_restore_irqs;
-+			local_irq_restore(flags);
-+			return 0;
- 		}
- 		zap_locks();
- 	}
-@@ -1750,21 +1752,30 @@ asmlinkage int vprintk_emit(int facility
+diff -puN mm/shmem.c~shmem-fix-faulting-into-a-hole-not-taking-i_mutex-fix mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-faulting-into-a-hole-not-taking-i_mutex-fix
++++ a/mm/shmem.c
+@@ -1283,7 +1283,7 @@ static int shmem_fault(struct vm_area_st
  
- 	logbuf_cpu = UINT_MAX;
- 	raw_spin_unlock(&logbuf_lock);
-+	lockdep_on();
-+	local_irq_restore(flags);
+ 			shmem_falloc_waitq = shmem_falloc->waitq;
+ 			prepare_to_wait(shmem_falloc_waitq, &shmem_fault_wait,
+-					TASK_KILLABLE);
++					TASK_UNINTERRUPTIBLE);
+ 			spin_unlock(&inode->i_lock);
+ 			schedule();
  
- 	/* If called from the scheduler, we can not call up(). */
- 	if (!in_sched) {
-+		lockdep_off();
-+		/*
-+		 * Disable preemption to avoid being preempted while holding
-+		 * console_sem which would prevent anyone from printing to
-+		 * console
-+		 */
-+		preempt_disable();
-+
- 		/*
- 		 * Try to acquire and then immediately release the console
- 		 * semaphore.  The release will print out buffers and wake up
- 		 * /dev/kmsg and syslog() users.
- 		 */
--		if (console_trylock_for_printk(this_cpu))
-+		if (console_trylock_for_printk())
- 			console_unlock();
-+		preempt_enable();
-+		lockdep_on();
- 	}
- 
--	lockdep_on();
--out_restore_irqs:
--	local_irq_restore(flags);
- 	return printed_len;
- }
- EXPORT_SYMBOL(vprintk_emit);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from hughd@google.com are
 
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
-printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
-printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
-printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
-printk-tweak-do_syslog-to-match-comments.patch
-printk-rename-default_message_loglevel.patch
-printk-fix-some-comments.patch
-printk-use-a-clever-macro.patch
-printk-miscellaneous-cleanups.patch
-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
-fs-isofs-logging-clean-up.patch
+rmap-fix-pgoff-calculation-to-handle-hugepage-correctly.patch
+mm-do-not-call-do_fault_around-for-non-linear-fault.patch
+shmem-fix-faulting-into-a-hole-not-taking-i_mutex.patch
+shmem-fix-faulting-into-a-hole-not-taking-i_mutex-fix.patch
+shmem-fix-splicing-from-a-hole-while-its-punched.patch
+mm-fs-fix-pessimization-in-hole-punching-pagecache.patch
+simple_xattr-permit-0-size-extended-attributes.patch
+mm-hugetlb-fix-copy_hugetlb_page_range-re-new-copy_hugetlb_page_range-causing-crashes.patch
+mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
+mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix.patch
+mm-memcontrol-rewrite-uncharge-api-fix-uncharge-from-irq-context.patch
+mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
+mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
+mm-vmscan-clean-up-struct-scan_control-v2.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
+include-linux-mmdebugh-add-vm_warn_once.patch
+shmem-fix-double-uncharge-in-__shmem_file_setup.patch
+shmem-update-memory-reservation-on-truncate.patch
+mm-catch-memory-commitment-underflow.patch
+mm-catch-memory-commitment-underflow-fix.patch
+mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
+mm-replace-init_page_accessed-by-__setpagereferenced.patch
+mm-remove-the-unused-gfp-arg-to-shmem_add_to_page_cache.patch
+vmstat-on-demand-vmstat-workers-v8.patch
+vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
+list-use-argument-hlist_add_after-names-from-rcu-variant.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
+klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
 linux-next.patch
-mm-add-strictlimit-knob-v2.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
