@@ -1,36 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] memcg-make-memcg_cache_id-static.patch removed from
- -mm tree
-Date: Wed, 23 Jul 2014 12:15:01 -0700
-Message-ID: <53d009b5.IZLzaZp9uOmskqjC%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ slab-use-mem_cgroup_id-for-per-memcg-cache-naming.patch removed from -mm
+ tree
+Date: Wed, 23 Jul 2014 12:15:08 -0700
+Message-ID: <53d009bc.k5gAonTzS1pfCRcG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:58582 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932514AbaGWTPD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 15:15:03 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so470435oac.5
-        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 12:15:02 -0700 (PDT)
+Received: from mail-oi0-f73.google.com ([209.85.218.73]:43263 "EHLO
+	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932514AbaGWTPJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 15:15:09 -0400
+Received: by mail-oi0-f73.google.com with SMTP id u20so335125oif.4
+        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 12:15:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: make memcg_cache_id static
+     Subject: slab: use mem_cgroup_id for per memcg cache naming
 has been removed from the -mm tree.  Its filename was
-     memcg-make-memcg_cache_id-static.patch
+     slab-use-mem_cgroup_id-for-per-memcg-cache-naming.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: make memcg_cache_id static
+Subject: slab: use mem_cgroup_id for per memcg cache naming
 
-It's not used anywhere outside mm/memcontrol.c.
+Currently, we use memcg_cache_id as a part of a per memcg cache name. 
+Since memcg_cache_id is released only on css free, this guarantees cache
+name uniqueness.
+
+However, it's bad practice to keep memcg_cache_id till css free, because
+it occupies a slot in kmem_cache->memcg_params->memcg_caches arrays.  So
+I'm going to make memcg release memcg_cache_id on css offline.  As a
+result, memcg_cache_id won't guarantee cache name uniqueness any more.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -42,71 +50,105 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 -------
- mm/memcontrol.c            |   20 ++++++++++----------
- 2 files changed, 10 insertions(+), 17 deletions(-)
+ include/linux/slab.h |    2 +-
+ mm/memcontrol.c      |   13 +++++++++++--
+ mm/slab_common.c     |   15 +++------------
+ 3 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-make-memcg_cache_id-static include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-make-memcg_cache_id-static
-+++ a/include/linux/memcontrol.h
-@@ -438,8 +438,6 @@ void __memcg_kmem_commit_charge(struct p
- 				       struct mem_cgroup *memcg, int order);
- void __memcg_kmem_uncharge_pages(struct page *page, int order);
- 
--int memcg_cache_id(struct mem_cgroup *memcg);
--
- int memcg_alloc_cache_params(struct mem_cgroup *memcg, struct kmem_cache *s,
- 			     struct kmem_cache *root_cache);
- void memcg_free_cache_params(struct kmem_cache *s);
-@@ -569,11 +567,6 @@ memcg_kmem_commit_charge(struct page *pa
- {
- }
- 
--static inline int memcg_cache_id(struct mem_cgroup *memcg)
--{
--	return -1;
--}
--
- static inline int memcg_alloc_cache_params(struct mem_cgroup *memcg,
- 		struct kmem_cache *s, struct kmem_cache *root_cache)
- {
-diff -puN mm/memcontrol.c~memcg-make-memcg_cache_id-static mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-make-memcg_cache_id-static
+diff -puN include/linux/slab.h~slab-use-mem_cgroup_id-for-per-memcg-cache-naming include/linux/slab.h
+--- a/include/linux/slab.h~slab-use-mem_cgroup_id-for-per-memcg-cache-naming
++++ a/include/linux/slab.h
+@@ -118,7 +118,7 @@ struct kmem_cache *kmem_cache_create(con
+ #ifdef CONFIG_MEMCG_KMEM
+ struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *,
+ 					   struct kmem_cache *,
+-					   const char *);
++					   char *);
+ #endif
+ void kmem_cache_destroy(struct kmem_cache *);
+ int kmem_cache_shrink(struct kmem_cache *);
+diff -puN mm/memcontrol.c~slab-use-mem_cgroup_id-for-per-memcg-cache-naming mm/memcontrol.c
+--- a/mm/memcontrol.c~slab-use-mem_cgroup_id-for-per-memcg-cache-naming
 +++ a/mm/memcontrol.c
-@@ -2795,6 +2795,16 @@ static inline bool memcg_can_account_kme
- }
+@@ -3017,6 +3017,7 @@ static void memcg_register_cache(struct
+ 	static char memcg_name_buf[NAME_MAX + 1]; /* protected by
+ 						     memcg_slab_mutex */
+ 	struct kmem_cache *cachep;
++	char *cache_name;
+ 	int id;
  
- /*
-+ * helper for acessing a memcg's index. It will be used as an index in the
-+ * child cache array in kmem_cache, and also to derive its name. This function
-+ * will return -1 when this is not a kmem-limited memcg.
-+ */
-+static inline int memcg_cache_id(struct mem_cgroup *memcg)
-+{
-+	return memcg ? memcg->kmemcg_id : -1;
-+}
+ 	lockdep_assert_held(&memcg_slab_mutex);
+@@ -3032,14 +3033,22 @@ static void memcg_register_cache(struct
+ 		return;
+ 
+ 	cgroup_name(memcg->css.cgroup, memcg_name_buf, NAME_MAX + 1);
+-	cachep = memcg_create_kmem_cache(memcg, root_cache, memcg_name_buf);
 +
-+/*
-  * This is a bit cumbersome, but it is rarely used and avoids a backpointer
-  * in the memcg_cache_params struct.
-  */
-@@ -2886,16 +2896,6 @@ static void memcg_uncharge_kmem(struct m
- 		css_put(&memcg->css);
- }
++	cache_name = kasprintf(GFP_KERNEL, "%s(%d:%s)", root_cache->name,
++			       mem_cgroup_id(memcg), memcg_name_buf);
++	if (!cache_name)
++		return;
++
++	cachep = memcg_create_kmem_cache(memcg, root_cache, cache_name);
+ 	/*
+ 	 * If we could not create a memcg cache, do not complain, because
+ 	 * that's not critical at all as we can always proceed with the root
+ 	 * cache.
+ 	 */
+-	if (!cachep)
++	if (!cachep) {
++		kfree(cache_name);
+ 		return;
++	}
  
--/*
-- * helper for acessing a memcg's index. It will be used as an index in the
-- * child cache array in kmem_cache, and also to derive its name. This function
-- * will return -1 when this is not a kmem-limited memcg.
-- */
--int memcg_cache_id(struct mem_cgroup *memcg)
--{
--	return memcg ? memcg->kmemcg_id : -1;
--}
--
- static size_t memcg_caches_array_size(int num_groups)
+ 	list_add(&cachep->memcg_params->list, &memcg->memcg_slab_caches);
+ 
+diff -puN mm/slab_common.c~slab-use-mem_cgroup_id-for-per-memcg-cache-naming mm/slab_common.c
+--- a/mm/slab_common.c~slab-use-mem_cgroup_id-for-per-memcg-cache-naming
++++ a/mm/slab_common.c
+@@ -266,7 +266,7 @@ EXPORT_SYMBOL(kmem_cache_create);
+  * memcg_create_kmem_cache - Create a cache for a memory cgroup.
+  * @memcg: The memory cgroup the new cache is for.
+  * @root_cache: The parent of the new cache.
+- * @memcg_name: The name of the memory cgroup (used for naming the new cache).
++ * @cache_name: The string to be used as the new cache name.
+  *
+  * This function attempts to create a kmem cache that will serve allocation
+  * requests going from @memcg to @root_cache. The new cache inherits properties
+@@ -274,31 +274,22 @@ EXPORT_SYMBOL(kmem_cache_create);
+  */
+ struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *memcg,
+ 					   struct kmem_cache *root_cache,
+-					   const char *memcg_name)
++					   char *cache_name)
  {
- 	ssize_t size;
+ 	struct kmem_cache *s = NULL;
+-	char *cache_name;
+ 
+ 	get_online_cpus();
+ 	get_online_mems();
+ 
+ 	mutex_lock(&slab_mutex);
+ 
+-	cache_name = kasprintf(GFP_KERNEL, "%s(%d:%s)", root_cache->name,
+-			       memcg_cache_id(memcg), memcg_name);
+-	if (!cache_name)
+-		goto out_unlock;
+-
+ 	s = do_kmem_cache_create(cache_name, root_cache->object_size,
+ 				 root_cache->size, root_cache->align,
+ 				 root_cache->flags, root_cache->ctor,
+ 				 memcg, root_cache);
+-	if (IS_ERR(s)) {
+-		kfree(cache_name);
++	if (IS_ERR(s))
+ 		s = NULL;
+-	}
+ 
+-out_unlock:
+ 	mutex_unlock(&slab_mutex);
+ 
+ 	put_online_mems();
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
@@ -131,7 +173,6 @@ mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
 page-cgroup-trivial-cleanup.patch
 page-cgroup-get-rid-of-nr_pcg_flags.patch
 slub-remove-kmemcg-id-from-create_unique_id.patch
-slab-use-mem_cgroup_id-for-per-memcg-cache-naming.patch
 fork-exec-cleanup-mm-initialization.patch
 fork-reset-mm-pinned_vm.patch
 fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
