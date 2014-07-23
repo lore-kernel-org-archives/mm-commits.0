@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-refactor-page-index-offset-getters-fix.patch added to -mm
- tree
-Date: Wed, 23 Jul 2014 14:39:26 -0700
-Message-ID: <53d02b8e.or19ufZEh1I/gme3%akpm@linux-foundation.org>
+Subject: + driver-rtc-classc-check-the-error-after-rtc_read_time.patch
+ added to -mm tree
+Date: Wed, 23 Jul 2014 14:57:19 -0700
+Message-ID: <53d02fbf.wMaCd6xP8+69uONr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:40416 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933706AbaGWVj1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 17:39:27 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so239320igi.5
-        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 14:39:27 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:47645 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933543AbaGWV5U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 17:57:20 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so542181oah.2
+        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 14:57:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, mel@csn.ul.ie, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: hyogi.gim@lge.com, a.zummo@towertech.it, rjw@rjwysocki.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-refactor-page-index-offset-getters-fix
+     Subject: driver/rtc/class.c: check the error after rtc_read_time()
 has been added to the -mm tree.  Its filename is
-     mm-refactor-page-index-offset-getters-fix.patch
+     driver-rtc-classc-check-the-error-after-rtc_read_time.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-refactor-page-index-offset-getters-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/driver-rtc-classc-check-the-error-after-rtc_read_time.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-refactor-page-index-offset-getters-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/driver-rtc-classc-check-the-error-after-rtc_read_time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,82 +41,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-refactor-page-index-offset-getters-fix
+From: Hyogi Gim <hyogi.gim@lge.com>
+Subject: driver/rtc/class.c: check the error after rtc_read_time()
 
-tweak page_offset() comment
+In rtc_suspend() and rtc_resume(), the error after rtc_read_time() is not
+checked.  If rtc device fail to read time, we cannot guarantee the
+following process.
 
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David Rientjes <rientjes@google.com>
+Add the verification code for returned rtc_read_time() error.
+
+Signed-off-by: Hyogi Gim <hyogi.gim@lge.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/class.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-refactor-page-index-offset-getters-fix include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-refactor-page-index-offset-getters-fix
-+++ a/include/linux/pagemap.h
-@@ -412,7 +412,7 @@ static inline pgoff_t page_pgoff(struct
- }
+diff -puN drivers/rtc/class.c~driver-rtc-classc-check-the-error-after-rtc_read_time drivers/rtc/class.c
+--- a/drivers/rtc/class.c~driver-rtc-classc-check-the-error-after-rtc_read_time
++++ a/drivers/rtc/class.c
+@@ -53,6 +53,7 @@ static int rtc_suspend(struct device *de
+ 	struct rtc_device	*rtc = to_rtc_device(dev);
+ 	struct rtc_time		tm;
+ 	struct timespec		delta, delta_delta;
++	int err;
  
- /*
-- * Return the byte offset of the given page.
-+ * Return the file offset of the given pagecache page, in bytes.
-  */
- static inline loff_t page_offset(struct page *page)
- {
+ 	if (has_persistent_clock())
+ 		return 0;
+@@ -61,7 +62,12 @@ static int rtc_suspend(struct device *de
+ 		return 0;
+ 
+ 	/* snapshot the current RTC and system time at suspend*/
+-	rtc_read_time(rtc, &tm);
++	err = rtc_read_time(rtc, &tm);
++	if (err < 0) {
++		pr_debug("%s:  fail to read rtc time\n", dev_name(&rtc->dev));
++		return 0;
++	}
++
+ 	getnstimeofday(&old_system);
+ 	rtc_tm_to_time(&tm, &old_rtc.tv_sec);
+ 
+@@ -94,6 +100,7 @@ static int rtc_resume(struct device *dev
+ 	struct rtc_time		tm;
+ 	struct timespec		new_system, new_rtc;
+ 	struct timespec		sleep_time;
++	int err;
+ 
+ 	if (has_persistent_clock())
+ 		return 0;
+@@ -104,7 +111,12 @@ static int rtc_resume(struct device *dev
+ 
+ 	/* snapshot the current rtc and system time at resume */
+ 	getnstimeofday(&new_system);
+-	rtc_read_time(rtc, &tm);
++	err = rtc_read_time(rtc, &tm);
++	if (err < 0) {
++		pr_debug("%s:  fail to read rtc time\n", dev_name(&rtc->dev));
++		return 0;
++	}
++
+ 	if (rtc_valid_tm(&tm) != 0) {
+ 		pr_debug("%s:  bogus resume time\n", dev_name(&rtc->dev));
+ 		return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hyogi.gim@lge.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-refactor-page-index-offset-getters-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-rtc-add-pcf85063-support-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-proc-remove-proc_tty_ldisc-variable-fix.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
-panic-add-taint_softlockup-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-rtc-interfacec-check-the-error-after-__rtc_read_time.patch
+driver-rtc-classc-check-the-error-after-rtc_read_time.patch
 
