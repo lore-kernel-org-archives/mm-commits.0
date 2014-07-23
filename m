@@ -1,149 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds.patch removed from
- -mm tree
-Date: Wed, 23 Jul 2014 12:00:12 -0700
-Message-ID: <53d0063c.iQx/n6f723UpwjY+%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch removed
+ from -mm tree
+Date: Wed, 23 Jul 2014 12:02:12 -0700
+Message-ID: <53d006b4.3sS4a+5Tz6T+4bdl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:40392 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932514AbaGWTAN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 15:00:13 -0400
-Received: by mail-oa0-f73.google.com with SMTP id g18so467499oah.4
-        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 12:00:12 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:60372 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932514AbaGWTCN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 15:02:13 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so454284pab.5
+        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 12:02:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, hariprasad@chelsio.com, swise@opengridcomputing.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/infiniband/hw/cxgb4/device.c: fix 32-bit builds
+     Subject: mm, slub: fix false-positive lockdep warning in free_partial()
 has been removed from the -mm tree.  Its filename was
-     drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds.patch
+     mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/infiniband/hw/cxgb4/device.c: fix 32-bit builds
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: mm, slub: fix false-positive lockdep warning in free_partial()
 
-ERROR: "__udivdi3" [drivers/infiniband/hw/cxgb4/iw_cxgb4.ko] undefined!
+Commit c65c1877bd68 ("slub: use lockdep_assert_held") requires
+remove_partial() to be called with n->list_lock held, but free_partial()
+called from kmem_cache_close() on cache destruction does not follow this
+rule, leading to a warning:
 
-Fixes 7730b4c7e32c0ab4d ("cxgb4/iw_cxgb4: work request logging feature").
+  WARNING: CPU: 0 PID: 2787 at mm/slub.c:1536 __kmem_cache_shutdown+0x1b2/0x1f0()
+  Modules linked in:
+  CPU: 0 PID: 2787 Comm: modprobe Tainted: G        W    3.14.0-rc1-mm1+ #1
+  Hardware name:
+   0000000000000600 ffff88003ae1dde8 ffffffff816d9583 0000000000000600
+   0000000000000000 ffff88003ae1de28 ffffffff8107c107 0000000000000000
+   ffff880037ab2b00 ffff88007c240d30 ffffea0001ee5280 ffffea0001ee52a0
+  Call Trace:
+   [<ffffffff816d9583>] dump_stack+0x51/0x6e
+   [<ffffffff8107c107>] warn_slowpath_common+0x87/0xb0
+   [<ffffffff8107c145>] warn_slowpath_null+0x15/0x20
+   [<ffffffff811c7fe2>] __kmem_cache_shutdown+0x1b2/0x1f0
+   [<ffffffff811908d3>] kmem_cache_destroy+0x43/0xf0
+   [<ffffffffa013a123>] xfs_destroy_zones+0x103/0x110 [xfs]
+   [<ffffffffa0192b54>] exit_xfs_fs+0x38/0x4e4 [xfs]
+   [<ffffffff811036fa>] SyS_delete_module+0x19a/0x1f0
+   [<ffffffff816dfcd8>] ? retint_swapgs+0x13/0x1b
+   [<ffffffff810d2125>] ? trace_hardirqs_on_caller+0x105/0x1d0
+   [<ffffffff81359efe>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+   [<ffffffff816e8539>] system_call_fastpath+0x16/0x1b
 
-Cc: Hariprasad Shenai <hariprasad@chelsio.com>
-Cc: Steve Wise <swise@opengridcomputing.com>
-Cc: David Miller <davem@davemloft.net>
+Although this cannot actually result in a race, because on cache
+destruction there should not be any concurrent frees or allocations from
+the cache, let's add spin_lock/unlock to free_partial() just to keep
+lockdep happy.
+
+Acked-by: Christoph Lameter <cl@linux.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Signed-off-by: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/cxgb4/device.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ mm/slub.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/cxgb4/device.c~drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds drivers/infiniband/hw/cxgb4/device.c
---- a/drivers/infiniband/hw/cxgb4/device.c~drivers-infiniband-hw-cxgb4-devicec-fix-32-bit-builds
-+++ a/drivers/infiniband/hw/cxgb4/device.c
-@@ -33,6 +33,7 @@
- #include <linux/moduleparam.h>
- #include <linux/debugfs.h>
- #include <linux/vmalloc.h>
-+#include <linux/math64.h>
- 
- #include <rdma/ib_verbs.h>
- 
-@@ -142,6 +143,11 @@ void c4iw_log_wr_stats(struct t4_wq *wq,
- 	wq->rdev->wr_log[idx] = le;
- }
- 
-+static u64 ts2ns(struct c4iw_dev *dev, u64 ts)
-+{
-+	return div64_u64(ts * dev->rdev.lldi.cclk_ps, 1000);
-+}
-+
- static int wr_log_show(struct seq_file *seq, void *v)
+diff -puN mm/slub.c~mm-slub-fix-false-positive-lockdep-warning-in-free_partial mm/slub.c
+--- a/mm/slub.c~mm-slub-fix-false-positive-lockdep-warning-in-free_partial
++++ a/mm/slub.c
+@@ -3166,12 +3166,13 @@ static void list_slab_objects(struct kme
+ /*
+  * Attempt to free all partial slabs on a node.
+  * This is called from kmem_cache_close(). We must be the last thread
+- * using the cache and therefore we do not need to lock anymore.
++ * using the cache, but we still have to lock for lockdep's sake.
+  */
+ static void free_partial(struct kmem_cache *s, struct kmem_cache_node *n)
  {
- 	struct c4iw_dev *dev = seq->private;
-@@ -150,8 +156,6 @@ static int wr_log_show(struct seq_file *
- 	int prev_ts_set = 0;
- 	int idx, end;
+ 	struct page *page, *h;
  
--#define ts2ns(ts) ((ts) * dev->rdev.lldi.cclk_ps / 1000)
--
- 	idx = atomic_read(&dev->rdev.wr_log_idx) &
- 		(dev->rdev.wr_log_size - 1);
- 	end = idx - 1;
-@@ -184,8 +188,10 @@ static int wr_log_show(struct seq_file *
- 						lep->post_host_ts).tv_nsec,
- 				   lep->post_sge_ts, lep->cqe_sge_ts,
- 				   lep->poll_sge_ts,
--				   ts2ns(lep->poll_sge_ts - lep->post_sge_ts),
--				   ts2ns(lep->poll_sge_ts - lep->cqe_sge_ts));
-+				   ts2ns(dev, lep->poll_sge_ts -
-+						lep->post_sge_ts),
-+				   ts2ns(dev, lep->poll_sge_ts -
-+						lep->cqe_sge_ts));
- 			prev_ts = lep->poll_host_ts;
++	spin_lock_irq(&n->list_lock);
+ 	list_for_each_entry_safe(page, h, &n->partial, lru) {
+ 		if (!page->inuse) {
+ 			__remove_partial(n, page);
+@@ -3181,6 +3182,7 @@ static void free_partial(struct kmem_cac
+ 			"Objects remaining in %s on kmem_cache_close()");
  		}
- 		idx++;
-@@ -193,7 +199,6 @@ static int wr_log_show(struct seq_file *
- 			idx = 0;
- 		lep = &dev->rdev.wr_log[idx];
  	}
--#undef ts2ns
- 	return 0;
++	spin_unlock_irq(&n->list_lock);
  }
  
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-revert-fs-seq_file-fallback-to-vmalloc-allocation.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-rtc-add-pcf85063-support-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-proc-remove-proc_tty_ldisc-variable-fix.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
-panic-add-taint_softlockup-fix.patch
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-memcontrol-rewrite-uncharge-api-fix-5.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
+page-cgroup-trivial-cleanup.patch
+page-cgroup-get-rid-of-nr_pcg_flags.patch
+slub-remove-kmemcg-id-from-create_unique_id.patch
+slab-use-mem_cgroup_id-for-per-memcg-cache-naming.patch
+memcg-make-memcg_cache_id-static.patch
+memcg-add-pointer-to-owner-cache-to-memcg_cache_params.patch
+memcg-keep-all-children-of-each-root-cache-on-a-list.patch
+memcg-release-memcg_cache_id-on-css-offline.patch
+fork-exec-cleanup-mm-initialization.patch
+fork-reset-mm-pinned_vm.patch
+fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+fork-make-mm_init_owner-static.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
