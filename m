@@ -1,34 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch added
- to -mm tree
-Date: Wed, 23 Jul 2014 14:05:58 -0700
-Message-ID: <53d023b6.zFJuyITGGKhva9tw%akpm@linux-foundation.org>
+Subject: + mm-refactor-page-index-offset-getters.patch added to -mm tree
+Date: Wed, 23 Jul 2014 14:39:24 -0700
+Message-ID: <53d02b8c.cl6r5TldWbRhzJ/5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:43935 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933282AbaGWVF7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 17:05:59 -0400
-Received: by mail-oa0-f73.google.com with SMTP id g18so523015oah.0
-        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 14:05:59 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:41103 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933386AbaGWVj0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jul 2014 17:39:26 -0400
+Received: by mail-ie0-f201.google.com with SMTP id tr6so535646ieb.0
+        for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2014 14:39:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, miklos@szeredi.hu, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, hannes@cmpxchg.org, hughd@google.com, mel@csn.ul.ie, minchan@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: rewrite uncharge API fix - page cache migration 2
+     Subject: mm: refactor page index/offset getters
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
+     mm-refactor-page-index-offset-getters.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-refactor-page-index-offset-getters.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-refactor-page-index-offset-getters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,145 +40,378 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: rewrite uncharge API fix - page cache migration 2
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: refactor page index/offset getters
 
-In case of fuse page cache replacement the target page in migration
-can already be charged when splice steals it from page cache.  That
-triggers the !PageCgrouUsed() assertion during commit:
+There is a complaint about duplication around the fundamental routines of
+page index/offset getters.
 
-[  755.141095] page:ffffea00031f9b00 count:2 mapcount:0 mapping:ffff8800c84d1858 index:0x0
-[  755.141097] page flags: 0x3fffc000000029(locked|uptodate|lru)
-[  755.141098] page dumped because: VM_BUG_ON_PAGE(PageCgroupUsed(pc))
-[  755.141098] pc:ffff880215cfe6c0 pc->flags:7 pc->mem_cgroup:ffff880216c23000
-[  755.141113] ------------[ cut here ]------------
-[  755.141113] kernel BUG at /home/hannes/src/linux/linux/mm/memcontrol.c:2736!
-[  755.141115] invalid opcode: 0000 [#1] SMP
-[  755.141117] CPU: 0 PID: 342 Comm: lt-fusexmp_fh Not tainted 3.16.0-rc5-mm1-00502-g5e5b90c20054 #367
-[  755.141117] Hardware name: To Be Filled By O.E.M. To Be Filled By O.E.M./H61M-DGS, BIOS P1.30 05/10/2012
-[  755.141118] task: ffff880213104580 ti: ffff8800c9204000 task.ti: ffff8800c9204000
-[  755.141121] RIP: 0010:[<ffffffff81188497>]  [<ffffffff81188497>] commit_charge+0xa7/0xb0
-[  755.141122] RSP: 0018:ffff8800c9207c18  EFLAGS: 00010286
-[  755.141123] RAX: 000000000000003f RBX: ffffea00031f9b00 RCX: 0000000000004c4b
-[  755.141123] RDX: 0000000000000001 RSI: 0000000000000001 RDI: ffff880213104580
-[  755.141124] RBP: ffff8800c9207c40 R08: 0000000000000001 R09: 0000000000000000
-[  755.141124] R10: 0000000000000000 R11: 0000000000000000 R12: ffff880216c23000
-[  755.141125] R13: 0000000000000001 R14: ffff8800c84d1858 R15: 0000000000000000
-[  755.141125] FS:  00007fc15f7fe700(0000) GS:ffff88021f200000(0000) knlGS:0000000000000000
-[  755.141126] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  755.141127] CR2: 00007f693db3b6b0 CR3: 0000000211d54000 CR4: 00000000000407f0
-[  755.141127] Stack:
-[  755.141128]  ffffea00031f8480 ffffea00031f9b00 ffffea00031f8480 ffffea00031f9b00
-[  755.141129]  0000000000000000 ffff8800c9207c78 ffffffff8118e283 00000001c9207c60
-[  755.141130]  ffff880215cfe120 00000001c9207c78 ffffea00031f9b00 ffffea00031f8480
-[  755.141131] Call Trace:
-[  755.141133]  [<ffffffff8118e283>] mem_cgroup_migrate+0xe3/0x210
-[  755.141135]  [<ffffffff8111a086>] replace_page_cache_page+0xf6/0x1c0
-[  755.141137]  [<ffffffff8127aceb>] fuse_copy_page+0x1bb/0x5f0
-[  755.141138]  [<ffffffff8127b20f>] fuse_copy_args+0xef/0x140
-[  755.141140]  [<ffffffff8127caba>] fuse_dev_do_write+0x7ba/0xd30
-[  755.141143]  [<ffffffff8109518d>] ? trace_hardirqs_on_caller+0x15d/0x200
-[  755.141146]  [<ffffffff816a83ea>] ? __mutex_unlock_slowpath+0xaa/0x180
-[  755.141147]  [<ffffffff8109518d>] ? trace_hardirqs_on_caller+0x15d/0x200
-[  755.141148]  [<ffffffff8109523d>] ? trace_hardirqs_on+0xd/0x10
-[  755.141150]  [<ffffffff8127d2b2>] fuse_dev_splice_write+0x282/0x360
-[  755.141152]  [<ffffffff811c4ce1>] SyS_splice+0x351/0x800
-[  755.141153]  [<ffffffff8109518d>] ? trace_hardirqs_on_caller+0x15d/0x200
-[  755.141155]  [<ffffffff816ab192>] system_call_fastpath+0x16/0x1b
-[  755.141166] Code: 07 48 89 10 8b 75 e4 e8 f8 fd ff ff 48 83 c4 10 5b 41 5c 41 5d 5d c3 0f 1f 44 00 00 48 c7 c6 68 0b 9c 81 48 89 df e8 e9 a2 f9 ff <0f> 0b 0f 1f 80 00 00 00 00 66 66 66 66 90 48 39 f7 74 26 48 85
-[  755.141167] RIP  [<ffffffff81188497>] commit_charge+0xa7/0xb0
-[  755.141167]  RSP <ffff8800c9207c18>
-[  755.141665] ---[ end trace 2d0ea36c8e3ded5b ]---
+page_(index|offset) and page_file_(index|offset) provide the same
+functionality, so we can merge them as page_(index|offset), respectively.
 
-If the target page is already charged, just leave it as is and abort
-the charge migration attempt.
+And this patch gives the clear meaning to the getters:
+ - page_index(): get page cache index (offset in relevant page size)
+ - page_pgoff(): get 4kB page offset
+ - page_offset(): get byte offset
+All these functions are aware of regular pages, swapcaches, and hugepages.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Michal Hocko <mhocko@suse.cz>
+The definition of PageHuge is relocated to include/linux/mm.h, because
+some users of page_pgoff() doesn't include include/linux/hugetlb.h.
+
+__page_file_index() is not well named, because it's only for swap cache.
+So let's rename it with __page_swap_index().
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/nfs/internal.h       |    6 +++---
+ fs/nfs/pagelist.c       |    2 +-
+ fs/nfs/read.c           |    2 +-
+ fs/nfs/write.c          |   10 +++++-----
+ fs/xfs/xfs_aops.c       |    2 +-
+ include/linux/hugetlb.h |    7 -------
+ include/linux/mm.h      |   26 ++++++++++----------------
+ include/linux/pagemap.h |   22 +++++++++-------------
+ mm/memory-failure.c     |    4 ++--
+ mm/page_io.c            |    6 +++---
+ mm/rmap.c               |    6 +++---
+ mm/swapfile.c           |    4 ++--
+ 12 files changed, 40 insertions(+), 57 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2 mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2
-+++ a/mm/memcontrol.c
-@@ -6623,6 +6623,12 @@ void mem_cgroup_migrate(struct page *old
- 	if (mem_cgroup_disabled())
+diff -puN fs/nfs/internal.h~mm-refactor-page-index-offset-getters fs/nfs/internal.h
+--- a/fs/nfs/internal.h~mm-refactor-page-index-offset-getters
++++ a/fs/nfs/internal.h
+@@ -566,11 +566,11 @@ unsigned int nfs_page_length(struct page
+ 	loff_t i_size = i_size_read(page_file_mapping(page)->host);
+ 
+ 	if (i_size > 0) {
+-		pgoff_t page_index = page_file_index(page);
++		pgoff_t index = page_index(page);
+ 		pgoff_t end_index = (i_size - 1) >> PAGE_CACHE_SHIFT;
+-		if (page_index < end_index)
++		if (index < end_index)
+ 			return PAGE_CACHE_SIZE;
+-		if (page_index == end_index)
++		if (index == end_index)
+ 			return ((i_size - 1) & ~PAGE_CACHE_MASK) + 1;
+ 	}
+ 	return 0;
+diff -puN fs/nfs/pagelist.c~mm-refactor-page-index-offset-getters fs/nfs/pagelist.c
+--- a/fs/nfs/pagelist.c~mm-refactor-page-index-offset-getters
++++ a/fs/nfs/pagelist.c
+@@ -333,7 +333,7 @@ nfs_create_request(struct nfs_open_conte
+ 	 * long write-back delay. This will be adjusted in
+ 	 * update_nfs_request below if the region is not locked. */
+ 	req->wb_page    = page;
+-	req->wb_index	= page_file_index(page);
++	req->wb_index	= page_index(page);
+ 	page_cache_get(page);
+ 	req->wb_offset  = offset;
+ 	req->wb_pgbase	= offset;
+diff -puN fs/nfs/read.c~mm-refactor-page-index-offset-getters fs/nfs/read.c
+--- a/fs/nfs/read.c~mm-refactor-page-index-offset-getters
++++ a/fs/nfs/read.c
+@@ -271,7 +271,7 @@ int nfs_readpage(struct file *file, stru
+ 	int		error;
+ 
+ 	dprintk("NFS: nfs_readpage (%p %ld@%lu)\n",
+-		page, PAGE_CACHE_SIZE, page_file_index(page));
++		page, PAGE_CACHE_SIZE, page_index(page));
+ 	nfs_inc_stats(inode, NFSIOS_VFSREADPAGE);
+ 	nfs_add_stats(inode, NFSIOS_READPAGES, 1);
+ 
+diff -puN fs/nfs/write.c~mm-refactor-page-index-offset-getters fs/nfs/write.c
+--- a/fs/nfs/write.c~mm-refactor-page-index-offset-getters
++++ a/fs/nfs/write.c
+@@ -153,9 +153,9 @@ static void nfs_grow_file(struct page *p
+ 	spin_lock(&inode->i_lock);
+ 	i_size = i_size_read(inode);
+ 	end_index = (i_size - 1) >> PAGE_CACHE_SHIFT;
+-	if (i_size > 0 && page_file_index(page) < end_index)
++	if (i_size > 0 && page_index(page) < end_index)
+ 		goto out;
+-	end = page_file_offset(page) + ((loff_t)offset+count);
++	end = page_offset(page) + ((loff_t)offset+count);
+ 	if (i_size >= end)
+ 		goto out;
+ 	i_size_write(inode, end);
+@@ -569,7 +569,7 @@ static int nfs_do_writepage(struct page
+ 	nfs_inc_stats(inode, NFSIOS_VFSWRITEPAGE);
+ 	nfs_add_stats(inode, NFSIOS_WRITEPAGES, 1);
+ 
+-	nfs_pageio_cond_complete(pgio, page_file_index(page));
++	nfs_pageio_cond_complete(pgio, page_index(page));
+ 	ret = nfs_page_async_flush(pgio, page, wbc->sync_mode == WB_SYNC_NONE);
+ 	if (ret == -EAGAIN) {
+ 		redirty_page_for_writepage(wbc, page);
+@@ -1212,7 +1212,7 @@ int nfs_updatepage(struct file *file, st
+ 	nfs_inc_stats(inode, NFSIOS_VFSUPDATEPAGE);
+ 
+ 	dprintk("NFS:       nfs_updatepage(%pD2 %d@%lld)\n",
+-		file, count, (long long)(page_file_offset(page) + offset));
++		file, count, (long long)(page_offset(page) + offset));
+ 
+ 	if (nfs_can_extend_write(file, page, inode)) {
+ 		count = max(count + offset, nfs_page_length(page));
+@@ -1827,7 +1827,7 @@ int nfs_wb_page_cancel(struct inode *ino
+  */
+ int nfs_wb_page(struct inode *inode, struct page *page)
+ {
+-	loff_t range_start = page_file_offset(page);
++	loff_t range_start = page_offset(page);
+ 	loff_t range_end = range_start + (loff_t)(PAGE_CACHE_SIZE - 1);
+ 	struct writeback_control wbc = {
+ 		.sync_mode = WB_SYNC_ALL,
+diff -puN fs/xfs/xfs_aops.c~mm-refactor-page-index-offset-getters fs/xfs/xfs_aops.c
+--- a/fs/xfs/xfs_aops.c~mm-refactor-page-index-offset-getters
++++ a/fs/xfs/xfs_aops.c
+@@ -695,7 +695,7 @@ xfs_convert_page(
+ 	unsigned int		type;
+ 	int			len, page_dirty;
+ 	int			count = 0, done = 0, uptodate = 1;
+- 	xfs_off_t		offset = page_offset(page);
++	xfs_off_t		offset = page_offset(page);
+ 
+ 	if (page->index != tindex)
+ 		goto fail;
+diff -puN include/linux/hugetlb.h~mm-refactor-page-index-offset-getters include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-refactor-page-index-offset-getters
++++ a/include/linux/hugetlb.h
+@@ -41,8 +41,6 @@ extern int hugetlb_max_hstate __read_mos
+ struct hugepage_subpool *hugepage_new_subpool(long nr_blocks);
+ void hugepage_put_subpool(struct hugepage_subpool *spool);
+ 
+-int PageHuge(struct page *page);
+-
+ void reset_vma_resv_huge_pages(struct vm_area_struct *vma);
+ int hugetlb_sysctl_handler(struct ctl_table *, int, void __user *, size_t *, loff_t *);
+ int hugetlb_overcommit_handler(struct ctl_table *, int, void __user *, size_t *, loff_t *);
+@@ -108,11 +106,6 @@ unsigned long hugetlb_change_protection(
+ 
+ #else /* !CONFIG_HUGETLB_PAGE */
+ 
+-static inline int PageHuge(struct page *page)
+-{
+-	return 0;
+-}
+-
+ static inline void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
+ {
+ }
+diff -puN include/linux/mm.h~mm-refactor-page-index-offset-getters include/linux/mm.h
+--- a/include/linux/mm.h~mm-refactor-page-index-offset-getters
++++ a/include/linux/mm.h
+@@ -456,8 +456,13 @@ static inline int page_count(struct page
+ }
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
++extern int PageHuge(struct page *page);
+ extern int PageHeadHuge(struct page *page_head);
+ #else /* CONFIG_HUGETLB_PAGE */
++static inline int PageHuge(struct page *page)
++{
++	return 0;
++}
+ static inline int PageHeadHuge(struct page *page_head)
+ {
+ 	return 0;
+@@ -986,27 +991,16 @@ static inline int PageAnon(struct page *
+ 	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
+ }
+ 
+-/*
+- * Return the pagecache index of the passed page.  Regular pagecache pages
+- * use ->index whereas swapcache pages use ->private
+- */
+-static inline pgoff_t page_index(struct page *page)
+-{
+-	if (unlikely(PageSwapCache(page)))
+-		return page_private(page);
+-	return page->index;
+-}
+-
+-extern pgoff_t __page_file_index(struct page *page);
++extern pgoff_t __page_swap_index(struct page *page);
+ 
+ /*
+- * Return the file index of the page. Regular pagecache pages use ->index
+- * whereas swapcache pages use swp_offset(->private)
++ * Return the pagecache index of the passed page, which is the offset
++ * in the relevant page size.
+  */
+-static inline pgoff_t page_file_index(struct page *page)
++static inline pgoff_t page_index(struct page *page)
+ {
+ 	if (unlikely(PageSwapCache(page)))
+-		return __page_file_index(page);
++		return __page_swap_index(page);
+ 
+ 	return page->index;
+ }
+diff -puN include/linux/pagemap.h~mm-refactor-page-index-offset-getters include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-refactor-page-index-offset-getters
++++ a/include/linux/pagemap.h
+@@ -399,28 +399,24 @@ static inline struct page *read_mapping_
+ }
+ 
+ /*
+- * Get the offset in PAGE_SIZE.
++ * Return the 4kB page offset of the given page.
+  * (TODO: hugepage should have ->index in PAGE_SIZE)
+  */
+-static inline pgoff_t page_to_pgoff(struct page *page)
++static inline pgoff_t page_pgoff(struct page *page)
+ {
+-	if (unlikely(PageHeadHuge(page)))
+-		return page->index << compound_order(page);
+-	else
+-		return page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	if (unlikely(PageHuge(page))) {
++		VM_BUG_ON_PAGE(PageTail(page), page);
++		return page_index(page) << compound_order(page);
++	} else
++		return page_index(page) << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
+ }
+ 
+ /*
+- * Return byte-offset into filesystem object for page.
++ * Return the byte offset of the given page.
+  */
+ static inline loff_t page_offset(struct page *page)
+ {
+-	return ((loff_t)page->index) << PAGE_CACHE_SHIFT;
+-}
+-
+-static inline loff_t page_file_offset(struct page *page)
+-{
+-	return ((loff_t)page_file_index(page)) << PAGE_CACHE_SHIFT;
++	return ((loff_t)page_pgoff(page)) << PAGE_SHIFT;
+ }
+ 
+ extern pgoff_t linear_hugepage_index(struct vm_area_struct *vma,
+diff -puN mm/memory-failure.c~mm-refactor-page-index-offset-getters mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-refactor-page-index-offset-getters
++++ a/mm/memory-failure.c
+@@ -435,7 +435,7 @@ static void collect_procs_anon(struct pa
+ 	if (av == NULL)	/* Not actually mapped anymore */
  		return;
  
-+	/* Page cache replacement: new page already charged? */
-+	pc = lookup_page_cgroup(newpage);
-+	if (PageCgroupUsed(pc))
-+		return;
-+
-+	/* Re-entrant migration: old page already uncharged? */
- 	pc = lookup_page_cgroup(oldpage);
- 	if (!PageCgroupUsed(pc))
- 		return;
+-	pgoff = page_to_pgoff(page);
++	pgoff = page_pgoff(page);
+ 	read_lock(&tasklist_lock);
+ 	for_each_process (tsk) {
+ 		struct anon_vma_chain *vmac;
+@@ -469,7 +469,7 @@ static void collect_procs_file(struct pa
+ 	mutex_lock(&mapping->i_mmap_mutex);
+ 	read_lock(&tasklist_lock);
+ 	for_each_process(tsk) {
+-		pgoff_t pgoff = page_to_pgoff(page);
++		pgoff_t pgoff = page_pgoff(page);
+ 		struct task_struct *t = task_early_kill(tsk, force_early);
+ 
+ 		if (!t)
+diff -puN mm/page_io.c~mm-refactor-page-index-offset-getters mm/page_io.c
+--- a/mm/page_io.c~mm-refactor-page-index-offset-getters
++++ a/mm/page_io.c
+@@ -250,7 +250,7 @@ out:
+ 
+ static sector_t swap_page_sector(struct page *page)
+ {
+-	return (sector_t)__page_file_index(page) << (PAGE_CACHE_SHIFT - 9);
++	return (sector_t)__page_swap_index(page) << (PAGE_CACHE_SHIFT - 9);
+ }
+ 
+ int __swap_writepage(struct page *page, struct writeback_control *wbc,
+@@ -278,7 +278,7 @@ int __swap_writepage(struct page *page,
+ 		from.bvec = &bv;	/* older gcc versions are broken */
+ 
+ 		init_sync_kiocb(&kiocb, swap_file);
+-		kiocb.ki_pos = page_file_offset(page);
++		kiocb.ki_pos = page_offset(page);
+ 		kiocb.ki_nbytes = PAGE_SIZE;
+ 
+ 		set_page_writeback(page);
+@@ -303,7 +303,7 @@ int __swap_writepage(struct page *page,
+ 			set_page_dirty(page);
+ 			ClearPageReclaim(page);
+ 			pr_err_ratelimited("Write error on dio swapfile (%Lu)\n",
+-				page_file_offset(page));
++				page_offset(page));
+ 		}
+ 		end_page_writeback(page);
+ 		return ret;
+diff -puN mm/rmap.c~mm-refactor-page-index-offset-getters mm/rmap.c
+--- a/mm/rmap.c~mm-refactor-page-index-offset-getters
++++ a/mm/rmap.c
+@@ -517,7 +517,7 @@ void page_unlock_anon_vma_read(struct an
+ static inline unsigned long
+ __vma_address(struct page *page, struct vm_area_struct *vma)
+ {
+-	pgoff_t pgoff = page_to_pgoff(page);
++	pgoff_t pgoff = page_pgoff(page);
+ 	return vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ }
+ 
+@@ -1615,7 +1615,7 @@ static struct anon_vma *rmap_walk_anon_l
+ static int rmap_walk_anon(struct page *page, struct rmap_walk_control *rwc)
+ {
+ 	struct anon_vma *anon_vma;
+-	pgoff_t pgoff = page_to_pgoff(page);
++	pgoff_t pgoff = page_pgoff(page);
+ 	struct anon_vma_chain *avc;
+ 	int ret = SWAP_AGAIN;
+ 
+@@ -1656,7 +1656,7 @@ static int rmap_walk_anon(struct page *p
+ static int rmap_walk_file(struct page *page, struct rmap_walk_control *rwc)
+ {
+ 	struct address_space *mapping = page->mapping;
+-	pgoff_t pgoff = page_to_pgoff(page);
++	pgoff_t pgoff = page_pgoff(page);
+ 	struct vm_area_struct *vma;
+ 	int ret = SWAP_AGAIN;
+ 
+diff -puN mm/swapfile.c~mm-refactor-page-index-offset-getters mm/swapfile.c
+--- a/mm/swapfile.c~mm-refactor-page-index-offset-getters
++++ a/mm/swapfile.c
+@@ -2715,13 +2715,13 @@ struct address_space *__page_file_mappin
+ }
+ EXPORT_SYMBOL_GPL(__page_file_mapping);
+ 
+-pgoff_t __page_file_index(struct page *page)
++pgoff_t __page_swap_index(struct page *page)
+ {
+ 	swp_entry_t swap = { .val = page_private(page) };
+ 	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
+ 	return swp_offset(swap);
+ }
+-EXPORT_SYMBOL_GPL(__page_file_index);
++EXPORT_SYMBOL_GPL(__page_swap_index);
+ 
+ /*
+  * add_swap_count_continuation - called when a swap count is duplicated
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-shmem-fix-faulting-into-a-hole-not-taking-i_mutex.patch
-shmem-fix-splicing-from-a-hole-while-its-punched.patch
-mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
-vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-mm-page-flags-clean-up-the-page-flag-test-set-clear-macros.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-charge-api-fix-3.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-rewrite-uncharge-api-fix-2.patch
-mm-memcontrol-rewrite-uncharge-api-fix-4.patch
-mm-memcontrol-rewrite-uncharge-api-fix-5.patch
-mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
-mm-memcontrol-rewrite-uncharge-api-fix-uncharge-from-irq-context.patch
-mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
-mm-memcontrol-rewrite-uncharge-api-fix-migrate-before-re-mapping.patch
+rmap-fix-pgoff-calculation-to-handle-hugepage-correctly.patch
+mm-hugetlb-fix-copy_hugetlb_page_range-re-new-copy_hugetlb_page_range-causing-crashes.patch
 mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
-mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration.patch
-mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
-page-cgroup-trivial-cleanup.patch
-page-cgroup-get-rid-of-nr_pcg_flags.patch
-memcg-remove-lookup_cgroup_page-prototype.patch
-mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
-mm-vmscan-remove-all_unreclaimable.patch
-mm-vmscan-remove-all_unreclaimable-fix.patch
-mm-vmscan-move-swappiness-out-of-scan_control.patch
-mm-vmscan-clean-up-struct-scan_control-v2.patch
-mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
-mm-replace-init_page_accessed-by-__setpagereferenced.patch
-mm-update-the-description-for-vm_total_pages.patch
-mm-vmscan-report-the-number-of-file-anon-pages-respectively.patch
-mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
-mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
-mm-move-zone-pages_scanned-into-a-vmstat-counter.patch
-mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
-mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
-mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
-mm-writeback-prevent-race-when-calculating-dirty-limits.patch
-slub-remove-kmemcg-id-from-create_unique_id.patch
-nilfs2-integrate-sysfs-support-into-driver-fix.patch
+mm-update-the-description-for-madvise_remove.patch
+mm-hwpoison-injectc-remove-unnecessary-null-test-before-debugfs_remove_recursive.patch
+hwpoison-fix-race-with-changing-page-during-offlining-v2.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
+mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
+mm-refactor-page-index-offset-getters.patch
+mm-refactor-page-index-offset-getters-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
 
