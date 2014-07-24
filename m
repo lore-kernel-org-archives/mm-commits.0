@@ -1,87 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-do-not-call-do_fault_around-for-non-linear-fault.patch removed from -mm
- tree
-Date: Thu, 24 Jul 2014 13:47:19 -0700
-Message-ID: <53d170d7.scnbbBLxODfhFJTf%akpm@linux-foundation.org>
+Subject: [merged] zram-avoid-lockdep-splat-by-revalidate_disk.patch
+ removed from -mm tree
+Date: Thu, 24 Jul 2014 13:47:15 -0700
+Message-ID: <53d170d3.1kZ5QIGCsXHXrud7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:62005 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934651AbaGXUrU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 16:47:20 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hu12so583304vcb.0
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 13:47:19 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:43654 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934651AbaGXUrQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 16:47:16 -0400
+Received: by mail-pd0-f201.google.com with SMTP id g10so917057pdj.2
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 13:47:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, davej@redhat.com, hughd@google.com, ingo.korb@tu-dortmund.de, kirill.shutemov@linux.intel.com, quning@google.com, sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, jmarchan@redhat.com, ngupta@vflare.org, patrakov@gmail.com, sasha.levin@oracle.com, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: do not call do_fault_around for non-linear fault
+     Subject: zram: avoid lockdep splat by revalidate_disk
 has been removed from the -mm tree.  Its filename was
-     mm-do-not-call-do_fault_around-for-non-linear-fault.patch
+     zram-avoid-lockdep-splat-by-revalidate_disk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mm: do not call do_fault_around for non-linear fault
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: avoid lockdep splat by revalidate_disk
 
-Ingo Korb reported that "repeated mapping of the same file on tmpfs using
-remap_file_pages sometimes triggers a BUG at mm/filemap.c:202 when the
-process exits".  He bisected the bug to d7c1755179b82d ("mm: implement
-->map_pages for shmem/tmpfs"), although the bug was actually added by
-8c6e50b0290c4 ("mm: introduce vm_ops->map_pages()").
+Sasha reported lockdep warning [1] introduced by [2].
 
-Problem is caused by calling do_fault_around for _non-linear_ faiult.  In
-this case pgoff is shifted and might become negative during calculation.
+It could be fixed by doing disk revalidation out of the init_lock.
+It's okay because disk capacity change is protected by init_lock
+so that revalidate_disk always sees up-to-date value so there is
+no race.
 
-Faulting around non-linear page-fault has no sense and breaks logic in
-do_fault_around because pgoff is shifted.
+[1] https://lkml.org/lkml/2014/7/3/735
+[2] zram: revalidate disk after capacity change
 
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Reported-by: Ingo Korb <ingo.korb@tu-dortmund.de>
-Tested-by: Ingo Korb <ingo.korb@tu-dortmund.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Ning Qu <quning@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>	[3.15.x]
+Fixes 2e32baea46ce542c56 ("zram: revalidate disk after capacity change").
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: "Alexander E. Patrakov" <patrakov@gmail.com>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+CC: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |   22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory.c~mm-do-not-call-do_fault_around-for-non-linear-fault mm/memory.c
---- a/mm/memory.c~mm-do-not-call-do_fault_around-for-non-linear-fault
-+++ a/mm/memory.c
-@@ -2882,7 +2882,8 @@ static int do_read_fault(struct mm_struc
- 	 * if page by the offset is not ready to be mapped (cold cache or
- 	 * something).
- 	 */
--	if (vma->vm_ops->map_pages && fault_around_pages() > 1) {
-+	if (vma->vm_ops->map_pages && !(flags & FAULT_FLAG_NONLINEAR) &&
-+	    fault_around_pages() > 1) {
- 		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
- 		do_fault_around(vma, address, pte, pgoff, flags);
- 		if (!pte_same(*pte, orig_pte))
+diff -puN drivers/block/zram/zram_drv.c~zram-avoid-lockdep-splat-by-revalidate_disk drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-avoid-lockdep-splat-by-revalidate_disk
++++ a/drivers/block/zram/zram_drv.c
+@@ -622,11 +622,18 @@ static void zram_reset_device(struct zra
+ 	memset(&zram->stats, 0, sizeof(zram->stats));
+ 
+ 	zram->disksize = 0;
+-	if (reset_capacity) {
++	if (reset_capacity)
+ 		set_capacity(zram->disk, 0);
+-		revalidate_disk(zram->disk);
+-	}
++
+ 	up_write(&zram->init_lock);
++
++	/*
++	 * Revalidate disk out of the init_lock to avoid lockdep splat.
++	 * It's okay because disk's capacity is protected by init_lock
++	 * so that revalidate_disk always sees up-to-date capacity.
++	 */
++	if (reset_capacity)
++		revalidate_disk(zram->disk);
+ }
+ 
+ static ssize_t disksize_store(struct device *dev,
+@@ -666,8 +673,15 @@ static ssize_t disksize_store(struct dev
+ 	zram->comp = comp;
+ 	zram->disksize = disksize;
+ 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
+-	revalidate_disk(zram->disk);
+ 	up_write(&zram->init_lock);
++
++	/*
++	 * Revalidate disk out of the init_lock to avoid lockdep splat.
++	 * It's okay because disk's capacity is protected by init_lock
++	 * so that revalidate_disk always sees up-to-date capacity.
++	 */
++	revalidate_disk(zram->disk);
++
+ 	return len;
+ 
+ out_destroy_comp:
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
-mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-shmem-fix-double-uncharge-in-__shmem_file_setup.patch
-shmem-update-memory-reservation-on-truncate.patch
-mm-catch-memory-commitment-underflow.patch
-mm-catch-memory-commitment-underflow-fix.patch
-lib-idr-fix-out-of-bounds-pointer-dereference.patch
-scripts-checkstackpl-automatically-handle-32-bit-and-64-bit-mode-for-arch=x86.patch
+dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
+dma-cma-support-alignment-constraint-on-cma-region.patch
+dma-cma-support-arbitrary-bitmap-granularity.patch
+dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+cma-generalize-cma-reserved-area-management-functionality.patch
+ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
+mm-cma-clean-up-cma-allocation-error-path.patch
+mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
+mm-cma-clean-up-log-message.patch
+mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
+mm-vmscan-remove-all_unreclaimable.patch
+mm-vmscan-move-swappiness-out-of-scan_control.patch
+mm-vmallocc-clean-up-map_vm_area-third-argument.patch
+mm-refactor-page-index-offset-getters.patch
+mm-refactor-page-index-offset-getters-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+zram-rename-struct-table-to-zram_table_entry.patch
+zram-remove-unused-sector_size-define.patch
+zram-use-size_t-instead-of-u16.patch
+zram-remove-global-tb_lock-with-fine-grain-lock.patch
+mm-zbud-change-zbud_alloc-size-type-to-size_t.patch
+mm-zpool-implement-common-zpool-api-to-zbud-zsmalloc.patch
+mm-zpool-zbud-zsmalloc-implement-zpool.patch
+mm-zpool-update-zswap-to-use-zpool.patch
+debugging-keep-track-of-page-owners.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
