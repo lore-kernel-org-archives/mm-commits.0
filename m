@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-verify-the-signature-of-signed-pe-bzimage.patch added to
+Subject: +
+ mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch added to
  -mm tree
-Date: Thu, 24 Jul 2014 15:06:48 -0700
-Message-ID: <53d18378.m8SaZgTU+L9h1AUh%akpm@linux-foundation.org>
+Date: Thu, 24 Jul 2014 15:13:44 -0700
+Message-ID: <53d18518.4vEjuWgIlQ3QBQ0E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:48154 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752640AbaGXWGt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 18:06:49 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so946607pab.2
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 15:06:49 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:53632 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750795AbaGXWNp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 18:13:45 -0400
+Received: by mail-qa0-f73.google.com with SMTP id s7so604131qap.2
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 15:13:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dhowells@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, matt@console-pimps.org, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, athorlton@sgi.com, dave.hansen@linux.intel.com, hannes@cmpxchg.org, hedi@sgi.com, hughd@google.com, kirill.shutemov@linux.intel.com, lliubbo@gmail.com, mgorman@suse.de, riel@redhat.com, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: verify the signature of signed PE bzImage
+     Subject: mm, thp: do not allow thp faults to avoid cpuset restrictions
 has been added to the -mm tree.  Its filename is
-     kexec-verify-the-signature-of-signed-pe-bzimage.patch
+     mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-verify-the-signature-of-signed-pe-bzimage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-verify-the-signature-of-signed-pe-bzimage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,273 +42,141 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec: verify the signature of signed PE bzImage
+From: David Rientjes <rientjes@google.com>
+Subject: mm, thp: do not allow thp faults to avoid cpuset restrictions
 
-This is the final piece of the puzzle of verifying kernel image signature
-during kexec_file_load() syscall.
+The page allocator relies on __GFP_WAIT to determine if ALLOC_CPUSET
+should be set in allocflags.  ALLOC_CPUSET controls if a page allocation
+should be restricted only to the set of allowed cpuset mems.
 
-This patch calls into PE file routines to verify signature of bzImage.  If
-signature are valid, kexec_file_load() succeeds otherwise it fails.
+Transparent hugepages clears __GFP_WAIT when defrag is disabled to prevent
+the fault path from using memory compaction or direct reclaim.  Thus, it
+is unfairly able to allocate outside of its cpuset mems restriction as a
+side-effect.
 
-Two new config options have been introduced.  First one is
-CONFIG_KEXEC_VERIFY_SIG.  This option enforces that kernel has to be
-validly signed otherwise kernel load will fail.  If this option is not
-set, no signature verification will be done.  Only exception will be when
-secureboot is enabled.  In that case signature verification should be
-automatically enforced when secureboot is enabled.  But that will happen
-when secureboot patches are merged.
+This patch ensures that ALLOC_CPUSET is only cleared when the gfp mask is
+truly GFP_ATOMIC by verifying it is also not a thp allocation.
 
-Second config option is CONFIG_KEXEC_BZIMAGE_VERIFY_SIG.  This option
-enables signature verification support on bzImage.  If this option is not
-set and previous one is set, kernel image loading will fail because kernel
-does not have support to verify signature of bzImage.
-
-I tested these patches with both "pesign" and "sbsign" signed bzImages.
-
-I used signing_key.priv key and signing_key.x509 cert for signing as
-generated during kernel build process (if module signing is enabled).
-
-Used following method to sign bzImage.
-
-pesign
-======
-- Convert DER format cert to PEM format cert
-openssl x509 -in signing_key.x509 -inform DER -out signing_key.x509.PEM -outform
-PEM
-
-- Generate a .p12 file from existing cert and private key file
-openssl pkcs12 -export -out kernel-key.p12 -inkey signing_key.priv -in
-signing_key.x509.PEM
-
-- Import .p12 file into pesign db
-pk12util -i /tmp/kernel-key.p12 -d /etc/pki/pesign
-
-- Sign bzImage
-pesign -i /boot/vmlinuz-3.16.0-rc3+ -o /boot/vmlinuz-3.16.0-rc3+.signed.pesign
--c "Glacier signing key - Magrathea" -s
-
-sbsign
-======
-sbsign --key signing_key.priv --cert signing_key.x509.PEM --output
-/boot/vmlinuz-3.16.0-rc3+.signed.sbsign /boot/vmlinuz-3.16.0-rc3+
-
-
-
-Patch details:
-
-Well all the hard work is done in previous patches.  Now bzImage loader
-has just call into that code and verify whether bzImage signature are
-valid or not.
-
-Also create two config options.  First one is CONFIG_KEXEC_VERIFY_SIG. 
-This option enforces that kernel has to be validly signed otherwise kernel
-load will fail.  If this option is not set, no signature verification will
-be done.  Only exception will be when secureboot is enabled.  In that case
-signature verification should be automatically enforced when secureboot is
-enabled.  But that will happen when secureboot patches are merged.
-
-Second config option is CONFIG_KEXEC_BZIMAGE_VERIFY_SIG.  This option
-enables signature verification support on bzImage.  If this option is not
-set and previous one is set, kernel image loading will fail because kernel
-does not have support to verify signature of bzImage.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Greg Kroah-Hartman <greg@kroah.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: WANG Chao <chaowang@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Matt Fleming <matt@console-pimps.org>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Alex Thorlton <athorlton@sgi.com>
+Tested-by: Alex Thorlton <athorlton@sgi.com>
+Cc: Bob Liu <lliubbo@gmail.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Hedi Berriche <hedi@sgi.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                   |   22 ++++++++++++++++++++++
- arch/x86/kernel/kexec-bzimage64.c  |   21 +++++++++++++++++++++
- arch/x86/kernel/machine_kexec_64.c |   11 +++++++++++
- include/linux/kexec.h              |    3 +++
- kernel/kexec.c                     |   15 +++++++++++++++
- 5 files changed, 72 insertions(+)
+ mm/page_alloc.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/Kconfig~kexec-verify-the-signature-of-signed-pe-bzimage arch/x86/Kconfig
---- a/arch/x86/Kconfig~kexec-verify-the-signature-of-signed-pe-bzimage
-+++ a/arch/x86/Kconfig
-@@ -1598,6 +1598,28 @@ config KEXEC
- 	  interface is strongly in flux, so no good recommendation can be
- 	  made.
- 
-+config KEXEC_VERIFY_SIG
-+	bool "Verify kernel signature during kexec_file_load() syscall"
-+	depends on KEXEC
-+	---help---
-+	  This option makes kernel signature verification mandatory for
-+	  kexec_file_load() syscall. If kernel is signature can not be
-+	  verified, kexec_file_load() will fail.
-+
-+	  This option enforces signature verification at generic level.
-+	  One needs to enable signature verification for type of kernel
-+	  image being loaded to make sure it works. For example, enable
-+	  bzImage signature verification option to be able to load and
-+	  verify signatures of bzImage. Otherwise kernel loading will fail.
-+
-+config KEXEC_BZIMAGE_VERIFY_SIG
-+	bool "Enable bzImage signature verification support"
-+	depends on KEXEC_VERIFY_SIG
-+	depends on SIGNED_PE_FILE_VERIFICATION
-+	select SYSTEM_TRUSTED_KEYRING
-+	---help---
-+	  Enable bzImage signature verification support.
-+
- config CRASH_DUMP
- 	bool "kernel crash dumps"
- 	depends on X86_64 || (X86_32 && HIGHMEM)
-diff -puN arch/x86/kernel/kexec-bzimage64.c~kexec-verify-the-signature-of-signed-pe-bzimage arch/x86/kernel/kexec-bzimage64.c
---- a/arch/x86/kernel/kexec-bzimage64.c~kexec-verify-the-signature-of-signed-pe-bzimage
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -19,6 +19,8 @@
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/efi.h>
-+#include <linux/verify_pefile.h>
-+#include <keys/system_keyring.h>
- 
- #include <asm/bootparam.h>
- #include <asm/setup.h>
-@@ -525,8 +527,27 @@ int bzImage64_cleanup(void *loader_data)
- 	return 0;
- }
- 
-+#ifdef CONFIG_KEXEC_BZIMAGE_VERIFY_SIG
-+int bzImage64_verify_sig(const char *kernel, unsigned long kernel_len)
-+{
-+	bool trusted;
-+	int ret;
-+
-+	ret = verify_pefile_signature(kernel, kernel_len,
-+				      system_trusted_keyring, &trusted);
-+	if (ret < 0)
-+		return ret;
-+	if (!trusted)
-+		return -EKEYREJECTED;
-+	return 0;
-+}
-+#endif
-+
- struct kexec_file_ops kexec_bzImage64_ops = {
- 	.probe = bzImage64_probe,
- 	.load = bzImage64_load,
- 	.cleanup = bzImage64_cleanup,
-+#ifdef CONFIG_KEXEC_BZIMAGE_VERIFY_SIG
-+	.verify_sig = bzImage64_verify_sig,
-+#endif
- };
-diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-verify-the-signature-of-signed-pe-bzimage arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kexec-verify-the-signature-of-signed-pe-bzimage
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -372,6 +372,17 @@ int arch_kimage_file_post_load_cleanup(s
- 	return image->fops->cleanup(image->image_loader_data);
- }
- 
-+int arch_kexec_kernel_verify_sig(struct kimage *image, void *kernel,
-+				 unsigned long kernel_len)
-+{
-+	if (!image->fops || !image->fops->verify_sig) {
-+		pr_debug("kernel loader does not support signature verification.");
-+		return -EKEYREJECTED;
-+	}
-+
-+	return image->fops->verify_sig(kernel, kernel_len);
-+}
-+
- /*
-  * Apply purgatory relocations.
-  *
-diff -puN include/linux/kexec.h~kexec-verify-the-signature-of-signed-pe-bzimage include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-verify-the-signature-of-signed-pe-bzimage
-+++ a/include/linux/kexec.h
-@@ -191,11 +191,14 @@ typedef void *(kexec_load_t)(struct kima
- 			     unsigned long initrd_len, char *cmdline,
- 			     unsigned long cmdline_len);
- typedef int (kexec_cleanup_t)(void *loader_data);
-+typedef int (kexec_verify_sig_t)(const char *kernel_buf,
-+				 unsigned long kernel_len);
- 
- struct kexec_file_ops {
- 	kexec_probe_t *probe;
- 	kexec_load_t *load;
- 	kexec_cleanup_t *cleanup;
-+	kexec_verify_sig_t *verify_sig;
- };
- 
- /* kexec interface functions */
-diff -puN kernel/kexec.c~kexec-verify-the-signature-of-signed-pe-bzimage kernel/kexec.c
---- a/kernel/kexec.c~kexec-verify-the-signature-of-signed-pe-bzimage
-+++ a/kernel/kexec.c
-@@ -415,6 +415,12 @@ void __weak arch_kimage_file_post_load_c
+diff -puN mm/page_alloc.c~mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions
++++ a/mm/page_alloc.c
+@@ -2447,7 +2447,7 @@ static inline int
+ gfp_to_alloc_flags(gfp_t gfp_mask)
  {
- }
+ 	int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
+-	const gfp_t wait = gfp_mask & __GFP_WAIT;
++	const bool atomic = !(gfp_mask & (__GFP_WAIT | __GFP_NO_KSWAPD));
  
-+int __weak arch_kexec_kernel_verify_sig(struct kimage *image, void *buf,
-+					unsigned long buf_len)
-+{
-+	return -EKEYREJECTED;
-+}
-+
- /* Apply relocations of type RELA */
- int __weak
- arch_kexec_apply_relocations_add(const Elf_Ehdr *ehdr, Elf_Shdr *sechdrs,
-@@ -493,6 +499,15 @@ kimage_file_prepare_segments(struct kima
- 	if (ret)
- 		goto out;
+ 	/* __GFP_HIGH is assumed to be the same as ALLOC_HIGH to save a branch. */
+ 	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_HIGH);
+@@ -2456,20 +2456,20 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	 * The caller may dip into page reserves a bit more if the caller
+ 	 * cannot run direct reclaim, or if the caller has realtime scheduling
+ 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
+-	 * set both ALLOC_HARDER (!wait) and ALLOC_HIGH (__GFP_HIGH).
++	 * set both ALLOC_HARDER (atomic == true) and ALLOC_HIGH (__GFP_HIGH).
+ 	 */
+ 	alloc_flags |= (__force int) (gfp_mask & __GFP_HIGH);
  
-+#ifdef CONFIG_KEXEC_VERIFY_SIG
-+	ret = arch_kexec_kernel_verify_sig(image, image->kernel_buf,
-+					   image->kernel_buf_len);
-+	if (ret) {
-+		pr_debug("kernel signature verification failed.\n");
-+		goto out;
-+	}
-+	pr_debug("kernel signature verification successful.\n");
-+#endif
- 	/* It is possible that there no initramfs is being loaded */
- 	if (!(flags & KEXEC_FILE_NO_INITRAMFS)) {
- 		ret = copy_file_from_fd(initrd_fd, &image->initrd_buf,
+-	if (!wait) {
++	if (atomic) {
+ 		/*
+-		 * Not worth trying to allocate harder for
+-		 * __GFP_NOMEMALLOC even if it can't schedule.
++		 * Not worth trying to allocate harder for __GFP_NOMEMALLOC even
++		 * if it can't schedule.
+ 		 */
+-		if  (!(gfp_mask & __GFP_NOMEMALLOC))
++		if (!(gfp_mask & __GFP_NOMEMALLOC))
+ 			alloc_flags |= ALLOC_HARDER;
+ 		/*
+-		 * Ignore cpuset if GFP_ATOMIC (!wait) rather than fail alloc.
+-		 * See also cpuset_zone_allowed() comment in kernel/cpuset.c.
++		 * Ignore cpuset mems for GFP_ATOMIC rather than fail, see the
++		 * comment for __cpuset_node_allowed_softwall().
+ 		 */
+ 		alloc_flags &= ~ALLOC_CPUSET;
+ 	} else if (unlikely(rt_task(current)) && !in_interrupt())
 _
 
-Patches currently in -mm which might be from vgoyal@redhat.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v6.patch
+origin.patch
+mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
+score-ptrace-remove-the-macros-which-not-be-used-currently.patch
+mm-slabc-add-__init-to-init_lock_keys.patch
+slab-common-add-functions-for-kmem_cache_node-access.patch
+slab-common-add-functions-for-kmem_cache_node-access-fix.patch
+slub-use-new-node-functions.patch
+slub-use-new-node-functions-fix.patch
+slab-use-get_node-and-kmem_cache_node-functions.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+mm-slub-mark-resiliency_test-as-init-text.patch
+mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
+slab-add-unlikely-macro-to-help-compiler.patch
+slab-move-up-code-to-get-kmem_cache_node-in-free_block.patch
+slab-defer-slab_destroy-in-free_block.patch
+slab-defer-slab_destroy-in-free_block-v4.patch
+slab-factor-out-initialization-of-arracy-cache.patch
+slab-introduce-alien_cache.patch
+slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
+slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
+slab-remove-a-useless-lockdep-annotation.patch
+slab-remove-bad_alien_magic.patch
+slab-change-int-to-size_t-for-representing-allocation-size.patch
+slub-reduce-duplicate-creation-on-the-first-object.patch
+mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
+mm-trivial-comment-cleanup-in-slabc.patch
+mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch
+mm-slub-fix-some-indenting-in-cmpxchg_double_slab.patch
+mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+mm-page_alloc-simplify-drain_zone_pages-by-using-min.patch
+mm-mem-hotplug-replace-simple_strtoull-with-kstrtoull.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
+mm-vmalloc-constify-allocation-mask.patch
+mmhugetlb-make-unmap_ref_private-return-void.patch
+mmhugetlb-simplify-error-handling-in-hugetlb_cow.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
+mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
+mm-make-copy_pte_range-static-again.patch
+mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch
+mm-writeback-prevent-race-when-calculating-dirty-limits.patch
+slub-remove-kmemcg-id-from-create_unique_id.patch
+mm-refactor-page-index-offset-getters.patch
+mm-refactor-page-index-offset-getters-fix.patch
+include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
+lib-add-size-unit-t-p-e-to-memparse.patch
+mm-utilc-add-kstrimdup.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+fork-exec-cleanup-mm-initialization.patch
+fork-reset-mm-pinned_vm.patch
+fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
 linux-next.patch
-bin2c-move-bin2c-in-scripts-basic.patch
-kernel-build-bin2c-based-on-config-option-config_build_bin2c.patch
-kexec-rename-unusebale_pages-to-unusable_pages.patch
-kexec-move-segment-verification-code-in-a-separate-function.patch
-kexec-use-common-function-for-kimage_normal_alloc-and-kimage_crash_alloc.patch
-resource-provide-new-functions-to-walk-through-resources.patch
-kexec-make-kexec_segment-user-buffer-pointer-a-union.patch
-kexec-new-syscall-kexec_file_load-declaration.patch
-kexec-implementation-of-new-syscall-kexec_file_load.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-implementation-of-new-syscall-kexec_file_load-fix.patch
-purgatory-sha256-provide-implementation-of-sha256-in-purgaotory-context.patch
-purgatory-core-purgatory-functionality.patch
-purgatory-core-purgatory-functionality-fix.patch
-kexec-load-and-relocate-purgatory-at-kernel-load-time.patch
-kexec-load-and-relocate-purgatory-at-kernel-load-time-fix.patch
-kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry.patch
-kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry-fix.patch
-kexec-support-for-kexec-on-panic-using-new-system-call.patch
-kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch
-kexec-support-kexec-kdump-on-efi-systems.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-kexec-verify-the-signature-of-signed-pe-bzimage.patch
 
