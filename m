@@ -1,62 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] simple_xattr-permit-0-size-extended-attributes.patch
- removed from -mm tree
-Date: Thu, 24 Jul 2014 13:47:27 -0700
-Message-ID: <53d170df.PnFrYQklpYjQj4JN%akpm@linux-foundation.org>
+Subject: [merged] mm-fs-fix-pessimization-in-hole-punching-pagecache.patch removed from -mm tree
+Date: Thu, 24 Jul 2014 13:47:25 -0700
+Message-ID: <53d170dd.IlgIgs5d4pgcW2Ul%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:62333 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934690AbaGXUr2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 16:47:28 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so705335oig.1
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 13:47:27 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:59910 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934680AbaGXUr0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 16:47:26 -0400
+Received: by mail-vc0-f202.google.com with SMTP id hq11so586975vcb.3
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 13:47:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aris@redhat.com, jlayton@poochiereds.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hughd@google.com, davej@redhat.com, koct9i@gmail.com, lczerner@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: simple_xattr: permit 0-size extended attributes
+     Subject: mm/fs: fix pessimization in hole-punching pagecache
 has been removed from the -mm tree.  Its filename was
-     simple_xattr-permit-0-size-extended-attributes.patch
+     mm-fs-fix-pessimization-in-hole-punching-pagecache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: simple_xattr: permit 0-size extended attributes
+Subject: mm/fs: fix pessimization in hole-punching pagecache
 
-If a filesystem uses simple_xattr to support user extended attributes, LTP
-setxattr01 and xfstests generic/062 fail with "Cannot allocate memory":
-simple_xattr_alloc()'s wrap-around test mistakenly excludes values of zero
-size.  Fix that off-by-one (but apparently no filesystem needs them yet).
+I wanted to revert my v3.1 commit d0823576bf4b ("mm: pincer in
+truncate_inode_pages_range"), to keep truncate_inode_pages_range() in
+synch with shmem_undo_range(); but have stepped back - a change to
+hole-punching in truncate_inode_pages_range() is a change to hole-punching
+in every filesystem (except tmpfs) that supports it.
+
+If there's a logical proof why no filesystem can depend for its own
+correctness on the pincer guarantee in truncate_inode_pages_range() - an
+instant when the entire hole is removed from pagecache - then let's
+revisit later.  But the evidence is that only tmpfs suffered from the
+livelock, and we have no intention of extending hole-punch to ramfs.  So
+for now just add a few comments (to match or differ from those in
+shmem_undo_range()), and fix one silliness noticed in d0823576bf4b...
+
+Its "index == start" addition to the hole-punch termination test was
+incomplete: it opened a way for the end condition to be missed, and the
+loop go on looking through the radix_tree, all the way to end of file. 
+Fix that pessimization by resetting index when detected in inner loop.
+
+Note that it's actually hard to hit this case, without the obsessive
+concurrent faulting that trinity does: normally all pages are removed in
+the initial trylock_page() pass, and this loop finds nothing to do.  I had
+to "#if 0" out the initial pass to reproduce bug and test fix.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: Aristeu Rozanski <aris@redhat.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Lukas Czerner <lczerner@redhat.com>
+Cc: Dave Jones <davej@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xattr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/truncate.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN fs/xattr.c~simple_xattr-permit-0-size-extended-attributes fs/xattr.c
---- a/fs/xattr.c~simple_xattr-permit-0-size-extended-attributes
-+++ a/fs/xattr.c
-@@ -843,7 +843,7 @@ struct simple_xattr *simple_xattr_alloc(
+diff -puN mm/truncate.c~mm-fs-fix-pessimization-in-hole-punching-pagecache mm/truncate.c
+--- a/mm/truncate.c~mm-fs-fix-pessimization-in-hole-punching-pagecache
++++ a/mm/truncate.c
+@@ -355,14 +355,16 @@ void truncate_inode_pages_range(struct a
+ 	for ( ; ; ) {
+ 		cond_resched();
+ 		if (!pagevec_lookup_entries(&pvec, mapping, index,
+-			min(end - index, (pgoff_t)PAGEVEC_SIZE),
+-			indices)) {
++			min(end - index, (pgoff_t)PAGEVEC_SIZE), indices)) {
++			/* If all gone from start onwards, we're done */
+ 			if (index == start)
+ 				break;
++			/* Otherwise restart to make sure all gone */
+ 			index = start;
+ 			continue;
+ 		}
+ 		if (index == start && indices[0] >= end) {
++			/* All gone out of hole to be punched, we're done */
+ 			pagevec_remove_exceptionals(&pvec);
+ 			pagevec_release(&pvec);
+ 			break;
+@@ -373,8 +375,11 @@ void truncate_inode_pages_range(struct a
  
- 	/* wrap around? */
- 	len = sizeof(*new_xattr) + size;
--	if (len <= sizeof(*new_xattr))
-+	if (len < sizeof(*new_xattr))
- 		return NULL;
+ 			/* We rely upon deletion not changing page->index */
+ 			index = indices[i];
+-			if (index >= end)
++			if (index >= end) {
++				/* Restart punch to make sure all gone */
++				index = start - 1;
+ 				break;
++			}
  
- 	new_xattr = kmalloc(len, GFP_KERNEL);
+ 			if (radix_tree_exceptional_entry(page)) {
+ 				clear_exceptional_entry(mapping, index, page);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
