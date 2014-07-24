@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch added to -mm tree
-Date: Thu, 24 Jul 2014 15:23:21 -0700
-Message-ID: <53d18759.7qFm7+/AjeBjAWjN%akpm@linux-foundation.org>
+Subject: + mm-oom-remove-unnecessary-check-for-null-zonelist.patch added
+ to -mm tree
+Date: Thu, 24 Jul 2014 15:23:23 -0700
+Message-ID: <53d1875b.k4eD9NkWJUs9BbmI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:45278 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751562AbaGXWXX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 18:23:23 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hu12so606100vcb.0
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 15:23:22 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:40584 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562AbaGXWXY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 18:23:24 -0400
+Received: by mail-ie0-f201.google.com with SMTP id tr6so978923ieb.2
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 15:23:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: ensure memoryless node zonelist always includes zones
+     Subject: mm, oom: remove unnecessary check for NULL zonelist
 has been added to the -mm tree.  Its filename is
-     mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
+     mm-oom-remove-unnecessary-check-for-null-zonelist.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-remove-unnecessary-check-for-null-zonelist.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-remove-unnecessary-check-for-null-zonelist.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,17 +42,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: ensure memoryless node zonelist always includes zones
+Subject: mm, oom: remove unnecessary check for NULL zonelist
 
-With memoryless node support being worked on, it's possible that for
-optimizations that a node may not have a non-NULL zonelist.  When
-CONFIG_NUMA is enabled and node 0 is memoryless, this means the zonelist
-for first_online_node may become NULL.
-
-The oom killer requires a zonelist that includes all memory zones for the
-sysrq trigger and pagefault out of memory handler.
-
-Ensure that a non-NULL zonelist is always passed to the oom killer.
+If the pagefault handler is modified to pass a non-NULL zonelist then an
+unnecessary check for a NULL zonelist in constrained_alloc() can be
+removed.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -61,55 +55,30 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c      |    2 +-
- include/linux/nodemask.h |   10 +++++++++-
- mm/oom_kill.c            |    2 +-
- 3 files changed, 11 insertions(+), 3 deletions(-)
+ mm/oom_kill.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/tty/sysrq.c~mm-oom-ensure-memoryless-node-zonelist-always-includes-zones drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~mm-oom-ensure-memoryless-node-zonelist-always-includes-zones
-+++ a/drivers/tty/sysrq.c
-@@ -355,7 +355,7 @@ static struct sysrq_key_op sysrq_term_op
- 
- static void moom_callback(struct work_struct *ignored)
- {
--	out_of_memory(node_zonelist(first_online_node, GFP_KERNEL), GFP_KERNEL,
-+	out_of_memory(node_zonelist(first_memory_node, GFP_KERNEL), GFP_KERNEL,
- 		      0, NULL, true);
- }
- 
-diff -puN include/linux/nodemask.h~mm-oom-ensure-memoryless-node-zonelist-always-includes-zones include/linux/nodemask.h
---- a/include/linux/nodemask.h~mm-oom-ensure-memoryless-node-zonelist-always-includes-zones
-+++ a/include/linux/nodemask.h
-@@ -430,7 +430,15 @@ static inline int num_node_state(enum no
- 	for_each_node_mask((__node), node_states[__state])
- 
- #define first_online_node	first_node(node_states[N_ONLINE])
--#define next_online_node(nid)	next_node((nid), node_states[N_ONLINE])
-+#define first_memory_node	first_node(node_states[N_MEMORY])
-+static inline int next_online_node(int nid)
-+{
-+	return next_node(nid, node_states[N_ONLINE]);
-+}
-+static inline int next_memory_node(int nid)
-+{
-+	return next_node(nid, node_states[N_MEMORY]);
-+}
- 
- extern int nr_node_ids;
- extern int nr_online_nodes;
-diff -puN mm/oom_kill.c~mm-oom-ensure-memoryless-node-zonelist-always-includes-zones mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-ensure-memoryless-node-zonelist-always-includes-zones
+diff -puN mm/oom_kill.c~mm-oom-remove-unnecessary-check-for-null-zonelist mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-remove-unnecessary-check-for-null-zonelist
 +++ a/mm/oom_kill.c
-@@ -694,7 +694,7 @@ void pagefault_out_of_memory(void)
- 	if (mem_cgroup_oom_synchronize(true))
- 		return;
+@@ -208,8 +208,6 @@ static enum oom_constraint constrained_a
+ 	/* Default to all available memory */
+ 	*totalpages = totalram_pages + total_swap_pages;
  
--	zonelist = node_zonelist(first_online_node, GFP_KERNEL);
-+	zonelist = node_zonelist(first_memory_node, GFP_KERNEL);
+-	if (!zonelist)
+-		return CONSTRAINT_NONE;
+ 	/*
+ 	 * Reach here only when __GFP_NOFAIL is used. So, we should avoid
+ 	 * to kill current.We have to random task kill in this case.
+@@ -696,7 +694,7 @@ void pagefault_out_of_memory(void)
+ 
+ 	zonelist = node_zonelist(first_memory_node, GFP_KERNEL);
  	if (try_set_zonelist_oom(zonelist, GFP_KERNEL)) {
- 		out_of_memory(NULL, 0, 0, NULL, false);
+-		out_of_memory(NULL, 0, 0, NULL, false);
++		out_of_memory(zonelist, 0, 0, NULL, false);
  		clear_zonelist_oom(zonelist, GFP_KERNEL);
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
