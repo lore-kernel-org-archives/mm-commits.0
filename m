@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch added to
+Subject: + slab-fix-the-alias-countvia-sysfs-of-slab-cache.patch added to
  -mm tree
-Date: Thu, 24 Jul 2014 15:13:44 -0700
-Message-ID: <53d18518.4vEjuWgIlQ3QBQ0E%akpm@linux-foundation.org>
+Date: Thu, 24 Jul 2014 15:16:37 -0700
+Message-ID: <53d185c5.sDe+ARbLv2grJwoA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:53632 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750795AbaGXWNp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 18:13:45 -0400
-Received: by mail-qa0-f73.google.com with SMTP id s7so604131qap.2
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 15:13:45 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:49916 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752163AbaGXWQi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 18:16:38 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so954679pde.3
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 15:16:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, athorlton@sgi.com, dave.hansen@linux.intel.com, hannes@cmpxchg.org, hedi@sgi.com, hughd@google.com, kirill.shutemov@linux.intel.com, lliubbo@gmail.com, mgorman@suse.de, riel@redhat.com, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: guz.fnst@cn.fujitsu.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: do not allow thp faults to avoid cpuset restrictions
+     Subject: slab: fix the alias count (via sysfs) of slab cache
 has been added to the -mm tree.  Its filename is
-     mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch
+     slab-fix-the-alias-countvia-sysfs-of-slab-cache.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-fix-the-alias-countvia-sysfs-of-slab-cache.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-fix-the-alias-countvia-sysfs-of-slab-cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,141 +41,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: do not allow thp faults to avoid cpuset restrictions
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: slab: fix the alias count (via sysfs) of slab cache
 
-The page allocator relies on __GFP_WAIT to determine if ALLOC_CPUSET
-should be set in allocflags.  ALLOC_CPUSET controls if a page allocation
-should be restricted only to the set of allowed cpuset mems.
+We mark some slab caches (e.g.  kmem_cache_node) as unmergeable by
+setting refcount to -1, and their alias should be 0, not refcount-1, so
+correct it here.
 
-Transparent hugepages clears __GFP_WAIT when defrag is disabled to prevent
-the fault path from using memory compaction or direct reclaim.  Thus, it
-is unfairly able to allocate outside of its cpuset mems restriction as a
-side-effect.
-
-This patch ensures that ALLOC_CPUSET is only cleared when the gfp mask is
-truly GFP_ATOMIC by verifying it is also not a thp allocation.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Alex Thorlton <athorlton@sgi.com>
-Tested-by: Alex Thorlton <athorlton@sgi.com>
-Cc: Bob Liu <lliubbo@gmail.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Hedi Berriche <hedi@sgi.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions mm/page_alloc.c
---- a/mm/page_alloc.c~mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions
-+++ a/mm/page_alloc.c
-@@ -2447,7 +2447,7 @@ static inline int
- gfp_to_alloc_flags(gfp_t gfp_mask)
+diff -puN mm/slub.c~slab-fix-the-alias-countvia-sysfs-of-slab-cache mm/slub.c
+--- a/mm/slub.c~slab-fix-the-alias-countvia-sysfs-of-slab-cache
++++ a/mm/slub.c
+@@ -4468,7 +4468,7 @@ SLAB_ATTR_RO(ctor);
+ 
+ static ssize_t aliases_show(struct kmem_cache *s, char *buf)
  {
- 	int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
--	const gfp_t wait = gfp_mask & __GFP_WAIT;
-+	const bool atomic = !(gfp_mask & (__GFP_WAIT | __GFP_NO_KSWAPD));
+-	return sprintf(buf, "%d\n", s->refcount - 1);
++	return sprintf(buf, "%d\n", s->refcount < 0 ? 0 : s->refcount - 1);
+ }
+ SLAB_ATTR_RO(aliases);
  
- 	/* __GFP_HIGH is assumed to be the same as ALLOC_HIGH to save a branch. */
- 	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_HIGH);
-@@ -2456,20 +2456,20 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 	 * The caller may dip into page reserves a bit more if the caller
- 	 * cannot run direct reclaim, or if the caller has realtime scheduling
- 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
--	 * set both ALLOC_HARDER (!wait) and ALLOC_HIGH (__GFP_HIGH).
-+	 * set both ALLOC_HARDER (atomic == true) and ALLOC_HIGH (__GFP_HIGH).
- 	 */
- 	alloc_flags |= (__force int) (gfp_mask & __GFP_HIGH);
- 
--	if (!wait) {
-+	if (atomic) {
- 		/*
--		 * Not worth trying to allocate harder for
--		 * __GFP_NOMEMALLOC even if it can't schedule.
-+		 * Not worth trying to allocate harder for __GFP_NOMEMALLOC even
-+		 * if it can't schedule.
- 		 */
--		if  (!(gfp_mask & __GFP_NOMEMALLOC))
-+		if (!(gfp_mask & __GFP_NOMEMALLOC))
- 			alloc_flags |= ALLOC_HARDER;
- 		/*
--		 * Ignore cpuset if GFP_ATOMIC (!wait) rather than fail alloc.
--		 * See also cpuset_zone_allowed() comment in kernel/cpuset.c.
-+		 * Ignore cpuset mems for GFP_ATOMIC rather than fail, see the
-+		 * comment for __cpuset_node_allowed_softwall().
- 		 */
- 		alloc_flags &= ~ALLOC_CPUSET;
- 	} else if (unlikely(rt_task(current)) && !in_interrupt())
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from guz.fnst@cn.fujitsu.com are
 
-origin.patch
-mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch
-x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
-x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
-score-ptrace-remove-the-macros-which-not-be-used-currently.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-slab-common-add-functions-for-kmem_cache_node-access.patch
-slab-common-add-functions-for-kmem_cache_node-access-fix.patch
-slub-use-new-node-functions.patch
-slub-use-new-node-functions-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-mm-slub-mark-resiliency_test-as-init-text.patch
-mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
-slab-add-unlikely-macro-to-help-compiler.patch
-slab-move-up-code-to-get-kmem_cache_node-in-free_block.patch
-slab-defer-slab_destroy-in-free_block.patch
-slab-defer-slab_destroy-in-free_block-v4.patch
-slab-factor-out-initialization-of-arracy-cache.patch
-slab-introduce-alien_cache.patch
-slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
-slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
-slab-remove-a-useless-lockdep-annotation.patch
-slab-remove-bad_alien_magic.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-slub-reduce-duplicate-creation-on-the-first-object.patch
-mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
-mm-trivial-comment-cleanup-in-slabc.patch
-mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch
-mm-slub-fix-some-indenting-in-cmpxchg_double_slab.patch
-mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
-mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-mm-page_alloc-simplify-drain_zone_pages-by-using-min.patch
-mm-mem-hotplug-replace-simple_strtoull-with-kstrtoull.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-mm-vmalloc-constify-allocation-mask.patch
-mmhugetlb-make-unmap_ref_private-return-void.patch
-mmhugetlb-simplify-error-handling-in-hugetlb_cow.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
-mm-make-copy_pte_range-static-again.patch
-mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch
-mm-writeback-prevent-race-when-calculating-dirty-limits.patch
-slub-remove-kmemcg-id-from-create_unique_id.patch
-mm-refactor-page-index-offset-getters.patch
-mm-refactor-page-index-offset-getters-fix.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-lib-add-size-unit-t-p-e-to-memparse.patch
-mm-utilc-add-kstrimdup.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-fork-exec-cleanup-mm-initialization.patch
-fork-reset-mm-pinned_vm.patch
-fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+x86mem-hotplug-pass-sync_global_pgds-a-correct-argument-in-remove_pagetable.patch
+x86mem-hotplug-modify-pgd-entry-when-removing-memory.patch
+bio-integrity-remove-the-needless-fail-handle-of-bip_slab-creating.patch
+slab-fix-the-alias-countvia-sysfs-of-slab-cache.patch
+mem-hotplug-avoid-illegal-state-prefixed-with-legal-state-when-changing-state-of-memory_block.patch
+mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1.patch
 linux-next.patch
 
