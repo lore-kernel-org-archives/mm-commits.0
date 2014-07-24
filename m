@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: +
- hwpoison-fix-hugetlbfs-thp-precheck-in-hwpoison_user_mappings.patch added
- to -mm tree
-Date: Thu, 24 Jul 2014 16:08:56 -0700
-Message-ID: <53d19208.do4ziPG09Wej1s7C%akpm@linux-foundation.org>
+ hwpoison-call-action_result-in-failure-path-of-hwpoison_user_mappings.patch added to -mm tree
+Date: Thu, 24 Jul 2014 16:08:57 -0700
+Message-ID: <53d19209.yhOLwtxU4k2lYHai%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f74.google.com ([209.85.192.74]:54604 "EHLO
-	mail-qg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934604AbaGXXI6 (ORCPT
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:53595 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934703AbaGXXI6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 19:08:58 -0400
-Received: by mail-qg0-f74.google.com with SMTP id z60so204940qgd.3
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 16:08:57 -0700 (PDT)
+Received: by mail-oi0-f74.google.com with SMTP id a141so744669oig.3
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 16:08:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, slaoub@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hwpoison: fix hugetlbfs/thp precheck in hwpoison_user_mappings()
+     Subject: hwpoison: call action_result() in failure path of hwpoison_user_mappings()
 has been added to the -mm tree.  Its filename is
-     hwpoison-fix-hugetlbfs-thp-precheck-in-hwpoison_user_mappings.patch
+     hwpoison-call-action_result-in-failure-path-of-hwpoison_user_mappings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hwpoison-fix-hugetlbfs-thp-precheck-in-hwpoison_user_mappings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hwpoison-call-action_result-in-failure-path-of-hwpoison_user_mappings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hwpoison-fix-hugetlbfs-thp-precheck-in-hwpoison_user_mappings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hwpoison-call-action_result-in-failure-path-of-hwpoison_user_mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,14 +42,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: hwpoison: fix hugetlbfs/thp precheck in hwpoison_user_mappings()
+Subject: hwpoison: call action_result() in failure path of hwpoison_user_mappings()
 
-A recent fix from Chen Yucong 0bc1f8b0682c ("hwpoison: fix the handling
-path of the victimized page frame that belong to non-LRU") rejects going
-into unmapping operation for hugetlbfs/thp pages, which results in failing
-error containing on such pages.  This patch fixes it.
+hwpoison_user_mappings() could fail for various reasons, so printk()s to
+print out the reasons should be done in each failure check inside
+hwpoison_user_mappings().
 
-With this patch, hwpoison functional tests in mce-test testsuite pass.
+And currently we don't call action_result() when hwpoison_user_mappings()
+fails, which is not consistent with other exit points of memory error
+handler.  So this patch fixes these messaging problems.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -58,27 +58,33 @@ Cc: Chen Yucong <slaoub@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/memory-failure.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~hwpoison-fix-hugetlbfs-thp-precheck-in-hwpoison_user_mappings mm/memory-failure.c
---- a/mm/memory-failure.c~hwpoison-fix-hugetlbfs-thp-precheck-in-hwpoison_user_mappings
+diff -puN mm/memory-failure.c~hwpoison-call-action_result-in-failure-path-of-hwpoison_user_mappings mm/memory-failure.c
+--- a/mm/memory-failure.c~hwpoison-call-action_result-in-failure-path-of-hwpoison_user_mappings
 +++ a/mm/memory-failure.c
-@@ -895,7 +895,13 @@ static int hwpoison_user_mappings(struct
- 	struct page *hpage = *hpagep;
- 	struct page *ppage;
- 
--	if (PageReserved(p) || PageSlab(p) || !PageLRU(p))
-+	/*
-+	 * Here we are interested only in user-mapped pages, so skip any
-+	 * other types of pages.
-+	 */
-+	if (PageReserved(p) || PageSlab(p))
-+		return SWAP_SUCCESS;
-+	if (!(PageLRU(hpage) || PageHuge(p)))
+@@ -911,8 +911,10 @@ static int hwpoison_user_mappings(struct
+ 	if (!page_mapped(hpage))
  		return SWAP_SUCCESS;
  
- 	/*
+-	if (PageKsm(p))
++	if (PageKsm(p)) {
++		pr_err("MCE %#lx: can't handle KSM pages.\n", pfn);
+ 		return SWAP_FAIL;
++	}
+ 
+ 	if (PageSwapCache(p)) {
+ 		printk(KERN_ERR
+@@ -1235,7 +1237,7 @@ int memory_failure(unsigned long pfn, in
+ 	 */
+ 	if (hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)
+ 	    != SWAP_SUCCESS) {
+-		printk(KERN_ERR "MCE %#lx: cannot unmap page, give up\n", pfn);
++		action_result(pfn, "unmapping failed", IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
