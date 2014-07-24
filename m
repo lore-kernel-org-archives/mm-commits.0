@@ -1,160 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shmem-fix-splicing-from-a-hole-while-its-punched.patch
- removed from -mm tree
-Date: Thu, 24 Jul 2014 13:47:23 -0700
-Message-ID: <53d170db.9NwCTZRueosCdS6L%akpm__17310.2488079623$1406234865$gmane$org@linux-foundation.org>
+Subject: +
+ mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch added to
+ -mm tree
+Date: Thu, 24 Jul 2014 13:55:06 -0700
+Message-ID: <53d172aa.1QYSn9Vv+QFx3W4t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:51648 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934651AbaGXUrZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 16:47:25 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so914694pab.2
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 13:47:23 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:46747 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934553AbaGXUzH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 16:55:07 -0400
+Received: by mail-qa0-f74.google.com with SMTP id j15so586541qaq.3
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 13:55:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, davej@redhat.com, hannes@cmpxchg.org, koct9i@gmail.com, lczerner@redhat.com, sasha.levin@oracle.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: fix splicing from a hole while it's punched
-has been removed from the -mm tree.  Its filename was
-     shmem-fix-splicing-from-a-hole-while-its-punched.patch
+     Subject: mm, slub: fix false-positive lockdep warning in free_partial()
+has been added to the -mm tree.  Its filename is
+     mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: shmem: fix splicing from a hole while it's punched
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: mm, slub: fix false-positive lockdep warning in free_partial()
 
-shmem_fault() is the actual culprit in trinity's hole-punch starvation,
-and the most significant cause of such problems: since a page faulted is
-one that then appears page_mapped(), needing unmap_mapping_range() and
-i_mmap_mutex to be unmapped again.
+Commit c65c1877bd68 ("slub: use lockdep_assert_held") requires
+remove_partial() to be called with n->list_lock held, but free_partial()
+called from kmem_cache_close() on cache destruction does not follow this
+rule, leading to a warning:
 
-But it is not the only way in which a page can be brought into a hole in
-the radix_tree while that hole is being punched; and Vlastimil's testing
-implies that if enough other processors are busy filling in the hole, then
-shmem_undo_range() can be kept from completing indefinitely.
+  WARNING: CPU: 0 PID: 2787 at mm/slub.c:1536 __kmem_cache_shutdown+0x1b2/0x1f0()
+  Modules linked in:
+  CPU: 0 PID: 2787 Comm: modprobe Tainted: G        W    3.14.0-rc1-mm1+ #1
+  Hardware name:
+   0000000000000600 ffff88003ae1dde8 ffffffff816d9583 0000000000000600
+   0000000000000000 ffff88003ae1de28 ffffffff8107c107 0000000000000000
+   ffff880037ab2b00 ffff88007c240d30 ffffea0001ee5280 ffffea0001ee52a0
+  Call Trace:
+   [<ffffffff816d9583>] dump_stack+0x51/0x6e
+   [<ffffffff8107c107>] warn_slowpath_common+0x87/0xb0
+   [<ffffffff8107c145>] warn_slowpath_null+0x15/0x20
+   [<ffffffff811c7fe2>] __kmem_cache_shutdown+0x1b2/0x1f0
+   [<ffffffff811908d3>] kmem_cache_destroy+0x43/0xf0
+   [<ffffffffa013a123>] xfs_destroy_zones+0x103/0x110 [xfs]
+   [<ffffffffa0192b54>] exit_xfs_fs+0x38/0x4e4 [xfs]
+   [<ffffffff811036fa>] SyS_delete_module+0x19a/0x1f0
+   [<ffffffff816dfcd8>] ? retint_swapgs+0x13/0x1b
+   [<ffffffff810d2125>] ? trace_hardirqs_on_caller+0x105/0x1d0
+   [<ffffffff81359efe>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+   [<ffffffff816e8539>] system_call_fastpath+0x16/0x1b
 
-shmem_file_splice_read() is the main other user of SGP_CACHE, which can
-instantiate shmem pagecache pages in the read-only case (without holding
-i_mutex, so perhaps concurrently with a hole-punch).  Probably it's silly
-not to use SGP_READ already (using the ZERO_PAGE for holes): which ought
-to be safe, but might bring surprises - not a change to be rushed.
+Although this cannot actually result in a race, because on cache
+destruction there should not be any concurrent frees or allocations from
+the cache, let's add spin_lock/unlock to free_partial() just to keep
+lockdep happy.
 
-shmem_read_mapping_page_gfp() is an internal interface used by
-drivers/gpu/drm GEM (and next by uprobes): it should be okay.  And
-shmem_file_read_iter() uses the SGP_DIRTY variant of SGP_CACHE, when
-called internally by the kernel (perhaps for a stacking filesystem, which
-might rely on holes to be reserved): it's unclear whether it could be
-provoked to keep hole-punch busy or not.
-
-We could apply the same umbrella as now used in shmem_fault() to
-shmem_file_splice_read() and the others; but it looks ugly, and use over a
-range raises questions - should it actually be per page?  can these get
-starved themselves?
-
-The origin of this part of the problem is my v3.1 commit d0823576bf4b
-("mm: pincer in truncate_inode_pages_range"), once it was duplicated into
-shmem.c.  It seemed like a nice idea at the time, to ensure (barring RCU
-lookup fuzziness) that there's an instant when the entire hole is empty;
-but the indefinitely repeated scans to ensure that make it vulnerable.
-
-Revert that "enhancement" to hole-punch from shmem_undo_range(), but
-retain the unproblematic rescanning when it's truncating; add a couple of
-comments there.
-
-Remove the "indices[0] >= end" test: that is now handled satisfactorily by
-the inner loop, and mem_cgroup_uncharge_start()/end() are too light to be
-worth avoiding here.
-
-But if we do not always loop indefinitely, we do need to handle the case
-of swap swizzled back to page before shmem_free_swap() gets it: add a
-retry for that case, as suggested by Konstantin Khlebnikov; and for the
-case of page swizzled back to swap, as suggested by Johannes Weiner.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lukas Czerner <lczerner@redhat.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: <stable@vger.kernel.org>	[3.1+]
+Acked-by: Christoph Lameter <cl@linux.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Signed-off-by: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ mm/slub.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~shmem-fix-splicing-from-a-hole-while-its-punched mm/shmem.c
---- a/mm/shmem.c~shmem-fix-splicing-from-a-hole-while-its-punched
-+++ a/mm/shmem.c
-@@ -468,23 +468,20 @@ static void shmem_undo_range(struct inod
- 		return;
+diff -puN mm/slub.c~mm-slub-fix-false-positive-lockdep-warning-in-free_partial mm/slub.c
+--- a/mm/slub.c~mm-slub-fix-false-positive-lockdep-warning-in-free_partial
++++ a/mm/slub.c
+@@ -3166,12 +3166,13 @@ static void list_slab_objects(struct kme
+ /*
+  * Attempt to free all partial slabs on a node.
+  * This is called from kmem_cache_close(). We must be the last thread
+- * using the cache and therefore we do not need to lock anymore.
++ * using the cache, but we still have to lock for lockdep's sake.
+  */
+ static void free_partial(struct kmem_cache *s, struct kmem_cache_node *n)
+ {
+ 	struct page *page, *h;
  
- 	index = start;
--	for ( ; ; ) {
-+	while (index < end) {
- 		cond_resched();
- 
- 		pvec.nr = find_get_entries(mapping, index,
- 				min(end - index, (pgoff_t)PAGEVEC_SIZE),
- 				pvec.pages, indices);
- 		if (!pvec.nr) {
--			if (index == start || unfalloc)
-+			/* If all gone or hole-punch or unfalloc, we're done */
-+			if (index == start || end != -1)
- 				break;
-+			/* But if truncating, restart to make sure all gone */
- 			index = start;
- 			continue;
++	spin_lock_irq(&n->list_lock);
+ 	list_for_each_entry_safe(page, h, &n->partial, lru) {
+ 		if (!page->inuse) {
+ 			__remove_partial(n, page);
+@@ -3181,6 +3182,7 @@ static void free_partial(struct kmem_cac
+ 			"Objects remaining in %s on kmem_cache_close()");
  		}
--		if ((index == start || unfalloc) && indices[0] >= end) {
--			pagevec_remove_exceptionals(&pvec);
--			pagevec_release(&pvec);
--			break;
--		}
- 		mem_cgroup_uncharge_start();
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
-@@ -496,8 +493,12 @@ static void shmem_undo_range(struct inod
- 			if (radix_tree_exceptional_entry(page)) {
- 				if (unfalloc)
- 					continue;
--				nr_swaps_freed += !shmem_free_swap(mapping,
--								index, page);
-+				if (shmem_free_swap(mapping, index, page)) {
-+					/* Swap was replaced by page: retry */
-+					index--;
-+					break;
-+				}
-+				nr_swaps_freed++;
- 				continue;
- 			}
+ 	}
++	spin_unlock_irq(&n->list_lock);
+ }
  
-@@ -506,6 +507,11 @@ static void shmem_undo_range(struct inod
- 				if (page->mapping == mapping) {
- 					VM_BUG_ON_PAGE(PageWriteback(page), page);
- 					truncate_inode_page(mapping, page);
-+				} else {
-+					/* Page was replaced by swap: retry */
-+					unlock_page(page);
-+					index--;
-+					break;
- 				}
- 			}
- 			unlock_page(page);
+ /*
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-origin.patch
-mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+mm-slub-fix-false-positive-lockdep-warning-in-free_partial.patch
 mm-memcontrol-fold-mem_cgroup_do_charge.patch
 mm-memcontrol-rearrange-charging-fast-path.patch
 mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
@@ -169,32 +133,15 @@ mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
 mm-memcontrol-rewrite-charge-api.patch
 mm-memcontrol-rewrite-uncharge-api.patch
 mm-memcontrol-rewrite-uncharge-api-fix-5.patch
-mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
-mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix.patch
-mm-memcontrol-rewrite-uncharge-api-fix-uncharge-from-irq-context.patch
-mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
-mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
 mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
-mm-vmscan-clean-up-struct-scan_control-v2.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-shmem-fix-double-uncharge-in-__shmem_file_setup.patch
-shmem-update-memory-reservation-on-truncate.patch
-mm-catch-memory-commitment-underflow.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
-mm-replace-init_page_accessed-by-__setpagereferenced.patch
-mm-remove-the-unused-gfp-arg-to-shmem_add_to_page_cache.patch
-vmstat-on-demand-vmstat-workers-v8.patch
-vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
-mm-refactor-page-index-offset-getters.patch
-mm-refactor-page-index-offset-getters-fix.patch
-list-use-argument-hlist_add_after-names-from-rcu-variant.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
-klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
+page-cgroup-trivial-cleanup.patch
+page-cgroup-get-rid-of-nr_pcg_flags.patch
+slub-remove-kmemcg-id-from-create_unique_id.patch
+fork-exec-cleanup-mm-initialization.patch
+fork-reset-mm-pinned_vm.patch
+fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+fork-make-mm_init_owner-static.patch
 linux-next.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
