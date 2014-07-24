@@ -1,155 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- rmap-fix-pgoff-calculation-to-handle-hugepage-correctly.patch removed from
- -mm tree
-Date: Thu, 24 Jul 2014 13:47:13 -0700
-Message-ID: <53d170d1.RmIU9tdCpahnmLD8%akpm@linux-foundation.org>
+ mm-do-not-call-do_fault_around-for-non-linear-fault.patch removed from -mm
+ tree
+Date: Thu, 24 Jul 2014 13:47:19 -0700
+Message-ID: <53d170d7.scnbbBLxODfhFJTf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:37176 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934543AbaGXUrO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 16:47:14 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so914340pdj.4
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 13:47:13 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:62005 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934651AbaGXUrU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jul 2014 16:47:20 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hu12so583304vcb.0
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2014 13:47:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, dhillf@gmail.com, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, nao.horiguchi@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, davej@redhat.com, hughd@google.com, ingo.korb@tu-dortmund.de, kirill.shutemov@linux.intel.com, quning@google.com, sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap.c: fix pgoff calculation to handle hugepage correctly
+     Subject: mm: do not call do_fault_around for non-linear fault
 has been removed from the -mm tree.  Its filename was
-     rmap-fix-pgoff-calculation-to-handle-hugepage-correctly.patch
+     mm-do-not-call-do_fault_around-for-non-linear-fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/rmap.c: fix pgoff calculation to handle hugepage correctly
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: mm: do not call do_fault_around for non-linear fault
 
-I triggered VM_BUG_ON() in vma_address() when I try to migrate an
-anonymous hugepage with mbind() in the kernel v3.16-rc3.  This is because
-pgoff's calculation in rmap_walk_anon() fails to consider compound_order()
-only to have an incorrect value.
+Ingo Korb reported that "repeated mapping of the same file on tmpfs using
+remap_file_pages sometimes triggers a BUG at mm/filemap.c:202 when the
+process exits".  He bisected the bug to d7c1755179b82d ("mm: implement
+->map_pages for shmem/tmpfs"), although the bug was actually added by
+8c6e50b0290c4 ("mm: introduce vm_ops->map_pages()").
 
-This patch introduces page_to_pgoff(), which gets the page's offset in
-PAGE_CACHE_SIZE.  Kirill pointed out that page cache tree should natively
-handle hugepages, and in order to make hugetlbfs fit it, page->index of
-hugetlbfs page should be in PAGE_CACHE_SIZE.  This is beyond this patch,
-but page_to_pgoff() contains the point to be fixed in a single function.
+Problem is caused by calling do_fault_around for _non-linear_ faiult.  In
+this case pgoff is shifted and might become negative during calculation.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Faulting around non-linear page-fault has no sense and breaks logic in
+do_fault_around because pgoff is shifted.
+
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Reported-by: Ingo Korb <ingo.korb@tu-dortmund.de>
+Tested-by: Ingo Korb <ingo.korb@tu-dortmund.de>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Ning Qu <quning@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>	[3.15.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   12 ++++++++++++
- mm/memory-failure.c     |    4 ++--
- mm/rmap.c               |   10 +++-------
- 3 files changed, 17 insertions(+), 9 deletions(-)
+ mm/memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/pagemap.h~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly include/linux/pagemap.h
---- a/include/linux/pagemap.h~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly
-+++ a/include/linux/pagemap.h
-@@ -399,6 +399,18 @@ static inline struct page *read_mapping_
- }
- 
- /*
-+ * Get the offset in PAGE_SIZE.
-+ * (TODO: hugepage should have ->index in PAGE_SIZE)
-+ */
-+static inline pgoff_t page_to_pgoff(struct page *page)
-+{
-+	if (unlikely(PageHeadHuge(page)))
-+		return page->index << compound_order(page);
-+	else
-+		return page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
-+}
-+
-+/*
-  * Return byte-offset into filesystem object for page.
-  */
- static inline loff_t page_offset(struct page *page)
-diff -puN mm/memory-failure.c~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly mm/memory-failure.c
---- a/mm/memory-failure.c~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly
-+++ a/mm/memory-failure.c
-@@ -435,7 +435,7 @@ static void collect_procs_anon(struct pa
- 	if (av == NULL)	/* Not actually mapped anymore */
- 		return;
- 
--	pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
-+	pgoff = page_to_pgoff(page);
- 	read_lock(&tasklist_lock);
- 	for_each_process (tsk) {
- 		struct anon_vma_chain *vmac;
-@@ -469,7 +469,7 @@ static void collect_procs_file(struct pa
- 	mutex_lock(&mapping->i_mmap_mutex);
- 	read_lock(&tasklist_lock);
- 	for_each_process(tsk) {
--		pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
-+		pgoff_t pgoff = page_to_pgoff(page);
- 		struct task_struct *t = task_early_kill(tsk, force_early);
- 
- 		if (!t)
-diff -puN mm/rmap.c~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly mm/rmap.c
---- a/mm/rmap.c~rmap-fix-pgoff-calculation-to-handle-hugepage-correctly
-+++ a/mm/rmap.c
-@@ -517,11 +517,7 @@ void page_unlock_anon_vma_read(struct an
- static inline unsigned long
- __vma_address(struct page *page, struct vm_area_struct *vma)
- {
--	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
--
--	if (unlikely(is_vm_hugetlb_page(vma)))
--		pgoff = page->index << huge_page_order(page_hstate(page));
--
-+	pgoff_t pgoff = page_to_pgoff(page);
- 	return vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
- }
- 
-@@ -1639,7 +1635,7 @@ static struct anon_vma *rmap_walk_anon_l
- static int rmap_walk_anon(struct page *page, struct rmap_walk_control *rwc)
- {
- 	struct anon_vma *anon_vma;
--	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
-+	pgoff_t pgoff = page_to_pgoff(page);
- 	struct anon_vma_chain *avc;
- 	int ret = SWAP_AGAIN;
- 
-@@ -1680,7 +1676,7 @@ static int rmap_walk_anon(struct page *p
- static int rmap_walk_file(struct page *page, struct rmap_walk_control *rwc)
- {
- 	struct address_space *mapping = page->mapping;
--	pgoff_t pgoff = page->index << compound_order(page);
-+	pgoff_t pgoff = page_to_pgoff(page);
- 	struct vm_area_struct *vma;
- 	int ret = SWAP_AGAIN;
- 
+diff -puN mm/memory.c~mm-do-not-call-do_fault_around-for-non-linear-fault mm/memory.c
+--- a/mm/memory.c~mm-do-not-call-do_fault_around-for-non-linear-fault
++++ a/mm/memory.c
+@@ -2882,7 +2882,8 @@ static int do_read_fault(struct mm_struc
+ 	 * if page by the offset is not ready to be mapped (cold cache or
+ 	 * something).
+ 	 */
+-	if (vma->vm_ops->map_pages && fault_around_pages() > 1) {
++	if (vma->vm_ops->map_pages && !(flags & FAULT_FLAG_NONLINEAR) &&
++	    fault_around_pages() > 1) {
+ 		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 		do_fault_around(vma, address, pte, pgoff, flags);
+ 		if (!pte_same(*pte, orig_pte))
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
 origin.patch
-mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
-mm-update-the-description-for-madvise_remove.patch
-mm-hwpoison-injectc-remove-unnecessary-null-test-before-debugfs_remove_recursive.patch
-hwpoison-fix-race-with-changing-page-during-offlining-v2.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
-mm-refactor-page-index-offset-getters.patch
-mm-refactor-page-index-offset-getters-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-linux-next.patch
+mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
+include-linux-mmdebugh-add-vm_warn_once.patch
+shmem-fix-double-uncharge-in-__shmem_file_setup.patch
+shmem-update-memory-reservation-on-truncate.patch
+mm-catch-memory-commitment-underflow.patch
+mm-catch-memory-commitment-underflow-fix.patch
+lib-idr-fix-out-of-bounds-pointer-dereference.patch
+scripts-checkstackpl-automatically-handle-32-bit-and-64-bit-mode-for-arch=x86.patch
 
