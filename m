@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration.patch added to -mm tree
-Date: Mon, 28 Jul 2014 13:58:06 -0700
-Message-ID: <53d6b95e.EZCWnZRDuZJ33nd0%akpm@linux-foundation.org>
+Subject: + mm-dont-allow-fault_around_bytes-to-be-0.patch added to -mm
+ tree
+Date: Mon, 28 Jul 2014 14:00:45 -0700
+Message-ID: <53d6b9fd.HnUUZ1qtTMuqFeIf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:56340 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750708AbaG1U6H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jul 2014 16:58:07 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so1953942pab.3
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jul 2014 13:58:07 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:38905 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751202AbaG1VAq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jul 2014 17:00:46 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so1953422pab.2
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jul 2014 14:00:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: a.ryabinin@samsung.com, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@suse.de, riel@redhat.com, sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: rewrite uncharge API fix - clear page->mapping in migration
+     Subject: mm: don't allow fault_around_bytes to be 0
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration.patch
+     mm-dont-allow-fault_around_bytes-to-be-0.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-allow-fault_around_bytes-to-be-0.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-allow-fault_around_bytes-to-be-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,110 +41,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: rewrite uncharge API fix - clear page->mapping in migration
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: mm: don't allow fault_around_bytes to be 0
 
-The page->mapping reset in migration was conditionalized so that a later
-uncharge could use PageAnon() to figure out the page type.  But after "mm:
-memcontrol: rewrite uncharge API fix - double migration", the old page is
-uncharged directly in mem_cgroup_migrate() and so this is no longer
-necessary.
+Sasha Levin triggered use-after-free when fuzzing using trinity and the
+KASAN patchset:
 
-Once all fixups are folded into the "rewrite uncharge API" patch,
-there will be no reason and no explanation for this change anymore, so
-revert it.
+	AddressSanitizer: use after free in do_read_fault.isra.40+0x3c2/0x510 at addr ffff88048a733110
+	page:ffffea001229ccc0 count:0 mapcount:0 mapping:          (null) index:0x0
+	page flags: 0xafffff80008000(tail)
+	page dumped because: kasan error
+	CPU: 6 PID: 9262 Comm: trinity-c104 Not tainted 3.16.0-rc6-next-20140723-sasha-00047-g289342b-dirty #929
+	 00000000000000fb 0000000000000000 ffffea001229ccc0 ffff88038ac0fb78
+	 ffffffffa5e40903 ffff88038ac0fc48 ffff88038ac0fc38 ffffffffa142acfc
+	 0000000000000001 ffff880509ff5aa8 ffff88038ac10038 ffff88038ac0fbb0
+	Call Trace:
+	dump_stack (lib/dump_stack.c:52)
+	kasan_report_error (mm/kasan/report.c:98 mm/kasan/report.c:166)
+	? debug_smp_processor_id (lib/smp_processor_id.c:57)
+	? preempt_count_sub (kernel/sched/core.c:2606)
+	? put_lock_stats.isra.13 (./arch/x86/include/asm/preempt.h:98 kernel/locking/lockdep.c:254)
+	? do_read_fault.isra.40 (mm/memory.c:2784 mm/memory.c:2849 mm/memory.c:2898)
+	__asan_load8 (mm/kasan/kasan.c:364)
+	? do_read_fault.isra.40 (mm/memory.c:2864 mm/memory.c:2898)
+	do_read_fault.isra.40 (mm/memory.c:2864 mm/memory.c:2898)
+	? _raw_spin_unlock (./arch/x86/include/asm/preempt.h:98 include/linux/spinlock_api_smp.h:152 kernel/locking/spinlock.c:183)
+	? __pte_alloc (mm/memory.c:598)
+	handle_mm_fault (mm/memory.c:3092 mm/memory.c:3225 mm/memory.c:3345 mm/memory.c:3374)
+	? pud_huge (./arch/x86/include/asm/paravirt.h:611 arch/x86/mm/hugetlbpage.c:76)
+	__get_user_pages (mm/gup.c:286 mm/gup.c:478)
+	__mlock_vma_pages_range (mm/mlock.c:262)
+	__mm_populate (mm/mlock.c:710)
+	SyS_remap_file_pages (mm/mmap.c:2653 mm/mmap.c:2593)
+	tracesys (arch/x86/kernel/entry_64.S:541)
+	Read of size 8 by thread T9262:
+	Memory state around the buggy address:
+	 ffff88048a732e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+	 ffff88048a732f00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+	 ffff88048a732f80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+	 ffff88048a733000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+	 ffff88048a733080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+	>ffff88048a733100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+	                         ^
+	 ffff88048a733180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+	 ffff88048a733200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+	 ffff88048a733280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+	 ffff88048a733300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+	 ffff88048a733380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+It looks like that pte pointer is invalid in do_fault_around().
+This could happen if fault_around_bytes is set to 0.
+fault_around_pages() and fault_around_mask() calls rounddown_pow_of_to(fault_around_bytes)
+The result of rounddown_pow_of_to is undefined if parameter == 0
+(in my environment it returns 0x8000000000000000).
+
+One way to fix this would be to return 0 from fault_around_pages() if fault_around_bytes == 0,
+however this would add extra code on fault path.
+
+So let's just forbid to set fault_around_bytes to zero.
+Fault around is not used if fault_around_pages() <= 1, so if anyone doesn't want to use
+it, fault_around_bytes could be set to any value in range [1, 2*PAGE_SIZE - 1]
+instead of 0.
+
+Fixes: a9b0f861("mm: nominate faultaround area in bytes rather than page order")
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>	[3.15.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration mm/migrate.c
---- a/mm/migrate.c~mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration
-+++ a/mm/migrate.c
-@@ -778,14 +778,12 @@ static int move_to_new_page(struct page
- 		rc = fallback_migrate_page(mapping, newpage, page, mode);
+diff -puN mm/memory.c~mm-dont-allow-fault_around_bytes-to-be-0 mm/memory.c
+--- a/mm/memory.c~mm-dont-allow-fault_around_bytes-to-be-0
++++ a/mm/memory.c
+@@ -2784,7 +2784,7 @@ static int fault_around_bytes_get(void *
  
- 	if (rc != MIGRATEPAGE_SUCCESS) {
--		if (!PageAnon(newpage))
--			newpage->mapping = NULL;
-+		newpage->mapping = NULL;
- 	} else {
- 		mem_cgroup_migrate(page, newpage, false);
- 		if (remap_swapcache)
- 			remove_migration_ptes(page, newpage);
--		if (!PageAnon(page))
--			page->mapping = NULL;
-+		page->mapping = NULL;
- 	}
- 
- 	unlock_page(newpage);
+ static int fault_around_bytes_set(void *data, u64 val)
+ {
+-	if (val / PAGE_SIZE > PTRS_PER_PTE)
++	if (!val || val / PAGE_SIZE > PTRS_PER_PTE)
+ 		return -EINVAL;
+ 	fault_around_bytes = val;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
-mm-page-writebackc-fix-divide-by-zero-in-bdi_dirty_limits.patch
-mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch
-vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-mm-page-flags-clean-up-the-page-flag-test-set-clear-macros.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-charge-api-fix-3.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-rewrite-uncharge-api-fix-2.patch
-mm-memcontrol-rewrite-uncharge-api-fix-4.patch
-mm-memcontrol-rewrite-uncharge-api-fix-5.patch
-mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
-mm-memcontrol-rewrite-uncharge-api-fix-uncharge-from-irq-context.patch
-mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
-mm-memcontrol-rewrite-uncharge-api-fix-migrate-before-re-mapping.patch
-mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
-mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration.patch
-mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
-mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
-page-cgroup-trivial-cleanup.patch
-page-cgroup-get-rid-of-nr_pcg_flags.patch
-memcg-remove-lookup_cgroup_page-prototype.patch
-mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
-mm-vmscan-remove-all_unreclaimable.patch
-mm-vmscan-remove-all_unreclaimable-fix.patch
-mm-vmscan-move-swappiness-out-of-scan_control.patch
-mm-vmscan-clean-up-struct-scan_control-v2.patch
-mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
-mm-replace-init_page_accessed-by-__setpagereferenced.patch
-mm-update-the-description-for-vm_total_pages.patch
-mm-vmscan-report-the-number-of-file-anon-pages-respectively.patch
-mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
-mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
-mm-move-zone-pages_scanned-into-a-vmstat-counter.patch
-mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
-mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
-mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
-mm-writeback-prevent-race-when-calculating-dirty-limits.patch
-slub-remove-kmemcg-id-from-create_unique_id.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
-mm-oom-remove-unnecessary-check-for-null-zonelist.patch
-mm-oom-rename-zonelist-locking-functions.patch
-mm-thp-restructure-thp-avoidance-of-light-synchronous-migration.patch
-nilfs2-integrate-sysfs-support-into-driver-fix.patch
+mm-dont-allow-fault_around_bytes-to-be-0.patch
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
+mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
+lib-idr-fix-out-of-bounds-pointer-dereference.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
 
