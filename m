@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch added
- to -mm tree
-Date: Tue, 29 Jul 2014 14:52:20 -0700
-Message-ID: <53d81794.foLNoTY4s2vMoz5u%akpm@linux-foundation.org>
+Subject: + timer-provide-an-api-for-deferrable-timeout.patch added to -mm
+ tree
+Date: Tue, 29 Jul 2014 14:58:19 -0700
+Message-ID: <53d818fb.IZuUyCyJB2JRrSqh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:44283 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300AbaG2VwV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jul 2014 17:52:21 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 29so48816yhl.3
-        for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2014 14:52:20 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:64416 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754259AbaG2V6U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jul 2014 17:58:20 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so49289yha.4
+        for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2014 14:58:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, wen.gang.wang@oracle.com, mm-commits@vger.kernel.org
+To: cpandya@codeaurora.org, hughd@google.com, john.stultz@linaro.org, mingo@redhat.com, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: reflink: fix slow unlink for refcounted file
+     Subject: timer: provide an api for deferrable timeout
 has been added to the -mm tree.  Its filename is
-     ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
+     timer-provide-an-api-for-deferrable-timeout.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/timer-provide-an-api-for-deferrable-timeout.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/timer-provide-an-api-for-deferrable-timeout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,151 +41,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: reflink: fix slow unlink for refcounted file
+From: Chintan Pandya <cpandya@codeaurora.org>
+Subject: timer: provide an api for deferrable timeout
 
-When running ocfs2 test suite multiple nodes reflink stress test, for a 4
-nodes cluster, every unlink() for refcounted file needs about 700s.
+schedule_timeout wakes up the CPU from IDLE state.  For some use cases it
+is not desirable, hence introduce a convenient API
+(schedule_timeout_deferrable_interruptible) on similar pattern which uses
+a deferrable timer.
 
-The slow unlink is caused by the contention of refcount tree lock since
-all nodes are unlink files using the same refcount tree.  When the
-unlinking file have many extents(over 1600 in our test), most of the
-extents has refcounted flag set.  In ocfs2_commit_truncate(), it will
-execute the following call trace for every extents.  This means it needs
-get and released refcount tree lock about 1600 times.  And when several
-nodes are do this at the same time, the performance will be very low.
-
-ocfs2_remove_btree_range()
-----ocfs2_lock_refcount_tree()
-------ocfs2_refcount_lock()
---------__ocfs2_cluster_lock()
-
-ocfs2_refcount_lock() is costly, move it to ocfs2_commit_truncate() to do
-lock/unlock once can improve a lot performance.
-
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Wengang <wen.gang.wang@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Chintan Pandya <cpandya@codeaurora.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   28 +++++++++++++++++++++-------
- fs/ocfs2/alloc.h |    2 +-
- fs/ocfs2/dir.c   |    2 +-
- fs/ocfs2/file.c  |    2 +-
- 4 files changed, 24 insertions(+), 10 deletions(-)
+ include/linux/sched.h |    2 ++
+ kernel/time/timer.c   |   27 ++++++++++++++++++++++++---
+ 2 files changed, 26 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
-+++ a/fs/ocfs2/alloc.c
-@@ -5662,7 +5662,7 @@ int ocfs2_remove_btree_range(struct inod
- 			     struct ocfs2_extent_tree *et,
- 			     u32 cpos, u32 phys_cpos, u32 len, int flags,
- 			     struct ocfs2_cached_dealloc_ctxt *dealloc,
--			     u64 refcount_loc)
-+			     u64 refcount_loc, bool refcount_tree_locked)
+diff -puN include/linux/sched.h~timer-provide-an-api-for-deferrable-timeout include/linux/sched.h
+--- a/include/linux/sched.h~timer-provide-an-api-for-deferrable-timeout
++++ a/include/linux/sched.h
+@@ -377,6 +377,8 @@ extern int in_sched_functions(unsigned l
+ #define	MAX_SCHEDULE_TIMEOUT	LONG_MAX
+ extern signed long schedule_timeout(signed long timeout);
+ extern signed long schedule_timeout_interruptible(signed long timeout);
++extern signed long
++schedule_timeout_deferrable_interruptible(signed long timeout);
+ extern signed long schedule_timeout_killable(signed long timeout);
+ extern signed long schedule_timeout_uninterruptible(signed long timeout);
+ asmlinkage void schedule(void);
+diff -puN kernel/time/timer.c~timer-provide-an-api-for-deferrable-timeout kernel/time/timer.c
+--- a/kernel/time/timer.c~timer-provide-an-api-for-deferrable-timeout
++++ a/kernel/time/timer.c
+@@ -1432,7 +1432,7 @@ static void process_timeout(unsigned lon
+ }
+ 
+ /**
+- * schedule_timeout - sleep until timeout
++ * __schedule_timeout - sleep until timeout
+  * @timeout: timeout value in jiffies
+  *
+  * Make the current task sleep until @timeout jiffies have
+@@ -1457,7 +1457,8 @@ static void process_timeout(unsigned lon
+  *
+  * In all cases the return value is guaranteed to be non-negative.
+  */
+-signed long __sched schedule_timeout(signed long timeout)
++static signed long
++__sched __schedule_timeout(signed long timeout, unsigned long flag)
  {
- 	int ret, credits = 0, extra_blocks = 0;
- 	u64 phys_blkno = ocfs2_clusters_to_blocks(inode->i_sb, phys_cpos);
-@@ -5676,11 +5676,13 @@ int ocfs2_remove_btree_range(struct inod
- 		BUG_ON(!(OCFS2_I(inode)->ip_dyn_features &
- 			 OCFS2_HAS_REFCOUNT_FL));
+ 	struct timer_list timer;
+ 	unsigned long expire;
+@@ -1493,7 +1494,13 @@ signed long __sched schedule_timeout(sig
  
--		ret = ocfs2_lock_refcount_tree(osb, refcount_loc, 1,
--					       &ref_tree, NULL);
--		if (ret) {
--			mlog_errno(ret);
--			goto bail;
-+		if (!refcount_tree_locked) {
-+			ret = ocfs2_lock_refcount_tree(osb, refcount_loc, 1,
-+						       &ref_tree, NULL);
-+			if (ret) {
-+				mlog_errno(ret);
-+				goto bail;
-+			}
- 		}
+ 	expire = timeout + jiffies;
  
- 		ret = ocfs2_prepare_refcount_change_for_del(inode,
-@@ -7021,6 +7023,7 @@ int ocfs2_commit_truncate(struct ocfs2_s
- 	u64 refcount_loc = le64_to_cpu(di->i_refcount_loc);
- 	struct ocfs2_extent_tree et;
- 	struct ocfs2_cached_dealloc_ctxt dealloc;
-+	struct ocfs2_refcount_tree *ref_tree = NULL;
- 
- 	ocfs2_init_dinode_extent_tree(&et, INODE_CACHE(inode), di_bh);
- 	ocfs2_init_dealloc_ctxt(&dealloc);
-@@ -7130,9 +7133,18 @@ start:
- 
- 	phys_cpos = ocfs2_blocks_to_clusters(inode->i_sb, blkno);
- 
-+	if ((flags & OCFS2_EXT_REFCOUNTED) && trunc_len && !ref_tree) {
-+		status = ocfs2_lock_refcount_tree(osb, refcount_loc, 1,
-+				&ref_tree, NULL);
-+		if (status) {
-+			mlog_errno(status);
-+			goto bail;
-+		}
-+	}
+-	setup_timer_on_stack(&timer, process_timeout, (unsigned long)current);
++	if (flag & TIMER_DEFERRABLE)
++		setup_deferrable_timer_on_stack(&timer, process_timeout,
++						(unsigned long)current);
++	else
++		setup_timer_on_stack(&timer, process_timeout,
++				     (unsigned long)current);
 +
- 	status = ocfs2_remove_btree_range(inode, &et, trunc_cpos,
- 					  phys_cpos, trunc_len, flags, &dealloc,
--					  refcount_loc);
-+					  refcount_loc, true);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto bail;
-@@ -7147,6 +7159,8 @@ start:
- 	goto start;
+ 	__mod_timer(&timer, expire, false, TIMER_NOT_PINNED);
+ 	schedule();
+ 	del_singleshot_timer_sync(&timer);
+@@ -1506,12 +1513,26 @@ signed long __sched schedule_timeout(sig
+  out:
+ 	return timeout < 0 ? 0 : timeout;
+ }
++
++signed long __sched schedule_timeout(signed long timeout)
++{
++	return __schedule_timeout(timeout, 0);
++}
+ EXPORT_SYMBOL(schedule_timeout);
  
- bail:
-+	if (ref_tree)
-+		ocfs2_unlock_refcount_tree(osb, ref_tree, 1);
- 
- 	ocfs2_schedule_truncate_log_flush(osb, 1);
- 
-diff -puN fs/ocfs2/alloc.h~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/alloc.h
---- a/fs/ocfs2/alloc.h~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
-+++ a/fs/ocfs2/alloc.h
-@@ -142,7 +142,7 @@ int ocfs2_remove_btree_range(struct inod
- 			     struct ocfs2_extent_tree *et,
- 			     u32 cpos, u32 phys_cpos, u32 len, int flags,
- 			     struct ocfs2_cached_dealloc_ctxt *dealloc,
--			     u64 refcount_loc);
-+			     u64 refcount_loc, bool refcount_tree_locked);
- 
- int ocfs2_num_free_extents(struct ocfs2_super *osb,
- 			   struct ocfs2_extent_tree *et);
-diff -puN fs/ocfs2/dir.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/dir.c
---- a/fs/ocfs2/dir.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
-+++ a/fs/ocfs2/dir.c
-@@ -4477,7 +4477,7 @@ int ocfs2_dx_dir_truncate(struct inode *
- 		p_cpos = ocfs2_blocks_to_clusters(dir->i_sb, blkno);
- 
- 		ret = ocfs2_remove_btree_range(dir, &et, cpos, p_cpos, clen, 0,
--					       &dealloc, 0);
-+					       &dealloc, 0, false);
- 		if (ret) {
- 			mlog_errno(ret);
- 			goto out;
-diff -puN fs/ocfs2/file.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
-+++ a/fs/ocfs2/file.c
-@@ -1804,7 +1804,7 @@ static int ocfs2_remove_inode_range(stru
- 
- 		ret = ocfs2_remove_btree_range(inode, &et, trunc_cpos,
- 					       phys_cpos, trunc_len, flags,
--					       &dealloc, refcount_loc);
-+					       &dealloc, refcount_loc, false);
- 		if (ret < 0) {
- 			mlog_errno(ret);
- 			goto out;
+ /*
+  * We can use __set_current_state() here because schedule_timeout() calls
+  * schedule() unconditionally.
+  */
++
++signed long
++__sched schedule_timeout_deferrable_interruptible(signed long timeout)
++{
++	__set_current_state(TASK_INTERRUPTIBLE);
++	return __schedule_timeout(timeout, TIMER_DEFERRABLE);
++}
++EXPORT_SYMBOL(schedule_timeout_deferrable_interruptible);
++
+ signed long __sched schedule_timeout_interruptible(signed long timeout)
+ {
+ 	__set_current_state(TASK_INTERRUPTIBLE);
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from cpandya@codeaurora.org are
 
-ocfs2-o2net-dont-shutdown-connection-when-idle-timeout.patch
-ocfs2-o2net-set-tcp-user-timeout-to-max-value.patch
-ocfs2-quorum-add-a-log-for-node-not-fenced.patch
-ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
+timer-provide-an-api-for-deferrable-timeout.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
 
