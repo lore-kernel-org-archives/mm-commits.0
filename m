@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-export-free_huge_page-to-vmcoreinfo.patch added to -mm
- tree
-Date: Tue, 29 Jul 2014 14:16:36 -0700
-Message-ID: <53d80f34.wsYsXcaVAqFd1mNM%akpm@linux-foundation.org>
+Subject: + ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch added
+ to -mm tree
+Date: Tue, 29 Jul 2014 14:52:20 -0700
+Message-ID: <53d81794.foLNoTY4s2vMoz5u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:46100 "EHLO
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:44283 "EHLO
 	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751888AbaG2VQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jul 2014 17:16:37 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 29so41757yhl.3
-        for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2014 14:16:37 -0700 (PDT)
+	with ESMTP id S1751300AbaG2VwV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jul 2014 17:52:21 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 29so48816yhl.3
+        for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2014 14:52:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kumagai-atsushi@mxc.nes.nec.co.jp, bhe@redhat.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, wen.gang.wang@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: export free_huge_page to VMCOREINFO
+     Subject: ocfs2: reflink: fix slow unlink for refcounted file
 has been added to the -mm tree.  Its filename is
-     kexec-export-free_huge_page-to-vmcoreinfo.patch
+     ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-export-free_huge_page-to-vmcoreinfo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-export-free_huge_page-to-vmcoreinfo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,88 +41,151 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Subject: kexec: export free_huge_page to VMCOREINFO
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: reflink: fix slow unlink for refcounted file
 
-PG_head_mask was added into VMCOREINFO to filter huge pages in b3acc56bfe1
-("kexec: save PG_head_mask in VMCOREINFO"), but makedumpfile still need
-another symbol to filter *hugetlbfs* pages.
+When running ocfs2 test suite multiple nodes reflink stress test, for a 4
+nodes cluster, every unlink() for refcounted file needs about 700s.
 
-If a user hope to filter user pages, makedumpfile tries to exclude them by
-checking the condition whether the page is anonymous, but hugetlbfs pages
-aren't anonymous while they also be user pages.
+The slow unlink is caused by the contention of refcount tree lock since
+all nodes are unlink files using the same refcount tree.  When the
+unlinking file have many extents(over 1600 in our test), most of the
+extents has refcounted flag set.  In ocfs2_commit_truncate(), it will
+execute the following call trace for every extents.  This means it needs
+get and released refcount tree lock about 1600 times.  And when several
+nodes are do this at the same time, the performance will be very low.
 
-We know it's possible to detect them in the same way as PageHuge(),
-so we need the start address of free_huge_page():
+ocfs2_remove_btree_range()
+----ocfs2_lock_refcount_tree()
+------ocfs2_refcount_lock()
+--------__ocfs2_cluster_lock()
 
-    int PageHuge(struct page *page)
-    {
-            if (!PageCompound(page))
-                    return 0;
+ocfs2_refcount_lock() is costly, move it to ocfs2_commit_truncate() to do
+lock/unlock once can improve a lot performance.
 
-            page = compound_head(page);
-            return get_compound_page_dtor(page) == free_huge_page;
-    }
-
-For that reason, this patch changes free_huge_page() into public
-to export it to VMCOREINFO.
-
-Signed-off-by: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Wengang <wen.gang.wang@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- kernel/kexec.c          |    2 ++
- mm/hugetlb.c            |    2 +-
- 3 files changed, 4 insertions(+), 1 deletion(-)
+ fs/ocfs2/alloc.c |   28 +++++++++++++++++++++-------
+ fs/ocfs2/alloc.h |    2 +-
+ fs/ocfs2/dir.c   |    2 +-
+ fs/ocfs2/file.c  |    2 +-
+ 4 files changed, 24 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/hugetlb.h~kexec-export-free_huge_page-to-vmcoreinfo include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~kexec-export-free_huge_page-to-vmcoreinfo
-+++ a/include/linux/hugetlb.h
-@@ -80,6 +80,7 @@ int dequeue_hwpoisoned_huge_page(struct
- bool isolate_huge_page(struct page *page, struct list_head *list);
- void putback_active_hugepage(struct page *page);
- bool is_hugepage_active(struct page *page);
-+void free_huge_page(struct page *page);
- 
- #ifdef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
- pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud);
-diff -puN kernel/kexec.c~kexec-export-free_huge_page-to-vmcoreinfo kernel/kexec.c
---- a/kernel/kexec.c~kexec-export-free_huge_page-to-vmcoreinfo
-+++ a/kernel/kexec.c
-@@ -33,6 +33,7 @@
- #include <linux/swap.h>
- #include <linux/syscore_ops.h>
- #include <linux/compiler.h>
-+#include <linux/hugetlb.h>
- 
- #include <asm/page.h>
- #include <asm/uaccess.h>
-@@ -1619,6 +1620,7 @@ static int __init crash_save_vmcoreinfo_
- #endif
- 	VMCOREINFO_NUMBER(PG_head_mask);
- 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
-+	VMCOREINFO_SYMBOL(free_huge_page);
- 
- 	arch_crash_save_vmcoreinfo();
- 	update_vmcoreinfo_note();
-diff -puN mm/hugetlb.c~kexec-export-free_huge_page-to-vmcoreinfo mm/hugetlb.c
---- a/mm/hugetlb.c~kexec-export-free_huge_page-to-vmcoreinfo
-+++ a/mm/hugetlb.c
-@@ -856,7 +856,7 @@ struct hstate *size_to_hstate(unsigned l
- 	return NULL;
- }
- 
--static void free_huge_page(struct page *page)
-+void free_huge_page(struct page *page)
+diff -puN fs/ocfs2/alloc.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
++++ a/fs/ocfs2/alloc.c
+@@ -5662,7 +5662,7 @@ int ocfs2_remove_btree_range(struct inod
+ 			     struct ocfs2_extent_tree *et,
+ 			     u32 cpos, u32 phys_cpos, u32 len, int flags,
+ 			     struct ocfs2_cached_dealloc_ctxt *dealloc,
+-			     u64 refcount_loc)
++			     u64 refcount_loc, bool refcount_tree_locked)
  {
- 	/*
- 	 * Can't pass hstate in here because it is called from the
+ 	int ret, credits = 0, extra_blocks = 0;
+ 	u64 phys_blkno = ocfs2_clusters_to_blocks(inode->i_sb, phys_cpos);
+@@ -5676,11 +5676,13 @@ int ocfs2_remove_btree_range(struct inod
+ 		BUG_ON(!(OCFS2_I(inode)->ip_dyn_features &
+ 			 OCFS2_HAS_REFCOUNT_FL));
+ 
+-		ret = ocfs2_lock_refcount_tree(osb, refcount_loc, 1,
+-					       &ref_tree, NULL);
+-		if (ret) {
+-			mlog_errno(ret);
+-			goto bail;
++		if (!refcount_tree_locked) {
++			ret = ocfs2_lock_refcount_tree(osb, refcount_loc, 1,
++						       &ref_tree, NULL);
++			if (ret) {
++				mlog_errno(ret);
++				goto bail;
++			}
+ 		}
+ 
+ 		ret = ocfs2_prepare_refcount_change_for_del(inode,
+@@ -7021,6 +7023,7 @@ int ocfs2_commit_truncate(struct ocfs2_s
+ 	u64 refcount_loc = le64_to_cpu(di->i_refcount_loc);
+ 	struct ocfs2_extent_tree et;
+ 	struct ocfs2_cached_dealloc_ctxt dealloc;
++	struct ocfs2_refcount_tree *ref_tree = NULL;
+ 
+ 	ocfs2_init_dinode_extent_tree(&et, INODE_CACHE(inode), di_bh);
+ 	ocfs2_init_dealloc_ctxt(&dealloc);
+@@ -7130,9 +7133,18 @@ start:
+ 
+ 	phys_cpos = ocfs2_blocks_to_clusters(inode->i_sb, blkno);
+ 
++	if ((flags & OCFS2_EXT_REFCOUNTED) && trunc_len && !ref_tree) {
++		status = ocfs2_lock_refcount_tree(osb, refcount_loc, 1,
++				&ref_tree, NULL);
++		if (status) {
++			mlog_errno(status);
++			goto bail;
++		}
++	}
++
+ 	status = ocfs2_remove_btree_range(inode, &et, trunc_cpos,
+ 					  phys_cpos, trunc_len, flags, &dealloc,
+-					  refcount_loc);
++					  refcount_loc, true);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto bail;
+@@ -7147,6 +7159,8 @@ start:
+ 	goto start;
+ 
+ bail:
++	if (ref_tree)
++		ocfs2_unlock_refcount_tree(osb, ref_tree, 1);
+ 
+ 	ocfs2_schedule_truncate_log_flush(osb, 1);
+ 
+diff -puN fs/ocfs2/alloc.h~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/alloc.h
+--- a/fs/ocfs2/alloc.h~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
++++ a/fs/ocfs2/alloc.h
+@@ -142,7 +142,7 @@ int ocfs2_remove_btree_range(struct inod
+ 			     struct ocfs2_extent_tree *et,
+ 			     u32 cpos, u32 phys_cpos, u32 len, int flags,
+ 			     struct ocfs2_cached_dealloc_ctxt *dealloc,
+-			     u64 refcount_loc);
++			     u64 refcount_loc, bool refcount_tree_locked);
+ 
+ int ocfs2_num_free_extents(struct ocfs2_super *osb,
+ 			   struct ocfs2_extent_tree *et);
+diff -puN fs/ocfs2/dir.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
++++ a/fs/ocfs2/dir.c
+@@ -4477,7 +4477,7 @@ int ocfs2_dx_dir_truncate(struct inode *
+ 		p_cpos = ocfs2_blocks_to_clusters(dir->i_sb, blkno);
+ 
+ 		ret = ocfs2_remove_btree_range(dir, &et, cpos, p_cpos, clen, 0,
+-					       &dealloc, 0);
++					       &dealloc, 0, false);
+ 		if (ret) {
+ 			mlog_errno(ret);
+ 			goto out;
+diff -puN fs/ocfs2/file.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
++++ a/fs/ocfs2/file.c
+@@ -1804,7 +1804,7 @@ static int ocfs2_remove_inode_range(stru
+ 
+ 		ret = ocfs2_remove_btree_range(inode, &et, trunc_cpos,
+ 					       phys_cpos, trunc_len, flags,
+-					       &dealloc, refcount_loc);
++					       &dealloc, refcount_loc, false);
+ 		if (ret < 0) {
+ 			mlog_errno(ret);
+ 			goto out;
 _
 
-Patches currently in -mm which might be from kumagai-atsushi@mxc.nes.nec.co.jp are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-kexec-export-free_huge_page-to-vmcoreinfo.patch
+ocfs2-o2net-dont-shutdown-connection-when-idle-timeout.patch
+ocfs2-o2net-set-tcp-user-timeout-to-max-value.patch
+ocfs2-quorum-add-a-log-for-node-not-fenced.patch
+ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
 
