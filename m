@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-solo6x10-patterns.patch added to -mm tree
-Date: Wed, 30 Jul 2014 14:07:05 -0700
-Message-ID: <53d95e79.C/Y6NlHk6G00sJn3%akpm@linux-foundation.org>
+Subject: + maintainers-update-nomadik-patterns.patch added to -mm tree
+Date: Wed, 30 Jul 2014 14:07:07 -0700
+Message-ID: <53d95e7b.17KPvHrd4S/tzDpy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:65287 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909AbaG3VHG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:07:06 -0400
-Received: by mail-pd0-f202.google.com with SMTP id w10so334485pde.5
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:07:06 -0700 (PDT)
+Received: from mail-oi0-f73.google.com ([209.85.218.73]:56444 "EHLO
+	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909AbaG3VHI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:07:08 -0400
+Received: by mail-oi0-f73.google.com with SMTP id u20so544405oif.0
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:07:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, hans.verkuil@cisco.com, ismael.luceno@corp.bluecherry.net, mm-commits@vger.kernel.org
+To: joe@perches.com, linus.walleij@linaro.org, rubini@unipv.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update solo6x10 patterns
+     Subject: MAINTAINERS: update nomadik patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-solo6x10-patterns.patch
+     maintainers-update-nomadik-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-solo6x10-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-nomadik-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-solo6x10-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-nomadik-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,48 +41,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update solo6x10 patterns
+Subject: MAINTAINERS: update nomadik patterns
 
-commit 28cae868cd24 ("[media] solo6x10: move out of staging into
-drivers/media/pci") moved the files, update the patterns.
+commit 3a19805920f1 ("pinctrl: nomadik: move all Nomadik drivers to subdir")
+move the files, update the patterns
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alessandro Rubini <rubini@unipv.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ MAINTAINERS |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-solo6x10-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-solo6x10-patterns
+diff -puN MAINTAINERS~maintainers-update-nomadik-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-nomadik-patterns
 +++ a/MAINTAINERS
-@@ -8420,6 +8420,12 @@ M:	Chris Boot <bootc@bootc.net>
+@@ -1164,6 +1164,7 @@ M:	Linus Walleij <linus.walleij@linaro.o
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
  S:	Maintained
- F:	drivers/leds/leds-net48xx.c
+ F:	arch/arm/mach-nomadik/
++F:	drivers/pinctrl/nomadik/
+ F:	drivers/i2c/busses/i2c-nomadik.c
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-nomadik.git
  
-+SOFTLOGIC 6x10 MPEG CODEC
-+M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-+L:	linux-media@vger.kernel.org
-+S:	Supported
-+F:	drivers/media/pci/solo6x10/
-+
- SOFTWARE RAID (Multiple Disks) SUPPORT
- M:	Neil Brown <neilb@suse.de>
- L:	linux-raid@vger.kernel.org
-@@ -8683,11 +8689,6 @@ M:	Christopher Harrer <charrer@alacritec
- S:	Odd Fixes
- F:	drivers/staging/slicoss/
- 
--STAGING - SOFTLOGIC 6x10 MPEG CODEC
--M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
--S:	Supported
--F:	drivers/staging/media/solo6x10/
--
- STAGING - SPEAKUP CONSOLE SPEECH DRIVER
- M:	William Hubbs <w.d.hubbs@gmail.com>
- M:	Chris Brannon <chris@the-brannons.com>
+@@ -1442,7 +1443,8 @@ F:	drivers/mfd/abx500*
+ F:	drivers/mfd/ab8500*
+ F:	drivers/mfd/dbx500*
+ F:	drivers/mfd/db8500*
+-F:	drivers/pinctrl/pinctrl-nomadik*
++F:	drivers/pinctrl/nomadik/pinctrl-ab*
++F:	drivers/pinctrl/nomadik/pinctrl-nomadik*
+ F:	drivers/rtc/rtc-ab8500.c
+ F:	drivers/rtc/rtc-pl031.c
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-stericsson.git
 _
 
 Patches currently in -mm which might be from joe@perches.com are
