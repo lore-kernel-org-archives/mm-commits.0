@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
- added to -mm tree
-Date: Wed, 30 Jul 2014 14:26:53 -0700
-Message-ID: <53d9631d.rkAXLmcnenVMlszT%akpm@linux-foundation.org>
+ ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch added to -mm tree
+Date: Wed, 30 Jul 2014 14:48:00 -0700
+Message-ID: <53d96810.5Hv4SokC50wIR1tq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:52978 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870AbaG3V0z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:26:55 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f73so245178yha.2
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:26:54 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:43909 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858AbaG3VsB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:48:01 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so342821pde.3
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:48:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cpandya@codeaurora.org, hughd@google.com, john.stultz@linaro.org, mingo@redhat.com, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix
+     Subject: ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
+     ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,36 +42,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix
+Subject: ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2
 
-fix non-numa build
+fix build
 
-mm/oom_kill.c: In function 'pagefault_out_of_memory':
-mm/oom_kill.c:697: error: 'first_memory_node' undeclared (first use in this function)
-mm/oom_kill.c:697: error: (Each undeclared identifier is reported only once
-mm/oom_kill.c:697: error: for each function it appears in.)
-
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Chintan Pandya <cpandya@codeaurora.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/ksm.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/nodemask.h~mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix include/linux/nodemask.h
---- a/include/linux/nodemask.h~mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix
-+++ a/include/linux/nodemask.h
-@@ -479,6 +479,7 @@ static inline int num_node_state(enum no
- 	for ( (node) = 0; (node) == 0; (node) = 1)
+diff -puN mm/ksm.c~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2 mm/ksm.c
+--- a/mm/ksm.c~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2
++++ a/mm/ksm.c
+@@ -1720,8 +1720,6 @@ static int ksmd_should_run(void)
  
- #define first_online_node	0
-+#define first_memory_node	0
- #define next_online_node(nid)	(MAX_NUMNODES)
- #define nr_node_ids		1
- #define nr_online_nodes		1
+ static int ksm_scan_thread(void *nothing)
+ {
+-	signed long to;
+-
+ 	set_freezable();
+ 	set_user_nice(current, 5);
+ 
+@@ -1735,7 +1733,9 @@ static int ksm_scan_thread(void *nothing
+ 		try_to_freeze();
+ 
+ 		if (ksmd_should_run()) {
+-			timeout = msecs_to_jiffies(ksm_thread_sleep_millisecs);
++			signed long to;
++
++			to = msecs_to_jiffies(ksm_thread_sleep_millisecs);
+ 			if (use_deferrable_timer)
+ 				schedule_timeout_deferrable_interruptible(to);
+ 			else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +127,7 @@ kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
 kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
 kexec-support-kexec-kdump-on-efi-systems-fix.patch
 ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
 mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 debugging-keep-track-of-page-owners.patch
 journal_add_journal_head-debug.patch
