@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-dma-buffer-sharing-patterns.patch added to
- -mm tree
-Date: Wed, 30 Jul 2014 14:07:02 -0700
-Message-ID: <53d95e76.D/4FhEDlxRuC4nLX%akpm@linux-foundation.org>
+Subject: + maintainers-update-samsung-pinctrl-patterns.patch added to -mm
+ tree
+Date: Wed, 30 Jul 2014 14:07:06 -0700
+Message-ID: <53d95e7a.rpZZJfS+c+YHovlu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:55242 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909AbaG3VHE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:07:04 -0400
-Received: by mail-vc0-f201.google.com with SMTP id le20so243672vcb.2
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:07:03 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:45624 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751341AbaG3VHH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:07:07 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h3so323289igd.2
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:07:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, sumit.semwal@linaro.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update DMA BUFFER SHARING patterns
+     Subject: MAINTAINERS: update samsung pinctrl patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-dma-buffer-sharing-patterns.patch
+     maintainers-update-samsung-pinctrl-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-dma-buffer-sharing-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-samsung-pinctrl-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-dma-buffer-sharing-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-samsung-pinctrl-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,32 +42,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update DMA BUFFER SHARING patterns
+Subject: MAINTAINERS: update samsung pinctrl patterns
 
-One pattern per F: line please...
+commit ebe629a39e04 ("pinctrl: samsung: Group all drivers in a sub-dir")
+moved the files, update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ MAINTAINERS |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-dma-buffer-sharing-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-dma-buffer-sharing-patterns
+diff -puN MAINTAINERS~maintainers-update-samsung-pinctrl-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-samsung-pinctrl-patterns
 +++ a/MAINTAINERS
-@@ -2959,7 +2959,9 @@ L:	linux-media@vger.kernel.org
- L:	dri-devel@lists.freedesktop.org
- L:	linaro-mm-sig@lists.linaro.org
- F:	drivers/dma-buf/
--F:	include/linux/dma-buf* include/linux/reservation.h include/linux/*fence.h
-+F:	include/linux/dma-buf*
-+F:	include/linux/reservation.h
-+F:	include/linux/*fence.h
- F:	Documentation/dma-buf-sharing.txt
- T:	git git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git
+@@ -7006,9 +7006,7 @@ M:	Thomas Abraham <thomas.abraham@linaro
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ L:	linux-samsung-soc@vger.kernel.org (moderated for non-subscribers)
+ S:	Maintained
+-F:	drivers/pinctrl/pinctrl-exynos.*
+-F:	drivers/pinctrl/pinctrl-s3c*
+-F:	drivers/pinctrl/pinctrl-samsung.*
++F:	drivers/pinctrl/samsung/
  
+ PIN CONTROLLER - ST SPEAR
+ M:	Viresh Kumar <viresh.linux@gmail.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
