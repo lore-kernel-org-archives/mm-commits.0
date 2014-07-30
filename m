@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-usb-gadget-patterns.patch added to -mm tree
-Date: Wed, 30 Jul 2014 14:07:03 -0700
-Message-ID: <53d95e77.SEqDyqOwCk9Vpizq%akpm@linux-foundation.org>
+Subject: + maintainers-update-solo6x10-patterns.patch added to -mm tree
+Date: Wed, 30 Jul 2014 14:07:05 -0700
+Message-ID: <53d95e79.C/Y6NlHk6G00sJn3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:34146 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751328AbaG3VHF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:07:05 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so545326oac.1
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:07:04 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:65287 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909AbaG3VHG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:07:06 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so334485pde.5
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:07:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, andrzej.p@samsung.com, dahlmann.thomas@arcor.de, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, laurent.pinchart@ideasonboard.com, leoli@freescale.com, linux@arm.linux.org.uk, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: joe@perches.com, hans.verkuil@cisco.com, ismael.luceno@corp.bluecherry.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update usb/gadget patterns
+     Subject: MAINTAINERS: update solo6x10 patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-usb-gadget-patterns.patch
+     maintainers-update-solo6x10-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-usb-gadget-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-solo6x10-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-usb-gadget-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-solo6x10-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,75 +41,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update usb/gadget patterns
+Subject: MAINTAINERS: update solo6x10 patterns
 
-Several commits have moved files around, update the section patterns.
+commit 28cae868cd24 ("[media] solo6x10: move out of staging into
+drivers/media/pci") moved the files, update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Thomas Dahlmann <dahlmann.thomas@arcor.de>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Eric Miao <eric.y.miao@gmail.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ MAINTAINERS |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-usb-gadget-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-usb-gadget-patterns
+diff -puN MAINTAINERS~maintainers-update-solo6x10-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-solo6x10-patterns
 +++ a/MAINTAINERS
-@@ -597,7 +597,7 @@ AMD GEODE CS5536 USB DEVICE CONTROLLER D
- M:	Thomas Dahlmann <dahlmann.thomas@arcor.de>
- L:	linux-geode@lists.infradead.org (moderated for non-subscribers)
- S:	Supported
--F:	drivers/usb/gadget/amd5536udc.*
-+F:	drivers/usb/gadget/udc/amd5536udc.*
- 
- AMD GEODE PROCESSOR/CHIPSET SUPPORT
- P:	Andres Salomon <dilinger@queued.net>
-@@ -1698,7 +1698,7 @@ ATMEL USBA UDC DRIVER
- M:	Nicolas Ferre <nicolas.ferre@atmel.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Supported
--F:	drivers/usb/gadget/atmel_usba_udc.*
-+F:	drivers/usb/gadget/udc/atmel_usba_udc.*
- 
- ATMEL WIRELESS DRIVER
- M:	Simon Kelley <simon@thekelleys.org.uk>
-@@ -3815,7 +3815,7 @@ M:	Li Yang <leoli@freescale.com>
- L:	linux-usb@vger.kernel.org
- L:	linuxppc-dev@lists.ozlabs.org
+@@ -8420,6 +8420,12 @@ M:	Chris Boot <bootc@bootc.net>
  S:	Maintained
--F:	drivers/usb/gadget/fsl*
-+F:	drivers/usb/gadget/udc/fsl*
+ F:	drivers/leds/leds-net48xx.c
  
- FREESCALE QUICC ENGINE UCC ETHERNET DRIVER
- M:	Li Yang <leoli@freescale.com>
-@@ -7249,7 +7249,7 @@ S:	Maintained
- F:	arch/arm/mach-pxa/
- F:	drivers/pcmcia/pxa2xx*
- F:	drivers/spi/spi-pxa2xx*
--F:	drivers/usb/gadget/pxa2*
-+F:	drivers/usb/gadget/udc/pxa2*
- F:	include/sound/pxa2xx-lib.h
- F:	sound/arm/pxa*
- F:	sound/soc/pxa/
-@@ -9600,8 +9600,8 @@ USB WEBCAM GADGET
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-usb@vger.kernel.org
- S:	Maintained
--F:	drivers/usb/gadget/*uvc*.c
--F:	drivers/usb/gadget/webcam.c
-+F:	drivers/usb/gadget/function/*uvc*.c
-+F:	drivers/usb/gadget/legacy/webcam.c
++SOFTLOGIC 6x10 MPEG CODEC
++M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
++L:	linux-media@vger.kernel.org
++S:	Supported
++F:	drivers/media/pci/solo6x10/
++
+ SOFTWARE RAID (Multiple Disks) SUPPORT
+ M:	Neil Brown <neilb@suse.de>
+ L:	linux-raid@vger.kernel.org
+@@ -8683,11 +8689,6 @@ M:	Christopher Harrer <charrer@alacritec
+ S:	Odd Fixes
+ F:	drivers/staging/slicoss/
  
- USB WIRELESS RNDIS DRIVER (rndis_wlan)
- M:	Jussi Kivilinna <jussi.kivilinna@iki.fi>
+-STAGING - SOFTLOGIC 6x10 MPEG CODEC
+-M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+-S:	Supported
+-F:	drivers/staging/media/solo6x10/
+-
+ STAGING - SPEAKUP CONSOLE SPEECH DRIVER
+ M:	William Hubbs <w.d.hubbs@gmail.com>
+ M:	Chris Brannon <chris@the-brannons.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
