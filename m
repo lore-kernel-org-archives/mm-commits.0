@@ -1,119 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-debugfs-move-rounddown_pow_of_two-out-from-do_fault-path-fix.patch
- removed from -mm tree
-Date: Wed, 30 Jul 2014 16:05:18 -0700
-Message-ID: <53d97a2e.qbs9e3DKOyulVQUG%akpm@linux-foundation.org>
+ mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings-fix.patch removed
+ from -mm tree
+Date: Wed, 30 Jul 2014 16:05:45 -0700
+Message-ID: <53d97a49.IPVibzekjf/LtDqx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:50181 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750947AbaG3XFU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 19:05:20 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wp18so425914obc.3
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 16:05:19 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:59065 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750947AbaG3XFq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 19:05:46 -0400
+Received: by mail-vc0-f202.google.com with SMTP id hq11so260831vcb.3
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 16:05:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.ryabinin@samsung.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-debugfs-move-rounddown_pow_of_two-out-from-do_fault-path-fix
+     Subject: mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings-fix
 has been removed from the -mm tree.  Its filename was
-     mm-debugfs-move-rounddown_pow_of_two-out-from-do_fault-path-fix.patch
+     mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings-fix.patch
 
-This patch was dropped because it was folded into mm-debugfs-move-rounddown_pow_of_two-out-from-do_fault-path.patch
+This patch was dropped because it was folded into mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-debugfs-move-rounddown_pow_of_two-out-from-do_fault-path-fix
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings-fix
 
-tweak code layout
+change everything
 
-Cc: Andrey Ryabinin <a.ryabinin@samsung.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/filemap.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory.c~mm-debugfs-move-rounddown_pow_of_two-out-from-do_fault-path-fix mm/memory.c
---- a/mm/memory.c~mm-debugfs-move-rounddown_pow_of_two-out-from-do_fault-path-fix
-+++ a/mm/memory.c
-@@ -2770,7 +2770,6 @@ static inline unsigned long fault_around
- 	return ~(fault_around_bytes - 1) & PAGE_MASK;
- }
- 
--
- #ifdef CONFIG_DEBUG_FS
- static int fault_around_bytes_get(void *data, u64 *val)
- {
-@@ -2780,7 +2779,8 @@ static int fault_around_bytes_get(void *
- 
- /*
-  * fault_around_pages() and fault_around_mask() expects fault_around_bytes
-- * rounded down to nearest page order. It's what do_fault_around() expects to see.
-+ * rounded down to nearest page order. It's what do_fault_around() expects to
-+ * see.
-  */
- static int fault_around_bytes_set(void *data, u64 val)
- {
+diff -puN mm/filemap.c~mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings-fix mm/filemap.c
+--- a/mm/filemap.c~mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings-fix
++++ a/mm/filemap.c
+@@ -1031,8 +1031,8 @@ EXPORT_SYMBOL(find_lock_entry);
+  * @mapping: the address_space to search
+  * @offset: the page index
+  * @fgp_flags: PCG flags
+- * @cache_gfp_mask: gfp mask to use if a page is to be allocated
+- * @radix_gfp_mask: gfp mask to use for page cache LRU allocation
++ * @cache_gfp_mask: gfp mask to use for the page cache data page allocation
++ * @radix_gfp_mask: gfp mask to use for radix tree node allocation
+  *
+  * Looks up the page cache slot at @mapping & @offset.
+  *
+@@ -1042,8 +1042,10 @@ EXPORT_SYMBOL(find_lock_entry);
+  * FGP_LOCK: Page is return locked
+  * FGP_CREAT: If page is not present then a new page is allocated using
+  *		@cache_gfp_mask and added to the page cache and the VM's LRU
+- *		list. The page is returned locked and with an increased
+- *		refcount. Otherwise, %NULL is returned.
++ *		list. If radix tree nodes are allocated during page cache
++ *		insertion then @radix_gfp_mask is used. The page is returned
++ * 		locked and with an increased refcount. Otherwise, %NULL is
++ * 		returned.
+  *
+  * If FGP_LOCK or FGP_CREAT are specified then the function may sleep even
+  * if the GFP flags specified for FGP_CREAT are atomic.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-mm-debugfs-move-rounddown_pow_of_two-out-from-do_fault-path.patch
+origin.patch
+mm-thp-do-not-allow-thp-faults-to-avoid-cpuset-restrictions.patch
+mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings.patch
 mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings-fix-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
+mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
+mm-thp-move-invariant-bug-check-out-of-loop-in-__split_huge_page_map.patch
+mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic.patch
+mem-hotplug-improve-zone_movable_is_highmem-logic.patch
+mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
+mm-vmscan-remove-all_unreclaimable.patch
+mm-vmscan-remove-all_unreclaimable-fix.patch
+mm-vmscan-move-swappiness-out-of-scan_control.patch
+mm-vmscan-clean-up-struct-scan_control-v2.patch
+tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch
+mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
+mm-replace-init_page_accessed-by-__setpagereferenced.patch
+mm-update-the-description-for-vm_total_pages.patch
+mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
+mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+mm-move-zone-pages_scanned-into-a-vmstat-counter.patch
+mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
+mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
+mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
+mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch
+memory-hotplug-add-zone_for_memory-for-selecting-zone-for-new-memory.patch
+memory-hotplug-x86_64-suitable-memory-should-go-to-zone_movable.patch
+memory-hotplug-x86_32-suitable-memory-should-go-to-zone_movable.patch
+memory-hotplug-ia64-suitable-memory-should-go-to-zone_movable.patch
+memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable.patch
+memory-hotplug-sh-suitable-memory-should-go-to-zone_movable.patch
+mm-thp-restructure-thp-avoidance-of-light-synchronous-migration.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-rtc-add-pcf85063-support-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-proc-remove-proc_tty_ldisc-variable-fix.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
-panic-add-taint_softlockup-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
