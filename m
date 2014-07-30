@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch added to -mm tree
-Date: Wed, 30 Jul 2014 14:48:00 -0700
-Message-ID: <53d96810.5Hv4SokC50wIR1tq%akpm@linux-foundation.org>
+Subject: + x86-vdso-fix-vdso2cs-special_pages-error-checking.patch added
+ to -mm tree
+Date: Wed, 30 Jul 2014 14:59:49 -0700
+Message-ID: <53d96ad5.80ywqrbs33ZBCQej%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:43909 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752858AbaG3VsB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:48:01 -0400
-Received: by mail-pd0-f202.google.com with SMTP id w10so342821pde.3
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:48:01 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:50373 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751600AbaG3V7u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:59:50 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so349122pab.2
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:59:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cpandya@codeaurora.org, hughd@google.com, john.stultz@linaro.org, mingo@redhat.com, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: luto@amacapital.net, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, sfr@canb.auug.org.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2
+     Subject: x86, vdso: fix vdso2c's special_pages error checking
 has been added to the -mm tree.  Its filename is
-     ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
+     x86-vdso-fix-vdso2cs-special_pages-error-checking.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-vdso-fix-vdso2cs-special_pages-error-checking.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-vdso-fix-vdso2cs-special_pages-error-checking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,99 +41,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: x86, vdso: fix vdso2c's special_pages error checking
 
-fix build
+Stephen Rothwell's compiler did something amazing: it unrolled a loop,
+discovered that one iteration of that loop contained an always-true test,
+and emitted a warning that will IMO only serve to convince people to
+disable the warning.
 
-Cc: Chintan Pandya <cpandya@codeaurora.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+That bogus warning caused me to wonder what prompted such an absurdity
+from his compiler, and I discovered that the code in question was, in
+fact, completely wrong -- I was looking things up in the wrong array.
+
+This affects 3.16 as well, but the only effect is to screw up the
+error checking a bit.  vdso2c's output is unaffected.
+
+Signed-off-by: Andy Lutomirski <luto@amacapital.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/vdso/vdso2c.h |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN mm/ksm.c~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2 mm/ksm.c
---- a/mm/ksm.c~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2
-+++ a/mm/ksm.c
-@@ -1720,8 +1720,6 @@ static int ksmd_should_run(void)
+diff -puN arch/x86/vdso/vdso2c.h~x86-vdso-fix-vdso2cs-special_pages-error-checking arch/x86/vdso/vdso2c.h
+--- a/arch/x86/vdso/vdso2c.h~x86-vdso-fix-vdso2cs-special_pages-error-checking
++++ a/arch/x86/vdso/vdso2c.h
+@@ -109,16 +109,18 @@ static void BITSFUNC(go)(void *raw_addr,
  
- static int ksm_scan_thread(void *nothing)
- {
--	signed long to;
--
- 	set_freezable();
- 	set_user_nice(current, 5);
- 
-@@ -1735,7 +1733,9 @@ static int ksm_scan_thread(void *nothing
- 		try_to_freeze();
- 
- 		if (ksmd_should_run()) {
--			timeout = msecs_to_jiffies(ksm_thread_sleep_millisecs);
-+			signed long to;
+ 	/* Validate mapping addresses. */
+ 	for (i = 0; i < sizeof(special_pages) / sizeof(special_pages[0]); i++) {
+-		if (!syms[i])
++		INT_BITS symval = syms[special_pages[i]];
 +
-+			to = msecs_to_jiffies(ksm_thread_sleep_millisecs);
- 			if (use_deferrable_timer)
- 				schedule_timeout_deferrable_interruptible(to);
- 			else
++		if (!symval)
+ 			continue;  /* The mapping isn't used; ignore it. */
+ 
+-		if (syms[i] % 4096)
++		if (symval % 4096)
+ 			fail("%s must be a multiple of 4096\n",
+ 			     required_syms[i].name);
+-		if (syms[sym_vvar_start] > syms[i] + 4096)
+-			fail("%s underruns begin_vvar\n",
++		if (symval + 4096 < syms[sym_vvar_start])
++			fail("%s underruns vvar_start\n",
+ 			     required_syms[i].name);
+-		if (syms[i] + 4096 > 0)
++		if (symval + 4096 > 0)
+ 			fail("%s is on the wrong side of the vdso text\n",
+ 			     required_syms[i].name);
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from luto@amacapital.net are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-mm-debugfs-move-rounddown_pow_of_two-out-from-do_fault-path-fix.patch
-mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings-fix-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-rtc-add-pcf85063-support-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-proc-remove-proc_tty_ldisc-variable-fix.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
-panic-add-taint_softlockup-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+x86-vdso-fix-vdso2cs-special_pages-error-checking.patch
+arm64ia64ppcs390shtileumx86mm-remove-default-gate-area.patch
+mm-allow-drivers-to-prevent-new-writable-mappings.patch
+shm-add-sealing-api.patch
+shm-add-memfd_create-syscall.patch
+selftests-add-memfd_create-sealing-tests.patch
+selftests-add-memfd-sealing-page-pinning-tests.patch
+shm-wait-for-pins-to-be-released-when-sealing.patch
+bin2c-move-bin2c-in-scripts-basic.patch
+kernel-build-bin2c-based-on-config-option-config_build_bin2c.patch
+kexec-rename-unusebale_pages-to-unusable_pages.patch
+kexec-move-segment-verification-code-in-a-separate-function.patch
+kexec-use-common-function-for-kimage_normal_alloc-and-kimage_crash_alloc.patch
+resource-provide-new-functions-to-walk-through-resources.patch
+kexec-make-kexec_segment-user-buffer-pointer-a-union.patch
+kexec-new-syscall-kexec_file_load-declaration.patch
+kexec-implementation-of-new-syscall-kexec_file_load.patch
+purgatory-sha256-provide-implementation-of-sha256-in-purgaotory-context.patch
+purgatory-core-purgatory-functionality.patch
+kexec-load-and-relocate-purgatory-at-kernel-load-time.patch
+kexec-load-and-relocate-purgatory-at-kernel-load-time-fix.patch
+kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry.patch
+kexec-support-for-kexec-on-panic-using-new-system-call.patch
+kexec-support-kexec-kdump-on-efi-systems.patch
+kexec-verify-the-signature-of-signed-pe-bzimage.patch
 
