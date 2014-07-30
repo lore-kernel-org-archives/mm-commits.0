@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-go7007-pattern.patch added to -mm tree
-Date: Wed, 30 Jul 2014 14:07:04 -0700
-Message-ID: <53d95e78.sysaEoJu+EPQTbQx%akpm@linux-foundation.org>
+Subject: + maintainers-update-usb-gadget-patterns.patch added to -mm tree
+Date: Wed, 30 Jul 2014 14:07:03 -0700
+Message-ID: <53d95e77.SEqDyqOwCk9Vpizq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:51617 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341AbaG3VHF (ORCPT
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:34146 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751328AbaG3VHF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:07:05 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rl12so540219iec.3
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:07:05 -0700 (PDT)
+Received: by mail-oa0-f74.google.com with SMTP id eb12so545326oac.1
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:07:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, hans.verkuil@cisco.com, mm-commits@vger.kernel.org
+To: joe@perches.com, andrzej.p@samsung.com, dahlmann.thomas@arcor.de, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, laurent.pinchart@ideasonboard.com, leoli@freescale.com, linux@arm.linux.org.uk, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update go7007 pattern
+     Subject: MAINTAINERS: update usb/gadget patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-go7007-pattern.patch
+     maintainers-update-usb-gadget-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-go7007-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-usb-gadget-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-go7007-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-usb-gadget-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,47 +41,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update go7007 pattern
+Subject: MAINTAINERS: update usb/gadget patterns
 
-Commit 7955f03d18d1 ("[media] go7007: move out of staging into
-drivers/media/usb") moved the files, update the pattern.
+Several commits have moved files around, update the section patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Thomas Dahlmann <dahlmann.thomas@arcor.de>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ MAINTAINERS |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-go7007-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-update-go7007-pattern
+diff -puN MAINTAINERS~maintainers-update-usb-gadget-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-usb-gadget-patterns
 +++ a/MAINTAINERS
-@@ -4014,6 +4014,12 @@ F:	Documentation/isdn/README.gigaset
- F:	drivers/isdn/gigaset/
- F:	include/uapi/linux/gigaset_dev.h
+@@ -597,7 +597,7 @@ AMD GEODE CS5536 USB DEVICE CONTROLLER D
+ M:	Thomas Dahlmann <dahlmann.thomas@arcor.de>
+ L:	linux-geode@lists.infradead.org (moderated for non-subscribers)
+ S:	Supported
+-F:	drivers/usb/gadget/amd5536udc.*
++F:	drivers/usb/gadget/udc/amd5536udc.*
  
-+GO7007 MPEG CODEC
-+M:	Hans Verkuil <hans.verkuil@cisco.com>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/usb/go7007/
-+
- GPIO SUBSYSTEM
- M:	Linus Walleij <linus.walleij@linaro.org>
- M:	Alexandre Courbot <gnurou@gmail.com>
-@@ -8620,11 +8626,6 @@ M:	Marek Belisko <marek.belisko@gmail.co
- S:	Odd Fixes
- F:	drivers/staging/ft1000/
+ AMD GEODE PROCESSOR/CHIPSET SUPPORT
+ P:	Andres Salomon <dilinger@queued.net>
+@@ -1698,7 +1698,7 @@ ATMEL USBA UDC DRIVER
+ M:	Nicolas Ferre <nicolas.ferre@atmel.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Supported
+-F:	drivers/usb/gadget/atmel_usba_udc.*
++F:	drivers/usb/gadget/udc/atmel_usba_udc.*
  
--STAGING - GO7007 MPEG CODEC
--M:	Hans Verkuil <hans.verkuil@cisco.com>
--S:	Maintained
--F:	drivers/staging/media/go7007/
--
- STAGING - INDUSTRIAL IO
- M:	Jonathan Cameron <jic23@kernel.org>
- L:	linux-iio@vger.kernel.org
+ ATMEL WIRELESS DRIVER
+ M:	Simon Kelley <simon@thekelleys.org.uk>
+@@ -3815,7 +3815,7 @@ M:	Li Yang <leoli@freescale.com>
+ L:	linux-usb@vger.kernel.org
+ L:	linuxppc-dev@lists.ozlabs.org
+ S:	Maintained
+-F:	drivers/usb/gadget/fsl*
++F:	drivers/usb/gadget/udc/fsl*
+ 
+ FREESCALE QUICC ENGINE UCC ETHERNET DRIVER
+ M:	Li Yang <leoli@freescale.com>
+@@ -7249,7 +7249,7 @@ S:	Maintained
+ F:	arch/arm/mach-pxa/
+ F:	drivers/pcmcia/pxa2xx*
+ F:	drivers/spi/spi-pxa2xx*
+-F:	drivers/usb/gadget/pxa2*
++F:	drivers/usb/gadget/udc/pxa2*
+ F:	include/sound/pxa2xx-lib.h
+ F:	sound/arm/pxa*
+ F:	sound/soc/pxa/
+@@ -9600,8 +9600,8 @@ USB WEBCAM GADGET
+ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ L:	linux-usb@vger.kernel.org
+ S:	Maintained
+-F:	drivers/usb/gadget/*uvc*.c
+-F:	drivers/usb/gadget/webcam.c
++F:	drivers/usb/gadget/function/*uvc*.c
++F:	drivers/usb/gadget/legacy/webcam.c
+ 
+ USB WIRELESS RNDIS DRIVER (rndis_wlan)
+ M:	Jussi Kivilinna <jussi.kivilinna@iki.fi>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
