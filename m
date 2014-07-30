@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-samsung-pinctrl-patterns.patch added to -mm
- tree
-Date: Wed, 30 Jul 2014 14:07:06 -0700
-Message-ID: <53d95e7a.rpZZJfS+c+YHovlu%akpm@linux-foundation.org>
+Subject: + maintainers-update-go7007-pattern.patch added to -mm tree
+Date: Wed, 30 Jul 2014 14:07:04 -0700
+Message-ID: <53d95e78.sysaEoJu+EPQTbQx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f201.google.com ([209.85.213.201]:45624 "EHLO
-	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341AbaG3VHH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:07:07 -0400
-Received: by mail-ig0-f201.google.com with SMTP id h3so323289igd.2
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:07:07 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:51617 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751341AbaG3VHF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jul 2014 17:07:05 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so540219iec.3
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2014 14:07:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, hans.verkuil@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update samsung pinctrl patterns
+     Subject: MAINTAINERS: update go7007 pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-update-samsung-pinctrl-patterns.patch
+     maintainers-update-go7007-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-samsung-pinctrl-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-go7007-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-samsung-pinctrl-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-go7007-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,32 +41,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update samsung pinctrl patterns
+Subject: MAINTAINERS: update go7007 pattern
 
-commit ebe629a39e04 ("pinctrl: samsung: Group all drivers in a sub-dir")
-moved the files, update the patterns.
+Commit 7955f03d18d1 ("[media] go7007: move out of staging into
+drivers/media/usb") moved the files, update the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ MAINTAINERS |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-samsung-pinctrl-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-samsung-pinctrl-patterns
+diff -puN MAINTAINERS~maintainers-update-go7007-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-go7007-pattern
 +++ a/MAINTAINERS
-@@ -7006,9 +7006,7 @@ M:	Thomas Abraham <thomas.abraham@linaro
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- L:	linux-samsung-soc@vger.kernel.org (moderated for non-subscribers)
- S:	Maintained
--F:	drivers/pinctrl/pinctrl-exynos.*
--F:	drivers/pinctrl/pinctrl-s3c*
--F:	drivers/pinctrl/pinctrl-samsung.*
-+F:	drivers/pinctrl/samsung/
+@@ -4014,6 +4014,12 @@ F:	Documentation/isdn/README.gigaset
+ F:	drivers/isdn/gigaset/
+ F:	include/uapi/linux/gigaset_dev.h
  
- PIN CONTROLLER - ST SPEAR
- M:	Viresh Kumar <viresh.linux@gmail.com>
++GO7007 MPEG CODEC
++M:	Hans Verkuil <hans.verkuil@cisco.com>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/usb/go7007/
++
+ GPIO SUBSYSTEM
+ M:	Linus Walleij <linus.walleij@linaro.org>
+ M:	Alexandre Courbot <gnurou@gmail.com>
+@@ -8620,11 +8626,6 @@ M:	Marek Belisko <marek.belisko@gmail.co
+ S:	Odd Fixes
+ F:	drivers/staging/ft1000/
+ 
+-STAGING - GO7007 MPEG CODEC
+-M:	Hans Verkuil <hans.verkuil@cisco.com>
+-S:	Maintained
+-F:	drivers/staging/media/go7007/
+-
+ STAGING - INDUSTRIAL IO
+ M:	Jonathan Cameron <jic23@kernel.org>
+ L:	linux-iio@vger.kernel.org
 _
 
 Patches currently in -mm which might be from joe@perches.com are
