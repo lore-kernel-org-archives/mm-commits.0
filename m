@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + dm-bufio-fully-initialize-shrinker.patch added to -mm tree
-Date: Thu, 31 Jul 2014 14:31:38 -0700
-Message-ID: <53dab5ba.4/ifZnot7v771SyD%akpm__46782.4526517235$1406842314$gmane$org@linux-foundation.org>
+Subject: +
+ mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio.patch
+ added to -mm tree
+Date: Thu, 31 Jul 2014 15:25:08 -0700
+Message-ID: <53dac244.e6YcZNB0kjSYydRK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:54820 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268AbaGaVbj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jul 2014 17:31:39 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wp18so804745obc.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 Jul 2014 14:31:39 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:61541 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906AbaGaWZJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jul 2014 18:25:09 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so625598pab.0
+        for <mm-commits@vger.kernel.org>; Thu, 31 Jul 2014 15:25:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, agk@redhat.com, dchinner@redhat.com, neilb@suse.de, snitzer@redhat.com, stable@vger.kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: jmarchan@redhat.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dm bufio: fully initialize shrinker
+     Subject: mm, vmscan: fix an outdated comment still mentioning get_scan_ratio
 has been added to the -mm tree.  Its filename is
-     dm-bufio-fully-initialize-shrinker.patch
+     mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dm-bufio-fully-initialize-shrinker.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dm-bufio-fully-initialize-shrinker.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,54 +42,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: dm bufio: fully initialize shrinker
+From: "Jerome Marchand" <jmarchan@redhat.com>
+Subject: mm, vmscan: fix an outdated comment still mentioning get_scan_ratio
 
-1d3d4437eae1 ("vmscan: per-node deferred work") added a flags field to
-struct shrinker assuming that all shrinkers were zero filled.  The dm
-bufio shrinker is not zero filled, which leaves arbitrary kmalloc() data
-in flags.  So far the only defined flags bit is SHRINKER_NUMA_AWARE.
-But there are proposed patches which add other bits to shrinker.flags
-(e.g. memcg awareness).
+Quite a while ago, get_scan_ratio() has been renamed get_scan_count(),
+however a comment in shrink_active_list() still mention it.  This patch
+fixes the outdated comment.
 
-Rather than simply initializing the shrinker, this patch uses kzalloc()
-when allocating the dm_bufio_client to ensure that the embedded shrinker
-and any other similar structures are zeroed.
-
-This fixes theoretical over aggressive shrinking of dm bufio objects.
-If the uninitialized dm_bufio_client.shrinker.flags contains
-SHRINKER_NUMA_AWARE then shrink_slab() would call the dm shrinker for
-each numa node rather than just once.  This has been broken since 3.12.
-
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: <stable@vger.kernel.org>	[3.12+]
+Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-bufio.c |    2 +-
+ mm/vmscan.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/dm-bufio.c~dm-bufio-fully-initialize-shrinker drivers/md/dm-bufio.c
---- a/drivers/md/dm-bufio.c~dm-bufio-fully-initialize-shrinker
-+++ a/drivers/md/dm-bufio.c
-@@ -1541,7 +1541,7 @@ struct dm_bufio_client *dm_bufio_client_
- 	BUG_ON(block_size < 1 << SECTOR_SHIFT ||
- 	       (block_size & (block_size - 1)));
+diff -puN mm/vmscan.c~mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio
++++ a/mm/vmscan.c
+@@ -1759,7 +1759,7 @@ static void shrink_active_list(unsigned
+ 	 * Count referenced pages from currently used mappings as rotated,
+ 	 * even though only some of them are actually re-activated.  This
+ 	 * helps balance scan pressure between file and anonymous pages in
+-	 * get_scan_ratio.
++	 * get_scan_count.
+ 	 */
+ 	reclaim_stat->recent_rotated[file] += nr_rotated;
  
--	c = kmalloc(sizeof(*c), GFP_KERNEL);
-+	c = kzalloc(sizeof(*c), GFP_KERNEL);
- 	if (!c) {
- 		r = -ENOMEM;
- 		goto bad_client;
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from jmarchan@redhat.com are
 
-dm-bufio-fully-initialize-shrinker.patch
-memcg-remove-lookup_cgroup_page-prototype.patch
+mm-make-copy_pte_range-static-again.patch
+mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio.patch
+memcg-vmscan-fix-forced-scan-of-anonymous-pages.patch
+zram-use-size_t-instead-of-u16.patch
+zram-remove-global-tb_lock-with-fine-grain-lock.patch
 
