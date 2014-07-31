@@ -1,76 +1,92 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- rapidio-tsi721_dma-fix-failure-to-obtain-transaction-descriptor.patch
- removed from -mm tree
-Date: Thu, 31 Jul 2014 13:22:06 -0700
-Message-ID: <53daa56e.bVVcVhetG5N7r42H%akpm__9546.59226486019$1406838144$gmane$org@linux-foundation.org>
+ hwpoison-call-action_result-in-failure-path-of-hwpoison_user_mappings.patch removed from -mm tree
+Date: Thu, 31 Jul 2014 13:22:10 -0700
+Message-ID: <53daa572.SV8LOnLAGzMJXkX1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:58178 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751375AbaGaUWH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jul 2014 16:22:07 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so596068pab.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 Jul 2014 13:22:06 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:40712 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751322AbaGaUWL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jul 2014 16:22:11 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so431342yha.4
+        for <mm-commits@vger.kernel.org>; Thu, 31 Jul 2014 13:22:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, dan.j.williams@intel.com, mporter@kernel.crashing.org, stable@vger.kernel.org, stef.van.os@prodrive-technologies.com, vinod.koul@intel.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, slaoub@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/tsi721_dma: fix failure to obtain transaction descriptor
+     Subject: hwpoison: call action_result() in failure path of hwpoison_user_mappings()
 has been removed from the -mm tree.  Its filename was
-     rapidio-tsi721_dma-fix-failure-to-obtain-transaction-descriptor.patch
+     hwpoison-call-action_result-in-failure-path-of-hwpoison_user_mappings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721_dma: fix failure to obtain transaction descriptor
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: hwpoison: call action_result() in failure path of hwpoison_user_mappings()
 
-This is a bug fix for the situation when function tsi721_desc_get() fails
-to obtain a free transaction descriptor.
+hwpoison_user_mappings() could fail for various reasons, so printk()s to
+print out the reasons should be done in each failure check inside
+hwpoison_user_mappings().
 
-The bug usually results in a memory access crash dump when data transfer
-scatter-gather list has more entries than size of hardware buffer
-descriptors ring.  This fix ensures that error is properly returned to a
-caller instead of an invalid entry.
+And currently we don't call action_result() when hwpoison_user_mappings()
+fails, which is not consistent with other exit points of memory error
+handler.  So this patch fixes these messaging problems.
 
-This patch is applicable to kernel versions starting from v3.5.
-
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
-Cc: Stef van Os <stef.van.os@prodrive-technologies.com>
-Cc: Vinod Koul <vinod.koul@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: <stable@vger.kernel.org>	[3.5+]
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Chen Yucong <slaoub@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721_dma.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/memory-failure.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-fix-failure-to-obtain-transaction-descriptor drivers/rapidio/devices/tsi721_dma.c
---- a/drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-fix-failure-to-obtain-transaction-descriptor
-+++ a/drivers/rapidio/devices/tsi721_dma.c
-@@ -287,6 +287,12 @@ struct tsi721_tx_desc *tsi721_desc_get(s
- 			"desc %p not ACKed\n", tx_desc);
- 	}
+diff -puN mm/memory-failure.c~hwpoison-call-action_result-in-failure-path-of-hwpoison_user_mappings mm/memory-failure.c
+--- a/mm/memory-failure.c~hwpoison-call-action_result-in-failure-path-of-hwpoison_user_mappings
++++ a/mm/memory-failure.c
+@@ -911,8 +911,10 @@ static int hwpoison_user_mappings(struct
+ 	if (!page_mapped(hpage))
+ 		return SWAP_SUCCESS;
  
-+	if (ret == NULL) {
-+		dev_dbg(bdma_chan->dchan.device->dev,
-+			"%s: unable to obtain tx descriptor\n", __func__);
-+		goto err_out;
+-	if (PageKsm(p))
++	if (PageKsm(p)) {
++		pr_err("MCE %#lx: can't handle KSM pages.\n", pfn);
+ 		return SWAP_FAIL;
 +	}
-+
- 	i = bdma_chan->wr_count_next % bdma_chan->bd_num;
- 	if (i == bdma_chan->bd_num - 1) {
- 		i = 0;
-@@ -297,7 +303,7 @@ struct tsi721_tx_desc *tsi721_desc_get(s
- 	tx_desc->txd.phys = bdma_chan->bd_phys +
- 				i * sizeof(struct tsi721_dma_desc);
- 	tx_desc->hw_desc = &((struct tsi721_dma_desc *)bdma_chan->bd_base)[i];
+ 
+ 	if (PageSwapCache(p)) {
+ 		printk(KERN_ERR
+@@ -1235,7 +1237,7 @@ int memory_failure(unsigned long pfn, in
+ 	 */
+ 	if (hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)
+ 	    != SWAP_SUCCESS) {
+-		printk(KERN_ERR "MCE %#lx: cannot unmap page, give up\n", pfn);
++		action_result(pfn, "unmapping failed", IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
+_
+
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+
+origin.patch
+mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
+mm-update-the-description-for-madvise_remove.patch
+mm-hwpoison-injectc-remove-unnecessary-null-test-before-debugfs_remove_recursive.patch
+hwpoison-fix-race-with-changing-page-during-offlining-v2.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
+mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
+mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages.patch
+mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+linux-next.patch
+
