@@ -1,114 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-export-free_huge_page-to-vmcoreinfo.patch removed
- from -mm tree
-Date: Thu, 31 Jul 2014 13:22:18 -0700
-Message-ID: <53daa57a.o6uS3v8w7cszRlGZ%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings.patch removed from
+ -mm tree
+Date: Thu, 31 Jul 2014 13:22:16 -0700
+Message-ID: <53daa578.Iqfesa+fHBgZmbUg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:54899 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751553AbaGaUWT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jul 2014 16:22:19 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so595912pab.2
-        for <mm-commits@vger.kernel.org>; Thu, 31 Jul 2014 13:22:18 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:32976 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751818AbaGaUWR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jul 2014 16:22:17 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so926778oig.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 Jul 2014 13:22:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kumagai-atsushi@mxc.nes.nec.co.jp, bhe@redhat.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: export free_huge_page to VMCOREINFO
+     Subject: mm: fix filemap.c pagecache_get_page() kernel-doc warnings
 has been removed from the -mm tree.  Its filename was
-     kexec-export-free_huge_page-to-vmcoreinfo.patch
+     mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Subject: kexec: export free_huge_page to VMCOREINFO
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm: fix filemap.c pagecache_get_page() kernel-doc warnings
 
-PG_head_mask was added into VMCOREINFO to filter huge pages in b3acc56bfe1
-("kexec: save PG_head_mask in VMCOREINFO"), but makedumpfile still need
-another symbol to filter *hugetlbfs* pages.
+Fix kernel-doc warnings in mm/filemap.c: pagecache_get_page():
 
-If a user hope to filter user pages, makedumpfile tries to exclude them by
-checking the condition whether the page is anonymous, but hugetlbfs pages
-aren't anonymous while they also be user pages.
+Warning(..//mm/filemap.c:1054): No description found for parameter 'cache_gfp_mask'
+Warning(..//mm/filemap.c:1054): No description found for parameter 'radix_gfp_mask'
+Warning(..//mm/filemap.c:1054): Excess function parameter 'gfp_mask' description in 'pagecache_get_page'
 
-We know it's possible to detect them in the same way as PageHuge(),
-so we need the start address of free_huge_page():
+Fixes: 2457aec63745 ("mm: non-atomically mark page accessed during page cache allocation where possible")
 
-    int PageHuge(struct page *page)
-    {
-            if (!PageCompound(page))
-                    return 0;
-
-            page = compound_head(page);
-            return get_compound_page_dtor(page) == free_huge_page;
-    }
-
-For that reason, this patch changes free_huge_page() into public
-to export it to VMCOREINFO.
-
-Signed-off-by: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+[mgorman@suse.de: change everything]
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- kernel/kexec.c          |    2 ++
- mm/hugetlb.c            |    2 +-
- 3 files changed, 4 insertions(+), 1 deletion(-)
+ mm/filemap.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/hugetlb.h~kexec-export-free_huge_page-to-vmcoreinfo include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~kexec-export-free_huge_page-to-vmcoreinfo
-+++ a/include/linux/hugetlb.h
-@@ -80,6 +80,7 @@ int dequeue_hwpoisoned_huge_page(struct
- bool isolate_huge_page(struct page *page, struct list_head *list);
- void putback_active_hugepage(struct page *page);
- bool is_hugepage_active(struct page *page);
-+void free_huge_page(struct page *page);
- 
- #ifdef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
- pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud);
-diff -puN kernel/kexec.c~kexec-export-free_huge_page-to-vmcoreinfo kernel/kexec.c
---- a/kernel/kexec.c~kexec-export-free_huge_page-to-vmcoreinfo
-+++ a/kernel/kexec.c
-@@ -33,6 +33,7 @@
- #include <linux/swap.h>
- #include <linux/syscore_ops.h>
- #include <linux/compiler.h>
-+#include <linux/hugetlb.h>
- 
- #include <asm/page.h>
- #include <asm/uaccess.h>
-@@ -1619,6 +1620,7 @@ static int __init crash_save_vmcoreinfo_
- #endif
- 	VMCOREINFO_NUMBER(PG_head_mask);
- 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
-+	VMCOREINFO_SYMBOL(free_huge_page);
- 
- 	arch_crash_save_vmcoreinfo();
- 	update_vmcoreinfo_note();
-diff -puN mm/hugetlb.c~kexec-export-free_huge_page-to-vmcoreinfo mm/hugetlb.c
---- a/mm/hugetlb.c~kexec-export-free_huge_page-to-vmcoreinfo
-+++ a/mm/hugetlb.c
-@@ -856,7 +856,7 @@ struct hstate *size_to_hstate(unsigned l
- 	return NULL;
- }
- 
--static void free_huge_page(struct page *page)
-+void free_huge_page(struct page *page)
- {
- 	/*
- 	 * Can't pass hstate in here because it is called from the
+diff -puN mm/filemap.c~mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings mm/filemap.c
+--- a/mm/filemap.c~mm-fix-filemapc-pagecache_get_page-kernel-doc-warnings
++++ a/mm/filemap.c
+@@ -1031,18 +1031,21 @@ EXPORT_SYMBOL(find_lock_entry);
+  * @mapping: the address_space to search
+  * @offset: the page index
+  * @fgp_flags: PCG flags
+- * @gfp_mask: gfp mask to use if a page is to be allocated
++ * @cache_gfp_mask: gfp mask to use for the page cache data page allocation
++ * @radix_gfp_mask: gfp mask to use for radix tree node allocation
+  *
+  * Looks up the page cache slot at @mapping & @offset.
+  *
+- * PCG flags modify how the page is returned
++ * PCG flags modify how the page is returned.
+  *
+  * FGP_ACCESSED: the page will be marked accessed
+  * FGP_LOCK: Page is return locked
+  * FGP_CREAT: If page is not present then a new page is allocated using
+- *		@gfp_mask and added to the page cache and the VM's LRU
+- *		list. The page is returned locked and with an increased
+- *		refcount. Otherwise, %NULL is returned.
++ *		@cache_gfp_mask and added to the page cache and the VM's LRU
++ *		list. If radix tree nodes are allocated during page cache
++ *		insertion then @radix_gfp_mask is used. The page is returned
++ *		locked and with an increased refcount. Otherwise, %NULL is
++ *		returned.
+  *
+  * If FGP_LOCK or FGP_CREAT are specified then the function may sleep even
+  * if the GFP flags specified for FGP_CREAT are atomic.
 _
 
-Patches currently in -mm which might be from kumagai-atsushi@mxc.nes.nec.co.jp are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 origin.patch
+kbuild-explain-stack-protector-strong-config-logic.patch
+add-lib-globc.patch
+lib-globc-add-config_glob_selftest.patch
+libata-use-glob_match-from-lib-globc.patch
+panic-add-taint_softlockup.patch
+panic-add-taint_softlockup-fix.patch
+linux-next.patch
+debugging-keep-track-of-page-owners.patch
 
