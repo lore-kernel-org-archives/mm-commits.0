@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-close-race-between-do_fault_around-and-fault_around_bytes_set.patch
- added to -mm tree
-Date: Fri, 01 Aug 2014 13:24:06 -0700
-Message-ID: <53dbf766.hZUXyUXhJC12CNt3%akpm@linux-foundation.org>
+Subject: + mm-softdirty-respect-vm_softdirty-in-pte-holes.patch added to
+ -mm tree
+Date: Fri, 01 Aug 2014 13:50:05 -0700
+Message-ID: <53dbfd7d.RcHippe7dfFMhskG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:58066 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932206AbaHAUYI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Aug 2014 16:24:08 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hq11so604564vcb.5
-        for <mm-commits@vger.kernel.org>; Fri, 01 Aug 2014 13:24:07 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:59944 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756178AbaHAUuH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Aug 2014 16:50:07 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so1174655obb.0
+        for <mm-commits@vger.kernel.org>; Fri, 01 Aug 2014 13:50:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, a.ryabinin@samsung.com, dave.hansen@intel.com, rientjes@google.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: pfeiner@google.com, gorcunov@openvz.org, hughd@google.com, n-horiguchi@ah.jp.nec.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: close race between do_fault_around() and fault_around_bytes_set()
+     Subject: mm: softdirty: respect VM_SOFTDIRTY in PTE holes
 has been added to the -mm tree.  Its filename is
-     mm-close-race-between-do_fault_around-and-fault_around_bytes_set.patch
+     mm-softdirty-respect-vm_softdirty-in-pte-holes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-close-race-between-do_fault_around-and-fault_around_bytes_set.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-softdirty-respect-vm_softdirty-in-pte-holes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-close-race-between-do_fault_around-and-fault_around_bytes_set.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-softdirty-respect-vm_softdirty-in-pte-holes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,109 +41,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: close race between do_fault_around() and fault_around_bytes_set()
+From: Peter Feiner <pfeiner@google.com>
+Subject: mm: softdirty: respect VM_SOFTDIRTY in PTE holes
 
-Things can go wrong if fault_around_bytes will be changed under
-do_fault_around(): between fault_around_mask() and fault_around_pages().
+After a VMA is created with the VM_SOFTDIRTY flag set, /proc/pid/pagemap
+should report that the VMA's virtual pages are soft-dirty until
+VM_SOFTDIRTY is cleared (i.e., by the next write of "4" to
+/proc/pid/clear_refs).  However, pagemap ignores the VM_SOFTDIRTY flag for
+virtual addresses that fall in PTE holes (i.e., virtual addresses that
+don't have a PMD, PUD, or PGD allocated yet).
 
-Let's read fault_around_bytes only once during do_fault_around() and
-calculate mask based on the reading.
+To observe this bug, use mmap to create a VMA large enough such that
+there's a good chance that the VMA will occupy an unused PMD, then test
+the soft-dirty bit on its pages.  In practice, I found that a VMA that
+covered a PMD's worth of address space was big enough.
 
-Note: fault_around_bytes can only be updated via debug interface.  Also
-I've tried but was not able to trigger a bad behaviour without the patch. 
-So I would not consider this patch as urgent.
+This patch adds the necessary VMA lookup to the PTE hole callback in
+/proc/pid/pagemap's page walk and sets soft-dirty according to the VMAs'
+VM_SOFTDIRTY flag.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andrey Ryabinin <a.ryabinin@samsung.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Peter Feiner <pfeiner@google.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Hugh Dickins <hughd@google.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ fs/proc/task_mmu.c |   27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
 
-diff -puN mm/memory.c~mm-close-race-between-do_fault_around-and-fault_around_bytes_set mm/memory.c
---- a/mm/memory.c~mm-close-race-between-do_fault_around-and-fault_around_bytes_set
-+++ a/mm/memory.c
-@@ -2770,16 +2770,6 @@ void do_set_pte(struct vm_area_struct *v
- 
- static unsigned long fault_around_bytes = rounddown_pow_of_two(65536);
- 
--static inline unsigned long fault_around_pages(void)
--{
--	return fault_around_bytes >> PAGE_SHIFT;
--}
--
--static inline unsigned long fault_around_mask(void)
--{
--	return ~(fault_around_bytes - 1) & PAGE_MASK;
--}
--
- #ifdef CONFIG_DEBUG_FS
- static int fault_around_bytes_get(void *data, u64 *val)
+diff -puN fs/proc/task_mmu.c~mm-softdirty-respect-vm_softdirty-in-pte-holes fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-softdirty-respect-vm_softdirty-in-pte-holes
++++ a/fs/proc/task_mmu.c
+@@ -925,15 +925,30 @@ static int pagemap_pte_hole(unsigned lon
+ 				struct mm_walk *walk)
  {
-@@ -2844,12 +2834,15 @@ late_initcall(fault_around_debugfs);
- static void do_fault_around(struct vm_area_struct *vma, unsigned long address,
- 		pte_t *pte, pgoff_t pgoff, unsigned int flags)
- {
--	unsigned long start_addr;
-+	unsigned long start_addr, nr_pages, mask;
- 	pgoff_t max_pgoff;
- 	struct vm_fault vmf;
- 	int off;
+ 	struct pagemapread *pm = walk->private;
+-	unsigned long addr;
++	unsigned long addr = start;
+ 	int err = 0;
+-	pagemap_entry_t pme = make_pme(PM_NOT_PRESENT(pm->v2));
  
--	start_addr = max(address & fault_around_mask(), vma->vm_start);
-+	nr_pages = ACCESS_ONCE(fault_around_bytes) >> PAGE_SHIFT;
-+	mask = ~(nr_pages * PAGE_SIZE - 1) & PAGE_MASK;
+-	for (addr = start; addr < end; addr += PAGE_SIZE) {
+-		err = add_to_pagemap(addr, &pme, pm);
+-		if (err)
+-			break;
++	while (addr < end) {
++		struct vm_area_struct *vma = find_vma(walk->mm, addr);
++		pagemap_entry_t pme = make_pme(PM_NOT_PRESENT(pm->v2));
++		unsigned long vm_end;
 +
-+	start_addr = max(address & mask, vma->vm_start);
- 	off = ((address - start_addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
- 	pte -= off;
- 	pgoff -= off;
-@@ -2861,7 +2854,7 @@ static void do_fault_around(struct vm_ar
- 	max_pgoff = pgoff - ((start_addr >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)) +
- 		PTRS_PER_PTE - 1;
- 	max_pgoff = min3(max_pgoff, vma_pages(vma) + vma->vm_pgoff - 1,
--			pgoff + fault_around_pages() - 1);
-+			pgoff + nr_pages - 1);
++		if (!vma) {
++			vm_end = end;
++		} else {
++			vm_end = min(end, vma->vm_end);
++			if (vma->vm_flags & VM_SOFTDIRTY)
++				pme.pme |= PM_STATUS2(pm->v2, __PM_SOFT_DIRTY);
++		}
++
++		for (; addr < vm_end; addr += PAGE_SIZE) {
++			err = add_to_pagemap(addr, &pme, pm);
++			if (err)
++				goto out;
++		}
+ 	}
++
++out:
+ 	return err;
+ }
  
- 	/* Check if it makes any sense to call ->map_pages */
- 	while (!pte_none(*pte)) {
-@@ -2896,7 +2889,7 @@ static int do_read_fault(struct mm_struc
- 	 * something).
- 	 */
- 	if (vma->vm_ops->map_pages && !(flags & FAULT_FLAG_NONLINEAR) &&
--	    fault_around_pages() > 1) {
-+	    fault_around_bytes >> PAGE_SHIFT > 1) {
- 		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
- 		do_fault_around(vma, address, pte, pgoff, flags);
- 		if (!pte_same(*pte, orig_pte))
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from pfeiner@google.com are
 
-origin.patch
-mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
-mm-thp-move-invariant-bug-check-out-of-loop-in-__split_huge_page_map.patch
-mm-thp-replace-smp_mb-after-atomic_add-by-smp_mb__after_atomic.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
-mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
-mm-oom-remove-unnecessary-check-for-null-zonelist.patch
-mm-oom-rename-zonelist-locking-functions.patch
-mm-close-race-between-do_fault_around-and-fault_around_bytes_set.patch
-mm-mark-fault_around_bytes-__read_mostly.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-linux-next.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+mm-softdirty-respect-vm_softdirty-in-pte-holes.patch
 
