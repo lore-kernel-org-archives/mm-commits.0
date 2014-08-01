@@ -1,153 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 01 Aug 2014 11:54:47 -0700
-Message-ID: <53dbe277.YnbpRNkHUNrbh4Dn%akpm@linux-foundation.org>
+Subject: [merged] maintainers-update-go7007-pattern.patch removed from -mm tree
+Date: Fri, 01 Aug 2014 11:55:18 -0700
+Message-ID: <53dbe296.Tv1kkfHzPlaUrz75%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:37369 "EHLO
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:61472 "EHLO
 	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753808AbaHASys (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Aug 2014 14:54:48 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rl12so1289289iec.3
-        for <mm-commits@vger.kernel.org>; Fri, 01 Aug 2014 11:54:47 -0700 (PDT)
+	with ESMTP id S1754712AbaHASzT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Aug 2014 14:55:19 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so1289310iec.5
+        for <mm-commits@vger.kernel.org>; Fri, 01 Aug 2014 11:55:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, hans.verkuil@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: MAINTAINERS: update go7007 pattern
+has been removed from the -mm tree.  Its filename was
+     maintainers-update-go7007-pattern.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: update go7007 pattern
 
+Commit 7955f03d18d1 ("[media] go7007: move out of staging into
+drivers/media/usb") moved the files, update the pattern.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpacpi/core.c |   37 -----------------------------------
- 1 file changed, 37 deletions(-)
+ MAINTAINERS |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pnp/pnpacpi/core.c~linux-next-git-rejects drivers/pnp/pnpacpi/core.c
---- a/drivers/pnp/pnpacpi/core.c~linux-next-git-rejects
-+++ a/drivers/pnp/pnpacpi/core.c
-@@ -310,43 +310,6 @@ static acpi_status __init pnpacpi_add_de
- 	return AE_OK;
- }
+diff -puN MAINTAINERS~maintainers-update-go7007-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-go7007-pattern
++++ a/MAINTAINERS
+@@ -4014,6 +4014,12 @@ F:	Documentation/isdn/README.gigaset
+ F:	drivers/isdn/gigaset/
+ F:	include/uapi/linux/gigaset_dev.h
  
--<<<<<<< HEAD
--static int __init acpi_pnp_match(struct device *dev, void *_pnp)
--{
--	struct acpi_device *acpi = to_acpi_device(dev);
--	struct pnp_dev *pnp = _pnp;
++GO7007 MPEG CODEC
++M:	Hans Verkuil <hans.verkuil@cisco.com>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/usb/go7007/
++
+ GPIO SUBSYSTEM
+ M:	Linus Walleij <linus.walleij@linaro.org>
+ M:	Alexandre Courbot <gnurou@gmail.com>
+@@ -8620,11 +8626,6 @@ M:	Marek Belisko <marek.belisko@gmail.co
+ S:	Odd Fixes
+ F:	drivers/staging/ft1000/
+ 
+-STAGING - GO7007 MPEG CODEC
+-M:	Hans Verkuil <hans.verkuil@cisco.com>
+-S:	Maintained
+-F:	drivers/staging/media/go7007/
 -
--	/* true means it matched */
--	return pnp->data == acpi;
--}
--
--static struct acpi_device * __init acpi_pnp_find_companion(struct device *dev)
--{
--	dev = bus_find_device(&acpi_bus_type, NULL, to_pnp_dev(dev),
--			      acpi_pnp_match);
--	if (!dev)
--		return NULL;
--
--	put_device(dev);
--	return to_acpi_device(dev);
--}
--
--/* complete initialization of a PNPACPI device includes having
-- * pnpdev->dev.archdata.acpi_handle point to its ACPI sibling.
-- */
--static bool acpi_pnp_bus_match(struct device *dev)
--{
--	return dev->bus == &pnp_bus_type;
--}
--
--static struct acpi_bus_type __initdata acpi_pnp_bus = {
--	.name	     = "PNP",
--	.match	     = acpi_pnp_bus_match,
--	.find_companion = acpi_pnp_find_companion,
--};
--
--=======
-->>>>>>> linux-next/akpm-base
- int pnpacpi_disabled __initdata;
- static int __init pnpacpi_init(void)
- {
+ STAGING - INDUSTRIAL IO
+ M:	Jonathan Cameron <jic23@kernel.org>
+ L:	linux-iio@vger.kernel.org
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
+fs-fscache-make-ctl_table-static.patch
+fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-asus_atk0110-fix-define_simple_attribute-semicolon-definition-and-use.patch
+printk-make-dynamic-kernel-ring-buffer-alignment-explicit.patch
+printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+printk-make-dynamic-units-clear-for-the-kernel-ring-buffer.patch
+printk-allow-increasing-the-ring-buffer-depending-on-the-number-of-cpus.patch
+printk-tweak-do_syslog-to-match-comments.patch
+kernelh-remove-deprecated-pack_hex_byte.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
+checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
+checkpatch-ignore-email-headers-better.patch
+checkpatchpl-also-suggest-else-if-when-if-follows-brace.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
+checkpatch-add-test-for-blank-lines-after-function-struct-union-enum-declarations.patch
+checkpatch-add-a-multiple-blank-lines-test.patch
+checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
+checkpatch-quiet-kconfig-help-message-checking.patch
+checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
+checkpatch-allow-multiple-const-types.patch
+checkpatch-improve-no-space-after-cast-test.patch
+checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
 checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-rtc-add-pcf85063-support-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-proc-remove-proc_tty_ldisc-variable-fix.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
-panic-add-taint_softlockup-fix.patch
+checkpatch-emit-a-warning-on-file-add-move-delete.patch
+checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation.patch
+checkpatch-add-an-index-variable-for-fixed-lines.patch
+checkpatch-add-ability-to-insert-and-delete-lines-to-patch-file.patch
+checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch
+checkpatch-use-the-correct-indentation-for-which.patch
+checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
+checkpatch-fix-brace-style-misuses-of-else-and-while.patch
+checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
+checkpatch-add-short-int-to-c-variable-types.patch
+checkpatch-add-signed-generic-types.patch
+checkpatch-add-test-for-native-c90-types-in-unusual-order.patch
+checkpatch-fix-false-positive-missing_break-warnings-with-file.patch
+checkpatch-fix-false-positives-for-strict-space-after-cast-test.patch
+checkpatch-warn-on-missing-spaces-in-broken-up-quoted.patch
+fs-isofs-logging-clean-up.patch
+proc-constify-seq_operations.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
 linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+maintainers-remove-two-ancient-eata-sections.patch
+pci-dma-compat-add-pci_zalloc_consistent-helper.patch
+atm-use-pci_zalloc_consistent.patch
+block-use-pci_zalloc_consistent.patch
+crypto-use-pci_zalloc_consistent.patch
+infiniband-use-pci_zalloc_consistent.patch
+i810-use-pci_zalloc_consistent.patch
+media-use-pci_zalloc_consistent.patch
+amd-use-pci_zalloc_consistent.patch
+atl1e-use-pci_zalloc_consistent.patch
+enic-use-pci_zalloc_consistent.patch
+sky2-use-pci_zalloc_consistent.patch
+micrel-use-pci_zalloc_consistent.patch
+qlogic-use-pci_zalloc_consistent.patch
+irda-use-pci_zalloc_consistent.patch
+ipw2100-use-pci_zalloc_consistent.patch
+mwl8k-use-pci_zalloc_consistent.patch
+rtl818x-use-pci_zalloc_consistent.patch
+rtlwifi-use-pci_zalloc_consistent.patch
+scsi-use-pci_zalloc_consistent.patch
+staging-use-pci_zalloc_consistent.patch
+synclink_gt-use-pci_zalloc_consistent.patch
+vme-bridges-use-pci_zalloc_consistent.patch
+amd-neaten-and-remove-unnecessary-oom-messages.patch
+maintainers-update-microcode-patterns.patch
+maintainers-update-cifs-location.patch
+maintainers-use-the-correct-efi-stub-location.patch
+maintainers-update-clk-sirf-patterns.patch
+maintainers-fix-ssbi-pattern.patch
+maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
+maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
+maintainers-update-picoxcell-patterns.patch
+maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
+maintainers-remove-metag-imgdafs-pattern.patch
+maintainers-remove-unused-radeon-drm-pattern.patch
+maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
+maintainers-remove-unused-nfsd-pattern.patch
+fsh-remove-unnecessary-extern-prototypes.patch
+fsh-whitespace-neatening.patch
+fsh-a-few-more-whitespace-neatenings.patch
+fsh-add-argument-names-to-struct-file_lock_operations-funcs.patch
+fsh-add-member-argument-descriptions-to-lock_manager_operations.patch
+dlm-plock-add-argument-descriptions-to-notify.patch
+dlm-fs-remove-unused-conf-from-lm_grant.patch
+dlm-plock-reduce-indentation-by-rearranging-order.patch
+maintainers-update-dma-buffer-sharing-patterns.patch
+maintainers-update-usb-gadget-patterns.patch
+maintainers-update-samsung-pinctrl-patterns.patch
+maintainers-update-nomadik-patterns.patch
 
