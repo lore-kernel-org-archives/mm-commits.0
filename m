@@ -1,38 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-go7007-pattern.patch removed from -mm tree
-Date: Fri, 01 Aug 2014 11:55:18 -0700
-Message-ID: <53dbe296.Tv1kkfHzPlaUrz75%akpm@linux-foundation.org>
+Subject: [merged] maintainers-update-solo6x10-patterns.patch removed from
+ -mm tree
+Date: Fri, 01 Aug 2014 11:55:20 -0700
+Message-ID: <53dbe298.9xEOBBuFc1VyTou2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:61472 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754712AbaHASzT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Aug 2014 14:55:19 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rl12so1289310iec.5
-        for <mm-commits@vger.kernel.org>; Fri, 01 Aug 2014 11:55:18 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:39325 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754712AbaHASzV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Aug 2014 14:55:21 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so829547pab.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Aug 2014 11:55:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, hans.verkuil@cisco.com, mm-commits@vger.kernel.org
+To: joe@perches.com, hans.verkuil@cisco.com, ismael.luceno@corp.bluecherry.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update go7007 pattern
+     Subject: MAINTAINERS: update solo6x10 patterns
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-go7007-pattern.patch
+     maintainers-update-solo6x10-patterns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update go7007 pattern
+Subject: MAINTAINERS: update solo6x10 patterns
 
-Commit 7955f03d18d1 ("[media] go7007: move out of staging into
-drivers/media/usb") moved the files, update the pattern.
+commit 28cae868cd24 ("[media] solo6x10: move out of staging into
+drivers/media/pci") moved the files, update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -40,34 +42,34 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  MAINTAINERS |   11 ++++++-----
  1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-go7007-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-update-go7007-pattern
+diff -puN MAINTAINERS~maintainers-update-solo6x10-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-solo6x10-patterns
 +++ a/MAINTAINERS
-@@ -4014,6 +4014,12 @@ F:	Documentation/isdn/README.gigaset
- F:	drivers/isdn/gigaset/
- F:	include/uapi/linux/gigaset_dev.h
+@@ -8420,6 +8420,12 @@ M:	Chris Boot <bootc@bootc.net>
+ S:	Maintained
+ F:	drivers/leds/leds-net48xx.c
  
-+GO7007 MPEG CODEC
-+M:	Hans Verkuil <hans.verkuil@cisco.com>
++SOFTLOGIC 6x10 MPEG CODEC
++M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
 +L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/usb/go7007/
++S:	Supported
++F:	drivers/media/pci/solo6x10/
 +
- GPIO SUBSYSTEM
- M:	Linus Walleij <linus.walleij@linaro.org>
- M:	Alexandre Courbot <gnurou@gmail.com>
-@@ -8620,11 +8626,6 @@ M:	Marek Belisko <marek.belisko@gmail.co
+ SOFTWARE RAID (Multiple Disks) SUPPORT
+ M:	Neil Brown <neilb@suse.de>
+ L:	linux-raid@vger.kernel.org
+@@ -8683,11 +8689,6 @@ M:	Christopher Harrer <charrer@alacritec
  S:	Odd Fixes
- F:	drivers/staging/ft1000/
+ F:	drivers/staging/slicoss/
  
--STAGING - GO7007 MPEG CODEC
--M:	Hans Verkuil <hans.verkuil@cisco.com>
--S:	Maintained
--F:	drivers/staging/media/go7007/
+-STAGING - SOFTLOGIC 6x10 MPEG CODEC
+-M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+-S:	Supported
+-F:	drivers/staging/media/solo6x10/
 -
- STAGING - INDUSTRIAL IO
- M:	Jonathan Cameron <jic23@kernel.org>
- L:	linux-iio@vger.kernel.org
+ STAGING - SPEAKUP CONSOLE SPEECH DRIVER
+ M:	William Hubbs <w.d.hubbs@gmail.com>
+ M:	Chris Brannon <chris@the-brannons.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
