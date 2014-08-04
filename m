@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge.patch added
- to -mm tree
-Date: Mon, 04 Aug 2014 15:32:18 -0700
-Message-ID: <53e009f2.x19Q1MImvw5w4GrZ%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
+ added to -mm tree
+Date: Mon, 04 Aug 2014 15:33:43 -0700
+Message-ID: <53e00a47.v4Ur+5ofsi0WwToi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:65209 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753001AbaHDWcT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2014 18:32:19 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so31788pab.0
-        for <mm-commits@vger.kernel.org>; Mon, 04 Aug 2014 15:32:18 -0700 (PDT)
+Received: from mail-oi0-f73.google.com ([209.85.218.73]:59055 "EHLO
+	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753120AbaHDWdo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2014 18:33:44 -0400
+Received: by mail-oi0-f73.google.com with SMTP id u20so23881oif.4
+        for <mm-commits@vger.kernel.org>; Mon, 04 Aug 2014 15:33:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org, hughd@google.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: clean up reclaim size variable use in try_charge()
+     Subject: mm/hugetlb: remove unused argument of follow_huge_(pmd|pud)
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge.patch
+     mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,120 +41,250 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: clean up reclaim size variable use in try_charge()
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/hugetlb: remove unused argument of follow_huge_(pmd|pud)
 
-Charge reclaim and OOM currently use the charge batch variable, but
-batching is already disabled at that point.  To simplify the charge logic,
-the batch variable is reset to the original request size when reclaim is
-entered, so it's functionally equal, but it's misleading.
+There is no implementation of follow_huge_pmd() which actually uses the
+fourth argument "write".  So let's zap it.
 
-Switch reclaim/OOM to nr_pages, which is the original request size.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/ia64/mm/hugetlbpage.c    |    2 +-
+ arch/metag/mm/hugetlbpage.c   |    2 +-
+ arch/mips/mm/hugetlbpage.c    |    2 +-
+ arch/powerpc/mm/hugetlbpage.c |    2 +-
+ arch/s390/mm/hugetlbpage.c    |    2 +-
+ arch/sh/mm/hugetlbpage.c      |    2 +-
+ arch/sparc/mm/hugetlbpage.c   |    2 +-
+ arch/tile/mm/hugetlbpage.c    |    4 ++--
+ arch/x86/mm/hugetlbpage.c     |    2 +-
+ include/linux/hugetlb.h       |    8 ++++----
+ mm/gup.c                      |    2 +-
+ mm/hugetlb.c                  |   11 ++++-------
+ 12 files changed, 19 insertions(+), 22 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge
-+++ a/mm/memcontrol.c
-@@ -2574,7 +2574,7 @@ retry:
+diff -puN arch/ia64/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud arch/ia64/mm/hugetlbpage.c
+--- a/arch/ia64/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/arch/ia64/mm/hugetlbpage.c
+@@ -115,7 +115,7 @@ int pud_huge(pud_t pud)
+ }
  
- 	nr_reclaimed = mem_cgroup_reclaim(mem_over_limit, gfp_mask, flags);
+ struct page *
+-follow_huge_pmd(struct mm_struct *mm, unsigned long address, pmd_t *pmd, int write)
++follow_huge_pmd(struct mm_struct *mm, unsigned long address, pmd_t *pmd)
+ {
+ 	return NULL;
+ }
+diff -puN arch/metag/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud arch/metag/mm/hugetlbpage.c
+--- a/arch/metag/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/arch/metag/mm/hugetlbpage.c
+@@ -111,7 +111,7 @@ int pud_huge(pud_t pud)
+ }
  
--	if (mem_cgroup_margin(mem_over_limit) >= batch)
-+	if (mem_cgroup_margin(mem_over_limit) >= nr_pages)
- 		goto retry;
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-			     pmd_t *pmd, int write)
++			     pmd_t *pmd)
+ {
+ 	return NULL;
+ }
+diff -puN arch/mips/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud arch/mips/mm/hugetlbpage.c
+--- a/arch/mips/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/arch/mips/mm/hugetlbpage.c
+@@ -86,7 +86,7 @@ int pud_huge(pud_t pud)
  
- 	if (gfp_mask & __GFP_NORETRY)
-@@ -2588,7 +2588,7 @@ retry:
- 	 * unlikely to succeed so close to the limit, and we fall back
- 	 * to regular pages anyway in case of failure.
- 	 */
--	if (nr_reclaimed && batch <= (1 << PAGE_ALLOC_COSTLY_ORDER))
-+	if (nr_reclaimed && nr_pages <= (1 << PAGE_ALLOC_COSTLY_ORDER))
- 		goto retry;
- 	/*
- 	 * At task move, charge accounts can be doubly counted. So, it's
-@@ -2606,7 +2606,7 @@ retry:
- 	if (fatal_signal_pending(current))
- 		goto bypass;
+ struct page *
+ follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-		pmd_t *pmd, int write)
++		pmd_t *pmd)
+ {
+ 	struct page *page;
  
--	mem_cgroup_oom(mem_over_limit, gfp_mask, get_order(batch));
-+	mem_cgroup_oom(mem_over_limit, gfp_mask, get_order(nr_pages));
- nomem:
- 	if (!(gfp_mask & __GFP_NOFAIL))
- 		return -ENOMEM;
+diff -puN arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -700,7 +700,7 @@ follow_huge_addr(struct mm_struct *mm, u
+ 
+ struct page *
+ follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-		pmd_t *pmd, int write)
++		pmd_t *pmd)
+ {
+ 	BUG();
+ 	return NULL;
+diff -puN arch/s390/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud arch/s390/mm/hugetlbpage.c
+--- a/arch/s390/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/arch/s390/mm/hugetlbpage.c
+@@ -221,7 +221,7 @@ int pud_huge(pud_t pud)
+ }
+ 
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-			     pmd_t *pmdp, int write)
++			     pmd_t *pmdp)
+ {
+ 	struct page *page;
+ 
+diff -puN arch/sh/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud arch/sh/mm/hugetlbpage.c
+--- a/arch/sh/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/arch/sh/mm/hugetlbpage.c
+@@ -84,7 +84,7 @@ int pud_huge(pud_t pud)
+ }
+ 
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-			     pmd_t *pmd, int write)
++			     pmd_t *pmd)
+ {
+ 	return NULL;
+ }
+diff -puN arch/sparc/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud arch/sparc/mm/hugetlbpage.c
+--- a/arch/sparc/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/arch/sparc/mm/hugetlbpage.c
+@@ -232,7 +232,7 @@ int pud_huge(pud_t pud)
+ }
+ 
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-			     pmd_t *pmd, int write)
++			     pmd_t *pmd)
+ {
+ 	return NULL;
+ }
+diff -puN arch/tile/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud arch/tile/mm/hugetlbpage.c
+--- a/arch/tile/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/arch/tile/mm/hugetlbpage.c
+@@ -167,7 +167,7 @@ int pud_huge(pud_t pud)
+ }
+ 
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-			     pmd_t *pmd, int write)
++			     pmd_t *pmd)
+ {
+ 	struct page *page;
+ 
+@@ -178,7 +178,7 @@ struct page *follow_huge_pmd(struct mm_s
+ }
+ 
+ struct page *follow_huge_pud(struct mm_struct *mm, unsigned long address,
+-			     pud_t *pud, int write)
++			     pud_t *pud)
+ {
+ 	struct page *page;
+ 
+diff -puN arch/x86/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -54,7 +54,7 @@ int pud_huge(pud_t pud)
+ 
+ struct page *
+ follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-		pmd_t *pmd, int write)
++		pmd_t *pmd)
+ {
+ 	return NULL;
+ }
+diff -puN include/linux/hugetlb.h~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/include/linux/hugetlb.h
+@@ -99,9 +99,9 @@ int huge_pmd_unshare(struct mm_struct *m
+ struct page *follow_huge_addr(struct mm_struct *mm, unsigned long address,
+ 			      int write);
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-				pmd_t *pmd, int write);
++				pmd_t *pmd);
+ struct page *follow_huge_pud(struct mm_struct *mm, unsigned long address,
+-				pud_t *pud, int write);
++				pud_t *pud);
+ struct page *follow_huge_pmd_lock(struct vm_area_struct *vma,
+ 				unsigned long address, pmd_t *pmd, int flags);
+ int pmd_huge(pmd_t pmd);
+@@ -135,8 +135,8 @@ static inline void hugetlb_report_meminf
+ static inline void hugetlb_show_meminfo(void)
+ {
+ }
+-#define follow_huge_pmd(mm, addr, pmd, write)	NULL
+-#define follow_huge_pud(mm, addr, pud, write)	NULL
++#define follow_huge_pmd(mm, addr, pmd)	NULL
++#define follow_huge_pud(mm, addr, pud)	NULL
+ #define follow_huge_pmd_lock(vma, addr, pmd, flags)	NULL
+ #define prepare_hugepage_range(file, addr, len)	(-EINVAL)
+ #define pmd_huge(x)	0
+diff -puN mm/gup.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud mm/gup.c
+--- a/mm/gup.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/mm/gup.c
+@@ -165,7 +165,7 @@ struct page *follow_page_mask(struct vm_
+ 	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
+ 		if (flags & FOLL_GET)
+ 			return NULL;
+-		page = follow_huge_pud(mm, address, pud, flags & FOLL_WRITE);
++		page = follow_huge_pud(mm, address, pud);
+ 		return page;
+ 	}
+ 	if (unlikely(pud_bad(*pud)))
+diff -puN mm/hugetlb.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud
++++ a/mm/hugetlb.c
+@@ -3660,8 +3660,7 @@ pte_t *huge_pte_offset(struct mm_struct
+ }
+ 
+ struct page *
+-follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-		pmd_t *pmd, int write)
++follow_huge_pmd(struct mm_struct *mm, unsigned long address, pmd_t *pmd)
+ {
+ 	struct page *page;
+ 
+@@ -3672,8 +3671,7 @@ follow_huge_pmd(struct mm_struct *mm, un
+ }
+ 
+ struct page *
+-follow_huge_pud(struct mm_struct *mm, unsigned long address,
+-		pud_t *pud, int write)
++follow_huge_pud(struct mm_struct *mm, unsigned long address, pud_t *pud)
+ {
+ 	struct page *page;
+ 
+@@ -3687,8 +3685,7 @@ follow_huge_pud(struct mm_struct *mm, un
+ 
+ /* Can be overriden by architectures */
+ struct page * __weak
+-follow_huge_pud(struct mm_struct *mm, unsigned long address,
+-	       pud_t *pud, int write)
++follow_huge_pud(struct mm_struct *mm, unsigned long address, pud_t *pud)
+ {
+ 	BUG();
+ 	return NULL;
+@@ -3705,7 +3702,7 @@ struct page *follow_huge_pmd_lock(struct
+ 	if (flags & FOLL_GET)
+ 		ptl = huge_pte_lock(hstate_vma(vma), vma->vm_mm, (pte_t *)pmd);
+ 
+-	page = follow_huge_pmd(vma->vm_mm, address, pmd, flags & FOLL_WRITE);
++	page = follow_huge_pmd(vma->vm_mm, address, pmd);
+ 
+ 	if (flags & FOLL_GET) {
+ 		/*
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-origin.patch
-vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-mm-page-flags-clean-up-the-page-flag-test-set-clear-macros.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-charge-api-fix-3.patch
-mm-memcontrol-rewrite-charge-api-fix-shmem_unuse.patch
 mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-rewrite-uncharge-api-fix-2.patch
-mm-memcontrol-rewrite-uncharge-api-fix-4.patch
-mm-memcontrol-rewrite-uncharge-api-fix-5.patch
-mm-memcontrol-rewrite-uncharge-api-fix-uncharge-from-irq-context.patch
-mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
-mm-memcontrol-rewrite-uncharge-api-fix-migrate-before-re-mapping.patch
-mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration.patch
-mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
-mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
-page-cgroup-trivial-cleanup.patch
-page-cgroup-get-rid-of-nr_pcg_flags.patch
-memcg-remove-lookup_cgroup_page-prototype.patch
-mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
-mm-vmscan-remove-all_unreclaimable.patch
-mm-vmscan-remove-all_unreclaimable-fix.patch
-mm-vmscan-move-swappiness-out-of-scan_control.patch
-mm-vmscan-clean-up-struct-scan_control-v2.patch
-mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
-mm-replace-init_page_accessed-by-__setpagereferenced.patch
-mm-update-the-description-for-vm_total_pages.patch
-mm-vmscan-report-the-number-of-file-anon-pages-respectively.patch
-mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
-mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
-mm-move-zone-pages_scanned-into-a-vmstat-counter.patch
-mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
-mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
-mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
-mm-writeback-prevent-race-when-calculating-dirty-limits.patch
-slub-remove-kmemcg-id-from-create_unique_id.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
-mm-oom-rename-zonelist-locking-functions.patch
-mm-thp-restructure-thp-avoidance-of-light-synchronous-migration.patch
-mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio.patch
-memcg-vmscan-fix-forced-scan-of-anonymous-pages.patch
-memcg-vmscan-fix-forced-scan-of-anonymous-pages-fix-cleanups.patch
-mm-memcontrol-avoid-charge-statistics-churn-during-page-migration.patch
-mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge.patch
-nilfs2-integrate-sysfs-support-into-driver-fix.patch
+mm-update-the-description-for-madvise_remove.patch
+mm-hwpoison-injectc-remove-unnecessary-null-test-before-debugfs_remove_recursive.patch
+hwpoison-fix-race-with-changing-page-during-offlining-v2.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
+mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
+mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages.patch
+mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages-fix.patch
+mm-softdirty-respect-vm_softdirty-in-pte-holes.patch
+mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
 
