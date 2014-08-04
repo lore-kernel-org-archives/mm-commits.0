@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bug-when-__kmap_atomic_idx-equals-km_type_nr.patch added to
- -mm tree
-Date: Mon, 04 Aug 2014 15:48:20 -0700
-Message-ID: <53e00db4.sg/v+byA7fMrZCKC%akpm@linux-foundation.org>
+Subject: + minix-zmap-block-counts-calculation-fix.patch added to -mm tree
+Date: Mon, 04 Aug 2014 15:57:31 -0700
+Message-ID: <53e00fdb.qHpUrs//lpiE5kUF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:51696 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752843AbaHDWsV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2014 18:48:21 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so26212oig.5
-        for <mm-commits@vger.kernel.org>; Mon, 04 Aug 2014 15:48:20 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:43980 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751498AbaHDW5c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2014 18:57:32 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so38978pab.1
+        for <mm-commits@vger.kernel.org>; Mon, 04 Aug 2014 15:57:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cpandya@codeaurora.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: qiyong@fc-cn.com, jwboyer@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: BUG when __kmap_atomic_idx equals KM_TYPE_NR
+     Subject: minix zmap block counts calculation fix
 has been added to the -mm tree.  Its filename is
-     mm-bug-when-__kmap_atomic_idx-equals-km_type_nr.patch
+     minix-zmap-block-counts-calculation-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-bug-when-__kmap_atomic_idx-equals-km_type_nr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/minix-zmap-block-counts-calculation-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-bug-when-__kmap_atomic_idx-equals-km_type_nr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/minix-zmap-block-counts-calculation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,44 +40,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chintan Pandya <cpandya@codeaurora.org>
-Subject: mm: BUG when __kmap_atomic_idx equals KM_TYPE_NR
+From: Qi Yong <qiyong@fc-cn.com>
+Subject: minix zmap block counts calculation fix
 
-__kmap_atomic_idx is per_cpu variable.  Each CPU can use KM_TYPE_NR
-entries from FIXMAP i.e.  from 0 to KM_TYPE_NR - 1.  Allowing
-__kmap_atomic_idx to over- shoot to KM_TYPE_NR can mess up with next CPU's
-0th entry which is a bug.  Hence BUG_ON if __kmap_atomic_idx >=
-KM_TYPE_NR.
+The original minix zmap blocks calculation was correct, in the formula of:
 
-Fix the off-by-on in this test.
+	sbi->s_nzones - sbi->s_firstdatazone + 1
+	
+It is
 
-Signed-off-by: Chintan Pandya <cpandya@codeaurora.org>
-Cc: David Rientjes <rientjes@google.com>
+	sp->s_zones - (sp->s_firstdatazone - 1)
+
+in the minix3 source code.
+
+But a later patch 016e8d44bc06dd ("fs/minix: Verify bitmap block counts
+before mounting") has changed it unfortunately as:
+
+  sbi->s_nzones - (sbi->s_firstdatazone + 1)
+
+This would show free blocks one block less than the real when the total
+data blocks are in "full zmap blocks plus one".
+
+This patch corrects that zmap blocks calculation and tidy a printk message
+while at it.
+
+Signed-off-by: Qi Yong <qiyong@fc-cn.com>
+Cc: Josh Boyer <jwboyer@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/minix/bitmap.c |    2 +-
+ fs/minix/inode.c  |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/highmem.h~mm-bug-when-__kmap_atomic_idx-equals-km_type_nr include/linux/highmem.h
---- a/include/linux/highmem.h~mm-bug-when-__kmap_atomic_idx-equals-km_type_nr
-+++ a/include/linux/highmem.h
-@@ -93,7 +93,7 @@ static inline int kmap_atomic_idx_push(v
+diff -puN fs/minix/bitmap.c~minix-zmap-block-counts-calculation-fix fs/minix/bitmap.c
+--- a/fs/minix/bitmap.c~minix-zmap-block-counts-calculation-fix
++++ a/fs/minix/bitmap.c
+@@ -96,7 +96,7 @@ int minix_new_block(struct inode * inode
+ unsigned long minix_count_free_blocks(struct super_block *sb)
+ {
+ 	struct minix_sb_info *sbi = minix_sb(sb);
+-	u32 bits = sbi->s_nzones - (sbi->s_firstdatazone + 1);
++	u32 bits = sbi->s_nzones - sbi->s_firstdatazone + 1;
  
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	WARN_ON_ONCE(in_irq() && !irqs_disabled());
--	BUG_ON(idx > KM_TYPE_NR);
-+	BUG_ON(idx >= KM_TYPE_NR);
- #endif
- 	return idx;
- }
+ 	return (count_free(sbi->s_zmap, sb->s_blocksize, bits)
+ 		<< sbi->s_log_zone_size);
+diff -puN fs/minix/inode.c~minix-zmap-block-counts-calculation-fix fs/minix/inode.c
+--- a/fs/minix/inode.c~minix-zmap-block-counts-calculation-fix
++++ a/fs/minix/inode.c
+@@ -267,12 +267,12 @@ static int minix_fill_super(struct super
+ 	block = minix_blocks_needed(sbi->s_ninodes, s->s_blocksize);
+ 	if (sbi->s_imap_blocks < block) {
+ 		printk("MINIX-fs: file system does not have enough "
+-				"imap blocks allocated.  Refusing to mount\n");
++				"imap blocks allocated.  Refusing to mount.\n");
+ 		goto out_no_bitmap;
+ 	}
+ 
+ 	block = minix_blocks_needed(
+-			(sbi->s_nzones - (sbi->s_firstdatazone + 1)),
++			(sbi->s_nzones - sbi->s_firstdatazone + 1),
+ 			s->s_blocksize);
+ 	if (sbi->s_zmap_blocks < block) {
+ 		printk("MINIX-fs: file system does not have enough "
 _
 
-Patches currently in -mm which might be from cpandya@codeaurora.org are
+Patches currently in -mm which might be from qiyong@fc-cn.com are
 
-mm-bug-when-__kmap_atomic_idx-equals-km_type_nr.patch
-timer-provide-an-api-for-deferrable-timeout.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
+minix-zmap-block-counts-calculation-fix.patch
 
