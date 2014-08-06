@@ -1,127 +1,140 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages-fix.patch
- removed from -mm tree
-Date: Wed, 06 Aug 2014 15:49:17 -0700
-Message-ID: <53e2b0ed.UeGOVd7j6pHEo0oF%akpm@linux-foundation.org>
+ memcg-vmscan-fix-forced-scan-of-anonymous-pages-fix-cleanups.patch removed
+ from -mm tree
+Date: Wed, 06 Aug 2014 15:52:00 -0700
+Message-ID: <53e2b190.3lpLwyC8BImfzT4G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:44222 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754476AbaHFWtS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:49:18 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so840325pab.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:49:18 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:47146 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753066AbaHFWwB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:52:01 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so841610pab.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:52:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, n-horiguchi@ah.jp.nec.com, zhong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix potential infinite loop in dissolve_free_huge_pages() fix
+     Subject: memcg, vmscan: fix forced scan of anonymous pages fix - cleanups
 has been removed from the -mm tree.  Its filename was
-     mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages-fix.patch
+     memcg-vmscan-fix-forced-scan-of-anonymous-pages-fix-cleanups.patch
 
-This patch was dropped because it was folded into mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages.patch
+This patch was dropped because it was folded into memcg-vmscan-fix-forced-scan-of-anonymous-pages.patch
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm: fix potential infinite loop in dissolve_free_huge_pages() fix
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: memcg, vmscan: fix forced scan of anonymous pages fix - cleanups
 
-No legitimate reason to call dissolve_free_huge_pages() when
-!hugepages_supported().
+o Use enum zone_stat_item symbols directly to select zone stats,
+  rather than NR_LRU_BASE plus LRU index
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Li Zhong <zhong@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+o scanned/rotated scaling is the only user of the lruvec anon/file
+  counters, so move the reads of those values to right before that
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c        |    3 +++
- mm/memory_hotplug.c |    3 +--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages-fix
-+++ a/mm/hugetlb.c
-@@ -1088,6 +1088,9 @@ void dissolve_free_huge_pages(unsigned l
- 	unsigned long pfn;
- 	struct hstate *h;
+diff -puN mm/vmscan.c~memcg-vmscan-fix-forced-scan-of-anonymous-pages-fix-cleanups mm/vmscan.c
+--- a/mm/vmscan.c~memcg-vmscan-fix-forced-scan-of-anonymous-pages-fix-cleanups
++++ a/mm/vmscan.c
+@@ -1934,11 +1934,6 @@ static void get_scan_count(struct lruvec
+ 		goto out;
+ 	}
  
-+	if (!hugepages_supported())
-+		return;
-+
- 	/* Set scan step to minimum hugepage size */
- 	for_each_hstate(h)
- 		if (order > huge_page_order(h))
-diff -puN mm/memory_hotplug.c~mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages-fix
-+++ a/mm/memory_hotplug.c
-@@ -1726,8 +1726,7 @@ repeat:
- 	 * dissolve free hugepages in the memory block before doing offlining
- 	 * actually in order to make hugetlbfs's object counting consistent.
+-	anon  = get_lru_size(lruvec, LRU_ACTIVE_ANON) +
+-		get_lru_size(lruvec, LRU_INACTIVE_ANON);
+-	file  = get_lru_size(lruvec, LRU_ACTIVE_FILE) +
+-		get_lru_size(lruvec, LRU_INACTIVE_FILE);
+-
+ 	/*
+ 	 * Prevent the reclaimer from falling into the cache trap: as
+ 	 * cache pages start out inactive, every cache fault will tip
+@@ -1949,12 +1944,14 @@ static void get_scan_count(struct lruvec
+ 	 * anon pages.  Try to detect this based on file LRU size.
  	 */
--	if (hugepages_supported())
--		dissolve_free_huge_pages(start_pfn, end_pfn);
-+	dissolve_free_huge_pages(start_pfn, end_pfn);
- 	/* check again */
- 	offlined_pages = check_pages_isolated(start_pfn, end_pfn);
- 	if (offlined_pages < 0) {
+ 	if (global_reclaim(sc)) {
+-		unsigned long free = zone_page_state(zone, NR_FREE_PAGES);
+-		unsigned long zonefile =
+-			zone_page_state(zone, NR_LRU_BASE + LRU_ACTIVE_FILE) +
+-			zone_page_state(zone, NR_LRU_BASE + LRU_INACTIVE_FILE);
++		unsigned long zonefile;
++		unsigned long zonefree;
++
++		zonefree = zone_page_state(zone, NR_FREE_PAGES);
++		zonefile = zone_page_state(zone, NR_ACTIVE_FILE) +
++			   zone_page_state(zone, NR_INACTIVE_FILE);
+ 
+-		if (unlikely(zonefile + free <= high_wmark_pages(zone))) {
++		if (unlikely(zonefile + zonefree <= high_wmark_pages(zone))) {
+ 			scan_balance = SCAN_ANON;
+ 			goto out;
+ 		}
+@@ -1989,6 +1986,12 @@ static void get_scan_count(struct lruvec
+ 	 *
+ 	 * anon in [0], file in [1]
+ 	 */
++
++	anon  = get_lru_size(lruvec, LRU_ACTIVE_ANON) +
++		get_lru_size(lruvec, LRU_INACTIVE_ANON);
++	file  = get_lru_size(lruvec, LRU_ACTIVE_FILE) +
++		get_lru_size(lruvec, LRU_INACTIVE_FILE);
++
+ 	spin_lock_irq(&zone->lru_lock);
+ 	if (unlikely(reclaim_stat->recent_scanned[0] > anon / 4)) {
+ 		reclaim_stat->recent_scanned[0] /= 2;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-score-ptrace-remove-the-macros-which-not-be-used-currently.patch
-mm-slabc-add-__init-to-init_lock_keys.patch
-slab-common-add-functions-for-kmem_cache_node-access.patch
-slub-use-new-node-functions.patch
-slab-use-get_node-and-kmem_cache_node-functions.patch
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-mm-slub-mark-resiliency_test-as-init-text.patch
-mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
-slab-add-unlikely-macro-to-help-compiler.patch
-slab-move-up-code-to-get-kmem_cache_node-in-free_block.patch
-slab-defer-slab_destroy-in-free_block.patch
-slab-factor-out-initialization-of-arracy-cache.patch
-slab-introduce-alien_cache.patch
-slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
-slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
-slab-remove-a-useless-lockdep-annotation.patch
-slab-remove-bad_alien_magic.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-slub-reduce-duplicate-creation-on-the-first-object.patch
-mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
-mm-trivial-comment-cleanup-in-slabc.patch
-mm-slub-fix-some-indenting-in-cmpxchg_double_slab.patch
-slab-fix-the-alias-countvia-sysfs-of-slab-cache.patch
-mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
-mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-mm-page_alloc-simplify-drain_zone_pages-by-using-min.patch
-mm-mem-hotplug-replace-simple_strtoull-with-kstrtoull.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
-mm-vmalloc-constify-allocation-mask.patch
-mmhugetlb-make-unmap_ref_private-return-void.patch
-mmhugetlb-simplify-error-handling-in-hugetlb_cow.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages.patch
-mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
-mm-make-copy_pte_range-static-again.patch
-mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch
+vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
+mm-page-flags-clean-up-the-page-flag-test-set-clear-macros.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
+mm-vmscan-remove-all_unreclaimable.patch
+mm-vmscan-move-swappiness-out-of-scan_control.patch
+mm-vmscan-clean-up-struct-scan_control-v2.patch
+mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
+mm-replace-init_page_accessed-by-__setpagereferenced.patch
+mm-update-the-description-for-vm_total_pages.patch
+mm-vmscan-report-the-number-of-file-anon-pages-respectively.patch
+mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
+mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+mm-move-zone-pages_scanned-into-a-vmstat-counter.patch
+mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
+mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
+mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
 mm-writeback-prevent-race-when-calculating-dirty-limits.patch
 slub-remove-kmemcg-id-from-create_unique_id.patch
 mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
 mm-oom-rename-zonelist-locking-functions.patch
 mm-thp-restructure-thp-avoidance-of-light-synchronous-migration.patch
-mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages.patch
-mm-oom-remove-unnecessary-exit_state-check.patch
-mm-close-race-between-do_fault_around-and-fault_around_bytes_set.patch
-mm-mark-fault_around_bytes-__read_mostly.patch
-kernel-smpc-on_each_cpu_cond-fix-warning-in-fallback-path.patch
-mm-bug-when-__kmap_atomic_idx-equals-km_type_nr.patch
-mm-highmem-make-kmap-cache-coloring-aware.patch
-lib-add-size-unit-t-p-e-to-memparse.patch
+mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio.patch
+memcg-vmscan-fix-forced-scan-of-anonymous-pages.patch
+mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge.patch
 
