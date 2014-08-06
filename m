@@ -1,97 +1,104 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- dma-cma-support-arbitrary-bitmap-granularity-fix.patch removed from -mm
- tree
-Date: Wed, 06 Aug 2014 15:44:57 -0700
-Message-ID: <53e2afe9.3mQAp9ObOZgIW7Bs%akpm@linux-foundation.org>
+ cma-generalize-cma-reserved-area-management-functionality-fix.patch removed from -mm tree
+Date: Wed, 06 Aug 2014 15:45:24 -0700
+Message-ID: <53e2b004.JGoHCigXG5TbcmrX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:59869 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754429AbaHFWo6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:44:58 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so839645pdj.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:44:58 -0700 (PDT)
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:49604 "EHLO
+	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754013AbaHFWpZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:45:25 -0400
+Received: by mail-qg0-f73.google.com with SMTP id q107so433426qgd.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:45:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agraf@suse.de, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, gleb@kernel.org, iamjoonsoo.kim@lge.com, m.szyprowski@samsung.com, mina86@mina86.com, minchan@kernel.org, paulus@samba.org, pbonzini@redhat.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-cma-support-arbitrary-bitmap-granularity-fix
+     Subject: CMA: fix ARM build failure related to MAX_CMA_AREAS definition
 has been removed from the -mm tree.  Its filename was
-     dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+     cma-generalize-cma-reserved-area-management-functionality-fix.patch
 
-This patch was dropped because it was folded into dma-cma-support-arbitrary-bitmap-granularity.patch
+This patch was dropped because it was folded into cma-generalize-cma-reserved-area-management-functionality.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: dma-cma-support-arbitrary-bitmap-granularity-fix
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: CMA: fix ARM build failure related to MAX_CMA_AREAS definition
 
-s/1/1UL/
+If CMA is disabled, CONFIG_CMA_AREAS isn't defined so compile error
+happens. To fix it, define MAX_CMA_AREAS if CONFIG_CMA_AREAS
+isn't defined.
 
-Cc: Alexander Graf <agraf@suse.de>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Gleb Natapov <gleb@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dma-contiguous.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/cma.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/base/dma-contiguous.c~dma-cma-support-arbitrary-bitmap-granularity-fix drivers/base/dma-contiguous.c
---- a/drivers/base/dma-contiguous.c~dma-cma-support-arbitrary-bitmap-granularity-fix
-+++ a/drivers/base/dma-contiguous.c
-@@ -160,7 +160,7 @@ static DEFINE_MUTEX(cma_mutex);
+diff -puN include/linux/cma.h~cma-generalize-cma-reserved-area-management-functionality-fix include/linux/cma.h
+--- a/include/linux/cma.h~cma-generalize-cma-reserved-area-management-functionality-fix
++++ a/include/linux/cma.h
+@@ -5,8 +5,14 @@
+  * There is always at least global CMA area and a few optional
+  * areas configured in kernel .config.
+  */
++#ifdef CONFIG_CMA_AREAS
+ #define MAX_CMA_AREAS	(1 + CONFIG_CMA_AREAS)
  
- static unsigned long cma_bitmap_aligned_mask(struct cma *cma, int align_order)
- {
--	return (1 << (align_order >> cma->order_per_bit)) - 1;
-+	return (1UL << (align_order >> cma->order_per_bit)) - 1;
- }
++#else
++#define MAX_CMA_AREAS	(0)
++
++#endif
++
+ struct cma;
  
- static unsigned long cma_bitmap_maxno(struct cma *cma)
-@@ -171,7 +171,7 @@ static unsigned long cma_bitmap_maxno(st
- static unsigned long cma_bitmap_pages_to_bits(struct cma *cma,
- 						unsigned long pages)
- {
--	return ALIGN(pages, 1 << cma->order_per_bit) >> cma->order_per_bit;
-+	return ALIGN(pages, 1UL << cma->order_per_bit) >> cma->order_per_bit;
- }
- 
- static void cma_clear_bitmap(struct cma *cma, unsigned long pfn, int count)
+ extern phys_addr_t cma_get_base(struct cma *cma);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-origin.patch
-fsnotify-rename-event-handling-functions.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
+mm-slabc-add-__init-to-init_lock_keys.patch
+slab-common-add-functions-for-kmem_cache_node-access.patch
 slub-use-new-node-functions.patch
 slab-use-get_node-and-kmem_cache_node-functions.patch
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+mm-slub-mark-resiliency_test-as-init-text.patch
+mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
+slab-add-unlikely-macro-to-help-compiler.patch
+slab-move-up-code-to-get-kmem_cache_node-in-free_block.patch
+slab-defer-slab_destroy-in-free_block.patch
+slab-factor-out-initialization-of-arracy-cache.patch
+slab-introduce-alien_cache.patch
+slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
+slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
+slab-remove-a-useless-lockdep-annotation.patch
+slab-remove-bad_alien_magic.patch
 slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+slub-reduce-duplicate-creation-on-the-first-object.patch
+mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
+mm-trivial-comment-cleanup-in-slabc.patch
+mm-slub-fix-some-indenting-in-cmpxchg_double_slab.patch
+slab-fix-the-alias-countvia-sysfs-of-slab-cache.patch
+vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
+dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
+dma-cma-support-alignment-constraint-on-cma-region.patch
 dma-cma-support-arbitrary-bitmap-granularity.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
+cma-generalize-cma-reserved-area-management-functionality.patch
+ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
+ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix.patch
+mm-cma-clean-up-cma-allocation-error-path.patch
+mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
+mm-cma-clean-up-log-message.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages.patch
 mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
+slub-remove-kmemcg-id-from-create_unique_id.patch
+kernel-smpc-on_each_cpu_cond-fix-warning-in-fallback-path.patch
 
