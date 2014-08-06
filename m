@@ -1,77 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch removed
- from -mm tree
-Date: Wed, 06 Aug 2014 15:43:31 -0700
-Message-ID: <53e2af93.tp9w/LF+6zIDf+LS%akpm@linux-foundation.org>
+Subject: [folded-merged] slab-defer-slab_destroy-in-free_block-v4.patch
+ removed from -mm tree
+Date: Wed, 06 Aug 2014 15:44:27 -0700
+Message-ID: <53e2afcb.DXSN02fwYed5GEi8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:48284 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754581AbaHFWnc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:43:32 -0400
-Received: by mail-ob0-f201.google.com with SMTP id nu7so614217obb.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:43:31 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:37116 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754264AbaHFWo2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:44:28 -0400
+Received: by mail-pd0-f201.google.com with SMTP id g10so837817pdj.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:44:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix
+     Subject: slab-defer-slab_destroy-in-free_block-v4
 has been removed from the -mm tree.  Its filename was
-     slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
+     slab-defer-slab_destroy-in-free_block-v4.patch
 
-This patch was dropped because it was folded into slab-use-get_node-and-kmem_cache_node-functions.patch
+This patch was dropped because it was folded into slab-defer-slab_destroy-in-free_block.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: slab-defer-slab_destroy-in-free_block-v4
 
 Cc: Christoph Lameter <cl@linux.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slab.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/slab.c~slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix mm/slab.c
---- a/mm/slab.c~slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix
+diff -puN mm/slab.c~slab-defer-slab_destroy-in-free_block-v4 mm/slab.c
+--- a/mm/slab.c~slab-defer-slab_destroy-in-free_block-v4
 +++ a/mm/slab.c
-@@ -590,7 +590,8 @@ static inline void on_slab_lock_classes_
- {
- }
+@@ -3412,6 +3412,7 @@ slab_alloc(struct kmem_cache *cachep, gf
  
--static void slab_set_debugobj_lock_classes_node(struct kmem_cache *cachep, int node)
-+static void slab_set_debugobj_lock_classes_node(struct kmem_cache *cachep,
-+	struct kmem_cache_node *n)
- {
- }
- 
+ /*
+  * Caller needs to acquire correct kmem_cache_node's list_lock
++ * @list: List of detached free slabs should be freed by caller
+  */
+ static void free_block(struct kmem_cache *cachep, void **objpp,
+ 			int nr_objects, int node, struct list_head *list)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-origin.patch
-fsnotify-rename-event-handling-functions.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
+mm-slabc-add-__init-to-init_lock_keys.patch
+slab-common-add-functions-for-kmem_cache_node-access.patch
 slub-use-new-node-functions.patch
 slab-use-get_node-and-kmem_cache_node-functions.patch
+mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
+mm-slub-mark-resiliency_test-as-init-text.patch
+mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
+slab-add-unlikely-macro-to-help-compiler.patch
+slab-move-up-code-to-get-kmem_cache_node-in-free_block.patch
+slab-defer-slab_destroy-in-free_block.patch
+slab-factor-out-initialization-of-arracy-cache.patch
+slab-introduce-alien_cache.patch
+slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
+slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
+slab-remove-a-useless-lockdep-annotation.patch
+slab-remove-bad_alien_magic.patch
 slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+slub-reduce-duplicate-creation-on-the-first-object.patch
+mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
+mm-trivial-comment-cleanup-in-slabc.patch
+mm-slub-fix-some-indenting-in-cmpxchg_double_slab.patch
+slab-fix-the-alias-countvia-sysfs-of-slab-cache.patch
+vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
+dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
+dma-cma-support-alignment-constraint-on-cma-region.patch
+dma-cma-support-arbitrary-bitmap-granularity.patch
 dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
+cma-generalize-cma-reserved-area-management-functionality.patch
+cma-generalize-cma-reserved-area-management-functionality-fix.patch
+ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
+ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix.patch
+mm-cma-clean-up-cma-allocation-error-path.patch
+mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
+mm-cma-clean-up-log-message.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages.patch
 mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
+slub-remove-kmemcg-id-from-create_unique_id.patch
+kernel-smpc-on_each_cpu_cond-fix-warning-in-fallback-path.patch
 
