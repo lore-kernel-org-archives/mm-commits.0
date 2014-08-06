@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
+Subject: [folded-merged] mm-vmscan-remove-all_unreclaimable-fix.patch
  removed from -mm tree
-Date: Wed, 06 Aug 2014 15:46:06 -0700
-Message-ID: <53e2b02e.RH2xvtO80m7Zs41R%akpm@linux-foundation.org>
+Date: Wed, 06 Aug 2014 15:46:31 -0700
+Message-ID: <53e2b047.2pAQRZS2Mxfe5Fys%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:42442 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbaHFWqI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:46:08 -0400
-Received: by mail-qa0-f73.google.com with SMTP id s7so437463qap.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:46:07 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:47570 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753243AbaHFWqc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:46:32 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so838970pab.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:46:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: rework compaction-ready signaling in direct reclaim fix
+     Subject: mm: vmscan: remove all_unreclaimable() fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
+     mm-vmscan-remove-all_unreclaimable-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
+This patch was dropped because it was folded into mm-vmscan-remove-all_unreclaimable.patch
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: rework compaction-ready signaling in direct reclaim fix
+Subject: mm: vmscan: remove all_unreclaimable() fix
 
-As per Mel, replace out label with breaks from the loop.
+As per Mel, use bool for reclaimability throughout and simplify the
+reclaimability tracking in shrink_zones().
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Rik van Riel <riel@redhat.com>
@@ -41,33 +41,100 @@ Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/vmscan.c |   29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix
+diff -puN mm/vmscan.c~mm-vmscan-remove-all_unreclaimable-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-remove-all_unreclaimable-fix
 +++ a/mm/vmscan.c
-@@ -2500,10 +2500,10 @@ static unsigned long do_try_to_free_page
+@@ -2248,10 +2248,10 @@ static inline bool should_continue_recla
+ 	}
+ }
  
- 		total_scanned += sc->nr_scanned;
- 		if (sc->nr_reclaimed >= sc->nr_to_reclaim)
--			goto out;
-+			break;
+-static unsigned long shrink_zone(struct zone *zone, struct scan_control *sc)
++static bool shrink_zone(struct zone *zone, struct scan_control *sc)
+ {
+ 	unsigned long nr_reclaimed, nr_scanned;
+-	unsigned long zone_reclaimed = 0;
++	bool reclaimable = false;
  
- 		if (sc->compaction_ready)
--			goto out;
-+			break;
+ 	do {
+ 		struct mem_cgroup *root = sc->target_mem_cgroup;
+@@ -2295,12 +2295,13 @@ static unsigned long shrink_zone(struct
+ 			   sc->nr_scanned - nr_scanned,
+ 			   sc->nr_reclaimed - nr_reclaimed);
  
+-		zone_reclaimed += sc->nr_reclaimed - nr_reclaimed;
++		if (sc->nr_reclaimed - nr_reclaimed)
++			reclaimable = true;
+ 
+ 	} while (should_continue_reclaim(zone, sc->nr_reclaimed - nr_reclaimed,
+ 					 sc->nr_scanned - nr_scanned, sc));
+ 
+-	return zone_reclaimed;
++	return reclaimable;
+ }
+ 
+ /* Returns true if compaction should go ahead for a high-order request */
+@@ -2350,7 +2351,7 @@ static inline bool compaction_ready(stru
+  * If a zone is deemed to be full of pinned pages then just give it a light
+  * scan then give up on it.
+  *
+- * Returns whether the zones overall are reclaimable or not.
++ * Returns true if a zone was reclaimable.
+  */
+ static bool shrink_zones(struct zonelist *zonelist, struct scan_control *sc)
+ {
+@@ -2365,7 +2366,7 @@ static bool shrink_zones(struct zonelist
+ 		.gfp_mask = sc->gfp_mask,
+ 	};
+ 	enum zone_type requested_highidx = gfp_zone(sc->gfp_mask);
+-	bool all_unreclaimable = true;
++	bool reclaimable = false;
+ 
+ 	/*
+ 	 * If the number of buffer_heads in the machine exceeds the maximum
+@@ -2380,8 +2381,6 @@ static bool shrink_zones(struct zonelist
+ 
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
+ 					gfp_zone(sc->gfp_mask), sc->nodemask) {
+-		unsigned long zone_reclaimed = 0;
+-
+ 		if (!populated_zone(zone))
+ 			continue;
  		/*
- 		 * If we're getting trouble reclaiming, start doing
-@@ -2527,7 +2527,6 @@ static unsigned long do_try_to_free_page
+@@ -2428,15 +2427,17 @@ static bool shrink_zones(struct zonelist
+ 						&nr_soft_scanned);
+ 			sc->nr_reclaimed += nr_soft_reclaimed;
+ 			sc->nr_scanned += nr_soft_scanned;
+-			zone_reclaimed += nr_soft_reclaimed;
++			if (nr_soft_reclaimed)
++				reclaimable = true;
+ 			/* need some check for avoid more shrink_zone() */
  		}
- 	} while (--sc->priority >= 0);
  
--out:
- 	delayacct_freepages_end();
+-		zone_reclaimed += shrink_zone(zone, sc);
++		if (shrink_zone(zone, sc))
++			reclaimable = true;
  
- 	if (sc->nr_reclaimed)
+-		if (zone_reclaimed ||
+-		    (global_reclaim(sc) && zone_reclaimable(zone)))
+-			all_unreclaimable = false;
++		if (global_reclaim(sc) &&
++		    !reclaimable && zone_reclaimable(zone))
++			reclaimable = true;
+ 	}
+ 
+ 	/*
+@@ -2459,7 +2460,7 @@ static bool shrink_zones(struct zonelist
+ 	 */
+ 	sc->gfp_mask = orig_mask;
+ 
+-	return !all_unreclaimable;
++	return reclaimable;
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -89,7 +156,6 @@ mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
 mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
 mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
 mm-vmscan-remove-all_unreclaimable.patch
-mm-vmscan-remove-all_unreclaimable-fix.patch
 mm-vmscan-move-swappiness-out-of-scan_control.patch
 mm-vmscan-clean-up-struct-scan_control-v2.patch
 mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
