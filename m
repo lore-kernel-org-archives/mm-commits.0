@@ -1,113 +1,98 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- slab-use-get_node-and-kmem_cache_node-functions-fix.patch removed from -mm
- tree
-Date: Wed, 06 Aug 2014 15:43:27 -0700
-Message-ID: <53e2af8f.Ftk/Dp4nOJ4u0V3n%akpm@linux-foundation.org>
+ slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch removed from
+ -mm tree
+Date: Wed, 06 Aug 2014 15:43:29 -0700
+Message-ID: <53e2af91.NBkWho/SV9jTWxC7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:57622 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754581AbaHFWn2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:43:28 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wp18so613195obc.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:43:28 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:49299 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754581AbaHFWna (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:43:30 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so839600pde.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:43:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@gentwo.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@gentwo.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab-use-get_node-and-kmem_cache_node-functions-fix
+     Subject: slab-use-get_node-and-kmem_cache_node-functions-fix-2
 has been removed from the -mm tree.  Its filename was
-     slab-use-get_node-and-kmem_cache_node-functions-fix.patch
+     slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
 
 This patch was dropped because it was folded into slab-use-get_node-and-kmem_cache_node-functions.patch
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@gentwo.org>
-Subject: slab-use-get_node-and-kmem_cache_node-functions-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: slab-use-get_node-and-kmem_cache_node-functions-fix-2
 
-On Thu, 12 Jun 2014, Joonsoo Kim wrote:
+mm/slab.c: In function 'slab_set_debugobj_lock_classes':
+mm/slab.c:524: error: 'h' undeclared (first use in this function)
+mm/slab.c:524: error: (Each undeclared identifier is reported only once
+mm/slab.c:524: error: for each function it appears in.)
+mm/slab.c:524: warning: left-hand operand of comma expression has no effect
+mm/slab.c: In function 'cpuup_prepare':
+mm/slab.c:1308: warning: passing argument 2 of 'slab_set_debugobj_lock_classes_node' makes pointer from integer without a cast
+mm/slab.c:513: note: expected 'struct kmem_cache_node *' but argument is of type 'int'
 
-> > @@ -3759,8 +3746,8 @@ fail:
-> >  		/* Cache is not active yet. Roll back what we did */
-> >  		node--;
-> >  		while (node >= 0) {
-> > -			if (cachep->node[node]) {
-> > -				n = cachep->node[node];
-> > +			if (get_node(cachep, node)) {
-> > +				n = get_node(cachep, node);
->
-> Could you do this as following?
->
-> n = get_node(cachep, node);
-> if (n) {
->         ...
-> }
-
-Sure....
-
-Subject: slab: Fixes to earlier patch
-
-Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: Christoph Lameter <cl@gentwo.org>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ mm/slab.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~slab-use-get_node-and-kmem_cache_node-functions-fix mm/slab.c
---- a/mm/slab.c~slab-use-get_node-and-kmem_cache_node-functions-fix
+diff -puN mm/slab.c~slab-use-get_node-and-kmem_cache_node-functions-fix-2 mm/slab.c
+--- a/mm/slab.c~slab-use-get_node-and-kmem_cache_node-functions-fix-2
 +++ a/mm/slab.c
-@@ -561,8 +561,8 @@ static inline void on_slab_lock_classes(
+@@ -521,7 +521,7 @@ static void slab_set_debugobj_lock_class
+ 	int node;
  	struct kmem_cache_node *n;
  
- 	VM_BUG_ON(OFF_SLAB(cachep));
 -	for_each_kmem_cache_node(cachep, node, h)
--		on_slab_lock_classes_node(cachep, h);
 +	for_each_kmem_cache_node(cachep, node, n)
-+		on_slab_lock_classes_node(cachep, n);
+ 		slab_set_debugobj_lock_classes_node(cachep, n);
  }
  
- static inline void __init init_lock_keys(void)
-@@ -586,7 +586,7 @@ static inline void on_slab_lock_classes(
- }
- 
- static inline void on_slab_lock_classes_node(struct kmem_cache *cachep,
--	int node, struct kmem_cache_node *n)
-+	struct kmem_cache_node *n)
- {
- }
- 
-@@ -823,7 +823,7 @@ static inline bool is_slab_pfmemalloc(st
- static void recheck_pfmemalloc_active(struct kmem_cache *cachep,
- 						struct array_cache *ac)
- {
--	struct kmem_cache_node *n = get_node(cachep,numa_mem_id());
-+	struct kmem_cache_node *n = get_node(cachep, numa_mem_id());
- 	struct page *page;
- 	unsigned long flags;
- 
-@@ -1308,7 +1308,7 @@ static int cpuup_prepare(long cpu)
- 			slab_set_debugobj_lock_classes_node(cachep, node);
+@@ -1305,7 +1305,7 @@ static int cpuup_prepare(long cpu)
+ 		kfree(shared);
+ 		free_alien_cache(alien);
+ 		if (cachep->flags & SLAB_DEBUG_OBJECTS)
+-			slab_set_debugobj_lock_classes_node(cachep, node);
++			slab_set_debugobj_lock_classes_node(cachep, n);
  		else if (!OFF_SLAB(cachep) &&
  			 !(cachep->flags & SLAB_DESTROY_BY_RCU))
--			on_slab_lock_classes_node(cachep, node, n);
-+			on_slab_lock_classes_node(cachep, n);
- 	}
- 	init_node_lock_keys(node);
- 
-@@ -3807,9 +3807,8 @@ fail:
- 		/* Cache is not active yet. Roll back what we did */
- 		node--;
- 		while (node >= 0) {
--			if (get_node(cachep, node)) {
--				n = get_node(cachep, node);
+ 			on_slab_lock_classes_node(cachep, n);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+fsnotify-rename-event-handling-functions.patch
+kbuild-explain-stack-protector-strong-config-logic.patch
+slub-use-new-node-functions.patch
+slab-use-get_node-and-kmem_cache_node-functions.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
+slab-change-int-to-size_t-for-representing-allocation-size.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
+include-linux-mmdebugh-add-vm_warn_once.patch
+mm-catch-memory-commitment-underflow-fix.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
+mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+add-lib-globc-fix.patch
+lib-list_sortc-convert-to-pr_foo.patch
+lib-list_sortc-convert-to-pr_foo-fix.patch
+checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+
