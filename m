@@ -1,98 +1,115 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix.patch
+ mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
  removed from -mm tree
-Date: Wed, 06 Aug 2014 15:45:41 -0700
-Message-ID: <53e2b015.G+OMsvAQ2BYrpu+f%akpm@linux-foundation.org>
+Date: Wed, 06 Aug 2014 15:46:06 -0700
+Message-ID: <53e2b02e.RH2xvtO80m7Zs41R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:36783 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754063AbaHFWpn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:45:43 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so608146oig.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:45:42 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:42442 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754013AbaHFWqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:46:08 -0400
+Received: by mail-qa0-f73.google.com with SMTP id s7so437463qap.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:46:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, fengguang.wu@intel.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: PPC, KVM: fix build failure due to removed file
+     Subject: mm: vmscan: rework compaction-ready signaling in direct reclaim fix
 has been removed from the -mm tree.  Its filename was
-     ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix.patch
+     mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
 
-This patch was dropped because it was folded into ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
+This patch was dropped because it was folded into mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: PPC, KVM: fix build failure due to removed file
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: rework compaction-ready signaling in direct reclaim fix
 
-Commit ('PPC, KVM, CMA: use general CMA reserved area management
-framework') removes book3s_hv_cma.c, but, missed to remove entry
-in Makefile. Fix it.
+As per Mel, replace out label with breaks from the loop.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/Makefile |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmscan.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/kvm/Makefile~ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix arch/powerpc/kvm/Makefile
---- a/arch/powerpc/kvm/Makefile~ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix
-+++ a/arch/powerpc/kvm/Makefile
-@@ -90,7 +90,6 @@ kvm-book3s_64-builtin-objs-$(CONFIG_KVM_
- 	book3s_hv_rm_mmu.o \
- 	book3s_hv_ras.o \
- 	book3s_hv_builtin.o \
--	book3s_hv_cma.o \
- 	$(kvm-book3s_64-builtin-xics-objs-y)
- endif
+diff -puN mm/vmscan.c~mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix
++++ a/mm/vmscan.c
+@@ -2500,10 +2500,10 @@ static unsigned long do_try_to_free_page
  
+ 		total_scanned += sc->nr_scanned;
+ 		if (sc->nr_reclaimed >= sc->nr_to_reclaim)
+-			goto out;
++			break;
+ 
+ 		if (sc->compaction_ready)
+-			goto out;
++			break;
+ 
+ 		/*
+ 		 * If we're getting trouble reclaiming, start doing
+@@ -2527,7 +2527,6 @@ static unsigned long do_try_to_free_page
+ 		}
+ 	} while (--sc->priority >= 0);
+ 
+-out:
+ 	delayacct_freepages_end();
+ 
+ 	if (sc->nr_reclaimed)
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-slabc-add-__init-to-init_lock_keys.patch
-slab-common-add-functions-for-kmem_cache_node-access.patch
-slub-use-new-node-functions.patch
-slab-use-get_node-and-kmem_cache_node-functions.patch
-mm-slabh-wrap-the-whole-file-with-guarding-macro.patch
-mm-slub-mark-resiliency_test-as-init-text.patch
-mm-slub-slub_debug=n-use-the-same-alloc-free-hooks-as-for-slub_debug=y.patch
-slab-add-unlikely-macro-to-help-compiler.patch
-slab-move-up-code-to-get-kmem_cache_node-in-free_block.patch
-slab-defer-slab_destroy-in-free_block.patch
-slab-factor-out-initialization-of-arracy-cache.patch
-slab-introduce-alien_cache.patch
-slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
-slab-destroy-a-slab-without-holding-any-alien-cache-lock.patch
-slab-remove-a-useless-lockdep-annotation.patch
-slab-remove-bad_alien_magic.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-slub-reduce-duplicate-creation-on-the-first-object.patch
-mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
-mm-trivial-comment-cleanup-in-slabc.patch
-mm-slub-fix-some-indenting-in-cmpxchg_double_slab.patch
-slab-fix-the-alias-countvia-sysfs-of-slab-cache.patch
+origin.patch
 vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
-dma-cma-support-alignment-constraint-on-cma-region.patch
-dma-cma-support-arbitrary-bitmap-granularity.patch
-cma-generalize-cma-reserved-area-management-functionality.patch
-ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
-mm-cma-clean-up-cma-allocation-error-path.patch
-mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
-mm-cma-clean-up-log-message.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
+mm-page-flags-clean-up-the-page-flag-test-set-clear-macros.patch
+mm-memcontrol-fold-mem_cgroup_do_charge.patch
+mm-memcontrol-rearrange-charging-fast-path.patch
+mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
+mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
+mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
+mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
+mm-memcontrol-simplify-move-precharge-function.patch
+mm-memcontrol-catch-root-bypass-in-move-precharge.patch
+mm-memcontrol-use-root_mem_cgroup-res_counter.patch
+mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
+mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
+mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
+mm-vmscan-remove-all_unreclaimable.patch
+mm-vmscan-remove-all_unreclaimable-fix.patch
+mm-vmscan-move-swappiness-out-of-scan_control.patch
+mm-vmscan-clean-up-struct-scan_control-v2.patch
+mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
+mm-replace-init_page_accessed-by-__setpagereferenced.patch
+mm-update-the-description-for-vm_total_pages.patch
+mm-vmscan-report-the-number-of-file-anon-pages-respectively.patch
+mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
+mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+mm-move-zone-pages_scanned-into-a-vmstat-counter.patch
+mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
+mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
+mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
+mm-writeback-prevent-race-when-calculating-dirty-limits.patch
 slub-remove-kmemcg-id-from-create_unique_id.patch
-kernel-smpc-on_each_cpu_cond-fix-warning-in-fallback-path.patch
+mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
+mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
+mm-oom-rename-zonelist-locking-functions.patch
+mm-thp-restructure-thp-avoidance-of-light-synchronous-migration.patch
+mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio.patch
+memcg-vmscan-fix-forced-scan-of-anonymous-pages.patch
+memcg-vmscan-fix-forced-scan-of-anonymous-pages-fix-cleanups.patch
+mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge.patch
 
