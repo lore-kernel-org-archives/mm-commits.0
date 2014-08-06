@@ -1,69 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix.patch removed from -mm tree
-Date: Wed, 06 Aug 2014 13:54:46 -0700
-Message-ID: <53e29616.TJqvpCpdbhbytxzt%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-memcontrol-rewrite-uncharge-api-fix-2.patch
+ removed from -mm tree
+Date: Wed, 06 Aug 2014 13:56:05 -0700
+Message-ID: <53e29665.NCgLVr2SfM9+4FDq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:61759 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753533AbaHFUyr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 16:54:47 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rl12so584270iec.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 13:54:47 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:34784 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753472AbaHFU4H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 16:56:07 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so416627yha.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 13:56:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, fengguang.wu@intel.com, jet.chen@intel.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix
+     Subject: mm: memcontrol: rewrite uncharge API fix 2
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix.patch
+     mm-memcontrol-rewrite-uncharge-api-fix-2.patch
 
-This patch was dropped because it was folded into mm-memcontrol-rewrite-charge-api.patch
+This patch was dropped because it was folded into mm-memcontrol-rewrite-uncharge-api.patch
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: rewrite uncharge API fix 2
 
-Add comments on the private use of -EAGAIN.
+It's not entirely clear whether do_swap_account or PCG_MEMSW is the
+authoritative answer to whether a page is swap-accounted or not.  This
+currently leads to the following memsw counter underflow when swap
+accounting is disabled:
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
+[    2.753355] WARNING: CPU: 0 PID: 1 at kernel/res_counter.c:28 res_counter_uncharge_locked+0x48/0x74()
+[    2.753355] CPU: 0 PID: 1 Comm: init Not tainted 3.16.0-rc1-00238-gddc5bfe #1
+[    2.753355] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+[    2.753355]  0000000000000000 ffff880012073c50 ffffffff81a23b9d ffff880012073c88
+[    2.753355]  ffffffff810bc765 ffffffff8111fac8 0000000000001000 ffff88001200fa50
+[    2.753355]  0000000000000001 ffff88001200fa01 ffff880012073c98 ffffffff810bc84b
+[    2.753355] Call Trace:
+[    2.753355]  [<ffffffff81a23b9d>] dump_stack+0x19/0x1b
+[    2.753355]  [<ffffffff810bc765>] warn_slowpath_common+0x73/0x8c
+[    2.753355]  [<ffffffff8111fac8>] ? res_counter_uncharge_locked+0x48/0x74
+[    2.753355]  [<ffffffff810bc84b>] warn_slowpath_null+0x1a/0x1c
+[    2.753355]  [<ffffffff8111fac8>] res_counter_uncharge_locked+0x48/0x74
+[    2.753355]  [<ffffffff8111fd02>] res_counter_uncharge_until+0x4e/0xa9
+[    2.753355]  [<ffffffff8111fd70>] res_counter_uncharge+0x13/0x15
+[    2.753355]  [<ffffffff8119499c>] mem_cgroup_uncharge_end+0x73/0x8d
+[    2.753355]  [<ffffffff8115735e>] release_pages+0x1f2/0x20d
+[    2.753355]  [<ffffffff8116cc3a>] tlb_flush_mmu_free+0x28/0x43
+[    2.753355]  [<ffffffff8116d5e5>] tlb_flush_mmu+0x20/0x23
+[    2.753355]  [<ffffffff8116d5fc>] tlb_finish_mmu+0x14/0x39
+[    2.753355]  [<ffffffff811730c1>] unmap_region+0xcd/0xdf
+[    2.753355]  [<ffffffff81172b0e>] ? vma_gap_callbacks_propagate+0x18/0x33
+[    2.753355]  [<ffffffff81174bf1>] do_munmap+0x252/0x2e0
+[    2.753355]  [<ffffffff81174cc3>] vm_munmap+0x44/0x5c
+[    2.753355]  [<ffffffff81174cfe>] SyS_munmap+0x23/0x29
+[    2.753355]  [<ffffffff81a31567>] system_call_fastpath+0x16/0x1b
+[    2.753355] ---[ end trace cfeb07101f6fbdfb ]---
+
+Don't set PCG_MEMSW when swap accounting is disabled, so that uncharging
+only has to look at this per-page flag.
+
+mem_cgroup_swapout() could also fully rely on this flag, but as it can
+bail out before even looking up the page_cgroup, check do_swap_account as
+a performance optimization and only sanity test for PCG_MEMSW.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Tested-by: Jet Chen <jet.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix mm/shmem.c
---- a/mm/shmem.c~mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix
-+++ a/mm/shmem.c
-@@ -604,7 +604,7 @@ static int shmem_unuse_inode(struct shme
- 	radswap = swp_to_radix_entry(swap);
- 	index = radix_tree_locate_item(&mapping->page_tree, radswap);
- 	if (index == -1)
--		return -EAGAIN;
-+		return -EAGAIN;	/* tell shmem_unuse we found nothing */
+diff -puN mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-2 mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-rewrite-uncharge-api-fix-2
++++ a/mm/memcontrol.c
+@@ -2740,7 +2740,7 @@ static void commit_charge(struct page *p
+ 	 *   have the page locked
+ 	 */
+ 	pc->mem_cgroup = memcg;
+-	pc->flags = PCG_USED | PCG_MEM | PCG_MEMSW;
++	pc->flags = PCG_USED | PCG_MEM | (do_swap_account ? PCG_MEMSW : 0);
  
- 	/*
- 	 * Move _head_ to start search for next from here.
-@@ -705,6 +705,7 @@ int shmem_unuse(swp_entry_t swap, struct
- 		cond_resched();
- 		if (error != -EAGAIN)
- 			break;
-+		/* found nothing in this: move on to search the next */
- 	}
- 	mutex_unlock(&shmem_swaplist_mutex);
+ 	if (lrucare) {
+ 		if (was_on_lru) {
+@@ -6602,7 +6602,7 @@ void mem_cgroup_migrate(struct page *old
+ 		return;
  
+ 	VM_BUG_ON_PAGE(!(pc->flags & PCG_MEM), oldpage);
+-	VM_BUG_ON_PAGE(!(pc->flags & PCG_MEMSW), oldpage);
++	VM_BUG_ON_PAGE(do_swap_account && !(pc->flags & PCG_MEMSW), oldpage);
+ 	pc->flags &= ~(PCG_MEM | PCG_MEMSW);
+ 
+ 	if (PageTransHuge(oldpage)) {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
+origin.patch
+vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
+mm-page-flags-clean-up-the-page-flag-test-set-clear-macros.patch
 mm-memcontrol-fold-mem_cgroup_do_charge.patch
 mm-memcontrol-rearrange-charging-fast-path.patch
 mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
@@ -76,47 +119,49 @@ mm-memcontrol-use-root_mem_cgroup-res_counter.patch
 mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
 mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
 mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
 mm-memcontrol-rewrite-uncharge-api.patch
+mm-memcontrol-rewrite-uncharge-api-fix-4.patch
 mm-memcontrol-rewrite-uncharge-api-fix-5.patch
 mm-memcontrol-rewrite-uncharge-api-fix-uncharge-from-irq-context.patch
 mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
+mm-memcontrol-rewrite-uncharge-api-fix-migrate-before-re-mapping.patch
+mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration.patch
 mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
 mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
+page-cgroup-trivial-cleanup.patch
+page-cgroup-get-rid-of-nr_pcg_flags.patch
+memcg-remove-lookup_cgroup_page-prototype.patch
+mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
+mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
+mm-vmscan-remove-all_unreclaimable.patch
+mm-vmscan-remove-all_unreclaimable-fix.patch
+mm-vmscan-move-swappiness-out-of-scan_control.patch
 mm-vmscan-clean-up-struct-scan_control-v2.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-shmem-fix-double-uncharge-in-__shmem_file_setup.patch
-shmem-update-memory-reservation-on-truncate.patch
-mm-catch-memory-commitment-underflow.patch
-mm-catch-memory-commitment-underflow-fix.patch
 mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
 mm-replace-init_page_accessed-by-__setpagereferenced.patch
-mm-remove-the-unused-gfp-arg-to-shmem_add_to_page_cache.patch
-vmstat-on-demand-vmstat-workers-v8.patch
-vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
-mm-softdirty-respect-vm_softdirty-in-pte-holes.patch
-mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
+mm-update-the-description-for-vm_total_pages.patch
+mm-vmscan-report-the-number-of-file-anon-pages-respectively.patch
+mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
+mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
+mm-move-zone-pages_scanned-into-a-vmstat-counter.patch
+mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
+mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
+mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
+mm-writeback-prevent-race-when-calculating-dirty-limits.patch
+slub-remove-kmemcg-id-from-create_unique_id.patch
+mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
+mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
+mm-oom-rename-zonelist-locking-functions.patch
+mm-thp-restructure-thp-avoidance-of-light-synchronous-migration.patch
+mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio.patch
+memcg-vmscan-fix-forced-scan-of-anonymous-pages.patch
+memcg-vmscan-fix-forced-scan-of-anonymous-pages-fix-cleanups.patch
 mm-memcontrol-avoid-charge-statistics-churn-during-page-migration.patch
-mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
-list-use-argument-hlist_add_after-names-from-rcu-variant.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
-klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
+mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge.patch
+nilfs2-integrate-sysfs-support-into-driver-fix.patch
 linux-next.patch
-mm-allow-drivers-to-prevent-new-writable-mappings.patch
-shm-add-sealing-api.patch
-shm-add-memfd_create-syscall.patch
-selftests-add-memfd_create-sealing-tests.patch
-selftests-add-memfd-sealing-page-pinning-tests.patch
-shm-wait-for-pins-to-be-released-when-sealing.patch
-timer-provide-an-api-for-deferrable-timeout.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+debugging-keep-track-of-page-owners.patch
 
