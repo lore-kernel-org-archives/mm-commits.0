@@ -1,138 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 06 Aug 2014 12:02:08 -0700
-Message-ID: <53e27bb0.guwqx+1lvaPDiVfr%akpm@linux-foundation.org>
+Subject: + vmstat-on-demand-vmstat-workers-v8-fix-2.patch added to -mm
+ tree
+Date: Wed, 06 Aug 2014 12:20:40 -0700
+Message-ID: <53e28008.tZK789AUf1VFAXtO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f201.google.com ([209.85.160.201]:50966 "EHLO
-	mail-yk0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753680AbaHFTCK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 15:02:10 -0400
-Received: by mail-yk0-f201.google.com with SMTP id 142so394406ykq.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 12:02:09 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:63020 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932246AbaHFTUl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 15:20:41 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so560129iec.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 12:20:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: cl@gentwo.org, cl@linux.com, gilad@benyossef.com, sasha.levin@oracle.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: vmstat ondemand: fix online/offline races
+has been added to the -mm tree.  Its filename is
+     vmstat-on-demand-vmstat-workers-v8-fix-2.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/vmstat-on-demand-vmstat-workers-v8-fix-2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmstat-on-demand-vmstat-workers-v8-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Christoph Lameter <cl@gentwo.org>
+Subject: vmstat ondemand: fix online/offline races
 
+Do not allow onlining/offlining while the shepherd task is checking
+for vmstat threads.
+
+On offlining a processor do the right thing cancelling the vmstat
+worker thread if it exista and also exclude it from the shepherd
+process checks.
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: Gilad Ben-Yossef <gilad@benyossef.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu.h |    3 ---
- kernel/workqueue.c     |    8 --------
- 2 files changed, 11 deletions(-)
+ mm/vmstat.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pnp/pnpacpi/core.c~linux-next-git-rejects drivers/pnp/pnpacpi/core.c
-diff -puN include/linux/percpu.h~linux-next-git-rejects include/linux/percpu.h
---- a/include/linux/percpu.h~linux-next-git-rejects
-+++ a/include/linux/percpu.h
-@@ -130,8 +130,6 @@ extern phys_addr_t per_cpu_ptr_to_phys(v
- #define alloc_percpu(type)	\
- 	(typeof(type) __percpu *)__alloc_percpu(sizeof(type), __alignof__(type))
+diff -puN mm/vmstat.c~vmstat-on-demand-vmstat-workers-v8-fix-2 mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-on-demand-vmstat-workers-v8-fix-2
++++ a/mm/vmstat.c
+@@ -1317,6 +1317,7 @@ static void vmstat_shepherd(struct work_
+ {
+ 	int cpu;
  
--<<<<<<< HEAD
--=======
- /*
-  * percpu_pool is an automatically managed percpu allocation cache which
-  * can be used to allocate percpu areas from atomic contexts.
-@@ -221,5 +219,4 @@ extern void percpu_pool_fill(struct perc
- extern void percpu_pool_empty(struct percpu_pool *pool);
- extern void __percpu *percpu_pool_alloc(struct percpu_pool *pool);
++	get_online_cpus();
+ 	/* Check processors whose vmstat worker threads have been disabled */
+ 	for_each_cpu(cpu, cpu_stat_off)
+ 		if (need_update(cpu) &&
+@@ -1325,6 +1326,7 @@ static void vmstat_shepherd(struct work_
+ 			schedule_delayed_work_on(cpu, &per_cpu(vmstat_work, cpu),
+ 				__round_jiffies_relative(sysctl_stat_interval, cpu));
  
-->>>>>>> linux-next/akpm-base
- #endif /* __LINUX_PERCPU_H */
-diff -puN kernel/workqueue.c~linux-next-git-rejects kernel/workqueue.c
---- a/kernel/workqueue.c~linux-next-git-rejects
-+++ a/kernel/workqueue.c
-@@ -1962,10 +1962,6 @@ __acquires(&pool->lock)
++	put_online_cpus();
  
- 	lockdep_copy_map(&lockdep_map, &work->lockdep_map);
- #endif
--<<<<<<< HEAD
--	/* ensure we're on the correct CPU */
--=======
-->>>>>>> linux-next/akpm-base
- 	WARN_ON_ONCE(!(pool->flags & POOL_DISASSOCIATED) &&
- 		     raw_smp_processor_id() != pool->cpu);
- 
-@@ -4578,11 +4574,7 @@ static int workqueue_cpu_up_callback(str
- 		for_each_pool(pool, pi) {
- 			mutex_lock(&pool->attach_mutex);
- 
--<<<<<<< HEAD
--			if (pool->cpu == cpu)
--=======
- 			if (pool->cpu == cpu) {
-->>>>>>> linux-next/akpm-base
- 				rebind_workers(pool);
- 			else if (pool->cpu < 0)
- 				restore_unbound_workers_cpumask(pool, cpu);
+ 	schedule_delayed_work(&shepherd,
+ 		round_jiffies_relative(sysctl_stat_interval));
+@@ -1380,8 +1382,8 @@ static int vmstat_cpuup_callback(struct
+ 		break;
+ 	case CPU_DOWN_PREPARE:
+ 	case CPU_DOWN_PREPARE_FROZEN:
+-		if (!cpumask_test_and_set_cpu(cpu, cpu_stat_off))
+-			cancel_delayed_work_sync(&per_cpu(vmstat_work, cpu));
++		cancel_delayed_work_sync(&per_cpu(vmstat_work, cpu));
++		cpumask_clear_cpu(cpu, cpu_stat_off);
+ 		break;
+ 	case CPU_DOWN_FAILED:
+ 	case CPU_DOWN_FAILED_FROZEN:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cl@gentwo.org are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kbuild-explain-stack-protector-strong-config-logic.patch
-ocfs2-free-inode-when-i_count-becomes-zero-checkpatch-fixes.patch
-mm.patch
-slub-use-new-node-functions-checkpatch-fixes.patch
+slab-common-add-functions-for-kmem_cache_node-access-fix.patch
+slub-use-new-node-functions-fix.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix.patch
 slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
-slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
-slab-change-int-to-size_t-for-representing-allocation-size.patch
-mm-page_allocc-unexport-alloc_pages_exact_nid.patch
-dma-cma-support-arbitrary-bitmap-granularity-fix.patch
-mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
-include-linux-mmdebugh-add-vm_warn_once.patch
-mm-catch-memory-commitment-underflow-fix.patch
-mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
+vmstat-on-demand-vmstat-workers-v8.patch
+vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
+vmstat-on-demand-vmstat-workers-v8-fix-2.patch
 kernel-smpc-on_each_cpu_cond-fix-warning-in-fallback-path.patch
-mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
-add-lib-globc-fix.patch
-lib-list_sortc-convert-to-pr_foo.patch
-lib-list_sortc-convert-to-pr_foo-fix.patch
-checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-rtc-add-pcf85063-support-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-proc-remove-proc_tty_ldisc-variable-fix.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
-panic-add-taint_softlockup-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
