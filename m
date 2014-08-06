@@ -1,121 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch removed from
- -mm tree
-Date: Wed, 06 Aug 2014 13:54:48 -0700
-Message-ID: <53e29618./mtvddTX6k4QNKCZ%akpm@linux-foundation.org>
+ mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix.patch removed from -mm tree
+Date: Wed, 06 Aug 2014 13:54:46 -0700
+Message-ID: <53e29616.TJqvpCpdbhbytxzt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f73.google.com ([209.85.192.73]:51283 "EHLO
-	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751908AbaHFUyt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 16:54:49 -0400
-Received: by mail-qg0-f73.google.com with SMTP id q107so415589qgd.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 13:54:49 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:61759 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753533AbaHFUyr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 16:54:47 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so584270iec.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 13:54:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: rewrite charge API fix - hugetlb charging
+     Subject: mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
+     mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix.patch
 
 This patch was dropped because it was folded into mm-memcontrol-rewrite-charge-api.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: rewrite charge API fix - hugetlb charging
+From: Hugh Dickins <hughd@google.com>
+Subject: mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix
 
-Naoya-san reports that hugetlb pages now get charged as file cache,
-which wreaks all kinds of havoc during migration, uncharge etc.
+Add comments on the private use of -EAGAIN.
 
-The file-specific charge path used to filter PageCompound(), but it
-wasn't commented and so it got lost when unifying the charge paths.
-
-We can't add PageCompound() back into a unified charge path because of
-THP, so filter huge pages directly in add_to_page_cache().
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ mm/shmem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging mm/filemap.c
---- a/mm/filemap.c~mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging
-+++ a/mm/filemap.c
-@@ -31,6 +31,7 @@
- #include <linux/security.h>
- #include <linux/cpuset.h>
- #include <linux/hardirq.h> /* for BUG_ON(!in_atomic()) only */
-+#include <linux/hugetlb.h>
- #include <linux/memcontrol.h>
- #include <linux/cleancache.h>
- #include <linux/rmap.h>
-@@ -560,19 +561,24 @@ static int __add_to_page_cache_locked(st
- 				      pgoff_t offset, gfp_t gfp_mask,
- 				      void **shadowp)
- {
-+	int huge = PageHuge(page);
- 	struct mem_cgroup *memcg;
- 	int error;
+diff -puN mm/shmem.c~mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix mm/shmem.c
+--- a/mm/shmem.c~mm-memcontrol-rewrite-charge-api-fix-shmem_unuse-fix
++++ a/mm/shmem.c
+@@ -604,7 +604,7 @@ static int shmem_unuse_inode(struct shme
+ 	radswap = swp_to_radix_entry(swap);
+ 	index = radix_tree_locate_item(&mapping->page_tree, radswap);
+ 	if (index == -1)
+-		return -EAGAIN;
++		return -EAGAIN;	/* tell shmem_unuse we found nothing */
  
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageSwapBacked(page), page);
- 
--	error = mem_cgroup_try_charge(page, current->mm, gfp_mask, &memcg);
--	if (error)
--		return error;
-+	if (!huge) {
-+		error = mem_cgroup_try_charge(page, current->mm,
-+					      gfp_mask, &memcg);
-+		if (error)
-+			return error;
-+	}
- 
- 	error = radix_tree_maybe_preload(gfp_mask & ~__GFP_HIGHMEM);
- 	if (error) {
--		mem_cgroup_cancel_charge(page, memcg);
-+		if (!huge)
-+			mem_cgroup_cancel_charge(page, memcg);
- 		return error;
+ 	/*
+ 	 * Move _head_ to start search for next from here.
+@@ -705,6 +705,7 @@ int shmem_unuse(swp_entry_t swap, struct
+ 		cond_resched();
+ 		if (error != -EAGAIN)
+ 			break;
++		/* found nothing in this: move on to search the next */
  	}
+ 	mutex_unlock(&shmem_swaplist_mutex);
  
-@@ -587,14 +593,16 @@ static int __add_to_page_cache_locked(st
- 		goto err_insert;
- 	__inc_zone_page_state(page, NR_FILE_PAGES);
- 	spin_unlock_irq(&mapping->tree_lock);
--	mem_cgroup_commit_charge(page, memcg, false);
-+	if (!huge)
-+		mem_cgroup_commit_charge(page, memcg, false);
- 	trace_mm_filemap_add_to_page_cache(page);
- 	return 0;
- err_insert:
- 	page->mapping = NULL;
- 	/* Leave page->index set: truncation relies upon it */
- 	spin_unlock_irq(&mapping->tree_lock);
--	mem_cgroup_cancel_charge(page, memcg);
-+	if (!huge)
-+		mem_cgroup_cancel_charge(page, memcg);
- 	page_cache_release(page);
- 	return error;
- }
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-origin.patch
-vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-mm-page-flags-clean-up-the-page-flag-test-set-clear-macros.patch
+mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
 mm-memcontrol-fold-mem_cgroup_do_charge.patch
 mm-memcontrol-rearrange-charging-fast-path.patch
 mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
@@ -128,50 +76,47 @@ mm-memcontrol-use-root_mem_cgroup-res_counter.patch
 mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
 mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
 mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-charge-api-fix-hugetlb-charging.patch
 mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-rewrite-uncharge-api-fix-2.patch
-mm-memcontrol-rewrite-uncharge-api-fix-4.patch
 mm-memcontrol-rewrite-uncharge-api-fix-5.patch
 mm-memcontrol-rewrite-uncharge-api-fix-uncharge-from-irq-context.patch
 mm-memcontrol-rewrite-uncharge-api-fix-double-migration-v2.patch
-mm-memcontrol-rewrite-uncharge-api-fix-migrate-before-re-mapping.patch
-mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration.patch
 mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
 mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
-page-cgroup-trivial-cleanup.patch
-page-cgroup-get-rid-of-nr_pcg_flags.patch
-memcg-remove-lookup_cgroup_page-prototype.patch
-mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
-mm-vmscan-remove-all_unreclaimable.patch
-mm-vmscan-remove-all_unreclaimable-fix.patch
-mm-vmscan-move-swappiness-out-of-scan_control.patch
 mm-vmscan-clean-up-struct-scan_control-v2.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
+include-linux-mmdebugh-add-vm_warn_once.patch
+shmem-fix-double-uncharge-in-__shmem_file_setup.patch
+shmem-update-memory-reservation-on-truncate.patch
+mm-catch-memory-commitment-underflow.patch
+mm-catch-memory-commitment-underflow-fix.patch
 mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
 mm-replace-init_page_accessed-by-__setpagereferenced.patch
-mm-update-the-description-for-vm_total_pages.patch
-mm-vmscan-report-the-number-of-file-anon-pages-respectively.patch
-mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
-mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
-mm-move-zone-pages_scanned-into-a-vmstat-counter.patch
-mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
-mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
-mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
-mm-writeback-prevent-race-when-calculating-dirty-limits.patch
-slub-remove-kmemcg-id-from-create_unique_id.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
-mm-oom-rename-zonelist-locking-functions.patch
-mm-thp-restructure-thp-avoidance-of-light-synchronous-migration.patch
-mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio.patch
-memcg-vmscan-fix-forced-scan-of-anonymous-pages.patch
-memcg-vmscan-fix-forced-scan-of-anonymous-pages-fix-cleanups.patch
+mm-remove-the-unused-gfp-arg-to-shmem_add_to_page_cache.patch
+vmstat-on-demand-vmstat-workers-v8.patch
+vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
+mm-softdirty-respect-vm_softdirty-in-pte-holes.patch
+mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
 mm-memcontrol-avoid-charge-statistics-churn-during-page-migration.patch
-mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge.patch
-nilfs2-integrate-sysfs-support-into-driver-fix.patch
+mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
+list-use-argument-hlist_add_after-names-from-rcu-variant.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
+klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
+mm-allow-drivers-to-prevent-new-writable-mappings.patch
+shm-add-sealing-api.patch
+shm-add-memfd_create-syscall.patch
+selftests-add-memfd_create-sealing-tests.patch
+selftests-add-memfd-sealing-page-pinning-tests.patch
+shm-wait-for-pins-to-be-released-when-sealing.patch
+timer-provide-an-api-for-deferrable-timeout.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
