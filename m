@@ -1,65 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- cma-generalize-cma-reserved-area-management-functionality-fix.patch removed from -mm tree
-Date: Wed, 06 Aug 2014 15:45:24 -0700
-Message-ID: <53e2b004.JGoHCigXG5TbcmrX%akpm@linux-foundation.org>
+ ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix.patch
+ removed from -mm tree
+Date: Wed, 06 Aug 2014 15:45:41 -0700
+Message-ID: <53e2b015.G+OMsvAQ2BYrpu+f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f73.google.com ([209.85.192.73]:49604 "EHLO
-	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbaHFWpZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:45:25 -0400
-Received: by mail-qg0-f73.google.com with SMTP id q107so433426qgd.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:45:24 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:36783 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754063AbaHFWpn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:45:43 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so608146oig.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:45:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, fengguang.wu@intel.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: CMA: fix ARM build failure related to MAX_CMA_AREAS definition
+     Subject: PPC, KVM: fix build failure due to removed file
 has been removed from the -mm tree.  Its filename was
-     cma-generalize-cma-reserved-area-management-functionality-fix.patch
+     ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix.patch
 
-This patch was dropped because it was folded into cma-generalize-cma-reserved-area-management-functionality.patch
+This patch was dropped because it was folded into ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: CMA: fix ARM build failure related to MAX_CMA_AREAS definition
+Subject: PPC, KVM: fix build failure due to removed file
 
-If CMA is disabled, CONFIG_CMA_AREAS isn't defined so compile error
-happens. To fix it, define MAX_CMA_AREAS if CONFIG_CMA_AREAS
-isn't defined.
+Commit ('PPC, KVM, CMA: use general CMA reserved area management
+framework') removes book3s_hv_cma.c, but, missed to remove entry
+in Makefile. Fix it.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cma.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/powerpc/kvm/Makefile |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/cma.h~cma-generalize-cma-reserved-area-management-functionality-fix include/linux/cma.h
---- a/include/linux/cma.h~cma-generalize-cma-reserved-area-management-functionality-fix
-+++ a/include/linux/cma.h
-@@ -5,8 +5,14 @@
-  * There is always at least global CMA area and a few optional
-  * areas configured in kernel .config.
-  */
-+#ifdef CONFIG_CMA_AREAS
- #define MAX_CMA_AREAS	(1 + CONFIG_CMA_AREAS)
+diff -puN arch/powerpc/kvm/Makefile~ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix arch/powerpc/kvm/Makefile
+--- a/arch/powerpc/kvm/Makefile~ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix
++++ a/arch/powerpc/kvm/Makefile
+@@ -90,7 +90,6 @@ kvm-book3s_64-builtin-objs-$(CONFIG_KVM_
+ 	book3s_hv_rm_mmu.o \
+ 	book3s_hv_ras.o \
+ 	book3s_hv_builtin.o \
+-	book3s_hv_cma.o \
+ 	$(kvm-book3s_64-builtin-xics-objs-y)
+ endif
  
-+#else
-+#define MAX_CMA_AREAS	(0)
-+
-+#endif
-+
- struct cma;
- 
- extern phys_addr_t cma_get_base(struct cma *cma);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
@@ -92,7 +87,6 @@ dma-cma-support-alignment-constraint-on-cma-region.patch
 dma-cma-support-arbitrary-bitmap-granularity.patch
 cma-generalize-cma-reserved-area-management-functionality.patch
 ppc-kvm-cma-use-general-cma-reserved-area-management-framework.patch
-ppc-kvm-cma-use-general-cma-reserved-area-management-framework-fix.patch
 mm-cma-clean-up-cma-allocation-error-path.patch
 mm-cma-change-cma_declare_contiguous-to-obey-coding-convention.patch
 mm-cma-clean-up-log-message.patch
