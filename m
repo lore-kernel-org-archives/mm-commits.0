@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + fsnotify-rename-event-handling-functions.patch added to -mm
- tree
-Date: Wed, 06 Aug 2014 12:23:28 -0700
-Message-ID: <53e280b0.JxziUOYdPJulvbuD%akpm@linux-foundation.org>
+Subject: + fanotify-fix-double-free-of-pending-permission-events.patch
+ added to -mm tree
+Date: Wed, 06 Aug 2014 12:23:29 -0700
+Message-ID: <53e280b1.1XwtX9dv+DWSy4Nm%akpm__41714.8274406374$1407353022$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f73.google.com ([209.85.192.73]:65048 "EHLO
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:48297 "EHLO
 	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753449AbaHFTXa (ORCPT
+	with ESMTP id S1756955AbaHFTXa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 15:23:30 -0400
-Received: by mail-qg0-f73.google.com with SMTP id q107so397214qgd.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 12:23:29 -0700 (PDT)
+Received: by mail-qg0-f73.google.com with SMTP id q107so399257qgd.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 12:23:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, eparis@redhat.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, douglas.leeder@sophos.com, stable@vger.kernel.org, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: Rename event handling functions
+     Subject: fanotify: fix double free of pending permission events
 has been added to the -mm tree.  Its filename is
-     fsnotify-rename-event-handling-functions.patch
+     fanotify-fix-double-free-of-pending-permission-events.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-rename-event-handling-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fanotify-fix-double-free-of-pending-permission-events.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-rename-event-handling-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fanotify-fix-double-free-of-pending-permission-events.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,167 +42,130 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: fsnotify: Rename event handling functions
+Subject: fanotify: fix double free of pending permission events
 
-Rename fsnotify_add_notify_event() to fsnotify_add_event() since the
-"notify" part is duplicit.  Rename fsnotify_remove_notify_event() and
-fsnotify_peek_notify_event() to fsnotify_remove_first_event() and
-fsnotify_peek_first_event() respectively since "notify" part is duplicit
-and they really look at the first event in the queue.
+Commit 85816794240b ("fanotify: Fix use after free for permission events")
+introduced a double free issue for permission events which are pending in
+group's notification queue while group is being destroyed.  These events
+are freed from fanotify_handle_event() but they are not removed from
+groups notification queue and thus they get freed again from
+fsnotify_flush_notify().
 
+Fix the problem by removing permission events from notification queue
+before freeing them if we skip processing access response.  Also expand
+comments in fanotify_release() to explain group shutdown in detail.
+
+Fixes: 85816794240b9659e66e4d9b0df7c6e814e5f603
 Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Eric Paris <eparis@redhat.com>
+Reported-by: Douglas Leeder <douglas.leeder@sophos.com>
+Tested-by: Douglas Leeder <douglas.leeder@sophos.com>
+Reported-by: Heinrich Schuchard <xypron.glpk@gmx.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify.c        |    2 +-
- fs/notify/fanotify/fanotify_user.c   |    2 +-
- fs/notify/inotify/inotify_fsnotify.c |    2 +-
- fs/notify/inotify/inotify_user.c     |    4 ++--
- fs/notify/notification.c             |   18 +++++++++---------
- include/linux/fsnotify_backend.h     |   12 ++++++------
- 6 files changed, 20 insertions(+), 20 deletions(-)
+ fs/notify/fanotify/fanotify.c      |    9 ++++++++-
+ fs/notify/fanotify/fanotify_user.c |   12 ++++++++++++
+ fs/notify/notification.c           |   18 +++++++++++++++++-
+ include/linux/fsnotify_backend.h   |    2 ++
+ 4 files changed, 39 insertions(+), 2 deletions(-)
 
-diff -puN fs/notify/fanotify/fanotify.c~fsnotify-rename-event-handling-functions fs/notify/fanotify/fanotify.c
---- a/fs/notify/fanotify/fanotify.c~fsnotify-rename-event-handling-functions
+diff -puN fs/notify/fanotify/fanotify.c~fanotify-fix-double-free-of-pending-permission-events fs/notify/fanotify/fanotify.c
+--- a/fs/notify/fanotify/fanotify.c~fanotify-fix-double-free-of-pending-permission-events
 +++ a/fs/notify/fanotify/fanotify.c
-@@ -210,7 +210,7 @@ static int fanotify_handle_event(struct
- 		return -ENOMEM;
+@@ -70,8 +70,15 @@ static int fanotify_get_response(struct
+ 	wait_event(group->fanotify_data.access_waitq, event->response ||
+ 				atomic_read(&group->fanotify_data.bypass_perm));
  
- 	fsn_event = &event->fse;
--	ret = fsnotify_add_notify_event(group, fsn_event, fanotify_merge);
-+	ret = fsnotify_add_event(group, fsn_event, fanotify_merge);
- 	if (ret) {
- 		/* Permission events shouldn't be merged */
- 		BUG_ON(ret == 1 && mask & FAN_ALL_PERM_EVENTS);
-diff -puN fs/notify/fanotify/fanotify_user.c~fsnotify-rename-event-handling-functions fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fsnotify-rename-event-handling-functions
+-	if (!event->response) /* bypass_perm set */
++	if (!event->response) {	/* bypass_perm set */
++		/*
++		 * Event was canceled because group is being destroyed. Remove
++		 * it from group's event list because we are responsible for
++		 * freeing the permission event.
++		 */
++		fsnotify_remove_event(group, &event->fae.fse);
+ 		return 0;
++	}
+ 
+ 	/* userspace responded, convert to something usable */
+ 	switch (event->response) {
+diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-fix-double-free-of-pending-permission-events fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fanotify-fix-double-free-of-pending-permission-events
 +++ a/fs/notify/fanotify/fanotify_user.c
-@@ -66,7 +66,7 @@ static struct fsnotify_event *get_one_ev
+@@ -359,6 +359,11 @@ static int fanotify_release(struct inode
+ #ifdef CONFIG_FANOTIFY_ACCESS_PERMISSIONS
+ 	struct fanotify_perm_event_info *event, *next;
  
- 	/* held the notification_mutex the whole time, so this is the
- 	 * same event we peeked above */
--	return fsnotify_remove_notify_event(group);
-+	return fsnotify_remove_first_event(group);
- }
++	/*
++	 * There may be still new events arriving in the notification queue
++	 * but since userspace cannot use fanotify fd anymore, no event can
++	 * enter or leave access_list by now.
++	 */
+ 	spin_lock(&group->fanotify_data.access_lock);
  
- static int create_fd(struct fsnotify_group *group,
-diff -puN fs/notify/inotify/inotify_fsnotify.c~fsnotify-rename-event-handling-functions fs/notify/inotify/inotify_fsnotify.c
---- a/fs/notify/inotify/inotify_fsnotify.c~fsnotify-rename-event-handling-functions
-+++ a/fs/notify/inotify/inotify_fsnotify.c
-@@ -108,7 +108,7 @@ int inotify_handle_event(struct fsnotify
- 	if (len)
- 		strcpy(event->name, file_name);
+ 	atomic_inc(&group->fanotify_data.bypass_perm);
+@@ -373,6 +378,13 @@ static int fanotify_release(struct inode
+ 	}
+ 	spin_unlock(&group->fanotify_data.access_lock);
  
--	ret = fsnotify_add_notify_event(group, fsn_event, inotify_merge);
-+	ret = fsnotify_add_event(group, fsn_event, inotify_merge);
- 	if (ret) {
- 		/* Our event wasn't used in the end. Free it. */
- 		fsnotify_destroy_event(group, fsn_event);
-diff -puN fs/notify/inotify/inotify_user.c~fsnotify-rename-event-handling-functions fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~fsnotify-rename-event-handling-functions
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -149,7 +149,7 @@ static struct fsnotify_event *get_one_ev
- 	if (fsnotify_notify_queue_is_empty(group))
- 		return NULL;
++	/*
++	 * Since bypass_perm is set, newly queued events will not wait for
++	 * access response. Wake up the already sleeping ones now.
++	 * synchronize_srcu() in fsnotify_destroy_group() will wait for all
++	 * processes sleeping in fanotify_handle_event() waiting for access
++	 * response and thus also for all permission events to be freed.
++	 */
+ 	wake_up(&group->fanotify_data.access_waitq);
+ #endif
  
--	event = fsnotify_peek_notify_event(group);
-+	event = fsnotify_peek_first_event(group);
- 
- 	pr_debug("%s: group=%p event=%p\n", __func__, group, event);
- 
-@@ -159,7 +159,7 @@ static struct fsnotify_event *get_one_ev
- 
- 	/* held the notification_mutex the whole time, so this is the
- 	 * same event we peeked above */
--	fsnotify_remove_notify_event(group);
-+	fsnotify_remove_first_event(group);
- 
- 	return event;
- }
-diff -puN fs/notify/notification.c~fsnotify-rename-event-handling-functions fs/notify/notification.c
---- a/fs/notify/notification.c~fsnotify-rename-event-handling-functions
+diff -puN fs/notify/notification.c~fanotify-fix-double-free-of-pending-permission-events fs/notify/notification.c
+--- a/fs/notify/notification.c~fanotify-fix-double-free-of-pending-permission-events
 +++ a/fs/notify/notification.c
-@@ -83,10 +83,10 @@ void fsnotify_destroy_event(struct fsnot
-  * added to the queue, 1 if the event was merged with some other queued event,
-  * 2 if the queue of events has overflown.
-  */
--int fsnotify_add_notify_event(struct fsnotify_group *group,
--			      struct fsnotify_event *event,
--			      int (*merge)(struct list_head *,
--					   struct fsnotify_event *))
-+int fsnotify_add_event(struct fsnotify_group *group,
-+		       struct fsnotify_event *event,
-+		       int (*merge)(struct list_head *,
-+				    struct fsnotify_event *))
- {
- 	int ret = 0;
- 	struct list_head *list = &group->notification_list;
-@@ -128,7 +128,7 @@ queue:
-  * Remove and return the first event from the notification list.  It is the
-  * responsibility of the caller to destroy the obtained event
-  */
--struct fsnotify_event *fsnotify_remove_notify_event(struct fsnotify_group *group)
-+struct fsnotify_event *fsnotify_remove_first_event(struct fsnotify_group *group)
- {
- 	struct fsnotify_event *event;
+@@ -73,7 +73,8 @@ void fsnotify_destroy_event(struct fsnot
+ 	/* Overflow events are per-group and we don't want to free them */
+ 	if (!event || event->mask == FS_Q_OVERFLOW)
+ 		return;
+-
++	/* If the event is still queued, we have a problem... */
++	WARN_ON(!list_empty(&event->list));
+ 	group->ops->free_event(event);
+ }
  
-@@ -140,7 +140,7 @@ struct fsnotify_event *fsnotify_remove_n
- 				 struct fsnotify_event, list);
- 	/*
- 	 * We need to init list head for the case of overflow event so that
--	 * check in fsnotify_add_notify_events() works
-+	 * check in fsnotify_add_event() works
- 	 */
- 	list_del_init(&event->list);
- 	group->q_len--;
-@@ -149,9 +149,9 @@ struct fsnotify_event *fsnotify_remove_n
+@@ -125,6 +126,21 @@ queue:
  }
  
  /*
-- * This will not remove the event, that must be done with fsnotify_remove_notify_event()
-+ * This will not remove the event, that must be done with fsnotify_remove_first_event()
++ * Remove @event from group's notification queue. It is the responsibility of
++ * the caller to destroy the event.
++ */
++void fsnotify_remove_event(struct fsnotify_group *group,
++			   struct fsnotify_event *event)
++{
++	mutex_lock(&group->notification_mutex);
++	if (!list_empty(&event->list)) {
++		list_del_init(&event->list);
++		group->q_len--;
++	}
++	mutex_unlock(&group->notification_mutex);
++}
++
++/*
+  * Remove and return the first event from the notification list.  It is the
+  * responsibility of the caller to destroy the obtained event
   */
--struct fsnotify_event *fsnotify_peek_notify_event(struct fsnotify_group *group)
-+struct fsnotify_event *fsnotify_peek_first_event(struct fsnotify_group *group)
- {
- 	BUG_ON(!mutex_is_locked(&group->notification_mutex));
- 
-@@ -169,7 +169,7 @@ void fsnotify_flush_notify(struct fsnoti
- 
- 	mutex_lock(&group->notification_mutex);
- 	while (!fsnotify_notify_queue_is_empty(group)) {
--		event = fsnotify_remove_notify_event(group);
-+		event = fsnotify_remove_first_event(group);
- 		fsnotify_destroy_event(group, event);
- 	}
- 	mutex_unlock(&group->notification_mutex);
-diff -puN include/linux/fsnotify_backend.h~fsnotify-rename-event-handling-functions include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-rename-event-handling-functions
+diff -puN include/linux/fsnotify_backend.h~fanotify-fix-double-free-of-pending-permission-events include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fanotify-fix-double-free-of-pending-permission-events
 +++ a/include/linux/fsnotify_backend.h
-@@ -322,16 +322,16 @@ extern int fsnotify_fasync(int fd, struc
- extern void fsnotify_destroy_event(struct fsnotify_group *group,
- 				   struct fsnotify_event *event);
- /* attach the event to the group notification queue */
--extern int fsnotify_add_notify_event(struct fsnotify_group *group,
--				     struct fsnotify_event *event,
--				     int (*merge)(struct list_head *,
--						  struct fsnotify_event *));
-+extern int fsnotify_add_event(struct fsnotify_group *group,
-+			      struct fsnotify_event *event,
-+			      int (*merge)(struct list_head *,
-+					   struct fsnotify_event *));
+@@ -326,6 +326,8 @@ extern int fsnotify_add_event(struct fsn
+ 			      struct fsnotify_event *event,
+ 			      int (*merge)(struct list_head *,
+ 					   struct fsnotify_event *));
++/* Remove passed event from groups notification queue */
++extern void fsnotify_remove_event(struct fsnotify_group *group, struct fsnotify_event *event);
  /* true if the group notification queue is empty */
  extern bool fsnotify_notify_queue_is_empty(struct fsnotify_group *group);
  /* return, but do not dequeue the first event on the notification queue */
--extern struct fsnotify_event *fsnotify_peek_notify_event(struct fsnotify_group *group);
-+extern struct fsnotify_event *fsnotify_peek_first_event(struct fsnotify_group *group);
- /* return AND dequeue the first event on the notification queue */
--extern struct fsnotify_event *fsnotify_remove_notify_event(struct fsnotify_group *group);
-+extern struct fsnotify_event *fsnotify_remove_first_event(struct fsnotify_group *group);
- 
- /* functions used to manipulate the marks attached to inodes */
- 
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
