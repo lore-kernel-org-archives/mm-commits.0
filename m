@@ -1,128 +1,98 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration.patch removed from -mm tree
-Date: Wed, 06 Aug 2014 14:01:19 -0700
-Message-ID: <53e2979f.WaffIq/qJKpj762v%akpm@linux-foundation.org>
+ fsnotify-rename-event-handling-functions-checkpatch-fixes.patch removed
+ from -mm tree
+Date: Wed, 06 Aug 2014 15:41:42 -0700
+Message-ID: <53e2af26.tIWPodLTWaIc84AL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f73.google.com ([209.85.218.73]:55135 "EHLO
-	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752486AbaHFVBU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 17:01:20 -0400
-Received: by mail-oi0-f73.google.com with SMTP id u20so584707oif.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 14:01:20 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:61192 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752417AbaHFWln (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:41:43 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so838439pab.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:41:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: rewrite uncharge API fix - clear page->mapping in migration
+     Subject: fsnotify-rename-event-handling-functions-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration.patch
+     fsnotify-rename-event-handling-functions-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-memcontrol-rewrite-uncharge-api.patch
+This patch was dropped because it was folded into fsnotify-rename-event-handling-functions.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: rewrite uncharge API fix - clear page->mapping in migration
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fsnotify-rename-event-handling-functions-checkpatch-fixes
 
-The page->mapping reset in migration was conditionalized so that a later
-uncharge could use PageAnon() to figure out the page type.  But after "mm:
-memcontrol: rewrite uncharge API fix - double migration", the old page is
-uncharged directly in mem_cgroup_migrate() and so this is no longer
-necessary.
+WARNING: line over 80 characters
+#121: FILE: fs/notify/notification.c:152:
++ * This will not remove the event, that must be done with fsnotify_remove_first_event()
 
-Once all fixups are folded into the "rewrite uncharge API" patch,
-there will be no reason and no explanation for this change anymore, so
-revert it.
+WARNING: line over 80 characters
+#156: FILE: include/linux/fsnotify_backend.h:332:
++extern struct fsnotify_event *fsnotify_peek_first_event(struct fsnotify_group *group);
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
+WARNING: line over 80 characters
+#159: FILE: include/linux/fsnotify_backend.h:334:
++extern struct fsnotify_event *fsnotify_remove_first_event(struct fsnotify_group *group);
+
+total: 0 errors, 3 warnings, 111 lines checked
+
+./patches/fsnotify-rename-event-handling-functions.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/notify/notification.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration mm/migrate.c
---- a/mm/migrate.c~mm-memcontrol-rewrite-uncharge-api-fix-clear-page-mapping-in-migration
-+++ a/mm/migrate.c
-@@ -778,14 +778,12 @@ static int move_to_new_page(struct page
- 		rc = fallback_migrate_page(mapping, newpage, page, mode);
+diff -puN fs/notify/notification.c~fsnotify-rename-event-handling-functions-checkpatch-fixes fs/notify/notification.c
+--- a/fs/notify/notification.c~fsnotify-rename-event-handling-functions-checkpatch-fixes
++++ a/fs/notify/notification.c
+@@ -149,7 +149,8 @@ struct fsnotify_event *fsnotify_remove_f
+ }
  
- 	if (rc != MIGRATEPAGE_SUCCESS) {
--		if (!PageAnon(newpage))
--			newpage->mapping = NULL;
-+		newpage->mapping = NULL;
- 	} else {
- 		mem_cgroup_migrate(page, newpage, false);
- 		if (remap_swapcache)
- 			remove_migration_ptes(page, newpage);
--		if (!PageAnon(page))
--			page->mapping = NULL;
-+		page->mapping = NULL;
- 	}
- 
- 	unlock_page(newpage);
+ /*
+- * This will not remove the event, that must be done with fsnotify_remove_first_event()
++ * This will not remove the event, that must be done with
++ * fsnotify_remove_first_event()
+  */
+ struct fsnotify_event *fsnotify_peek_first_event(struct fsnotify_group *group)
+ {
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
-mm-page-flags-clean-up-the-page-flag-test-set-clear-macros.patch
-mm-memcontrol-fold-mem_cgroup_do_charge.patch
-mm-memcontrol-rearrange-charging-fast-path.patch
-mm-memcontrol-reclaim-at-least-once-for-__gfp_noretry.patch
-mm-huge_memory-use-gfp_transhuge-when-charging-huge-pages.patch
-mm-memcontrol-retry-reclaim-for-oom-disabled-and-__gfp_nofail-charges.patch
-mm-memcontrol-remove-explicit-oom-parameter-in-charge-path.patch
-mm-memcontrol-simplify-move-precharge-function.patch
-mm-memcontrol-catch-root-bypass-in-move-precharge.patch
-mm-memcontrol-use-root_mem_cgroup-res_counter.patch
-mm-memcontrol-remove-ordering-between-pc-mem_cgroup-and-pagecgroupused.patch
-mm-memcontrol-do-not-acquire-page_cgroup-lock-for-kmem-pages.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
-page-cgroup-trivial-cleanup.patch
-page-cgroup-get-rid-of-nr_pcg_flags.patch
-memcg-remove-lookup_cgroup_page-prototype.patch
-mm-vmscan-remove-remains-of-kswapd-managed-zone-all_unreclaimable.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim.patch
-mm-vmscan-rework-compaction-ready-signaling-in-direct-reclaim-fix.patch
-mm-vmscan-remove-all_unreclaimable.patch
-mm-vmscan-remove-all_unreclaimable-fix.patch
-mm-vmscan-move-swappiness-out-of-scan_control.patch
-mm-vmscan-clean-up-struct-scan_control-v2.patch
-mm-export-nr_shmem-via-sysinfo2-si_meminfo-interfaces.patch
-mm-replace-init_page_accessed-by-__setpagereferenced.patch
-mm-update-the-description-for-vm_total_pages.patch
-mm-vmscan-report-the-number-of-file-anon-pages-respectively.patch
-mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
-mm-rearrange-zone-fields-into-read-only-page-alloc-statistics-and-page-reclaim-lines.patch
-mm-move-zone-pages_scanned-into-a-vmstat-counter.patch
-mm-vmscan-only-update-per-cpu-thresholds-for-online-cpu.patch
-mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
-mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
-mm-writeback-prevent-race-when-calculating-dirty-limits.patch
-slub-remove-kmemcg-id-from-create_unique_id.patch
-mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
+fsnotify-rename-event-handling-functions.patch
+kbuild-explain-stack-protector-strong-config-logic.patch
+slub-use-new-node-functions-checkpatch-fixes.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2.patch
+slab-use-get_node-and-kmem_cache_node-functions-fix-2-fix.patch
+slab-change-int-to-size_t-for-representing-allocation-size.patch
+mm-page_allocc-unexport-alloc_pages_exact_nid.patch
+dma-cma-support-arbitrary-bitmap-granularity-fix.patch
+mm-vmallocc-add-a-schedule-point-to-vmalloc-fix.patch
+include-linux-mmdebugh-add-vm_warn_once.patch
+mm-catch-memory-commitment-underflow-fix.patch
+mm-hugetlb-generalize-writes-to-nr_hugepages-fix.patch
 mm-oom-ensure-memoryless-node-zonelist-always-includes-zones-fix.patch
-mm-oom-rename-zonelist-locking-functions.patch
-mm-thp-restructure-thp-avoidance-of-light-synchronous-migration.patch
-mm-vmscan-fix-an-outdated-comment-still-mentioning-get_scan_ratio.patch
-memcg-vmscan-fix-forced-scan-of-anonymous-pages.patch
-memcg-vmscan-fix-forced-scan-of-anonymous-pages-fix-cleanups.patch
-mm-memcontrol-avoid-charge-statistics-churn-during-page-migration.patch
-mm-memcontrol-clean-up-reclaim-size-variable-use-in-try_charge.patch
-nilfs2-integrate-sysfs-support-into-driver-fix.patch
-linux-next.patch
-debugging-keep-track-of-page-owners.patch
+list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+add-lib-globc-fix.patch
+lib-list_sortc-convert-to-pr_foo.patch
+lib-list_sortc-convert-to-pr_foo-fix.patch
+checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
 
