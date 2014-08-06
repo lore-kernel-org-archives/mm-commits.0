@@ -1,71 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
- removed from -mm tree
-Date: Wed, 06 Aug 2014 15:53:46 -0700
-Message-ID: <53e2b1fa.IvGLjAdE3XR5E2cm%akpm@linux-foundation.org>
+Subject: [folded-merged] add-lib-globc-fix.patch removed from -mm tree
+Date: Wed, 06 Aug 2014 15:54:06 -0700
+Message-ID: <53e2b20e.oBD+ALVwaX508aaP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f202.google.com ([209.85.160.202]:60273 "EHLO
-	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752417AbaHFWxr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:53:47 -0400
-Received: by mail-yk0-f202.google.com with SMTP id q9so438702ykb.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:53:46 -0700 (PDT)
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:43844 "EHLO
+	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752417AbaHFWyH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2014 18:54:07 -0400
+Received: by mail-qg0-f73.google.com with SMTP id q107so439153qgd.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Aug 2014 15:54:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kenhelias@firemail.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, linux@horizon.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes
+     Subject: add-lib-globc-fix
 has been removed from the -mm tree.  Its filename was
-     list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes.patch
+     add-lib-globc-fix.patch
 
-This patch was dropped because it was folded into list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
+This patch was dropped because it was folded into add-lib-globc.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes
+Subject: add-lib-globc-fix
 
-ERROR: code indent should use tabs where possible
-#177: FILE: include/linux/rculist.h:453:
-+^I^I^I^I        struct hlist_node *prev)$
+fix sparse warning
 
-total: 1 errors, 0 warnings, 0 checks, 151 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/list-fix-order-of-arguments-for-hlist_add_after_rcu.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Ken Helias <kenhelias@firemail.de>
+Cc: George Spelvin <linux@horizon.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rculist.h |    2 +-
+ lib/glob.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/rculist.h~list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes include/linux/rculist.h
---- a/include/linux/rculist.h~list-fix-order-of-arguments-for-hlist_add_after_rcu-checkpatch-fixes
-+++ a/include/linux/rculist.h
-@@ -450,7 +450,7 @@ static inline void hlist_add_before_rcu(
-  * problems on Alpha CPUs.
-  */
- static inline void hlist_add_behind_rcu(struct hlist_node *n,
--				        struct hlist_node *prev)
-+					struct hlist_node *prev)
- {
- 	n->next = prev->next;
- 	n->pprev = &prev->next;
+diff -puN lib/glob.c~add-lib-globc-fix lib/glob.c
+--- a/lib/glob.c~add-lib-globc-fix
++++ a/lib/glob.c
+@@ -45,7 +45,7 @@ bool __pure glob_match(char const *pat,
+ 	 * (no exception for /), it can be easily proved that there's
+ 	 * never a need to backtrack multiple levels.
+ 	 */
+-	char const *back_pat = 0, *back_str = back_str;
++	char const *back_pat = NULL, *back_str = back_str;
+ 
+ 	/*
+ 	 * Loop over each token (character or class) in pat, matching
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,7 +68,7 @@ include-linux-mmdebugh-add-vm_warn_once.patch
 mm-catch-memory-commitment-underflow.patch
 mm-oom-ensure-memoryless-node-zonelist-always-includes-zones.patch
 list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
-add-lib-globc-fix.patch
+add-lib-globc.patch
 lib-list_sortc-convert-to-pr_foo.patch
 lib-list_sortc-convert-to-pr_foo-fix.patch
 checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
