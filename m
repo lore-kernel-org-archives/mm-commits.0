@@ -1,56 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:08:43 -0700
-Message-ID: <53e3dccb.rzt1W5ZLjiVdTJBw%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-ignore-email-headers-better.patch removed
+ from -mm tree
+Date: Thu, 07 Aug 2014 13:08:47 -0700
+Message-ID: <53e3dccf.04U7bCoJFZkivlKD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f74.google.com ([209.85.192.74]:59562 "EHLO
-	mail-qg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193AbaHGUIo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:44 -0400
-Received: by mail-qg0-f74.google.com with SMTP id z60so611689qgd.3
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:43 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:43542 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbaHGUIs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:48 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so610817yha.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix complex macro false positive for escaped constant char
+     Subject: checkpatch: ignore email headers better
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
+     checkpatch-ignore-email-headers-better.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: fix complex macro false positive for escaped constant char
+Subject: checkpatch: ignore email headers better
 
-A single escaped constant char is not a complex macro.
+There are some patches created by git format-patch that when scanned by
+checkpatch report errors on lines like
+
+To:	address.tld
+
+This is a checkpatch false positive.
+
+Improve the logic a bit to ignore folded email headers to avoid emitting
+these messages.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char
+diff -puN scripts/checkpatch.pl~checkpatch-ignore-email-headers-better scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-ignore-email-headers-better
 +++ a/scripts/checkpatch.pl
-@@ -3772,7 +3772,7 @@ sub process {
- 			    $dstat !~ /^(?:$Ident|-?$Constant),$/ &&			# 10, // foo(),
- 			    $dstat !~ /^(?:$Ident|-?$Constant);$/ &&			# foo();
- 			    $dstat !~ /^[!~-]?(?:$Lval|$Constant)$/ &&		# 10 // foo() // !foo // ~foo // -foo // foo->bar // foo.bar->baz
--			    $dstat !~ /^'X'$/ &&					# character constants
-+			    $dstat !~ /^'X'$/ && $dstat !~ /^'XX'$/ &&			# character constants
- 			    $dstat !~ /$exceptions/ &&
- 			    $dstat !~ /^\.$Ident\s*=/ &&				# .foo =
- 			    $dstat !~ /^(?:\#\s*$Ident|\#\s*$Constant)\s*$/ &&		# stringification #foo
+@@ -1637,7 +1637,7 @@ sub process {
+ 	my $signoff = 0;
+ 	my $is_patch = 0;
+ 
+-	my $in_header_lines = 1;
++	my $in_header_lines = $file ? 0 : 1;
+ 	my $in_commit_log = 0;		#Scanning lines before patch
+ 
+ 	my $non_utf8_charset = 0;
+@@ -1993,7 +1993,8 @@ sub process {
+ # Check if it's the start of a commit log
+ # (not a header line and we haven't seen the patch filename)
+ 		if ($in_header_lines && $realfile =~ /^$/ &&
+-		    $rawline !~ /^(commit\b|from\b|[\w-]+:).+$/i) {
++		    !($rawline =~ /^\s+\S/ ||
++		      $rawline =~ /^(commit\b|from\b|[\w-]+:).*$/i)) {
+ 			$in_header_lines = 0;
+ 			$in_commit_log = 1;
+ 		}
 _
 
 Patches currently in -mm which might be from joe@perches.com are
