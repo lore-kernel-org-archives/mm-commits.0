@@ -1,73 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-fix-false-positive-missing_break-warnings-with-file.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:09:33 -0700
-Message-ID: <53e3dcfd.tHMeskEETifnmF+7%akpm@linux-foundation.org>
+ checkpatch-update-declaration_macros-add-uninitialized_var.patch removed
+ from -mm tree
+Date: Thu, 07 Aug 2014 13:09:39 -0700
+Message-ID: <53e3dd03.5e+dDHF4XhIyHneC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:53020 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159AbaHGUJe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:34 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 29so611545yhl.3
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:33 -0700 (PDT)
+Received: from mail-oi0-f73.google.com ([209.85.218.73]:40369 "EHLO
+	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752088AbaHGUJk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:40 -0400
+Received: by mail-oi0-f73.google.com with SMTP id u20so839015oif.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, lee.jones@linaro.org, mm-commits@vger.kernel.org
+To: joe@perches.com, dotanb@mellanox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix false positive MISSING_BREAK warnings with --file
+     Subject: checkpatch: update $declaration_macros, add uninitialized_var
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-false-positive-missing_break-warnings-with-file.patch
+     checkpatch-update-declaration_macros-add-uninitialized_var.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: fix false positive MISSING_BREAK warnings with --file
+Subject: checkpatch: update $declaration_macros, add uninitialized_var
 
-Using --file mode can give false positives with MISSING_BREAK
-fall-through warnings on simple but long multiple consecutive
-case statements.
+Using uninitialized_var reports a false positive for "Missing blank line
+after declarations".
 
-Look for all lines before a case statement for a switch
-or a statement when using --file mode.
+Fix it by adding uninitialized_var to the $declaration_macros exceptions
+list.
 
-Fix a misspelling of preceded while there.
+Move the macro list after $Type is declared.
+
+Add optional prefixes to DECLARE_<FOO> and DEFINE_<BAR>
+macro declarations to allow forms like:
+	MLX4_DECLARE_DOORBELL_LOCK
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Lee Jones <lee.jones@linaro.org>
-Acked-by: Lee Jones <lee.jones@linaro.org>
+Reported-by: Dotan Barak <dotanb@mellanox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-false-positive-missing_break-warnings-with-file scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-false-positive-missing_break-warnings-with-file
+diff -puN scripts/checkpatch.pl~checkpatch-update-declaration_macros-add-uninitialized_var scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-update-declaration_macros-add-uninitialized_var
 +++ a/scripts/checkpatch.pl
-@@ -4811,13 +4811,13 @@ sub process {
- 			}
- 		}
+@@ -423,11 +423,6 @@ foreach my $entry (@mode_permission_func
+ 	$mode_perms_search .= $entry->[0];
+ }
  
--# check for case / default statements not preceeded by break/fallthrough/switch
-+# check for case / default statements not preceded by break/fallthrough/switch
- 		if ($line =~ /^.\s*(?:case\s+(?:$Ident|$Constant)\s*|default):/) {
- 			my $has_break = 0;
- 			my $has_statement = 0;
- 			my $count = 0;
- 			my $prevline = $linenr;
--			while ($prevline > 1 && $count < 3 && !$has_break) {
-+			while ($prevline > 1 && ($file || $count < 3) && !$has_break) {
- 				$prevline--;
- 				my $rline = $rawlines[$prevline - 1];
- 				my $fline = $lines[$prevline - 1];
+-our $declaration_macros = qr{(?x:
+-	(?:$Storage\s+)?(?:DECLARE|DEFINE)_[A-Z]+\s*\(|
+-	(?:$Storage\s+)?LIST_HEAD\s*\(
+-)};
+-
+ our $allowed_asm_includes = qr{(?x:
+ 	irq|
+ 	memory
+@@ -490,6 +485,12 @@ our $balanced_parens = qr/(\((?:[^\(\)]+
+ our $LvalOrFunc	= qr{((?:[\&\*]\s*)?$Lval)\s*($balanced_parens{0,1})\s*};
+ our $FuncArg = qr{$Typecast{0,1}($LvalOrFunc|$Constant)};
+ 
++our $declaration_macros = qr{(?x:
++	(?:$Storage\s+)?(?:[A-Z_][A-Z0-9]*_){0,2}(?:DEFINE|DECLARE)(?:_[A-Z0-9]+){1,2}\s*\(|
++	(?:$Storage\s+)?LIST_HEAD\s*\(|
++	(?:$Storage\s+)?${Type}\s+uninitialized_var\s*\(
++)};
++
+ sub deparenthesize {
+ 	my ($string) = @_;
+ 	return "" if (!defined($string));
 _
 
 Patches currently in -mm which might be from joe@perches.com are
