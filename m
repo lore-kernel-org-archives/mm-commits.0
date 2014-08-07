@@ -1,40 +1,41 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- list-use-argument-hlist_add_after-names-from-rcu-variant.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:07:31 -0700
-Message-ID: <53e3dc83.E7QFhawM2mWXghEg%akpm@linux-foundation.org>
+ klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch removed
+ from -mm tree
+Date: Thu, 07 Aug 2014 13:07:35 -0700
+Message-ID: <53e3dc87.gfii8PiunAM+NhEy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:51476 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751265AbaHGUHc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:07:32 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so843509oac.3
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:07:31 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:59849 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755082AbaHGUHg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:07:36 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so839786obb.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:07:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kenhelias@firemail.de, hch@infradead.org, hughd@google.com, jeffrey.t.kirsher@intel.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: list: make hlist_add_after() argument names match hlist_add_after_rcu()
+     Subject: klist: use same naming scheme as hlist for klist_add_after()
 has been removed from the -mm tree.  Its filename was
-     list-use-argument-hlist_add_after-names-from-rcu-variant.patch
+     klist-use-same-naming-scheme-as-hlist-for-klist_add_after.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ken Helias <kenhelias@firemail.de>
-Subject: list: make hlist_add_after() argument names match hlist_add_after_rcu()
+Subject: klist: use same naming scheme as hlist for klist_add_after()
 
-The argument names for hlist_add_after() are poorly chosen because they
-look the same as the ones for hlist_add_before() but have to be used
-differently.
+The name was modified from hlist_add_after() to hlist_add_behind() when
+adjusting the order of arguments to match the one with klist_add_after(). 
+This is necessary to break old code when it would use it the wrong way.
 
-hlist_add_after_rcu() has made a better choice.
+Make klist follow this naming scheme for consistency.
 
 Signed-off-by: Ken Helias <kenhelias@firemail.de>
 Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
@@ -44,35 +45,48 @@ Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/klist.h |    2 +-
+ lib/klist.c           |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/list.h~list-use-argument-hlist_add_after-names-from-rcu-variant include/linux/list.h
---- a/include/linux/list.h~list-use-argument-hlist_add_after-names-from-rcu-variant
-+++ a/include/linux/list.h
-@@ -654,15 +654,15 @@ static inline void hlist_add_before(stru
- 	*(n->pprev) = n;
- }
+diff -puN include/linux/klist.h~klist-use-same-naming-scheme-as-hlist-for-klist_add_after include/linux/klist.h
+--- a/include/linux/klist.h~klist-use-same-naming-scheme-as-hlist-for-klist_add_after
++++ a/include/linux/klist.h
+@@ -44,7 +44,7 @@ struct klist_node {
  
--static inline void hlist_add_after(struct hlist_node *n,
--					struct hlist_node *next)
-+static inline void hlist_add_after(struct hlist_node *prev,
-+				   struct hlist_node *n)
+ extern void klist_add_tail(struct klist_node *n, struct klist *k);
+ extern void klist_add_head(struct klist_node *n, struct klist *k);
+-extern void klist_add_after(struct klist_node *n, struct klist_node *pos);
++extern void klist_add_behind(struct klist_node *n, struct klist_node *pos);
+ extern void klist_add_before(struct klist_node *n, struct klist_node *pos);
+ 
+ extern void klist_del(struct klist_node *n);
+diff -puN lib/klist.c~klist-use-same-naming-scheme-as-hlist-for-klist_add_after lib/klist.c
+--- a/lib/klist.c~klist-use-same-naming-scheme-as-hlist-for-klist_add_after
++++ a/lib/klist.c
+@@ -140,11 +140,11 @@ void klist_add_tail(struct klist_node *n
+ EXPORT_SYMBOL_GPL(klist_add_tail);
+ 
+ /**
+- * klist_add_after - Init a klist_node and add it after an existing node
++ * klist_add_behind - Init a klist_node and add it after an existing node
+  * @n: node we're adding.
+  * @pos: node to put @n after
+  */
+-void klist_add_after(struct klist_node *n, struct klist_node *pos)
++void klist_add_behind(struct klist_node *n, struct klist_node *pos)
  {
--	next->next = n->next;
--	n->next = next;
--	next->pprev = &n->next;
-+	n->next = prev->next;
-+	prev->next = n;
-+	n->pprev = &prev->next;
+ 	struct klist *k = knode_klist(pos);
  
--	if(next->next)
--		next->next->pprev  = &next->next;
-+	if (n->next)
-+		n->next->pprev  = &n->next;
+@@ -153,7 +153,7 @@ void klist_add_after(struct klist_node *
+ 	list_add(&n->n_node, &pos->n_node);
+ 	spin_unlock(&k->k_lock);
  }
+-EXPORT_SYMBOL_GPL(klist_add_after);
++EXPORT_SYMBOL_GPL(klist_add_behind);
  
- /* after that we'll appear to be on some hlist and hlist_del will work */
+ /**
+  * klist_add_before - Init a klist_node and add it before an existing node
 _
 
 Patches currently in -mm which might be from kenhelias@firemail.de are
