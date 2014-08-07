@@ -1,87 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-warn-on-unnecessary-else-after-return-or-break.patch removed
- from -mm tree
-Date: Thu, 07 Aug 2014 13:08:39 -0700
-Message-ID: <53e3dcc7.Qbi7FOlw1d+XKO0V%akpm@linux-foundation.org>
+ checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:08:45 -0700
+Message-ID: <53e3dccd.X/ImM1TBORBzrSMw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:46002 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750890AbaHGUIk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:40 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f73so610797yha.0
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:39 -0700 (PDT)
+Received: from mail-yk0-f202.google.com ([209.85.160.202]:44951 "EHLO
+	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbaHGUIq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:46 -0400
+Received: by mail-yk0-f202.google.com with SMTP id q9so611858ykb.1
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, bruce.w.allan@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn on unnecessary else after return or break
+     Subject: checkpatch: fix function pointers in blank line needed after declarations test
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
+     checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on unnecessary else after return or break
+Subject: checkpatch: fix function pointers in blank line needed after declarations test
 
-Using an else following a break or return can unnecessarily indent code
-blocks.
-
-ie:
-	for (i = 0; i < 100; i++) {
-		int foo = bar();
-		if (foo < 1)
-			break;
-		else
-			usleep(1);
-	}
-
-is generally better written as:
-
-	for (i = 0; i < 100; i++) {
-		int foo = bar();
-		if (foo < 1)
-			break;
-		usleep(1);
-	}
-
-Warn when a bare else statement is preceded by a break or return indented
-1 tab more than the else.
+Add a function pointer declaration check to the test for blank line needed
+after declarations.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Bruce W Allan <bruce.w.allan@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ scripts/checkpatch.pl |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-else-after-return-or-break scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-else-after-return-or-break
+diff -puN scripts/checkpatch.pl~checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test
 +++ a/scripts/checkpatch.pl
-@@ -2342,6 +2342,16 @@ sub process {
- # check we are in a valid C source file if not then ignore this hunk
- 		next if ($realfile !~ /\.(h|c)$/);
- 
-+# check indentation of any line with a bare else
-+# if the previous line is a break or return and is indented 1 tab more...
-+		if ($sline =~ /^\+([\t]+)(?:}[ \t]*)?else(?:[ \t]*{)?\s*$/) {
-+			my $tabs = length($1) + 1;
-+			if ($prevline =~ /^\+\t{$tabs,$tabs}(?:break|return)\b/) {
-+				WARN("UNNECESSARY_ELSE",
-+				     "else is not generally useful after a break or return\n" . $hereprev);
-+			}
-+		}
-+
- # discourage the addition of CONFIG_EXPERIMENTAL in #if(def).
- 		if ($line =~ /^\+\s*\#\s*if.*\bCONFIG_EXPERIMENTAL\b/) {
- 			WARN("CONFIG_EXPERIMENTAL",
+@@ -2295,6 +2295,8 @@ sub process {
+ 		if ($sline =~ /^\+\s+\S/ &&			#Not at char 1
+ 			# actual declarations
+ 		    ($prevline =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
++			# function pointer declarations
++		     $prevline =~ /^\+\s+$Declare\s*\(\s*\*\s*$Ident\s*\)\s*[=,;:\[\(]/ ||
+ 			# foo bar; where foo is some local typedef or #define
+ 		     $prevline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
+ 			# known declaration macros
+@@ -2307,6 +2309,8 @@ sub process {
+ 		      $prevline =~ /(?:\{\s*|\\)$/) &&
+ 			# looks like a declaration
+ 		    !($sline =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
++			# function pointer declarations
++		      $sline =~ /^\+\s+$Declare\s*\(\s*\*\s*$Ident\s*\)\s*[=,;:\[\(]/ ||
+ 			# foo bar; where foo is some local typedef or #define
+ 		      $sline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
+ 			# known declaration macros
 _
 
 Patches currently in -mm which might be from joe@perches.com are
