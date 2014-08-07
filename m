@@ -1,214 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:07:03 -0700
-Message-ID: <53e3dc67.+XIZb0zrHbiTVJuo%akpm@linux-foundation.org>
+ printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:07:11 -0700
+Message-ID: <53e3dc6f.zQaGVF8uKXQNFXl8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:60401 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbaHGUHE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:07:04 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so1176704pab.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:07:04 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:47674 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754802AbaHGUHM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:07:12 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so1178283pab.1
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:07:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, dan.carpenter@oracle.com, jakub@redhat.com, mjambor@suse.cz, paulmck@linux.vnet.ibm.com, peterz@infradead.org, pmladek@suse.cz, polacek@redhat.com, richard.guenther@gmail.com, steven@uplinklabs.net, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: mcgrof@suse.com, andrew@lunn.ch, arunks.linux@gmail.com, cmetcalf@tilera.com, davidlohr@hp.com, gregkh@linuxfoundation.org, jack@suse.cz, joe@perches.com, keescook@chromium.org, mhocko@suse.cz, pmladek@suse.cz, swarren@wwwdotorg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ./Makefile: tell gcc optimizer to never introduce new data races
+     Subject: printk: move power of 2 practice of ring buffer size to a helper
 has been removed from the -mm tree.  Its filename was
-     makefile-tell-gcc-optimizer-to-never-introduce-new-data-races.patch
+     printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: ./Makefile: tell gcc optimizer to never introduce new data races
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Subject: printk: move power of 2 practice of ring buffer size to a helper
 
-We have been chasing a memory corruption bug, which turned out to be
-caused by very old gcc (4.3.4), which happily turned conditional load into
-a non-conditional one, and that broke correctness (the condition was met
-only if lock was held) and corrupted memory.
+In practice the power of 2 practice of the size of the kernel ring buffer
+remains purely historical but not a requirement, specially now that we
+have LOG_ALIGN and use it for both static and dynamic allocations.  It
+could have helped with implicit alignment back in the days given the even
+the dynamically sized ring buffer was guaranteed to be aligned so long as
+CONFIG_LOG_BUF_SHIFT was set to produce a __LOG_BUF_LEN which is
+architecture aligned, since log_buf_len=n would be allowed only if it was
+> __LOG_BUF_LEN and we always ended up rounding the log_buf_len=n to the
+next power of 2 with roundup_pow_of_two(), any multiple of 2 then should
+be also architecture aligned.  These assumptions of course relied heavily
+on CONFIG_LOG_BUF_SHIFT producing an aligned value but users can always
+change this.
 
-This particular problem with that particular code did not happen when
-never gccs were used.  I've brought this up with our gcc folks, as I
-wanted to make sure that this can't really happen again, and it turns out
-it actually can.
+We now have precise alignment requirements set for the log buffer size for
+both static and dynamic allocations, but lets upkeep the old practice of
+using powers of 2 for its size to help with easy expected scalable values
+and the allocators for dynamic allocations.  We'll reuse this later so
+move this into a helper.
 
-Quoting Martin Jambor <mjambor@suse.cz>:
-
-====
-More current GCCs are more careful when it comes to replacing a
-conditional load with a non-conditional one, most notably they check
-that a store happens in each iteration of _a_ loop but they assume
-loops are executed.  They also perform a simple check whether the
-store cannot trap which currently passes only for non-const
-variables.  A simple testcase demonstrating it on an x86_64 is for
-example the following:
-
-$ cat cond_store.c
-
-int g_1 = 1;
-
-int g_2[1024] __attribute__((section ("safe_section"), aligned (4096)));
-
-int c = 4;
-
-int __attribute__ ((noinline))
-foo (void)
-{
-  int l;
-  for (l = 0; (l != 4); l++) {
-    if (g_1)
-      return l;
-    for (g_2[0] = 0; (g_2[0] >= 26); ++g_2[0])
-      ;
-  }
-  return 2;
-}
-
-int main (int argc, char* argv[])
-{
-  if (mprotect (g_2, sizeof(g_2), PROT_READ) == -1)
-    {
-      int e = errno;
-      error (e, e, "mprotect error %i", e);
-    }
-  foo ();
-  __builtin_printf("OK\n");
-  return 0;
-}
-/* EOF */
-$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=0
-$ ./a.out
-OK
-$ ~/gcc/trunk/inst/bin/gcc cond_store.c -O2 --param allow-store-data-races=1
-$ ./a.out
-Segmentation fault
-
-The testcase fails the same at least with 4.9, 4.8 and 4.7.  Therefore
-I would suggest building kernels with this parameter set to zero. I
-also agree with Jikos that the default should be changed for -O2.  I
-have run most of the SPEC 2k6 CPU benchmarks (gamess and dealII
-failed, at -O2, not sure why) compiled with and without this option
-and did not see any real difference between respective run-times.
-====
-
-Hopefully the default will be changed in newer gccs, but let's force
-it for kernel builds so that we are on a safe side even when older
-gcc are used.
-
-The code in question was out-of-tree printk-in-NMI (yeah, surprise
-suprise, once again) patch written by Petr Mladek, let me quote his
-comment from our internal bugzilla:
-
-===
-I have spent few days investigating inconsistent state of kernel ring buffer.
-It went out that it was caused by speculative store generated by
-gcc-4.3.4.
-
-The problem is in assembly generated for make_free_space(). The functions is
-called the following way:
-
-+ vprintk_emit();
-    + log = MAIN_LOG; // with logbuf_lock
-       or
-       log = NMI_LOG; // with nmi_logbuf_lock
-       cont_add(log, ...);
-        + cont_flush(log, ...);
-            + log_store(log, ...);
-                  + log_make_free_space(log, ...);
-
-If called with log = NMI_LOG then only nmi_log_* global variables are safe to
-modify but the generated code does store also into (main_)log_* global
-variables:
-
-<log_make_free_space>:
-       55                      push   %rbp
-       89 f6                   mov    %esi,%esi
-
-       48 8b 05 03 99 51 01    mov    0x1519903(%rip),%rax       # ffffffff82620868 <nmi_log_next_id>
-       44 8b 1d ec 98 51 01    mov    0x15198ec(%rip),%r11d      # ffffffff82620858 <log_next_idx>
-       8b 35 36 60 14 01       mov    0x1146036(%rip),%esi       # ffffffff8224cfa8 <log_buf_len>
-       44 8b 35 33 60 14 01    mov    0x1146033(%rip),%r14d      # ffffffff8224cfac <nmi_log_buf_len>
-       4c 8b 2d d0 98 51 01    mov    0x15198d0(%rip),%r13       # ffffffff82620850 <log_next_seq>
-       4c 8b 25 11 61 14 01    mov    0x1146111(%rip),%r12       # ffffffff8224d098 <log_buf>
-       49 89 c2                mov    %rax,%r10
-       48 21 c2                and    %rax,%rdx
-       48 8b 1d 0c 99 55 01    mov    0x155990c(%rip),%rbx       # ffffffff826608a0 <nmi_log_buf>
-       49 c1 ea 20             shr    $0x20,%r10
-       48 89 55 d0             mov    %rdx,-0x30(%rbp)
-       44 29 de                sub    %r11d,%esi
-       45 29 d6                sub    %r10d,%r14d
-       4c 8b 0d 97 98 51 01    mov    0x1519897(%rip),%r9	# ffffffff82620840 <log_first_seq>
-       eb 7e                   jmp    ffffffff81107029	<log_make_free_space+0xe9>
-[...]
-       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
-       4c 89 e8                mov    %r13,%rax
-       4c 89 ca                mov    %r9,%rdx
-       74 0a                   je     ffffffff8110703d	<log_make_free_space+0xfd>
-       8b 15 27 98 51 01       mov    0x1519827(%rip),%edx       # ffffffff82620860 <nmi_log_first_id>
-       48 8b 45 d0             mov    -0x30(%rbp),%rax
-       48 39 c2                cmp    %rax,%rdx                  # end of loop
-       0f 84 da 00 00 00       je     ffffffff81107120 <log_make_free_space+0x1e0>
-[...]
-       85 ff                   test   %edi,%edi                  # edi = 1 for NMI_LOG
-       4c 89 0d 17 97 51 01    mov    %r9,0x1519717(%rip)        # ffffffff82620840 <log_first_seq>
-                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
-                               KABOOOM
-       74 35                   je     ffffffff81107160		 <log_make_free_space+0x220>
-
-It stores log_first_seq when edi == NMI_LOG. This instructions are used also
-when edi == MAIN_LOG but the store is done speculatively before the condition
-is decided.  It is unsafe because we do not have "logbuf_lock" in NMI context
-and some other process migh modify "log_first_seq" in parallel.
-===
-
-I believe that the best course of action is both
-
-- building kernel (and anything multi-threaded, I guess) with that
-  optimization turned off
-- persuade gcc folks to change the default for future releases
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Martin Jambor <mjambor@suse.cz>
+Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+Cc: Andrew Lunn <andrew@lunn.ch>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Petr Mladek <pmladek@suse.cz>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Marek Polacek <polacek@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Steven Noonan <steven@uplinklabs.net>
-Cc: Richard Biener <richard.guenther@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Arun KS <arunks.linux@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/printk/printk.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN Makefile~makefile-tell-gcc-optimizer-to-never-introduce-new-data-races Makefile
---- a/Makefile~makefile-tell-gcc-optimizer-to-never-introduce-new-data-races
-+++ a/Makefile
-@@ -621,6 +621,9 @@ else
- KBUILD_CFLAGS	+= -O2
- endif
+diff -puN kernel/printk/printk.c~printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-move-power-of-2-practice-of-ring-buffer-size-to-a-helper
++++ a/kernel/printk/printk.c
+@@ -828,15 +828,21 @@ void log_buf_kexec_setup(void)
+ /* requested log_buf_len from kernel cmdline */
+ static unsigned long __initdata new_log_buf_len;
  
-+# Tell gcc to never replace conditional load with a non-conditional one
-+KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
-+
- ifdef CONFIG_READABLE_ASM
- # Disable optimizations that make assembler listings hard to read.
- # reorder blocks reorders the control in the function
-_
-
-Patches currently in -mm which might be from jkosina@suse.cz are
-
-origin.patch
-linux-next.patch
-
+-/* save requested log_buf_len since it's too early to process it */
+-static int __init log_buf_len_setup(char *str)
++/* we practice scaling the ring buffer by powers of 2 */
++static void __init log_buf_len_update(unsigned size)
+ {
+-	unsigned size = memparse(str, &str);
