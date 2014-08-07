@@ -1,70 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:03:39 -0700
-Message-ID: <53e3db9b./6OO5QodhF66/xm+%akpm@linux-foundation.org>
+ mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:03:35 -0700
+Message-ID: <53e3db97.kEvhSPPUA6ZcwJdI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:46483 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955AbaHGUDk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:40 -0400
-Received: by mail-oa0-f73.google.com with SMTP id g18so841220oah.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:39 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:52824 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751500AbaHGUDg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:36 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so841491iec.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mgorman@suse.de, mm-commits@vger.kernel.org
+To: fabf@skynet.be, fengguang.wu@intel.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: add __meminit to alloc_pages_exact_nid()
+     Subject: mm/readahead.c: remove unused file_ra_state from count_history_pages
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
+     mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: mm/page_alloc.c: add __meminit to alloc_pages_exact_nid()
+Subject: mm/readahead.c: remove unused file_ra_state from count_history_pages
 
-alloc_pages_exact_nid() is only called by __meminit alloc_page_cgroup()
+count_history_pages does only call page_cache_prev_hole in rcu_lock
+context using address_space mapping.  There's no need to have
+file_ra_state here.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Mel Gorman <mgorman@suse.de>
+Acked-by: Fengguang Wu <fengguang.wu@intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- mm/page_alloc.c     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/readahead.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid include/linux/gfp.h
---- a/include/linux/gfp.h~mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid
-+++ a/include/linux/gfp.h
-@@ -360,7 +360,7 @@ extern unsigned long get_zeroed_page(gfp
- void *alloc_pages_exact(size_t size, gfp_t gfp_mask);
- void free_pages_exact(void *virt, size_t size);
- /* This is different from alloc_pages_exact_node !!! */
--void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask);
-+void * __meminit alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask);
- 
- #define __get_free_page(gfp_mask) \
- 		__get_free_pages((gfp_mask), 0)
-diff -puN mm/page_alloc.c~mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid
-+++ a/mm/page_alloc.c
-@@ -2962,7 +2962,7 @@ EXPORT_SYMBOL(alloc_pages_exact);
-  * Note this is not alloc_pages_exact_node() which allocates on a specific node,
-  * but is not exact.
+diff -puN mm/readahead.c~mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages mm/readahead.c
+--- a/mm/readahead.c~mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages
++++ a/mm/readahead.c
+@@ -326,7 +326,6 @@ static unsigned long get_next_ra_size(st
+  * 	- thrashing threshold in memory tight systems
   */
--void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask)
-+void * __meminit alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask)
+ static pgoff_t count_history_pages(struct address_space *mapping,
+-				   struct file_ra_state *ra,
+ 				   pgoff_t offset, unsigned long max)
  {
- 	unsigned order = get_order(size);
- 	struct page *p = alloc_pages_node(nid, gfp_mask, order);
+ 	pgoff_t head;
+@@ -349,7 +348,7 @@ static int try_context_readahead(struct
+ {
+ 	pgoff_t size;
+ 
+-	size = count_history_pages(mapping, ra, offset, max);
++	size = count_history_pages(mapping, offset, max);
+ 
+ 	/*
+ 	 * not enough history pages:
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
