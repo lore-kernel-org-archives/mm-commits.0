@@ -1,270 +1,125 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch removed
- from -mm tree
-Date: Thu, 07 Aug 2014 13:05:51 -0700
-Message-ID: <53e3dc1f.Ga/faHa9hvlmqKm5%akpm@linux-foundation.org>
+ mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:05:57 -0700
+Message-ID: <53e3dc25.J6lMroXJgVyNyO8D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:57577 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755093AbaHGUFw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:52 -0400
-Received: by mail-ie0-f201.google.com with SMTP id tr6so841596ieb.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:51 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:59628 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755110AbaHGUF6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:58 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so837358oig.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, aarcange@redhat.com, bob.liu@oracle.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: reduce cost of the fair zone allocation policy
+     Subject: mm, thp: only collapse hugepages to nodes with affinity for zone_reclaim_mode
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy.patch
+     mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: reduce cost of the fair zone allocation policy
+From: David Rientjes <rientjes@google.com>
+Subject: mm, thp: only collapse hugepages to nodes with affinity for zone_reclaim_mode
 
-The fair zone allocation policy round-robins allocations between zones
-within a node to avoid age inversion problems during reclaim.  If the
-first allocation fails, the batch counts are reset and a second attempt
-made before entering the slow path.
+Commit 9f1b868a13ac ("mm: thp: khugepaged: add policy for finding target
+node") improved the previous khugepaged logic which allocated a
+transparent hugepages from the node of the first page being collapsed.
 
-One assumption made with this scheme is that batches expire at roughly the
-same time and the resets each time are justified.  This assumption does
-not hold when zones reach their low watermark as the batches will be
-consumed at uneven rates.  Allocation failure due to watermark depletion
-result in additional zonelist scans for the reset and another watermark
-check before hitting the slowpath.
+However, it is still possible to collapse pages to remote memory which may
+suffer from additional access latency.  With the current policy, it is
+possible that 255 pages (with PAGE_SHIFT == 12) will be collapsed remotely
+if the majority are allocated from that node.
 
-On UMA, the benefit is negligible -- around 0.25%.  On 4-socket NUMA
-machine it's variable due to the variability of measuring overhead with
-the vmstat changes.  The system CPU overhead comparison looks like
+When zone_reclaim_mode is enabled, it means the VM should make every
+attempt to allocate locally to prevent NUMA performance degradation.  In
+this case, we do not want to collapse hugepages to remote nodes that would
+suffer from increased access latency.  Thus, when zone_reclaim_mode is
+enabled, only allow collapsing to nodes with RECLAIM_DISTANCE or less.
 
-          3.16.0-rc3  3.16.0-rc3  3.16.0-rc3
-             vanilla   vmstat-v5 lowercost-v5
-User          746.94      774.56      802.00
-System      65336.22    32847.27    40852.33
-Elapsed     27553.52    27415.04    27368.46
+There is no functional change for systems that disable zone_reclaim_mode.
 
-However it is worth noting that the overall benchmark still completed
-faster and intuitively it makes sense to take as few passes as possible
-through the zonelists.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Bob Liu <bob.liu@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 ++
- mm/page_alloc.c        |  101 ++++++++++++++++++++-------------------
- 2 files changed, 59 insertions(+), 48 deletions(-)
+ mm/huge_memory.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff -puN include/linux/mmzone.h~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy
-+++ a/include/linux/mmzone.h
-@@ -534,6 +534,7 @@ typedef enum {
- 	ZONE_WRITEBACK,			/* reclaim scanning has recently found
- 					 * many pages under writeback
- 					 */
-+	ZONE_FAIR_DEPLETED,		/* fair zone policy batch depleted */
- } zone_flags_t;
+diff -puN mm/huge_memory.c~mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-only-collapse-hugepages-to-nodes-with-affinity-for-zone_reclaim_mode
++++ a/mm/huge_memory.c
+@@ -2233,6 +2233,30 @@ static void khugepaged_alloc_sleep(void)
  
- static inline void zone_set_flag(struct zone *zone, zone_flags_t flag)
-@@ -571,6 +572,11 @@ static inline int zone_is_reclaim_locked
- 	return test_bit(ZONE_RECLAIM_LOCKED, &zone->flags);
- }
+ static int khugepaged_node_load[MAX_NUMNODES];
  
-+static inline int zone_is_fair_depleted(const struct zone *zone)
++static bool khugepaged_scan_abort(int nid)
 +{
-+	return test_bit(ZONE_FAIR_DEPLETED, &zone->flags);
-+}
++	int i;
 +
- static inline int zone_is_oom_locked(const struct zone *zone)
- {
- 	return test_bit(ZONE_OOM_LOCKED, &zone->flags);
-diff -puN mm/page_alloc.c~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-reduce-cost-of-the-fair-zone-allocation-policy
-+++ a/mm/page_alloc.c
-@@ -1612,6 +1612,9 @@ again:
- 	}
- 
- 	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
-+	if (zone_page_state(zone, NR_ALLOC_BATCH) == 0 &&
-+	    !zone_is_fair_depleted(zone))
-+		zone_set_flag(zone, ZONE_FAIR_DEPLETED);
- 
- 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
- 	zone_statistics(preferred_zone, zone, gfp_flags);
-@@ -1923,6 +1926,18 @@ static bool zone_allows_reclaim(struct z
- 
- #endif	/* CONFIG_NUMA */
- 
-+static void reset_alloc_batches(struct zone *preferred_zone)
-+{
-+	struct zone *zone = preferred_zone->zone_pgdat->node_zones;
-+
-+	do {
-+		mod_zone_page_state(zone, NR_ALLOC_BATCH,
-+			high_wmark_pages(zone) - low_wmark_pages(zone) -
-+			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
-+		zone_clear_flag(zone, ZONE_FAIR_DEPLETED);
-+	} while (zone++ != preferred_zone);
-+}
-+
- /*
-  * get_page_from_freelist goes through the zonelist trying to allocate
-  * a page.
-@@ -1940,8 +1955,12 @@ get_page_from_freelist(gfp_t gfp_mask, n
- 	int did_zlc_setup = 0;		/* just call zlc_setup() one time */
- 	bool consider_zone_dirty = (alloc_flags & ALLOC_WMARK_LOW) &&
- 				(gfp_mask & __GFP_WRITE);
-+	int nr_fair_skipped = 0;
-+	bool zonelist_rescan;
- 
- zonelist_scan:
-+	zonelist_rescan = false;
-+
- 	/*
- 	 * Scan zonelist, looking for a zone with enough free.
- 	 * See also __cpuset_node_allowed_softwall() comment in kernel/cpuset.c.
-@@ -1966,8 +1985,10 @@ zonelist_scan:
- 		if (alloc_flags & ALLOC_FAIR) {
- 			if (!zone_local(preferred_zone, zone))
- 				break;
--			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
-+			if (zone_is_fair_depleted(zone)) {
-+				nr_fair_skipped++;
- 				continue;
-+			}
- 		}
- 		/*
- 		 * When allocating a page cache page for writing, we
-@@ -2073,13 +2094,7 @@ this_zone_full:
- 			zlc_mark_zone_full(zonelist, z);
- 	}
- 
--	if (unlikely(IS_ENABLED(CONFIG_NUMA) && page == NULL && zlc_active)) {
--		/* Disable zlc cache for second zonelist scan */
--		zlc_active = 0;
--		goto zonelist_scan;
--	}
--
--	if (page)
-+	if (page) {
- 		/*
- 		 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was
- 		 * necessary to allocate the page. The expectation is
-@@ -2088,8 +2103,37 @@ this_zone_full:
- 		 * for !PFMEMALLOC purposes.
- 		 */
- 		page->pfmemalloc = !!(alloc_flags & ALLOC_NO_WATERMARKS);
-+		return page;
-+	}
- 
--	return page;
 +	/*
-+	 * The first pass makes sure allocations are spread fairly within the
-+	 * local node.  However, the local node might have free pages left
-+	 * after the fairness batches are exhausted, and remote zones haven't
-+	 * even been considered yet.  Try once more without fairness, and
-+	 * include remote zones now, before entering the slowpath and waking
-+	 * kswapd: prefer spilling to a remote zone over swapping locally.
++	 * If zone_reclaim_mode is disabled, then no extra effort is made to
++	 * allocate memory locally.
 +	 */
-+	if (alloc_flags & ALLOC_FAIR) {
-+		alloc_flags &= ~ALLOC_FAIR;
-+		if (nr_fair_skipped) {
-+			zonelist_rescan = true;
-+			reset_alloc_batches(preferred_zone);
-+		}
-+		if (nr_online_nodes > 1)
-+			zonelist_rescan = true;
++	if (!zone_reclaim_mode)
++		return false;
++
++	/* If there is a count for this node already, it must be acceptable */
++	if (khugepaged_node_load[nid])
++		return false;
++
++	for (i = 0; i < MAX_NUMNODES; i++) {
++		if (!khugepaged_node_load[i])
++			continue;
++		if (node_distance(nid, i) > RECLAIM_DISTANCE)
++			return true;
 +	}
++	return false;
++}
 +
-+	if (unlikely(IS_ENABLED(CONFIG_NUMA) && zlc_active)) {
-+		/* Disable zlc cache for second zonelist scan */
-+		zlc_active = 0;
-+		zonelist_rescan = true;
-+	}
-+
-+	if (zonelist_rescan)
-+		goto zonelist_scan;
-+
-+	return NULL;
- }
- 
- /*
-@@ -2410,28 +2454,6 @@ __alloc_pages_high_priority(gfp_t gfp_ma
- 	return page;
- }
- 
--static void reset_alloc_batches(struct zonelist *zonelist,
--				enum zone_type high_zoneidx,
--				struct zone *preferred_zone)
--{
--	struct zoneref *z;
--	struct zone *zone;
--
--	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
--		/*
--		 * Only reset the batches of zones that were actually
--		 * considered in the fairness pass, we don't want to
--		 * trash fairness information for zones that are not
--		 * actually part of this zonelist's round-robin cycle.
--		 */
--		if (!zone_local(preferred_zone, zone))
--			continue;
--		mod_zone_page_state(zone, NR_ALLOC_BATCH,
--			high_wmark_pages(zone) - low_wmark_pages(zone) -
--			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
--	}
--}
--
- static void wake_all_kswapds(unsigned int order,
- 			     struct zonelist *zonelist,
- 			     enum zone_type high_zoneidx,
-@@ -2767,29 +2789,12 @@ retry_cpuset:
- 	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
- 		alloc_flags |= ALLOC_CMA;
- #endif
--retry:
- 	/* First allocation attempt */
- 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
- 			zonelist, high_zoneidx, alloc_flags,
- 			preferred_zone, classzone_idx, migratetype);
- 	if (unlikely(!page)) {
- 		/*
--		 * The first pass makes sure allocations are spread
--		 * fairly within the local node.  However, the local
--		 * node might have free pages left after the fairness
--		 * batches are exhausted, and remote zones haven't
--		 * even been considered yet.  Try once more without
--		 * fairness, and include remote zones now, before
--		 * entering the slowpath and waking kswapd: prefer
--		 * spilling to a remote zone over swapping locally.
--		 */
--		if (alloc_flags & ALLOC_FAIR) {
--			reset_alloc_batches(zonelist, high_zoneidx,
--					    preferred_zone);
--			alloc_flags &= ~ALLOC_FAIR;
--			goto retry;
--		}
--		/*
- 		 * Runtime PM, block IO and its error handling path
- 		 * can deadlock because I/O on the device might not
- 		 * complete.
+ #ifdef CONFIG_NUMA
+ static int khugepaged_find_target_node(void)
+ {
+@@ -2545,6 +2569,8 @@ static int khugepaged_scan_pmd(struct mm
+ 		 * hit record.
+ 		 */
+ 		node = page_to_nid(page);
++		if (khugepaged_scan_abort(node))
++			goto out_unmap;
+ 		khugepaged_node_load[node]++;
+ 		VM_BUG_ON_PAGE(PageCompound(page), page);
+ 		if (!PageLRU(page) || PageLocked(page) || !PageAnon(page))
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
+mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
+include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
+mm-utilc-add-kstrimdup.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+fork-exec-cleanup-mm-initialization.patch
+fork-reset-mm-pinned_vm.patch
+fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+linux-next.patch
 
