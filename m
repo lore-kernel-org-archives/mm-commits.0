@@ -1,83 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-bitmap-add-missing-mask-in-bitmap_andnot.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:08:37 -0700
-Message-ID: <53e3dcc5.mQIKJmsdtj/HlbjO%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-warn-on-unnecessary-else-after-return-or-break.patch removed
+ from -mm tree
+Date: Thu, 07 Aug 2014 13:08:39 -0700
+Message-ID: <53e3dcc7.Qbi7FOlw1d+XKO0V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:32867 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751573AbaHGUIi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:38 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so837300oig.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:37 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:46002 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750890AbaHGUIk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:40 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so610797yha.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: add missing mask in bitmap_andnot
+     Subject: checkpatch: warn on unnecessary else after return or break
 has been removed from the -mm tree.  Its filename was
-     lib-bitmap-add-missing-mask-in-bitmap_andnot.patch
+     checkpatch-warn-on-unnecessary-else-after-return-or-break.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: bitmap: add missing mask in bitmap_andnot
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: warn on unnecessary else after return or break
 
-Apparently, bitmap_andnot is supposed to return whether the new bitmap is
-empty.  But it didn't take potential garbage bits in the last word into
-account.
+Using an else following a break or return can unnecessarily indent code
+blocks.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+ie:
+	for (i = 0; i < 100; i++) {
+		int foo = bar();
+		if (foo < 1)
+			break;
+		else
+			usleep(1);
+	}
+
+is generally better written as:
+
+	for (i = 0; i < 100; i++) {
+		int foo = bar();
+		if (foo < 1)
+			break;
+		usleep(1);
+	}
+
+Warn when a bare else statement is preceded by a break or return indented
+1 tab more than the else.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    2 +-
- lib/bitmap.c           |    7 +++++--
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN include/linux/bitmap.h~lib-bitmap-add-missing-mask-in-bitmap_andnot include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-bitmap-add-missing-mask-in-bitmap_andnot
-+++ a/include/linux/bitmap.h
-@@ -217,7 +217,7 @@ static inline int bitmap_andnot(unsigned
- 			const unsigned long *src2, unsigned int nbits)
- {
- 	if (small_const_nbits(nbits))
--		return (*dst = *src1 & ~(*src2)) != 0;
-+		return (*dst = *src1 & ~(*src2) & BITMAP_LAST_WORD_MASK(nbits)) != 0;
- 	return __bitmap_andnot(dst, src1, src2, nbits);
- }
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-else-after-return-or-break scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-else-after-return-or-break
++++ a/scripts/checkpatch.pl
+@@ -2342,6 +2342,16 @@ sub process {
+ # check we are in a valid C source file if not then ignore this hunk
+ 		next if ($realfile !~ /\.(h|c)$/);
  
-diff -puN lib/bitmap.c~lib-bitmap-add-missing-mask-in-bitmap_andnot lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-add-missing-mask-in-bitmap_andnot
-+++ a/lib/bitmap.c
-@@ -223,11 +223,14 @@ int __bitmap_andnot(unsigned long *dst,
- 				const unsigned long *bitmap2, unsigned int bits)
- {
- 	unsigned int k;
--	unsigned int nr = BITS_TO_LONGS(bits);
-+	unsigned int lim = bits/BITS_PER_LONG;
- 	unsigned long result = 0;
- 
--	for (k = 0; k < nr; k++)
-+	for (k = 0; k < lim; k++)
- 		result |= (dst[k] = bitmap1[k] & ~bitmap2[k]);
-+	if (bits % BITS_PER_LONG)
-+		result |= (dst[k] = bitmap1[k] & ~bitmap2[k] &
-+			   BITMAP_LAST_WORD_MASK(bits));
- 	return result != 0;
- }
- EXPORT_SYMBOL(__bitmap_andnot);
++# check indentation of any line with a bare else
++# if the previous line is a break or return and is indented 1 tab more...
++		if ($sline =~ /^\+([\t]+)(?:}[ \t]*)?else(?:[ \t]*{)?\s*$/) {
++			my $tabs = length($1) + 1;
++			if ($prevline =~ /^\+\t{$tabs,$tabs}(?:break|return)\b/) {
++				WARN("UNNECESSARY_ELSE",
++				     "else is not generally useful after a break or return\n" . $hereprev);
++			}
++		}
++
+ # discourage the addition of CONFIG_EXPERIMENTAL in #if(def).
+ 		if ($line =~ /^\+\s*\#\s*if.*\bCONFIG_EXPERIMENTAL\b/) {
+ 			WARN("CONFIG_EXPERIMENTAL",
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+mm-utilc-add-kstrimdup.patch
+fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
+fs-isofs-logging-clean-up.patch
+proc-constify-seq_operations.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
 linux-next.patch
+maintainers-remove-two-ancient-eata-sections.patch
+pci-dma-compat-add-pci_zalloc_consistent-helper.patch
+atm-use-pci_zalloc_consistent.patch
+block-use-pci_zalloc_consistent.patch
+crypto-use-pci_zalloc_consistent.patch
+infiniband-use-pci_zalloc_consistent.patch
+i810-use-pci_zalloc_consistent.patch
+media-use-pci_zalloc_consistent.patch
+amd-use-pci_zalloc_consistent.patch
+atl1e-use-pci_zalloc_consistent.patch
+enic-use-pci_zalloc_consistent.patch
+sky2-use-pci_zalloc_consistent.patch
+micrel-use-pci_zalloc_consistent.patch
+qlogic-use-pci_zalloc_consistent.patch
+irda-use-pci_zalloc_consistent.patch
+ipw2100-use-pci_zalloc_consistent.patch
+mwl8k-use-pci_zalloc_consistent.patch
+rtl818x-use-pci_zalloc_consistent.patch
+rtlwifi-use-pci_zalloc_consistent.patch
+scsi-use-pci_zalloc_consistent.patch
+staging-use-pci_zalloc_consistent.patch
+synclink_gt-use-pci_zalloc_consistent.patch
+vme-bridges-use-pci_zalloc_consistent.patch
+amd-neaten-and-remove-unnecessary-oom-messages.patch
+maintainers-update-microcode-patterns.patch
+maintainers-update-cifs-location.patch
+maintainers-use-the-correct-efi-stub-location.patch
+maintainers-update-clk-sirf-patterns.patch
+maintainers-fix-ssbi-pattern.patch
+maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
+maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
+maintainers-update-picoxcell-patterns.patch
+maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
+maintainers-remove-metag-imgdafs-pattern.patch
+maintainers-remove-unused-radeon-drm-pattern.patch
+maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
+maintainers-remove-unused-nfsd-pattern.patch
+fsh-remove-unnecessary-extern-prototypes.patch
+fsh-whitespace-neatening.patch
+fsh-a-few-more-whitespace-neatenings.patch
+fsh-add-argument-names-to-struct-file_lock_operations-funcs.patch
+fsh-add-member-argument-descriptions-to-lock_manager_operations.patch
+dlm-plock-add-argument-descriptions-to-notify.patch
+dlm-fs-remove-unused-conf-from-lm_grant.patch
+dlm-plock-reduce-indentation-by-rearranging-order.patch
+maintainers-update-dma-buffer-sharing-patterns.patch
+maintainers-update-usb-gadget-patterns.patch
+maintainers-update-nomadik-patterns.patch
 
