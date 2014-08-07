@@ -1,82 +1,126 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:09:11 -0700
-Message-ID: <53e3dce7.lndkca6YLqKTlYbg%akpm@linux-foundation.org>
+ checkpatch-fix-brace-style-misuses-of-else-and-while.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:09:23 -0700
+Message-ID: <53e3dcf3.6PFhK7EDcTJ0un5D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:35210 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755100AbaHGUJM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:12 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f73so609185yha.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:11 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:40306 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755205AbaHGUJY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:24 -0400
+Received: by mail-vc0-f202.google.com with SMTP id hq11so607442vcb.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn on break after goto or return with same tab indentation
+     Subject: checkpatch: fix brace style misuses of else and while
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation.patch
+     checkpatch-fix-brace-style-misuses-of-else-and-while.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on break after goto or return with same tab indentation
+Subject: checkpatch: fix brace style misuses of else and while
 
-Using break; after a goto or return is unnecessary so emit a warning when
-the break is at the same indent level.
+Add --fix corrections for ELSE_AFTER_BRACE and WHILE_AFTER_BRACE
+misuses.
 
-So this emits a warning on:
-
-	switch (foo) {
-	case 1:
-		goto err;
-		break;
+	if (x) {
+		...
+	}
+	else {
+		...
+	}
+is corrected to
+	if (x) {
+		...
+	} else {
+		...
 	}
 
-but not on:
+and
 
-	switch (foo) {
-	case 1:
-		if (bar())
-			goto err;
-		break;
+	do {
+		...
 	}
+	while (x);
+is corrected to
+	do {
+		...
+	} while (x);
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ scripts/checkpatch.pl |   38 ++++++++++++++++++++++++++++++--------
+ 1 file changed, 30 insertions(+), 8 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation
+diff -puN scripts/checkpatch.pl~checkpatch-fix-brace-style-misuses-of-else-and-while scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-brace-style-misuses-of-else-and-while
 +++ a/scripts/checkpatch.pl
-@@ -2450,6 +2450,16 @@ sub process {
+@@ -3885,14 +3885,26 @@ sub process {
+ 
+ 		# Check for }<nl>else {, these must be at the same
+ 		# indent level to be relevant to each other.
+-		if ($prevline=~/}\s*$/ and $line=~/^.\s*else\s*/ and
+-						$previndent == $indent) {
+-			ERROR("ELSE_AFTER_BRACE",
+-			      "else should follow close brace '}'\n" . $hereprev);
++		if ($prevline=~/}\s*$/ and $line=~/^.\s*else\s*/ &&
++		    $previndent == $indent) {
++			if (ERROR("ELSE_AFTER_BRACE",
++				  "else should follow close brace '}'\n" . $hereprev) &&
++			    $fix && $prevline =~ /^\+/ && $line =~ /^\+/) {
++				fix_delete_line($fixlinenr - 1, $prevrawline);
++				fix_delete_line($fixlinenr, $rawline);
++				my $fixedline = $prevrawline;
++				$fixedline =~ s/}\s*$//;
++				if ($fixedline !~ /^\+\s*$/) {
++					fix_insert_line($fixlinenr, $fixedline);
++				}
++				$fixedline = $rawline;
++				$fixedline =~ s/^(.\s*)else/$1} else/;
++				fix_insert_line($fixlinenr, $fixedline);
++			}
+ 		}
+ 
+-		if ($prevline=~/}\s*$/ and $line=~/^.\s*while\s*/ and
+-						$previndent == $indent) {
++		if ($prevline=~/}\s*$/ and $line=~/^.\s*while\s*/ &&
++		    $previndent == $indent) {
+ 			my ($s, $c) = ctx_statement_block($linenr, $realcnt, 0);
+ 
+ 			# Find out what is on the end of the line after the
+@@ -3901,8 +3913,18 @@ sub process {
+ 			$s =~ s/\n.*//g;
+ 
+ 			if ($s =~ /^\s*;/) {
+-				ERROR("WHILE_AFTER_BRACE",
+-				      "while should follow close brace '}'\n" . $hereprev);
++				if (ERROR("WHILE_AFTER_BRACE",
++					  "while should follow close brace '}'\n" . $hereprev) &&
++				    $fix && $prevline =~ /^\+/ && $line =~ /^\+/) {
++					fix_delete_line($fixlinenr - 1, $prevrawline);
++					fix_delete_line($fixlinenr, $rawline);
++					my $fixedline = $prevrawline;
++					my $trailing = $rawline;
++					$trailing =~ s/^\+//;
++					$trailing = trim($trailing);
++					$fixedline =~ s/}\s*$/} $trailing/;
++					fix_insert_line($fixlinenr, $fixedline);
++				}
  			}
  		}
  
-+# check indentation of a line with a break;
-+# if the previous line is a goto or return and is indented the same # of tabs
-+		if ($sline =~ /^\+([\t]+)break\s*;\s*$/) {
-+			my $tabs = $1;
-+			if ($prevline =~ /^\+$tabs(?:goto|return)\b/) {
-+				WARN("UNNECESSARY_BREAK",
-+				     "break is not useful after a goto or return\n" . $hereprev);
-+			}
-+		}
-+
- # discourage the addition of CONFIG_EXPERIMENTAL in #if(def).
- 		if ($line =~ /^\+\s*\#\s*if.*\bCONFIG_EXPERIMENTAL\b/) {
- 			WARN("CONFIG_EXPERIMENTAL",
 _
 
 Patches currently in -mm which might be from joe@perches.com are
