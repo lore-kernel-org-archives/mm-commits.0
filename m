@@ -1,84 +1,112 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-bitmap-make-nbits-parameter-of-bitmap_subset-unsigned.patch removed
+ lib-bitmap-change-parameter-of-bitmap__region-to-unsigned.patch removed
  from -mm tree
-Date: Thu, 07 Aug 2014 13:08:17 -0700
-Message-ID: <53e3dcb1.lG7pUBKZ/fGYuGkJ%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:08:29 -0700
+Message-ID: <53e3dcbd.7vMWcyKueJ/fffPY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:64434 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753122AbaHGUIR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:17 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so1176770pdj.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:17 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:60301 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874AbaHGUIa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:30 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so842597iec.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: make nbits parameter of bitmap_subset unsigned
+     Subject: lib: bitmap: change parameter of bitmap_*_region to unsigned
 has been removed from the -mm tree.  Its filename was
-     lib-bitmap-make-nbits-parameter-of-bitmap_subset-unsigned.patch
+     lib-bitmap-change-parameter-of-bitmap__region-to-unsigned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: bitmap: make nbits parameter of bitmap_subset unsigned
+Subject: lib: bitmap: change parameter of bitmap_*_region to unsigned
 
-The compiler can generate slightly smaller and simpler code when it knows
-that "nbits" is non-negative.  Since no-one passes a negative bit-count,
-this shouldn't affect the semantics.
+Changing the pos parameter of __reg_op to unsigned allows the compiler to
+generate slightly smaller and simpler code.  Also update its callers
+bitmap_*_region to receive and pass unsigned int.  The return types of
+bitmap_find_free_region and bitmap_allocate_region are still int to allow
+a negative error code to be returned.  An int is certainly capable of
+representing any realistic return value.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    4 ++--
- lib/bitmap.c           |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/bitmap.h |    6 +++---
+ lib/bitmap.c           |   12 ++++++------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_subset-unsigned include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_subset-unsigned
+diff -puN include/linux/bitmap.h~lib-bitmap-change-parameter-of-bitmap__region-to-unsigned include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmap-change-parameter-of-bitmap__region-to-unsigned
 +++ a/include/linux/bitmap.h
-@@ -109,7 +109,7 @@ extern int __bitmap_andnot(unsigned long
- extern int __bitmap_intersects(const unsigned long *bitmap1,
- 			const unsigned long *bitmap2, unsigned int nbits);
- extern int __bitmap_subset(const unsigned long *bitmap1,
--			const unsigned long *bitmap2, int bits);
-+			const unsigned long *bitmap2, unsigned int nbits);
- extern int __bitmap_weight(const unsigned long *bitmap, int bits);
+@@ -140,9 +140,9 @@ extern void bitmap_onto(unsigned long *d
+ 		const unsigned long *relmap, int bits);
+ extern void bitmap_fold(unsigned long *dst, const unsigned long *orig,
+ 		int sz, int bits);
+-extern int bitmap_find_free_region(unsigned long *bitmap, int bits, int order);
+-extern void bitmap_release_region(unsigned long *bitmap, int pos, int order);
+-extern int bitmap_allocate_region(unsigned long *bitmap, int pos, int order);
++extern int bitmap_find_free_region(unsigned long *bitmap, unsigned int bits, int order);
++extern void bitmap_release_region(unsigned long *bitmap, unsigned int pos, int order);
++extern int bitmap_allocate_region(unsigned long *bitmap, unsigned int pos, int order);
+ extern void bitmap_copy_le(void *dst, const unsigned long *src, int nbits);
+ extern int bitmap_ord_to_pos(const unsigned long *bitmap, int n, int bits);
  
- extern void bitmap_set(unsigned long *map, int i, int len);
-@@ -249,7 +249,7 @@ static inline int bitmap_intersects(cons
- }
- 
- static inline int bitmap_subset(const unsigned long *src1,
--			const unsigned long *src2, int nbits)
-+			const unsigned long *src2, unsigned int nbits)
- {
- 	if (small_const_nbits(nbits))
- 		return ! ((*src1 & ~(*src2)) & BITMAP_LAST_WORD_MASK(nbits));
-diff -puN lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_subset-unsigned lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_subset-unsigned
+diff -puN lib/bitmap.c~lib-bitmap-change-parameter-of-bitmap__region-to-unsigned lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-change-parameter-of-bitmap__region-to-unsigned
 +++ a/lib/bitmap.c
-@@ -245,9 +245,9 @@ int __bitmap_intersects(const unsigned l
- EXPORT_SYMBOL(__bitmap_intersects);
+@@ -1042,7 +1042,7 @@ enum {
+ 	REG_OP_RELEASE,		/* clear all bits in region */
+ };
  
- int __bitmap_subset(const unsigned long *bitmap1,
--				const unsigned long *bitmap2, int bits)
-+		    const unsigned long *bitmap2, unsigned int bits)
+-static int __reg_op(unsigned long *bitmap, int pos, int order, int reg_op)
++static int __reg_op(unsigned long *bitmap, unsigned int pos, int order, int reg_op)
  {
--	int k, lim = bits/BITS_PER_LONG;
-+	unsigned int k, lim = bits/BITS_PER_LONG;
- 	for (k = 0; k < lim; ++k)
- 		if (bitmap1[k] & ~bitmap2[k])
- 			return 0;
+ 	int nbits_reg;		/* number of bits in region */
+ 	int index;		/* index first long of region in bitmap */
+@@ -1108,11 +1108,11 @@ done:
+  * Return the bit offset in bitmap of the allocated region,
+  * or -errno on failure.
+  */
+-int bitmap_find_free_region(unsigned long *bitmap, int bits, int order)
++int bitmap_find_free_region(unsigned long *bitmap, unsigned int bits, int order)
+ {
+-	int pos, end;		/* scans bitmap by regions of size order */
++	unsigned int pos, end;		/* scans bitmap by regions of size order */
+ 
+-	for (pos = 0 ; (end = pos + (1 << order)) <= bits; pos = end) {
++	for (pos = 0 ; (end = pos + (1U << order)) <= bits; pos = end) {
+ 		if (!__reg_op(bitmap, pos, order, REG_OP_ISFREE))
+ 			continue;
+ 		__reg_op(bitmap, pos, order, REG_OP_ALLOC);
+@@ -1133,7 +1133,7 @@ EXPORT_SYMBOL(bitmap_find_free_region);
+  *
+  * No return value.
+  */
+-void bitmap_release_region(unsigned long *bitmap, int pos, int order)
++void bitmap_release_region(unsigned long *bitmap, unsigned int pos, int order)
+ {
+ 	__reg_op(bitmap, pos, order, REG_OP_RELEASE);
+ }
+@@ -1150,7 +1150,7 @@ EXPORT_SYMBOL(bitmap_release_region);
+  * Return 0 on success, or %-EBUSY if specified region wasn't
+  * free (not all bits were zero).
+  */
+-int bitmap_allocate_region(unsigned long *bitmap, int pos, int order)
++int bitmap_allocate_region(unsigned long *bitmap, unsigned int pos, int order)
+ {
+ 	if (!__reg_op(bitmap, pos, order, REG_OP_ISFREE))
+ 		return -EBUSY;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
