@@ -1,78 +1,123 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages.patch removed
- from -mm tree
-Date: Thu, 07 Aug 2014 13:06:21 -0700
-Message-ID: <53e3dc3d.ns1HcllM7qxRrQmz%akpm@linux-foundation.org>
+ mm-close-race-between-do_fault_around-and-fault_around_bytes_set.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:06:29 -0700
+Message-ID: <53e3dc45.l3copkc/Px3AxE6M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:52003 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955AbaHGUGW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:06:22 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so843517oac.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:06:21 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:49367 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752863AbaHGUGa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:06:30 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so836803oig.1
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:06:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhong@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, a.ryabinin@samsung.com, dave.hansen@intel.com, rientjes@google.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix potential infinite loop in dissolve_free_huge_pages()
+     Subject: mm: close race between do_fault_around() and fault_around_bytes_set()
 has been removed from the -mm tree.  Its filename was
-     mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages.patch
+     mm-close-race-between-do_fault_around-and-fault_around_bytes_set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Li Zhong <zhong@linux.vnet.ibm.com>
-Subject: mm: fix potential infinite loop in dissolve_free_huge_pages()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: close race between do_fault_around() and fault_around_bytes_set()
 
-It is possible for some platforms, such as powerpc to set HPAGE_SHIFT to 0
-to indicate huge pages not supported.
+Things can go wrong if fault_around_bytes will be changed under
+do_fault_around(): between fault_around_mask() and fault_around_pages().
 
-When this is the case, hugetlbfs could be disabled during boot time:
-hugetlbfs: disabling because there are no supported hugepage sizes
+Let's read fault_around_bytes only once during do_fault_around() and
+calculate mask based on the reading.
 
-Then in dissolve_free_huge_pages(), order is kept maximum (64 for 64bits),
-and the for loop below won't end: for (pfn = start_pfn; pfn < end_pfn; pfn
-+= 1 << order)
+Note: fault_around_bytes can only be updated via debug interface.  Also
+I've tried but was not able to trigger a bad behaviour without the patch. 
+So I would not consider this patch as urgent.
 
-As suggested by Naoya, below fix checks hugepages_supported() before
-calling dissolve_free_huge_pages().
-
-[rientjes@google.com: no legitimate reason to call dissolve_free_huge_pages() when !hugepages_supported()]
-Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[3.12+]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Andrey Ryabinin <a.ryabinin@samsung.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memory.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages
-+++ a/mm/hugetlb.c
-@@ -1088,6 +1088,9 @@ void dissolve_free_huge_pages(unsigned l
- 	unsigned long pfn;
- 	struct hstate *h;
+diff -puN mm/memory.c~mm-close-race-between-do_fault_around-and-fault_around_bytes_set mm/memory.c
+--- a/mm/memory.c~mm-close-race-between-do_fault_around-and-fault_around_bytes_set
++++ a/mm/memory.c
+@@ -2768,16 +2768,6 @@ void do_set_pte(struct vm_area_struct *v
  
-+	if (!hugepages_supported())
-+		return;
+ static unsigned long fault_around_bytes = rounddown_pow_of_two(65536);
+ 
+-static inline unsigned long fault_around_pages(void)
+-{
+-	return fault_around_bytes >> PAGE_SHIFT;
+-}
+-
+-static inline unsigned long fault_around_mask(void)
+-{
+-	return ~(fault_around_bytes - 1) & PAGE_MASK;
+-}
+-
+ #ifdef CONFIG_DEBUG_FS
+ static int fault_around_bytes_get(void *data, u64 *val)
+ {
+@@ -2842,12 +2832,15 @@ late_initcall(fault_around_debugfs);
+ static void do_fault_around(struct vm_area_struct *vma, unsigned long address,
+ 		pte_t *pte, pgoff_t pgoff, unsigned int flags)
+ {
+-	unsigned long start_addr;
++	unsigned long start_addr, nr_pages, mask;
+ 	pgoff_t max_pgoff;
+ 	struct vm_fault vmf;
+ 	int off;
+ 
+-	start_addr = max(address & fault_around_mask(), vma->vm_start);
++	nr_pages = ACCESS_ONCE(fault_around_bytes) >> PAGE_SHIFT;
++	mask = ~(nr_pages * PAGE_SIZE - 1) & PAGE_MASK;
 +
- 	/* Set scan step to minimum hugepage size */
- 	for_each_hstate(h)
- 		if (order > huge_page_order(h))
++	start_addr = max(address & mask, vma->vm_start);
+ 	off = ((address - start_addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
+ 	pte -= off;
+ 	pgoff -= off;
+@@ -2859,7 +2852,7 @@ static void do_fault_around(struct vm_ar
+ 	max_pgoff = pgoff - ((start_addr >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)) +
+ 		PTRS_PER_PTE - 1;
+ 	max_pgoff = min3(max_pgoff, vma_pages(vma) + vma->vm_pgoff - 1,
+-			pgoff + fault_around_pages() - 1);
++			pgoff + nr_pages - 1);
+ 
+ 	/* Check if it makes any sense to call ->map_pages */
+ 	while (!pte_none(*pte)) {
+@@ -2894,7 +2887,7 @@ static int do_read_fault(struct mm_struc
+ 	 * something).
+ 	 */
+ 	if (vma->vm_ops->map_pages && !(flags & FAULT_FLAG_NONLINEAR) &&
+-	    fault_around_pages() > 1) {
++	    fault_around_bytes >> PAGE_SHIFT > 1) {
+ 		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 		do_fault_around(vma, address, pte, pgoff, flags);
+ 		if (!pte_same(*pte, orig_pte))
 _
 
-Patches currently in -mm which might be from zhong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-2.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
