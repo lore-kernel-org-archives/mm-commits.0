@@ -1,72 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-bitmap-remove-unnecessary-mask-from-bitmap_complement.patch removed
- from -mm tree
-Date: Thu, 07 Aug 2014 13:08:11 -0700
-Message-ID: <53e3dcab.+4TTtHSn6nKjytaB%akpm@linux-foundation.org>
+ lib-bitmap-make-nbits-parameter-of-bitmap_intersects-unsigned.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:08:15 -0700
+Message-ID: <53e3dcaf.XHOXXECBaFrdnZkA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f73.google.com ([209.85.192.73]:51948 "EHLO
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:42505 "EHLO
 	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755105AbaHGUIM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:12 -0400
-Received: by mail-qg0-f73.google.com with SMTP id q107so607677qgd.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:11 -0700 (PDT)
+	with ESMTP id S1755327AbaHGUIQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:16 -0400
+Received: by mail-qg0-f73.google.com with SMTP id q107so611669qgd.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: remove unnecessary mask from bitmap_complement
+     Subject: lib: bitmap: make nbits parameter of bitmap_intersects unsigned
 has been removed from the -mm tree.  Its filename was
-     lib-bitmap-remove-unnecessary-mask-from-bitmap_complement.patch
+     lib-bitmap-make-nbits-parameter-of-bitmap_intersects-unsigned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: bitmap: remove unnecessary mask from bitmap_complement
+Subject: lib: bitmap: make nbits parameter of bitmap_intersects unsigned
 
-Since the extra bits are "don't care", there is no reason to mask the last
-word to the used bits when complementing.  This shaves off yet a few
-bytes.
+The compiler can generate slightly smaller and simpler code when it knows
+that "nbits" is non-negative.  Since no-one passes a negative bit-count,
+this shouldn't affect the semantics.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    2 +-
- lib/bitmap.c           |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/bitmap.h |    4 ++--
+ lib/bitmap.c           |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/bitmap.h~lib-bitmap-remove-unnecessary-mask-from-bitmap_complement include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-bitmap-remove-unnecessary-mask-from-bitmap_complement
+diff -puN include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_intersects-unsigned include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_intersects-unsigned
 +++ a/include/linux/bitmap.h
-@@ -225,7 +225,7 @@ static inline void bitmap_complement(uns
- 			unsigned int nbits)
+@@ -107,7 +107,7 @@ extern void __bitmap_xor(unsigned long *
+ extern int __bitmap_andnot(unsigned long *dst, const unsigned long *bitmap1,
+ 			const unsigned long *bitmap2, unsigned int nbits);
+ extern int __bitmap_intersects(const unsigned long *bitmap1,
+-			const unsigned long *bitmap2, int bits);
++			const unsigned long *bitmap2, unsigned int nbits);
+ extern int __bitmap_subset(const unsigned long *bitmap1,
+ 			const unsigned long *bitmap2, int bits);
+ extern int __bitmap_weight(const unsigned long *bitmap, int bits);
+@@ -240,7 +240,7 @@ static inline int bitmap_equal(const uns
+ }
+ 
+ static inline int bitmap_intersects(const unsigned long *src1,
+-			const unsigned long *src2, int nbits)
++			const unsigned long *src2, unsigned int nbits)
  {
  	if (small_const_nbits(nbits))
--		*dst = ~(*src) & BITMAP_LAST_WORD_MASK(nbits);
-+		*dst = ~(*src);
- 	else
- 		__bitmap_complement(dst, src, nbits);
- }
-diff -puN lib/bitmap.c~lib-bitmap-remove-unnecessary-mask-from-bitmap_complement lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-remove-unnecessary-mask-from-bitmap_complement
+ 		return ((*src1 & *src2) & BITMAP_LAST_WORD_MASK(nbits)) != 0;
+diff -puN lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_intersects-unsigned lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_intersects-unsigned
 +++ a/lib/bitmap.c
-@@ -93,7 +93,7 @@ void __bitmap_complement(unsigned long *
- 		dst[k] = ~src[k];
+@@ -230,9 +230,9 @@ int __bitmap_andnot(unsigned long *dst,
+ EXPORT_SYMBOL(__bitmap_andnot);
  
- 	if (bits % BITS_PER_LONG)
--		dst[k] = ~src[k] & BITMAP_LAST_WORD_MASK(bits);
-+		dst[k] = ~src[k];
- }
- EXPORT_SYMBOL(__bitmap_complement);
- 
+ int __bitmap_intersects(const unsigned long *bitmap1,
+-				const unsigned long *bitmap2, int bits)
++			const unsigned long *bitmap2, unsigned int bits)
+ {
+-	int k, lim = bits/BITS_PER_LONG;
++	unsigned int k, lim = bits/BITS_PER_LONG;
+ 	for (k = 0; k < lim; ++k)
+ 		if (bitmap1[k] & bitmap2[k])
+ 			return 1;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
