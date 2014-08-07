@@ -1,281 +1,127 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch removed from
- -mm tree
-Date: Thu, 07 Aug 2014 13:03:25 -0700
-Message-ID: <53e3db8d.TJ5SN/dvEc/DSF59%akpm@linux-foundation.org>
+ mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:03:39 -0700
+Message-ID: <53e3db9b./6OO5QodhF66/xm+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:48063 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbaHGUD0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:26 -0400
-Received: by mail-pd0-f202.google.com with SMTP id w10so1173346pde.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:25 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:46483 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955AbaHGUDk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:40 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so841220oah.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.ryabinin@samsung.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move slab related stuff from util.c to slab_common.c
+     Subject: mm/page_alloc.c: add __meminit to alloc_pages_exact_nid()
 has been removed from the -mm tree.  Its filename was
-     mm-move-slab-related-stuff-from-utilc-to-slab_commonc.patch
+     mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: mm: move slab related stuff from util.c to slab_common.c
+From: Fabian Frederick <fabf@skynet.be>
+Subject: mm/page_alloc.c: add __meminit to alloc_pages_exact_nid()
 
-Functions krealloc(), __krealloc(), kzfree() belongs to slab API, so
-should be placed in slab_common.c
+alloc_pages_exact_nid() is only called by __meminit alloc_page_cgroup()
 
-Also move slab allocator's tracepoints defenitions to slab_common.c No
-functional changes here.
-
-Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |  101 ++++++++++++++++++++++++++++++++++++++++++++
- mm/util.c        |  102 ---------------------------------------------
- 2 files changed, 101 insertions(+), 102 deletions(-)
+ include/linux/gfp.h |    2 +-
+ mm/page_alloc.c     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab_common.c~mm-move-slab-related-stuff-from-utilc-to-slab_commonc mm/slab_common.c
---- a/mm/slab_common.c~mm-move-slab-related-stuff-from-utilc-to-slab_commonc
-+++ a/mm/slab_common.c
-@@ -19,6 +19,8 @@
- #include <asm/tlbflush.h>
- #include <asm/page.h>
- #include <linux/memcontrol.h>
-+
-+#define CREATE_TRACE_POINTS
- #include <trace/events/kmem.h>
+diff -puN include/linux/gfp.h~mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid
++++ a/include/linux/gfp.h
+@@ -360,7 +360,7 @@ extern unsigned long get_zeroed_page(gfp
+ void *alloc_pages_exact(size_t size, gfp_t gfp_mask);
+ void free_pages_exact(void *virt, size_t size);
+ /* This is different from alloc_pages_exact_node !!! */
+-void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask);
++void * __meminit alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask);
  
- #include "slab.h"
-@@ -787,3 +789,102 @@ static int __init slab_proc_init(void)
- }
- module_init(slab_proc_init);
- #endif /* CONFIG_SLABINFO */
-+
-+static __always_inline void *__do_krealloc(const void *p, size_t new_size,
-+					   gfp_t flags)
-+{
-+	void *ret;
-+	size_t ks = 0;
-+
-+	if (p)
-+		ks = ksize(p);
-+
-+	if (ks >= new_size)
-+		return (void *)p;
-+
-+	ret = kmalloc_track_caller(new_size, flags);
-+	if (ret && p)
-+		memcpy(ret, p, ks);
-+
-+	return ret;
-+}
-+
-+/**
-+ * __krealloc - like krealloc() but don't free @p.
-+ * @p: object to reallocate memory for.
-+ * @new_size: how many bytes of memory are required.
-+ * @flags: the type of memory to allocate.
-+ *
-+ * This function is like krealloc() except it never frees the originally
-+ * allocated buffer. Use this if you don't want to free the buffer immediately
-+ * like, for example, with RCU.
-+ */
-+void *__krealloc(const void *p, size_t new_size, gfp_t flags)
-+{
-+	if (unlikely(!new_size))
-+		return ZERO_SIZE_PTR;
-+
-+	return __do_krealloc(p, new_size, flags);
-+
-+}
-+EXPORT_SYMBOL(__krealloc);
-+
-+/**
-+ * krealloc - reallocate memory. The contents will remain unchanged.
-+ * @p: object to reallocate memory for.
-+ * @new_size: how many bytes of memory are required.
-+ * @flags: the type of memory to allocate.
-+ *
-+ * The contents of the object pointed to are preserved up to the
-+ * lesser of the new and old sizes.  If @p is %NULL, krealloc()
-+ * behaves exactly like kmalloc().  If @new_size is 0 and @p is not a
-+ * %NULL pointer, the object pointed to is freed.
-+ */
-+void *krealloc(const void *p, size_t new_size, gfp_t flags)
-+{
-+	void *ret;
-+
-+	if (unlikely(!new_size)) {
-+		kfree(p);
-+		return ZERO_SIZE_PTR;
-+	}
-+
-+	ret = __do_krealloc(p, new_size, flags);
-+	if (ret && p != ret)
-+		kfree(p);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(krealloc);
-+
-+/**
-+ * kzfree - like kfree but zero memory
-+ * @p: object to free memory of
-+ *
-+ * The memory of the object @p points to is zeroed before freed.
-+ * If @p is %NULL, kzfree() does nothing.
-+ *
-+ * Note: this function zeroes the whole allocated buffer which can be a good
-+ * deal bigger than the requested buffer size passed to kmalloc(). So be
-+ * careful when using this function in performance sensitive code.
-+ */
-+void kzfree(const void *p)
-+{
-+	size_t ks;
-+	void *mem = (void *)p;
-+
-+	if (unlikely(ZERO_OR_NULL_PTR(mem)))
-+		return;
-+	ks = ksize(mem);
-+	memset(mem, 0, ks);
-+	kfree(mem);
-+}
-+EXPORT_SYMBOL(kzfree);
-+
-+/* Tracepoints definitions. */
-+EXPORT_TRACEPOINT_SYMBOL(kmalloc);
-+EXPORT_TRACEPOINT_SYMBOL(kmem_cache_alloc);
-+EXPORT_TRACEPOINT_SYMBOL(kmalloc_node);
-+EXPORT_TRACEPOINT_SYMBOL(kmem_cache_alloc_node);
-+EXPORT_TRACEPOINT_SYMBOL(kfree);
-+EXPORT_TRACEPOINT_SYMBOL(kmem_cache_free);
-diff -puN mm/util.c~mm-move-slab-related-stuff-from-utilc-to-slab_commonc mm/util.c
---- a/mm/util.c~mm-move-slab-related-stuff-from-utilc-to-slab_commonc
-+++ a/mm/util.c
-@@ -16,9 +16,6 @@
- 
- #include "internal.h"
- 
--#define CREATE_TRACE_POINTS
--#include <trace/events/kmem.h>
--
- /**
-  * kstrdup - allocate space for and copy an existing string
-  * @s: the string to duplicate
-@@ -112,97 +109,6 @@ void *memdup_user(const void __user *src
- }
- EXPORT_SYMBOL(memdup_user);
- 
--static __always_inline void *__do_krealloc(const void *p, size_t new_size,
--					   gfp_t flags)
--{
--	void *ret;
--	size_t ks = 0;
--
--	if (p)
--		ks = ksize(p);
--
--	if (ks >= new_size)
--		return (void *)p;
--
--	ret = kmalloc_track_caller(new_size, flags);
--	if (ret && p)
--		memcpy(ret, p, ks);
--
--	return ret;
--}
--
--/**
-- * __krealloc - like krealloc() but don't free @p.
-- * @p: object to reallocate memory for.
-- * @new_size: how many bytes of memory are required.
-- * @flags: the type of memory to allocate.
-- *
-- * This function is like krealloc() except it never frees the originally
-- * allocated buffer. Use this if you don't want to free the buffer immediately
-- * like, for example, with RCU.
-- */
--void *__krealloc(const void *p, size_t new_size, gfp_t flags)
--{
--	if (unlikely(!new_size))
--		return ZERO_SIZE_PTR;
--
--	return __do_krealloc(p, new_size, flags);
--
--}
--EXPORT_SYMBOL(__krealloc);
--
--/**
-- * krealloc - reallocate memory. The contents will remain unchanged.
-- * @p: object to reallocate memory for.
-- * @new_size: how many bytes of memory are required.
-- * @flags: the type of memory to allocate.
-- *
-- * The contents of the object pointed to are preserved up to the
-- * lesser of the new and old sizes.  If @p is %NULL, krealloc()
-- * behaves exactly like kmalloc().  If @new_size is 0 and @p is not a
-- * %NULL pointer, the object pointed to is freed.
-- */
--void *krealloc(const void *p, size_t new_size, gfp_t flags)
--{
--	void *ret;
--
--	if (unlikely(!new_size)) {
--		kfree(p);
--		return ZERO_SIZE_PTR;
--	}
--
--	ret = __do_krealloc(p, new_size, flags);
--	if (ret && p != ret)
--		kfree(p);
--
--	return ret;
--}
--EXPORT_SYMBOL(krealloc);
--
--/**
-- * kzfree - like kfree but zero memory
-- * @p: object to free memory of
-- *
-- * The memory of the object @p points to is zeroed before freed.
-- * If @p is %NULL, kzfree() does nothing.
-- *
-- * Note: this function zeroes the whole allocated buffer which can be a good
-- * deal bigger than the requested buffer size passed to kmalloc(). So be
-- * careful when using this function in performance sensitive code.
-- */
--void kzfree(const void *p)
--{
--	size_t ks;
--	void *mem = (void *)p;
--
--	if (unlikely(ZERO_OR_NULL_PTR(mem)))
--		return;
--	ks = ksize(mem);
--	memset(mem, 0, ks);
--	kfree(mem);
--}
--EXPORT_SYMBOL(kzfree);
--
- /*
-  * strndup_user - duplicate an existing string from user space
-  * @s: The string to duplicate
-@@ -504,11 +410,3 @@ out_mm:
- out:
- 	return res;
- }
+ #define __get_free_page(gfp_mask) \
+ 		__get_free_pages((gfp_mask), 0)
+diff -puN mm/page_alloc.c~mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-add-__meminit-to-alloc_pages_exact_nid
++++ a/mm/page_alloc.c
+@@ -2962,7 +2962,7 @@ EXPORT_SYMBOL(alloc_pages_exact);
+  * Note this is not alloc_pages_exact_node() which allocates on a specific node,
+  * but is not exact.
+  */
+-void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask)
++void * __meminit alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask)
+ {
+ 	unsigned order = get_order(size);
+ 	struct page *p = alloc_pages_node(nid, gfp_mask, order);
+_
+
+Patches currently in -mm which might be from fabf@skynet.be are
+
+origin.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
+fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+fs-efs-nameic-return-is-not-a-function.patch
+fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-test_kprobesc-use-current-logging-functions.patch
+fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
+fs-isofs-logging-clean-up.patch
+fs-isofs-logging-clean-up-fix.patch
+fs-coda-use-linux-uaccessh.patch
+fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+fs-ufs-convert-printk-to-pr_foo.patch
+fs-ufs-use-pr_fmt.patch
+fs-ufs-superc-use-__func__-in-logging.patch
+fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
+fs-ufs-convert-ufsd-printk-to-pr_debug.patch
+fs-ufs-inodec-kernel-doc-warning-fixes.patch
+fs-reiserfs-replace-not-standard-%lu-%ld.patch
+fs-reiserfs-use-linux-uaccessh.patch
+fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
+fs-hpfs-dnodec-fix-suspect-code-indent.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+proc-constify-seq_operations.patch
+fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
+fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
+fs-bfs-use-bfs-prefix-for-dump_imap.patch
+drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
+fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cramfs-convert-printk-to-pr_foo.patch
+fs-cramfs-use-pr_fmt.patch
+fs-cramfs-code-clean-up.patch
+fs-cramfs-inodec-use-linux-uaccessh.patch
+fs-romfs-superc-convert-printk-to-pr_foo.patch
+fs-romfs-superc-use-pr_fmt-in-logging.patch
+fs-romfs-superc-add-blank-line-after-declarations.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
+scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
+fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+linux-next.patch
+init-mainc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+
