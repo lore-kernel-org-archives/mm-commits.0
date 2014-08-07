@@ -1,72 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-a-multiple-blank-lines-test.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:08:53 -0700
-Message-ID: <53e3dcd5.qa82uoxdwyoPLGXB%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:08:55 -0700
+Message-ID: <53e3dcd7.EaRwvGUfdn0WqnCu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:53649 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755062AbaHGUIy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:54 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so1176747pab.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:53 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:65317 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755062AbaHGUI4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:56 -0400
+Received: by mail-qa0-f74.google.com with SMTP id j15so613517qaq.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add a multiple blank lines test
+     Subject: checkpatch: change blank line after declaration type to "LINE_SPACING"
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-a-multiple-blank-lines-test.patch
+     checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add a multiple blank lines test
+Subject: checkpatch: change blank line after declaration type to "LINE_SPACING"
 
-Multiple consecutive blank lines waste screen space.  Emit a --strict only
-message with these blank lines.
+Make it consistent with the other missing or multiple blank line tests.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-a-multiple-blank-lines-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-a-multiple-blank-lines-test
+diff -puN scripts/checkpatch.pl~checkpatch-change-blank-line-after-declaration-type-to-line_spacing scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-change-blank-line-after-declaration-type-to-line_spacing
 +++ a/scripts/checkpatch.pl
-@@ -1642,6 +1642,8 @@ sub process {
- 
- 	my $non_utf8_charset = 0;
- 
-+	my $last_blank_line = 0;
-+
- 	our @report = ();
- 	our $cnt_lines = 0;
- 	our $cnt_error = 0;
-@@ -2308,6 +2310,15 @@ sub process {
- 			    "Please use a blank line after function/struct/union/enum declarations\n" . $hereprev);
+@@ -2353,7 +2353,7 @@ sub process {
+ 		      $sline =~ /^\+\s+\(?\s*(?:$Compare|$Assignment|$Operators)/) &&
+ 			# indentation of previous and current line are the same
+ 		    (($prevline =~ /\+(\s+)\S/) && $sline =~ /^\+$1\S/)) {
+-			WARN("SPACING",
++			WARN("LINE_SPACING",
+ 			     "Missing a blank line after declarations\n" . $hereprev);
  		}
  
-+# check for multiple consecutive blank lines
-+		if ($prevline =~ /^[\+ ]\s*$/ &&
-+		    $line =~ /^\+\s*$/ &&
-+		    $last_blank_line != ($linenr - 1)) {
-+			CHK("LINE_SPACING",
-+			    "Please don't use multiple blank lines\n" . $hereprev);
-+			$last_blank_line = $linenr;
-+		}
-+
- # check for missing blank lines after declarations
- 		if ($sline =~ /^\+\s+\S/ &&			#Not at char 1
- 			# actual declarations
 _
 
 Patches currently in -mm which might be from joe@perches.com are
