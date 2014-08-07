@@ -1,106 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch removed
+ checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch removed
  from -mm tree
-Date: Thu, 07 Aug 2014 13:09:21 -0700
-Message-ID: <53e3dcf1./2FqZjt+R/i0b3Xc%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:09:25 -0700
+Message-ID: <53e3dcf5.veYKjN9F6kK3tCqo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:34300 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755454AbaHGUJW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:22 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wp18so842076obc.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:21 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:51254 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755423AbaHGUJ0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:26 -0400
+Received: by mail-pd0-f201.google.com with SMTP id g10so1177537pdj.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add --fix option for a couple OPEN_BRACE misuses
+     Subject: checkpatch: add for_each tests to indentation and brace tests
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
+     checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add --fix option for a couple OPEN_BRACE misuses
+Subject: checkpatch: add for_each tests to indentation and brace tests
 
-Style misuses of these types are corrected:
+All the various for_each loop macros were not tested for
+trailing brace on the following lines and for bad indentation.
 
-typedef struct foo
-{
-	int bar;
-};
-
-int foo(int bar) { return bar+1;
-}
-
-int foo(int bar) {
-	return bar+1;
-}
+Add them.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Greg KH <gregkh@linuxfoundation.org>
+Cc: Andy Whitcroft <apw@canonical.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   33 ++++++++++++++++++++++++++++-----
- 1 file changed, 28 insertions(+), 5 deletions(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-fix-option-for-a-couple-open_brace-misuses scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-a-couple-open_brace-misuses
+diff -puN scripts/checkpatch.pl~checkpatch-add-for_each-tests-to-indentation-and-brace-tests scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-for_each-tests-to-indentation-and-brace-tests
 +++ a/scripts/checkpatch.pl
-@@ -3164,17 +3164,40 @@ sub process {
+@@ -2698,7 +2698,7 @@ sub process {
  
- # function brace can't be on same line, except for #defines of do while,
- # or if closed on same line
--		if (($line=~/$Type\s*$Ident\(.*\).*\s{/) and
-+		if (($line=~/$Type\s*$Ident\(.*\).*\s*{/) and
- 		    !($line=~/\#\s*define.*do\s{/) and !($line=~/}/)) {
--			ERROR("OPEN_BRACE",
--			      "open brace '{' following function declarations go on the next line\n" . $herecurr);
-+			if (ERROR("OPEN_BRACE",
-+				  "open brace '{' following function declarations go on the next line\n" . $herecurr) &&
-+			    $fix) {
-+				fix_delete_line($fixlinenr, $rawline);
-+				my $fixed_line = $rawline;
-+				$fixed_line =~ /(^..*$Type\s*$Ident\(.*\)\s*){(.*)$/;
-+				my $line1 = $1;
-+				my $line2 = $2;
-+				fix_insert_line($fixlinenr, ltrim($line1));
-+				fix_insert_line($fixlinenr, "\+{");
-+				if ($line2 !~ /^\s*$/) {
-+					fix_insert_line($fixlinenr, "\+\t" . trim($line2));
-+				}
-+			}
+ # if/while/etc brace do not go on next line, unless defining a do while loop,
+ # or if that brace on the next line is for something else
+-		if ($line =~ /(.*)\b((?:if|while|for|switch)\s*\(|do\b|else\b)/ && $line !~ /^.\s*\#/) {
++		if ($line =~ /(.*)\b((?:if|while|for|switch|(?:[a-z_]+|)for_each[a-z_]+)\s*\(|do\b|else\b)/ && $line !~ /^.\s*\#/) {
+ 			my $pre_ctx = "$1$2";
+ 
+ 			my ($level, @ctx) = ctx_statement_level($linenr, $realcnt, 0);
+@@ -2744,7 +2744,7 @@ sub process {
  		}
  
- # open braces for enum, union and struct go on the same line.
- 		if ($line =~ /^.\s*{/ &&
- 		    $prevline =~ /^.\s*(?:typedef\s+)?(enum|union|struct)(?:\s+$Ident)?\s*$/) {
--			ERROR("OPEN_BRACE",
--			      "open brace '{' following $1 go on the same line\n" . $hereprev);
-+			if (ERROR("OPEN_BRACE",
-+				  "open brace '{' following $1 go on the same line\n" . $hereprev) &&
-+			    $fix && $prevline =~ /^\+/ && $line =~ /^\+/) {
-+				fix_delete_line($fixlinenr - 1, $prevrawline);
-+				fix_delete_line($fixlinenr, $rawline);
-+				my $fixedline = rtrim($prevrawline) . " {";
-+				fix_insert_line($fixlinenr, $fixedline);
-+				$fixedline = $rawline;
-+				$fixedline =~ s/^(.\s*){\s*/$1\t/;
-+				if ($fixedline !~ /^\+\s*$/) {
-+					fix_insert_line($fixlinenr, $fixedline);
-+				}
-+			}
- 		}
- 
- # missing space after union, struct or enum definition
+ # Check relative indent for conditionals and blocks.
+-		if ($line =~ /\b(?:(?:if|while|for)\s*\(|do\b)/ && $line !~ /^.\s*#/ && $line !~ /\}\s*while\s*/) {
++		if ($line =~ /\b(?:(?:if|while|for|(?:[a-z_]+|)for_each[a-z_]+)\s*\(|do\b)/ && $line !~ /^.\s*#/ && $line !~ /\}\s*while\s*/) {
+ 			($stat, $cond, $line_nr_next, $remain_next, $off_next) =
+ 				ctx_statement_block($linenr, $realcnt, 0)
+ 					if (!defined $stat);
 _
 
 Patches currently in -mm which might be from joe@perches.com are
