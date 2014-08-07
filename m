@@ -1,55 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
+Subject: [merged] checkpatch-improve-no-space-after-cast-test.patch
  removed from -mm tree
-Date: Thu, 07 Aug 2014 13:08:55 -0700
-Message-ID: <53e3dcd7.EaRwvGUfdn0WqnCu%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:09:03 -0700
+Message-ID: <53e3dcdf.EVKJ2bEZvG8maBt1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:65317 "EHLO
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:60771 "EHLO
 	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755062AbaHGUI4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:56 -0400
-Received: by mail-qa0-f74.google.com with SMTP id j15so613517qaq.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:55 -0700 (PDT)
+	with ESMTP id S1751265AbaHGUJF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:05 -0400
+Received: by mail-qa0-f74.google.com with SMTP id j15so613548qaq.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: change blank line after declaration type to "LINE_SPACING"
+     Subject: checkpatch: improve "no space after cast" test
 has been removed from the -mm tree.  Its filename was
-     checkpatch-change-blank-line-after-declaration-type-to-line_spacing.patch
+     checkpatch-improve-no-space-after-cast-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: change blank line after declaration type to "LINE_SPACING"
+Subject: checkpatch: improve "no space after cast" test
 
-Make it consistent with the other missing or multiple blank line tests.
+This --strict test previously worked only for what appeared to be cast to
+pointer types.
+
+Make it work for all casts.
+
+Also, there's no reason to show the previous line for this type of
+message, so don't.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-change-blank-line-after-declaration-type-to-line_spacing scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-change-blank-line-after-declaration-type-to-line_spacing
+diff -puN scripts/checkpatch.pl~checkpatch-improve-no-space-after-cast-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-no-space-after-cast-test
 +++ a/scripts/checkpatch.pl
-@@ -2353,7 +2353,7 @@ sub process {
- 		      $sline =~ /^\+\s+\(?\s*(?:$Compare|$Assignment|$Operators)/) &&
- 			# indentation of previous and current line are the same
- 		    (($prevline =~ /\+(\s+)\S/) && $sline =~ /^\+$1\S/)) {
--			WARN("SPACING",
-+			WARN("LINE_SPACING",
- 			     "Missing a blank line after declarations\n" . $hereprev);
+@@ -2260,12 +2260,12 @@ sub process {
+ 			}
+ 		}
+ 
+-		if ($line =~ /^\+.*\*[ \t]*\)[ \t]+(?!$Assignment|$Arithmetic)/) {
++		if ($line =~ /^\+.*\(\s*$Type\s*\)[ \t]+(?!$Assignment|$Arithmetic)/) {
+ 			if (CHK("SPACING",
+-				"No space is necessary after a cast\n" . $hereprev) &&
++				"No space is necessary after a cast\n" . $herecurr) &&
+ 			    $fix) {
+ 				$fixed[$linenr - 1] =~
+-				    s/^(\+.*\*[ \t]*\))[ \t]+/$1/;
++				    s/(\(\s*$Type\s*\))[ \t]+/$1/;
+ 			}
  		}
  
 _
