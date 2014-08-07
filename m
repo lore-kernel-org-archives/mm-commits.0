@@ -1,67 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch removed
- from -mm tree
-Date: Thu, 07 Aug 2014 13:03:43 -0700
-Message-ID: <53e3db9f.7EoSDwKOUHlRMUfx%akpm@linux-foundation.org>
+Subject: [merged] mm-internalh-use-nth_page.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:03:55 -0700
+Message-ID: <53e3dbab.komWLe3wvrH0URsr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:38112 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755093AbaHGUDo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:44 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so836802oig.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:43 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:34374 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755050AbaHGUD4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:56 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so1176845pde.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/memblock.h: add __init to memblock_set_bottom_up()
+     Subject: mm/internal.h: use nth_page
 has been removed from the -mm tree.  Its filename was
-     include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
+     mm-internalh-use-nth_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: include/linux/memblock.h: add __init to memblock_set_bottom_up()
+Subject: mm/internal.h: use nth_page
 
-memblock_set_bottom_up() is only called by __init
-cmdline_parse_movable_node() and __init numa_init().
+Use nth_page instead of pfn_to_page(page_to_pfn
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memblock.h~include-linux-memblockh-add-__init-to-memblock_set_bottom_up include/linux/memblock.h
---- a/include/linux/memblock.h~include-linux-memblockh-add-__init-to-memblock_set_bottom_up
-+++ a/include/linux/memblock.h
-@@ -249,7 +249,7 @@ phys_addr_t memblock_alloc(phys_addr_t s
- /*
-  * Set the allocation direction to bottom-up or top-down.
-  */
--static inline void memblock_set_bottom_up(bool enable)
-+static inline void __init memblock_set_bottom_up(bool enable)
+diff -puN mm/internal.h~mm-internalh-use-nth_page mm/internal.h
+--- a/mm/internal.h~mm-internalh-use-nth_page
++++ a/mm/internal.h
+@@ -247,7 +247,7 @@ static inline void mlock_migrate_page(st
+ static inline struct page *mem_map_offset(struct page *base, int offset)
  {
- 	memblock.bottom_up = enable;
+ 	if (unlikely(offset >= MAX_ORDER_NR_PAGES))
+-		return pfn_to_page(page_to_pfn(base) + offset);
++		return nth_page(base, offset);
+ 	return base + offset;
  }
-@@ -264,7 +264,7 @@ static inline bool memblock_bottom_up(vo
- 	return memblock.bottom_up;
- }
- #else
--static inline void memblock_set_bottom_up(bool enable) {}
-+static inline void __init memblock_set_bottom_up(bool enable) {}
- static inline bool memblock_bottom_up(void) { return false; }
- #endif
  
 _
 
