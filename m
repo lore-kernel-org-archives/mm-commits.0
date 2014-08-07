@@ -1,124 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-fscache-make-ctl_table-static.patch removed from -mm
- tree
-Date: Thu, 07 Aug 2014 13:02:11 -0700
-Message-ID: <53e3db43.CluIw1QMzx6+uaX8%akpm@linux-foundation.org>
+Subject: [merged] fsnotify-rename-event-handling-functions.patch removed
+ from -mm tree
+Date: Thu, 07 Aug 2014 13:02:13 -0700
+Message-ID: <53e3db45.ADSZZ+Yk90RxzNkJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:34531 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbaHGUCM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:12 -0400
-Received: by mail-ob0-f201.google.com with SMTP id nu7so838497obb.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:11 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:64145 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955AbaHGUCO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:14 -0400
+Received: by mail-ie0-f201.google.com with SMTP id tr6so842289ieb.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, dhowells@redhat.com, joe@perches.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, eparis@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/fscache: make ctl_table static
+     Subject: fsnotify: rename event handling functions
 has been removed from the -mm tree.  Its filename was
-     fs-fscache-make-ctl_table-static.patch
+     fsnotify-rename-event-handling-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/fscache: make ctl_table static
+From: Jan Kara <jack@suse.cz>
+Subject: fsnotify: rename event handling functions
 
-fscache_sysctls and fscache_sysctls_root are only used in main.c
+Rename fsnotify_add_notify_event() to fsnotify_add_event() since the
+"notify" part is duplicit.  Rename fsnotify_remove_notify_event() and
+fsnotify_peek_notify_event() to fsnotify_remove_first_event() and
+fsnotify_peek_first_event() respectively since "notify" part is duplicit
+and they really look at the first event in the queue.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Joe Perches <joe@perches.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fscache/main.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/notify/fanotify/fanotify.c        |    2 +-
+ fs/notify/fanotify/fanotify_user.c   |    2 +-
+ fs/notify/inotify/inotify_fsnotify.c |    2 +-
+ fs/notify/inotify/inotify_user.c     |    4 ++--
+ fs/notify/notification.c             |   19 ++++++++++---------
+ include/linux/fsnotify_backend.h     |   12 ++++++------
+ 6 files changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN fs/fscache/main.c~fs-fscache-make-ctl_table-static fs/fscache/main.c
---- a/fs/fscache/main.c~fs-fscache-make-ctl_table-static
-+++ a/fs/fscache/main.c
-@@ -67,7 +67,7 @@ static int fscache_max_active_sysctl(str
- 	return ret;
+diff -puN fs/notify/fanotify/fanotify.c~fsnotify-rename-event-handling-functions fs/notify/fanotify/fanotify.c
+--- a/fs/notify/fanotify/fanotify.c~fsnotify-rename-event-handling-functions
++++ a/fs/notify/fanotify/fanotify.c
+@@ -210,7 +210,7 @@ static int fanotify_handle_event(struct
+ 		return -ENOMEM;
+ 
+ 	fsn_event = &event->fse;
+-	ret = fsnotify_add_notify_event(group, fsn_event, fanotify_merge);
++	ret = fsnotify_add_event(group, fsn_event, fanotify_merge);
+ 	if (ret) {
+ 		/* Permission events shouldn't be merged */
+ 		BUG_ON(ret == 1 && mask & FAN_ALL_PERM_EVENTS);
+diff -puN fs/notify/fanotify/fanotify_user.c~fsnotify-rename-event-handling-functions fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fsnotify-rename-event-handling-functions
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -66,7 +66,7 @@ static struct fsnotify_event *get_one_ev
+ 
+ 	/* held the notification_mutex the whole time, so this is the
+ 	 * same event we peeked above */
+-	return fsnotify_remove_notify_event(group);
++	return fsnotify_remove_first_event(group);
  }
  
--struct ctl_table fscache_sysctls[] = {
-+static struct ctl_table fscache_sysctls[] = {
- 	{
- 		.procname	= "object_max_active",
- 		.data		= &fscache_object_max_active,
-@@ -87,7 +87,7 @@ struct ctl_table fscache_sysctls[] = {
- 	{}
- };
+ static int create_fd(struct fsnotify_group *group,
+diff -puN fs/notify/inotify/inotify_fsnotify.c~fsnotify-rename-event-handling-functions fs/notify/inotify/inotify_fsnotify.c
+--- a/fs/notify/inotify/inotify_fsnotify.c~fsnotify-rename-event-handling-functions
++++ a/fs/notify/inotify/inotify_fsnotify.c
+@@ -108,7 +108,7 @@ int inotify_handle_event(struct fsnotify
+ 	if (len)
+ 		strcpy(event->name, file_name);
  
--struct ctl_table fscache_sysctls_root[] = {
-+static struct ctl_table fscache_sysctls_root[] = {
- 	{
- 		.procname	= "fscache",
- 		.mode		= 0555,
+-	ret = fsnotify_add_notify_event(group, fsn_event, inotify_merge);
++	ret = fsnotify_add_event(group, fsn_event, inotify_merge);
+ 	if (ret) {
+ 		/* Our event wasn't used in the end. Free it. */
+ 		fsnotify_destroy_event(group, fsn_event);
+diff -puN fs/notify/inotify/inotify_user.c~fsnotify-rename-event-handling-functions fs/notify/inotify/inotify_user.c
+--- a/fs/notify/inotify/inotify_user.c~fsnotify-rename-event-handling-functions
++++ a/fs/notify/inotify/inotify_user.c
+@@ -149,7 +149,7 @@ static struct fsnotify_event *get_one_ev
+ 	if (fsnotify_notify_queue_is_empty(group))
+ 		return NULL;
+ 
+-	event = fsnotify_peek_notify_event(group);
++	event = fsnotify_peek_first_event(group);
+ 
+ 	pr_debug("%s: group=%p event=%p\n", __func__, group, event);
+ 
+@@ -159,7 +159,7 @@ static struct fsnotify_event *get_one_ev
+ 
+ 	/* held the notification_mutex the whole time, so this is the
+ 	 * same event we peeked above */
+-	fsnotify_remove_notify_event(group);
++	fsnotify_remove_first_event(group);
+ 
+ 	return event;
+ }
+diff -puN fs/notify/notification.c~fsnotify-rename-event-handling-functions fs/notify/notification.c
+--- a/fs/notify/notification.c~fsnotify-rename-event-handling-functions
++++ a/fs/notify/notification.c
+@@ -83,10 +83,10 @@ void fsnotify_destroy_event(struct fsnot
+  * added to the queue, 1 if the event was merged with some other queued event,
+  * 2 if the queue of events has overflown.
+  */
+-int fsnotify_add_notify_event(struct fsnotify_group *group,
+-			      struct fsnotify_event *event,
+-			      int (*merge)(struct list_head *,
+-					   struct fsnotify_event *))
++int fsnotify_add_event(struct fsnotify_group *group,
++		       struct fsnotify_event *event,
++		       int (*merge)(struct list_head *,
++				    struct fsnotify_event *))
+ {
+ 	int ret = 0;
+ 	struct list_head *list = &group->notification_list;
+@@ -128,7 +128,7 @@ queue:
+  * Remove and return the first event from the notification list.  It is the
+  * responsibility of the caller to destroy the obtained event
+  */
+-struct fsnotify_event *fsnotify_remove_notify_event(struct fsnotify_group *group)
++struct fsnotify_event *fsnotify_remove_first_event(struct fsnotify_group *group)
+ {
+ 	struct fsnotify_event *event;
+ 
+@@ -140,7 +140,7 @@ struct fsnotify_event *fsnotify_remove_n
+ 				 struct fsnotify_event, list);
+ 	/*
+ 	 * We need to init list head for the case of overflow event so that
+-	 * check in fsnotify_add_notify_events() works
++	 * check in fsnotify_add_event() works
+ 	 */
+ 	list_del_init(&event->list);
+ 	group->q_len--;
+@@ -149,9 +149,10 @@ struct fsnotify_event *fsnotify_remove_n
+ }
+ 
+ /*
+- * This will not remove the event, that must be done with fsnotify_remove_notify_event()
++ * This will not remove the event, that must be done with
++ * fsnotify_remove_first_event()
+  */
+-struct fsnotify_event *fsnotify_peek_notify_event(struct fsnotify_group *group)
++struct fsnotify_event *fsnotify_peek_first_event(struct fsnotify_group *group)
+ {
+ 	BUG_ON(!mutex_is_locked(&group->notification_mutex));
+ 
+@@ -169,7 +170,7 @@ void fsnotify_flush_notify(struct fsnoti
+ 
+ 	mutex_lock(&group->notification_mutex);
+ 	while (!fsnotify_notify_queue_is_empty(group)) {
+-		event = fsnotify_remove_notify_event(group);
++		event = fsnotify_remove_first_event(group);
+ 		fsnotify_destroy_event(group, event);
+ 	}
+ 	mutex_unlock(&group->notification_mutex);
+diff -puN include/linux/fsnotify_backend.h~fsnotify-rename-event-handling-functions include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fsnotify-rename-event-handling-functions
++++ a/include/linux/fsnotify_backend.h
+@@ -322,16 +322,16 @@ extern int fsnotify_fasync(int fd, struc
+ extern void fsnotify_destroy_event(struct fsnotify_group *group,
+ 				   struct fsnotify_event *event);
+ /* attach the event to the group notification queue */
+-extern int fsnotify_add_notify_event(struct fsnotify_group *group,
+-				     struct fsnotify_event *event,
+-				     int (*merge)(struct list_head *,
+-						  struct fsnotify_event *));
++extern int fsnotify_add_event(struct fsnotify_group *group,
++			      struct fsnotify_event *event,
++			      int (*merge)(struct list_head *,
++					   struct fsnotify_event *));
+ /* true if the group notification queue is empty */
+ extern bool fsnotify_notify_queue_is_empty(struct fsnotify_group *group);
+ /* return, but do not dequeue the first event on the notification queue */
+-extern struct fsnotify_event *fsnotify_peek_notify_event(struct fsnotify_group *group);
++extern struct fsnotify_event *fsnotify_peek_first_event(struct fsnotify_group *group);
+ /* return AND dequeue the first event on the notification queue */
+-extern struct fsnotify_event *fsnotify_remove_notify_event(struct fsnotify_group *group);
++extern struct fsnotify_event *fsnotify_remove_first_event(struct fsnotify_group *group);
+ 
+ /* functions used to manipulate the marks attached to inodes */
+ 
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
 fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
-fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
-fs-efs-nameic-return-is-not-a-function.patch
-fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-test_kprobesc-use-current-logging-functions.patch
-fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 fs-isofs-logging-clean-up.patch
-fs-isofs-logging-clean-up-fix.patch
-fs-coda-use-linux-uaccessh.patch
-fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
-fs-ufs-convert-printk-to-pr_foo.patch
-fs-ufs-use-pr_fmt.patch
-fs-ufs-superc-use-__func__-in-logging.patch
-fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
-fs-ufs-convert-ufsd-printk-to-pr_debug.patch
-fs-ufs-inodec-kernel-doc-warning-fixes.patch
-fs-reiserfs-replace-not-standard-%lu-%ld.patch
-fs-reiserfs-use-linux-uaccessh.patch
-fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
-fs-hpfs-dnodec-fix-suspect-code-indent.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-proc-constify-seq_operations.patch
-fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
-fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
-fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
-fs-bfs-use-bfs-prefix-for-dump_imap.patch
-drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
-fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
-fs-cachefiles-bindc-remove-unnecessary-assertions.patch
-fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cramfs-convert-printk-to-pr_foo.patch
-fs-cramfs-use-pr_fmt.patch
-fs-cramfs-code-clean-up.patch
-fs-cramfs-inodec-use-linux-uaccessh.patch
-fs-romfs-superc-convert-printk-to-pr_foo.patch
-fs-romfs-superc-use-pr_fmt-in-logging.patch
-fs-romfs-superc-add-blank-line-after-declarations.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
-scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
-fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
 linux-next.patch
-init-mainc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
+mm-add-strictlimit-knob-v2.patch
 
