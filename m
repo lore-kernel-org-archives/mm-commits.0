@@ -1,153 +1,106 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch removed
+ checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch removed
  from -mm tree
-Date: Thu, 07 Aug 2014 13:09:17 -0700
-Message-ID: <53e3dced.HgvV6sVv0KuBrxBA%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:09:21 -0700
+Message-ID: <53e3dcf1./2FqZjt+R/i0b3Xc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f73.google.com ([209.85.218.73]:38318 "EHLO
-	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755454AbaHGUJS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:18 -0400
-Received: by mail-oi0-f73.google.com with SMTP id u20so838829oif.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:17 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:34300 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755454AbaHGUJW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:22 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wp18so842076obc.1
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add fix_insert_line and fix_delete_line helpers
+     Subject: checkpatch: add --fix option for a couple OPEN_BRACE misuses
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-fix_insert_line-and-fix_delete_line-helpers.patch
+     checkpatch-add-fix-option-for-a-couple-open_brace-misuses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add fix_insert_line and fix_delete_line helpers
+Subject: checkpatch: add --fix option for a couple OPEN_BRACE misuses
 
-Neaten the uses of patch/file line insertions or deletions.  Hide the
-mechanism used.
+Style misuses of these types are corrected:
+
+typedef struct foo
+{
+	int bar;
+};
+
+int foo(int bar) { return bar+1;
+}
+
+int foo(int bar) {
+	return bar+1;
+}
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   65 +++++++++++++++++-----------------------
- 1 file changed, 29 insertions(+), 36 deletions(-)
+ scripts/checkpatch.pl |   33 ++++++++++++++++++++++++++++-----
+ 1 file changed, 28 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-fix_insert_line-and-fix_delete_line-helpers scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-fix_insert_line-and-fix_delete_line-helpers
+diff -puN scripts/checkpatch.pl~checkpatch-add-fix-option-for-a-couple-open_brace-misuses scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-a-couple-open_brace-misuses
 +++ a/scripts/checkpatch.pl
-@@ -1593,6 +1593,27 @@ sub fix_inserted_deleted_lines {
- 	return @lines;
- }
+@@ -3164,17 +3164,40 @@ sub process {
  
-+sub fix_insert_line {
-+	my ($linenr, $line) = @_;
-+
-+	my $inserted = {
-+		LINENR => $linenr,
-+		LINE => $line,
-+	};
-+	push(@fixed_inserted, $inserted);
-+}
-+
-+sub fix_delete_line {
-+	my ($linenr, $line) = @_;
-+
-+	my $deleted = {
-+		LINENR => $linenr,
-+		LINE => $line,
-+	};
-+
-+	push(@fixed_deleted, $deleted);
-+}
-+
- sub ERROR {
- 	my ($type, $msg) = @_;
- 
-@@ -2447,11 +2468,7 @@ sub process {
- 			if (CHK("LINE_SPACING",
- 				"Please use a blank line after function/struct/union/enum declarations\n" . $hereprev) &&
- 			    $fix) {
--			my $inserted = {
--				LINENR => $fixlinenr,
--				LINE => "\+",
--			};
--			push(@fixed_inserted, $inserted);
-+				fix_insert_line($fixlinenr, "\+");
- 			}
- 		}
- 
-@@ -2462,11 +2479,7 @@ sub process {
- 			if (CHK("LINE_SPACING",
- 				"Please don't use multiple blank lines\n" . $hereprev) &&
- 			    $fix) {
--			my $deleted = {
--				LINENR => $fixlinenr,
--				LINE => $rawline,
--			};
--			push(@fixed_deleted, $deleted);
+ # function brace can't be on same line, except for #defines of do while,
+ # or if closed on same line
+-		if (($line=~/$Type\s*$Ident\(.*\).*\s{/) and
++		if (($line=~/$Type\s*$Ident\(.*\).*\s*{/) and
+ 		    !($line=~/\#\s*define.*do\s{/) and !($line=~/}/)) {
+-			ERROR("OPEN_BRACE",
+-			      "open brace '{' following function declarations go on the next line\n" . $herecurr);
++			if (ERROR("OPEN_BRACE",
++				  "open brace '{' following function declarations go on the next line\n" . $herecurr) &&
++			    $fix) {
 +				fix_delete_line($fixlinenr, $rawline);
- 			}
- 
- 			$last_blank_line = $linenr;
-@@ -2509,11 +2522,7 @@ sub process {
- 			if (WARN("LINE_SPACING",
- 				 "Missing a blank line after declarations\n" . $hereprev) &&
- 			    $fix) {
--			my $inserted = {
--				LINENR => $fixlinenr,
--				LINE => "\+",
--			};
--			push(@fixed_inserted, $inserted);
-+				fix_insert_line($fixlinenr, "\+");
- 			}
++				my $fixed_line = $rawline;
++				$fixed_line =~ /(^..*$Type\s*$Ident\(.*\)\s*){(.*)$/;
++				my $line1 = $1;
++				my $line2 = $2;
++				fix_insert_line($fixlinenr, ltrim($line1));
++				fix_insert_line($fixlinenr, "\+{");
++				if ($line2 !~ /^\s*$/) {
++					fix_insert_line($fixlinenr, "\+\t" . trim($line2));
++				}
++			}
  		}
  
-@@ -2868,31 +2877,15 @@ sub process {
- 		    $prevline =~ /(?:^|[^=])=\s*$/) {
- 			if (ERROR("OPEN_BRACE",
- 				  "that open brace { should be on the previous line\n" . $hereprev) &&
--			    $fix && $prevline =~ /^\+/) {
--				my $deleted = {
--					LINENR => $fixlinenr - 1,
--					LINE => $prevrawline,
--				};
--				push(@fixed_deleted, $deleted);
--				$deleted = {
--					LINENR => $fixlinenr,
--					LINE => $rawline,
--				};
--				push(@fixed_deleted, $deleted);
+ # open braces for enum, union and struct go on the same line.
+ 		if ($line =~ /^.\s*{/ &&
+ 		    $prevline =~ /^.\s*(?:typedef\s+)?(enum|union|struct)(?:\s+$Ident)?\s*$/) {
+-			ERROR("OPEN_BRACE",
+-			      "open brace '{' following $1 go on the same line\n" . $hereprev);
++			if (ERROR("OPEN_BRACE",
++				  "open brace '{' following $1 go on the same line\n" . $hereprev) &&
 +			    $fix && $prevline =~ /^\+/ && $line =~ /^\+/) {
 +				fix_delete_line($fixlinenr - 1, $prevrawline);
 +				fix_delete_line($fixlinenr, $rawline);
- 				my $fixedline = $prevrawline;
- 				$fixedline =~ s/\s*=\s*$/ = {/;
--				my $inserted = {
--					LINENR => $fixlinenr,
--					LINE => $fixedline,
--				};
--				push(@fixed_inserted, $inserted);
++				my $fixedline = rtrim($prevrawline) . " {";
 +				fix_insert_line($fixlinenr, $fixedline);
- 				$fixedline = $line;
- 				$fixedline =~ s/^(.\s*){\s*/$1/;
--				$inserted = {
--					LINENR => $fixlinenr,
--					LINE => $fixedline,
--				};
--				push(@fixed_inserted, $inserted);
-+				fix_insert_line($fixlinenr, $fixedline);
- 			}
++				$fixedline = $rawline;
++				$fixedline =~ s/^(.\s*){\s*/$1\t/;
++				if ($fixedline !~ /^\+\s*$/) {
++					fix_insert_line($fixlinenr, $fixedline);
++				}
++			}
  		}
  
+ # missing space after union, struct or enum definition
 _
 
 Patches currently in -mm which might be from joe@perches.com are
