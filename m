@@ -1,69 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ntfs-kernel-doc-warning-fixes.patch removed from -mm
- tree
-Date: Thu, 07 Aug 2014 13:02:21 -0700
-Message-ID: <53e3db4d.RIAx2Vq7c7atE3Zf%akpm@linux-foundation.org>
+Subject: [merged] fs-logfs-readwritec-kernel-doc-warning-fixes.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:02:19 -0700
+Message-ID: <53e3db4b.ZK9yQgrxcWGksETh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f202.google.com ([209.85.160.202]:34776 "EHLO
-	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955AbaHGUCW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:22 -0400
-Received: by mail-yk0-f202.google.com with SMTP id q9so610740ykb.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:21 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:43231 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955AbaHGUCU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:20 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so838523obb.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, anton@tuxera.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, joern@logfs.org, prasadjoshi.linux@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ntfs: kernel-doc warning fixes
+     Subject: fs/logfs/readwrite.c: kernel-doc warning fixes
 has been removed from the -mm tree.  Its filename was
-     ntfs-kernel-doc-warning-fixes.patch
+     fs-logfs-readwritec-kernel-doc-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: ntfs: kernel-doc warning fixes
+Subject: fs/logfs/readwrite.c: kernel-doc warning fixes
 
-cached_page and lru_pvec were removed from ntfs_attr_extend_initialized in
-commit 2ec93b0bf35f ("ntfs: clean up ntfs_attr_extend_initialized")
-
-lru_pvec has been removed from __ntfs_grab_cache_pages in commit
-4c99000ac47c ("ntfs: use add_to_page_cache_lru()")
+s/-/:/ and fix variable names.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Acked-by: Anton Altaparmakov <anton@tuxera.com>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Prasad Joshi <prasadjoshi.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/file.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/logfs/readwrite.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN fs/ntfs/file.c~ntfs-kernel-doc-warning-fixes fs/ntfs/file.c
---- a/fs/ntfs/file.c~ntfs-kernel-doc-warning-fixes
-+++ a/fs/ntfs/file.c
-@@ -74,8 +74,6 @@ static int ntfs_file_open(struct inode *
-  * ntfs_attr_extend_initialized - extend the initialized size of an attribute
-  * @ni:			ntfs inode of the attribute to extend
-  * @new_init_size:	requested new initialized size in bytes
-- * @cached_page:	store any allocated but unused page here
-- * @lru_pvec:		lru-buffering pagevec of the caller
+diff -puN fs/logfs/readwrite.c~fs-logfs-readwritec-kernel-doc-warning-fixes fs/logfs/readwrite.c
+--- a/fs/logfs/readwrite.c~fs-logfs-readwritec-kernel-doc-warning-fixes
++++ a/fs/logfs/readwrite.c
+@@ -1019,11 +1019,11 @@ static int __logfs_is_valid_block(struct
+ /**
+  * logfs_is_valid_block - check whether this block is still valid
   *
-  * Extend the initialized size of an attribute described by the ntfs inode @ni
-  * to @new_init_size bytes.  This involves zeroing any non-sparse space between
-@@ -395,7 +393,6 @@ static inline void ntfs_fault_in_pages_r
-  * @nr_pages:	number of page cache pages to obtain
-  * @pages:	array of pages in which to return the obtained page cache pages
-  * @cached_page: allocated but as yet unused page
-- * @lru_pvec:	lru-buffering pagevec of caller
+- * @sb	- superblock
+- * @ofs	- block physical offset
+- * @ino	- block inode number
+- * @bix	- block index
+- * @level - block level
++ * @sb:		superblock
++ * @ofs:	block physical offset
++ * @ino:	block inode number
++ * @bix:	block index
++ * @gc_level:	block level
   *
-  * Obtain @nr_pages locked page cache pages from the mapping @mapping and
-  * starting at index @index.
+  * Returns 0 if the block is invalid, 1 if it is valid and 2 if it will
+  * become invalid once the journal is written.
+@@ -2226,10 +2226,9 @@ void btree_write_block(struct logfs_bloc
+  *
+  * @inode:		parent inode (ifile or directory)
+  * @buf:		object to write (inode or dentry)
+- * @n:			object size
+- * @_pos:		object number (file position in blocks/objects)
++ * @count:		object size
++ * @bix:		block index
+  * @flags:		write flags
+- * @lock:		0 if write lock is already taken, 1 otherwise
+  * @shadow_tree:	shadow below this inode
+  *
+  * FIXME: All caller of this put a 200-300 byte variable on the stack,
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
