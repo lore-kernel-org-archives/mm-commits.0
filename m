@@ -1,163 +1,147 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:05:41 -0700
-Message-ID: <53e3dc15.q6WdC4Irk8/pdGbj%akpm@linux-foundation.org>
+ dont-allocate-firmware_map_entry-of-same-memory-range.patch removed from
+ -mm tree
+Date: Thu, 07 Aug 2014 13:05:33 -0700
+Message-ID: <53e3dc0d.ojmdxLbvA751uLjp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:41129 "EHLO
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:51000 "EHLO
 	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755110AbaHGUFm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:42 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so1176272pdj.0
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:41 -0700 (PDT)
+	with ESMTP id S1750874AbaHGUFe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:34 -0400
+Received: by mail-pd0-f201.google.com with SMTP id g10so1175889pdj.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: isimatu.yasuaki@jp.fujitsu.com, gregkh@linuxfoundation.org, santosh.shilimkar@ti.com, toshi.kani@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
+     Subject: drivers/firmware/memmap.c: don't allocate firmware_map_entry of same memory range
 has been removed from the -mm tree.  Its filename was
-     mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
+     dont-allocate-firmware_map_entry-of-same-memory-range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: drivers/firmware/memmap.c: don't allocate firmware_map_entry of same memory range
 
-This was formerly the series "Improve sequential read throughput" which
-noted some major differences in performance of tiobench since 3.0.  While
-there are a number of factors, two that dominated were the introduction of
-the fair zone allocation policy and changes to CFQ.
+When limiting memory by mem= and ACPI DSDT table has PNP0C80,
+firmware_map_entrys of same memory range are allocated and memmap X
+sysfses which have same memory range are created as follows:
 
-The behaviour of fair zone allocation policy makes more sense than
-tiobench as a benchmark and CFQ defaults were not changed due to
-insufficient benchmarking.
+ # cat /sys/firmware/memmap/0/*
+ 0x407ffffffff
+ 0x40000000000
+ System RAM
+ # cat /sys/firmware/memmap/33/*
+ 0x407ffffffff
+ 0x40000000000
+ System RAM
+ # cat /sys/firmware/memmap/35/*
+ 0x407ffffffff
+ 0x40000000000
+ System RAM
 
-This series is what's left.  It's one functional fix to the fair zone
-allocation policy when used on NUMA machines and a reduction of overhead
-in general.  tiobench was used for the comparison despite its flaws as an
-IO benchmark as in this case we are primarily interested in the overhead
-of page allocator and page reclaim activity.
+In this case, when hot-removing memory, kernel panic occurs, showing
+following call trace:
 
-On UMA, it makes little difference to overhead
+ BUG: unable to handle kernel paging request at 00000001003e000b
+ IP: [<ffffffff81225c26>] sysfs_open_file+0x46/0x2b0
+ PGD 203a89fe067 PUD 0
+ Oops: 0000 [#1] SMP
+ ...
+ Call Trace:
+  [<ffffffff811ad95f>] do_dentry_open+0x1ef/0x2a0
+  [<ffffffff811bba32>] ? __inode_permission+0x52/0xc0
+  [<ffffffff81225be0>] ? sysfs_schedule_callback+0x1c0/0x1c0
+  [<ffffffff811ada41>] finish_open+0x31/0x40
+  [<ffffffff811bf6ac>] do_last+0x57c/0x1220
+  [<ffffffff8119529e>] ? kmem_cache_alloc_trace+0x1ce/0x1f0
+  [<ffffffff811c0412>] path_openat+0xc2/0x4c0
+  [<ffffffff81167e2c>] ? tlb_flush_mmu.part.53+0x4c/0x90
+  [<ffffffff811c102b>] do_filp_open+0x4b/0xb0
+  [<ffffffff811cd827>] ? __alloc_fd+0xa7/0x130
+  [<ffffffff811aeed3>] do_sys_open+0xf3/0x1f0
+  [<ffffffff811aefee>] SyS_open+0x1e/0x20
+  [<ffffffff815f2199>] system_call_fastpath+0x16/0x1b
 
-          3.16.0-rc3   3.16.0-rc3
-             vanilla lowercost-v5
-User          383.61      386.77
-System        403.83      401.74
-Elapsed      5411.50     5413.11
+The problem occurs as follows:
 
-On a 4-socket NUMA machine it's a bit more noticable
+When calling e820_reserve_resources(), firmware_map_entrys of all
+e820 memory map are allocated. And all firmware_map_entrys is added
+map_entries list as follows:
 
-          3.16.0-rc3   3.16.0-rc3
-             vanilla lowercost-v5
-User          746.94      802.00
-System      65336.22    40852.33
-Elapsed     27553.52    27368.46
+map_entries
+ -> +--- entry A --------+ -> ...
+    | start 0x407ffffffff|
+    | end   0x40000000000|
+    | type  System RAM   |
+    +--------------------+
 
+After that, if ACPI DSDT table has PNP0C80 and the memory range is
+limited by mem=, the PNP0C80 is hot-added. Then firmware_map_entry of
+PNP0C80 is allocated and added map_entries list as follows:
 
+map_entries
+ -> +--- entry A --------+ -> ... -> +--- entry B --------+
+    | start 0x407ffffffff|           | start 0x407ffffffff|
+    | end   0x40000000000|           | end   0x40000000000|
+    | type  System RAM   |           | type  System RAM   |
+    +--------------------+           +--------------------+
 
+Then memmap 0 sysfs for entry B is created.
 
-This patch (of 6):
+After that, firmware_memmap_init() creates memmap sysfses of all
+firmware_map_entrys in map_entries list.  As a result, memmap 33 sysfs for
+entry A and memmap 35 sysfs for entry B are created.  But kobject of entry
+B has been used by memmap 0 sysfs.  So when creating memmap 35 sysfs, the
+kobject is broken.
 
-The LRU insertion and activate tracepoints take PFN as a parameter forcing
-the overhead to the caller.  Move the overhead to the tracepoint
-fast-assign method to ensure the cost is only incurred when the tracepoint
-is active.
+If hot-removing memory, memmap 0 sysfs is destroyed and kobject of memmap
+0 sysfs is freed.  But the kobject can be accessed via memmap 35 sysfs. 
+So when open memmap 35 sysfs, kernel panic occurs.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+This patch checks whether there is firmware_map_entry of same memory range
+in map_entries list and don't allocate firmware_map_entry of same memroy
+range.
+
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/pagemap.h |   16 +++++++---------
- mm/swap.c                      |    4 ++--
- 2 files changed, 9 insertions(+), 11 deletions(-)
+ drivers/firmware/memmap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated include/trace/events/pagemap.h
---- a/include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
-+++ a/include/trace/events/pagemap.h
-@@ -28,12 +28,10 @@ TRACE_EVENT(mm_lru_insertion,
+diff -puN drivers/firmware/memmap.c~dont-allocate-firmware_map_entry-of-same-memory-range drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~dont-allocate-firmware_map_entry-of-same-memory-range
++++ a/drivers/firmware/memmap.c
+@@ -286,6 +286,10 @@ int __meminit firmware_map_add_hotplug(u
+ {
+ 	struct firmware_map_entry *entry;
  
- 	TP_PROTO(
- 		struct page *page,
--		unsigned long pfn,
--		int lru,
--		unsigned long flags
-+		int lru
- 	),
- 
--	TP_ARGS(page, pfn, lru, flags),
-+	TP_ARGS(page, lru),
- 
- 	TP_STRUCT__entry(
- 		__field(struct page *,	page	)
-@@ -44,9 +42,9 @@ TRACE_EVENT(mm_lru_insertion,
- 
- 	TP_fast_assign(
- 		__entry->page	= page;
--		__entry->pfn	= pfn;
-+		__entry->pfn	= page_to_pfn(page);
- 		__entry->lru	= lru;
--		__entry->flags	= flags;
-+		__entry->flags	= trace_pagemap_flags(page);
- 	),
- 
- 	/* Flag format is based on page-types.c formatting for pagemap */
-@@ -64,9 +62,9 @@ TRACE_EVENT(mm_lru_insertion,
- 
- TRACE_EVENT(mm_lru_activate,
- 
--	TP_PROTO(struct page *page, unsigned long pfn),
-+	TP_PROTO(struct page *page),
- 
--	TP_ARGS(page, pfn),
-+	TP_ARGS(page),
- 
- 	TP_STRUCT__entry(
- 		__field(struct page *,	page	)
-@@ -75,7 +73,7 @@ TRACE_EVENT(mm_lru_activate,
- 
- 	TP_fast_assign(
- 		__entry->page	= page;
--		__entry->pfn	= pfn;
-+		__entry->pfn	= page_to_pfn(page);
- 	),
- 
- 	/* Flag format is based on page-types.c formatting for pagemap */
-diff -puN mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated mm/swap.c
---- a/mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
-+++ a/mm/swap.c
-@@ -501,7 +501,7 @@ static void __activate_page(struct page
- 		SetPageActive(page);
- 		lru += LRU_ACTIVE;
- 		add_page_to_lru_list(page, lruvec, lru);
--		trace_mm_lru_activate(page, page_to_pfn(page));
-+		trace_mm_lru_activate(page);
- 
- 		__count_vm_event(PGACTIVATE);
- 		update_page_reclaim_stat(lruvec, file, 1);
-@@ -988,7 +988,7 @@ static void __pagevec_lru_add_fn(struct
- 	SetPageLRU(page);
- 	add_page_to_lru_list(page, lruvec, lru);
- 	update_page_reclaim_stat(lruvec, file, active);
--	trace_mm_lru_insertion(page, page_to_pfn(page), lru, trace_pagemap_flags(page));
-+	trace_mm_lru_insertion(page, lru);
- }
- 
- /*
++	entry = firmware_map_find_entry(start, end - 1, type);
++	if (entry)
++		return 0;
++
+ 	entry = firmware_map_find_entry_bootmem(start, end - 1, type);
+ 	if (!entry) {
+ 		entry = kzalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+x86mem-hotplug-pass-sync_global_pgds-a-correct-argument-in-remove_pagetable.patch
+x86mem-hotplug-modify-pgd-entry-when-removing-memory.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
 
