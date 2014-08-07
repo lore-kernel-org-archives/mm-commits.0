@@ -1,69 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-squashfs-superc-logging-clean-up.patch removed from
+Subject: [merged]
+ fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc.patch removed from
  -mm tree
-Date: Thu, 07 Aug 2014 13:02:37 -0700
-Message-ID: <53e3db5d.9jMp+EqsbxAS6r0W%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:02:45 -0700
+Message-ID: <53e3db65.3NtDr/XDLf2ankc9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:47879 "EHLO
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:57188 "EHLO
 	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755082AbaHGUCi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:38 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so835914oig.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:37 -0700 (PDT)
+	with ESMTP id S1755100AbaHGUCq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:46 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so836614oig.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, phillip@squashfs.org.uk, mm-commits@vger.kernel.org
+To: fabf@skynet.be, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/squashfs/super.c: logging cleanup
+     Subject: fs/ocfs2/slot_map.c: replace count*size kzalloc by kcalloc
 has been removed from the -mm tree.  Its filename was
-     fs-squashfs-superc-logging-clean-up.patch
+     fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/squashfs/super.c: logging cleanup
+Subject: fs/ocfs2/slot_map.c: replace count*size kzalloc by kcalloc
 
-- Convert printk to pr_foo()
-- Add pr_fmt for future logging entries
-- Coalesce formats
+kcalloc manages count*sizeof overflow.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/super.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/slot_map.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/squashfs/super.c~fs-squashfs-superc-logging-clean-up fs/squashfs/super.c
---- a/fs/squashfs/super.c~fs-squashfs-superc-logging-clean-up
-+++ a/fs/squashfs/super.c
-@@ -27,6 +27,8 @@
-  * the filesystem.
-  */
+diff -puN fs/ocfs2/slot_map.c~fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc fs/ocfs2/slot_map.c
+--- a/fs/ocfs2/slot_map.c~fs-ocfs2-slot_mapc-replace-countsize-kzalloc-by-kcalloc
++++ a/fs/ocfs2/slot_map.c
+@@ -382,7 +382,7 @@ static int ocfs2_map_slot_buffers(struct
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/fs.h>
- #include <linux/vfs.h>
- #include <linux/slab.h>
-@@ -448,8 +450,7 @@ static int __init init_squashfs_fs(void)
- 		return err;
- 	}
+ 	trace_ocfs2_map_slot_buffers(bytes, si->si_blocks);
  
--	printk(KERN_INFO "squashfs: version 4.0 (2009/01/31) "
--		"Phillip Lougher\n");
-+	pr_info("version 4.0 (2009/01/31) Phillip Lougher\n");
- 
- 	return 0;
- }
+-	si->si_bh = kzalloc(sizeof(struct buffer_head *) * si->si_blocks,
++	si->si_bh = kcalloc(si->si_blocks, sizeof(struct buffer_head *),
+ 			    GFP_KERNEL);
+ 	if (!si->si_bh) {
+ 		status = -ENOMEM;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
