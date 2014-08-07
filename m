@@ -1,73 +1,126 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-warn-on-missing-spaces-in-broken-up-quoted.patch removed from
- -mm tree
-Date: Thu, 07 Aug 2014 13:09:37 -0700
-Message-ID: <53e3dd01.5B6Bw2pMBUyaXyKT%akpm@linux-foundation.org>
+ checkpatch-fix-false-positives-for-strict-space-after-cast-test.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:09:35 -0700
+Message-ID: <53e3dcff.zmj7ZW2HbbdWfza1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:48885 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbaHGUJj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:39 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so837511oig.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:37 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:53874 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752088AbaHGUJg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:36 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so1176849pab.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, HartleyS@visionengravers.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn on missing spaces in broken up quoted
+     Subject: checkpatch: fix false positives for --strict "space after cast" test
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-on-missing-spaces-in-broken-up-quoted.patch
+     checkpatch-fix-false-positives-for-strict-space-after-cast-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: checkpatch: warn on missing spaces in broken up quoted
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: fix false positives for --strict "space after cast" test
 
-Checkpatch already complains when people break up quoted strings but it's
-still pretty common.  One mistake that people often make is they leave out
-the space character between the two strings.
+commit 89da401f6cff ("checkpatch: improve "no space after cast" test") in
+-next improved the cast test for non pointer types, but also introduced
+false positives for some types of static inlines.
 
-This check adds around 450 new warnings and has a low rate of false
+Add a test for an open brace to the exclusions to avoid these false
 positives.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Acked-by: Joe Perches <joe@perches.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Hartley Sweeten <HartleyS@visionengravers.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-missing-spaces-in-broken-up-quoted scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-missing-spaces-in-broken-up-quoted
+diff -puN scripts/checkpatch.pl~checkpatch-fix-false-positives-for-strict-space-after-cast-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-false-positives-for-strict-space-after-cast-test
 +++ a/scripts/checkpatch.pl
-@@ -2361,6 +2361,12 @@ sub process {
- 			     "quoted string split across lines\n" . $hereprev);
+@@ -2456,7 +2456,7 @@ sub process {
+ 			}
  		}
  
-+# check for missing a space in a string concatination
-+		if ($prevrawline =~ /[^\\]\w"$/ && $rawline =~ /^\+[\t ]+"\w/) {
-+			WARN('MISSING_SPACE',
-+			     "break quoted strings at a space character\n" . $hereprev);
-+		}
-+
- # check for spaces before a quoted newline
- 		if ($rawline =~ /^.*\".*\s\\n/) {
- 			if (WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
+-		if ($line =~ /^\+.*\(\s*$Type\s*\)[ \t]+(?!$Assignment|$Arithmetic)/) {
++		if ($line =~ /^\+.*\(\s*$Type\s*\)[ \t]+(?!$Assignment|$Arithmetic|{)/) {
+ 			if (CHK("SPACING",
+ 				"No space is necessary after a cast\n" . $herecurr) &&
+ 			    $fix) {
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-rtc-rtc-pcf8563-add-alarm-support-fix.patch
+mm-utilc-add-kstrimdup.patch
+fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
+fs-isofs-logging-clean-up.patch
+proc-constify-seq_operations.patch
+sysctl-remove-now-unused-typedef-ctl_table.patch
+sysctl-remove-now-unused-typedef-ctl_table-fix.patch
+adfs-add-__printf-verification-fix-format-argument-mismatches.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
 linux-next.patch
+maintainers-remove-two-ancient-eata-sections.patch
+pci-dma-compat-add-pci_zalloc_consistent-helper.patch
+atm-use-pci_zalloc_consistent.patch
+block-use-pci_zalloc_consistent.patch
+crypto-use-pci_zalloc_consistent.patch
+infiniband-use-pci_zalloc_consistent.patch
+i810-use-pci_zalloc_consistent.patch
+media-use-pci_zalloc_consistent.patch
+amd-use-pci_zalloc_consistent.patch
+atl1e-use-pci_zalloc_consistent.patch
+enic-use-pci_zalloc_consistent.patch
+sky2-use-pci_zalloc_consistent.patch
+micrel-use-pci_zalloc_consistent.patch
+qlogic-use-pci_zalloc_consistent.patch
+irda-use-pci_zalloc_consistent.patch
+ipw2100-use-pci_zalloc_consistent.patch
+mwl8k-use-pci_zalloc_consistent.patch
+rtl818x-use-pci_zalloc_consistent.patch
+rtlwifi-use-pci_zalloc_consistent.patch
+scsi-use-pci_zalloc_consistent.patch
+staging-use-pci_zalloc_consistent.patch
+synclink_gt-use-pci_zalloc_consistent.patch
+vme-bridges-use-pci_zalloc_consistent.patch
+amd-neaten-and-remove-unnecessary-oom-messages.patch
+maintainers-update-microcode-patterns.patch
+maintainers-update-cifs-location.patch
+maintainers-use-the-correct-efi-stub-location.patch
+maintainers-update-clk-sirf-patterns.patch
+maintainers-fix-ssbi-pattern.patch
+maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
+maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
+maintainers-update-picoxcell-patterns.patch
+maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
+maintainers-remove-metag-imgdafs-pattern.patch
+maintainers-remove-unused-radeon-drm-pattern.patch
+maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
+maintainers-remove-unused-nfsd-pattern.patch
+fsh-remove-unnecessary-extern-prototypes.patch
+fsh-whitespace-neatening.patch
+fsh-a-few-more-whitespace-neatenings.patch
+fsh-add-argument-names-to-struct-file_lock_operations-funcs.patch
+fsh-add-member-argument-descriptions-to-lock_manager_operations.patch
+dlm-plock-add-argument-descriptions-to-notify.patch
+dlm-fs-remove-unused-conf-from-lm_grant.patch
+dlm-plock-reduce-indentation-by-rearranging-order.patch
+maintainers-update-dma-buffer-sharing-patterns.patch
+maintainers-update-usb-gadget-patterns.patch
+maintainers-update-nomadik-patterns.patch
 
