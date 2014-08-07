@@ -1,94 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- slab-change-int-to-size_t-for-representing-allocation-size.patch removed
- from -mm tree
-Date: Thu, 07 Aug 2014 13:03:21 -0700
-Message-ID: <53e3db89.CdsmUEvkqKPUTD2a%akpm@linux-foundation.org>
+Subject: [merged] slub-reduce-duplicate-creation-on-the-first-object.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:03:23 -0700
+Message-ID: <53e3db8b.5fcHKMr6WWn+ZxMU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:59999 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbaHGUDW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:22 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so1175442pab.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:21 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:44089 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874AbaHGUDY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:24 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so1175411pab.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, akpm@linux-foundation.org, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: weiyang@linux.vnet.ibm.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: change int to size_t for representing allocation size
+     Subject: slub: avoid duplicate creation on the first object
 has been removed from the -mm tree.  Its filename was
-     slab-change-int-to-size_t-for-representing-allocation-size.patch
+     slub-reduce-duplicate-creation-on-the-first-object.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: slab: change int to size_t for representing allocation size
+From: Wei Yang <weiyang@linux.vnet.ibm.com>
+Subject: slub: avoid duplicate creation on the first object
 
-It is better to represent allocation size in size_t rather than int.
-So change it.
+When a kmem_cache is created with ctor, each object in the kmem_cache will
+be initialized before ready to use.  While in slub implementation, the
+first object will be initialized twice.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christoph Lameter <cl@linux.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
+This patch reduces the duplication of initialization of the first object.
+
+Fix commit 7656c72b ("SLUB: add macros for scanning objects in a slab").
+
+Signed-off-by: Wei Yang <weiyang@linux.vnet.ibm.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/slub.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN mm/slab.c~slab-change-int-to-size_t-for-representing-allocation-size mm/slab.c
---- a/mm/slab.c~slab-change-int-to-size_t-for-representing-allocation-size
-+++ a/mm/slab.c
-@@ -681,7 +681,7 @@ static void init_arraycache(struct array
- static struct array_cache *alloc_arraycache(int node, int entries,
- 					    int batchcount, gfp_t gfp)
- {
--	int memsize = sizeof(void *) * entries + sizeof(struct array_cache);
-+	size_t memsize = sizeof(void *) * entries + sizeof(struct array_cache);
- 	struct array_cache *ac = NULL;
+diff -puN mm/slub.c~slub-reduce-duplicate-creation-on-the-first-object mm/slub.c
+--- a/mm/slub.c~slub-reduce-duplicate-creation-on-the-first-object
++++ a/mm/slub.c
+@@ -283,6 +283,10 @@ static inline void set_freepointer(struc
+ 	for (__p = (__addr); __p < (__addr) + (__objects) * (__s)->size;\
+ 			__p += (__s)->size)
  
- 	ac = kmalloc_node(memsize, gfp, node);
-@@ -868,7 +868,7 @@ static void *alternate_node_alloc(struct
- static struct alien_cache *__alloc_alien_cache(int node, int entries,
- 						int batch, gfp_t gfp)
++#define for_each_object_idx(__p, __idx, __s, __addr, __objects) \
++	for (__p = (__addr), __idx = 1; __idx <= __objects;\
++			__p += (__s)->size, __idx++)
++
+ /* Determine object index from a given position */
+ static inline int slab_index(void *p, struct kmem_cache *s, void *addr)
  {
--	int memsize = sizeof(void *) * entries + sizeof(struct alien_cache);
-+	size_t memsize = sizeof(void *) * entries + sizeof(struct alien_cache);
- 	struct alien_cache *alc = NULL;
- 
- 	alc = kmalloc_node(memsize, gfp, node);
-@@ -880,7 +880,7 @@ static struct alien_cache *__alloc_alien
- static struct alien_cache **alloc_alien_cache(int node, int limit, gfp_t gfp)
+@@ -1379,9 +1383,9 @@ static struct page *new_slab(struct kmem
  {
- 	struct alien_cache **alc_ptr;
--	int memsize = sizeof(void *) * nr_node_ids;
-+	size_t memsize = sizeof(void *) * nr_node_ids;
- 	int i;
+ 	struct page *page;
+ 	void *start;
+-	void *last;
+ 	void *p;
+ 	int order;
++	int idx;
  
- 	if (limit > 1)
-@@ -1037,7 +1037,7 @@ static int init_cache_node_node(int node
- {
- 	struct kmem_cache *cachep;
- 	struct kmem_cache_node *n;
--	const int memsize = sizeof(struct kmem_cache_node);
-+	const size_t memsize = sizeof(struct kmem_cache_node);
+ 	BUG_ON(flags & GFP_SLAB_BUG_MASK);
  
- 	list_for_each_entry(cachep, &slab_caches, list) {
- 		/*
+@@ -1402,14 +1406,13 @@ static struct page *new_slab(struct kmem
+ 	if (unlikely(s->flags & SLAB_POISON))
+ 		memset(start, POISON_INUSE, PAGE_SIZE << order);
+ 
+-	last = start;
+-	for_each_object(p, s, start, page->objects) {
+-		setup_object(s, page, last);
+-		set_freepointer(s, last, p);
+-		last = p;
++	for_each_object_idx(p, idx, s, start, page->objects) {
++		setup_object(s, page, p);
++		if (likely(idx < page->objects))
++			set_freepointer(s, p, p + s->size);
++		else
++			set_freepointer(s, p, NULL);
+ 	}
+-	setup_object(s, page, last);
+-	set_freepointer(s, last, NULL);
+ 
+ 	page->freelist = start;
+ 	page->inuse = page->objects;
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from weiyang@linux.vnet.ibm.com are
 
 origin.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-page-owners-correct-page-order-when-to-free-page.patch
+rbtree-fix-typo-in-comment-of-__rb_insert.patch
 
