@@ -1,286 +1,507 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- list-fix-order-of-arguments-for-hlist_add_after_rcu.patch removed from -mm
- tree
-Date: Thu, 07 Aug 2014 13:07:33 -0700
-Message-ID: <53e3dc85.fG3e8cLmLmIPSdUO%akpm@linux-foundation.org>
+Subject: [merged] zlib-cleanup-some-dead-code.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:07:37 -0700
+Message-ID: <53e3dc89.zQlsGJ0bxlwK+kT9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:42152 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755082AbaHGUHe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:07:34 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 29so610129yhl.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:07:33 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:56694 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755104AbaHGUHi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:07:38 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so1174362pab.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:07:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenhelias@firemail.de, hch@infradead.org, hughd@google.com, jeffrey.t.kirsher@intel.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: list: fix order of arguments for hlist_add_after(_rcu)
+     Subject: zlib: clean up some dead code
 has been removed from the -mm tree.  Its filename was
-     list-fix-order-of-arguments-for-hlist_add_after_rcu.patch
+     zlib-cleanup-some-dead-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ken Helias <kenhelias@firemail.de>
-Subject: list: fix order of arguments for hlist_add_after(_rcu)
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zlib: clean up some dead code
 
-All other add functions for lists have the new item as first argument and
-the position where it is added as second argument.  This was changed for
-no good reason in this function and makes using it unnecessary confusing.
+Cleanup unused `if 0'-ed functions, which have been dead since 2006
+(commits 87c2ce3b9305b ("lib/zlib*: cleanups") by Adrian Bunk and
+4f3865fb57a04 ("zlib_inflate: Upgrade library code to a recent version")
+by Richard Purdie):
 
-The name was changed to hlist_add_behind() to cause unconverted code to
-generate a compile error instead of using the wrong parameter order.
+ - zlib_deflateSetDictionary
+ - zlib_deflateParams
+ - zlib_deflateCopy
+ - zlib_inflateSync
+ - zlib_syncsearch
+ - zlib_inflateSetDictionary
+ - zlib_inflatePrime
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Ken Helias <kenhelias@firemail.de>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>	[intel driver bits]
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/RCU/whatisRCU.txt                  |    2 +-
- drivers/gpu/drm/drm_hashtab.c                    |    2 +-
- drivers/net/ethernet/intel/i40e/i40e_ethtool.c   |    2 +-
- drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c |    2 +-
- drivers/staging/lustre/lustre/libcfs/hash.c      |    4 ++--
- fs/namespace.c                                   |    2 +-
- fs/notify/inode_mark.c                           |    2 +-
- fs/notify/vfsmount_mark.c                        |    2 +-
- include/linux/list.h                             |    4 ++--
- include/linux/rculist.h                          |    8 ++++----
- net/batman-adv/fragmentation.c                   |    2 +-
- net/bridge/br_multicast.c                        |    2 +-
- net/ipv4/fib_trie.c                              |    2 +-
- net/ipv6/addrlabel.c                             |    2 +-
- net/xfrm/xfrm_policy.c                           |    4 ++--
- 15 files changed, 21 insertions(+), 21 deletions(-)
+ include/linux/zlib.h       |  118 ----------------------------
+ lib/zlib_deflate/deflate.c |  143 -----------------------------------
+ lib/zlib_inflate/inflate.c |  132 --------------------------------
+ 3 files changed, 393 deletions(-)
 
-diff -puN Documentation/RCU/whatisRCU.txt~list-fix-order-of-arguments-for-hlist_add_after_rcu Documentation/RCU/whatisRCU.txt
---- a/Documentation/RCU/whatisRCU.txt~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/Documentation/RCU/whatisRCU.txt
-@@ -818,7 +818,7 @@ RCU pointer/list update:
- 	list_add_tail_rcu
- 	list_del_rcu
- 	list_replace_rcu
--	hlist_add_after_rcu
-+	hlist_add_behind_rcu
- 	hlist_add_before_rcu
- 	hlist_add_head_rcu
- 	hlist_del_rcu
-diff -puN drivers/gpu/drm/drm_hashtab.c~list-fix-order-of-arguments-for-hlist_add_after_rcu drivers/gpu/drm/drm_hashtab.c
---- a/drivers/gpu/drm/drm_hashtab.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/drivers/gpu/drm/drm_hashtab.c
-@@ -125,7 +125,7 @@ int drm_ht_insert_item(struct drm_open_h
- 		parent = &entry->head;
- 	}
- 	if (parent) {
--		hlist_add_after_rcu(parent, &item->head);
-+		hlist_add_behind_rcu(&item->head, parent);
- 	} else {
- 		hlist_add_head_rcu(&item->head, h_list);
- 	}
-diff -puN drivers/net/ethernet/intel/i40e/i40e_ethtool.c~list-fix-order-of-arguments-for-hlist_add_after_rcu drivers/net/ethernet/intel/i40e/i40e_ethtool.c
---- a/drivers/net/ethernet/intel/i40e/i40e_ethtool.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/drivers/net/ethernet/intel/i40e/i40e_ethtool.c
-@@ -1948,7 +1948,7 @@ static int i40e_update_ethtool_fdir_entr
+diff -puN include/linux/zlib.h~zlib-cleanup-some-dead-code include/linux/zlib.h
+--- a/include/linux/zlib.h~zlib-cleanup-some-dead-code
++++ a/include/linux/zlib.h
+@@ -493,64 +493,6 @@ extern int deflateInit2 (z_streamp strm,
+    method). msg is set to null if there is no error message.  deflateInit2 does
+    not perform any compression: this will be done by deflate().
+ */
+-                            
+-#if 0
+-extern int zlib_deflateSetDictionary (z_streamp strm,
+-						     const Byte *dictionary,
+-						     uInt  dictLength);
+-#endif
+-/*
+-     Initializes the compression dictionary from the given byte sequence
+-   without producing any compressed output. This function must be called
+-   immediately after deflateInit, deflateInit2 or deflateReset, before any
+-   call of deflate. The compressor and decompressor must use exactly the same
+-   dictionary (see inflateSetDictionary).
+-
+-     The dictionary should consist of strings (byte sequences) that are likely
+-   to be encountered later in the data to be compressed, with the most commonly
+-   used strings preferably put towards the end of the dictionary. Using a
+-   dictionary is most useful when the data to be compressed is short and can be
+-   predicted with good accuracy; the data can then be compressed better than
+-   with the default empty dictionary.
+-
+-     Depending on the size of the compression data structures selected by
+-   deflateInit or deflateInit2, a part of the dictionary may in effect be
+-   discarded, for example if the dictionary is larger than the window size in
+-   deflate or deflate2. Thus the strings most likely to be useful should be
+-   put at the end of the dictionary, not at the front.
+-
+-     Upon return of this function, strm->adler is set to the Adler32 value
+-   of the dictionary; the decompressor may later use this value to determine
+-   which dictionary has been used by the compressor. (The Adler32 value
+-   applies to the whole dictionary even if only a subset of the dictionary is
+-   actually used by the compressor.)
+-
+-     deflateSetDictionary returns Z_OK if success, or Z_STREAM_ERROR if a
+-   parameter is invalid (such as NULL dictionary) or the stream state is
+-   inconsistent (for example if deflate has already been called for this stream
+-   or if the compression method is bsort). deflateSetDictionary does not
+-   perform any compression: this will be done by deflate().
+-*/
+-
+-#if 0
+-extern int zlib_deflateCopy (z_streamp dest, z_streamp source);
+-#endif
+-
+-/*
+-     Sets the destination stream as a complete copy of the source stream.
+-
+-     This function can be useful when several compression strategies will be
+-   tried, for example when there are several ways of pre-processing the input
+-   data with a filter. The streams that will be discarded should then be freed
+-   by calling deflateEnd.  Note that deflateCopy duplicates the internal
+-   compression state which can be quite large, so this strategy is slow and
+-   can consume lots of memory.
+-
+-     deflateCopy returns Z_OK if success, Z_MEM_ERROR if there was not
+-   enough memory, Z_STREAM_ERROR if the source stream state was inconsistent
+-   (such as zalloc being NULL). msg is left unchanged in both source and
+-   destination.
+-*/
  
- 	/* add filter to the list */
- 	if (parent)
--		hlist_add_after(&parent->fdir_node, &input->fdir_node);
-+		hlist_add_behind(&input->fdir_node, &parent->fdir_node);
- 	else
- 		hlist_add_head(&input->fdir_node,
- 			       &pf->fdir_filter_list);
-diff -puN drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c~list-fix-order-of-arguments-for-hlist_add_after_rcu drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
---- a/drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
-@@ -2517,7 +2517,7 @@ static int ixgbe_update_ethtool_fdir_ent
- 
- 	/* add filter to the list */
- 	if (parent)
--		hlist_add_after(&parent->fdir_node, &input->fdir_node);
-+		hlist_add_behind(&input->fdir_node, &parent->fdir_node);
- 	else
- 		hlist_add_head(&input->fdir_node,
- 			       &adapter->fdir_filter_list);
-diff -puN drivers/staging/lustre/lustre/libcfs/hash.c~list-fix-order-of-arguments-for-hlist_add_after_rcu drivers/staging/lustre/lustre/libcfs/hash.c
---- a/drivers/staging/lustre/lustre/libcfs/hash.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/drivers/staging/lustre/lustre/libcfs/hash.c
-@@ -351,7 +351,7 @@ cfs_hash_dh_hnode_add(struct cfs_hash *h
- 					    cfs_hash_dhead_t, dh_head);
- 
- 	if (dh->dh_tail != NULL) /* not empty */
--		hlist_add_after(dh->dh_tail, hnode);
-+		hlist_add_behind(hnode, dh->dh_tail);
- 	else /* empty list */
- 		hlist_add_head(hnode, &dh->dh_head);
- 	dh->dh_tail = hnode;
-@@ -406,7 +406,7 @@ cfs_hash_dd_hnode_add(struct cfs_hash *h
- 						cfs_hash_dhead_dep_t, dd_head);
- 
- 	if (dh->dd_tail != NULL) /* not empty */
--		hlist_add_after(dh->dd_tail, hnode);
-+		hlist_add_behind(hnode, dh->dd_tail);
- 	else /* empty list */
- 		hlist_add_head(hnode, &dh->dd_head);
- 	dh->dd_tail = hnode;
-diff -puN fs/namespace.c~list-fix-order-of-arguments-for-hlist_add_after_rcu fs/namespace.c
---- a/fs/namespace.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/fs/namespace.c
-@@ -798,7 +798,7 @@ static void commit_tree(struct mount *mn
- 	list_splice(&head, n->list.prev);
- 
- 	if (shadows)
--		hlist_add_after_rcu(&shadows->mnt_hash, &mnt->mnt_hash);
-+		hlist_add_behind_rcu(&mnt->mnt_hash, &shadows->mnt_hash);
- 	else
- 		hlist_add_head_rcu(&mnt->mnt_hash,
- 				m_hash(&parent->mnt, mnt->mnt_mountpoint));
-diff -puN fs/notify/inode_mark.c~list-fix-order-of-arguments-for-hlist_add_after_rcu fs/notify/inode_mark.c
---- a/fs/notify/inode_mark.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/fs/notify/inode_mark.c
-@@ -232,7 +232,7 @@ int fsnotify_add_inode_mark(struct fsnot
- 
- 	BUG_ON(last == NULL);
- 	/* mark should be the last entry.  last is the current last entry */
--	hlist_add_after_rcu(&last->i.i_list, &mark->i.i_list);
-+	hlist_add_behind_rcu(&mark->i.i_list, &last->i.i_list);
- out:
- 	fsnotify_recalc_inode_mask_locked(inode);
- 	spin_unlock(&inode->i_lock);
-diff -puN fs/notify/vfsmount_mark.c~list-fix-order-of-arguments-for-hlist_add_after_rcu fs/notify/vfsmount_mark.c
---- a/fs/notify/vfsmount_mark.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/fs/notify/vfsmount_mark.c
-@@ -191,7 +191,7 @@ int fsnotify_add_vfsmount_mark(struct fs
- 
- 	BUG_ON(last == NULL);
- 	/* mark should be the last entry.  last is the current last entry */
--	hlist_add_after_rcu(&last->m.m_list, &mark->m.m_list);
-+	hlist_add_behind_rcu(&mark->m.m_list, &last->m.m_list);
- out:
- 	fsnotify_recalc_vfsmount_mask_locked(mnt);
- 	spin_unlock(&mnt->mnt_root->d_lock);
-diff -puN include/linux/list.h~list-fix-order-of-arguments-for-hlist_add_after_rcu include/linux/list.h
---- a/include/linux/list.h~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/include/linux/list.h
-@@ -654,8 +654,8 @@ static inline void hlist_add_before(stru
- 	*(n->pprev) = n;
+ extern int zlib_deflateReset (z_streamp strm);
+ /*
+@@ -568,27 +510,6 @@ static inline unsigned long deflateBound
+ 	return s + ((s + 7) >> 3) + ((s + 63) >> 6) + 11;
  }
  
--static inline void hlist_add_after(struct hlist_node *prev,
--				   struct hlist_node *n)
-+static inline void hlist_add_behind(struct hlist_node *n,
-+				    struct hlist_node *prev)
+-#if 0
+-extern int zlib_deflateParams (z_streamp strm, int level, int strategy);
+-#endif
+-/*
+-     Dynamically update the compression level and compression strategy.  The
+-   interpretation of level and strategy is as in deflateInit2.  This can be
+-   used to switch between compression and straight copy of the input data, or
+-   to switch to a different kind of input data requiring a different
+-   strategy. If the compression level is changed, the input available so far
+-   is compressed with the old level (and may be flushed); the new level will
+-   take effect only at the next call of deflate().
+-
+-     Before the call of deflateParams, the stream state must be set as for
+-   a call of deflate(), since the currently available input may have to
+-   be compressed and flushed. In particular, strm->avail_out must be non-zero.
+-
+-     deflateParams returns Z_OK if success, Z_STREAM_ERROR if the source
+-   stream state was inconsistent or if a parameter was invalid, Z_BUF_ERROR
+-   if strm->avail_out was zero.
+-*/
+-
+ /*   
+ extern int inflateInit2 (z_streamp strm, int  windowBits);
+ 
+@@ -631,45 +552,6 @@ extern int inflateInit2 (z_streamp strm,
+    and avail_out are unchanged.)
+ */
+ 
+-extern int zlib_inflateSetDictionary (z_streamp strm,
+-						     const Byte *dictionary,
+-						     uInt  dictLength);
+-/*
+-     Initializes the decompression dictionary from the given uncompressed byte
+-   sequence. This function must be called immediately after a call of inflate,
+-   if that call returned Z_NEED_DICT. The dictionary chosen by the compressor
+-   can be determined from the adler32 value returned by that call of inflate.
+-   The compressor and decompressor must use exactly the same dictionary (see
+-   deflateSetDictionary).  For raw inflate, this function can be called
+-   immediately after inflateInit2() or inflateReset() and before any call of
+-   inflate() to set the dictionary.  The application must insure that the
+-   dictionary that was used for compression is provided.
+-
+-     inflateSetDictionary returns Z_OK if success, Z_STREAM_ERROR if a
+-   parameter is invalid (such as NULL dictionary) or the stream state is
+-   inconsistent, Z_DATA_ERROR if the given dictionary doesn't match the
+-   expected one (incorrect adler32 value). inflateSetDictionary does not
+-   perform any decompression: this will be done by subsequent calls of
+-   inflate().
+-*/
+-
+-#if 0
+-extern int zlib_inflateSync (z_streamp strm);
+-#endif
+-/* 
+-    Skips invalid compressed data until a full flush point (see above the
+-  description of deflate with Z_FULL_FLUSH) can be found, or until all
+-  available input is skipped. No output is provided.
+-
+-    inflateSync returns Z_OK if a full flush point has been found, Z_BUF_ERROR
+-  if no more input was provided, Z_DATA_ERROR if no flush point has been found,
+-  or Z_STREAM_ERROR if the stream structure was inconsistent. In the success
+-  case, the application may save the current current value of total_in which
+-  indicates where valid compressed data was found. In the error case, the
+-  application may repeatedly call inflateSync, providing more input each time,
+-  until success or end of the input data.
+-*/
+-
+ extern int zlib_inflateReset (z_streamp strm);
+ /*
+      This function is equivalent to inflateEnd followed by inflateInit,
+diff -puN lib/zlib_deflate/deflate.c~zlib-cleanup-some-dead-code lib/zlib_deflate/deflate.c
+--- a/lib/zlib_deflate/deflate.c~zlib-cleanup-some-dead-code
++++ a/lib/zlib_deflate/deflate.c
+@@ -250,52 +250,6 @@ int zlib_deflateInit2(
+ }
+ 
+ /* ========================================================================= */
+-#if 0
+-int zlib_deflateSetDictionary(
+-	z_streamp strm,
+-	const Byte *dictionary,
+-	uInt  dictLength
+-)
+-{
+-    deflate_state *s;
+-    uInt length = dictLength;
+-    uInt n;
+-    IPos hash_head = 0;
+-
+-    if (strm == NULL || strm->state == NULL || dictionary == NULL)
+-	return Z_STREAM_ERROR;
+-
+-    s = (deflate_state *) strm->state;
+-    if (s->status != INIT_STATE) return Z_STREAM_ERROR;
+-
+-    strm->adler = zlib_adler32(strm->adler, dictionary, dictLength);
+-
+-    if (length < MIN_MATCH) return Z_OK;
+-    if (length > MAX_DIST(s)) {
+-	length = MAX_DIST(s);
+-#ifndef USE_DICT_HEAD
+-	dictionary += dictLength - length; /* use the tail of the dictionary */
+-#endif
+-    }
+-    memcpy((char *)s->window, dictionary, length);
+-    s->strstart = length;
+-    s->block_start = (long)length;
+-
+-    /* Insert all strings in the hash table (except for the last two bytes).
+-     * s->lookahead stays null, so s->ins_h will be recomputed at the next
+-     * call of fill_window.
+-     */
+-    s->ins_h = s->window[0];
+-    UPDATE_HASH(s, s->ins_h, s->window[1]);
+-    for (n = 0; n <= length - MIN_MATCH; n++) {
+-	INSERT_STRING(s, n, hash_head);
+-    }
+-    if (hash_head) hash_head = 0;  /* to make compiler happy */
+-    return Z_OK;
+-}
+-#endif  /*  0  */
+-
+-/* ========================================================================= */
+ int zlib_deflateReset(
+ 	z_streamp strm
+ )
+@@ -326,45 +280,6 @@ int zlib_deflateReset(
+     return Z_OK;
+ }
+ 
+-/* ========================================================================= */
+-#if 0
+-int zlib_deflateParams(
+-	z_streamp strm,
+-	int level,
+-	int strategy
+-)
+-{
+-    deflate_state *s;
+-    compress_func func;
+-    int err = Z_OK;
+-
+-    if (strm == NULL || strm->state == NULL) return Z_STREAM_ERROR;
+-    s = (deflate_state *) strm->state;
+-
+-    if (level == Z_DEFAULT_COMPRESSION) {
+-	level = 6;
+-    }
+-    if (level < 0 || level > 9 || strategy < 0 || strategy > Z_HUFFMAN_ONLY) {
+-	return Z_STREAM_ERROR;
+-    }
+-    func = configuration_table[s->level].func;
+-
+-    if (func != configuration_table[level].func && strm->total_in != 0) {
+-	/* Flush the last buffer: */
+-	err = zlib_deflate(strm, Z_PARTIAL_FLUSH);
+-    }
+-    if (s->level != level) {
+-	s->level = level;
+-	s->max_lazy_match   = configuration_table[level].max_lazy;
+-	s->good_match       = configuration_table[level].good_length;
+-	s->nice_match       = configuration_table[level].nice_length;
+-	s->max_chain_length = configuration_table[level].max_chain;
+-    }
+-    s->strategy = strategy;
+-    return err;
+-}
+-#endif  /*  0  */
+-
+ /* =========================================================================
+  * Put a short in the pending buffer. The 16-bit value is put in MSB order.
+  * IN assertion: the stream state is correct and there is enough room in
+@@ -568,64 +483,6 @@ int zlib_deflateEnd(
+     return status == BUSY_STATE ? Z_DATA_ERROR : Z_OK;
+ }
+ 
+-/* =========================================================================
+- * Copy the source state to the destination state.
+- */
+-#if 0
+-int zlib_deflateCopy (
+-	z_streamp dest,
+-	z_streamp source
+-)
+-{
+-#ifdef MAXSEG_64K
+-    return Z_STREAM_ERROR;
+-#else
+-    deflate_state *ds;
+-    deflate_state *ss;
+-    ush *overlay;
+-    deflate_workspace *mem;
+-
+-
+-    if (source == NULL || dest == NULL || source->state == NULL) {
+-        return Z_STREAM_ERROR;
+-    }
+-
+-    ss = (deflate_state *) source->state;
+-
+-    *dest = *source;
+-
+-    mem = (deflate_workspace *) dest->workspace;
+-
+-    ds = &(mem->deflate_memory);
+-
+-    dest->state = (struct internal_state *) ds;
+-    *ds = *ss;
+-    ds->strm = dest;
+-
+-    ds->window = (Byte *) mem->window_memory;
+-    ds->prev   = (Pos *)  mem->prev_memory;
+-    ds->head   = (Pos *)  mem->head_memory;
+-    overlay = (ush *) mem->overlay_memory;
+-    ds->pending_buf = (uch *) overlay;
+-
+-    memcpy(ds->window, ss->window, ds->w_size * 2 * sizeof(Byte));
+-    memcpy(ds->prev, ss->prev, ds->w_size * sizeof(Pos));
+-    memcpy(ds->head, ss->head, ds->hash_size * sizeof(Pos));
+-    memcpy(ds->pending_buf, ss->pending_buf, (uInt)ds->pending_buf_size);
+-
+-    ds->pending_out = ds->pending_buf + (ss->pending_out - ss->pending_buf);
+-    ds->d_buf = overlay + ds->lit_bufsize/sizeof(ush);
+-    ds->l_buf = ds->pending_buf + (1+sizeof(ush))*ds->lit_bufsize;
+-
+-    ds->l_desc.dyn_tree = ds->dyn_ltree;
+-    ds->d_desc.dyn_tree = ds->dyn_dtree;
+-    ds->bl_desc.dyn_tree = ds->bl_tree;
+-
+-    return Z_OK;
+-#endif
+-}
+-#endif  /*  0  */
+-
+ /* ===========================================================================
+  * Read a new buffer from the current input stream, update the adler32
+  * and total number of bytes read.  All deflate() input goes through
+diff -puN lib/zlib_inflate/inflate.c~zlib-cleanup-some-dead-code lib/zlib_inflate/inflate.c
+--- a/lib/zlib_inflate/inflate.c~zlib-cleanup-some-dead-code
++++ a/lib/zlib_inflate/inflate.c
+@@ -45,21 +45,6 @@ int zlib_inflateReset(z_streamp strm)
+     return Z_OK;
+ }
+ 
+-#if 0
+-int zlib_inflatePrime(z_streamp strm, int bits, int value)
+-{
+-    struct inflate_state *state;
+-
+-    if (strm == NULL || strm->state == NULL) return Z_STREAM_ERROR;
+-    state = (struct inflate_state *)strm->state;
+-    if (bits > 16 || state->bits + bits > 32) return Z_STREAM_ERROR;
+-    value &= (1L << bits) - 1;
+-    state->hold += value << state->bits;
+-    state->bits += bits;
+-    return Z_OK;
+-}
+-#endif
+-
+ int zlib_inflateInit2(z_streamp strm, int windowBits)
  {
- 	n->next = prev->next;
- 	prev->next = n;
-diff -puN include/linux/rculist.h~list-fix-order-of-arguments-for-hlist_add_after_rcu include/linux/rculist.h
---- a/include/linux/rculist.h~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/include/linux/rculist.h
-@@ -432,9 +432,9 @@ static inline void hlist_add_before_rcu(
+     struct inflate_state *state;
+@@ -761,123 +746,6 @@ int zlib_inflateEnd(z_streamp strm)
+     return Z_OK;
  }
  
- /**
-- * hlist_add_after_rcu
-- * @prev: the existing element to add the new element after.
-+ * hlist_add_behind_rcu
-  * @n: the new element to add to the hash list.
-+ * @prev: the existing element to add the new element after.
-  *
-  * Description:
-  * Adds the specified element to the specified hlist
-@@ -449,8 +449,8 @@ static inline void hlist_add_before_rcu(
-  * hlist_for_each_entry_rcu(), used to prevent memory-consistency
-  * problems on Alpha CPUs.
-  */
--static inline void hlist_add_after_rcu(struct hlist_node *prev,
--				       struct hlist_node *n)
-+static inline void hlist_add_behind_rcu(struct hlist_node *n,
-+					struct hlist_node *prev)
- {
- 	n->next = prev->next;
- 	n->pprev = &prev->next;
-diff -puN net/batman-adv/fragmentation.c~list-fix-order-of-arguments-for-hlist_add_after_rcu net/batman-adv/fragmentation.c
---- a/net/batman-adv/fragmentation.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/net/batman-adv/fragmentation.c
-@@ -188,7 +188,7 @@ static bool batadv_frag_insert_packet(st
- 
- 	/* Reached the end of the list, so insert after 'frag_entry_last'. */
- 	if (likely(frag_entry_last)) {
--		hlist_add_after(&frag_entry_last->list, &frag_entry_new->list);
-+		hlist_add_behind(&frag_entry_last->list, &frag_entry_new->list);
- 		chain->size += skb->len - hdr_size;
- 		chain->timestamp = jiffies;
- 		ret = true;
-diff -puN net/bridge/br_multicast.c~list-fix-order-of-arguments-for-hlist_add_after_rcu net/bridge/br_multicast.c
---- a/net/bridge/br_multicast.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/net/bridge/br_multicast.c
-@@ -1174,7 +1174,7 @@ static void br_multicast_add_router(stru
- 	}
- 
- 	if (slot)
--		hlist_add_after_rcu(slot, &port->rlist);
-+		hlist_add_behind_rcu(&port->rlist, slot);
- 	else
- 		hlist_add_head_rcu(&port->rlist, &br->router_list);
- }
-diff -puN net/ipv4/fib_trie.c~list-fix-order-of-arguments-for-hlist_add_after_rcu net/ipv4/fib_trie.c
---- a/net/ipv4/fib_trie.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/net/ipv4/fib_trie.c
-@@ -940,7 +940,7 @@ static void insert_leaf_info(struct hlis
- 			last = li;
- 		}
- 		if (last)
--			hlist_add_after_rcu(&last->hlist, &new->hlist);
-+			hlist_add_behind_rcu(&new->hlist, &last->hlist);
- 		else
- 			hlist_add_before_rcu(&new->hlist, &li->hlist);
- 	}
-diff -puN net/ipv6/addrlabel.c~list-fix-order-of-arguments-for-hlist_add_after_rcu net/ipv6/addrlabel.c
---- a/net/ipv6/addrlabel.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/net/ipv6/addrlabel.c
-@@ -277,7 +277,7 @@ static int __ip6addrlbl_add(struct ip6ad
- 		last = p;
- 	}
- 	if (last)
--		hlist_add_after_rcu(&last->list, &newp->list);
-+		hlist_add_behind_rcu(&newp->list, &last->list);
- 	else
- 		hlist_add_head_rcu(&newp->list, &ip6addrlbl_table.head);
- out:
-diff -puN net/xfrm/xfrm_policy.c~list-fix-order-of-arguments-for-hlist_add_after_rcu net/xfrm/xfrm_policy.c
---- a/net/xfrm/xfrm_policy.c~list-fix-order-of-arguments-for-hlist_add_after_rcu
-+++ a/net/xfrm/xfrm_policy.c
-@@ -389,7 +389,7 @@ redo:
- 			if (h != h0)
- 				continue;
- 			hlist_del(&pol->bydst);
--			hlist_add_after(entry0, &pol->bydst);
-+			hlist_add_behind(&pol->bydst, entry0);
- 		}
- 		entry0 = &pol->bydst;
- 	}
-@@ -654,7 +654,7 @@ int xfrm_policy_insert(int dir, struct x
- 			break;
- 	}
- 	if (newpos)
--		hlist_add_after(newpos, &policy->bydst);
-+		hlist_add_behind(&policy->bydst, newpos);
- 	else
- 		hlist_add_head(&policy->bydst, chain);
- 	xfrm_pol_hold(policy);
-_
-
-Patches currently in -mm which might be from kenhelias@firemail.de are
-
-origin.patch
-
+-#if 0
+-int zlib_inflateSetDictionary(z_streamp strm, const Byte *dictionary,
+-        uInt dictLength)
+-{
+-    struct inflate_state *state;
+-    unsigned long id;
+-
+-    /* check state */
+-    if (strm == NULL || strm->state == NULL) return Z_STREAM_ERROR;
+-    state = (struct inflate_state *)strm->state;
+-    if (state->wrap != 0 && state->mode != DICT)
+-        return Z_STREAM_ERROR;
+-
+-    /* check for correct dictionary id */
+-    if (state->mode == DICT) {
+-        id = zlib_adler32(0L, NULL, 0);
+-        id = zlib_adler32(id, dictionary, dictLength);
+-        if (id != state->check)
+-            return Z_DATA_ERROR;
+-    }
+-
+-    /* copy dictionary to window */
+-    zlib_updatewindow(strm, strm->avail_out);
+-
+-    if (dictLength > state->wsize) {
+-        memcpy(state->window, dictionary + dictLength - state->wsize,
+-                state->wsize);
+-        state->whave = state->wsize;
+-    }
+-    else {
+-        memcpy(state->window + state->wsize - dictLength, dictionary,
+-                dictLength);
+-        state->whave = dictLength;
+-    }
+-    state->havedict = 1;
+-    return Z_OK;
+-}
+-#endif
+-
+-#if 0
+-/*
+-   Search buf[0..len-1] for the pattern: 0, 0, 0xff, 0xff.  Return when found
+-   or when out of input.  When called, *have is the number of pattern bytes
+-   found in order so far, in 0..3.  On return *have is updated to the new
+-   state.  If on return *have equals four, then the pattern was found and the
+-   return value is how many bytes were read including the last byte of the
+-   pattern.  If *have is less than four, then the pattern has not been found
+-   yet and the return value is len.  In the latter case, zlib_syncsearch() can be
+-   called again with more data and the *have state.  *have is initialized to
+-   zero for the first call.
+- */
+-static unsigned zlib_syncsearch(unsigned *have, unsigned char *buf,
+-        unsigned len)
+-{
+-    unsigned got;
+-    unsigned next;
+-
+-    got = *have;
+-    next = 0;
+-    while (next < len && got < 4) {
+-        if ((int)(buf[next]) == (got < 2 ? 0 : 0xff))
+-            got++;
+-        else if (buf[next])
+-            got = 0;
+-        else
+-            got = 4 - got;
+-        next++;
+-    }
+-    *have = got;
+-    return next;
+-}
+-#endif
+-
+-#if 0
+-int zlib_inflateSync(z_streamp strm)
+-{
+-    unsigned len;               /* number of bytes to look at or looked at */
+-    unsigned long in, out;      /* temporary to save total_in and total_out */
+-    unsigned char buf[4];       /* to restore bit buffer to byte string */
+-    struct inflate_state *state;
+-
+-    /* check parameters */
+-    if (strm == NULL || strm->state == NULL) return Z_STREAM_ERROR;
+-    state = (struct inflate_state *)strm->state;
+-    if (strm->avail_in == 0 && state->bits < 8) return Z_BUF_ERROR;
+-
+-    /* if first time, start search in bit buffer */
+-    if (state->mode != SYNC) {
+-        state->mode = SYNC;
+-        state->hold <<= state->bits & 7;
+-        state->bits -= state->bits & 7;
+-        len = 0;
+-        while (state->bits >= 8) {
+-            buf[len++] = (unsigned char)(state->hold);
+-            state->hold >>= 8;
+-            state->bits -= 8;
+-        }
+-        state->have = 0;
+-        zlib_syncsearch(&(state->have), buf, len);
+-    }
+-
+-    /* search available input */
+-    len = zlib_syncsearch(&(state->have), strm->next_in, strm->avail_in);
+-    strm->avail_in -= len;
+-    strm->next_in += len;
+-    strm->total_in += len;
+-
+-    /* return no joy or set up to restart inflate() on a new block */
+-    if (state->have != 4) return Z_DATA_ERROR;
+-    in = strm->total_in;  out = strm->total_out;
+-    zlib_inflateReset(strm);
+-    strm->total_in = in;  strm->total_out = out;
+-    state->mode = TYPE;
+-    return Z_OK;
+-}
+-#endif
