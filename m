@@ -1,132 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+ checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
  removed from -mm tree
-Date: Thu, 07 Aug 2014 13:09:07 -0700
-Message-ID: <53e3dce3.tU2bD1vZwgk5E4q4%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:09:05 -0700
+Message-ID: <53e3dce1.CYuQExHjvrfTqzi3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:60928 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751323AbaHGUJI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:08 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hq11so607401vcb.3
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:07 -0700 (PDT)
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:51504 "EHLO
+	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751323AbaHGUJG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:06 -0400
+Received: by mail-qg0-f73.google.com with SMTP id q107so607816qgd.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, fabf@skynet.be, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add test for commit id formatting style in commit log
+     Subject: checkpatch: emit fewer kmalloc_array/kcalloc conversion warnings
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-test-for-commit-id-formatting-style-in-commit-log.patch
+     checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add test for commit id formatting style in commit log
+Subject: checkpatch: emit fewer kmalloc_array/kcalloc conversion warnings
 
-Commit logs have various forms of commit id references.
+Avoid matching allocs that appear to be known small multiplications of a
+sizeof with a constant because gcc as of 4.8 cannot optimize the code in a
+calloc() exactly the same way as an alloc().
 
-Try to standardize on a 12 character long lower case commit id along with
-a description of parentheses and the quoted subject line.
-
-ie: commit 0123456789ab ("commit description")
-
-If git and a git tree exists, look up the commit id and emit the
-appropriate line as part of the message.
+Look for numeric constants or what appear to be upper case only macro
+#defines.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Requested-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: Theodore Ts'o <tytso@mit.edu>
+Original-patch-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   54 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ scripts/checkpatch.pl |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-commit-id-formatting-style-in-commit-log scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-test-for-commit-id-formatting-style-in-commit-log
+diff -puN scripts/checkpatch.pl~checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings
 +++ a/scripts/checkpatch.pl
-@@ -550,6 +550,34 @@ sub seed_camelcase_includes {
- 	}
- }
+@@ -4487,22 +4487,23 @@ sub process {
  
-+sub git_commit_info {
-+	my ($commit, $id, $desc) = @_;
-+
-+	return ($id, $desc) if ((which("git") eq "") || !(-e ".git"));
-+
-+	my $output = `git log --no-color --format='%H %s' -1 $commit 2>&1`;
-+	$output =~ s/^\s*//gm;
-+	my @lines = split("\n", $output);
-+
-+	if ($lines[0] =~ /^error: short SHA1 $commit is ambiguous\./) {
-+# Maybe one day convert this block of bash into something that returns
-+# all matching commit ids, but it's very slow...
-+#
-+#		echo "checking commits $1..."
-+#		git rev-list --remotes | grep -i "^$1" |
-+#		while read line ; do
-+#		    git log --format='%H %s' -1 $line |
-+#		    echo "commit $(cut -c 1-12,41-)"
-+#		done
-+	} elsif ($lines[0] =~ /^fatal: ambiguous argument '$commit': unknown revision or path not in the working tree\./) {
-+	} else {
-+		$id = substr($lines[0], 0, 12);
-+		$desc = substr($lines[0], 41);
-+	}
-+
-+	return ($id, $desc);
-+}
-+
- $chk_signoff = 0 if ($file);
+ # check for k[mz]alloc with multiplies that could be kmalloc_array/kcalloc
+ 		if ($^V && $^V ge 5.10.0 &&
+-		    $line =~ /\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/) {
++		    $line =~ /\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)\s*,/) {
+ 			my $oldfunc = $3;
+ 			my $a1 = $4;
+ 			my $a2 = $10;
+ 			my $newfunc = "kmalloc_array";
+ 			$newfunc = "kcalloc" if ($oldfunc eq "kzalloc");
+-			if ($a1 =~ /^sizeof\s*\S/ || $a2 =~ /^sizeof\s*\S/) {
++			my $r1 = $a1;
++			my $r2 = $a2;
++			if ($a1 =~ /^sizeof\s*\S/) {
++				$r1 = $a2;
++				$r2 = $a1;
++			}
++			if ($r1 !~ /^sizeof\b/ && $r2 =~ /^sizeof\s*\S/ &&
++			    !($r1 =~ /^$Constant$/ || $r1 =~ /^[A-Z_][A-Z0-9_]*$/)) {
+ 				if (WARN("ALLOC_WITH_MULTIPLY",
+ 					 "Prefer $newfunc over $oldfunc with multiply\n" . $herecurr) &&
+ 				    $fix) {
+-					my $r1 = $a1;
+-					my $r2 = $a2;
+-					if ($a1 =~ /^sizeof\s*\S/) {
+-						$r1 = $a2;
+-						$r2 = $a1;
+-					}
+ 					$fixed[$linenr - 1] =~ s/\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/$1 . ' = ' . "$newfunc(" . trim($r1) . ', ' . trim($r2)/e;
  
- my @rawlines = ();
-@@ -674,6 +702,18 @@ sub format_email {
- 	return $formatted_email;
- }
- 
-+sub which {
-+    my ($bin) = @_;
-+
-+    foreach my $path (split(/:/, $ENV{PATH})) {
-+	if (-e "$path/$bin") {
-+	    return "$path/$bin";
-+	}
-+    }
-+
-+    return "";
-+}
-+
- sub which_conf {
- 	my ($conf) = @_;
- 
-@@ -1958,6 +1998,20 @@ sub process {
- 			      "Remove Gerrit Change-Id's before submitting upstream.\n" . $herecurr);
- 		}
- 
-+# Check for improperly formed commit descriptions
-+		if ($in_commit_log &&
-+		    $line =~ /\bcommit\s+[0-9a-f]{5,}/i &&
-+		    $line !~ /\b[Cc]ommit [0-9a-f]{12,16} \("/) {
-+			$line =~ /\b(c)ommit\s+([0-9a-f]{5,})/i;
-+			my $init_char = $1;
-+			my $orig_commit = lc($2);
-+			my $id = '01234567890ab';
-+			my $desc = 'commit description';
-+		        ($id, $desc) = git_commit_info($orig_commit, $id, $desc);
-+			ERROR("GIT_COMMIT_ID",
-+			      "Please use 12 to 16 chars for the git commit ID like: '${init_char}ommit $id (\"$desc\")'\n" . $herecurr);
-+		}
-+
- # Check for wrappage within a valid hunk of the file
- 		if ($realcnt != 0 && $line !~ m{^(?:\+|-| |\\ No newline|$)}) {
- 			ERROR("CORRUPTED_PATCH",
+ 				}
 _
 
 Patches currently in -mm which might be from joe@perches.com are
