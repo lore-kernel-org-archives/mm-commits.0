@@ -1,76 +1,123 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-simplify-drain_zone_pages-by-using-min.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:03:53 -0700
-Message-ID: <53e3dba9.vyWdgQK+BVbXSnn0%akpm@linux-foundation.org>
+ mem-hotplug-avoid-illegal-state-prefixed-with-legal-state-when-changing-state-of-memory_block.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:03:49 -0700
+Message-ID: <53e3dba5.fdTyP4IduyWL6683%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:45678 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755050AbaHGUDy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:54 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so836846oig.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:53 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:37715 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751897AbaHGUDu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:50 -0400
+Received: by mail-qa0-f73.google.com with SMTP id s7so613143qap.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mina86@mina86.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: tangchen@cn.fujitsu.com, gregkh@linuxfoundation.org, guz.fnst@cn.fujitsu.com, hutao@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, laijs@cn.fujitsu.com, toshi.kani@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: simplify drain_zone_pages by using min()
+     Subject: mem-hotplug: avoid illegal state prefixed with legal state when changing state of memory_block
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-simplify-drain_zone_pages-by-using-min.patch
+     mem-hotplug-avoid-illegal-state-prefixed-with-legal-state-when-changing-state-of-memory_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Nazarewicz <mina86@mina86.com>
-Subject: mm: page_alloc: simplify drain_zone_pages by using min()
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: mem-hotplug: avoid illegal state prefixed with legal state when changing state of memory_block
 
-Instead of open-coding getting minimal value of two, just use min macro. 
-That is why it is there for.  While changing the function also change type
-of batch local variable to match type of per_cpu_pages::batch (which is
-int).
+We use the following command to online a memory_block:
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: David Rientjes <rientjes@google.com>
+echo online|online_kernel|online_movable > /sys/devices/system/memory/memoryXXX/state
+
+But, if we do the following:
+
+echo online_fhsjkghfkd > /sys/devices/system/memory/memoryXXX/state
+
+the block will also be onlined.
+
+This is because the following code in store_mem_state() does not compare
+the whole string, but only the prefix of the string.
+
+store_mem_state()
+{
+	......
+ 328         if (!strncmp(buf, "online_kernel", min_t(int, count, 13)))
+
+Here, only compare the first 13 letters of the string. If we give "online_kernelXXXXXX",
+it will be recognized as online_kernel, which is incorrect.
+
+ 329                 online_type = ONLINE_KERNEL;
+ 330         else if (!strncmp(buf, "online_movable", min_t(int, count, 14)))
+
+We have the same problem here,
+
+ 331                 online_type = ONLINE_MOVABLE;
+ 332         else if (!strncmp(buf, "online", min_t(int, count, 6)))
+
+here,
+
+(Here is more problematic. If we give online_movalbe, which is a typo of online_movable,
+ it will be recognized as online without noticing the author.)
+
+ 333                 online_type = ONLINE_KEEP;
+ 334         else if (!strncmp(buf, "offline", min_t(int, count, 7)))
+
+and here.
+
+ 335                 online_type = -1;
+ 336         else {
+ 337                 ret = -EINVAL;
+ 338                 goto err;
+ 339         }
+	......
+}
+
+This patch fix this problem by using sysfs_streq() to compare the whole string.
+
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reported-by: Hu Tao <hutao@cn.fujitsu.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/base/memory.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-simplify-drain_zone_pages-by-using-min mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-simplify-drain_zone_pages-by-using-min
-+++ a/mm/page_alloc.c
-@@ -1257,15 +1257,11 @@ static int rmqueue_bulk(struct zone *zon
- void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp)
- {
- 	unsigned long flags;
--	int to_drain;
--	unsigned long batch;
-+	int to_drain, batch;
+diff -puN drivers/base/memory.c~mem-hotplug-avoid-illegal-state-prefixed-with-legal-state-when-changing-state-of-memory_block drivers/base/memory.c
+--- a/drivers/base/memory.c~mem-hotplug-avoid-illegal-state-prefixed-with-legal-state-when-changing-state-of-memory_block
++++ a/drivers/base/memory.c
+@@ -315,13 +315,13 @@ store_mem_state(struct device *dev,
+ 	if (ret)
+ 		return ret;
  
- 	local_irq_save(flags);
- 	batch = ACCESS_ONCE(pcp->batch);
--	if (pcp->count >= batch)
--		to_drain = batch;
--	else
--		to_drain = pcp->count;
-+	to_drain = min(pcp->count, batch);
- 	if (to_drain > 0) {
- 		free_pcppages_bulk(zone, to_drain, pcp);
- 		pcp->count -= to_drain;
+-	if (!strncmp(buf, "online_kernel", min_t(int, count, 13)))
++	if (sysfs_streq(buf, "online_kernel"))
+ 		online_type = ONLINE_KERNEL;
+-	else if (!strncmp(buf, "online_movable", min_t(int, count, 14)))
++	else if (sysfs_streq(buf, "online_movable"))
+ 		online_type = ONLINE_MOVABLE;
+-	else if (!strncmp(buf, "online", min_t(int, count, 6)))
++	else if (sysfs_streq(buf, "online"))
+ 		online_type = ONLINE_KEEP;
+-	else if (!strncmp(buf, "offline", min_t(int, count, 7)))
++	else if (sysfs_streq(buf, "offline"))
+ 		online_type = -1;
+ 	else {
+ 		ret = -EINVAL;
 _
 
-Patches currently in -mm which might be from mina86@mina86.com are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
 origin.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max-fix.patch
-debugging-keep-track-of-page-owners.patch
+x86mem-hotplug-pass-sync_global_pgds-a-correct-argument-in-remove_pagetable.patch
+x86mem-hotplug-modify-pgd-entry-when-removing-memory.patch
 
