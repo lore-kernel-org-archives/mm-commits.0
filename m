@@ -1,101 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shmem-fix-double-uncharge-in-__shmem_file_setup.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:05:05 -0700
-Message-ID: <53e3dbf1.uT/tqvAg5FR5ecqT%akpm@linux-foundation.org>
+Subject: [merged]
+ tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:04:55 -0700
+Message-ID: <53e3dbe7.USctbrD9sDd2j0rl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:64210 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbaHGUFG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:06 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wp18so843675obc.3
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:05 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:42542 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752088AbaHGUEz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:04:55 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so1173831pde.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:04:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, hughd@google.com, mm-commits@vger.kernel.org
+To: masbock@linux.vnet.ibm.com, mgorman@suse.de, mingo@redhat.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: fix double uncharge in __shmem_file_setup()
+     Subject: mm tracing: tell mm_migrate_pages event about numa_misplaced
 has been removed from the -mm tree.  Its filename was
-     shmem-fix-double-uncharge-in-__shmem_file_setup.patch
+     tracing-tell-mm_migrate_pages-event-about-numa_misplaced.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: shmem: fix double uncharge in __shmem_file_setup()
+From: Max Asbock <masbock@linux.vnet.ibm.com>
+Subject: mm tracing: tell mm_migrate_pages event about numa_misplaced
 
-If __shmem_file_setup() fails on struct file allocation it uncharges
-memory commitment twice: first by shmem_unacct_size() and second time
-implicitly in shmem_evict_inode() when it kills the newly created inode.
+The mm_migrate_pages trace event reports a reason for the migration,
+typically as a symbolic string.  The exception is the reason
+MR_NUMA_MISPLACED for which it just displays the numeric value:
+mm_migrate_pages: nr_succeeded=1 nr_failed=0 mode=MIGRATE_ASYNC reason=0x5
 
-This patch removes shmem_unacct_size() from error path if the inode was
-already there.
+This patch makes the output consistent by introducing a string value for
+MR_NUMA_MISPLACED.  The event is then reported as: mm_migrate_pages:
+nr_succeeded=1 nr_failed=0 mode=MIGRATE_ASYNC reason=numa_misplaced
 
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Max Asbock <masbock@linux.vnet.ibm.com>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/trace/events/migrate.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/shmem.c~shmem-fix-double-uncharge-in-__shmem_file_setup mm/shmem.c
---- a/mm/shmem.c~shmem-fix-double-uncharge-in-__shmem_file_setup
-+++ a/mm/shmem.c
-@@ -2932,16 +2932,16 @@ static struct file *__shmem_file_setup(c
- 	this.len = strlen(name);
- 	this.hash = 0; /* will go */
- 	sb = shm_mnt->mnt_sb;
-+	path.mnt = mntget(shm_mnt);
- 	path.dentry = d_alloc_pseudo(sb, &this);
- 	if (!path.dentry)
- 		goto put_memory;
- 	d_set_d_op(path.dentry, &anon_ops);
--	path.mnt = mntget(shm_mnt);
+diff -puN include/trace/events/migrate.h~tracing-tell-mm_migrate_pages-event-about-numa_misplaced include/trace/events/migrate.h
+--- a/include/trace/events/migrate.h~tracing-tell-mm_migrate_pages-event-about-numa_misplaced
++++ a/include/trace/events/migrate.h
+@@ -17,6 +17,7 @@
+ 	{MR_MEMORY_HOTPLUG,	"memory_hotplug"},		\
+ 	{MR_SYSCALL,		"syscall_or_cpuset"},		\
+ 	{MR_MEMPOLICY_MBIND,	"mempolicy_mbind"},		\
++	{MR_NUMA_MISPLACED,	"numa_misplaced"},		\
+ 	{MR_CMA,		"cma"}
  
- 	res = ERR_PTR(-ENOSPC);
- 	inode = shmem_get_inode(sb, NULL, S_IFREG | S_IRWXUGO, 0, flags);
- 	if (!inode)
--		goto put_dentry;
-+		goto put_memory;
- 
- 	inode->i_flags |= i_flags;
- 	d_instantiate(path.dentry, inode);
-@@ -2949,19 +2949,19 @@ static struct file *__shmem_file_setup(c
- 	clear_nlink(inode);	/* It is unlinked */
- 	res = ERR_PTR(ramfs_nommu_expand_for_mapping(inode, size));
- 	if (IS_ERR(res))
--		goto put_dentry;
-+		goto put_path;
- 
- 	res = alloc_file(&path, FMODE_WRITE | FMODE_READ,
- 		  &shmem_file_operations);
- 	if (IS_ERR(res))
--		goto put_dentry;
-+		goto put_path;
- 
- 	return res;
- 
--put_dentry:
--	path_put(&path);
- put_memory:
- 	shmem_unacct_size(flags, size);
-+put_path:
-+	path_put(&path);
- 	return res;
- }
- 
+ TRACE_EVENT(mm_migrate_pages,
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from masbock@linux.vnet.ibm.com are
 
 origin.patch
-lib-idr-fix-out-of-bounds-pointer-dereference.patch
-scripts-checkstackpl-automatically-handle-32-bit-and-64-bit-mode-for-arch=x86.patch
 
