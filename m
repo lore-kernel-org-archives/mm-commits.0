@@ -1,69 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:05:49 -0700
-Message-ID: <53e3dc1d.LLq+1St/44hwP/Vc%akpm@linux-foundation.org>
+ mm-remove-the-unused-gfp-arg-to-shmem_add_to_page_cache.patch removed from
+ -mm tree
+Date: Thu, 07 Aug 2014 13:05:55 -0700
+Message-ID: <53e3dc23.eA3pxZ9ccVS4hIml%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:55171 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755093AbaHGUFu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:50 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f73so610146yha.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:49 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:49080 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755110AbaHGUF4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:56 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so841071iec.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: shhuiw@gmail.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: abort fair zone allocation policy when remotes nodes are encountered
+     Subject: mm/shmem.c: remove the unused gfp arg to shmem_add_to_page_cache()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered.patch
+     mm-remove-the-unused-gfp-arg-to-shmem_add_to_page_cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: abort fair zone allocation policy when remotes nodes are encountered
+From: Wang Sheng-Hui <shhuiw@gmail.com>
+Subject: mm/shmem.c: remove the unused gfp arg to shmem_add_to_page_cache()
 
-The purpose of numa_zonelist_order=zone is to preserve lower zones for use
-with 32-bit devices.  If locality is preferred then the
-numa_zonelist_order=node policy should be used.  Unfortunately, the fair
-zone allocation policy overrides this by skipping zones on remote nodes
-until the lower one is found.  While this makes sense from a page aging
-and performance perspective, it breaks the expected zonelist policy.  This
-patch restores the expected behaviour for zone-list ordering.
+The gfp arg is not used in shmem_add_to_page_cache.  Remove this unused
+arg.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Wang Sheng-Hui <shhuiw@gmail.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-abort-fair-zone-allocation-policy-when-remotes-nodes-are-encountered
-+++ a/mm/page_alloc.c
-@@ -1965,7 +1965,7 @@ zonelist_scan:
- 		 */
- 		if (alloc_flags & ALLOC_FAIR) {
- 			if (!zone_local(preferred_zone, zone))
--				continue;
-+				break;
- 			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
- 				continue;
+diff -puN mm/shmem.c~mm-remove-the-unused-gfp-arg-to-shmem_add_to_page_cache mm/shmem.c
+--- a/mm/shmem.c~mm-remove-the-unused-gfp-arg-to-shmem_add_to_page_cache
++++ a/mm/shmem.c
+@@ -293,7 +293,7 @@ static bool shmem_confirm_swap(struct ad
+  */
+ static int shmem_add_to_page_cache(struct page *page,
+ 				   struct address_space *mapping,
+-				   pgoff_t index, gfp_t gfp, void *expected)
++				   pgoff_t index, void *expected)
+ {
+ 	int error;
+ 
+@@ -666,7 +666,7 @@ static int shmem_unuse_inode(struct shme
+ 	 */
+ 	if (!error)
+ 		error = shmem_add_to_page_cache(*pagep, mapping, index,
+-						GFP_NOWAIT, radswap);
++						radswap);
+ 	if (error != -ENOMEM) {
+ 		/*
+ 		 * Truncation and eviction use free_swap_and_cache(), which
+@@ -1112,7 +1112,7 @@ repeat:
+ 						gfp & GFP_RECLAIM_MASK);
+ 		if (!error) {
+ 			error = shmem_add_to_page_cache(page, mapping, index,
+-						gfp, swp_to_radix_entry(swap));
++						swp_to_radix_entry(swap));
+ 			/*
+ 			 * We already confirmed swap under page lock, and make
+ 			 * no memory allocation here, so usually no possibility
+@@ -1175,7 +1175,7 @@ repeat:
+ 		error = radix_tree_maybe_preload(gfp & GFP_RECLAIM_MASK);
+ 		if (!error) {
+ 			error = shmem_add_to_page_cache(page, mapping, index,
+-							gfp, NULL);
++							NULL);
+ 			radix_tree_preload_end();
  		}
+ 		if (error) {
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from shhuiw@gmail.com are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 
