@@ -1,126 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+Subject: [merged] mm-page_allocc-unexport-alloc_pages_exact_nid.patch
  removed from -mm tree
-Date: Thu, 07 Aug 2014 13:03:35 -0700
-Message-ID: <53e3db97.kEvhSPPUA6ZcwJdI%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:03:41 -0700
+Message-ID: <53e3db9d./eN9GXO8TRX6sk6q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:52824 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751500AbaHGUDg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:36 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rl12so841491iec.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:35 -0700 (PDT)
+Received: from mail-yk0-f201.google.com ([209.85.160.201]:41628 "EHLO
+	mail-yk0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751500AbaHGUDm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:42 -0400
+Received: by mail-yk0-f201.google.com with SMTP id 142so611862ykq.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, fengguang.wu@intel.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fabf@skynet.be, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/readahead.c: remove unused file_ra_state from count_history_pages
+     Subject: mm/page_alloc.c: unexport alloc_pages_exact_nid()
 has been removed from the -mm tree.  Its filename was
-     mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages.patch
+     mm-page_allocc-unexport-alloc_pages_exact_nid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: mm/readahead.c: remove unused file_ra_state from count_history_pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/page_alloc.c: unexport alloc_pages_exact_nid()
 
-count_history_pages does only call page_cache_prev_hole in rcu_lock
-context using address_space mapping.  There's no need to have
-file_ra_state here.
+It is only called by mm/page_cgroup.c whcih cannot be modular.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Acked-by: Fengguang Wu <fengguang.wu@intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Reported-by: David Rientjes <rientjes@google.com>
+Cc: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/page_alloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/readahead.c~mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages mm/readahead.c
---- a/mm/readahead.c~mm-readaheadc-remove-unused-file_ra_state-from-count_history_pages
-+++ a/mm/readahead.c
-@@ -326,7 +326,6 @@ static unsigned long get_next_ra_size(st
-  * 	- thrashing threshold in memory tight systems
-  */
- static pgoff_t count_history_pages(struct address_space *mapping,
--				   struct file_ra_state *ra,
- 				   pgoff_t offset, unsigned long max)
- {
- 	pgoff_t head;
-@@ -349,7 +348,7 @@ static int try_context_readahead(struct
- {
- 	pgoff_t size;
+diff -puN mm/page_alloc.c~mm-page_allocc-unexport-alloc_pages_exact_nid mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-unexport-alloc_pages_exact_nid
++++ a/mm/page_alloc.c
+@@ -2970,7 +2970,6 @@ void * __meminit alloc_pages_exact_nid(i
+ 		return NULL;
+ 	return make_alloc_exact((unsigned long)page_address(p), order, size);
+ }
+-EXPORT_SYMBOL(alloc_pages_exact_nid);
  
--	size = count_history_pages(mapping, ra, offset, max);
-+	size = count_history_pages(mapping, offset, max);
- 
- 	/*
- 	 * not enough history pages:
+ /**
+  * free_pages_exact - release memory allocated via alloc_pages_exact()
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
-fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
-fs-efs-nameic-return-is-not-a-function.patch
-fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-test_kprobesc-use-current-logging-functions.patch
-fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
-fs-isofs-logging-clean-up.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
+rtc-add-pcf85063-support-fix.patch
 fs-isofs-logging-clean-up-fix.patch
-fs-coda-use-linux-uaccessh.patch
-fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
-fs-ufs-convert-printk-to-pr_foo.patch
-fs-ufs-use-pr_fmt.patch
-fs-ufs-superc-use-__func__-in-logging.patch
-fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
-fs-ufs-convert-ufsd-printk-to-pr_debug.patch
-fs-ufs-inodec-kernel-doc-warning-fixes.patch
-fs-reiserfs-replace-not-standard-%lu-%ld.patch
-fs-reiserfs-use-linux-uaccessh.patch
-fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
-fs-hpfs-dnodec-fix-suspect-code-indent.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-proc-constify-seq_operations.patch
-fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
-fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
-fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
-fs-bfs-use-bfs-prefix-for-dump_imap.patch
-drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
-fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
-fs-cachefiles-bindc-remove-unnecessary-assertions.patch
-fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cramfs-convert-printk-to-pr_foo.patch
-fs-cramfs-use-pr_fmt.patch
-fs-cramfs-code-clean-up.patch
-fs-cramfs-inodec-use-linux-uaccessh.patch
-fs-romfs-superc-convert-printk-to-pr_foo.patch
-fs-romfs-superc-use-pr_fmt-in-logging.patch
-fs-romfs-superc-add-blank-line-after-declarations.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
-scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
-fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+proc-remove-proc_tty_ldisc-variable-fix.patch
+mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
+panic-add-taint_softlockup-fix.patch
 linux-next.patch
-init-mainc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
+kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
+kexec-support-kexec-kdump-on-efi-systems-fix.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
