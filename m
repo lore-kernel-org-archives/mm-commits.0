@@ -1,63 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:08:59 -0700
-Message-ID: <53e3dcdb.uIcPHTObecn4yOjj%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-allow-multiple-const-types.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:09:01 -0700
+Message-ID: <53e3dcdd.fS/sYhJ1upPwhFig%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:60834 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755183AbaHGUJA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:00 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so840019oac.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:59 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:39303 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751323AbaHGUJD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:03 -0400
+Received: by mail-vc0-f202.google.com with SMTP id hq11so607385vcb.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, HartleyS@visionengravers.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn on unnecessary parentheses around references of foo->bar
+     Subject: checkpatch: allow multiple const * types
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
+     checkpatch-allow-multiple-const-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on unnecessary parentheses around references of foo->bar
+Subject: checkpatch: allow multiple const * types
 
-Parentheses around &(foo->bar) and *(foo->bar) are unnecessary.  Emit a
---strict only message on these uses.
+checkpatch's $Type variable does not match declarations
+of multiple const * types.
+
+This can produce false positives for things like:
+
+$ ./scripts/checkpatch.pl -f drivers/staging/comedi/comedidev.h
+WARNING: Missing a blank line after declarations
+#60: FILE: drivers/staging/comedi/comedidev.h:60:
++       const struct comedi_lrange *range_table;
++       const struct comedi_lrange *const *range_table_list;
+
+Fix the $Type variable to support matching multiple "* const" uses.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Hartley Sweeten <HartleyS@visionengravers.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar
+diff -puN scripts/checkpatch.pl~checkpatch-allow-multiple-const-types scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-multiple-const-types
 +++ a/scripts/checkpatch.pl
-@@ -3491,6 +3491,14 @@ sub process {
- 			}
- 		}
- 
-+# check unnecessary parentheses around addressof/dereference single $Lvals
-+# ie: &(foo->bar) should be &foo->bar and *(foo->bar) should be *foo->bar
-+
-+		while ($line =~ /(?:[^&]&\s*|\*)\(\s*($Ident\s*(?:$Member\s*)+)\s*\)/g) {
-+			CHK("UNNECESSARY_PARENTHESES",
-+			    "Unnecessary parentheses around $1\n" . $herecurr);
-+		    }
-+
- #goto labels aren't indented, allow a single space however
- 		if ($line=~/^.\s+[A-Za-z\d_]+:(?![0-9]+)/ and
- 		   !($line=~/^. [A-Za-z\d_]+:/) and !($line=~/^.\s+default:/)) {
+@@ -435,7 +435,7 @@ sub build_types {
+ 		  }x;
+ 	$Type	= qr{
+ 			$NonptrType
+-			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*|\[\])+|(?:\s*\[\s*\])+)?
++			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*\s*(?:const\s*)?|\[\])+|(?:\s*\[\s*\])+)?
+ 			(?:\s+$Inline|\s+$Modifier)*
+ 		  }x;
+ 	$Declare	= qr{(?:$Storage\s+(?:$Inline\s+)?)?$Type};
 _
 
 Patches currently in -mm which might be from joe@perches.com are
