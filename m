@@ -1,71 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch removed
- from -mm tree
-Date: Thu, 07 Aug 2014 13:09:25 -0700
-Message-ID: <53e3dcf5.veYKjN9F6kK3tCqo%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-add-signed-generic-types.patch removed from
+ -mm tree
+Date: Thu, 07 Aug 2014 13:09:29 -0700
+Message-ID: <53e3dcf9.ZCTWpzv79Hm4k1eh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:51254 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755423AbaHGUJ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:26 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so1177537pdj.0
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:25 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:39778 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755423AbaHGUJa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:30 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h3so880158igd.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add for_each tests to indentation and brace tests
+     Subject: checkpatch: add signed generic types
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-for_each-tests-to-indentation-and-brace-tests.patch
+     checkpatch-add-signed-generic-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add for_each tests to indentation and brace tests
+Subject: checkpatch: add signed generic types
 
-All the various for_each loop macros were not tested for
-trailing brace on the following lines and for bad indentation.
+Current generic types are unsigned or unspecified.
+Add signed to the types.
 
-Add them.
+Reorder the types to find the longest match first.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Greg KH <gregkh@linuxfoundation.org>
-Cc: Andy Whitcroft <apw@canonical.com
+Acked-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-for_each-tests-to-indentation-and-brace-tests scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-for_each-tests-to-indentation-and-brace-tests
+diff -puN scripts/checkpatch.pl~checkpatch-add-signed-generic-types scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-signed-generic-types
 +++ a/scripts/checkpatch.pl
-@@ -2698,7 +2698,7 @@ sub process {
+@@ -355,15 +355,15 @@ our $signature_tags = qr{(?xi:
  
- # if/while/etc brace do not go on next line, unless defining a do while loop,
- # or if that brace on the next line is for something else
--		if ($line =~ /(.*)\b((?:if|while|for|switch)\s*\(|do\b|else\b)/ && $line !~ /^.\s*\#/) {
-+		if ($line =~ /(.*)\b((?:if|while|for|switch|(?:[a-z_]+|)for_each[a-z_]+)\s*\(|do\b|else\b)/ && $line !~ /^.\s*\#/) {
- 			my $pre_ctx = "$1$2";
- 
- 			my ($level, @ctx) = ctx_statement_level($linenr, $realcnt, 0);
-@@ -2744,7 +2744,7 @@ sub process {
- 		}
- 
- # Check relative indent for conditionals and blocks.
--		if ($line =~ /\b(?:(?:if|while|for)\s*\(|do\b)/ && $line !~ /^.\s*#/ && $line !~ /\}\s*while\s*/) {
-+		if ($line =~ /\b(?:(?:if|while|for|(?:[a-z_]+|)for_each[a-z_]+)\s*\(|do\b)/ && $line !~ /^.\s*#/ && $line !~ /\}\s*while\s*/) {
- 			($stat, $cond, $line_nr_next, $remain_next, $off_next) =
- 				ctx_statement_block($linenr, $realcnt, 0)
- 					if (!defined $stat);
+ our @typeList = (
+ 	qr{void},
+-	qr{(?:unsigned\s+)?char},
+-	qr{(?:unsigned\s+)?short\s+int},
+-	qr{(?:unsigned\s+)?short},
+-	qr{(?:unsigned\s+)?int},
+-	qr{(?:unsigned\s+)?long},
+-	qr{(?:unsigned\s+)?long\s+int},
+-	qr{(?:unsigned\s+)?long\s+long},
+-	qr{(?:unsigned\s+)?long\s+long\s+int},
+-	qr{unsigned},
++	qr{(?:(?:un)?signed\s+)?char},
++	qr{(?:(?:un)?signed\s+)?short\s+int},
++	qr{(?:(?:un)?signed\s+)?short},
++	qr{(?:(?:un)?signed\s+)?int},
++	qr{(?:(?:un)?signed\s+)?long\s+int},
++	qr{(?:(?:un)?signed\s+)?long\s+long\s+int},
++	qr{(?:(?:un)?signed\s+)?long\s+long},
++	qr{(?:(?:un)?signed\s+)?long},
++	qr{(?:un)?signed},
+ 	qr{float},
+ 	qr{double},
+ 	qr{bool},
 _
 
 Patches currently in -mm which might be from joe@perches.com are
