@@ -1,97 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-mmdebugh-add-vm_warn_once.patch removed
- from -mm tree
-Date: Thu, 07 Aug 2014 13:05:03 -0700
-Message-ID: <53e3dbef.Nec5wkuI4rHEOt/7%akpm@linux-foundation.org>
+Subject: [merged] mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:04:59 -0700
+Message-ID: <53e3dbeb.Zc6vR8xHPQf4RMtx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:42063 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955AbaHGUFE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:04 -0400
-Received: by mail-ie0-f201.google.com with SMTP id tr6so841391ieb.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:03 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:57152 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752088AbaHGUFA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:00 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so608463yha.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:04:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave.hansen@intel.com, hughd@google.com, koct9i@gmail.com, mm-commits@vger.kernel.org
+To: edumazet@google.com, hughd@google.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/mmdebug.h: add VM_WARN_ONCE()
+     Subject: mm/vmalloc.c: add a schedule point to vmalloc()
 has been removed from the -mm tree.  Its filename was
-     include-linux-mmdebugh-add-vm_warn_once.patch
+     mm-vmallocc-add-a-schedule-point-to-vmalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/mmdebug.h: add VM_WARN_ONCE()
+From: Eric Dumazet <edumazet@google.com>
+Subject: mm/vmalloc.c: add a schedule point to vmalloc()
 
-It was missing...
+It is not uncommon on busy servers to get stuck hundred of ms in vmalloc()
+calls (like file descriptor expansions).
 
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Add a cond_resched() to __vmalloc_area_node() to be gentle to
+other tasks.
+
+[akpm@linux-foundation.org: only do it for __GFP_WAIT, per David]
+Signed-off-by: Eric Dumazet <edumazet@google.com>
 Cc: Hugh Dickins <hughd@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmdebug.h |    2 ++
+ mm/vmalloc.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN include/linux/mmdebug.h~include-linux-mmdebugh-add-vm_warn_once include/linux/mmdebug.h
---- a/include/linux/mmdebug.h~include-linux-mmdebugh-add-vm_warn_once
-+++ a/include/linux/mmdebug.h
-@@ -20,11 +20,13 @@ extern void dump_page_badflags(struct pa
- 	} while (0)
- #define VM_WARN_ON(cond) WARN_ON(cond)
- #define VM_WARN_ON_ONCE(cond) WARN_ON_ONCE(cond)
-+#define VM_WARN_ONCE(cond, format...) WARN_ONCE(cond, format)
- #else
- #define VM_BUG_ON(cond) BUILD_BUG_ON_INVALID(cond)
- #define VM_BUG_ON_PAGE(cond, page) VM_BUG_ON(cond)
- #define VM_WARN_ON(cond) BUILD_BUG_ON_INVALID(cond)
- #define VM_WARN_ON_ONCE(cond) BUILD_BUG_ON_INVALID(cond)
-+#define VM_WARN_ONCE(cond, format...) BUILD_BUG_ON_INVALID(cond)
- #endif
+diff -puN mm/vmalloc.c~mm-vmallocc-add-a-schedule-point-to-vmalloc mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-add-a-schedule-point-to-vmalloc
++++ a/mm/vmalloc.c
+@@ -1602,6 +1602,8 @@ static void *__vmalloc_area_node(struct
+ 			goto fail;
+ 		}
+ 		area->pages[i] = page;
++		if (gfp_mask & __GFP_WAIT)
++			cond_resched();
+ 	}
  
- #ifdef CONFIG_DEBUG_VIRTUAL
+ 	if (map_vm_area(area, prot, &pages))
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from edumazet@google.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-rtc-add-pcf85063-support-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-proc-remove-proc_tty_ldisc-variable-fix.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
-panic-add-taint_softlockup-fix.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
