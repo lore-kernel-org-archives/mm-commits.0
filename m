@@ -1,60 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-remove-kmemcg-id-from-create_unique_id.patch
+Subject: [merged]
+ memory-hotplug-x86_32-suitable-memory-should-go-to-zone_movable.patch
  removed from -mm tree
-Date: Thu, 07 Aug 2014 13:06:01 -0700
-Message-ID: <53e3dc29.0lqWUbs/QhHSuCQ1%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:06:07 -0700
+Message-ID: <53e3dc2f.WvH3Mi29/TWn4OLP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:50322 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755004AbaHGUGC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:06:02 -0400
-Received: by mail-vc0-f201.google.com with SMTP id le20so611603vcb.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:06:01 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:61359 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755205AbaHGUGI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:06:08 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so1176389pab.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:06:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: wangnan0@huawei.com, benh@kernel.crashing.org, cmetcalf@tilera.com, dave.hansen@intel.com, hpa@zytor.com, mgorman@suse.de, mingo@redhat.com, paulus@samba.org, tglx@linutronix.de, tony.luck@intel.com, yinghai@kernel.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: remove kmemcg id from create_unique_id
+     Subject: memory-hotplug: x86_32: suitable memory should go to ZONE_MOVABLE
 has been removed from the -mm tree.  Its filename was
-     slub-remove-kmemcg-id-from-create_unique_id.patch
+     memory-hotplug-x86_32-suitable-memory-should-go-to-zone_movable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slub: remove kmemcg id from create_unique_id
+From: Wang Nan <wangnan0@huawei.com>
+Subject: memory-hotplug: x86_32: suitable memory should go to ZONE_MOVABLE
 
-This function is never called for memcg caches, because they are
-unmergeable, so remove the dead code.
+This patch introduces zone_for_memory() to arch_add_memory() on x86_32 to
+ensure new, higher memory added into ZONE_MOVABLE if movable zone has
+already setup.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Christoph Lameter <cl@linux.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Wang Nan <wangnan0@huawei.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: "Mel Gorman" <mgorman@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/x86/mm/init_32.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-remove-kmemcg-id-from-create_unique_id mm/slub.c
---- a/mm/slub.c~slub-remove-kmemcg-id-from-create_unique_id
-+++ a/mm/slub.c
-@@ -5128,12 +5128,6 @@ static char *create_unique_id(struct kme
- 		*p++ = '-';
- 	p += sprintf(p, "%07d", s->size);
+diff -puN arch/x86/mm/init_32.c~memory-hotplug-x86_32-suitable-memory-should-go-to-zone_movable arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~memory-hotplug-x86_32-suitable-memory-should-go-to-zone_movable
++++ a/arch/x86/mm/init_32.c
+@@ -825,7 +825,8 @@ void __init mem_init(void)
+ int arch_add_memory(int nid, u64 start, u64 size)
+ {
+ 	struct pglist_data *pgdata = NODE_DATA(nid);
+-	struct zone *zone = pgdata->node_zones + ZONE_HIGHMEM;
++	struct zone *zone = pgdata->node_zones +
++		zone_for_memory(nid, start, size, ZONE_HIGHMEM);
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
  
--#ifdef CONFIG_MEMCG_KMEM
--	if (!is_root_cache(s))
--		p += sprintf(p, "-%08d",
--				memcg_cache_id(s->memcg_params->memcg));
--#endif
+_
+
+Patches currently in -mm which might be from wangnan0@huawei.com are
+
+origin.patch
+
