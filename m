@@ -1,170 +1,244 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:03:51 -0700
-Message-ID: <53e3dba7.sgQV6mYTV/+PMXSX%akpm@linux-foundation.org>
+ dma-cma-separate-core-cma-management-codes-from-dma-apis.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:03:57 -0700
+Message-ID: <53e3dbad.etUgkzj7xbHvUhqr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f73.google.com ([209.85.192.73]:35732 "EHLO
-	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755045AbaHGUDx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:53 -0400
-Received: by mail-qg0-f73.google.com with SMTP id q107so608888qgd.0
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:51 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:56348 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755050AbaHGUD6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:58 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so1175588pab.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tangchen@cn.fujitsu.com, gregkh@linuxfoundation.org, guz.fnst@cn.fujitsu.com, hutao@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, laijs@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, agraf@suse.de, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, gleb@kernel.org, m.szyprowski@samsung.com, mina86@mina86.com, minchan@kernel.org, paulus@samba.org, pbonzini@redhat.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: introduce MMOP_OFFLINE to replace the hard coding -1
+     Subject: DMA, CMA: separate core CMA management codes from DMA APIs
 has been removed from the -mm tree.  Its filename was
-     mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1.patch
+     dma-cma-separate-core-cma-management-codes-from-dma-apis.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mem-hotplug: introduce MMOP_OFFLINE to replace the hard coding -1
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: DMA, CMA: separate core CMA management codes from DMA APIs
 
-In store_mem_state(), we have:
-......
- 334         else if (!strncmp(buf, "offline", min_t(int, count, 7)))
- 335                 online_type = -1;
-......
- 355         case -1:
- 356                 ret = device_offline(&mem->dev);
- 357                 break;
-......
+To prepare future generalization work on CMA area management code, we need
+to separate core CMA management codes from DMA APIs.  We will extend these
+core functions to cover requirements of PPC KVM's CMA area management
+functionality in following patches.  This separation helps us not to touch
+DMA APIs while extending core functions.
 
-Here, "offline" is hard coded as -1.
-
-This patch does the following renaming:
- ONLINE_KEEP     ->  MMOP_ONLINE_KEEP
- ONLINE_KERNEL   ->  MMOP_ONLINE_KERNEL
- ONLINE_MOVABLE  ->  MMOP_ONLINE_MOVABLE
-
-and introduce MMOP_OFFLINE = -1 to avoid hard coding.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Hu Tao <hutao@cn.fujitsu.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Alexander Graf <agraf@suse.de>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Gleb Natapov <gleb@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |   18 +++++++++---------
- include/linux/memory_hotplug.h |    9 +++++----
- mm/memory_hotplug.c            |    9 ++++++---
- 3 files changed, 20 insertions(+), 16 deletions(-)
+ drivers/base/dma-contiguous.c |  125 +++++++++++++++++++-------------
+ 1 file changed, 77 insertions(+), 48 deletions(-)
 
-diff -puN drivers/base/memory.c~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1 drivers/base/memory.c
---- a/drivers/base/memory.c~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1
-+++ a/drivers/base/memory.c
-@@ -284,7 +284,7 @@ static int memory_subsys_online(struct d
- 	 * attribute and need to set the online_type.
- 	 */
- 	if (mem->online_type < 0)
--		mem->online_type = ONLINE_KEEP;
-+		mem->online_type = MMOP_ONLINE_KEEP;
+diff -puN drivers/base/dma-contiguous.c~dma-cma-separate-core-cma-management-codes-from-dma-apis drivers/base/dma-contiguous.c
+--- a/drivers/base/dma-contiguous.c~dma-cma-separate-core-cma-management-codes-from-dma-apis
++++ a/drivers/base/dma-contiguous.c
+@@ -213,26 +213,9 @@ static int __init cma_init_reserved_area
+ }
+ core_initcall(cma_init_reserved_areas);
  
- 	ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
+-/**
+- * dma_contiguous_reserve_area() - reserve custom contiguous area
+- * @size: Size of the reserved area (in bytes),
+- * @base: Base address of the reserved area optional, use 0 for any
+- * @limit: End address of the reserved memory (optional, 0 for any).
+- * @res_cma: Pointer to store the created cma region.
+- * @fixed: hint about where to place the reserved area
+- *
+- * This function reserves memory from early allocator. It should be
+- * called by arch specific code once the early allocator (memblock or bootmem)
+- * has been activated and all other subsystems have already allocated/reserved
+- * memory. This function allows to create custom reserved areas for specific
+- * devices.
+- *
+- * If @fixed is true, reserve contiguous area at exactly @base.  If false,
+- * reserve in range from @base to @limit.
+- */
+-int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
+-				       phys_addr_t limit, struct cma **res_cma,
+-				       bool fixed)
++static int __init __dma_contiguous_reserve_area(phys_addr_t size,
++				phys_addr_t base, phys_addr_t limit,
++				struct cma **res_cma, bool fixed)
+ {
+ 	struct cma *cma = &cma_areas[cma_area_count];
+ 	phys_addr_t alignment;
+@@ -286,15 +269,47 @@ int __init dma_contiguous_reserve_area(p
  
-@@ -316,22 +316,22 @@ store_mem_state(struct device *dev,
- 		return ret;
+ 	pr_info("CMA: reserved %ld MiB at %08lx\n", (unsigned long)size / SZ_1M,
+ 		(unsigned long)base);
+-
+-	/* Architecture specific contiguous memory fixup. */
+-	dma_contiguous_early_fixup(base, size);
+ 	return 0;
++
+ err:
+ 	pr_err("CMA: failed to reserve %ld MiB\n", (unsigned long)size / SZ_1M);
+ 	return ret;
+ }
  
- 	if (sysfs_streq(buf, "online_kernel"))
--		online_type = ONLINE_KERNEL;
-+		online_type = MMOP_ONLINE_KERNEL;
- 	else if (sysfs_streq(buf, "online_movable"))
--		online_type = ONLINE_MOVABLE;
-+		online_type = MMOP_ONLINE_MOVABLE;
- 	else if (sysfs_streq(buf, "online"))
--		online_type = ONLINE_KEEP;
-+		online_type = MMOP_ONLINE_KEEP;
- 	else if (sysfs_streq(buf, "offline"))
--		online_type = -1;
-+		online_type = MMOP_OFFLINE;
- 	else {
- 		ret = -EINVAL;
- 		goto err;
- 	}
++/**
++ * dma_contiguous_reserve_area() - reserve custom contiguous area
++ * @size: Size of the reserved area (in bytes),
++ * @base: Base address of the reserved area optional, use 0 for any
++ * @limit: End address of the reserved memory (optional, 0 for any).
++ * @res_cma: Pointer to store the created cma region.
++ * @fixed: hint about where to place the reserved area
++ *
++ * This function reserves memory from early allocator. It should be
++ * called by arch specific code once the early allocator (memblock or bootmem)
++ * has been activated and all other subsystems have already allocated/reserved
++ * memory. This function allows to create custom reserved areas for specific
++ * devices.
++ *
++ * If @fixed is true, reserve contiguous area at exactly @base.  If false,
++ * reserve in range from @base to @limit.
++ */
++int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
++				       phys_addr_t limit, struct cma **res_cma,
++				       bool fixed)
++{
++	int ret;
++
++	ret = __dma_contiguous_reserve_area(size, base, limit, res_cma, fixed);
++	if (ret)
++		return ret;
++
++	/* Architecture specific contiguous memory fixup. */
++	dma_contiguous_early_fixup(PFN_PHYS((*res_cma)->base_pfn),
++				(*res_cma)->count << PAGE_SHIFT);
++
++	return 0;
++}
++
+ static void clear_cma_bitmap(struct cma *cma, unsigned long pfn, int count)
+ {
+ 	mutex_lock(&cma->lock);
+@@ -302,31 +317,16 @@ static void clear_cma_bitmap(struct cma
+ 	mutex_unlock(&cma->lock);
+ }
  
- 	switch (online_type) {
--	case ONLINE_KERNEL:
--	case ONLINE_MOVABLE:
--	case ONLINE_KEEP:
-+	case MMOP_ONLINE_KERNEL:
-+	case MMOP_ONLINE_MOVABLE:
-+	case MMOP_ONLINE_KEEP:
- 		/*
- 		 * mem->online_type is not protected so there can be a
- 		 * race here.  However, when racing online, the first
-@@ -342,7 +342,7 @@ store_mem_state(struct device *dev,
- 		mem->online_type = online_type;
- 		ret = device_online(&mem->dev);
- 		break;
--	case -1:
-+	case MMOP_OFFLINE:
- 		ret = device_offline(&mem->dev);
- 		break;
- 	default:
-diff -puN include/linux/memory_hotplug.h~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1 include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1
-+++ a/include/linux/memory_hotplug.h
-@@ -26,11 +26,12 @@ enum {
- 	MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE = NODE_INFO,
- };
+-/**
+- * dma_alloc_from_contiguous() - allocate pages from contiguous area
+- * @dev:   Pointer to device for which the allocation is performed.
+- * @count: Requested number of pages.
+- * @align: Requested alignment of pages (in PAGE_SIZE order).
+- *
+- * This function allocates memory buffer for specified device. It uses
+- * device specific contiguous memory area if available or the default
+- * global one. Requires architecture specific dev_get_cma_area() helper
+- * function.
+- */
+-struct page *dma_alloc_from_contiguous(struct device *dev, int count,
++static struct page *__dma_alloc_from_contiguous(struct cma *cma, int count,
+ 				       unsigned int align)
+ {
+ 	unsigned long mask, pfn, pageno, start = 0;
+-	struct cma *cma = dev_get_cma_area(dev);
+ 	struct page *page = NULL;
+ 	int ret;
  
--/* Types for control the zone type of onlined memory */
-+/* Types for control the zone type of onlined and offlined memory */
- enum {
--	ONLINE_KEEP,
--	ONLINE_KERNEL,
--	ONLINE_MOVABLE,
-+	MMOP_OFFLINE = -1,
-+	MMOP_ONLINE_KEEP,
-+	MMOP_ONLINE_KERNEL,
-+	MMOP_ONLINE_MOVABLE,
- };
+ 	if (!cma || !cma->count)
+ 		return NULL;
  
- /*
-diff -puN mm/memory_hotplug.c~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1 mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mem-hotplug-introduce-mmop_offline-to-replace-the-hard-coding-1
-+++ a/mm/memory_hotplug.c
-@@ -977,15 +977,18 @@ int __ref online_pages(unsigned long pfn
- 	zone = page_zone(pfn_to_page(pfn));
+-	if (align > CONFIG_CMA_ALIGNMENT)
+-		align = CONFIG_CMA_ALIGNMENT;
+-
+ 	pr_debug("%s(cma %p, count %d, align %d)\n", __func__, (void *)cma,
+ 		 count, align);
  
- 	ret = -EINVAL;
--	if ((zone_idx(zone) > ZONE_NORMAL || online_type == ONLINE_MOVABLE) &&
-+	if ((zone_idx(zone) > ZONE_NORMAL ||
-+	    online_type == MMOP_ONLINE_MOVABLE) &&
- 	    !can_online_high_movable(zone))
- 		goto out;
+@@ -375,19 +375,30 @@ struct page *dma_alloc_from_contiguous(s
+ }
  
--	if (online_type == ONLINE_KERNEL && zone_idx(zone) == ZONE_MOVABLE) {
-+	if (online_type == MMOP_ONLINE_KERNEL &&
-+	    zone_idx(zone) == ZONE_MOVABLE) {
- 		if (move_pfn_range_left(zone - 1, zone, pfn, pfn + nr_pages))
- 			goto out;
- 	}
--	if (online_type == ONLINE_MOVABLE && zone_idx(zone) == ZONE_MOVABLE - 1) {
-+	if (online_type == MMOP_ONLINE_MOVABLE &&
-+	    zone_idx(zone) == ZONE_MOVABLE - 1) {
- 		if (move_pfn_range_right(zone, zone + 1, pfn, pfn + nr_pages))
- 			goto out;
- 	}
+ /**
+- * dma_release_from_contiguous() - release allocated pages
+- * @dev:   Pointer to device for which the pages were allocated.
+- * @pages: Allocated pages.
+- * @count: Number of allocated pages.
++ * dma_alloc_from_contiguous() - allocate pages from contiguous area
++ * @dev:   Pointer to device for which the allocation is performed.
++ * @count: Requested number of pages.
++ * @align: Requested alignment of pages (in PAGE_SIZE order).
+  *
+- * This function releases memory allocated by dma_alloc_from_contiguous().
+- * It returns false when provided pages do not belong to contiguous area and
+- * true otherwise.
++ * This function allocates memory buffer for specified device. It uses
++ * device specific contiguous memory area if available or the default
++ * global one. Requires architecture specific dev_get_cma_area() helper
++ * function.
+  */
+-bool dma_release_from_contiguous(struct device *dev, struct page *pages,
+-				 int count)
++struct page *dma_alloc_from_contiguous(struct device *dev, int count,
++				       unsigned int align)
+ {
+ 	struct cma *cma = dev_get_cma_area(dev);
++
++	if (align > CONFIG_CMA_ALIGNMENT)
++		align = CONFIG_CMA_ALIGNMENT;
++
++	return __dma_alloc_from_contiguous(cma, count, align);
++}
++
++static bool __dma_release_from_contiguous(struct cma *cma, struct page *pages,
++				 int count)
++{
+ 	unsigned long pfn;
+ 
+ 	if (!cma || !pages)
+@@ -407,3 +418,21 @@ bool dma_release_from_contiguous(struct
+ 
+ 	return true;
+ }
++
++/**
++ * dma_release_from_contiguous() - release allocated pages
++ * @dev:   Pointer to device for which the pages were allocated.
++ * @pages: Allocated pages.
++ * @count: Number of allocated pages.
++ *
++ * This function releases memory allocated by dma_alloc_from_contiguous().
++ * It returns false when provided pages do not belong to contiguous area and
++ * true otherwise.
++ */
++bool dma_release_from_contiguous(struct device *dev, struct page *pages,
++				 int count)
++{
++	struct cma *cma = dev_get_cma_area(dev);
++
++	return __dma_release_from_contiguous(cma, pages, count);
++}
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 origin.patch
-x86mem-hotplug-pass-sync_global_pgds-a-correct-argument-in-remove_pagetable.patch
-x86mem-hotplug-modify-pgd-entry-when-removing-memory.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
