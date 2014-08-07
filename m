@@ -1,66 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:02:09 -0700
-Message-ID: <53e3db41.js0UFJF7+Xv1TIB4%akpm@linux-foundation.org>
+Subject: [merged] fs-fscache-make-ctl_table-static.patch removed from -mm
+ tree
+Date: Thu, 07 Aug 2014 13:02:11 -0700
+Message-ID: <53e3db43.CluIw1QMzx6+uaX8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:46100 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbaHGUCK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:10 -0400
-Received: by mail-qa0-f73.google.com with SMTP id s7so607031qap.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:10 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:34531 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874AbaHGUCM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:12 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so838497obb.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, eparis@redhat.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, dhowells@redhat.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/auditfilter.c: replace count*size kmalloc by kcalloc
+     Subject: fs/fscache: make ctl_table static
 has been removed from the -mm tree.  Its filename was
-     kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc.patch
+     fs-fscache-make-ctl_table-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/auditfilter.c: replace count*size kmalloc by kcalloc
+Subject: fs/fscache: make ctl_table static
 
-kcalloc manages count*sizeof overflow.
+fscache_sysctls and fscache_sysctls_root are only used in main.c
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Eric Paris <eparis@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditfilter.c |    4 ++--
+ fs/fscache/main.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/auditfilter.c~kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc kernel/auditfilter.c
---- a/kernel/auditfilter.c~kernel-auditfilterc-replace-countsize-kmalloc-by-kcalloc
-+++ a/kernel/auditfilter.c
-@@ -106,7 +106,7 @@ static inline struct audit_entry *audit_
- 	if (unlikely(!entry))
- 		return NULL;
+diff -puN fs/fscache/main.c~fs-fscache-make-ctl_table-static fs/fscache/main.c
+--- a/fs/fscache/main.c~fs-fscache-make-ctl_table-static
++++ a/fs/fscache/main.c
+@@ -67,7 +67,7 @@ static int fscache_max_active_sysctl(str
+ 	return ret;
+ }
  
--	fields = kzalloc(sizeof(*fields) * field_count, GFP_KERNEL);
-+	fields = kcalloc(field_count, sizeof(*fields), GFP_KERNEL);
- 	if (unlikely(!fields)) {
- 		kfree(entry);
- 		return NULL;
-@@ -160,7 +160,7 @@ static __u32 *classes[AUDIT_SYSCALL_CLAS
+-struct ctl_table fscache_sysctls[] = {
++static struct ctl_table fscache_sysctls[] = {
+ 	{
+ 		.procname	= "object_max_active",
+ 		.data		= &fscache_object_max_active,
+@@ -87,7 +87,7 @@ struct ctl_table fscache_sysctls[] = {
+ 	{}
+ };
  
- int __init audit_register_class(int class, unsigned *list)
- {
--	__u32 *p = kzalloc(AUDIT_BITMASK_SIZE * sizeof(__u32), GFP_KERNEL);
-+	__u32 *p = kcalloc(AUDIT_BITMASK_SIZE, sizeof(__u32), GFP_KERNEL);
- 	if (!p)
- 		return -ENOMEM;
- 	while (*list != ~0U) {
+-struct ctl_table fscache_sysctls_root[] = {
++static struct ctl_table fscache_sysctls_root[] = {
+ 	{
+ 		.procname	= "fscache",
+ 		.mode		= 0555,
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
