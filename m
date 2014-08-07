@@ -1,67 +1,56 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:08:45 -0700
-Message-ID: <53e3dccd.X/ImM1TBORBzrSMw%akpm@linux-foundation.org>
+ checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:08:43 -0700
+Message-ID: <53e3dccb.rzt1W5ZLjiVdTJBw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f202.google.com ([209.85.160.202]:44951 "EHLO
-	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193AbaHGUIq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:46 -0400
-Received: by mail-yk0-f202.google.com with SMTP id q9so611858ykb.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:45 -0700 (PDT)
+Received: from mail-qg0-f74.google.com ([209.85.192.74]:59562 "EHLO
+	mail-qg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbaHGUIo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:44 -0400
+Received: by mail-qg0-f74.google.com with SMTP id z60so611689qgd.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, bruce.w.allan@intel.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix function pointers in blank line needed after declarations test
+     Subject: checkpatch: fix complex macro false positive for escaped constant char
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test.patch
+     checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: fix function pointers in blank line needed after declarations test
+Subject: checkpatch: fix complex macro false positive for escaped constant char
 
-Add a function pointer declaration check to the test for blank line needed
-after declarations.
+A single escaped constant char is not a complex macro.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Bruce W Allan <bruce.w.allan@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++++
- 1 file changed, 4 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-function-pointers-in-blank-line-needed-after-declarations-test
+diff -puN scripts/checkpatch.pl~checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-complex-macro-false-positive-for-escaped-constant-char
 +++ a/scripts/checkpatch.pl
-@@ -2295,6 +2295,8 @@ sub process {
- 		if ($sline =~ /^\+\s+\S/ &&			#Not at char 1
- 			# actual declarations
- 		    ($prevline =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
-+			# function pointer declarations
-+		     $prevline =~ /^\+\s+$Declare\s*\(\s*\*\s*$Ident\s*\)\s*[=,;:\[\(]/ ||
- 			# foo bar; where foo is some local typedef or #define
- 		     $prevline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
- 			# known declaration macros
-@@ -2307,6 +2309,8 @@ sub process {
- 		      $prevline =~ /(?:\{\s*|\\)$/) &&
- 			# looks like a declaration
- 		    !($sline =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
-+			# function pointer declarations
-+		      $sline =~ /^\+\s+$Declare\s*\(\s*\*\s*$Ident\s*\)\s*[=,;:\[\(]/ ||
- 			# foo bar; where foo is some local typedef or #define
- 		      $sline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
- 			# known declaration macros
+@@ -3772,7 +3772,7 @@ sub process {
+ 			    $dstat !~ /^(?:$Ident|-?$Constant),$/ &&			# 10, // foo(),
+ 			    $dstat !~ /^(?:$Ident|-?$Constant);$/ &&			# foo();
+ 			    $dstat !~ /^[!~-]?(?:$Lval|$Constant)$/ &&		# 10 // foo() // !foo // ~foo // -foo // foo->bar // foo.bar->baz
+-			    $dstat !~ /^'X'$/ &&					# character constants
++			    $dstat !~ /^'X'$/ && $dstat !~ /^'XX'$/ &&			# character constants
+ 			    $dstat !~ /$exceptions/ &&
+ 			    $dstat !~ /^\.$Ident\s*=/ &&				# .foo =
+ 			    $dstat !~ /^(?:\#\s*$Ident|\#\s*$Constant)\s*$/ &&		# stringification #foo
 _
 
 Patches currently in -mm which might be from joe@perches.com are
