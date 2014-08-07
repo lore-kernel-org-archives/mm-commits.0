@@ -1,72 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-use-the-correct-indentation-for-which.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:09:19 -0700
-Message-ID: <53e3dcef.ioPlGnp1cNGUHTN8%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:09:11 -0700
+Message-ID: <53e3dce7.lndkca6YLqKTlYbg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:39963 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755423AbaHGUJU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:20 -0400
-Received: by mail-oa0-f73.google.com with SMTP id g18so842587oah.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:19 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:35210 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755100AbaHGUJM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:12 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so609185yha.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: use the correct indentation for which()
+     Subject: checkpatch: warn on break after goto or return with same tab indentation
 has been removed from the -mm tree.  Its filename was
-     checkpatch-use-the-correct-indentation-for-which.patch
+     checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: use the correct indentation for which()
+Subject: checkpatch: warn on break after goto or return with same tab indentation
 
-I copied the which subroutine from get_maintainer.pl.
+Using break; after a goto or return is unnecessary so emit a warning when
+the break is at the same indent level.
 
-Unfortunately, get_maintainer uses a 4 space indentation so use the proper
-tab indentation instead.
+So this emits a warning on:
+
+	switch (foo) {
+	case 1:
+		goto err;
+		break;
+	}
+
+but not on:
+
+	switch (foo) {
+	case 1:
+		if (bar())
+			goto err;
+		break;
+	}
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-use-the-correct-indentation-for-which scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-use-the-correct-indentation-for-which
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-break-after-goto-or-return-with-same-tab-indentation
 +++ a/scripts/checkpatch.pl
-@@ -710,15 +710,15 @@ sub format_email {
- }
+@@ -2450,6 +2450,16 @@ sub process {
+ 			}
+ 		}
  
- sub which {
--    my ($bin) = @_;
-+	my ($bin) = @_;
- 
--    foreach my $path (split(/:/, $ENV{PATH})) {
--	if (-e "$path/$bin") {
--	    return "$path/$bin";
-+	foreach my $path (split(/:/, $ENV{PATH})) {
-+		if (-e "$path/$bin") {
-+			return "$path/$bin";
++# check indentation of a line with a break;
++# if the previous line is a goto or return and is indented the same # of tabs
++		if ($sline =~ /^\+([\t]+)break\s*;\s*$/) {
++			my $tabs = $1;
++			if ($prevline =~ /^\+$tabs(?:goto|return)\b/) {
++				WARN("UNNECESSARY_BREAK",
++				     "break is not useful after a goto or return\n" . $hereprev);
++			}
 +		}
- 	}
--    }
- 
--    return "";
-+	return "";
- }
- 
- sub which_conf {
++
+ # discourage the addition of CONFIG_EXPERIMENTAL in #if(def).
+ 		if ($line =~ /^\+\s*\#\s*if.*\bCONFIG_EXPERIMENTAL\b/) {
+ 			WARN("CONFIG_EXPERIMENTAL",
 _
 
 Patches currently in -mm which might be from joe@perches.com are
