@@ -1,41 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-remove-all_unreclaimable.patch removed from
- -mm tree
-Date: Thu, 07 Aug 2014 13:04:49 -0700
-Message-ID: <53e3dbe1.1u2AVRj1ULFtcuYC%akpm@linux-foundation.org>
+Subject: [merged] mm-vmscan-move-swappiness-out-of-scan_control.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:04:51 -0700
+Message-ID: <53e3dbe3.nFZOMjuO4RNrRxAM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:33239 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159AbaHGUEu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:04:50 -0400
-Received: by mail-qa0-f74.google.com with SMTP id j15so609011qaq.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:04:49 -0700 (PDT)
+Received: from mail-yk0-f201.google.com ([209.85.160.201]:64227 "EHLO
+	mail-yk0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751159AbaHGUEw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:04:52 -0400
+Received: by mail-yk0-f201.google.com with SMTP id 142so610892ykq.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:04:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: remove all_unreclaimable()
+     Subject: mm: vmscan: move swappiness out of scan_control
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-remove-all_unreclaimable.patch
+     mm-vmscan-move-swappiness-out-of-scan_control.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: remove all_unreclaimable()
+Subject: mm: vmscan: move swappiness out of scan_control
 
-Direct reclaim currently calls shrink_zones() to reclaim all members of a
-zonelist, and if that wasn't successful it does another pass through the
-same zonelist to check overall reclaimability.
-
-Just check reclaimability in shrink_zones() directly and propagate the
-result through the return value.  Then remove all_unreclaimable().
+Swappiness is determined for each scanned memcg individually in
+shrink_zone() and is not a parameter that applies throughout the reclaim
+scan.  Move it out of struct scan_control to prevent accidental use of a
+stale value.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -46,133 +44,115 @@ Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   49 ++++++++++++++++++++++++-------------------------
- 1 file changed, 24 insertions(+), 25 deletions(-)
+ mm/vmscan.c |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-remove-all_unreclaimable mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-remove-all_unreclaimable
+diff -puN mm/vmscan.c~mm-vmscan-move-swappiness-out-of-scan_control mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-move-swappiness-out-of-scan_control
 +++ a/mm/vmscan.c
-@@ -2244,9 +2244,10 @@ static inline bool should_continue_recla
- 	}
- }
+@@ -89,9 +89,6 @@ struct scan_control {
+ 	/* Scan (total_size >> priority) pages at once */
+ 	int priority;
  
--static void shrink_zone(struct zone *zone, struct scan_control *sc)
-+static bool shrink_zone(struct zone *zone, struct scan_control *sc)
- {
- 	unsigned long nr_reclaimed, nr_scanned;
-+	bool reclaimable = false;
- 
- 	do {
- 		struct mem_cgroup *root = sc->target_mem_cgroup;
-@@ -2290,8 +2291,13 @@ static void shrink_zone(struct zone *zon
- 			   sc->nr_scanned - nr_scanned,
- 			   sc->nr_reclaimed - nr_reclaimed);
- 
-+		if (sc->nr_reclaimed - nr_reclaimed)
-+			reclaimable = true;
-+
- 	} while (should_continue_reclaim(zone, sc->nr_reclaimed - nr_reclaimed,
- 					 sc->nr_scanned - nr_scanned, sc));
-+
-+	return reclaimable;
- }
- 
- /* Returns true if compaction should go ahead for a high-order request */
-@@ -2340,8 +2346,10 @@ static inline bool compaction_ready(stru
-  *
-  * If a zone is deemed to be full of pinned pages then just give it a light
-  * scan then give up on it.
-+ *
-+ * Returns true if a zone was reclaimable.
+-	/* anon vs. file LRUs scanning "ratio" */
+-	int swappiness;
+-
+ 	/*
+ 	 * The memory cgroup that hit its limit and as a result is the
+ 	 * primary target of this reclaim invocation.
+@@ -1868,8 +1865,8 @@ enum scan_balance {
+  * nr[0] = anon inactive pages to scan; nr[1] = anon active pages to scan
+  * nr[2] = file inactive pages to scan; nr[3] = file active pages to scan
   */
--static void shrink_zones(struct zonelist *zonelist, struct scan_control *sc)
-+static bool shrink_zones(struct zonelist *zonelist, struct scan_control *sc)
+-static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+-			   unsigned long *nr)
++static void get_scan_count(struct lruvec *lruvec, int swappiness,
++			   struct scan_control *sc, unsigned long *nr)
  {
- 	struct zoneref *z;
- 	struct zone *zone;
-@@ -2354,6 +2362,7 @@ static void shrink_zones(struct zonelist
- 		.gfp_mask = sc->gfp_mask,
- 	};
- 	enum zone_type requested_highidx = gfp_zone(sc->gfp_mask);
-+	bool reclaimable = false;
- 
- 	/*
- 	 * If the number of buffer_heads in the machine exceeds the maximum
-@@ -2414,10 +2423,17 @@ static void shrink_zones(struct zonelist
- 						&nr_soft_scanned);
- 			sc->nr_reclaimed += nr_soft_reclaimed;
- 			sc->nr_scanned += nr_soft_scanned;
-+			if (nr_soft_reclaimed)
-+				reclaimable = true;
- 			/* need some check for avoid more shrink_zone() */
- 		}
- 
--		shrink_zone(zone, sc);
-+		if (shrink_zone(zone, sc))
-+			reclaimable = true;
-+
-+		if (global_reclaim(sc) &&
-+		    !reclaimable && zone_reclaimable(zone))
-+			reclaimable = true;
- 	}
- 
- 	/*
-@@ -2439,26 +2455,8 @@ static void shrink_zones(struct zonelist
- 	 * promoted it to __GFP_HIGHMEM.
+ 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+ 	u64 fraction[2];
+@@ -1912,7 +1909,7 @@ static void get_scan_count(struct lruvec
+ 	 * using the memory controller's swap limit feature would be
+ 	 * too expensive.
  	 */
- 	sc->gfp_mask = orig_mask;
--}
--
--/* All zones in zonelist are unreclaimable? */
--static bool all_unreclaimable(struct zonelist *zonelist,
--		struct scan_control *sc)
--{
--	struct zoneref *z;
--	struct zone *zone;
--
--	for_each_zone_zonelist_nodemask(zone, z, zonelist,
--			gfp_zone(sc->gfp_mask), sc->nodemask) {
--		if (!populated_zone(zone))
--			continue;
--		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
--			continue;
--		if (zone_reclaimable(zone))
--			return false;
--	}
+-	if (!global_reclaim(sc) && !sc->swappiness) {
++	if (!global_reclaim(sc) && !swappiness) {
+ 		scan_balance = SCAN_FILE;
+ 		goto out;
+ 	}
+@@ -1922,7 +1919,7 @@ static void get_scan_count(struct lruvec
+ 	 * system is close to OOM, scan both anon and file equally
+ 	 * (unless the swappiness setting disagrees with swapping).
+ 	 */
+-	if (!sc->priority && sc->swappiness) {
++	if (!sc->priority && swappiness) {
+ 		scan_balance = SCAN_EQUAL;
+ 		goto out;
+ 	}
+@@ -1965,7 +1962,7 @@ static void get_scan_count(struct lruvec
+ 	 * With swappiness at 100, anonymous and file have the same priority.
+ 	 * This scanning priority is essentially the inverse of IO cost.
+ 	 */
+-	anon_prio = sc->swappiness;
++	anon_prio = swappiness;
+ 	file_prio = 200 - anon_prio;
  
--	return true;
-+	return reclaimable;
- }
- 
+ 	/*
+@@ -2055,7 +2052,8 @@ out:
  /*
-@@ -2482,6 +2480,7 @@ static unsigned long do_try_to_free_page
+  * This is a basic per-zone page freer.  Used by both kswapd and direct reclaim.
+  */
+-static void shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
++static void shrink_lruvec(struct lruvec *lruvec, int swappiness,
++			  struct scan_control *sc)
  {
- 	unsigned long total_scanned = 0;
- 	unsigned long writeback_threshold;
-+	bool zones_reclaimable;
+ 	unsigned long nr[NR_LRU_LISTS];
+ 	unsigned long targets[NR_LRU_LISTS];
+@@ -2066,7 +2064,7 @@ static void shrink_lruvec(struct lruvec
+ 	struct blk_plug plug;
+ 	bool scan_adjusted;
  
- 	delayacct_freepages_start();
+-	get_scan_count(lruvec, sc, nr);
++	get_scan_count(lruvec, swappiness, sc, nr);
  
-@@ -2492,7 +2491,7 @@ static unsigned long do_try_to_free_page
- 		vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
- 				sc->priority);
- 		sc->nr_scanned = 0;
--		shrink_zones(zonelist, sc);
-+		zones_reclaimable = shrink_zones(zonelist, sc);
+ 	/* Record the original scan target for proportional adjustments later */
+ 	memcpy(targets, nr, sizeof(nr));
+@@ -2263,11 +2261,12 @@ static bool shrink_zone(struct zone *zon
+ 		memcg = mem_cgroup_iter(root, NULL, &reclaim);
+ 		do {
+ 			struct lruvec *lruvec;
++			int swappiness;
  
- 		total_scanned += sc->nr_scanned;
- 		if (sc->nr_reclaimed >= sc->nr_to_reclaim)
-@@ -2532,8 +2531,8 @@ static unsigned long do_try_to_free_page
- 	if (sc->compaction_ready)
- 		return 1;
+ 			lruvec = mem_cgroup_zone_lruvec(zone, memcg);
++			swappiness = mem_cgroup_swappiness(memcg);
  
--	/* top priority shrink_zones still had more to do? don't OOM, then */
--	if (global_reclaim(sc) && !all_unreclaimable(zonelist, sc))
-+	/* Any of the zones still reclaimable?  Don't OOM. */
-+	if (zones_reclaimable)
- 		return 1;
+-			sc->swappiness = mem_cgroup_swappiness(memcg);
+-			shrink_lruvec(lruvec, sc);
++			shrink_lruvec(lruvec, swappiness, sc);
  
- 	return 0;
+ 			/*
+ 			 * Direct reclaim and kswapd have to scan all memory
+@@ -2714,10 +2713,10 @@ unsigned long mem_cgroup_shrink_node_zon
+ 		.may_swap = !noswap,
+ 		.order = 0,
+ 		.priority = 0,
+-		.swappiness = mem_cgroup_swappiness(memcg),
+ 		.target_mem_cgroup = memcg,
+ 	};
+ 	struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
++	int swappiness = mem_cgroup_swappiness(memcg);
+ 
+ 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+ 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+@@ -2733,7 +2732,7 @@ unsigned long mem_cgroup_shrink_node_zon
+ 	 * will pick up pages from other mem cgroup's as well. We hack
+ 	 * the priority and make it zero.
+ 	 */
+-	shrink_lruvec(lruvec, &sc);
++	shrink_lruvec(lruvec, swappiness, &sc);
+ 
+ 	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
+ 
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
