@@ -1,87 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
+Subject: [merged] checkpatch-emit-a-warning-on-file-add-move-delete.patch
  removed from -mm tree
-Date: Thu, 07 Aug 2014 13:09:05 -0700
-Message-ID: <53e3dce1.CYuQExHjvrfTqzi3%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:09:09 -0700
+Message-ID: <53e3dce5.LtPBEV44Q/2Eu+NV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f73.google.com ([209.85.192.73]:51504 "EHLO
-	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751323AbaHGUJG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:06 -0400
-Received: by mail-qg0-f73.google.com with SMTP id q107so607816qgd.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:05 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:33153 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755130AbaHGUJK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:10 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so1177437pab.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, fabf@skynet.be, tytso@mit.edu, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: emit fewer kmalloc_array/kcalloc conversion warnings
+     Subject: checkpatch: emit a warning on file add/move/delete
 has been removed from the -mm tree.  Its filename was
-     checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings.patch
+     checkpatch-emit-a-warning-on-file-add-move-delete.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: emit fewer kmalloc_array/kcalloc conversion warnings
+Subject: checkpatch: emit a warning on file add/move/delete
 
-Avoid matching allocs that appear to be known small multiplications of a
-sizeof with a constant because gcc as of 4.8 cannot optimize the code in a
-calloc() exactly the same way as an alloc().
+Whenever files are added, moved, or deleted, the MAINTAINERS file patterns
+can be out of sync or outdated.
 
-Look for numeric constants or what appear to be upper case only macro
-#defines.
+To try to keep MAINTAINERS more up-to-date, add a one-time warning
+whenever a patch does any of those.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Theodore Ts'o <tytso@mit.edu>
-Original-patch-by: Fabian Frederick <fabf@skynet.be>
+Acked-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ scripts/checkpatch.pl |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-emit-fewer-kmalloc_array-kcalloc-conversion-warnings
+diff -puN scripts/checkpatch.pl~checkpatch-emit-a-warning-on-file-add-move-delete scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-emit-a-warning-on-file-add-move-delete
 +++ a/scripts/checkpatch.pl
-@@ -4487,22 +4487,23 @@ sub process {
+@@ -1679,7 +1679,7 @@ sub process {
  
- # check for k[mz]alloc with multiplies that could be kmalloc_array/kcalloc
- 		if ($^V && $^V ge 5.10.0 &&
--		    $line =~ /\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/) {
-+		    $line =~ /\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)\s*,/) {
- 			my $oldfunc = $3;
- 			my $a1 = $4;
- 			my $a2 = $10;
- 			my $newfunc = "kmalloc_array";
- 			$newfunc = "kcalloc" if ($oldfunc eq "kzalloc");
--			if ($a1 =~ /^sizeof\s*\S/ || $a2 =~ /^sizeof\s*\S/) {
-+			my $r1 = $a1;
-+			my $r2 = $a2;
-+			if ($a1 =~ /^sizeof\s*\S/) {
-+				$r1 = $a2;
-+				$r2 = $a1;
-+			}
-+			if ($r1 !~ /^sizeof\b/ && $r2 =~ /^sizeof\s*\S/ &&
-+			    !($r1 =~ /^$Constant$/ || $r1 =~ /^[A-Z_][A-Z0-9_]*$/)) {
- 				if (WARN("ALLOC_WITH_MULTIPLY",
- 					 "Prefer $newfunc over $oldfunc with multiply\n" . $herecurr) &&
- 				    $fix) {
--					my $r1 = $a1;
--					my $r2 = $a2;
--					if ($a1 =~ /^sizeof\s*\S/) {
--						$r1 = $a2;
--						$r2 = $a1;
--					}
- 					$fixed[$linenr - 1] =~ s/\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/$1 . ' = ' . "$newfunc(" . trim($r1) . ', ' . trim($r2)/e;
+ 	my $in_header_lines = $file ? 0 : 1;
+ 	my $in_commit_log = 0;		#Scanning lines before patch
+-
++	my $reported_maintainer_file = 0;
+ 	my $non_utf8_charset = 0;
  
- 				}
+ 	my $last_blank_line = 0;
+@@ -2012,6 +2012,17 @@ sub process {
+ 			      "Please use 12 to 16 chars for the git commit ID like: '${init_char}ommit $id (\"$desc\")'\n" . $herecurr);
+ 		}
+ 
++# Check for added, moved or deleted files
++		if (!$reported_maintainer_file && !$in_commit_log &&
++		    ($line =~ /^(?:new|deleted) file mode\s*\d+\s*$/ ||
++		     $line =~ /^rename (?:from|to) [\w\/\.\-]+\s*$/ ||
++		     ($line =~ /\{\s*([\w\/\.\-]*)\s*\=\>\s*([\w\/\.\-]*)\s*\}/ &&
++		      (defined($1) || defined($2))))) {
++			$reported_maintainer_file = 1;
++			WARN("FILE_PATH_CHANGES",
++			     "added, moved or deleted file(s), does MAINTAINERS need updating?\n" . $herecurr);
++		}
++
+ # Check for wrappage within a valid hunk of the file
+ 		if ($realcnt != 0 && $line !~ m{^(?:\+|-| |\\ No newline|$)}) {
+ 			ERROR("CORRUPTED_PATCH",
 _
 
 Patches currently in -mm which might be from joe@perches.com are
