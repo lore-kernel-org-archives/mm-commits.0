@@ -1,98 +1,125 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch removed
+ include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch removed
  from -mm tree
-Date: Thu, 07 Aug 2014 13:03:47 -0700
-Message-ID: <53e3dba3.9FIvIJDCsa/WWMxF%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:03:43 -0700
+Message-ID: <53e3db9f.7EoSDwKOUHlRMUfx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f73.google.com ([209.85.218.73]:33044 "EHLO
-	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755331AbaHGUDs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:48 -0400
-Received: by mail-oi0-f73.google.com with SMTP id u20so837530oif.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:47 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:38112 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755093AbaHGUDo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:44 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so836802oig.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, sasha.levin@oracle.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: use entry = ACCESS_ONCE(*pte) in handle_pte_fault()
+     Subject: include/linux/memblock.h: add __init to memblock_set_bottom_up()
 has been removed from the -mm tree.  Its filename was
-     mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
+     include-linux-memblockh-add-__init-to-memblock_set_bottom_up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/memory.c: use entry = ACCESS_ONCE(*pte) in handle_pte_fault()
+From: Fabian Frederick <fabf@skynet.be>
+Subject: include/linux/memblock.h: add __init to memblock_set_bottom_up()
 
-Use ACCESS_ONCE() in handle_pte_fault() when getting the entry or orig_pte
-upon which all subsequent decisions and pte_same() tests will be made.
+memblock_set_bottom_up() is only called by __init
+cmdline_parse_movable_node() and __init numa_init().
 
-I have no evidence that its lack is responsible for the mm/filemap.c:202
-BUG_ON(page_mapped(page)) in __delete_from_page_cache() found by trinity,
-and I am not optimistic that it will fix it.  But I have found no other
-explanation, and ACCESS_ONCE() here will surely not hurt.
-
-If gcc does re-access the pte before passing it down, then that would be
-disastrous for correct page fault handling, and certainly could explain
-the page_mapped() BUGs seen (concurrent fault causing page to be mapped in
-a second time on top of itself: mapcount 2 for a single pte).
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memblock.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault mm/memory.c
---- a/mm/memory.c~mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault
-+++ a/mm/memory.c
-@@ -3181,7 +3181,7 @@ static int handle_pte_fault(struct mm_st
- 	pte_t entry;
- 	spinlock_t *ptl;
+diff -puN include/linux/memblock.h~include-linux-memblockh-add-__init-to-memblock_set_bottom_up include/linux/memblock.h
+--- a/include/linux/memblock.h~include-linux-memblockh-add-__init-to-memblock_set_bottom_up
++++ a/include/linux/memblock.h
+@@ -249,7 +249,7 @@ phys_addr_t memblock_alloc(phys_addr_t s
+ /*
+  * Set the allocation direction to bottom-up or top-down.
+  */
+-static inline void memblock_set_bottom_up(bool enable)
++static inline void __init memblock_set_bottom_up(bool enable)
+ {
+ 	memblock.bottom_up = enable;
+ }
+@@ -264,7 +264,7 @@ static inline bool memblock_bottom_up(vo
+ 	return memblock.bottom_up;
+ }
+ #else
+-static inline void memblock_set_bottom_up(bool enable) {}
++static inline void __init memblock_set_bottom_up(bool enable) {}
+ static inline bool memblock_bottom_up(void) { return false; }
+ #endif
  
--	entry = *pte;
-+	entry = ACCESS_ONCE(*pte);
- 	if (!pte_present(entry)) {
- 		if (pte_none(entry)) {
- 			if (vma->vm_ops) {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
-vmstat-on-demand-vmstat-workers-v8.patch
-vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
-mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
-mm-memcontrol-avoid-charge-statistics-churn-during-page-migration.patch
-mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
+fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+fs-efs-nameic-return-is-not-a-function.patch
+fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-test_kprobesc-use-current-logging-functions.patch
+fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
+fs-isofs-logging-clean-up.patch
+fs-isofs-logging-clean-up-fix.patch
+fs-coda-use-linux-uaccessh.patch
+fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+fs-ufs-convert-printk-to-pr_foo.patch
+fs-ufs-use-pr_fmt.patch
+fs-ufs-superc-use-__func__-in-logging.patch
+fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
+fs-ufs-convert-ufsd-printk-to-pr_debug.patch
+fs-ufs-inodec-kernel-doc-warning-fixes.patch
+fs-reiserfs-replace-not-standard-%lu-%ld.patch
+fs-reiserfs-use-linux-uaccessh.patch
+fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
+fs-hpfs-dnodec-fix-suspect-code-indent.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+proc-constify-seq_operations.patch
+fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
+fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
+fs-bfs-use-bfs-prefix-for-dump_imap.patch
+drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
+fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cramfs-convert-printk-to-pr_foo.patch
+fs-cramfs-use-pr_fmt.patch
+fs-cramfs-code-clean-up.patch
+fs-cramfs-inodec-use-linux-uaccessh.patch
+fs-romfs-superc-convert-printk-to-pr_foo.patch
+fs-romfs-superc-use-pr_fmt-in-logging.patch
+fs-romfs-superc-add-blank-line-after-declarations.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
+scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
+fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
 linux-next.patch
-mm-allow-drivers-to-prevent-new-writable-mappings.patch
-shm-add-sealing-api.patch
-shm-add-memfd_create-syscall.patch
-selftests-add-memfd_create-sealing-tests.patch
-selftests-add-memfd-sealing-page-pinning-tests.patch
-shm-wait-for-pins-to-be-released-when-sealing.patch
-timer-provide-an-api-for-deferrable-timeout.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+init-mainc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
