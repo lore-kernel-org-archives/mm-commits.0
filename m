@@ -1,97 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged] remove-cpu_subtype_sh7764.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:02:25 -0700
-Message-ID: <53e3db51.xCw04Z3UjzfiyP2D%akpm@linux-foundation.org>
+Subject: [merged] arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:02:27 -0700
+Message-ID: <53e3db53.VadUvGGmtWYWdpDy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:58344 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751897AbaHGUC0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:26 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so1172571pab.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:25 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:45924 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751897AbaHGUC2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:28 -0400
+Received: by mail-ie0-f201.google.com with SMTP id tr6so842336ieb.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@nod.at, pebolle@tiscali.nl, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: remove CPU_SUBTYPE_SH7764
+     Subject: arch/sh/mm/asids-debugfs.c: use PTR_ERR_OR_ZERO
 has been removed from the -mm tree.  Its filename was
-     remove-cpu_subtype_sh7764.patch
+     arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Richard Weinberger <richard@nod.at>
-Subject: sh: remove CPU_SUBTYPE_SH7764
+From: Fabian Frederick <fabf@skynet.be>
+Subject: arch/sh/mm/asids-debugfs.c: use PTR_ERR_OR_ZERO
 
-The symbol is an orphan, get rid of it.
+Replace IS_ERR/PTR_ERR.
 
-Submitted by Richard a few months ago as "[PATCH 21/28] Remove
-CPU_SUBTYPE_SH7764".
-
-[pebolle@tiscali.nl: re-added dropped ||]
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/drivers/dma/Kconfig                |    5 ++---
- arch/sh/include/cpu-sh4/cpu/dma-register.h |    1 -
- arch/sh/include/cpu-sh4a/cpu/dma.h         |    3 +--
- 3 files changed, 3 insertions(+), 6 deletions(-)
+ arch/sh/mm/asids-debugfs.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/sh/drivers/dma/Kconfig~remove-cpu_subtype_sh7764 arch/sh/drivers/dma/Kconfig
---- a/arch/sh/drivers/dma/Kconfig~remove-cpu_subtype_sh7764
-+++ a/arch/sh/drivers/dma/Kconfig
-@@ -12,9 +12,8 @@ config SH_DMA_IRQ_MULTI
- 	default y if CPU_SUBTYPE_SH7750  || CPU_SUBTYPE_SH7751  || \
- 		     CPU_SUBTYPE_SH7750S || CPU_SUBTYPE_SH7750R || \
- 		     CPU_SUBTYPE_SH7751R || CPU_SUBTYPE_SH7091  || \
--		     CPU_SUBTYPE_SH7763  || CPU_SUBTYPE_SH7764  || \
--		     CPU_SUBTYPE_SH7780  || CPU_SUBTYPE_SH7785  || \
--		     CPU_SUBTYPE_SH7760
-+		     CPU_SUBTYPE_SH7763  || CPU_SUBTYPE_SH7780  || \
-+		     CPU_SUBTYPE_SH7785  || CPU_SUBTYPE_SH7760
+diff -puN arch/sh/mm/asids-debugfs.c~arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero arch/sh/mm/asids-debugfs.c
+--- a/arch/sh/mm/asids-debugfs.c~arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero
++++ a/arch/sh/mm/asids-debugfs.c
+@@ -67,10 +67,8 @@ static int __init asids_debugfs_init(voi
+ 					   NULL, &asids_debugfs_fops);
+ 	if (!asids_dentry)
+ 		return -ENOMEM;
+-	if (IS_ERR(asids_dentry))
+-		return PTR_ERR(asids_dentry);
  
- config SH_DMA_API
- 	depends on SH_DMA
-diff -puN arch/sh/include/cpu-sh4/cpu/dma-register.h~remove-cpu_subtype_sh7764 arch/sh/include/cpu-sh4/cpu/dma-register.h
---- a/arch/sh/include/cpu-sh4/cpu/dma-register.h~remove-cpu_subtype_sh7764
-+++ a/arch/sh/include/cpu-sh4/cpu/dma-register.h
-@@ -32,7 +32,6 @@
- #define CHCR_TS_HIGH_SHIFT	(20 - 2)	/* 2 bits for shifted low TS */
- #elif defined(CONFIG_CPU_SUBTYPE_SH7757) || \
- 	defined(CONFIG_CPU_SUBTYPE_SH7763) || \
--	defined(CONFIG_CPU_SUBTYPE_SH7764) || \
- 	defined(CONFIG_CPU_SUBTYPE_SH7780) || \
- 	defined(CONFIG_CPU_SUBTYPE_SH7785)
- #define CHCR_TS_LOW_MASK	0x00000018
-diff -puN arch/sh/include/cpu-sh4a/cpu/dma.h~remove-cpu_subtype_sh7764 arch/sh/include/cpu-sh4a/cpu/dma.h
---- a/arch/sh/include/cpu-sh4a/cpu/dma.h~remove-cpu_subtype_sh7764
-+++ a/arch/sh/include/cpu-sh4a/cpu/dma.h
-@@ -14,8 +14,7 @@
- #define DMTE4_IRQ	evt2irq(0xb80)
- #define DMAE0_IRQ	evt2irq(0xbc0)	/* DMA Error IRQ*/
- #define SH_DMAC_BASE0	0xFE008020
--#elif defined(CONFIG_CPU_SUBTYPE_SH7763) || \
--	defined(CONFIG_CPU_SUBTYPE_SH7764)
-+#elif defined(CONFIG_CPU_SUBTYPE_SH7763)
- #define DMTE0_IRQ	evt2irq(0x640)
- #define DMTE4_IRQ	evt2irq(0x780)
- #define DMAE0_IRQ	evt2irq(0x6c0)
+-	return 0;
++	return PTR_ERR_OR_ZERO(asids_dentry);
+ }
+ module_init(asids_debugfs_init);
+ 
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2.patch
-scripts-checkstackpl-automatically-handle-32-bit-and-64-bit-mode-for-arch=x86.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
+fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+fs-efs-nameic-return-is-not-a-function.patch
+fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-test_kprobesc-use-current-logging-functions.patch
+fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
+fs-isofs-logging-clean-up.patch
+fs-isofs-logging-clean-up-fix.patch
+fs-coda-use-linux-uaccessh.patch
+fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+fs-ufs-convert-printk-to-pr_foo.patch
+fs-ufs-use-pr_fmt.patch
+fs-ufs-superc-use-__func__-in-logging.patch
+fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
+fs-ufs-convert-ufsd-printk-to-pr_debug.patch
+fs-ufs-inodec-kernel-doc-warning-fixes.patch
+fs-reiserfs-replace-not-standard-%lu-%ld.patch
+fs-reiserfs-use-linux-uaccessh.patch
+fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
+fs-hpfs-dnodec-fix-suspect-code-indent.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+proc-constify-seq_operations.patch
+fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
+fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
+fs-bfs-use-bfs-prefix-for-dump_imap.patch
+drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
+fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
+fs-cachefiles-bindc-remove-unnecessary-assertions.patch
+fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cramfs-convert-printk-to-pr_foo.patch
+fs-cramfs-use-pr_fmt.patch
+fs-cramfs-code-clean-up.patch
+fs-cramfs-inodec-use-linux-uaccessh.patch
+fs-romfs-superc-convert-printk-to-pr_foo.patch
+fs-romfs-superc-use-pr_fmt-in-logging.patch
+fs-romfs-superc-add-blank-line-after-declarations.patch
+fs-qnx6-convert-printk-to-pr_foo.patch
+fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
+fs-qnx6-update-debugging-to-current-functions.patch
+scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
+scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
+fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
 linux-next.patch
-arm64ia64ppcs390shtileumx86mm-remove-default-gate-area.patch
-update-roland-mcgraths-mail.patch
+init-mainc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
