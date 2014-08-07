@@ -1,67 +1,163 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-dont-forget-to-set-softdirty-on-file-mapped-fault.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:05:35 -0700
-Message-ID: <53e3dc0f.bjG1uMrue/NSfTHW%akpm@linux-foundation.org>
+ mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:05:41 -0700
+Message-ID: <53e3dc15.q6WdC4Irk8/pdGbj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f73.google.com ([209.85.192.73]:38566 "EHLO
-	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970AbaHGUFg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:36 -0400
-Received: by mail-qg0-f73.google.com with SMTP id q107so611235qgd.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:35 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:41129 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755110AbaHGUFm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:42 -0400
+Received: by mail-pd0-f201.google.com with SMTP id g10so1176272pdj.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, gorcunov@openvz.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: don't forget to set softdirty on file mapped fault
+     Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
 has been removed from the -mm tree.  Its filename was
-     mm-dont-forget-to-set-softdirty-on-file-mapped-fault.patch
+     mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: mm/memory.c: don't forget to set softdirty on file mapped fault
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: pagemap: avoid unnecessary overhead when tracepoints are deactivated
 
-Otherwise we may not notice that pte was softdirty because
-pte_mksoft_dirty helper _returns_ new pte but doesn't modify the argument.
+This was formerly the series "Improve sequential read throughput" which
+noted some major differences in performance of tiobench since 3.0.  While
+there are a number of factors, two that dominated were the introduction of
+the fair zone allocation policy and changes to CFQ.
 
-In case if page fault happend on dirty filemapping the newly created pte
-may loose softdirty bit thus if a userspace program is tracking memory
-changes with help of a memory tracker (CONFIG_MEM_SOFT_DIRTY) it might
-miss modification of a memory page (which in worts case may lead to
-data inconsistency).
+The behaviour of fair zone allocation policy makes more sense than
+tiobench as a benchmark and CFQ defaults were not changed due to
+insufficient benchmarking.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Pavel Emelyanov <xemul@parallels.com>
+This series is what's left.  It's one functional fix to the fair zone
+allocation policy when used on NUMA machines and a reduction of overhead
+in general.  tiobench was used for the comparison despite its flaws as an
+IO benchmark as in this case we are primarily interested in the overhead
+of page allocator and page reclaim activity.
+
+On UMA, it makes little difference to overhead
+
+          3.16.0-rc3   3.16.0-rc3
+             vanilla lowercost-v5
+User          383.61      386.77
+System        403.83      401.74
+Elapsed      5411.50     5413.11
+
+On a 4-socket NUMA machine it's a bit more noticable
+
+          3.16.0-rc3   3.16.0-rc3
+             vanilla lowercost-v5
+User          746.94      802.00
+System      65336.22    40852.33
+Elapsed     27553.52    27368.46
+
+
+
+
+This patch (of 6):
+
+The LRU insertion and activate tracepoints take PFN as a parameter forcing
+the overhead to the caller.  Move the overhead to the tracepoint
+fast-assign method to ensure the cost is only incurred when the tracepoint
+is active.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/trace/events/pagemap.h |   16 +++++++---------
+ mm/swap.c                      |    4 ++--
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN mm/memory.c~mm-dont-forget-to-set-softdirty-on-file-mapped-fault mm/memory.c
---- a/mm/memory.c~mm-dont-forget-to-set-softdirty-on-file-mapped-fault
-+++ a/mm/memory.c
-@@ -2744,7 +2744,7 @@ void do_set_pte(struct vm_area_struct *v
- 	if (write)
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 	else if (pte_file(*pte) && pte_file_soft_dirty(*pte))
--		pte_mksoft_dirty(entry);
-+		entry = pte_mksoft_dirty(entry);
- 	if (anon) {
- 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
- 		page_add_new_anon_rmap(page, vma, address);
+diff -puN include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated include/trace/events/pagemap.h
+--- a/include/trace/events/pagemap.h~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
++++ a/include/trace/events/pagemap.h
+@@ -28,12 +28,10 @@ TRACE_EVENT(mm_lru_insertion,
+ 
+ 	TP_PROTO(
+ 		struct page *page,
+-		unsigned long pfn,
+-		int lru,
+-		unsigned long flags
++		int lru
+ 	),
+ 
+-	TP_ARGS(page, pfn, lru, flags),
++	TP_ARGS(page, lru),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(struct page *,	page	)
+@@ -44,9 +42,9 @@ TRACE_EVENT(mm_lru_insertion,
+ 
+ 	TP_fast_assign(
+ 		__entry->page	= page;
+-		__entry->pfn	= pfn;
++		__entry->pfn	= page_to_pfn(page);
+ 		__entry->lru	= lru;
+-		__entry->flags	= flags;
++		__entry->flags	= trace_pagemap_flags(page);
+ 	),
+ 
+ 	/* Flag format is based on page-types.c formatting for pagemap */
+@@ -64,9 +62,9 @@ TRACE_EVENT(mm_lru_insertion,
+ 
+ TRACE_EVENT(mm_lru_activate,
+ 
+-	TP_PROTO(struct page *page, unsigned long pfn),
++	TP_PROTO(struct page *page),
+ 
+-	TP_ARGS(page, pfn),
++	TP_ARGS(page),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(struct page *,	page	)
+@@ -75,7 +73,7 @@ TRACE_EVENT(mm_lru_activate,
+ 
+ 	TP_fast_assign(
+ 		__entry->page	= page;
+-		__entry->pfn	= pfn;
++		__entry->pfn	= page_to_pfn(page);
+ 	),
+ 
+ 	/* Flag format is based on page-types.c formatting for pagemap */
+diff -puN mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated mm/swap.c
+--- a/mm/swap.c~mm-pagemap-avoid-unnecessary-overhead-when-tracepoints-are-deactivated
++++ a/mm/swap.c
+@@ -501,7 +501,7 @@ static void __activate_page(struct page
+ 		SetPageActive(page);
+ 		lru += LRU_ACTIVE;
+ 		add_page_to_lru_list(page, lruvec, lru);
+-		trace_mm_lru_activate(page, page_to_pfn(page));
++		trace_mm_lru_activate(page);
+ 
+ 		__count_vm_event(PGACTIVATE);
+ 		update_page_reclaim_stat(lruvec, file, 1);
+@@ -988,7 +988,7 @@ static void __pagevec_lru_add_fn(struct
+ 	SetPageLRU(page);
+ 	add_page_to_lru_list(page, lruvec, lru);
+ 	update_page_reclaim_stat(lruvec, file, active);
+-	trace_mm_lru_insertion(page, page_to_pfn(page), lru, trace_pagemap_flags(page));
++	trace_mm_lru_insertion(page, lru);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
