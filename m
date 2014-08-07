@@ -1,127 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page-flags-clean-up-the-page-flag-test-set-clear-macros.patch removed
- from -mm tree
-Date: Thu, 07 Aug 2014 13:04:17 -0700
-Message-ID: <53e3dbc1.Chyr23DG8WJz6bR4%akpm@linux-foundation.org>
+ mm-thp-move-invariant-bug-check-out-of-loop-in-__split_huge_page_map.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:04:13 -0700
+Message-ID: <53e3dbbd.4gFHUamUwun6gG6m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:43443 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751399AbaHGUES (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:04:18 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wp18so843979obc.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:04:17 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:39912 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751399AbaHGUEO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:04:14 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h3so878110igd.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:04:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: Waiman.Long@hp.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, riel@redhat.com, scott.norton@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page-flags: clean up the page flag test, set, clear macros
+     Subject: mm, thp: move invariant bug check out of loop in __split_huge_page_map
 has been removed from the -mm tree.  Its filename was
-     mm-page-flags-clean-up-the-page-flag-test-set-clear-macros.patch
+     mm-thp-move-invariant-bug-check-out-of-loop-in-__split_huge_page_map.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page-flags: clean up the page flag test, set, clear macros
+From: Waiman Long <Waiman.Long@hp.com>
+Subject: mm, thp: move invariant bug check out of loop in __split_huge_page_map
 
-- PAGEFLAG_FALSE only defines TEST, make it define SET and CLEAR as
-  well, analogous to PAGEFLAG.
+In __split_huge_page_map(), the check for page_mapcount(page) is invariant
+within the for loop.  Because of the fact that the macro is implemented
+using atomic_read(), the redundant check cannot be optimized away by the
+compiler leading to unnecessary read to the page structure.
 
-- Define TESTSETFLAG_FALSE, analogous to TESTSETFLAG.
+This patch moves the invariant bug check out of the loop so that it will
+be done only once.  On a 3.16-rc1 based kernel, the execution time of a
+microbenchmark that broke up 1000 transparent huge pages using munmap()
+had an execution time of 38,245us and 38,548us with and without the patch
+respectively.  The performance gain is about 1%.
 
-- Define TESTSCFLAG_FALSE, analogous to TESTSCFLAG
-
-- Make PG_mlocked accessors the same on both MMU and !MMU setups
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Waiman Long <Waiman.Long@hp.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Scott J Norton <scott.norton@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/page-flags.h~mm-page-flags-clean-up-the-page-flag-test-set-clear-macros include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-page-flags-clean-up-the-page-flag-test-set-clear-macros
-+++ a/include/linux/page-flags.h
-@@ -171,13 +171,12 @@ static inline int __TestClearPage##uname
- #define __PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
- 	__SETPAGEFLAG(uname, lname)  __CLEARPAGEFLAG(uname, lname)
+diff -puN mm/huge_memory.c~mm-thp-move-invariant-bug-check-out-of-loop-in-__split_huge_page_map mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-move-invariant-bug-check-out-of-loop-in-__split_huge_page_map
++++ a/mm/huge_memory.c
+@@ -1775,6 +1775,8 @@ static int __split_huge_page_map(struct
+ 	if (pmd) {
+ 		pgtable = pgtable_trans_huge_withdraw(mm, pmd);
+ 		pmd_populate(mm, &_pmd, pgtable);
++		if (pmd_write(*pmd))
++			BUG_ON(page_mapcount(page) != 1);
  
--#define PAGEFLAG_FALSE(uname) 						\
--static inline int Page##uname(const struct page *page)			\
--			{ return 0; }
--
- #define TESTSCFLAG(uname, lname)					\
- 	TESTSETFLAG(uname, lname) TESTCLEARFLAG(uname, lname)
- 
-+#define TESTPAGEFLAG_FALSE(uname)					\
-+static inline int Page##uname(const struct page *page) { return 0; }
-+
- #define SETPAGEFLAG_NOOP(uname)						\
- static inline void SetPage##uname(struct page *page) {  }
- 
-@@ -187,12 +186,21 @@ static inline void ClearPage##uname(stru
- #define __CLEARPAGEFLAG_NOOP(uname)					\
- static inline void __ClearPage##uname(struct page *page) {  }
- 
-+#define TESTSETFLAG_FALSE(uname)					\
-+static inline int TestSetPage##uname(struct page *page) { return 0; }
-+
- #define TESTCLEARFLAG_FALSE(uname)					\
- static inline int TestClearPage##uname(struct page *page) { return 0; }
- 
- #define __TESTCLEARFLAG_FALSE(uname)					\
- static inline int __TestClearPage##uname(struct page *page) { return 0; }
- 
-+#define PAGEFLAG_FALSE(uname) TESTPAGEFLAG_FALSE(uname)			\
-+	SETPAGEFLAG_NOOP(uname) CLEARPAGEFLAG_NOOP(uname)
-+
-+#define TESTSCFLAG_FALSE(uname)						\
-+	TESTSETFLAG_FALSE(uname) TESTCLEARFLAG_FALSE(uname)
-+
- struct page;	/* forward declaration */
- 
- TESTPAGEFLAG(Locked, locked)
-@@ -248,7 +256,6 @@ PAGEFLAG_FALSE(HighMem)
- PAGEFLAG(SwapCache, swapcache)
- #else
- PAGEFLAG_FALSE(SwapCache)
--	SETPAGEFLAG_NOOP(SwapCache) CLEARPAGEFLAG_NOOP(SwapCache)
- #endif
- 
- PAGEFLAG(Unevictable, unevictable) __CLEARPAGEFLAG(Unevictable, unevictable)
-@@ -258,8 +265,8 @@ PAGEFLAG(Unevictable, unevictable) __CLE
- PAGEFLAG(Mlocked, mlocked) __CLEARPAGEFLAG(Mlocked, mlocked)
- 	TESTSCFLAG(Mlocked, mlocked) __TESTCLEARFLAG(Mlocked, mlocked)
- #else
--PAGEFLAG_FALSE(Mlocked) SETPAGEFLAG_NOOP(Mlocked)
--	TESTCLEARFLAG_FALSE(Mlocked) __TESTCLEARFLAG_FALSE(Mlocked)
-+PAGEFLAG_FALSE(Mlocked) __CLEARPAGEFLAG_NOOP(Mlocked)
-+	TESTSCFLAG_FALSE(Mlocked) __TESTCLEARFLAG_FALSE(Mlocked)
- #endif
- 
- #ifdef CONFIG_ARCH_USES_PG_UNCACHED
+ 		haddr = address;
+ 		for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
+@@ -1784,8 +1786,6 @@ static int __split_huge_page_map(struct
+ 			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 			if (!pmd_write(*pmd))
+ 				entry = pte_wrprotect(entry);
+-			else
+-				BUG_ON(page_mapcount(page) != 1);
+ 			if (!pmd_young(*pmd))
+ 				entry = pte_mkold(entry);
+ 			if (pmd_numa(*pmd))
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from Waiman.Long@hp.com are
 
 origin.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
-page-cgroup-trivial-cleanup.patch
-page-cgroup-get-rid-of-nr_pcg_flags.patch
-memcg-remove-lookup_cgroup_page-prototype.patch
-mm-memcontrol-avoid-charge-statistics-churn-during-page-migration.patch
-nilfs2-integrate-sysfs-support-into-driver-fix.patch
-linux-next.patch
-debugging-keep-track-of-page-owners.patch
 
