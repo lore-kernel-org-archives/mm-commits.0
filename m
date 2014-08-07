@@ -1,151 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-replace-init_page_accessed-by-__setpagereferenced.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:05:15 -0700
-Message-ID: <53e3dbfb.+m2CHT+jQyczbK0O%akpm@linux-foundation.org>
+Subject: [merged] mm-hugetlb-generalize-writes-to-nr_hugepages.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:05:23 -0700
+Message-ID: <53e3dc03.ooqUC21K9Rj0pC8h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:64269 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755062AbaHGUFQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:16 -0400
-Received: by mail-oa0-f73.google.com with SMTP id g18so841628oah.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:15 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:45389 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874AbaHGUFY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:24 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so608542yha.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, dave.hansen@intel.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, prabhakar.csengg@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: rientjes@google.com, davidlohr@hp.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, lcapitulino@redhat.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: replace init_page_accessed by __SetPageReferenced
+     Subject: mm, hugetlb: generalize writes to nr_hugepages
 has been removed from the -mm tree.  Its filename was
-     mm-replace-init_page_accessed-by-__setpagereferenced.patch
+     mm-hugetlb-generalize-writes-to-nr_hugepages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: replace init_page_accessed by __SetPageReferenced
+From: David Rientjes <rientjes@google.com>
+Subject: mm, hugetlb: generalize writes to nr_hugepages
 
-Do we really need an exported alias for __SetPageReferenced()?
-Its callers better know what they're doing, in which case the page
-would not be already marked referenced.  Kill init_page_accessed(),
-just __SetPageReferenced() inline.
+Three different interfaces alter the maximum number of hugepages for an
+hstate:
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+ - /proc/sys/vm/nr_hugepages for global number of hugepages of the default
+   hstate,
+
+ - /sys/kernel/mm/hugepages/hugepages-X/nr_hugepages for global number of
+   hugepages for a specific hstate, and
+
+ - /sys/kernel/mm/hugepages/hugepages-X/nr_hugepages/mempolicy for number of
+   hugepages for a specific hstate over the set of allowed nodes.
+
+Generalize the code so that a single function handles all of these writes
+instead of duplicating the code in two different functions.
+
+This decreases the number of lines of code, but also reduces the size of
+.text by about half a percent since set_max_huge_pages() can be inlined.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Acked-by: Davidlohr Bueso <davidlohr@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 -
- mm/filemap.c         |    4 ++--
- mm/shmem.c           |    2 +-
- mm/swap.c            |   14 +++-----------
- 4 files changed, 6 insertions(+), 15 deletions(-)
+ mm/hugetlb.c |   58 +++++++++++++++++++++----------------------------
+ 1 file changed, 26 insertions(+), 32 deletions(-)
 
-diff -puN include/linux/swap.h~mm-replace-init_page_accessed-by-__setpagereferenced include/linux/swap.h
---- a/include/linux/swap.h~mm-replace-init_page_accessed-by-__setpagereferenced
-+++ a/include/linux/swap.h
-@@ -311,7 +311,6 @@ extern void lru_add_page_tail(struct pag
- 			 struct lruvec *lruvec, struct list_head *head);
- extern void activate_page(struct page *);
- extern void mark_page_accessed(struct page *);
--extern void init_page_accessed(struct page *page);
- extern void lru_add_drain(void);
- extern void lru_add_drain_cpu(int cpu);
- extern void lru_add_drain_all(void);
-diff -puN mm/filemap.c~mm-replace-init_page_accessed-by-__setpagereferenced mm/filemap.c
---- a/mm/filemap.c~mm-replace-init_page_accessed-by-__setpagereferenced
-+++ a/mm/filemap.c
-@@ -1091,9 +1091,9 @@ no_page:
- 		if (WARN_ON_ONCE(!(fgp_flags & FGP_LOCK)))
- 			fgp_flags |= FGP_LOCK;
- 
--		/* Init accessed so avoit atomic mark_page_accessed later */
-+		/* Init accessed so avoid atomic mark_page_accessed later */
- 		if (fgp_flags & FGP_ACCESSED)
--			init_page_accessed(page);
-+			__SetPageReferenced(page);
- 
- 		err = add_to_page_cache_lru(page, mapping, offset, radix_gfp_mask);
- 		if (unlikely(err)) {
-diff -puN mm/shmem.c~mm-replace-init_page_accessed-by-__setpagereferenced mm/shmem.c
---- a/mm/shmem.c~mm-replace-init_page_accessed-by-__setpagereferenced
-+++ a/mm/shmem.c
-@@ -1166,7 +1166,7 @@ repeat:
- 		__SetPageSwapBacked(page);
- 		__set_page_locked(page);
- 		if (sgp == SGP_WRITE)
--			init_page_accessed(page);
-+			__SetPageReferenced(page);
- 
- 		error = mem_cgroup_charge_file(page, current->mm,
- 						gfp & GFP_RECLAIM_MASK);
-diff -puN mm/swap.c~mm-replace-init_page_accessed-by-__setpagereferenced mm/swap.c
---- a/mm/swap.c~mm-replace-init_page_accessed-by-__setpagereferenced
-+++ a/mm/swap.c
-@@ -589,6 +589,9 @@ static void __lru_cache_activate_page(st
-  * inactive,unreferenced	->	inactive,referenced
-  * inactive,referenced		->	active,unreferenced
-  * active,unreferenced		->	active,referenced
-+ *
-+ * When a newly allocated page is not yet visible, so safe for non-atomic ops,
-+ * __SetPageReferenced(page) may be substituted for mark_page_accessed(page).
-  */
- void mark_page_accessed(struct page *page)
- {
-@@ -614,17 +617,6 @@ void mark_page_accessed(struct page *pag
+diff -puN mm/hugetlb.c~mm-hugetlb-generalize-writes-to-nr_hugepages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-generalize-writes-to-nr_hugepages
++++ a/mm/hugetlb.c
+@@ -1734,21 +1734,13 @@ static ssize_t nr_hugepages_show_common(
+ 	return sprintf(buf, "%lu\n", nr_huge_pages);
  }
- EXPORT_SYMBOL(mark_page_accessed);
  
--/*
-- * Used to mark_page_accessed(page) that is not visible yet and when it is
-- * still safe to use non-atomic ops
-- */
--void init_page_accessed(struct page *page)
--{
--	if (!PageReferenced(page))
--		__SetPageReferenced(page);
--}
--EXPORT_SYMBOL(init_page_accessed);
--
- static void __lru_cache_add(struct page *page)
+-static ssize_t nr_hugepages_store_common(bool obey_mempolicy,
+-			struct kobject *kobj, struct kobj_attribute *attr,
+-			const char *buf, size_t len)
++static ssize_t __nr_hugepages_store_common(bool obey_mempolicy,
++					   struct hstate *h, int nid,
++					   unsigned long count, size_t len)
  {
- 	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
+ 	int err;
+-	int nid;
+-	unsigned long count;
+-	struct hstate *h;
+ 	NODEMASK_ALLOC(nodemask_t, nodes_allowed, GFP_KERNEL | __GFP_NORETRY);
+ 
+-	err = kstrtoul(buf, 10, &count);
+-	if (err)
+-		goto out;
+-
+-	h = kobj_to_hstate(kobj, &nid);
+ 	if (hstate_is_gigantic(h) && !gigantic_page_supported()) {
+ 		err = -EINVAL;
+ 		goto out;
+@@ -1784,6 +1776,23 @@ out:
+ 	return err;
+ }
+ 
++static ssize_t nr_hugepages_store_common(bool obey_mempolicy,
++					 struct kobject *kobj, const char *buf,
++					 size_t len)
++{
++	struct hstate *h;
++	unsigned long count;
++	int nid;
++	int err;
++
++	err = kstrtoul(buf, 10, &count);
++	if (err)
++		return err;
++
++	h = kobj_to_hstate(kobj, &nid);
++	return __nr_hugepages_store_common(obey_mempolicy, h, nid, count, len);
++}
++
+ static ssize_t nr_hugepages_show(struct kobject *kobj,
+ 				       struct kobj_attribute *attr, char *buf)
+ {
+@@ -1793,7 +1802,7 @@ static ssize_t nr_hugepages_show(struct
+ static ssize_t nr_hugepages_store(struct kobject *kobj,
+ 	       struct kobj_attribute *attr, const char *buf, size_t len)
+ {
+-	return nr_hugepages_store_common(false, kobj, attr, buf, len);
++	return nr_hugepages_store_common(false, kobj, buf, len);
+ }
+ HSTATE_ATTR(nr_hugepages);
+ 
+@@ -1812,7 +1821,7 @@ static ssize_t nr_hugepages_mempolicy_sh
+ static ssize_t nr_hugepages_mempolicy_store(struct kobject *kobj,
+ 	       struct kobj_attribute *attr, const char *buf, size_t len)
+ {
+-	return nr_hugepages_store_common(true, kobj, attr, buf, len);
++	return nr_hugepages_store_common(true, kobj, buf, len);
+ }
+ HSTATE_ATTR(nr_hugepages_mempolicy);
+ #endif
+@@ -2248,36 +2257,21 @@ static int hugetlb_sysctl_handler_common
+ 			 void __user *buffer, size_t *length, loff_t *ppos)
+ {
+ 	struct hstate *h = &default_hstate;
+-	unsigned long tmp;
++	unsigned long tmp = h->max_huge_pages;
+ 	int ret;
+ 
+ 	if (!hugepages_supported())
+ 		return -ENOTSUPP;
+ 
+-	tmp = h->max_huge_pages;
+-
+-	if (write && hstate_is_gigantic(h) && !gigantic_page_supported())
+-		return -EINVAL;
+-
+ 	table->data = &tmp;
+ 	table->maxlen = sizeof(unsigned long);
+ 	ret = proc_doulongvec_minmax(table, write, buffer, length, ppos);
+ 	if (ret)
+ 		goto out;
+ 
+-	if (write) {
+-		NODEMASK_ALLOC(nodemask_t, nodes_allowed,
+-						GFP_KERNEL | __GFP_NORETRY);
+-		if (!(obey_mempolicy &&
+-			       init_nodemask_of_mempolicy(nodes_allowed))) {
+-			NODEMASK_FREE(nodes_allowed);
+-			nodes_allowed = &node_states[N_MEMORY];
+-		}
+-		h->max_huge_pages = set_max_huge_pages(h, tmp, nodes_allowed);
+-
+-		if (nodes_allowed != &node_states[N_MEMORY])
+-			NODEMASK_FREE(nodes_allowed);
+-	}
++	if (write)
++		ret = __nr_hugepages_store_common(obey_mempolicy, h,
++						  NUMA_NO_NODE, tmp, *length);
+ out:
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-mm-memcontrol-rewrite-charge-api.patch
-mm-memcontrol-rewrite-uncharge-api.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching.patch
-mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
-vmstat-on-demand-vmstat-workers-v8.patch
-vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
 mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
 mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
 mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
-mm-memcontrol-avoid-charge-statistics-churn-during-page-migration.patch
 mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
+include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
+mm-utilc-add-kstrimdup.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+fork-exec-cleanup-mm-initialization.patch
+fork-reset-mm-pinned_vm.patch
+fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
 linux-next.patch
-mm-allow-drivers-to-prevent-new-writable-mappings.patch
-shm-add-sealing-api.patch
-shm-add-memfd_create-syscall.patch
-selftests-add-memfd_create-sealing-tests.patch
-selftests-add-memfd-sealing-page-pinning-tests.patch
-shm-wait-for-pins-to-be-released-when-sealing.patch
-timer-provide-an-api-for-deferrable-timeout.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
