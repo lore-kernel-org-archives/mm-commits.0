@@ -1,130 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:03:37 -0700
-Message-ID: <53e3db99.XFgi8Ztm2L/FDQA3%akpm@linux-foundation.org>
+Subject: [merged] mm-trivial-comment-cleanup-in-slabc.patch removed from
+ -mm tree
+Date: Thu, 07 Aug 2014 13:03:27 -0700
+Message-ID: <53e3db8f.bxZEEdAETBqPxOJB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f74.google.com ([209.85.192.74]:38917 "EHLO
-	mail-qg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751500AbaHGUDi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:38 -0400
-Received: by mail-qg0-f74.google.com with SMTP id z60so611880qgd.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:37 -0700 (PDT)
+Received: from mail-ig0-f202.google.com ([209.85.213.202]:38942 "EHLO
+	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755318AbaHGUD2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:28 -0400
+Received: by mail-ig0-f202.google.com with SMTP id r2so879381igi.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, rientjes@google.com, toshi.kani@hp.com, mm-commits@vger.kernel.org
+To: shhuiw@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: add __meminit to grow_zone_span/grow_pgdat_span
+     Subject: mm/slab.c: fix comments
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span.patch
+     mm-trivial-comment-cleanup-in-slabc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: mm/memory_hotplug.c: add __meminit to grow_zone_span/grow_pgdat_span
+From: Wang Sheng-Hui <shhuiw@gmail.com>
+Subject: mm/slab.c: fix comments
 
-grow_zone_span and grow_pgdat_span are only called by
-__meminit __add_zone
+Current struct kmem_cache has no 'lock' field, and slab page is managed by
+struct kmem_cache_node, which has 'list_lock' field.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Clean up the related comment.
+
+Signed-off-by: Wang Sheng-Hui <shhuiw@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/slab.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplugc-add-__meminit-to-grow_zone_span-grow_pgdat_span
-+++ a/mm/memory_hotplug.c
-@@ -284,8 +284,8 @@ void register_page_bootmem_info_node(str
- }
- #endif /* CONFIG_HAVE_BOOTMEM_INFO_NODE */
- 
--static void grow_zone_span(struct zone *zone, unsigned long start_pfn,
--			   unsigned long end_pfn)
-+static void __meminit grow_zone_span(struct zone *zone, unsigned long start_pfn,
-+				     unsigned long end_pfn)
- {
- 	unsigned long old_zone_end_pfn;
- 
-@@ -427,8 +427,8 @@ out_fail:
- 	return -1;
+diff -puN mm/slab.c~mm-trivial-comment-cleanup-in-slabc mm/slab.c
+--- a/mm/slab.c~mm-trivial-comment-cleanup-in-slabc
++++ a/mm/slab.c
+@@ -1611,7 +1611,8 @@ slab_out_of_memory(struct kmem_cache *ca
  }
  
--static void grow_pgdat_span(struct pglist_data *pgdat, unsigned long start_pfn,
--			    unsigned long end_pfn)
-+static void __meminit grow_pgdat_span(struct pglist_data *pgdat, unsigned long start_pfn,
-+				      unsigned long end_pfn)
+ /*
+- * Interface to system's page allocator. No need to hold the cache-lock.
++ * Interface to system's page allocator. No need to hold the
++ * kmem_cache_node ->list_lock.
+  *
+  * If we requested dmaable memory, we will get it. Even if we
+  * did not request dmaable memory, we might get it, but that
+@@ -1913,9 +1914,9 @@ static void slab_destroy_debugcheck(stru
+  * @cachep: cache pointer being destroyed
+  * @page: page pointer being destroyed
+  *
+- * Destroy all the objs in a slab, and release the mem back to the system.
+- * Before calling the slab must have been unlinked from the cache.  The
+- * cache-lock is not held/needed.
++ * Destroy all the objs in a slab page, and release the mem back to the system.
++ * Before calling the slab page must have been unlinked from the cache. The
++ * kmem_cache_node ->list_lock is not held/needed.
+  */
+ static void slab_destroy(struct kmem_cache *cachep, struct page *page)
  {
- 	unsigned long old_pgdat_end_pfn = pgdat_end_pfn(pgdat);
- 
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from shhuiw@gmail.com are
 
 origin.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
-fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
-fs-efs-nameic-return-is-not-a-function.patch
-fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-test_kprobesc-use-current-logging-functions.patch
-fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
-fs-isofs-logging-clean-up.patch
-fs-isofs-logging-clean-up-fix.patch
-fs-coda-use-linux-uaccessh.patch
-fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
-fs-ufs-convert-printk-to-pr_foo.patch
-fs-ufs-use-pr_fmt.patch
-fs-ufs-superc-use-__func__-in-logging.patch
-fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
-fs-ufs-convert-ufsd-printk-to-pr_debug.patch
-fs-ufs-inodec-kernel-doc-warning-fixes.patch
-fs-reiserfs-replace-not-standard-%lu-%ld.patch
-fs-reiserfs-use-linux-uaccessh.patch
-fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
-fs-hpfs-dnodec-fix-suspect-code-indent.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-proc-constify-seq_operations.patch
-fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
-fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
-fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
-fs-bfs-use-bfs-prefix-for-dump_imap.patch
-drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
-fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
-fs-cachefiles-bindc-remove-unnecessary-assertions.patch
-fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cramfs-convert-printk-to-pr_foo.patch
-fs-cramfs-use-pr_fmt.patch
-fs-cramfs-code-clean-up.patch
-fs-cramfs-inodec-use-linux-uaccessh.patch
-fs-romfs-superc-convert-printk-to-pr_foo.patch
-fs-romfs-superc-use-pr_fmt-in-logging.patch
-fs-romfs-superc-add-blank-line-after-declarations.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
-scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
-fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
-linux-next.patch
-init-mainc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
 
