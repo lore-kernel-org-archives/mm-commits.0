@@ -1,74 +1,113 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:08:51 -0700
-Message-ID: <53e3dcd3.vZanxc8soZKSMPUx%akpm@linux-foundation.org>
+ checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:08:41 -0700
+Message-ID: <53e3dcc9.Z74EWmRkZfKmCwJL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:56722 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755062AbaHGUIw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:52 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so837993oig.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:51 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:39444 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750890AbaHGUIm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:42 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h3so879097igd.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add test for blank lines after function/struct/union/enum
+     Subject: checkpatch: attempt to find unnecessary 'out of memory' messages
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-test-for-blank-lines-after-function-struct-union-enum.patch
+     checkpatch-attempt-to-find-unnecessary-out-of-memory-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add test for blank lines after function/struct/union/enum
+Subject: checkpatch: attempt to find unnecessary 'out of memory' messages
 
-Add a --strict test asking for a blank line after
-function/struct/union/enum declarations.
+Logging messages that show some type of "out of memory" error
+are generally unnecessary as there is a generic message and
+a stack dump done by the memory subsystem.
 
-Allow exceptions for several attributes and macro uses.
+These messages generally increase kernel size without much
+added value.
+
+Emit a warning on these types of messages.
+
+This test looks for any inserted message function, then looks
+at the previous line for an "if (!foo)" or "if (foo == NULL)"
+test and then looks at the preceding statement for an allocation
+function like "foo = kmalloc()"
+
+ie: this code matches:
+
+	foo = kmalloc();
+	if (foo == NULL) {
+		printk("Out of memory\n");
+		return -ENOMEM;
+	}
+
+This test is very crude and incomplete.
+
+This test can miss quite a lot of of OOM messages that do not
+have this specific form.
+
+ie: this code does not match:
+
+	foo = kmalloc();
+	if (!foo) {
+		rtn = -ENOMEM;
+		printk("Out of memory!\n");
+		goto out;
+	}
+
+This test could also be a false positive when the logging
+message itself does not specify anything about memory, but
+I did not find any false positives in my limited testing.
+
+spatch could be a better solution but correctness seems
+non-trivial for that tool too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ scripts/checkpatch.pl |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-blank-lines-after-function-struct-union-enum scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-test-for-blank-lines-after-function-struct-union-enum
+diff -puN scripts/checkpatch.pl~checkpatch-attempt-to-find-unnecessary-out-of-memory-messages scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-attempt-to-find-unnecessary-out-of-memory-messages
 +++ a/scripts/checkpatch.pl
-@@ -2292,6 +2292,22 @@ sub process {
- 			     "networking block comments put the trailing */ on a separate line\n" . $herecurr);
+@@ -4014,6 +4014,23 @@ sub process {
+ 			}
  		}
  
-+# check for missing blank lines after struct/union declarations
-+# with exceptions for various attributes and macros
-+		if ($prevline =~ /^[\+ ]};?\s*$/ &&
-+		    $line =~ /^\+/ &&
-+		    !($line =~ /^\+\s*$/ ||
-+		      $line =~ /^\+\s*EXPORT_SYMBOL/ ||
-+		      $line =~ /^\+\s*MODULE_/i ||
-+		      $line =~ /^\+\s*\#\s*(?:end|elif|else)/ ||
-+		      $line =~ /^\+[a-z_]*init/ ||
-+		      $line =~ /^\+\s*(?:static\s+)?[A-Z_]*ATTR/ ||
-+		      $line =~ /^\+\s*DECLARE/ ||
-+		      $line =~ /^\+\s*__setup/)) {
-+			CHK("LINE_SPACING",
-+			    "Please use a blank line after function/struct/union/enum declarations\n" . $hereprev);
++# check for unnecessary "Out of Memory" messages
++		if ($line =~ /^\+.*\b$logFunctions\s*\(/ &&
++		    $prevline =~ /^[ \+]\s*if\s*\(\s*(\!\s*|NULL\s*==\s*)?($Lval)(\s*==\s*NULL\s*)?\s*\)/ &&
++		    (defined $1 || defined $3) &&
++		    $linenr > 3) {
++			my $testval = $2;
++			my $testline = $lines[$linenr - 3];
++
++			my ($s, $c) = ctx_statement_block($linenr - 3, $realcnt, 0);
++#			print("line: <$line>\nprevline: <$prevline>\ns: <$s>\nc: <$c>\n\n\n");
++
++			if ($c =~ /(?:^|\n)[ \+]\s*(?:$Type\s*)?\Q$testval\E\s*=\s*(?:\([^\)]*\)\s*)?\s*(?:devm_)?(?:[kv][czm]alloc(?:_node|_array)?\b|kstrdup|(?:dev_)?alloc_skb)/) {
++				WARN("OOM_MESSAGE",
++				     "Possible unnecessary 'out of memory' message\n" . $hereprev);
++			}
 +		}
 +
- # check for missing blank lines after declarations
- 		if ($sline =~ /^\+\s+\S/ &&			#Not at char 1
- 			# actual declarations
+ # check for bad placement of section $InitAttribute (e.g.: __initdata)
+ 		if ($line =~ /(\b$InitAttribute\b)/) {
+ 			my $attr = $1;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
