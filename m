@@ -1,123 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch removed from -mm
- tree
-Date: Thu, 07 Aug 2014 13:05:25 -0700
-Message-ID: <53e3dc05.2aowbfr0uySVt2Jx%akpm@linux-foundation.org>
+ mm-dont-forget-to-set-softdirty-on-file-mapped-fault.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:05:35 -0700
+Message-ID: <53e3dc0f.bjG1uMrue/NSfTHW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:60876 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbaHGUF0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:26 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wp18so844278obc.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:25 -0700 (PDT)
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:38566 "EHLO
+	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751970AbaHGUFg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:05:36 -0400
+Received: by mail-qg0-f73.google.com with SMTP id q107so611235qgd.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:05:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, lcapitulino@redhat.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, gorcunov@openvz.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb: remove hugetlb_zero and hugetlb_infinity
+     Subject: mm/memory.c: don't forget to set softdirty on file mapped fault
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity.patch
+     mm-dont-forget-to-set-softdirty-on-file-mapped-fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, hugetlb: remove hugetlb_zero and hugetlb_infinity
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: mm/memory.c: don't forget to set softdirty on file mapped fault
 
-They are unnecessary: "zero" can be used in place of "hugetlb_zero" and
-passing extra2 == NULL is equivalent to infinity.
+Otherwise we may not notice that pte was softdirty because
+pte_mksoft_dirty helper _returns_ new pte but doesn't modify the argument.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+In case if page fault happend on dirty filemapping the newly created pte
+may loose softdirty bit thus if a userspace program is tracking memory
+changes with help of a memory tracker (CONFIG_MEM_SOFT_DIRTY) it might
+miss modification of a memory page (which in worts case may lead to
+data inconsistency).
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 -
- kernel/sysctl.c         |    9 +++------
- mm/hugetlb.c            |    1 -
- 3 files changed, 3 insertions(+), 8 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity
-+++ a/include/linux/hugetlb.h
-@@ -87,7 +87,6 @@ pte_t *huge_pmd_share(struct mm_struct *
- #endif
- 
- extern unsigned long hugepages_treat_as_movable;
--extern const unsigned long hugetlb_zero, hugetlb_infinity;
- extern int sysctl_hugetlb_shm_group;
- extern struct list_head huge_boot_pages;
- 
-diff -puN kernel/sysctl.c~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity kernel/sysctl.c
---- a/kernel/sysctl.c~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity
-+++ a/kernel/sysctl.c
-@@ -1240,8 +1240,7 @@ static struct ctl_table vm_table[] = {
- 		.maxlen		= sizeof(unsigned long),
- 		.mode		= 0644,
- 		.proc_handler	= hugetlb_sysctl_handler,
--		.extra1		= (void *)&hugetlb_zero,
--		.extra2		= (void *)&hugetlb_infinity,
-+		.extra1		= &zero,
- 	},
- #ifdef CONFIG_NUMA
- 	{
-@@ -1250,8 +1249,7 @@ static struct ctl_table vm_table[] = {
- 		.maxlen         = sizeof(unsigned long),
- 		.mode           = 0644,
- 		.proc_handler   = &hugetlb_mempolicy_sysctl_handler,
--		.extra1		= (void *)&hugetlb_zero,
--		.extra2		= (void *)&hugetlb_infinity,
-+		.extra1		= &zero,
- 	},
- #endif
- 	 {
-@@ -1274,8 +1272,7 @@ static struct ctl_table vm_table[] = {
- 		.maxlen		= sizeof(unsigned long),
- 		.mode		= 0644,
- 		.proc_handler	= hugetlb_overcommit_handler,
--		.extra1		= (void *)&hugetlb_zero,
--		.extra2		= (void *)&hugetlb_infinity,
-+		.extra1		= &zero,
- 	},
- #endif
- 	{
-diff -puN mm/hugetlb.c~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-remove-hugetlb_zero-and-hugetlb_infinity
-+++ a/mm/hugetlb.c
-@@ -35,7 +35,6 @@
- #include <linux/node.h>
- #include "internal.h"
- 
--const unsigned long hugetlb_zero = 0, hugetlb_infinity = ~0UL;
- unsigned long hugepages_treat_as_movable;
- 
- int hugetlb_max_hstate __read_mostly;
+diff -puN mm/memory.c~mm-dont-forget-to-set-softdirty-on-file-mapped-fault mm/memory.c
+--- a/mm/memory.c~mm-dont-forget-to-set-softdirty-on-file-mapped-fault
++++ a/mm/memory.c
+@@ -2744,7 +2744,7 @@ void do_set_pte(struct vm_area_struct *v
+ 	if (write)
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 	else if (pte_file(*pte) && pte_file_soft_dirty(*pte))
+-		pte_mksoft_dirty(entry);
++		entry = pte_mksoft_dirty(entry);
+ 	if (anon) {
+ 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
+ 		page_add_new_anon_rmap(page, vma, address);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
-x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
-x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
-mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
-mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-mm-utilc-add-kstrimdup.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-fork-exec-cleanup-mm-initialization.patch
-fork-reset-mm-pinned_vm.patch
-fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
-linux-next.patch
 
