@@ -1,140 +1,98 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:03:45 -0700
-Message-ID: <53e3dba1.ZEoVrOxAW7Kuec31%akpm@linux-foundation.org>
+ mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch removed
+ from -mm tree
+Date: Thu, 07 Aug 2014 13:03:47 -0700
+Message-ID: <53e3dba3.9FIvIJDCsa/WWMxF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:42136 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751500AbaHGUDq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:46 -0400
-Received: by mail-ie0-f201.google.com with SMTP id tr6so841094ieb.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:46 -0700 (PDT)
+Received: from mail-oi0-f73.google.com ([209.85.218.73]:33044 "EHLO
+	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755331AbaHGUDs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:48 -0400
+Received: by mail-oi0-f73.google.com with SMTP id u20so837530oif.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, andi@firstfloor.org, edumazet@google.com, hannes@cmpxchg.org, peter@hurleysoftware.com, ryao@gentoo.org, zhangyanfei.yes@gmail.com, mm-commits@vger.kernel.org
+To: hughd@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, sasha.levin@oracle.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmalloc: use rcu list iterator to reduce vmap_area_lock contention
+     Subject: mm/memory.c: use entry = ACCESS_ONCE(*pte) in handle_pte_fault()
 has been removed from the -mm tree.  Its filename was
-     vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention.patch
+     mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: vmalloc: use rcu list iterator to reduce vmap_area_lock contention
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/memory.c: use entry = ACCESS_ONCE(*pte) in handle_pte_fault()
 
-Richard Yao reported a month ago that his system have a trouble with
-vmap_area_lock contention during performance analysis by /proc/meminfo. 
-Andrew asked why his analysis checks /proc/meminfo stressfully, but he
-didn't answer it.
+Use ACCESS_ONCE() in handle_pte_fault() when getting the entry or orig_pte
+upon which all subsequent decisions and pte_same() tests will be made.
 
-https://lkml.org/lkml/2014/4/10/416
+I have no evidence that its lack is responsible for the mm/filemap.c:202
+BUG_ON(page_mapped(page)) in __delete_from_page_cache() found by trinity,
+and I am not optimistic that it will fix it.  But I have found no other
+explanation, and ACCESS_ONCE() here will surely not hurt.
 
-Although I'm not sure that this is right usage or not, there is a solution
-reducing vmap_area_lock contention with no side-effect.  That is just to
-use rcu list iterator in get_vmalloc_info().
+If gcc does re-access the pte before passing it down, then that would be
+disastrous for correct page fault handling, and certainly could explain
+the page_mapped() BUGs seen (concurrent fault causing page to be mapped in
+a second time on top of itself: mapcount 2 for a single pte).
 
-rcu can be used in this function because all RCU protocol is already
-respected by writers, since Nick Piggin commit db64fe02258f1 ("mm: rewrite
-vmap layer") back in linux-2.6.28
-
-Specifically :
-   insertions use list_add_rcu(),
-   deletions use list_del_rcu() and kfree_rcu().
-
-Note the rb tree is not used from rcu reader (it would not be safe),
-only the vmap_area_list has full RCU protection.
-
-Note that __purge_vmap_area_lazy() already uses this rcu protection.
-
-        rcu_read_lock();
-        list_for_each_entry_rcu(va, &vmap_area_list, list) {
-                if (va->flags & VM_LAZY_FREE) {
-                        if (va->va_start < *start)
-                                *start = va->va_start;
-                        if (va->va_end > *end)
-                                *end = va->va_end;
-                        nr += (va->va_end - va->va_start) >> PAGE_SHIFT;
-                        list_add_tail(&va->purge_list, &valist);
-                        va->flags |= VM_LAZY_FREEING;
-                        va->flags &= ~VM_LAZY_FREE;
-                }
-        }
-        rcu_read_unlock();
-
-
-Peter:
-
-: While rcu list traversal over the vmap_area_list is safe, this may
-: arrive at different results than the spinlocked version. The rcu list
-: traversal version will not be a 'snapshot' of a single, valid instant
-: of the entire vmap_area_list, but rather a potential amalgam of
-: different list states.
-
-Joonsoo:
-
-: Yes, you are right, but I don't think that we should be strict here. 
-: Meminfo is already not a 'snapshot' at specific time.  While we try to get
-: certain stats, the other stats can change.  And, although we may arrive at
-: different results than the spinlocked version, the difference would not be
-: large and would not make serious side-effect.
-
-[edumazet@google.com: add more commit description]
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Richard Yao <ryao@gentoo.org>
-Acked-by: Eric Dumazet <edumazet@google.com>
-Cc: Peter Hurley <peter@hurleysoftware.com>
-Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-use-rcu-list-iterator-to-reduce-vmap_area_lock-contention
-+++ a/mm/vmalloc.c
-@@ -2690,14 +2690,14 @@ void get_vmalloc_info(struct vmalloc_inf
+diff -puN mm/memory.c~mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault mm/memory.c
+--- a/mm/memory.c~mm-memoryc-use-entry-=-access_oncepte-in-handle_pte_fault
++++ a/mm/memory.c
+@@ -3181,7 +3181,7 @@ static int handle_pte_fault(struct mm_st
+ 	pte_t entry;
+ 	spinlock_t *ptl;
  
- 	prev_end = VMALLOC_START;
- 
--	spin_lock(&vmap_area_lock);
-+	rcu_read_lock();
- 
- 	if (list_empty(&vmap_area_list)) {
- 		vmi->largest_chunk = VMALLOC_TOTAL;
- 		goto out;
- 	}
- 
--	list_for_each_entry(va, &vmap_area_list, list) {
-+	list_for_each_entry_rcu(va, &vmap_area_list, list) {
- 		unsigned long addr = va->va_start;
- 
- 		/*
-@@ -2724,7 +2724,7 @@ void get_vmalloc_info(struct vmalloc_inf
- 		vmi->largest_chunk = VMALLOC_END - prev_end;
- 
- out:
--	spin_unlock(&vmap_area_lock);
-+	rcu_read_unlock();
- }
- #endif
- 
+-	entry = *pte;
++	entry = ACCESS_ONCE(*pte);
+ 	if (!pte_present(entry)) {
+ 		if (pte_none(entry)) {
+ 			if (vma->vm_ops) {
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-page-owners-correct-page-order-when-to-free-page.patch
+mm-memcontrol-rewrite-charge-api.patch
+mm-memcontrol-rewrite-uncharge-api.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching.patch
+mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
+vmstat-on-demand-vmstat-workers-v8.patch
+vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
+mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
+mm-memcontrol-avoid-charge-statistics-churn-during-page-migration.patch
+mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
+linux-next.patch
+mm-allow-drivers-to-prevent-new-writable-mappings.patch
+shm-add-sealing-api.patch
+shm-add-memfd_create-syscall.patch
+selftests-add-memfd_create-sealing-tests.patch
+selftests-add-memfd-sealing-page-pinning-tests.patch
+shm-wait-for-pins-to-be-released-when-sealing.patch
+timer-provide-an-api-for-deferrable-timeout.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
 
