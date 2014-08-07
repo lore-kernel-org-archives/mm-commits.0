@@ -1,67 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-allow-multiple-const-types.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:09:01 -0700
-Message-ID: <53e3dcdd.fS/sYhJ1upPwhFig%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-quiet-kconfig-help-message-checking.patch
+ removed from -mm tree
+Date: Thu, 07 Aug 2014 13:08:57 -0700
+Message-ID: <53e3dcd9.yogVgcrbevRNia79%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:39303 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751323AbaHGUJD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:03 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hq11so607385vcb.3
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:02 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:35334 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755138AbaHGUI6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:58 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wp18so845081obc.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, HartleyS@visionengravers.com, mm-commits@vger.kernel.org
+To: joe@perches.com, jdelvare@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: allow multiple const * types
+     Subject: checkpatch: quiet Kconfig help message checking
 has been removed from the -mm tree.  Its filename was
-     checkpatch-allow-multiple-const-types.patch
+     checkpatch-quiet-kconfig-help-message-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: allow multiple const * types
+Subject: checkpatch: quiet Kconfig help message checking
 
-checkpatch's $Type variable does not match declarations
-of multiple const * types.
+Editing Kconfig dependencies can emit unnecessary messages about missing
+or too short help entries.
 
-This can produce false positives for things like:
-
-$ ./scripts/checkpatch.pl -f drivers/staging/comedi/comedidev.h
-WARNING: Missing a blank line after declarations
-#60: FILE: drivers/staging/comedi/comedidev.h:60:
-+       const struct comedi_lrange *range_table;
-+       const struct comedi_lrange *const *range_table_list;
-
-Fix the $Type variable to support matching multiple "* const" uses.
+Only emit the message when adding help sections to Kconfig files.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Hartley Sweeten <HartleyS@visionengravers.com>
+Reported-by: Jean Delvare <jdelvare@suse.de>
+Tested-by: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-multiple-const-types scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-multiple-const-types
+diff -puN scripts/checkpatch.pl~checkpatch-quiet-kconfig-help-message-checking scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-quiet-kconfig-help-message-checking
 +++ a/scripts/checkpatch.pl
-@@ -435,7 +435,7 @@ sub build_types {
- 		  }x;
- 	$Type	= qr{
- 			$NonptrType
--			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*|\[\])+|(?:\s*\[\s*\])+)?
-+			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*\s*(?:const\s*)?|\[\])+|(?:\s*\[\s*\])+)?
- 			(?:\s+$Inline|\s+$Modifier)*
- 		  }x;
- 	$Declare	= qr{(?:$Storage\s+(?:$Inline\s+)?)?$Type};
+@@ -2052,7 +2052,7 @@ sub process {
+ # Only applies when adding the entry originally, after that we do not have
+ # sufficient context to determine whether it is indeed long enough.
+ 		if ($realfile =~ /Kconfig/ &&
+-		    $line =~ /.\s*config\s+/) {
++		    $line =~ /^\+\s*config\s+/) {
+ 			my $length = 0;
+ 			my $cnt = $realcnt;
+ 			my $ln = $linenr + 1;
+@@ -2065,10 +2065,11 @@ sub process {
+ 				$is_end = $lines[$ln - 1] =~ /^\+/;
+ 
+ 				next if ($f =~ /^-/);
++				last if (!$file && $f =~ /^\@\@/);
+ 
+-				if ($lines[$ln - 1] =~ /.\s*(?:bool|tristate)\s*\"/) {
++				if ($lines[$ln - 1] =~ /^\+\s*(?:bool|tristate)\s*\"/) {
+ 					$is_start = 1;
+-				} elsif ($lines[$ln - 1] =~ /.\s*(?:---)?help(?:---)?$/) {
++				} elsif ($lines[$ln - 1] =~ /^\+\s*(?:---)?help(?:---)?$/) {
+ 					$length = -1;
+ 				}
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
