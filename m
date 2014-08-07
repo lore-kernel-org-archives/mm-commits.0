@@ -1,20 +1,19 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch added
- to -mm tree
-Date: Thu, 07 Aug 2014 15:32:56 -0700
-Message-ID: <53e3fe98.VJMwxvhvQuz7VUq2%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 15:33:05 -0700
+Message-ID: <53e3fea1.Q1hDohlNCevumNqh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:60122 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752231AbaHGWc5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 18:32:57 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so877774oac.3
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 15:32:57 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:64189 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752231AbaHGWdG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 18:33:06 -0400
+Received: by mail-qa0-f73.google.com with SMTP id s7so640549qap.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 15:33:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, miklos@szeredi.hu, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
@@ -22,24 +21,10 @@ To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, miklos@szeredi.hu, tj@
 
 The patch titled
      Subject: mm: memcontrol: rewrite uncharge API fix - page cache migration 2
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration.patch
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
@@ -131,7 +116,6 @@ origin.patch
 mm-memcontrol-rewrite-charge-api.patch
 mm-memcontrol-rewrite-uncharge-api.patch
 mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration.patch
-mm-memcontrol-rewrite-uncharge-api-fix-page-cache-migration-2.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching.patch
 mm-memcontrol-use-page-lists-for-uncharge-batching-fix-hugetlb-page-lru.patch
 page-cgroup-trivial-cleanup.patch
