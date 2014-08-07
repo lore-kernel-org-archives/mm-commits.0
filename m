@@ -1,209 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-list_sortc-convert-to-pr_foo.patch removed from -mm
- tree
-Date: Thu, 07 Aug 2014 13:08:01 -0700
-Message-ID: <53e3dca1.NDuSBldglloFAP3o%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-bitmap-make-nbits-parameter-of-bitmap_empty-unsigned.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:08:03 -0700
+Message-ID: <53e3dca3.LLzU2VIQxY3s/on/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:36696 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755105AbaHGUIC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:02 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so839794oac.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:01 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:42828 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755105AbaHGUIE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:08:04 -0400
+Received: by mail-pd0-f201.google.com with SMTP id g10so1175509pdj.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, artem.bityutskiy@linux.intel.com, david@fromorbit.com, don.mullis@gmail.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/list_sort.c: convert to pr_foo
+     Subject: lib: bitmap: make nbits parameter of bitmap_empty unsigned
 has been removed from the -mm tree.  Its filename was
-     lib-list_sortc-convert-to-pr_foo.patch
+     lib-bitmap-make-nbits-parameter-of-bitmap_empty-unsigned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/list_sort.c: convert to pr_foo
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib: bitmap: make nbits parameter of bitmap_empty unsigned
 
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Cc: Don Mullis <don.mullis@gmail.com>
-Cc: Dave Chinner <david@fromorbit.com>
+Many functions in lib/bitmap.c start with an expression such as lim =
+bits/BITS_PER_LONG.  Since bits has type (signed) int, and since gcc
+cannot know that it is in fact non-negative, it generates worse code than
+it could.  These patches, mostly consisting of changing various parameters
+to unsigned, gives a slight overall code reduction:
+
+add/remove: 1/1 grow/shrink: 8/16 up/down: 251/-414 (-163)
+function                                     old     new   delta
+tick_device_uses_broadcast                   335     425     +90
+__irq_alloc_descs                            498     554     +56
+__bitmap_andnot                               73     115     +42
+__bitmap_and                                  70     101     +31
+bitmap_weight                                  -      11     +11
+copy_hugetlb_page_range                      752     762     +10
+follow_hugetlb_page                          846     854      +8
+hugetlb_init                                1415    1417      +2
+hugetlb_nrpages_setup                        130     131      +1
+hugetlb_add_hstate                           377     376      -1
+bitmap_allocate_region                        82      80      -2
+select_task_rq_fair                         2202    2191     -11
+hweight_long                                  66      55     -11
+__reg_op                                     230     219     -11
+dm_stats_message                            2849    2833     -16
+bitmap_parselist                              92      74     -18
+__bitmap_weight                              115      97     -18
+__bitmap_subset                              153     129     -24
+__bitmap_full                                128     104     -24
+__bitmap_empty                               120      96     -24
+bitmap_set                                   179     149     -30
+bitmap_clear                                 185     155     -30
+__bitmap_equal                               136     105     -31
+__bitmap_intersects                          148     108     -40
+__bitmap_complement                          109      67     -42
+tick_device_setup_broadcast_func.isra         81       -     -81
+
+[The increases in __bitmap_and{,not} are due to bug fixes 17/18,18/18.  No
+idea why bitmap_weight suddenly appears.] While 163 bytes treewide is
+insignificant, I believe the bitmap functions are often called with locks
+held, so saving even a few cycles might be worth it.
+
+While making these changes, I found a few other things that might be worth
+including.  16,17,18 are actual bug fixes.  The rest shouldn't change the
+behaviour of any of the functions, provided no-one passed negative nbits
+values.  If something should come up, it should be fairly bisectable.
+
+A few issues I thought about, but didn't know what to do with:
+
+* Many of the functions misbehave if nbits is compile-time 0; the
+  out-of-line functions generally handle 0 correctly.  bitmap_fill() is
+  particularly bad, whether the 0 is known at compile time or not.  It
+  would probably be nice to add detection of at least compile-time 0 and
+  handle that appropriately.
+
+* I didn't change __bitmap_shift_{left,right} to use unsigned because I
+  want to fully understand why the algorithm works before making that
+  change.  However, AFAICT, they behave correctly for all (positive) shift
+  amounts.  This is not the case for the small_const_nbits versions.  If
+  for example nbits = n = BITS_PER_LONG, the shift operators turn into
+  no-ops (at least on x86), so one get *dst = *src, whereas one would
+  expect to get *dst=0.  That difference in behaviour is somewhat
+  annoying.
+
+
+This patch (of 18):
+
+The compiler can generate slightly smaller and simpler code when it knows
+that "nbits" is non-negative.  Since no-one passes a negative bit-count,
+this shouldn't affect the semantics.
+
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/list_sort.c |   49 +++++++++++++++++++---------------------------
- 1 file changed, 21 insertions(+), 28 deletions(-)
+ include/linux/bitmap.h |    4 ++--
+ lib/bitmap.c           |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/list_sort.c~lib-list_sortc-convert-to-pr_foo lib/list_sort.c
---- a/lib/list_sort.c~lib-list_sortc-convert-to-pr_foo
-+++ a/lib/list_sort.c
-@@ -1,3 +1,6 @@
-+
-+#define pr_fmt(fmt) "list_sort_test: " fmt
-+
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/list_sort.h>
-@@ -125,9 +128,7 @@ void list_sort(void *priv, struct list_h
- 		}
- 		if (lev > max_lev) {
- 			if (unlikely(lev >= ARRAY_SIZE(part)-1)) {
--				printk_once(KERN_DEBUG "list passed to"
--					" list_sort() too long for"
--					" efficiency\n");
-+				printk_once(KERN_DEBUG "list too long for efficiency\n");
- 				lev--;
- 			}
- 			max_lev = lev;
-@@ -170,27 +171,25 @@ static struct debug_el **elts __initdata
- static int __init check(struct debug_el *ela, struct debug_el *elb)
+diff -puN include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_empty-unsigned include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmap-make-nbits-parameter-of-bitmap_empty-unsigned
++++ a/include/linux/bitmap.h
+@@ -88,7 +88,7 @@
+  * lib/bitmap.c provides these functions:
+  */
+ 
+-extern int __bitmap_empty(const unsigned long *bitmap, int bits);
++extern int __bitmap_empty(const unsigned long *bitmap, unsigned int nbits);
+ extern int __bitmap_full(const unsigned long *bitmap, int bits);
+ extern int __bitmap_equal(const unsigned long *bitmap1,
+                 	const unsigned long *bitmap2, int bits);
+@@ -257,7 +257,7 @@ static inline int bitmap_subset(const un
+ 		return __bitmap_subset(src1, src2, nbits);
+ }
+ 
+-static inline int bitmap_empty(const unsigned long *src, int nbits)
++static inline int bitmap_empty(const unsigned long *src, unsigned nbits)
  {
- 	if (ela->serial >= TEST_LIST_LEN) {
--		printk(KERN_ERR "list_sort_test: error: incorrect serial %d\n",
--				ela->serial);
-+		pr_err("error: incorrect serial %d\n", ela->serial);
- 		return -EINVAL;
- 	}
- 	if (elb->serial >= TEST_LIST_LEN) {
--		printk(KERN_ERR "list_sort_test: error: incorrect serial %d\n",
--				elb->serial);
-+		pr_err("error: incorrect serial %d\n", elb->serial);
- 		return -EINVAL;
- 	}
- 	if (elts[ela->serial] != ela || elts[elb->serial] != elb) {
--		printk(KERN_ERR "list_sort_test: error: phantom element\n");
-+		pr_err("error: phantom element\n");
- 		return -EINVAL;
- 	}
- 	if (ela->poison1 != TEST_POISON1 || ela->poison2 != TEST_POISON2) {
--		printk(KERN_ERR "list_sort_test: error: bad poison: %#x/%#x\n",
--				ela->poison1, ela->poison2);
-+		pr_err("error: bad poison: %#x/%#x\n",
-+			ela->poison1, ela->poison2);
- 		return -EINVAL;
- 	}
- 	if (elb->poison1 != TEST_POISON1 || elb->poison2 != TEST_POISON2) {
--		printk(KERN_ERR "list_sort_test: error: bad poison: %#x/%#x\n",
--				elb->poison1, elb->poison2);
-+		pr_err("error: bad poison: %#x/%#x\n",
-+			elb->poison1, elb->poison2);
- 		return -EINVAL;
- 	}
- 	return 0;
-@@ -214,20 +213,18 @@ static int __init list_sort_test(void)
- 	struct list_head *cur;
- 	LIST_HEAD(head);
+ 	if (small_const_nbits(nbits))
+ 		return ! (*src & BITMAP_LAST_WORD_MASK(nbits));
+diff -puN lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_empty-unsigned lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-make-nbits-parameter-of-bitmap_empty-unsigned
++++ a/lib/bitmap.c
+@@ -40,9 +40,9 @@
+  * for the best explanations of this ordering.
+  */
  
--	printk(KERN_DEBUG "list_sort_test: start testing list_sort()\n");
-+	pr_debug("start testing list_sort()\n");
- 
- 	elts = kcalloc(TEST_LIST_LEN, sizeof(*elts), GFP_KERNEL);
- 	if (!elts) {
--		printk(KERN_ERR "list_sort_test: error: cannot allocate "
--				"memory\n");
-+		pr_err("error: cannot allocate memory\n");
- 		return err;
- 	}
- 
- 	for (i = 0; i < TEST_LIST_LEN; i++) {
- 		el = kmalloc(sizeof(*el), GFP_KERNEL);
- 		if (!el) {
--			printk(KERN_ERR "list_sort_test: error: cannot "
--					"allocate memory\n");
-+			pr_err("error: cannot allocate memory\n");
- 			goto exit;
- 		}
- 		 /* force some equivalencies */
-@@ -247,42 +244,38 @@ static int __init list_sort_test(void)
- 		int cmp_result;
- 
- 		if (cur->next->prev != cur) {
--			printk(KERN_ERR "list_sort_test: error: list is "
--					"corrupted\n");
-+			pr_err("error: list is corrupted\n");
- 			goto exit;
- 		}
- 
- 		cmp_result = cmp(NULL, cur, cur->next);
- 		if (cmp_result > 0) {
--			printk(KERN_ERR "list_sort_test: error: list is not "
--					"sorted\n");
-+			pr_err("error: list is not sorted\n");
- 			goto exit;
- 		}
- 
- 		el = container_of(cur, struct debug_el, list);
- 		el1 = container_of(cur->next, struct debug_el, list);
- 		if (cmp_result == 0 && el->serial >= el1->serial) {
--			printk(KERN_ERR "list_sort_test: error: order of "
--					"equivalent elements not preserved\n");
-+			pr_err("error: order of equivalent elements not "
-+				"preserved\n");
- 			goto exit;
- 		}
- 
- 		if (check(el, el1)) {
--			printk(KERN_ERR "list_sort_test: error: element check "
--					"failed\n");
-+			pr_err("error: element check failed\n");
- 			goto exit;
- 		}
- 		count++;
- 	}
- 	if (head.prev != cur) {
--		printk(KERN_ERR "list_sort_test: error: list is corrupted\n");
-+		pr_err("error: list is corrupted\n");
- 		goto exit;
- 	}
- 
- 
- 	if (count != TEST_LIST_LEN) {
--		printk(KERN_ERR "list_sort_test: error: bad list length %d",
--				count);
-+		pr_err("error: bad list length %d", count);
- 		goto exit;
- 	}
- 
+-int __bitmap_empty(const unsigned long *bitmap, int bits)
++int __bitmap_empty(const unsigned long *bitmap, unsigned int bits)
+ {
+-	int k, lim = bits/BITS_PER_LONG;
++	unsigned int k, lim = bits/BITS_PER_LONG;
+ 	for (k = 0; k < lim; ++k)
+ 		if (bitmap[k])
+ 			return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-rtc-add-pcf85063-support-fix.patch
-fs-isofs-logging-clean-up-fix.patch
-proc-remove-proc_tty_ldisc-variable-fix.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
-panic-add-taint_softlockup-fix.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
-ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
-mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
