@@ -1,148 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:03:13 -0700
-Message-ID: <53e3db81.tq0pZdrhk0OvK1H8%akpm@linux-foundation.org>
+Subject: [merged] slab-add-unlikely-macro-to-help-compiler.patch removed
+ from -mm tree
+Date: Thu, 07 Aug 2014 13:03:03 -0700
+Message-ID: <53e3db77.vBMZKUF9ggSntLpB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f201.google.com ([209.85.160.201]:58511 "EHLO
-	mail-yk0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755194AbaHGUDO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:14 -0400
-Received: by mail-yk0-f201.google.com with SMTP id 142so611757ykq.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:13 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:40737 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755288AbaHGUDE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:03:04 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so844840obb.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:03:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: use the lock on alien_cache, instead of the lock on array_cache
+     Subject: slab: add unlikely macro to help compiler
 has been removed from the -mm tree.  Its filename was
-     slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache.patch
+     slab-add-unlikely-macro-to-help-compiler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: slab: use the lock on alien_cache, instead of the lock on array_cache
+Subject: slab: add unlikely macro to help compiler
 
-Now, we have separate alien_cache structure, so it'd be better to hold the
-lock on alien_cache while manipulating alien_cache.  After that, we don't
-need the lock on array_cache, so remove it.
+This patchset does some cleanup and tries to remove lockdep annotation.
+
+Patches 1~2 are just for really really minor improvement.
+Patches 3~9 are for clean-up and removing lockdep annotation.
+
+There are two cases that lockdep annotation is needed in SLAB.
+1) holding two node locks
+2) holding two array cache(alien cache) locks
+
+I looked at the code and found that we can avoid these cases without any
+negative effect.
+
+1) occurs if freeing object makes new free slab and we decide to
+   destroy it.  Although we don't need to hold the lock during destroying
+   a slab, current code do that.  Destroying a slab without holding the
+   lock would help the reduction of the lock contention.  To do it, I
+   change the implementation that new free slab is destroyed after
+   releasing the lock.
+
+2) occurs on similar situation.  When we free object from non-local
+   node, we put this object to alien cache with holding the alien cache
+   lock.  If alien cache is full, we try to flush alien cache to proper
+   node cache, and, in this time, new free slab could be made.  Destroying
+   it would be started and we will free metadata object which comes from
+   another node.  In this case, we need another node's alien cache lock to
+   free object.  This forces us to hold two array cache locks and then we
+   need lockdep annotation although they are always different locks and
+   deadlock cannot be possible.  To prevent this situation, I use same way
+   as 1).
+
+In this way, we can avoid 1) and 2) cases, and then, can remove lockdep
+annotation. As short stat noted, this makes SLAB code much simpler.
+
+
+
+This patch (of 9):
+
+slab_should_failslab() is called on every allocation, so to optimize it is
+reasonable.  We normally don't allocate from kmem_cache.  It is just used
+when new kmem_cache is created, so it's very rare case.  Therefore, add
+unlikely macro to help compiler optimization.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache mm/slab.c
---- a/mm/slab.c~slab-use-the-lock-on-alien_cache-instead-of-the-lock-on-array_cache
+diff -puN mm/slab.c~slab-add-unlikely-macro-to-help-compiler mm/slab.c
+--- a/mm/slab.c~slab-add-unlikely-macro-to-help-compiler
 +++ a/mm/slab.c
-@@ -191,7 +191,6 @@ struct array_cache {
- 	unsigned int limit;
- 	unsigned int batchcount;
- 	unsigned int touched;
--	spinlock_t lock;
- 	void *entry[];	/*
- 			 * Must have this definition in here for the proper
- 			 * alignment of array_cache. Also simplifies accessing
-@@ -512,7 +511,7 @@ static void slab_set_lock_classes(struct
- 		return;
- 	for_each_node(r) {
- 		if (alc[r])
--			lockdep_set_class(&(alc[r]->ac.lock), alc_key);
-+			lockdep_set_class(&(alc[r]->lock), alc_key);
- 	}
- }
+@@ -3048,7 +3048,7 @@ static void *cache_alloc_debugcheck_afte
  
-@@ -811,7 +810,6 @@ static void init_arraycache(struct array
- 		ac->limit = limit;
- 		ac->batchcount = batch;
- 		ac->touched = 0;
--		spin_lock_init(&ac->lock);
- 	}
- }
+ static bool slab_should_failslab(struct kmem_cache *cachep, gfp_t flags)
+ {
+-	if (cachep == kmem_cache)
++	if (unlikely(cachep == kmem_cache))
+ 		return false;
  
-@@ -1010,6 +1008,7 @@ static struct alien_cache *__alloc_alien
- 
- 	alc = kmalloc_node(memsize, gfp, node);
- 	init_arraycache(&alc->ac, entries, batch);
-+	spin_lock_init(&alc->lock);
- 	return alc;
- }
- 
-@@ -1086,9 +1085,9 @@ static void reap_alien(struct kmem_cache
- 
- 		if (alc) {
- 			ac = &alc->ac;
--			if (ac->avail && spin_trylock_irq(&ac->lock)) {
-+			if (ac->avail && spin_trylock_irq(&alc->lock)) {
- 				__drain_alien_cache(cachep, ac, node);
--				spin_unlock_irq(&ac->lock);
-+				spin_unlock_irq(&alc->lock);
- 			}
- 		}
- 	}
-@@ -1106,9 +1105,9 @@ static void drain_alien_cache(struct kme
- 		alc = alien[i];
- 		if (alc) {
- 			ac = &alc->ac;
--			spin_lock_irqsave(&ac->lock, flags);
-+			spin_lock_irqsave(&alc->lock, flags);
- 			__drain_alien_cache(cachep, ac, i);
--			spin_unlock_irqrestore(&ac->lock, flags);
-+			spin_unlock_irqrestore(&alc->lock, flags);
- 		}
- 	}
- }
-@@ -1136,13 +1135,13 @@ static inline int cache_free_alien(struc
- 	if (n->alien && n->alien[nodeid]) {
- 		alien = n->alien[nodeid];
- 		ac = &alien->ac;
--		spin_lock(&ac->lock);
-+		spin_lock(&alien->lock);
- 		if (unlikely(ac->avail == ac->limit)) {
- 			STATS_INC_ACOVERFLOW(cachep);
- 			__drain_alien_cache(cachep, ac, nodeid);
- 		}
- 		ac_put_obj(cachep, ac, objp);
--		spin_unlock(&ac->lock);
-+		spin_unlock(&alien->lock);
- 	} else {
- 		n = get_node(cachep, nodeid);
- 		spin_lock(&n->list_lock);
-@@ -1613,10 +1612,6 @@ void __init kmem_cache_init(void)
- 
- 		memcpy(ptr, cpu_cache_get(kmem_cache),
- 		       sizeof(struct arraycache_init));
--		/*
--		 * Do not assume that spinlocks can be initialized via memcpy:
--		 */
--		spin_lock_init(&ptr->lock);
- 
- 		kmem_cache->array[smp_processor_id()] = ptr;
- 
-@@ -1626,10 +1621,6 @@ void __init kmem_cache_init(void)
- 		       != &initarray_generic.cache);
- 		memcpy(ptr, cpu_cache_get(kmalloc_caches[INDEX_AC]),
- 		       sizeof(struct arraycache_init));
--		/*
--		 * Do not assume that spinlocks can be initialized via memcpy:
--		 */
--		spin_lock_init(&ptr->lock);
- 
- 		kmalloc_caches[INDEX_AC]->array[smp_processor_id()] = ptr;
- 	}
+ 	return should_failslab(cachep->object_size, flags, cachep->flags);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
