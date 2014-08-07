@@ -1,116 +1,129 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+ ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list.patch
  removed from -mm tree
-Date: Thu, 07 Aug 2014 13:02:33 -0700
-Message-ID: <53e3db59.zOlPnDXZrjJnnuFo%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:02:39 -0700
+Message-ID: <53e3db5f.NwLDx42o4GRU1wla%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:54808 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755050AbaHGUCe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:34 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rl12so840334iec.3
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:33 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:51960 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755100AbaHGUCk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:40 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so1175139pab.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, joe@perches.com, phillip@squashfs.org.uk, mm-commits@vger.kernel.org
+To: xieyingtai@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/squashfs/file_direct.c: replace count*size kmalloc by  kmalloc_array
+     Subject: ocfs2: correctly check the return value of ocfs2_search_extent_list
 has been removed from the -mm tree.  Its filename was
-     fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array.patch
+     ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/squashfs/file_direct.c: replace count*size kmalloc by  kmalloc_array
+From: Yingtai Xie <xieyingtai@huawei.com>
+Subject: ocfs2: correctly check the return value of ocfs2_search_extent_list
 
-kmalloc_array() manages count*sizeof overflow.
+ocfs2_search_extent_list may return -1, so we should check the return
+value in ocfs2_split_and_insert, otherwise it may cause array index out of
+bound.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: Joe Perches <joe@perches.com>
+And ocfs2_search_extent_list can only return value less than
+el->l_next_free_rec, so check if it is equal or larger than
+le16_to_cpu(el->l_next_free_rec) is meaningless.
+
+Signed-off-by: Yingtai Xie <xieyingtai@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/file_direct.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/alloc.c        |   15 ++++++++++++---
+ fs/ocfs2/move_extents.c |    2 +-
+ fs/ocfs2/refcounttree.c |    2 +-
+ 3 files changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN fs/squashfs/file_direct.c~fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array fs/squashfs/file_direct.c
---- a/fs/squashfs/file_direct.c~fs-squashfs-file_directc-replace-countsize-kmalloc-by-kmalloc_array
-+++ a/fs/squashfs/file_direct.c
-@@ -44,7 +44,7 @@ int squashfs_readpage_block(struct page
+diff -puN fs/ocfs2/alloc.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list
++++ a/fs/ocfs2/alloc.c
+@@ -4961,6 +4961,15 @@ leftright:
  
- 	pages = end_index - start_index + 1;
+ 		el = path_leaf_el(path);
+ 		split_index = ocfs2_search_extent_list(el, cpos);
++		if (split_index == -1) {
++			ocfs2_error(ocfs2_metadata_cache_get_super(et->et_ci),
++					"Owner %llu has an extent at cpos %u "
++					"which can no longer be found.\n",
++					(unsigned long long)ocfs2_metadata_cache_owner(et->et_ci),
++					cpos);
++			ret = -EROFS;
++			goto out;
++		}
+ 		goto leftright;
+ 	}
+ out:
+@@ -5135,7 +5144,7 @@ int ocfs2_change_extent_flag(handle_t *h
+ 	el = path_leaf_el(left_path);
  
--	page = kmalloc(sizeof(void *) * pages, GFP_KERNEL);
-+	page = kmalloc_array(pages, sizeof(void *), GFP_KERNEL);
- 	if (page == NULL)
- 		return res;
+ 	index = ocfs2_search_extent_list(el, cpos);
+-	if (index == -1 || index >= le16_to_cpu(el->l_next_free_rec)) {
++	if (index == -1) {
+ 		ocfs2_error(sb,
+ 			    "Owner %llu has an extent at cpos %u which can no "
+ 			    "longer be found.\n",
+@@ -5491,7 +5500,7 @@ int ocfs2_remove_extent(handle_t *handle
  
+ 	el = path_leaf_el(path);
+ 	index = ocfs2_search_extent_list(el, cpos);
+-	if (index == -1 || index >= le16_to_cpu(el->l_next_free_rec)) {
++	if (index == -1) {
+ 		ocfs2_error(ocfs2_metadata_cache_get_super(et->et_ci),
+ 			    "Owner %llu has an extent at cpos %u which can no "
+ 			    "longer be found.\n",
+@@ -5557,7 +5566,7 @@ int ocfs2_remove_extent(handle_t *handle
+ 
+ 		el = path_leaf_el(path);
+ 		index = ocfs2_search_extent_list(el, cpos);
+-		if (index == -1 || index >= le16_to_cpu(el->l_next_free_rec)) {
++		if (index == -1) {
+ 			ocfs2_error(ocfs2_metadata_cache_get_super(et->et_ci),
+ 				    "Owner %llu: split at cpos %u lost record.",
+ 				    (unsigned long long)ocfs2_metadata_cache_owner(et->et_ci),
+diff -puN fs/ocfs2/move_extents.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list fs/ocfs2/move_extents.c
+--- a/fs/ocfs2/move_extents.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list
++++ a/fs/ocfs2/move_extents.c
+@@ -98,7 +98,7 @@ static int __ocfs2_move_extent(handle_t
+ 	el = path_leaf_el(path);
+ 
+ 	index = ocfs2_search_extent_list(el, cpos);
+-	if (index == -1 || index >= le16_to_cpu(el->l_next_free_rec)) {
++	if (index == -1) {
+ 		ocfs2_error(inode->i_sb,
+ 			    "Inode %llu has an extent at cpos %u which can no "
+ 			    "longer be found.\n",
+diff -puN fs/ocfs2/refcounttree.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~ocfs2-correctly-check-the-return-value-of-ocfs2_search_extent_list
++++ a/fs/ocfs2/refcounttree.c
+@@ -3109,7 +3109,7 @@ static int ocfs2_clear_ext_refcount(hand
+ 	el = path_leaf_el(path);
+ 
+ 	index = ocfs2_search_extent_list(el, cpos);
+-	if (index == -1 || index >= le16_to_cpu(el->l_next_free_rec)) {
++	if (index == -1) {
+ 		ocfs2_error(sb,
+ 			    "Inode %llu has an extent at cpos %u which can no "
+ 			    "longer be found.\n",
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from xieyingtai@huawei.com are
 
 origin.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
-fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
-fs-efs-nameic-return-is-not-a-function.patch
-fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-test_kprobesc-use-current-logging-functions.patch
-fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
-fs-isofs-logging-clean-up.patch
-fs-isofs-logging-clean-up-fix.patch
-fs-coda-use-linux-uaccessh.patch
-fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
-fs-ufs-convert-printk-to-pr_foo.patch
-fs-ufs-use-pr_fmt.patch
-fs-ufs-superc-use-__func__-in-logging.patch
-fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
-fs-ufs-convert-ufsd-printk-to-pr_debug.patch
-fs-ufs-inodec-kernel-doc-warning-fixes.patch
-fs-reiserfs-replace-not-standard-%lu-%ld.patch
-fs-reiserfs-use-linux-uaccessh.patch
-fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
-fs-hpfs-dnodec-fix-suspect-code-indent.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-proc-constify-seq_operations.patch
-fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
-fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
-fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
-fs-bfs-use-bfs-prefix-for-dump_imap.patch
-drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
-fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
-fs-cachefiles-bindc-remove-unnecessary-assertions.patch
-fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cramfs-convert-printk-to-pr_foo.patch
-fs-cramfs-use-pr_fmt.patch
-fs-cramfs-code-clean-up.patch
-fs-cramfs-inodec-use-linux-uaccessh.patch
-fs-romfs-superc-convert-printk-to-pr_foo.patch
-fs-romfs-superc-use-pr_fmt-in-logging.patch
-fs-romfs-superc-add-blank-line-after-declarations.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
-scripts-coccinelle-free-ifnullfreecocci-add-copyright-information.patch
-fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
-linux-next.patch
-init-mainc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
 
