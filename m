@@ -1,80 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch removed from -mm tree
-Date: Thu, 07 Aug 2014 13:02:47 -0700
-Message-ID: <53e3db67.Iaq5IWYqhV9C25gF%akpm@linux-foundation.org>
+Subject: [merged] mm-slabc-add-__init-to-init_lock_keys.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:02:49 -0700
+Message-ID: <53e3db69.GeHJuT3sjItYmTNn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:36397 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755100AbaHGUCs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:48 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so1175220pab.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:48 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:60514 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755100AbaHGUCu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:50 -0400
+Received: by mail-qa0-f74.google.com with SMTP id j15so608635qaq.1
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, fweisbec@gmail.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog.c: convert printk/pr_warning to pr_foo()
+     Subject: mm/slab.c: add __init to init_lock_keys
 has been removed from the -mm tree.  Its filename was
-     kernel-watchdogc-convert-printk-pr_warning-to-pr_foo.patch
+     mm-slabc-add-__init-to-init_lock_keys.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/watchdog.c: convert printk/pr_warning to pr_foo()
+Subject: mm/slab.c: add __init to init_lock_keys
 
-Replace some obsolete functions.
+init_lock_keys is only called by __init kmem_cache_init_late
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/slab.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/watchdog.c~kernel-watchdogc-convert-printk-pr_warning-to-pr_foo kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdogc-convert-printk-pr_warning-to-pr_foo
-+++ a/kernel/watchdog.c
-@@ -260,9 +260,11 @@ static void watchdog_overflow_callback(s
- 			return;
+diff -puN mm/slab.c~mm-slabc-add-__init-to-init_lock_keys mm/slab.c
+--- a/mm/slab.c~mm-slabc-add-__init-to-init_lock_keys
++++ a/mm/slab.c
+@@ -569,7 +569,7 @@ static inline void on_slab_lock_classes(
+ 		on_slab_lock_classes_node(cachep, node);
+ }
  
- 		if (hardlockup_panic)
--			panic("Watchdog detected hard LOCKUP on cpu %d", this_cpu);
-+			panic("Watchdog detected hard LOCKUP on cpu %d",
-+			      this_cpu);
- 		else
--			WARN(1, "Watchdog detected hard LOCKUP on cpu %d", this_cpu);
-+			WARN(1, "Watchdog detected hard LOCKUP on cpu %d",
-+			     this_cpu);
+-static inline void init_lock_keys(void)
++static inline void __init init_lock_keys(void)
+ {
+ 	int node;
  
- 		__this_cpu_write(hard_watchdog_warn, true);
- 		return;
-@@ -345,7 +347,7 @@ static enum hrtimer_restart watchdog_tim
- 			}
- 		}
+@@ -577,7 +577,7 @@ static inline void init_lock_keys(void)
+ 		init_node_lock_keys(node);
+ }
+ #else
+-static void init_node_lock_keys(int q)
++static void __init init_node_lock_keys(int q)
+ {
+ }
  
--		printk(KERN_EMERG "BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
-+		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
- 			smp_processor_id(), duration,
- 			current->comm, task_pid_nr(current));
- 		print_modules();
-@@ -484,7 +486,7 @@ static int watchdog_nmi_enable(unsigned
- 	if (PTR_ERR(event) == -EOPNOTSUPP)
- 		pr_info("disabled (cpu%i): not supported (no LAPIC?)\n", cpu);
- 	else if (PTR_ERR(event) == -ENOENT)
--		pr_warning("disabled (cpu%i): hardware events not enabled\n",
-+		pr_warn("disabled (cpu%i): hardware events not enabled\n",
- 			 cpu);
- 	else
- 		pr_err("disabled (cpu%i): unable to create perf event: %ld\n",
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
