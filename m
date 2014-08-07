@@ -1,109 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-thp-restructure-thp-avoidance-of-light-synchronous-migration.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:06:19 -0700
-Message-ID: <53e3dc3b.cEloVc2VwlSIlTv+%akpm@linux-foundation.org>
+ mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages.patch removed
+ from -mm tree
+Date: Thu, 07 Aug 2014 13:06:21 -0700
+Message-ID: <53e3dc3d.ns1HcllM7qxRrQmz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:46885 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955AbaHGUGU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:06:20 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so880062igi.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:06:19 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:52003 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955AbaHGUGW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:06:22 -0400
+Received: by mail-oa0-f74.google.com with SMTP id eb12so843517oac.1
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:06:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hannes@cmpxchg.org, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: zhong@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: restructure thp avoidance of light synchronous migration
+     Subject: mm: fix potential infinite loop in dissolve_free_huge_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-thp-restructure-thp-avoidance-of-light-synchronous-migration.patch
+     mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: restructure thp avoidance of light synchronous migration
+From: Li Zhong <zhong@linux.vnet.ibm.com>
+Subject: mm: fix potential infinite loop in dissolve_free_huge_pages()
 
-__GFP_NO_KSWAPD, once the way to determine if an allocation was for thp or not,
-has gained more users.  Their use is not necessarily wrong, they are trying to
-do a memory allocation that can easily fail without disturbing kswapd, so the
-bit has gained additional usecases.
+It is possible for some platforms, such as powerpc to set HPAGE_SHIFT to 0
+to indicate huge pages not supported.
 
-This restructures the check to determine whether MIGRATE_SYNC_LIGHT should be
-used for memory compaction in the page allocator.  Rather than testing solely
-for __GFP_NO_KSWAPD, test for all bits that must be set for thp allocations.
+When this is the case, hugetlbfs could be disabled during boot time:
+hugetlbfs: disabling because there are no supported hugepage sizes
 
-This also moves the check to be done only after the page allocator is aborted
-for deferred or contended memory compaction since setting migration_mode for
-this case is pointless.
+Then in dissolve_free_huge_pages(), order is kept maximum (64 for 64bits),
+and the for loop below won't end: for (pfn = start_pfn; pfn < end_pfn; pfn
++= 1 << order)
 
+As suggested by Naoya, below fix checks hugepages_supported() before
+calling dissolve_free_huge_pages().
+
+[rientjes@google.com: no legitimate reason to call dissolve_free_huge_pages() when !hugepages_supported()]
+Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>	[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ mm/hugetlb.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-thp-restructure-thp-avoidance-of-light-synchronous-migration mm/page_alloc.c
---- a/mm/page_alloc.c~mm-thp-restructure-thp-avoidance-of-light-synchronous-migration
-+++ a/mm/page_alloc.c
-@@ -2639,14 +2639,6 @@ rebalance:
- 		goto got_pg;
+diff -puN mm/hugetlb.c~mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-fix-potential-infinite-loop-in-dissolve_free_huge_pages
++++ a/mm/hugetlb.c
+@@ -1088,6 +1088,9 @@ void dissolve_free_huge_pages(unsigned l
+ 	unsigned long pfn;
+ 	struct hstate *h;
  
- 	/*
--	 * It can become very expensive to allocate transparent hugepages at
--	 * fault, so use asynchronous memory compaction for THP unless it is
--	 * khugepaged trying to collapse.
--	 */
--	if (!(gfp_mask & __GFP_NO_KSWAPD) || (current->flags & PF_KTHREAD))
--		migration_mode = MIGRATE_SYNC_LIGHT;
--
--	/*
- 	 * If compaction is deferred for high-order allocations, it is because
- 	 * sync compaction recently failed. In this is the case and the caller
- 	 * requested a movable allocation that does not heavily disrupt the
-@@ -2656,6 +2648,15 @@ rebalance:
- 						(gfp_mask & __GFP_NO_KSWAPD))
- 		goto nopage;
- 
-+	/*
-+	 * It can become very expensive to allocate transparent hugepages at
-+	 * fault, so use asynchronous memory compaction for THP unless it is
-+	 * khugepaged trying to collapse.
-+	 */
-+	if ((gfp_mask & GFP_TRANSHUGE) != GFP_TRANSHUGE ||
-+						(current->flags & PF_KTHREAD))
-+		migration_mode = MIGRATE_SYNC_LIGHT;
++	if (!hugepages_supported())
++		return;
 +
- 	/* Try direct reclaim and then allocating */
- 	page = __alloc_pages_direct_reclaim(gfp_mask, order,
- 					zonelist, high_zoneidx,
+ 	/* Set scan step to minimum hugepage size */
+ 	for_each_hstate(h)
+ 		if (order > huge_page_order(h))
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from zhong@linux.vnet.ibm.com are
 
 origin.patch
-x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
-x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
-mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
-mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-mm-utilc-add-kstrimdup.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-fork-exec-cleanup-mm-initialization.patch
-fork-reset-mm-pinned_vm.patch
-fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
 linux-next.patch
 
