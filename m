@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable.patch removed
+ memory-hotplug-sh-suitable-memory-should-go-to-zone_movable.patch removed
  from -mm tree
-Date: Thu, 07 Aug 2014 13:06:11 -0700
-Message-ID: <53e3dc33.RbSYg8pqVw+aVmRa%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:06:13 -0700
+Message-ID: <53e3dc35.Sc/GjuyVpoNs7eWf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f73.google.com ([209.85.192.73]:56077 "EHLO
-	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbaHGUGM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:06:12 -0400
-Received: by mail-qg0-f73.google.com with SMTP id q107so611324qgd.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:06:11 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:36183 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751926AbaHGUGO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:06:14 -0400
+Received: by mail-ie0-f201.google.com with SMTP id tr6so841681ieb.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:06:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wangnan0@huawei.com, benh@kernel.crashing.org, cmetcalf@tilera.com, dave.hansen@intel.com, hpa@zytor.com, mgorman@suse.de, mingo@redhat.com, paulus@samba.org, tglx@linutronix.de, tony.luck@intel.com, yinghai@kernel.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: ppc: suitable memory should go to ZONE_MOVABLE
+     Subject: memory-hotplug: sh: suitable memory should go to ZONE_MOVABLE
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable.patch
+     memory-hotplug-sh-suitable-memory-should-go-to-zone_movable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Wang Nan <wangnan0@huawei.com>
-Subject: memory-hotplug: ppc: suitable memory should go to ZONE_MOVABLE
+Subject: memory-hotplug: sh: suitable memory should go to ZONE_MOVABLE
 
-This patch introduces zone_for_memory() to arch_add_memory() on powerpc to
+This patch introduces zone_for_memory() to arch_add_memory() on sh to
 ensure new, higher memory added into ZONE_MOVABLE if movable zone has
 already setup.
 
@@ -50,22 +50,24 @@ Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mem.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sh/mm/init.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/mm/mem.c~memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable arch/powerpc/mm/mem.c
---- a/arch/powerpc/mm/mem.c~memory-hotplug-ppc-suitable-memory-should-go-to-zone_movable
-+++ a/arch/powerpc/mm/mem.c
-@@ -128,7 +128,8 @@ int arch_add_memory(int nid, u64 start,
- 		return -EINVAL;
+diff -puN arch/sh/mm/init.c~memory-hotplug-sh-suitable-memory-should-go-to-zone_movable arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~memory-hotplug-sh-suitable-memory-should-go-to-zone_movable
++++ a/arch/sh/mm/init.c
+@@ -495,8 +495,9 @@ int arch_add_memory(int nid, u64 start,
+ 	pgdat = NODE_DATA(nid);
  
- 	/* this should work for most non-highmem platforms */
--	zone = pgdata->node_zones;
-+	zone = pgdata->node_zones +
-+		zone_for_memory(nid, start, size, 0);
+ 	/* We only have ZONE_NORMAL, so this is easy.. */
+-	ret = __add_pages(nid, pgdat->node_zones + ZONE_NORMAL,
+-				start_pfn, nr_pages);
++	ret = __add_pages(nid, pgdat->node_zones +
++			zone_for_memory(nid, start, size, ZONE_NORMAL),
++			start_pfn, nr_pages);
+ 	if (unlikely(ret))
+ 		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
  
- 	return __add_pages(nid, zone, start_pfn, nr_pages);
- }
 _
 
 Patches currently in -mm which might be from wangnan0@huawei.com are
