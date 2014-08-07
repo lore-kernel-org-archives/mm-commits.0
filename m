@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:02:27 -0700
-Message-ID: <53e3db53.VadUvGGmtWYWdpDy%akpm@linux-foundation.org>
+Subject: [merged] arch-sh-kernel-timec-use-ptr_err_or_zero.patch removed
+ from -mm tree
+Date: Thu, 07 Aug 2014 13:02:29 -0700
+Message-ID: <53e3db55.47LPWusazfBCyrbK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:45924 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751897AbaHGUC2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:28 -0400
-Received: by mail-ie0-f201.google.com with SMTP id tr6so842336ieb.0
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:27 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:65316 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754963AbaHGUCa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:02:30 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so1173040pde.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:02:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/sh/mm/asids-debugfs.c: use PTR_ERR_OR_ZERO
+     Subject: arch/sh/kernel/time.c: use PTR_ERR_OR_ZERO
 has been removed from the -mm tree.  Its filename was
-     arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero.patch
+     arch-sh-kernel-timec-use-ptr_err_or_zero.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: arch/sh/mm/asids-debugfs.c: use PTR_ERR_OR_ZERO
+Subject: arch/sh/kernel/time.c: use PTR_ERR_OR_ZERO
 
 Replace IS_ERR/PTR_ERR.
 
@@ -36,23 +36,23 @@ Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/asids-debugfs.c |    4 +---
+ arch/sh/kernel/time.c |    4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/sh/mm/asids-debugfs.c~arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero arch/sh/mm/asids-debugfs.c
---- a/arch/sh/mm/asids-debugfs.c~arch-sh-mm-asids-debugfsc-use-ptr_err_or_zero
-+++ a/arch/sh/mm/asids-debugfs.c
-@@ -67,10 +67,8 @@ static int __init asids_debugfs_init(voi
- 					   NULL, &asids_debugfs_fops);
- 	if (!asids_dentry)
- 		return -ENOMEM;
--	if (IS_ERR(asids_dentry))
--		return PTR_ERR(asids_dentry);
+diff -puN arch/sh/kernel/time.c~arch-sh-kernel-timec-use-ptr_err_or_zero arch/sh/kernel/time.c
+--- a/arch/sh/kernel/time.c~arch-sh-kernel-timec-use-ptr_err_or_zero
++++ a/arch/sh/kernel/time.c
+@@ -80,10 +80,8 @@ static int __init rtc_generic_init(void)
+ 		return -ENODEV;
+ 
+ 	pdev = platform_device_register_simple("rtc-generic", -1, NULL, 0);
+-	if (IS_ERR(pdev))
+-		return PTR_ERR(pdev);
  
 -	return 0;
-+	return PTR_ERR_OR_ZERO(asids_dentry);
++	return PTR_ERR_OR_ZERO(pdev);
  }
- module_init(asids_debugfs_init);
+ module_init(rtc_generic_init);
  
 _
 
