@@ -1,69 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-improve-no-space-after-cast-test.patch
- removed from -mm tree
-Date: Thu, 07 Aug 2014 13:09:03 -0700
-Message-ID: <53e3dcdf.EVKJ2bEZvG8maBt1%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch removed from -mm tree
+Date: Thu, 07 Aug 2014 13:08:59 -0700
+Message-ID: <53e3dcdb.uIcPHTObecn4yOjj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:60771 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751265AbaHGUJF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:05 -0400
-Received: by mail-qa0-f74.google.com with SMTP id j15so613548qaq.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:05 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:60834 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755183AbaHGUJA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:00 -0400
+Received: by mail-oa0-f74.google.com with SMTP id eb12so840019oac.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:08:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve "no space after cast" test
+     Subject: checkpatch: warn on unnecessary parentheses around references of foo->bar
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-no-space-after-cast-test.patch
+     checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve "no space after cast" test
+Subject: checkpatch: warn on unnecessary parentheses around references of foo->bar
 
-This --strict test previously worked only for what appeared to be cast to
-pointer types.
-
-Make it work for all casts.
-
-Also, there's no reason to show the previous line for this type of
-message, so don't.
+Parentheses around &(foo->bar) and *(foo->bar) are unnecessary.  Emit a
+--strict only message on these uses.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-no-space-after-cast-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-no-space-after-cast-test
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-parentheses-around-references-of-foo-bar
 +++ a/scripts/checkpatch.pl
-@@ -2260,12 +2260,12 @@ sub process {
+@@ -3491,6 +3491,14 @@ sub process {
  			}
  		}
  
--		if ($line =~ /^\+.*\*[ \t]*\)[ \t]+(?!$Assignment|$Arithmetic)/) {
-+		if ($line =~ /^\+.*\(\s*$Type\s*\)[ \t]+(?!$Assignment|$Arithmetic)/) {
- 			if (CHK("SPACING",
--				"No space is necessary after a cast\n" . $hereprev) &&
-+				"No space is necessary after a cast\n" . $herecurr) &&
- 			    $fix) {
- 				$fixed[$linenr - 1] =~
--				    s/^(\+.*\*[ \t]*\))[ \t]+/$1/;
-+				    s/(\(\s*$Type\s*\))[ \t]+/$1/;
- 			}
- 		}
- 
++# check unnecessary parentheses around addressof/dereference single $Lvals
++# ie: &(foo->bar) should be &foo->bar and *(foo->bar) should be *foo->bar
++
++		while ($line =~ /(?:[^&]&\s*|\*)\(\s*($Ident\s*(?:$Member\s*)+)\s*\)/g) {
++			CHK("UNNECESSARY_PARENTHESES",
++			    "Unnecessary parentheses around $1\n" . $herecurr);
++		    }
++
+ #goto labels aren't indented, allow a single space however
+ 		if ($line=~/^.\s+[A-Za-z\d_]+:(?![0-9]+)/ and
+ 		   !($line=~/^. [A-Za-z\d_]+:/) and !($line=~/^.\s+default:/)) {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
