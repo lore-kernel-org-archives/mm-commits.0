@@ -1,147 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-update-declaration_macros-add-uninitialized_var.patch removed
- from -mm tree
-Date: Thu, 07 Aug 2014 13:09:39 -0700
-Message-ID: <53e3dd03.5e+dDHF4XhIyHneC%akpm@linux-foundation.org>
+Subject: +
+ vm_is_stack-use-for_each_thread-rather-then-buggy-while_each_thread.patch
+ added to -mm tree
+Date: Thu, 07 Aug 2014 15:28:57 -0700
+Message-ID: <53e3fda9.wly1uQxAkbOcwlPT%akpm__19354.3509034955$1407450561$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f73.google.com ([209.85.218.73]:40369 "EHLO
-	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbaHGUJk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:09:40 -0400
-Received: by mail-oi0-f73.google.com with SMTP id u20so839015oif.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:09:39 -0700 (PDT)
+Received: from mail-ig0-f202.google.com ([209.85.213.202]:60013 "EHLO
+	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755948AbaHGW27 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 18:28:59 -0400
+Received: by mail-ig0-f202.google.com with SMTP id r2so26198igi.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 15:28:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dotanb@mellanox.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, alex.besogonov@gmail.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: update $declaration_macros, add uninitialized_var
-has been removed from the -mm tree.  Its filename was
-     checkpatch-update-declaration_macros-add-uninitialized_var.patch
+     Subject: vm_is_stack: use for_each_thread() rather then buggy while_each_thread()
+has been added to the -mm tree.  Its filename is
+     vm_is_stack-use-for_each_thread-rather-then-buggy-while_each_thread.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/vm_is_stack-use-for_each_thread-rather-then-buggy-while_each_thread.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/vm_is_stack-use-for_each_thread-rather-then-buggy-while_each_thread.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: update $declaration_macros, add uninitialized_var
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: vm_is_stack: use for_each_thread() rather then buggy while_each_thread()
 
-Using uninitialized_var reports a false positive for "Missing blank line
-after declarations".
+Aleksei hit the soft lockup during reading /proc/PID/smaps.  David
+investigated the problem and suggested the right fix.
 
-Fix it by adding uninitialized_var to the $declaration_macros exceptions
-list.
+while_each_thread() is racy and should die, this patch updates
+vm_is_stack().
 
-Move the macro list after $Type is declared.
-
-Add optional prefixes to DECLARE_<FOO> and DEFINE_<BAR>
-macro declarations to allow forms like:
-	MLX4_DECLARE_DOORBELL_LOCK
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Dotan Barak <dotanb@mellanox.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: Aleksei Besogonov <alex.besogonov@gmail.com>
+Tested-by: Aleksei Besogonov <alex.besogonov@gmail.com>
+Suggested-by: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/util.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-update-declaration_macros-add-uninitialized_var scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-update-declaration_macros-add-uninitialized_var
-+++ a/scripts/checkpatch.pl
-@@ -423,11 +423,6 @@ foreach my $entry (@mode_permission_func
- 	$mode_perms_search .= $entry->[0];
- }
+diff -puN mm/util.c~vm_is_stack-use-for_each_thread-rather-then-buggy-while_each_thread mm/util.c
+--- a/mm/util.c~vm_is_stack-use-for_each_thread-rather-then-buggy-while_each_thread
++++ a/mm/util.c
+@@ -213,17 +213,14 @@ pid_t vm_is_stack(struct task_struct *ta
  
--our $declaration_macros = qr{(?x:
--	(?:$Storage\s+)?(?:DECLARE|DEFINE)_[A-Z]+\s*\(|
--	(?:$Storage\s+)?LIST_HEAD\s*\(
--)};
--
- our $allowed_asm_includes = qr{(?x:
- 	irq|
- 	memory
-@@ -490,6 +485,12 @@ our $balanced_parens = qr/(\((?:[^\(\)]+
- our $LvalOrFunc	= qr{((?:[\&\*]\s*)?$Lval)\s*($balanced_parens{0,1})\s*};
- our $FuncArg = qr{$Typecast{0,1}($LvalOrFunc|$Constant)};
+ 	if (in_group) {
+ 		struct task_struct *t;
+-		rcu_read_lock();
+-		if (!pid_alive(task))
+-			goto done;
  
-+our $declaration_macros = qr{(?x:
-+	(?:$Storage\s+)?(?:[A-Z_][A-Z0-9]*_){0,2}(?:DEFINE|DECLARE)(?:_[A-Z0-9]+){1,2}\s*\(|
-+	(?:$Storage\s+)?LIST_HEAD\s*\(|
-+	(?:$Storage\s+)?${Type}\s+uninitialized_var\s*\(
-+)};
-+
- sub deparenthesize {
- 	my ($string) = @_;
- 	return "" if (!defined($string));
+-		t = task;
+-		do {
++		rcu_read_lock();
++		for_each_thread(task, t) {
+ 			if (vm_is_stack_for_task(t, vma)) {
+ 				ret = t->pid;
+ 				goto done;
+ 			}
+-		} while_each_thread(task, t);
++		}
+ done:
+ 		rcu_read_unlock();
+ 	}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-mm-utilc-add-kstrimdup.patch
-fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
-fs-isofs-logging-clean-up.patch
-proc-constify-seq_operations.patch
-sysctl-remove-now-unused-typedef-ctl_table.patch
-sysctl-remove-now-unused-typedef-ctl_table-fix.patch
-adfs-add-__printf-verification-fix-format-argument-mismatches.patch
-fs-qnx6-convert-printk-to-pr_foo.patch
-fs-qnx6-use-pr_fmt-and-__func__-in-logging.patch
-fs-qnx6-update-debugging-to-current-functions.patch
-scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
+vm_is_stack-use-for_each_thread-rather-then-buggy-while_each_thread.patch
+fork-exec-cleanup-mm-initialization.patch
+fork-reset-mm-pinned_vm.patch
+fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
 linux-next.patch
-maintainers-remove-two-ancient-eata-sections.patch
-pci-dma-compat-add-pci_zalloc_consistent-helper.patch
-atm-use-pci_zalloc_consistent.patch
-block-use-pci_zalloc_consistent.patch
-crypto-use-pci_zalloc_consistent.patch
-infiniband-use-pci_zalloc_consistent.patch
-i810-use-pci_zalloc_consistent.patch
-media-use-pci_zalloc_consistent.patch
-amd-use-pci_zalloc_consistent.patch
-atl1e-use-pci_zalloc_consistent.patch
-enic-use-pci_zalloc_consistent.patch
-sky2-use-pci_zalloc_consistent.patch
-micrel-use-pci_zalloc_consistent.patch
-qlogic-use-pci_zalloc_consistent.patch
-irda-use-pci_zalloc_consistent.patch
-ipw2100-use-pci_zalloc_consistent.patch
-mwl8k-use-pci_zalloc_consistent.patch
-rtl818x-use-pci_zalloc_consistent.patch
-rtlwifi-use-pci_zalloc_consistent.patch
-scsi-use-pci_zalloc_consistent.patch
-staging-use-pci_zalloc_consistent.patch
-synclink_gt-use-pci_zalloc_consistent.patch
-vme-bridges-use-pci_zalloc_consistent.patch
-amd-neaten-and-remove-unnecessary-oom-messages.patch
-maintainers-update-microcode-patterns.patch
-maintainers-update-cifs-location.patch
-maintainers-use-the-correct-efi-stub-location.patch
-maintainers-update-clk-sirf-patterns.patch
-maintainers-fix-ssbi-pattern.patch
-maintainers-use-correct-filename-for-sdhci-bcm-kona.patch
-maintainers-fix-pxa3xx-nand-flash-driver-pattern.patch
-maintainers-update-picoxcell-patterns.patch
-maintainers-remove-section-cirrus-logic-ep93xx-ohci-usb-host-driver.patch
-maintainers-remove-metag-imgdafs-pattern.patch
-maintainers-remove-unused-radeon-drm-pattern.patch
-maintainers-remove-unusd-arm-qualcomm-msm-pattern.patch
-maintainers-remove-unused-nfsd-pattern.patch
-fsh-remove-unnecessary-extern-prototypes.patch
-fsh-whitespace-neatening.patch
-fsh-a-few-more-whitespace-neatenings.patch
-fsh-add-argument-names-to-struct-file_lock_operations-funcs.patch
-fsh-add-member-argument-descriptions-to-lock_manager_operations.patch
-dlm-plock-add-argument-descriptions-to-notify.patch
-dlm-fs-remove-unused-conf-from-lm_grant.patch
-dlm-plock-reduce-indentation-by-rearranging-order.patch
-maintainers-update-dma-buffer-sharing-patterns.patch
-maintainers-update-usb-gadget-patterns.patch
-maintainers-update-nomadik-patterns.patch
 
