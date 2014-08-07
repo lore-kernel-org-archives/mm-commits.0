@@ -1,46 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-globc-add-config_glob_selftest.patch removed from
+Subject: [merged] libata-use-glob_match-from-lib-globc.patch removed from
  -mm tree
-Date: Thu, 07 Aug 2014 13:07:41 -0700
-Message-ID: <53e3dc8d.sqNKY6OLBFHGPkHk%akpm@linux-foundation.org>
+Date: Thu, 07 Aug 2014 13:07:43 -0700
+Message-ID: <53e3dc8f.9X+/JMnEQd0GO4Tb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:63028 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751237AbaHGUHm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:07:42 -0400
-Received: by mail-vc0-f201.google.com with SMTP id le20so611881vcb.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:07:41 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:55131 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755191AbaHGUHo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2014 16:07:44 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so844548obb.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Aug 2014 13:07:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@horizon.com, mingo@elte.hu, rdunlap@infradead.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/glob.c: add CONFIG_GLOB_SELFTEST
+     Subject: libata: Use glob_match from lib/glob.c
 has been removed from the -mm tree.  Its filename was
-     lib-globc-add-config_glob_selftest.patch
+     libata-use-glob_match-from-lib-globc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "George Spelvin" <linux@horizon.com>
-Subject: lib/glob.c: add CONFIG_GLOB_SELFTEST
+Subject: libata: Use glob_match from lib/glob.c
 
-This was useful during development, and is retained for future regression
-testing.
+The function may be useful for other drivers, so export it.  (Suggested by
+Tejun Heo.)
 
-GCC appears to have no way to place string literals in a particular
-section; adding __initconst to a char pointer leaves the string itself in
-the default string section, where it will not be thrown away after module
-load.
-
-Thus all string constants are kept in explicitly declared and named
-arrays.  Sorry this makes printk a bit harder to read.  At least the tests
-are more compact.
+Note that I inverted the return value of glob_match; returning true on
+match seemed to make more sense.
 
 Signed-off-by: George Spelvin <linux@horizon.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
@@ -49,208 +43,99 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig |   14 ++++
- lib/glob.c  |  164 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 178 insertions(+)
+ drivers/ata/Kconfig       |    1 
+ drivers/ata/libata-core.c |   72 +-----------------------------------
+ 2 files changed, 4 insertions(+), 69 deletions(-)
 
-diff -puN lib/Kconfig~lib-globc-add-config_glob_selftest lib/Kconfig
---- a/lib/Kconfig~lib-globc-add-config_glob_selftest
-+++ a/lib/Kconfig
-@@ -415,6 +415,20 @@ config GLOB
- 	  are compiling an out-of tree driver which tells you that it
- 	  depends on this.
+diff -puN drivers/ata/Kconfig~libata-use-glob_match-from-lib-globc drivers/ata/Kconfig
+--- a/drivers/ata/Kconfig~libata-use-glob_match-from-lib-globc
++++ a/drivers/ata/Kconfig
+@@ -16,6 +16,7 @@ menuconfig ATA
+ 	depends on BLOCK
+ 	depends on !(M32R || M68K || S390) || BROKEN
+ 	select SCSI
++	select GLOB
+ 	---help---
+ 	  If you want to use an ATA hard disk, ATA tape drive, ATA CD-ROM or
+ 	  any other ATA device under Linux, say Y and make sure that you know
+diff -puN drivers/ata/libata-core.c~libata-use-glob_match-from-lib-globc drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-use-glob_match-from-lib-globc
++++ a/drivers/ata/libata-core.c
+@@ -59,6 +59,7 @@
+ #include <linux/async.h>
+ #include <linux/log2.h>
+ #include <linux/slab.h>
++#include <linux/glob.h>
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_cmnd.h>
+ #include <scsi/scsi_host.h>
+@@ -4250,73 +4251,6 @@ static const struct ata_blacklist_entry
+ 	{ }
+ };
  
-+config GLOB_SELFTEST
-+	bool "glob self-test on init"
-+	default n
-+	depends on GLOB
-+	help
-+	  This option enables a simple self-test of the glob_match
-+	  function on startup.	It is primarily useful for people
-+	  working on the code to ensure they haven't introduced any
-+	  regressions.
-+
-+	  It only adds a little bit of code and slows kernel boot (or
-+	  module load) by a small amount, so you're welcome to play with
-+	  it, but you probably don't need it.
-+
- #
- # Netlink attribute parsing support is select'ed if needed
- #
-diff -puN lib/glob.c~lib-globc-add-config_glob_selftest lib/glob.c
---- a/lib/glob.c~lib-globc-add-config_glob_selftest
-+++ a/lib/glob.c
-@@ -121,3 +121,167 @@ backtrack:
- 	}
- }
- EXPORT_SYMBOL(glob_match);
-+
-+
-+#ifdef CONFIG_GLOB_SELFTEST
-+
-+#include <linux/printk.h>
-+#include <linux/moduleparam.h>
-+
-+/* Boot with "glob.verbose=1" to show successful tests, too */
-+static bool verbose = false;
-+module_param(verbose, bool, 0);
-+
-+struct glob_test {
-+	char const *pat, *str;
-+	bool expected;
-+};
-+
-+static bool __pure __init test(char const *pat, char const *str, bool expected)
-+{
-+	bool match = glob_match(pat, str);
-+	bool success = match == expected;
-+
-+	/* Can't get string literals into a particular section, so... */
-+	static char const msg_error[] __initconst =
-+		KERN_ERR "glob: \"%s\" vs. \"%s\": %s *** ERROR ***\n";
-+	static char const msg_ok[] __initconst =
-+		KERN_DEBUG "glob: \"%s\" vs. \"%s\": %s OK\n";
-+	static char const mismatch[] __initconst = "mismatch";
-+	char const *message;
-+
-+	if (!success)
-+		message = msg_error;
-+	else if (verbose)
-+		message = msg_ok;
-+	else
-+		return success;
-+
-+	printk(message, pat, str, mismatch + 3*match);
-+	return success;
-+}
-+
-+/*
-+ * The tests are all jammed together in one array to make it simpler
-+ * to place that array in the .init.rodata section.  The obvious
-+ * "array of structures containing char *" has no way to force the
-+ * pointed-to strings to be in a particular section.
-+ *
-+ * Anyway, a test consists of:
-+ * 1. Expected glob_match result: '1' or '0'.
-+ * 2. Pattern to match: null-terminated string
-+ * 3. String to match against: null-terminated string
-+ *
-+ * The list of tests is terminated with a final '\0' instead of
-+ * a glob_match result character.
-+ */
-+static char const glob_tests[] __initconst =
-+	/* Some basic tests */
-+	"1" "a\0" "a\0"
-+	"0" "a\0" "b\0"
-+	"0" "a\0" "aa\0"
-+	"0" "a\0" "\0"
-+	"1" "\0" "\0"
-+	"0" "\0" "a\0"
-+	/* Simple character class tests */
-+	"1" "[a]\0" "a\0"
-+	"0" "[a]\0" "b\0"
-+	"0" "[!a]\0" "a\0"
-+	"1" "[!a]\0" "b\0"
-+	"1" "[ab]\0" "a\0"
-+	"1" "[ab]\0" "b\0"
-+	"0" "[ab]\0" "c\0"
-+	"1" "[!ab]\0" "c\0"
-+	"1" "[a-c]\0" "b\0"
-+	"0" "[a-c]\0" "d\0"
-+	/* Corner cases in character class parsing */
-+	"1" "[a-c-e-g]\0" "-\0"
-+	"0" "[a-c-e-g]\0" "d\0"
-+	"1" "[a-c-e-g]\0" "f\0"
-+	"1" "[]a-ceg-ik[]\0" "a\0"
-+	"1" "[]a-ceg-ik[]\0" "]\0"
-+	"1" "[]a-ceg-ik[]\0" "[\0"
-+	"1" "[]a-ceg-ik[]\0" "h\0"
-+	"0" "[]a-ceg-ik[]\0" "f\0"
-+	"0" "[!]a-ceg-ik[]\0" "h\0"
-+	"0" "[!]a-ceg-ik[]\0" "]\0"
-+	"1" "[!]a-ceg-ik[]\0" "f\0"
-+	/* Simple wild cards */
-+	"1" "?\0" "a\0"
-+	"0" "?\0" "aa\0"
-+	"0" "??\0" "a\0"
-+	"1" "?x?\0" "axb\0"
-+	"0" "?x?\0" "abx\0"
-+	"0" "?x?\0" "xab\0"
-+	/* Asterisk wild cards (backtracking) */
-+	"0" "*??\0" "a\0"
-+	"1" "*??\0" "ab\0"
-+	"1" "*??\0" "abc\0"
-+	"1" "*??\0" "abcd\0"
-+	"0" "??*\0" "a\0"
-+	"1" "??*\0" "ab\0"
-+	"1" "??*\0" "abc\0"
-+	"1" "??*\0" "abcd\0"
-+	"0" "?*?\0" "a\0"
-+	"1" "?*?\0" "ab\0"
-+	"1" "?*?\0" "abc\0"
-+	"1" "?*?\0" "abcd\0"
-+	"1" "*b\0" "b\0"
-+	"1" "*b\0" "ab\0"
-+	"0" "*b\0" "ba\0"
-+	"1" "*b\0" "bb\0"
-+	"1" "*b\0" "abb\0"
-+	"1" "*b\0" "bab\0"
-+	"1" "*bc\0" "abbc\0"
-+	"1" "*bc\0" "bc\0"
-+	"1" "*bc\0" "bbc\0"
-+	"1" "*bc\0" "bcbc\0"
-+	/* Multiple asterisks (complex backtracking) */
-+	"1" "*ac*\0" "abacadaeafag\0"
-+	"1" "*ac*ae*ag*\0" "abacadaeafag\0"
-+	"1" "*a*b*[bc]*[ef]*g*\0" "abacadaeafag\0"
-+	"0" "*a*b*[ef]*[cd]*g*\0" "abacadaeafag\0"
-+	"1" "*abcd*\0" "abcabcabcabcdefg\0"
-+	"1" "*ab*cd*\0" "abcabcabcabcdefg\0"
-+	"1" "*abcd*abcdef*\0" "abcabcdabcdeabcdefg\0"
-+	"0" "*abcd*\0" "abcabcabcabcefg\0"
-+	"0" "*ab*cd*\0" "abcabcabcabcefg\0";
-+
-+static int __init glob_init(void)
-+{
-+	unsigned successes = 0;
-+	unsigned n = 0;
-+	char const *p = glob_tests;
-+	static char const message[] __initconst =
-+		KERN_INFO "glob: %u self-tests passed, %u failed\n";
-+
-+	/*
-+	 * Tests are jammed together in a string.  The first byte is '1'
-+	 * or '0' to indicate the expected outcome, or '\0' to indicate the
-+	 * end of the tests.  Then come two null-terminated strings: the
-+	 * pattern and the string to match it against.
-+	 */
-+	while (*p) {
-+		bool expected = *p++ & 1;
-+		char const *pat = p;
-+
-+		p += strlen(p) + 1;
-+		successes += test(pat, p, expected);
-+		p += strlen(p) + 1;
-+		n++;
-+	}
-+
-+	n -= successes;
-+	printk(message, successes, n);
-+
-+	/* What's the errno for "kernel bug detected"?  Guess... */
-+	return n ? -ECANCELED : 0;
-+}
-+
-+/* We need a dummy exit function to allow unload */
-+static void __exit glob_fini(void) { }
-+
-+module_init(glob_init);
-+module_exit(glob_fini);
-+
-+#endif /* CONFIG_GLOB_SELFTEST */
-_
-
-Patches currently in -mm which might be from linux@horizon.com are
-
-origin.patch
-
+-/**
+- *	glob_match - match a text string against a glob-style pattern
+- *	@text: the string to be examined
+- *	@pattern: the glob-style pattern to be matched against
+- *
+- *	Either/both of text and pattern can be empty strings.
+- *
+- *	Match text against a glob-style pattern, with wildcards and simple sets:
+- *
+- *		?	matches any single character.
+- *		*	matches any run of characters.
+- *		[xyz]	matches a single character from the set: x, y, or z.
+- *		[a-d]	matches a single character from the range: a, b, c, or d.
+- *		[a-d0-9] matches a single character from either range.
+- *
+- *	The special characters ?, [, -, or *, can be matched using a set, eg. [*]
+- *	Behaviour with malformed patterns is undefined, though generally reasonable.
+- *
+- *	Sample patterns:  "SD1?",  "SD1[0-5]",  "*R0",  "SD*1?[012]*xx"
+- *
+- *	This function uses one level of recursion per '*' in pattern.
+- *	Since it calls _nothing_ else, and has _no_ explicit local variables,
+- *	this will not cause stack problems for any reasonable use here.
+- *
+- *	RETURNS:
+- *	0 on match, 1 otherwise.
+- */
+-static int glob_match (const char *text, const char *pattern)
+-{
+-	do {
+-		/* Match single character or a '?' wildcard */
+-		if (*text == *pattern || *pattern == '?') {
+-			if (!*pattern++)
+-				return 0;  /* End of both strings: match */
+-		} else {
+-			/* Match single char against a '[' bracketed ']' pattern set */
+-			if (!*text || *pattern != '[')
+-				break;  /* Not a pattern set */
+-			while (*++pattern && *pattern != ']' && *text != *pattern) {
+-				if (*pattern == '-' && *(pattern - 1) != '[')
+-					if (*text > *(pattern - 1) && *text < *(pattern + 1)) {
+-						++pattern;
+-						break;
+-					}
+-			}
+-			if (!*pattern || *pattern == ']')
+-				return 1;  /* No match */
+-			while (*pattern && *pattern++ != ']');
+-		}
+-	} while (*++text && *pattern);
+-
+-	/* Match any run of chars against a '*' wildcard */
+-	if (*pattern == '*') {
+-		if (!*++pattern)
+-			return 0;  /* Match: avoid recursion at end of pattern */
+-		/* Loop to handle additional pattern chars after the wildcard */
+-		while (*text) {
+-			if (glob_match(text, pattern) == 0)
+-				return 0;  /* Remainder matched */
+-			++text;  /* Absorb (match) this char and try again */
+-		}
+-	}
+-	if (!*text && !*pattern)
+-		return 0;  /* End of both strings: match */
+-	return 1;  /* No match */
+-}
