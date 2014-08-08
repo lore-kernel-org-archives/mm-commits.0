@@ -1,68 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] panic-add-taint_softlockup-fix.patch removed from -mm tree
-Date: Fri, 08 Aug 2014 13:59:36 -0700
-Message-ID: <53e53a38.vZhdXOVYWHGZy9Y6%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix.patch removed
+ from -mm tree
+Date: Fri, 08 Aug 2014 14:00:17 -0700
+Message-ID: <53e53a61.eyzViQEWLj6iOurg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:59616 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757065AbaHHU7h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2014 16:59:37 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so1558507pab.4
-        for <mm-commits@vger.kernel.org>; Fri, 08 Aug 2014 13:59:37 -0700 (PDT)
+Received: from mail-ig0-f202.google.com ([209.85.213.202]:57367 "EHLO
+	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756996AbaHHVAT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2014 17:00:19 -0400
+Received: by mail-ig0-f202.google.com with SMTP id r2so252827igi.3
+        for <mm-commits@vger.kernel.org>; Fri, 08 Aug 2014 14:00:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jbaron@akamai.com, johunt@akamai.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
+To: lauraa@codeaurora.org, benh@kernel.crashing.org, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic-add-taint_softlockup-fix
+     Subject: powerpc: include asm/dma.h explicitly
 has been removed from the -mm tree.  Its filename was
-     panic-add-taint_softlockup-fix.patch
+     lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix.patch
 
-This patch was dropped because it was folded into panic-add-taint_softlockup.patch
+This patch was dropped because it was folded into lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: panic-add-taint_softlockup-fix
+From: Laura Abbott <lauraa@codeaurora.org>
+Subject: powerpc: include asm/dma.h explicitly
 
-apply the tain before calling panic()
+commit ff35bd54456e18878c361a8a2deeb41c9688458f (lib/scatterlist: make
+ARCH_HAS_SG_CHAIN an actual Kconfig) changed powerpc to use the generic
+scatterlist.h.  The powerpc scatterlist.h header was including asm/dma.h
+as well so removing the include broke a few things:
 
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Josh Hunt <johunt@akamai.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+arch/powerpc/platforms/52xx/efika.c: In function 'efika_probe':
+arch/powerpc/platforms/52xx/efika.c:210:2: error: 'ISA_DMA_THRESHOLD' undeclared
+arch/powerpc/platforms/52xx/efika.c:211:2: error: 'DMA_MODE_READ' undeclared
+arch/powerpc/platforms/52xx/efika.c:212:2: error: 'DMA_MODE_WRITE' undeclared
+
+Explicitly include asm/dma.h where necessary.
+
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Cc: kbuild test robot <fengguang.wu@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/platforms/52xx/efika.c     |    1 +
+ arch/powerpc/platforms/amigaone/setup.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN kernel/watchdog.c~panic-add-taint_softlockup-fix kernel/watchdog.c
---- a/kernel/watchdog.c~panic-add-taint_softlockup-fix
-+++ a/kernel/watchdog.c
-@@ -368,9 +368,9 @@ static enum hrtimer_restart watchdog_tim
- 			smp_mb__after_atomic();
- 		}
+diff -puN arch/powerpc/platforms/52xx/efika.c~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix arch/powerpc/platforms/52xx/efika.c
+--- a/arch/powerpc/platforms/52xx/efika.c~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix
++++ a/arch/powerpc/platforms/52xx/efika.c
+@@ -13,6 +13,7 @@
+ #include <generated/utsrelease.h>
+ #include <linux/pci.h>
+ #include <linux/of.h>
++#include <asm/dma.h>
+ #include <asm/prom.h>
+ #include <asm/time.h>
+ #include <asm/machdep.h>
+diff -puN arch/powerpc/platforms/amigaone/setup.c~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix arch/powerpc/platforms/amigaone/setup.c
+--- a/arch/powerpc/platforms/amigaone/setup.c~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix
++++ a/arch/powerpc/platforms/amigaone/setup.c
+@@ -24,6 +24,7 @@
+ #include <asm/i8259.h>
+ #include <asm/time.h>
+ #include <asm/udbg.h>
++#include <asm/dma.h>
  
-+		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
- 		if (softlockup_panic)
- 			panic("softlockup: hung tasks");
--		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
- 		__this_cpu_write(soft_watchdog_warn, true);
- 	} else
- 		__this_cpu_write(soft_watchdog_warn, false);
+ extern void __flush_disable_L1(void);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lauraa@codeaurora.org are
 
 origin.patch
-rtc-add-pcf85063-support.patch
-proc-remove-proc_tty_ldisc-variable.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors.patch
-panic-add-taint_softlockup.patch
-kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
+lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
+lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2.patch
+lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-3.patch
+lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
 
