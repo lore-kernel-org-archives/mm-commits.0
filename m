@@ -1,132 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- kexec-support-kexec-kdump-on-efi-systems-fix.patch removed from -mm tree
-Date: Fri, 08 Aug 2014 14:03:56 -0700
-Message-ID: <53e53b3c.2FLKwnxGJ7lEJ/Ol%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb_cgroup-align-hugetlb-cgroup-limit-to-hugepage-size.patch added
+ to -mm tree
+Date: Fri, 08 Aug 2014 15:13:05 -0700
+Message-ID: <53e54b71.Z/pc1p2V0LKEZM/S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f201.google.com ([209.85.160.201]:60910 "EHLO
-	mail-yk0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933574AbaHHVD5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2014 17:03:57 -0400
-Received: by mail-yk0-f201.google.com with SMTP id 142so808921ykq.0
-        for <mm-commits@vger.kernel.org>; Fri, 08 Aug 2014 14:03:57 -0700 (PDT)
+Received: from mail-yk0-f202.google.com ([209.85.160.202]:35614 "EHLO
+	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758600AbaHHWNH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2014 18:13:07 -0400
+Received: by mail-yk0-f202.google.com with SMTP id q9so819305ykb.5
+        for <mm-commits@vger.kernel.org>; Fri, 08 Aug 2014 15:13:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, matt@console-pimps.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, aneesh.kumar@linux.vnet.ibm.com, lizefan@huawei.com, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec-support-kexec-kdump-on-efi-systems-fix
-has been removed from the -mm tree.  Its filename was
-     kexec-support-kexec-kdump-on-efi-systems-fix.patch
+     Subject: mm, hugetlb_cgroup: align hugetlb cgroup limit to hugepage size
+has been added to the -mm tree.  Its filename is
+     mm-hugetlb_cgroup-align-hugetlb-cgroup-limit-to-hugepage-size.patch
 
-This patch was dropped because it was folded into kexec-support-kexec-kdump-on-efi-systems.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb_cgroup-align-hugetlb-cgroup-limit-to-hugepage-size.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb_cgroup-align-hugetlb-cgroup-limit-to-hugepage-size.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kexec-support-kexec-kdump-on-efi-systems-fix
+From: David Rientjes <rientjes@google.com>
+Subject: mm, hugetlb_cgroup: align hugetlb cgroup limit to hugepage size
 
-s/get_efi/efi_get/g, per Matt
+Memcg aligns memory.limit_in_bytes to PAGE_SIZE as part of the resource counter
+since it makes no sense to allow a partial page to be charged.
 
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Matt Fleming <matt@console-pimps.org>
+As a result of the hugetlb cgroup using the resource counter, it is also aligned
+to PAGE_SIZE but makes no sense unless aligned to the size of the hugepage being
+limited.
+
+Align hugetlb cgroup limit to hugepage size.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kexec-bzimage64.c  |    4 ++--
- drivers/firmware/efi/runtime-map.c |    6 +++---
- include/linux/efi.h                |    8 ++++----
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ mm/hugetlb_cgroup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/kexec-bzimage64.c~kexec-support-kexec-kdump-on-efi-systems-fix arch/x86/kernel/kexec-bzimage64.c
---- a/arch/x86/kernel/kexec-bzimage64.c~kexec-support-kexec-kdump-on-efi-systems-fix
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -181,7 +181,7 @@ setup_efi_state(struct boot_params *para
- 	ei->efi_systab_hi = current_ei->efi_systab_hi;
- 
- 	ei->efi_memdesc_version = current_ei->efi_memdesc_version;
--	ei->efi_memdesc_size = get_efi_runtime_map_desc_size();
-+	ei->efi_memdesc_size = efi_get_runtime_map_desc_size();
- 
- 	setup_efi_info_memmap(params, params_load_addr, efi_map_offset,
- 			      efi_map_sz);
-@@ -397,7 +397,7 @@ void *bzImage64_load(struct kimage *imag
- 	 * have to create separate segment for each. Keeps things
- 	 * little bit simple
- 	 */
--	efi_map_sz = get_efi_runtime_map_size();
-+	efi_map_sz = efi_get_runtime_map_size();
- 	efi_map_sz = ALIGN(efi_map_sz, 16);
- 	params_cmdline_sz = sizeof(struct boot_params) + cmdline_len +
- 				MAX_ELFCOREHDR_STR_LEN;
-diff -puN drivers/firmware/efi/runtime-map.c~kexec-support-kexec-kdump-on-efi-systems-fix drivers/firmware/efi/runtime-map.c
---- a/drivers/firmware/efi/runtime-map.c~kexec-support-kexec-kdump-on-efi-systems-fix
-+++ a/drivers/firmware/efi/runtime-map.c
-@@ -138,19 +138,19 @@ add_sysfs_runtime_map_entry(struct kobje
- 	return entry;
- }
- 
--int get_efi_runtime_map_size(void)
-+int efi_get_runtime_map_size(void)
- {
- 	return nr_efi_runtime_map * efi_memdesc_size;
- }
- 
--int get_efi_runtime_map_desc_size(void)
-+int efi_get_runtime_map_desc_size(void)
- {
- 	return efi_memdesc_size;
- }
- 
- int efi_runtime_map_copy(void *buf, size_t bufsz)
- {
--	size_t sz = get_efi_runtime_map_size();
-+	size_t sz = efi_get_runtime_map_size();
- 
- 	if (sz > bufsz)
- 		sz = bufsz;
-diff -puN include/linux/efi.h~kexec-support-kexec-kdump-on-efi-systems-fix include/linux/efi.h
---- a/include/linux/efi.h~kexec-support-kexec-kdump-on-efi-systems-fix
-+++ a/include/linux/efi.h
-@@ -1156,8 +1156,8 @@ int efivars_sysfs_init(void);
- #ifdef CONFIG_EFI_RUNTIME_MAP
- int efi_runtime_map_init(struct kobject *);
- void efi_runtime_map_setup(void *, int, u32);
--int get_efi_runtime_map_size(void);
--int get_efi_runtime_map_desc_size(void);
-+int efi_get_runtime_map_size(void);
-+int efi_get_runtime_map_desc_size(void);
- int efi_runtime_map_copy(void *buf, size_t bufsz);
- #else
- static inline int efi_runtime_map_init(struct kobject *kobj)
-@@ -1168,12 +1168,12 @@ static inline int efi_runtime_map_init(s
- static inline void
- efi_runtime_map_setup(void *map, int nr_entries, u32 desc_size) {}
- 
--static inline int get_efi_runtime_map_size(void)
-+static inline int efi_get_runtime_map_size(void)
- {
- 	return 0;
- }
- 
--static inline int get_efi_runtime_map_desc_size(void)
-+static inline int efi_get_runtime_map_desc_size(void)
- {
- 	return 0;
- }
+diff -puN mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-align-hugetlb-cgroup-limit-to-hugepage-size mm/hugetlb_cgroup.c
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-align-hugetlb-cgroup-limit-to-hugepage-size
++++ a/mm/hugetlb_cgroup.c
+@@ -275,6 +275,7 @@ static ssize_t hugetlb_cgroup_write(stru
+ 		ret = res_counter_memparse_write_strategy(buf, &val);
+ 		if (ret)
+ 			break;
++		val = ALIGN(val, 1ULL << huge_page_shift(&hstates[idx]));
+ 		ret = res_counter_set_limit(&h_cg->hugepage[idx], val);
+ 		break;
+ 	default:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-rtc-add-pcf85063-support.patch
-proc-remove-proc_tty_ldisc-variable.patch
-mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors.patch
-panic-add-taint_softlockup.patch
-kexec-implementation-of-new-syscall-kexec_file_load.patch
-kexec-support-kexec-kdump-on-efi-systems.patch
+revert-slab-remove-bad_alien_magic.patch
+vm_is_stack-use-for_each_thread-rather-then-buggy-while_each_thread.patch
+fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
+fork-exec-cleanup-mm-initialization.patch
+fork-reset-mm-pinned_vm.patch
+fork-copy-mms-vm-usage-counters-under-mmap_sem.patch
+mm-hugetlb_cgroup-align-hugetlb-cgroup-limit-to-hugepage-size.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
+x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
+mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
+include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
+mm-utilc-add-kstrimdup.patch
+linux-next.patch
 
