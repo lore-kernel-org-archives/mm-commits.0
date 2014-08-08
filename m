@@ -1,62 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] rtc-rtc-pcf8563-add-alarm-support-fix.patch
- removed from -mm tree
-Date: Fri, 08 Aug 2014 13:56:05 -0700
-Message-ID: <53e53965.l9aTN0nIdMe+A5ml%akpm@linux-foundation.org>
+Subject: [folded-merged] rtc-add-pcf85063-support-fix.patch removed from
+ -mm tree
+Date: Fri, 08 Aug 2014 13:56:32 -0700
+Message-ID: <53e53980.CRoa+ZD5Zz0VktA2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:55875 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933241AbaHHU4H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2014 16:56:07 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rl12so1102423iec.1
-        for <mm-commits@vger.kernel.org>; Fri, 08 Aug 2014 13:56:06 -0700 (PDT)
+Received: from mail-ig0-f202.google.com ([209.85.213.202]:32889 "EHLO
+	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933229AbaHHU4d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2014 16:56:33 -0400
+Received: by mail-ig0-f202.google.com with SMTP id r2so252001igi.3
+        for <mm-commits@vger.kernel.org>; Fri, 08 Aug 2014 13:56:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdonnefort@gmail.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, san@rosetechnology.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf8563.c: fix irq request
+     Subject: rtc-add-pcf85063-support-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-pcf8563-add-alarm-support-fix.patch
+     rtc-add-pcf85063-support-fix.patch
 
-This patch was dropped because it was folded into rtc-rtc-pcf8563-add-alarm-support.patch
+This patch was dropped because it was folded into rtc-add-pcf85063-supp=
+ort.patch
 
 ------------------------------------------------------
-From: Vincent Donnefort <vdonnefort@gmail.com>
-Subject: drivers/rtc/rtc-pcf8563.c: fix irq request
+=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-add-pcf85063-support-fix
 
-pcf8563_probe() failed to check the devm_rtc_device_register() return value.
+fix comment typo, tweak conding style
 
-Signed-off-by: Vincent Donnefort <vdonnefort@gmail.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: S=F8ren Andersen <san@rosetechnology.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-pcf85063.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-add-alarm-support-fix drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-add-alarm-support-fix
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -419,7 +419,8 @@ static int pcf8563_probe(struct i2c_clie
- 				pcf8563_driver.driver.name,
- 				&pcf8563_rtc_ops, THIS_MODULE);
- 
--	return PTR_ERR_OR_ZERO(pcf8563->rtc);
-+	if (IS_ERR(pcf8563->rtc))
-+		return PTR_ERR(pcf8563->rtc);
- 
- 	if (client->irq > 0) {
- 		err = devm_request_threaded_irq(&client->dev, client->irq,
+diff -puN drivers/rtc/rtc-pcf85063.c~rtc-add-pcf85063-support-fix drive=
+rs/rtc/rtc-pcf85063.c
+--- a/drivers/rtc/rtc-pcf85063.c~rtc-add-pcf85063-support-fix
++++ a/drivers/rtc/rtc-pcf85063.c
+@@ -36,7 +36,7 @@ static struct i2c_driver pcf85063_driver
+ struct pcf85063 {
+ 	struct rtc_device *rtc;
+ 	int c_polarity;	/* 0: MO_C=3D1 means 19xx, otherwise MO_C=3D1 means 2=
+0xx */
+-	int voltage_low; /* incicates if a low_voltage was detected */
++	int voltage_low; /* indicates if a low_voltage was detected */
+ };
+=20
+ /*
+@@ -47,7 +47,6 @@ static int pcf85063_get_datetime(struct
+ {
+ 	struct pcf85063 *pcf85063 =3D i2c_get_clientdata(client);
+ 	unsigned char buf[13] =3D { PCF85063_REG_CTRL1 };
+-
+ 	struct i2c_msg msgs[] =3D {
+ 		{/* setup read ptr */
+ 			.addr =3D client->addr,
+@@ -61,6 +60,7 @@ static int pcf85063_get_datetime(struct
+ 			.buf =3D buf
+ 		},
+ 	};
++
+ 	/* read registers */
+ 	if ((i2c_transfer(client->adapter, msgs, 2)) !=3D 2) {
+ 		dev_err(&client->dev, "%s: read error\n", __func__);
 _
 
-Patches currently in -mm which might be from vdonnefort@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org =
+are
 
-rtc-rtc-pcf8563-introducing-readwrite_block_data.patch
-rtc-rtc-pcf8563-add-alarm-support.patch
+origin.patch
+rtc-add-pcf85063-support.patch
+proc-remove-proc_tty_ldisc-variable-fix.patch
+mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors-v4-fix-fix.patch
+panic-add-taint_softlockup-fix.patch
+kexec-implementation-of-new-syscall-kexec_file_load-checkpatch-fixes.pa=
+tch
+kexec-support-kexec-kdump-on-efi-systems-fix.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
