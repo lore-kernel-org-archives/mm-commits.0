@@ -1,88 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix.patch removed
- from -mm tree
-Date: Fri, 08 Aug 2014 14:00:17 -0700
-Message-ID: <53e53a61.eyzViQEWLj6iOurg%akpm@linux-foundation.org>
+ lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2.patch
+ removed from -mm tree
+Date: Fri, 08 Aug 2014 14:00:20 -0700
+Message-ID: <53e53a64.jPdvcEoa0s2+7pES%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:57367 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756996AbaHHVAT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2014 17:00:19 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so252827igi.3
-        for <mm-commits@vger.kernel.org>; Fri, 08 Aug 2014 14:00:18 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:51106 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757190AbaHHVAV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2014 17:00:21 -0400
+Received: by mail-qa0-f73.google.com with SMTP id s7so812107qap.0
+        for <mm-commits@vger.kernel.org>; Fri, 08 Aug 2014 14:00:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lauraa@codeaurora.org, benh@kernel.crashing.org, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: lauraa@codeaurora.org, fengguang.wu@intel.com, jdike@addtoit.com, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: include asm/dma.h explicitly
+     Subject: um: use asm-generic/scatterlist.h
 has been removed from the -mm tree.  Its filename was
-     lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix.patch
+     lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2.patch
 
 This patch was dropped because it was folded into lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
 
 ------------------------------------------------------
 From: Laura Abbott <lauraa@codeaurora.org>
-Subject: powerpc: include asm/dma.h explicitly
+Subject: um: use asm-generic/scatterlist.h
 
-commit ff35bd54456e18878c361a8a2deeb41c9688458f (lib/scatterlist: make
-ARCH_HAS_SG_CHAIN an actual Kconfig) changed powerpc to use the generic
-scatterlist.h.  The powerpc scatterlist.h header was including asm/dma.h
-as well so removing the include broke a few things:
+commit ff35bd54456e18878c361a8a2deeb41c9688458f
+(lib/scatterlist: make ARCH_HAS_SG_CHAIN an actual Kconfig) changed
+some architectures to use the generic scatterlist.h but this broke
+um:
 
-arch/powerpc/platforms/52xx/efika.c: In function 'efika_probe':
-arch/powerpc/platforms/52xx/efika.c:210:2: error: 'ISA_DMA_THRESHOLD' undeclared
-arch/powerpc/platforms/52xx/efika.c:211:2: error: 'DMA_MODE_READ' undeclared
-arch/powerpc/platforms/52xx/efika.c:212:2: error: 'DMA_MODE_WRITE' undeclared
+In file included from init/main.c:75:0:
+include/linux/blkdev.h:25:29: fatal error: asm/scatterlist.h:
+        No such file or directory
 
-Explicitly include asm/dma.h where necessary.
+Make um use the generic scatterlist.h as well
 
-Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
 Reported-by: kbuild test robot <fengguang.wu@intel.com>
 Cc: kbuild test robot <fengguang.wu@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/52xx/efika.c     |    1 +
- arch/powerpc/platforms/amigaone/setup.c |    1 +
- 2 files changed, 2 insertions(+)
+ arch/um/include/asm/Kbuild |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/platforms/52xx/efika.c~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix arch/powerpc/platforms/52xx/efika.c
---- a/arch/powerpc/platforms/52xx/efika.c~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix
-+++ a/arch/powerpc/platforms/52xx/efika.c
-@@ -13,6 +13,7 @@
- #include <generated/utsrelease.h>
- #include <linux/pci.h>
- #include <linux/of.h>
-+#include <asm/dma.h>
- #include <asm/prom.h>
- #include <asm/time.h>
- #include <asm/machdep.h>
-diff -puN arch/powerpc/platforms/amigaone/setup.c~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix arch/powerpc/platforms/amigaone/setup.c
---- a/arch/powerpc/platforms/amigaone/setup.c~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix
-+++ a/arch/powerpc/platforms/amigaone/setup.c
-@@ -24,6 +24,7 @@
- #include <asm/i8259.h>
- #include <asm/time.h>
- #include <asm/udbg.h>
-+#include <asm/dma.h>
- 
- extern void __flush_disable_L1(void);
- 
+diff -puN arch/um/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2 arch/um/include/asm/Kbuild
+--- a/arch/um/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2
++++ a/arch/um/include/asm/Kbuild
+@@ -21,6 +21,7 @@ generic-y += param.h
+ generic-y += pci.h
+ generic-y += percpu.h
+ generic-y += preempt.h
++generic-y += scatterlist.h
+ generic-y += sections.h
+ generic-y += switch_to.h
+ generic-y += topology.h
 _
 
 Patches currently in -mm which might be from lauraa@codeaurora.org are
 
 origin.patch
 lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
-lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-2.patch
 lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig-fix-3.patch
 lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
 
