@@ -1,114 +1,132 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch removed
- from -mm tree
-Date: Fri, 08 Aug 2014 14:03:38 -0700
-Message-ID: <53e53b2a.Dl9gFagZ6Ye515z9%akpm@linux-foundation.org>
+ kexec-support-kexec-kdump-on-efi-systems-fix.patch removed from -mm tree
+Date: Fri, 08 Aug 2014 14:03:56 -0700
+Message-ID: <53e53b3c.2FLKwnxGJ7lEJ/Ol%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f201.google.com ([209.85.213.201]:61070 "EHLO
-	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918AbaHHVDj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2014 17:03:39 -0400
-Received: by mail-ig0-f201.google.com with SMTP id h3so252884igd.4
-        for <mm-commits@vger.kernel.org>; Fri, 08 Aug 2014 14:03:38 -0700 (PDT)
+Received: from mail-yk0-f201.google.com ([209.85.160.201]:60910 "EHLO
+	mail-yk0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933574AbaHHVD5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2014 17:03:57 -0400
+Received: by mail-yk0-f201.google.com with SMTP id 142so808921ykq.0
+        for <mm-commits@vger.kernel.org>; Fri, 08 Aug 2014 14:03:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, matt@console-pimps.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec-bzimage64: fix the ordering of registers
+     Subject: kexec-support-kexec-kdump-on-efi-systems-fix
 has been removed from the -mm tree.  Its filename was
-     kexec-support-for-kexec-on-panic-using-new-system-call-fix.patch
+     kexec-support-kexec-kdump-on-efi-systems-fix.patch
 
-This patch was dropped because it was folded into kexec-support-for-kexec-on-panic-using-new-system-call.patch
+This patch was dropped because it was folded into kexec-support-kexec-kdump-on-efi-systems.patch
 
 ------------------------------------------------------
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec-bzimage64: fix the ordering of registers
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kexec-support-kexec-kdump-on-efi-systems-fix
 
-hpa suggested to fix the ordering of register declaration.
+s/get_efi/efi_get/g, per Matt
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Matt Fleming <matt@console-pimps.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/kexec.h |   11 ++++++++---
- arch/x86/purgatory/entry64.S |    6 +++---
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ arch/x86/kernel/kexec-bzimage64.c  |    4 ++--
+ drivers/firmware/efi/runtime-map.c |    6 +++---
+ include/linux/efi.h                |    8 ++++----
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/include/asm/kexec.h~kexec-support-for-kexec-on-panic-using-new-system-call-fix arch/x86/include/asm/kexec.h
---- a/arch/x86/include/asm/kexec.h~kexec-support-for-kexec-on-panic-using-new-system-call-fix
-+++ a/arch/x86/include/asm/kexec.h
-@@ -182,15 +182,20 @@ struct kimage_arch {
- #endif /* CONFIG_X86_32 */
+diff -puN arch/x86/kernel/kexec-bzimage64.c~kexec-support-kexec-kdump-on-efi-systems-fix arch/x86/kernel/kexec-bzimage64.c
+--- a/arch/x86/kernel/kexec-bzimage64.c~kexec-support-kexec-kdump-on-efi-systems-fix
++++ a/arch/x86/kernel/kexec-bzimage64.c
+@@ -181,7 +181,7 @@ setup_efi_state(struct boot_params *para
+ 	ei->efi_systab_hi = current_ei->efi_systab_hi;
  
- #ifdef CONFIG_X86_64
-+/*
-+ * Number of elements and order of elements in this structure should match
-+ * with the ones in arch/x86/purgatory/entry64.S. If you make a change here
-+ * make an appropriate change in purgatory too.
-+ */
- struct kexec_entry64_regs {
- 	uint64_t rax;
--	uint64_t rbx;
- 	uint64_t rcx;
- 	uint64_t rdx;
--	uint64_t rsi;
--	uint64_t rdi;
-+	uint64_t rbx;
- 	uint64_t rsp;
- 	uint64_t rbp;
-+	uint64_t rsi;
-+	uint64_t rdi;
- 	uint64_t r8;
- 	uint64_t r9;
- 	uint64_t r10;
-diff -puN arch/x86/purgatory/entry64.S~kexec-support-for-kexec-on-panic-using-new-system-call-fix arch/x86/purgatory/entry64.S
---- a/arch/x86/purgatory/entry64.S~kexec-support-for-kexec-on-panic-using-new-system-call-fix
-+++ a/arch/x86/purgatory/entry64.S
-@@ -61,13 +61,13 @@ new_cs_exit:
- 	.balign 4
- entry64_regs:
- rax:	.quad 0x0
--rbx:	.quad 0x0
- rcx:	.quad 0x0
- rdx:	.quad 0x0
--rsi:	.quad 0x0
--rdi:	.quad 0x0
-+rbx:	.quad 0x0
- rsp:	.quad 0x0
- rbp:	.quad 0x0
-+rsi:	.quad 0x0
-+rdi:	.quad 0x0
- r8:	.quad 0x0
- r9:	.quad 0x0
- r10:	.quad 0x0
+ 	ei->efi_memdesc_version = current_ei->efi_memdesc_version;
+-	ei->efi_memdesc_size = get_efi_runtime_map_desc_size();
++	ei->efi_memdesc_size = efi_get_runtime_map_desc_size();
+ 
+ 	setup_efi_info_memmap(params, params_load_addr, efi_map_offset,
+ 			      efi_map_sz);
+@@ -397,7 +397,7 @@ void *bzImage64_load(struct kimage *imag
+ 	 * have to create separate segment for each. Keeps things
+ 	 * little bit simple
+ 	 */
+-	efi_map_sz = get_efi_runtime_map_size();
++	efi_map_sz = efi_get_runtime_map_size();
+ 	efi_map_sz = ALIGN(efi_map_sz, 16);
+ 	params_cmdline_sz = sizeof(struct boot_params) + cmdline_len +
+ 				MAX_ELFCOREHDR_STR_LEN;
+diff -puN drivers/firmware/efi/runtime-map.c~kexec-support-kexec-kdump-on-efi-systems-fix drivers/firmware/efi/runtime-map.c
+--- a/drivers/firmware/efi/runtime-map.c~kexec-support-kexec-kdump-on-efi-systems-fix
++++ a/drivers/firmware/efi/runtime-map.c
+@@ -138,19 +138,19 @@ add_sysfs_runtime_map_entry(struct kobje
+ 	return entry;
+ }
+ 
+-int get_efi_runtime_map_size(void)
++int efi_get_runtime_map_size(void)
+ {
+ 	return nr_efi_runtime_map * efi_memdesc_size;
+ }
+ 
+-int get_efi_runtime_map_desc_size(void)
++int efi_get_runtime_map_desc_size(void)
+ {
+ 	return efi_memdesc_size;
+ }
+ 
+ int efi_runtime_map_copy(void *buf, size_t bufsz)
+ {
+-	size_t sz = get_efi_runtime_map_size();
++	size_t sz = efi_get_runtime_map_size();
+ 
+ 	if (sz > bufsz)
+ 		sz = bufsz;
+diff -puN include/linux/efi.h~kexec-support-kexec-kdump-on-efi-systems-fix include/linux/efi.h
+--- a/include/linux/efi.h~kexec-support-kexec-kdump-on-efi-systems-fix
++++ a/include/linux/efi.h
+@@ -1156,8 +1156,8 @@ int efivars_sysfs_init(void);
+ #ifdef CONFIG_EFI_RUNTIME_MAP
+ int efi_runtime_map_init(struct kobject *);
+ void efi_runtime_map_setup(void *, int, u32);
+-int get_efi_runtime_map_size(void);
+-int get_efi_runtime_map_desc_size(void);
++int efi_get_runtime_map_size(void);
++int efi_get_runtime_map_desc_size(void);
+ int efi_runtime_map_copy(void *buf, size_t bufsz);
+ #else
+ static inline int efi_runtime_map_init(struct kobject *kobj)
+@@ -1168,12 +1168,12 @@ static inline int efi_runtime_map_init(s
+ static inline void
+ efi_runtime_map_setup(void *map, int nr_entries, u32 desc_size) {}
+ 
+-static inline int get_efi_runtime_map_size(void)
++static inline int efi_get_runtime_map_size(void)
+ {
+ 	return 0;
+ }
+ 
+-static inline int get_efi_runtime_map_desc_size(void)
++static inline int efi_get_runtime_map_desc_size(void)
+ {
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from vgoyal@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+rtc-add-pcf85063-support.patch
+proc-remove-proc_tty_ldisc-variable.patch
 mmap_vmcore-skip-non-ram-pages-reported-by-hypervisors.patch
-bin2c-move-bin2c-in-scripts-basic.patch
-kernel-build-bin2c-based-on-config-option-config_build_bin2c.patch
-kexec-rename-unusebale_pages-to-unusable_pages.patch
-kexec-move-segment-verification-code-in-a-separate-function.patch
-kexec-use-common-function-for-kimage_normal_alloc-and-kimage_crash_alloc.patch
-resource-provide-new-functions-to-walk-through-resources.patch
-kexec-make-kexec_segment-user-buffer-pointer-a-union.patch
-kexec-new-syscall-kexec_file_load-declaration.patch
+panic-add-taint_softlockup.patch
 kexec-implementation-of-new-syscall-kexec_file_load.patch
-purgatory-sha256-provide-implementation-of-sha256-in-purgaotory-context.patch
-purgatory-core-purgatory-functionality.patch
-kexec-load-and-relocate-purgatory-at-kernel-load-time.patch
-kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry.patch
-kexec-support-for-kexec-on-panic-using-new-system-call.patch
 kexec-support-kexec-kdump-on-efi-systems.patch
-kexec-support-kexec-kdump-on-efi-systems-fix.patch
-kexec-verify-the-signature-of-signed-pe-bzimage.patch
 
