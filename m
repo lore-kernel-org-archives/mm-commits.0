@@ -1,140 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch removed from
- -mm tree
-Date: Tue, 12 Aug 2014 12:39:28 -0700
-Message-ID: <53ea6d70.Z0Z7ZJDrd1E6/q9P%akpm@linux-foundation.org>
+Subject: [merged] fs-ufs-convert-ufsd-printk-to-pr_debug.patch removed
+ from -mm tree
+Date: Tue, 12 Aug 2014 12:39:30 -0700
+Message-ID: <53ea6d72.LROAEA0I6VPRPU0L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:64184 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754981AbaHLTj3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:39:29 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so2669809pab.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:39:28 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:58722 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754637AbaHLTjb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:39:31 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so2673246pde.3
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:39:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, dushistov@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ufs/super.c: use va_format instead of buffer/vsnprintf
+     Subject: fs/ufs: convert UFSD printk to pr_debug
 has been removed from the -mm tree.  Its filename was
-     fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
+     fs-ufs-convert-ufsd-printk-to-pr_debug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/ufs/super.c: use va_format instead of buffer/vsnprintf
+Subject: fs/ufs: convert UFSD printk to pr_debug
 
-Remove error_buffer and use %pV
+Convert no level printk to pr_debug in UFSD.  DEBUG is defined with
+CONFIG_UFS_DEBUG so pr_debug are emitted here.
+
+Also fixing call to UFSD (add;)
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |   44 ++++++++++++++++++++++++--------------------
- 1 file changed, 24 insertions(+), 20 deletions(-)
+ fs/ufs/super.c |    2 +-
+ fs/ufs/ufs.h   |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ufs/super.c~fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf fs/ufs/super.c
---- a/fs/ufs/super.c~fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf
+diff -puN fs/ufs/super.c~fs-ufs-convert-ufsd-printk-to-pr_debug fs/ufs/super.c
+--- a/fs/ufs/super.c~fs-ufs-convert-ufsd-printk-to-pr_debug
 +++ a/fs/ufs/super.c
-@@ -286,13 +286,12 @@ static void ufs_print_cylinder_stuff(str
+@@ -868,7 +868,7 @@ static int ufs_fill_super(struct super_b
+ 		break;
  
- static const struct super_operations ufs_super_ops;
- 
--static char error_buf[1024];
--
- void ufs_error (struct super_block * sb, const char * function,
- 	const char * fmt, ...)
- {
- 	struct ufs_sb_private_info * uspi;
- 	struct ufs_super_block_first * usb1;
-+	struct va_format vaf;
- 	va_list args;
- 
- 	uspi = UFS_SB(sb)->s_uspi;
-@@ -304,20 +303,21 @@ void ufs_error (struct super_block * sb,
- 		ufs_mark_sb_dirty(sb);
- 		sb->s_flags |= MS_RDONLY;
+ 	case UFS_MOUNT_UFSTYPE_SUNOS:
+-		UFSD(("ufstype=sunos\n"))
++		UFSD("ufstype=sunos\n");
+ 		uspi->s_fsize = block_size = 1024;
+ 		uspi->s_fmask = ~(1024 - 1);
+ 		uspi->s_fshift = 10;
+diff -puN fs/ufs/ufs.h~fs-ufs-convert-ufsd-printk-to-pr_debug fs/ufs/ufs.h
+--- a/fs/ufs/ufs.h~fs-ufs-convert-ufsd-printk-to-pr_debug
++++ a/fs/ufs/ufs.h
+@@ -77,9 +77,9 @@ struct ufs_inode_info {
+  */
+ #ifdef CONFIG_UFS_DEBUG
+ #	define UFSD(f, a...)	{					\
+-		printk ("UFSD (%s, %d): %s:",				\
++		pr_debug("UFSD (%s, %d): %s:",				\
+ 			__FILE__, __LINE__, __func__);		\
+-		printk (f, ## a);					\
++		pr_debug(f, ## a);					\
  	}
--	va_start (args, fmt);
--	vsnprintf (error_buf, sizeof(error_buf), fmt, args);
--	va_end (args);
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
- 	switch (UFS_SB(sb)->s_mount_opt & UFS_MOUNT_ONERROR) {
- 	case UFS_MOUNT_ONERROR_PANIC:
--		panic("panic (device %s): %s: %s\n",
--			sb->s_id, function, error_buf);
-+		panic("panic (device %s): %s: %pV\n",
-+		      sb->s_id, function, &vaf);
- 
- 	case UFS_MOUNT_ONERROR_LOCK:
- 	case UFS_MOUNT_ONERROR_UMOUNT:
- 	case UFS_MOUNT_ONERROR_REPAIR:
--		pr_crit("error (device %s): %s: %s\n",
--			sb->s_id, function, error_buf);
--	}		
-+		pr_crit("error (device %s): %s: %pV\n",
-+			sb->s_id, function, &vaf);
-+	}
-+	va_end(args);
- }
- 
- void ufs_panic (struct super_block * sb, const char * function,
-@@ -325,6 +325,7 @@ void ufs_panic (struct super_block * sb,
- {
- 	struct ufs_sb_private_info * uspi;
- 	struct ufs_super_block_first * usb1;
-+	struct va_format vaf;
- 	va_list args;
- 	
- 	uspi = UFS_SB(sb)->s_uspi;
-@@ -335,24 +336,27 @@ void ufs_panic (struct super_block * sb,
- 		ubh_mark_buffer_dirty(USPI_UBH(uspi));
- 		ufs_mark_sb_dirty(sb);
- 	}
--	va_start (args, fmt);
--	vsnprintf (error_buf, sizeof(error_buf), fmt, args);
--	va_end (args);
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
- 	sb->s_flags |= MS_RDONLY;
--	pr_crit("panic (device %s): %s: %s\n",
--		sb->s_id, function, error_buf);
-+	pr_crit("panic (device %s): %s: %pV\n",
-+		sb->s_id, function, &vaf);
-+	va_end(args);
- }
- 
- void ufs_warning (struct super_block * sb, const char * function,
- 	const char * fmt, ...)
- {
-+	struct va_format vaf;
- 	va_list args;
- 
--	va_start (args, fmt);
--	vsnprintf (error_buf, sizeof(error_buf), fmt, args);
--	va_end (args);
--	pr_warn("warning (device %s): %s: %s\n",
--		sb->s_id, function, error_buf);
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+	pr_warn("(device %s): %s: %pV\n",
-+		sb->s_id, function, &vaf);
-+	va_end(args);
- }
- 
- enum {
+ #else
+ #	define UFSD(f, a...)	/**/
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
