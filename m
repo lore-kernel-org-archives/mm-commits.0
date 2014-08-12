@@ -1,122 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-bfs-use-bfs-prefix-for-dump_imap.patch removed from
- -mm tree
-Date: Tue, 12 Aug 2014 12:40:48 -0700
-Message-ID: <53ea6dc0.hncc6bdndSH8zTdl%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
+ removed from -mm tree
+Date: Tue, 12 Aug 2014 12:40:54 -0700
+Message-ID: <53ea6dc6.K3BnSD5kAtL6jOiG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:37657 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754884AbaHLTkt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:40:49 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so1910900oig.1
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:40:48 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:54151 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754970AbaHLTkz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:40:55 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wp18so1917500obc.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:40:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, tigran@aivazian.fsnet.co.uk, mm-commits@vger.kernel.org
+To: fabf@skynet.be, anton@enomsg.org, ccross@android.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/bfs: use bfs prefix for dump_imap
+     Subject: fs/pstore/ram_core.c: replace count*size kmalloc by kmalloc_array
 has been removed from the -mm tree.  Its filename was
-     fs-bfs-use-bfs-prefix-for-dump_imap.patch
+     fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/bfs: use bfs prefix for dump_imap
+Subject: fs/pstore/ram_core.c: replace count*size kmalloc by kmalloc_array
 
-All bfs related functions use bfs_ prefix.  This patch also moves extern
-declaration to bfs.h and removes prototype from inode.c
-
-This fixes checkpatch warning:
-'WARNING: externs should be avoided in .c files'
+kmalloc_array manages count*sizeof overflow.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: "Tigran A. Aivazian" <tigran@aivazian.fsnet.co.uk>
+Cc: Anton Vorontsov <anton@enomsg.org>
+Cc: Colin Cross <ccross@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bfs/bfs.h   |    1 +
- fs/bfs/dir.c   |    4 +---
- fs/bfs/inode.c |    8 +++-----
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ fs/pstore/ram_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/bfs/bfs.h~fs-bfs-use-bfs-prefix-for-dump_imap fs/bfs/bfs.h
---- a/fs/bfs/bfs.h~fs-bfs-use-bfs-prefix-for-dump_imap
-+++ a/fs/bfs/bfs.h
-@@ -46,6 +46,7 @@ static inline struct bfs_inode_info *BFS
+diff -puN fs/pstore/ram_core.c~fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array fs/pstore/ram_core.c
+--- a/fs/pstore/ram_core.c~fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array
++++ a/fs/pstore/ram_core.c
+@@ -394,7 +394,7 @@ static void *persistent_ram_vmap(phys_ad
  
- /* inode.c */
- extern struct inode *bfs_iget(struct super_block *sb, unsigned long ino);
-+extern void bfs_dump_imap(const char *, struct super_block *);
+ 	prot = pgprot_noncached(PAGE_KERNEL);
  
- /* file.c */
- extern const struct inode_operations bfs_file_inops;
-diff -puN fs/bfs/dir.c~fs-bfs-use-bfs-prefix-for-dump_imap fs/bfs/dir.c
---- a/fs/bfs/dir.c~fs-bfs-use-bfs-prefix-for-dump_imap
-+++ a/fs/bfs/dir.c
-@@ -75,8 +75,6 @@ const struct file_operations bfs_dir_ope
- 	.llseek		= generic_file_llseek,
- };
- 
--extern void dump_imap(const char *, struct super_block *);
--
- static int bfs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
- 						bool excl)
- {
-@@ -110,7 +108,7 @@ static int bfs_create(struct inode *dir,
- 	BFS_I(inode)->i_eblock = 0;
- 	insert_inode_hash(inode);
-         mark_inode_dirty(inode);
--	dump_imap("create", s);
-+	bfs_dump_imap("create", s);
- 
- 	err = bfs_add_entry(dir, dentry->d_name.name, dentry->d_name.len,
- 							inode->i_ino);
-diff -puN fs/bfs/inode.c~fs-bfs-use-bfs-prefix-for-dump_imap fs/bfs/inode.c
---- a/fs/bfs/inode.c~fs-bfs-use-bfs-prefix-for-dump_imap
-+++ a/fs/bfs/inode.c
-@@ -30,8 +30,6 @@ MODULE_LICENSE("GPL");
- #define dprintf(x...)
- #endif
- 
--void dump_imap(const char *prefix, struct super_block *s);
--
- struct inode *bfs_iget(struct super_block *sb, unsigned long ino)
- {
- 	struct bfs_inode *di;
-@@ -194,7 +192,7 @@ static void bfs_evict_inode(struct inode
- 			info->si_freeb += bi->i_eblock + 1 - bi->i_sblock;
- 		info->si_freei++;
- 		clear_bit(ino, info->si_imap);
--		dump_imap("delete_inode", s);
-+		bfs_dump_imap("delete_inode", s);
-         }
- 
- 	/*
-@@ -297,7 +295,7 @@ static const struct super_operations bfs
- 	.statfs		= bfs_statfs,
- };
- 
--void dump_imap(const char *prefix, struct super_block *s)
-+void bfs_dump_imap(const char *prefix, struct super_block *s)
- {
- #ifdef DEBUG
- 	int i;
-@@ -443,7 +441,7 @@ static int bfs_fill_super(struct super_b
- 	}
- 	brelse(bh);
- 	brelse(sbh);
--	dump_imap("read_super", s);
-+	bfs_dump_imap("read_super", s);
- 	return 0;
- 
- out3:
+-	pages = kmalloc(sizeof(struct page *) * page_count, GFP_KERNEL);
++	pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages) {
+ 		pr_err("%s: Failed to allocate array for %u pages\n",
+ 		       __func__, page_count);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
