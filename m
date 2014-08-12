@@ -1,64 +1,148 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- drivers-rtc-interfacec-check-the-error-after-__rtc_read_time.patch removed
- from -mm tree
-Date: Tue, 12 Aug 2014 12:38:42 -0700
-Message-ID: <53ea6d42.mbflXHrhgtiJXr4Z%akpm@linux-foundation.org>
+ rtc-efi-check-for-invalid-data-coming-back-from-uefi.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:38:40 -0700
+Message-ID: <53ea6d40.djIaviWDw6fqrbNB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:38794 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754908AbaHLTim (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:42 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so2667005pab.2
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:42 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:33817 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754903AbaHLTil (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:41 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so2669566pab.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hyogi.gim@lge.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: JBeulich@suse.com, a.zummo@towertech.it, jbeulich@suse.com, jg1.han@samsung.com, jlee@suse.com, rw@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/interface.c: check the error after __rtc_read_time()
+     Subject: drivers/rtc/rtc-efi.c: check for invalid data coming back from UEFI
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-interfacec-check-the-error-after-__rtc_read_time.patch
+     rtc-efi-check-for-invalid-data-coming-back-from-uefi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hyogi Gim <hyogi.gim@lge.com>
-Subject: drivers/rtc/interface.c: check the error after __rtc_read_time()
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: drivers/rtc/rtc-efi.c: check for invalid data coming back from UEFI
 
-In __rtc_set_alarm(), the error after __rtc_read_time() is not checked.
-If rtc device fail to read time, we cannot guarantee the following process.
+In particular seeing zero in eft->month is problematic, as it results in
+-1 (converted to unsigned int, i.e.  yielding 0xffffffff) getting passed
+to rtc_year_days(), where the value gets used as an array index (normally
+resulting in a crash).  This was observed with the driver enabled on x86
+on some Fujitsu system (with possibly not up to date firmware, but
+anyway).
 
-Add the verification code for returned __rtc_read_time() error.
+Perhaps efi_read_alarm() should not fail if neither enabled nor pending
+are set, but the returned time is invalid?
 
-Signed-off-by: Hyogi Gim <hyogi.gim@lge.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Reported-by: Raymund Will <rw@suse.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Lee, Chun-Yi <jlee@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-efi.c |   32 +++++++++++++++++++++++++++-----
+ 1 file changed, 27 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/interface.c~drivers-rtc-interfacec-check-the-error-after-__rtc_read_time drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~drivers-rtc-interfacec-check-the-error-after-__rtc_read_time
-+++ a/drivers/rtc/interface.c
-@@ -348,6 +348,8 @@ static int __rtc_set_alarm(struct rtc_de
+diff -puN drivers/rtc/rtc-efi.c~rtc-efi-check-for-invalid-data-coming-back-from-uefi drivers/rtc/rtc-efi.c
+--- a/drivers/rtc/rtc-efi.c~rtc-efi-check-for-invalid-data-coming-back-from-uefi
++++ a/drivers/rtc/rtc-efi.c
+@@ -17,6 +17,7 @@
  
- 	/* Make sure we're not setting alarms in the past */
- 	err = __rtc_read_time(rtc, &tm);
-+	if (err)
-+		return err;
- 	rtc_tm_to_time(&tm, &now);
- 	if (scheduled <= now)
- 		return -ETIME;
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/stringify.h>
+ #include <linux/time.h>
+ #include <linux/platform_device.h>
+ #include <linux/rtc.h>
+@@ -48,8 +49,8 @@ compute_wday(efi_time_t *eft)
+ 	int y;
+ 	int ndays = 0;
+ 
+-	if (eft->year < 1998) {
+-		pr_err("EFI year < 1998, invalid date\n");
++	if (eft->year < EFI_RTC_EPOCH) {
++		pr_err("EFI year < " __stringify(EFI_RTC_EPOCH) ", invalid date\n");
+ 		return -1;
+ 	}
+ 
+@@ -78,19 +79,36 @@ convert_to_efi_time(struct rtc_time *wti
+ 	eft->timezone	= EFI_UNSPECIFIED_TIMEZONE;
+ }
+ 
+-static void
++static bool
+ convert_from_efi_time(efi_time_t *eft, struct rtc_time *wtime)
+ {
+ 	memset(wtime, 0, sizeof(*wtime));
++
++	if (eft->second >= 60)
++		return false;
+ 	wtime->tm_sec  = eft->second;
++
++	if (eft->minute >= 60)
++		return false;
+ 	wtime->tm_min  = eft->minute;
++
++	if (eft->hour >= 24)
++		return false;
+ 	wtime->tm_hour = eft->hour;
++
++	if (!eft->day || eft->day > 31)
++		return false;
+ 	wtime->tm_mday = eft->day;
++
++	if (!eft->month || eft->month > 12)
++		return false;
+ 	wtime->tm_mon  = eft->month - 1;
+ 	wtime->tm_year = eft->year - 1900;
+ 
+ 	/* day of the week [0-6], Sunday=0 */
+ 	wtime->tm_wday = compute_wday(eft);
++	if (wtime->tm_wday < 0)
++		return false;
+ 
+ 	/* day in the year [1-365]*/
+ 	wtime->tm_yday = compute_yday(eft);
+@@ -106,6 +124,8 @@ convert_from_efi_time(efi_time_t *eft, s
+ 	default:
+ 		wtime->tm_isdst = -1;
+ 	}
++
++	return true;
+ }
+ 
+ static int efi_read_alarm(struct device *dev, struct rtc_wkalrm *wkalrm)
+@@ -122,7 +142,8 @@ static int efi_read_alarm(struct device
+ 	if (status != EFI_SUCCESS)
+ 		return -EINVAL;
+ 
+-	convert_from_efi_time(&eft, &wkalrm->time);
++	if (!convert_from_efi_time(&eft, &wkalrm->time))
++		return -EIO;
+ 
+ 	return rtc_valid_tm(&wkalrm->time);
+ }
+@@ -163,7 +184,8 @@ static int efi_read_time(struct device *
+ 		return -EINVAL;
+ 	}
+ 
+-	convert_from_efi_time(&eft, tm);
++	if (!convert_from_efi_time(&eft, tm))
++		return -EIO;
+ 
+ 	return rtc_valid_tm(tm);
+ }
 _
 
-Patches currently in -mm which might be from hyogi.gim@lge.com are
+Patches currently in -mm which might be from JBeulich@suse.com are
 
 origin.patch
 
