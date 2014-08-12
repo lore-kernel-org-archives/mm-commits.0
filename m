@@ -1,242 +1,527 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-integrate-sysfs-support-into-driver.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 12:39:20 -0700
-Message-ID: <53ea6d68.Zn5fPKYOtWuTFTfv%akpm@linux-foundation.org>
+Subject: [merged] fs-ufs-convert-printk-to-pr_foo.patch removed from -mm
+ tree
+Date: Tue, 12 Aug 2014 12:39:22 -0700
+Message-ID: <53ea6d6a.SoEAjrp74X7Q4i7p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:62695 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754976AbaHLTjV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:39:21 -0400
-Received: by mail-ob0-f201.google.com with SMTP id nu7so1922158obb.2
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:39:20 -0700 (PDT)
+Received: from mail-ig0-f202.google.com ([209.85.213.202]:53792 "EHLO
+	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754976AbaHLTjY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:39:24 -0400
+Received: by mail-ig0-f202.google.com with SMTP id r2so1068562igi.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:39:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Vyacheslav.Dubeyko@hgst.com, fengguang.wu@intel.com, konishi.ryusuke@lab.ntt.co.jp, mlsemon35@gmail.com, slava@dubeyko.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, dushistov@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: integrate sysfs support into driver
+     Subject: fs/ufs: convert printk to pr_foo()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-integrate-sysfs-support-into-driver.patch
+     fs-ufs-convert-printk-to-pr_foo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <Vyacheslav.Dubeyko@hgst.com>
-Subject: nilfs2: integrate sysfs support into driver
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/ufs: convert printk to pr_foo()
 
-This patch integrates creation of sysfs groups and
-attributes into NILFS file system driver.
+Use current logging functions.
 
-It was found the issue with nilfs_sysfs_{create/delete}_snapshot_group
-functions by Michael L. Semon <mlsemon35@gmail.com> in the first
-version of the patch:
+- no level printk under CONFIG_UFS_DEBUG converted to pr_debug
 
-[ 4928.585682] BUG: sleeping function called from invalid context at kernel/locking/mutex.c:579
-[ 4928.585693] in_atomic(): 1, irqs_disabled(): 0, pid: 32676, name: umount.nilfs2
-[ 4928.585698] 2 locks held by umount.nilfs2/32676:
-[ 4928.585703]  #0:  (&type->s_umount_key#21){++++..}, at: [<790c18e2>] deactivate_super+0x37/0x58
-[ 4928.585732]  #1:  (&(&nilfs->ns_cptree_lock)->rlock){+.+...}, at: [<791bf659>] nilfs_put_root+0x23/0x5a
-[ 4928.585749] Preemption disabled at:[<791bf659>] nilfs_put_root+0x23/0x5a
+- no level printk elsewhere converted to pr_err
 
-[ 4928.585766] CPU: 0 PID: 32676 Comm: umount.nilfs2 Not tainted 3.14.0+ #2
-[ 4928.585771] Hardware name: Dell Computer Corporation Dimension 2350/07W080, BIOS A01 12/17/2002
-[ 4928.585777]  00000000 00000000 93cdddf8 793ff0bd c14dd780 93cdde20 7904bf38 794d5224
-[ 4928.585795]  791bf659 791bf659 00007fa4 c14dda00 00000000 78025360 79552b80 93cdde68
-[ 4928.585811]  7940136e 00000000 00000002 c14dd780 79552d10 c14ddc00 93cdde68 00000246
-[ 4928.585828] Call Trace:
-[ 4928.585842]  [<793ff0bd>] dump_stack+0x4b/0x75
-[ 4928.585854]  [<7904bf38>] __might_sleep+0x111/0x16f
-[ 4928.585862]  [<791bf659>] ? nilfs_put_root+0x23/0x5a
-[ 4928.585870]  [<791bf659>] ? nilfs_put_root+0x23/0x5a
-[ 4928.585880]  [<7940136e>] mutex_lock_nested+0x1e/0x3ad
-[ 4928.585893]  [<7911186e>] ? sysfs_remove_dir+0x25/0x62
-[ 4928.585901]  [<7910fdb8>] kernfs_remove+0x12/0x26
-[ 4928.585908]  [<79111886>] sysfs_remove_dir+0x3d/0x62
-[ 4928.585918]  [<792953bb>] kobject_del+0x13/0x38
-[ 4928.585926]  [<791cabd4>] nilfs_sysfs_delete_snapshot_group+0xb/0xd
-[ 4928.585934]  [<791bf660>] nilfs_put_root+0x2a/0x5a
-[ 4928.585942]  [<791c3827>] nilfs_detach_log_writer+0x1ab/0x2c1
-[ 4928.585953]  [<7906c283>] ? call_rcu+0x17/0x19
-[ 4928.585963]  [<790d5c4b>] ? dispose_list+0x27/0x31
-[ 4928.585973]  [<791b4312>] nilfs_put_super+0x13/0x68
-[ 4928.585980]  [<790c1bc8>] generic_shutdown_super+0x60/0xd1
-[ 4928.585988]  [<790c29dd>] kill_block_super+0x1d/0x60
-[ 4928.585996]  [<790c188e>] deactivate_locked_super+0x22/0x3f
-[ 4928.586096]  [<790c18e9>] deactivate_super+0x3e/0x58
-[ 4928.586107]  [<790d95af>] mntput_no_expire+0xe2/0x141
-[ 4928.586115]  [<790d94db>] ? mntput_no_expire+0xe/0x141
-[ 4928.586123]  [<790dabed>] SyS_oldumount+0x70/0xa5
-[ 4928.586131]  [<794050ff>] syscall_call+0x7/0xb
+- add DDEBUG flag in Makefile
 
-The reason of the issue was placement of
-nilfs_sysfs_{create/delete}_snapshot_group() call under
-nilfs->ns_cptree_lock protection.  But this protection is unnecessary and
-wrong solution.  The second version of the patch fixes this issue.
+- coalesce formats
 
-[fengguang.wu@intel.com: nilfs_sysfs_create_mounted_snapshots_group can be static]
-Reported-by: Michael L. Semon <mlsemon35@gmail.com>
-Signed-off-by: Vyacheslav Dubeyko <Vyacheslav.Dubeyko@hgst.com>
-Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Tested-by: Michael L. Semon <mlsemon35@gmail.com>
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/Makefile    |    2 +-
- fs/nilfs2/nilfs.h     |    8 ++++++++
- fs/nilfs2/super.c     |    9 ++++++++-
- fs/nilfs2/sysfs.c     |    4 ++--
- fs/nilfs2/the_nilfs.c |   16 +++++++++++++++-
- 5 files changed, 34 insertions(+), 5 deletions(-)
+ fs/ufs/Makefile |    1 
+ fs/ufs/super.c  |  263 ++++++++++++++++++++++------------------------
+ 2 files changed, 131 insertions(+), 133 deletions(-)
 
-diff -puN fs/nilfs2/Makefile~nilfs2-integrate-sysfs-support-into-driver fs/nilfs2/Makefile
---- a/fs/nilfs2/Makefile~nilfs2-integrate-sysfs-support-into-driver
-+++ a/fs/nilfs2/Makefile
-@@ -2,4 +2,4 @@ obj-$(CONFIG_NILFS2_FS) += nilfs2.o
- nilfs2-y := inode.o file.o dir.o super.o namei.o page.o mdt.o \
- 	btnode.o bmap.o btree.o direct.o dat.o recovery.o \
- 	the_nilfs.o segbuf.o segment.o cpfile.o sufile.o \
--	ifile.o alloc.o gcinode.o ioctl.o
-+	ifile.o alloc.o gcinode.o ioctl.o sysfs.o
-diff -puN fs/nilfs2/nilfs.h~nilfs2-integrate-sysfs-support-into-driver fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~nilfs2-integrate-sysfs-support-into-driver
-+++ a/fs/nilfs2/nilfs.h
-@@ -320,6 +320,14 @@ int nilfs_gccache_wait_and_mark_dirty(st
- int nilfs_init_gcinode(struct inode *inode);
- void nilfs_remove_all_gcinodes(struct the_nilfs *nilfs);
+diff -puN fs/ufs/Makefile~fs-ufs-convert-printk-to-pr_foo fs/ufs/Makefile
+--- a/fs/ufs/Makefile~fs-ufs-convert-printk-to-pr_foo
++++ a/fs/ufs/Makefile
+@@ -6,3 +6,4 @@ obj-$(CONFIG_UFS_FS) += ufs.o
  
-+/* sysfs.c */
-+int __init nilfs_sysfs_init(void);
-+void nilfs_sysfs_exit(void);
-+int nilfs_sysfs_create_device_group(struct super_block *);
-+void nilfs_sysfs_delete_device_group(struct the_nilfs *);
-+int nilfs_sysfs_create_snapshot_group(struct nilfs_root *);
-+void nilfs_sysfs_delete_snapshot_group(struct nilfs_root *);
-+
- /*
-  * Inodes and files operations
-  */
-diff -puN fs/nilfs2/super.c~nilfs2-integrate-sysfs-support-into-driver fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-integrate-sysfs-support-into-driver
-+++ a/fs/nilfs2/super.c
-@@ -1452,13 +1452,19 @@ static int __init init_nilfs_fs(void)
- 	if (err)
- 		goto fail;
- 
--	err = register_filesystem(&nilfs_fs_type);
-+	err = nilfs_sysfs_init();
- 	if (err)
- 		goto free_cachep;
- 
-+	err = register_filesystem(&nilfs_fs_type);
-+	if (err)
-+		goto deinit_sysfs_entry;
-+
- 	printk(KERN_INFO "NILFS version 2 loaded\n");
- 	return 0;
- 
-+deinit_sysfs_entry:
-+	nilfs_sysfs_exit();
- free_cachep:
- 	nilfs_destroy_cachep();
- fail:
-@@ -1468,6 +1474,7 @@ fail:
- static void __exit exit_nilfs_fs(void)
+ ufs-objs := balloc.o cylinder.o dir.o file.o ialloc.o inode.o \
+ 	    namei.o super.o symlink.o truncate.o util.o
++ccflags-$(CONFIG_UFS_DEBUG)    += -DDEBUG
+diff -puN fs/ufs/super.c~fs-ufs-convert-printk-to-pr_foo fs/ufs/super.c
+--- a/fs/ufs/super.c~fs-ufs-convert-printk-to-pr_foo
++++ a/fs/ufs/super.c
+@@ -172,73 +172,73 @@ static void ufs_print_super_stuff(struct
  {
- 	nilfs_destroy_cachep();
-+	nilfs_sysfs_exit();
- 	unregister_filesystem(&nilfs_fs_type);
- }
+ 	u32 magic = fs32_to_cpu(sb, usb3->fs_magic);
  
-diff -puN fs/nilfs2/sysfs.c~nilfs2-integrate-sysfs-support-into-driver fs/nilfs2/sysfs.c
---- a/fs/nilfs2/sysfs.c~nilfs2-integrate-sysfs-support-into-driver
-+++ a/fs/nilfs2/sysfs.c
-@@ -87,7 +87,7 @@ static struct kobj_type nilfs_##name##_k
- };
- 
- #define NILFS_DEV_INT_GROUP_FNS(name, parent_name) \
--int nilfs_sysfs_create_##name##_group(struct the_nilfs *nilfs) \
-+static int nilfs_sysfs_create_##name##_group(struct the_nilfs *nilfs) \
- { \
- 	struct kobject *parent; \
- 	struct kobject *kobj; \
-@@ -106,7 +106,7 @@ int nilfs_sysfs_create_##name##_group(st
- 		return err; \
- 	return 0; \
- } \
--void nilfs_sysfs_delete_##name##_group(struct the_nilfs *nilfs) \
-+static void nilfs_sysfs_delete_##name##_group(struct the_nilfs *nilfs) \
- { \
- 	kobject_del(&nilfs->ns_##parent_name##_subgroups->sg_##name##_kobj); \
- }
-diff -puN fs/nilfs2/the_nilfs.c~nilfs2-integrate-sysfs-support-into-driver fs/nilfs2/the_nilfs.c
---- a/fs/nilfs2/the_nilfs.c~nilfs2-integrate-sysfs-support-into-driver
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -98,6 +98,7 @@ void destroy_nilfs(struct the_nilfs *nil
- {
- 	might_sleep();
- 	if (nilfs_init(nilfs)) {
-+		nilfs_sysfs_delete_device_group(nilfs);
- 		brelse(nilfs->ns_sbh[0]);
- 		brelse(nilfs->ns_sbh[1]);
+-	printk("ufs_print_super_stuff\n");
+-	printk("  magic:     0x%x\n", magic);
++	pr_debug("ufs_print_super_stuff\n");
++	pr_debug("  magic:     0x%x\n", magic);
+ 	if (fs32_to_cpu(sb, usb3->fs_magic) == UFS2_MAGIC) {
+-		printk("  fs_size:   %llu\n", (unsigned long long)
+-		       fs64_to_cpu(sb, usb3->fs_un1.fs_u2.fs_size));
+-		printk("  fs_dsize:  %llu\n", (unsigned long long)
+-		       fs64_to_cpu(sb, usb3->fs_un1.fs_u2.fs_dsize));
+-		printk("  bsize:         %u\n",
+-		       fs32_to_cpu(sb, usb1->fs_bsize));
+-		printk("  fsize:         %u\n",
+-		       fs32_to_cpu(sb, usb1->fs_fsize));
+-		printk("  fs_volname:  %s\n", usb2->fs_un.fs_u2.fs_volname);
+-		printk("  fs_sblockloc: %llu\n", (unsigned long long)
+-		       fs64_to_cpu(sb, usb2->fs_un.fs_u2.fs_sblockloc));
+-		printk("  cs_ndir(No of dirs):  %llu\n", (unsigned long long)
+-		       fs64_to_cpu(sb, usb2->fs_un.fs_u2.cs_ndir));
+-		printk("  cs_nbfree(No of free blocks):  %llu\n",
+-		       (unsigned long long)
+-		       fs64_to_cpu(sb, usb2->fs_un.fs_u2.cs_nbfree));
+-		printk(KERN_INFO"  cs_nifree(Num of free inodes): %llu\n",
+-		       (unsigned long long)
+-		       fs64_to_cpu(sb, usb3->fs_un1.fs_u2.cs_nifree));
+-		printk(KERN_INFO"  cs_nffree(Num of free frags): %llu\n",
+-		       (unsigned long long)
+-		       fs64_to_cpu(sb, usb3->fs_un1.fs_u2.cs_nffree));
+-		printk(KERN_INFO"  fs_maxsymlinklen: %u\n",
+-		       fs32_to_cpu(sb, usb3->fs_un2.fs_44.fs_maxsymlinklen));
++		pr_debug("  fs_size:   %llu\n", (unsigned long long)
++			 fs64_to_cpu(sb, usb3->fs_un1.fs_u2.fs_size));
++		pr_debug("  fs_dsize:  %llu\n", (unsigned long long)
++			 fs64_to_cpu(sb, usb3->fs_un1.fs_u2.fs_dsize));
++		pr_debug("  bsize:         %u\n",
++			 fs32_to_cpu(sb, usb1->fs_bsize));
++		pr_debug("  fsize:         %u\n",
++			 fs32_to_cpu(sb, usb1->fs_fsize));
++		pr_debug("  fs_volname:  %s\n", usb2->fs_un.fs_u2.fs_volname);
++		pr_debug("  fs_sblockloc: %llu\n", (unsigned long long)
++			 fs64_to_cpu(sb, usb2->fs_un.fs_u2.fs_sblockloc));
++		pr_debug("  cs_ndir(No of dirs):  %llu\n", (unsigned long long)
++			 fs64_to_cpu(sb, usb2->fs_un.fs_u2.cs_ndir));
++		pr_debug("  cs_nbfree(No of free blocks):  %llu\n",
++			 (unsigned long long)
++			 fs64_to_cpu(sb, usb2->fs_un.fs_u2.cs_nbfree));
++		pr_info("  cs_nifree(Num of free inodes): %llu\n",
++			(unsigned long long)
++			fs64_to_cpu(sb, usb3->fs_un1.fs_u2.cs_nifree));
++		pr_info("  cs_nffree(Num of free frags): %llu\n",
++			(unsigned long long)
++			fs64_to_cpu(sb, usb3->fs_un1.fs_u2.cs_nffree));
++		pr_info("  fs_maxsymlinklen: %u\n",
++			fs32_to_cpu(sb, usb3->fs_un2.fs_44.fs_maxsymlinklen));
+ 	} else {
+-		printk(" sblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_sblkno));
+-		printk(" cblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_cblkno));
+-		printk(" iblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_iblkno));
+-		printk(" dblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_dblkno));
+-		printk(" cgoffset:    %u\n",
+-		       fs32_to_cpu(sb, usb1->fs_cgoffset));
+-		printk(" ~cgmask:     0x%x\n",
+-		       ~fs32_to_cpu(sb, usb1->fs_cgmask));
+-		printk(" size:        %u\n", fs32_to_cpu(sb, usb1->fs_size));
+-		printk(" dsize:       %u\n", fs32_to_cpu(sb, usb1->fs_dsize));
+-		printk(" ncg:         %u\n", fs32_to_cpu(sb, usb1->fs_ncg));
+-		printk(" bsize:       %u\n", fs32_to_cpu(sb, usb1->fs_bsize));
+-		printk(" fsize:       %u\n", fs32_to_cpu(sb, usb1->fs_fsize));
+-		printk(" frag:        %u\n", fs32_to_cpu(sb, usb1->fs_frag));
+-		printk(" fragshift:   %u\n",
+-		       fs32_to_cpu(sb, usb1->fs_fragshift));
+-		printk(" ~fmask:      %u\n", ~fs32_to_cpu(sb, usb1->fs_fmask));
+-		printk(" fshift:      %u\n", fs32_to_cpu(sb, usb1->fs_fshift));
+-		printk(" sbsize:      %u\n", fs32_to_cpu(sb, usb1->fs_sbsize));
+-		printk(" spc:         %u\n", fs32_to_cpu(sb, usb1->fs_spc));
+-		printk(" cpg:         %u\n", fs32_to_cpu(sb, usb1->fs_cpg));
+-		printk(" ipg:         %u\n", fs32_to_cpu(sb, usb1->fs_ipg));
+-		printk(" fpg:         %u\n", fs32_to_cpu(sb, usb1->fs_fpg));
+-		printk(" csaddr:      %u\n", fs32_to_cpu(sb, usb1->fs_csaddr));
+-		printk(" cssize:      %u\n", fs32_to_cpu(sb, usb1->fs_cssize));
+-		printk(" cgsize:      %u\n", fs32_to_cpu(sb, usb1->fs_cgsize));
+-		printk(" fstodb:      %u\n",
+-		       fs32_to_cpu(sb, usb1->fs_fsbtodb));
+-		printk(" nrpos:       %u\n", fs32_to_cpu(sb, usb3->fs_nrpos));
+-		printk(" ndir         %u\n",
+-		       fs32_to_cpu(sb, usb1->fs_cstotal.cs_ndir));
+-		printk(" nifree       %u\n",
+-		       fs32_to_cpu(sb, usb1->fs_cstotal.cs_nifree));
+-		printk(" nbfree       %u\n",
+-		       fs32_to_cpu(sb, usb1->fs_cstotal.cs_nbfree));
+-		printk(" nffree       %u\n",
+-		       fs32_to_cpu(sb, usb1->fs_cstotal.cs_nffree));
++		pr_debug(" sblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_sblkno));
++		pr_debug(" cblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_cblkno));
++		pr_debug(" iblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_iblkno));
++		pr_debug(" dblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_dblkno));
++		pr_debug(" cgoffset:    %u\n",
++			 fs32_to_cpu(sb, usb1->fs_cgoffset));
++		pr_debug(" ~cgmask:     0x%x\n",
++			 ~fs32_to_cpu(sb, usb1->fs_cgmask));
++		pr_debug(" size:        %u\n", fs32_to_cpu(sb, usb1->fs_size));
++		pr_debug(" dsize:       %u\n", fs32_to_cpu(sb, usb1->fs_dsize));
++		pr_debug(" ncg:         %u\n", fs32_to_cpu(sb, usb1->fs_ncg));
++		pr_debug(" bsize:       %u\n", fs32_to_cpu(sb, usb1->fs_bsize));
++		pr_debug(" fsize:       %u\n", fs32_to_cpu(sb, usb1->fs_fsize));
++		pr_debug(" frag:        %u\n", fs32_to_cpu(sb, usb1->fs_frag));
++		pr_debug(" fragshift:   %u\n",
++			 fs32_to_cpu(sb, usb1->fs_fragshift));
++		pr_debug(" ~fmask:      %u\n", ~fs32_to_cpu(sb, usb1->fs_fmask));
++		pr_debug(" fshift:      %u\n", fs32_to_cpu(sb, usb1->fs_fshift));
++		pr_debug(" sbsize:      %u\n", fs32_to_cpu(sb, usb1->fs_sbsize));
++		pr_debug(" spc:         %u\n", fs32_to_cpu(sb, usb1->fs_spc));
++		pr_debug(" cpg:         %u\n", fs32_to_cpu(sb, usb1->fs_cpg));
++		pr_debug(" ipg:         %u\n", fs32_to_cpu(sb, usb1->fs_ipg));
++		pr_debug(" fpg:         %u\n", fs32_to_cpu(sb, usb1->fs_fpg));
++		pr_debug(" csaddr:      %u\n", fs32_to_cpu(sb, usb1->fs_csaddr));
++		pr_debug(" cssize:      %u\n", fs32_to_cpu(sb, usb1->fs_cssize));
++		pr_debug(" cgsize:      %u\n", fs32_to_cpu(sb, usb1->fs_cgsize));
++		pr_debug(" fstodb:      %u\n",
++			 fs32_to_cpu(sb, usb1->fs_fsbtodb));
++		pr_debug(" nrpos:       %u\n", fs32_to_cpu(sb, usb3->fs_nrpos));
++		pr_debug(" ndir         %u\n",
++			 fs32_to_cpu(sb, usb1->fs_cstotal.cs_ndir));
++		pr_debug(" nifree       %u\n",
++			 fs32_to_cpu(sb, usb1->fs_cstotal.cs_nifree));
++		pr_debug(" nbfree       %u\n",
++			 fs32_to_cpu(sb, usb1->fs_cstotal.cs_nbfree));
++		pr_debug(" nffree       %u\n",
++			 fs32_to_cpu(sb, usb1->fs_cstotal.cs_nffree));
  	}
-@@ -641,6 +642,10 @@ int init_nilfs(struct the_nilfs *nilfs,
- 	if (err)
- 		goto failed_sbh;
- 
-+	err = nilfs_sysfs_create_device_group(sb);
-+	if (err)
-+		goto failed_sbh;
-+
- 	set_nilfs_init(nilfs);
- 	err = 0;
-  out:
-@@ -741,12 +746,13 @@ nilfs_find_or_create_root(struct the_nil
- {
- 	struct rb_node **p, *parent;
- 	struct nilfs_root *root, *new;
-+	int err;
- 
- 	root = nilfs_lookup_root(nilfs, cno);
- 	if (root)
- 		return root;
- 
--	new = kmalloc(sizeof(*root), GFP_KERNEL);
-+	new = kzalloc(sizeof(*root), GFP_KERNEL);
- 	if (!new)
- 		return NULL;
- 
-@@ -783,6 +789,12 @@ nilfs_find_or_create_root(struct the_nil
- 
- 	spin_unlock(&nilfs->ns_cptree_lock);
- 
-+	err = nilfs_sysfs_create_snapshot_group(new);
-+	if (err) {
-+		kfree(new);
-+		new = NULL;
-+	}
-+
- 	return new;
+-	printk("\n");
++	pr_debug("\n");
  }
  
-@@ -791,6 +803,8 @@ void nilfs_put_root(struct nilfs_root *r
- 	if (atomic_dec_and_test(&root->count)) {
- 		struct the_nilfs *nilfs = root->nilfs;
+ /*
+@@ -247,38 +247,38 @@ static void ufs_print_super_stuff(struct
+ static void ufs_print_cylinder_stuff(struct super_block *sb,
+ 				     struct ufs_cylinder_group *cg)
+ {
+-	printk("\nufs_print_cylinder_stuff\n");
+-	printk("size of ucg: %zu\n", sizeof(struct ufs_cylinder_group));
+-	printk("  magic:        %x\n", fs32_to_cpu(sb, cg->cg_magic));
+-	printk("  time:         %u\n", fs32_to_cpu(sb, cg->cg_time));
+-	printk("  cgx:          %u\n", fs32_to_cpu(sb, cg->cg_cgx));
+-	printk("  ncyl:         %u\n", fs16_to_cpu(sb, cg->cg_ncyl));
+-	printk("  niblk:        %u\n", fs16_to_cpu(sb, cg->cg_niblk));
+-	printk("  ndblk:        %u\n", fs32_to_cpu(sb, cg->cg_ndblk));
+-	printk("  cs_ndir:      %u\n", fs32_to_cpu(sb, cg->cg_cs.cs_ndir));
+-	printk("  cs_nbfree:    %u\n", fs32_to_cpu(sb, cg->cg_cs.cs_nbfree));
+-	printk("  cs_nifree:    %u\n", fs32_to_cpu(sb, cg->cg_cs.cs_nifree));
+-	printk("  cs_nffree:    %u\n", fs32_to_cpu(sb, cg->cg_cs.cs_nffree));
+-	printk("  rotor:        %u\n", fs32_to_cpu(sb, cg->cg_rotor));
+-	printk("  frotor:       %u\n", fs32_to_cpu(sb, cg->cg_frotor));
+-	printk("  irotor:       %u\n", fs32_to_cpu(sb, cg->cg_irotor));
+-	printk("  frsum:        %u, %u, %u, %u, %u, %u, %u, %u\n",
++	pr_debug("\nufs_print_cylinder_stuff\n");
++	pr_debug("size of ucg: %zu\n", sizeof(struct ufs_cylinder_group));
++	pr_debug("  magic:        %x\n", fs32_to_cpu(sb, cg->cg_magic));
++	pr_debug("  time:         %u\n", fs32_to_cpu(sb, cg->cg_time));
++	pr_debug("  cgx:          %u\n", fs32_to_cpu(sb, cg->cg_cgx));
++	pr_debug("  ncyl:         %u\n", fs16_to_cpu(sb, cg->cg_ncyl));
++	pr_debug("  niblk:        %u\n", fs16_to_cpu(sb, cg->cg_niblk));
++	pr_debug("  ndblk:        %u\n", fs32_to_cpu(sb, cg->cg_ndblk));
++	pr_debug("  cs_ndir:      %u\n", fs32_to_cpu(sb, cg->cg_cs.cs_ndir));
++	pr_debug("  cs_nbfree:    %u\n", fs32_to_cpu(sb, cg->cg_cs.cs_nbfree));
++	pr_debug("  cs_nifree:    %u\n", fs32_to_cpu(sb, cg->cg_cs.cs_nifree));
++	pr_debug("  cs_nffree:    %u\n", fs32_to_cpu(sb, cg->cg_cs.cs_nffree));
++	pr_debug("  rotor:        %u\n", fs32_to_cpu(sb, cg->cg_rotor));
++	pr_debug("  frotor:       %u\n", fs32_to_cpu(sb, cg->cg_frotor));
++	pr_debug("  irotor:       %u\n", fs32_to_cpu(sb, cg->cg_irotor));
++	pr_debug("  frsum:        %u, %u, %u, %u, %u, %u, %u, %u\n",
+ 	    fs32_to_cpu(sb, cg->cg_frsum[0]), fs32_to_cpu(sb, cg->cg_frsum[1]),
+ 	    fs32_to_cpu(sb, cg->cg_frsum[2]), fs32_to_cpu(sb, cg->cg_frsum[3]),
+ 	    fs32_to_cpu(sb, cg->cg_frsum[4]), fs32_to_cpu(sb, cg->cg_frsum[5]),
+ 	    fs32_to_cpu(sb, cg->cg_frsum[6]), fs32_to_cpu(sb, cg->cg_frsum[7]));
+-	printk("  btotoff:      %u\n", fs32_to_cpu(sb, cg->cg_btotoff));
+-	printk("  boff:         %u\n", fs32_to_cpu(sb, cg->cg_boff));
+-	printk("  iuseoff:      %u\n", fs32_to_cpu(sb, cg->cg_iusedoff));
+-	printk("  freeoff:      %u\n", fs32_to_cpu(sb, cg->cg_freeoff));
+-	printk("  nextfreeoff:  %u\n", fs32_to_cpu(sb, cg->cg_nextfreeoff));
+-	printk("  clustersumoff %u\n",
+-	       fs32_to_cpu(sb, cg->cg_u.cg_44.cg_clustersumoff));
+-	printk("  clusteroff    %u\n",
+-	       fs32_to_cpu(sb, cg->cg_u.cg_44.cg_clusteroff));
+-	printk("  nclusterblks  %u\n",
+-	       fs32_to_cpu(sb, cg->cg_u.cg_44.cg_nclusterblks));
+-	printk("\n");
++	pr_debug("  btotoff:      %u\n", fs32_to_cpu(sb, cg->cg_btotoff));
++	pr_debug("  boff:         %u\n", fs32_to_cpu(sb, cg->cg_boff));
++	pr_debug("  iuseoff:      %u\n", fs32_to_cpu(sb, cg->cg_iusedoff));
++	pr_debug("  freeoff:      %u\n", fs32_to_cpu(sb, cg->cg_freeoff));
++	pr_debug("  nextfreeoff:  %u\n", fs32_to_cpu(sb, cg->cg_nextfreeoff));
++	pr_debug("  clustersumoff %u\n",
++		 fs32_to_cpu(sb, cg->cg_u.cg_44.cg_clustersumoff));
++	pr_debug("  clusteroff    %u\n",
++		 fs32_to_cpu(sb, cg->cg_u.cg_44.cg_clusteroff));
++	pr_debug("  nclusterblks  %u\n",
++		 fs32_to_cpu(sb, cg->cg_u.cg_44.cg_nclusterblks));
++	pr_debug("\n");
+ }
+ #else
+ #  define ufs_print_super_stuff(sb, usb1, usb2, usb3) /**/
+@@ -316,7 +316,7 @@ void ufs_error (struct super_block * sb,
+ 	case UFS_MOUNT_ONERROR_LOCK:
+ 	case UFS_MOUNT_ONERROR_UMOUNT:
+ 	case UFS_MOUNT_ONERROR_REPAIR:
+-		printk (KERN_CRIT "UFS-fs error (device %s): %s: %s\n",
++		pr_crit("UFS-fs error (device %s): %s: %s\n",
+ 			sb->s_id, function, error_buf);
+ 	}		
+ }
+@@ -340,7 +340,7 @@ void ufs_panic (struct super_block * sb,
+ 	vsnprintf (error_buf, sizeof(error_buf), fmt, args);
+ 	va_end (args);
+ 	sb->s_flags |= MS_RDONLY;
+-	printk (KERN_CRIT "UFS-fs panic (device %s): %s: %s\n",
++	pr_crit("UFS-fs panic (device %s): %s: %s\n",
+ 		sb->s_id, function, error_buf);
+ }
  
-+		nilfs_sysfs_delete_snapshot_group(root);
-+
- 		spin_lock(&nilfs->ns_cptree_lock);
- 		rb_erase(&root->rb_node, &nilfs->ns_cptree);
- 		spin_unlock(&nilfs->ns_cptree_lock);
+@@ -352,7 +352,7 @@ void ufs_warning (struct super_block * s
+ 	va_start (args, fmt);
+ 	vsnprintf (error_buf, sizeof(error_buf), fmt, args);
+ 	va_end (args);
+-	printk (KERN_WARNING "UFS-fs warning (device %s): %s: %s\n",
++	pr_warn("UFS-fs warning (device %s): %s: %s\n",
+ 		sb->s_id, function, error_buf);
+ }
+ 
+@@ -464,14 +464,12 @@ static int ufs_parse_options (char * opt
+ 			ufs_set_opt (*mount_options, ONERROR_UMOUNT);
+ 			break;
+ 		case Opt_onerror_repair:
+-			printk("UFS-fs: Unable to do repair on error, "
+-				"will lock lock instead\n");
++			pr_err("UFS-fs: Unable to do repair on error, will lock lock instead\n");
+ 			ufs_clear_opt (*mount_options, ONERROR);
+ 			ufs_set_opt (*mount_options, ONERROR_REPAIR);
+ 			break;
+ 		default:
+-			printk("UFS-fs: Invalid option: \"%s\" "
+-					"or missing value\n", p);
++			pr_err("UFS-fs: Invalid option: \"%s\" or missing value\n", p);
+ 			return 0;
+ 		}
+ 	}
+@@ -788,8 +786,7 @@ static int ufs_fill_super(struct super_b
+ 
+ #ifndef CONFIG_UFS_FS_WRITE
+ 	if (!(sb->s_flags & MS_RDONLY)) {
+-		printk("ufs was compiled with read-only support, "
+-		       "can't be mounted as read-write\n");
++		pr_err("ufs was compiled with read-only support, can't be mounted as read-write\n");
+ 		return -EROFS;
+ 	}
+ #endif
+@@ -812,12 +809,12 @@ static int ufs_fill_super(struct super_b
+ 	sbi->s_mount_opt = 0;
+ 	ufs_set_opt (sbi->s_mount_opt, ONERROR_LOCK);
+ 	if (!ufs_parse_options ((char *) data, &sbi->s_mount_opt)) {
+-		printk("wrong mount options\n");
++		pr_err("wrong mount options\n");
+ 		goto failed;
+ 	}
+ 	if (!(sbi->s_mount_opt & UFS_MOUNT_UFSTYPE)) {
+ 		if (!silent)
+-			printk("You didn't specify the type of your ufs filesystem\n\n"
++			pr_err("You didn't specify the type of your ufs filesystem\n\n"
+ 			"mount -t ufs -o ufstype="
+ 			"sun|sunx86|44bsd|ufs2|5xbsd|old|hp|nextstep|nextstep-cd|openstep ...\n\n"
+ 			">>>WARNING<<< Wrong ufstype may corrupt your filesystem, "
+@@ -900,7 +897,7 @@ static int ufs_fill_super(struct super_b
+ 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_OLD | UFS_CG_OLD;
+ 		if (!(sb->s_flags & MS_RDONLY)) {
+ 			if (!silent)
+-				printk(KERN_INFO "ufstype=old is supported read-only\n");
++				pr_info("ufstype=old is supported read-only\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 		}
+ 		break;
+@@ -916,7 +913,7 @@ static int ufs_fill_super(struct super_b
+ 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_OLD | UFS_CG_OLD;
+ 		if (!(sb->s_flags & MS_RDONLY)) {
+ 			if (!silent)
+-				printk(KERN_INFO "ufstype=nextstep is supported read-only\n");
++				pr_info("ufstype=nextstep is supported read-only\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 		}
+ 		break;
+@@ -932,7 +929,7 @@ static int ufs_fill_super(struct super_b
+ 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_OLD | UFS_CG_OLD;
+ 		if (!(sb->s_flags & MS_RDONLY)) {
+ 			if (!silent)
+-				printk(KERN_INFO "ufstype=nextstep-cd is supported read-only\n");
++				pr_info("ufstype=nextstep-cd is supported read-only\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 		}
+ 		break;
+@@ -948,7 +945,7 @@ static int ufs_fill_super(struct super_b
+ 		flags |= UFS_DE_44BSD | UFS_UID_44BSD | UFS_ST_44BSD | UFS_CG_44BSD;
+ 		if (!(sb->s_flags & MS_RDONLY)) {
+ 			if (!silent)
+-				printk(KERN_INFO "ufstype=openstep is supported read-only\n");
++				pr_info("ufstype=openstep is supported read-only\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 		}
+ 		break;
+@@ -963,19 +960,19 @@ static int ufs_fill_super(struct super_b
+ 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_OLD | UFS_CG_OLD;
+ 		if (!(sb->s_flags & MS_RDONLY)) {
+ 			if (!silent)
+-				printk(KERN_INFO "ufstype=hp is supported read-only\n");
++				pr_info("ufstype=hp is supported read-only\n");
+ 			sb->s_flags |= MS_RDONLY;
+  		}
+  		break;
+ 	default:
+ 		if (!silent)
+-			printk("unknown ufstype\n");
++			pr_err("unknown ufstype\n");
+ 		goto failed;
+ 	}
+ 	
+ again:	
+ 	if (!sb_set_blocksize(sb, block_size)) {
+-		printk(KERN_ERR "UFS: failed to set blocksize\n");
++		pr_err("UFS: failed to set blocksize\n");
+ 		goto failed;
+ 	}
+ 
+@@ -1034,7 +1031,7 @@ again:
+ 		goto again;
+ 	}
+ 	if (!silent)
+-		printk("ufs_read_super: bad magic number\n");
++		pr_err("ufs_read_super: bad magic number\n");
+ 	goto failed;
+ 
+ magic_found:
+@@ -1048,33 +1045,33 @@ magic_found:
+ 	uspi->s_fshift = fs32_to_cpu(sb, usb1->fs_fshift);
+ 
+ 	if (!is_power_of_2(uspi->s_fsize)) {
+-		printk(KERN_ERR "ufs_read_super: fragment size %u is not a power of 2\n",
+-			uspi->s_fsize);
+-			goto failed;
++		pr_err("ufs_read_super: fragment size %u is not a power of 2\n",
++		       uspi->s_fsize);
++		goto failed;
+ 	}
+ 	if (uspi->s_fsize < 512) {
+-		printk(KERN_ERR "ufs_read_super: fragment size %u is too small\n",
+-			uspi->s_fsize);
++		pr_err("ufs_read_super: fragment size %u is too small\n",
++		       uspi->s_fsize);
+ 		goto failed;
+ 	}
+ 	if (uspi->s_fsize > 4096) {
+-		printk(KERN_ERR "ufs_read_super: fragment size %u is too large\n",
+-			uspi->s_fsize);
++		pr_err("ufs_read_super: fragment size %u is too large\n",
++		       uspi->s_fsize);
+ 		goto failed;
+ 	}
+ 	if (!is_power_of_2(uspi->s_bsize)) {
+-		printk(KERN_ERR "ufs_read_super: block size %u is not a power of 2\n",
+-			uspi->s_bsize);
++		pr_err("ufs_read_super: block size %u is not a power of 2\n",
++		       uspi->s_bsize);
+ 		goto failed;
+ 	}
+ 	if (uspi->s_bsize < 4096) {
+-		printk(KERN_ERR "ufs_read_super: block size %u is too small\n",
+-			uspi->s_bsize);
++		pr_err("ufs_read_super: block size %u is too small\n",
++		       uspi->s_bsize);
+ 		goto failed;
+ 	}
+ 	if (uspi->s_bsize / uspi->s_fsize > 8) {
+-		printk(KERN_ERR "ufs_read_super: too many fragments per block (%u)\n",
+-			uspi->s_bsize / uspi->s_fsize);
++		pr_err("ufs_read_super: too many fragments per block (%u)\n",
++		       uspi->s_bsize / uspi->s_fsize);
+ 		goto failed;
+ 	}
+ 	if (uspi->s_fsize != block_size || uspi->s_sbsize != super_block_size) {
+@@ -1113,20 +1110,21 @@ magic_found:
+ 			UFSD("fs is DEC OSF/1\n");
+ 			break;
+ 		case UFS_FSACTIVE:
+-			printk("ufs_read_super: fs is active\n");
++			pr_err("ufs_read_super: fs is active\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 			break;
+ 		case UFS_FSBAD:
+-			printk("ufs_read_super: fs is bad\n");
++			pr_err("ufs_read_super: fs is bad\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 			break;
+ 		default:
+-			printk("ufs_read_super: can't grok fs_clean 0x%x\n", usb1->fs_clean);
++			pr_err("ufs_read_super: can't grok fs_clean 0x%x\n",
++			       usb1->fs_clean);
+ 			sb->s_flags |= MS_RDONLY;
+ 			break;
+ 		}
+ 	} else {
+-		printk("ufs_read_super: fs needs fsck\n");
++		pr_err("ufs_read_super: fs needs fsck\n");
+ 		sb->s_flags |= MS_RDONLY;
+ 	}
+ 
+@@ -1299,7 +1297,7 @@ static int ufs_remount (struct super_blo
+ 	if (!(new_mount_opt & UFS_MOUNT_UFSTYPE)) {
+ 		new_mount_opt |= ufstype;
+ 	} else if ((new_mount_opt & UFS_MOUNT_UFSTYPE) != ufstype) {
+-		printk("ufstype can't be changed during remount\n");
++		pr_err("ufstype can't be changed during remount\n");
+ 		unlock_ufs(sb);
+ 		return -EINVAL;
+ 	}
+@@ -1328,8 +1326,7 @@ static int ufs_remount (struct super_blo
+ 	 * fs was mounted as ro, remounting rw
+ 	 */
+ #ifndef CONFIG_UFS_FS_WRITE
+-		printk("ufs was compiled with read-only support, "
+-		"can't be mounted as read-write\n");
++		pr_err("ufs was compiled with read-only support, can't be mounted as read-write\n");
+ 		unlock_ufs(sb);
+ 		return -EINVAL;
+ #else
+@@ -1338,12 +1335,12 @@ static int ufs_remount (struct super_blo
+ 		    ufstype != UFS_MOUNT_UFSTYPE_44BSD &&
+ 		    ufstype != UFS_MOUNT_UFSTYPE_SUNx86 &&
+ 		    ufstype != UFS_MOUNT_UFSTYPE_UFS2) {
+-			printk("this ufstype is read-only supported\n");
++			pr_err("this ufstype is read-only supported\n");
+ 			unlock_ufs(sb);
+ 			return -EINVAL;
+ 		}
+ 		if (!ufs_read_cylinder_structures(sb)) {
+-			printk("failed during remounting\n");
++			pr_err("failed during remounting\n");
+ 			unlock_ufs(sb);
+ 			return -EPERM;
+ 		}
 _
 
-Patches currently in -mm which might be from Vyacheslav.Dubeyko@hgst.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-isofs-logging-clean-up.patch
+fs-isofs-logging-clean-up-fix.patch
+linux-next.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
