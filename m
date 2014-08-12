@@ -1,108 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-usb-gadget-patterns.patch removed
- from -mm tree
-Date: Tue, 12 Aug 2014 12:44:15 -0700
-Message-ID: <53ea6e8f.cyGzIwWN0v3jjImi%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
+ removed from -mm tree
+Date: Tue, 12 Aug 2014 13:17:19 -0700
+Message-ID: <53ea764f.3+0+ieLkQUrgKr5Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:53935 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755037AbaHLToQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:44:16 -0400
-Received: by mail-qc0-f202.google.com with SMTP id r5so473079qcx.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:44:15 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:39504 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754843AbaHLURU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 16:17:20 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so2683134pde.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 13:17:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, andrzej.p@samsung.com, dahlmann.thomas@arcor.de, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, laurent.pinchart@ideasonboard.com, leoli@freescale.com, linux@arm.linux.org.uk, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: cpandya@codeaurora.org, hughd@google.com, john.stultz@linaro.org, mingo@redhat.com, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update usb/gadget patterns
+     Subject: ksm: provide support to use deferrable timers for scanner thread
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-usb-gadget-patterns.patch
+     ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update usb/gadget patterns
+From: Chintan Pandya <cpandya@codeaurora.org>
+Subject: ksm: provide support to use deferrable timers for scanner thread
 
-Several commits have moved files around, update the section patterns.
+KSM thread to scan pages is scheduled on definite timeout.  That wakes up
+CPU from idle state and hence may affect the power consumption.  Provide
+an optional support to use deferrable timer which suites low-power
+use-cases.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Thomas Dahlmann <dahlmann.thomas@arcor.de>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Eric Miao <eric.y.miao@gmail.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Typically, on our setup we observed, 10% less power consumption with some
+use-cases in which CPU goes to power collapse frequently.  For example,
+playing audio while typically CPU remains idle.
+
+To enable deferrable timers,
+$ echo 1 > /sys/kernel/mm/ksm/deferrable_timer
+
+Signed-off-by: Chintan Pandya <cpandya@codeaurora.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ Documentation/vm/ksm.txt |    7 ++++++
+ mm/ksm.c                 |   40 +++++++++++++++++++++++++++++++++++--
+ 2 files changed, 45 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-usb-gadget-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-usb-gadget-patterns
-+++ a/MAINTAINERS
-@@ -597,7 +597,7 @@ AMD GEODE CS5536 USB DEVICE CONTROLLER D
- M:	Thomas Dahlmann <dahlmann.thomas@arcor.de>
- L:	linux-geode@lists.infradead.org (moderated for non-subscribers)
- S:	Supported
--F:	drivers/usb/gadget/amd5536udc.*
-+F:	drivers/usb/gadget/udc/amd5536udc.*
+diff -puN Documentation/vm/ksm.txt~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread Documentation/vm/ksm.txt
+--- a/Documentation/vm/ksm.txt~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread
++++ a/Documentation/vm/ksm.txt
+@@ -87,6 +87,13 @@ pages_sharing    - how many more sites a
+ pages_unshared   - how many pages unique but repeatedly checked for merging
+ pages_volatile   - how many pages changing too fast to be placed in a tree
+ full_scans       - how many times all mergeable areas have been scanned
++deferrable_timer - whether to use deferrable timers or not
++                 e.g. "echo 1 > /sys/kernel/mm/ksm/deferrable_timer"
++                 Default: 0 (means, we are not using deferrable timers. Users
++		 might want to set deferrable_timer option if they donot want
++		 ksm thread to wakeup CPU to carryout ksm activities thus
++		 gaining on battery while compromising slightly on memory
++		 that could have been saved.)
  
- AMD GEODE PROCESSOR/CHIPSET SUPPORT
- P:	Andres Salomon <dilinger@queued.net>
-@@ -1690,7 +1690,7 @@ ATMEL USBA UDC DRIVER
- M:	Nicolas Ferre <nicolas.ferre@atmel.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Supported
--F:	drivers/usb/gadget/atmel_usba_udc.*
-+F:	drivers/usb/gadget/udc/atmel_usba_udc.*
+ A high ratio of pages_sharing to pages_shared indicates good sharing, but
+ a high ratio of pages_unshared to pages_sharing indicates wasted effort.
+diff -puN mm/ksm.c~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread mm/ksm.c
+--- a/mm/ksm.c~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread
++++ a/mm/ksm.c
+@@ -223,6 +223,9 @@ static unsigned int ksm_thread_pages_to_
+ /* Milliseconds ksmd should sleep between batches */
+ static unsigned int ksm_thread_sleep_millisecs = 20;
  
- ATMEL WIRELESS DRIVER
- M:	Simon Kelley <simon@thekelleys.org.uk>
-@@ -3800,7 +3800,7 @@ M:	Li Yang <leoli@freescale.com>
- L:	linux-usb@vger.kernel.org
- L:	linuxppc-dev@lists.ozlabs.org
- S:	Maintained
--F:	drivers/usb/gadget/fsl*
-+F:	drivers/usb/gadget/udc/fsl*
++/* Boolean to indicate whether to use deferrable timer or not */
++static bool use_deferrable_timer;
++
+ #ifdef CONFIG_NUMA
+ /* Zeroed when merging across nodes is not allowed */
+ static unsigned int ksm_merge_across_nodes = 1;
+@@ -1705,6 +1708,11 @@ static void ksm_do_scan(unsigned int sca
+ 	}
+ }
  
- FREESCALE QUICC ENGINE UCC ETHERNET DRIVER
- M:	Li Yang <leoli@freescale.com>
-@@ -7228,7 +7228,7 @@ S:	Maintained
- F:	arch/arm/mach-pxa/
- F:	drivers/pcmcia/pxa2xx*
- F:	drivers/spi/spi-pxa2xx*
--F:	drivers/usb/gadget/pxa2*
-+F:	drivers/usb/gadget/udc/pxa2*
- F:	include/sound/pxa2xx-lib.h
- F:	sound/arm/pxa*
- F:	sound/soc/pxa/
-@@ -9582,8 +9582,8 @@ USB WEBCAM GADGET
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-usb@vger.kernel.org
- S:	Maintained
--F:	drivers/usb/gadget/*uvc*.c
--F:	drivers/usb/gadget/webcam.c
-+F:	drivers/usb/gadget/function/*uvc*.c
-+F:	drivers/usb/gadget/legacy/webcam.c
++static void process_timeout(unsigned long __data)
++{
++	wake_up_process((struct task_struct *)__data);
++}
++
+ static int ksmd_should_run(void)
+ {
+ 	return (ksm_run & KSM_RUN_MERGE) && !list_empty(&ksm_mm_head.mm_list);
+@@ -1712,6 +1720,8 @@ static int ksmd_should_run(void)
  
- USB WIRELESS RNDIS DRIVER (rndis_wlan)
- M:	Jussi Kivilinna <jussi.kivilinna@iki.fi>
+ static int ksm_scan_thread(void *nothing)
+ {
++	signed long to;
++
+ 	set_freezable();
+ 	set_user_nice(current, 5);
+ 
+@@ -1725,8 +1735,11 @@ static int ksm_scan_thread(void *nothing
+ 		try_to_freeze();
+ 
+ 		if (ksmd_should_run()) {
+-			schedule_timeout_interruptible(
+-				msecs_to_jiffies(ksm_thread_sleep_millisecs));
++			timeout = msecs_to_jiffies(ksm_thread_sleep_millisecs);
++			if (use_deferrable_timer)
++				schedule_timeout_deferrable_interruptible(to);
++			else
++				schedule_timeout_interruptible(to);
+ 		} else {
+ 			wait_event_freezable(ksm_thread_wait,
+ 				ksmd_should_run() || kthread_should_stop());
+@@ -2175,6 +2188,28 @@ static ssize_t run_store(struct kobject
+ }
+ KSM_ATTR(run);
+ 
++static ssize_t deferrable_timer_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *buf)
++{
++	return snprintf(buf, 8, "%d\n", use_deferrable_timer);
++}
++
++static ssize_t deferrable_timer_store(struct kobject *kobj,
++				     struct kobj_attribute *attr,
++				     const char *buf, size_t count)
++{
++	unsigned long enable;
++	int err;
++
++	err = kstrtoul(buf, 10, &enable);
++
++	if (enable == 0 || enable == 1)
++		use_deferrable_timer = enable;
++
++	return count;
++}
++KSM_ATTR(deferrable_timer);
++
+ #ifdef CONFIG_NUMA
+ static ssize_t merge_across_nodes_show(struct kobject *kobj,
+ 				struct kobj_attribute *attr, char *buf)
+@@ -2287,6 +2322,7 @@ static struct attribute *ksm_attrs[] = {
+ 	&pages_unshared_attr.attr,
+ 	&pages_volatile_attr.attr,
+ 	&full_scans_attr.attr,
++	&deferrable_timer_attr.attr,
+ #ifdef CONFIG_NUMA
+ 	&merge_across_nodes_attr.attr,
+ #endif
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from cpandya@codeaurora.org are
 
 origin.patch
-mm-utilc-add-kstrimdup.patch
-fs-isofs-logging-clean-up.patch
-linux-next.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
 
