@@ -1,47 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
- removed from -mm tree
-Date: Tue, 12 Aug 2014 13:17:19 -0700
-Message-ID: <53ea764f.3+0+ieLkQUrgKr5Q%akpm@linux-foundation.org>
+Subject: [to-be-updated] timer-provide-an-api-for-deferrable-timeout.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 13:17:17 -0700
+Message-ID: <53ea764d.qmm9P459gZxtr1xJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:39504 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754843AbaHLURU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 16:17:20 -0400
-Received: by mail-pd0-f202.google.com with SMTP id w10so2683134pde.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 13:17:19 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:34031 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754534AbaHLURT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 16:17:19 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so1922651oig.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 13:17:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: cpandya@codeaurora.org, hughd@google.com, john.stultz@linaro.org, mingo@redhat.com, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: provide support to use deferrable timers for scanner thread
+     Subject: timer: provide an api for deferrable timeout
 has been removed from the -mm tree.  Its filename was
-     ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
+     timer-provide-an-api-for-deferrable-timeout.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Chintan Pandya <cpandya@codeaurora.org>
-Subject: ksm: provide support to use deferrable timers for scanner thread
+Subject: timer: provide an api for deferrable timeout
 
-KSM thread to scan pages is scheduled on definite timeout.  That wakes up
-CPU from idle state and hence may affect the power consumption.  Provide
-an optional support to use deferrable timer which suites low-power
-use-cases.
-
-Typically, on our setup we observed, 10% less power consumption with some
-use-cases in which CPU goes to power collapse frequently.  For example,
-playing audio while typically CPU remains idle.
-
-To enable deferrable timers,
-$ echo 1 > /sys/kernel/mm/ksm/deferrable_timer
+schedule_timeout wakes up the CPU from IDLE state.  For some use cases it
+is not desirable, hence introduce a convenient API
+(schedule_timeout_deferrable_interruptible) on similar pattern which uses
+a deferrable timer.
 
 Signed-off-by: Chintan Pandya <cpandya@codeaurora.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -52,117 +43,92 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/ksm.txt |    7 ++++++
- mm/ksm.c                 |   40 +++++++++++++++++++++++++++++++++++--
- 2 files changed, 45 insertions(+), 2 deletions(-)
+ include/linux/sched.h |    2 ++
+ kernel/time/timer.c   |   27 ++++++++++++++++++++++++---
+ 2 files changed, 26 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/vm/ksm.txt~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread Documentation/vm/ksm.txt
---- a/Documentation/vm/ksm.txt~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread
-+++ a/Documentation/vm/ksm.txt
-@@ -87,6 +87,13 @@ pages_sharing    - how many more sites a
- pages_unshared   - how many pages unique but repeatedly checked for merging
- pages_volatile   - how many pages changing too fast to be placed in a tree
- full_scans       - how many times all mergeable areas have been scanned
-+deferrable_timer - whether to use deferrable timers or not
-+                 e.g. "echo 1 > /sys/kernel/mm/ksm/deferrable_timer"
-+                 Default: 0 (means, we are not using deferrable timers. Users
-+		 might want to set deferrable_timer option if they donot want
-+		 ksm thread to wakeup CPU to carryout ksm activities thus
-+		 gaining on battery while compromising slightly on memory
-+		 that could have been saved.)
- 
- A high ratio of pages_sharing to pages_shared indicates good sharing, but
- a high ratio of pages_unshared to pages_sharing indicates wasted effort.
-diff -puN mm/ksm.c~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread mm/ksm.c
---- a/mm/ksm.c~ksm-provide-support-to-use-deferrable-timers-for-scanner-thread
-+++ a/mm/ksm.c
-@@ -223,6 +223,9 @@ static unsigned int ksm_thread_pages_to_
- /* Milliseconds ksmd should sleep between batches */
- static unsigned int ksm_thread_sleep_millisecs = 20;
- 
-+/* Boolean to indicate whether to use deferrable timer or not */
-+static bool use_deferrable_timer;
-+
- #ifdef CONFIG_NUMA
- /* Zeroed when merging across nodes is not allowed */
- static unsigned int ksm_merge_across_nodes = 1;
-@@ -1705,6 +1708,11 @@ static void ksm_do_scan(unsigned int sca
- 	}
+diff -puN include/linux/sched.h~timer-provide-an-api-for-deferrable-timeout include/linux/sched.h
+--- a/include/linux/sched.h~timer-provide-an-api-for-deferrable-timeout
++++ a/include/linux/sched.h
+@@ -377,6 +377,8 @@ extern int in_sched_functions(unsigned l
+ #define	MAX_SCHEDULE_TIMEOUT	LONG_MAX
+ extern signed long schedule_timeout(signed long timeout);
+ extern signed long schedule_timeout_interruptible(signed long timeout);
++extern signed long
++schedule_timeout_deferrable_interruptible(signed long timeout);
+ extern signed long schedule_timeout_killable(signed long timeout);
+ extern signed long schedule_timeout_uninterruptible(signed long timeout);
+ asmlinkage void schedule(void);
+diff -puN kernel/time/timer.c~timer-provide-an-api-for-deferrable-timeout kernel/time/timer.c
+--- a/kernel/time/timer.c~timer-provide-an-api-for-deferrable-timeout
++++ a/kernel/time/timer.c
+@@ -1432,7 +1432,7 @@ static void process_timeout(unsigned lon
  }
  
-+static void process_timeout(unsigned long __data)
-+{
-+	wake_up_process((struct task_struct *)__data);
-+}
-+
- static int ksmd_should_run(void)
+ /**
+- * schedule_timeout - sleep until timeout
++ * __schedule_timeout - sleep until timeout
+  * @timeout: timeout value in jiffies
+  *
+  * Make the current task sleep until @timeout jiffies have
+@@ -1457,7 +1457,8 @@ static void process_timeout(unsigned lon
+  *
+  * In all cases the return value is guaranteed to be non-negative.
+  */
+-signed long __sched schedule_timeout(signed long timeout)
++static signed long
++__sched __schedule_timeout(signed long timeout, unsigned long flag)
  {
- 	return (ksm_run & KSM_RUN_MERGE) && !list_empty(&ksm_mm_head.mm_list);
-@@ -1712,6 +1720,8 @@ static int ksmd_should_run(void)
+ 	struct timer_list timer;
+ 	unsigned long expire;
+@@ -1493,7 +1494,13 @@ signed long __sched schedule_timeout(sig
  
- static int ksm_scan_thread(void *nothing)
- {
-+	signed long to;
+ 	expire = timeout + jiffies;
+ 
+-	setup_timer_on_stack(&timer, process_timeout, (unsigned long)current);
++	if (flag & TIMER_DEFERRABLE)
++		setup_deferrable_timer_on_stack(&timer, process_timeout,
++						(unsigned long)current);
++	else
++		setup_timer_on_stack(&timer, process_timeout,
++				     (unsigned long)current);
 +
- 	set_freezable();
- 	set_user_nice(current, 5);
- 
-@@ -1725,8 +1735,11 @@ static int ksm_scan_thread(void *nothing
- 		try_to_freeze();
- 
- 		if (ksmd_should_run()) {
--			schedule_timeout_interruptible(
--				msecs_to_jiffies(ksm_thread_sleep_millisecs));
-+			timeout = msecs_to_jiffies(ksm_thread_sleep_millisecs);
-+			if (use_deferrable_timer)
-+				schedule_timeout_deferrable_interruptible(to);
-+			else
-+				schedule_timeout_interruptible(to);
- 		} else {
- 			wait_event_freezable(ksm_thread_wait,
- 				ksmd_should_run() || kthread_should_stop());
-@@ -2175,6 +2188,28 @@ static ssize_t run_store(struct kobject
+ 	__mod_timer(&timer, expire, false, TIMER_NOT_PINNED);
+ 	schedule();
+ 	del_singleshot_timer_sync(&timer);
+@@ -1506,12 +1513,26 @@ signed long __sched schedule_timeout(sig
+  out:
+ 	return timeout < 0 ? 0 : timeout;
  }
- KSM_ATTR(run);
++
++signed long __sched schedule_timeout(signed long timeout)
++{
++	return __schedule_timeout(timeout, 0);
++}
+ EXPORT_SYMBOL(schedule_timeout);
  
-+static ssize_t deferrable_timer_show(struct kobject *kobj,
-+				    struct kobj_attribute *attr, char *buf)
+ /*
+  * We can use __set_current_state() here because schedule_timeout() calls
+  * schedule() unconditionally.
+  */
++
++signed long
++__sched schedule_timeout_deferrable_interruptible(signed long timeout)
 +{
-+	return snprintf(buf, 8, "%d\n", use_deferrable_timer);
++	__set_current_state(TASK_INTERRUPTIBLE);
++	return __schedule_timeout(timeout, TIMER_DEFERRABLE);
 +}
++EXPORT_SYMBOL(schedule_timeout_deferrable_interruptible);
 +
-+static ssize_t deferrable_timer_store(struct kobject *kobj,
-+				     struct kobj_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	unsigned long enable;
-+	int err;
-+
-+	err = kstrtoul(buf, 10, &enable);
-+
-+	if (enable == 0 || enable == 1)
-+		use_deferrable_timer = enable;
-+
-+	return count;
-+}
-+KSM_ATTR(deferrable_timer);
-+
- #ifdef CONFIG_NUMA
- static ssize_t merge_across_nodes_show(struct kobject *kobj,
- 				struct kobj_attribute *attr, char *buf)
-@@ -2287,6 +2322,7 @@ static struct attribute *ksm_attrs[] = {
- 	&pages_unshared_attr.attr,
- 	&pages_volatile_attr.attr,
- 	&full_scans_attr.attr,
-+	&deferrable_timer_attr.attr,
- #ifdef CONFIG_NUMA
- 	&merge_across_nodes_attr.attr,
- #endif
+ signed long __sched schedule_timeout_interruptible(signed long timeout)
+ {
+ 	__set_current_state(TASK_INTERRUPTIBLE);
 _
 
 Patches currently in -mm which might be from cpandya@codeaurora.org are
 
 origin.patch
+ksm-provide-support-to-use-deferrable-timers-for-scanner-thread.patch
 ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix.patch
 ksm-provide-support-to-use-deferrable-timers-for-scanner-thread-fix-fix-2.patch
 
