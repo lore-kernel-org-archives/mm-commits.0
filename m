@@ -1,112 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] panic-add-taint_softlockup.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 12:40:50 -0700
-Message-ID: <53ea6dc2.iW2ExF0h/9C/lSrj%akpm@linux-foundation.org>
+Subject: [merged] drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
+ removed from -mm tree
+Date: Tue, 12 Aug 2014 12:40:52 -0700
+Message-ID: <53ea6dc4.dmhx0H0wFKJg8Q08%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f73.google.com ([209.85.192.73]:52914 "EHLO
-	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754981AbaHLTkv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:40:51 -0400
-Received: by mail-qg0-f73.google.com with SMTP id q107so1306917qgd.4
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:40:50 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:40906 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754651AbaHLTkx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:40:53 -0400
+Received: by mail-qa0-f74.google.com with SMTP id j15so1309836qaq.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:40:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johunt@akamai.com, jbaron@akamai.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, linus.walleij@linaro.org, wsa@the-dreams.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic: add TAINT_SOFTLOCKUP
+     Subject: drivers/parport/parport_ip32.c: use PTR_ERR_OR_ZERO
 has been removed from the -mm tree.  Its filename was
-     panic-add-taint_softlockup.patch
+     drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Josh Hunt <johunt@akamai.com>
-Subject: panic: add TAINT_SOFTLOCKUP
+From: Fabian Frederick <fabf@skynet.be>
+Subject: drivers/parport/parport_ip32.c: use PTR_ERR_OR_ZERO
 
-This taint flag will be set if the system has ever entered a softlockup
-state.  Similar to TAINT_WARN it is useful to know whether or not the
-system has been in a softlockup state when debugging.
+replace IS_ERR/PTR_ERR
 
-[akpm@linux-foundation.org: apply the taint before calling panic()]
-Signed-off-by: Josh Hunt <johunt@akamai.com>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Wolfram Sang <wsa@the-dreams.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/oops-tracing.txt  |    2 ++
- Documentation/sysctl/kernel.txt |    1 +
- include/linux/kernel.h          |    1 +
- kernel/panic.c                  |    1 +
- kernel/watchdog.c               |    1 +
- 5 files changed, 6 insertions(+)
+ drivers/parport/parport_ip32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/oops-tracing.txt~panic-add-taint_softlockup Documentation/oops-tracing.txt
---- a/Documentation/oops-tracing.txt~panic-add-taint_softlockup
-+++ a/Documentation/oops-tracing.txt
-@@ -268,6 +268,8 @@ characters, each representing a particul
-  14: 'E' if an unsigned module has been loaded in a kernel supporting
-      module signature.
- 
-+ 15: 'L' if a soft lockup has previously occurred on the system.
-+
- The primary reason for the 'Tainted: ' string is to tell kernel
- debuggers if this is a clean kernel or if anything unusual has
- occurred.  Tainting is permanent: even if an offending module is
-diff -puN Documentation/sysctl/kernel.txt~panic-add-taint_softlockup Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~panic-add-taint_softlockup
-+++ a/Documentation/sysctl/kernel.txt
-@@ -826,6 +826,7 @@ can be ORed together:
- 4096 - An out-of-tree module has been loaded.
- 8192 - An unsigned module has been loaded in a kernel supporting module
-        signature.
-+16384 - A soft lockup has previously occurred on the system.
- 
- ==============================================================
- 
-diff -puN include/linux/kernel.h~panic-add-taint_softlockup include/linux/kernel.h
---- a/include/linux/kernel.h~panic-add-taint_softlockup
-+++ a/include/linux/kernel.h
-@@ -470,6 +470,7 @@ extern enum system_states {
- #define TAINT_FIRMWARE_WORKAROUND	11
- #define TAINT_OOT_MODULE		12
- #define TAINT_UNSIGNED_MODULE		13
-+#define TAINT_SOFTLOCKUP		14
- 
- extern const char hex_asc[];
- #define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
-diff -puN kernel/panic.c~panic-add-taint_softlockup kernel/panic.c
---- a/kernel/panic.c~panic-add-taint_softlockup
-+++ a/kernel/panic.c
-@@ -224,6 +224,7 @@ static const struct tnt tnts[] = {
- 	{ TAINT_FIRMWARE_WORKAROUND,	'I', ' ' },
- 	{ TAINT_OOT_MODULE,		'O', ' ' },
- 	{ TAINT_UNSIGNED_MODULE,	'E', ' ' },
-+	{ TAINT_SOFTLOCKUP,		'L', ' ' },
- };
+diff -puN drivers/parport/parport_ip32.c~drivers-parport-parport_ip32c-use-ptr_err_or_zero drivers/parport/parport_ip32.c
+--- a/drivers/parport/parport_ip32.c~drivers-parport-parport_ip32c-use-ptr_err_or_zero
++++ a/drivers/parport/parport_ip32.c
+@@ -2204,7 +2204,7 @@ static int __init parport_ip32_init(void
+ {
+ 	pr_info(PPIP32 "SGI IP32 built-in parallel port driver v0.6\n");
+ 	this_port = parport_ip32_probe_port();
+-	return IS_ERR(this_port) ? PTR_ERR(this_port) : 0;
++	return PTR_ERR_OR_ZERO(this_port);
+ }
  
  /**
-diff -puN kernel/watchdog.c~panic-add-taint_softlockup kernel/watchdog.c
---- a/kernel/watchdog.c~panic-add-taint_softlockup
-+++ a/kernel/watchdog.c
-@@ -368,6 +368,7 @@ static enum hrtimer_restart watchdog_tim
- 			smp_mb__after_atomic();
- 		}
- 
-+		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
- 		if (softlockup_panic)
- 			panic("softlockup: hung tasks");
- 		__this_cpu_write(soft_watchdog_warn, true);
 _
 
-Patches currently in -mm which might be from johunt@akamai.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-isofs-logging-clean-up.patch
+fs-isofs-logging-clean-up-fix.patch
+linux-next.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
 
