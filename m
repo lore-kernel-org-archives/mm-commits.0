@@ -1,101 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- driver-rtc-classc-check-the-error-after-rtc_read_time.patch removed from
- -mm tree
-Date: Tue, 12 Aug 2014 12:38:54 -0700
-Message-ID: <53ea6d4e.07A9Fjm40E15DuOm%akpm@linux-foundation.org>
+ fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:39:00 -0700
+Message-ID: <53ea6d54.Jzlpp3jxbPsEzwLk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f202.google.com ([209.85.160.202]:41349 "EHLO
-	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753505AbaHLTiz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:55 -0400
-Received: by mail-yk0-f202.google.com with SMTP id q9so1308308ykb.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:54 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:37810 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754290AbaHLTjB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:39:01 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so2668448pde.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:39:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hyogi.gim@lge.com, a.zummo@towertech.it, rjw@rjwysocki.net, mm-commits@vger.kernel.org
+To: fabf@skynet.be, fengguang.wu@intel.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: driver/rtc/class.c: check the error after rtc_read_time()
+     Subject: fs/befs/linuxvfs.c: check superblock before dump operation
 has been removed from the -mm tree.  Its filename was
-     driver-rtc-classc-check-the-error-after-rtc_read_time.patch
+     fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hyogi Gim <hyogi.gim@lge.com>
-Subject: driver/rtc/class.c: check the error after rtc_read_time()
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/befs/linuxvfs.c: check superblock before dump operation
 
-In rtc_suspend() and rtc_resume(), the error after rtc_read_time() is not
-checked.  If rtc device fail to read time, we cannot guarantee the
-following process.
+befs_dump_super_block was called between befs_load_sb and befs_check_sb.
+It has been reported to crash (5/900) with null block testing.
 
-Add the verification code for returned rtc_read_time() error.
+This patch loads, checks and only dump superblock if it's a valid one then
+brelse bh.
 
-Signed-off-by: Hyogi Gim <hyogi.gim@lge.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+(befs_dump_super_block uses disk_sb (bh->b_data) so it seems we need to call
+it before brelse(bh) but I don't know why befs_check_sb was called
+after brelse. Another thing I don't understand is why this problem appears now).
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ fs/befs/linuxvfs.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/class.c~driver-rtc-classc-check-the-error-after-rtc_read_time drivers/rtc/class.c
---- a/drivers/rtc/class.c~driver-rtc-classc-check-the-error-after-rtc_read_time
-+++ a/drivers/rtc/class.c
-@@ -53,6 +53,7 @@ static int rtc_suspend(struct device *de
- 	struct rtc_device	*rtc = to_rtc_device(dev);
- 	struct rtc_time		tm;
- 	struct timespec		delta, delta_delta;
-+	int err;
+diff -puN fs/befs/linuxvfs.c~fs-befs-linuxvfsc-check-superblock-before-dump-operation fs/befs/linuxvfs.c
+--- a/fs/befs/linuxvfs.c~fs-befs-linuxvfsc-check-superblock-before-dump-operation
++++ a/fs/befs/linuxvfs.c
+@@ -832,16 +832,14 @@ befs_fill_super(struct super_block *sb,
+ 		    (befs_super_block *) ((void *) bh->b_data + x86_sb_off);
+ 	}
  
- 	if (has_persistent_clock())
- 		return 0;
-@@ -61,7 +62,12 @@ static int rtc_suspend(struct device *de
- 		return 0;
+-	if (befs_load_sb(sb, disk_sb) != BEFS_OK)
++	if ((befs_load_sb(sb, disk_sb) != BEFS_OK) ||
++	    (befs_check_sb(sb) != BEFS_OK))
+ 		goto unacquire_bh;
  
- 	/* snapshot the current RTC and system time at suspend*/
--	rtc_read_time(rtc, &tm);
-+	err = rtc_read_time(rtc, &tm);
-+	if (err < 0) {
-+		pr_debug("%s:  fail to read rtc time\n", dev_name(&rtc->dev));
-+		return 0;
-+	}
-+
- 	getnstimeofday(&old_system);
- 	rtc_tm_to_time(&tm, &old_rtc.tv_sec);
+ 	befs_dump_super_block(sb, disk_sb);
  
-@@ -94,6 +100,7 @@ static int rtc_resume(struct device *dev
- 	struct rtc_time		tm;
- 	struct timespec		new_system, new_rtc;
- 	struct timespec		sleep_time;
-+	int err;
+ 	brelse(bh);
  
- 	if (has_persistent_clock())
- 		return 0;
-@@ -104,7 +111,12 @@ static int rtc_resume(struct device *dev
- 
- 	/* snapshot the current rtc and system time at resume */
- 	getnstimeofday(&new_system);
--	rtc_read_time(rtc, &tm);
-+	err = rtc_read_time(rtc, &tm);
-+	if (err < 0) {
-+		pr_debug("%s:  fail to read rtc time\n", dev_name(&rtc->dev));
-+		return 0;
-+	}
-+
- 	if (rtc_valid_tm(&tm) != 0) {
- 		pr_debug("%s:  bogus resume time\n", dev_name(&rtc->dev));
- 		return 0;
-_
-
-Patches currently in -mm which might be from hyogi.gim@lge.com are
-
-origin.patch
-
+-	if (befs_check_sb(sb) != BEFS_OK)
+-		goto unacquire_priv_sbp;
