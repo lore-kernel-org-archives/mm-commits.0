@@ -1,60 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs4-remove-unused-autofs4_ispending.patch removed
+Subject: [merged]
+ fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch removed
  from -mm tree
-Date: Tue, 12 Aug 2014 12:38:22 -0700
-Message-ID: <53ea6d2e.fLQ0qD9M8PpCcLNX%akpm@linux-foundation.org>
+Date: Tue, 12 Aug 2014 12:38:16 -0700
+Message-ID: <53ea6d28.bTpLCzNGH8tW7Kdu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:64490 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754871AbaHLTiX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:23 -0400
-Received: by mail-qc0-f202.google.com with SMTP id r5so471747qcx.1
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:22 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:37267 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754794AbaHLTiS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:18 -0400
+Received: by mail-oa0-f74.google.com with SMTP id eb12so1918785oac.3
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, raven@themaw.net, mm-commits@vger.kernel.org
+To: fabf@skynet.be, axel.lin@ingics.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs4: remove unused autofs4_ispending()
+     Subject: fs/ramfs/file-nommu.c: replace count*size kzalloc by kcalloc
 has been removed from the -mm tree.  Its filename was
-     autofs4-remove-unused-autofs4_ispending.patch
+     fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.de>
-Subject: autofs4: remove unused autofs4_ispending()
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/ramfs/file-nommu.c: replace count*size kzalloc by kcalloc
 
-Signed-off-by: NeilBrown <neilb@suse.de>
-Acked-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Axel Lin <axel.lin@ingics.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |   14 --------------
- 1 file changed, 14 deletions(-)
+ fs/ramfs/file-nommu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs4-remove-unused-autofs4_ispending fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs4-remove-unused-autofs4_ispending
-+++ a/fs/autofs4/autofs_i.h
-@@ -143,20 +143,6 @@ static inline int autofs4_oz_mode(struct
- 	return sbi->catatonic || task_pgrp(current) == sbi->oz_pgrp;
- }
+diff -puN fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc
++++ a/fs/ramfs/file-nommu.c
+@@ -222,7 +222,7 @@ static unsigned long ramfs_nommu_get_unm
  
--/* Does a dentry have some pending activity? */
--static inline int autofs4_ispending(struct dentry *dentry)
--{
--	struct autofs_info *inf = autofs4_dentry_ino(dentry);
--
--	if (inf->flags & AUTOFS_INF_PENDING)
--		return 1;
--
--	if (inf->flags & AUTOFS_INF_EXPIRING)
--		return 1;
--
--	return 0;
--}
+ 	/* gang-find the pages */
+ 	ret = -ENOMEM;
+-	pages = kzalloc(lpages * sizeof(struct page *), GFP_KERNEL);
++	pages = kcalloc(lpages, sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages)
+ 		goto out_free;
+ 
+_
+
+Patches currently in -mm which might be from fabf@skynet.be are
+
+origin.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-isofs-logging-clean-up.patch
+fs-isofs-logging-clean-up-fix.patch
+linux-next.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+
