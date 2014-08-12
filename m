@@ -1,268 +1,322 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-pcf8563-add-alarm-support.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 12:38:48 -0700
-Message-ID: <53ea6d48.lrpcAkqBRyvVhBcy%akpm@linux-foundation.org>
+Subject: [merged] rtc-add-pcf85063-support.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:38:52 -0700
+Message-ID: <53ea6d4c.m2vcSEPPsKcQqCmb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f201.google.com ([209.85.160.201]:34110 "EHLO
-	mail-yk0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754929AbaHLTit (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:49 -0400
-Received: by mail-yk0-f201.google.com with SMTP id 142so1306880ykq.4
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:48 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:50686 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754957AbaHLTix (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:53 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so2670316pab.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdonnefort@gmail.com, a.zummo@towertech.it, andrew@lunn.ch, dan.carpenter@oracle.com, jason@lakedaemon.net, simon.guinot@sequanux.org, mm-commits@vger.kernel.org
+To: san@rosetechnology.dk, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf8563.c: add alarm support
+     Subject: rtc: add pcf85063 support
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-pcf8563-add-alarm-support.patch
+     rtc-add-pcf85063-support.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Vincent Donnefort <vdonnefort@gmail.com>
-Subject: drivers/rtc/rtc-pcf8563.c: add alarm support
+=46rom: S=F8ren Andersen <san@rosetechnology.dk>
+Subject: rtc: add pcf85063 support
 
-This patch adds alarm support for the NXP PCF8563 chip.
+Add support for the pcf85063 rtc chip.
 
-Signed-off-by: Vincent Donnefort <vdonnefort@gmail.com>
-Cc: Simon Guinot <simon.guinot@sequanux.org>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Andrew Lunn <andrew@lunn.ch>
+[akpm@linux-foundation.org: fix comment typo, tweak conding style]
+Signed-off-by: Soeren Andersen <san@rosetechnology.dk>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |  157 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 153 insertions(+), 4 deletions(-)
+ Documentation/devicetree/bindings/i2c/trivial-devices.txt |    1=20
+ drivers/rtc/Kconfig                                       |    8=20
+ drivers/rtc/Makefile                                      |    1=20
+ drivers/rtc/rtc-pcf85063.c                                |  204 +++++=
++++++
+ 4 files changed, 214 insertions(+)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-add-alarm-support drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-add-alarm-support
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -26,6 +26,8 @@
- 
- #define PCF8563_REG_ST1		0x00 /* status */
- #define PCF8563_REG_ST2		0x01
-+#define PCF8563_BIT_AIE		(1 << 1)
-+#define PCF8563_BIT_AF		(1 << 3)
- 
- #define PCF8563_REG_SC		0x02 /* datetime */
- #define PCF8563_REG_MN		0x03
-@@ -36,9 +38,6 @@
- #define PCF8563_REG_YR		0x08
- 
- #define PCF8563_REG_AMN		0x09 /* alarm */
--#define PCF8563_REG_AHR		0x0A
--#define PCF8563_REG_ADM		0x0B
--#define PCF8563_REG_ADW		0x0C
- 
- #define PCF8563_REG_CLKO	0x0D /* clock out */
- #define PCF8563_REG_TMRC	0x0E /* timer control */
-@@ -67,6 +66,8 @@ struct pcf8563 {
- 	 */
- 	int c_polarity;	/* 0: MO_C=1 means 19xx, otherwise MO_C=1 means 20xx */
- 	int voltage_low; /* incicates if a low_voltage was detected */
+diff -puN Documentation/devicetree/bindings/i2c/trivial-devices.txt~rtc=
+-add-pcf85063-support Documentation/devicetree/bindings/i2c/trivial-dev=
+ices.txt
+--- a/Documentation/devicetree/bindings/i2c/trivial-devices.txt~rtc-add=
+-pcf85063-support
++++ a/Documentation/devicetree/bindings/i2c/trivial-devices.txt
+@@ -70,6 +70,7 @@ nuvoton,npct501		i2c trusted platform mo
+ nxp,pca9556		Octal SMBus and I2C registered interface
+ nxp,pca9557		8-bit I2C-bus and SMBus I/O port with reset
+ nxp,pcf8563		Real-time clock/calendar
++nxp,pcf85063		Tiny Real-Time Clock
+ ovti,ov5642		OV5642: Color CMOS QSXGA (5-megapixel) Image Sensor with =
+OmniBSI and Embedded TrueFocus
+ pericom,pt7c4338	Real-time Clock Module
+ plx,pex8648		48-Lane, 12-Port PCI Express Gen 2 (5.0 GT/s) Switch
+diff -puN drivers/rtc/Kconfig~rtc-add-pcf85063-support drivers/rtc/Kcon=
+fig
+--- a/drivers/rtc/Kconfig~rtc-add-pcf85063-support
++++ a/drivers/rtc/Kconfig
+@@ -373,6 +373,14 @@ config RTC_DRV_PCF8563
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-pcf8563.
+=20
++config RTC_DRV_PCF85063
++	tristate "nxp PCF85063"
++	help
++	  If you say yes here you get support for the PCF85063 RTC chip
 +
-+	struct i2c_client *client;
- };
- 
- static int pcf8563_read_block_data(struct i2c_client *client, unsigned char reg,
-@@ -115,6 +116,69 @@ static int pcf8563_write_block_data(stru
- 	return 0;
- }
- 
-+static int pcf8563_set_alarm_mode(struct i2c_client *client, bool on)
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-pcf85063.
++
+ config RTC_DRV_PCF8583
+ 	tristate "Philips PCF8583"
+ 	help
+diff -puN drivers/rtc/Makefile~rtc-add-pcf85063-support drivers/rtc/Mak=
+efile
+--- a/drivers/rtc/Makefile~rtc-add-pcf85063-support
++++ a/drivers/rtc/Makefile
+@@ -97,6 +97,7 @@ obj-$(CONFIG_RTC_DRV_PCAP)	+=3D rtc-pcap.o
+ obj-$(CONFIG_RTC_DRV_PCF2127)	+=3D rtc-pcf2127.o
+ obj-$(CONFIG_RTC_DRV_PCF8523)	+=3D rtc-pcf8523.o
+ obj-$(CONFIG_RTC_DRV_PCF8563)	+=3D rtc-pcf8563.o
++obj-$(CONFIG_RTC_DRV_PCF85063)	+=3D rtc-pcf85063.o
+ obj-$(CONFIG_RTC_DRV_PCF8583)	+=3D rtc-pcf8583.o
+ obj-$(CONFIG_RTC_DRV_PCF2123)	+=3D rtc-pcf2123.o
+ obj-$(CONFIG_RTC_DRV_PCF50633)	+=3D rtc-pcf50633.o
+diff -puN /dev/null drivers/rtc/rtc-pcf85063.c
+--- /dev/null
++++ a/drivers/rtc/rtc-pcf85063.c
+@@ -0,0 +1,204 @@
++/*
++ * An I2C driver for the PCF85063 RTC
++ * Copyright 2014 Rose Technology
++ *
++ * Author: S=C3=B8ren Andersen <san@rosetechnology.dk>
++ * Maintainers: http://www.nslu2-linux.org/
++ *
++ * based on the other drivers in this same directory.
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/i2c.h>
++#include <linux/bcd.h>
++#include <linux/rtc.h>
++#include <linux/module.h>
++
++#define DRV_VERSION "0.0.1"
++
++#define PCF85063_REG_CTRL1		0x00 /* status */
++#define PCF85063_REG_CTRL2		0x01
++
++#define PCF85063_REG_SC			0x04 /* datetime */
++#define PCF85063_REG_MN			0x05
++#define PCF85063_REG_HR			0x06
++#define PCF85063_REG_DM			0x07
++#define PCF85063_REG_DW			0x08
++#define PCF85063_REG_MO			0x09
++#define PCF85063_REG_YR			0x0A
++
++#define PCF85063_MO_C			0x80 /* century */
++
++static struct i2c_driver pcf85063_driver;
++
++struct pcf85063 {
++	struct rtc_device *rtc;
++	int c_polarity;	/* 0: MO_C=3D1 means 19xx, otherwise MO_C=3D1 means 2=
+0xx */
++	int voltage_low; /* indicates if a low_voltage was detected */
++};
++
++/*
++ * In the routines that deal directly with the pcf85063 hardware, we u=
+se
++ * rtc_time -- month 0-11, hour 0-23, yr =3D calendar year-epoch.
++ */
++static int pcf85063_get_datetime(struct i2c_client *client, struct rtc=
+_time *tm)
 +{
-+	unsigned char buf[2];
-+	int err;
++	struct pcf85063 *pcf85063 =3D i2c_get_clientdata(client);
++	unsigned char buf[13] =3D { PCF85063_REG_CTRL1 };
++	struct i2c_msg msgs[] =3D {
++		{/* setup read ptr */
++			.addr =3D client->addr,
++			.len =3D 1,
++			.buf =3D buf
++		},
++		{/* read status + date */
++			.addr =3D client->addr,
++			.flags =3D I2C_M_RD,
++			.len =3D 13,
++			.buf =3D buf
++		},
++	};
 +
-+	err = pcf8563_read_block_data(client, PCF8563_REG_ST2, 1, buf + 1);
-+	if (err < 0)
-+		return err;
-+
-+	if (on)
-+		buf[1] |= PCF8563_BIT_AIE;
-+	else
-+		buf[1] &= ~PCF8563_BIT_AIE;
-+
-+	buf[1] &= ~PCF8563_BIT_AF;
-+	buf[0] = PCF8563_REG_ST2;
-+
-+	err = pcf8563_write_block_data(client, PCF8563_REG_ST2, 1, buf + 1);
-+	if (err < 0) {
-+		dev_err(&client->dev, "%s: write error\n", __func__);
++	/* read registers */
++	if ((i2c_transfer(client->adapter, msgs, 2)) !=3D 2) {
++		dev_err(&client->dev, "%s: read error\n", __func__);
 +		return -EIO;
 +	}
 +
-+	return 0;
-+}
++	tm->tm_sec =3D bcd2bin(buf[PCF85063_REG_SC] & 0x7F);
++	tm->tm_min =3D bcd2bin(buf[PCF85063_REG_MN] & 0x7F);
++	tm->tm_hour =3D bcd2bin(buf[PCF85063_REG_HR] & 0x3F); /* rtc hr 0-23 =
+*/
++	tm->tm_mday =3D bcd2bin(buf[PCF85063_REG_DM] & 0x3F);
++	tm->tm_wday =3D buf[PCF85063_REG_DW] & 0x07;
++	tm->tm_mon =3D bcd2bin(buf[PCF85063_REG_MO] & 0x1F) - 1; /* rtc mn 1-=
+12 */
++	tm->tm_year =3D bcd2bin(buf[PCF85063_REG_YR]);
++	if (tm->tm_year < 70)
++		tm->tm_year +=3D 100;	/* assume we are in 1970...2069 */
++	/* detect the polarity heuristically. see note above. */
++	pcf85063->c_polarity =3D (buf[PCF85063_REG_MO] & PCF85063_MO_C) ?
++		(tm->tm_year >=3D 100) : (tm->tm_year < 100);
 +
-+static int pcf8563_get_alarm_mode(struct i2c_client *client, unsigned char *en,
-+				  unsigned char *pen)
-+{
-+	unsigned char buf;
-+	int err;
-+
-+	err = pcf8563_read_block_data(client, PCF8563_REG_ST2, 1, &buf);
-+	if (err)
-+		return err;
-+
-+	if (en)
-+		*en = !!(buf & PCF8563_BIT_AIE);
-+	if (pen)
-+		*pen = !!(buf & PCF8563_BIT_AF);
-+
-+	return 0;
-+}
-+
-+static irqreturn_t pcf8563_irq(int irq, void *dev_id)
-+{
-+	struct pcf8563 *pcf8563 = i2c_get_clientdata(dev_id);
-+	int err;
-+	char pending;
-+
-+	err = pcf8563_get_alarm_mode(pcf8563->client, NULL, &pending);
-+	if (err < 0)
-+		return err;
-+
-+	if (pending) {
-+		rtc_update_irq(pcf8563->rtc, 1, RTC_IRQF | RTC_AF);
-+		pcf8563_set_alarm_mode(pcf8563->client, 1);
-+		return IRQ_HANDLED;
-+	}
-+
-+	return IRQ_NONE;
-+}
-+
- /*
-  * In the routines that deal directly with the pcf8563 hardware, we use
-  * rtc_time -- month 0-11, hour 0-23, yr = calendar year-epoch.
-@@ -257,16 +321,83 @@ static int pcf8563_rtc_set_time(struct d
- 	return pcf8563_set_datetime(to_i2c_client(dev), tm);
- }
- 
-+static int pcf8563_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *tm)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	unsigned char buf[4];
-+	int err;
-+
-+	err = pcf8563_read_block_data(client, PCF8563_REG_AMN, 4, buf);
-+	if (err)
-+		return err;
-+
-+	dev_dbg(&client->dev,
-+		"%s: raw data is min=%02x, hr=%02x, mday=%02x, wday=%02x\n",
-+		__func__, buf[0], buf[1], buf[2], buf[3]);
-+
-+	tm->time.tm_min = bcd2bin(buf[0] & 0x7F);
-+	tm->time.tm_hour = bcd2bin(buf[1] & 0x7F);
-+	tm->time.tm_mday = bcd2bin(buf[2] & 0x1F);
-+	tm->time.tm_wday = bcd2bin(buf[3] & 0x7);
-+	tm->time.tm_mon = -1;
-+	tm->time.tm_year = -1;
-+	tm->time.tm_yday = -1;
-+	tm->time.tm_isdst = -1;
-+
-+	err = pcf8563_get_alarm_mode(client, &tm->enabled, &tm->pending);
-+	if (err < 0)
-+		return err;
-+
-+	dev_dbg(&client->dev, "%s: tm is mins=%d, hours=%d, mday=%d, wday=%d,"
-+		" enabled=%d, pending=%d\n", __func__, tm->time.tm_min,
-+		tm->time.tm_hour, tm->time.tm_mday, tm->time.tm_wday,
-+		tm->enabled, tm->pending);
++	/* the clock can give out invalid datetime, but we cannot return
++	 * -EINVAL otherwise hwclock will refuse to set the time on bootup.
++	 */
++	if (rtc_valid_tm(tm) < 0)
++		dev_err(&client->dev, "retrieved date/time is not valid.\n");
 +
 +	return 0;
 +}
 +
-+static int pcf8563_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *tm)
++static int pcf85063_set_datetime(struct i2c_client *client, struct rtc=
+_time *tm)
 +{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	unsigned char buf[4];
-+	int err;
++	int i =3D 0, err =3D 0;
++	unsigned char buf[11];
 +
-+	dev_dbg(dev, "%s, min=%d hour=%d wday=%d mday=%d "
-+		"enabled=%d pending=%d\n", __func__,
-+		tm->time.tm_min, tm->time.tm_hour, tm->time.tm_wday,
-+		tm->time.tm_mday, tm->enabled, tm->pending);
++	/* Control & status */
++	buf[PCF85063_REG_CTRL1] =3D 0;
++	buf[PCF85063_REG_CTRL2] =3D 5;
 +
-+	buf[0] = bin2bcd(tm->time.tm_min);
-+	buf[1] = bin2bcd(tm->time.tm_hour);
-+	buf[2] = bin2bcd(tm->time.tm_mday);
-+	buf[3] = tm->time.tm_wday & 0x07;
++	/* hours, minutes and seconds */
++	buf[PCF85063_REG_SC] =3D bin2bcd(tm->tm_sec) & 0x7F;
 +
-+	err = pcf8563_write_block_data(client, PCF8563_REG_AMN, 4, buf);
-+	if (err)
-+		return err;
++	buf[PCF85063_REG_MN] =3D bin2bcd(tm->tm_min);
++	buf[PCF85063_REG_HR] =3D bin2bcd(tm->tm_hour);
 +
-+	return pcf8563_set_alarm_mode(client, 1);
-+}
++	/* Day of month, 1 - 31 */
++	buf[PCF85063_REG_DM] =3D bin2bcd(tm->tm_mday);
 +
-+static int pcf8563_irq_enable(struct device *dev, unsigned int enabled)
-+{
-+	return pcf8563_set_alarm_mode(to_i2c_client(dev), !!enabled);
-+}
++	/* Day, 0 - 6 */
++	buf[PCF85063_REG_DW] =3D tm->tm_wday & 0x07;
 +
- static const struct rtc_class_ops pcf8563_rtc_ops = {
- 	.ioctl		= pcf8563_rtc_ioctl,
- 	.read_time	= pcf8563_rtc_read_time,
- 	.set_time	= pcf8563_rtc_set_time,
-+	.read_alarm	= pcf8563_rtc_read_alarm,
-+	.set_alarm	= pcf8563_rtc_set_alarm,
-+	.alarm_irq_enable = pcf8563_irq_enable,
- };
- 
- static int pcf8563_probe(struct i2c_client *client,
- 				const struct i2c_device_id *id)
- {
- 	struct pcf8563 *pcf8563;
-+	int err;
- 
- 	dev_dbg(&client->dev, "%s\n", __func__);
- 
-@@ -281,12 +412,30 @@ static int pcf8563_probe(struct i2c_clie
- 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
- 
- 	i2c_set_clientdata(client, pcf8563);
-+	pcf8563->client = client;
-+	device_set_wakeup_capable(&client->dev, 1);
- 
- 	pcf8563->rtc = devm_rtc_device_register(&client->dev,
- 				pcf8563_driver.driver.name,
- 				&pcf8563_rtc_ops, THIS_MODULE);
- 
--	return PTR_ERR_OR_ZERO(pcf8563->rtc);
-+	if (IS_ERR(pcf8563->rtc))
-+		return PTR_ERR(pcf8563->rtc);
++	/* month, 1 - 12 */
++	buf[PCF85063_REG_MO] =3D bin2bcd(tm->tm_mon + 1);
 +
-+	if (client->irq > 0) {
-+		err = devm_request_threaded_irq(&client->dev, client->irq,
-+				NULL, pcf8563_irq,
-+				IRQF_SHARED|IRQF_ONESHOT|IRQF_TRIGGER_FALLING,
-+				pcf8563->rtc->name, client);
-+		if (err) {
-+			dev_err(&client->dev, "unable to request IRQ %d\n",
-+								client->irq);
-+			return err;
++	/* year and century */
++	buf[PCF85063_REG_YR] =3D bin2bcd(tm->tm_year % 100);
++
++	/* write register's data */
++	for (i =3D 0; i < sizeof(buf); i++) {
++		unsigned char data[2] =3D { i, buf[i] };
++
++		err =3D i2c_master_send(client, data, sizeof(data));
++		if (err !=3D sizeof(data)) {
++			dev_err(&client->dev, "%s: err=3D%d addr=3D%02x, data=3D%02x\n",
++					__func__, err, data[0], data[1]);
++			return -EIO;
 +		}
-+
 +	}
 +
 +	return 0;
- }
- 
- static const struct i2c_device_id pcf8563_id[] = {
++}
++
++static int pcf85063_rtc_read_time(struct device *dev, struct rtc_time =
+*tm)
++{
++	return pcf85063_get_datetime(to_i2c_client(dev), tm);
++}
++
++static int pcf85063_rtc_set_time(struct device *dev, struct rtc_time *=
+tm)
++{
++	return pcf85063_set_datetime(to_i2c_client(dev), tm);
++}
++
++static const struct rtc_class_ops pcf85063_rtc_ops =3D {
++	.read_time	=3D pcf85063_rtc_read_time,
++	.set_time	=3D pcf85063_rtc_set_time
++};
++
++static int pcf85063_probe(struct i2c_client *client,
++				const struct i2c_device_id *id)
++{
++	struct pcf85063 *pcf85063;
++
++	dev_dbg(&client->dev, "%s\n", __func__);
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
++		return -ENODEV;
++
++	pcf85063 =3D devm_kzalloc(&client->dev, sizeof(struct pcf85063),
++				GFP_KERNEL);
++	if (!pcf85063)
++		return -ENOMEM;
++
++	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n"=
+);
++
++	i2c_set_clientdata(client, pcf85063);
++
++	pcf85063->rtc =3D devm_rtc_device_register(&client->dev,
++				pcf85063_driver.driver.name,
++				&pcf85063_rtc_ops, THIS_MODULE);
++
++	return PTR_ERR_OR_ZERO(pcf85063->rtc);
++}
++
++static const struct i2c_device_id pcf85063_id[] =3D {
++	{ "pcf85063", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, pcf85063_id);
++
++#ifdef CONFIG_OF
++static const struct of_device_id pcf85063_of_match[] =3D {
++	{ .compatible =3D "nxp,pcf85063" },
++	{}
++};
++MODULE_DEVICE_TABLE(of, pcf85063_of_match);
++#endif
++
++static struct i2c_driver pcf85063_driver =3D {
++	.driver		=3D {
++		.name	=3D "rtc-pcf85063",
++		.owner	=3D THIS_MODULE,
++		.of_match_table =3D of_match_ptr(pcf85063_of_match),
++	},
++	.probe		=3D pcf85063_probe,
++	.id_table	=3D pcf85063_id,
++};
++
++module_i2c_driver(pcf85063_driver);
++
++MODULE_AUTHOR("S=C3=B8ren Andersen <san@rosetechnology.dk>");
++MODULE_DESCRIPTION("PCF85063 RTC driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
 _
 
-Patches currently in -mm which might be from vdonnefort@gmail.com are
+Patches currently in -mm which might be from san@rosetechnology.dk are
 
 origin.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
