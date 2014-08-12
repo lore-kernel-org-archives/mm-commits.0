@@ -1,41 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-qnx6-update-debugging-to-current-functions.patch
- removed from -mm tree
-Date: Tue, 12 Aug 2014 12:41:20 -0700
-Message-ID: <53ea6de0.EL97wCAHzECgvLS8%akpm@linux-foundation.org>
+Subject: [merged] fs-qnx6-convert-printk-to-pr_foo.patch removed from -mm
+ tree
+Date: Tue, 12 Aug 2014 12:41:16 -0700
+Message-ID: <53ea6ddc.GVDKdL3sGsdRN5zU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:62843 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754988AbaHLTlV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:41:21 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so2666428pab.4
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:41:20 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:44705 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755137AbaHLTlR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:41:17 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 29so1308757yhl.3
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:41:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, chaosman@ontika.net, joe@perches.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/qnx6: update debugging to current functions
+     Subject: fs/qnx6: convert printk to pr_foo()
 has been removed from the -mm tree.  Its filename was
-     fs-qnx6-update-debugging-to-current-functions.patch
+     fs-qnx6-convert-printk-to-pr_foo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/qnx6: update debugging to current functions
+Subject: fs/qnx6: convert printk to pr_foo()
 
-Add DDEBUG in Makefile when CONFIG_QNX6FS_DEBUG is set.  All QNX6DEBUG
-messages are replaced by pr_debug which means debugging will be emitted in
-debug level only and no more in error and info levels.  debug uses now
-pr_fmt and __func__
+Use current logging functions.
 
-QNX6DEBUG definition has been removed.
+Coalesce formats.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Joe Perches <joe@perches.com>
@@ -44,146 +41,373 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/qnx6/Makefile |    1 +
- fs/qnx6/dir.c    |   12 ++++++------
- fs/qnx6/inode.c  |   37 +++++++++++++------------------------
- fs/qnx6/namei.c  |    6 +++---
- fs/qnx6/qnx6.h   |    6 ------
- 5 files changed, 23 insertions(+), 39 deletions(-)
+ fs/qnx6/dir.c       |   14 ++++-----
+ fs/qnx6/inode.c     |   62 ++++++++++++++++++------------------------
+ fs/qnx6/super_mmi.c |   22 ++++++--------
+ 3 files changed, 43 insertions(+), 55 deletions(-)
 
-diff -puN fs/qnx6/Makefile~fs-qnx6-update-debugging-to-current-functions fs/qnx6/Makefile
---- a/fs/qnx6/Makefile~fs-qnx6-update-debugging-to-current-functions
-+++ a/fs/qnx6/Makefile
-@@ -5,3 +5,4 @@
- obj-$(CONFIG_QNX6FS_FS) += qnx6.o
- 
- qnx6-objs := inode.o dir.o namei.o super_mmi.o
-+ccflags-$(CONFIG_QNX6FS_DEBUG)	+= -DDEBUG
-diff -puN fs/qnx6/dir.c~fs-qnx6-update-debugging-to-current-functions fs/qnx6/dir.c
---- a/fs/qnx6/dir.c~fs-qnx6-update-debugging-to-current-functions
+diff -puN fs/qnx6/dir.c~fs-qnx6-convert-printk-to-pr_foo fs/qnx6/dir.c
+--- a/fs/qnx6/dir.c~fs-qnx6-convert-printk-to-pr_foo
 +++ a/fs/qnx6/dir.c
-@@ -89,7 +89,7 @@ static int qnx6_dir_longfilename(struct
- 	lf_size = fs16_to_cpu(sbi, lf->lf_size);
+@@ -77,13 +77,12 @@ static int qnx6_dir_longfilename(struct
+ 	if (de->de_size != 0xff) {
+ 		/* error - long filename entries always have size 0xff
+ 		   in direntry */
+-		printk(KERN_ERR "qnx6: invalid direntry size (%i).\n",
+-				de->de_size);
++		pr_err("qnx6: invalid direntry size (%i).\n", de->de_size);
+ 		return 0;
+ 	}
+ 	lf = qnx6_longname(s, de, &page);
+ 	if (IS_ERR(lf)) {
+-		printk(KERN_ERR "qnx6:Error reading longname\n");
++		pr_err("qnx6:Error reading longname\n");
+ 		return 0;
+ 	}
+ 
+@@ -91,7 +90,7 @@ static int qnx6_dir_longfilename(struct
  
  	if (lf_size > QNX6_LONG_NAME_MAX) {
--		QNX6DEBUG((KERN_INFO "file %s\n", lf->lf_fname));
-+		pr_debug("file %s\n", lf->lf_fname);
- 		pr_err("Filename too long (%i)\n", lf_size);
+ 		QNX6DEBUG((KERN_INFO "file %s\n", lf->lf_fname));
+-		printk(KERN_ERR "qnx6:Filename too long (%i)\n", lf_size);
++		pr_err("qnx6:Filename too long (%i)\n", lf_size);
  		qnx6_put_page(page);
  		return 0;
-@@ -101,8 +101,8 @@ static int qnx6_dir_longfilename(struct
+ 	}
+@@ -100,7 +99,7 @@ static int qnx6_dir_longfilename(struct
+ 	   mmi 3g filesystem does not have that checksum */
+ 	if (!test_opt(s, MMI_FS) && fs32_to_cpu(sbi, de->de_checksum) !=
  			qnx6_lfile_checksum(lf->lf_fname, lf_size))
- 		pr_info("long filename checksum error.\n");
+-		printk(KERN_INFO "qnx6: long filename checksum error.\n");
++		pr_info("qnx6: long filename checksum error.\n");
  
--	QNX6DEBUG((KERN_INFO "qnx6_readdir:%.*s inode:%u\n",
--					lf_size, lf->lf_fname, de_inode));
-+	pr_debug("qnx6_readdir:%.*s inode:%u\n",
-+		 lf_size, lf->lf_fname, de_inode);
- 	if (!dir_emit(ctx, lf->lf_fname, lf_size, de_inode, DT_UNKNOWN)) {
- 		qnx6_put_page(page);
- 		return 0;
-@@ -158,9 +158,9 @@ static int qnx6_readdir(struct file *fil
- 					break;
- 				}
- 			} else {
--				QNX6DEBUG((KERN_INFO "qnx6_readdir:%.*s"
--				   " inode:%u\n", size, de->de_fname,
--							no_inode));
-+				pr_debug("%s():%.*s inode:%u\n",
-+					 __func__, size, de->de_fname,
-+					 no_inode);
- 				if (!dir_emit(ctx, de->de_fname, size,
- 				      no_inode, DT_UNKNOWN)) {
- 					done = true;
-diff -puN fs/qnx6/inode.c~fs-qnx6-update-debugging-to-current-functions fs/qnx6/inode.c
---- a/fs/qnx6/inode.c~fs-qnx6-update-debugging-to-current-functions
-+++ a/fs/qnx6/inode.c
-@@ -73,8 +73,8 @@ static int qnx6_get_block(struct inode *
- {
- 	unsigned phys;
+ 	QNX6DEBUG((KERN_INFO "qnx6_readdir:%.*s inode:%u\n",
+ 					lf_size, lf->lf_fname, de_inode));
+@@ -136,7 +135,7 @@ static int qnx6_readdir(struct file *fil
+ 		int i = start;
  
--	QNX6DEBUG((KERN_INFO "qnx6: qnx6_get_block inode=[%ld] iblock=[%ld]\n",
--			inode->i_ino, (unsigned long)iblock));
-+	pr_debug("qnx6_get_block inode=[%ld] iblock=[%ld]\n",
-+		 inode->i_ino, (unsigned long)iblock);
- 
- 	phys = qnx6_block_map(inode, iblock);
- 	if (phys) {
-@@ -205,26 +205,16 @@ void qnx6_superblock_debug(struct qnx6_s
- {
- 	struct qnx6_sb_info *sbi = QNX6_SB(s);
- 
--	QNX6DEBUG((KERN_INFO "magic: %08x\n",
--				fs32_to_cpu(sbi, sb->sb_magic)));
--	QNX6DEBUG((KERN_INFO "checksum: %08x\n",
--				fs32_to_cpu(sbi, sb->sb_checksum)));
--	QNX6DEBUG((KERN_INFO "serial: %llx\n",
--				fs64_to_cpu(sbi, sb->sb_serial)));
--	QNX6DEBUG((KERN_INFO "flags: %08x\n",
--				fs32_to_cpu(sbi, sb->sb_flags)));
--	QNX6DEBUG((KERN_INFO "blocksize: %08x\n",
--				fs32_to_cpu(sbi, sb->sb_blocksize)));
--	QNX6DEBUG((KERN_INFO "num_inodes: %08x\n",
--				fs32_to_cpu(sbi, sb->sb_num_inodes)));
--	QNX6DEBUG((KERN_INFO "free_inodes: %08x\n",
--				fs32_to_cpu(sbi, sb->sb_free_inodes)));
--	QNX6DEBUG((KERN_INFO "num_blocks: %08x\n",
--				fs32_to_cpu(sbi, sb->sb_num_blocks)));
--	QNX6DEBUG((KERN_INFO "free_blocks: %08x\n",
--				fs32_to_cpu(sbi, sb->sb_free_blocks)));
--	QNX6DEBUG((KERN_INFO "inode_levels: %02x\n",
--				sb->Inode.levels));
-+	pr_debug("magic: %08x\n", fs32_to_cpu(sbi, sb->sb_magic));
-+	pr_debug("checksum: %08x\n", fs32_to_cpu(sbi, sb->sb_checksum));
-+	pr_debug("serial: %llx\n", fs64_to_cpu(sbi, sb->sb_serial));
-+	pr_debug("flags: %08x\n", fs32_to_cpu(sbi, sb->sb_flags));
-+	pr_debug("blocksize: %08x\n", fs32_to_cpu(sbi, sb->sb_blocksize));
-+	pr_debug("num_inodes: %08x\n", fs32_to_cpu(sbi, sb->sb_num_inodes));
-+	pr_debug("free_inodes: %08x\n", fs32_to_cpu(sbi, sb->sb_free_inodes));
-+	pr_debug("num_blocks: %08x\n", fs32_to_cpu(sbi, sb->sb_num_blocks));
-+	pr_debug("free_blocks: %08x\n", fs32_to_cpu(sbi, sb->sb_free_blocks));
-+	pr_debug("inode_levels: %02x\n", sb->Inode.levels);
- }
- #endif
- 
-@@ -283,8 +273,7 @@ static struct buffer_head *qnx6_check_fi
- 		sbi->s_bytesex = BYTESEX_BE;
- 		if (fs32_to_cpu(sbi, sb->sb_magic) == QNX6_SUPER_MAGIC) {
- 			/* we got a big endian fs */
--			QNX6DEBUG((KERN_INFO "qnx6: fs got different"
--					" endianness.\n"));
-+			pr_debug("fs got different endianness.\n");
- 			return bh;
- 		} else
- 			sbi->s_bytesex = BYTESEX_LE;
-diff -puN fs/qnx6/namei.c~fs-qnx6-update-debugging-to-current-functions fs/qnx6/namei.c
---- a/fs/qnx6/namei.c~fs-qnx6-update-debugging-to-current-functions
-+++ a/fs/qnx6/namei.c
-@@ -29,12 +29,12 @@ struct dentry *qnx6_lookup(struct inode
- 		foundinode = qnx6_iget(dir->i_sb, ino);
- 		qnx6_put_page(page);
- 		if (IS_ERR(foundinode)) {
--			QNX6DEBUG((KERN_ERR "qnx6: lookup->iget -> "
--				" error %ld\n", PTR_ERR(foundinode)));
-+			pr_debug("lookup->iget ->  error %ld\n",
-+				 PTR_ERR(foundinode));
- 			return ERR_CAST(foundinode);
+ 		if (IS_ERR(page)) {
+-			printk(KERN_ERR "qnx6_readdir: read failed\n");
++			pr_err("qnx6_readdir: read failed\n");
+ 			ctx->pos = (n + 1) << PAGE_CACHE_SHIFT;
+ 			return PTR_ERR(page);
  		}
- 	} else {
--		QNX6DEBUG((KERN_INFO "qnx6_lookup: not found %s\n", name));
-+		pr_debug("%s(): not found %s\n", __func__, name);
+@@ -259,8 +258,7 @@ unsigned qnx6_find_entry(int len, struct
+ 					if (ino)
+ 						goto found;
+ 				} else
+-					printk(KERN_ERR "qnx6: undefined "
+-						"filename size in inode.\n");
++					pr_err("qnx6: undefined filename size in inode.\n");
+ 			}
+ 			qnx6_put_page(page);
+ 		}
+diff -puN fs/qnx6/inode.c~fs-qnx6-convert-printk-to-pr_foo fs/qnx6/inode.c
+--- a/fs/qnx6/inode.c~fs-qnx6-convert-printk-to-pr_foo
++++ a/fs/qnx6/inode.c
+@@ -87,7 +87,7 @@ static int qnx6_get_block(struct inode *
+ static int qnx6_check_blockptr(__fs32 ptr)
+ {
+ 	if (ptr == ~(__fs32)0) {
+-		printk(KERN_ERR "qnx6: hit unused blockpointer.\n");
++		pr_err("qnx6: hit unused blockpointer.\n");
+ 		return 0;
+ 	}
+ 	return 1;
+@@ -127,8 +127,7 @@ static unsigned qnx6_block_map(struct in
+ 	levelptr = no >> bitdelta;
+ 
+ 	if (levelptr > QNX6_NO_DIRECT_POINTERS - 1) {
+-		printk(KERN_ERR "qnx6:Requested file block number (%u) too big.",
+-				no);
++		pr_err("qnx6:Requested file block number (%u) too big.", no);
+ 		return 0;
+ 	}
+ 
+@@ -137,8 +136,7 @@ static unsigned qnx6_block_map(struct in
+ 	for (i = 0; i < depth; i++) {
+ 		bh = sb_bread(s, block);
+ 		if (!bh) {
+-			printk(KERN_ERR "qnx6:Error reading block (%u)\n",
+-					block);
++			pr_err("qnx6:Error reading block (%u)\n", block);
+ 			return 0;
+ 		}
+ 		bitdelta -= ptrbits;
+@@ -277,7 +275,7 @@ static struct buffer_head *qnx6_check_fi
+ 	   start with the first superblock */
+ 	bh = sb_bread(s, offset);
+ 	if (!bh) {
+-		printk(KERN_ERR "qnx6: unable to read the first superblock\n");
++		pr_err("qnx6: unable to read the first superblock\n");
  		return NULL;
  	}
- 	d_add(dentry, foundinode);
-diff -puN fs/qnx6/qnx6.h~fs-qnx6-update-debugging-to-current-functions fs/qnx6/qnx6.h
---- a/fs/qnx6/qnx6.h~fs-qnx6-update-debugging-to-current-functions
-+++ a/fs/qnx6/qnx6.h
-@@ -25,12 +25,6 @@ typedef __u64 __bitwise __fs64;
+ 	sb = (struct qnx6_super_block *)bh->b_data;
+@@ -292,13 +290,10 @@ static struct buffer_head *qnx6_check_fi
+ 			sbi->s_bytesex = BYTESEX_LE;
+ 		if (!silent) {
+ 			if (offset == 0) {
+-				printk(KERN_ERR "qnx6: wrong signature (magic)"
+-					" in superblock #1.\n");
++				pr_err("qnx6: wrong signature (magic) in superblock #1.\n");
+ 			} else {
+-				printk(KERN_INFO "qnx6: wrong signature (magic)"
+-					" at position (0x%lx) - will try"
+-					" alternative position (0x0000).\n",
+-						offset * s->s_blocksize);
++				pr_info("qnx6: wrong signature (magic) at position (0x%lx) - will try alternative position (0x0000).\n",
++					offset * s->s_blocksize);
+ 			}
+ 		}
+ 		brelse(bh);
+@@ -329,13 +324,13 @@ static int qnx6_fill_super(struct super_
  
- #include <linux/qnx6_fs.h>
+ 	/* Superblock always is 512 Byte long */
+ 	if (!sb_set_blocksize(s, QNX6_SUPERBLOCK_SIZE)) {
+-		printk(KERN_ERR "qnx6: unable to set blocksize\n");
++		pr_err("qnx6: unable to set blocksize\n");
+ 		goto outnobh;
+ 	}
  
--#ifdef CONFIG_QNX6FS_DEBUG
--#define QNX6DEBUG(X) printk X
--#else
--#define QNX6DEBUG(X) (void) 0
--#endif
+ 	/* parse the mount-options */
+ 	if (!qnx6_parse_options((char *) data, s)) {
+-		printk(KERN_ERR "qnx6: invalid mount options.\n");
++		pr_err("qnx6: invalid mount options.\n");
+ 		goto outnobh;
+ 	}
+ 	if (test_opt(s, MMI_FS)) {
+@@ -355,7 +350,7 @@ static int qnx6_fill_super(struct super_
+ 		/* try again without bootblock offset */
+ 		bh1 = qnx6_check_first_superblock(s, 0, silent);
+ 		if (!bh1) {
+-			printk(KERN_ERR "qnx6: unable to read the first superblock\n");
++			pr_err("qnx6: unable to read the first superblock\n");
+ 			goto outnobh;
+ 		}
+ 		/* seems that no bootblock at partition start */
+@@ -370,13 +365,13 @@ static int qnx6_fill_super(struct super_
+ 	/* checksum check - start at byte 8 and end at byte 512 */
+ 	if (fs32_to_cpu(sbi, sb1->sb_checksum) !=
+ 			crc32_be(0, (char *)(bh1->b_data + 8), 504)) {
+-		printk(KERN_ERR "qnx6: superblock #1 checksum error\n");
++		pr_err("qnx6: superblock #1 checksum error\n");
+ 		goto out;
+ 	}
+ 
+ 	/* set new blocksize */
+ 	if (!sb_set_blocksize(s, fs32_to_cpu(sbi, sb1->sb_blocksize))) {
+-		printk(KERN_ERR "qnx6: unable to set blocksize\n");
++		pr_err("qnx6: unable to set blocksize\n");
+ 		goto out;
+ 	}
+ 	/* blocksize invalidates bh - pull it back in */
+@@ -398,21 +393,20 @@ static int qnx6_fill_super(struct super_
+ 	/* next the second superblock */
+ 	bh2 = sb_bread(s, offset);
+ 	if (!bh2) {
+-		printk(KERN_ERR "qnx6: unable to read the second superblock\n");
++		pr_err("qnx6: unable to read the second superblock\n");
+ 		goto out;
+ 	}
+ 	sb2 = (struct qnx6_super_block *)bh2->b_data;
+ 	if (fs32_to_cpu(sbi, sb2->sb_magic) != QNX6_SUPER_MAGIC) {
+ 		if (!silent)
+-			printk(KERN_ERR "qnx6: wrong signature (magic)"
+-					" in superblock #2.\n");
++			pr_err("qnx6: wrong signature (magic) in superblock #2.\n");
+ 		goto out;
+ 	}
+ 
+ 	/* checksum check - start at byte 8 and end at byte 512 */
+ 	if (fs32_to_cpu(sbi, sb2->sb_checksum) !=
+ 				crc32_be(0, (char *)(bh2->b_data + 8), 504)) {
+-		printk(KERN_ERR "qnx6: superblock #2 checksum error\n");
++		pr_err("qnx6: superblock #2 checksum error\n");
+ 		goto out;
+ 	}
+ 
+@@ -422,25 +416,24 @@ static int qnx6_fill_super(struct super_
+ 		sbi->sb_buf = bh1;
+ 		sbi->sb = (struct qnx6_super_block *)bh1->b_data;
+ 		brelse(bh2);
+-		printk(KERN_INFO "qnx6: superblock #1 active\n");
++		pr_info("qnx6: superblock #1 active\n");
+ 	} else {
+ 		/* superblock #2 active */
+ 		sbi->sb_buf = bh2;
+ 		sbi->sb = (struct qnx6_super_block *)bh2->b_data;
+ 		brelse(bh1);
+-		printk(KERN_INFO "qnx6: superblock #2 active\n");
++		pr_info("qnx6: superblock #2 active\n");
+ 	}
+ mmi_success:
+ 	/* sanity check - limit maximum indirect pointer levels */
+ 	if (sb1->Inode.levels > QNX6_PTR_MAX_LEVELS) {
+-		printk(KERN_ERR "qnx6: too many inode levels (max %i, sb %i)\n",
+-			QNX6_PTR_MAX_LEVELS, sb1->Inode.levels);
++		pr_err("qnx6: too many inode levels (max %i, sb %i)\n",
++		       QNX6_PTR_MAX_LEVELS, sb1->Inode.levels);
+ 		goto out;
+ 	}
+ 	if (sb1->Longfile.levels > QNX6_PTR_MAX_LEVELS) {
+-		printk(KERN_ERR "qnx6: too many longfilename levels"
+-				" (max %i, sb %i)\n",
+-			QNX6_PTR_MAX_LEVELS, sb1->Longfile.levels);
++		pr_err("qnx6: too many longfilename levels (max %i, sb %i)\n",
++		       QNX6_PTR_MAX_LEVELS, sb1->Longfile.levels);
+ 		goto out;
+ 	}
+ 	s->s_op = &qnx6_sops;
+@@ -460,7 +453,7 @@ mmi_success:
+ 	/* prefetch root inode */
+ 	root = qnx6_iget(s, QNX6_ROOT_INO);
+ 	if (IS_ERR(root)) {
+-		printk(KERN_ERR "qnx6: get inode failed\n");
++		pr_err("qnx6: get inode failed\n");
+ 		ret = PTR_ERR(root);
+ 		goto out2;
+ 	}
+@@ -474,7 +467,7 @@ mmi_success:
+ 	errmsg = qnx6_checkroot(s);
+ 	if (errmsg != NULL) {
+ 		if (!silent)
+-			printk(KERN_ERR "qnx6: %s\n", errmsg);
++			pr_err("qnx6: %s\n", errmsg);
+ 		goto out3;
+ 	}
+ 	return 0;
+@@ -555,8 +548,7 @@ struct inode *qnx6_iget(struct super_blo
+ 	inode->i_mode = 0;
+ 
+ 	if (ino == 0) {
+-		printk(KERN_ERR "qnx6: bad inode number on dev %s: %u is "
+-				"out of range\n",
++		pr_err("qnx6: bad inode number on dev %s: %u is out of range\n",
+ 		       sb->s_id, ino);
+ 		iget_failed(inode);
+ 		return ERR_PTR(-EIO);
+@@ -566,8 +558,8 @@ struct inode *qnx6_iget(struct super_blo
+ 	mapping = sbi->inodes->i_mapping;
+ 	page = read_mapping_page(mapping, n, NULL);
+ 	if (IS_ERR(page)) {
+-		printk(KERN_ERR "qnx6: major problem: unable to read inode from "
+-		       "dev %s\n", sb->s_id);
++		pr_err("qnx6: major problem: unable to read inode from dev %s\n",
++		       sb->s_id);
+ 		iget_failed(inode);
+ 		return ERR_CAST(page);
+ 	}
+@@ -689,7 +681,7 @@ static int __init init_qnx6_fs(void)
+ 		return err;
+ 	}
+ 
+-	printk(KERN_INFO "QNX6 filesystem 1.0.0 registered.\n");
++	pr_info("QNX6 filesystem 1.0.0 registered.\n");
+ 	return 0;
+ }
+ 
+diff -puN fs/qnx6/super_mmi.c~fs-qnx6-convert-printk-to-pr_foo fs/qnx6/super_mmi.c
+--- a/fs/qnx6/super_mmi.c~fs-qnx6-convert-printk-to-pr_foo
++++ a/fs/qnx6/super_mmi.c
+@@ -44,15 +44,14 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 	   start with the first superblock */
+ 	bh1 = sb_bread(s, 0);
+ 	if (!bh1) {
+-		printk(KERN_ERR "qnx6: Unable to read first mmi superblock\n");
++		pr_err("qnx6: Unable to read first mmi superblock\n");
+ 		return NULL;
+ 	}
+ 	sb1 = (struct qnx6_mmi_super_block *)bh1->b_data;
+ 	sbi = QNX6_SB(s);
+ 	if (fs32_to_cpu(sbi, sb1->sb_magic) != QNX6_SUPER_MAGIC) {
+ 		if (!silent) {
+-			printk(KERN_ERR "qnx6: wrong signature (magic) in"
+-					" superblock #1.\n");
++			pr_err("qnx6: wrong signature (magic) in superblock #1.\n");
+ 			goto out;
+ 		}
+ 	}
+@@ -60,7 +59,7 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 	/* checksum check - start at byte 8 and end at byte 512 */
+ 	if (fs32_to_cpu(sbi, sb1->sb_checksum) !=
+ 				crc32_be(0, (char *)(bh1->b_data + 8), 504)) {
+-		printk(KERN_ERR "qnx6: superblock #1 checksum error\n");
++		pr_err("qnx6: superblock #1 checksum error\n");
+ 		goto out;
+ 	}
+ 
+@@ -70,7 +69,7 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 
+ 	/* set new blocksize */
+ 	if (!sb_set_blocksize(s, fs32_to_cpu(sbi, sb1->sb_blocksize))) {
+-		printk(KERN_ERR "qnx6: unable to set blocksize\n");
++		pr_err("qnx6: unable to set blocksize\n");
+ 		goto out;
+ 	}
+ 	/* blocksize invalidates bh - pull it back in */
+@@ -83,27 +82,26 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 	/* read second superblock */
+ 	bh2 = sb_bread(s, offset);
+ 	if (!bh2) {
+-		printk(KERN_ERR "qnx6: unable to read the second superblock\n");
++		pr_err("qnx6: unable to read the second superblock\n");
+ 		goto out;
+ 	}
+ 	sb2 = (struct qnx6_mmi_super_block *)bh2->b_data;
+ 	if (fs32_to_cpu(sbi, sb2->sb_magic) != QNX6_SUPER_MAGIC) {
+ 		if (!silent)
+-			printk(KERN_ERR "qnx6: wrong signature (magic) in"
+-					" superblock #2.\n");
++			pr_err("qnx6: wrong signature (magic) in superblock #2.\n");
+ 		goto out;
+ 	}
+ 
+ 	/* checksum check - start at byte 8 and end at byte 512 */
+ 	if (fs32_to_cpu(sbi, sb2->sb_checksum)
+ 			!= crc32_be(0, (char *)(bh2->b_data + 8), 504)) {
+-		printk(KERN_ERR "qnx6: superblock #1 checksum error\n");
++		pr_err("qnx6: superblock #1 checksum error\n");
+ 		goto out;
+ 	}
+ 
+ 	qsb = kmalloc(sizeof(*qsb), GFP_KERNEL);
+ 	if (!qsb) {
+-		printk(KERN_ERR "qnx6: unable to allocate memory.\n");
++		pr_err("qnx6: unable to allocate memory.\n");
+ 		goto out;
+ 	}
+ 
+@@ -119,7 +117,7 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 		sbi->sb_buf = bh1;
+ 		sbi->sb = (struct qnx6_super_block *)bh1->b_data;
+ 		brelse(bh2);
+-		printk(KERN_INFO "qnx6: superblock #1 active\n");
++		pr_info("qnx6: superblock #1 active\n");
+ 	} else {
+ 		/* superblock #2 active */
+ 		qnx6_mmi_copy_sb(qsb, sb2);
+@@ -131,7 +129,7 @@ struct qnx6_super_block *qnx6_mmi_fill_s
+ 		sbi->sb_buf = bh2;
+ 		sbi->sb = (struct qnx6_super_block *)bh2->b_data;
+ 		brelse(bh1);
+-		printk(KERN_INFO "qnx6: superblock #2 active\n");
++		pr_info("qnx6: superblock #2 active\n");
+ 	}
+ 	kfree(qsb);
+ 
+_
+
+Patches currently in -mm which might be from fabf@skynet.be are
+
+origin.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-isofs-logging-clean-up.patch
+fs-isofs-logging-clean-up-fix.patch
+linux-next.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+
