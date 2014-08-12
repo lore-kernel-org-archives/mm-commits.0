@@ -1,99 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] minix-zmap-block-counts-calculation-fix.patch removed
- from -mm tree
-Date: Tue, 12 Aug 2014 12:38:58 -0700
-Message-ID: <53ea6d52.7L+4pw8cjfltCEH7%akpm@linux-foundation.org>
+Subject: [merged]
+ driver-rtc-classc-check-the-error-after-rtc_read_time.patch removed from
+ -mm tree
+Date: Tue, 12 Aug 2014 12:38:54 -0700
+Message-ID: <53ea6d4e.07A9Fjm40E15DuOm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:49854 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754972AbaHLTi7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:59 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so1068371igi.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:58 -0700 (PDT)
+Received: from mail-yk0-f202.google.com ([209.85.160.202]:41349 "EHLO
+	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753505AbaHLTiz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:55 -0400
+Received: by mail-yk0-f202.google.com with SMTP id q9so1308308ykb.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiyong@fc-cn.com, jwboyer@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hyogi.gim@lge.com, a.zummo@towertech.it, rjw@rjwysocki.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: minix zmap block counts calculation fix
+     Subject: driver/rtc/class.c: check the error after rtc_read_time()
 has been removed from the -mm tree.  Its filename was
-     minix-zmap-block-counts-calculation-fix.patch
+     driver-rtc-classc-check-the-error-after-rtc_read_time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Qi Yong <qiyong@fc-cn.com>
-Subject: minix zmap block counts calculation fix
+From: Hyogi Gim <hyogi.gim@lge.com>
+Subject: driver/rtc/class.c: check the error after rtc_read_time()
 
-The original minix zmap blocks calculation was correct, in the formula of:
+In rtc_suspend() and rtc_resume(), the error after rtc_read_time() is not
+checked.  If rtc device fail to read time, we cannot guarantee the
+following process.
 
-	sbi->s_nzones - sbi->s_firstdatazone + 1
-	
-It is
+Add the verification code for returned rtc_read_time() error.
 
-	sp->s_zones - (sp->s_firstdatazone - 1)
-
-in the minix3 source code.
-
-But a later patch 016e8d44bc06dd ("fs/minix: Verify bitmap block counts
-before mounting") has changed it unfortunately as:
-
-  sbi->s_nzones - (sbi->s_firstdatazone + 1)
-
-This would show free blocks one block less than the real when the total
-data blocks are in "full zmap blocks plus one".
-
-This patch corrects that zmap blocks calculation and tidy a printk message
-while at it.
-
-Signed-off-by: Qi Yong <qiyong@fc-cn.com>
-Cc: Josh Boyer <jwboyer@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Hyogi Gim <hyogi.gim@lge.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/bitmap.c |    2 +-
- fs/minix/inode.c  |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/rtc/class.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN fs/minix/bitmap.c~minix-zmap-block-counts-calculation-fix fs/minix/bitmap.c
---- a/fs/minix/bitmap.c~minix-zmap-block-counts-calculation-fix
-+++ a/fs/minix/bitmap.c
-@@ -96,7 +96,7 @@ int minix_new_block(struct inode * inode
- unsigned long minix_count_free_blocks(struct super_block *sb)
- {
- 	struct minix_sb_info *sbi = minix_sb(sb);
--	u32 bits = sbi->s_nzones - (sbi->s_firstdatazone + 1);
-+	u32 bits = sbi->s_nzones - sbi->s_firstdatazone + 1;
+diff -puN drivers/rtc/class.c~driver-rtc-classc-check-the-error-after-rtc_read_time drivers/rtc/class.c
+--- a/drivers/rtc/class.c~driver-rtc-classc-check-the-error-after-rtc_read_time
++++ a/drivers/rtc/class.c
+@@ -53,6 +53,7 @@ static int rtc_suspend(struct device *de
+ 	struct rtc_device	*rtc = to_rtc_device(dev);
+ 	struct rtc_time		tm;
+ 	struct timespec		delta, delta_delta;
++	int err;
  
- 	return (count_free(sbi->s_zmap, sb->s_blocksize, bits)
- 		<< sbi->s_log_zone_size);
-diff -puN fs/minix/inode.c~minix-zmap-block-counts-calculation-fix fs/minix/inode.c
---- a/fs/minix/inode.c~minix-zmap-block-counts-calculation-fix
-+++ a/fs/minix/inode.c
-@@ -267,12 +267,12 @@ static int minix_fill_super(struct super
- 	block = minix_blocks_needed(sbi->s_ninodes, s->s_blocksize);
- 	if (sbi->s_imap_blocks < block) {
- 		printk("MINIX-fs: file system does not have enough "
--				"imap blocks allocated.  Refusing to mount\n");
-+				"imap blocks allocated.  Refusing to mount.\n");
- 		goto out_no_bitmap;
- 	}
+ 	if (has_persistent_clock())
+ 		return 0;
+@@ -61,7 +62,12 @@ static int rtc_suspend(struct device *de
+ 		return 0;
  
- 	block = minix_blocks_needed(
--			(sbi->s_nzones - (sbi->s_firstdatazone + 1)),
-+			(sbi->s_nzones - sbi->s_firstdatazone + 1),
- 			s->s_blocksize);
- 	if (sbi->s_zmap_blocks < block) {
- 		printk("MINIX-fs: file system does not have enough "
+ 	/* snapshot the current RTC and system time at suspend*/
+-	rtc_read_time(rtc, &tm);
++	err = rtc_read_time(rtc, &tm);
++	if (err < 0) {
++		pr_debug("%s:  fail to read rtc time\n", dev_name(&rtc->dev));
++		return 0;
++	}
++
+ 	getnstimeofday(&old_system);
+ 	rtc_tm_to_time(&tm, &old_rtc.tv_sec);
+ 
+@@ -94,6 +100,7 @@ static int rtc_resume(struct device *dev
+ 	struct rtc_time		tm;
+ 	struct timespec		new_system, new_rtc;
+ 	struct timespec		sleep_time;
++	int err;
+ 
+ 	if (has_persistent_clock())
+ 		return 0;
+@@ -104,7 +111,12 @@ static int rtc_resume(struct device *dev
+ 
+ 	/* snapshot the current rtc and system time at resume */
+ 	getnstimeofday(&new_system);
+-	rtc_read_time(rtc, &tm);
++	err = rtc_read_time(rtc, &tm);
++	if (err < 0) {
++		pr_debug("%s:  fail to read rtc time\n", dev_name(&rtc->dev));
++		return 0;
++	}
++
+ 	if (rtc_valid_tm(&tm) != 0) {
+ 		pr_debug("%s:  bogus resume time\n", dev_name(&rtc->dev));
+ 		return 0;
 _
 
-Patches currently in -mm which might be from qiyong@fc-cn.com are
+Patches currently in -mm which might be from hyogi.gim@lge.com are
 
 origin.patch
 
