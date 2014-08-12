@@ -1,73 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+ scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
  removed from -mm tree
-Date: Tue, 12 Aug 2014 12:41:48 -0700
-Message-ID: <53ea6dfc.+5kEQKYL5Onp2Jnc%akpm@linux-foundation.org>
+Date: Tue, 12 Aug 2014 12:41:40 -0700
+Message-ID: <53ea6df4.EP7s9JNKoBP1EX4Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:38514 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754855AbaHLTlt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:41:49 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so1911172oig.1
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:41:48 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:36309 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755080AbaHLTll (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:41:41 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so1916596obb.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:41:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, ccaulfie@redhat.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, Gilles.Muller@lip6.fr, Julia.Lawall@lip6.fr, elfring@users.sourceforge.net, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/dlm/debug_fs.c: remove unnecessary null test before debugfs_remove
+     Subject: scripts/coccinelle/free: add NULL test before freeing functions
 has been removed from the -mm tree.  Its filename was
-     fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
+     scripts-coccinelle-free-add-null-test-before-freeing-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/dlm/debug_fs.c: remove unnecessary null test before debugfs_remove
+Subject: scripts/coccinelle/free: add NULL test before freeing functions
 
-This fixes checkpatch warning:
+Warns or generates patch for NULL check before the following functions:
 
-"WARNING: debugfs_remove(NULL) is safe this check is probably not required"
+kfree
+usb_free_urb
+debugfs_remove
+debugfs_remove_recursive
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Christine Caulfield <ccaulfie@redhat.com>
+Acked-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Gilles Muller <Gilles.Muller@lip6.fr>
+Cc: Joe Perches <joe@perches.com>
+Cc: Markus Elfring <elfring@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/debug_fs.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ scripts/coccinelle/free/ifnullfree.cocci |   53 +++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
 
-diff -puN fs/dlm/debug_fs.c~fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove fs/dlm/debug_fs.c
---- a/fs/dlm/debug_fs.c~fs-dlm-debug_fsc-remove-unnecessary-null-test-before-debugfs_remove
-+++ a/fs/dlm/debug_fs.c
-@@ -718,16 +718,11 @@ static const struct file_operations wait
- 
- void dlm_delete_debug_file(struct dlm_ls *ls)
- {
--	if (ls->ls_debug_rsb_dentry)
--		debugfs_remove(ls->ls_debug_rsb_dentry);
--	if (ls->ls_debug_waiters_dentry)
--		debugfs_remove(ls->ls_debug_waiters_dentry);
--	if (ls->ls_debug_locks_dentry)
--		debugfs_remove(ls->ls_debug_locks_dentry);
--	if (ls->ls_debug_all_dentry)
--		debugfs_remove(ls->ls_debug_all_dentry);
--	if (ls->ls_debug_toss_dentry)
--		debugfs_remove(ls->ls_debug_toss_dentry);
-+	debugfs_remove(ls->ls_debug_rsb_dentry);
-+	debugfs_remove(ls->ls_debug_waiters_dentry);
-+	debugfs_remove(ls->ls_debug_locks_dentry);
-+	debugfs_remove(ls->ls_debug_all_dentry);
-+	debugfs_remove(ls->ls_debug_toss_dentry);
- }
- 
- int dlm_create_debug_file(struct dlm_ls *ls)
+diff -puN /dev/null scripts/coccinelle/free/ifnullfree.cocci
+--- /dev/null
++++ a/scripts/coccinelle/free/ifnullfree.cocci
+@@ -0,0 +1,53 @@
++/// NULL check before some freeing functions is not needed.
++///
++/// Based on checkpatch warning
++/// "kfree(NULL) is safe this check is probably not required"
++/// and kfreeaddr.cocci by Julia Lawall.
++///
++/// Comments: -
++/// Options: --no-includes --include-headers
++
++virtual patch
++virtual org
++virtual report
++virtual context
++
++@r2 depends on patch@
++expression E;
++@@
++- if (E)
++(
++-	kfree(E);
+++ kfree(E);
++|
++-	debugfs_remove(E);
+++ debugfs_remove(E);
++|
++-	debugfs_remove_recursive(E);
+++ debugfs_remove_recursive(E);
++|
++-	usb_free_urb(E);
+++ usb_free_urb(E);
++)
++
++@r depends on context || report || org @
++expression E;
++position p;
++@@
++
++* if (E)
++*	\(kfree@p\|debugfs_remove@p\|debugfs_remove_recursive@p\|usb_free_urb\)(E);
++
++@script:python depends on org@
++p << r.p;
++@@
++
++cocci.print_main("NULL check before that freeing function is not needed", p)
++
++@script:python depends on report@
++p << r.p;
++@@
++
++msg = "WARNING: NULL check before freeing functions like kfree, debugfs_remove, debugfs_remove_recursive or usb_free_urb is not needed. Maybe consider reorganizing relevant code to avoid passing NULL values."
++coccilib.report.print_report(p[0], msg)
++
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
