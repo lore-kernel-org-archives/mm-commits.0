@@ -1,109 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-constify-seq_operations.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 12:39:46 -0700
-Message-ID: <53ea6d82.U0wj5ld3sCfvJhpv%akpm@linux-foundation.org>
+Subject: [merged] fs-reiserfs-use-linux-uaccessh.patch removed from -mm
+ tree
+Date: Tue, 12 Aug 2014 12:39:36 -0700
+Message-ID: <53ea6d78.KuwlTtGqP4notb05%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:46573 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754734AbaHLTjr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:39:47 -0400
-Received: by mail-qa0-f73.google.com with SMTP id s7so1311974qap.4
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:39:46 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:44480 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755000AbaHLTjh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:39:37 -0400
+Received: by mail-qa0-f74.google.com with SMTP id j15so1312720qaq.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:39:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, joe@perches.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: constify seq_operations
+     Subject: fs/reiserfs: use linux/uaccess.h
 has been removed from the -mm tree.  Its filename was
-     proc-constify-seq_operations.patch
+     fs-reiserfs-use-linux-uaccessh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: proc: constify seq_operations
+Subject: fs/reiserfs: use linux/uaccess.h
 
-proc_uid_seq_operations, proc_gid_seq_operations and
-proc_projid_seq_operations are only called in proc_id_map_open with
-seq_open as const struct seq_operations so we can constify the 3
-structures and update proc_id_map_open prototype.
-
-   text    data     bss     dec     hex filename
-   6817     404    1984    9205    23f5 kernel/user_namespace.o-before
-   6913     308    1984    9205    23f5 kernel/user_namespace.o-after
+Fix checkpatch warning
+WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Joe Perches <joe@perches.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c                 |    2 +-
- include/linux/user_namespace.h |    6 +++---
- kernel/user_namespace.c        |    6 +++---
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ fs/reiserfs/dir.c            |    2 +-
+ fs/reiserfs/do_balan.c       |    2 +-
+ fs/reiserfs/file.c           |    2 +-
+ fs/reiserfs/ibalance.c       |    2 +-
+ fs/reiserfs/inode.c          |    2 +-
+ fs/reiserfs/ioctl.c          |    2 +-
+ fs/reiserfs/lbalance.c       |    2 +-
+ fs/reiserfs/procfs.c         |    2 +-
+ fs/reiserfs/super.c          |    2 +-
+ fs/reiserfs/xattr.c          |    2 +-
+ fs/reiserfs/xattr_acl.c      |    2 +-
+ fs/reiserfs/xattr_security.c |    2 +-
+ fs/reiserfs/xattr_trusted.c  |    2 +-
+ fs/reiserfs/xattr_user.c     |    2 +-
+ 14 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/proc/base.c~proc-constify-seq_operations fs/proc/base.c
---- a/fs/proc/base.c~proc-constify-seq_operations
-+++ a/fs/proc/base.c
-@@ -2449,7 +2449,7 @@ static int proc_tgid_io_accounting(struc
+diff -puN fs/reiserfs/dir.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/dir.c
+--- a/fs/reiserfs/dir.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/dir.c
+@@ -9,7 +9,7 @@
+ #include <linux/stat.h>
+ #include <linux/buffer_head.h>
+ #include <linux/slab.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
- #ifdef CONFIG_USER_NS
- static int proc_id_map_open(struct inode *inode, struct file *file,
--	struct seq_operations *seq_ops)
-+	const struct seq_operations *seq_ops)
- {
- 	struct user_namespace *ns = NULL;
- 	struct task_struct *task;
-diff -puN include/linux/user_namespace.h~proc-constify-seq_operations include/linux/user_namespace.h
---- a/include/linux/user_namespace.h~proc-constify-seq_operations
-+++ a/include/linux/user_namespace.h
-@@ -57,9 +57,9 @@ static inline void put_user_ns(struct us
- }
+ extern const struct reiserfs_key MIN_KEY;
  
- struct seq_operations;
--extern struct seq_operations proc_uid_seq_operations;
--extern struct seq_operations proc_gid_seq_operations;
--extern struct seq_operations proc_projid_seq_operations;
-+extern const struct seq_operations proc_uid_seq_operations;
-+extern const struct seq_operations proc_gid_seq_operations;
-+extern const struct seq_operations proc_projid_seq_operations;
- extern ssize_t proc_uid_map_write(struct file *, const char __user *, size_t, loff_t *);
- extern ssize_t proc_gid_map_write(struct file *, const char __user *, size_t, loff_t *);
- extern ssize_t proc_projid_map_write(struct file *, const char __user *, size_t, loff_t *);
-diff -puN kernel/user_namespace.c~proc-constify-seq_operations kernel/user_namespace.c
---- a/kernel/user_namespace.c~proc-constify-seq_operations
-+++ a/kernel/user_namespace.c
-@@ -526,21 +526,21 @@ static void m_stop(struct seq_file *seq,
- 	return;
- }
+diff -puN fs/reiserfs/do_balan.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/do_balan.c
+--- a/fs/reiserfs/do_balan.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/do_balan.c
+@@ -10,7 +10,7 @@
+  * and using buffers obtained after all above.
+  */
  
--struct seq_operations proc_uid_seq_operations = {
-+const struct seq_operations proc_uid_seq_operations = {
- 	.start = uid_m_start,
- 	.stop = m_stop,
- 	.next = m_next,
- 	.show = uid_m_show,
- };
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/time.h>
+ #include "reiserfs.h"
+ #include <linux/buffer_head.h>
+diff -puN fs/reiserfs/file.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/file.c
+--- a/fs/reiserfs/file.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/file.c
+@@ -6,7 +6,7 @@
+ #include "reiserfs.h"
+ #include "acl.h"
+ #include "xattr.h"
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/pagemap.h>
+ #include <linux/swap.h>
+ #include <linux/writeback.h>
+diff -puN fs/reiserfs/ibalance.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/ibalance.c
+--- a/fs/reiserfs/ibalance.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/ibalance.c
+@@ -2,7 +2,7 @@
+  * Copyright 2000 by Hans Reiser, licensing governed by reiserfs/README
+  */
  
--struct seq_operations proc_gid_seq_operations = {
-+const struct seq_operations proc_gid_seq_operations = {
- 	.start = gid_m_start,
- 	.stop = m_stop,
- 	.next = m_next,
- 	.show = gid_m_show,
- };
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/string.h>
+ #include <linux/time.h>
+ #include "reiserfs.h"
+diff -puN fs/reiserfs/inode.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/inode.c
+@@ -11,7 +11,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/highmem.h>
+ #include <linux/slab.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <asm/unaligned.h>
+ #include <linux/buffer_head.h>
+ #include <linux/mpage.h>
+diff -puN fs/reiserfs/ioctl.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/ioctl.c
+--- a/fs/reiserfs/ioctl.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/ioctl.c
+@@ -7,7 +7,7 @@
+ #include <linux/mount.h>
+ #include "reiserfs.h"
+ #include <linux/time.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/pagemap.h>
+ #include <linux/compat.h>
  
--struct seq_operations proc_projid_seq_operations = {
-+const struct seq_operations proc_projid_seq_operations = {
- 	.start = projid_m_start,
- 	.stop = m_stop,
- 	.next = m_next,
+diff -puN fs/reiserfs/lbalance.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/lbalance.c
+--- a/fs/reiserfs/lbalance.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/lbalance.c
+@@ -2,7 +2,7 @@
+  * Copyright 2000 by Hans Reiser, licensing governed by reiserfs/README
+  */
+ 
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/string.h>
+ #include <linux/time.h>
+ #include "reiserfs.h"
+diff -puN fs/reiserfs/procfs.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/procfs.c
+--- a/fs/reiserfs/procfs.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/procfs.c
+@@ -11,7 +11,7 @@
+ #include <linux/module.h>
+ #include <linux/time.h>
+ #include <linux/seq_file.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include "reiserfs.h"
+ #include <linux/init.h>
+ #include <linux/proc_fs.h>
+diff -puN fs/reiserfs/super.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/super.c
+@@ -15,7 +15,7 @@
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+ #include <linux/time.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include "reiserfs.h"
+ #include "acl.h"
+ #include "xattr.h"
+diff -puN fs/reiserfs/xattr.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/xattr.c
+@@ -45,7 +45,7 @@
+ #include <linux/xattr.h>
+ #include "xattr.h"
+ #include "acl.h"
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <net/checksum.h>
+ #include <linux/stat.h>
+ #include <linux/quotaops.h>
+diff -puN fs/reiserfs/xattr_acl.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/xattr_acl.c
+--- a/fs/reiserfs/xattr_acl.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/xattr_acl.c
+@@ -9,7 +9,7 @@
+ #include <linux/posix_acl_xattr.h>
+ #include "xattr.h"
+ #include "acl.h"
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ 
+ static int __reiserfs_set_acl(struct reiserfs_transaction_handle *th,
+ 			    struct inode *inode, int type,
+diff -puN fs/reiserfs/xattr_security.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/xattr_security.c
+--- a/fs/reiserfs/xattr_security.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/xattr_security.c
+@@ -6,7 +6,7 @@
+ #include <linux/slab.h>
+ #include "xattr.h"
+ #include <linux/security.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ 
+ static int
+ security_get(struct dentry *dentry, const char *name, void *buffer, size_t size,
+diff -puN fs/reiserfs/xattr_trusted.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/xattr_trusted.c
+--- a/fs/reiserfs/xattr_trusted.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/xattr_trusted.c
+@@ -5,7 +5,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/xattr.h>
+ #include "xattr.h"
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ 
+ static int
+ trusted_get(struct dentry *dentry, const char *name, void *buffer, size_t size,
+diff -puN fs/reiserfs/xattr_user.c~fs-reiserfs-use-linux-uaccessh fs/reiserfs/xattr_user.c
+--- a/fs/reiserfs/xattr_user.c~fs-reiserfs-use-linux-uaccessh
++++ a/fs/reiserfs/xattr_user.c
+@@ -4,7 +4,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/xattr.h>
+ #include "xattr.h"
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ 
+ static int
+ user_get(struct dentry *dentry, const char *name, void *buffer, size_t size,
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
