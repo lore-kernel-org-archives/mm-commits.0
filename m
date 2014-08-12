@@ -1,77 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 13:35:18 -0700
-Message-ID: <53ea7a86.Hj8hOXZJHMaquF+G%akpm@linux-foundation.org>
+ mm-replace-remap_file_pages-syscall-with-emulation-fix.patch removed from
+ -mm tree
+Date: Tue, 12 Aug 2014 13:35:14 -0700
+Message-ID: <53ea7a82.BXd6VxE47n7beLdg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:35632 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754578AbaHLUfT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 16:35:19 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f73so1316262yha.4
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 13:35:19 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:48807 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754578AbaHLUfP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 16:35:15 -0400
+Received: by mail-vc0-f202.google.com with SMTP id hq11so1314658vcb.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 13:35:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasha.levin@oracle.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arigo@tunes.org, davej@redhat.com, kirill.shutemov@linux.intel.com, mingo@kernel.org, peterz@infradead.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remap_file_pages: grab file ref to prevent race while mmaping
+     Subject: mm-replace-remap_file_pages-syscall-with-emulation-fix
 has been removed from the -mm tree.  Its filename was
-     mm-replace-remap_file_pages-syscall-with-emulation-fix-3.patch
+     mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
 
 This patch was dropped because it was folded into mm-replace-remap_file_pages-syscall-with-emulation.patch
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: mm: remap_file_pages: grab file ref to prevent race while mmaping
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-replace-remap_file_pages-syscall-with-emulation-fix
 
-A file reference should be held while a file is mmaped, otherwise it might
-be freed while being used.
+fix spello
 
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Armin Rigo <arigo@tunes.org>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-replace-remap_file_pages-syscall-with-emulation-fix-3 mm/mmap.c
---- a/mm/mmap.c~mm-replace-remap_file_pages-syscall-with-emulation-fix-3
+diff -puN mm/mmap.c~mm-replace-remap_file_pages-syscall-with-emulation-fix mm/mmap.c
+--- a/mm/mmap.c~mm-replace-remap_file_pages-syscall-with-emulation-fix
 +++ a/mm/mmap.c
-@@ -2616,6 +2616,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
- 	struct vm_area_struct *vma;
- 	unsigned long populate = 0;
+@@ -2617,7 +2617,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	unsigned long populate;
  	unsigned long ret = -EINVAL;
-+	struct file *file;
  
- 	pr_warn_once("%s (%d) uses deprecated remap_file_pages() syscall. "
+-	pr_warn_once("%s (%d) uses depricated remap_file_pages() syscall. "
++	pr_warn_once("%s (%d) uses deprecated remap_file_pages() syscall. "
  			"See Documentation/vm/remap_file_pages.txt.\n",
-@@ -2659,8 +2660,10 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
- 		munlock_vma_pages_range(vma, start, start + size);
- 	}
+ 			current->comm, current->pid);
  
-+	file = get_file(vma->vm_file);
- 	ret = do_mmap_pgoff(vma->vm_file, start, size,
- 			prot, flags, pgoff, &populate);
-+	fput(file);
- out:
- 	up_write(&mm->mmap_sem);
- 	if (populate)
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-vmstat-on-demand-vmstat-workers-v8-fix-2.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
