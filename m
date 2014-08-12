@@ -1,66 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rtc-tps65910-fix-potential-null-pointer-dereference.patch removed from -mm
- tree
-Date: Tue, 12 Aug 2014 12:38:56 -0700
-Message-ID: <53ea6d50.Z436scsCRGgiMxHn%akpm@linux-foundation.org>
+Subject: [merged] minix-zmap-block-counts-calculation-fix.patch removed
+ from -mm tree
+Date: Tue, 12 Aug 2014 12:38:58 -0700
+Message-ID: <53ea6d52.7L+4pw8cjfltCEH7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:49687 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957AbaHLTi4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:56 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so2671133pab.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:56 -0700 (PDT)
+Received: from mail-ig0-f202.google.com ([209.85.213.202]:49854 "EHLO
+	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754972AbaHLTi7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:59 -0400
+Received: by mail-ig0-f202.google.com with SMTP id r2so1068371igi.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: treding@nvidia.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: qiyong@fc-cn.com, jwboyer@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-tps65910.c: fix potential NULL-pointer dereference
+     Subject: minix zmap block counts calculation fix
 has been removed from the -mm tree.  Its filename was
-     rtc-tps65910-fix-potential-null-pointer-dereference.patch
+     minix-zmap-block-counts-calculation-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Thierry Reding <treding@nvidia.com>
-Subject: drivers/rtc/rtc-tps65910.c: fix potential NULL-pointer dereference
+From: Qi Yong <qiyong@fc-cn.com>
+Subject: minix zmap block counts calculation fix
 
-The interrupt handler gets the driver data associated with the RTC device
-and doesn't check it for validity.  This can cause a NULL pointer being
-dereferenced when and interrupt fires before the driver data was properly
-set up.
+The original minix zmap blocks calculation was correct, in the formula of:
 
-Fix this by setting the driver data earlier (before the interrupt is
-requested).
+	sbi->s_nzones - sbi->s_firstdatazone + 1
+	
+It is
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+	sp->s_zones - (sp->s_firstdatazone - 1)
+
+in the minix3 source code.
+
+But a later patch 016e8d44bc06dd ("fs/minix: Verify bitmap block counts
+before mounting") has changed it unfortunately as:
+
+  sbi->s_nzones - (sbi->s_firstdatazone + 1)
+
+This would show free blocks one block less than the real when the total
+data blocks are in "full zmap blocks plus one".
+
+This patch corrects that zmap blocks calculation and tidy a printk message
+while at it.
+
+Signed-off-by: Qi Yong <qiyong@fc-cn.com>
+Cc: Josh Boyer <jwboyer@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps65910.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/minix/bitmap.c |    2 +-
+ fs/minix/inode.c  |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps65910.c~rtc-tps65910-fix-potential-null-pointer-dereference drivers/rtc/rtc-tps65910.c
---- a/drivers/rtc/rtc-tps65910.c~rtc-tps65910-fix-potential-null-pointer-dereference
-+++ a/drivers/rtc/rtc-tps65910.c
-@@ -258,6 +258,8 @@ static int tps65910_rtc_probe(struct pla
- 	if (ret < 0)
- 		return ret;
+diff -puN fs/minix/bitmap.c~minix-zmap-block-counts-calculation-fix fs/minix/bitmap.c
+--- a/fs/minix/bitmap.c~minix-zmap-block-counts-calculation-fix
++++ a/fs/minix/bitmap.c
+@@ -96,7 +96,7 @@ int minix_new_block(struct inode * inode
+ unsigned long minix_count_free_blocks(struct super_block *sb)
+ {
+ 	struct minix_sb_info *sbi = minix_sb(sb);
+-	u32 bits = sbi->s_nzones - (sbi->s_firstdatazone + 1);
++	u32 bits = sbi->s_nzones - sbi->s_firstdatazone + 1;
  
-+	platform_set_drvdata(pdev, tps_rtc);
-+
- 	irq  = platform_get_irq(pdev, 0);
- 	if (irq <= 0) {
- 		dev_warn(&pdev->dev, "Wake up is not possible as irq = %d\n",
-@@ -283,8 +285,6 @@ static int tps65910_rtc_probe(struct pla
- 		return ret;
+ 	return (count_free(sbi->s_zmap, sb->s_blocksize, bits)
+ 		<< sbi->s_log_zone_size);
+diff -puN fs/minix/inode.c~minix-zmap-block-counts-calculation-fix fs/minix/inode.c
+--- a/fs/minix/inode.c~minix-zmap-block-counts-calculation-fix
++++ a/fs/minix/inode.c
+@@ -267,12 +267,12 @@ static int minix_fill_super(struct super
+ 	block = minix_blocks_needed(sbi->s_ninodes, s->s_blocksize);
+ 	if (sbi->s_imap_blocks < block) {
+ 		printk("MINIX-fs: file system does not have enough "
+-				"imap blocks allocated.  Refusing to mount\n");
++				"imap blocks allocated.  Refusing to mount.\n");
+ 		goto out_no_bitmap;
  	}
  
--	platform_set_drvdata(pdev, tps_rtc);
+ 	block = minix_blocks_needed(
+-			(sbi->s_nzones - (sbi->s_firstdatazone + 1)),
++			(sbi->s_nzones - sbi->s_firstdatazone + 1),
+ 			s->s_blocksize);
+ 	if (sbi->s_zmap_blocks < block) {
+ 		printk("MINIX-fs: file system does not have enough "
+_
+
+Patches currently in -mm which might be from qiyong@fc-cn.com are
+
+origin.patch
+
