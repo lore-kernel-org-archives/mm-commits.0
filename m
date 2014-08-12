@@ -1,75 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [nacked]
- fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch removed
- from -mm tree
-Date: Tue, 12 Aug 2014 12:28:49 -0700
-Message-ID: <53ea6af1.wMP7Oa0W+ZhPNV//%akpm@linux-foundation.org>
+ fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
+ removed from -mm tree
+Date: Tue, 12 Aug 2014 12:29:45 -0700
+Message-ID: <53ea6b29.kCiLNmDCwiVozDGq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:54962 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753866AbaHLT2u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:28:50 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 29so1306053yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:28:50 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:60186 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754107AbaHLT3q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:29:46 -0400
+Received: by mail-pd0-f201.google.com with SMTP id g10so2667268pdj.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:29:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: fabf@skynet.be, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/nilfs2/super.c: remove unnecessary test on unsigned value
+     Subject: fs/cachefiles/daemon.c: remove unnecessary tests on unsigned values
 has been removed from the -mm tree.  Its filename was
-     fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
+     fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/nilfs2/super.c: remove unnecessary test on unsigned value
+Subject: fs/cachefiles/daemon.c: remove unnecessary tests on unsigned values
 
-Unsigned value is never < 0.
+size_t and unsigned long values are never < 0
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/cachefiles/daemon.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/nilfs2/super.c~fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value
-+++ a/fs/nilfs2/super.c
-@@ -1014,7 +1014,7 @@ int nilfs_checkpoint_is_mounted(struct s
- 	struct dentry *dentry;
- 	int ret;
+diff -puN fs/cachefiles/daemon.c~fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values fs/cachefiles/daemon.c
+--- a/fs/cachefiles/daemon.c~fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values
++++ a/fs/cachefiles/daemon.c
+@@ -222,7 +222,7 @@ static ssize_t cachefiles_daemon_write(s
+ 	if (test_bit(CACHEFILES_DEAD, &cache->flags))
+ 		return -EIO;
  
--	if (cno < 0 || cno > nilfs->ns_cno)
-+	if (cno > nilfs->ns_cno)
- 		return false;
+-	if (datalen < 0 || datalen > PAGE_SIZE - 1)
++	if (datalen > PAGE_SIZE - 1)
+ 		return -EOPNOTSUPP;
  
- 	if (cno >= nilfs_last_cno(nilfs))
+ 	/* drag the command string into the kernel so we can parse it */
+@@ -385,7 +385,7 @@ static int cachefiles_daemon_fstop(struc
+ 	if (args[0] != '%' || args[1] != '\0')
+ 		return -EINVAL;
+ 
+-	if (fstop < 0 || fstop >= cache->fcull_percent)
++	if (fstop >= cache->fcull_percent)
+ 		return cachefiles_daemon_range_error(cache, args);
+ 
+ 	cache->fstop_percent = fstop;
+@@ -457,7 +457,7 @@ static int cachefiles_daemon_bstop(struc
+ 	if (args[0] != '%' || args[1] != '\0')
+ 		return -EINVAL;
+ 
+-	if (bstop < 0 || bstop >= cache->bcull_percent)
++	if (bstop >= cache->bcull_percent)
+ 		return cachefiles_daemon_range_error(cache, args);
+ 
+ 	cache->bstop_percent = bstop;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-fs-ufs-convert-printk-to-pr_foo.patch
-fs-ufs-use-pr_fmt.patch
-fs-ufs-superc-use-__func__-in-logging.patch
-fs-ufs-superc-use-va_format-instead-of-buffer-vsnprintf.patch
-fs-ufs-convert-ufsd-printk-to-pr_debug.patch
-fs-ufs-inodec-kernel-doc-warning-fixes.patch
-fs-reiserfs-replace-not-standard-%lu-%ld.patch
-fs-reiserfs-use-linux-uaccessh.patch
-fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
-fs-hpfs-dnodec-fix-suspect-code-indent.patch
-fs-proc-kcorec-use-page_align-instead-of-alignpage_size.patch
-proc-constify-seq_operations.patch
 fs-exofs-ore_raidc-replace-countsize-kzalloc-by-kcalloc.patch
 kernel-gcov-fsc-remove-unnecessary-null-test-before-debugfs_remove.patch
 fs-adfs-dir_fplusc-use-array_size-instead-of-sizeof-sizeof.patch
@@ -77,7 +83,6 @@ fs-adfs-dir_fplusc-replace-countsize-kzalloc-by-kcalloc.patch
 fs-bfs-use-bfs-prefix-for-dump_imap.patch
 drivers-parport-parport_ip32c-use-ptr_err_or_zero.patch
 fs-pstore-ram_corec-replace-countsize-kmalloc-by-kmalloc_array.patch
-fs-cachefiles-daemonc-remove-unnecessary-tests-on-unsigned-values.patch
 fs-cachefiles-bindc-remove-unnecessary-assertions.patch
 fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
 fs-cramfs-convert-printk-to-pr_foo.patch
