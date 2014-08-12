@@ -1,87 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-efs-nameic-return-is-not-a-function.patch removed
- from -mm tree
-Date: Tue, 12 Aug 2014 12:38:12 -0700
-Message-ID: <53ea6d24.9s1hZPI5kEdCmbS5%akpm@linux-foundation.org>
+Subject: [merged] mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
+ removed from -mm tree
+Date: Tue, 12 Aug 2014 12:38:10 -0700
+Message-ID: <53ea6d22.9o35ZzQGPCean04+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f202.google.com ([209.85.160.202]:56748 "EHLO
-	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754651AbaHLTiN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:13 -0400
-Received: by mail-yk0-f202.google.com with SMTP id q9so1308212ykb.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:12 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:42841 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754606AbaHLTiL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:11 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so1919337oah.2
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mm-commits@vger.kernel.org
+To: fabf@skynet.be, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/efs/namei.c: return is not a function
+     Subject: mm/zswap.c: add __init to zswap_entry_cache_destroy()
 has been removed from the -mm tree.  Its filename was
-     fs-efs-nameic-return-is-not-a-function.patch
+     mm-zswapc-add-__init-to-zswap_entry_cache_destroy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/efs/namei.c: return is not a function
+Subject: mm/zswap.c: add __init to zswap_entry_cache_destroy()
 
-Fix checkpatch errors:
+zswap_entry_cache_destroy() is only called by __init init_zswap().
 
-"ERROR: return is not a function, parentheses are not required"
+This patch also fixes function name zswap_entry_cache_ s/destory/destroy
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Acked-by: Seth Jennings <sjennings@variantweb.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/namei.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/zswap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/efs/namei.c~fs-efs-nameic-return-is-not-a-function fs/efs/namei.c
---- a/fs/efs/namei.c~fs-efs-nameic-return-is-not-a-function
-+++ a/fs/efs/namei.c
-@@ -12,7 +12,8 @@
- #include "efs.h"
- 
- 
--static efs_ino_t efs_find_entry(struct inode *inode, const char *name, int len) {
-+static efs_ino_t efs_find_entry(struct inode *inode, const char *name, int len)
-+{
- 	struct buffer_head *bh;
- 
- 	int			slot, namelen;
-@@ -40,10 +41,10 @@ static efs_ino_t efs_find_entry(struct i
- 		if (be16_to_cpu(dirblock->magic) != EFS_DIRBLK_MAGIC) {
- 			pr_err("%s(): invalid directory block\n", __func__);
- 			brelse(bh);
--			return(0);
-+			return 0;
- 		}
- 
--		for(slot = 0; slot < dirblock->slots; slot++) {
-+		for (slot = 0; slot < dirblock->slots; slot++) {
- 			dirslot  = (struct efs_dentry *) (((char *) bh->b_data) + EFS_SLOTAT(dirblock, slot));
- 
- 			namelen  = dirslot->namelen;
-@@ -52,12 +53,12 @@ static efs_ino_t efs_find_entry(struct i
- 			if ((namelen == len) && (!memcmp(name, nameptr, len))) {
- 				inodenum = be32_to_cpu(dirslot->inode);
- 				brelse(bh);
--				return(inodenum);
-+				return inodenum;
- 			}
- 		}
- 		brelse(bh);
- 	}
--	return(0);
-+	return 0;
+diff -puN mm/zswap.c~mm-zswapc-add-__init-to-zswap_entry_cache_destroy mm/zswap.c
+--- a/mm/zswap.c~mm-zswapc-add-__init-to-zswap_entry_cache_destroy
++++ a/mm/zswap.c
+@@ -212,7 +212,7 @@ static int zswap_entry_cache_create(void
+ 	return zswap_entry_cache == NULL;
  }
  
- struct dentry *efs_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags)
+-static void zswap_entry_cache_destory(void)
++static void __init zswap_entry_cache_destroy(void)
+ {
+ 	kmem_cache_destroy(zswap_entry_cache);
+ }
+@@ -941,7 +941,7 @@ static int __init init_zswap(void)
+ pcpufail:
+ 	zswap_comp_exit();
+ compfail:
+-	zswap_entry_cache_destory();
++	zswap_entry_cache_destroy();
+ cachefail:
+ 	zpool_destroy_pool(zswap_pool);
+ error:
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
