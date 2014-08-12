@@ -1,148 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rtc-efi-check-for-invalid-data-coming-back-from-uefi.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 12:38:40 -0700
-Message-ID: <53ea6d40.djIaviWDw6fqrbNB%akpm@linux-foundation.org>
+Subject: [merged] rtc-rtc-pcf8563-introducing-readwrite_block_data.patch
+ removed from -mm tree
+Date: Tue, 12 Aug 2014 12:38:46 -0700
+Message-ID: <53ea6d46.SWjq8NrOCtEyNbqB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:33817 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754903AbaHLTil (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:41 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so2669566pab.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:40 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:39719 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754934AbaHLTir (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:47 -0400
+Received: by mail-vc0-f202.google.com with SMTP id hq11so1309845vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JBeulich@suse.com, a.zummo@towertech.it, jbeulich@suse.com, jg1.han@samsung.com, jlee@suse.com, rw@suse.de, mm-commits@vger.kernel.org
+To: vdonnefort@gmail.com, a.zummo@towertech.it, andrew@lunn.ch, jason@lakedaemon.net, simon.guinot@sequanux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-efi.c: check for invalid data coming back from UEFI
+     Subject: drivers/rtc/rtc-pcf8563.c: introduce read|write_block_data
 has been removed from the -mm tree.  Its filename was
-     rtc-efi-check-for-invalid-data-coming-back-from-uefi.patch
+     rtc-rtc-pcf8563-introducing-readwrite_block_data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: drivers/rtc/rtc-efi.c: check for invalid data coming back from UEFI
+From: Vincent Donnefort <vdonnefort@gmail.com>
+Subject: drivers/rtc/rtc-pcf8563.c: introduce read|write_block_data
 
-In particular seeing zero in eft->month is problematic, as it results in
--1 (converted to unsigned int, i.e.  yielding 0xffffffff) getting passed
-to rtc_year_days(), where the value gets used as an array index (normally
-resulting in a crash).  This was observed with the driver enabled on x86
-on some Fujitsu system (with possibly not up to date firmware, but
-anyway).
+This functions allow to factorize I2C I/O operations.
 
-Perhaps efi_read_alarm() should not fail if neither enabled nor pending
-are set, but the returned time is invalid?
-
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
-Reported-by: Raymund Will <rw@suse.de>
+Signed-off-by: Vincent Donnefort <vdonnefort@gmail.com>
+Cc: Simon Guinot <simon.guinot@sequanux.org>
+Cc: Jason Cooper <jason@lakedaemon.net>
+Cc: Andrew Lunn <andrew@lunn.ch>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Lee, Chun-Yi <jlee@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-efi.c |   32 +++++++++++++++++++++++++++-----
- 1 file changed, 27 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-pcf8563.c |   74 +++++++++++++++++++++++-------------
+ 1 file changed, 48 insertions(+), 26 deletions(-)
 
-diff -puN drivers/rtc/rtc-efi.c~rtc-efi-check-for-invalid-data-coming-back-from-uefi drivers/rtc/rtc-efi.c
---- a/drivers/rtc/rtc-efi.c~rtc-efi-check-for-invalid-data-coming-back-from-uefi
-+++ a/drivers/rtc/rtc-efi.c
-@@ -17,6 +17,7 @@
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-introducing-readwrite_block_data drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-introducing-readwrite_block_data
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -69,35 +69,66 @@ struct pcf8563 {
+ 	int voltage_low; /* incicates if a low_voltage was detected */
+ };
  
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/stringify.h>
- #include <linux/time.h>
- #include <linux/platform_device.h>
- #include <linux/rtc.h>
-@@ -48,8 +49,8 @@ compute_wday(efi_time_t *eft)
- 	int y;
- 	int ndays = 0;
- 
--	if (eft->year < 1998) {
--		pr_err("EFI year < 1998, invalid date\n");
-+	if (eft->year < EFI_RTC_EPOCH) {
-+		pr_err("EFI year < " __stringify(EFI_RTC_EPOCH) ", invalid date\n");
- 		return -1;
- 	}
- 
-@@ -78,19 +79,36 @@ convert_to_efi_time(struct rtc_time *wti
- 	eft->timezone	= EFI_UNSPECIFIED_TIMEZONE;
- }
- 
--static void
-+static bool
- convert_from_efi_time(efi_time_t *eft, struct rtc_time *wtime)
+-/*
+- * In the routines that deal directly with the pcf8563 hardware, we use
+- * rtc_time -- month 0-11, hour 0-23, yr = calendar year-epoch.
+- */
+-static int pcf8563_get_datetime(struct i2c_client *client, struct rtc_time *tm)
++static int pcf8563_read_block_data(struct i2c_client *client, unsigned char reg,
++				   unsigned char length, unsigned char *buf)
  {
- 	memset(wtime, 0, sizeof(*wtime));
-+
-+	if (eft->second >= 60)
-+		return false;
- 	wtime->tm_sec  = eft->second;
-+
-+	if (eft->minute >= 60)
-+		return false;
- 	wtime->tm_min  = eft->minute;
-+
-+	if (eft->hour >= 24)
-+		return false;
- 	wtime->tm_hour = eft->hour;
-+
-+	if (!eft->day || eft->day > 31)
-+		return false;
- 	wtime->tm_mday = eft->day;
-+
-+	if (!eft->month || eft->month > 12)
-+		return false;
- 	wtime->tm_mon  = eft->month - 1;
- 	wtime->tm_year = eft->year - 1900;
+-	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
+-	unsigned char buf[13] = { PCF8563_REG_ST1 };
+-
+ 	struct i2c_msg msgs[] = {
+ 		{/* setup read ptr */
+ 			.addr = client->addr,
+ 			.len = 1,
+-			.buf = buf
++			.buf = &reg,
+ 		},
+-		{/* read status + date */
++		{
+ 			.addr = client->addr,
+ 			.flags = I2C_M_RD,
+-			.len = 13,
++			.len = length,
+ 			.buf = buf
+ 		},
+ 	};
  
- 	/* day of the week [0-6], Sunday=0 */
- 	wtime->tm_wday = compute_wday(eft);
-+	if (wtime->tm_wday < 0)
-+		return false;
- 
- 	/* day in the year [1-365]*/
- 	wtime->tm_yday = compute_yday(eft);
-@@ -106,6 +124,8 @@ convert_from_efi_time(efi_time_t *eft, s
- 	default:
- 		wtime->tm_isdst = -1;
- 	}
-+
-+	return true;
- }
- 
- static int efi_read_alarm(struct device *dev, struct rtc_wkalrm *wkalrm)
-@@ -122,7 +142,8 @@ static int efi_read_alarm(struct device
- 	if (status != EFI_SUCCESS)
- 		return -EINVAL;
- 
--	convert_from_efi_time(&eft, &wkalrm->time);
-+	if (!convert_from_efi_time(&eft, &wkalrm->time))
-+		return -EIO;
- 
- 	return rtc_valid_tm(&wkalrm->time);
- }
-@@ -163,7 +184,8 @@ static int efi_read_time(struct device *
- 		return -EINVAL;
+-	/* read registers */
+ 	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+ 		dev_err(&client->dev, "%s: read error\n", __func__);
+ 		return -EIO;
  	}
  
--	convert_from_efi_time(&eft, tm);
-+	if (!convert_from_efi_time(&eft, tm))
-+		return -EIO;
++	return 0;
++}
++
++static int pcf8563_write_block_data(struct i2c_client *client,
++				   unsigned char reg, unsigned char length,
++				   unsigned char *buf)
++{
++	int i, err;
++
++	for (i = 0; i < length; i++) {
++		unsigned char data[2] = { reg + i, buf[i] };
++
++		err = i2c_master_send(client, data, sizeof(data));
++		if (err != sizeof(data)) {
++			dev_err(&client->dev,
++				"%s: err=%d addr=%02x, data=%02x\n",
++				__func__, err, data[0], data[1]);
++			return -EIO;
++		}
++	}
++
++	return 0;
++}
++
++/*
++ * In the routines that deal directly with the pcf8563 hardware, we use
++ * rtc_time -- month 0-11, hour 0-23, yr = calendar year-epoch.
++ */
++static int pcf8563_get_datetime(struct i2c_client *client, struct rtc_time *tm)
++{
++	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
++	unsigned char buf[9];
++	int err;
++
++	err = pcf8563_read_block_data(client, PCF8563_REG_ST1, 9, buf);
++	if (err)
++		return err;
++
+ 	if (buf[PCF8563_REG_SC] & PCF8563_SC_LV) {
+ 		pcf8563->voltage_low = 1;
+ 		dev_info(&client->dev,
+@@ -144,7 +175,7 @@ static int pcf8563_get_datetime(struct i
+ static int pcf8563_set_datetime(struct i2c_client *client, struct rtc_time *tm)
+ {
+ 	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
+-	int i, err;
++	int err;
+ 	unsigned char buf[9];
  
- 	return rtc_valid_tm(tm);
- }
-_
-
-Patches currently in -mm which might be from JBeulich@suse.com are
-
-origin.patch
-
+ 	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
+@@ -170,19 +201,10 @@ static int pcf8563_set_datetime(struct i
+ 
+ 	buf[PCF8563_REG_DW] = tm->tm_wday & 0x07;
+ 
+-	/* write register's data */
+-	for (i = 0; i < 7; i++) {
+-		unsigned char data[2] = { PCF8563_REG_SC + i,
+-						buf[PCF8563_REG_SC + i] };
