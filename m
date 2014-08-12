@@ -1,353 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kexec-move-segment-verification-code-in-a-separate-function.patch removed
- from -mm tree
-Date: Tue, 12 Aug 2014 12:43:47 -0700
-Message-ID: <53ea6e73.MFNGK/kU9iYjDMCT%akpm@linux-foundation.org>
+Subject: [merged] shm-wait-for-pins-to-be-released-when-sealing.patch
+ removed from -mm tree
+Date: Tue, 12 Aug 2014 12:43:39 -0700
+Message-ID: <53ea6e6b.s1QiNPqCUVCytVw5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f201.google.com ([209.85.213.201]:37382 "EHLO
-	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753866AbaHLTns (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:48 -0400
-Received: by mail-ig0-f201.google.com with SMTP id h3so1069795igd.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:43:47 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:45070 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755015AbaHLTnk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:40 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so1921282obb.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:43:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: dh.herrmann@gmail.com, desrt@desrt.ca, hughd@google.com, lennart@poettering.net, luto@amacapital.net, mtk.manpages@gmail.com, zonque@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: move segment verification code in a separate function
+     Subject: shm: wait for pins to be released when sealing
 has been removed from the -mm tree.  Its filename was
-     kexec-move-segment-verification-code-in-a-separate-function.patch
+     shm-wait-for-pins-to-be-released-when-sealing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec: move segment verification code in a separate function
+From: David Herrmann <dh.herrmann@gmail.com>
+Subject: shm: wait for pins to be released when sealing
 
-Previously do_kimage_alloc() will allocate a kimage structure, copy
-segment list from user space and then do the segment list sanity
-verification.
+If we set SEAL_WRITE on a file, we must make sure there cannot be any
+ongoing write-operations on the file.  For write() calls, we simply lock
+the inode mutex, for mmap() we simply verify there're no writable
+mappings.  However, there might be pages pinned by AIO, Direct-IO and
+similar operations via GUP.  We must make sure those do not write to the
+memfd file after we set SEAL_WRITE.
 
-Break down this function in 3 parts.  do_kimage_alloc_init() to do actual
-allocation and basic initialization of kimage structure. 
-copy_user_segment_list() to copy segment list from user space and
-sanity_check_segment_list() to verify the sanity of segment list as passed
-by user space.
+As there is no way to notify GUP users to drop pages or to wait for them
+to be done, we implement the wait ourself: When setting SEAL_WRITE, we
+check all pages for their ref-count.  If it's bigger than 1, we know
+there's some user of the page.  We then mark the page and wait for up to
+150ms for those ref-counts to be dropped.  If the ref-counts are not
+dropped in time, we refuse the seal operation.
 
-In later patches, I need to only allocate kimage and not copy segment list
-from user space.  So breaking down in smaller functions enables re-use of
-code at other places.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Borislav Petkov <bp@suse.de>
+Signed-off-by: David Herrmann <dh.herrmann@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Greg Kroah-Hartman <greg@kroah.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: WANG Chao <chaowang@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
+Cc: Ryan Lortie <desrt@desrt.ca>
+Cc: Lennart Poettering <lennart@poettering.net>
+Cc: Daniel Mack <zonque@gmail.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |  182 +++++++++++++++++++++++++----------------------
- 1 file changed, 100 insertions(+), 82 deletions(-)
+ mm/shmem.c |  110 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 109 insertions(+), 1 deletion(-)
 
-diff -puN kernel/kexec.c~kexec-move-segment-verification-code-in-a-separate-function kernel/kexec.c
---- a/kernel/kexec.c~kexec-move-segment-verification-code-in-a-separate-function
-+++ a/kernel/kexec.c
-@@ -125,45 +125,27 @@ static struct page *kimage_alloc_page(st
- 				       gfp_t gfp_mask,
- 				       unsigned long dest);
+diff -puN mm/shmem.c~shm-wait-for-pins-to-be-released-when-sealing mm/shmem.c
+--- a/mm/shmem.c~shm-wait-for-pins-to-be-released-when-sealing
++++ a/mm/shmem.c
+@@ -1828,9 +1828,117 @@ static loff_t shmem_file_llseek(struct f
+ 	return offset;
+ }
  
--static int do_kimage_alloc(struct kimage **rimage, unsigned long entry,
--			   unsigned long nr_segments,
--			   struct kexec_segment __user *segments)
-+static int copy_user_segment_list(struct kimage *image,
-+				  unsigned long nr_segments,
-+				  struct kexec_segment __user *segments)
- {
-+	int ret;
- 	size_t segment_bytes;
--	struct kimage *image;
--	unsigned long i;
--	int result;
--
--	/* Allocate a controlling structure */
--	result = -ENOMEM;
--	image = kzalloc(sizeof(*image), GFP_KERNEL);
--	if (!image)
--		goto out;
--
--	image->head = 0;
--	image->entry = &image->head;
--	image->last_entry = &image->head;
--	image->control_page = ~0; /* By default this does not apply */
--	image->start = entry;
--	image->type = KEXEC_TYPE_DEFAULT;
--
--	/* Initialize the list of control pages */
--	INIT_LIST_HEAD(&image->control_pages);
--
--	/* Initialize the list of destination pages */
--	INIT_LIST_HEAD(&image->dest_pages);
--
--	/* Initialize the list of unusable pages */
--	INIT_LIST_HEAD(&image->unusable_pages);
- 
- 	/* Read in the segments */
- 	image->nr_segments = nr_segments;
- 	segment_bytes = nr_segments * sizeof(*segments);
--	result = copy_from_user(image->segment, segments, segment_bytes);
--	if (result) {
--		result = -EFAULT;
--		goto out;
--	}
-+	ret = copy_from_user(image->segment, segments, segment_bytes);
-+	if (ret)
-+		ret = -EFAULT;
++/*
++ * We need a tag: a new tag would expand every radix_tree_node by 8 bytes,
++ * so reuse a tag which we firmly believe is never set or cleared on shmem.
++ */
++#define SHMEM_TAG_PINNED        PAGECACHE_TAG_TOWRITE
++#define LAST_SCAN               4       /* about 150ms max */
 +
-+	return ret;
++static void shmem_tag_pins(struct address_space *mapping)
++{
++	struct radix_tree_iter iter;
++	void **slot;
++	pgoff_t start;
++	struct page *page;
++
++	lru_add_drain();
++	start = 0;
++	rcu_read_lock();
++
++restart:
++	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
++		page = radix_tree_deref_slot(slot);
++		if (!page || radix_tree_exception(page)) {
++			if (radix_tree_deref_retry(page))
++				goto restart;
++		} else if (page_count(page) - page_mapcount(page) > 1) {
++			spin_lock_irq(&mapping->tree_lock);
++			radix_tree_tag_set(&mapping->page_tree, iter.index,
++					   SHMEM_TAG_PINNED);
++			spin_unlock_irq(&mapping->tree_lock);
++		}
++
++		if (need_resched()) {
++			cond_resched_rcu();
++			start = iter.index + 1;
++			goto restart;
++		}
++	}
++	rcu_read_unlock();
 +}
 +
-+static int sanity_check_segment_list(struct kimage *image)
-+{
-+	int result, i;
-+	unsigned long nr_segments = image->nr_segments;
- 
- 	/*
- 	 * Verify we have good destination addresses.  The caller is
-@@ -185,9 +167,9 @@ static int do_kimage_alloc(struct kimage
- 		mstart = image->segment[i].mem;
- 		mend   = mstart + image->segment[i].memsz;
- 		if ((mstart & ~PAGE_MASK) || (mend & ~PAGE_MASK))
--			goto out;
-+			return result;
- 		if (mend >= KEXEC_DESTINATION_MEMORY_LIMIT)
--			goto out;
-+			return result;
- 	}
- 
- 	/* Verify our destination addresses do not overlap.
-@@ -208,7 +190,7 @@ static int do_kimage_alloc(struct kimage
- 			pend   = pstart + image->segment[j].memsz;
- 			/* Do the segments overlap ? */
- 			if ((mend > pstart) && (mstart < pend))
--				goto out;
-+				return result;
- 		}
- 	}
- 
-@@ -220,18 +202,61 @@ static int do_kimage_alloc(struct kimage
- 	result = -EINVAL;
- 	for (i = 0; i < nr_segments; i++) {
- 		if (image->segment[i].bufsz > image->segment[i].memsz)
--			goto out;
-+			return result;
++/*
++ * Setting SEAL_WRITE requires us to verify there's no pending writer. However,
++ * via get_user_pages(), drivers might have some pending I/O without any active
++ * user-space mappings (eg., direct-IO, AIO). Therefore, we look at all pages
++ * and see whether it has an elevated ref-count. If so, we tag them and wait for
++ * them to be dropped.
++ * The caller must guarantee that no new user will acquire writable references
++ * to those pages to avoid races.
++ */
+ static int shmem_wait_for_pins(struct address_space *mapping)
+ {
+-	return 0;
++	struct radix_tree_iter iter;
++	void **slot;
++	pgoff_t start;
++	struct page *page;
++	int error, scan;
++
++	shmem_tag_pins(mapping);
++
++	error = 0;
++	for (scan = 0; scan <= LAST_SCAN; scan++) {
++		if (!radix_tree_tagged(&mapping->page_tree, SHMEM_TAG_PINNED))
++			break;
++
++		if (!scan)
++			lru_add_drain_all();
++		else if (schedule_timeout_killable((HZ << scan) / 200))
++			scan = LAST_SCAN;
++
++		start = 0;
++		rcu_read_lock();
++restart:
++		radix_tree_for_each_tagged(slot, &mapping->page_tree, &iter,
++					   start, SHMEM_TAG_PINNED) {
++
++			page = radix_tree_deref_slot(slot);
++			if (radix_tree_exception(page)) {
++				if (radix_tree_deref_retry(page))
++					goto restart;
++
++				page = NULL;
++			}
++
++			if (page &&
++			    page_count(page) - page_mapcount(page) != 1) {
++				if (scan < LAST_SCAN)
++					goto continue_resched;
++
++				/*
++				 * On the last scan, we clean up all those tags
++				 * we inserted; but make a note that we still
++				 * found pages pinned.
++				 */
++				error = -EBUSY;
++			}
++
++			spin_lock_irq(&mapping->tree_lock);
++			radix_tree_tag_clear(&mapping->page_tree,
++					     iter.index, SHMEM_TAG_PINNED);
++			spin_unlock_irq(&mapping->tree_lock);
++continue_resched:
++			if (need_resched()) {
++				cond_resched_rcu();
++				start = iter.index + 1;
++				goto restart;
++			}
++		}
++		rcu_read_unlock();
 +	}
 +
-+	/*
-+	 * Verify we have good destination addresses.  Normally
-+	 * the caller is responsible for making certain we don't
-+	 * attempt to load the new image into invalid or reserved
-+	 * areas of RAM.  But crash kernels are preloaded into a
-+	 * reserved area of ram.  We must ensure the addresses
-+	 * are in the reserved area otherwise preloading the
-+	 * kernel could corrupt things.
-+	 */
-+
-+	if (image->type == KEXEC_TYPE_CRASH) {
-+		result = -EADDRNOTAVAIL;
-+		for (i = 0; i < nr_segments; i++) {
-+			unsigned long mstart, mend;
-+
-+			mstart = image->segment[i].mem;
-+			mend = mstart + image->segment[i].memsz - 1;
-+			/* Ensure we are within the crash kernel limits */
-+			if ((mstart < crashk_res.start) ||
-+			    (mend > crashk_res.end))
-+				return result;
-+		}
- 	}
- 
--	result = 0;
--out:
--	if (result == 0)
--		*rimage = image;
--	else
--		kfree(image);
-+	return 0;
-+}
- 
--	return result;
-+static struct kimage *do_kimage_alloc_init(void)
-+{
-+	struct kimage *image;
- 
-+	/* Allocate a controlling structure */
-+	image = kzalloc(sizeof(*image), GFP_KERNEL);
-+	if (!image)
-+		return NULL;
-+
-+	image->head = 0;
-+	image->entry = &image->head;
-+	image->last_entry = &image->head;
-+	image->control_page = ~0; /* By default this does not apply */
-+	image->type = KEXEC_TYPE_DEFAULT;
-+
-+	/* Initialize the list of control pages */
-+	INIT_LIST_HEAD(&image->control_pages);
-+
-+	/* Initialize the list of destination pages */
-+	INIT_LIST_HEAD(&image->dest_pages);
-+
-+	/* Initialize the list of unusable pages */
-+	INIT_LIST_HEAD(&image->unusable_pages);
-+
-+	return image;
++	return error;
  }
  
- static void kimage_free_page_list(struct list_head *list);
-@@ -244,10 +269,19 @@ static int kimage_normal_alloc(struct ki
- 	struct kimage *image;
- 
- 	/* Allocate and initialize a controlling structure */
--	image = NULL;
--	result = do_kimage_alloc(&image, entry, nr_segments, segments);
-+	image = do_kimage_alloc_init();
-+	if (!image)
-+		return -ENOMEM;
-+
-+	image->start = entry;
-+
-+	result = copy_user_segment_list(image, nr_segments, segments);
-+	if (result)
-+		goto out_free_image;
-+
-+	result = sanity_check_segment_list(image);
- 	if (result)
--		goto out;
-+		goto out_free_image;
- 
- 	/*
- 	 * Find a location for the control code buffer, and add it
-@@ -259,22 +293,21 @@ static int kimage_normal_alloc(struct ki
- 					   get_order(KEXEC_CONTROL_PAGE_SIZE));
- 	if (!image->control_code_page) {
- 		pr_err("Could not allocate control_code_buffer\n");
--		goto out_free;
-+		goto out_free_image;
- 	}
- 
- 	image->swap_page = kimage_alloc_control_pages(image, 0);
- 	if (!image->swap_page) {
- 		pr_err("Could not allocate swap buffer\n");
--		goto out_free;
-+		goto out_free_control_pages;
- 	}
- 
- 	*rimage = image;
- 	return 0;
--
--out_free:
-+out_free_control_pages:
- 	kimage_free_page_list(&image->control_pages);
-+out_free_image:
- 	kfree(image);
--out:
- 	return result;
- }
- 
-@@ -284,19 +317,17 @@ static int kimage_crash_alloc(struct kim
- {
- 	int result;
- 	struct kimage *image;
--	unsigned long i;
- 
--	image = NULL;
- 	/* Verify we have a valid entry point */
--	if ((entry < crashk_res.start) || (entry > crashk_res.end)) {
--		result = -EADDRNOTAVAIL;
--		goto out;
--	}
-+	if ((entry < crashk_res.start) || (entry > crashk_res.end))
-+		return -EADDRNOTAVAIL;
- 
- 	/* Allocate and initialize a controlling structure */
--	result = do_kimage_alloc(&image, entry, nr_segments, segments);
--	if (result)
--		goto out;
-+	image = do_kimage_alloc_init();
-+	if (!image)
-+		return -ENOMEM;
-+
-+	image->start = entry;
- 
- 	/* Enable the special crash kernel control page
- 	 * allocation policy.
-@@ -304,25 +335,13 @@ static int kimage_crash_alloc(struct kim
- 	image->control_page = crashk_res.start;
- 	image->type = KEXEC_TYPE_CRASH;
- 
--	/*
--	 * Verify we have good destination addresses.  Normally
--	 * the caller is responsible for making certain we don't
--	 * attempt to load the new image into invalid or reserved
--	 * areas of RAM.  But crash kernels are preloaded into a
--	 * reserved area of ram.  We must ensure the addresses
--	 * are in the reserved area otherwise preloading the
--	 * kernel could corrupt things.
--	 */
--	result = -EADDRNOTAVAIL;
--	for (i = 0; i < nr_segments; i++) {
--		unsigned long mstart, mend;
-+	result = copy_user_segment_list(image, nr_segments, segments);
-+	if (result)
-+		goto out_free_image;
- 
--		mstart = image->segment[i].mem;
--		mend = mstart + image->segment[i].memsz - 1;
--		/* Ensure we are within the crash kernel limits */
--		if ((mstart < crashk_res.start) || (mend > crashk_res.end))
--			goto out_free;
--	}
-+	result = sanity_check_segment_list(image);
-+	if (result)
-+		goto out_free_image;
- 
- 	/*
- 	 * Find a location for the control code buffer, and add
-@@ -334,15 +353,14 @@ static int kimage_crash_alloc(struct kim
- 					   get_order(KEXEC_CONTROL_PAGE_SIZE));
- 	if (!image->control_code_page) {
- 		pr_err("Could not allocate control_code_buffer\n");
--		goto out_free;
-+		goto out_free_image;
- 	}
- 
- 	*rimage = image;
- 	return 0;
- 
--out_free:
-+out_free_image:
- 	kfree(image);
--out:
- 	return result;
- }
- 
+ #define F_ALL_SEALS (F_SEAL_SEAL | \
 _
 
-Patches currently in -mm which might be from vgoyal@redhat.com are
+Patches currently in -mm which might be from dh.herrmann@gmail.com are
 
 origin.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
 
