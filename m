@@ -1,58 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-clk-sirf-patterns.patch removed from
- -mm tree
-Date: Tue, 12 Aug 2014 12:43:09 -0700
-Message-ID: <53ea6e4d.MZIKr3hTDydY63Xb%akpm@linux-foundation.org>
+Subject: [merged] maintainers-update-microcode-patterns.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:43:03 -0700
+Message-ID: <53ea6e47.1Ki5fOX4Kii3z3xh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:56481 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754970AbaHLTnK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:10 -0400
-Received: by mail-pd0-f202.google.com with SMTP id w10so2669667pde.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:43:09 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:41334 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754970AbaHLTnE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:04 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so1919932oah.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:43:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, Baohua.Song@csr.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update clk/sirf patterns
+     Subject: MAINTAINERS: update microcode patterns
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-clk-sirf-patterns.patch
+     maintainers-update-microcode-patterns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update clk/sirf patterns
+Subject: MAINTAINERS: update microcode patterns
 
-Commit 7bf21bc81f28 ("clk: sirf: re-arch to make the codes support
-both prima2 and atlas6") moved the files, update the patterns.
+Commit bad5fa631fca ("x86, microcode: Move to a proper location") moved
+the files, update the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Barry Song <Baohua.Song@csr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-clk-sirf-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-clk-sirf-patterns
+diff -puN MAINTAINERS~maintainers-update-microcode-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-microcode-patterns
 +++ a/MAINTAINERS
-@@ -911,7 +911,7 @@ L:	linux-arm-kernel@lists.infradead.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/baohua/linux.git
+@@ -621,7 +621,7 @@ AMD MICROCODE UPDATE SUPPORT
+ M:	Andreas Herrmann <herrmann.der.user@googlemail.com>
+ L:	amd64-microcode@amd64.org
  S:	Maintained
- F:	arch/arm/mach-prima2/
--F:	drivers/clk/clk-prima2.c
-+F:	drivers/clk/sirf/
- F:	drivers/clocksource/timer-prima2.c
- F:	drivers/clocksource/timer-marco.c
- N:	[^a-z]sirf
+-F:	arch/x86/kernel/microcode_amd.c
++F:	arch/x86/kernel/cpu/microcode/amd*
+ 
+ AMD XGBE DRIVER
+ M:	Tom Lendacky <thomas.lendacky@amd.com>
+@@ -4692,8 +4692,8 @@ F:	drivers/platform/x86/intel_menlow.c
+ INTEL IA32 MICROCODE UPDATE SUPPORT
+ M:	Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
+ S:	Maintained
+-F:	arch/x86/kernel/microcode_core.c
+-F:	arch/x86/kernel/microcode_intel.c
++F:	arch/x86/kernel/cpu/microcode/core*
++F:	arch/x86/kernel/cpu/microcode/intel*
+ 
+ INTEL I/OAT DMA DRIVER
+ M:	Dan Williams <dan.j.williams@intel.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
