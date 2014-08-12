@@ -1,66 +1,63 @@
 From: akpm@linux-foundation.org
 Subject: [nacked]
- fs-compatc-remove-unnecessary-test-on-unsigned-value.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 12:26:59 -0700
-Message-ID: <53ea6a83.ILVCZl6PlWQcWyhc%akpm@linux-foundation.org>
+ fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch removed
+ from -mm tree
+Date: Tue, 12 Aug 2014 12:28:49 -0700
+Message-ID: <53ea6af1.wMP7Oa0W+ZhPNV//%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:49773 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753866AbaHLT1A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:27:00 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so2666413pdj.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:26:59 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:54962 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753866AbaHLT2u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:28:50 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 29so1306053yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:28:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mm-commits@vger.kernel.org
+To: fabf@skynet.be, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/compat.c: remove unnecessary test on unsigned value
+     Subject: fs/nilfs2/super.c: remove unnecessary test on unsigned value
 has been removed from the -mm tree.  Its filename was
-     fs-compatc-remove-unnecessary-test-on-unsigned-value.patch
+     fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/compat.c: remove unnecessary test on unsigned value
+Subject: fs/nilfs2/super.c: remove unnecessary test on unsigned value
 
-unsigned long value is never < 0
+Unsigned value is never < 0.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |    2 +-
+ fs/nilfs2/super.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/compat.c~fs-compatc-remove-unnecessary-test-on-unsigned-value fs/compat.c
---- a/fs/compat.c~fs-compatc-remove-unnecessary-test-on-unsigned-value
-+++ a/fs/compat.c
-@@ -562,7 +562,7 @@ ssize_t compat_rw_copy_check_uvector(int
- 		goto out;
+diff -puN fs/nilfs2/super.c~fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value
++++ a/fs/nilfs2/super.c
+@@ -1014,7 +1014,7 @@ int nilfs_checkpoint_is_mounted(struct s
+ 	struct dentry *dentry;
+ 	int ret;
  
- 	ret = -EINVAL;
--	if (nr_segs > UIO_MAXIOV || nr_segs < 0)
-+	if (nr_segs > UIO_MAXIOV)
- 		goto out;
- 	if (nr_segs > fast_segs) {
- 		ret = -ENOMEM;
+-	if (cno < 0 || cno > nilfs->ns_cno)
++	if (cno > nilfs->ns_cno)
+ 		return false;
+ 
+ 	if (cno >= nilfs_last_cno(nilfs))
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-fs-ramfs-file-nommuc-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-test_kprobesc-use-current-logging-functions.patch
-fs-befs-linuxvfsc-check-superblock-before-dump-operation.patch
-fs-coda-use-linux-uaccessh.patch
-fs-nilfs2-superc-remove-unnecessary-test-on-unsigned-value.patch
 fs-ufs-convert-printk-to-pr_foo.patch
 fs-ufs-use-pr_fmt.patch
 fs-ufs-superc-use-__func__-in-logging.patch
