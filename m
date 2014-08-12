@@ -1,63 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-add-hardware-dependency-to-rtc-moxart.patch removed
- from -mm tree
-Date: Tue, 12 Aug 2014 12:38:36 -0700
-Message-ID: <53ea6d3c.nyRcSSLgLJNmkvKh%akpm@linux-foundation.org>
+Subject: [merged]
+ rtc-rtc-ds1742-revert-drivers-rtc-rtc-ds1742c-remove-redundant-of_match_ptr-helper.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:38:38 -0700
+Message-ID: <53ea6d3e.JNjyDDx3mJTU1X80%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:43376 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895AbaHLTig (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:36 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so2670240pab.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:36 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:46658 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754902AbaHLTij (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:39 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h3so1068952igd.2
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdelvare@suse.de, a.zummo@towertech.it, jonas.jensen@gmail.com, mm-commits@vger.kernel.org
+To: shc_work@mail.ru, a.zummo@towertech.it, sachin.kamat@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/Kconfig: add hardware dependency to rtc-moxart
+     Subject: drivers/rtc/rtc-ds1742.c: revert "drivers/rtc/rtc-ds1742.c: remove redundant of_match_ptr() helper"
 has been removed from the -mm tree.  Its filename was
-     rtc-add-hardware-dependency-to-rtc-moxart.patch
+     rtc-rtc-ds1742-revert-drivers-rtc-rtc-ds1742c-remove-redundant-of_match_ptr-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jean Delvare <jdelvare@suse.de>
-Subject: drivers/rtc/Kconfig: add hardware dependency to rtc-moxart
+From: Alexander Shiyan <shc_work@mail.ru>
+Subject: drivers/rtc/rtc-ds1742.c: revert "drivers/rtc/rtc-ds1742.c: remove redundant of_match_ptr() helper"
 
-The rtc-moxart driver is only useful on MOXA ART systems so it should
-depend on ARCH_MOXART as all other MOXA ART drivers already do.  Add
-COMPILE_TEST as an alternative to allow for build testing on other
-systems.
+Commit 5516f0971793a0f7d ("drivers/rtc/rtc-ds1742.c: remove redundant
+of_match_ptr() helper") has description as: "'ds1742_rtc_of_match' is
+always compiled in.  Hence the helper macro is not needed".
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
+It is not true, of_match_ptr() macro makes of_device_id parameter unused
+and this constant is declared with __maybe_unused attribute, so normally
+this variable should be discarded by linker.  This patch revers this
+commit, since there are no reason to compile of_device_id constant for
+non-DT systems.
+
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Jonas Jensen <jonas.jensen@gmail.com>
+Cc: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-ds1742.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-hardware-dependency-to-rtc-moxart drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-hardware-dependency-to-rtc-moxart
-+++ a/drivers/rtc/Kconfig
-@@ -1349,6 +1349,7 @@ config RTC_DRV_SIRFSOC
+diff -puN drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-revert-drivers-rtc-rtc-ds1742c-remove-redundant-of_match_ptr-helper drivers/rtc/rtc-ds1742.c
+--- a/drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-revert-drivers-rtc-rtc-ds1742c-remove-redundant-of_match_ptr-helper
++++ a/drivers/rtc/rtc-ds1742.c
+@@ -231,7 +231,7 @@ static struct platform_driver ds1742_rtc
+ 	.driver		= {
+ 		.name	= "rtc-ds1742",
+ 		.owner	= THIS_MODULE,
+-		.of_match_table = ds1742_rtc_of_match,
++		.of_match_table = of_match_ptr(ds1742_rtc_of_match),
+ 	},
+ };
  
- config RTC_DRV_MOXART
- 	tristate "MOXA ART RTC"
-+	depends on ARCH_MOXART || COMPILE_TEST
- 	help
- 	   If you say yes here you get support for the MOXA ART
- 	   RTC module.
 _
 
-Patches currently in -mm which might be from jdelvare@suse.de are
+Patches currently in -mm which might be from shc_work@mail.ru are
 
 origin.patch
 linux-next.patch
