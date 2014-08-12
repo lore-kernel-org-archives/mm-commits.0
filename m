@@ -1,80 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-hpfs-dnodec-fix-suspect-code-indent.patch removed
- from -mm tree
-Date: Tue, 12 Aug 2014 12:39:40 -0700
-Message-ID: <53ea6d7c.fOUzquND5EAW8LQy%akpm@linux-foundation.org>
+Subject: [merged] proc-constify-seq_operations.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:39:46 -0700
+Message-ID: <53ea6d82.U0wj5ld3sCfvJhpv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:63995 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754902AbaHLTjl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:39:41 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wp18so1919956obc.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:39:40 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:46573 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754734AbaHLTjr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:39:47 -0400
+Received: by mail-qa0-f73.google.com with SMTP id s7so1311974qap.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:39:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mikulas@artax.karlin.mff.cuni.cz, mm-commits@vger.kernel.org
+To: fabf@skynet.be, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/hpfs/dnode.c: fix suspect code indent
+     Subject: proc: constify seq_operations
 has been removed from the -mm tree.  Its filename was
-     fs-hpfs-dnodec-fix-suspect-code-indent.patch
+     proc-constify-seq_operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hpfs/dnode.c: fix suspect code indent
+Subject: proc: constify seq_operations
 
-Fix 2 checkpatch warnings:
-"WARNING: suspect code indent for conditional statements"
+proc_uid_seq_operations, proc_gid_seq_operations and
+proc_projid_seq_operations are only called in proc_id_map_open with
+seq_open as const struct seq_operations so we can constify the 3
+structures and update proc_id_map_open prototype.
+
+   text    data     bss     dec     hex filename
+   6817     404    1984    9205    23f5 kernel/user_namespace.o-before
+   6913     308    1984    9205    23f5 kernel/user_namespace.o-after
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/dnode.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ fs/proc/base.c                 |    2 +-
+ include/linux/user_namespace.h |    6 +++---
+ kernel/user_namespace.c        |    6 +++---
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/hpfs/dnode.c~fs-hpfs-dnodec-fix-suspect-code-indent fs/hpfs/dnode.c
---- a/fs/hpfs/dnode.c~fs-hpfs-dnodec-fix-suspect-code-indent
-+++ a/fs/hpfs/dnode.c
-@@ -545,12 +545,13 @@ static void delete_empty_dnode(struct in
- 			struct dnode *d1;
- 			struct quad_buffer_head qbh1;
- 			if (hpfs_sb(i->i_sb)->sb_chk)
--			    if (up != i->i_ino) {
--				hpfs_error(i->i_sb,
--					"bad pointer to fnode, dnode %08x, pointing to %08x, should be %08lx",
--					dno, up, (unsigned long)i->i_ino);
--				return;
--			    }
-+				if (up != i->i_ino) {
-+					hpfs_error(i->i_sb,
-+						   "bad pointer to fnode, dnode %08x, pointing to %08x, should be %08lx",
-+						   dno, up,
-+						   (unsigned long)i->i_ino);
-+					return;
-+				}
- 			if ((d1 = hpfs_map_dnode(i->i_sb, down, &qbh1))) {
- 				d1->up = cpu_to_le32(up);
- 				d1->root_dnode = 1;
-@@ -1061,8 +1062,8 @@ struct hpfs_dirent *map_fnode_dirent(str
- 		hpfs_brelse4(qbh);
- 		if (hpfs_sb(s)->sb_chk)
- 			if (hpfs_stop_cycles(s, dno, &c1, &c2, "map_fnode_dirent #1")) {
--			kfree(name2);
--			return NULL;
-+				kfree(name2);
-+				return NULL;
- 		}
- 		goto go_down;
- 	}
+diff -puN fs/proc/base.c~proc-constify-seq_operations fs/proc/base.c
+--- a/fs/proc/base.c~proc-constify-seq_operations
++++ a/fs/proc/base.c
+@@ -2449,7 +2449,7 @@ static int proc_tgid_io_accounting(struc
+ 
+ #ifdef CONFIG_USER_NS
+ static int proc_id_map_open(struct inode *inode, struct file *file,
+-	struct seq_operations *seq_ops)
++	const struct seq_operations *seq_ops)
+ {
+ 	struct user_namespace *ns = NULL;
+ 	struct task_struct *task;
+diff -puN include/linux/user_namespace.h~proc-constify-seq_operations include/linux/user_namespace.h
+--- a/include/linux/user_namespace.h~proc-constify-seq_operations
++++ a/include/linux/user_namespace.h
+@@ -57,9 +57,9 @@ static inline void put_user_ns(struct us
+ }
+ 
+ struct seq_operations;
+-extern struct seq_operations proc_uid_seq_operations;
+-extern struct seq_operations proc_gid_seq_operations;
+-extern struct seq_operations proc_projid_seq_operations;
++extern const struct seq_operations proc_uid_seq_operations;
++extern const struct seq_operations proc_gid_seq_operations;
++extern const struct seq_operations proc_projid_seq_operations;
+ extern ssize_t proc_uid_map_write(struct file *, const char __user *, size_t, loff_t *);
+ extern ssize_t proc_gid_map_write(struct file *, const char __user *, size_t, loff_t *);
+ extern ssize_t proc_projid_map_write(struct file *, const char __user *, size_t, loff_t *);
+diff -puN kernel/user_namespace.c~proc-constify-seq_operations kernel/user_namespace.c
+--- a/kernel/user_namespace.c~proc-constify-seq_operations
++++ a/kernel/user_namespace.c
+@@ -526,21 +526,21 @@ static void m_stop(struct seq_file *seq,
+ 	return;
+ }
+ 
+-struct seq_operations proc_uid_seq_operations = {
++const struct seq_operations proc_uid_seq_operations = {
+ 	.start = uid_m_start,
+ 	.stop = m_stop,
+ 	.next = m_next,
+ 	.show = uid_m_show,
+ };
+ 
+-struct seq_operations proc_gid_seq_operations = {
++const struct seq_operations proc_gid_seq_operations = {
+ 	.start = gid_m_start,
+ 	.stop = m_stop,
+ 	.next = m_next,
+ 	.show = gid_m_show,
+ };
+ 
+-struct seq_operations proc_projid_seq_operations = {
++const struct seq_operations proc_projid_seq_operations = {
+ 	.start = projid_m_start,
+ 	.stop = m_stop,
+ 	.next = m_next,
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
