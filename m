@@ -1,142 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-cramfs-code-clean-up.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 12:41:06 -0700
-Message-ID: <53ea6dd2.R1CbameDfkna6KxZ%akpm@linux-foundation.org>
+Subject: [merged] fs-romfs-superc-use-pr_fmt-in-logging.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:41:12 -0700
+Message-ID: <53ea6dd8.GU+SaOHOqhEjBA7s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:36247 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754905AbaHLTlH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:41:07 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so2670356pab.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:41:07 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:44303 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755059AbaHLTlN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:41:13 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so1916436obb.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:41:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, sasha.levin@oracle.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/cramfs: code clean-up
+     Subject: fs/romfs/super.c: use pr_fmt in logging
 has been removed from the -mm tree.  Its filename was
-     fs-cramfs-code-clean-up.patch
+     fs-romfs-superc-use-pr_fmt-in-logging.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/cramfs: code clean-up
+Subject: fs/romfs/super.c: use pr_fmt in logging
 
-Fixes some checkpatch errors/warnings:
+- Remove "Error" in format logging (already in pr_ level)
 
-WARNING: Missing a blank line after declarations
-ERROR: spaces required around that '=' (ctx:VxV)
-ERROR: "foo * bar" should be "foo *bar"
-ERROR: space prohibited after that open parenthesis '('
+- Use modulename in pr_fmt instead of ROMFS: in each pr_ callsites.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cramfs/inode.c      |   25 ++++++++++++++-----------
- fs/cramfs/uncompress.c |    2 +-
- 2 files changed, 15 insertions(+), 12 deletions(-)
+ fs/romfs/super.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN fs/cramfs/inode.c~fs-cramfs-code-clean-up fs/cramfs/inode.c
---- a/fs/cramfs/inode.c~fs-cramfs-code-clean-up
-+++ a/fs/cramfs/inode.c
-@@ -155,7 +155,7 @@ static struct inode *get_cramfs_inode(st
- 
- static unsigned char read_buffers[READ_BUFFERS][BUFFER_SIZE];
- static unsigned buffer_blocknr[READ_BUFFERS];
--static struct super_block * buffer_dev[READ_BUFFERS];
-+static struct super_block *buffer_dev[READ_BUFFERS];
- static int next_buffer;
- 
- /*
-@@ -207,6 +207,7 @@ static void *cramfs_read(struct super_bl
- 
- 	for (i = 0; i < BLKS_PER_BUF; i++) {
- 		struct page *page = pages[i];
-+
- 		if (page) {
- 			wait_on_page_locked(page);
- 			if (!PageUptodate(page)) {
-@@ -225,6 +226,7 @@ static void *cramfs_read(struct super_bl
- 	data = read_buffers[buffer];
- 	for (i = 0; i < BLKS_PER_BUF; i++) {
- 		struct page *page = pages[i];
-+
- 		if (page) {
- 			memcpy(data, kmap(page), PAGE_CACHE_SIZE);
- 			kunmap(page);
-@@ -239,6 +241,7 @@ static void *cramfs_read(struct super_bl
- static void cramfs_kill_sb(struct super_block *sb)
- {
- 	struct cramfs_sb_info *sbi = CRAMFS_SB(sb);
-+
- 	kill_block_super(sb);
- 	kfree(sbi);
- }
-@@ -312,16 +315,16 @@ static int cramfs_fill_super(struct supe
- 
- 	root_offset = super.root.offset << 2;
- 	if (super.flags & CRAMFS_FLAG_FSID_VERSION_2) {
--		sbi->size=super.size;
--		sbi->blocks=super.fsid.blocks;
--		sbi->files=super.fsid.files;
-+		sbi->size = super.size;
-+		sbi->blocks = super.fsid.blocks;
-+		sbi->files = super.fsid.files;
- 	} else {
--		sbi->size=1<<28;
--		sbi->blocks=0;
--		sbi->files=0;
-+		sbi->size = 1<<28;
-+		sbi->blocks = 0;
-+		sbi->files = 0;
- 	}
--	sbi->magic=super.magic;
--	sbi->flags=super.flags;
-+	sbi->magic = super.magic;
-+	sbi->flags = super.flags;
- 	if (root_offset == 0)
- 		pr_info("empty filesystem");
- 	else if (!(super.flags & CRAMFS_FLAG_SHIFTED_ROOT_OFFSET) &&
-@@ -427,7 +430,7 @@ static int cramfs_readdir(struct file *f
- /*
-  * Lookup and fill in the inode data..
+diff -puN fs/romfs/super.c~fs-romfs-superc-use-pr_fmt-in-logging fs/romfs/super.c
+--- a/fs/romfs/super.c~fs-romfs-superc-use-pr_fmt-in-logging
++++ a/fs/romfs/super.c
+@@ -56,6 +56,8 @@
+  * 2 of the Licence, or (at your option) any later version.
   */
--static struct dentry * cramfs_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags)
-+static struct dentry *cramfs_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags)
- {
- 	unsigned int offset = 0;
- 	struct inode *inode = NULL;
-@@ -485,7 +488,7 @@ out:
- 	return NULL;
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/string.h>
+ #include <linux/fs.h>
+@@ -380,7 +382,7 @@ static struct inode *romfs_iget(struct s
+ eio:
+ 	ret = -EIO;
+ error:
+-	pr_err("ROMFS: read error for inode 0x%lx\n", pos);
++	pr_err("read error for inode 0x%lx\n", pos);
+ 	return ERR_PTR(ret);
  }
  
--static int cramfs_readpage(struct file *file, struct page * page)
-+static int cramfs_readpage(struct file *file, struct page *page)
- {
- 	struct inode *inode = page->mapping->host;
- 	u32 maxblock;
-diff -puN fs/cramfs/uncompress.c~fs-cramfs-code-clean-up fs/cramfs/uncompress.c
---- a/fs/cramfs/uncompress.c~fs-cramfs-code-clean-up
-+++ a/fs/cramfs/uncompress.c
-@@ -59,7 +59,7 @@ int cramfs_uncompress_init(void)
- {
- 	if (!initialized++) {
- 		stream.workspace = vmalloc(zlib_inflate_workspacesize());
--		if ( !stream.workspace ) {
-+		if (!stream.workspace) {
- 			initialized = 0;
- 			return -ENOMEM;
- 		}
+@@ -513,8 +515,7 @@ static int romfs_fill_super(struct super
+ 	}
+ 
+ 	if (romfs_checksum(rsb, min_t(size_t, img_size, 512))) {
+-		pr_err("ROMFS: bad initial checksum on dev %s.\n",
+-		       sb->s_id);
++		pr_err("bad initial checksum on dev %s.\n", sb->s_id);
+ 		goto error_rsb_inval;
+ 	}
+ 
+@@ -522,8 +523,8 @@ static int romfs_fill_super(struct super
+ 
+ 	len = strnlen(rsb->name, ROMFS_MAXFN);
+ 	if (!silent)
+-		pr_notice("ROMFS: Mounting image '%*.*s' through %s\n",
+-		       (unsigned) len, (unsigned) len, rsb->name, storage);
++		pr_notice("Mounting image '%*.*s' through %s\n",
++			  (unsigned) len, (unsigned) len, rsb->name, storage);
+ 
+ 	kfree(rsb);
+ 	rsb = NULL;
+@@ -622,12 +623,12 @@ static int __init init_romfs_fs(void)
+ 				  romfs_i_init_once);
+ 
+ 	if (!romfs_inode_cachep) {
+-		pr_err("ROMFS error: Failed to initialise inode cache\n");
++		pr_err("Failed to initialise inode cache\n");
+ 		return -ENOMEM;
+ 	}
+ 	ret = register_filesystem(&romfs_fs_type);
+ 	if (ret) {
+-		pr_err("ROMFS error: Failed to register filesystem\n");
++		pr_err("Failed to register filesystem\n");
+ 		goto error_register;
+ 	}
+ 	return 0;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
