@@ -1,41 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-rename-unusebale_pages-to-unusable_pages.patch
- removed from -mm tree
-Date: Tue, 12 Aug 2014 12:43:45 -0700
-Message-ID: <53ea6e71.gqePMeQqbzltDCMN%akpm@linux-foundation.org>
+Subject: [merged] bin2c-move-bin2c-in-scripts-basic.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:43:41 -0700
+Message-ID: <53ea6e6d.q+g1Sxr9J14HazU8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f74.google.com ([209.85.192.74]:54391 "EHLO
-	mail-qg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755067AbaHLTnq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:46 -0400
-Received: by mail-qg0-f74.google.com with SMTP id z60so1311451qgd.1
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:43:46 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:54612 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755035AbaHLTnm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:42 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 29so1309080yhl.3
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:43:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: rename unusebale_pages to unusable_pages
+     Subject: bin2c: move bin2c in scripts/basic
 has been removed from the -mm tree.  Its filename was
-     kexec-rename-unusebale_pages-to-unusable_pages.patch
+     bin2c-move-bin2c-in-scripts-basic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec: rename unusebale_pages to unusable_pages
+Subject: bin2c: move bin2c in scripts/basic
 
-Let's use the more common "unusable".
+This patch series does not do kernel signature verification yet.  I plan
+to post another patch series for that.  Now distributions are already
+signing PE/COFF bzImage with PKCS7 signature I plan to parse and verify
+those signatures.
 
-This patch was originally written and posted by Boris. I am including it
-in this patch series.
+Primary goal of this patchset is to prepare groundwork so that kernel
+image can be signed and signatures be verified during kexec load.  This
+should help with two things.
 
-Signed-off-by: Borislav Petkov <bp@suse.de>
+- It should allow kexec/kdump on secureboot enabled machines.
+
+- In general it can help even without secureboot. By being able to verify
+  kernel image signature in kexec, it should help with avoiding module
+  signing restrictions. Matthew Garret showed how to boot into a custom
+  kernel, modify first kernel's memory and then jump back to old kernel and
+  bypass any policy one wants to.
+
+
+
+This patch (of 15):
+
+Kexec wants to use bin2c and it wants to use it really early in the build
+process. See arch/x86/purgatory/ code in later patches.
+
+So move bin2c in scripts/basic so that it can be built very early and
+be usable by arch/x86/purgatory/
+
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Cc: Borislav Petkov <bp@suse.de>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
@@ -51,55 +71,139 @@ Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    2 +-
- kernel/kexec.c        |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/Makefile          |    2 +-
+ scripts/.gitignore       |    1 -
+ scripts/Makefile         |    1 -
+ scripts/basic/.gitignore |    1 +
+ scripts/basic/Makefile   |    1 +
+ scripts/basic/bin2c.c    |   35 +++++++++++++++++++++++++++++++++++
+ scripts/bin2c.c          |   36 ------------------------------------
+ 7 files changed, 38 insertions(+), 39 deletions(-)
 
-diff -puN include/linux/kexec.h~kexec-rename-unusebale_pages-to-unusable_pages include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-rename-unusebale_pages-to-unusable_pages
-+++ a/include/linux/kexec.h
-@@ -100,7 +100,7 @@ struct kimage {
+diff -puN kernel/Makefile~bin2c-move-bin2c-in-scripts-basic kernel/Makefile
+--- a/kernel/Makefile~bin2c-move-bin2c-in-scripts-basic
++++ a/kernel/Makefile
+@@ -105,7 +105,7 @@ targets += config_data.gz
+ $(obj)/config_data.gz: $(KCONFIG_CONFIG) FORCE
+ 	$(call if_changed,gzip)
  
- 	struct list_head control_pages;
- 	struct list_head dest_pages;
--	struct list_head unuseable_pages;
-+	struct list_head unusable_pages;
+-      filechk_ikconfiggz = (echo "static const char kernel_config_data[] __used = MAGIC_START"; cat $< | scripts/bin2c; echo "MAGIC_END;")
++      filechk_ikconfiggz = (echo "static const char kernel_config_data[] __used = MAGIC_START"; cat $< | scripts/basic/bin2c; echo "MAGIC_END;")
+ targets += config_data.h
+ $(obj)/config_data.h: $(obj)/config_data.gz FORCE
+ 	$(call filechk,ikconfiggz)
+diff -puN scripts/.gitignore~bin2c-move-bin2c-in-scripts-basic scripts/.gitignore
+--- a/scripts/.gitignore~bin2c-move-bin2c-in-scripts-basic
++++ a/scripts/.gitignore
+@@ -4,7 +4,6 @@
+ conmakehash
+ kallsyms
+ pnmtologo
+-bin2c
+ unifdef
+ ihex2fw
+ recordmcount
+diff -puN scripts/Makefile~bin2c-move-bin2c-in-scripts-basic scripts/Makefile
+--- a/scripts/Makefile~bin2c-move-bin2c-in-scripts-basic
++++ a/scripts/Makefile
+@@ -13,7 +13,6 @@ HOST_EXTRACFLAGS += -I$(srctree)/tools/i
+ hostprogs-$(CONFIG_KALLSYMS)     += kallsyms
+ hostprogs-$(CONFIG_LOGO)         += pnmtologo
+ hostprogs-$(CONFIG_VT)           += conmakehash
+-hostprogs-$(CONFIG_IKCONFIG)     += bin2c
+ hostprogs-$(BUILD_C_RECORDMCOUNT) += recordmcount
+ hostprogs-$(CONFIG_BUILDTIME_EXTABLE_SORT) += sortextable
+ hostprogs-$(CONFIG_ASN1)	 += asn1_compiler
+diff -puN scripts/basic/.gitignore~bin2c-move-bin2c-in-scripts-basic scripts/basic/.gitignore
+--- a/scripts/basic/.gitignore~bin2c-move-bin2c-in-scripts-basic
++++ a/scripts/basic/.gitignore
+@@ -1 +1,2 @@
+ fixdep
++bin2c
+diff -puN scripts/basic/Makefile~bin2c-move-bin2c-in-scripts-basic scripts/basic/Makefile
+--- a/scripts/basic/Makefile~bin2c-move-bin2c-in-scripts-basic
++++ a/scripts/basic/Makefile
+@@ -9,6 +9,7 @@
+ # fixdep: 	 Used to generate dependency information during build process
  
- 	/* Address of next control page to allocate for crash kernels. */
- 	unsigned long control_page;
-diff -puN kernel/kexec.c~kexec-rename-unusebale_pages-to-unusable_pages kernel/kexec.c
---- a/kernel/kexec.c~kexec-rename-unusebale_pages-to-unusable_pages
-+++ a/kernel/kexec.c
-@@ -154,7 +154,7 @@ static int do_kimage_alloc(struct kimage
- 	INIT_LIST_HEAD(&image->dest_pages);
+ hostprogs-y	:= fixdep
++hostprogs-$(CONFIG_IKCONFIG)     += bin2c
+ always		:= $(hostprogs-y)
  
- 	/* Initialize the list of unusable pages */
--	INIT_LIST_HEAD(&image->unuseable_pages);
-+	INIT_LIST_HEAD(&image->unusable_pages);
- 
- 	/* Read in the segments */
- 	image->nr_segments = nr_segments;
-@@ -609,7 +609,7 @@ static void kimage_free_extra_pages(stru
- 	kimage_free_page_list(&image->dest_pages);
- 
- 	/* Walk through and free any unusable pages I have cached */
--	kimage_free_page_list(&image->unuseable_pages);
-+	kimage_free_page_list(&image->unusable_pages);
- 
- }
- static void kimage_terminate(struct kimage *image)
-@@ -732,7 +732,7 @@ static struct page *kimage_alloc_page(st
- 		/* If the page cannot be used file it away */
- 		if (page_to_pfn(page) >
- 				(KEXEC_SOURCE_MEMORY_LIMIT >> PAGE_SHIFT)) {
--			list_add(&page->lru, &image->unuseable_pages);
-+			list_add(&page->lru, &image->unusable_pages);
- 			continue;
- 		}
- 		addr = page_to_pfn(page) << PAGE_SHIFT;
-_
-
-Patches currently in -mm which might be from vgoyal@redhat.com are
-
-origin.patch
-
+ # fixdep is needed to compile other host programs
+diff -puN /dev/null scripts/basic/bin2c.c
+--- /dev/null
++++ a/scripts/basic/bin2c.c
+@@ -0,0 +1,35 @@
++/*
++ * Unloved program to convert a binary on stdin to a C include on stdout
++ *
++ * Jan 1999 Matt Mackall <mpm@selenic.com>
++ *
++ * This software may be used and distributed according to the terms
++ * of the GNU General Public License, incorporated herein by reference.
++ */
++
++#include <stdio.h>
++
++int main(int argc, char *argv[])
++{
++	int ch, total = 0;
++
++	if (argc > 1)
++		printf("const char %s[] %s=\n",
++			argv[1], argc > 2 ? argv[2] : "");
++
++	do {
++		printf("\t\"");
++		while ((ch = getchar()) != EOF) {
++			total++;
++			printf("\\x%02x", ch);
++			if (total % 16 == 0)
++				break;
++		}
++		printf("\"\n");
++	} while (ch != EOF);
++
++	if (argc > 1)
++		printf("\t;\n\nconst int %s_size = %d;\n", argv[1], total);
++
++	return 0;
++}
+diff -puN scripts/bin2c.c~bin2c-move-bin2c-in-scripts-basic /dev/null
+--- a/scripts/bin2c.c
++++ /dev/null
+@@ -1,36 +0,0 @@
+-/*
+- * Unloved program to convert a binary on stdin to a C include on stdout
+- *
+- * Jan 1999 Matt Mackall <mpm@selenic.com>
+- *
+- * This software may be used and distributed according to the terms
+- * of the GNU General Public License, incorporated herein by reference.
+- */
+-
+-#include <stdio.h>
+-
+-int main(int argc, char *argv[])
+-{
+-	int ch, total=0;
+-
+-	if (argc > 1)
+-		printf("const char %s[] %s=\n",
+-			argv[1], argc > 2 ? argv[2] : "");
+-
+-	do {
+-		printf("\t\"");
+-		while ((ch = getchar()) != EOF)
+-		{
+-			total++;
+-			printf("\\x%02x",ch);
+-			if (total % 16 == 0)
+-				break;
+-		}
+-		printf("\"\n");
+-	} while (ch != EOF);
+-
+-	if (argc > 1)
+-		printf("\t;\n\nconst int %s_size = %d;\n", argv[1], total);
