@@ -1,71 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] crypto-use-pci_zalloc_consistent.patch removed from -mm
- tree
-Date: Tue, 12 Aug 2014 12:42:23 -0700
-Message-ID: <53ea6e1f.CxpkeMx5qH3IpQeY%akpm@linux-foundation.org>
+Subject: [merged] drivers-scsi-replace-strict_strto-calls.patch removed
+ from -mm tree
+Date: Tue, 12 Aug 2014 12:42:14 -0700
+Message-ID: <53ea6e16.YsCAMgTmB+JtyJXs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:41845 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754606AbaHLTmX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:42:23 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so2670855pab.1
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:42:23 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:58892 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753505AbaHLTmO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:42:14 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so2671398pab.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:42:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: dwalter@google.com, JBottomley@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: crypto: use pci_zalloc_consistent
+     Subject: drivers/scsi: replace strict_strto calls
 has been removed from the -mm tree.  Its filename was
-     crypto-use-pci_zalloc_consistent.patch
+     drivers-scsi-replace-strict_strto-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: crypto: use pci_zalloc_consistent
+From: Daniel Walter <dwalter@google.com>
+Subject: drivers/scsi: replace strict_strto calls
 
-Remove the now unnecessary memset too.
+Replace obsolete strict_strto with more appropriate kstrto calls
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Daniel Walter <dwalter@google.com>
+Cc: "James E.J. Bottomley" <JBottomley@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/crypto/hifn_795x.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/scsi/pmcraid.c    |    4 ++--
+ drivers/scsi/scsi_sysfs.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/crypto/hifn_795x.c~crypto-use-pci_zalloc_consistent drivers/crypto/hifn_795x.c
---- a/drivers/crypto/hifn_795x.c~crypto-use-pci_zalloc_consistent
-+++ a/drivers/crypto/hifn_795x.c
-@@ -2617,14 +2617,13 @@ static int hifn_probe(struct pci_dev *pd
- 		}
- 	}
+diff -puN drivers/scsi/pmcraid.c~drivers-scsi-replace-strict_strto-calls drivers/scsi/pmcraid.c
+--- a/drivers/scsi/pmcraid.c~drivers-scsi-replace-strict_strto-calls
++++ a/drivers/scsi/pmcraid.c
+@@ -4213,9 +4213,9 @@ static ssize_t pmcraid_store_log_level(
+ {
+ 	struct Scsi_Host *shost;
+ 	struct pmcraid_instance *pinstance;
+-	unsigned long val;
++	u8 val;
  
--	dev->desc_virt = pci_alloc_consistent(pdev, sizeof(struct hifn_dma),
--			&dev->desc_dma);
-+	dev->desc_virt = pci_zalloc_consistent(pdev, sizeof(struct hifn_dma),
-+					       &dev->desc_dma);
- 	if (!dev->desc_virt) {
- 		dprintk("Failed to allocate descriptor rings.\n");
- 		err = -ENOMEM;
- 		goto err_out_unmap_bars;
- 	}
--	memset(dev->desc_virt, 0, sizeof(struct hifn_dma));
+-	if (strict_strtoul(buf, 10, &val))
++	if (kstrtou8(buf, 10, &val))
+ 		return -EINVAL;
+ 	/* log-level should be from 0 to 2 */
+ 	if (val > 2)
+diff -puN drivers/scsi/scsi_sysfs.c~drivers-scsi-replace-strict_strto-calls drivers/scsi/scsi_sysfs.c
+--- a/drivers/scsi/scsi_sysfs.c~drivers-scsi-replace-strict_strto-calls
++++ a/drivers/scsi/scsi_sysfs.c
+@@ -910,9 +910,9 @@ sdev_store_queue_ramp_up_period(struct d
+ 				const char *buf, size_t count)
+ {
+ 	struct scsi_device *sdev = to_scsi_device(dev);
+-	unsigned long period;
++	unsigned int period;
  
- 	dev->pdev = pdev;
- 	dev->irq = pdev->irq;
+-	if (strict_strtoul(buf, 10, &period))
++	if (kstrtouint(buf, 10, &period))
+ 		return -EINVAL;
+ 
+ 	sdev->queue_ramp_up_period = msecs_to_jiffies(period);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from dwalter@google.com are
 
 origin.patch
-mm-utilc-add-kstrimdup.patch
-fs-isofs-logging-clean-up.patch
 linux-next.patch
+include-linux-remove-strict_strto-definitions.patch
 
