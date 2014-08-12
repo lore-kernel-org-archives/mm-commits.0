@@ -1,84 +1,370 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vme-bridges-use-pci_zalloc_consistent.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 12:42:59 -0700
-Message-ID: <53ea6e43.vU022aDqQ+RTmf4S%akpm@linux-foundation.org>
+Subject: [merged] staging-use-pci_zalloc_consistent.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:42:55 -0700
+Message-ID: <53ea6e3f.IvTW29XX+MV1C8lu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:40735 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754726AbaHLTnA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:00 -0400
-Received: by mail-oa0-f73.google.com with SMTP id g18so1919910oah.4
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:42:59 -0700 (PDT)
+Received: from mail-oi0-f73.google.com ([209.85.218.73]:54200 "EHLO
+	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754732AbaHLTm4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:42:56 -0400
+Received: by mail-oi0-f73.google.com with SMTP id u20so1912570oif.2
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:42:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, gregkh@linuxfoundation.org, manohar.vanga@gmail.com, martyn.welch@ge.com, mm-commits@vger.kernel.org
+To: joe@perches.com, charrer@alacritech.com, forest@alittletooquiet.net, gregkh@linuxfoundation.org, liodot@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vme: bridges: use pci_zalloc_consistent
+     Subject: staging: use pci_zalloc_consistent
 has been removed from the -mm tree.  Its filename was
-     vme-bridges-use-pci_zalloc_consistent.patch
+     staging-use-pci_zalloc_consistent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: vme: bridges: use pci_zalloc_consistent
+Subject: staging: use pci_zalloc_consistent
 
 Remove the now unnecessary memset too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Martyn Welch <martyn.welch@ge.com>
-Cc: Manohar Vanga <manohar.vanga@gmail.com>
 Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Lior Dotan <liodot@gmail.com>
+Cc: Christopher Harrer <charrer@alacritech.com>
+Cc: Forest Bond <forest@alittletooquiet.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vme/bridges/vme_ca91cx42.c |    6 ++----
- drivers/vme/bridges/vme_tsi148.c   |    6 ++----
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/staging/rtl8192e/rtl8192e/rtl_core.c |   15 ++----
+ drivers/staging/rtl8192ee/pci.c              |   37 +++++----------
+ drivers/staging/rtl8821ae/pci.c              |   36 +++++----------
+ drivers/staging/slicoss/slicoss.c            |    9 +--
+ drivers/staging/vt6655/device_main.c         |   40 +++++------------
+ 5 files changed, 44 insertions(+), 93 deletions(-)
 
-diff -puN drivers/vme/bridges/vme_ca91cx42.c~vme-bridges-use-pci_zalloc_consistent drivers/vme/bridges/vme_ca91cx42.c
---- a/drivers/vme/bridges/vme_ca91cx42.c~vme-bridges-use-pci_zalloc_consistent
-+++ a/drivers/vme/bridges/vme_ca91cx42.c
-@@ -1555,16 +1555,14 @@ static int ca91cx42_crcsr_init(struct vm
- 	}
+diff -puN drivers/staging/rtl8192e/rtl8192e/rtl_core.c~staging-use-pci_zalloc_consistent drivers/staging/rtl8192e/rtl8192e/rtl_core.c
+--- a/drivers/staging/rtl8192e/rtl8192e/rtl_core.c~staging-use-pci_zalloc_consistent
++++ a/drivers/staging/rtl8192e/rtl8192e/rtl_core.c
+@@ -2065,20 +2065,16 @@ static short rtl8192_alloc_rx_desc_ring(
+ 	int i, rx_queue_idx;
  
- 	/* Allocate mem for CR/CSR image */
--	bridge->crcsr_kernel = pci_alloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
--		&bridge->crcsr_bus);
-+	bridge->crcsr_kernel = pci_zalloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
-+						     &bridge->crcsr_bus);
- 	if (bridge->crcsr_kernel == NULL) {
- 		dev_err(&pdev->dev, "Failed to allocate memory for CR/CSR "
- 			"image\n");
- 		return -ENOMEM;
- 	}
- 
--	memset(bridge->crcsr_kernel, 0, VME_CRCSR_BUF_SIZE);
+ 	for (rx_queue_idx = 0; rx_queue_idx < MAX_RX_QUEUE; rx_queue_idx++) {
+-		priv->rx_ring[rx_queue_idx] = pci_alloc_consistent(priv->pdev,
+-					sizeof(*priv->rx_ring[rx_queue_idx]) *
+-					priv->rxringcount,
+-					&priv->rx_ring_dma[rx_queue_idx]);
 -
- 	crcsr_addr = slot * (512 * 1024);
- 	iowrite32(bridge->crcsr_bus - crcsr_addr, bridge->base + VCSR_TO);
++		priv->rx_ring[rx_queue_idx] =
++			pci_zalloc_consistent(priv->pdev,
++					      sizeof(*priv->rx_ring[rx_queue_idx]) * priv->rxringcount,
++					      &priv->rx_ring_dma[rx_queue_idx]);
+ 		if (!priv->rx_ring[rx_queue_idx] ||
+ 		    (unsigned long)priv->rx_ring[rx_queue_idx] & 0xFF) {
+ 			RT_TRACE(COMP_ERR, "Cannot allocate RX ring\n");
+ 			return -ENOMEM;
+ 		}
  
-diff -puN drivers/vme/bridges/vme_tsi148.c~vme-bridges-use-pci_zalloc_consistent drivers/vme/bridges/vme_tsi148.c
---- a/drivers/vme/bridges/vme_tsi148.c~vme-bridges-use-pci_zalloc_consistent
-+++ a/drivers/vme/bridges/vme_tsi148.c
-@@ -2275,16 +2275,14 @@ static int tsi148_crcsr_init(struct vme_
- 	bridge = tsi148_bridge->driver_priv;
+-		memset(priv->rx_ring[rx_queue_idx], 0,
+-		       sizeof(*priv->rx_ring[rx_queue_idx]) *
+-		       priv->rxringcount);
+ 		priv->rx_idx[rx_queue_idx] = 0;
  
- 	/* Allocate mem for CR/CSR image */
--	bridge->crcsr_kernel = pci_alloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
--		&bridge->crcsr_bus);
-+	bridge->crcsr_kernel = pci_zalloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
-+						     &bridge->crcsr_bus);
- 	if (bridge->crcsr_kernel == NULL) {
- 		dev_err(tsi148_bridge->parent, "Failed to allocate memory for "
- 			"CR/CSR image\n");
+ 		for (i = 0; i < priv->rxringcount; i++) {
+@@ -2118,14 +2114,13 @@ static int rtl8192_alloc_tx_desc_ring(st
+ 	dma_addr_t dma;
+ 	int i;
+ 
+-	ring = pci_alloc_consistent(priv->pdev, sizeof(*ring) * entries, &dma);
++	ring = pci_zalloc_consistent(priv->pdev, sizeof(*ring) * entries, &dma);
+ 	if (!ring || (unsigned long)ring & 0xFF) {
+ 		RT_TRACE(COMP_ERR, "Cannot allocate TX ring (prio = %d)\n",
+ 			 prio);
  		return -ENOMEM;
  	}
  
--	memset(bridge->crcsr_kernel, 0, VME_CRCSR_BUF_SIZE);
+-	memset(ring, 0, sizeof(*ring)*entries);
+ 	priv->tx_ring[prio].desc = ring;
+ 	priv->tx_ring[prio].dma = dma;
+ 	priv->tx_ring[prio].idx = 0;
+diff -puN drivers/staging/rtl8192ee/pci.c~staging-use-pci_zalloc_consistent drivers/staging/rtl8192ee/pci.c
+--- a/drivers/staging/rtl8192ee/pci.c~staging-use-pci_zalloc_consistent
++++ a/drivers/staging/rtl8192ee/pci.c
+@@ -1224,10 +1224,10 @@ static int _rtl_pci_init_tx_ring(struct
+ 
+ 	/* alloc tx buffer desc for new trx flow*/
+ 	if (rtlpriv->use_new_trx_flow) {
+-		buffer_desc = pci_alloc_consistent(rtlpci->pdev,
+-					sizeof(*buffer_desc) * entries,
+-					&buffer_desc_dma);
+-
++		buffer_desc =
++			pci_zalloc_consistent(rtlpci->pdev,
++					      sizeof(*buffer_desc) * entries,
++					      &buffer_desc_dma);
+ 		if (!buffer_desc || (unsigned long)buffer_desc & 0xFF) {
+ 			RT_TRACE(COMP_ERR, DBG_EMERG,
+ 				 ("Cannot allocate TX ring (prio = %d)\n",
+@@ -1235,7 +1235,6 @@ static int _rtl_pci_init_tx_ring(struct
+ 			return -ENOMEM;
+ 		}
+ 
+-		memset(buffer_desc, 0, sizeof(*buffer_desc) * entries);
+ 		rtlpci->tx_ring[prio].buffer_desc = buffer_desc;
+ 		rtlpci->tx_ring[prio].buffer_desc_dma = buffer_desc_dma;
+ 
+@@ -1245,16 +1244,14 @@ static int _rtl_pci_init_tx_ring(struct
+ 	}
+ 
+ 	/* alloc dma for this ring */
+-	desc = pci_alloc_consistent(rtlpci->pdev,
+-				    sizeof(*desc) * entries, &desc_dma);
+-
++	desc = pci_zalloc_consistent(rtlpci->pdev, sizeof(*desc) * entries,
++				     &desc_dma);
+ 	if (!desc || (unsigned long)desc & 0xFF) {
+ 		RT_TRACE(COMP_ERR, DBG_EMERG,
+ 			 ("Cannot allocate TX ring (prio = %d)\n", prio));
+ 		return -ENOMEM;
+ 	}
+ 
+-	memset(desc, 0, sizeof(*desc) * entries);
+ 	rtlpci->tx_ring[prio].desc = desc;
+ 	rtlpci->tx_ring[prio].dma = desc_dma;
+ 
+@@ -1290,11 +1287,9 @@ static int _rtl_pci_init_rx_ring(struct
+ 		struct rtl_rx_buffer_desc *entry = NULL;
+ 		/* alloc dma for this ring */
+ 		rtlpci->rx_ring[rxring_idx].buffer_desc =
+-		    pci_alloc_consistent(rtlpci->pdev,
+-					 sizeof(*rtlpci->rx_ring[rxring_idx].
+-						buffer_desc) *
+-						rtlpci->rxringcount,
+-					 &rtlpci->rx_ring[rxring_idx].dma);
++			pci_zalloc_consistent(rtlpci->pdev,
++					      sizeof(*rtlpci->rx_ring[rxring_idx].buffer_desc) * rtlpci->rxringcount,
++					      &rtlpci->rx_ring[rxring_idx].dma);
+ 		if (!rtlpci->rx_ring[rxring_idx].buffer_desc ||
+ 		    (unsigned long)rtlpci->rx_ring[rxring_idx].buffer_desc & 0xFF) {
+ 			RT_TRACE(COMP_ERR, DBG_EMERG,
+@@ -1302,10 +1297,6 @@ static int _rtl_pci_init_rx_ring(struct
+ 			return -ENOMEM;
+ 		}
+ 
+-		memset(rtlpci->rx_ring[rxring_idx].buffer_desc, 0,
+-		       sizeof(*rtlpci->rx_ring[rxring_idx].buffer_desc) *
+-		       rtlpci->rxringcount);
+-
+ 		/* init every desc in this ring */
+ 		rtlpci->rx_ring[rxring_idx].idx = 0;
+ 
+@@ -1320,19 +1311,15 @@ static int _rtl_pci_init_rx_ring(struct
+ 		u8 tmp_one = 1;
+ 		/* alloc dma for this ring */
+ 		rtlpci->rx_ring[rxring_idx].desc =
+-		    pci_alloc_consistent(rtlpci->pdev,
+-					 sizeof(*rtlpci->rx_ring[rxring_idx].
+-					desc) * rtlpci->rxringcount,
+-					 &rtlpci->rx_ring[rxring_idx].dma);
++			pci_zalloc_consistent(rtlpci->pdev,
++					      sizeof(*rtlpci->rx_ring[rxring_idx].desc) * rtlpci->rxringcount,
++					      &rtlpci->rx_ring[rxring_idx].dma);
+ 		if (!rtlpci->rx_ring[rxring_idx].desc ||
+ 		    (unsigned long)rtlpci->rx_ring[rxring_idx].desc & 0xFF) {
+ 			RT_TRACE(COMP_ERR, DBG_EMERG,
+ 				 ("Cannot allocate RX ring\n"));
+ 			return -ENOMEM;
+ 		}
+-		memset(rtlpci->rx_ring[rxring_idx].desc, 0,
+-		       sizeof(*rtlpci->rx_ring[rxring_idx].desc) *
+-		       rtlpci->rxringcount);
+ 
+ 		/* init every desc in this ring */
+ 		rtlpci->rx_ring[rxring_idx].idx = 0;
+diff -puN drivers/staging/rtl8821ae/pci.c~staging-use-pci_zalloc_consistent drivers/staging/rtl8821ae/pci.c
+--- a/drivers/staging/rtl8821ae/pci.c~staging-use-pci_zalloc_consistent
++++ a/drivers/staging/rtl8821ae/pci.c
+@@ -1248,9 +1248,10 @@ static int _rtl_pci_init_tx_ring(struct
+ 
+ 	/* alloc tx buffer desc for new trx flow*/
+ 	if (rtlpriv->use_new_trx_flow) {
+-		buffer_desc = pci_alloc_consistent(rtlpci->pdev,
+-					    sizeof(*buffer_desc) * entries,
+-					    &buffer_desc_dma);
++		buffer_desc =
++			pci_zalloc_consistent(rtlpci->pdev,
++					      sizeof(*buffer_desc) * entries,
++					      &buffer_desc_dma);
+ 
+ 		if (!buffer_desc || (unsigned long)buffer_desc & 0xFF) {
+ 			RT_TRACE(COMP_ERR, DBG_EMERG,
+@@ -1259,7 +1260,6 @@ static int _rtl_pci_init_tx_ring(struct
+ 			return -ENOMEM;
+ 		}
+ 
+-		memset(buffer_desc, 0, sizeof(*buffer_desc) * entries);
+ 		rtlpci->tx_ring[prio].buffer_desc = buffer_desc;
+ 		rtlpci->tx_ring[prio].buffer_desc_dma = buffer_desc_dma;
+ 
+@@ -1270,8 +1270,8 @@ static int _rtl_pci_init_tx_ring(struct
+ 	}
+ 
+ 	/* alloc dma for this ring */
+-	desc = pci_alloc_consistent(rtlpci->pdev,
+-				    sizeof(*desc) * entries, &desc_dma);
++	desc = pci_zalloc_consistent(rtlpci->pdev, sizeof(*desc) * entries,
++				     &desc_dma);
+ 
+ 	if (!desc || (unsigned long)desc & 0xFF) {
+ 		RT_TRACE(COMP_ERR, DBG_EMERG,
+@@ -1279,7 +1279,6 @@ static int _rtl_pci_init_tx_ring(struct
+ 		return -ENOMEM;
+ 	}
+ 
+-	memset(desc, 0, sizeof(*desc) * entries);
+ 	rtlpci->tx_ring[prio].desc = desc;
+ 	rtlpci->tx_ring[prio].dma = desc_dma;
+ 
+@@ -1316,21 +1315,15 @@ static int _rtl_pci_init_rx_ring(struct
+ 		struct rtl_rx_buffer_desc *entry = NULL;
+ 		/* alloc dma for this ring */
+ 		rtlpci->rx_ring[rxring_idx].buffer_desc =
+-		    pci_alloc_consistent(rtlpci->pdev,
+-					 sizeof(*rtlpci->rx_ring[rxring_idx].
+-					        buffer_desc) *
+-					        rtlpci->rxringcount,
+-					 &rtlpci->rx_ring[rxring_idx].dma);
++			pci_zalloc_consistent(rtlpci->pdev,
++					      sizeof(*rtlpci->rx_ring[rxring_idx].buffer_desc) * rtlpci->rxringcount,
++					      &rtlpci->rx_ring[rxring_idx].dma);
+ 		if (!rtlpci->rx_ring[rxring_idx].buffer_desc ||
+ 		    (unsigned long)rtlpci->rx_ring[rxring_idx].buffer_desc & 0xFF) {
+ 			RT_TRACE(COMP_ERR, DBG_EMERG, ("Cannot allocate RX ring\n"));
+ 			return -ENOMEM;
+ 		}
+ 
+-		memset(rtlpci->rx_ring[rxring_idx].buffer_desc, 0,
+-		       sizeof(*rtlpci->rx_ring[rxring_idx].buffer_desc) *
+-		       rtlpci->rxringcount);
+-
+ 		/* init every desc in this ring */
+ 		rtlpci->rx_ring[rxring_idx].idx = 0;
+ 		for (i = 0; i < rtlpci->rxringcount; i++) {
+@@ -1344,10 +1337,9 @@ static int _rtl_pci_init_rx_ring(struct
+ 		u8 tmp_one = 1;
+ 		/* alloc dma for this ring */
+ 		rtlpci->rx_ring[rxring_idx].desc =
+-		    pci_alloc_consistent(rtlpci->pdev,
+-					 sizeof(*rtlpci->rx_ring[rxring_idx].
+-					        desc) * rtlpci->rxringcount,
+-					 &rtlpci->rx_ring[rxring_idx].dma);
++			pci_zalloc_consistent(rtlpci->pdev,
++					      sizeof(*rtlpci->rx_ring[rxring_idx].desc) * rtlpci->rxringcount,
++					      &rtlpci->rx_ring[rxring_idx].dma);
+ 		if (!rtlpci->rx_ring[rxring_idx].desc ||
+ 		    (unsigned long)rtlpci->rx_ring[rxring_idx].desc & 0xFF) {
+ 			RT_TRACE(COMP_ERR, DBG_EMERG,
+@@ -1355,10 +1347,6 @@ static int _rtl_pci_init_rx_ring(struct
+ 			return -ENOMEM;
+ 		}
+ 
+-		memset(rtlpci->rx_ring[rxring_idx].desc, 0,
+-		       sizeof(*rtlpci->rx_ring[rxring_idx].desc) *
+-		       rtlpci->rxringcount);
+-
+ 		/* init every desc in this ring */
+ 		rtlpci->rx_ring[rxring_idx].idx = 0;
+ 		for (i = 0; i < rtlpci->rxringcount; i++) {
+diff -puN drivers/staging/slicoss/slicoss.c~staging-use-pci_zalloc_consistent drivers/staging/slicoss/slicoss.c
+--- a/drivers/staging/slicoss/slicoss.c~staging-use-pci_zalloc_consistent
++++ a/drivers/staging/slicoss/slicoss.c
+@@ -1191,18 +1191,15 @@ static int slic_rspqueue_init(struct ada
+ 	rspq->num_pages = SLIC_RSPQ_PAGES_GB;
+ 
+ 	for (i = 0; i < rspq->num_pages; i++) {
+-		rspq->vaddr[i] = pci_alloc_consistent(adapter->pcidev,
+-						      PAGE_SIZE,
+-						      &rspq->paddr[i]);
++		rspq->vaddr[i] = pci_zalloc_consistent(adapter->pcidev,
++						       PAGE_SIZE,
++						       &rspq->paddr[i]);
+ 		if (!rspq->vaddr[i]) {
+ 			dev_err(&adapter->pcidev->dev,
+ 				"pci_alloc_consistent failed\n");
+ 			slic_rspqueue_free(adapter);
+ 			return -ENOMEM;
+ 		}
+-		/* FIXME:
+-		 * do we really need this assertions (4K PAGE_SIZE aligned addr)? */
+-		memset(rspq->vaddr[i], 0, PAGE_SIZE);
+ 
+ 		if (paddrh == 0) {
+ 			slic_reg32_write(&slic_regs->slic_rbar,
+diff -puN drivers/staging/vt6655/device_main.c~staging-use-pci_zalloc_consistent drivers/staging/vt6655/device_main.c
+--- a/drivers/staging/vt6655/device_main.c~staging-use-pci_zalloc_consistent
++++ a/drivers/staging/vt6655/device_main.c
+@@ -1111,25 +1111,17 @@ static bool device_init_rings(PSDevice p
+ 	void *vir_pool;
+ 
+ 	/*allocate all RD/TD rings a single pool*/
+-	vir_pool = pci_alloc_consistent(pDevice->pcid,
+-					pDevice->sOpts.nRxDescs0 * sizeof(SRxDesc) +
+-					pDevice->sOpts.nRxDescs1 * sizeof(SRxDesc) +
+-					pDevice->sOpts.nTxDescs[0] * sizeof(STxDesc) +
+-					pDevice->sOpts.nTxDescs[1] * sizeof(STxDesc),
+-					&pDevice->pool_dma);
+-
++	vir_pool = pci_zalloc_consistent(pDevice->pcid,
++					 pDevice->sOpts.nRxDescs0 * sizeof(SRxDesc) +
++					 pDevice->sOpts.nRxDescs1 * sizeof(SRxDesc) +
++					 pDevice->sOpts.nTxDescs[0] * sizeof(STxDesc) +
++					 pDevice->sOpts.nTxDescs[1] * sizeof(STxDesc),
++					 &pDevice->pool_dma);
+ 	if (vir_pool == NULL) {
+ 		DBG_PRT(MSG_LEVEL_ERR, KERN_ERR "%s : allocate desc dma memory failed\n", pDevice->dev->name);
+ 		return false;
+ 	}
+ 
+-	memset(vir_pool, 0,
+-	       pDevice->sOpts.nRxDescs0 * sizeof(SRxDesc) +
+-	       pDevice->sOpts.nRxDescs1 * sizeof(SRxDesc) +
+-	       pDevice->sOpts.nTxDescs[0] * sizeof(STxDesc) +
+-	       pDevice->sOpts.nTxDescs[1] * sizeof(STxDesc)
+-		);
+-
+ 	pDevice->aRD0Ring = vir_pool;
+ 	pDevice->aRD1Ring = vir_pool +
+ 		pDevice->sOpts.nRxDescs0 * sizeof(SRxDesc);
+@@ -1138,13 +1130,12 @@ static bool device_init_rings(PSDevice p
+ 	pDevice->rd1_pool_dma = pDevice->rd0_pool_dma +
+ 		pDevice->sOpts.nRxDescs0 * sizeof(SRxDesc);
+ 
+-	pDevice->tx0_bufs = pci_alloc_consistent(pDevice->pcid,
+-						 pDevice->sOpts.nTxDescs[0] * PKT_BUF_SZ +
+-						 pDevice->sOpts.nTxDescs[1] * PKT_BUF_SZ +
+-						 CB_BEACON_BUF_SIZE +
+-						 CB_MAX_BUF_SIZE,
+-						 &pDevice->tx_bufs_dma0);
+-
++	pDevice->tx0_bufs = pci_zalloc_consistent(pDevice->pcid,
++						  pDevice->sOpts.nTxDescs[0] * PKT_BUF_SZ +
++						  pDevice->sOpts.nTxDescs[1] * PKT_BUF_SZ +
++						  CB_BEACON_BUF_SIZE +
++						  CB_MAX_BUF_SIZE,
++						  &pDevice->tx_bufs_dma0);
+ 	if (pDevice->tx0_bufs == NULL) {
+ 		DBG_PRT(MSG_LEVEL_ERR, KERN_ERR "%s: allocate buf dma memory failed\n", pDevice->dev->name);
+ 		pci_free_consistent(pDevice->pcid,
+@@ -1157,13 +1148,6 @@ static bool device_init_rings(PSDevice p
+ 		return false;
+ 	}
+ 
+-	memset(pDevice->tx0_bufs, 0,
+-	       pDevice->sOpts.nTxDescs[0] * PKT_BUF_SZ +
+-	       pDevice->sOpts.nTxDescs[1] * PKT_BUF_SZ +
+-	       CB_BEACON_BUF_SIZE +
+-	       CB_MAX_BUF_SIZE
+-		);
