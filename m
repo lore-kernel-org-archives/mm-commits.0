@@ -1,98 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- dlm-plock-reduce-indentation-by-rearranging-order.patch removed from -mm
- tree
-Date: Tue, 12 Aug 2014 12:35:42 -0700
-Message-ID: <53ea6c8e.j7vM0SUgib/ey5VG%akpm@linux-foundation.org>
+Subject: [merged] revert-slab-remove-bad_alien_magic.patch removed from
+ -mm tree
+Date: Tue, 12 Aug 2014 12:37:52 -0700
+Message-ID: <53ea6d10.s8pLxta/iJsD2kk4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:64404 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753878AbaHLTfn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:35:43 -0400
-Received: by mail-pd0-f202.google.com with SMTP id w10so2669389pde.1
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:35:42 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:45562 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753505AbaHLThx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:37:53 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so1919650obb.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:37:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, bfields@fieldses.org, ccaulfie@redhat.com, jlayton@poochiereds.net, teigland@redhat.com, trond.myklebust@primarydata.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, cl@linux.com, geert@linux-m68k.org, penberg@kernel.org, rientjes@google.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dlm: plock: reduce indentation by rearranging order
+     Subject: Revert "slab: remove BAD_ALIEN_MAGIC"
 has been removed from the -mm tree.  Its filename was
-     dlm-plock-reduce-indentation-by-rearranging-order.patch
+     revert-slab-remove-bad_alien_magic.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: dlm: plock: reduce indentation by rearranging order
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: Revert "slab: remove BAD_ALIEN_MAGIC"
 
-if blocks that have a goto at the end of one branch can be
-simplified by reordering and unindenting.
+This reverts commit a640616822b2 ("slab: remove BAD_ALIEN_MAGIC").
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: David Teigland <teigland@redhat.com>
-Reviewed-by: Jeff Layton <jlayton@poochiereds.net>
-Cc: Christine Caulfield <ccaulfie@redhat.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+commit a640616822b2 ("slab: remove BAD_ALIEN_MAGIC") assumes that the
+system with !CONFIG_NUMA has only one memory node.  But, it turns out to
+be false by the report from Geert.  His system, m68k, has many memory
+nodes and is configured in !CONFIG_NUMA.  So it couldn't boot with above
+change.
+
+Here goes his failure report.
+
+  With latest mainline, I'm getting a crash during bootup on m68k/ARAnyM:
+
+  enable_cpucache failed for radix_tree_node, error 12.
+  kernel BUG at /scratch/geert/linux/linux-m68k/mm/slab.c:1522!
+  *** TRAP #7 ***   FORMAT=0
+  Current process id is 0
+  BAD KERNEL TRAP: 00000000
+  Modules linked in:
+  PC: [<0039c92c>] kmem_cache_init_late+0x70/0x8c
+  SR: 2200  SP: 00345f90  a2: 0034c2e8
+  d0: 0000003d    d1: 00000000    d2: 00000000    d3: 003ac942
+  d4: 00000000    d5: 00000000    a0: 0034f686    a1: 0034f682
+  Process swapper (pid: 0, task=0034c2e8)
+  Frame format=0
+  Stack from 00345fc4:
+          002f69ef 002ff7e5 000005f2 000360fa 0017d806 003921d4 00000000
+          00000000 00000000 00000000 00000000 00000000 003ac942 00000000
+          003912d6
+  Call Trace: [<000360fa>] parse_args+0x0/0x2ca
+   [<0017d806>] strlen+0x0/0x1a
+   [<003921d4>] start_kernel+0x23c/0x428
+   [<003912d6>] _sinittext+0x2d6/0x95e
+
+  Code: f7e5 4879 002f 69ef 61ff ffca 462a 4e47 <4879> 0035 4b1c 61ff
+  fff0 0cc4 7005 23c0 0037 fd20 588f 265f 285f 4e75 48e7 301c
+  Disabling lock debugging due to kernel taint
+  Kernel panic - not syncing: Attempted to kill the idle task!
+
+Although there is a alternative way to fix this issue such as disabling
+use of alien cache on !CONFIG_NUMA, but, reverting issued commit is better
+to me in this time.
+
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/plock.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ mm/slab.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/dlm/plock.c~dlm-plock-reduce-indentation-by-rearranging-order fs/dlm/plock.c
---- a/fs/dlm/plock.c~dlm-plock-reduce-indentation-by-rearranging-order
-+++ a/fs/dlm/plock.c
-@@ -144,23 +144,23 @@ int dlm_posix_lock(dlm_lockspace_t *lock
+diff -puN mm/slab.c~revert-slab-remove-bad_alien_magic mm/slab.c
+--- a/mm/slab.c~revert-slab-remove-bad_alien_magic
++++ a/mm/slab.c
+@@ -470,6 +470,8 @@ static struct kmem_cache kmem_cache_boot
+ 	.name = "kmem_cache",
+ };
  
- 	send_op(op);
- 
--	if (xop->callback == NULL) {
--		rv = wait_event_killable(recv_wq, (op->done != 0));
--		if (rv == -ERESTARTSYS) {
--			log_debug(ls, "dlm_posix_lock: wait killed %llx",
--				  (unsigned long long)number);
--			spin_lock(&ops_lock);
--			list_del(&op->list);
--			spin_unlock(&ops_lock);
--			kfree(xop);
--			do_unlock_close(ls, number, file, fl);
--			goto out;
--		}
--	} else {
-+	if (xop->callback) {
- 		rv = FILE_LOCK_DEFERRED;
- 		goto out;
- 	}
- 
-+	rv = wait_event_killable(recv_wq, (op->done != 0));
-+	if (rv == -ERESTARTSYS) {
-+		log_debug(ls, "dlm_posix_lock: wait killed %llx",
-+			  (unsigned long long)number);
-+		spin_lock(&ops_lock);
-+		list_del(&op->list);
-+		spin_unlock(&ops_lock);
-+		kfree(xop);
-+		do_unlock_close(ls, number, file, fl);
-+		goto out;
-+	}
++#define BAD_ALIEN_MAGIC 0x01020304ul
 +
- 	spin_lock(&ops_lock);
- 	if (!list_empty(&op->list)) {
- 		log_error(ls, "dlm_posix_lock: op on list %llx",
+ static DEFINE_PER_CPU(struct delayed_work, slab_reap_work);
+ 
+ static inline struct array_cache *cpu_cache_get(struct kmem_cache *cachep)
+@@ -836,7 +838,7 @@ static int transfer_objects(struct array
+ static inline struct alien_cache **alloc_alien_cache(int node,
+ 						int limit, gfp_t gfp)
+ {
+-	return NULL;
++	return (struct alien_cache **)BAD_ALIEN_MAGIC;
+ }
+ 
+ static inline void free_alien_cache(struct alien_cache **ac_ptr)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 origin.patch
-mm-utilc-add-kstrimdup.patch
-fs-isofs-logging-clean-up.patch
-linux-next.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
