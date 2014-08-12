@@ -1,1025 +1,353 @@
 From: akpm@linux-foundation.org
-Subject: [merged] selftests-add-memfd_create-sealing-tests.patch removed
+Subject: [merged]
+ kexec-move-segment-verification-code-in-a-separate-function.patch removed
  from -mm tree
-Date: Tue, 12 Aug 2014 12:43:35 -0700
-Message-ID: <53ea6e67.lR4gR1uUMvJIZC89%akpm@linux-foundation.org>
+Date: Tue, 12 Aug 2014 12:43:47 -0700
+Message-ID: <53ea6e73.MFNGK/kU9iYjDMCT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:34476 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754929AbaHLTng (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:36 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 29so1309062yhl.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:43:35 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:37382 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753866AbaHLTns (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:48 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h3so1069795igd.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:43:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dh.herrmann@gmail.com, desrt@desrt.ca, hughd@google.com, lennart@poettering.net, luto@amacapital.net, mtk.manpages@gmail.com, zonque@gmail.com, mm-commits@vger.kernel.org
+To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: add memfd_create() + sealing tests
+     Subject: kexec: move segment verification code in a separate function
 has been removed from the -mm tree.  Its filename was
-     selftests-add-memfd_create-sealing-tests.patch
+     kexec-move-segment-verification-code-in-a-separate-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Herrmann <dh.herrmann@gmail.com>
-Subject: selftests: add memfd_create() + sealing tests
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: kexec: move segment verification code in a separate function
 
-Some basic tests to verify sealing on memfds works as expected and
-guarantees the advertised semantics.
+Previously do_kimage_alloc() will allocate a kimage structure, copy
+segment list from user space and then do the segment list sanity
+verification.
 
-Signed-off-by: David Herrmann <dh.herrmann@gmail.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+Break down this function in 3 parts.  do_kimage_alloc_init() to do actual
+allocation and basic initialization of kimage structure. 
+copy_user_segment_list() to copy segment list from user space and
+sanity_check_segment_list() to verify the sanity of segment list as passed
+by user space.
+
+In later patches, I need to only allocate kimage and not copy segment list
+from user space.  So breaking down in smaller functions enables re-use of
+code at other places.
+
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Borislav Petkov <bp@suse.de>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Ryan Lortie <desrt@desrt.ca>
-Cc: Lennart Poettering <lennart@poettering.net>
-Cc: Daniel Mack <zonque@gmail.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Greg Kroah-Hartman <greg@kroah.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: WANG Chao <chaowang@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile           |    1 
- tools/testing/selftests/memfd/.gitignore   |    2 
- tools/testing/selftests/memfd/Makefile     |   29 
- tools/testing/selftests/memfd/memfd_test.c |  913 +++++++++++++++++++
- 4 files changed, 945 insertions(+)
+ kernel/kexec.c |  182 +++++++++++++++++++++++++----------------------
+ 1 file changed, 100 insertions(+), 82 deletions(-)
 
-diff -puN tools/testing/selftests/Makefile~selftests-add-memfd_create-sealing-tests tools/testing/selftests/Makefile
---- a/tools/testing/selftests/Makefile~selftests-add-memfd_create-sealing-tests
-+++ a/tools/testing/selftests/Makefile
-@@ -2,6 +2,7 @@ TARGETS = breakpoints
- TARGETS += cpu-hotplug
- TARGETS += efivarfs
- TARGETS += kcmp
-+TARGETS += memfd
- TARGETS += memory-hotplug
- TARGETS += mqueue
- TARGETS += net
-diff -puN /dev/null tools/testing/selftests/memfd/.gitignore
---- /dev/null
-+++ a/tools/testing/selftests/memfd/.gitignore
-@@ -0,0 +1,2 @@
-+memfd_test
-+memfd-test-file
-diff -puN /dev/null tools/testing/selftests/memfd/Makefile
---- /dev/null
-+++ a/tools/testing/selftests/memfd/Makefile
-@@ -0,0 +1,29 @@
-+uname_M := $(shell uname -m 2>/dev/null || echo not)
-+ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
-+ifeq ($(ARCH),i386)
-+	ARCH := X86
-+endif
-+ifeq ($(ARCH),x86_64)
-+	ARCH := X86
-+endif
+diff -puN kernel/kexec.c~kexec-move-segment-verification-code-in-a-separate-function kernel/kexec.c
+--- a/kernel/kexec.c~kexec-move-segment-verification-code-in-a-separate-function
++++ a/kernel/kexec.c
+@@ -125,45 +125,27 @@ static struct page *kimage_alloc_page(st
+ 				       gfp_t gfp_mask,
+ 				       unsigned long dest);
+ 
+-static int do_kimage_alloc(struct kimage **rimage, unsigned long entry,
+-			   unsigned long nr_segments,
+-			   struct kexec_segment __user *segments)
++static int copy_user_segment_list(struct kimage *image,
++				  unsigned long nr_segments,
++				  struct kexec_segment __user *segments)
+ {
++	int ret;
+ 	size_t segment_bytes;
+-	struct kimage *image;
+-	unsigned long i;
+-	int result;
+-
+-	/* Allocate a controlling structure */
+-	result = -ENOMEM;
+-	image = kzalloc(sizeof(*image), GFP_KERNEL);
+-	if (!image)
+-		goto out;
+-
+-	image->head = 0;
+-	image->entry = &image->head;
+-	image->last_entry = &image->head;
+-	image->control_page = ~0; /* By default this does not apply */
+-	image->start = entry;
+-	image->type = KEXEC_TYPE_DEFAULT;
+-
+-	/* Initialize the list of control pages */
+-	INIT_LIST_HEAD(&image->control_pages);
+-
+-	/* Initialize the list of destination pages */
+-	INIT_LIST_HEAD(&image->dest_pages);
+-
+-	/* Initialize the list of unusable pages */
+-	INIT_LIST_HEAD(&image->unusable_pages);
+ 
+ 	/* Read in the segments */
+ 	image->nr_segments = nr_segments;
+ 	segment_bytes = nr_segments * sizeof(*segments);
+-	result = copy_from_user(image->segment, segments, segment_bytes);
+-	if (result) {
+-		result = -EFAULT;
+-		goto out;
+-	}
++	ret = copy_from_user(image->segment, segments, segment_bytes);
++	if (ret)
++		ret = -EFAULT;
 +
-+CFLAGS += -I../../../../arch/x86/include/generated/uapi/
-+CFLAGS += -I../../../../arch/x86/include/uapi/
-+CFLAGS += -I../../../../include/uapi/
-+CFLAGS += -I../../../../include/
-+
-+all:
-+ifeq ($(ARCH),X86)
-+	gcc $(CFLAGS) memfd_test.c -o memfd_test
-+else
-+	echo "Not an x86 target, can't build memfd selftest"
-+endif
-+
-+run_tests: all
-+ifeq ($(ARCH),X86)
-+	gcc $(CFLAGS) memfd_test.c -o memfd_test
-+endif
-+	@./memfd_test || echo "memfd_test: [FAIL]"
-+
-+clean:
-+	$(RM) memfd_test
-diff -puN /dev/null tools/testing/selftests/memfd/memfd_test.c
---- /dev/null
-+++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -0,0 +1,913 @@
-+#define _GNU_SOURCE
-+#define __EXPORTED_HEADERS__
-+
-+#include <errno.h>
-+#include <inttypes.h>
-+#include <limits.h>
-+#include <linux/falloc.h>
-+#include <linux/fcntl.h>
-+#include <linux/memfd.h>
-+#include <sched.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <signal.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <sys/stat.h>
-+#include <sys/syscall.h>
-+#include <unistd.h>
-+
-+#define MFD_DEF_SIZE 8192
-+#define STACK_SIZE 65535
-+
-+static int sys_memfd_create(const char *name,
-+			    unsigned int flags)
-+{
-+	return syscall(__NR_memfd_create, name, flags);
++	return ret;
 +}
 +
-+static int mfd_assert_new(const char *name, loff_t sz, unsigned int flags)
++static int sanity_check_segment_list(struct kimage *image)
 +{
-+	int r, fd;
-+
-+	fd = sys_memfd_create(name, flags);
-+	if (fd < 0) {
-+		printf("memfd_create(\"%s\", %u) failed: %m\n",
-+		       name, flags);
-+		abort();
++	int result, i;
++	unsigned long nr_segments = image->nr_segments;
+ 
+ 	/*
+ 	 * Verify we have good destination addresses.  The caller is
+@@ -185,9 +167,9 @@ static int do_kimage_alloc(struct kimage
+ 		mstart = image->segment[i].mem;
+ 		mend   = mstart + image->segment[i].memsz;
+ 		if ((mstart & ~PAGE_MASK) || (mend & ~PAGE_MASK))
+-			goto out;
++			return result;
+ 		if (mend >= KEXEC_DESTINATION_MEMORY_LIMIT)
+-			goto out;
++			return result;
+ 	}
+ 
+ 	/* Verify our destination addresses do not overlap.
+@@ -208,7 +190,7 @@ static int do_kimage_alloc(struct kimage
+ 			pend   = pstart + image->segment[j].memsz;
+ 			/* Do the segments overlap ? */
+ 			if ((mend > pstart) && (mstart < pend))
+-				goto out;
++				return result;
+ 		}
+ 	}
+ 
+@@ -220,18 +202,61 @@ static int do_kimage_alloc(struct kimage
+ 	result = -EINVAL;
+ 	for (i = 0; i < nr_segments; i++) {
+ 		if (image->segment[i].bufsz > image->segment[i].memsz)
+-			goto out;
++			return result;
 +	}
 +
-+	r = ftruncate(fd, sz);
-+	if (r < 0) {
-+		printf("ftruncate(%llu) failed: %m\n", (unsigned long long)sz);
-+		abort();
-+	}
++	/*
++	 * Verify we have good destination addresses.  Normally
++	 * the caller is responsible for making certain we don't
++	 * attempt to load the new image into invalid or reserved
++	 * areas of RAM.  But crash kernels are preloaded into a
++	 * reserved area of ram.  We must ensure the addresses
++	 * are in the reserved area otherwise preloading the
++	 * kernel could corrupt things.
++	 */
 +
-+	return fd;
-+}
++	if (image->type == KEXEC_TYPE_CRASH) {
++		result = -EADDRNOTAVAIL;
++		for (i = 0; i < nr_segments; i++) {
++			unsigned long mstart, mend;
 +
-+static void mfd_fail_new(const char *name, unsigned int flags)
-+{
-+	int r;
-+
-+	r = sys_memfd_create(name, flags);
-+	if (r >= 0) {
-+		printf("memfd_create(\"%s\", %u) succeeded, but failure expected\n",
-+		       name, flags);
-+		close(r);
-+		abort();
-+	}
-+}
-+
-+static __u64 mfd_assert_get_seals(int fd)
-+{
-+	long r;
-+
-+	r = fcntl(fd, F_GET_SEALS);
-+	if (r < 0) {
-+		printf("GET_SEALS(%d) failed: %m\n", fd);
-+		abort();
-+	}
-+
-+	return r;
-+}
-+
-+static void mfd_assert_has_seals(int fd, __u64 seals)
-+{
-+	__u64 s;
-+
-+	s = mfd_assert_get_seals(fd);
-+	if (s != seals) {
-+		printf("%llu != %llu = GET_SEALS(%d)\n",
-+		       (unsigned long long)seals, (unsigned long long)s, fd);
-+		abort();
-+	}
-+}
-+
-+static void mfd_assert_add_seals(int fd, __u64 seals)
-+{
-+	long r;
-+	__u64 s;
-+
-+	s = mfd_assert_get_seals(fd);
-+	r = fcntl(fd, F_ADD_SEALS, seals);
-+	if (r < 0) {
-+		printf("ADD_SEALS(%d, %llu -> %llu) failed: %m\n",
-+		       fd, (unsigned long long)s, (unsigned long long)seals);
-+		abort();
-+	}
-+}
-+
-+static void mfd_fail_add_seals(int fd, __u64 seals)
-+{
-+	long r;
-+	__u64 s;
-+
-+	r = fcntl(fd, F_GET_SEALS);
-+	if (r < 0)
-+		s = 0;
-+	else
-+		s = r;
-+
-+	r = fcntl(fd, F_ADD_SEALS, seals);
-+	if (r >= 0) {
-+		printf("ADD_SEALS(%d, %llu -> %llu) didn't fail as expected\n",
-+		       fd, (unsigned long long)s, (unsigned long long)seals);
-+		abort();
-+	}
-+}
-+
-+static void mfd_assert_size(int fd, size_t size)
-+{
-+	struct stat st;
-+	int r;
-+
-+	r = fstat(fd, &st);
-+	if (r < 0) {
-+		printf("fstat(%d) failed: %m\n", fd);
-+		abort();
-+	} else if (st.st_size != size) {
-+		printf("wrong file size %lld, but expected %lld\n",
-+		       (long long)st.st_size, (long long)size);
-+		abort();
-+	}
-+}
-+
-+static int mfd_assert_dup(int fd)
-+{
-+	int r;
-+
-+	r = dup(fd);
-+	if (r < 0) {
-+		printf("dup(%d) failed: %m\n", fd);
-+		abort();
-+	}
-+
-+	return r;
-+}
-+
-+static void *mfd_assert_mmap_shared(int fd)
-+{
-+	void *p;
-+
-+	p = mmap(NULL,
-+		 MFD_DEF_SIZE,
-+		 PROT_READ | PROT_WRITE,
-+		 MAP_SHARED,
-+		 fd,
-+		 0);
-+	if (p == MAP_FAILED) {
-+		printf("mmap() failed: %m\n");
-+		abort();
-+	}
-+
-+	return p;
-+}
-+
-+static void *mfd_assert_mmap_private(int fd)
-+{
-+	void *p;
-+
-+	p = mmap(NULL,
-+		 MFD_DEF_SIZE,
-+		 PROT_READ,
-+		 MAP_PRIVATE,
-+		 fd,
-+		 0);
-+	if (p == MAP_FAILED) {
-+		printf("mmap() failed: %m\n");
-+		abort();
-+	}
-+
-+	return p;
-+}
-+
-+static int mfd_assert_open(int fd, int flags, mode_t mode)
-+{
-+	char buf[512];
-+	int r;
-+
-+	sprintf(buf, "/proc/self/fd/%d", fd);
-+	r = open(buf, flags, mode);
-+	if (r < 0) {
-+		printf("open(%s) failed: %m\n", buf);
-+		abort();
-+	}
-+
-+	return r;
-+}
-+
-+static void mfd_fail_open(int fd, int flags, mode_t mode)
-+{
-+	char buf[512];
-+	int r;
-+
-+	sprintf(buf, "/proc/self/fd/%d", fd);
-+	r = open(buf, flags, mode);
-+	if (r >= 0) {
-+		printf("open(%s) didn't fail as expected\n");
-+		abort();
-+	}
-+}
-+
-+static void mfd_assert_read(int fd)
-+{
-+	char buf[16];
-+	void *p;
-+	ssize_t l;
-+
-+	l = read(fd, buf, sizeof(buf));
-+	if (l != sizeof(buf)) {
-+		printf("read() failed: %m\n");
-+		abort();
-+	}
-+
-+	/* verify PROT_READ *is* allowed */
-+	p = mmap(NULL,
-+		 MFD_DEF_SIZE,
-+		 PROT_READ,
-+		 MAP_PRIVATE,
-+		 fd,
-+		 0);
-+	if (p == MAP_FAILED) {
-+		printf("mmap() failed: %m\n");
-+		abort();
-+	}
-+	munmap(p, MFD_DEF_SIZE);
-+
-+	/* verify MAP_PRIVATE is *always* allowed (even writable) */
-+	p = mmap(NULL,
-+		 MFD_DEF_SIZE,
-+		 PROT_READ | PROT_WRITE,
-+		 MAP_PRIVATE,
-+		 fd,
-+		 0);
-+	if (p == MAP_FAILED) {
-+		printf("mmap() failed: %m\n");
-+		abort();
-+	}
-+	munmap(p, MFD_DEF_SIZE);
-+}
-+
-+static void mfd_assert_write(int fd)
-+{
-+	ssize_t l;
-+	void *p;
-+	int r;
-+
-+	/* verify write() succeeds */
-+	l = write(fd, "\0\0\0\0", 4);
-+	if (l != 4) {
-+		printf("write() failed: %m\n");
-+		abort();
-+	}
-+
-+	/* verify PROT_READ | PROT_WRITE is allowed */
-+	p = mmap(NULL,
-+		 MFD_DEF_SIZE,
-+		 PROT_READ | PROT_WRITE,
-+		 MAP_SHARED,
-+		 fd,
-+		 0);
-+	if (p == MAP_FAILED) {
-+		printf("mmap() failed: %m\n");
-+		abort();
-+	}
-+	*(char *)p = 0;
-+	munmap(p, MFD_DEF_SIZE);
-+
-+	/* verify PROT_WRITE is allowed */
-+	p = mmap(NULL,
-+		 MFD_DEF_SIZE,
-+		 PROT_WRITE,
-+		 MAP_SHARED,
-+		 fd,
-+		 0);
-+	if (p == MAP_FAILED) {
-+		printf("mmap() failed: %m\n");
-+		abort();
-+	}
-+	*(char *)p = 0;
-+	munmap(p, MFD_DEF_SIZE);
-+
-+	/* verify PROT_READ with MAP_SHARED is allowed and a following
-+	 * mprotect(PROT_WRITE) allows writing */
-+	p = mmap(NULL,
-+		 MFD_DEF_SIZE,
-+		 PROT_READ,
-+		 MAP_SHARED,
-+		 fd,
-+		 0);
-+	if (p == MAP_FAILED) {
-+		printf("mmap() failed: %m\n");
-+		abort();
-+	}
-+
-+	r = mprotect(p, MFD_DEF_SIZE, PROT_READ | PROT_WRITE);
-+	if (r < 0) {
-+		printf("mprotect() failed: %m\n");
-+		abort();
-+	}
-+
-+	*(char *)p = 0;
-+	munmap(p, MFD_DEF_SIZE);
-+
-+	/* verify PUNCH_HOLE works */
-+	r = fallocate(fd,
-+		      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-+		      0,
-+		      MFD_DEF_SIZE);
-+	if (r < 0) {
-+		printf("fallocate(PUNCH_HOLE) failed: %m\n");
-+		abort();
-+	}
-+}
-+
-+static void mfd_fail_write(int fd)
-+{
-+	ssize_t l;
-+	void *p;
-+	int r;
-+
-+	/* verify write() fails */
-+	l = write(fd, "data", 4);
-+	if (l != -EPERM) {
-+		printf("expected EPERM on write(), but got %d: %m\n", (int)l);
-+		abort();
-+	}
-+
-+	/* verify PROT_READ | PROT_WRITE is not allowed */
-+	p = mmap(NULL,
-+		 MFD_DEF_SIZE,
-+		 PROT_READ | PROT_WRITE,
-+		 MAP_SHARED,
-+		 fd,
-+		 0);
-+	if (p != MAP_FAILED) {
-+		printf("mmap() didn't fail as expected\n");
-+		abort();
-+	}
-+
-+	/* verify PROT_WRITE is not allowed */
-+	p = mmap(NULL,
-+		 MFD_DEF_SIZE,
-+		 PROT_WRITE,
-+		 MAP_SHARED,
-+		 fd,
-+		 0);
-+	if (p != MAP_FAILED) {
-+		printf("mmap() didn't fail as expected\n");
-+		abort();
-+	}
-+
-+	/* Verify PROT_READ with MAP_SHARED with a following mprotect is not
-+	 * allowed. Note that for r/w the kernel already prevents the mmap. */
-+	p = mmap(NULL,
-+		 MFD_DEF_SIZE,
-+		 PROT_READ,
-+		 MAP_SHARED,
-+		 fd,
-+		 0);
-+	if (p != MAP_FAILED) {
-+		r = mprotect(p, MFD_DEF_SIZE, PROT_READ | PROT_WRITE);
-+		if (r >= 0) {
-+			printf("mmap()+mprotect() didn't fail as expected\n");
-+			abort();
++			mstart = image->segment[i].mem;
++			mend = mstart + image->segment[i].memsz - 1;
++			/* Ensure we are within the crash kernel limits */
++			if ((mstart < crashk_res.start) ||
++			    (mend > crashk_res.end))
++				return result;
 +		}
-+	}
-+
-+	/* verify PUNCH_HOLE fails */
-+	r = fallocate(fd,
-+		      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-+		      0,
-+		      MFD_DEF_SIZE);
-+	if (r >= 0) {
-+		printf("fallocate(PUNCH_HOLE) didn't fail as expected\n");
-+		abort();
-+	}
-+}
-+
-+static void mfd_assert_shrink(int fd)
-+{
-+	int r, fd2;
-+
-+	r = ftruncate(fd, MFD_DEF_SIZE / 2);
-+	if (r < 0) {
-+		printf("ftruncate(SHRINK) failed: %m\n");
-+		abort();
-+	}
-+
-+	mfd_assert_size(fd, MFD_DEF_SIZE / 2);
-+
-+	fd2 = mfd_assert_open(fd,
-+			      O_RDWR | O_CREAT | O_TRUNC,
-+			      S_IRUSR | S_IWUSR);
-+	close(fd2);
-+
-+	mfd_assert_size(fd, 0);
-+}
-+
-+static void mfd_fail_shrink(int fd)
-+{
-+	int r;
-+
-+	r = ftruncate(fd, MFD_DEF_SIZE / 2);
-+	if (r >= 0) {
-+		printf("ftruncate(SHRINK) didn't fail as expected\n");
-+		abort();
-+	}
-+
-+	mfd_fail_open(fd,
-+		      O_RDWR | O_CREAT | O_TRUNC,
-+		      S_IRUSR | S_IWUSR);
-+}
-+
-+static void mfd_assert_grow(int fd)
-+{
-+	int r;
-+
-+	r = ftruncate(fd, MFD_DEF_SIZE * 2);
-+	if (r < 0) {
-+		printf("ftruncate(GROW) failed: %m\n");
-+		abort();
-+	}
-+
-+	mfd_assert_size(fd, MFD_DEF_SIZE * 2);
-+
-+	r = fallocate(fd,
-+		      0,
-+		      0,
-+		      MFD_DEF_SIZE * 4);
-+	if (r < 0) {
-+		printf("fallocate(ALLOC) failed: %m\n");
-+		abort();
-+	}
-+
-+	mfd_assert_size(fd, MFD_DEF_SIZE * 4);
-+}
-+
-+static void mfd_fail_grow(int fd)
-+{
-+	int r;
-+
-+	r = ftruncate(fd, MFD_DEF_SIZE * 2);
-+	if (r >= 0) {
-+		printf("ftruncate(GROW) didn't fail as expected\n");
-+		abort();
-+	}
-+
-+	r = fallocate(fd,
-+		      0,
-+		      0,
-+		      MFD_DEF_SIZE * 4);
-+	if (r >= 0) {
-+		printf("fallocate(ALLOC) didn't fail as expected\n");
-+		abort();
-+	}
-+}
-+
-+static void mfd_assert_grow_write(int fd)
-+{
-+	static char buf[MFD_DEF_SIZE * 8];
-+	ssize_t l;
-+
-+	l = pwrite(fd, buf, sizeof(buf), 0);
-+	if (l != sizeof(buf)) {
-+		printf("pwrite() failed: %m\n");
-+		abort();
-+	}
-+
-+	mfd_assert_size(fd, MFD_DEF_SIZE * 8);
-+}
-+
-+static void mfd_fail_grow_write(int fd)
-+{
-+	static char buf[MFD_DEF_SIZE * 8];
-+	ssize_t l;
-+
-+	l = pwrite(fd, buf, sizeof(buf), 0);
-+	if (l == sizeof(buf)) {
-+		printf("pwrite() didn't fail as expected\n");
-+		abort();
-+	}
-+}
-+
-+static int idle_thread_fn(void *arg)
-+{
-+	sigset_t set;
-+	int sig;
-+
-+	/* dummy waiter; SIGTERM terminates us anyway */
-+	sigemptyset(&set);
-+	sigaddset(&set, SIGTERM);
-+	sigwait(&set, &sig);
-+
+ 	}
+ 
+-	result = 0;
+-out:
+-	if (result == 0)
+-		*rimage = image;
+-	else
+-		kfree(image);
 +	return 0;
 +}
-+
-+static pid_t spawn_idle_thread(unsigned int flags)
+ 
+-	return result;
++static struct kimage *do_kimage_alloc_init(void)
 +{
-+	uint8_t *stack;
-+	pid_t pid;
-+
-+	stack = malloc(STACK_SIZE);
-+	if (!stack) {
-+		printf("malloc(STACK_SIZE) failed: %m\n");
-+		abort();
-+	}
-+
-+	pid = clone(idle_thread_fn,
-+		    stack + STACK_SIZE,
-+		    SIGCHLD | flags,
-+		    NULL);
-+	if (pid < 0) {
-+		printf("clone() failed: %m\n");
-+		abort();
-+	}
-+
-+	return pid;
-+}
-+
-+static void join_idle_thread(pid_t pid)
-+{
-+	kill(pid, SIGTERM);
-+	waitpid(pid, NULL, 0);
-+}
-+
-+/*
-+ * Test memfd_create() syscall
-+ * Verify syscall-argument validation, including name checks, flag validation
-+ * and more.
-+ */
-+static void test_create(void)
-+{
-+	char buf[2048];
-+	int fd;
-+
-+	/* test NULL name */
-+	mfd_fail_new(NULL, 0);
-+
-+	/* test over-long name (not zero-terminated) */
-+	memset(buf, 0xff, sizeof(buf));
-+	mfd_fail_new(buf, 0);
-+
-+	/* test over-long zero-terminated name */
-+	memset(buf, 0xff, sizeof(buf));
-+	buf[sizeof(buf) - 1] = 0;
-+	mfd_fail_new(buf, 0);
-+
-+	/* verify "" is a valid name */
-+	fd = mfd_assert_new("", 0, 0);
-+	close(fd);
-+
-+	/* verify invalid O_* open flags */
-+	mfd_fail_new("", 0x0100);
-+	mfd_fail_new("", ~MFD_CLOEXEC);
-+	mfd_fail_new("", ~MFD_ALLOW_SEALING);
-+	mfd_fail_new("", ~0);
-+	mfd_fail_new("", 0x80000000U);
-+
-+	/* verify MFD_CLOEXEC is allowed */
-+	fd = mfd_assert_new("", 0, MFD_CLOEXEC);
-+	close(fd);
-+
-+	/* verify MFD_ALLOW_SEALING is allowed */
-+	fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING);
-+	close(fd);
-+
-+	/* verify MFD_ALLOW_SEALING | MFD_CLOEXEC is allowed */
-+	fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING | MFD_CLOEXEC);
-+	close(fd);
-+}
-+
-+/*
-+ * Test basic sealing
-+ * A very basic sealing test to see whether setting/retrieving seals works.
-+ */
-+static void test_basic(void)
-+{
-+	int fd;
-+
-+	fd = mfd_assert_new("kern_memfd_basic",
-+			    MFD_DEF_SIZE,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+
-+	/* add basic seals */
-+	mfd_assert_has_seals(fd, 0);
-+	mfd_assert_add_seals(fd, F_SEAL_SHRINK |
-+				 F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd, F_SEAL_SHRINK |
-+				 F_SEAL_WRITE);
-+
-+	/* add them again */
-+	mfd_assert_add_seals(fd, F_SEAL_SHRINK |
-+				 F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd, F_SEAL_SHRINK |
-+				 F_SEAL_WRITE);
-+
-+	/* add more seals and seal against sealing */
-+	mfd_assert_add_seals(fd, F_SEAL_GROW | F_SEAL_SEAL);
-+	mfd_assert_has_seals(fd, F_SEAL_SHRINK |
-+				 F_SEAL_GROW |
-+				 F_SEAL_WRITE |
-+				 F_SEAL_SEAL);
-+
-+	/* verify that sealing no longer works */
-+	mfd_fail_add_seals(fd, F_SEAL_GROW);
-+	mfd_fail_add_seals(fd, 0);
-+
-+	close(fd);
-+
-+	/* verify sealing does not work without MFD_ALLOW_SEALING */
-+	fd = mfd_assert_new("kern_memfd_basic",
-+			    MFD_DEF_SIZE,
-+			    MFD_CLOEXEC);
-+	mfd_assert_has_seals(fd, F_SEAL_SEAL);
-+	mfd_fail_add_seals(fd, F_SEAL_SHRINK |
-+			       F_SEAL_GROW |
-+			       F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd, F_SEAL_SEAL);
-+	close(fd);
-+}
-+
-+/*
-+ * Test SEAL_WRITE
-+ * Test whether SEAL_WRITE actually prevents modifications.
-+ */
-+static void test_seal_write(void)
-+{
-+	int fd;
-+
-+	fd = mfd_assert_new("kern_memfd_seal_write",
-+			    MFD_DEF_SIZE,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+	mfd_assert_has_seals(fd, 0);
-+	mfd_assert_add_seals(fd, F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd, F_SEAL_WRITE);
-+
-+	mfd_assert_read(fd);
-+	mfd_fail_write(fd);
-+	mfd_assert_shrink(fd);
-+	mfd_assert_grow(fd);
-+	mfd_fail_grow_write(fd);
-+
-+	close(fd);
-+}
-+
-+/*
-+ * Test SEAL_SHRINK
-+ * Test whether SEAL_SHRINK actually prevents shrinking
-+ */
-+static void test_seal_shrink(void)
-+{
-+	int fd;
-+
-+	fd = mfd_assert_new("kern_memfd_seal_shrink",
-+			    MFD_DEF_SIZE,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+	mfd_assert_has_seals(fd, 0);
-+	mfd_assert_add_seals(fd, F_SEAL_SHRINK);
-+	mfd_assert_has_seals(fd, F_SEAL_SHRINK);
-+
-+	mfd_assert_read(fd);
-+	mfd_assert_write(fd);
-+	mfd_fail_shrink(fd);
-+	mfd_assert_grow(fd);
-+	mfd_assert_grow_write(fd);
-+
-+	close(fd);
-+}
-+
-+/*
-+ * Test SEAL_GROW
-+ * Test whether SEAL_GROW actually prevents growing
-+ */
-+static void test_seal_grow(void)
-+{
-+	int fd;
-+
-+	fd = mfd_assert_new("kern_memfd_seal_grow",
-+			    MFD_DEF_SIZE,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+	mfd_assert_has_seals(fd, 0);
-+	mfd_assert_add_seals(fd, F_SEAL_GROW);
-+	mfd_assert_has_seals(fd, F_SEAL_GROW);
-+
-+	mfd_assert_read(fd);
-+	mfd_assert_write(fd);
-+	mfd_assert_shrink(fd);
-+	mfd_fail_grow(fd);
-+	mfd_fail_grow_write(fd);
-+
-+	close(fd);
-+}
-+
-+/*
-+ * Test SEAL_SHRINK | SEAL_GROW
-+ * Test whether SEAL_SHRINK | SEAL_GROW actually prevents resizing
-+ */
-+static void test_seal_resize(void)
-+{
-+	int fd;
-+
-+	fd = mfd_assert_new("kern_memfd_seal_resize",
-+			    MFD_DEF_SIZE,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+	mfd_assert_has_seals(fd, 0);
-+	mfd_assert_add_seals(fd, F_SEAL_SHRINK | F_SEAL_GROW);
-+	mfd_assert_has_seals(fd, F_SEAL_SHRINK | F_SEAL_GROW);
-+
-+	mfd_assert_read(fd);
-+	mfd_assert_write(fd);
-+	mfd_fail_shrink(fd);
-+	mfd_fail_grow(fd);
-+	mfd_fail_grow_write(fd);
-+
-+	close(fd);
-+}
-+
-+/*
-+ * Test sharing via dup()
-+ * Test that seals are shared between dupped FDs and they're all equal.
-+ */
-+static void test_share_dup(void)
-+{
-+	int fd, fd2;
-+
-+	fd = mfd_assert_new("kern_memfd_share_dup",
-+			    MFD_DEF_SIZE,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+	mfd_assert_has_seals(fd, 0);
-+
-+	fd2 = mfd_assert_dup(fd);
-+	mfd_assert_has_seals(fd2, 0);
-+
-+	mfd_assert_add_seals(fd, F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd, F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd2, F_SEAL_WRITE);
-+
-+	mfd_assert_add_seals(fd2, F_SEAL_SHRINK);
-+	mfd_assert_has_seals(fd, F_SEAL_WRITE | F_SEAL_SHRINK);
-+	mfd_assert_has_seals(fd2, F_SEAL_WRITE | F_SEAL_SHRINK);
-+
-+	mfd_assert_add_seals(fd, F_SEAL_SEAL);
-+	mfd_assert_has_seals(fd, F_SEAL_WRITE | F_SEAL_SHRINK | F_SEAL_SEAL);
-+	mfd_assert_has_seals(fd2, F_SEAL_WRITE | F_SEAL_SHRINK | F_SEAL_SEAL);
-+
-+	mfd_fail_add_seals(fd, F_SEAL_GROW);
-+	mfd_fail_add_seals(fd2, F_SEAL_GROW);
-+	mfd_fail_add_seals(fd, F_SEAL_SEAL);
-+	mfd_fail_add_seals(fd2, F_SEAL_SEAL);
-+
-+	close(fd2);
-+
-+	mfd_fail_add_seals(fd, F_SEAL_GROW);
-+	close(fd);
-+}
-+
-+/*
-+ * Test sealing with active mmap()s
-+ * Modifying seals is only allowed if no other mmap() refs exist.
-+ */
-+static void test_share_mmap(void)
-+{
-+	int fd;
-+	void *p;
-+
-+	fd = mfd_assert_new("kern_memfd_share_mmap",
-+			    MFD_DEF_SIZE,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+	mfd_assert_has_seals(fd, 0);
-+
-+	/* shared/writable ref prevents sealing WRITE, but allows others */
-+	p = mfd_assert_mmap_shared(fd);
-+	mfd_fail_add_seals(fd, F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd, 0);
-+	mfd_assert_add_seals(fd, F_SEAL_SHRINK);
-+	mfd_assert_has_seals(fd, F_SEAL_SHRINK);
-+	munmap(p, MFD_DEF_SIZE);
-+
-+	/* readable ref allows sealing */
-+	p = mfd_assert_mmap_private(fd);
-+	mfd_assert_add_seals(fd, F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd, F_SEAL_WRITE | F_SEAL_SHRINK);
-+	munmap(p, MFD_DEF_SIZE);
-+
-+	close(fd);
-+}
-+
-+/*
-+ * Test sealing with open(/proc/self/fd/%d)
-+ * Via /proc we can get access to a separate file-context for the same memfd.
-+ * This is *not* like dup(), but like a real separate open(). Make sure the
-+ * semantics are as expected and we correctly check for RDONLY / WRONLY / RDWR.
-+ */
-+static void test_share_open(void)
-+{
-+	int fd, fd2;
-+
-+	fd = mfd_assert_new("kern_memfd_share_open",
-+			    MFD_DEF_SIZE,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+	mfd_assert_has_seals(fd, 0);
-+
-+	fd2 = mfd_assert_open(fd, O_RDWR, 0);
-+	mfd_assert_add_seals(fd, F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd, F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd2, F_SEAL_WRITE);
-+
-+	mfd_assert_add_seals(fd2, F_SEAL_SHRINK);
-+	mfd_assert_has_seals(fd, F_SEAL_WRITE | F_SEAL_SHRINK);
-+	mfd_assert_has_seals(fd2, F_SEAL_WRITE | F_SEAL_SHRINK);
-+
-+	close(fd);
-+	fd = mfd_assert_open(fd2, O_RDONLY, 0);
-+
-+	mfd_fail_add_seals(fd, F_SEAL_SEAL);
-+	mfd_assert_has_seals(fd, F_SEAL_WRITE | F_SEAL_SHRINK);
-+	mfd_assert_has_seals(fd2, F_SEAL_WRITE | F_SEAL_SHRINK);
-+
-+	close(fd2);
-+	fd2 = mfd_assert_open(fd, O_RDWR, 0);
-+
-+	mfd_assert_add_seals(fd2, F_SEAL_SEAL);
-+	mfd_assert_has_seals(fd, F_SEAL_WRITE | F_SEAL_SHRINK | F_SEAL_SEAL);
-+	mfd_assert_has_seals(fd2, F_SEAL_WRITE | F_SEAL_SHRINK | F_SEAL_SEAL);
-+
-+	close(fd2);
-+	close(fd);
-+}
-+
-+/*
-+ * Test sharing via fork()
-+ * Test whether seal-modifications work as expected with forked childs.
-+ */
-+static void test_share_fork(void)
-+{
-+	int fd;
-+	pid_t pid;
-+
-+	fd = mfd_assert_new("kern_memfd_share_fork",
-+			    MFD_DEF_SIZE,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+	mfd_assert_has_seals(fd, 0);
-+
-+	pid = spawn_idle_thread(0);
-+	mfd_assert_add_seals(fd, F_SEAL_SEAL);
-+	mfd_assert_has_seals(fd, F_SEAL_SEAL);
-+
-+	mfd_fail_add_seals(fd, F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd, F_SEAL_SEAL);
-+
-+	join_idle_thread(pid);
-+
-+	mfd_fail_add_seals(fd, F_SEAL_WRITE);
-+	mfd_assert_has_seals(fd, F_SEAL_SEAL);
-+
-+	close(fd);
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	pid_t pid;
-+
-+	printf("memfd: CREATE\n");
-+	test_create();
-+	printf("memfd: BASIC\n");
-+	test_basic();
-+
-+	printf("memfd: SEAL-WRITE\n");
-+	test_seal_write();
-+	printf("memfd: SEAL-SHRINK\n");
-+	test_seal_shrink();
-+	printf("memfd: SEAL-GROW\n");
-+	test_seal_grow();
-+	printf("memfd: SEAL-RESIZE\n");
-+	test_seal_resize();
-+
-+	printf("memfd: SHARE-DUP\n");
-+	test_share_dup();
-+	printf("memfd: SHARE-MMAP\n");
-+	test_share_mmap();
-+	printf("memfd: SHARE-OPEN\n");
-+	test_share_open();
-+	printf("memfd: SHARE-FORK\n");
-+	test_share_fork();
-+
-+	/* Run test-suite in a multi-threaded environment with a shared
-+	 * file-table. */
-+	pid = spawn_idle_thread(CLONE_FILES | CLONE_FS | CLONE_VM);
-+	printf("memfd: SHARE-DUP (shared file-table)\n");
-+	test_share_dup();
-+	printf("memfd: SHARE-MMAP (shared file-table)\n");
-+	test_share_mmap();
-+	printf("memfd: SHARE-OPEN (shared file-table)\n");
-+	test_share_open();
-+	printf("memfd: SHARE-FORK (shared file-table)\n");
-+	test_share_fork();
-+	join_idle_thread(pid);
-+
-+	printf("memfd: DONE\n");
-+
-+	return 0;
-+}
++	struct kimage *image;
+ 
++	/* Allocate a controlling structure */
++	image = kzalloc(sizeof(*image), GFP_KERNEL);
++	if (!image)
++		return NULL;
++
++	image->head = 0;
++	image->entry = &image->head;
++	image->last_entry = &image->head;
++	image->control_page = ~0; /* By default this does not apply */
++	image->type = KEXEC_TYPE_DEFAULT;
++
++	/* Initialize the list of control pages */
++	INIT_LIST_HEAD(&image->control_pages);
++
++	/* Initialize the list of destination pages */
++	INIT_LIST_HEAD(&image->dest_pages);
++
++	/* Initialize the list of unusable pages */
++	INIT_LIST_HEAD(&image->unusable_pages);
++
++	return image;
+ }
+ 
+ static void kimage_free_page_list(struct list_head *list);
+@@ -244,10 +269,19 @@ static int kimage_normal_alloc(struct ki
+ 	struct kimage *image;
+ 
+ 	/* Allocate and initialize a controlling structure */
+-	image = NULL;
+-	result = do_kimage_alloc(&image, entry, nr_segments, segments);
++	image = do_kimage_alloc_init();
++	if (!image)
++		return -ENOMEM;
++
++	image->start = entry;
++
++	result = copy_user_segment_list(image, nr_segments, segments);
++	if (result)
++		goto out_free_image;
++
++	result = sanity_check_segment_list(image);
+ 	if (result)
+-		goto out;
++		goto out_free_image;
+ 
+ 	/*
+ 	 * Find a location for the control code buffer, and add it
+@@ -259,22 +293,21 @@ static int kimage_normal_alloc(struct ki
+ 					   get_order(KEXEC_CONTROL_PAGE_SIZE));
+ 	if (!image->control_code_page) {
+ 		pr_err("Could not allocate control_code_buffer\n");
+-		goto out_free;
++		goto out_free_image;
+ 	}
+ 
+ 	image->swap_page = kimage_alloc_control_pages(image, 0);
+ 	if (!image->swap_page) {
+ 		pr_err("Could not allocate swap buffer\n");
+-		goto out_free;
++		goto out_free_control_pages;
+ 	}
+ 
+ 	*rimage = image;
+ 	return 0;
+-
+-out_free:
++out_free_control_pages:
+ 	kimage_free_page_list(&image->control_pages);
++out_free_image:
+ 	kfree(image);
+-out:
+ 	return result;
+ }
+ 
+@@ -284,19 +317,17 @@ static int kimage_crash_alloc(struct kim
+ {
+ 	int result;
+ 	struct kimage *image;
+-	unsigned long i;
+ 
+-	image = NULL;
+ 	/* Verify we have a valid entry point */
+-	if ((entry < crashk_res.start) || (entry > crashk_res.end)) {
+-		result = -EADDRNOTAVAIL;
+-		goto out;
+-	}
++	if ((entry < crashk_res.start) || (entry > crashk_res.end))
++		return -EADDRNOTAVAIL;
+ 
+ 	/* Allocate and initialize a controlling structure */
+-	result = do_kimage_alloc(&image, entry, nr_segments, segments);
+-	if (result)
+-		goto out;
++	image = do_kimage_alloc_init();
++	if (!image)
++		return -ENOMEM;
++
++	image->start = entry;
+ 
+ 	/* Enable the special crash kernel control page
+ 	 * allocation policy.
+@@ -304,25 +335,13 @@ static int kimage_crash_alloc(struct kim
+ 	image->control_page = crashk_res.start;
+ 	image->type = KEXEC_TYPE_CRASH;
+ 
+-	/*
+-	 * Verify we have good destination addresses.  Normally
+-	 * the caller is responsible for making certain we don't
+-	 * attempt to load the new image into invalid or reserved
+-	 * areas of RAM.  But crash kernels are preloaded into a
+-	 * reserved area of ram.  We must ensure the addresses
+-	 * are in the reserved area otherwise preloading the
+-	 * kernel could corrupt things.
+-	 */
+-	result = -EADDRNOTAVAIL;
+-	for (i = 0; i < nr_segments; i++) {
+-		unsigned long mstart, mend;
++	result = copy_user_segment_list(image, nr_segments, segments);
++	if (result)
++		goto out_free_image;
+ 
+-		mstart = image->segment[i].mem;
+-		mend = mstart + image->segment[i].memsz - 1;
+-		/* Ensure we are within the crash kernel limits */
+-		if ((mstart < crashk_res.start) || (mend > crashk_res.end))
+-			goto out_free;
+-	}
++	result = sanity_check_segment_list(image);
++	if (result)
++		goto out_free_image;
+ 
+ 	/*
+ 	 * Find a location for the control code buffer, and add
+@@ -334,15 +353,14 @@ static int kimage_crash_alloc(struct kim
+ 					   get_order(KEXEC_CONTROL_PAGE_SIZE));
+ 	if (!image->control_code_page) {
+ 		pr_err("Could not allocate control_code_buffer\n");
+-		goto out_free;
++		goto out_free_image;
+ 	}
+ 
+ 	*rimage = image;
+ 	return 0;
+ 
+-out_free:
++out_free_image:
+ 	kfree(image);
+-out:
+ 	return result;
+ }
+ 
 _
 
-Patches currently in -mm which might be from dh.herrmann@gmail.com are
+Patches currently in -mm which might be from vgoyal@redhat.com are
 
 origin.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
 
