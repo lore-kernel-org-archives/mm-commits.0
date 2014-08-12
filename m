@@ -1,58 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- purgatory-sha256-provide-implementation-of-sha256-in-purgaotory-context.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 12:43:59 -0700
-Message-ID: <53ea6e7f.CnjeM/JGUvKHaTBK%akpm@linux-foundation.org>
+ kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:44:05 -0700
+Message-ID: <53ea6e85.1hq+c+tVh1GatN6P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:48985 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754871AbaHLToA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:44:00 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so1070405igi.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:44:00 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:41433 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754883AbaHLToG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:44:06 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so2671286pab.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:44:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: purgatory/sha256: provide implementation of sha256 in purgaotory context
+     Subject: kexec-bzImage64: support for loading bzImage using 64bit entry
 has been removed from the -mm tree.  Its filename was
-     purgatory-sha256-provide-implementation-of-sha256-in-purgaotory-context.patch
+     kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: purgatory/sha256: provide implementation of sha256 in purgaotory context
+Subject: kexec-bzImage64: support for loading bzImage using 64bit entry
 
-Next two patches provide code for purgatory.  This is a code which does
-not link against the kernel and runs stand alone.  This code runs between
-two kernels.  One of the primary purpose of this code is to verify the
-digest of newly loaded kernel and making sure it matches the digest
-computed at kernel load time.
+This is loader specific code which can load bzImage and set it up for
+64bit entry.  This does not take care of 32bit entry or real mode entry.
 
-We use sha256 for calculating digest of kexec segmetns.  Purgatory can't
-use stanard crypto API as that API is not available in purgatory context.
-
-Hence, I have copied code from crypto/sha256_generic.c and compiled it
-with purgaotry code so that it could be used.  I could not #include
-sha256_generic.c file here as some of the function signature requiered
-little tweaking.  Original functions work with crypto API but these ones
-don't
-
-So instead of doing #include on sha256_generic.c I just copied relevant
-portions of code into arch/x86/purgatory/sha256.c.  Now we shouldn't have
-to touch this code at all.  Do let me know if there are better ways to
-handle it.
-
-This patch does not enable compiling of this code.  That happens in next
-patch.  I wanted to highlight this change in a separate patch for easy
-review.
+32bit mode entry can be implemented if somebody needs it.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Cc: Borislav Petkov <bp@suse.de>
@@ -69,326 +50,515 @@ Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/purgatory/sha256.c |  283 ++++++++++++++++++++++++++++++++++
- arch/x86/purgatory/sha256.h |   22 ++
- 2 files changed, 305 insertions(+)
+ arch/x86/include/asm/kexec-bzimage64.h |    6 
+ arch/x86/include/asm/kexec.h           |   21 +
+ arch/x86/kernel/Makefile               |    1 
+ arch/x86/kernel/kexec-bzimage64.c      |  375 +++++++++++++++++++++++
+ arch/x86/kernel/machine_kexec_64.c     |    5 
+ include/linux/kexec.h                  |    2 
+ kernel/kexec.c                         |   11 
+ 7 files changed, 415 insertions(+), 6 deletions(-)
 
-diff -puN /dev/null arch/x86/purgatory/sha256.c
+diff -puN /dev/null arch/x86/include/asm/kexec-bzimage64.h
 --- /dev/null
-+++ a/arch/x86/purgatory/sha256.c
-@@ -0,0 +1,283 @@
-+/*
-+ * SHA-256, as specified in
-+ * http://csrc.nist.gov/groups/STM/cavp/documents/shs/sha256-384-512.pdf
-+ *
-+ * SHA-256 code by Jean-Luc Cooke <jlcooke@certainkey.com>.
-+ *
-+ * Copyright (c) Jean-Luc Cooke <jlcooke@certainkey.com>
-+ * Copyright (c) Andrew McDonald <andrew@mcdonald.org.uk>
-+ * Copyright (c) 2002 James Morris <jmorris@intercode.com.au>
-+ * Copyright (c) 2014 Red Hat Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the Free
-+ * Software Foundation; either version 2 of the License, or (at your option)
-+ * any later version.
-+ */
++++ a/arch/x86/include/asm/kexec-bzimage64.h
+@@ -0,0 +1,6 @@
++#ifndef _ASM_KEXEC_BZIMAGE64_H
++#define _ASM_KEXEC_BZIMAGE64_H
 +
-+#include <linux/bitops.h>
-+#include <asm/byteorder.h>
-+#include "sha256.h"
-+#include "../boot/string.h"
++extern struct kexec_file_ops kexec_bzImage64_ops;
 +
-+static inline u32 Ch(u32 x, u32 y, u32 z)
-+{
-+	return z ^ (x & (y ^ z));
-+}
++#endif  /* _ASM_KEXE_BZIMAGE64_H */
+diff -puN arch/x86/include/asm/kexec.h~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry arch/x86/include/asm/kexec.h
+--- a/arch/x86/include/asm/kexec.h~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry
++++ a/arch/x86/include/asm/kexec.h
+@@ -23,6 +23,7 @@
+ 
+ #include <asm/page.h>
+ #include <asm/ptrace.h>
++#include <asm/bootparam.h>
+ 
+ /*
+  * KEXEC_SOURCE_MEMORY_LIMIT maximum page get_free_page can return.
+@@ -161,6 +162,26 @@ struct kimage_arch {
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+ };
 +
-+static inline u32 Maj(u32 x, u32 y, u32 z)
-+{
-+	return (x & y) | (z & (x | y));
-+}
-+
-+#define e0(x)       (ror32(x, 2) ^ ror32(x, 13) ^ ror32(x, 22))
-+#define e1(x)       (ror32(x, 6) ^ ror32(x, 11) ^ ror32(x, 25))
-+#define s0(x)       (ror32(x, 7) ^ ror32(x, 18) ^ (x >> 3))
-+#define s1(x)       (ror32(x, 17) ^ ror32(x, 19) ^ (x >> 10))
-+
-+static inline void LOAD_OP(int I, u32 *W, const u8 *input)
-+{
-+	W[I] = __be32_to_cpu(((__be32 *)(input))[I]);
-+}
-+
-+static inline void BLEND_OP(int I, u32 *W)
-+{
-+	W[I] = s1(W[I-2]) + W[I-7] + s0(W[I-15]) + W[I-16];
-+}
-+
-+static void sha256_transform(u32 *state, const u8 *input)
-+{
-+	u32 a, b, c, d, e, f, g, h, t1, t2;
-+	u32 W[64];
-+	int i;
-+
-+	/* load the input */
-+	for (i = 0; i < 16; i++)
-+		LOAD_OP(i, W, input);
-+
-+	/* now blend */
-+	for (i = 16; i < 64; i++)
-+		BLEND_OP(i, W);
-+
-+	/* load the state into our registers */
-+	a = state[0];  b = state[1];  c = state[2];  d = state[3];
-+	e = state[4];  f = state[5];  g = state[6];  h = state[7];
-+
-+	/* now iterate */
-+	t1 = h + e1(e) + Ch(e, f, g) + 0x428a2f98 + W[0];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1 + t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0x71374491 + W[1];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1 + t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0xb5c0fbcf + W[2];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1 + t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0xe9b5dba5 + W[3];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1 + t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x3956c25b + W[4];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1 + t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0x59f111f1 + W[5];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1 + t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x923f82a4 + W[6];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1 + t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0xab1c5ed5 + W[7];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1 + t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0xd807aa98 + W[8];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1 + t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0x12835b01 + W[9];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1 + t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0x243185be + W[10];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1 + t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0x550c7dc3 + W[11];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1 + t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x72be5d74 + W[12];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1 + t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0x80deb1fe + W[13];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1 + t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x9bdc06a7 + W[14];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1 + t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0xc19bf174 + W[15];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0xe49b69c1 + W[16];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0xefbe4786 + W[17];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0x0fc19dc6 + W[18];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0x240ca1cc + W[19];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x2de92c6f + W[20];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0x4a7484aa + W[21];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x5cb0a9dc + W[22];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0x76f988da + W[23];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0x983e5152 + W[24];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0xa831c66d + W[25];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0xb00327c8 + W[26];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0xbf597fc7 + W[27];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0xc6e00bf3 + W[28];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0xd5a79147 + W[29];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x06ca6351 + W[30];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0x14292967 + W[31];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0x27b70a85 + W[32];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0x2e1b2138 + W[33];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0x4d2c6dfc + W[34];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0x53380d13 + W[35];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x650a7354 + W[36];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0x766a0abb + W[37];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x81c2c92e + W[38];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0x92722c85 + W[39];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0xa2bfe8a1 + W[40];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0xa81a664b + W[41];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0xc24b8b70 + W[42];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0xc76c51a3 + W[43];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0xd192e819 + W[44];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0xd6990624 + W[45];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0xf40e3585 + W[46];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0x106aa070 + W[47];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0x19a4c116 + W[48];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0x1e376c08 + W[49];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0x2748774c + W[50];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0x34b0bcb5 + W[51];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x391c0cb3 + W[52];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0x4ed8aa4a + W[53];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0x5b9cca4f + W[54];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0x682e6ff3 + W[55];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	t1 = h + e1(e) + Ch(e, f, g) + 0x748f82ee + W[56];
-+	t2 = e0(a) + Maj(a, b, c);    d += t1;    h = t1+t2;
-+	t1 = g + e1(d) + Ch(d, e, f) + 0x78a5636f + W[57];
-+	t2 = e0(h) + Maj(h, a, b);    c += t1;    g = t1+t2;
-+	t1 = f + e1(c) + Ch(c, d, e) + 0x84c87814 + W[58];
-+	t2 = e0(g) + Maj(g, h, a);    b += t1;    f = t1+t2;
-+	t1 = e + e1(b) + Ch(b, c, d) + 0x8cc70208 + W[59];
-+	t2 = e0(f) + Maj(f, g, h);    a += t1;    e = t1+t2;
-+	t1 = d + e1(a) + Ch(a, b, c) + 0x90befffa + W[60];
-+	t2 = e0(e) + Maj(e, f, g);    h += t1;    d = t1+t2;
-+	t1 = c + e1(h) + Ch(h, a, b) + 0xa4506ceb + W[61];
-+	t2 = e0(d) + Maj(d, e, f);    g += t1;    c = t1+t2;
-+	t1 = b + e1(g) + Ch(g, h, a) + 0xbef9a3f7 + W[62];
-+	t2 = e0(c) + Maj(c, d, e);    f += t1;    b = t1+t2;
-+	t1 = a + e1(f) + Ch(f, g, h) + 0xc67178f2 + W[63];
-+	t2 = e0(b) + Maj(b, c, d);    e += t1;    a = t1+t2;
-+
-+	state[0] += a; state[1] += b; state[2] += c; state[3] += d;
-+	state[4] += e; state[5] += f; state[6] += g; state[7] += h;
-+
-+	/* clear any sensitive info... */
-+	a = b = c = d = e = f = g = h = t1 = t2 = 0;
-+	memset(W, 0, 64 * sizeof(u32));
-+}
-+
-+int sha256_init(struct sha256_state *sctx)
-+{
-+	sctx->state[0] = SHA256_H0;
-+	sctx->state[1] = SHA256_H1;
-+	sctx->state[2] = SHA256_H2;
-+	sctx->state[3] = SHA256_H3;
-+	sctx->state[4] = SHA256_H4;
-+	sctx->state[5] = SHA256_H5;
-+	sctx->state[6] = SHA256_H6;
-+	sctx->state[7] = SHA256_H7;
-+	sctx->count = 0;
-+
-+	return 0;
-+}
-+
-+int sha256_update(struct sha256_state *sctx, const u8 *data, unsigned int len)
-+{
-+	unsigned int partial, done;
-+	const u8 *src;
-+
-+	partial = sctx->count & 0x3f;
-+	sctx->count += len;
-+	done = 0;
-+	src = data;
-+
-+	if ((partial + len) > 63) {
-+		if (partial) {
-+			done = -partial;
-+			memcpy(sctx->buf + partial, data, done + 64);
-+			src = sctx->buf;
-+		}
-+
-+		do {
-+			sha256_transform(sctx->state, src);
-+			done += 64;
-+			src = data + done;
-+		} while (done + 63 < len);
-+
-+		partial = 0;
-+	}
-+	memcpy(sctx->buf + partial, src, len - done);
-+
-+	return 0;
-+}
-+
-+int sha256_final(struct sha256_state *sctx, u8 *out)
-+{
-+	__be32 *dst = (__be32 *)out;
-+	__be64 bits;
-+	unsigned int index, pad_len;
-+	int i;
-+	static const u8 padding[64] = { 0x80, };
-+
-+	/* Save number of bits */
-+	bits = cpu_to_be64(sctx->count << 3);
-+
-+	/* Pad out to 56 mod 64. */
-+	index = sctx->count & 0x3f;
-+	pad_len = (index < 56) ? (56 - index) : ((64+56) - index);
-+	sha256_update(sctx, padding, pad_len);
-+
-+	/* Append length (before padding) */
-+	sha256_update(sctx, (const u8 *)&bits, sizeof(bits));
-+
-+	/* Store state in digest */
-+	for (i = 0; i < 8; i++)
-+		dst[i] = cpu_to_be32(sctx->state[i]);
-+
-+	/* Zeroize sensitive information. */
-+	memset(sctx, 0, sizeof(*sctx));
-+
-+	return 0;
-+}
-diff -puN /dev/null arch/x86/purgatory/sha256.h
++struct kexec_entry64_regs {
++	uint64_t rax;
++	uint64_t rbx;
++	uint64_t rcx;
++	uint64_t rdx;
++	uint64_t rsi;
++	uint64_t rdi;
++	uint64_t rsp;
++	uint64_t rbp;
++	uint64_t r8;
++	uint64_t r9;
++	uint64_t r10;
++	uint64_t r11;
++	uint64_t r12;
++	uint64_t r13;
++	uint64_t r14;
++	uint64_t r15;
++	uint64_t rip;
++};
+ #endif
+ 
+ typedef void crash_vmclear_fn(void);
+diff -puN arch/x86/kernel/Makefile~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry arch/x86/kernel/Makefile
+--- a/arch/x86/kernel/Makefile~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry
++++ a/arch/x86/kernel/Makefile
+@@ -118,4 +118,5 @@ ifeq ($(CONFIG_X86_64),y)
+ 
+ 	obj-$(CONFIG_PCI_MMCONFIG)	+= mmconf-fam10h_64.o
+ 	obj-y				+= vsmp_64.o
++	obj-$(CONFIG_KEXEC)		+= kexec-bzimage64.o
+ endif
+diff -puN /dev/null arch/x86/kernel/kexec-bzimage64.c
 --- /dev/null
-+++ a/arch/x86/purgatory/sha256.h
-@@ -0,0 +1,22 @@
++++ a/arch/x86/kernel/kexec-bzimage64.c
+@@ -0,0 +1,375 @@
 +/*
-+ *  Copyright (C) 2014 Red Hat Inc.
++ * Kexec bzImage loader
 + *
-+ *  Author: Vivek Goyal <vgoyal@redhat.com>
++ * Copyright (C) 2014 Red Hat Inc.
++ * Authors:
++ *      Vivek Goyal <vgoyal@redhat.com>
 + *
 + * This source code is licensed under the GNU General Public License,
 + * Version 2.  See the file COPYING for more details.
 + */
 +
-+#ifndef SHA256_H
-+#define SHA256_H
++#define pr_fmt(fmt)	"kexec-bzImage64: " fmt
 +
++#include <linux/string.h>
++#include <linux/printk.h>
++#include <linux/errno.h>
++#include <linux/slab.h>
++#include <linux/kexec.h>
++#include <linux/kernel.h>
++#include <linux/mm.h>
 +
-+#include <linux/types.h>
-+#include <crypto/sha.h>
++#include <asm/bootparam.h>
++#include <asm/setup.h>
 +
-+extern int sha256_init(struct sha256_state *sctx);
-+extern int sha256_update(struct sha256_state *sctx, const u8 *input,
-+				unsigned int length);
-+extern int sha256_final(struct sha256_state *sctx, u8 *hash);
++/*
++ * Defines lowest physical address for various segments. Not sure where
++ * exactly these limits came from. Current bzimage64 loader in kexec-tools
++ * uses these so I am retaining it. It can be changed over time as we gain
++ * more insight.
++ */
++#define MIN_PURGATORY_ADDR	0x3000
++#define MIN_BOOTPARAM_ADDR	0x3000
++#define MIN_KERNEL_LOAD_ADDR	0x100000
++#define MIN_INITRD_LOAD_ADDR	0x1000000
 +
-+#endif /* SHA256_H */
-_
-
-Patches currently in -mm which might be from vgoyal@redhat.com are
-
-origin.patch
-
++/*
++ * This is a place holder for all boot loader specific data structure which
++ * gets allocated in one call but gets freed much later during cleanup
++ * time. Right now there is only one field but it can grow as need be.
++ */
++struct bzimage64_data {
++	/*
++	 * Temporary buffer to hold bootparams buffer. This should be
++	 * freed once the bootparam segment has been loaded.
++	 */
++	void *bootparams_buf;
++};
++
++static int setup_initrd(struct boot_params *params,
++		unsigned long initrd_load_addr, unsigned long initrd_len)
++{
++	params->hdr.ramdisk_image = initrd_load_addr & 0xffffffffUL;
++	params->hdr.ramdisk_size = initrd_len & 0xffffffffUL;
++
++	params->ext_ramdisk_image = initrd_load_addr >> 32;
++	params->ext_ramdisk_size = initrd_len >> 32;
++
++	return 0;
++}
++
++static int setup_cmdline(struct boot_params *params,
++			 unsigned long bootparams_load_addr,
++			 unsigned long cmdline_offset, char *cmdline,
++			 unsigned long cmdline_len)
++{
++	char *cmdline_ptr = ((char *)params) + cmdline_offset;
++	unsigned long cmdline_ptr_phys;
++	uint32_t cmdline_low_32, cmdline_ext_32;
++
++	memcpy(cmdline_ptr, cmdline, cmdline_len);
++	cmdline_ptr[cmdline_len - 1] = '\0';
++
++	cmdline_ptr_phys = bootparams_load_addr + cmdline_offset;
++	cmdline_low_32 = cmdline_ptr_phys & 0xffffffffUL;
++	cmdline_ext_32 = cmdline_ptr_phys >> 32;
++
++	params->hdr.cmd_line_ptr = cmdline_low_32;
++	if (cmdline_ext_32)
++		params->ext_cmd_line_ptr = cmdline_ext_32;
++
++	return 0;
++}
++
++static int setup_memory_map_entries(struct boot_params *params)
++{
++	unsigned int nr_e820_entries;
++
++	nr_e820_entries = e820_saved.nr_map;
++
++	/* TODO: Pass entries more than E820MAX in bootparams setup data */
++	if (nr_e820_entries > E820MAX)
++		nr_e820_entries = E820MAX;
++
++	params->e820_entries = nr_e820_entries;
++	memcpy(&params->e820_map, &e820_saved.map,
++	       nr_e820_entries * sizeof(struct e820entry));
++
++	return 0;
++}
++
++static int setup_boot_parameters(struct boot_params *params)
++{
++	unsigned int nr_e820_entries;
++	unsigned long long mem_k, start, end;
++	int i;
++
++	/* Get subarch from existing bootparams */
++	params->hdr.hardware_subarch = boot_params.hdr.hardware_subarch;
++
++	/* Copying screen_info will do? */
++	memcpy(&params->screen_info, &boot_params.screen_info,
++				sizeof(struct screen_info));
++
++	/* Fill in memsize later */
++	params->screen_info.ext_mem_k = 0;
++	params->alt_mem_k = 0;
++
++	/* Default APM info */
++	memset(&params->apm_bios_info, 0, sizeof(params->apm_bios_info));
++
++	/* Default drive info */
++	memset(&params->hd0_info, 0, sizeof(params->hd0_info));
++	memset(&params->hd1_info, 0, sizeof(params->hd1_info));
++
++	/* Default sysdesc table */
++	params->sys_desc_table.length = 0;
++
++	setup_memory_map_entries(params);
++	nr_e820_entries = params->e820_entries;
++
++	for (i = 0; i < nr_e820_entries; i++) {
++		if (params->e820_map[i].type != E820_RAM)
++			continue;
++		start = params->e820_map[i].addr;
++		end = params->e820_map[i].addr + params->e820_map[i].size - 1;
++
++		if ((start <= 0x100000) && end > 0x100000) {
++			mem_k = (end >> 10) - (0x100000 >> 10);
++			params->screen_info.ext_mem_k = mem_k;
++			params->alt_mem_k = mem_k;
++			if (mem_k > 0xfc00)
++				params->screen_info.ext_mem_k = 0xfc00; /* 64M*/
++			if (mem_k > 0xffffffff)
++				params->alt_mem_k = 0xffffffff;
++		}
++	}
++
++	/* Setup EDD info */
++	memcpy(params->eddbuf, boot_params.eddbuf,
++				EDDMAXNR * sizeof(struct edd_info));
++	params->eddbuf_entries = boot_params.eddbuf_entries;
++
++	memcpy(params->edd_mbr_sig_buffer, boot_params.edd_mbr_sig_buffer,
++	       EDD_MBR_SIG_MAX * sizeof(unsigned int));
++
++	return 0;
++}
++
++int bzImage64_probe(const char *buf, unsigned long len)
++{
++	int ret = -ENOEXEC;
++	struct setup_header *header;
++
++	/* kernel should be atleast two sectors long */
++	if (len < 2 * 512) {
++		pr_err("File is too short to be a bzImage\n");
++		return ret;
++	}
++
++	header = (struct setup_header *)(buf + offsetof(struct boot_params, hdr));
++	if (memcmp((char *)&header->header, "HdrS", 4) != 0) {
++		pr_err("Not a bzImage\n");
++		return ret;
++	}
++
++	if (header->boot_flag != 0xAA55) {
++		pr_err("No x86 boot sector present\n");
++		return ret;
++	}
++
++	if (header->version < 0x020C) {
++		pr_err("Must be at least protocol version 2.12\n");
++		return ret;
++	}
++
++	if (!(header->loadflags & LOADED_HIGH)) {
++		pr_err("zImage not a bzImage\n");
++		return ret;
++	}
++
++	if (!(header->xloadflags & XLF_KERNEL_64)) {
++		pr_err("Not a bzImage64. XLF_KERNEL_64 is not set.\n");
++		return ret;
++	}
++
++	if (!(header->xloadflags & XLF_CAN_BE_LOADED_ABOVE_4G)) {
++		pr_err("XLF_CAN_BE_LOADED_ABOVE_4G is not set.\n");
++		return ret;
++	}
++
++	/* I've got a bzImage */
++	pr_debug("It's a relocatable bzImage64\n");
++	ret = 0;
++
++	return ret;
++}
++
++void *bzImage64_load(struct kimage *image, char *kernel,
++		     unsigned long kernel_len, char *initrd,
++		     unsigned long initrd_len, char *cmdline,
++		     unsigned long cmdline_len)
++{
++
++	struct setup_header *header;
++	int setup_sects, kern16_size, ret = 0;
++	unsigned long setup_header_size, params_cmdline_sz;
++	struct boot_params *params;
++	unsigned long bootparam_load_addr, kernel_load_addr, initrd_load_addr;
++	unsigned long purgatory_load_addr;
++	unsigned long kernel_bufsz, kernel_memsz, kernel_align;
++	char *kernel_buf;
++	struct bzimage64_data *ldata;
++	struct kexec_entry64_regs regs64;
++	void *stack;
++	unsigned int setup_hdr_offset = offsetof(struct boot_params, hdr);
++
++	header = (struct setup_header *)(kernel + setup_hdr_offset);
++	setup_sects = header->setup_sects;
++	if (setup_sects == 0)
++		setup_sects = 4;
++
++	kern16_size = (setup_sects + 1) * 512;
++	if (kernel_len < kern16_size) {
++		pr_err("bzImage truncated\n");
++		return ERR_PTR(-ENOEXEC);
++	}
++
++	if (cmdline_len > header->cmdline_size) {
++		pr_err("Kernel command line too long\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	/*
++	 * Load purgatory. For 64bit entry point, purgatory  code can be
++	 * anywhere.
++	 */
++	ret = kexec_load_purgatory(image, MIN_PURGATORY_ADDR, ULONG_MAX, 1,
++				   &purgatory_load_addr);
++	if (ret) {
++		pr_err("Loading purgatory failed\n");
++		return ERR_PTR(ret);
++	}
++
++	pr_debug("Loaded purgatory at 0x%lx\n", purgatory_load_addr);
++
++	/* Load Bootparams and cmdline */
++	params_cmdline_sz = sizeof(struct boot_params) + cmdline_len;
++	params = kzalloc(params_cmdline_sz, GFP_KERNEL);
++	if (!params)
++		return ERR_PTR(-ENOMEM);
++
++	/* Copy setup header onto bootparams. Documentation/x86/boot.txt */
++	setup_header_size = 0x0202 + kernel[0x0201] - setup_hdr_offset;
++
++	/* Is there a limit on setup header size? */
++	memcpy(&params->hdr, (kernel + setup_hdr_offset), setup_header_size);
++
++	ret = kexec_add_buffer(image, (char *)params, params_cmdline_sz,
++			       params_cmdline_sz, 16, MIN_BOOTPARAM_ADDR,
++			       ULONG_MAX, 1, &bootparam_load_addr);
++	if (ret)
++		goto out_free_params;
++	pr_debug("Loaded boot_param and command line at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
++		 bootparam_load_addr, params_cmdline_sz, params_cmdline_sz);
++
++	/* Load kernel */
++	kernel_buf = kernel + kern16_size;
++	kernel_bufsz =  kernel_len - kern16_size;
++	kernel_memsz = PAGE_ALIGN(header->init_size);
++	kernel_align = header->kernel_alignment;
++
++	ret = kexec_add_buffer(image, kernel_buf,
++			       kernel_bufsz, kernel_memsz, kernel_align,
++			       MIN_KERNEL_LOAD_ADDR, ULONG_MAX, 1,
++			       &kernel_load_addr);
++	if (ret)
++		goto out_free_params;
++
++	pr_debug("Loaded 64bit kernel at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
++		 kernel_load_addr, kernel_memsz, kernel_memsz);
++
++	/* Load initrd high */
++	if (initrd) {
++		ret = kexec_add_buffer(image, initrd, initrd_len, initrd_len,
++				       PAGE_SIZE, MIN_INITRD_LOAD_ADDR,
++				       ULONG_MAX, 1, &initrd_load_addr);
++		if (ret)
++			goto out_free_params;
++
++		pr_debug("Loaded initrd at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
++				initrd_load_addr, initrd_len, initrd_len);
++
++		setup_initrd(params, initrd_load_addr, initrd_len);
++	}
++
++	setup_cmdline(params, bootparam_load_addr, sizeof(struct boot_params),
++		      cmdline, cmdline_len);
++
++	/* bootloader info. Do we need a separate ID for kexec kernel loader? */
++	params->hdr.type_of_loader = 0x0D << 4;
++	params->hdr.loadflags = 0;
++
++	/* Setup purgatory regs for entry */
++	ret = kexec_purgatory_get_set_symbol(image, "entry64_regs", &regs64,
++					     sizeof(regs64), 1);
++	if (ret)
++		goto out_free_params;
++
++	regs64.rbx = 0; /* Bootstrap Processor */
++	regs64.rsi = bootparam_load_addr;
++	regs64.rip = kernel_load_addr + 0x200;
++	stack = kexec_purgatory_get_symbol_addr(image, "stack_end");
++	if (IS_ERR(stack)) {
++		pr_err("Could not find address of symbol stack_end\n");
++		ret = -EINVAL;
++		goto out_free_params;
++	}
++
++	regs64.rsp = (unsigned long)stack;
++	ret = kexec_purgatory_get_set_symbol(image, "entry64_regs", &regs64,
++					     sizeof(regs64), 0);
++	if (ret)
++		goto out_free_params;
++
++	setup_boot_parameters(params);
++
++	/* Allocate loader specific data */
++	ldata = kzalloc(sizeof(struct bzimage64_data), GFP_KERNEL);
++	if (!ldata) {
++		ret = -ENOMEM;
++		goto out_free_params;
++	}
++
++	/*
++	 * Store pointer to params so that it could be freed after loading
++	 * params segment has been loaded and contents have been copied
++	 * somewhere else.
++	 */
++	ldata->bootparams_buf = params;
++	return ldata;
++
++out_free_params:
++	kfree(params);
++	return ERR_PTR(ret);
++}
++
++/* This cleanup function is called after various segments have been loaded */
++int bzImage64_cleanup(void *loader_data)
++{
++	struct bzimage64_data *ldata = loader_data;
++
++	if (!ldata)
++		return 0;
++
++	kfree(ldata->bootparams_buf);
++	ldata->bootparams_buf = NULL;
++
++	return 0;
++}
++
++struct kexec_file_ops kexec_bzImage64_ops = {
++	.probe = bzImage64_probe,
++	.load = bzImage64_load,
++	.cleanup = bzImage64_cleanup,
++};
+diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -23,9 +23,10 @@
+ #include <asm/tlbflush.h>
+ #include <asm/mmu_context.h>
+ #include <asm/debugreg.h>
++#include <asm/kexec-bzimage64.h>
+ 
+ static struct kexec_file_ops *kexec_file_loaders[] = {
+-		NULL,
++		&kexec_bzImage64_ops,
+ };
+ 
+ static void free_transition_pgtable(struct kimage *image)
+@@ -328,7 +329,7 @@ int arch_kimage_file_post_load_cleanup(s
+ 	if (!image->fops || !image->fops->cleanup)
+ 		return 0;
+ 
+-	return image->fops->cleanup(image);
++	return image->fops->cleanup(image->image_loader_data);
+ }
+ 
+ /*
+diff -puN include/linux/kexec.h~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry
++++ a/include/linux/kexec.h
+@@ -190,7 +190,7 @@ typedef void *(kexec_load_t)(struct kima
+ 			     unsigned long kernel_len, char *initrd,
+ 			     unsigned long initrd_len, char *cmdline,
+ 			     unsigned long cmdline_len);
+-typedef int (kexec_cleanup_t)(struct kimage *image);
++typedef int (kexec_cleanup_t)(void *loader_data);
+ 
+ struct kexec_file_ops {
+ 	kexec_probe_t *probe;
+diff -puN kernel/kexec.c~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry kernel/kexec.c
+--- a/kernel/kexec.c~kexec-bzimage64-support-for-loading-bzimage-using-64bit-entry
++++ a/kernel/kexec.c
+@@ -460,6 +460,14 @@ static void kimage_file_post_load_cleanu
+ 
+ 	/* See if architecture has anything to cleanup post load */
+ 	arch_kimage_file_post_load_cleanup(image);
++
++	/*
++	 * Above call should have called into bootloader to free up
++	 * any data stored in kimage->image_loader_data. It should
++	 * be ok now to free it up.
++	 */
++	kfree(image->image_loader_data);
++	image->image_loader_data = NULL;
+ }
+ 
+ /*
+@@ -576,7 +584,6 @@ out_free_control_pages:
+ 	kimage_free_page_list(&image->control_pages);
+ out_free_post_load_bufs:
+ 	kimage_file_post_load_cleanup(image);
+-	kfree(image->image_loader_data);
+ out_free_image:
+ 	kfree(image);
+ 	return ret;
+@@ -900,8 +907,6 @@ static void kimage_free(struct kimage *i
+ 	/* Free the kexec control pages... */
+ 	kimage_free_page_list(&image->control_pages);
+ 
+-	kfree(image->image_loader_data);
