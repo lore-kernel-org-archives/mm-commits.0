@@ -1,218 +1,233 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch removed
- from -mm tree
-Date: Tue, 12 Aug 2014 12:39:38 -0700
-Message-ID: <53ea6d7a.fOAP4Q7MopqsG89n%akpm@linux-foundation.org>
+Subject: [merged] kernel-exit-fix-coding-style-warnings-and-errors.patch
+ removed from -mm tree
+Date: Tue, 12 Aug 2014 12:39:42 -0700
+Message-ID: <53ea6d7e.DpP4UdOtefNxBres%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:34529 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754357AbaHLTjj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:39:39 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so2669863pab.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:39:38 -0700 (PDT)
+Received: from mail-yk0-f201.google.com ([209.85.160.201]:35121 "EHLO
+	mail-yk0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754734AbaHLTjn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:39:43 -0400
+Received: by mail-yk0-f201.google.com with SMTP id 142so1307017ykq.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:39:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, jeffm@suse.com, mm-commits@vger.kernel.org
+To: ionut.m.alexa@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/reiserfs/xattr.c: fix blank line missing after declarations
+     Subject: kernel/exit.c: fix coding style warnings and errors
 has been removed from the -mm tree.  Its filename was
-     fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations.patch
+     kernel-exit-fix-coding-style-warnings-and-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/reiserfs/xattr.c: fix blank line missing after declarations
+From: Ionut Alexa <ionut.m.alexa@gmail.com>
+Subject: kernel/exit.c: fix coding style warnings and errors
 
-Fix checkpatch warning:
+Fixed coding style warnings and errors.
 
-"WARNING: Missing a blank line after declarations"
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Ionut Alexa <ionut.m.alexa@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/xattr.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ kernel/exit.c |   49 +++++++++++++++++++++++++-----------------------
+ 1 file changed, 26 insertions(+), 23 deletions(-)
 
-diff -puN fs/reiserfs/xattr.c~fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations fs/reiserfs/xattr.c
---- a/fs/reiserfs/xattr.c~fs-reiserfs-xattrc-fix-blank-line-missing-after-declarations
-+++ a/fs/reiserfs/xattr.c
-@@ -84,6 +84,7 @@ static int xattr_mkdir(struct inode *dir
- static int xattr_unlink(struct inode *dir, struct dentry *dentry)
- {
- 	int error;
-+
- 	BUG_ON(!mutex_is_locked(&dir->i_mutex));
+diff -puN kernel/exit.c~kernel-exit-fix-coding-style-warnings-and-errors kernel/exit.c
+--- a/kernel/exit.c~kernel-exit-fix-coding-style-warnings-and-errors
++++ a/kernel/exit.c
+@@ -59,7 +59,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/mmu_context.h>
  
- 	mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_CHILD);
-@@ -98,6 +99,7 @@ static int xattr_unlink(struct inode *di
- static int xattr_rmdir(struct inode *dir, struct dentry *dentry)
- {
- 	int error;
-+
- 	BUG_ON(!mutex_is_locked(&dir->i_mutex));
+-static void exit_mm(struct task_struct * tsk);
++static void exit_mm(struct task_struct *tsk);
  
- 	mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_CHILD);
-@@ -117,6 +119,7 @@ static struct dentry *open_xa_root(struc
+ static void __unhash_process(struct task_struct *p, bool group_dead)
  {
- 	struct dentry *privroot = REISERFS_SB(sb)->priv_root;
- 	struct dentry *xaroot;
-+
- 	if (!privroot->d_inode)
- 		return ERR_PTR(-ENODATA);
+@@ -151,7 +151,7 @@ static void __exit_signal(struct task_st
+ 	spin_unlock(&sighand->siglock);
  
-@@ -127,6 +130,7 @@ static struct dentry *open_xa_root(struc
- 		xaroot = ERR_PTR(-ENODATA);
- 	else if (!xaroot->d_inode) {
- 		int err = -ENODATA;
-+
- 		if (xattr_may_create(flags))
- 			err = xattr_mkdir(privroot->d_inode, xaroot, 0700);
- 		if (err) {
-@@ -157,6 +161,7 @@ static struct dentry *open_xa_dir(const
- 	xadir = lookup_one_len(namebuf, xaroot, strlen(namebuf));
- 	if (!IS_ERR(xadir) && !xadir->d_inode) {
- 		int err = -ENODATA;
-+
- 		if (xattr_may_create(flags))
- 			err = xattr_mkdir(xaroot->d_inode, xadir, 0700);
- 		if (err) {
-@@ -188,6 +193,7 @@ fill_with_dentries(void *buf, const char
- {
- 	struct reiserfs_dentry_buf *dbuf = buf;
- 	struct dentry *dentry;
-+
- 	WARN_ON_ONCE(!mutex_is_locked(&dbuf->xadir->d_inode->i_mutex));
+ 	__cleanup_sighand(sighand);
+-	clear_tsk_thread_flag(tsk,TIF_SIGPENDING);
++	clear_tsk_thread_flag(tsk, TIF_SIGPENDING);
+ 	if (group_dead) {
+ 		flush_sigqueue(&sig->shared_pending);
+ 		tty_kref_put(tty);
+@@ -168,7 +168,7 @@ static void delayed_put_task_struct(stru
+ }
  
- 	if (dbuf->count == ARRAY_SIZE(dbuf->dentries))
-@@ -218,6 +224,7 @@ static void
- cleanup_dentry_buf(struct reiserfs_dentry_buf *buf)
- {
- 	int i;
-+
- 	for (i = 0; i < buf->count; i++)
- 		if (buf->dentries[i])
- 			dput(buf->dentries[i]);
-@@ -283,11 +290,13 @@ static int reiserfs_for_each_xattr(struc
- 		int blocks = JOURNAL_PER_BALANCE_CNT * 2 + 2 +
- 			     4 * REISERFS_QUOTA_TRANS_BLOCKS(inode->i_sb);
- 		struct reiserfs_transaction_handle th;
-+
- 		reiserfs_write_lock(inode->i_sb);
- 		err = journal_begin(&th, inode->i_sb, blocks);
- 		reiserfs_write_unlock(inode->i_sb);
- 		if (!err) {
- 			int jerror;
-+
- 			mutex_lock_nested(&dir->d_parent->d_inode->i_mutex,
- 					  I_MUTEX_XATTR);
- 			err = action(dir, data);
-@@ -340,6 +349,7 @@ static int chown_one_xattr(struct dentry
- int reiserfs_delete_xattrs(struct inode *inode)
- {
- 	int err = reiserfs_for_each_xattr(inode, delete_one_xattr, NULL);
-+
- 	if (err)
- 		reiserfs_warning(inode->i_sb, "jdm-20004",
- 				 "Couldn't delete all xattrs (%d)\n", err);
-@@ -350,6 +360,7 @@ int reiserfs_delete_xattrs(struct inode
- int reiserfs_chown_xattrs(struct inode *inode, struct iattr *attrs)
- {
- 	int err = reiserfs_for_each_xattr(inode, chown_one_xattr, attrs);
-+
- 	if (err)
- 		reiserfs_warning(inode->i_sb, "jdm-20007",
- 				 "Couldn't chown all xattrs (%d)\n", err);
-@@ -439,6 +450,7 @@ int reiserfs_commit_write(struct file *f
- static void update_ctime(struct inode *inode)
- {
- 	struct timespec now = current_fs_time(inode->i_sb);
-+
- 	if (inode_unhashed(inode) || !inode->i_nlink ||
- 	    timespec_equal(&inode->i_ctime, &now))
- 		return;
-@@ -514,6 +526,7 @@ reiserfs_xattr_set_handle(struct reiserf
- 		size_t chunk;
- 		size_t skip = 0;
- 		size_t page_offset = (file_pos & (PAGE_CACHE_SIZE - 1));
-+
- 		if (buffer_size - buffer_pos > PAGE_CACHE_SIZE)
- 			chunk = PAGE_CACHE_SIZE;
- 		else
-@@ -530,6 +543,7 @@ reiserfs_xattr_set_handle(struct reiserf
  
- 		if (file_pos == 0) {
- 			struct reiserfs_xattr_header *rxh;
-+
- 			skip = file_pos = sizeof(struct reiserfs_xattr_header);
- 			if (chunk + skip > PAGE_CACHE_SIZE)
- 				chunk = PAGE_CACHE_SIZE - skip;
-@@ -659,6 +673,7 @@ reiserfs_xattr_get(struct inode *inode,
- 		size_t chunk;
- 		char *data;
- 		size_t skip = 0;
-+
- 		if (isize - file_pos > PAGE_CACHE_SIZE)
- 			chunk = PAGE_CACHE_SIZE;
- 		else
-@@ -792,6 +807,7 @@ reiserfs_setxattr(struct dentry *dentry,
- int reiserfs_removexattr(struct dentry *dentry, const char *name)
+-void release_task(struct task_struct * p)
++void release_task(struct task_struct *p)
  {
- 	const struct xattr_handler *handler;
-+
- 	handler = find_xattr_handler_prefix(dentry->d_sb->s_xattr, name);
+ 	struct task_struct *leader;
+ 	int zap_leader;
+@@ -192,7 +192,8 @@ repeat:
+ 	 */
+ 	zap_leader = 0;
+ 	leader = p->group_leader;
+-	if (leader != p && thread_group_empty(leader) && leader->exit_state == EXIT_ZOMBIE) {
++	if (leader != p && thread_group_empty(leader)
++			&& leader->exit_state == EXIT_ZOMBIE) {
+ 		/*
+ 		 * If we were the last child thread and the leader has
+ 		 * exited already, and the leader's parent ignores SIGCHLD,
+@@ -241,7 +242,8 @@ struct pid *session_of_pgrp(struct pid *
+  *
+  * "I ask you, have you ever known what it is to be an orphan?"
+  */
+-static int will_become_orphaned_pgrp(struct pid *pgrp, struct task_struct *ignored_task)
++static int will_become_orphaned_pgrp(struct pid *pgrp,
++					struct task_struct *ignored_task)
+ {
+ 	struct task_struct *p;
  
- 	if (!handler || get_inode_sd_version(dentry->d_inode) == STAT_DATA_V1)
-@@ -813,9 +829,11 @@ static int listxattr_filler(void *buf, c
- {
- 	struct listxattr_buf *b = (struct listxattr_buf *)buf;
- 	size_t size;
-+
- 	if (name[0] != '.' ||
- 	    (namelen != 1 && (name[1] != '.' || namelen != 2))) {
- 		const struct xattr_handler *handler;
-+
- 		handler = find_xattr_handler_prefix(b->dentry->d_sb->s_xattr,
- 						    name);
- 		if (!handler)	/* Unsupported xattr name */
-@@ -885,6 +903,7 @@ static int create_privroot(struct dentry
- {
- 	int err;
- 	struct inode *inode = dentry->d_parent->d_inode;
-+
- 	WARN_ON_ONCE(!mutex_is_locked(&inode->i_mutex));
+@@ -294,9 +296,9 @@ kill_orphaned_pgrp(struct task_struct *t
+ 	struct task_struct *ignored_task = tsk;
  
- 	err = xattr_mkdir(inode, dentry, 0700);
-@@ -1015,6 +1034,7 @@ int reiserfs_xattr_init(struct super_blo
- 		mutex_lock(&privroot->d_inode->i_mutex);
- 		if (!REISERFS_SB(s)->xattr_root) {
- 			struct dentry *dentry;
+ 	if (!parent)
+-		 /* exit: our father is in a different pgrp than
+-		  * we are and we were the only connection outside.
+-		  */
++		/* exit: our father is in a different pgrp than
++		 * we are and we were the only connection outside.
++		 */
+ 		parent = tsk->real_parent;
+ 	else
+ 		/* reparent: our child is in a different pgrp than
+@@ -405,7 +407,7 @@ assign_new_owner:
+  * Turn us into a lazy TLB process if we
+  * aren't already..
+  */
+-static void exit_mm(struct task_struct * tsk)
++static void exit_mm(struct task_struct *tsk)
+ {
+ 	struct mm_struct *mm = tsk->mm;
+ 	struct core_state *core_state;
+@@ -425,6 +427,7 @@ static void exit_mm(struct task_struct *
+ 	core_state = mm->core_state;
+ 	if (core_state) {
+ 		struct core_thread self;
 +
- 			dentry = lookup_one_len(XAROOT_NAME, privroot,
- 						strlen(XAROOT_NAME));
- 			if (!IS_ERR(dentry))
+ 		up_read(&mm->mmap_sem);
+ 
+ 		self.task = tsk;
+@@ -566,6 +569,7 @@ static void forget_original_parent(struc
+ 
+ 	list_for_each_entry_safe(p, n, &father->children, sibling) {
+ 		struct task_struct *t = p;
++
+ 		do {
+ 			t->real_parent = reaper;
+ 			if (t->parent == father) {
+@@ -599,7 +603,7 @@ static void exit_notify(struct task_stru
+ 	/*
+ 	 * This does two things:
+ 	 *
+-  	 * A.  Make init inherit all the child processes
++	 * A.  Make init inherit all the child processes
+ 	 * B.  Check to see if any process groups have become orphaned
+ 	 *	as a result of our exiting, and if they have any stopped
+ 	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
+@@ -649,9 +653,8 @@ static void check_stack_usage(void)
+ 
+ 	spin_lock(&low_water_lock);
+ 	if (free < lowest_to_date) {
+-		printk(KERN_WARNING "%s (%d) used greatest stack depth: "
+-				"%lu bytes left\n",
+-				current->comm, task_pid_nr(current), free);
++		pr_warn("%s (%d) used greatest stack depth: %lu bytes left\n",
++			current->comm, task_pid_nr(current), free);
+ 		lowest_to_date = free;
+ 	}
+ 	spin_unlock(&low_water_lock);
+@@ -692,8 +695,7 @@ void do_exit(long code)
+ 	 * leave this task alone and wait for reboot.
+ 	 */
+ 	if (unlikely(tsk->flags & PF_EXITING)) {
+-		printk(KERN_ALERT
+-			"Fixing recursive fault but reboot is needed!\n");
++		pr_alert("Fixing recursive fault but reboot is needed!\n");
+ 		/*
+ 		 * We can do this unlocked here. The futex code uses
+ 		 * this flag just to verify whether the pi state
+@@ -717,9 +719,9 @@ void do_exit(long code)
+ 	raw_spin_unlock_wait(&tsk->pi_lock);
+ 
+ 	if (unlikely(in_atomic()))
+-		printk(KERN_INFO "note: %s[%d] exited with preempt_count %d\n",
+-				current->comm, task_pid_nr(current),
+-				preempt_count());
++		pr_info("note: %s[%d] exited with preempt_count %d\n",
++			current->comm, task_pid_nr(current),
++			preempt_count());
+ 
+ 	acct_update_integrals(tsk);
+ 	/* sync mm's RSS info before statistics gathering */
+@@ -837,7 +839,6 @@ void do_exit(long code)
+ 	for (;;)
+ 		cpu_relax();	/* For when BUG is null */
+ }
+-
+ EXPORT_SYMBOL_GPL(do_exit);
+ 
+ void complete_and_exit(struct completion *comp, long code)
+@@ -847,7 +848,6 @@ void complete_and_exit(struct completion
+ 
+ 	do_exit(code);
+ }
+-
+ EXPORT_SYMBOL(complete_and_exit);
+ 
+ SYSCALL_DEFINE1(exit, int, error_code)
+@@ -870,6 +870,7 @@ do_group_exit(int exit_code)
+ 		exit_code = sig->group_exit_code;
+ 	else if (!thread_group_empty(current)) {
+ 		struct sighand_struct *const sighand = current->sighand;
++
+ 		spin_lock_irq(&sighand->siglock);
+ 		if (signal_group_exit(sig))
+ 			/* Another thread got here before we took the lock.  */
+@@ -1034,9 +1035,9 @@ static int wait_task_zombie(struct wait_
+ 		 * as other threads in the parent group can be right
+ 		 * here reaping other children at the same time.
+ 		 *
+-		 * We use thread_group_cputime_adjusted() to get times for the thread
+-		 * group, which consolidates times for all threads in the
+-		 * group including the group leader.
++		 * We use thread_group_cputime_adjusted() to get times for
++		 * the thread group, which consolidates times for all threads
++		 * in the group including the group leader.
+ 		 */
+ 		thread_group_cputime_adjusted(p, &tgutime, &tgstime);
+ 		spin_lock_irq(&p->real_parent->sighand->siglock);
+@@ -1418,6 +1419,7 @@ static int do_wait_thread(struct wait_op
+ 
+ 	list_for_each_entry(p, &tsk->children, sibling) {
+ 		int ret = wait_consider_task(wo, 0, p);
++
+ 		if (ret)
+ 			return ret;
+ 	}
+@@ -1431,6 +1433,7 @@ static int ptrace_do_wait(struct wait_op
+ 
+ 	list_for_each_entry(p, &tsk->ptraced, ptrace_entry) {
+ 		int ret = wait_consider_task(wo, 1, p);
++
+ 		if (ret)
+ 			return ret;
+ 	}
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from ionut.m.alexa@gmail.com are
 
 origin.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-isofs-logging-clean-up.patch
-fs-isofs-logging-clean-up-fix.patch
 linux-next.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-kernel-kprobesc-convert-printk-to-pr_foo.patch
 
