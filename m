@@ -1,86 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtlwifi-use-pci_zalloc_consistent.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 12:42:51 -0700
-Message-ID: <53ea6e3b.PYo7PPGRwPMKfYYj%akpm@linux-foundation.org>
+Subject: [merged] vme-bridges-use-pci_zalloc_consistent.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:42:59 -0700
+Message-ID: <53ea6e43.vU022aDqQ+RTmf4S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:37641 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754934AbaHLTmw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:42:52 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wp18so1920824obc.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:42:51 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:40735 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754726AbaHLTnA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:00 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so1919910oah.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:42:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, Larry.Finger@lwfinger.net, chaoming_li@realsil.com.cn, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: joe@perches.com, gregkh@linuxfoundation.org, manohar.vanga@gmail.com, martyn.welch@ge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtlwifi: use pci_zalloc_consistent
+     Subject: vme: bridges: use pci_zalloc_consistent
 has been removed from the -mm tree.  Its filename was
-     rtlwifi-use-pci_zalloc_consistent.patch
+     vme-bridges-use-pci_zalloc_consistent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: rtlwifi: use pci_zalloc_consistent
+Subject: vme: bridges: use pci_zalloc_consistent
 
 Remove the now unnecessary memset too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Larry Finger <Larry.Finger@lwfinger.net>
-Cc: Chaoming Li <chaoming_li@realsil.com.cn>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Martyn Welch <martyn.welch@ge.com>
+Cc: Manohar Vanga <manohar.vanga@gmail.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/rtlwifi/pci.c |   17 +++++------------
- 1 file changed, 5 insertions(+), 12 deletions(-)
+ drivers/vme/bridges/vme_ca91cx42.c |    6 ++----
+ drivers/vme/bridges/vme_tsi148.c   |    6 ++----
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/wireless/rtlwifi/pci.c~rtlwifi-use-pci_zalloc_consistent drivers/net/wireless/rtlwifi/pci.c
---- a/drivers/net/wireless/rtlwifi/pci.c~rtlwifi-use-pci_zalloc_consistent
-+++ a/drivers/net/wireless/rtlwifi/pci.c
-@@ -1092,16 +1092,14 @@ static int _rtl_pci_init_tx_ring(struct
- 	u32 nextdescaddress;
- 	int i;
+diff -puN drivers/vme/bridges/vme_ca91cx42.c~vme-bridges-use-pci_zalloc_consistent drivers/vme/bridges/vme_ca91cx42.c
+--- a/drivers/vme/bridges/vme_ca91cx42.c~vme-bridges-use-pci_zalloc_consistent
++++ a/drivers/vme/bridges/vme_ca91cx42.c
+@@ -1555,16 +1555,14 @@ static int ca91cx42_crcsr_init(struct vm
+ 	}
  
--	ring = pci_alloc_consistent(rtlpci->pdev,
--				    sizeof(*ring) * entries, &dma);
--
-+	ring = pci_zalloc_consistent(rtlpci->pdev, sizeof(*ring) * entries,
-+				     &dma);
- 	if (!ring || (unsigned long)ring & 0xFF) {
- 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
- 			 "Cannot allocate TX ring (prio = %d)\n", prio);
+ 	/* Allocate mem for CR/CSR image */
+-	bridge->crcsr_kernel = pci_alloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
+-		&bridge->crcsr_bus);
++	bridge->crcsr_kernel = pci_zalloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
++						     &bridge->crcsr_bus);
+ 	if (bridge->crcsr_kernel == NULL) {
+ 		dev_err(&pdev->dev, "Failed to allocate memory for CR/CSR "
+ 			"image\n");
  		return -ENOMEM;
  	}
  
--	memset(ring, 0, sizeof(*ring) * entries);
- 	rtlpci->tx_ring[prio].desc = ring;
- 	rtlpci->tx_ring[prio].dma = dma;
- 	rtlpci->tx_ring[prio].idx = 0;
-@@ -1139,10 +1137,9 @@ static int _rtl_pci_init_rx_ring(struct
- 	for (rx_queue_idx = 0; rx_queue_idx < RTL_PCI_MAX_RX_QUEUE;
- 	     rx_queue_idx++) {
- 		rtlpci->rx_ring[rx_queue_idx].desc =
--		    pci_alloc_consistent(rtlpci->pdev,
--					 sizeof(*rtlpci->rx_ring[rx_queue_idx].
--						desc) * rtlpci->rxringcount,
--					 &rtlpci->rx_ring[rx_queue_idx].dma);
-+			pci_zalloc_consistent(rtlpci->pdev,
-+					      sizeof(*rtlpci->rx_ring[rx_queue_idx].desc) * rtlpci->rxringcount,
-+					      &rtlpci->rx_ring[rx_queue_idx].dma);
+-	memset(bridge->crcsr_kernel, 0, VME_CRCSR_BUF_SIZE);
+-
+ 	crcsr_addr = slot * (512 * 1024);
+ 	iowrite32(bridge->crcsr_bus - crcsr_addr, bridge->base + VCSR_TO);
  
- 		if (!rtlpci->rx_ring[rx_queue_idx].desc ||
- 		    (unsigned long)rtlpci->rx_ring[rx_queue_idx].desc & 0xFF) {
-@@ -1151,10 +1148,6 @@ static int _rtl_pci_init_rx_ring(struct
- 			return -ENOMEM;
- 		}
+diff -puN drivers/vme/bridges/vme_tsi148.c~vme-bridges-use-pci_zalloc_consistent drivers/vme/bridges/vme_tsi148.c
+--- a/drivers/vme/bridges/vme_tsi148.c~vme-bridges-use-pci_zalloc_consistent
++++ a/drivers/vme/bridges/vme_tsi148.c
+@@ -2275,16 +2275,14 @@ static int tsi148_crcsr_init(struct vme_
+ 	bridge = tsi148_bridge->driver_priv;
  
--		memset(rtlpci->rx_ring[rx_queue_idx].desc, 0,
--		       sizeof(*rtlpci->rx_ring[rx_queue_idx].desc) *
--		       rtlpci->rxringcount);
+ 	/* Allocate mem for CR/CSR image */
+-	bridge->crcsr_kernel = pci_alloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
+-		&bridge->crcsr_bus);
++	bridge->crcsr_kernel = pci_zalloc_consistent(pdev, VME_CRCSR_BUF_SIZE,
++						     &bridge->crcsr_bus);
+ 	if (bridge->crcsr_kernel == NULL) {
+ 		dev_err(tsi148_bridge->parent, "Failed to allocate memory for "
+ 			"CR/CSR image\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	memset(bridge->crcsr_kernel, 0, VME_CRCSR_BUF_SIZE);
