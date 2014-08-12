@@ -1,48 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-support-kexec-kdump-on-efi-systems.patch removed
- from -mm tree
-Date: Tue, 12 Aug 2014 12:44:09 -0700
-Message-ID: <53ea6e89.0IakAnUXM5ioPNSO%akpm@linux-foundation.org>
+Subject: [merged] kexec-verify-the-signature-of-signed-pe-bzimage.patch
+ removed from -mm tree
+Date: Tue, 12 Aug 2014 12:44:11 -0700
+Message-ID: <53ea6e8b.71bFqzA9JUTDnHsm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:42299 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754912AbaHLToK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:44:10 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so2671945pdj.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:44:10 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:60080 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754999AbaHLToM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:44:12 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so2671429pab.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:44:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, matt@console-pimps.org, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dhowells@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, matt@console-pimps.org, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: support kexec/kdump on EFI systems
+     Subject: kexec: verify the signature of signed PE bzImage
 has been removed from the -mm tree.  Its filename was
-     kexec-support-kexec-kdump-on-efi-systems.patch
+     kexec-verify-the-signature-of-signed-pe-bzimage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec: support kexec/kdump on EFI systems
+Subject: kexec: verify the signature of signed PE bzImage
 
-This patch does two things.  It passes EFI run time mappings to second
-kernel in bootparams efi_info.  Second kernel parse this info and create
-new mappings in second kernel.  That means mappings in first and second
-kernel will be same.  This paves the way to enable EFI in kexec kernel.
+This is the final piece of the puzzle of verifying kernel image signature
+during kexec_file_load() syscall.
 
-This patch also prepares and passes EFI setup data through bootparams. 
-This contains bunch of information about various tables and their
-addresses.
+This patch calls into PE file routines to verify signature of bzImage.  If
+signature are valid, kexec_file_load() succeeds otherwise it fails.
 
-These information gathering and passing has been written along the lines
-of what current kexec-tools is doing to make kexec work with UEFI.
+Two new config options have been introduced.  First one is
+CONFIG_KEXEC_VERIFY_SIG.  This option enforces that kernel has to be
+validly signed otherwise kernel load will fail.  If this option is not
+set, no signature verification will be done.  Only exception will be when
+secureboot is enabled.  In that case signature verification should be
+automatically enforced when secureboot is enabled.  But that will happen
+when secureboot patches are merged.
 
-[akpm@linux-foundation.org: s/get_efi/efi_get/g, per Matt]
+Second config option is CONFIG_KEXEC_BZIMAGE_VERIFY_SIG.  This option
+enables signature verification support on bzImage.  If this option is not
+set and previous one is set, kernel image loading will fail because kernel
+does not have support to verify signature of bzImage.
+
+I tested these patches with both "pesign" and "sbsign" signed bzImages.
+
+I used signing_key.priv key and signing_key.x509 cert for signing as
+generated during kernel build process (if module signing is enabled).
+
+Used following method to sign bzImage.
+
+pesign
+======
+- Convert DER format cert to PEM format cert
+openssl x509 -in signing_key.x509 -inform DER -out signing_key.x509.PEM -outform
+PEM
+
+- Generate a .p12 file from existing cert and private key file
+openssl pkcs12 -export -out kernel-key.p12 -inkey signing_key.priv -in
+signing_key.x509.PEM
+
+- Import .p12 file into pesign db
+pk12util -i /tmp/kernel-key.p12 -d /etc/pki/pesign
+
+- Sign bzImage
+pesign -i /boot/vmlinuz-3.16.0-rc3+ -o /boot/vmlinuz-3.16.0-rc3+.signed.pesign
+-c "Glacier signing key - Magrathea" -s
+
+sbsign
+======
+sbsign --key signing_key.priv --cert signing_key.x509.PEM --output
+/boot/vmlinuz-3.16.0-rc3+.signed.sbsign /boot/vmlinuz-3.16.0-rc3+
+
+
+
+Patch details:
+
+Well all the hard work is done in previous patches.  Now bzImage loader
+has just call into that code and verify whether bzImage signature are
+valid or not.
+
+Also create two config options.  First one is CONFIG_KEXEC_VERIFY_SIG. 
+This option enforces that kernel has to be validly signed otherwise kernel
+load will fail.  If this option is not set, no signature verification will
+be done.  Only exception will be when secureboot is enabled.  In that case
+signature verification should be automatically enforced when secureboot is
+enabled.  But that will happen when secureboot patches are merged.
+
+Second config option is CONFIG_KEXEC_BZIMAGE_VERIFY_SIG.  This option
+enables signature verification support on bzImage.  If this option is not
+set and previous one is set, kernel image loading will fail because kernel
+does not have support to verify signature of bzImage.
+
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Cc: Borislav Petkov <bp@suse.de>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
@@ -56,318 +111,160 @@ Cc: WANG Chao <chaowang@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Matt Fleming <matt@console-pimps.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kexec-bzimage64.c  |  146 ++++++++++++++++++++++++---
- drivers/firmware/efi/runtime-map.c |   21 +++
- include/linux/efi.h                |   19 +++
- 3 files changed, 174 insertions(+), 12 deletions(-)
+ arch/x86/Kconfig                   |   22 ++++++++++++++++++++++
+ arch/x86/kernel/kexec-bzimage64.c  |   21 +++++++++++++++++++++
+ arch/x86/kernel/machine_kexec_64.c |   11 +++++++++++
+ include/linux/kexec.h              |    3 +++
+ kernel/kexec.c                     |   15 +++++++++++++++
+ 5 files changed, 72 insertions(+)
 
-diff -puN arch/x86/kernel/kexec-bzimage64.c~kexec-support-kexec-kdump-on-efi-systems arch/x86/kernel/kexec-bzimage64.c
---- a/arch/x86/kernel/kexec-bzimage64.c~kexec-support-kexec-kdump-on-efi-systems
+diff -puN arch/x86/Kconfig~kexec-verify-the-signature-of-signed-pe-bzimage arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kexec-verify-the-signature-of-signed-pe-bzimage
++++ a/arch/x86/Kconfig
+@@ -1599,6 +1599,28 @@ config KEXEC
+ 	  interface is strongly in flux, so no good recommendation can be
+ 	  made.
+ 
++config KEXEC_VERIFY_SIG
++	bool "Verify kernel signature during kexec_file_load() syscall"
++	depends on KEXEC
++	---help---
++	  This option makes kernel signature verification mandatory for
++	  kexec_file_load() syscall. If kernel is signature can not be
++	  verified, kexec_file_load() will fail.
++
++	  This option enforces signature verification at generic level.
++	  One needs to enable signature verification for type of kernel
++	  image being loaded to make sure it works. For example, enable
++	  bzImage signature verification option to be able to load and
++	  verify signatures of bzImage. Otherwise kernel loading will fail.
++
++config KEXEC_BZIMAGE_VERIFY_SIG
++	bool "Enable bzImage signature verification support"
++	depends on KEXEC_VERIFY_SIG
++	depends on SIGNED_PE_FILE_VERIFICATION
++	select SYSTEM_TRUSTED_KEYRING
++	---help---
++	  Enable bzImage signature verification support.
++
+ config CRASH_DUMP
+ 	bool "kernel crash dumps"
+ 	depends on X86_64 || (X86_32 && HIGHMEM)
+diff -puN arch/x86/kernel/kexec-bzimage64.c~kexec-verify-the-signature-of-signed-pe-bzimage arch/x86/kernel/kexec-bzimage64.c
+--- a/arch/x86/kernel/kexec-bzimage64.c~kexec-verify-the-signature-of-signed-pe-bzimage
 +++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -18,10 +18,12 @@
- #include <linux/kexec.h>
+@@ -19,6 +19,8 @@
  #include <linux/kernel.h>
  #include <linux/mm.h>
-+#include <linux/efi.h>
+ #include <linux/efi.h>
++#include <linux/verify_pefile.h>
++#include <keys/system_keyring.h>
  
  #include <asm/bootparam.h>
  #include <asm/setup.h>
- #include <asm/crash.h>
-+#include <asm/efi.h>
- 
- #define MAX_ELFCOREHDR_STR_LEN	30	/* elfcorehdr=0x<64bit-value> */
- 
-@@ -90,7 +92,7 @@ static int setup_cmdline(struct kimage *
+@@ -525,8 +527,27 @@ int bzImage64_cleanup(void *loader_data)
  	return 0;
  }
  
--static int setup_memory_map_entries(struct boot_params *params)
-+static int setup_e820_entries(struct boot_params *params)
- {
- 	unsigned int nr_e820_entries;
- 
-@@ -107,8 +109,93 @@ static int setup_memory_map_entries(stru
- 	return 0;
- }
- 
--static int setup_boot_parameters(struct kimage *image,
--				 struct boot_params *params)
-+#ifdef CONFIG_EFI
-+static int setup_efi_info_memmap(struct boot_params *params,
-+				  unsigned long params_load_addr,
-+				  unsigned int efi_map_offset,
-+				  unsigned int efi_map_sz)
++#ifdef CONFIG_KEXEC_BZIMAGE_VERIFY_SIG
++int bzImage64_verify_sig(const char *kernel, unsigned long kernel_len)
 +{
-+	void *efi_map = (void *)params + efi_map_offset;
-+	unsigned long efi_map_phys_addr = params_load_addr + efi_map_offset;
-+	struct efi_info *ei = &params->efi_info;
++	bool trusted;
++	int ret;
 +
-+	if (!efi_map_sz)
-+		return 0;
-+
-+	efi_runtime_map_copy(efi_map, efi_map_sz);
-+
-+	ei->efi_memmap = efi_map_phys_addr & 0xffffffff;
-+	ei->efi_memmap_hi = efi_map_phys_addr >> 32;
-+	ei->efi_memmap_size = efi_map_sz;
-+
++	ret = verify_pefile_signature(kernel, kernel_len,
++				      system_trusted_keyring, &trusted);
++	if (ret < 0)
++		return ret;
++	if (!trusted)
++		return -EKEYREJECTED;
 +	return 0;
 +}
-+
-+static int
-+prepare_add_efi_setup_data(struct boot_params *params,
-+		       unsigned long params_load_addr,
-+		       unsigned int efi_setup_data_offset)
-+{
-+	unsigned long setup_data_phys;
-+	struct setup_data *sd = (void *)params + efi_setup_data_offset;
-+	struct efi_setup_data *esd = (void *)sd + sizeof(struct setup_data);
-+
-+	esd->fw_vendor = efi.fw_vendor;
-+	esd->runtime = efi.runtime;
-+	esd->tables = efi.config_table;
-+	esd->smbios = efi.smbios;
-+
-+	sd->type = SETUP_EFI;
-+	sd->len = sizeof(struct efi_setup_data);
-+
-+	/* Add setup data */
-+	setup_data_phys = params_load_addr + efi_setup_data_offset;
-+	sd->next = params->hdr.setup_data;
-+	params->hdr.setup_data = setup_data_phys;
-+
-+	return 0;
-+}
-+
-+static int
-+setup_efi_state(struct boot_params *params, unsigned long params_load_addr,
-+		unsigned int efi_map_offset, unsigned int efi_map_sz,
-+		unsigned int efi_setup_data_offset)
-+{
-+	struct efi_info *current_ei = &boot_params.efi_info;
-+	struct efi_info *ei = &params->efi_info;
-+
-+	if (!current_ei->efi_memmap_size)
-+		return 0;
-+
-+	/*
-+	 * If 1:1 mapping is not enabled, second kernel can not setup EFI
-+	 * and use EFI run time services. User space will have to pass
-+	 * acpi_rsdp=<addr> on kernel command line to make second kernel boot
-+	 * without efi.
-+	 */
-+	if (efi_enabled(EFI_OLD_MEMMAP))
-+		return 0;
-+
-+	ei->efi_loader_signature = current_ei->efi_loader_signature;
-+	ei->efi_systab = current_ei->efi_systab;
-+	ei->efi_systab_hi = current_ei->efi_systab_hi;
-+
-+	ei->efi_memdesc_version = current_ei->efi_memdesc_version;
-+	ei->efi_memdesc_size = efi_get_runtime_map_desc_size();
-+
-+	setup_efi_info_memmap(params, params_load_addr, efi_map_offset,
-+			      efi_map_sz);
-+	prepare_add_efi_setup_data(params, params_load_addr,
-+				   efi_setup_data_offset);
-+	return 0;
-+}
-+#endif /* CONFIG_EFI */
-+
-+static int
-+setup_boot_parameters(struct kimage *image, struct boot_params *params,
-+		      unsigned long params_load_addr,
-+		      unsigned int efi_map_offset, unsigned int efi_map_sz,
-+		      unsigned int efi_setup_data_offset)
- {
- 	unsigned int nr_e820_entries;
- 	unsigned long long mem_k, start, end;
-@@ -140,7 +227,7 @@ static int setup_boot_parameters(struct
- 		if (ret)
- 			return ret;
- 	} else
--		setup_memory_map_entries(params);
-+		setup_e820_entries(params);
- 
- 	nr_e820_entries = params->e820_entries;
- 
-@@ -161,6 +248,12 @@ static int setup_boot_parameters(struct
- 		}
- 	}
- 
-+#ifdef CONFIG_EFI
-+	/* Setup EFI state */
-+	setup_efi_state(params, params_load_addr, efi_map_offset, efi_map_sz,
-+			efi_setup_data_offset);
 +#endif
 +
- 	/* Setup EDD info */
- 	memcpy(params->eddbuf, boot_params.eddbuf,
- 				EDDMAXNR * sizeof(struct edd_info));
-@@ -214,6 +307,15 @@ int bzImage64_probe(const char *buf, uns
- 		return ret;
- 	}
- 
-+	/*
-+	 * Can't handle 32bit EFI as it does not allow loading kernel
-+	 * above 4G. This should be handled by 32bit bzImage loader
-+	 */
-+	if (efi_enabled(EFI_RUNTIME_SERVICES) && !efi_enabled(EFI_64BIT)) {
-+		pr_debug("EFI is 32 bit. Can't load kernel above 4G.\n");
-+		return ret;
-+	}
-+
- 	/* I've got a bzImage */
- 	pr_debug("It's a relocatable bzImage64\n");
- 	ret = 0;
-@@ -229,7 +331,7 @@ void *bzImage64_load(struct kimage *imag
- 
- 	struct setup_header *header;
- 	int setup_sects, kern16_size, ret = 0;
--	unsigned long setup_header_size, params_cmdline_sz;
-+	unsigned long setup_header_size, params_cmdline_sz, params_misc_sz;
- 	struct boot_params *params;
- 	unsigned long bootparam_load_addr, kernel_load_addr, initrd_load_addr;
- 	unsigned long purgatory_load_addr;
-@@ -239,6 +341,7 @@ void *bzImage64_load(struct kimage *imag
- 	struct kexec_entry64_regs regs64;
- 	void *stack;
- 	unsigned int setup_hdr_offset = offsetof(struct boot_params, hdr);
-+	unsigned int efi_map_offset, efi_map_sz, efi_setup_data_offset;
- 
- 	header = (struct setup_header *)(kernel + setup_hdr_offset);
- 	setup_sects = header->setup_sects;
-@@ -285,12 +388,29 @@ void *bzImage64_load(struct kimage *imag
- 
- 	pr_debug("Loaded purgatory at 0x%lx\n", purgatory_load_addr);
- 
--	/* Load Bootparams and cmdline */
-+
-+	/*
-+	 * Load Bootparams and cmdline and space for efi stuff.
-+	 *
-+	 * Allocate memory together for multiple data structures so
-+	 * that they all can go in single area/segment and we don't
-+	 * have to create separate segment for each. Keeps things
-+	 * little bit simple
-+	 */
-+	efi_map_sz = efi_get_runtime_map_size();
-+	efi_map_sz = ALIGN(efi_map_sz, 16);
- 	params_cmdline_sz = sizeof(struct boot_params) + cmdline_len +
- 				MAX_ELFCOREHDR_STR_LEN;
--	params = kzalloc(params_cmdline_sz, GFP_KERNEL);
-+	params_cmdline_sz = ALIGN(params_cmdline_sz, 16);
-+	params_misc_sz = params_cmdline_sz + efi_map_sz +
-+				sizeof(struct setup_data) +
-+				sizeof(struct efi_setup_data);
-+
-+	params = kzalloc(params_misc_sz, GFP_KERNEL);
- 	if (!params)
- 		return ERR_PTR(-ENOMEM);
-+	efi_map_offset = params_cmdline_sz;
-+	efi_setup_data_offset = efi_map_offset + efi_map_sz;
- 
- 	/* Copy setup header onto bootparams. Documentation/x86/boot.txt */
- 	setup_header_size = 0x0202 + kernel[0x0201] - setup_hdr_offset;
-@@ -298,13 +418,13 @@ void *bzImage64_load(struct kimage *imag
- 	/* Is there a limit on setup header size? */
- 	memcpy(&params->hdr, (kernel + setup_hdr_offset), setup_header_size);
- 
--	ret = kexec_add_buffer(image, (char *)params, params_cmdline_sz,
--			       params_cmdline_sz, 16, MIN_BOOTPARAM_ADDR,
-+	ret = kexec_add_buffer(image, (char *)params, params_misc_sz,
-+			       params_misc_sz, 16, MIN_BOOTPARAM_ADDR,
- 			       ULONG_MAX, 1, &bootparam_load_addr);
- 	if (ret)
- 		goto out_free_params;
--	pr_debug("Loaded boot_param and command line at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
--		 bootparam_load_addr, params_cmdline_sz, params_cmdline_sz);
-+	pr_debug("Loaded boot_param, command line and misc at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
-+		 bootparam_load_addr, params_misc_sz, params_misc_sz);
- 
- 	/* Load kernel */
- 	kernel_buf = kernel + kern16_size;
-@@ -365,7 +485,9 @@ void *bzImage64_load(struct kimage *imag
- 	if (ret)
- 		goto out_free_params;
- 
--	ret = setup_boot_parameters(image, params);
-+	ret = setup_boot_parameters(image, params, bootparam_load_addr,
-+				    efi_map_offset, efi_map_sz,
-+				    efi_setup_data_offset);
- 	if (ret)
- 		goto out_free_params;
- 
-diff -puN drivers/firmware/efi/runtime-map.c~kexec-support-kexec-kdump-on-efi-systems drivers/firmware/efi/runtime-map.c
---- a/drivers/firmware/efi/runtime-map.c~kexec-support-kexec-kdump-on-efi-systems
-+++ a/drivers/firmware/efi/runtime-map.c
-@@ -138,6 +138,27 @@ add_sysfs_runtime_map_entry(struct kobje
- 	return entry;
+ struct kexec_file_ops kexec_bzImage64_ops = {
+ 	.probe = bzImage64_probe,
+ 	.load = bzImage64_load,
+ 	.cleanup = bzImage64_cleanup,
++#ifdef CONFIG_KEXEC_BZIMAGE_VERIFY_SIG
++	.verify_sig = bzImage64_verify_sig,
++#endif
+ };
+diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-verify-the-signature-of-signed-pe-bzimage arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~kexec-verify-the-signature-of-signed-pe-bzimage
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -372,6 +372,17 @@ int arch_kimage_file_post_load_cleanup(s
+ 	return image->fops->cleanup(image->image_loader_data);
  }
  
-+int efi_get_runtime_map_size(void)
++int arch_kexec_kernel_verify_sig(struct kimage *image, void *kernel,
++				 unsigned long kernel_len)
 +{
-+	return nr_efi_runtime_map * efi_memdesc_size;
++	if (!image->fops || !image->fops->verify_sig) {
++		pr_debug("kernel loader does not support signature verification.");
++		return -EKEYREJECTED;
++	}
++
++	return image->fops->verify_sig(kernel, kernel_len);
 +}
 +
-+int efi_get_runtime_map_desc_size(void)
-+{
-+	return efi_memdesc_size;
-+}
-+
-+int efi_runtime_map_copy(void *buf, size_t bufsz)
-+{
-+	size_t sz = efi_get_runtime_map_size();
-+
-+	if (sz > bufsz)
-+		sz = bufsz;
-+
-+	memcpy(buf, efi_runtime_map, sz);
-+	return 0;
-+}
-+
- void efi_runtime_map_setup(void *map, int nr_entries, u32 desc_size)
- {
- 	efi_runtime_map = map;
-diff -puN include/linux/efi.h~kexec-support-kexec-kdump-on-efi-systems include/linux/efi.h
---- a/include/linux/efi.h~kexec-support-kexec-kdump-on-efi-systems
-+++ a/include/linux/efi.h
-@@ -1156,6 +1156,9 @@ int efivars_sysfs_init(void);
- #ifdef CONFIG_EFI_RUNTIME_MAP
- int efi_runtime_map_init(struct kobject *);
- void efi_runtime_map_setup(void *, int, u32);
-+int efi_get_runtime_map_size(void);
-+int efi_get_runtime_map_desc_size(void);
-+int efi_runtime_map_copy(void *buf, size_t bufsz);
- #else
- static inline int efi_runtime_map_init(struct kobject *kobj)
- {
-@@ -1164,6 +1167,22 @@ static inline int efi_runtime_map_init(s
+ /*
+  * Apply purgatory relocations.
+  *
+diff -puN include/linux/kexec.h~kexec-verify-the-signature-of-signed-pe-bzimage include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-verify-the-signature-of-signed-pe-bzimage
++++ a/include/linux/kexec.h
+@@ -191,11 +191,14 @@ typedef void *(kexec_load_t)(struct kima
+ 			     unsigned long initrd_len, char *cmdline,
+ 			     unsigned long cmdline_len);
+ typedef int (kexec_cleanup_t)(void *loader_data);
++typedef int (kexec_verify_sig_t)(const char *kernel_buf,
++				 unsigned long kernel_len);
  
- static inline void
- efi_runtime_map_setup(void *map, int nr_entries, u32 desc_size) {}
-+
-+static inline int efi_get_runtime_map_size(void)
-+{
-+	return 0;
-+}
-+
-+static inline int efi_get_runtime_map_desc_size(void)
-+{
-+	return 0;
-+}
-+
-+static inline int efi_runtime_map_copy(void *buf, size_t bufsz)
-+{
-+	return 0;
-+}
-+
- #endif
+ struct kexec_file_ops {
+ 	kexec_probe_t *probe;
+ 	kexec_load_t *load;
+ 	kexec_cleanup_t *cleanup;
++	kexec_verify_sig_t *verify_sig;
+ };
  
- /* prototypes shared between arch specific and generic stub code */
+ /* kexec interface functions */
+diff -puN kernel/kexec.c~kexec-verify-the-signature-of-signed-pe-bzimage kernel/kexec.c
+--- a/kernel/kexec.c~kexec-verify-the-signature-of-signed-pe-bzimage
++++ a/kernel/kexec.c
+@@ -416,6 +416,12 @@ void __weak arch_kimage_file_post_load_c
+ {
+ }
+ 
++int __weak arch_kexec_kernel_verify_sig(struct kimage *image, void *buf,
++					unsigned long buf_len)
++{
++	return -EKEYREJECTED;
++}
++
+ /* Apply relocations of type RELA */
+ int __weak
+ arch_kexec_apply_relocations_add(const Elf_Ehdr *ehdr, Elf_Shdr *sechdrs,
+@@ -494,6 +500,15 @@ kimage_file_prepare_segments(struct kima
+ 	if (ret)
+ 		goto out;
+ 
++#ifdef CONFIG_KEXEC_VERIFY_SIG
++	ret = arch_kexec_kernel_verify_sig(image, image->kernel_buf,
++					   image->kernel_buf_len);
++	if (ret) {
++		pr_debug("kernel signature verification failed.\n");
++		goto out;
++	}
++	pr_debug("kernel signature verification successful.\n");
++#endif
+ 	/* It is possible that there no initramfs is being loaded */
+ 	if (!(flags & KEXEC_FILE_NO_INITRAMFS)) {
+ 		ret = copy_file_from_fd(initrd_fd, &image->initrd_buf,
 _
 
 Patches currently in -mm which might be from vgoyal@redhat.com are
