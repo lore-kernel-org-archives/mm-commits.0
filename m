@@ -1,40 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-build-bin2c-based-on-config-option-config_build_bin2c.patch removed
- from -mm tree
-Date: Tue, 12 Aug 2014 12:43:43 -0700
-Message-ID: <53ea6e6f.AbnkLiKyyZE5fSnd%akpm@linux-foundation.org>
+Subject: [merged] kexec-rename-unusebale_pages-to-unusable_pages.patch
+ removed from -mm tree
+Date: Tue, 12 Aug 2014 12:43:45 -0700
+Message-ID: <53ea6e71.gqePMeQqbzltDCMN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:46399 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755067AbaHLTno (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:44 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so2671878pab.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:43:43 -0700 (PDT)
+Received: from mail-qg0-f74.google.com ([209.85.192.74]:54391 "EHLO
+	mail-qg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755067AbaHLTnq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:43:46 -0400
+Received: by mail-qg0-f74.google.com with SMTP id z60so1311451qgd.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:43:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vgoyal@redhat.com, bhe@redhat.com, bp@suse.de, chaowang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, greg@kroah.com, hpa@zytor.com, luto@amacapital.net, mjg59@srcf.ucam.org, mtk.manpages@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel: build bin2c based on config option CONFIG_BUILD_BIN2C
+     Subject: kexec: rename unusebale_pages to unusable_pages
 has been removed from the -mm tree.  Its filename was
-     kernel-build-bin2c-based-on-config-option-config_build_bin2c.patch
+     kexec-rename-unusebale_pages-to-unusable_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kernel: build bin2c based on config option CONFIG_BUILD_BIN2C
+Subject: kexec: rename unusebale_pages to unusable_pages
 
-currently bin2c builds only if CONFIG_IKCONFIG=y. But bin2c will now be
-used by kexec too.  So make it compilation dependent on CONFIG_BUILD_BIN2C
-and this config option can be selected by CONFIG_KEXEC and CONFIG_IKCONFIG.
+Let's use the more common "unusable".
 
+This patch was originally written and posted by Boris. I am including it
+in this patch series.
+
+Signed-off-by: Borislav Petkov <bp@suse.de>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Cc: Borislav Petkov <bp@suse.de>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
@@ -50,51 +51,52 @@ Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig       |    1 +
- init/Kconfig           |    5 +++++
- scripts/basic/Makefile |    2 +-
- 3 files changed, 7 insertions(+), 1 deletion(-)
+ include/linux/kexec.h |    2 +-
+ kernel/kexec.c        |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/Kconfig~kernel-build-bin2c-based-on-config-option-config_build_bin2c arch/x86/Kconfig
---- a/arch/x86/Kconfig~kernel-build-bin2c-based-on-config-option-config_build_bin2c
-+++ a/arch/x86/Kconfig
-@@ -1582,6 +1582,7 @@ source kernel/Kconfig.hz
+diff -puN include/linux/kexec.h~kexec-rename-unusebale_pages-to-unusable_pages include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-rename-unusebale_pages-to-unusable_pages
++++ a/include/linux/kexec.h
+@@ -100,7 +100,7 @@ struct kimage {
  
- config KEXEC
- 	bool "kexec system call"
-+	select BUILD_BIN2C
- 	---help---
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN init/Kconfig~kernel-build-bin2c-based-on-config-option-config_build_bin2c init/Kconfig
---- a/init/Kconfig~kernel-build-bin2c-based-on-config-option-config_build_bin2c
-+++ a/init/Kconfig
-@@ -783,8 +783,13 @@ endchoice
+ 	struct list_head control_pages;
+ 	struct list_head dest_pages;
+-	struct list_head unuseable_pages;
++	struct list_head unusable_pages;
  
- endmenu # "RCU Subsystem"
+ 	/* Address of next control page to allocate for crash kernels. */
+ 	unsigned long control_page;
+diff -puN kernel/kexec.c~kexec-rename-unusebale_pages-to-unusable_pages kernel/kexec.c
+--- a/kernel/kexec.c~kexec-rename-unusebale_pages-to-unusable_pages
++++ a/kernel/kexec.c
+@@ -154,7 +154,7 @@ static int do_kimage_alloc(struct kimage
+ 	INIT_LIST_HEAD(&image->dest_pages);
  
-+config BUILD_BIN2C
-+	bool
-+	default n
-+
- config IKCONFIG
- 	tristate "Kernel .config support"
-+	select BUILD_BIN2C
- 	---help---
- 	  This option enables the complete Linux kernel ".config" file
- 	  contents to be saved in the kernel. It provides documentation
-diff -puN scripts/basic/Makefile~kernel-build-bin2c-based-on-config-option-config_build_bin2c scripts/basic/Makefile
---- a/scripts/basic/Makefile~kernel-build-bin2c-based-on-config-option-config_build_bin2c
-+++ a/scripts/basic/Makefile
-@@ -9,7 +9,7 @@
- # fixdep: 	 Used to generate dependency information during build process
+ 	/* Initialize the list of unusable pages */
+-	INIT_LIST_HEAD(&image->unuseable_pages);
++	INIT_LIST_HEAD(&image->unusable_pages);
  
- hostprogs-y	:= fixdep
--hostprogs-$(CONFIG_IKCONFIG)     += bin2c
-+hostprogs-$(CONFIG_BUILD_BIN2C)     += bin2c
- always		:= $(hostprogs-y)
+ 	/* Read in the segments */
+ 	image->nr_segments = nr_segments;
+@@ -609,7 +609,7 @@ static void kimage_free_extra_pages(stru
+ 	kimage_free_page_list(&image->dest_pages);
  
- # fixdep is needed to compile other host programs
+ 	/* Walk through and free any unusable pages I have cached */
+-	kimage_free_page_list(&image->unuseable_pages);
++	kimage_free_page_list(&image->unusable_pages);
+ 
+ }
+ static void kimage_terminate(struct kimage *image)
+@@ -732,7 +732,7 @@ static struct page *kimage_alloc_page(st
+ 		/* If the page cannot be used file it away */
+ 		if (page_to_pfn(page) >
+ 				(KEXEC_SOURCE_MEMORY_LIMIT >> PAGE_SHIFT)) {
+-			list_add(&page->lru, &image->unuseable_pages);
++			list_add(&page->lru, &image->unusable_pages);
+ 			continue;
+ 		}
+ 		addr = page_to_pfn(page) << PAGE_SHIFT;
 _
 
 Patches currently in -mm which might be from vgoyal@redhat.com are
