@@ -1,143 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-ia64-allow-other-architectures-to-use-efi-rtc.patch
+Subject: [merged] drivers-rtc-rtc-isl12022c-device-tree-support.patch
  removed from -mm tree
-Date: Tue, 12 Aug 2014 12:38:44 -0700
-Message-ID: <53ea6d44.ofTuQnucndaEkNRB%akpm@linux-foundation.org>
+Date: Tue, 12 Aug 2014 12:38:50 -0700
+Message-ID: <53ea6d4a.ewBB7YSMOjShj+wY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f73.google.com ([209.85.218.73]:34384 "EHLO
-	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754929AbaHLTip (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:45 -0400
-Received: by mail-oi0-f73.google.com with SMTP id u20so1912534oif.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:44 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:47304 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754945AbaHLTiu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:38:50 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so2667042pab.2
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:38:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: msalter@redhat.com, a.zummo@towertech.it, fenghua.yu@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: stuartl@vrt.com.au, roman.fietze@telemotive.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: ia64: allow other architectures to use EFI RTC
+     Subject: drivers/rtc/rtc-isl12022.c: device tree support
 has been removed from the -mm tree.  Its filename was
-     rtc-ia64-allow-other-architectures-to-use-efi-rtc.patch
+     drivers-rtc-rtc-isl12022c-device-tree-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mark Salter <msalter@redhat.com>
-Subject: rtc: ia64: allow other architectures to use EFI RTC
+From: Stuart Longland <stuartl@vrt.com.au>
+Subject: drivers/rtc/rtc-isl12022.c: device tree support
 
-Currently, the rtc-efi driver is restricted to ia64 only.  Newer
-architectures with EFI support may want to also use that driver.  This
-patch moves the platform device setup from ia64 into drivers/rtc and allow
-any architecture with CONFIG_EFI=y to use the rtc-efi driver.
+Add support for configuring the ISL12022 real-time clock via the Device
+tree framework.  This is based on what I've seen in the related ISL12057
+driver, it has been tested and works on a Technologic Systems TS-7670
+device which uses a ISL12020 RTC device, my device tree looks like this:
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+	apbx@80040000 {
+		i2c0: i2c@80058000 {
+			pinctrl-names = "default";
+			pinctrl-0 = <&i2c0_pins_a>;
+			clock-frequency = <400000>;
+			status = "okay";
+
+			isl12022@0x6f {
+				compatible = "isl,isl12022";
+				reg = <0x6f>;
+			};
+		};
+		... etc
+	};
+
+Signed-off-by: Stuart Longland <stuartl@vrt.com.au>
+Cc: Roman Fietze <roman.fietze@telemotive.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/time.c        |   15 ---------------
- drivers/rtc/Kconfig            |    2 +-
- drivers/rtc/Makefile           |    4 ++++
- drivers/rtc/rtc-efi-platform.c |   31 +++++++++++++++++++++++++++++++
- 4 files changed, 36 insertions(+), 16 deletions(-)
+ drivers/rtc/rtc-isl12022.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN arch/ia64/kernel/time.c~rtc-ia64-allow-other-architectures-to-use-efi-rtc arch/ia64/kernel/time.c
---- a/arch/ia64/kernel/time.c~rtc-ia64-allow-other-architectures-to-use-efi-rtc
-+++ a/arch/ia64/kernel/time.c
-@@ -384,21 +384,6 @@ static struct irqaction timer_irqaction
- 	.name =		"timer"
- };
+diff -puN drivers/rtc/rtc-isl12022.c~drivers-rtc-rtc-isl12022c-device-tree-support drivers/rtc/rtc-isl12022.c
+--- a/drivers/rtc/rtc-isl12022.c~drivers-rtc-rtc-isl12022c-device-tree-support
++++ a/drivers/rtc/rtc-isl12022.c
+@@ -17,6 +17,8 @@
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ #include <linux/err.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
  
--static struct platform_device rtc_efi_dev = {
--	.name = "rtc-efi",
--	.id = -1,
--};
--
--static int __init rtc_init(void)
--{
--	if (platform_device_register(&rtc_efi_dev) < 0)
--		printk(KERN_ERR "unable to register rtc device...\n");
--
--	/* not necessarily an error */
--	return 0;
--}
--module_init(rtc_init);
--
- void read_persistent_clock(struct timespec *ts)
- {
- 	efi_gettimeofday(ts);
-diff -puN drivers/rtc/Kconfig~rtc-ia64-allow-other-architectures-to-use-efi-rtc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-ia64-allow-other-architectures-to-use-efi-rtc
-+++ a/drivers/rtc/Kconfig
-@@ -798,7 +798,7 @@ config RTC_DRV_DA9063
+ #define DRV_VERSION "0.1"
  
- config RTC_DRV_EFI
- 	tristate "EFI RTC"
--	depends on IA64
-+	depends on EFI
- 	help
- 	  If you say yes here you will get support for the EFI
- 	  Real Time Clock.
-diff -puN drivers/rtc/Makefile~rtc-ia64-allow-other-architectures-to-use-efi-rtc drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-ia64-allow-other-architectures-to-use-efi-rtc
-+++ a/drivers/rtc/Makefile
-@@ -10,6 +10,10 @@ obj-$(CONFIG_RTC_SYSTOHC)	+= systohc.o
- obj-$(CONFIG_RTC_CLASS)		+= rtc-core.o
- rtc-core-y			:= class.o interface.o
+@@ -271,6 +273,13 @@ static int isl12022_probe(struct i2c_cli
+ 	return PTR_ERR_OR_ZERO(isl12022->rtc);
+ }
  
-+ifdef CONFIG_RTC_DRV_EFI
-+rtc-core-y			+= rtc-efi-platform.o
-+endif
-+
- rtc-core-$(CONFIG_RTC_INTF_DEV)	+= rtc-dev.o
- rtc-core-$(CONFIG_RTC_INTF_PROC) += rtc-proc.o
- rtc-core-$(CONFIG_RTC_INTF_SYSFS) += rtc-sysfs.o
-diff -puN /dev/null drivers/rtc/rtc-efi-platform.c
---- /dev/null
-+++ a/drivers/rtc/rtc-efi-platform.c
-@@ -0,0 +1,31 @@
-+/*
-+ * Moved from arch/ia64/kernel/time.c
-+ *
-+ * Copyright (C) 1998-2003 Hewlett-Packard Co
-+ *	Stephane Eranian <eranian@hpl.hp.com>
-+ *	David Mosberger <davidm@hpl.hp.com>
-+ * Copyright (C) 1999 Don Dugger <don.dugger@intel.com>
-+ * Copyright (C) 1999-2000 VA Linux Systems
-+ * Copyright (C) 1999-2000 Walt Drummond <drummond@valinux.com>
-+ */
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/efi.h>
-+#include <linux/platform_device.h>
-+
-+static struct platform_device rtc_efi_dev = {
-+	.name = "rtc-efi",
-+	.id = -1,
++#ifdef CONFIG_OF
++static struct of_device_id isl12022_dt_match[] = {
++	{ .compatible = "isl,isl12022" },
++	{ },
 +};
++#endif
 +
-+static int __init rtc_init(void)
-+{
-+	if (efi_enabled(EFI_RUNTIME_SERVICES))
-+		if (platform_device_register(&rtc_efi_dev) < 0)
-+			pr_err("unable to register rtc device...\n");
-+
-+	/* not necessarily an error */
-+	return 0;
-+}
-+module_init(rtc_init);
+ static const struct i2c_device_id isl12022_id[] = {
+ 	{ "isl12022", 0 },
+ 	{ }
+@@ -280,6 +289,9 @@ MODULE_DEVICE_TABLE(i2c, isl12022_id);
+ static struct i2c_driver isl12022_driver = {
+ 	.driver		= {
+ 		.name	= "rtc-isl12022",
++#ifdef CONFIG_OF
++		.of_match_table = of_match_ptr(isl12022_dt_match),
++#endif
+ 	},
+ 	.probe		= isl12022_probe,
+ 	.id_table	= isl12022_id,
 _
 
-Patches currently in -mm which might be from msalter@redhat.com are
+Patches currently in -mm which might be from stuartl@vrt.com.au are
 
 origin.patch
-linux-next.patch
 
