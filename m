@@ -1,69 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
- removed from -mm tree
-Date: Tue, 12 Aug 2014 13:21:49 -0700
-Message-ID: <53ea775d.GynO79zl1XAupTiZ%akpm@linux-foundation.org>
+Subject: [folded-merged] fs-isofs-logging-clean-up-fix.patch removed from
+ -mm tree
+Date: Tue, 12 Aug 2014 13:34:05 -0700
+Message-ID: <53ea7a3d.WOq5MZvUnZqhi1wS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:45114 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753505AbaHLUVu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 16:21:50 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so2687084pdj.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 13:21:50 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:50403 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754021AbaHLUeG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 16:34:06 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so1313849yha.2
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 13:34:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lcapitulino@redhat.com, andi@firstfloor.org, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, mingo@elte.hu, riel@redhat.com, rientjes@google.com, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2
+     Subject: fs-isofs-logging-clean-up-fix
 has been removed from the -mm tree.  Its filename was
-     x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2.patch
+     fs-isofs-logging-clean-up-fix.patch
 
-This patch was dropped because it was folded into x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
+This patch was dropped because it was folded into fs-isofs-logging-clean-up.patch
 
 ------------------------------------------------------
-From: Luiz Capitulino <lcapitulino@redhat.com>
-Subject: x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-isofs-logging-clean-up-fix
 
-Restore Initmem text when reporting the memory range in dmesg [David]
+118-column lines make my eyes bleed.
 
-Signed-off-by: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/isofs/compress.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2 mm/page_alloc.c
---- a/mm/page_alloc.c~x86-numa-setup_node_data-drop-dead-code-and-rename-function-v2
-+++ a/mm/page_alloc.c
-@@ -4969,7 +4969,7 @@ void __paginginit free_area_init_node(in
- 	pgdat->node_start_pfn = node_start_pfn;
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
--	printk(KERN_INFO "Node %d memory range %#010Lx-%#010Lx\n", nid,
-+	printk(KERN_INFO "Initmem setup node %d [mem %#010Lx-%#010Lx]\n", nid,
- 			(u64) start_pfn << PAGE_SHIFT, (u64) (end_pfn << PAGE_SHIFT) - 1);
- #endif
- 	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
+diff -puN fs/isofs/compress.c~fs-isofs-logging-clean-up-fix fs/isofs/compress.c
+--- a/fs/isofs/compress.c~fs-isofs-logging-clean-up-fix
++++ a/fs/isofs/compress.c
+@@ -156,10 +156,15 @@ static loff_t zisofs_uncompress_block(st
+ 				if (zerr == Z_MEM_ERROR)
+ 					*errp = -ENOMEM;
+ 				else {
+-					pr_debug("zisofs_inflate returned %d, inode = %lu, page idx = %d, bh idx = %d, avail_in = %ld, avail_out = %ld\n",
+-						 zerr, inode->i_ino, curpage,
+-						 curbh, stream.avail_in,
+-						 stream.avail_out);
++					pr_debug(
++					       "zisofs: zisofs_inflate returned"
++					       " %d, inode = %lu,"
++					       " page idx = %d, bh idx = %d,"
++					       " avail_in = %ld,"
++					       " avail_out = %ld\n",
++					       zerr, inode->i_ino, curpage,
++					       curbh, stream.avail_in,
++					       stream.avail_out);
+ 					*errp = -EIO;
+ 				}
+ 				goto inflate_out;
 _
 
-Patches currently in -mm which might be from lcapitulino@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-isofs-logging-clean-up.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
