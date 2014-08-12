@@ -1,155 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] initrd-fix-lz4-decompress-with-initrd.patch removed from -mm tree
-Date: Tue, 12 Aug 2014 12:41:22 -0700
-Message-ID: <53ea6de2.AlpKdAWqgfHzSvvi%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch removed from -mm
+ tree
+Date: Tue, 12 Aug 2014 12:40:56 -0700
+Message-ID: <53ea6dc8.zvoxBUPaYNXvgxxl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:48061 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754946AbaHLTlX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:41:23 -0400
-Received: by mail-ob0-f201.google.com with SMTP id nu7so1916485obb.4
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:41:22 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:59817 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754988AbaHLTk5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:40:57 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so1919367oah.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:40:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, kyungsik.lee@lge.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, me@bobcopeland.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: initrd: fix lz4 decompress with initrd
+     Subject: fs/omfs/inode.c: replace count*size kzalloc by kcalloc
 has been removed from the -mm tree.  Its filename was
-     initrd-fix-lz4-decompress-with-initrd.patch
+     fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: initrd: fix lz4 decompress with initrd
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/omfs/inode.c: replace count*size kzalloc by kcalloc
 
-During testing initrd (>2G) support, find decompress/lz4 does not work
-with initrd at all.
+kcalloc manages count*sizeof overflow.
 
-decompress_* should support:
-1. inbuf[]/outbuf[] for kernel preboot.
-2. inbuf[]/flush() for initramfs
-3. fill()/flush() for initrd.
-
-in the unlz4 does not handle case 3, as input len is passed as 0, and it
-failed in first try.
-
-Fix that add one extra if (fill) checking, and get out if EOF from the
-fill().
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Kyungsik Lee <kyungsik.lee@lge.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Acked-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_unlz4.c |   65 +++++++++++++++++++++++++--------------
- 1 file changed, 43 insertions(+), 22 deletions(-)
+ fs/omfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/decompress_unlz4.c~initrd-fix-lz4-decompress-with-initrd lib/decompress_unlz4.c
---- a/lib/decompress_unlz4.c~initrd-fix-lz4-decompress-with-initrd
-+++ a/lib/decompress_unlz4.c
-@@ -83,13 +83,20 @@ STATIC inline int INIT unlz4(u8 *input,
- 	if (posp)
- 		*posp = 0;
+diff -puN fs/omfs/inode.c~fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc fs/omfs/inode.c
+--- a/fs/omfs/inode.c~fs-omfs-inodec-replace-countsize-kzalloc-by-kcalloc
++++ a/fs/omfs/inode.c
+@@ -321,7 +321,7 @@ static int omfs_get_imap(struct super_bl
+ 		goto out;
  
--	if (fill)
--		fill(inp, 4);
-+	if (fill) {
-+		size = fill(inp, 4);
-+		if (size < 4) {
-+			error("data corrupted");
-+			goto exit_2;
-+		}
-+	}
+ 	sbi->s_imap_size = array_size;
+-	sbi->s_imap = kzalloc(array_size * sizeof(unsigned long *), GFP_KERNEL);
++	sbi->s_imap = kcalloc(array_size, sizeof(unsigned long *), GFP_KERNEL);
+ 	if (!sbi->s_imap)
+ 		goto nomem;
  
- 	chunksize = get_unaligned_le32(inp);
- 	if (chunksize == ARCHIVE_MAGICNUMBER) {
--		inp += 4;
--		size -= 4;
-+		if (!fill) {
-+			inp += 4;
-+			size -= 4;
-+		}
- 	} else {
- 		error("invalid header");
- 		goto exit_2;
-@@ -100,29 +107,44 @@ STATIC inline int INIT unlz4(u8 *input,
- 
- 	for (;;) {
- 
--		if (fill)
--			fill(inp, 4);
-+		if (fill) {
-+			size = fill(inp, 4);
-+			if (size == 0)
-+				break;
-+			if (size < 4) {
-+				error("data corrupted");
-+				goto exit_2;
-+			}
-+		}
- 
- 		chunksize = get_unaligned_le32(inp);
- 		if (chunksize == ARCHIVE_MAGICNUMBER) {
--			inp += 4;
--			size -= 4;
-+			if (!fill) {
-+				inp += 4;
-+				size -= 4;
-+			}
- 			if (posp)
- 				*posp += 4;
- 			continue;
- 		}
--		inp += 4;
--		size -= 4;
-+
- 
- 		if (posp)
- 			*posp += 4;
- 
--		if (fill) {
-+		if (!fill) {
-+			inp += 4;
-+			size -= 4;
-+		} else {
- 			if (chunksize > lz4_compressbound(uncomp_chunksize)) {
- 				error("chunk length is longer than allocated");
- 				goto exit_2;
- 			}
--			fill(inp, chunksize);
-+			size = fill(inp, chunksize);
-+			if (size < chunksize) {
-+				error("data corrupted");
-+				goto exit_2;
-+			}
- 		}
- #ifdef PREBOOT
- 		if (out_len >= uncomp_chunksize) {
-@@ -149,18 +171,17 @@ STATIC inline int INIT unlz4(u8 *input,
- 		if (posp)
- 			*posp += chunksize;
- 
--		size -= chunksize;
-+		if (!fill) {
-+			size -= chunksize;
- 
--		if (size == 0)
--			break;
--		else if (size < 0) {
--			error("data corrupted");
--			goto exit_2;
-+			if (size == 0)
-+				break;
-+			else if (size < 0) {
-+				error("data corrupted");
-+				goto exit_2;
-+			}
-+			inp += chunksize;
- 		}
+_
+
+Patches currently in -mm which might be from fabf@skynet.be are
+
+origin.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-isofs-logging-clean-up.patch
+fs-isofs-logging-clean-up-fix.patch
+linux-next.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+kernel-kprobesc-convert-printk-to-pr_foo.patch
+
