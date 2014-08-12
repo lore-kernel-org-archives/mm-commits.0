@@ -1,94 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-resourcec-fix-null-deref-with-no-iomem.patch added to
- -mm tree
-Date: Tue, 12 Aug 2014 15:00:46 -0700
-Message-ID: <53ea8e8e.q7vNvNDkKHcYXNnQ%akpm@linux-foundation.org>
+Subject: +
+ memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node.patch
+ added to -mm tree
+Date: Tue, 12 Aug 2014 15:02:08 -0700
+Message-ID: <53ea8ee0.8aFNMkd9kLwf12fJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f74.google.com ([209.85.192.74]:51788 "EHLO
-	mail-qg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753147AbaHLWAr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 18:00:47 -0400
-Received: by mail-qg0-f74.google.com with SMTP id z60so1335591qgd.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 15:00:47 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:58282 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913AbaHLWCJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 18:02:09 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so1955952oig.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 15:02:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@redhat.com, richard@nod.at, sahne@0x90.at, toralf.foerster@gmx.de, mm-commits@vger.kernel.org
+To: tangchen@cn.fujitsu.com, qiuxishi@huawei.com, mm-commits@vger.kernel.org
 
-ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBrZXJuZWwvcmVzb3VyY2UuYzogZml4
-IE5VTEwgZGVyZWYgd2l0aCBubyBJT01FTQ0KaGFzIGJlZW4gYWRkZWQgdG8gdGhlIC1tbSB0
-cmVlLiAgSXRzIGZpbGVuYW1lIGlzCiAgICAga2VybmVsLXJlc291cmNlYy1maXgtbnVsbC1k
-ZXJlZi13aXRoLW5vLWlvbWVtLnBhdGNoCgpUaGlzIHBhdGNoIHNob3VsZCBzb29uIGFwcGVh
-ciBhdAogICAgaHR0cDovL296bGFicy5vcmcvfmFrcG0vbW1vdHMvYnJva2VuLW91dC9rZXJu
-ZWwtcmVzb3VyY2VjLWZpeC1udWxsLWRlcmVmLXdpdGgtbm8taW9tZW0ucGF0Y2gKYW5kIGxh
-dGVyIGF0CiAgICBodHRwOi8vb3psYWJzLm9yZy9+YWtwbS9tbW90bS9icm9rZW4tb3V0L2tl
-cm5lbC1yZXNvdXJjZWMtZml4LW51bGwtZGVyZWYtd2l0aC1uby1pb21lbS5wYXRjaAoKQmVm
-b3JlIHlvdSBqdXN0IGdvIGFuZCBoaXQgInJlcGx5IiwgcGxlYXNlOgogICBhKSBDb25zaWRl
-ciB3aG8gZWxzZSBzaG91bGQgYmUgY2MnZWQKICAgYikgUHJlZmVyIHRvIGNjIGEgc3VpdGFi
-bGUgbWFpbGluZyBsaXN0IGFzIHdlbGwKICAgYykgSWRlYWxseTogZmluZCB0aGUgb3JpZ2lu
-YWwgcGF0Y2ggb24gdGhlIG1haWxpbmcgbGlzdCBhbmQgZG8gYQogICAgICByZXBseS10by1h
-bGwgdG8gdGhhdCwgYWRkaW5nIHN1aXRhYmxlIGFkZGl0aW9uYWwgY2MncwoKKioqIFJlbWVt
-YmVyIHRvIHVzZSBEb2N1bWVudGF0aW9uL1N1Ym1pdENoZWNrbGlzdCB3aGVuIHRlc3Rpbmcg
-eW91ciBjb2RlICoqKgoKVGhlIC1tbSB0cmVlIGlzIGluY2x1ZGVkIGludG8gbGludXgtbmV4
-dCBhbmQgaXMgdXBkYXRlZAp0aGVyZSBldmVyeSAzLTQgd29ya2luZyBkYXlzCgotLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRnJvbTog
-Vml2ZWsgR295YWwgPHZnb3lhbEByZWRoYXQuY29tPg0KU3ViamVjdDoga2VybmVsL3Jlc291
-cmNlLmM6IGZpeCBOVUxMIGRlcmVmIHdpdGggbm8gSU9NRU0NCg0KQWZmZWN0cyBVTUwuDQoN
-Ckl0IGRpZXMgaW4gbmV4dF9yZXNvdXJjZSgpOg0KICAgICAgICAvKiBDYWxsZXIgd2FudHMg
-dG8gdHJhdmVyc2UgdGhyb3VnaCBzaWJsaW5ncyBvbmx5ICovDQogICAgICAgIGlmIChzaWJs
-aW5nX29ubHkpDQogICAgICAgICAgICAgICAgcmV0dXJuIHAtPnNpYmxpbmc7DQoNClJJUDog
-MDAzMzpbPDAwMDAwMDAwNjAwMzliOWY+XQ0KUlNQOiAwMDAwMDAwMDgxNDU5ZGEwICBFRkxB
-R1M6IDAwMDEwMjAyDQpSQVg6IDAwMDAwMDAwMDAwMDAwMDAgUkJYOiAwMDAwMDAwMDIxOWIz
-ZmZmIFJDWDogMDAwMDAwMDA2MDEwZDFkOQ0KUkRYOiAwMDAwMDAwMDAwMDAwMDAxIFJTSTog
-MDAwMDAwMDA2MDJkZmI5NCBSREk6IDAwMDAwMDAwODE0NTlkZjgNClJCUDogMDAwMDAwMDA4
-MTQ1OWRlMCBSMDg6IDAwMDAwMDAwNjAxYjU5ZjQgUjA5OiBmZmZmZmZmZjAwMDBmZjAwDQpS
-MTA6IGZmZmZmZmZmMDAwMGZmMDAgUjExOiAwMDAwMDAwMDgxNDU5ZTg4IFIxMjogMDAwMDAw
-MDA4MTQ1OWRmOA0KUjEzOiAwMDAwMDAwMDIxOWIzZmZmIFIxNDogMDAwMDAwMDA2MDJkZmI5
-NCBSMTU6IDAwMDAwMDAwMDAwMDAwMDANCktlcm5lbCBwYW5pYyAtIG5vdCBzeW5jaW5nOiBT
-ZWdmYXVsdCB3aXRoIG5vIG1tDQpDUFU6IDAgUElEOiAxIENvbW06IHN3YXBwZXIgTm90IHRh
-aW50ZWQgMy4xNi4wLTEwNDU0LWc1OGQwOGUzICMxMw0KU3RhY2s6DQogMDAwMDAwMDAgMDAw
-MDgwZDAgODE0NTlkZjAgMjE5YjNmZmYNCiA4MTQ1OWU3MCA2MDEwZDFkOSBmZmZmZmZmZiA2
-MDMzZTAxMA0KIDgxNDU5ZTUwIDYwMDNhMjY5IDgxNDU5ZTMwIDAwMDAwMDAwDQpDYWxsIFRy
-YWNlOg0KIFs8NjAxMGQxZDk+XSA/IGtjbGlzdF9hZGRfcHJpdmF0ZSsweDAvMHhlNw0KIFs8
-NjAwM2EyNjk+XSB3YWxrX3N5c3RlbV9yYW1fcmFuZ2UrMHg2MS8weGI3DQogWzw2MDAwZTg1
-OT5dID8gcHJvY19rY29yZV9pbml0KzB4MC8weGYxDQogWzw2MDEwZDU3ND5dIGtjb3JlX3Vw
-ZGF0ZV9yYW0rMHg0Yy8weDE2OA0KIFs8NjAxMGQ3MmU+XSA/IGtjbGlzdF9hZGQrMHgwLzB4
-MmUNCiBbPDYwMDBlOTQzPl0gcHJvY19rY29yZV9pbml0KzB4ZWEvMHhmMQ0KIFs8NjAwMGU4
-NTk+XSA/IHByb2Nfa2NvcmVfaW5pdCsweDAvMHhmMQ0KIFs8NjAwMGU4NTk+XSA/IHByb2Nf
-a2NvcmVfaW5pdCsweDAvMHhmMQ0KIFs8NjAwMTg5ZjA+XSBkb19vbmVfaW5pdGNhbGwrMHgx
-M2MvMHgyMDQNCiBbPDYwMDRjYTQ2Pl0gPyBwYXJzZV9hcmdzKzB4MWRmLzB4MmUwDQogWzw2
-MDA0YzgyZD5dID8gcGFyYW1lcSsweDAvMHgzYQ0KIFs8NjAxYjU5OTA+XSA/IHN0cmNweSsw
-eDAvMHgxOA0KIFs8NjAwMDFlMWE+XSBrZXJuZWxfaW5pdF9mcmVlYWJsZSsweDI0MC8weDMx
-ZQ0KIFs8NjAyNmYxYzA+XSBrZXJuZWxfaW5pdCsweDEyLzB4MTQ4DQogWzw2MDAxOWZhZD5d
-IG5ld190aHJlYWRfaGFuZGxlcisweDgxLzB4YTMNClJJUCBpcyBhdCBrZXJuZWwvcmVzb3Vy
-Y2UuYzo2Ni4NCg0KSSBub3RpY2VkIHRoYXQgcHJldmlvdXMgY29kZSBoYWQgYSBmb3IoKSBs
-b29wIHdoaWNoIHdpbGwgbm90IGV4ZWN1dGUNCmlmIHAgd2FzIG51bGwuIEkgaGF2ZSByZXNv
-cnRlZCBiYWNrIHRvIHNhbWUgY29kZSBub3cuDQoNCkZ4aWVzIDhjODZlNzBhY2VhZDYyOWFh
-Y2I0YSAoInJlc291cmNlOiBwcm92aWRlIG5ldyBmdW5jdGlvbnMgdG8gd2Fsaw0KdGhyb3Vn
-aCByZXNvdXJjZXMiKS4NCg0KUmVwb3J0ZWQtYnk6IERhbmllbCBXYWx0ZXIgPHNhaG5lQDB4
-OTAuYXQ+DQpUZXN0ZWQtYnk6IERhbmllbCBXYWx0ZXIgPHNhaG5lQDB4OTAuYXQ+DQpSZXBv
-cnRlZC1ieTogUmljaGFyZCBXZWluYmVyZ2VyIDxyaWNoYXJkQG5vZC5hdD4NClRlc3RlZC1i
-eTogUmljaGFyZCBXZWluYmVyZ2VyIDxyaWNoYXJkQG5vZC5hdD4NClRlc3RlZC1ieTogVG9y
-YWxmIEbDtnJzdGVyIDx0b3JhbGYuZm9lcnN0ZXJAZ214LmRlPg0KU2lnbmVkLW9mZi1ieTog
-QW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KLS0tCgoga2VybmVs
-L3Jlc291cmNlLmMgfCAgIDExICsrKystLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgNCBpbnNl
-cnRpb25zKCspLCA3IGRlbGV0aW9ucygtKQoKZGlmZiAtcHVOIGtlcm5lbC9yZXNvdXJjZS5j
-fmtlcm5lbC1yZXNvdXJjZWMtZml4LW51bGwtZGVyZWYtd2l0aC1uby1pb21lbSBrZXJuZWwv
-cmVzb3VyY2UuYwotLS0gYS9rZXJuZWwvcmVzb3VyY2UuY35rZXJuZWwtcmVzb3VyY2VjLWZp
-eC1udWxsLWRlcmVmLXdpdGgtbm8taW9tZW0KKysrIGEva2VybmVsL3Jlc291cmNlLmMKQEAg
-LTM1MSwxNSArMzUxLDEyIEBAIHN0YXRpYyBpbnQgZmluZF9uZXh0X2lvbWVtX3JlcyhzdHJ1
-Y3QgcmUKIAllbmQgPSByZXMtPmVuZDsKIAlCVUdfT04oc3RhcnQgPj0gZW5kKTsKIAotCXJl
-YWRfbG9jaygmcmVzb3VyY2VfbG9jayk7Ci0KLQlpZiAoZmlyc3RfbGV2ZWxfY2hpbGRyZW5f
-b25seSkgewotCQlwID0gaW9tZW1fcmVzb3VyY2UuY2hpbGQ7CisJaWYgKGZpcnN0X2xldmVs
-X2NoaWxkcmVuX29ubHkpCiAJCXNpYmxpbmdfb25seSA9IHRydWU7Ci0JfSBlbHNlCi0JCXAg
-PSAmaW9tZW1fcmVzb3VyY2U7CiAKLQl3aGlsZSAoKHAgPSBuZXh0X3Jlc291cmNlKHAsIHNp
-Ymxpbmdfb25seSkpKSB7CisJcmVhZF9sb2NrKCZyZXNvdXJjZV9sb2NrKTsKKworCWZvciAo
-cCA9IGlvbWVtX3Jlc291cmNlLmNoaWxkOyBwOyBwID0gbmV4dF9yZXNvdXJjZShwLCBzaWJs
-aW5nX29ubHkpKSB7CiAJCWlmIChwLT5mbGFncyAhPSByZXMtPmZsYWdzKQogCQkJY29udGlu
-dWU7CiAJCWlmIChuYW1lICYmIHN0cmNtcChwLT5uYW1lLCBuYW1lKSkKXwoKUGF0Y2hlcyBj
-dXJyZW50bHkgaW4gLW1tIHdoaWNoIG1pZ2h0IGJlIGZyb20gdmdveWFsQHJlZGhhdC5jb20g
-YXJlCgpvcmlnaW4ucGF0Y2gKa2VybmVsLXJlc291cmNlYy1maXgtbnVsbC1kZXJlZi13aXRo
-LW5vLWlvbWVtLnBhdGNoCgo=
+
+The patch titled
+     Subject: memblock, memhotplug: Fix wrong type in memblock_find_in_range_node().
+has been added to the -mm tree.  Its filename is
+     memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node.patch
+
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: memblock, memhotplug: Fix wrong type in memblock_find_in_range_node().
+
+In memblock_find_in_range_node(), we defined ret as int.  But it should be
+phys_addr_t because it is used to store the return value from
+__memblock_find_range_bottom_up().
+
+The bug has not been triggered because when allocating low memory near the
+kernel end, the "int ret" won't turn out to be negative.  When we started
+to allocate memory on other nodes, and the "int ret" could be minus.  Then
+the kernel will panic.
+
+A simple way to reproduce this: comment out the following code in numa_init(),
+
+        memblock_set_bottom_up(false);
+
+and the kernel won't boot.
+
+Reported-by: Xishi Qiu <qiuxishi@huawei.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/memblock.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff -puN mm/memblock.c~memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node mm/memblock.c
+--- a/mm/memblock.c~memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node
++++ a/mm/memblock.c
+@@ -192,8 +192,7 @@ phys_addr_t __init_memblock memblock_fin
+ 					phys_addr_t align, phys_addr_t start,
+ 					phys_addr_t end, int nid)
+ {
+-	int ret;
+-	phys_addr_t kernel_end;
++	phys_addr_t kernel_end, ret;
+ 
+ 	/* pump up @end */
+ 	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
+_
+
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+
+origin.patch
+memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node.patch
+x86mem-hotplug-pass-sync_global_pgds-a-correct-argument-in-remove_pagetable.patch
+x86mem-hotplug-modify-pgd-entry-when-removing-memory.patch
+linux-next.patch
+
