@@ -1,196 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-add-new-rapidio-dma-interface-routines.patch
+Subject: [merged] lib-idr-fix-out-of-bounds-pointer-dereference.patch
  removed from -mm tree
-Date: Tue, 12 Aug 2014 12:40:30 -0700
-Message-ID: <53ea6dae.fM39Q9OA7XzJPRTp%akpm@linux-foundation.org>
+Date: Tue, 12 Aug 2014 12:40:28 -0700
+Message-ID: <53ea6dac.BWhhUkqzhEeAlTS8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:43326 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754290AbaHLTkb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:40:31 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so2670157pab.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:40:30 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:37579 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754290AbaHLTk3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:40:29 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h3so1068888igd.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:40:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, stef.van.os@prodrive-technologies.com, mm-commits@vger.kernel.org
+To: a.ryabinin@samsung.com, dvyukov@google.com, koct9i@gmail.com, laijs@cn.fujitsu.com, preobr@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: add new RapidIO DMA interface routines
+     Subject: lib/idr.c: fix out-of-bounds pointer dereference
 has been removed from the -mm tree.  Its filename was
-     rapidio-add-new-rapidio-dma-interface-routines.patch
+     lib-idr-fix-out-of-bounds-pointer-dereference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add new RapidIO DMA interface routines
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: lib/idr.c: fix out-of-bounds pointer dereference
 
-Resending because the original email was rejected by some gateways.
+I'm working on address sanitizer project for kernel.  Recently we started
+experiments with stack instrumentation, to detect out-of-bounds read/write
+bugs on stack.
 
-Add RapidIO DMA interface routines that directly use reference to the mport
-device object and/or target device destination ID as parameters.
-This allows to perform RapidIO DMA transfer requests by modules that do not
-have an access to the RapidIO device list.
+Just after booting I've hit out-of-bounds read on stack in idr_for_each
+(and in __idr_remove_all as well):
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
-Cc: Stef van Os <stef.van.os@prodrive-technologies.com>
+	struct idr_layer **paa = &pa[0];
+
+	while (id >= 0 && id <= max) {
+		...
+		while (n < fls(id)) {
+			n += IDR_BITS;
+			p = *--paa; <--- here we are reading pa[-1] value.
+		}
+	}
+
+Despite the fact that after this dereference we are exiting out of loop
+and never use p, such behaviour is undefined and should be avoided.
+
+Fix this by moving pointer derference to the beggining of the loop, right
+before we will use it.
+
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Reviewed-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Alexey Preobrazhensky <preobr@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c   |   66 +++++++++++++++++++++++++++-----------
- include/linux/rio_drv.h |    5 ++
- 2 files changed, 52 insertions(+), 19 deletions(-)
+ lib/idr.c |   25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-add-new-rapidio-dma-interface-routines drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-new-rapidio-dma-interface-routines
-+++ a/drivers/rapidio/rio.c
-@@ -1509,30 +1509,39 @@ EXPORT_SYMBOL_GPL(rio_route_clr_table);
+diff -puN lib/idr.c~lib-idr-fix-out-of-bounds-pointer-dereference lib/idr.c
+--- a/lib/idr.c~lib-idr-fix-out-of-bounds-pointer-dereference
++++ a/lib/idr.c
+@@ -590,26 +590,27 @@ static void __idr_remove_all(struct idr
+ 	struct idr_layer **paa = &pa[0];
  
- static bool rio_chan_filter(struct dma_chan *chan, void *arg)
- {
--	struct rio_dev *rdev = arg;
-+	struct rio_mport *mport = arg;
+ 	n = idp->layers * IDR_BITS;
+-	p = idp->top;
++	*paa = idp->top;
+ 	RCU_INIT_POINTER(idp->top, NULL);
+ 	max = idr_max(idp->layers);
  
- 	/* Check that DMA device belongs to the right MPORT */
--	return (rdev->net->hport ==
--		container_of(chan->device, struct rio_mport, dma));
-+	return mport == container_of(chan->device, struct rio_mport, dma);
- }
+ 	id = 0;
+ 	while (id >= 0 && id <= max) {
++		p = *paa;
+ 		while (n > IDR_BITS && p) {
+ 			n -= IDR_BITS;
+-			*paa++ = p;
+ 			p = p->ary[(id >> n) & IDR_MASK];
++			*++paa = p;
+ 		}
  
- /**
-- * rio_request_dma - request RapidIO capable DMA channel that supports
-- *   specified target RapidIO device.
-- * @rdev: RIO device control structure
-+ * rio_request_mport_dma - request RapidIO capable DMA channel associated
-+ *   with specified local RapidIO mport device.
-+ * @mport: RIO mport to perform DMA data transfers
-  *
-  * Returns pointer to allocated DMA channel or NULL if failed.
-  */
--struct dma_chan *rio_request_dma(struct rio_dev *rdev)
-+struct dma_chan *rio_request_mport_dma(struct rio_mport *mport)
- {
- 	dma_cap_mask_t mask;
--	struct dma_chan *dchan;
+ 		bt_mask = id;
+ 		id += 1 << n;
+ 		/* Get the highest bit that the above add changed from 0->1. */
+ 		while (n < fls(id ^ bt_mask)) {
+-			if (p)
+-				free_layer(idp, p);
++			if (*paa)
++				free_layer(idp, *paa);
+ 			n += IDR_BITS;
+-			p = *--paa;
++			--paa;
+ 		}
+ 	}
+ 	idp->layers = 0;
+@@ -692,15 +693,16 @@ int idr_for_each(struct idr *idp,
+ 	struct idr_layer **paa = &pa[0];
  
- 	dma_cap_zero(mask);
- 	dma_cap_set(DMA_SLAVE, mask);
--	dchan = dma_request_channel(mask, rio_chan_filter, rdev);
-+	return dma_request_channel(mask, rio_chan_filter, mport);
-+}
-+EXPORT_SYMBOL_GPL(rio_request_mport_dma);
+ 	n = idp->layers * IDR_BITS;
+-	p = rcu_dereference_raw(idp->top);
++	*paa = rcu_dereference_raw(idp->top);
+ 	max = idr_max(idp->layers);
  
--	return dchan;
-+/**
-+ * rio_request_dma - request RapidIO capable DMA channel that supports
-+ *   specified target RapidIO device.
-+ * @rdev: RIO device associated with DMA transfer
-+ *
-+ * Returns pointer to allocated DMA channel or NULL if failed.
-+ */
-+struct dma_chan *rio_request_dma(struct rio_dev *rdev)
-+{
-+	return rio_request_mport_dma(rdev->net->hport);
- }
- EXPORT_SYMBOL_GPL(rio_request_dma);
+ 	id = 0;
+ 	while (id >= 0 && id <= max) {
++		p = *paa;
+ 		while (n > 0 && p) {
+ 			n -= IDR_BITS;
+-			*paa++ = p;
+ 			p = rcu_dereference_raw(p->ary[(id >> n) & IDR_MASK]);
++			*++paa = p;
+ 		}
  
-@@ -1547,10 +1556,10 @@ void rio_release_dma(struct dma_chan *dc
- EXPORT_SYMBOL_GPL(rio_release_dma);
- 
- /**
-- * rio_dma_prep_slave_sg - RapidIO specific wrapper
-+ * rio_dma_prep_xfer - RapidIO specific wrapper
-  *   for device_prep_slave_sg callback defined by DMAENGINE.
-- * @rdev: RIO device control structure
-  * @dchan: DMA channel to configure
-+ * @destid: target RapidIO device destination ID
-  * @data: RIO specific data descriptor
-  * @direction: DMA data transfer direction (TO or FROM the device)
-  * @flags: dmaengine defined flags
-@@ -1560,11 +1569,10 @@ EXPORT_SYMBOL_GPL(rio_release_dma);
-  * target RIO device.
-  * Returns pointer to DMA transaction descriptor or NULL if failed.
-  */
--struct dma_async_tx_descriptor *rio_dma_prep_slave_sg(struct rio_dev *rdev,
--	struct dma_chan *dchan, struct rio_dma_data *data,
-+struct dma_async_tx_descriptor *rio_dma_prep_xfer(struct dma_chan *dchan,
-+	u16 destid, struct rio_dma_data *data,
- 	enum dma_transfer_direction direction, unsigned long flags)
- {
--	struct dma_async_tx_descriptor *txd = NULL;
- 	struct rio_dma_ext rio_ext;
- 
- 	if (dchan->device->device_prep_slave_sg == NULL) {
-@@ -1572,15 +1580,35 @@ struct dma_async_tx_descriptor *rio_dma_
- 		return NULL;
+ 		if (p) {
+@@ -712,7 +714,7 @@ int idr_for_each(struct idr *idp,
+ 		id += 1 << n;
+ 		while (n < fls(id)) {
+ 			n += IDR_BITS;
+-			p = *--paa;
++			--paa;
+ 		}
  	}
  
--	rio_ext.destid = rdev->destid;
-+	rio_ext.destid = destid;
- 	rio_ext.rio_addr_u = data->rio_addr_u;
- 	rio_ext.rio_addr = data->rio_addr;
- 	rio_ext.wr_type = data->wr_type;
+@@ -740,17 +742,18 @@ void *idr_get_next(struct idr *idp, int
+ 	int n, max;
  
--	txd = dmaengine_prep_rio_sg(dchan, data->sg, data->sg_len,
--					direction, flags, &rio_ext);
-+	return dmaengine_prep_rio_sg(dchan, data->sg, data->sg_len,
-+				     direction, flags, &rio_ext);
-+}
-+EXPORT_SYMBOL_GPL(rio_dma_prep_xfer);
+ 	/* find first ent */
+-	p = rcu_dereference_raw(idp->top);
++	p = *paa = rcu_dereference_raw(idp->top);
+ 	if (!p)
+ 		return NULL;
+ 	n = (p->layer + 1) * IDR_BITS;
+ 	max = idr_max(p->layer + 1);
  
--	return txd;
-+/**
-+ * rio_dma_prep_slave_sg - RapidIO specific wrapper
-+ *   for device_prep_slave_sg callback defined by DMAENGINE.
-+ * @rdev: RIO device control structure
-+ * @dchan: DMA channel to configure
-+ * @data: RIO specific data descriptor
-+ * @direction: DMA data transfer direction (TO or FROM the device)
-+ * @flags: dmaengine defined flags
-+ *
-+ * Initializes RapidIO capable DMA channel for the specified data transfer.
-+ * Uses DMA channel private extension to pass information related to remote
-+ * target RIO device.
-+ * Returns pointer to DMA transaction descriptor or NULL if failed.
-+ */
-+struct dma_async_tx_descriptor *rio_dma_prep_slave_sg(struct rio_dev *rdev,
-+	struct dma_chan *dchan, struct rio_dma_data *data,
-+	enum dma_transfer_direction direction, unsigned long flags)
-+{
-+	return rio_dma_prep_xfer(dchan,	rdev->destid, data, direction, flags);
- }
- EXPORT_SYMBOL_GPL(rio_dma_prep_slave_sg);
+ 	while (id >= 0 && id <= max) {
++		p = *paa;
+ 		while (n > 0 && p) {
+ 			n -= IDR_BITS;
+-			*paa++ = p;
+ 			p = rcu_dereference_raw(p->ary[(id >> n) & IDR_MASK]);
++			*++paa = p;
+ 		}
  
-diff -puN include/linux/rio_drv.h~rapidio-add-new-rapidio-dma-interface-routines include/linux/rio_drv.h
---- a/include/linux/rio_drv.h~rapidio-add-new-rapidio-dma-interface-routines
-+++ a/include/linux/rio_drv.h
-@@ -384,11 +384,16 @@ void rio_dev_put(struct rio_dev *);
- 
- #ifdef CONFIG_RAPIDIO_DMA_ENGINE
- extern struct dma_chan *rio_request_dma(struct rio_dev *rdev);
-+extern struct dma_chan *rio_request_mport_dma(struct rio_mport *mport);
- extern void rio_release_dma(struct dma_chan *dchan);
- extern struct dma_async_tx_descriptor *rio_dma_prep_slave_sg(
- 		struct rio_dev *rdev, struct dma_chan *dchan,
- 		struct rio_dma_data *data,
- 		enum dma_transfer_direction direction, unsigned long flags);
-+extern struct dma_async_tx_descriptor *rio_dma_prep_xfer(
-+		struct dma_chan *dchan,	u16 destid,
-+		struct rio_dma_data *data,
-+		enum dma_transfer_direction direction, unsigned long flags);
- #endif
- 
- /**
+ 		if (p) {
+@@ -768,7 +771,7 @@ void *idr_get_next(struct idr *idp, int
+ 		id = round_up(id + 1, 1 << n);
+ 		while (n < fls(id)) {
+ 			n += IDR_BITS;
+-			p = *--paa;
++			--paa;
+ 		}
+ 	}
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
 origin.patch
 
