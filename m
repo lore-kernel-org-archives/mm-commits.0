@@ -1,103 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] qlogic-use-pci_zalloc_consistent.patch removed from -mm
- tree
-Date: Tue, 12 Aug 2014 12:42:41 -0700
-Message-ID: <53ea6e31.gQzy/pfLRcUQ15Tq%akpm@linux-foundation.org>
+Subject: [merged] rtl818x-use-pci_zalloc_consistent.patch removed from -mm tree
+Date: Tue, 12 Aug 2014 12:42:49 -0700
+Message-ID: <53ea6e39.OcDxM/UO6hY4ig2I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f202.google.com ([209.85.160.202]:47504 "EHLO
-	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754456AbaHLTmn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:42:43 -0400
-Received: by mail-yk0-f202.google.com with SMTP id q9so1309169ykb.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:42:42 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:51958 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754914AbaHLTmu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Aug 2014 15:42:50 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so1920577oah.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2014 12:42:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, davem@davemloft.net, jitendra.kalsaria@qlogic.com, manish.chopra@qlogic.com, rajesh.borundia@qlogic.com, ron.mercer@qlogic.com, shahed.shaikh@qlogic.com, sony.chacko@qlogic.com, mm-commits@vger.kernel.org
+To: joe@perches.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: qlogic: use pci_zalloc_consistent
+     Subject: rtl818x: use pci_zalloc_consistent
 has been removed from the -mm tree.  Its filename was
-     qlogic-use-pci_zalloc_consistent.patch
+     rtl818x-use-pci_zalloc_consistent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: qlogic: use pci_zalloc_consistent
+Subject: rtl818x: use pci_zalloc_consistent
 
 Remove the now unnecessary memset too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Manish Chopra <manish.chopra@qlogic.com>
-Cc: Sony Chacko <sony.chacko@qlogic.com>
-Cc: Rajesh Borundia <rajesh.borundia@qlogic.com>
-Cc: Shahed Shaikh <shahed.shaikh@qlogic.com>
-Cc: Jitendra Kalsaria <jitendra.kalsaria@qlogic.com>
-Cc: Ron Mercer <ron.mercer@qlogic.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/qlogic/netxen/netxen_nic_ctx.c |    4 ---
- drivers/net/ethernet/qlogic/qlge/qlge_main.c        |   11 ++++------
- 2 files changed, 6 insertions(+), 9 deletions(-)
+ drivers/net/wireless/rtl818x/rtl8180/dev.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/ethernet/qlogic/netxen/netxen_nic_ctx.c~qlogic-use-pci_zalloc_consistent drivers/net/ethernet/qlogic/netxen/netxen_nic_ctx.c
---- a/drivers/net/ethernet/qlogic/netxen/netxen_nic_ctx.c~qlogic-use-pci_zalloc_consistent
-+++ a/drivers/net/ethernet/qlogic/netxen/netxen_nic_ctx.c
-@@ -129,14 +129,12 @@ netxen_get_minidump_template(struct netx
- 		return NX_RCODE_INVALID_ARGS;
- 	}
+diff -puN drivers/net/wireless/rtl818x/rtl8180/dev.c~rtl818x-use-pci_zalloc_consistent drivers/net/wireless/rtl818x/rtl8180/dev.c
+--- a/drivers/net/wireless/rtl818x/rtl8180/dev.c~rtl818x-use-pci_zalloc_consistent
++++ a/drivers/net/wireless/rtl818x/rtl8180/dev.c
+@@ -972,16 +972,13 @@ static int rtl8180_init_rx_ring(struct i
+ 	else
+ 		priv->rx_ring_sz = sizeof(struct rtl8180_rx_desc);
  
--	addr = pci_alloc_consistent(adapter->pdev, size, &md_template_addr);
+-	priv->rx_ring = pci_alloc_consistent(priv->pdev,
+-					     priv->rx_ring_sz * 32,
+-					     &priv->rx_ring_dma);
 -
-+	addr = pci_zalloc_consistent(adapter->pdev, size, &md_template_addr);
- 	if (!addr) {
- 		dev_err(&adapter->pdev->dev, "Unable to allocate dmable memory for template.\n");
++	priv->rx_ring = pci_zalloc_consistent(priv->pdev, priv->rx_ring_sz * 32,
++					      &priv->rx_ring_dma);
+ 	if (!priv->rx_ring || (unsigned long)priv->rx_ring & 0xFF) {
+ 		wiphy_err(dev->wiphy, "Cannot allocate RX ring\n");
  		return -ENOMEM;
  	}
  
--	memset(addr, 0, size);
- 	memset(&cmd, 0, sizeof(cmd));
- 	memset(&cmd.rsp, 1, sizeof(struct _cdrp_cmd));
- 	cmd.req.cmd = NX_CDRP_CMD_GET_TEMP_HDR;
-diff -puN drivers/net/ethernet/qlogic/qlge/qlge_main.c~qlogic-use-pci_zalloc_consistent drivers/net/ethernet/qlogic/qlge/qlge_main.c
---- a/drivers/net/ethernet/qlogic/qlge/qlge_main.c~qlogic-use-pci_zalloc_consistent
-+++ a/drivers/net/ethernet/qlogic/qlge/qlge_main.c
-@@ -2727,23 +2727,22 @@ static void ql_free_shadow_space(struct
- static int ql_alloc_shadow_space(struct ql_adapter *qdev)
- {
- 	qdev->rx_ring_shadow_reg_area =
--	    pci_alloc_consistent(qdev->pdev,
--				 PAGE_SIZE, &qdev->rx_ring_shadow_reg_dma);
-+		pci_zalloc_consistent(qdev->pdev, PAGE_SIZE,
-+				      &qdev->rx_ring_shadow_reg_dma);
- 	if (qdev->rx_ring_shadow_reg_area == NULL) {
- 		netif_err(qdev, ifup, qdev->ndev,
- 			  "Allocation of RX shadow space failed.\n");
+-	memset(priv->rx_ring, 0, priv->rx_ring_sz * 32);
+ 	priv->rx_idx = 0;
+ 
+ 	for (i = 0; i < 32; i++) {
+@@ -1040,14 +1037,14 @@ static int rtl8180_init_tx_ring(struct i
+ 	dma_addr_t dma;
+ 	int i;
+ 
+-	ring = pci_alloc_consistent(priv->pdev, sizeof(*ring) * entries, &dma);
++	ring = pci_zalloc_consistent(priv->pdev, sizeof(*ring) * entries,
++				     &dma);
+ 	if (!ring || (unsigned long)ring & 0xFF) {
+ 		wiphy_err(dev->wiphy, "Cannot allocate TX ring (prio = %d)\n",
+ 			  prio);
  		return -ENOMEM;
  	}
--	memset(qdev->rx_ring_shadow_reg_area, 0, PAGE_SIZE);
-+
- 	qdev->tx_ring_shadow_reg_area =
--	    pci_alloc_consistent(qdev->pdev, PAGE_SIZE,
--				 &qdev->tx_ring_shadow_reg_dma);
-+		pci_zalloc_consistent(qdev->pdev, PAGE_SIZE,
-+				      &qdev->tx_ring_shadow_reg_dma);
- 	if (qdev->tx_ring_shadow_reg_area == NULL) {
- 		netif_err(qdev, ifup, qdev->ndev,
- 			  "Allocation of TX shadow space failed.\n");
- 		goto err_wqp_sh_area;
- 	}
--	memset(qdev->tx_ring_shadow_reg_area, 0, PAGE_SIZE);
- 	return 0;
  
- err_wqp_sh_area:
+-	memset(ring, 0, sizeof(*ring)*entries);
+ 	priv->tx_ring[prio].desc = ring;
+ 	priv->tx_ring[prio].dma = dma;
+ 	priv->tx_ring[prio].idx = 0;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
