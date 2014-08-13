@@ -1,34 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- hugetlb_cgroup-use-lockdep_assert_held-rather-than-spin_is_locked.patch
- added to -mm tree
-Date: Wed, 13 Aug 2014 14:39:19 -0700
-Message-ID: <53ebdb07.1jkYyBdTSrg2jxeu%akpm@linux-foundation.org>
+Subject: + x86mm-fix-pte_special-versus-pte_numa.patch added to -mm tree
+Date: Wed, 13 Aug 2014 14:45:15 -0700
+Message-ID: <53ebdc6b.TTydQHRwqgokTFJp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:51316 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752109AbaHMVjU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 17:39:20 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wp18so95778obc.5
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 14:39:19 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:44520 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751852AbaHMVpQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 17:45:16 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h3so296932igd.4
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 14:45:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, aneesh.kumar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, gorcunov@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, peterz@infradead.org, riel@redhat.com, sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb_cgroup: use lockdep_assert_held rather than spin_is_locked
+     Subject: x86,mm: fix pte_special versus pte_numa
 has been added to the -mm tree.  Its filename is
-     hugetlb_cgroup-use-lockdep_assert_held-rather-than-spin_is_locked.patch
+     x86mm-fix-pte_special-versus-pte_numa.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb_cgroup-use-lockdep_assert_held-rather-than-spin_is_locked.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86mm-fix-pte_special-versus-pte_numa.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb_cgroup-use-lockdep_assert_held-rather-than-spin_is_locked.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86mm-fix-pte_special-versus-pte_numa.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,45 +40,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: hugetlb_cgroup: use lockdep_assert_held rather than spin_is_locked
+From: Mel Gorman <mgorman@suse.de>
+Subject: x86,mm: fix pte_special versus pte_numa
 
-spin_lock may be an empty struct for !SMP configurations and so
-arch_spin_is_locked may return unconditional 0 and trigger the VM_BUG_ON
-even when the lock is held.
+Sasha Levin has shown oopses on ffffea0003480048 and ffffea0003480008 at
+mm/memory.c:1132, running Trinity on different 3.16-rc-next kernels: where
+zap_pte_range() checks page->mapping to see if PageAnon(page).
 
-Replace spin_is_locked by lockdep_assert_held.  We will not BUG anymore
-but it is questionable whether crashing makes a lot of sense in the
-uncharge path.  Uncharge happens after the last page reference was
-released so nobody should touch the page and the function doesn't update
-any shared state except for res counter which uses synchronization of its
-own.
+Those addresses fit struct pages for pfns d2001 and d2000, and in each
+dump a register or a stack slot showed d2001730 or d2000730: pte flags
+0x730 are PCD ACCESSED PROTNONE SPECIAL IOMAP; and Sasha's e820 map has a
+hole between cfffffff and 100000000, which would need special access.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Commit c46a7c817e66 ("x86: define _PAGE_NUMA by reusing software bits on
+the PMD and PTE levels") has broken vm_normal_page(): a PROTNONE SPECIAL
+pte no longer passes the pte_special() test, so zap_pte_range() goes on to
+try to access a non-existent struct page.
+
+Fix this by refining pte_special() (SPECIAL with PRESENT or PROTNONE) to
+complement pte_numa() (SPECIAL with neither PRESENT nor PROTNONE).  A hint
+that this was a problem was that c46a7c817e66 added pte_numa() test to
+vm_normal_page(), and moved its is_zero_pfn() test from slow to fast path:
+This was papering over a pte_special() snag when the zero page was
+encountered during zap.  This patch reverts vm_normal_page() to how it was
+before, relying on pte_special().
+
+It still appears that this patch may be incomplete: aren't there other
+places which need to be handling PROTNONE along with PRESENT?  For
+example, pte_mknuma() clears _PAGE_PRESENT and sets _PAGE_NUMA, but on a
+PROT_NONE area, that would make it pte_special().  This is side-stepped by
+the fact that NUMA hinting faults skipped PROT_NONE VMAs and there are no
+grounds where a NUMA hinting fault on a PROT_NONE VMA would be
+interesting.
+
+Fixes: c46a7c817e66 ("x86: define _PAGE_NUMA by reusing software bits on the PMD and PTE levels")
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Tested-by: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: <stable@vger.kernel.org>	[3.16]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/pgtable.h |    9 +++++++--
+ mm/memory.c                    |    7 +++----
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN mm/hugetlb_cgroup.c~hugetlb_cgroup-use-lockdep_assert_held-rather-than-spin_is_locked mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-use-lockdep_assert_held-rather-than-spin_is_locked
-+++ a/mm/hugetlb_cgroup.c
-@@ -217,7 +217,7 @@ void hugetlb_cgroup_uncharge_page(int id
+diff -puN arch/x86/include/asm/pgtable.h~x86mm-fix-pte_special-versus-pte_numa arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~x86mm-fix-pte_special-versus-pte_numa
++++ a/arch/x86/include/asm/pgtable.h
+@@ -131,8 +131,13 @@ static inline int pte_exec(pte_t pte)
  
- 	if (hugetlb_cgroup_disabled())
- 		return;
--	VM_BUG_ON(!spin_is_locked(&hugetlb_lock));
-+	lockdep_assert_held(&hugetlb_lock);
- 	h_cg = hugetlb_cgroup_from_page(page);
- 	if (unlikely(!h_cg))
- 		return;
-_
-
-Patches currently in -mm which might be from mhocko@suse.cz are
-
-origin.patch
-mm-hugetlb_cgroup-align-hugetlb-cgroup-limit-to-hugepage-size.patch
-hugetlb_cgroup-use-lockdep_assert_held-rather-than-spin_is_locked.patch
-
+ static inline int pte_special(pte_t pte)
+ {
+-	return (pte_flags(pte) & (_PAGE_PRESENT|_PAGE_SPECIAL)) ==
+-				 (_PAGE_PRESENT|_PAGE_SPECIAL);
++	/*
++	 * See CONFIG_NUMA_BALANCING pte_numa in include/asm-generic/pgtable.h.
++	 * On x86 we have _PAGE_BIT_NUMA == _PAGE_BIT_GLOBAL+1 ==
++	 * __PAGE_BIT_SOFTW1 == _PAGE_BIT_SPECIAL.
++	 */
++	return (pte_flags(pte) & _PAGE_SPECIAL) &&
++		(pte_flags(pte) & (_PAGE_PRESENT|_PAGE_PROTNONE));
+ }
+ 
+ static inline unsigned long pte_pfn(pte_t pte)
+diff -puN mm/memory.c~x86mm-fix-pte_special-versus-pte_numa mm/memory.c
+--- a/mm/memory.c~x86mm-fix-pte_special-versus-pte_numa
++++ a/mm/memory.c
+@@ -751,7 +751,7 @@ struct page *vm_normal_page(struct vm_ar
+ 	unsigned long pfn = pte_pfn(pte);
+ 
+ 	if (HAVE_PTE_SPECIAL) {
+-		if (likely(!pte_special(pte) || pte_numa(pte)))
++		if (likely(!pte_special(pte)))
+ 			goto check_pfn;
+ 		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
+ 			return NULL;
+@@ -777,15 +777,14 @@ struct page *vm_normal_page(struct vm_ar
+ 		}
+ 	}
+ 
++	if (is_zero_pfn(pfn))
++		return NULL;
+ check_pfn:
+ 	if (unlikely(pfn > highest_memmap_pfn)) {
+ 		print_bad_pte(vma, addr, pte, NULL);
+ 		return NULL;
+ 	}
+ 
+-	if (is_zero_pfn(pfn))
+-		return NULL;
