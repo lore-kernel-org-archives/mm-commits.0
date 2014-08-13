@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-actually-clear-pmd_numa-before-invalidating.patch added to
- -mm tree
-Date: Wed, 13 Aug 2014 13:01:18 -0700
-Message-ID: <53ebc40e.yPy03Bq8m9FY7Dwu%akpm__41998.4689135619$1407960088$gmane$org@linux-foundation.org>
+Subject: + lib-turn-config_stacktrace-into-an-actual-option.patch added to -mm tree
+Date: Wed, 13 Aug 2014 13:02:36 -0700
+Message-ID: <53ebc45c.g2/CS/6e8hg7xzz+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:35851 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751529AbaHMUBT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 16:01:19 -0400
-Received: by mail-pd0-f202.google.com with SMTP id w10so79136pde.5
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 13:01:18 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:62413 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752511AbaHMUCh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 16:02:37 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so67350obb.0
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 13:02:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthew.r.wilcox@intel.com, mgorman@suse.de, riel@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: davej@redhat.com, mingo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: actually clear pmd_numa before invalidating
+     Subject: lib: turn CONFIG_STACKTRACE into an actual option.
 has been added to the -mm tree.  Its filename is
-     mm-actually-clear-pmd_numa-before-invalidating.patch
+     lib-turn-config_stacktrace-into-an-actual-option.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-actually-clear-pmd_numa-before-invalidating.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-turn-config_stacktrace-into-an-actual-option.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-actually-clear-pmd_numa-before-invalidating.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-turn-config_stacktrace-into-an-actual-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,39 +40,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: mm: actually clear pmd_numa before invalidating
+From: Dave Jones <davej@redhat.com>
+Subject: lib: turn CONFIG_STACKTRACE into an actual option.
 
-Commit 67f87463d3 ("mm: clear pmd_numa before invalidating") cleared the
-NUMA bit in a copy of the PMD entry, but then wrote back the original
+I was puzzled why /proc/$$/stack had disappeared, until I figured out I
+had disabled the last debug option that did a 'select STACKTRACE'.  This
+patch makes the option show up at config time, so it can be enabled
+without enabling any of the more heavyweight debug options.
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pgtable-generic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/Kconfig.debug |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/pgtable-generic.c~mm-actually-clear-pmd_numa-before-invalidating mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~mm-actually-clear-pmd_numa-before-invalidating
-+++ a/mm/pgtable-generic.c
-@@ -195,7 +195,7 @@ void pmdp_invalidate(struct vm_area_stru
- 	pmd_t entry = *pmdp;
- 	if (pmd_numa(entry))
- 		entry = pmd_mknonnuma(entry);
--	set_pmd_at(vma->vm_mm, address, pmdp, pmd_mknotpresent(*pmdp));
-+	set_pmd_at(vma->vm_mm, address, pmdp, pmd_mknotpresent(entry));
- 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+diff -puN lib/Kconfig.debug~lib-turn-config_stacktrace-into-an-actual-option lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-turn-config_stacktrace-into-an-actual-option
++++ a/lib/Kconfig.debug
+@@ -1008,8 +1008,13 @@ config TRACE_IRQFLAGS
+ 	  either tracing or lock debugging.
+ 
+ config STACKTRACE
+-	bool
++	bool "Stack backtrace support"
+ 	depends on STACKTRACE_SUPPORT
++	help
++	  This option causes the kernel to create a /proc/pid/stack for
++	  every process, showing its current stack trace.
++	  It is also used by various kernel debugging features that require
++	  stack trace generation.
+ 
+ config DEBUG_KOBJECT
+ 	bool "kobject debugging"
 _
 
-Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
+Patches currently in -mm which might be from davej@redhat.com are
 
-mm-actually-clear-pmd_numa-before-invalidating.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+origin.patch
+lib-turn-config_stacktrace-into-an-actual-option.patch
+linux-next.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
 
