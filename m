@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + zram-fix-incorrectly-stat-with-failed_reads.patch added to -mm
- tree
-Date: Wed, 13 Aug 2014 13:59:43 -0700
-Message-ID: <53ebd1bf.PveL2qZ9Q1nVA6ZL%akpm@linux-foundation.org>
+Subject: + mm-zpool-use-prefixed-module-loading.patch added to -mm tree
+Date: Wed, 13 Aug 2014 14:01:01 -0700
+Message-ID: <53ebd20d./mClML02zYsgsrnj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:61536 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751529AbaHMU7o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 16:59:44 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so100975pab.4
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 13:59:44 -0700 (PDT)
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:52579 "EHLO
+	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751457AbaHMVBC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 17:01:02 -0400
+Received: by mail-qg0-f73.google.com with SMTP id q107so43177qgd.4
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 14:01:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chao2.yu@samsung.com, jmarchan@redhat.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, ddstreet@ieee.org, minchan@kernel.org, ngupta@vflare.org, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: fix incorrect stat with failed_reads
+     Subject: mm/zpool: use prefixed module loading
 has been added to the -mm tree.  Its filename is
-     zram-fix-incorrectly-stat-with-failed_reads.patch
+     mm-zpool-use-prefixed-module-loading.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-fix-incorrectly-stat-with-failed_reads.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zpool-use-prefixed-module-loading.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-fix-incorrectly-stat-with-failed_reads.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zpool-use-prefixed-module-loading.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,79 +40,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chao Yu <chao2.yu@samsung.com>
-Subject: zram: fix incorrect stat with failed_reads
+From: Kees Cook <keescook@chromium.org>
+Subject: mm/zpool: use prefixed module loading
 
-Since we allocate a temporary buffer in zram_bvec_read to handle partial
-page operations in 924bd88d703e ("Staging: zram: allow partial page
-operations"), our ->failed_reads value may be incorrect as we do not
-increase its value when failing to allocate the temporary buffer.
+To avoid potential format string expansion via module parameters, do not
+use the zpool type directly in request_module() without a format string. 
+Additionally, to avoid arbitrary modules being loaded via zpool API (e.g. 
+via the zswap_zpool_type module parameter) add a "zpool-" prefix to the
+requested module, as well as module aliases for the existing zpool types
+(zbud and zsmalloc).
 
-Let's fix this issue and correct the annotation of failed_reads.
-
-Signed-off-by: Chao Yu <chao2.yu@samsung.com>
-Cc: Minchan Kim <minchan@kernel.org>            
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   10 +++++++---
- drivers/block/zram/zram_drv.h |    2 +-
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ mm/zbud.c     |    1 +
+ mm/zpool.c    |    2 +-
+ mm/zsmalloc.c |    1 +
+ 3 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-fix-incorrectly-stat-with-failed_reads drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-fix-incorrectly-stat-with-failed_reads
-+++ a/drivers/block/zram/zram_drv.c
-@@ -378,7 +378,6 @@ static int zram_decompress_page(struct z
- 	/* Should NEVER happen. Return bio error if it does. */
- 	if (unlikely(ret)) {
- 		pr_err("Decompression failed! err=%d, page=%u\n", ret, index);
--		atomic64_inc(&zram->stats.failed_reads);
- 		return ret;
+diff -puN mm/zbud.c~mm-zpool-use-prefixed-module-loading mm/zbud.c
+--- a/mm/zbud.c~mm-zpool-use-prefixed-module-loading
++++ a/mm/zbud.c
+@@ -195,6 +195,7 @@ static struct zpool_driver zbud_zpool_dr
+ 	.total_size =	zbud_zpool_total_size,
+ };
+ 
++MODULE_ALIAS("zpool-zbud");
+ #endif /* CONFIG_ZPOOL */
+ 
+ /*****************
+diff -puN mm/zpool.c~mm-zpool-use-prefixed-module-loading mm/zpool.c
+--- a/mm/zpool.c~mm-zpool-use-prefixed-module-loading
++++ a/mm/zpool.c
+@@ -150,7 +150,7 @@ struct zpool *zpool_create_pool(char *ty
+ 	driver = zpool_get_driver(type);
+ 
+ 	if (!driver) {
+-		request_module(type);
++		request_module("zpool-%s", type);
+ 		driver = zpool_get_driver(type);
  	}
  
-@@ -547,8 +546,6 @@ out:
- 		zcomp_strm_release(zram->comp, zstrm);
- 	if (is_partial_io(bvec))
- 		kfree(uncmem);
--	if (ret)
--		atomic64_inc(&zram->stats.failed_writes);
- 	return ret;
- }
+diff -puN mm/zsmalloc.c~mm-zpool-use-prefixed-module-loading mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zpool-use-prefixed-module-loading
++++ a/mm/zsmalloc.c
+@@ -315,6 +315,7 @@ static struct zpool_driver zs_zpool_driv
+ 	.total_size =	zs_zpool_total_size,
+ };
  
-@@ -566,6 +563,13 @@ static int zram_bvec_rw(struct zram *zra
- 		ret = zram_bvec_write(zram, bvec, index, offset);
- 	}
++MODULE_ALIAS("zpool-zsmalloc");
+ #endif /* CONFIG_ZPOOL */
  
-+	if (unlikely(ret)) {
-+		if (rw == READ)
-+			atomic64_inc(&zram->stats.failed_reads);
-+		else
-+			atomic64_inc(&zram->stats.failed_writes);
-+	}
-+
- 	return ret;
- }
- 
-diff -puN drivers/block/zram/zram_drv.h~zram-fix-incorrectly-stat-with-failed_reads drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-fix-incorrectly-stat-with-failed_reads
-+++ a/drivers/block/zram/zram_drv.h
-@@ -84,7 +84,7 @@ struct zram_stats {
- 	atomic64_t compr_data_size;	/* compressed size of pages stored */
- 	atomic64_t num_reads;	/* failed + successful */
- 	atomic64_t num_writes;	/* --do-- */
--	atomic64_t failed_reads;	/* should NEVER! happen */
-+	atomic64_t failed_reads;	/* can happen when memory is too low */
- 	atomic64_t failed_writes;	/* can happen when memory is too low */
- 	atomic64_t invalid_io;	/* non-page-aligned I/O requests */
- 	atomic64_t notify_free;	/* no. of swap slot free notifications */
+ /* per-cpu VM mapping areas for zspage accesses that cross page boundaries */
 _
 
-Patches currently in -mm which might be from chao2.yu@samsung.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 origin.patch
-zram-fix-incorrectly-stat-with-failed_reads.patch
+mm-zpool-use-prefixed-module-loading.patch
+lib-vsprintf-add-%pt-format-specifier.patch
 linux-next.patch
 
