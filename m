@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch added to -mm tree
-Date: Wed, 13 Aug 2014 15:56:39 -0700
-Message-ID: <53ebed27.yUtwsaYVCr1osivd%akpm@linux-foundation.org>
+Subject: + remove-non-existent-files-from-maintainers.patch added to -mm
+ tree
+Date: Wed, 13 Aug 2014 16:00:45 -0700
+Message-ID: <53ebee1d.KNRqCOknWSI8lSQp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:34508 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753014AbaHMW4k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 18:56:40 -0400
-Received: by mail-qa0-f73.google.com with SMTP id s7so58890qap.4
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 15:56:40 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:43465 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931AbaHMXAq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 19:00:46 -0400
+Received: by mail-oa0-f74.google.com with SMTP id eb12so116311oac.5
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 16:00:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, hpa@zytor.com, rjw@sisk.pl, tangchen@cn.fujitsu.com, tj@kernel.org, wency@cn.fujitsu.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: lists@nerdbynature.de, cesarb@cesarb.eti.br, horms@verge.net.au, kyungmin.park@samsung.com, magnus.damm@gmail.com, peter.griffin@linaro.org, sbkim73@samsung.com, t.figa@samsung.com, ulf.hansson@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
+     Subject: MAINTAINERS: remove non-existent files
 has been added to the -mm tree.  Its filename is
-     mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
+     remove-non-existent-files-from-maintainers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/remove-non-existent-files-from-maintainers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/remove-non-existent-files-from-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,60 +41,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
+From: Christian Kujau <lists@nerdbynature.de>
+Subject: MAINTAINERS: remove non-existent files
 
-Let memblock skip the hotpluggable memory regions in __next_mem_range(),
-it is used to to prevent memblock from allocating hotpluggable memory for
-the kernel at early time.  The code is the same as __next_mem_range_rev().
+Inspired by some recent cleanups in MAINTAINERS the following
+files (F:) cannot be found any more in the tree:
 
-Clear hotpluggable flag before releasing free pages to the buddy allocator.
+    * arch/arm/mach-s5pv210/mach-aquila.c
+    * arch/arm/mach-s5pv210/mach-goni.c
 
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Tejun Heo <tj@kernel.org>
+      Those two got removed in 28c8331 ("ARM: S5PV210: Remove support for board files").
+      Cc: Tomasz Figa <t.figa@samsung.com>
+      Cc: Kyungmin Park <kyungmin.park@samsung.com>
+
+    * arch/arm/configs/genmai_defconfig
+
+      This one got removed in 3ed27bd9 ("ARM: shmobile: genmai: remove defconfig").
+      Cc: Simon Horman <horms@verge.net.au>
+      Cc: Magnus Damm <magnus.damm@gmail.com>
+
+    * drivers/mmc/host/sdhci-st.c
+
+      This one was sent to be included in June 2014 but got dropped shortly after:
+      "mmc: sdhci-st: Intial support for ST SDHCI controller"
+      https://lkml.org/lkml/2014/6/4/446
+      https://lkml.org/lkml/2014/7/9/340
+      Cc: Peter Griffin <peter.griffin@linaro.org>
+      Cc: Ulf Hansson <ulf.hansson@linaro.org>
+
+    * drivers/rtc/rtc-sec.c
+
+      A MAINTAINERS fix was attempted in November 2012, but dismissed as rtc-sec.c
+      was still being worked on. Alas, it's still not there.
+      "MAINTAINERS: fix drivers/rtc/rtc-sec.c"
+      http://lkml.iu.edu/hypermail/linux/kernel/1211.2/04820.html
+      Cc: Sangbeom Kim <sbkim73@samsung.com>
+      Cc: Cesar Eduardo Barros <cesarb@cesarb.eti.br>
+
+Signed-off-by: Christian Kujau <lists@nerdbynature.de>
+Cc: Tomasz Figa <t.figa@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Magnus Damm <magnus.damm@gmail.com>
+Cc: Peter Griffin <peter.griffin@linaro.org>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Sangbeom Kim <sbkim73@samsung.com>
+Cc: Cesar Eduardo Barros <cesarb@cesarb.eti.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c  |    4 ++++
- mm/nobootmem.c |    2 ++
- 2 files changed, 6 insertions(+)
+ MAINTAINERS |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/memblock.c
---- a/mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
-+++ a/mm/memblock.c
-@@ -816,6 +816,10 @@ void __init_memblock __next_mem_range(u6
- 		if (nid != NUMA_NO_NODE && nid != m_nid)
- 			continue;
+diff -puN MAINTAINERS~remove-non-existent-files-from-maintainers MAINTAINERS
+--- a/MAINTAINERS~remove-non-existent-files-from-maintainers
++++ a/MAINTAINERS
+@@ -1303,8 +1303,7 @@ ARM/SAMSUNG MOBILE MACHINE SUPPORT
+ M:	Kyungmin Park <kyungmin.park@samsung.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+-F:	arch/arm/mach-s5pv210/mach-aquila.c
+-F:	arch/arm/mach-s5pv210/mach-goni.c
++F:	arch/arm/mach-s5pv210/
  
-+		/* skip hotpluggable memory regions if needed */
-+		if (movable_node_is_enabled() && memblock_is_hotpluggable(m))
-+			continue;
-+
- 		if (!type_b) {
- 			if (out_start)
- 				*out_start = m_start;
-diff -puN mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/nobootmem.c
---- a/mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
-+++ a/mm/nobootmem.c
-@@ -119,6 +119,8 @@ static unsigned long __init free_low_mem
- 	phys_addr_t start, end;
- 	u64 i;
+ ARM/SAMSUNG S5P SERIES 2D GRAPHICS ACCELERATION (G2D) SUPPORT
+ M:	Kyungmin Park <kyungmin.park@samsung.com>
+@@ -1347,7 +1346,6 @@ F:	arch/arm/boot/dts/sh*
+ F:	arch/arm/configs/ape6evm_defconfig
+ F:	arch/arm/configs/armadillo800eva_defconfig
+ F:	arch/arm/configs/bockw_defconfig
+-F:	arch/arm/configs/genmai_defconfig
+ F:	arch/arm/configs/koelsch_defconfig
+ F:	arch/arm/configs/kzm9g_defconfig
+ F:	arch/arm/configs/lager_defconfig
+@@ -1383,7 +1381,6 @@ F:	drivers/pinctrl/pinctrl-st.c
+ F:	drivers/media/rc/st_rc.c
+ F:	drivers/i2c/busses/i2c-st.c
+ F:	drivers/tty/serial/st-asc.c
+-F:	drivers/mmc/host/sdhci-st.c
  
-+	memblock_clear_hotplug(0, ULLONG_MAX);
-+
- 	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
- 		count += __free_memory_core(start, end);
+ ARM/TECHNOLOGIC SYSTEMS TS7250 MACHINE SUPPORT
+ M:	Lennert Buytenhek <kernel@wantstofly.org>
+@@ -7808,7 +7805,6 @@ S:	Supported
+ F:	drivers/mfd/sec*.c
+ F:	drivers/regulator/s2m*.c
+ F:	drivers/regulator/s5m*.c
+-F:	drivers/rtc/rtc-sec.c
+ F:	include/linux/mfd/samsung/
  
+ SAMSUNG S5P/EXYNOS4 SOC SERIES CAMERA SUBSYSTEM DRIVERS
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from lists@nerdbynature.de are
 
-origin.patch
-memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node.patch
-mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
+remove-non-existent-files-from-maintainers.patch
 
