@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
- added to -mm tree
-Date: Wed, 13 Aug 2014 13:35:24 -0700
-Message-ID: <53ebcc0c.scNIXrmeLQfO1TUF%akpm@linux-foundation.org>
+Subject: + kexec-remove-config_kexec-dependency-on-crypto.patch added to
+ -mm tree
+Date: Wed, 13 Aug 2014 13:35:26 -0700
+Message-ID: <53ebcc0e.an2EFfK1c0qflNb6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:46192 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429AbaHMUf0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 16:35:26 -0400
-Received: by mail-qc0-f202.google.com with SMTP id r5so38835qcx.5
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 13:35:25 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:50340 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751529AbaHMUf1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 16:35:27 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so91141pde.5
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 13:35:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vgoyal@redhat.com, ebiederm@xmission.com, hpa@zytor.com, sruffell@digium.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: create a new config option CONFIG_KEXEC_FILE for new syscall
+     Subject: kexec: remove CONFIG_KEXEC dependency on crypto
 has been added to the -mm tree.  Its filename is
-     kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
+     kexec-remove-config_kexec-dependency-on-crypto.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-remove-config_kexec-dependency-on-crypto.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-remove-config_kexec-dependency-on-crypto.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,30 +42,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec: create a new config option CONFIG_KEXEC_FILE for new syscall
+Subject: kexec: remove CONFIG_KEXEC dependency on crypto
 
-Currently new system call kexec_file_load() and all the associated code
-compiles if CONFIG_KEXEC=y.  But new syscall also compiles purgatory code
-which currently uses gcc option -mcmodel=large.  This option seems to be
-available only gcc 4.4 onwards.
+New system call depends on crypto.  As it did not have a separate config
+option, CONFIG_KEXEC was modified to select CRYPTO and CRYPTO_SHA256.
 
-Hiding new functionality behind a new config option will not break
-existing users of old gcc.  Those who wish to enable new functionality
-will require new gcc.  Having said that, I am trying to figure out how can
-I move away from using -mcmodel=large but that can take a while.
-
-I think there are other advantages of introducing this new config option. 
-As this option will be enabled only on x86_64, other arches don't have to
-compile generic kexec code which will never be used.  This new code
-selects CRYPTO=y and CRYPTO_SHA256=y.  And all other arches had to do this
-for CONFIG_KEXEC.  Now with introduction of new config option, we can
-remove crypto dependency from other arches.
-
-Now CONFIG_KEXEC_FILE is available only on x86_64.  So whereever I had
-CONFIG_X86_64 defined, I got rid of that.
-
-For CONFIG_KEXEC_FILE, instead of doing select CRYPTO=y, I changed it to
-"depends on CRYPTO=y".  This should be safer as "select" is not recursive.
+But now previous patch introduced a new config option for new syscall.  So
+CONFIG_KEXEC does not require crypto.  Remove that dependency.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
@@ -75,242 +57,112 @@ Cc: Shaun Ruffell <sruffell@digium.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kbuild                    |    4 +---
- arch/x86/Kconfig                   |   18 ++++++++++++++----
- arch/x86/Makefile                  |    5 +----
- arch/x86/kernel/Makefile           |    2 +-
- arch/x86/kernel/crash.c            |    6 ++----
- arch/x86/kernel/machine_kexec_64.c |   11 +++++++++++
- arch/x86/purgatory/Makefile        |    5 +----
- kernel/kexec.c                     |   11 +++++++++++
- 8 files changed, 42 insertions(+), 20 deletions(-)
+ arch/arm/Kconfig     |    2 --
+ arch/ia64/Kconfig    |    2 --
+ arch/m68k/Kconfig    |    2 --
+ arch/mips/Kconfig    |    2 --
+ arch/powerpc/Kconfig |    2 --
+ arch/s390/Kconfig    |    2 --
+ arch/sh/Kconfig      |    2 --
+ arch/tile/Kconfig    |    2 --
+ 8 files changed, 16 deletions(-)
 
-diff -puN arch/x86/Kbuild~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/Kbuild
---- a/arch/x86/Kbuild~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
-+++ a/arch/x86/Kbuild
-@@ -17,6 +17,4 @@ obj-$(CONFIG_IA32_EMULATION) += ia32/
- obj-y += platform/
- obj-y += net/
+diff -puN arch/arm/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/arm/Kconfig
+--- a/arch/arm/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
++++ a/arch/arm/Kconfig
+@@ -1983,8 +1983,6 @@ config XIP_PHYS_ADDR
+ config KEXEC
+ 	bool "Kexec system call (EXPERIMENTAL)"
+ 	depends on (!SMP || PM_SLEEP_SMP)
+-	select CRYPTO
+-	select CRYPTO_SHA256
+ 	help
+ 	  kexec is a system call that implements the ability to shutdown your
+ 	  current kernel, and to start another kernel.  It is like a reboot
+diff -puN arch/ia64/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
++++ a/arch/ia64/Kconfig
+@@ -549,8 +549,6 @@ source "drivers/sn/Kconfig"
+ config KEXEC
+ 	bool "kexec system call"
+ 	depends on !IA64_HP_SIM && (!SMP || HOTPLUG_CPU)
+-	select CRYPTO
+-	select CRYPTO_SHA256
+ 	help
+ 	  kexec is a system call that implements the ability to shutdown your
+ 	  current kernel, and to start another kernel.  It is like a reboot
+diff -puN arch/m68k/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
++++ a/arch/m68k/Kconfig
+@@ -91,8 +91,6 @@ config MMU_SUN3
+ config KEXEC
+ 	bool "kexec system call"
+ 	depends on M68KCLASSIC
+-	select CRYPTO
+-	select CRYPTO_SHA256
+ 	help
+ 	  kexec is a system call that implements the ability to shutdown your
+ 	  current kernel, and to start another kernel.  It is like a reboot
+diff -puN arch/mips/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/mips/Kconfig
+--- a/arch/mips/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
++++ a/arch/mips/Kconfig
+@@ -2396,8 +2396,6 @@ source "kernel/Kconfig.preempt"
  
--ifeq ($(CONFIG_X86_64),y)
--obj-$(CONFIG_KEXEC) += purgatory/
--endif
-+obj-$(CONFIG_KEXEC_FILE) += purgatory/
-diff -puN arch/x86/Kconfig~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/Kconfig
---- a/arch/x86/Kconfig~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
-+++ a/arch/x86/Kconfig
-@@ -1582,9 +1582,6 @@ source kernel/Kconfig.hz
+ config KEXEC
+ 	bool "Kexec system call"
+-	select CRYPTO
+-	select CRYPTO_SHA256
+ 	help
+ 	  kexec is a system call that implements the ability to shutdown your
+ 	  current kernel, and to start another kernel.  It is like a reboot
+diff -puN arch/powerpc/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
++++ a/arch/powerpc/Kconfig
+@@ -399,8 +399,6 @@ config PPC64_SUPPORTS_MEMORY_FAILURE
+ config KEXEC
+ 	bool "kexec system call"
+ 	depends on (PPC_BOOK3S || FSL_BOOKE || (44x && !SMP))
+-	select CRYPTO
+-	select CRYPTO_SHA256
+ 	help
+ 	  kexec is a system call that implements the ability to shutdown your
+ 	  current kernel, and to start another kernel.  It is like a reboot
+diff -puN arch/s390/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/s390/Kconfig
+--- a/arch/s390/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
++++ a/arch/s390/Kconfig
+@@ -48,8 +48,6 @@ config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 
+ config KEXEC
+ 	def_bool y
+-	select CRYPTO
+-	select CRYPTO_SHA256
+ 
+ config AUDIT_ARCH
+ 	def_bool y
+diff -puN arch/sh/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/sh/Kconfig
+--- a/arch/sh/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
++++ a/arch/sh/Kconfig
+@@ -595,8 +595,6 @@ source kernel/Kconfig.hz
+ config KEXEC
+ 	bool "kexec system call (EXPERIMENTAL)"
+ 	depends on SUPERH32 && MMU
+-	select CRYPTO
+-	select CRYPTO_SHA256
+ 	help
+ 	  kexec is a system call that implements the ability to shutdown your
+ 	  current kernel, and to start another kernel.  It is like a reboot
+diff -puN arch/tile/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/tile/Kconfig
+--- a/arch/tile/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
++++ a/arch/tile/Kconfig
+@@ -191,8 +191,6 @@ source "kernel/Kconfig.hz"
  
  config KEXEC
  	bool "kexec system call"
--	select BUILD_BIN2C
 -	select CRYPTO
 -	select CRYPTO_SHA256
  	---help---
  	  kexec is a system call that implements the ability to shutdown your
  	  current kernel, and to start another kernel.  It is like a reboot
-@@ -1599,9 +1596,22 @@ config KEXEC
- 	  interface is strongly in flux, so no good recommendation can be
- 	  made.
- 
-+config KEXEC_FILE
-+	bool "kexec file based system call"
-+	select BUILD_BIN2C
-+	depends on KEXEC
-+	depends on X86_64
-+	depends on CRYPTO=y
-+	depends on CRYPTO_SHA256=y
-+	---help---
-+	  This is new version of kexec system call. This system call is
-+	  file based and takes file descriptors as system call argument
-+	  for kernel and initramfs as opposed to list of segments as
-+	  accepted by previous system call.
-+
- config KEXEC_VERIFY_SIG
- 	bool "Verify kernel signature during kexec_file_load() syscall"
--	depends on KEXEC
-+	depends on KEXEC_FILE
- 	---help---
- 	  This option makes kernel signature verification mandatory for
- 	  kexec_file_load() syscall. If kernel is signature can not be
-diff -puN arch/x86/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/Makefile
---- a/arch/x86/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
-+++ a/arch/x86/Makefile
-@@ -184,11 +184,8 @@ archheaders:
- 	$(Q)$(MAKE) $(build)=arch/x86/syscalls all
- 
- archprepare:
--ifeq ($(CONFIG_KEXEC),y)
--# Build only for 64bit. No loaders for 32bit yet.
-- ifeq ($(CONFIG_X86_64),y)
-+ifeq ($(CONFIG_KEXEC_FILE),y)
- 	$(Q)$(MAKE) $(build)=arch/x86/purgatory arch/x86/purgatory/kexec-purgatory.c
-- endif
- endif
- 
- ###
-diff -puN arch/x86/kernel/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/kernel/Makefile
---- a/arch/x86/kernel/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
-+++ a/arch/x86/kernel/Makefile
-@@ -71,6 +71,7 @@ obj-$(CONFIG_FTRACE_SYSCALLS)	+= ftrace.
- obj-$(CONFIG_X86_TSC)		+= trace_clock.o
- obj-$(CONFIG_KEXEC)		+= machine_kexec_$(BITS).o
- obj-$(CONFIG_KEXEC)		+= relocate_kernel_$(BITS).o crash.o
-+obj-$(CONFIG_KEXEC_FILE)	+= kexec-bzimage64.o
- obj-$(CONFIG_CRASH_DUMP)	+= crash_dump_$(BITS).o
- obj-y				+= kprobes/
- obj-$(CONFIG_MODULES)		+= module.o
-@@ -118,5 +119,4 @@ ifeq ($(CONFIG_X86_64),y)
- 
- 	obj-$(CONFIG_PCI_MMCONFIG)	+= mmconf-fam10h_64.o
- 	obj-y				+= vsmp_64.o
--	obj-$(CONFIG_KEXEC)		+= kexec-bzimage64.o
- endif
-diff -puN arch/x86/kernel/crash.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/kernel/crash.c
---- a/arch/x86/kernel/crash.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
-+++ a/arch/x86/kernel/crash.c
-@@ -182,8 +182,7 @@ void native_machine_crash_shutdown(struc
- 	crash_save_cpu(regs, safe_smp_processor_id());
- }
- 
--#ifdef CONFIG_X86_64
--
-+#ifdef CONFIG_KEXEC_FILE
- static int get_nr_ram_ranges_callback(unsigned long start_pfn,
- 				unsigned long nr_pfn, void *arg)
- {
-@@ -696,5 +695,4 @@ int crash_load_segments(struct kimage *i
- 
- 	return ret;
- }
--
--#endif /* CONFIG_X86_64 */
-+#endif /* CONFIG_KEXEC_FILE */
-diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -25,9 +25,11 @@
- #include <asm/debugreg.h>
- #include <asm/kexec-bzimage64.h>
- 
-+#ifdef CONFIG_KEXEC_FILE
- static struct kexec_file_ops *kexec_file_loaders[] = {
- 		&kexec_bzImage64_ops,
- };
-+#endif
- 
- static void free_transition_pgtable(struct kimage *image)
- {
-@@ -178,6 +180,7 @@ static void load_segments(void)
- 		);
- }
- 
-+#ifdef CONFIG_KEXEC_FILE
- /* Update purgatory as needed after various image segments have been prepared */
- static int arch_update_purgatory(struct kimage *image)
- {
-@@ -209,6 +212,12 @@ static int arch_update_purgatory(struct
- 
- 	return ret;
- }
-+#else /* !CONFIG_KEXEC_FILE */
-+static inline int arch_update_purgatory(struct kimage *image)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_KEXEC_FILE */
- 
- int machine_kexec_prepare(struct kimage *image)
- {
-@@ -329,6 +338,7 @@ void arch_crash_save_vmcoreinfo(void)
- 
- /* arch-dependent functionality related to kexec file-based syscall */
- 
-+#ifdef CONFIG_KEXEC_FILE
- int arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
- 				  unsigned long buf_len)
- {
-@@ -522,3 +532,4 @@ overflow:
- 	       (int)ELF64_R_TYPE(rel[i].r_info), value);
- 	return -ENOEXEC;
- }
-+#endif /* CONFIG_KEXEC_FILE */
-diff -puN arch/x86/purgatory/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/purgatory/Makefile
---- a/arch/x86/purgatory/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
-+++ a/arch/x86/purgatory/Makefile
-@@ -24,7 +24,4 @@ $(obj)/kexec-purgatory.c: $(obj)/purgato
- 	$(call if_changed,bin2c)
- 
- 
--# No loaders for 32bits yet.
--ifeq ($(CONFIG_X86_64),y)
-- obj-$(CONFIG_KEXEC)		+= kexec-purgatory.o
--endif
-+obj-$(CONFIG_KEXEC_FILE)	+= kexec-purgatory.o
-diff -puN kernel/kexec.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall kernel/kexec.c
---- a/kernel/kexec.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
-+++ a/kernel/kexec.c
-@@ -64,7 +64,9 @@ bool kexec_in_progress = false;
- char __weak kexec_purgatory[0];
- size_t __weak kexec_purgatory_size = 0;
- 
-+#ifdef CONFIG_KEXEC_FILE
- static int kexec_calculate_store_digests(struct kimage *image);
-+#endif
- 
- /* Location of the reserved area for the crash kernel */
- struct resource crashk_res = {
-@@ -341,6 +343,7 @@ out_free_image:
- 	return ret;
- }
- 
-+#ifdef CONFIG_KEXEC_FILE
- static int copy_file_from_fd(int fd, void **buf, unsigned long *buf_len)
- {
- 	struct fd f = fdget(fd);
-@@ -612,6 +615,9 @@ out_free_image:
- 	kfree(image);
- 	return ret;
- }
-+#else /* CONFIG_KEXEC_FILE */
-+static inline void kimage_file_post_load_cleanup(struct kimage *image) { }
-+#endif /* CONFIG_KEXEC_FILE */
- 
- static int kimage_is_destination_range(struct kimage *image,
- 					unsigned long start,
-@@ -1375,6 +1381,7 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compa
- }
- #endif
- 
-+#ifdef CONFIG_KEXEC_FILE
- SYSCALL_DEFINE5(kexec_file_load, int, kernel_fd, int, initrd_fd,
- 		unsigned long, cmdline_len, const char __user *, cmdline_ptr,
- 		unsigned long, flags)
-@@ -1451,6 +1458,8 @@ out:
- 	return ret;
- }
- 
-+#endif /* CONFIG_KEXEC_FILE */
-+
- void crash_kexec(struct pt_regs *regs)
- {
- 	/* Take the kexec_mutex here to prevent sys_kexec_load
-@@ -2006,6 +2015,7 @@ static int __init crash_save_vmcoreinfo_
- 
- subsys_initcall(crash_save_vmcoreinfo_init);
- 
-+#ifdef CONFIG_KEXEC_FILE
- static int __kexec_add_segment(struct kimage *image, char *buf,
- 			       unsigned long bufsz, unsigned long mem,
- 			       unsigned long memsz)
-@@ -2682,6 +2692,7 @@ int kexec_purgatory_get_set_symbol(struc
- 
- 	return 0;
- }
-+#endif /* CONFIG_KEXEC_FILE */
- 
- /*
-  * Move into place and start executing a preloaded standalone
 _
 
 Patches currently in -mm which might be from vgoyal@redhat.com are
