@@ -1,85 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- kernel-resourcec-fix-null-deref-with-no-iomem.patch removed from -mm tree
-Date: Wed, 13 Aug 2014 14:35:35 -0700
-Message-ID: <53ebda27.njPdLa4fdBGCZ9jd%akpm@linux-foundation.org>
+Subject: + resource-fix-the-case-of-null-pointer-access.patch added to -mm tree
+Date: Wed, 13 Aug 2014 14:36:30 -0700
+Message-ID: <53ebda5e.DoFJRvwekyKIofIv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:32967 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751704AbaHMVfg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 17:35:36 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so96330oig.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 14:35:36 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:63807 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751704AbaHMVgb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 17:36:31 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so96253obb.2
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 14:36:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vgoyal@redhat.com, richard@nod.at, sahne@0x90.at, toralf.foerster@gmx.de, mm-commits@vger.kernel.org
 
-ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBrZXJuZWwvcmVzb3VyY2UuYzogZml4
-IE5VTEwgZGVyZWYgd2l0aCBubyBJT01FTQ0KaGFzIGJlZW4gcmVtb3ZlZCBmcm9tIHRoZSAt
-bW0gdHJlZS4gIEl0cyBmaWxlbmFtZSB3YXMKICAgICBrZXJuZWwtcmVzb3VyY2VjLWZpeC1u
-dWxsLWRlcmVmLXdpdGgtbm8taW9tZW0ucGF0Y2gKClRoaXMgcGF0Y2ggd2FzIGRyb3BwZWQg
-YmVjYXVzZSBhbiB1cGRhdGVkIHZlcnNpb24gd2lsbCBiZSBtZXJnZWQKCi0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpGcm9tOiBWaXZl
-ayBHb3lhbCA8dmdveWFsQHJlZGhhdC5jb20+DQpTdWJqZWN0OiBrZXJuZWwvcmVzb3VyY2Uu
-YzogZml4IE5VTEwgZGVyZWYgd2l0aCBubyBJT01FTQ0KDQpBZmZlY3RzIFVNTC4NCg0KSXQg
-ZGllcyBpbiBuZXh0X3Jlc291cmNlKCk6DQogICAgICAgIC8qIENhbGxlciB3YW50cyB0byB0
-cmF2ZXJzZSB0aHJvdWdoIHNpYmxpbmdzIG9ubHkgKi8NCiAgICAgICAgaWYgKHNpYmxpbmdf
-b25seSkNCiAgICAgICAgICAgICAgICByZXR1cm4gcC0+c2libGluZzsNCg0KUklQOiAwMDMz
-Ols8MDAwMDAwMDA2MDAzOWI5Zj5dDQpSU1A6IDAwMDAwMDAwODE0NTlkYTAgIEVGTEFHUzog
-MDAwMTAyMDINClJBWDogMDAwMDAwMDAwMDAwMDAwMCBSQlg6IDAwMDAwMDAwMjE5YjNmZmYg
-UkNYOiAwMDAwMDAwMDYwMTBkMWQ5DQpSRFg6IDAwMDAwMDAwMDAwMDAwMDEgUlNJOiAwMDAw
-MDAwMDYwMmRmYjk0IFJESTogMDAwMDAwMDA4MTQ1OWRmOA0KUkJQOiAwMDAwMDAwMDgxNDU5
-ZGUwIFIwODogMDAwMDAwMDA2MDFiNTlmNCBSMDk6IGZmZmZmZmZmMDAwMGZmMDANClIxMDog
-ZmZmZmZmZmYwMDAwZmYwMCBSMTE6IDAwMDAwMDAwODE0NTllODggUjEyOiAwMDAwMDAwMDgx
-NDU5ZGY4DQpSMTM6IDAwMDAwMDAwMjE5YjNmZmYgUjE0OiAwMDAwMDAwMDYwMmRmYjk0IFIx
-NTogMDAwMDAwMDAwMDAwMDAwMA0KS2VybmVsIHBhbmljIC0gbm90IHN5bmNpbmc6IFNlZ2Zh
-dWx0IHdpdGggbm8gbW0NCkNQVTogMCBQSUQ6IDEgQ29tbTogc3dhcHBlciBOb3QgdGFpbnRl
-ZCAzLjE2LjAtMTA0NTQtZzU4ZDA4ZTMgIzEzDQpTdGFjazoNCiAwMDAwMDAwMCAwMDAwODBk
-MCA4MTQ1OWRmMCAyMTliM2ZmZg0KIDgxNDU5ZTcwIDYwMTBkMWQ5IGZmZmZmZmZmIDYwMzNl
-MDEwDQogODE0NTllNTAgNjAwM2EyNjkgODE0NTllMzAgMDAwMDAwMDANCkNhbGwgVHJhY2U6
-DQogWzw2MDEwZDFkOT5dID8ga2NsaXN0X2FkZF9wcml2YXRlKzB4MC8weGU3DQogWzw2MDAz
-YTI2OT5dIHdhbGtfc3lzdGVtX3JhbV9yYW5nZSsweDYxLzB4YjcNCiBbPDYwMDBlODU5Pl0g
-PyBwcm9jX2tjb3JlX2luaXQrMHgwLzB4ZjENCiBbPDYwMTBkNTc0Pl0ga2NvcmVfdXBkYXRl
-X3JhbSsweDRjLzB4MTY4DQogWzw2MDEwZDcyZT5dID8ga2NsaXN0X2FkZCsweDAvMHgyZQ0K
-IFs8NjAwMGU5NDM+XSBwcm9jX2tjb3JlX2luaXQrMHhlYS8weGYxDQogWzw2MDAwZTg1OT5d
-ID8gcHJvY19rY29yZV9pbml0KzB4MC8weGYxDQogWzw2MDAwZTg1OT5dID8gcHJvY19rY29y
-ZV9pbml0KzB4MC8weGYxDQogWzw2MDAxODlmMD5dIGRvX29uZV9pbml0Y2FsbCsweDEzYy8w
-eDIwNA0KIFs8NjAwNGNhNDY+XSA/IHBhcnNlX2FyZ3MrMHgxZGYvMHgyZTANCiBbPDYwMDRj
-ODJkPl0gPyBwYXJhbWVxKzB4MC8weDNhDQogWzw2MDFiNTk5MD5dID8gc3RyY3B5KzB4MC8w
-eDE4DQogWzw2MDAwMWUxYT5dIGtlcm5lbF9pbml0X2ZyZWVhYmxlKzB4MjQwLzB4MzFlDQog
-Wzw2MDI2ZjFjMD5dIGtlcm5lbF9pbml0KzB4MTIvMHgxNDgNCiBbPDYwMDE5ZmFkPl0gbmV3
-X3RocmVhZF9oYW5kbGVyKzB4ODEvMHhhMw0KUklQIGlzIGF0IGtlcm5lbC9yZXNvdXJjZS5j
-OjY2Lg0KDQpJIG5vdGljZWQgdGhhdCBwcmV2aW91cyBjb2RlIGhhZCBhIGZvcigpIGxvb3Ag
-d2hpY2ggd2lsbCBub3QgZXhlY3V0ZQ0KaWYgcCB3YXMgbnVsbC4gSSBoYXZlIHJlc29ydGVk
-IGJhY2sgdG8gc2FtZSBjb2RlIG5vdy4NCg0KRnhpZXMgOGM4NmU3MGFjZWFkNjI5YWFjYjRh
-ICgicmVzb3VyY2U6IHByb3ZpZGUgbmV3IGZ1bmN0aW9ucyB0byB3YWxrDQp0aHJvdWdoIHJl
-c291cmNlcyIpLg0KDQpSZXBvcnRlZC1ieTogRGFuaWVsIFdhbHRlciA8c2FobmVAMHg5MC5h
-dD4NClRlc3RlZC1ieTogRGFuaWVsIFdhbHRlciA8c2FobmVAMHg5MC5hdD4NClJlcG9ydGVk
-LWJ5OiBSaWNoYXJkIFdlaW5iZXJnZXIgPHJpY2hhcmRAbm9kLmF0Pg0KVGVzdGVkLWJ5OiBS
-aWNoYXJkIFdlaW5iZXJnZXIgPHJpY2hhcmRAbm9kLmF0Pg0KVGVzdGVkLWJ5OiBUb3JhbGYg
-RsO2cnN0ZXIgPHRvcmFsZi5mb2Vyc3RlckBnbXguZGU+DQpTaWduZWQtb2ZmLWJ5OiBBbmRy
-ZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgotLS0KCiBrZXJuZWwvcmVz
-b3VyY2UuYyB8ICAgMTEgKysrKy0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCA0IGluc2VydGlv
-bnMoKyksIDcgZGVsZXRpb25zKC0pCgpkaWZmIC1wdU4ga2VybmVsL3Jlc291cmNlLmN+a2Vy
-bmVsLXJlc291cmNlYy1maXgtbnVsbC1kZXJlZi13aXRoLW5vLWlvbWVtIGtlcm5lbC9yZXNv
-dXJjZS5jCi0tLSBhL2tlcm5lbC9yZXNvdXJjZS5jfmtlcm5lbC1yZXNvdXJjZWMtZml4LW51
-bGwtZGVyZWYtd2l0aC1uby1pb21lbQorKysgYS9rZXJuZWwvcmVzb3VyY2UuYwpAQCAtMzUx
-LDE1ICszNTEsMTIgQEAgc3RhdGljIGludCBmaW5kX25leHRfaW9tZW1fcmVzKHN0cnVjdCBy
-ZQogCWVuZCA9IHJlcy0+ZW5kOwogCUJVR19PTihzdGFydCA+PSBlbmQpOwogCi0JcmVhZF9s
-b2NrKCZyZXNvdXJjZV9sb2NrKTsKLQotCWlmIChmaXJzdF9sZXZlbF9jaGlsZHJlbl9vbmx5
-KSB7Ci0JCXAgPSBpb21lbV9yZXNvdXJjZS5jaGlsZDsKKwlpZiAoZmlyc3RfbGV2ZWxfY2hp
-bGRyZW5fb25seSkKIAkJc2libGluZ19vbmx5ID0gdHJ1ZTsKLQl9IGVsc2UKLQkJcCA9ICZp
-b21lbV9yZXNvdXJjZTsKIAotCXdoaWxlICgocCA9IG5leHRfcmVzb3VyY2UocCwgc2libGlu
-Z19vbmx5KSkpIHsKKwlyZWFkX2xvY2soJnJlc291cmNlX2xvY2spOworCisJZm9yIChwID0g
-aW9tZW1fcmVzb3VyY2UuY2hpbGQ7IHA7IHAgPSBuZXh0X3Jlc291cmNlKHAsIHNpYmxpbmdf
-b25seSkpIHsKIAkJaWYgKHAtPmZsYWdzICE9IHJlcy0+ZmxhZ3MpCiAJCQljb250aW51ZTsK
-IAkJaWYgKG5hbWUgJiYgc3RyY21wKHAtPm5hbWUsIG5hbWUpKQpfCgpQYXRjaGVzIGN1cnJl
-bnRseSBpbiAtbW0gd2hpY2ggbWlnaHQgYmUgZnJvbSB2Z295YWxAcmVkaGF0LmNvbSBhcmUK
-Cm9yaWdpbi5wYXRjaAprZXhlYy1jcmVhdGUtYS1uZXctY29uZmlnLW9wdGlvbi1jb25maWdf
-a2V4ZWNfZmlsZS1mb3ItbmV3LXN5c2NhbGwucGF0Y2gKa2V4ZWMtcmVtb3ZlLWNvbmZpZ19r
-ZXhlYy1kZXBlbmRlbmN5LW9uLWNyeXB0by5wYXRjaApyZXNvdXJjZS1maXgtdGhlLWNhc2Ut
-b2YtbnVsbC1wb2ludGVyLWFjY2Vzcy5wYXRjaAoK
+
+The patch titled
+     Subject: resource: fix the case of null pointer access
+has been added to the -mm tree.  Its filename is
+     resource-fix-the-case-of-null-pointer-access.patch
+
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/resource-fix-the-case-of-n=
+ull-pointer-access.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/resource-fix-the-case-of-n=
+ull-pointer-access.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+=46rom: Vivek Goyal <vgoyal@redhat.com>
+Subject: resource: fix the case of null pointer access
+
+Richard and Daniel reported that UML is broken due to changes to resour=
+ce
+traversal functions.  Problem is that iomem_resource.child can be null =
+and
+new code does not consider that possibility.  Old code used a for loop =
+and
+that loop will not even execute if p was null.
+
+Revert back to for() loop logic and bail out if p is null.
+
+I also moved sibling_only check out of resource_lock. There is no
+reason to keep it inside the lock.
+
+=46ollowing is backtrace of the UML crash.
+
+RIP: 0033:[<0000000060039b9f>]
+RSP: 0000000081459da0  EFLAGS: 00010202
+RAX: 0000000000000000 RBX: 00000000219b3fff RCX: 000000006010d1d9
+RDX: 0000000000000001 RSI: 00000000602dfb94 RDI: 0000000081459df8
+RBP: 0000000081459de0 R08: 00000000601b59f4 R09: ffffffff0000ff00
+R10: ffffffff0000ff00 R11: 0000000081459e88 R12: 0000000081459df8
+R13: 00000000219b3fff R14: 00000000602dfb94 R15: 0000000000000000
+Kernel panic - not syncing: Segfault with no mm
+CPU: 0 PID: 1 Comm: swapper Not tainted 3.16.0-10454-g58d08e3 #13
+Stack:
+ 00000000 000080d0 81459df0 219b3fff
+ 81459e70 6010d1d9 ffffffff 6033e010
+ 81459e50 6003a269 81459e30 00000000
+Call Trace:
+ [<6010d1d9>] ? kclist_add_private+0x0/0xe7
+ [<6003a269>] walk_system_ram_range+0x61/0xb7
+ [<6000e859>] ? proc_kcore_init+0x0/0xf1
+ [<6010d574>] kcore_update_ram+0x4c/0x168
+ [<6010d72e>] ? kclist_add+0x0/0x2e
+ [<6000e943>] proc_kcore_init+0xea/0xf1
+ [<6000e859>] ? proc_kcore_init+0x0/0xf1
+ [<6000e859>] ? proc_kcore_init+0x0/0xf1
+ [<600189f0>] do_one_initcall+0x13c/0x204
+ [<6004ca46>] ? parse_args+0x1df/0x2e0
+ [<6004c82d>] ? parameq+0x0/0x3a
+ [<601b5990>] ? strcpy+0x0/0x18
+ [<60001e1a>] kernel_init_freeable+0x240/0x31e
+ [<6026f1c0>] kernel_init+0x12/0x148
+ [<60019fad>] new_thread_handler+0x81/0xa3
+
+=46ixes 8c86e70acead629aacb4a ("resource: provide new functions to walk
+through resources").
+
+Reported-by: Daniel Walter <sahne@0x90.at>
+Tested-by: Richard Weinberger <richard@nod.at>
+Tested-by: Toralf F=F6rster <toralf.foerster@gmx.de>
+Tested-by: Daniel Walter <sahne@0x90.at>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ kernel/resource.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff -puN kernel/resource.c~resource-fix-the-case-of-null-pointer-acces=
+s kernel/resource.c
+--- a/kernel/resource.c~resource-fix-the-case-of-null-pointer-access
++++ a/kernel/resource.c
+@@ -351,15 +351,12 @@ static int find_next_iomem_res(struct re
+ 	end =3D res->end;
+ 	BUG_ON(start >=3D end);
+=20
+-	read_lock(&resource_lock);
+-
+-	if (first_level_children_only) {
+-		p =3D iomem_resource.child;
++	if (first_level_children_only)
+ 		sibling_only =3D true;
+-	} else
+-		p =3D &iomem_resource;
+=20
+-	while ((p =3D next_resource(p, sibling_only))) {
++	read_lock(&resource_lock);
++
++	for (p =3D iomem_resource.child; p; p =3D next_resource(p, sibling_on=
+ly)) {
+ 		if (p->flags !=3D res->flags)
+ 			continue;
+ 		if (name && strcmp(p->name, name))
+_
+
+Patches currently in -mm which might be from vgoyal@redhat.com are
+
+origin.patch
+resource-fix-the-case-of-null-pointer-access.patch
+kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patc=
+h
+kexec-remove-config_kexec-dependency-on-crypto.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
