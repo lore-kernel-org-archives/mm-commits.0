@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-remove-config_kexec-dependency-on-crypto.patch added to
- -mm tree
-Date: Wed, 13 Aug 2014 13:35:26 -0700
-Message-ID: <53ebcc0e.an2EFfK1c0qflNb6%akpm@linux-foundation.org>
+Subject: + ipc-always-handle-a-new-value-of-auto_msgmni.patch added to -mm tree
+Date: Wed, 13 Aug 2014 13:38:49 -0700
+Message-ID: <53ebccd9.9lvYLkvO8eknjZQu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:50340 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751529AbaHMUf1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 16:35:27 -0400
-Received: by mail-pd0-f202.google.com with SMTP id w10so91141pde.5
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 13:35:27 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:41591 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752629AbaHMUiu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 16:38:50 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so92536pab.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 13:38:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@redhat.com, ebiederm@xmission.com, hpa@zytor.com, sruffell@digium.com, mm-commits@vger.kernel.org
+To: avagin@openvz.org, davidlohr@hp.com, joe@perches.com, manfred@colorfullife.com, minipli@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: remove CONFIG_KEXEC dependency on crypto
+     Subject: ipc: always handle a new value of auto_msgmni
 has been added to the -mm tree.  Its filename is
-     kexec-remove-config_kexec-dependency-on-crypto.patch
+     ipc-always-handle-a-new-value-of-auto_msgmni.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-remove-config_kexec-dependency-on-crypto.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-always-handle-a-new-value-of-auto_msgmni.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-remove-config_kexec-dependency-on-crypto.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-always-handle-a-new-value-of-auto_msgmni.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,134 +40,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec: remove CONFIG_KEXEC dependency on crypto
+From: Andrey Vagin <avagin@openvz.org>
+Subject: ipc: always handle a new value of auto_msgmni
 
-New system call depends on crypto.  As it did not have a separate config
-option, CONFIG_KEXEC was modified to select CRYPTO and CRYPTO_SHA256.
+proc_dointvec_minmax() returns zero if a new value has been set.  So we
+don't need to check all charecters have been handled.
 
-But now previous patch introduced a new config option for new syscall.  So
-CONFIG_KEXEC does not require crypto.  Remove that dependency.
+Below you can find two examples.  In the new value has not been handled
+properly.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Shaun Ruffell <sruffell@digium.com>
+$ strace ./a.out
+open("/proc/sys/kernel/auto_msgmni", O_WRONLY) = 3
+write(3, "0\n\0", 3)                    = 2
+close(3)                                = 0
+exit_group(0)
+$ cat /sys/kernel/debug/tracing/trace
+
+$strace ./a.out
+open("/proc/sys/kernel/auto_msgmni", O_WRONLY) = 3
+write(3, "0\n", 2)                      = 2
+close(3)                                = 0
+
+$ cat /sys/kernel/debug/tracing/trace
+a.out-697   [000] ....  3280.998235: unregister_ipcns_notifier <-proc_ipcauto_dointvec_minmax
+
+Fixes: 9eefe520c814 ("ipc: do not use a negative value to re-enable msgmni automatic recomputin")
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Cc: Mathias Krause <minipli@googlemail.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig     |    2 --
- arch/ia64/Kconfig    |    2 --
- arch/m68k/Kconfig    |    2 --
- arch/mips/Kconfig    |    2 --
- arch/powerpc/Kconfig |    2 --
- arch/s390/Kconfig    |    2 --
- arch/sh/Kconfig      |    2 --
- arch/tile/Kconfig    |    2 --
- 8 files changed, 16 deletions(-)
+ ipc/ipc_sysctl.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/arm/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/arm/Kconfig
---- a/arch/arm/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/arm/Kconfig
-@@ -1983,8 +1983,6 @@ config XIP_PHYS_ADDR
- config KEXEC
- 	bool "Kexec system call (EXPERIMENTAL)"
- 	depends on (!SMP || PM_SLEEP_SMP)
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/ia64/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/ia64/Kconfig
-@@ -549,8 +549,6 @@ source "drivers/sn/Kconfig"
- config KEXEC
- 	bool "kexec system call"
- 	depends on !IA64_HP_SIM && (!SMP || HOTPLUG_CPU)
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/m68k/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/m68k/Kconfig
-@@ -91,8 +91,6 @@ config MMU_SUN3
- config KEXEC
- 	bool "kexec system call"
- 	depends on M68KCLASSIC
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/mips/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/mips/Kconfig
---- a/arch/mips/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/mips/Kconfig
-@@ -2396,8 +2396,6 @@ source "kernel/Kconfig.preempt"
+diff -puN ipc/ipc_sysctl.c~ipc-always-handle-a-new-value-of-auto_msgmni ipc/ipc_sysctl.c
+--- a/ipc/ipc_sysctl.c~ipc-always-handle-a-new-value-of-auto_msgmni
++++ a/ipc/ipc_sysctl.c
+@@ -123,7 +123,6 @@ static int proc_ipcauto_dointvec_minmax(
+ 	void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	struct ctl_table ipc_table;
+-	size_t lenp_bef = *lenp;
+ 	int oldval;
+ 	int rc;
  
- config KEXEC
- 	bool "Kexec system call"
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/powerpc/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/powerpc/Kconfig
-@@ -399,8 +399,6 @@ config PPC64_SUPPORTS_MEMORY_FAILURE
- config KEXEC
- 	bool "kexec system call"
- 	depends on (PPC_BOOK3S || FSL_BOOKE || (44x && !SMP))
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/s390/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/s390/Kconfig
---- a/arch/s390/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/s390/Kconfig
-@@ -48,8 +48,6 @@ config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+@@ -133,7 +132,7 @@ static int proc_ipcauto_dointvec_minmax(
  
- config KEXEC
- 	def_bool y
--	select CRYPTO
--	select CRYPTO_SHA256
+ 	rc = proc_dointvec_minmax(&ipc_table, write, buffer, lenp, ppos);
  
- config AUDIT_ARCH
- 	def_bool y
-diff -puN arch/sh/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/sh/Kconfig
---- a/arch/sh/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/sh/Kconfig
-@@ -595,8 +595,6 @@ source kernel/Kconfig.hz
- config KEXEC
- 	bool "kexec system call (EXPERIMENTAL)"
- 	depends on SUPERH32 && MMU
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/tile/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/tile/Kconfig
---- a/arch/tile/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/tile/Kconfig
-@@ -191,8 +191,6 @@ source "kernel/Kconfig.hz"
- 
- config KEXEC
- 	bool "kexec system call"
--	select CRYPTO
--	select CRYPTO_SHA256
- 	---help---
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
+-	if (write && !rc && lenp_bef == *lenp) {
++	if (write && !rc) {
+ 		int newval = *((int *)(ipc_table.data));
+ 		/*
+ 		 * The file "auto_msgmni" has correctly been set.
 _
 
-Patches currently in -mm which might be from vgoyal@redhat.com are
+Patches currently in -mm which might be from avagin@openvz.org are
 
 origin.patch
-kernel-resourcec-fix-null-deref-with-no-iomem.patch
-kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
-kexec-remove-config_kexec-dependency-on-crypto.patch
+ipc-always-handle-a-new-value-of-auto_msgmni.patch
 
