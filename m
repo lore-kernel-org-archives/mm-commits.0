@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-gpu-drm-nouveau-core-include-nvif-unpackh-fix-build.patch added to
- -mm tree
-Date: Wed, 13 Aug 2014 12:17:50 -0700
-Message-ID: <53ebb9de.YZT5Lfn2d33kw7Gd%akpm@linux-foundation.org>
+Subject: [obsolete]
+ drivers-gpu-drm-nouveau-core-include-nvif-unpackh-fix-build.patch removed
+ from -mm tree
+Date: Wed, 13 Aug 2014 12:31:57 -0700
+Message-ID: <53ebbd2d.UrHKFuZGMoJ95yZG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:62480 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751975AbaHMTRv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 15:17:51 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so52083oac.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 12:17:50 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:36531 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751405AbaHMTb7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 15:31:59 -0400
+Received: by mail-pd0-f201.google.com with SMTP id g10so68858pdj.0
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 12:31:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, bskeggs@redhat.com, mm-commits@vger.kernel.org
@@ -22,24 +22,10 @@ To: akpm@linux-foundation.org, bskeggs@redhat.com, mm-commits@vger.kernel.org
 
 The patch titled
      Subject: drivers/gpu/drm/nouveau/core/include/nvif/unpack.h: fix build
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      drivers-gpu-drm-nouveau-core-include-nvif-unpackh-fix-build.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-nouveau-core-include-nvif-unpackh-fix-build.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-nouveau-core-include-nvif-unpackh-fix-build.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -59,6 +45,7 @@ diff -puN drivers/gpu/drm/nouveau/core/include/nvif/unpack.h~drivers-gpu-drm-nou
 +++ a/drivers/gpu/drm/nouveau/core/include/nvif/unpack.h
 @@ -1 +1 @@
 -../../../nvif/unpack.h
+\ No newline at end of file
 +#include ../../../nvif/unpack.h
 _
 
@@ -68,7 +55,6 @@ origin.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 maintainers-akpm-maintenance.patch
-drivers-gpu-drm-nouveau-core-include-nvif-unpackh-fix-build.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
 input-route-kbd-leds-through-the-generic-leds-layer.patch
 o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
