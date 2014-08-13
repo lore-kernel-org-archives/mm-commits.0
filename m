@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + x86mm-fix-pte_special-versus-pte_numa.patch added to -mm tree
-Date: Wed, 13 Aug 2014 14:45:15 -0700
-Message-ID: <53ebdc6b.TTydQHRwqgokTFJp%akpm@linux-foundation.org>
+Subject: + mm-remove-misleading-arch_uses_numa_prot_none.patch added to
+ -mm tree
+Date: Wed, 13 Aug 2014 14:46:24 -0700
+Message-ID: <53ebdcb0.rvpQTq4EtujsyUn7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f201.google.com ([209.85.213.201]:44520 "EHLO
-	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751852AbaHMVpQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 17:45:16 -0400
-Received: by mail-ig0-f201.google.com with SMTP id h3so296932igd.4
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 14:45:16 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:55906 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751704AbaHMVqZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 17:46:25 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so116717pab.5
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 14:46:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, gorcunov@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, peterz@infradead.org, riel@redhat.com, sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, gorcunov@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86,mm: fix pte_special versus pte_numa
+     Subject: mm: remove misleading ARCH_USES_NUMA_PROT_NONE
 has been added to the -mm tree.  Its filename is
-     x86mm-fix-pte_special-versus-pte_numa.patch
+     mm-remove-misleading-arch_uses_numa_prot_none.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86mm-fix-pte_special-versus-pte_numa.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-misleading-arch_uses_numa_prot_none.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86mm-fix-pte_special-versus-pte_numa.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-misleading-arch_uses_numa_prot_none.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,98 +42,271 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: x86,mm: fix pte_special versus pte_numa
+Subject: mm: remove misleading ARCH_USES_NUMA_PROT_NONE
 
-Sasha Levin has shown oopses on ffffea0003480048 and ffffea0003480008 at
-mm/memory.c:1132, running Trinity on different 3.16-rc-next kernels: where
-zap_pte_range() checks page->mapping to see if PageAnon(page).
+ARCH_USES_NUMA_PROT_NONE was defined for architectures that implemented
+_PAGE_NUMA using _PROT_NONE.  This saved using an additional PTE bit and
+relied on the fact that PROT_NONE vmas were skipped by the NUMA hinting
+fault scanner.  This was found to be conceptually confusing with a lot of
+implicit assumptions and it was asked that an alternative be found.
 
-Those addresses fit struct pages for pfns d2001 and d2000, and in each
-dump a register or a stack slot showed d2001730 or d2000730: pte flags
-0x730 are PCD ACCESSED PROTNONE SPECIAL IOMAP; and Sasha's e820 map has a
-hole between cfffffff and 100000000, which would need special access.
+Commit c46a7c81 "x86: define _PAGE_NUMA by reusing software bits on the
+PMD and PTE levels" redefined _PAGE_NUMA on x86 to be one of the swap PTE
+bits and shrunk the maximum possible swap size but it did not go far
+enough.  There are no architectures that reuse _PROT_NONE as _PROT_NUMA
+but the relics still exist.
 
-Commit c46a7c817e66 ("x86: define _PAGE_NUMA by reusing software bits on
-the PMD and PTE levels") has broken vm_normal_page(): a PROTNONE SPECIAL
-pte no longer passes the pte_special() test, so zap_pte_range() goes on to
-try to access a non-existent struct page.
+This patch removes ARCH_USES_NUMA_PROT_NONE and removes some unnecessary
+duplication in powerpc vs the generic implementation by defining the types
+the core NUMA helpers expected to exist from x86 with their ppc64
+equivalent.  This necessitated that a PTE bit mask be created that
+identified the bits that distinguish present from NUMA pte entries but it
+is expected this will only differ between arches based on _PAGE_PROTNONE. 
+The naming for the generic helpers was taken from x86 originally but ppc64
+has types that are equivalent for the purposes of the helper so they are
+mapped instead of duplicating code.
 
-Fix this by refining pte_special() (SPECIAL with PRESENT or PROTNONE) to
-complement pte_numa() (SPECIAL with neither PRESENT nor PROTNONE).  A hint
-that this was a problem was that c46a7c817e66 added pte_numa() test to
-vm_normal_page(), and moved its is_zero_pfn() test from slow to fast path:
-This was papering over a pte_special() snag when the zero page was
-encountered during zap.  This patch reverts vm_normal_page() to how it was
-before, relying on pte_special().
-
-It still appears that this patch may be incomplete: aren't there other
-places which need to be handling PROTNONE along with PRESENT?  For
-example, pte_mknuma() clears _PAGE_PRESENT and sets _PAGE_NUMA, but on a
-PROT_NONE area, that would make it pte_special().  This is side-stepped by
-the fact that NUMA hinting faults skipped PROT_NONE VMAs and there are no
-grounds where a NUMA hinting fault on a PROT_NONE VMA would be
-interesting.
-
-Fixes: c46a7c817e66 ("x86: define _PAGE_NUMA by reusing software bits on the PMD and PTE levels")
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Tested-by: Sasha Levin <sasha.levin@oracle.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: <stable@vger.kernel.org>	[3.16]
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    9 +++++++--
- mm/memory.c                    |    7 +++----
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ arch/powerpc/include/asm/pgtable.h    |   57 +++++-------------------
+ arch/powerpc/include/asm/pte-common.h |    5 ++
+ arch/x86/Kconfig                      |    1 
+ arch/x86/include/asm/pgtable_types.h  |   14 +++++
+ include/asm-generic/pgtable.h         |   27 +++--------
+ init/Kconfig                          |   11 ----
+ 6 files changed, 40 insertions(+), 75 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable.h~x86mm-fix-pte_special-versus-pte_numa arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~x86mm-fix-pte_special-versus-pte_numa
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -131,8 +131,13 @@ static inline int pte_exec(pte_t pte)
+diff -puN arch/powerpc/include/asm/pgtable.h~mm-remove-misleading-arch_uses_numa_prot_none arch/powerpc/include/asm/pgtable.h
+--- a/arch/powerpc/include/asm/pgtable.h~mm-remove-misleading-arch_uses_numa_prot_none
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -38,10 +38,9 @@ static inline int pte_none(pte_t pte)		{
+ static inline pgprot_t pte_pgprot(pte_t pte)	{ return __pgprot(pte_val(pte) & PAGE_PROT_BITS); }
  
- static inline int pte_special(pte_t pte)
+ #ifdef CONFIG_NUMA_BALANCING
+-
+ static inline int pte_present(pte_t pte)
  {
--	return (pte_flags(pte) & (_PAGE_PRESENT|_PAGE_SPECIAL)) ==
--				 (_PAGE_PRESENT|_PAGE_SPECIAL);
-+	/*
-+	 * See CONFIG_NUMA_BALANCING pte_numa in include/asm-generic/pgtable.h.
-+	 * On x86 we have _PAGE_BIT_NUMA == _PAGE_BIT_GLOBAL+1 ==
-+	 * __PAGE_BIT_SOFTW1 == _PAGE_BIT_SPECIAL.
-+	 */
-+	return (pte_flags(pte) & _PAGE_SPECIAL) &&
-+		(pte_flags(pte) & (_PAGE_PRESENT|_PAGE_PROTNONE));
+-	return pte_val(pte) & (_PAGE_PRESENT | _PAGE_NUMA);
++	return pte_val(pte) & _PAGE_NUMA_MASK;
  }
  
- static inline unsigned long pte_pfn(pte_t pte)
-diff -puN mm/memory.c~x86mm-fix-pte_special-versus-pte_numa mm/memory.c
---- a/mm/memory.c~x86mm-fix-pte_special-versus-pte_numa
-+++ a/mm/memory.c
-@@ -751,7 +751,7 @@ struct page *vm_normal_page(struct vm_ar
- 	unsigned long pfn = pte_pfn(pte);
+ #define pte_present_nonuma pte_present_nonuma
+@@ -50,37 +49,6 @@ static inline int pte_present_nonuma(pte
+ 	return pte_val(pte) & (_PAGE_PRESENT);
+ }
  
- 	if (HAVE_PTE_SPECIAL) {
--		if (likely(!pte_special(pte) || pte_numa(pte)))
-+		if (likely(!pte_special(pte)))
- 			goto check_pfn;
- 		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
- 			return NULL;
-@@ -777,15 +777,14 @@ struct page *vm_normal_page(struct vm_ar
- 		}
- 	}
+-#define pte_numa pte_numa
+-static inline int pte_numa(pte_t pte)
+-{
+-	return (pte_val(pte) &
+-		(_PAGE_NUMA|_PAGE_PRESENT)) == _PAGE_NUMA;
+-}
+-
+-#define pte_mknonnuma pte_mknonnuma
+-static inline pte_t pte_mknonnuma(pte_t pte)
+-{
+-	pte_val(pte) &= ~_PAGE_NUMA;
+-	pte_val(pte) |=  _PAGE_PRESENT | _PAGE_ACCESSED;
+-	return pte;
+-}
+-
+-#define pte_mknuma pte_mknuma
+-static inline pte_t pte_mknuma(pte_t pte)
+-{
+-	/*
+-	 * We should not set _PAGE_NUMA on non present ptes. Also clear the
+-	 * present bit so that hash_page will return 1 and we collect this
+-	 * as numa fault.
+-	 */
+-	if (pte_present(pte)) {
+-		pte_val(pte) |= _PAGE_NUMA;
+-		pte_val(pte) &= ~_PAGE_PRESENT;
+-	} else
+-		VM_BUG_ON(1);
+-	return pte;
+-}
+-
+ #define ptep_set_numa ptep_set_numa
+ static inline void ptep_set_numa(struct mm_struct *mm, unsigned long addr,
+ 				 pte_t *ptep)
+@@ -92,12 +60,6 @@ static inline void ptep_set_numa(struct
+ 	return;
+ }
  
-+	if (is_zero_pfn(pfn))
-+		return NULL;
- check_pfn:
- 	if (unlikely(pfn > highest_memmap_pfn)) {
- 		print_bad_pte(vma, addr, pte, NULL);
- 		return NULL;
- 	}
+-#define pmd_numa pmd_numa
+-static inline int pmd_numa(pmd_t pmd)
+-{
+-	return pte_numa(pmd_pte(pmd));
+-}
+-
+ #define pmdp_set_numa pmdp_set_numa
+ static inline void pmdp_set_numa(struct mm_struct *mm, unsigned long addr,
+ 				 pmd_t *pmdp)
+@@ -109,16 +71,21 @@ static inline void pmdp_set_numa(struct
+ 	return;
+ }
  
--	if (is_zero_pfn(pfn))
--		return NULL;
+-#define pmd_mknonnuma pmd_mknonnuma
+-static inline pmd_t pmd_mknonnuma(pmd_t pmd)
++/*
++ * Generic NUMA pte helpers expect pteval_t and pmdval_t types to exist
++ * which was inherited from x86. For the purposes of powerpc pte_basic_t and
++ * pmd_t are equivalent
++ */
++#define pteval_t pte_basic_t
++#define pmdval_t pmd_t
++static inline pteval_t ptenuma_flags(pte_t pte)
+ {
+-	return pte_pmd(pte_mknonnuma(pmd_pte(pmd)));
++	return pte_val(pte) & _PAGE_NUMA_MASK;
+ }
+ 
+-#define pmd_mknuma pmd_mknuma
+-static inline pmd_t pmd_mknuma(pmd_t pmd)
++static inline pmdval_t pmdnuma_flags(pmd_t pmd)
+ {
+-	return pte_pmd(pte_mknuma(pmd_pte(pmd)));
++	return pmd_val(pmd) & _PAGE_NUMA_MASK;
+ }
+ 
+ # else
+diff -puN arch/powerpc/include/asm/pte-common.h~mm-remove-misleading-arch_uses_numa_prot_none arch/powerpc/include/asm/pte-common.h
+--- a/arch/powerpc/include/asm/pte-common.h~mm-remove-misleading-arch_uses_numa_prot_none
++++ a/arch/powerpc/include/asm/pte-common.h
+@@ -98,6 +98,11 @@ extern unsigned long bad_call_to_PMD_PAG
+ 			 _PAGE_USER | _PAGE_ACCESSED | \
+ 			 _PAGE_RW | _PAGE_HWWRITE | _PAGE_DIRTY | _PAGE_EXEC)
+ 
++#ifdef CONFIG_NUMA_BALANCING
++/* Mask of bits that distinguish present and numa ptes */
++#define _PAGE_NUMA_MASK (_PAGE_NUMA|_PAGE_PRESENT)
++#endif
++
+ /*
+  * We define 2 sets of base prot bits, one for basic pages (ie,
+  * cacheable kernel and user pages) and one for non cacheable
+diff -puN arch/x86/Kconfig~mm-remove-misleading-arch_uses_numa_prot_none arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-remove-misleading-arch_uses_numa_prot_none
++++ a/arch/x86/Kconfig
+@@ -29,7 +29,6 @@ config X86
+ 	select HAVE_UNSTABLE_SCHED_CLOCK
+ 	select ARCH_SUPPORTS_NUMA_BALANCING if X86_64
+ 	select ARCH_SUPPORTS_INT128 if X86_64
+-	select ARCH_WANTS_PROT_NUMA_PROT_NONE
+ 	select HAVE_IDE
+ 	select HAVE_OPROFILE
+ 	select HAVE_PCSPKR_PLATFORM
+diff -puN arch/x86/include/asm/pgtable_types.h~mm-remove-misleading-arch_uses_numa_prot_none arch/x86/include/asm/pgtable_types.h
+--- a/arch/x86/include/asm/pgtable_types.h~mm-remove-misleading-arch_uses_numa_prot_none
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -325,6 +325,20 @@ static inline pteval_t pte_flags(pte_t p
+ 	return native_pte_val(pte) & PTE_FLAGS_MASK;
+ }
+ 
++#ifdef CONFIG_NUMA_BALANCING
++/* Set of bits that distinguishes present, prot_none and numa ptes */
++#define _PAGE_NUMA_MASK (_PAGE_NUMA|_PAGE_PROTNONE|_PAGE_PRESENT)
++static inline pteval_t ptenuma_flags(pte_t pte)
++{
++	return pte_flags(pte) & _PAGE_NUMA_MASK;
++}
++
++static inline pmdval_t pmdnuma_flags(pmd_t pmd)
++{
++	return pmd_flags(pmd) & _PAGE_NUMA_MASK;
++}
++#endif /* CONFIG_NUMA_BALANCING */
++
+ #define pgprot_val(x)	((x).pgprot)
+ #define __pgprot(x)	((pgprot_t) { (x) } )
+ 
+diff -puN include/asm-generic/pgtable.h~mm-remove-misleading-arch_uses_numa_prot_none include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-remove-misleading-arch_uses_numa_prot_none
++++ a/include/asm-generic/pgtable.h
+@@ -660,11 +660,12 @@ static inline int pmd_trans_unstable(pmd
+ }
+ 
+ #ifdef CONFIG_NUMA_BALANCING
+-#ifdef CONFIG_ARCH_USES_NUMA_PROT_NONE
+ /*
+- * _PAGE_NUMA works identical to _PAGE_PROTNONE (it's actually the
+- * same bit too). It's set only when _PAGE_PRESET is not set and it's
+- * never set if _PAGE_PRESENT is set.
++ * _PAGE_NUMA distinguishes between an unmapped page table entry, an entry that
++ * is protected for PROT_NONE and a NUMA hinting fault entry. If the
++ * architecture defines __PAGE_PROTNONE then it should take that into account
++ * but those that do not can rely on the fact that the NUMA hinting scanner
++ * skips inaccessible VMAs.
+  *
+  * pte/pmd_present() returns true if pte/pmd_numa returns true. Page
+  * fault triggers on those regions if pte/pmd_numa returns true
+@@ -673,16 +674,14 @@ static inline int pmd_trans_unstable(pmd
+ #ifndef pte_numa
+ static inline int pte_numa(pte_t pte)
+ {
+-	return (pte_flags(pte) &
+-		(_PAGE_NUMA|_PAGE_PROTNONE|_PAGE_PRESENT)) == _PAGE_NUMA;
++	return ptenuma_flags(pte) == _PAGE_NUMA;
+ }
+ #endif
+ 
+ #ifndef pmd_numa
+ static inline int pmd_numa(pmd_t pmd)
+ {
+-	return (pmd_flags(pmd) &
+-		(_PAGE_NUMA|_PAGE_PROTNONE|_PAGE_PRESENT)) == _PAGE_NUMA;
++	return pmdnuma_flags(pmd) == _PAGE_NUMA;
+ }
+ #endif
+ 
+@@ -722,6 +721,8 @@ static inline pte_t pte_mknuma(pte_t pte
+ {
+ 	pteval_t val = pte_val(pte);
+ 
++	VM_BUG_ON(!(val & _PAGE_PRESENT));
++
+ 	val &= ~_PAGE_PRESENT;
+ 	val |= _PAGE_NUMA;
+ 
+@@ -765,16 +766,6 @@ static inline void pmdp_set_numa(struct
+ }
+ #endif
+ #else
+-extern int pte_numa(pte_t pte);
+-extern int pmd_numa(pmd_t pmd);
+-extern pte_t pte_mknonnuma(pte_t pte);
+-extern pmd_t pmd_mknonnuma(pmd_t pmd);
+-extern pte_t pte_mknuma(pte_t pte);
+-extern pmd_t pmd_mknuma(pmd_t pmd);
+-extern void ptep_set_numa(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
+-extern void pmdp_set_numa(struct mm_struct *mm, unsigned long addr, pmd_t *pmdp);
+-#endif /* CONFIG_ARCH_USES_NUMA_PROT_NONE */
+-#else
+ static inline int pmd_numa(pmd_t pmd)
+ {
+ 	return 0;
+diff -puN init/Kconfig~mm-remove-misleading-arch_uses_numa_prot_none init/Kconfig
+--- a/init/Kconfig~mm-remove-misleading-arch_uses_numa_prot_none
++++ a/init/Kconfig
+@@ -887,17 +887,6 @@ config ARCH_SUPPORTS_INT128
+ config ARCH_WANT_NUMA_VARIABLE_LOCALITY
+ 	bool
+ 
+-#
+-# For architectures that are willing to define _PAGE_NUMA as _PAGE_PROTNONE
+-config ARCH_WANTS_PROT_NUMA_PROT_NONE
+-	bool
+-
+-config ARCH_USES_NUMA_PROT_NONE
+-	bool
+-	default y
+-	depends on ARCH_WANTS_PROT_NUMA_PROT_NONE
+-	depends on NUMA_BALANCING
