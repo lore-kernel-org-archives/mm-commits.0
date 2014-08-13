@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
- added to -mm tree
-Date: Wed, 13 Aug 2014 13:50:55 -0700
-Message-ID: <53ebcfaf.ccvkbFGzwJVZHATY%akpm@linux-foundation.org>
+Subject: + zram-fix-incorrectly-stat-with-failed_reads.patch added to -mm
+ tree
+Date: Wed, 13 Aug 2014 13:59:43 -0700
+Message-ID: <53ebd1bf.PveL2qZ9Q1nVA6ZL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f74.google.com ([209.85.192.74]:38625 "EHLO
-	mail-qg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752132AbaHMUu4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 16:50:56 -0400
-Received: by mail-qg0-f74.google.com with SMTP id z60so41581qgd.3
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 13:50:55 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:61536 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751529AbaHMU7o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 16:59:44 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so100975pab.4
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 13:59:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
+To: chao2.yu@samsung.com, jmarchan@redhat.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug-add-sysfs-zones_online_to-attribute-fix
+     Subject: zram: fix incorrect stat with failed_reads
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+     zram-fix-incorrectly-stat-with-failed_reads.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-fix-incorrectly-stat-with-failed_reads.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-fix-incorrectly-stat-with-failed_reads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,66 +41,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory-hotplug-add-sysfs-zones_online_to-attribute-fix
+From: Chao Yu <chao2.yu@samsung.com>
+Subject: zram: fix incorrect stat with failed_reads
 
-use conventional comment layout
+Since we allocate a temporary buffer in zram_bvec_read to handle partial
+page operations in 924bd88d703e ("Staging: zram: allow partial page
+operations"), our ->failed_reads value may be incorrect as we do not
+increase its value when failing to allocate the temporary buffer.
 
-Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Let's fix this issue and correct the annotation of failed_reads.
+
+Signed-off-by: Chao Yu <chao2.yu@samsung.com>
+Cc: Minchan Kim <minchan@kernel.org>            
+Cc: Nitin Gupta <ngupta@vflare.org>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |   10 +++++++---
+ drivers/block/zram/zram_drv.h |    2 +-
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix
-+++ a/drivers/base/memory.c
-@@ -378,7 +378,7 @@ static int __zones_online_to(unsigned lo
- {
- 	struct zone *zone_next;
+diff -puN drivers/block/zram/zram_drv.c~zram-fix-incorrectly-stat-with-failed_reads drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-fix-incorrectly-stat-with-failed_reads
++++ a/drivers/block/zram/zram_drv.c
+@@ -378,7 +378,6 @@ static int zram_decompress_page(struct z
+ 	/* Should NEVER happen. Return bio error if it does. */
+ 	if (unlikely(ret)) {
+ 		pr_err("Decompression failed! err=%d, page=%u\n", ret, index);
+-		atomic64_inc(&zram->stats.failed_reads);
+ 		return ret;
+ 	}
  
--	/*The mem block is the last block of memory.*/
-+	/* The mem block is the last block of memory. */
- 	if (!pfn_valid(end_pfn + 1))
- 		return 1;
- 	zone_next = page_zone(first_page + nr_pages);
-@@ -400,7 +400,7 @@ static ssize_t show_zones_online_to(stru
- 	end_pfn = start_pfn + nr_pages;
- 	first_page = pfn_to_page(start_pfn);
+@@ -547,8 +546,6 @@ out:
+ 		zcomp_strm_release(zram->comp, zstrm);
+ 	if (is_partial_io(bvec))
+ 		kfree(uncmem);
+-	if (ret)
+-		atomic64_inc(&zram->stats.failed_writes);
+ 	return ret;
+ }
  
--	/*The block contains more than one zone can not be offlined.*/
-+	/* The block contains more than one zone can not be offlined. */
- 	if (!test_pages_in_a_zone(start_pfn, end_pfn))
- 		return sprintf(buf, "none\n");
+@@ -566,6 +563,13 @@ static int zram_bvec_rw(struct zram *zra
+ 		ret = zram_bvec_write(zram, bvec, index, offset);
+ 	}
  
++	if (unlikely(ret)) {
++		if (rw == READ)
++			atomic64_inc(&zram->stats.failed_reads);
++		else
++			atomic64_inc(&zram->stats.failed_writes);
++	}
++
+ 	return ret;
+ }
+ 
+diff -puN drivers/block/zram/zram_drv.h~zram-fix-incorrectly-stat-with-failed_reads drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-fix-incorrectly-stat-with-failed_reads
++++ a/drivers/block/zram/zram_drv.h
+@@ -84,7 +84,7 @@ struct zram_stats {
+ 	atomic64_t compr_data_size;	/* compressed size of pages stored */
+ 	atomic64_t num_reads;	/* failed + successful */
+ 	atomic64_t num_writes;	/* --do-- */
+-	atomic64_t failed_reads;	/* should NEVER! happen */
++	atomic64_t failed_reads;	/* can happen when memory is too low */
+ 	atomic64_t failed_writes;	/* can happen when memory is too low */
+ 	atomic64_t invalid_io;	/* non-page-aligned I/O requests */
+ 	atomic64_t notify_free;	/* no. of swap slot free notifications */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from chao2.yu@samsung.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-drivers-gpu-drm-nouveau-fix-build.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+zram-fix-incorrectly-stat-with-failed_reads.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
