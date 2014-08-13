@@ -1,182 +1,322 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2014-08-13-13-13 uploaded
-Date: Wed, 13 Aug 2014 13:14:33 -0700
-Message-ID: <53ebc729.Nj3LvIuMvJFj68+A%akpm@linux-foundation.org>
+Subject: +
+ kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
+ added to -mm tree
+Date: Wed, 13 Aug 2014 13:35:24 -0700
+Message-ID: <53ebcc0c.scNIXrmeLQfO1TUF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f73.google.com ([209.85.218.73]:33079 "EHLO
-	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751866AbaHMUOf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 16:14:35 -0400
-Received: by mail-oi0-f73.google.com with SMTP id u20so70476oif.0
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 13:14:34 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:46192 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751429AbaHMUf0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 16:35:26 -0400
+Received: by mail-qc0-f202.google.com with SMTP id r5so38835qcx.5
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 13:35:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz
-
-The mm-of-the-moment snapshot 2014-08-13-13-13 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (3.x
-or 3.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: vgoyal@redhat.com, ebiederm@xmission.com, hpa@zytor.com, sruffell@digium.com, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: kexec: create a new config option CONFIG_KEXEC_FILE for new syscall
+has been added to the -mm tree.  Its filename is
+     kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
 
-http://git.cmpxchg.org/?p=linux-mmotm.git;a=summary
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
 
-To develop on top of mmotm git:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-To rebase a branch with older patches to a new mmotm release:
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+------------------------------------------------------
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: kexec: create a new config option CONFIG_KEXEC_FILE for new syscall
 
+Currently new system call kexec_file_load() and all the associated code
+compiles if CONFIG_KEXEC=y.  But new syscall also compiles purgatory code
+which currently uses gcc option -mcmodel=large.  This option seems to be
+available only gcc 4.4 onwards.
 
+Hiding new functionality behind a new config option will not break
+existing users of old gcc.  Those who wish to enable new functionality
+will require new gcc.  Having said that, I am trying to figure out how can
+I move away from using -mcmodel=large but that can take a while.
 
+I think there are other advantages of introducing this new config option. 
+As this option will be enabled only on x86_64, other arches don't have to
+compile generic kexec code which will never be used.  This new code
+selects CRYPTO=y and CRYPTO_SHA256=y.  And all other arches had to do this
+for CONFIG_KEXEC.  Now with introduction of new config option, we can
+remove crypto dependency from other arches.
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+Now CONFIG_KEXEC_FILE is available only on x86_64.  So whereever I had
+CONFIG_X86_64 defined, I got rid of that.
 
-A git copy of this tree is available at
+For CONFIG_KEXEC_FILE, instead of doing select CRYPTO=y, I changed it to
+"depends on CRYPTO=y".  This should be safer as "select" is not recursive.
 
-	http://git.cmpxchg.org/?p=linux-mmots.git;a=summary
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Shaun Ruffell <sruffell@digium.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-and use of this tree is similar to
-http://git.cmpxchg.org/?p=linux-mmotm.git, described above.
+ arch/x86/Kbuild                    |    4 +---
+ arch/x86/Kconfig                   |   18 ++++++++++++++----
+ arch/x86/Makefile                  |    5 +----
+ arch/x86/kernel/Makefile           |    2 +-
+ arch/x86/kernel/crash.c            |    6 ++----
+ arch/x86/kernel/machine_kexec_64.c |   11 +++++++++++
+ arch/x86/purgatory/Makefile        |    5 +----
+ kernel/kexec.c                     |   11 +++++++++++
+ 8 files changed, 42 insertions(+), 20 deletions(-)
 
+diff -puN arch/x86/Kbuild~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/Kbuild
+--- a/arch/x86/Kbuild~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
++++ a/arch/x86/Kbuild
+@@ -17,6 +17,4 @@ obj-$(CONFIG_IA32_EMULATION) += ia32/
+ obj-y += platform/
+ obj-y += net/
+ 
+-ifeq ($(CONFIG_X86_64),y)
+-obj-$(CONFIG_KEXEC) += purgatory/
+-endif
++obj-$(CONFIG_KEXEC_FILE) += purgatory/
+diff -puN arch/x86/Kconfig~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
++++ a/arch/x86/Kconfig
+@@ -1582,9 +1582,6 @@ source kernel/Kconfig.hz
+ 
+ config KEXEC
+ 	bool "kexec system call"
+-	select BUILD_BIN2C
+-	select CRYPTO
+-	select CRYPTO_SHA256
+ 	---help---
+ 	  kexec is a system call that implements the ability to shutdown your
+ 	  current kernel, and to start another kernel.  It is like a reboot
+@@ -1599,9 +1596,22 @@ config KEXEC
+ 	  interface is strongly in flux, so no good recommendation can be
+ 	  made.
+ 
++config KEXEC_FILE
++	bool "kexec file based system call"
++	select BUILD_BIN2C
++	depends on KEXEC
++	depends on X86_64
++	depends on CRYPTO=y
++	depends on CRYPTO_SHA256=y
++	---help---
++	  This is new version of kexec system call. This system call is
++	  file based and takes file descriptors as system call argument
++	  for kernel and initramfs as opposed to list of segments as
++	  accepted by previous system call.
++
+ config KEXEC_VERIFY_SIG
+ 	bool "Verify kernel signature during kexec_file_load() syscall"
+-	depends on KEXEC
++	depends on KEXEC_FILE
+ 	---help---
+ 	  This option makes kernel signature verification mandatory for
+ 	  kexec_file_load() syscall. If kernel is signature can not be
+diff -puN arch/x86/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/Makefile
+--- a/arch/x86/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
++++ a/arch/x86/Makefile
+@@ -184,11 +184,8 @@ archheaders:
+ 	$(Q)$(MAKE) $(build)=arch/x86/syscalls all
+ 
+ archprepare:
+-ifeq ($(CONFIG_KEXEC),y)
+-# Build only for 64bit. No loaders for 32bit yet.
+- ifeq ($(CONFIG_X86_64),y)
++ifeq ($(CONFIG_KEXEC_FILE),y)
+ 	$(Q)$(MAKE) $(build)=arch/x86/purgatory arch/x86/purgatory/kexec-purgatory.c
+- endif
+ endif
+ 
+ ###
+diff -puN arch/x86/kernel/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/kernel/Makefile
+--- a/arch/x86/kernel/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
++++ a/arch/x86/kernel/Makefile
+@@ -71,6 +71,7 @@ obj-$(CONFIG_FTRACE_SYSCALLS)	+= ftrace.
+ obj-$(CONFIG_X86_TSC)		+= trace_clock.o
+ obj-$(CONFIG_KEXEC)		+= machine_kexec_$(BITS).o
+ obj-$(CONFIG_KEXEC)		+= relocate_kernel_$(BITS).o crash.o
++obj-$(CONFIG_KEXEC_FILE)	+= kexec-bzimage64.o
+ obj-$(CONFIG_CRASH_DUMP)	+= crash_dump_$(BITS).o
+ obj-y				+= kprobes/
+ obj-$(CONFIG_MODULES)		+= module.o
+@@ -118,5 +119,4 @@ ifeq ($(CONFIG_X86_64),y)
+ 
+ 	obj-$(CONFIG_PCI_MMCONFIG)	+= mmconf-fam10h_64.o
+ 	obj-y				+= vsmp_64.o
+-	obj-$(CONFIG_KEXEC)		+= kexec-bzimage64.o
+ endif
+diff -puN arch/x86/kernel/crash.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/kernel/crash.c
+--- a/arch/x86/kernel/crash.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
++++ a/arch/x86/kernel/crash.c
+@@ -182,8 +182,7 @@ void native_machine_crash_shutdown(struc
+ 	crash_save_cpu(regs, safe_smp_processor_id());
+ }
+ 
+-#ifdef CONFIG_X86_64
+-
++#ifdef CONFIG_KEXEC_FILE
+ static int get_nr_ram_ranges_callback(unsigned long start_pfn,
+ 				unsigned long nr_pfn, void *arg)
+ {
+@@ -696,5 +695,4 @@ int crash_load_segments(struct kimage *i
+ 
+ 	return ret;
+ }
+-
+-#endif /* CONFIG_X86_64 */
++#endif /* CONFIG_KEXEC_FILE */
+diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -25,9 +25,11 @@
+ #include <asm/debugreg.h>
+ #include <asm/kexec-bzimage64.h>
+ 
++#ifdef CONFIG_KEXEC_FILE
+ static struct kexec_file_ops *kexec_file_loaders[] = {
+ 		&kexec_bzImage64_ops,
+ };
++#endif
+ 
+ static void free_transition_pgtable(struct kimage *image)
+ {
+@@ -178,6 +180,7 @@ static void load_segments(void)
+ 		);
+ }
+ 
++#ifdef CONFIG_KEXEC_FILE
+ /* Update purgatory as needed after various image segments have been prepared */
+ static int arch_update_purgatory(struct kimage *image)
+ {
+@@ -209,6 +212,12 @@ static int arch_update_purgatory(struct
+ 
+ 	return ret;
+ }
++#else /* !CONFIG_KEXEC_FILE */
++static inline int arch_update_purgatory(struct kimage *image)
++{
++	return 0;
++}
++#endif /* CONFIG_KEXEC_FILE */
+ 
+ int machine_kexec_prepare(struct kimage *image)
+ {
+@@ -329,6 +338,7 @@ void arch_crash_save_vmcoreinfo(void)
+ 
+ /* arch-dependent functionality related to kexec file-based syscall */
+ 
++#ifdef CONFIG_KEXEC_FILE
+ int arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
+ 				  unsigned long buf_len)
+ {
+@@ -522,3 +532,4 @@ overflow:
+ 	       (int)ELF64_R_TYPE(rel[i].r_info), value);
+ 	return -ENOEXEC;
+ }
++#endif /* CONFIG_KEXEC_FILE */
+diff -puN arch/x86/purgatory/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall arch/x86/purgatory/Makefile
+--- a/arch/x86/purgatory/Makefile~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
++++ a/arch/x86/purgatory/Makefile
+@@ -24,7 +24,4 @@ $(obj)/kexec-purgatory.c: $(obj)/purgato
+ 	$(call if_changed,bin2c)
+ 
+ 
+-# No loaders for 32bits yet.
+-ifeq ($(CONFIG_X86_64),y)
+- obj-$(CONFIG_KEXEC)		+= kexec-purgatory.o
+-endif
++obj-$(CONFIG_KEXEC_FILE)	+= kexec-purgatory.o
+diff -puN kernel/kexec.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall kernel/kexec.c
+--- a/kernel/kexec.c~kexec-create-a-new-config-option-config_kexec_file-for-new-syscall
++++ a/kernel/kexec.c
+@@ -64,7 +64,9 @@ bool kexec_in_progress = false;
+ char __weak kexec_purgatory[0];
+ size_t __weak kexec_purgatory_size = 0;
+ 
++#ifdef CONFIG_KEXEC_FILE
+ static int kexec_calculate_store_digests(struct kimage *image);
++#endif
+ 
+ /* Location of the reserved area for the crash kernel */
+ struct resource crashk_res = {
+@@ -341,6 +343,7 @@ out_free_image:
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_KEXEC_FILE
+ static int copy_file_from_fd(int fd, void **buf, unsigned long *buf_len)
+ {
+ 	struct fd f = fdget(fd);
+@@ -612,6 +615,9 @@ out_free_image:
+ 	kfree(image);
+ 	return ret;
+ }
++#else /* CONFIG_KEXEC_FILE */
++static inline void kimage_file_post_load_cleanup(struct kimage *image) { }
++#endif /* CONFIG_KEXEC_FILE */
+ 
+ static int kimage_is_destination_range(struct kimage *image,
+ 					unsigned long start,
+@@ -1375,6 +1381,7 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compa
+ }
+ #endif
+ 
++#ifdef CONFIG_KEXEC_FILE
+ SYSCALL_DEFINE5(kexec_file_load, int, kernel_fd, int, initrd_fd,
+ 		unsigned long, cmdline_len, const char __user *, cmdline_ptr,
+ 		unsigned long, flags)
+@@ -1451,6 +1458,8 @@ out:
+ 	return ret;
+ }
+ 
++#endif /* CONFIG_KEXEC_FILE */
++
+ void crash_kexec(struct pt_regs *regs)
+ {
+ 	/* Take the kexec_mutex here to prevent sys_kexec_load
+@@ -2006,6 +2015,7 @@ static int __init crash_save_vmcoreinfo_
+ 
+ subsys_initcall(crash_save_vmcoreinfo_init);
+ 
++#ifdef CONFIG_KEXEC_FILE
+ static int __kexec_add_segment(struct kimage *image, char *buf,
+ 			       unsigned long bufsz, unsigned long mem,
+ 			       unsigned long memsz)
+@@ -2682,6 +2692,7 @@ int kexec_purgatory_get_set_symbol(struc
+ 
+ 	return 0;
+ }
++#endif /* CONFIG_KEXEC_FILE */
+ 
+ /*
+  * Move into place and start executing a preloaded standalone
+_
 
-This mmotm tree contains the following patches against 3.16:
-(patches marked "*" will be included in linux-next)
+Patches currently in -mm which might be from vgoyal@redhat.com are
 
-  origin.patch
-  i-need-old-gcc.patch
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-  maintainers-akpm-maintenance.patch
-* mm-hugetlb_cgroup-align-hugetlb-cgroup-limit-to-hugepage-size.patch
-* rtsx_usb-export-device-table.patch
-* mm-fix-cross_memory_attach-help-text-grammar.patch
-* checkpatch-relax-check-for-length-of-git-commit-ids.patch
-* kernel-resourcec-fix-null-deref-with-no-iomem.patch
-* memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node.patch
-* mm-actually-clear-pmd_numa-before-invalidating.patch
-* lib-turn-config_stacktrace-into-an-actual-option.patch
-* drivers-gpu-drm-nouveau-fix-build.patch
-* x86mem-hotplug-pass-sync_global_pgds-a-correct-argument-in-remove_pagetable.patch
-* x86mem-hotplug-modify-pgd-entry-when-removing-memory.patch
-* x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
-* fs-cifs-remove-obsolete-__constant.patch
-* fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-* fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-* efi-bgrt-add-error-handling-inform-the-user-when-ignoring-the-bgrt.patch
-* kernel-posix-timersc-code-clean-up.patch
-* kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-* input-route-kbd-leds-through-the-generic-leds-layer.patch
-* input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-* fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-* ocfs2-do-not-write-error-flag-to-user-structure-we-cannot-copy-from-to.patch
-* ocfs2-o2net-set-tcp-user-timeout-to-max-value.patch
-* ocfs2-quorum-add-a-log-for-node-not-fenced.patch
-* o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-* o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-* ocfs2-free-inode-when-i_count-becomes-zero.patch
-* ocfs2-o2net-dont-shutdown-connection-when-idle-timeout.patch
-* ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
-* ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
-* ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
-* ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
-* ocfs2-fix-journal-commit-deadlock.patch
-* bio-integrity-remove-the-needless-fail-handle-of-bip_slab-creating.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-  mm.patch
-* vmstat-on-demand-vmstat-workers-v8.patch
-* vmstat-on-demand-vmstat-workers-v8-fix.patch
-* vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
-* vmstat-on-demand-vmstat-workers-v8-fix-2.patch
-* mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
-* mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd-fix.patch
-* mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
-* mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
-* mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
-* mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-* mm-compactionc-isolate_freepages_block-small-tuneup.patch
-* fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-* m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
-* m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush-v2.patch
-* do_shared_fault-check-that-mmap_sem-is-held.patch
-* include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-* include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max-fix.patch
-* drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check.patch
-* lib-vsprintf-add-%pt-format-specifier.patch
-* drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
-* mm-utilc-add-kstrimdup.patch
-* lib-add-crc64-ecma-module.patch
-* hfsplus-fix-longname-handling.patch
-  linux-next.patch
-* drivers-gpio-gpio-zevioc-fix-build.patch
-* x86-vdso-fix-vdso2cs-special_pages-error-checking.patch
-* drivers-net-irda-donauboe-convert-to-module_pci_driver.patch
-* include-linux-remove-strict_strto-definitions.patch
-* mm-replace-remap_file_pages-syscall-with-emulation.patch
-* fat-add-i_disksize-to-represent-uninitialized-size-v4.patch
-* fat-add-fat_fallocate-operation-v4.patch
-* fat-zero-out-seek-range-on-_fat_get_block-v4.patch
-* fat-fallback-to-buffered-write-in-case-of-fallocated-region-on-direct-io-v4.patch
-* fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region-v4.patch
-* documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate-v4.patch
-* w1-call-put_device-if-device_register-fails.patch
-* mm-add-strictlimit-knob-v2.patch
-  debugging-keep-track-of-page-owners.patch
-  page-owners-correct-page-order-when-to-free-page.patch
-  make-sure-nobodys-leaking-resources.patch
-  journal_add_journal_head-debug.patch
-  journal_add_journal_head-debug-fix.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  put_bh-debug.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
-  single_open-seq_release-leak-diagnostics.patch
+origin.patch
+kernel-resourcec-fix-null-deref-with-no-iomem.patch
+kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
+kexec-remove-config_kexec-dependency-on-crypto.patch
+
