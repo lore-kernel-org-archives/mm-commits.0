@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + arm-use-genalloc-for-the-atomic-pool.patch added to -mm tree
-Date: Wed, 13 Aug 2014 15:20:00 -0700
-Message-ID: <53ebe490.2wSUdEkX9xM9ER77%akpm@linux-foundation.org>
+Subject: +
+ arm64-add-atomic-pool-for-non-coherent-and-cma-allocations.patch added to
+ -mm tree
+Date: Wed, 13 Aug 2014 15:20:01 -0700
+Message-ID: <53ebe491.xhO7KJlOm4r33JZT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f202.google.com ([209.85.160.202]:56627 "EHLO
-	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752200AbaHMWUC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 18:20:02 -0400
-Received: by mail-yk0-f202.google.com with SMTP id q9so54739ykb.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 15:20:01 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:41602 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752831AbaHMWUD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 18:20:03 -0400
+Received: by mail-vc0-f201.google.com with SMTP id le20so54756vcb.0
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 15:20:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lauraa@codeaurora.org, arnd@arndb.de, catalin.marinas@arm.com, davidriley@chromium.org, linux@arm.linux.org.uk, olof@lixom.net, ritesh.harjani@gmail.com, thierry.reding@gmail.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: use genalloc for the atomic pool
+     Subject: arm64: add atomic pool for non-coherent and CMA allocations
 has been added to the -mm tree.  Its filename is
-     arm-use-genalloc-for-the-atomic-pool.patch
+     arm64-add-atomic-pool-for-non-coherent-and-cma-allocations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-use-genalloc-for-the-atomic-pool.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-add-atomic-pool-for-non-coherent-and-cma-allocations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-use-genalloc-for-the-atomic-pool.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-add-atomic-pool-for-non-coherent-and-cma-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,14 +43,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Laura Abbott <lauraa@codeaurora.org>
-Subject: arm: use genalloc for the atomic pool
+Subject: arm64: add atomic pool for non-coherent and CMA allocations
 
-ARM currently uses a bitmap for tracking atomic allocations.  genalloc
-already handles this type of memory pool allocation so switch to using
-that instead.
+Neither CMA nor noncoherent allocations support atomic allocations.
+Add a dedicated atomic pool to support this.
 
-Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
 Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: David Riley <davidriley@chromium.org>
 Cc: Olof Johansson <olof@lixom.net>
@@ -59,259 +60,264 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig          |    1 
- arch/arm/mm/dma-mapping.c |  149 +++++++++++-------------------------
- 2 files changed, 48 insertions(+), 102 deletions(-)
+ arch/arm64/Kconfig          |    1 
+ arch/arm64/mm/dma-mapping.c |  164 ++++++++++++++++++++++++++++++----
+ 2 files changed, 146 insertions(+), 19 deletions(-)
 
-diff -puN arch/arm/Kconfig~arm-use-genalloc-for-the-atomic-pool arch/arm/Kconfig
---- a/arch/arm/Kconfig~arm-use-genalloc-for-the-atomic-pool
-+++ a/arch/arm/Kconfig
-@@ -14,6 +14,7 @@ config ARM
- 	select CLONE_BACKWARDS
+diff -puN arch/arm64/Kconfig~arm64-add-atomic-pool-for-non-coherent-and-cma-allocations arch/arm64/Kconfig
+--- a/arch/arm64/Kconfig~arm64-add-atomic-pool-for-non-coherent-and-cma-allocations
++++ a/arch/arm64/Kconfig
+@@ -18,6 +18,7 @@ config ARM64
+ 	select COMMON_CLK
  	select CPU_PM if (SUSPEND || CPU_IDLE)
- 	select DCACHE_WORD_ACCESS if HAVE_EFFICIENT_UNALIGNED_ACCESS
+ 	select DCACHE_WORD_ACCESS
 +	select GENERIC_ALLOCATOR
- 	select GENERIC_ATOMIC64 if (CPU_V7M || CPU_V6 || !CPU_32v6K || !AEABI)
+ 	select GENERIC_CLOCKEVENTS
  	select GENERIC_CLOCKEVENTS_BROADCAST if SMP
- 	select GENERIC_IDLE_POLL_SETUP
-diff -puN arch/arm/mm/dma-mapping.c~arm-use-genalloc-for-the-atomic-pool arch/arm/mm/dma-mapping.c
---- a/arch/arm/mm/dma-mapping.c~arm-use-genalloc-for-the-atomic-pool
-+++ a/arch/arm/mm/dma-mapping.c
-@@ -12,6 +12,7 @@
- #include <linux/bootmem.h>
- #include <linux/module.h>
- #include <linux/mm.h>
+ 	select GENERIC_CPU_AUTOPROBE
+diff -puN arch/arm64/mm/dma-mapping.c~arm64-add-atomic-pool-for-non-coherent-and-cma-allocations arch/arm64/mm/dma-mapping.c
+--- a/arch/arm64/mm/dma-mapping.c~arm64-add-atomic-pool-for-non-coherent-and-cma-allocations
++++ a/arch/arm64/mm/dma-mapping.c
+@@ -27,6 +27,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/swiotlb.h>
+ #include <linux/amba/bus.h>
 +#include <linux/genalloc.h>
- #include <linux/gfp.h>
- #include <linux/errno.h>
- #include <linux/list.h>
-@@ -314,23 +315,13 @@ static void __dma_free_remap(void *cpu_a
+ 
+ #include <asm/cacheflush.h>
+ 
+@@ -41,6 +42,54 @@ static pgprot_t __get_dma_pgprot(struct
+ 	return prot;
  }
  
- #define DEFAULT_DMA_COHERENT_POOL_SIZE	SZ_256K
 +static struct gen_pool *atomic_pool;
- 
--struct dma_pool {
--	size_t size;
--	spinlock_t lock;
--	unsigned long *bitmap;
--	unsigned long nr_pages;
--	void *vaddr;
--	struct page **pages;
--};
--
--static struct dma_pool atomic_pool = {
--	.size = DEFAULT_DMA_COHERENT_POOL_SIZE,
--};
-+static size_t atomic_pool_size = DEFAULT_DMA_COHERENT_POOL_SIZE;
- 
- static int __init early_coherent_pool(char *p)
- {
--	atomic_pool.size = memparse(p, &p);
-+	atomic_pool_size = memparse(p, &p);
- 	return 0;
- }
- early_param("coherent_pool", early_coherent_pool);
-@@ -340,14 +331,14 @@ void __init init_dma_coherent_pool_size(
- 	/*
- 	 * Catch any attempt to set the pool size too late.
- 	 */
--	BUG_ON(atomic_pool.vaddr);
-+	BUG_ON(atomic_pool);
- 
- 	/*
- 	 * Set architecture specific coherent pool size only if
- 	 * it has not been changed by kernel command line parameter.
- 	 */
--	if (atomic_pool.size == DEFAULT_DMA_COHERENT_POOL_SIZE)
--		atomic_pool.size = size;
-+	if (atomic_pool_size == DEFAULT_DMA_COHERENT_POOL_SIZE)
-+		atomic_pool_size = size;
- }
- 
- /*
-@@ -355,52 +346,44 @@ void __init init_dma_coherent_pool_size(
-  */
- static int __init atomic_pool_init(void)
- {
--	struct dma_pool *pool = &atomic_pool;
- 	pgprot_t prot = pgprot_dmacoherent(PAGE_KERNEL);
- 	gfp_t gfp = GFP_KERNEL | GFP_DMA;
--	unsigned long nr_pages = pool->size >> PAGE_SHIFT;
--	unsigned long *bitmap;
- 	struct page *page;
--	struct page **pages;
- 	void *ptr;
--	int bitmap_size = BITS_TO_LONGS(nr_pages) * sizeof(long);
--
--	bitmap = kzalloc(bitmap_size, GFP_KERNEL);
--	if (!bitmap)
--		goto no_bitmap;
- 
--	pages = kzalloc(nr_pages * sizeof(struct page *), GFP_KERNEL);
--	if (!pages)
--		goto no_pages;
-+	atomic_pool = gen_pool_create(PAGE_SHIFT, -1);
-+	if (!atomic_pool)
-+		goto out;
- 
- 	if (dev_get_cma_area(NULL))
--		ptr = __alloc_from_contiguous(NULL, pool->size, prot, &page,
--					      atomic_pool_init);
-+		ptr = __alloc_from_contiguous(NULL, atomic_pool_size, prot,
-+					      &page, atomic_pool_init);
- 	else
--		ptr = __alloc_remap_buffer(NULL, pool->size, gfp, prot, &page,
--					   atomic_pool_init);
-+		ptr = __alloc_remap_buffer(NULL, atomic_pool_size, gfp, prot,
-+					   &page, atomic_pool_init);
- 	if (ptr) {
--		int i;
--
--		for (i = 0; i < nr_pages; i++)
--			pages[i] = page + i;
-+		int ret;
- 
--		spin_lock_init(&pool->lock);
--		pool->vaddr = ptr;
--		pool->pages = pages;
--		pool->bitmap = bitmap;
--		pool->nr_pages = nr_pages;
--		pr_info("DMA: preallocated %u KiB pool for atomic coherent allocations\n",
--		       (unsigned)pool->size / 1024);
-+		ret = gen_pool_add_virt(atomic_pool, (unsigned long)ptr,
-+					page_to_phys(page),
-+					atomic_pool_size, -1);
-+		if (ret)
-+			goto destroy_genpool;
 +
-+		gen_pool_set_algo(atomic_pool,
-+				gen_pool_first_fit_order_align,
-+				(void *)PAGE_SHIFT);
-+		pr_info("DMA: preallocated %zd KiB pool for atomic coherent allocations\n",
-+		       atomic_pool_size / 1024);
- 		return 0;
- 	}
- 
--	kfree(pages);
--no_pages:
--	kfree(bitmap);
--no_bitmap:
--	pr_err("DMA: failed to allocate %u KiB pool for atomic coherent allocation\n",
--	       (unsigned)pool->size / 1024);
-+destroy_genpool:
-+	gen_pool_destroy(atomic_pool);
-+	atomic_pool = NULL;
-+out:
-+	pr_err("DMA: failed to allocate %zx KiB pool for atomic coherent allocation\n",
-+	       atomic_pool_size / 1024);
- 	return -ENOMEM;
- }
- /*
-@@ -504,76 +487,36 @@ static void *__alloc_remap_buffer(struct
- 
- static void *__alloc_from_pool(size_t size, struct page **ret_page)
- {
--	struct dma_pool *pool = &atomic_pool;
--	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
--	unsigned int pageno;
--	unsigned long flags;
++#define DEFAULT_DMA_COHERENT_POOL_SIZE  SZ_256K
++static size_t atomic_pool_size = DEFAULT_DMA_COHERENT_POOL_SIZE;
++
++static int __init early_coherent_pool(char *p)
++{
++	atomic_pool_size = memparse(p, &p);
++	return 0;
++}
++early_param("coherent_pool", early_coherent_pool);
++
++static void *__alloc_from_pool(size_t size, struct page **ret_page)
++{
 +	unsigned long val;
- 	void *ptr = NULL;
--	unsigned long align_mask;
- 
--	if (!pool->vaddr) {
++	void *ptr = NULL;
++
 +	if (!atomic_pool) {
- 		WARN(1, "coherent pool not initialised!\n");
- 		return NULL;
- 	}
- 
--	/*
--	 * Align the region allocation - allocations from pool are rather
--	 * small, so align them to their order in pages, minimum is a page
--	 * size. This helps reduce fragmentation of the DMA space.
--	 */
--	align_mask = (1 << get_order(size)) - 1;
++		WARN(1, "coherent pool not initialised!\n");
++		return NULL;
++	}
++
 +	val = gen_pool_alloc(atomic_pool, size);
 +	if (val) {
 +		phys_addr_t phys = gen_pool_virt_to_phys(atomic_pool, val);
- 
--	spin_lock_irqsave(&pool->lock, flags);
--	pageno = bitmap_find_next_zero_area(pool->bitmap, pool->nr_pages,
--					    0, count, align_mask);
--	if (pageno < pool->nr_pages) {
--		bitmap_set(pool->bitmap, pageno, count);
--		ptr = pool->vaddr + PAGE_SIZE * pageno;
--		*ret_page = pool->pages[pageno];
--	} else {
--		pr_err_once("ERROR: %u KiB atomic DMA coherent pool is too small!\n"
--			    "Please increase it with coherent_pool= kernel parameter!\n",
--			    (unsigned)pool->size / 1024);
++
 +		*ret_page = phys_to_page(phys);
 +		ptr = (void *)val;
- 	}
--	spin_unlock_irqrestore(&pool->lock, flags);
- 
- 	return ptr;
- }
- 
- static bool __in_atomic_pool(void *start, size_t size)
- {
--	struct dma_pool *pool = &atomic_pool;
--	void *end = start + size;
--	void *pool_start = pool->vaddr;
--	void *pool_end = pool->vaddr + pool->size;
--
--	if (start < pool_start || start >= pool_end)
--		return false;
--
--	if (end <= pool_end)
--		return true;
--
--	WARN(1, "Wrong coherent size(%p-%p) from atomic pool(%p-%p)\n",
--	     start, end - 1, pool_start, pool_end - 1);
--
--	return false;
-+	return addr_in_gen_pool(atomic_pool, (unsigned long)start, size);
- }
- 
- static int __free_from_pool(void *start, size_t size)
- {
--	struct dma_pool *pool = &atomic_pool;
--	unsigned long pageno, count;
--	unsigned long flags;
--
- 	if (!__in_atomic_pool(start, size))
- 		return 0;
- 
--	pageno = (start - pool->vaddr) >> PAGE_SHIFT;
--	count = size >> PAGE_SHIFT;
--
--	spin_lock_irqsave(&pool->lock, flags);
--	bitmap_clear(pool->bitmap, pageno, count);
--	spin_unlock_irqrestore(&pool->lock, flags);
-+	gen_pool_free(atomic_pool, (unsigned long)start, size);
- 
- 	return 1;
- }
-@@ -1316,11 +1259,13 @@ static int __iommu_remove_mapping(struct
- 
- static struct page **__atomic_get_pages(void *addr)
- {
--	struct dma_pool *pool = &atomic_pool;
--	struct page **pages = pool->pages;
--	int offs = (addr - pool->vaddr) >> PAGE_SHIFT;
-+	struct page *page;
-+	phys_addr_t phys;
++	}
 +
-+	phys = gen_pool_virt_to_phys(atomic_pool, (unsigned long)addr);
-+	page = phys_to_page(phys);
++	return ptr;
++}
++
++static bool __in_atomic_pool(void *start, size_t size)
++{
++	return addr_in_gen_pool(atomic_pool, (unsigned long)start, size);
++}
++
++static int __free_from_pool(void *start, size_t size)
++{
++	if (!__in_atomic_pool(start, size))
++		return 0;
++
++	gen_pool_free(atomic_pool, (unsigned long)start, size);
++
++	return 1;
++}
++
+ static void *__dma_alloc_coherent(struct device *dev, size_t size,
+ 				  dma_addr_t *dma_handle, gfp_t flags,
+ 				  struct dma_attrs *attrs)
+@@ -53,7 +102,7 @@ static void *__dma_alloc_coherent(struct
+ 	if (IS_ENABLED(CONFIG_ZONE_DMA) &&
+ 	    dev->coherent_dma_mask <= DMA_BIT_MASK(32))
+ 		flags |= GFP_DMA;
+-	if (IS_ENABLED(CONFIG_DMA_CMA)) {
++	if (IS_ENABLED(CONFIG_DMA_CMA) && (flags & __GFP_WAIT)) {
+ 		struct page *page;
  
--	return pages + offs;
-+	return (struct page **)page;
+ 		size = PAGE_ALIGN(size);
+@@ -73,50 +122,54 @@ static void __dma_free_coherent(struct d
+ 				void *vaddr, dma_addr_t dma_handle,
+ 				struct dma_attrs *attrs)
+ {
++	bool freed;
++	phys_addr_t paddr = dma_to_phys(dev, dma_handle);
++
+ 	if (dev == NULL) {
+ 		WARN_ONCE(1, "Use an actual device structure for DMA allocation\n");
+ 		return;
+ 	}
+ 
+-	if (IS_ENABLED(CONFIG_DMA_CMA)) {
+-		phys_addr_t paddr = dma_to_phys(dev, dma_handle);
+-
+-		dma_release_from_contiguous(dev,
++	freed = dma_release_from_contiguous(dev,
+ 					phys_to_page(paddr),
+ 					size >> PAGE_SHIFT);
+-	} else {
++	if (!freed)
+ 		swiotlb_free_coherent(dev, size, vaddr, dma_handle);
+-	}
  }
  
- static struct page **__iommu_get_pages(void *cpu_addr, struct dma_attrs *attrs)
+ static void *__dma_alloc_noncoherent(struct device *dev, size_t size,
+ 				     dma_addr_t *dma_handle, gfp_t flags,
+ 				     struct dma_attrs *attrs)
+ {
+-	struct page *page, **map;
++	struct page *page;
+ 	void *ptr, *coherent_ptr;
+-	int order, i;
+ 
+ 	size = PAGE_ALIGN(size);
+-	order = get_order(size);
++
++	if (!(flags & __GFP_WAIT)) {
++		struct page *page = NULL;
++		void *addr = __alloc_from_pool(size, &page);
++
++		if (addr)
++			*dma_handle = phys_to_dma(dev, page_to_phys(page));
++
++		return addr;
++
++	}
+ 
+ 	ptr = __dma_alloc_coherent(dev, size, dma_handle, flags, attrs);
+ 	if (!ptr)
+ 		goto no_mem;
+-	map = kmalloc(sizeof(struct page *) << order, flags & ~GFP_DMA);
+-	if (!map)
+-		goto no_map;
+ 
+ 	/* remove any dirty cache lines on the kernel alias */
+ 	__dma_flush_range(ptr, ptr + size);
+ 
+ 	/* create a coherent mapping */
+ 	page = virt_to_page(ptr);
+-	for (i = 0; i < (size >> PAGE_SHIFT); i++)
+-		map[i] = page + i;
+-	coherent_ptr = vmap(map, size >> PAGE_SHIFT, VM_MAP,
+-			    __get_dma_pgprot(attrs, __pgprot(PROT_NORMAL_NC), false));
+-	kfree(map);
++	coherent_ptr = dma_common_contiguous_remap(page, size, VM_USERMAP,
++				__get_dma_pgprot(attrs,
++					__pgprot(PROT_NORMAL_NC), false),
++					NULL);
+ 	if (!coherent_ptr)
+ 		goto no_map;
+ 
+@@ -135,6 +188,8 @@ static void __dma_free_noncoherent(struc
+ {
+ 	void *swiotlb_addr = phys_to_virt(dma_to_phys(dev, dma_handle));
+ 
++	if (__free_from_pool(vaddr, size))
++		return;
+ 	vunmap(vaddr);
+ 	__dma_free_coherent(dev, size, swiotlb_addr, dma_handle, attrs);
+ }
+@@ -332,6 +387,67 @@ static struct notifier_block amba_bus_nb
+ 
+ extern int swiotlb_late_init_with_default_size(size_t default_size);
+ 
++static int __init atomic_pool_init(void)
++{
++	pgprot_t prot = __pgprot(PROT_NORMAL_NC);
++	unsigned long nr_pages = atomic_pool_size >> PAGE_SHIFT;
++	struct page *page;
++	void *addr;
++	unsigned int pool_size_order = get_order(atomic_pool_size);
++
++	if (dev_get_cma_area(NULL))
++		page = dma_alloc_from_contiguous(NULL, nr_pages,
++							pool_size_order);
++	else
++		page = alloc_pages(GFP_DMA, pool_size_order);
++
++	if (page) {
++		int ret;
++		void *page_addr = page_address(page);
++
++		memset(page_addr, 0, atomic_pool_size);
++		__dma_flush_range(page_addr, page_addr + atomic_pool_size);
++
++		atomic_pool = gen_pool_create(PAGE_SHIFT, -1);
++		if (!atomic_pool)
++			goto free_page;
++
++		addr = dma_common_contiguous_remap(page, atomic_pool_size,
++					VM_USERMAP, prot, atomic_pool_init);
++
++		if (!addr)
++			goto destroy_genpool;
++
++		ret = gen_pool_add_virt(atomic_pool, (unsigned long)addr,
++					page_to_phys(page),
++					atomic_pool_size, -1);
++		if (ret)
++			goto remove_mapping;
++
++		gen_pool_set_algo(atomic_pool,
++				  gen_pool_first_fit_order_align,
++				  (void *)PAGE_SHIFT);
++
++		pr_info("DMA: preallocated %zu KiB pool for atomic allocations\n",
++			atomic_pool_size / 1024);
++		return 0;
++	}
++	goto out;
++
++remove_mapping:
++	dma_common_free_remap(addr, atomic_pool_size, VM_USERMAP);
++destroy_genpool:
++	gen_pool_destroy(atomic_pool);
++	atomic_pool = NULL;
++free_page:
++	if (!dma_release_from_contiguous(NULL, page, nr_pages))
++		__free_pages(page, pool_size_order);
++out:
++	pr_err("DMA: failed to allocate %zu KiB pool for atomic coherent allocation\n",
++		atomic_pool_size / 1024);
++	return -ENOMEM;
++}
++
+ static int __init swiotlb_late_init(void)
+ {
+ 	size_t swiotlb_size = min(SZ_64M, MAX_ORDER_NR_PAGES << PAGE_SHIFT);
+@@ -346,7 +462,17 @@ static int __init swiotlb_late_init(void
+ 
+ 	return swiotlb_late_init_with_default_size(swiotlb_size);
+ }
+-arch_initcall(swiotlb_late_init);
++
++static int __init arm64_dma_init(void)
++{
++	int ret = 0;
++
++	ret |= swiotlb_late_init();
++	ret |= atomic_pool_init();
++
++	return ret;
++}
++arch_initcall(arm64_dma_init);
+ 
+ #define PREALLOC_DMA_DEBUG_ENTRIES	4096
+ 
 _
 
 Patches currently in -mm which might be from lauraa@codeaurora.org are
