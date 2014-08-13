@@ -1,191 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2014-08-13-14-29 uploaded
-Date: Wed, 13 Aug 2014 14:30:44 -0700
-Message-ID: <53ebd904.2Mcm8776rCbhNYjx%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ kernel-resourcec-fix-null-deref-with-no-iomem.patch removed from -mm tree
+Date: Wed, 13 Aug 2014 14:35:35 -0700
+Message-ID: <53ebda27.njPdLa4fdBGCZ9jd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f201.google.com ([209.85.213.201]:63519 "EHLO
-	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752754AbaHMVaq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 17:30:46 -0400
-Received: by mail-ig0-f201.google.com with SMTP id h3so293474igd.0
-        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 14:30:45 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:32967 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751704AbaHMVfg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Aug 2014 17:35:36 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so96330oig.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2014 14:35:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz
+To: vgoyal@redhat.com, richard@nod.at, sahne@0x90.at, toralf.foerster@gmx.de, mm-commits@vger.kernel.org
 
-The mm-of-the-moment snapshot 2014-08-13-14-29 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (3.x
-or 3.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
-
-
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
-
-http://git.cmpxchg.org/?p=linux-mmotm.git;a=summary
-
-To develop on top of mmotm git:
-
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
-
-To rebase a branch with older patches to a new mmotm release:
-
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
-
-
-
-
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
-
-A git copy of this tree is available at
-
-	http://git.cmpxchg.org/?p=linux-mmots.git;a=summary
-
-and use of this tree is similar to
-http://git.cmpxchg.org/?p=linux-mmotm.git, described above.
-
-
-This mmotm tree contains the following patches against 3.16:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-  i-need-old-gcc.patch
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-  maintainers-akpm-maintenance.patch
-* mm-hugetlb_cgroup-align-hugetlb-cgroup-limit-to-hugepage-size.patch
-* rtsx_usb-export-device-table.patch
-* mm-fix-cross_memory_attach-help-text-grammar.patch
-* checkpatch-relax-check-for-length-of-git-commit-ids.patch
-* kernel-resourcec-fix-null-deref-with-no-iomem.patch
-* memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node.patch
-* mm-actually-clear-pmd_numa-before-invalidating.patch
-* lib-turn-config_stacktrace-into-an-actual-option.patch
-* drivers-gpu-drm-nouveau-fix-build.patch
-* zram-fix-incorrectly-stat-with-failed_reads.patch
-* mm-zpool-use-prefixed-module-loading.patch
-* x86mem-hotplug-pass-sync_global_pgds-a-correct-argument-in-remove_pagetable.patch
-* x86mem-hotplug-modify-pgd-entry-when-removing-memory.patch
-* x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
-* fs-cifs-remove-obsolete-__constant.patch
-* fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-* fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-* efi-bgrt-add-error-handling-inform-the-user-when-ignoring-the-bgrt.patch
-* kernel-posix-timersc-code-clean-up.patch
-* kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-* input-route-kbd-leds-through-the-generic-leds-layer.patch
-* input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-* fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-* ocfs2-do-not-write-error-flag-to-user-structure-we-cannot-copy-from-to.patch
-* ocfs2-o2net-set-tcp-user-timeout-to-max-value.patch
-* ocfs2-quorum-add-a-log-for-node-not-fenced.patch
-* o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-* o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-* ocfs2-free-inode-when-i_count-becomes-zero.patch
-* ocfs2-o2net-dont-shutdown-connection-when-idle-timeout.patch
-* ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
-* ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
-* ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
-* ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
-* ocfs2-fix-journal-commit-deadlock.patch
-* bio-integrity-remove-the-needless-fail-handle-of-bip_slab-creating.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-  mm.patch
-* fix-checkpatch-errors-for-mm-mmapc.patch
-* memory-hotplug-add-sysfs-zones_online_to-attribute.patch
-* memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-* vmstat-on-demand-vmstat-workers-v8.patch
-* vmstat-on-demand-vmstat-workers-v8-fix.patch
-* vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
-* vmstat-on-demand-vmstat-workers-v8-fix-2.patch
-* mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
-* mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd-fix.patch
-* mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
-* mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
-* mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
-* mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-* mm-compactionc-isolate_freepages_block-small-tuneup.patch
-* fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-* m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
-* m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush-v2.patch
-* do_shared_fault-check-that-mmap_sem-is-held.patch
-* include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-* include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max-fix.patch
-* drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check.patch
-* lib-vsprintf-add-%pt-format-specifier.patch
-* maintainers-assing-systemace-driver-to-xilinx.patch
-* drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
-* mm-utilc-add-kstrimdup.patch
-* lib-add-crc64-ecma-module.patch
-* hfsplus-fix-longname-handling.patch
-* kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
-* kexec-remove-config_kexec-dependency-on-crypto.patch
-* ipc-always-handle-a-new-value-of-auto_msgmni.patch
-  linux-next.patch
-* drivers-gpio-gpio-zevioc-fix-build.patch
-* x86-vdso-fix-vdso2cs-special_pages-error-checking.patch
-* drivers-net-irda-donauboe-convert-to-module_pci_driver.patch
-* include-linux-remove-strict_strto-definitions.patch
-* mm-replace-remap_file_pages-syscall-with-emulation.patch
-* fat-add-i_disksize-to-represent-uninitialized-size-v4.patch
-* fat-add-fat_fallocate-operation-v4.patch
-* fat-zero-out-seek-range-on-_fat_get_block-v4.patch
-* fat-fallback-to-buffered-write-in-case-of-fallocated-region-on-direct-io-v4.patch
-* fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region-v4.patch
-* documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate-v4.patch
-* w1-call-put_device-if-device_register-fails.patch
-* mm-add-strictlimit-knob-v2.patch
-  debugging-keep-track-of-page-owners.patch
-  page-owners-correct-page-order-when-to-free-page.patch
-  make-sure-nobodys-leaking-resources.patch
-  journal_add_journal_head-debug.patch
-  journal_add_journal_head-debug-fix.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  put_bh-debug.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
-  single_open-seq_release-leak-diagnostics.patch
+ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBrZXJuZWwvcmVzb3VyY2UuYzogZml4
+IE5VTEwgZGVyZWYgd2l0aCBubyBJT01FTQ0KaGFzIGJlZW4gcmVtb3ZlZCBmcm9tIHRoZSAt
+bW0gdHJlZS4gIEl0cyBmaWxlbmFtZSB3YXMKICAgICBrZXJuZWwtcmVzb3VyY2VjLWZpeC1u
+dWxsLWRlcmVmLXdpdGgtbm8taW9tZW0ucGF0Y2gKClRoaXMgcGF0Y2ggd2FzIGRyb3BwZWQg
+YmVjYXVzZSBhbiB1cGRhdGVkIHZlcnNpb24gd2lsbCBiZSBtZXJnZWQKCi0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpGcm9tOiBWaXZl
+ayBHb3lhbCA8dmdveWFsQHJlZGhhdC5jb20+DQpTdWJqZWN0OiBrZXJuZWwvcmVzb3VyY2Uu
+YzogZml4IE5VTEwgZGVyZWYgd2l0aCBubyBJT01FTQ0KDQpBZmZlY3RzIFVNTC4NCg0KSXQg
+ZGllcyBpbiBuZXh0X3Jlc291cmNlKCk6DQogICAgICAgIC8qIENhbGxlciB3YW50cyB0byB0
+cmF2ZXJzZSB0aHJvdWdoIHNpYmxpbmdzIG9ubHkgKi8NCiAgICAgICAgaWYgKHNpYmxpbmdf
+b25seSkNCiAgICAgICAgICAgICAgICByZXR1cm4gcC0+c2libGluZzsNCg0KUklQOiAwMDMz
+Ols8MDAwMDAwMDA2MDAzOWI5Zj5dDQpSU1A6IDAwMDAwMDAwODE0NTlkYTAgIEVGTEFHUzog
+MDAwMTAyMDINClJBWDogMDAwMDAwMDAwMDAwMDAwMCBSQlg6IDAwMDAwMDAwMjE5YjNmZmYg
+UkNYOiAwMDAwMDAwMDYwMTBkMWQ5DQpSRFg6IDAwMDAwMDAwMDAwMDAwMDEgUlNJOiAwMDAw
+MDAwMDYwMmRmYjk0IFJESTogMDAwMDAwMDA4MTQ1OWRmOA0KUkJQOiAwMDAwMDAwMDgxNDU5
+ZGUwIFIwODogMDAwMDAwMDA2MDFiNTlmNCBSMDk6IGZmZmZmZmZmMDAwMGZmMDANClIxMDog
+ZmZmZmZmZmYwMDAwZmYwMCBSMTE6IDAwMDAwMDAwODE0NTllODggUjEyOiAwMDAwMDAwMDgx
+NDU5ZGY4DQpSMTM6IDAwMDAwMDAwMjE5YjNmZmYgUjE0OiAwMDAwMDAwMDYwMmRmYjk0IFIx
+NTogMDAwMDAwMDAwMDAwMDAwMA0KS2VybmVsIHBhbmljIC0gbm90IHN5bmNpbmc6IFNlZ2Zh
+dWx0IHdpdGggbm8gbW0NCkNQVTogMCBQSUQ6IDEgQ29tbTogc3dhcHBlciBOb3QgdGFpbnRl
+ZCAzLjE2LjAtMTA0NTQtZzU4ZDA4ZTMgIzEzDQpTdGFjazoNCiAwMDAwMDAwMCAwMDAwODBk
+MCA4MTQ1OWRmMCAyMTliM2ZmZg0KIDgxNDU5ZTcwIDYwMTBkMWQ5IGZmZmZmZmZmIDYwMzNl
+MDEwDQogODE0NTllNTAgNjAwM2EyNjkgODE0NTllMzAgMDAwMDAwMDANCkNhbGwgVHJhY2U6
+DQogWzw2MDEwZDFkOT5dID8ga2NsaXN0X2FkZF9wcml2YXRlKzB4MC8weGU3DQogWzw2MDAz
+YTI2OT5dIHdhbGtfc3lzdGVtX3JhbV9yYW5nZSsweDYxLzB4YjcNCiBbPDYwMDBlODU5Pl0g
+PyBwcm9jX2tjb3JlX2luaXQrMHgwLzB4ZjENCiBbPDYwMTBkNTc0Pl0ga2NvcmVfdXBkYXRl
+X3JhbSsweDRjLzB4MTY4DQogWzw2MDEwZDcyZT5dID8ga2NsaXN0X2FkZCsweDAvMHgyZQ0K
+IFs8NjAwMGU5NDM+XSBwcm9jX2tjb3JlX2luaXQrMHhlYS8weGYxDQogWzw2MDAwZTg1OT5d
+ID8gcHJvY19rY29yZV9pbml0KzB4MC8weGYxDQogWzw2MDAwZTg1OT5dID8gcHJvY19rY29y
+ZV9pbml0KzB4MC8weGYxDQogWzw2MDAxODlmMD5dIGRvX29uZV9pbml0Y2FsbCsweDEzYy8w
+eDIwNA0KIFs8NjAwNGNhNDY+XSA/IHBhcnNlX2FyZ3MrMHgxZGYvMHgyZTANCiBbPDYwMDRj
+ODJkPl0gPyBwYXJhbWVxKzB4MC8weDNhDQogWzw2MDFiNTk5MD5dID8gc3RyY3B5KzB4MC8w
+eDE4DQogWzw2MDAwMWUxYT5dIGtlcm5lbF9pbml0X2ZyZWVhYmxlKzB4MjQwLzB4MzFlDQog
+Wzw2MDI2ZjFjMD5dIGtlcm5lbF9pbml0KzB4MTIvMHgxNDgNCiBbPDYwMDE5ZmFkPl0gbmV3
+X3RocmVhZF9oYW5kbGVyKzB4ODEvMHhhMw0KUklQIGlzIGF0IGtlcm5lbC9yZXNvdXJjZS5j
+OjY2Lg0KDQpJIG5vdGljZWQgdGhhdCBwcmV2aW91cyBjb2RlIGhhZCBhIGZvcigpIGxvb3Ag
+d2hpY2ggd2lsbCBub3QgZXhlY3V0ZQ0KaWYgcCB3YXMgbnVsbC4gSSBoYXZlIHJlc29ydGVk
+IGJhY2sgdG8gc2FtZSBjb2RlIG5vdy4NCg0KRnhpZXMgOGM4NmU3MGFjZWFkNjI5YWFjYjRh
+ICgicmVzb3VyY2U6IHByb3ZpZGUgbmV3IGZ1bmN0aW9ucyB0byB3YWxrDQp0aHJvdWdoIHJl
+c291cmNlcyIpLg0KDQpSZXBvcnRlZC1ieTogRGFuaWVsIFdhbHRlciA8c2FobmVAMHg5MC5h
+dD4NClRlc3RlZC1ieTogRGFuaWVsIFdhbHRlciA8c2FobmVAMHg5MC5hdD4NClJlcG9ydGVk
+LWJ5OiBSaWNoYXJkIFdlaW5iZXJnZXIgPHJpY2hhcmRAbm9kLmF0Pg0KVGVzdGVkLWJ5OiBS
+aWNoYXJkIFdlaW5iZXJnZXIgPHJpY2hhcmRAbm9kLmF0Pg0KVGVzdGVkLWJ5OiBUb3JhbGYg
+RsO2cnN0ZXIgPHRvcmFsZi5mb2Vyc3RlckBnbXguZGU+DQpTaWduZWQtb2ZmLWJ5OiBBbmRy
+ZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgotLS0KCiBrZXJuZWwvcmVz
+b3VyY2UuYyB8ICAgMTEgKysrKy0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCA0IGluc2VydGlv
+bnMoKyksIDcgZGVsZXRpb25zKC0pCgpkaWZmIC1wdU4ga2VybmVsL3Jlc291cmNlLmN+a2Vy
+bmVsLXJlc291cmNlYy1maXgtbnVsbC1kZXJlZi13aXRoLW5vLWlvbWVtIGtlcm5lbC9yZXNv
+dXJjZS5jCi0tLSBhL2tlcm5lbC9yZXNvdXJjZS5jfmtlcm5lbC1yZXNvdXJjZWMtZml4LW51
+bGwtZGVyZWYtd2l0aC1uby1pb21lbQorKysgYS9rZXJuZWwvcmVzb3VyY2UuYwpAQCAtMzUx
+LDE1ICszNTEsMTIgQEAgc3RhdGljIGludCBmaW5kX25leHRfaW9tZW1fcmVzKHN0cnVjdCBy
+ZQogCWVuZCA9IHJlcy0+ZW5kOwogCUJVR19PTihzdGFydCA+PSBlbmQpOwogCi0JcmVhZF9s
+b2NrKCZyZXNvdXJjZV9sb2NrKTsKLQotCWlmIChmaXJzdF9sZXZlbF9jaGlsZHJlbl9vbmx5
+KSB7Ci0JCXAgPSBpb21lbV9yZXNvdXJjZS5jaGlsZDsKKwlpZiAoZmlyc3RfbGV2ZWxfY2hp
+bGRyZW5fb25seSkKIAkJc2libGluZ19vbmx5ID0gdHJ1ZTsKLQl9IGVsc2UKLQkJcCA9ICZp
+b21lbV9yZXNvdXJjZTsKIAotCXdoaWxlICgocCA9IG5leHRfcmVzb3VyY2UocCwgc2libGlu
+Z19vbmx5KSkpIHsKKwlyZWFkX2xvY2soJnJlc291cmNlX2xvY2spOworCisJZm9yIChwID0g
+aW9tZW1fcmVzb3VyY2UuY2hpbGQ7IHA7IHAgPSBuZXh0X3Jlc291cmNlKHAsIHNpYmxpbmdf
+b25seSkpIHsKIAkJaWYgKHAtPmZsYWdzICE9IHJlcy0+ZmxhZ3MpCiAJCQljb250aW51ZTsK
+IAkJaWYgKG5hbWUgJiYgc3RyY21wKHAtPm5hbWUsIG5hbWUpKQpfCgpQYXRjaGVzIGN1cnJl
+bnRseSBpbiAtbW0gd2hpY2ggbWlnaHQgYmUgZnJvbSB2Z295YWxAcmVkaGF0LmNvbSBhcmUK
+Cm9yaWdpbi5wYXRjaAprZXhlYy1jcmVhdGUtYS1uZXctY29uZmlnLW9wdGlvbi1jb25maWdf
+a2V4ZWNfZmlsZS1mb3ItbmV3LXN5c2NhbGwucGF0Y2gKa2V4ZWMtcmVtb3ZlLWNvbmZpZ19r
+ZXhlYy1kZXBlbmRlbmN5LW9uLWNyeXB0by5wYXRjaApyZXNvdXJjZS1maXgtdGhlLWNhc2Ut
+b2YtbnVsbC1wb2ludGVyLWFjY2Vzcy5wYXRjaAoK
