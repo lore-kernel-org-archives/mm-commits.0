@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch added
- to -mm tree
-Date: Thu, 14 Aug 2014 14:58:09 -0700
-Message-ID: <53ed30f1.GdRSs7+OQCVEcs8s%akpm@linux-foundation.org>
+ fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 14 Aug 2014 14:58:13 -0700
+Message-ID: <53ed30f5.YrLbarPi5SzwpYJr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:34606 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754400AbaHNV6K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:58:10 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so421665oac.3
-        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:58:10 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:53685 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754400AbaHNV6O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:58:14 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so421603obb.4
+        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:58:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes
+     Subject: fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+     fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,26 +42,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes
+Subject: fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes
 
 WARNING: Missing a blank line after declarations
-#50: FILE: fs/proc/task_mmu.c:135:
-+	struct mm_struct *mm = priv->mm;
-+	release_task_mempolicy(priv);
+#46: FILE: fs/proc/task_nommu.c:280:
++		int err = PTR_ERR(priv->mm);
++		seq_release_private(inode, file);
 
-ERROR: spaces required around that '?' (ctx:VxW)
-#86: FILE: fs/proc/task_mmu.c:220:
-+	next = (vma != tail_vma)? tail_vma: NULL;
- 	                        ^
+total: 0 errors, 1 warnings, 57 lines checked
 
-ERROR: spaces required around that ':' (ctx:VxW)
-#86: FILE: fs/proc/task_mmu.c:220:
-+	next = (vma != tail_vma)? tail_vma: NULL;
- 	                                  ^
-
-total: 2 errors, 1 warnings, 65 lines checked
-
-./patches/fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch has style problems, please review.
+./patches/fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -73,29 +62,20 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/proc/task_nommu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes
-+++ a/fs/proc/task_mmu.c
-@@ -132,6 +132,7 @@ static void release_task_mempolicy(struc
- static void vma_stop(struct proc_maps_private *priv)
- {
- 	struct mm_struct *mm = priv->mm;
+diff -puN fs/proc/task_nommu.c~fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes
++++ a/fs/proc/task_nommu.c
+@@ -277,6 +277,7 @@ static int maps_open(struct inode *inode
+ 	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
+ 	if (IS_ERR(priv->mm)) {
+ 		int err = PTR_ERR(priv->mm);
 +
- 	release_task_mempolicy(priv);
- 	up_read(&mm->mmap_sem);
- 	mmput(mm);
-@@ -217,7 +218,7 @@ static void *m_next(struct seq_file *m,
- 	if (vma && (vma != tail_vma) && vma->vm_next)
- 		return vma->vm_next;
- 
--	next = (vma != tail_vma)? tail_vma: NULL;
-+	next = (vma != tail_vma) ? tail_vma : NULL;
- 	if (!next)
- 		vma_stop(priv);
- 	return next;
+ 		seq_release_private(inode, file);
+ 		return err;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
