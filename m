@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch added to
- -mm tree
-Date: Thu, 14 Aug 2014 14:53:31 -0700
-Message-ID: <53ed2fdb.joJXyMo20OV/RzTN%akpm@linux-foundation.org>
+Subject: +
+ fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch added to -mm tree
+Date: Thu, 14 Aug 2014 14:53:33 -0700
+Message-ID: <53ed2fdd.5N49y1JlrYypoKib%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:36063 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754788AbaHNVxc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:53:32 -0400
-Received: by mail-pd0-f202.google.com with SMTP id w10so491076pde.3
-        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:53:32 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:41444 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754788AbaHNVxe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:53:34 -0400
+Received: by mail-ob0-f201.google.com with SMTP id nu7so420259obb.4
+        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:53:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, ebiederm@xmission.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: simplify the vma_stop() logic
+     Subject: fs/proc/task_mmu.c: shift "priv->task = NULL" from m_start() to m_stop()
 has been added to the -mm tree.  Its filename is
-     fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
+     fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,26 +42,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: fs/proc/task_mmu.c: simplify the vma_stop() logic
+Subject: fs/proc/task_mmu.c: shift "priv->task = NULL" from m_start() to m_stop()
 
-m_start() drops ->mmap_sem and does mmput() if it retuns vsyscall
-vma. This is because in this case m_stop()->vma_stop() obviously
-can't use gate_vma->vm_mm.
+1. There is no reason to reset ->tail_vma in m_start(), if we return
+   IS_ERR_OR_NULL() it won't be used.
 
-Now that we have proc_maps_private->mm we can simplify this logic:
-
-  - Change m_start() to return with ->mmap_sem held unless it returns
-    IS_ERR_OR_NULL().
-
-  - Change vma_stop() to use priv->mm and avoid the ugly vma checks,
-    this makes "vm_area_struct *vma" unnecessary.
-
-  - This also allows m_start() to use vm_stop().
-
-  - Cleanup m_next() to follow the new locking rule.
-
-    Note: m_stop() looks very ugly, and this temporary uglifies it
-    even more. Fixed by the next change.
+2. m_start() also clears priv->task to ensure that m_stop() won't use
+   the stale pointer if we fail before get_task_struct(). But this is
+   ugly and confusing, move this initialization in m_stop().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -70,80 +58,42 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   34 ++++++++++++++++++----------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
+ fs/proc/task_mmu.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-simplify-the-vma_stop-logic fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-simplify-the-vma_stop-logic
+diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop
 +++ a/fs/proc/task_mmu.c
-@@ -129,14 +129,12 @@ static void release_task_mempolicy(struc
- }
- #endif
+@@ -145,17 +145,12 @@ static void *m_start(struct seq_file *m,
+ 	struct vm_area_struct *vma, *tail_vma = NULL;
+ 	loff_t l = *pos;
  
--static void vma_stop(struct proc_maps_private *priv, struct vm_area_struct *vma)
-+static void vma_stop(struct proc_maps_private *priv)
- {
--	if (vma && vma != priv->tail_vma) {
--		struct mm_struct *mm = vma->vm_mm;
--		release_task_mempolicy(priv);
--		up_read(&mm->mmap_sem);
--		mmput(mm);
--	}
-+	struct mm_struct *mm = priv->mm;
-+	release_task_mempolicy(priv);
-+	up_read(&mm->mmap_sem);
-+	mmput(mm);
- }
+-	/* Clear the per syscall fields in priv */
+-	priv->task = NULL;
+-	priv->tail_vma = NULL;
+-
+ 	/*
+ 	 * We remember last_addr rather than next_addr to hit with
+ 	 * vmacache most of the time. We have zero last_addr at
+ 	 * the beginning and also after lseek. We will have -1 last_addr
+ 	 * after the end of the vmas.
+ 	 */
+-
+ 	if (last_addr == -1UL)
+ 		return NULL;
  
- static void *m_start(struct seq_file *m, loff_t *pos)
-@@ -199,12 +197,13 @@ out:
- 	if (vma)
- 		return vma;
+@@ -227,8 +222,10 @@ static void m_stop(struct seq_file *m, v
  
--	release_task_mempolicy(priv);
- 	/* End of vmas has been reached */
- 	m->version = (tail_vma != NULL)? 0: -1UL;
--	up_read(&mm->mmap_sem);
--	mmput(mm);
--	return tail_vma;
-+	if (tail_vma)
-+		return tail_vma;
-+
-+	vma_stop(priv);
-+	return NULL;
- }
- 
- static void *m_next(struct seq_file *m, void *v, loff_t *pos)
-@@ -212,21 +211,24 @@ static void *m_next(struct seq_file *m,
- 	struct proc_maps_private *priv = m->private;
- 	struct vm_area_struct *vma = v;
- 	struct vm_area_struct *tail_vma = priv->tail_vma;
-+	struct vm_area_struct *next;
- 
- 	(*pos)++;
- 	if (vma && (vma != tail_vma) && vma->vm_next)
- 		return vma->vm_next;
--	vma_stop(priv, vma);
--	return (vma != tail_vma)? tail_vma: NULL;
-+
-+	next = (vma != tail_vma)? tail_vma: NULL;
-+	if (!next)
-+		vma_stop(priv);
-+	return next;
- }
- 
- static void m_stop(struct seq_file *m, void *v)
- {
- 	struct proc_maps_private *priv = m->private;
--	struct vm_area_struct *vma = v;
- 
--	if (!IS_ERR(vma))
--		vma_stop(priv, vma);
-+	if (!IS_ERR_OR_NULL(v))
-+		vma_stop(priv);
- 	if (priv->task)
+ 	if (!IS_ERR_OR_NULL(v))
+ 		vma_stop(priv);
+-	if (priv->task)
++	if (priv->task) {
  		put_task_struct(priv->task);
++		priv->task = NULL;
++	}
  }
+ 
+ static int proc_maps_open(struct inode *inode, struct file *file,
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
