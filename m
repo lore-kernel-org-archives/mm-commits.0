@@ -1,91 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + xattr-fix-check-for-simultaneous-glibc-header-inclusion.patch
- added to -mm tree
-Date: Thu, 14 Aug 2014 14:29:15 -0700
-Message-ID: <53ed2a2b.cm1AM6IhZkwapegH%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd-fix.patch removed from -mm tree
+Date: Thu, 14 Aug 2014 14:31:59 -0700
+Message-ID: <53ed2acf.epep0fM+PhkuYkMg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:53786 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932169AbaHNV3Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:29:16 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so479347pab.4
-        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:29:15 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:45169 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754656AbaHNVcA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:32:00 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wp18so414044obc.1
+        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:32:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: filbranden@google.com, allan@archlinux.org, serge.hallyn@ubuntu.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xattr: fix check for simultaneous glibc header inclusion
-has been added to the -mm tree.  Its filename is
-     xattr-fix-check-for-simultaneous-glibc-header-inclusion.patch
+     Subject: mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd-fix
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xattr-fix-check-for-simultaneous-glibc-header-inclusion.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xattr-fix-check-for-simultaneous-glibc-header-inclusion.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
 
 ------------------------------------------------------
-From: Filipe Brandenburger <filbranden@google.com>
-Subject: xattr: fix check for simultaneous glibc header inclusion
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd-fix
 
-The guard was introduced in ea1a8217b06b41 ("xattr: guard against
-simultaneous glibc header inclusion") but it is using #ifdef to check for
-a define that is either set to 1 or 0.  Fix it to use #if instead.
 
-* Without this patch:
-  $ { echo "#include <sys/xattr.h>"; echo "#include <linux/xattr.h>"; } | gcc -E -Iinclude/uapi - >/dev/null
-  include/uapi/linux/xattr.h:19:0: warning: "XATTR_CREATE" redefined [enabled by default]
-   #define XATTR_CREATE 0x1 /* set value, fail if attr already exists */
-   ^
-  /usr/include/x86_64-linux-gnu/sys/xattr.h:32:0: note: this is the location of the previous definition
-   #define XATTR_CREATE XATTR_CREATE
-   ^
 
-* With this patch:
-  $ { echo "#include <sys/xattr.h>"; echo "#include <linux/xattr.h>"; } | gcc -E -Iinclude/uapi - >/dev/null
-  (no warnings)
-
-Signed-off-by: Filipe Brandenburger <filbranden@google.com>
-Cc: Serge Hallyn <serge.hallyn@ubuntu.com>
-Cc: Allan McRae <allan@archlinux.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/xattr.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/uapi/linux/xattr.h~xattr-fix-check-for-simultaneous-glibc-header-inclusion include/uapi/linux/xattr.h
---- a/include/uapi/linux/xattr.h~xattr-fix-check-for-simultaneous-glibc-header-inclusion
-+++ a/include/uapi/linux/xattr.h
-@@ -13,7 +13,7 @@
- #ifndef _UAPI_LINUX_XATTR_H
- #define _UAPI_LINUX_XATTR_H
+diff -puN mm/hugetlb.c~mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd-fix
++++ a/mm/hugetlb.c
+@@ -3690,6 +3690,14 @@ follow_huge_pud(struct mm_struct *mm, un
  
--#ifdef __UAPI_DEF_XATTR
-+#if __UAPI_DEF_XATTR
- #define __USE_KERNEL_XATTR_DEFS
+ #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
  
- #define XATTR_CREATE	0x1	/* set value, fail if attr already exists */
++/*
++ * This function calls the architecture dependent variant follow_huge_pmd()
++ * with holding page table lock depending on FOLL_GET.
++ * Whether hugepage migration is supported or not, follow() can be called
++ * with FOLL_GET from do_move_page_to_node_array(), so we need do this in
++ * common code.
++ * Should be called under read mmap_sem.
++ */
+ struct page *follow_huge_pmd_lock(struct vm_area_struct *vma,
+ 				unsigned long address, pmd_t *pmd, int flags)
+ {
 _
 
-Patches currently in -mm which might be from filbranden@google.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-xattr-fix-check-for-simultaneous-glibc-header-inclusion.patch
+origin.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute.patch
+mm-hugetlb-take-refcount-under-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-use-get_page_unless_zero-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-remove-unused-argument-of-follow_huge_pmdpud.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
