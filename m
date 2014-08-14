@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch added to -mm tree
-Date: Thu, 14 Aug 2014 14:53:33 -0700
-Message-ID: <53ed2fdd.5N49y1JlrYypoKib%akpm@linux-foundation.org>
+Subject: + fs-proc-task_mmuc-simplify-m_start-to-make-it-readable.patch
+ added to -mm tree
+Date: Thu, 14 Aug 2014 14:53:35 -0700
+Message-ID: <53ed2fdf.LZi+OujYO5bJMDLP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:41444 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754788AbaHNVxe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:53:34 -0400
-Received: by mail-ob0-f201.google.com with SMTP id nu7so420259obb.4
-        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:53:34 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:46166 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754788AbaHNVxh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:53:37 -0400
+Received: by mail-qc0-f201.google.com with SMTP id c9so211189qcz.2
+        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:53:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, ebiederm@xmission.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: shift "priv->task = NULL" from m_start() to m_stop()
+     Subject: fs/proc/task_mmu.c: simplify m_start() to make it readable
 has been added to the -mm tree.  Its filename is
-     fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch
+     fs-proc-task_mmuc-simplify-m_start-to-make-it-readable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_mmuc-simplify-m_start-to-make-it-readable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_mmuc-simplify-m_start-to-make-it-readable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,58 +42,90 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: fs/proc/task_mmu.c: shift "priv->task = NULL" from m_start() to m_stop()
+Subject: fs/proc/task_mmu.c: simplify m_start() to make it readable
 
-1. There is no reason to reset ->tail_vma in m_start(), if we return
-   IS_ERR_OR_NULL() it won't be used.
+Now that m->version is gone we can cleanup m_start(). In particular,
 
-2. m_start() also clears priv->task to ensure that m_stop() won't use
-   the stale pointer if we fail before get_task_struct(). But this is
-   ugly and confusing, move this initialization in m_stop().
+  - Remove the "unsigned long" typecast, m->index can't be negative
+    or exceed ->map_count. But lets use "unsigned int pos" to make
+    it clear that "pos < map_count" is safe.
+
+  - Remove the unnecessary "vma != NULL" check in the main loop. It
+    can't be NULL unless we have a vm bug.
+
+  - This also means that "pos < map_count" case can simply return the
+    valid vma and avoid "goto" and subsequent checks.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ fs/proc/task_mmu.c |   34 ++++++++++------------------------
+ 1 file changed, 10 insertions(+), 24 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop
+diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-simplify-m_start-to-make-it-readable fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-simplify-m_start-to-make-it-readable
 +++ a/fs/proc/task_mmu.c
-@@ -145,17 +145,12 @@ static void *m_start(struct seq_file *m,
- 	struct vm_area_struct *vma, *tail_vma = NULL;
- 	loff_t l = *pos;
- 
--	/* Clear the per syscall fields in priv */
--	priv->task = NULL;
--	priv->tail_vma = NULL;
--
- 	/*
- 	 * We remember last_addr rather than next_addr to hit with
- 	 * vmacache most of the time. We have zero last_addr at
- 	 * the beginning and also after lseek. We will have -1 last_addr
- 	 * after the end of the vmas.
- 	 */
--
- 	if (last_addr == -1UL)
- 		return NULL;
- 
-@@ -227,8 +222,10 @@ static void m_stop(struct seq_file *m, v
- 
- 	if (!IS_ERR_OR_NULL(v))
- 		vma_stop(priv);
--	if (priv->task)
-+	if (priv->task) {
- 		put_task_struct(priv->task);
-+		priv->task = NULL;
-+	}
+@@ -137,12 +137,12 @@ static void vma_stop(struct proc_maps_pr
+ 	mmput(mm);
  }
  
- static int proc_maps_open(struct inode *inode, struct file *file,
+-static void *m_start(struct seq_file *m, loff_t *pos)
++static void *m_start(struct seq_file *m, loff_t *ppos)
+ {
+ 	struct proc_maps_private *priv = m->private;
+ 	struct mm_struct *mm;
+-	struct vm_area_struct *vma, *tail_vma = NULL;
+-	loff_t l = *pos;
++	struct vm_area_struct *vma;
++	unsigned int pos = *ppos;
+ 
+ 	priv->task = get_pid_task(priv->pid, PIDTYPE_PID);
+ 	if (!priv->task)
+@@ -151,33 +151,19 @@ static void *m_start(struct seq_file *m,
+ 	mm = priv->mm;
+ 	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
+ 		return NULL;
+-	down_read(&mm->mmap_sem);
+ 
+-	tail_vma = get_gate_vma(mm);
+-	priv->tail_vma = tail_vma;
++	down_read(&mm->mmap_sem);
+ 	hold_task_mempolicy(priv);
++	priv->tail_vma = get_gate_vma(mm);
+ 
+-	/*
+-	 * Check the vma index is within the range and do
+-	 * sequential scan until m_index.
+-	 */
+-	vma = NULL;
+-	if ((unsigned long)l < mm->map_count) {
+-		vma = mm->mmap;
+-		while (l-- && vma)
++	if (pos < mm->map_count) {
++		for (vma = mm->mmap; pos; pos--)
+ 			vma = vma->vm_next;
+-		goto out;
+-	}
+-
+-	if (l != mm->map_count)
+-		tail_vma = NULL; /* After gate vma */
+-
+-out:
+-	if (vma)
+ 		return vma;
++	}
+ 
+-	if (tail_vma)
+-		return tail_vma;
++	if (pos == mm->map_count && priv->tail_vma)
++		return priv->tail_vma;
+ 
+ 	vma_stop(priv);
+ 	return NULL;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
