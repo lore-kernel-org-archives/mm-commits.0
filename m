@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + proc-introduce-proc_mem_open.patch added to -mm tree
-Date: Thu, 14 Aug 2014 14:53:29 -0700
-Message-ID: <53ed2fd9.DUkHD1l+j09kkfzV%akpm@linux-foundation.org>
+Subject: +
+ fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+ added to -mm tree
+Date: Thu, 14 Aug 2014 14:53:30 -0700
+Message-ID: <53ed2fda.uwK+LPwAcSaN4v36%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f201.google.com ([209.85.213.201]:49246 "EHLO
-	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754601AbaHNVxa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:53:30 -0400
-Received: by mail-ig0-f201.google.com with SMTP id h3so32049igd.0
-        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:53:30 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:43721 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754601AbaHNVxb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:53:31 -0400
+Received: by mail-oa0-f74.google.com with SMTP id eb12so421075oac.1
+        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:53:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, ebiederm@xmission.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, ebiederm@xmission.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: introduce proc_mem_open()
+     Subject: fs/proc/task_mmu.c: shift mm_access() from m_start() to proc_maps_open()
 has been added to the -mm tree.  Its filename is
-     proc-introduce-proc_mem_open.patch
+     fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-introduce-proc_mem_open.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-introduce-proc_mem_open.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,88 +43,153 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: proc: introduce proc_mem_open()
+Subject: fs/proc/task_mmu.c: shift mm_access() from m_start() to proc_maps_open()
 
-Extract the mm_access() code from __mem_open() into the new helper,
-proc_mem_open(), the next patch will add another caller.
+A simple test-case from Kirill Shutemov
+
+	cat /proc/self/maps >/dev/null
+	chmod +x /proc/self/net/packet
+	exec /proc/self/net/packet
+
+makes lockdep unhappy, cat/exec take seq_file->lock + cred_guard_mutex in
+the opposite order.
+
+It's a false positive and probably we should not allow "chmod +x" on proc
+files. Still I think that we should avoid mm_access() and cred_guard_mutex
+in sys_read() paths, security checking should happen at open time. Besides,
+this doesn't even look right if the task changes its ->mm between m_stop()
+and m_start().
+
+Add the new "mm_struct *mm" member into struct proc_maps_private and change
+proc_maps_open() to initialize it using proc_mem_open(). Change m_start() to
+use priv->mm if atomic_inc_not_zero(mm_users) succeeds or return NULL (eof)
+otherwise.
+
+The only complication is that proc_maps_open() users should additionally do
+mmdrop() in fop->release(), add the new proc_map_release() helper for that.
+
+Note: this is the user-visible change, if the task execs after open("maps")
+the new ->mm won't be visible via this file. I hope this is fine, and this
+matches /proc/pid/mem bahaviour.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: "Kirill A. Shutemov" <kirill@shutemov.name>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c     |   36 +++++++++++++++++++++---------------
- fs/proc/internal.h |    2 ++
- 2 files changed, 23 insertions(+), 15 deletions(-)
+ fs/proc/internal.h |    1 +
+ fs/proc/task_mmu.c |   37 ++++++++++++++++++++++++++++---------
+ 2 files changed, 29 insertions(+), 9 deletions(-)
 
-diff -puN fs/proc/base.c~proc-introduce-proc_mem_open fs/proc/base.c
---- a/fs/proc/base.c~proc-introduce-proc_mem_open
-+++ a/fs/proc/base.c
-@@ -632,29 +632,35 @@ static const struct file_operations proc
- 	.release	= single_release,
- };
+diff -puN fs/proc/internal.h~fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open fs/proc/internal.h
+--- a/fs/proc/internal.h~fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open
++++ a/fs/proc/internal.h
+@@ -270,6 +270,7 @@ extern int proc_remount(struct super_blo
+ struct proc_maps_private {
+ 	struct pid *pid;
+ 	struct task_struct *task;
++	struct mm_struct *mm;
+ #ifdef CONFIG_MMU
+ 	struct vm_area_struct *tail_vma;
+ #endif
+diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open
++++ a/fs/proc/task_mmu.c
+@@ -165,9 +165,9 @@ static void *m_start(struct seq_file *m,
+ 	if (!priv->task)
+ 		return ERR_PTR(-ESRCH);
  
--static int __mem_open(struct inode *inode, struct file *file, unsigned int mode)
-+
-+struct mm_struct *proc_mem_open(struct inode *inode, unsigned int mode)
- {
--	struct task_struct *task = get_proc_task(file_inode(file));
--	struct mm_struct *mm;
-+	struct task_struct *task = get_proc_task(inode);
-+	struct mm_struct *mm = ERR_PTR(-ESRCH);
+-	mm = mm_access(priv->task, PTRACE_MODE_READ);
+-	if (!mm || IS_ERR(mm))
+-		return mm;
++	mm = priv->mm;
++	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
++		return NULL;
+ 	down_read(&mm->mmap_sem);
  
--	if (!task)
--		return -ESRCH;
-+	if (task) {
-+		mm = mm_access(task, mode);
-+		put_task_struct(task);
-+
-+		if (!IS_ERR_OR_NULL(mm)) {
-+			/* ensure this mm_struct can't be freed */
-+			atomic_inc(&mm->mm_count);
-+			/* but do not pin its memory */
-+			mmput(mm);
-+		}
+ 	tail_vma = get_gate_vma(mm);
+@@ -240,9 +240,28 @@ static int proc_maps_open(struct inode *
+ 		return -ENOMEM;
+ 
+ 	priv->pid = proc_pid(inode);
++	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
++	if (IS_ERR(priv->mm)) {
++		int err = PTR_ERR(priv->mm);
++		seq_release_private(inode, file);
++		return err;
 +	}
 +
-+	return mm;
-+}
- 
--	mm = mm_access(task, mode);
--	put_task_struct(task);
-+static int __mem_open(struct inode *inode, struct file *file, unsigned int mode)
-+{
-+	struct mm_struct *mm = proc_mem_open(inode, mode);
- 
- 	if (IS_ERR(mm))
- 		return PTR_ERR(mm);
- 
--	if (mm) {
--		/* ensure this mm_struct can't be freed */
--		atomic_inc(&mm->mm_count);
--		/* but do not pin its memory */
--		mmput(mm);
--	}
--
- 	file->private_data = mm;
--
  	return 0;
  }
  
-diff -puN fs/proc/internal.h~proc-introduce-proc_mem_open fs/proc/internal.h
---- a/fs/proc/internal.h~proc-introduce-proc_mem_open
-+++ a/fs/proc/internal.h
-@@ -278,6 +278,8 @@ struct proc_maps_private {
- #endif
++static int proc_map_release(struct inode *inode, struct file *file)
++{
++	struct seq_file *seq = file->private_data;
++	struct proc_maps_private *priv = seq->private;
++
++	if (priv->mm)
++		mmdrop(priv->mm);
++
++	return seq_release_private(inode, file);
++}
++
++
+ static int do_maps_open(struct inode *inode, struct file *file,
+ 			const struct seq_operations *ops)
+ {
+@@ -398,14 +417,14 @@ const struct file_operations proc_pid_ma
+ 	.open		= pid_maps_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+-	.release	= seq_release_private,
++	.release	= proc_map_release,
  };
  
-+struct mm_struct *proc_mem_open(struct inode *inode, unsigned int mode);
-+
- extern const struct file_operations proc_pid_maps_operations;
- extern const struct file_operations proc_tid_maps_operations;
- extern const struct file_operations proc_pid_numa_maps_operations;
+ const struct file_operations proc_tid_maps_operations = {
+ 	.open		= tid_maps_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+-	.release	= seq_release_private,
++	.release	= proc_map_release,
+ };
+ 
+ /*
+@@ -680,14 +699,14 @@ const struct file_operations proc_pid_sm
+ 	.open		= pid_smaps_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+-	.release	= seq_release_private,
++	.release	= proc_map_release,
+ };
+ 
+ const struct file_operations proc_tid_smaps_operations = {
+ 	.open		= tid_smaps_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+-	.release	= seq_release_private,
++	.release	= proc_map_release,
+ };
+ 
+ /*
+@@ -1535,13 +1554,13 @@ const struct file_operations proc_pid_nu
+ 	.open		= pid_numa_maps_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+-	.release	= seq_release_private,
++	.release	= proc_map_release,
+ };
+ 
+ const struct file_operations proc_tid_numa_maps_operations = {
+ 	.open		= tid_numa_maps_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+-	.release	= seq_release_private,
++	.release	= proc_map_release,
+ };
+ #endif /* CONFIG_NUMA */
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
