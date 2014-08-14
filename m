@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-determine-migratetype-only-once.patch added to
+Subject: + fs-befs-btreec-remove-typedef-befs_btree_node.patch added to
  -mm tree
-Date: Thu, 14 Aug 2014 14:43:49 -0700
-Message-ID: <53ed2d95.aSJxZW/LCs3JfJ9x%akpm@linux-foundation.org>
+Date: Thu, 14 Aug 2014 14:44:35 -0700
+Message-ID: <53ed2dc3.8dBnBDdXN7/nLSDP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:57890 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754556AbaHNVnu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:43:50 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so484425pab.2
-        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:43:50 -0700 (PDT)
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:53966 "EHLO
+	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932072AbaHNVog (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:44:36 -0400
+Received: by mail-qg0-f73.google.com with SMTP id q107so209836qgd.4
+        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:44:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, rientjes@google.com, srivatsa.bhat@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: himangi774@gmail.com, julia.lawall@lip6.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: determine migratetype only once
+     Subject: fs/befs/btree.c: remove typedef befs_btree_node
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-determine-migratetype-only-once.patch
+     fs-befs-btreec-remove-typedef-befs_btree_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-determine-migratetype-only-once.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-befs-btreec-remove-typedef-befs_btree_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-determine-migratetype-only-once.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-befs-btreec-remove-typedef-befs_btree_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,59 +41,234 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: page_alloc: determine migratetype only once
+From: Himangi Saraogi <himangi774@gmail.com>
+Subject: fs/befs/btree.c: remove typedef befs_btree_node
 
-The check for ALLOC_CMA in __alloc_pages_nodemask() derives migratetype
-from gfp_mask in each retry pass, although the migratetype variable
-already has the value determined and it does not change.  Use the variable
-and perform the check only once.  Also convert #ifdef CONFIC_CMA to
-IS_ENABLED.
+The Linux kernel coding style guidelines suggest not using typedefs for
+structure types.  This patch gets rid of the typedef for befs_btree_node.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+The following Coccinelle semantic patch detects the case.
+
+@tn1@
+type td;
+@@
+
+typedef struct { ... } td;
+
+@script:python tf@
+td << tn1.td;
+tdres;
+@@
+
+coccinelle.tdres = td;
+
+@@
+type tn1.td;
+identifier tf.tdres;
+@@
+
+-typedef
+ struct
++  tdres
+   { ... }
+-td
+ ;
+
+@@
+type tn1.td;
+identifier tf.tdres;
+@@
+
+-td
++ struct tdres
+
+Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+Acked-by: Julia Lawall <julia.lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/befs/btree.c |   53 +++++++++++++++++++++++++---------------------
+ 1 file changed, 29 insertions(+), 24 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-determine-migratetype-only-once mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-determine-migratetype-only-once
-+++ a/mm/page_alloc.c
-@@ -2775,6 +2775,9 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	if (unlikely(!zonelist->_zonerefs->zone))
- 		return NULL;
+diff -puN fs/befs/btree.c~fs-befs-btreec-remove-typedef-befs_btree_node fs/befs/btree.c
+--- a/fs/befs/btree.c~fs-befs-btreec-remove-typedef-befs_btree_node
++++ a/fs/befs/btree.c
+@@ -78,11 +78,11 @@
+ /*
+  * In memory structure of each btree node
+  */
+-typedef struct {
++struct befs_btree_node {
+ 	befs_host_btree_nodehead head;	/* head of node converted to cpu byteorder */
+ 	struct buffer_head *bh;
+ 	befs_btree_nodehead *od_node;	/* on disk node */
+-} befs_btree_node;
++};
  
-+	if (IS_ENABLED(CONFIG_CMA) && migratetype == MIGRATE_MOVABLE)
-+		alloc_flags |= ALLOC_CMA;
-+
- retry_cpuset:
- 	cpuset_mems_cookie = read_mems_allowed_begin();
+ /* local constants */
+ static const befs_off_t befs_bt_inval = 0xffffffffffffffffULL;
+@@ -90,27 +90,30 @@ static const befs_off_t befs_bt_inval =
+ /* local functions */
+ static int befs_btree_seekleaf(struct super_block *sb, befs_data_stream * ds,
+ 			       befs_btree_super * bt_super,
+-			       befs_btree_node * this_node,
++			       struct befs_btree_node *this_node,
+ 			       befs_off_t * node_off);
  
-@@ -2786,10 +2789,6 @@ retry_cpuset:
- 		goto out;
- 	classzone_idx = zonelist_zone_idx(preferred_zoneref);
+ static int befs_bt_read_super(struct super_block *sb, befs_data_stream * ds,
+ 			      befs_btree_super * sup);
  
--#ifdef CONFIG_CMA
--	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
--		alloc_flags |= ALLOC_CMA;
--#endif
- 	/* First allocation attempt */
- 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
- 			zonelist, high_zoneidx, alloc_flags,
+ static int befs_bt_read_node(struct super_block *sb, befs_data_stream * ds,
+-			     befs_btree_node * node, befs_off_t node_off);
++			     struct befs_btree_node *node,
++			     befs_off_t node_off);
+ 
+-static int befs_leafnode(befs_btree_node * node);
++static int befs_leafnode(struct befs_btree_node *node);
+ 
+-static fs16 *befs_bt_keylen_index(befs_btree_node * node);
++static fs16 *befs_bt_keylen_index(struct befs_btree_node *node);
+ 
+-static fs64 *befs_bt_valarray(befs_btree_node * node);
++static fs64 *befs_bt_valarray(struct befs_btree_node *node);
+ 
+-static char *befs_bt_keydata(befs_btree_node * node);
++static char *befs_bt_keydata(struct befs_btree_node *node);
+ 
+-static int befs_find_key(struct super_block *sb, befs_btree_node * node,
++static int befs_find_key(struct super_block *sb,
++			 struct befs_btree_node *node,
+ 			 const char *findkey, befs_off_t * value);
+ 
+-static char *befs_bt_get_key(struct super_block *sb, befs_btree_node * node,
++static char *befs_bt_get_key(struct super_block *sb,
++			     struct befs_btree_node *node,
+ 			     int index, u16 * keylen);
+ 
+ static int befs_compare_strings(const void *key1, int keylen1,
+@@ -191,7 +194,7 @@ befs_bt_read_super(struct super_block *s
+ 
+ static int
+ befs_bt_read_node(struct super_block *sb, befs_data_stream * ds,
+-		  befs_btree_node * node, befs_off_t node_off)
++		  struct befs_btree_node *node, befs_off_t node_off)
+ {
+ 	uint off = 0;
+ 
+@@ -247,7 +250,7 @@ int
+ befs_btree_find(struct super_block *sb, befs_data_stream * ds,
+ 		const char *key, befs_off_t * value)
+ {
+-	befs_btree_node *this_node = NULL;
++	struct befs_btree_node *this_node = NULL;
+ 	befs_btree_super bt_super;
+ 	befs_off_t node_off;
+ 	int res;
+@@ -260,11 +263,11 @@ befs_btree_find(struct super_block *sb,
+ 		goto error;
+ 	}
+ 
+-	this_node = kmalloc(sizeof (befs_btree_node),
++	this_node = kmalloc(sizeof(struct befs_btree_node),
+ 						GFP_NOFS);
+ 	if (!this_node) {
+ 		befs_error(sb, "befs_btree_find() failed to allocate %zu "
+-			   "bytes of memory", sizeof (befs_btree_node));
++			   "bytes of memory", sizeof(struct befs_btree_node));
+ 		goto error;
+ 	}
+ 
+@@ -333,7 +336,7 @@ befs_btree_find(struct super_block *sb,
+  * Use binary search instead of a linear.
+  */
+ static int
+-befs_find_key(struct super_block *sb, befs_btree_node * node,
++befs_find_key(struct super_block *sb, struct befs_btree_node *node,
+ 	      const char *findkey, befs_off_t * value)
+ {
+ 	int first, last, mid;
+@@ -417,7 +420,7 @@ befs_btree_read(struct super_block *sb,
+ 		loff_t key_no, size_t bufsize, char *keybuf, size_t * keysize,
+ 		befs_off_t * value)
+ {
+-	befs_btree_node *this_node;
++	struct befs_btree_node *this_node;
+ 	befs_btree_super bt_super;
+ 	befs_off_t node_off = 0;
+ 	int cur_key;
+@@ -436,9 +439,10 @@ befs_btree_read(struct super_block *sb,
+ 		goto error;
+ 	}
+ 
+-	if ((this_node = kmalloc(sizeof (befs_btree_node), GFP_NOFS)) == NULL) {
++	this_node = kmalloc(sizeof(struct befs_btree_node), GFP_NOFS);
++	if (this_node == NULL) {
+ 		befs_error(sb, "befs_btree_read() failed to allocate %zu "
+-			   "bytes of memory", sizeof (befs_btree_node));
++			   "bytes of memory", sizeof(struct befs_btree_node));
+ 		goto error;
+ 	}
+ 
+@@ -545,7 +549,8 @@ befs_btree_read(struct super_block *sb,
+  */
+ static int
+ befs_btree_seekleaf(struct super_block *sb, befs_data_stream * ds,
+-		    befs_btree_super * bt_super, befs_btree_node * this_node,
++		    befs_btree_super *bt_super,
++		    struct befs_btree_node *this_node,
+ 		    befs_off_t * node_off)
+ {
+ 
+@@ -600,7 +605,7 @@ befs_btree_seekleaf(struct super_block *
+  * Return 1 if leaf, 0 if interior
+  */
+ static int
+-befs_leafnode(befs_btree_node * node)
++befs_leafnode(struct befs_btree_node *node)
+ {
+ 	/* all interior nodes (and only interior nodes) have an overflow node */
+ 	if (node->head.overflow == befs_bt_inval)
+@@ -623,7 +628,7 @@ befs_leafnode(befs_btree_node * node)
+  * Except that rounding up to 8 works, and rounding up to 4 doesn't.
+  */
+ static fs16 *
+-befs_bt_keylen_index(befs_btree_node * node)
++befs_bt_keylen_index(struct befs_btree_node *node)
+ {
+ 	const int keylen_align = 8;
+ 	unsigned long int off =
+@@ -644,7 +649,7 @@ befs_bt_keylen_index(befs_btree_node * n
+  * of the node pointed to by the node header
+  */
+ static fs64 *
+-befs_bt_valarray(befs_btree_node * node)
++befs_bt_valarray(struct befs_btree_node *node)
+ {
+ 	void *keylen_index_start = (void *) befs_bt_keylen_index(node);
+ 	size_t keylen_index_size = node->head.all_key_count * sizeof (fs16);
+@@ -660,7 +665,7 @@ befs_bt_valarray(befs_btree_node * node)
+  * of the node pointed to by the node header 
+  */
+ static char *
+-befs_bt_keydata(befs_btree_node * node)
++befs_bt_keydata(struct befs_btree_node *node)
+ {
+ 	return (char *) ((void *) node->od_node + sizeof (befs_btree_nodehead));
+ }
+@@ -676,7 +681,7 @@ befs_bt_keydata(befs_btree_node * node)
+  * Returns NULL on failure (bad input) and sets *@keylen = 0
+  */
+ static char *
+-befs_bt_get_key(struct super_block *sb, befs_btree_node * node,
++befs_bt_get_key(struct super_block *sb, struct befs_btree_node *node,
+ 		int index, u16 * keylen)
+ {
+ 	int prev_key_end;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from himangi774@gmail.com are
 
 origin.patch
-mm-page_alloc-determine-migratetype-only-once.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
+fs-befs-btreec-remove-typedef-befs_btree_node.patch
+linux-next.patch
 
