@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
- added to -mm tree
-Date: Thu, 14 Aug 2014 14:53:30 -0700
-Message-ID: <53ed2fda.uwK+LPwAcSaN4v36%akpm@linux-foundation.org>
+Subject: + fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch added to
+ -mm tree
+Date: Thu, 14 Aug 2014 14:53:31 -0700
+Message-ID: <53ed2fdb.joJXyMo20OV/RzTN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:43721 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754601AbaHNVxb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:53:31 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so421075oac.1
-        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:53:31 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:36063 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754788AbaHNVxc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:53:32 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so491076pde.3
+        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:53:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, ebiederm@xmission.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, kirill@shutemov.name, mm-commits@vger.kernel.org
+To: oleg@redhat.com, ebiederm@xmission.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: shift mm_access() from m_start() to proc_maps_open()
+     Subject: fs/proc/task_mmu.c: simplify the vma_stop() logic
 has been added to the -mm tree.  Its filename is
-     fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+     fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,153 +42,108 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: fs/proc/task_mmu.c: shift mm_access() from m_start() to proc_maps_open()
+Subject: fs/proc/task_mmu.c: simplify the vma_stop() logic
 
-A simple test-case from Kirill Shutemov
+m_start() drops ->mmap_sem and does mmput() if it retuns vsyscall
+vma. This is because in this case m_stop()->vma_stop() obviously
+can't use gate_vma->vm_mm.
 
-	cat /proc/self/maps >/dev/null
-	chmod +x /proc/self/net/packet
-	exec /proc/self/net/packet
+Now that we have proc_maps_private->mm we can simplify this logic:
 
-makes lockdep unhappy, cat/exec take seq_file->lock + cred_guard_mutex in
-the opposite order.
+  - Change m_start() to return with ->mmap_sem held unless it returns
+    IS_ERR_OR_NULL().
 
-It's a false positive and probably we should not allow "chmod +x" on proc
-files. Still I think that we should avoid mm_access() and cred_guard_mutex
-in sys_read() paths, security checking should happen at open time. Besides,
-this doesn't even look right if the task changes its ->mm between m_stop()
-and m_start().
+  - Change vma_stop() to use priv->mm and avoid the ugly vma checks,
+    this makes "vm_area_struct *vma" unnecessary.
 
-Add the new "mm_struct *mm" member into struct proc_maps_private and change
-proc_maps_open() to initialize it using proc_mem_open(). Change m_start() to
-use priv->mm if atomic_inc_not_zero(mm_users) succeeds or return NULL (eof)
-otherwise.
+  - This also allows m_start() to use vm_stop().
 
-The only complication is that proc_maps_open() users should additionally do
-mmdrop() in fop->release(), add the new proc_map_release() helper for that.
+  - Cleanup m_next() to follow the new locking rule.
 
-Note: this is the user-visible change, if the task execs after open("maps")
-the new ->mm won't be visible via this file. I hope this is fine, and this
-matches /proc/pid/mem bahaviour.
+    Note: m_stop() looks very ugly, and this temporary uglifies it
+    even more. Fixed by the next change.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: "Kirill A. Shutemov" <kirill@shutemov.name>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/internal.h |    1 +
- fs/proc/task_mmu.c |   37 ++++++++++++++++++++++++++++---------
- 2 files changed, 29 insertions(+), 9 deletions(-)
+ fs/proc/task_mmu.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN fs/proc/internal.h~fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open fs/proc/internal.h
---- a/fs/proc/internal.h~fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open
-+++ a/fs/proc/internal.h
-@@ -270,6 +270,7 @@ extern int proc_remount(struct super_blo
- struct proc_maps_private {
- 	struct pid *pid;
- 	struct task_struct *task;
-+	struct mm_struct *mm;
- #ifdef CONFIG_MMU
- 	struct vm_area_struct *tail_vma;
- #endif
-diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open
+diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-simplify-the-vma_stop-logic fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-simplify-the-vma_stop-logic
 +++ a/fs/proc/task_mmu.c
-@@ -165,9 +165,9 @@ static void *m_start(struct seq_file *m,
- 	if (!priv->task)
- 		return ERR_PTR(-ESRCH);
+@@ -129,14 +129,12 @@ static void release_task_mempolicy(struc
+ }
+ #endif
  
--	mm = mm_access(priv->task, PTRACE_MODE_READ);
--	if (!mm || IS_ERR(mm))
--		return mm;
-+	mm = priv->mm;
-+	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
-+		return NULL;
- 	down_read(&mm->mmap_sem);
- 
- 	tail_vma = get_gate_vma(mm);
-@@ -240,9 +240,28 @@ static int proc_maps_open(struct inode *
- 		return -ENOMEM;
- 
- 	priv->pid = proc_pid(inode);
-+	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
-+	if (IS_ERR(priv->mm)) {
-+		int err = PTR_ERR(priv->mm);
-+		seq_release_private(inode, file);
-+		return err;
-+	}
-+
- 	return 0;
+-static void vma_stop(struct proc_maps_private *priv, struct vm_area_struct *vma)
++static void vma_stop(struct proc_maps_private *priv)
+ {
+-	if (vma && vma != priv->tail_vma) {
+-		struct mm_struct *mm = vma->vm_mm;
+-		release_task_mempolicy(priv);
+-		up_read(&mm->mmap_sem);
+-		mmput(mm);
+-	}
++	struct mm_struct *mm = priv->mm;
++	release_task_mempolicy(priv);
++	up_read(&mm->mmap_sem);
++	mmput(mm);
  }
  
-+static int proc_map_release(struct inode *inode, struct file *file)
-+{
-+	struct seq_file *seq = file->private_data;
-+	struct proc_maps_private *priv = seq->private;
+ static void *m_start(struct seq_file *m, loff_t *pos)
+@@ -199,12 +197,13 @@ out:
+ 	if (vma)
+ 		return vma;
+ 
+-	release_task_mempolicy(priv);
+ 	/* End of vmas has been reached */
+ 	m->version = (tail_vma != NULL)? 0: -1UL;
+-	up_read(&mm->mmap_sem);
+-	mmput(mm);
+-	return tail_vma;
++	if (tail_vma)
++		return tail_vma;
 +
-+	if (priv->mm)
-+		mmdrop(priv->mm);
++	vma_stop(priv);
++	return NULL;
+ }
+ 
+ static void *m_next(struct seq_file *m, void *v, loff_t *pos)
+@@ -212,21 +211,24 @@ static void *m_next(struct seq_file *m,
+ 	struct proc_maps_private *priv = m->private;
+ 	struct vm_area_struct *vma = v;
+ 	struct vm_area_struct *tail_vma = priv->tail_vma;
++	struct vm_area_struct *next;
+ 
+ 	(*pos)++;
+ 	if (vma && (vma != tail_vma) && vma->vm_next)
+ 		return vma->vm_next;
+-	vma_stop(priv, vma);
+-	return (vma != tail_vma)? tail_vma: NULL;
 +
-+	return seq_release_private(inode, file);
-+}
-+
-+
- static int do_maps_open(struct inode *inode, struct file *file,
- 			const struct seq_operations *ops)
++	next = (vma != tail_vma)? tail_vma: NULL;
++	if (!next)
++		vma_stop(priv);
++	return next;
+ }
+ 
+ static void m_stop(struct seq_file *m, void *v)
  {
-@@ -398,14 +417,14 @@ const struct file_operations proc_pid_ma
- 	.open		= pid_maps_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= seq_release_private,
-+	.release	= proc_map_release,
- };
+ 	struct proc_maps_private *priv = m->private;
+-	struct vm_area_struct *vma = v;
  
- const struct file_operations proc_tid_maps_operations = {
- 	.open		= tid_maps_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= seq_release_private,
-+	.release	= proc_map_release,
- };
- 
- /*
-@@ -680,14 +699,14 @@ const struct file_operations proc_pid_sm
- 	.open		= pid_smaps_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= seq_release_private,
-+	.release	= proc_map_release,
- };
- 
- const struct file_operations proc_tid_smaps_operations = {
- 	.open		= tid_smaps_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= seq_release_private,
-+	.release	= proc_map_release,
- };
- 
- /*
-@@ -1535,13 +1554,13 @@ const struct file_operations proc_pid_nu
- 	.open		= pid_numa_maps_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= seq_release_private,
-+	.release	= proc_map_release,
- };
- 
- const struct file_operations proc_tid_numa_maps_operations = {
- 	.open		= tid_numa_maps_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= seq_release_private,
-+	.release	= proc_map_release,
- };
- #endif /* CONFIG_NUMA */
+-	if (!IS_ERR(vma))
+-		vma_stop(priv, vma);
++	if (!IS_ERR_OR_NULL(v))
++		vma_stop(priv);
+ 	if (priv->task)
+ 		put_task_struct(priv->task);
+ }
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
