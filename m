@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-task_nommuc-dont-use-priv-task-mm.patch added to -mm
- tree
-Date: Thu, 14 Aug 2014 14:53:41 -0700
-Message-ID: <53ed2fe5.W4UyxCDsf2tUqNhE%akpm@linux-foundation.org>
+Subject: +
+ fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+ added to -mm tree
+Date: Thu, 14 Aug 2014 14:53:40 -0700
+Message-ID: <53ed2fe4.oFaUkheAPTPAUtbD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:58493 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754909AbaHNVxm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:53:42 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so31729igi.1
-        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:53:42 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:35339 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932104AbaHNVxl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:53:41 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so380852oig.3
+        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:53:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, ebiederm@xmission.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/task_nommu.c: don't use priv->task->mm
+     Subject: fs/proc/task_nommu.c: shift mm_access() from m_start() to proc_maps_open()
 has been added to the -mm tree.  Its filename is
-     fs-proc-task_nommuc-dont-use-priv-task-mm.patch
+     fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_nommuc-dont-use-priv-task-mm.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_nommuc-dont-use-priv-task-mm.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,16 +43,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: fs/proc/task_nommu.c: don't use priv->task->mm
+Subject: fs/proc/task_nommu.c: shift mm_access() from m_start() to proc_maps_open()
 
-I do not know if CONFIG_PREEMPT/SMP is possible without CONFIG_MMU
-but the usage of task->mm in m_stop(). The task can exit/exec before
-we take mmap_sem, in this case m_stop() can hit NULL or unlock the
-wrong rw_semaphore.
+Copy-and-paste the changes from "fs/proc/task_mmu.c: shift mm_access()
+from m_start() to proc_maps_open()" into task_nommu.c.
 
-Also, this code uses priv->task != NULL to decide whether we need
-up_read/mmput. This is correct, but we will probably kill priv->task.
-Change m_start/m_stop to rely on IS_ERR_OR_NULL() like task_mmu.c does.
+Change maps_open() to initialize priv->mm using proc_mem_open(), m_start()
+can rely on atomic_inc_not_zero(mm_users) like task_mmu.c does.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -60,51 +58,71 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_nommu.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ fs/proc/task_nommu.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/task_nommu.c~fs-proc-task_nommuc-dont-use-priv-task-mm fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~fs-proc-task_nommuc-dont-use-priv-task-mm
+diff -puN fs/proc/task_nommu.c~fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open
 +++ a/fs/proc/task_nommu.c
-@@ -217,17 +217,17 @@ static void *m_start(struct seq_file *m,
+@@ -216,11 +216,11 @@ static void *m_start(struct seq_file *m,
+ 	if (!priv->task)
  		return ERR_PTR(-ESRCH);
  
- 	mm = priv->mm;
--	if (!mm || !atomic_inc_not_zero(&mm->mm_users)) {
--		put_task_struct(priv->task);
--		priv->task = NULL;
-+	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
- 		return NULL;
--	}
--	down_read(&mm->mmap_sem);
- 
-+	down_read(&mm->mmap_sem);
- 	/* start from the Nth VMA */
- 	for (p = rb_first(&mm->mm_rb); p; p = rb_next(p))
- 		if (n-- == 0)
- 			return p;
-+
-+	up_read(&mm->mmap_sem);
-+	mmput(mm);
- 	return NULL;
- }
- 
-@@ -235,11 +235,13 @@ static void m_stop(struct seq_file *m, v
- {
- 	struct proc_maps_private *priv = m->private;
- 
-+	if (!IS_ERR_OR_NULL(_vml)) {
-+		up_read(&priv->mm->mmap_sem);
-+		mmput(priv->mm);
-+	}
- 	if (priv->task) {
--		struct mm_struct *mm = priv->task->mm;
--		up_read(&mm->mmap_sem);
--		mmput(mm);
+-	mm = mm_access(priv->task, PTRACE_MODE_READ);
+-	if (!mm || IS_ERR(mm)) {
++	mm = priv->mm;
++	if (!mm || !atomic_inc_not_zero(&mm->mm_users)) {
  		put_task_struct(priv->task);
-+		priv->task = NULL;
+ 		priv->task = NULL;
+-		return mm;
++		return NULL;
  	}
+ 	down_read(&mm->mmap_sem);
+ 
+@@ -274,9 +274,28 @@ static int maps_open(struct inode *inode
+ 		return -ENOMEM;
+ 
+ 	priv->pid = proc_pid(inode);
++	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
++	if (IS_ERR(priv->mm)) {
++		int err = PTR_ERR(priv->mm);
++		seq_release_private(inode, file);
++		return err;
++	}
++
+ 	return 0;
  }
+ 
++
++static int map_release(struct inode *inode, struct file *file)
++{
++	struct seq_file *seq = file->private_data;
++	struct proc_maps_private *priv = seq->private;
++
++	if (priv->mm)
++		mmdrop(priv->mm);
++
++	return seq_release_private(inode, file);
++}
++
+ static int pid_maps_open(struct inode *inode, struct file *file)
+ {
+ 	return maps_open(inode, file, &proc_pid_maps_ops);
+@@ -291,13 +310,13 @@ const struct file_operations proc_pid_ma
+ 	.open		= pid_maps_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+-	.release	= seq_release_private,
++	.release	= map_release,
+ };
+ 
+ const struct file_operations proc_tid_maps_operations = {
+ 	.open		= tid_maps_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+-	.release	= seq_release_private,
++	.release	= map_release,
+ };
  
 _
 
