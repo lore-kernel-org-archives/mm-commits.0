@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + printk-dont-bother-using-log_cpu_max_buf_shift-on-smp.patch
+Subject: + rtc-s5m-re-add-support-for-devices-without-irq-specified.patch
  added to -mm tree
-Date: Thu, 14 Aug 2014 14:34:57 -0700
-Message-ID: <53ed2b81.TFZX9FeAyxZL1biS%akpm@linux-foundation.org>
+Date: Thu, 14 Aug 2014 14:39:09 -0700
+Message-ID: <53ed2c7d.52jO15Cr0TmZ6LdV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:58157 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932157AbaHNVe6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:34:58 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so482678pdj.2
-        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:34:57 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:51784 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753162AbaHNVjL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 17:39:11 -0400
+Received: by mail-qa0-f73.google.com with SMTP id s7so208537qap.0
+        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 14:39:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, mcgrof@suse.com, mm-commits@vger.kernel.org
+To: b.zolnierkie@samsung.com, k.kozlowski@samsung.com, kyungmin.park@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: don't bother using LOG_CPU_MAX_BUF_SHIFT on !SMP
+     Subject: drivers/rtc/rtc-s5m.c: re-add support for devices without irq specified
 has been added to the -mm tree.  Its filename is
-     printk-dont-bother-using-log_cpu_max_buf_shift-on-smp.patch
+     rtc-s5m-re-add-support-for-devices-without-irq-specified.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-dont-bother-using-log_cpu_max_buf_shift-on-smp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-s5m-re-add-support-for-devices-without-irq-specified.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-dont-bother-using-log_cpu_max_buf_shift-on-smp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-s5m-re-add-support-for-devices-without-irq-specified.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,72 +41,132 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: printk: don't bother using LOG_CPU_MAX_BUF_SHIFT on !SMP
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: drivers/rtc/rtc-s5m.c: re-add support for devices without irq specified
 
-When configuring a uniprocessor kernel, don't bother the user with an
-irrelevant LOG_CPU_MAX_BUF_SHIFT question, and don't build the unused
-code.
+The rtc-s5m driver used to support devices without irq specified in the
+past.  Re-add this support.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Luis R. Rodriguez <mcgrof@suse.com>
+The patch fixes boot for Insignal's Exynos4412 based Origen board.
+
+Error messages before the patch:
+...
+[    2.095991] Unable to handle kernel NULL pointer dereference at virtual address 00000094
+[    2.103299] pgd = c0004000
+[    2.105944] [00000094] *pgd=00000000
+[    2.109510] Internal error: Oops: 5 [#1] PREEMPT SMP ARM
+[    2.114796] Modules linked in:
+[    2.117840] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 3.16.0-next-20140804-00008-ga59480f-dirty #701
+[    2.126950] task: ea80f000 ti: ea882000 task.ti: ea882000
+[    2.132348] PC is at regmap_irq_get_virq+0x0/0x28
+[    2.137033] LR is at s5m_rtc_probe+0xdc/0x310
+[    2.141360] pc : [<c02574fc>]    lr : [<c02de75c>]    psr: 80000153
+[    2.141360] sp : ea883e48  ip : 00000000  fp : 00000000
+[    2.152815] r10: 0000000c  r9 : c05de7ac  r8 : eaabc600
+[    2.158024] r7 : eaa6b4d0  r6 : c0439e8c  r5 : eaabc610  r4 : eab30e50
+[    2.164533] r3 : 00000000  r2 : 00000000  r1 : 0000000c  r0 : 00000000
+[    2.171045] Flags: Nzcv  IRQs on  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+[    2.178423] Control: 10c5387d  Table: 4000404a  DAC: 00000015
+[    2.184150] Process swapper/0 (pid: 1, stack limit = 0xea882240)
+[    2.190139] Stack: (0xea883e48 to 0xea884000)
+[    2.194483] 3e40:                   eab32910 00000001 c05de7ac eab329b0 00000000 eaabc610
+[    2.202642] 3e60: c0618c68 eaabc610 c0618c68 00000000 00000000 c0618c68 0000008f c02429cc
+[    2.210801] 3e80: c02429a0 eaabc610 c06628a8 c02415f0 eaabc610 c0618c68 eaabc644 00000000
+[    2.218960] 3ea0: eab30d00 c024179c c0618c68 00000000 c0241710 c023ffb4 ea805478 eaadefc0
+[    2.227119] 3ec0: c0618c68 ea115e80 c0610b10 c0240df8 c0518984 c0618c68 00000000 c0618c68
+[    2.235278] 3ee0: 00000000 c05ecc18 c05ecc18 c0241db8 c02426a0 c05b480c 00000000 c00088a4
+[    2.243437] 3f00: 0000009f c040f134 ea92a300 c0649fe0 ea80f000 60000153 c05efe54 00000000
+[    2.251596] 3f20: 00000000 c05efe54 60000153 00000000 eb7ff916 eb7ff908 c0573048 c00376dc
+[    2.259756] 3f40: c05288f0 c0572758 00000006 00000006 c05efdf4 c05c2da4 00000006 c05c2d84
+[    2.267914] 3f60: c0626900 c059a508 c05de7ac 0000008f 00000000 c059ac94 00000006 00000006
+[    2.276074] 3f80: c059a508 c003c3fc 00000000 c0401330 00000000 00000000 00000000 00000000
+[    2.284233] 3fa0: 00000000 c0401338 00000000 c000e538 00000000 00000000 00000000 00000000
+[    2.292392] 3fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.300551] 3fe0: 00000000 00000000 00000000 00000000 00000013 00000000 c0c0c0c0 c0c0c0c0
+[    2.308729] [<c02574fc>] (regmap_irq_get_virq) from [<c02de75c>] (s5m_rtc_probe+0xdc/0x310)
+[    2.317057] [<c02de75c>] (s5m_rtc_probe) from [<c02429cc>] (platform_drv_probe+0x2c/0x5c)
+[    2.325209] [<c02429cc>] (platform_drv_probe) from [<c02415f0>] (driver_probe_device+0x114/0x234)
+[    2.334060] [<c02415f0>] (driver_probe_device) from [<c024179c>] (__driver_attach+0x8c/0x90)
+[    2.342479] [<c024179c>] (__driver_attach) from [<c023ffb4>] (bus_for_each_dev+0x54/0x88)
+[    2.350637] [<c023ffb4>] (bus_for_each_dev) from [<c0240df8>] (bus_add_driver+0xd8/0x1cc)
+[    2.358796] [<c0240df8>] (bus_add_driver) from [<c0241db8>] (driver_register+0x78/0xf4)
+[    2.366785] [<c0241db8>] (driver_register) from [<c00088a4>] (do_one_initcall+0x80/0x1d0)
+[    2.374947] [<c00088a4>] (do_one_initcall) from [<c059ac94>] (kernel_init_freeable+0x108/0x1d4)
+[    2.383634] [<c059ac94>] (kernel_init_freeable) from [<c0401338>] (kernel_init+0x8/0xe4)
+[    2.391704] [<c0401338>] (kernel_init) from [<c000e538>] (ret_from_fork+0x14/0x3c)
+[    2.399246] Code: e8bd8070 e3500000 1590009c e12fff1e (e5903094)
+[    2.405391] ---[ end trace a954d7f019122700 ]---
+[    2.409987] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+...
+
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Reviewed-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Tested-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig           |    1 +
- kernel/printk/printk.c |    7 ++++++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-s5m.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN init/Kconfig~printk-dont-bother-using-log_cpu_max_buf_shift-on-smp init/Kconfig
---- a/init/Kconfig~printk-dont-bother-using-log_cpu_max_buf_shift-on-smp
-+++ a/init/Kconfig
-@@ -827,6 +827,7 @@ config LOG_BUF_SHIFT
+diff -puN drivers/rtc/rtc-s5m.c~rtc-s5m-re-add-support-for-devices-without-irq-specified drivers/rtc/rtc-s5m.c
+--- a/drivers/rtc/rtc-s5m.c~rtc-s5m-re-add-support-for-devices-without-irq-specified
++++ a/drivers/rtc/rtc-s5m.c
+@@ -717,12 +717,14 @@ static int s5m_rtc_probe(struct platform
+ 	info->device_type = s5m87xx->device_type;
+ 	info->wtsr_smpl = s5m87xx->wtsr_smpl;
  
- config LOG_CPU_MAX_BUF_SHIFT
- 	int "CPU kernel log buffer size contribution (13 => 8 KB, 17 => 128KB)"
-+	depends on SMP
- 	range 0 21
- 	default 12 if !BASE_SMALL
- 	default 0 if BASE_SMALL
-diff -puN kernel/printk/printk.c~printk-dont-bother-using-log_cpu_max_buf_shift-on-smp kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-dont-bother-using-log_cpu_max_buf_shift-on-smp
-+++ a/kernel/printk/printk.c
-@@ -267,7 +267,6 @@ static u32 clear_idx;
- #define LOG_ALIGN __alignof__(struct printk_log)
- #endif
- #define __LOG_BUF_LEN (1 << CONFIG_LOG_BUF_SHIFT)
--#define __LOG_CPU_MAX_BUF_LEN (1 << CONFIG_LOG_CPU_MAX_BUF_SHIFT)
- static char __log_buf[__LOG_BUF_LEN] __aligned(LOG_ALIGN);
- static char *log_buf = __log_buf;
- static u32 log_buf_len = __LOG_BUF_LEN;
-@@ -858,6 +857,9 @@ static int __init log_buf_len_setup(char
- }
- early_param("log_buf_len", log_buf_len_setup);
+-	info->irq = regmap_irq_get_virq(s5m87xx->irq_data, alarm_irq);
+-	if (info->irq <= 0) {
+-		ret = -EINVAL;
+-		dev_err(&pdev->dev, "Failed to get virtual IRQ %d\n",
++	if (s5m87xx->irq_data) {
++		info->irq = regmap_irq_get_virq(s5m87xx->irq_data, alarm_irq);
++		if (info->irq <= 0) {
++			ret = -EINVAL;
++			dev_err(&pdev->dev, "Failed to get virtual IRQ %d\n",
+ 				alarm_irq);
+-		goto err;
++			goto err;
++		}
+ 	}
  
-+#ifdef CONFIG_SMP
-+#define __LOG_CPU_MAX_BUF_LEN (1 << CONFIG_LOG_CPU_MAX_BUF_SHIFT)
+ 	platform_set_drvdata(pdev, info);
+@@ -744,6 +746,11 @@ static int s5m_rtc_probe(struct platform
+ 		goto err;
+ 	}
+ 
++	if (!info->irq) {
++		dev_info(&pdev->dev, "Alarm IRQ not available\n");
++		return 0;
++	}
 +
- static void __init log_buf_add_cpu(void)
- {
- 	unsigned int cpu_extra;
-@@ -884,6 +886,9 @@ static void __init log_buf_add_cpu(void)
+ 	ret = devm_request_threaded_irq(&pdev->dev, info->irq, NULL,
+ 					s5m_rtc_alarm_irq, 0, "rtc-alarm0",
+ 					info);
+@@ -802,7 +809,7 @@ static int s5m_rtc_resume(struct device
+ 	struct s5m_rtc_info *info = dev_get_drvdata(dev);
+ 	int ret = 0;
  
- 	log_buf_len_update(cpu_extra + __LOG_BUF_LEN);
- }
-+#else /* !CONFIG_SMP */
-+static inline void log_buf_add_cpu(void) {}
-+#endif /* CONFIG_SMP */
+-	if (device_may_wakeup(dev))
++	if (info->irq && device_may_wakeup(dev))
+ 		ret = disable_irq_wake(info->irq);
  
- void __init setup_log_buf(int early)
- {
+ 	return ret;
+@@ -813,7 +820,7 @@ static int s5m_rtc_suspend(struct device
+ 	struct s5m_rtc_info *info = dev_get_drvdata(dev);
+ 	int ret = 0;
+ 
+-	if (device_may_wakeup(dev))
++	if (info->irq && device_may_wakeup(dev))
+ 		ret = enable_irq_wake(info->irq);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from b.zolnierkie@samsung.com are
 
 origin.patch
-checkpatch-relax-check-for-length-of-git-commit-ids.patch
-m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
-m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush-v2.patch
-printk-dont-bother-using-log_cpu_max_buf_shift-on-smp.patch
-linux-next.patch
+rtc-s5m-re-add-support-for-devices-without-irq-specified.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 
