@@ -1,83 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: +
- arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch added
- to -mm tree
-Date: Thu, 14 Aug 2014 15:23:50 -0700
-Message-ID: <53ed36f6.uFMX7xCktH2AUpsx%akpm@linux-foundation.org>
+Subject: [obsolete] drivers-gpu-drm-nouveau-fix-build.patch removed from
+ -mm tree
+Date: Thu, 21 Aug 2014 13:21:01 -0700
+Message-ID: <53f654ad.86TMmF1gXwgbFuM+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f73.google.com ([209.85.218.73]:59913 "EHLO
-	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753318AbaHNWXv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Aug 2014 18:23:51 -0400
-Received: by mail-oi0-f73.google.com with SMTP id u20so388488oif.2
-        for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2014 15:23:51 -0700 (PDT)
+Received: from mail-qg0-f74.google.com ([209.85.192.74]:46583 "EHLO
+	mail-qg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754015AbaHUUVD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 16:21:03 -0400
+Received: by mail-qg0-f74.google.com with SMTP id a108so789447qge.5
+        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 13:21:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cw00.choi@samsung.com, a.zummo@towertech.it, kgene.kim@samsung.com, kyungmin.park@samsung.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bskeggs@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: dts: fix wrong compatible string of Exynos3250 RTC dt node
-has been added to the -mm tree.  Its filename is
-     arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch
+     Subject: drivers/gpu/drm/nouveau: fix build
+has been removed from the -mm tree.  Its filename was
+     drivers-gpu-drm-nouveau-fix-build.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: ARM: dts: fix wrong compatible string of Exynos3250 RTC dt node
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/gpu/drm/nouveau: fix build
 
-Fix wrong compatible string of Exynos3250 RTC (Real-Time Clock) dt node. 
-The RTC of Exynos3250 must need additional source clock (XrtcXTI).
+wtf
 
-Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/dts/exynos3250.dtsi |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/nouveau/core/include/nvif/class.h  |    2 +-
+ drivers/gpu/drm/nouveau/core/include/nvif/event.h  |    2 +-
+ drivers/gpu/drm/nouveau/core/include/nvif/ioctl.h  |    2 +-
+ drivers/gpu/drm/nouveau/core/include/nvif/unpack.h |    2 +-
+ drivers/gpu/drm/nouveau/nvif/os.h                  |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/arm/boot/dts/exynos3250.dtsi~arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node arch/arm/boot/dts/exynos3250.dtsi
---- a/arch/arm/boot/dts/exynos3250.dtsi~arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node
-+++ a/arch/arm/boot/dts/exynos3250.dtsi
-@@ -164,7 +164,7 @@
- 		};
- 
- 		rtc: rtc@10070000 {
--			compatible = "samsung,s3c6410-rtc";
-+			compatible = "samsung,exynos3250-rtc";
- 			reg = <0x10070000 0x100>;
- 			interrupts = <0 73 0>, <0 74 0>;
- 			status = "disabled";
+diff -puN drivers/gpu/drm/nouveau/core/include/nvif/unpack.h~drivers-gpu-drm-nouveau-fix-build drivers/gpu/drm/nouveau/core/include/nvif/unpack.h
+--- a/drivers/gpu/drm/nouveau/core/include/nvif/unpack.h~drivers-gpu-drm-nouveau-fix-build
++++ a/drivers/gpu/drm/nouveau/core/include/nvif/unpack.h
+@@ -1 +1 @@
+-../../../nvif/unpack.h
+\ No newline at end of file
++#include "../../../nvif/unpack.h"
+diff -puN drivers/gpu/drm/nouveau/core/include/nvif/event.h~drivers-gpu-drm-nouveau-fix-build drivers/gpu/drm/nouveau/core/include/nvif/event.h
+--- a/drivers/gpu/drm/nouveau/core/include/nvif/event.h~drivers-gpu-drm-nouveau-fix-build
++++ a/drivers/gpu/drm/nouveau/core/include/nvif/event.h
+@@ -1 +1 @@
+-../../../nvif/event.h
+\ No newline at end of file
++#include "../../../nvif/event.h"
+diff -puN drivers/gpu/drm/nouveau/core/include/nvif/ioctl.h~drivers-gpu-drm-nouveau-fix-build drivers/gpu/drm/nouveau/core/include/nvif/ioctl.h
+--- a/drivers/gpu/drm/nouveau/core/include/nvif/ioctl.h~drivers-gpu-drm-nouveau-fix-build
++++ a/drivers/gpu/drm/nouveau/core/include/nvif/ioctl.h
+@@ -1 +1 @@
+-../../../nvif/ioctl.h
+\ No newline at end of file
++#include "../../../nvif/ioctl.h"
+diff -puN drivers/gpu/drm/nouveau/core/include/nvif/class.h~drivers-gpu-drm-nouveau-fix-build drivers/gpu/drm/nouveau/core/include/nvif/class.h
+--- a/drivers/gpu/drm/nouveau/core/include/nvif/class.h~drivers-gpu-drm-nouveau-fix-build
++++ a/drivers/gpu/drm/nouveau/core/include/nvif/class.h
+@@ -1 +1 @@
+-../../../nvif/class.h
+\ No newline at end of file
++#include "../../../nvif/class.h"
+diff -puN drivers/gpu/drm/nouveau/nvif/os.h~drivers-gpu-drm-nouveau-fix-build drivers/gpu/drm/nouveau/nvif/os.h
+--- a/drivers/gpu/drm/nouveau/nvif/os.h~drivers-gpu-drm-nouveau-fix-build
++++ a/drivers/gpu/drm/nouveau/nvif/os.h
+@@ -1 +1 @@
+-../core/os.h
+\ No newline at end of file
++#include "../core/os.h"
 _
 
-Patches currently in -mm which might be from cw00.choi@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables.patch
-rtc-s3c-remove-warning-message-when-checking-coding-style-with-checkpatch-script.patch
-rtc-s3c-add-s3c_rtc_data-structure-to-use-variant-data-instead-of-s3c_cpu_type.patch
-rtc-s3c-add-support-for-rtc-of-exynos3250-soc.patch
-arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
