@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch added to -mm tree
-Date: Thu, 21 Aug 2014 15:22:07 -0700
-Message-ID: <53f6710f.nLu5JVqcRG4sYk2/%akpm@linux-foundation.org>
+Subject: + mm-rename-allocflags_to_migratetype-for-clarity.patch added to
+ -mm tree
+Date: Thu, 21 Aug 2014 15:22:10 -0700
+Message-ID: <53f67112.CT+oE179kfHWi8id%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:43077 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755473AbaHUWWI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 18:22:08 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so2662375pab.0
-        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 15:22:08 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:44525 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754919AbaHUWWL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 18:22:11 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so2681564pde.5
+        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 15:22:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: remember position within pageblock in free pages scanner
+     Subject: mm: rename allocflags_to_migratetype for clarity
 has been added to the -mm tree.  Its filename is
-     mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+     mm-rename-allocflags_to_migratetype-for-clarity.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-allocflags_to_migratetype-for-clarity.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-allocflags_to_migratetype-for-clarity.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,166 +41,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: remember position within pageblock in free pages scanner
+From: David Rientjes <rientjes@google.com>
+Subject: mm: rename allocflags_to_migratetype for clarity
 
-Unlike the migration scanner, the free scanner remembers the beginning of
-the last scanned pageblock in cc->free_pfn.  It might be therefore
-rescanning pages uselessly when called several times during single
-compaction.  This might have been useful when pages were returned to the
-buddy allocator after a failed migration, but this is no longer the case.
+The page allocator has gfp flags (like __GFP_WAIT) and alloc flags (like
+ALLOC_CPUSET) that have separate semantics.
 
-This patch changes the meaning of cc->free_pfn so that if it points to a
-middle of a pageblock, that pageblock is scanned only from cc->free_pfn to
-the end.  isolate_freepages_block() will record the pfn of the last page
-it looked at, which is then used to update cc->free_pfn.
+The function allocflags_to_migratetype() actually takes gfp flags, not
+alloc flags, and returns a migratetype.  Rename it to
+gfpflags_to_migratetype().
 
-In the mmtests stress-highalloc benchmark, this has resulted in lowering
-the ratio between pages scanned by both scanners, from 2.5 free pages per
-migrate page, to 2.25 free pages per migrate page, without affecting
-success rates.
-
-With __GFP_NO_KSWAPD allocations, this appears to result in a worse ratio
-(2.1 instead of 1.8), but page migration successes increased by 10%, so
-this could mean that more useful work can be done until need_resched()
-aborts this kind of compaction.
-
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: David Rientjes <rientjes@google.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ include/linux/gfp.h |    2 +-
+ mm/compaction.c     |    4 ++--
+ mm/page_alloc.c     |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-remember-position-within-pageblock-in-free-pages-scanner mm/compaction.c
---- a/mm/compaction.c~mm-compaction-remember-position-within-pageblock-in-free-pages-scanner
+diff -puN include/linux/gfp.h~mm-rename-allocflags_to_migratetype-for-clarity include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-rename-allocflags_to_migratetype-for-clarity
++++ a/include/linux/gfp.h
+@@ -156,7 +156,7 @@ struct vm_area_struct;
+ #define GFP_DMA32	__GFP_DMA32
+ 
+ /* Convert GFP flags to their corresponding migrate type */
+-static inline int allocflags_to_migratetype(gfp_t gfp_flags)
++static inline int gfpflags_to_migratetype(const gfp_t gfp_flags)
+ {
+ 	WARN_ON((gfp_flags & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
+ 
+diff -puN mm/compaction.c~mm-rename-allocflags_to_migratetype-for-clarity mm/compaction.c
+--- a/mm/compaction.c~mm-rename-allocflags_to_migratetype-for-clarity
 +++ a/mm/compaction.c
-@@ -330,7 +330,7 @@ static bool suitable_migration_target(st
-  * (even though it may still end up isolating some pages).
-  */
- static unsigned long isolate_freepages_block(struct compact_control *cc,
--				unsigned long blockpfn,
-+				unsigned long *start_pfn,
- 				unsigned long end_pfn,
- 				struct list_head *freelist,
- 				bool strict)
-@@ -339,6 +339,7 @@ static unsigned long isolate_freepages_b
- 	struct page *cursor, *valid_page = NULL;
- 	unsigned long flags;
- 	bool locked = false;
-+	unsigned long blockpfn = *start_pfn;
+@@ -1245,7 +1245,7 @@ static unsigned long compact_zone_order(
+ 		.nr_freepages = 0,
+ 		.nr_migratepages = 0,
+ 		.order = order,
+-		.migratetype = allocflags_to_migratetype(gfp_mask),
++		.migratetype = gfpflags_to_migratetype(gfp_mask),
+ 		.zone = zone,
+ 		.mode = mode,
+ 	};
+@@ -1297,7 +1297,7 @@ unsigned long try_to_compact_pages(struc
+ 		return COMPACT_SKIPPED;
  
- 	cursor = pfn_to_page(blockpfn);
- 
-@@ -415,6 +416,9 @@ isolate_fail:
- 
+ #ifdef CONFIG_CMA
+-	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
++	if (gfpflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
+ 		alloc_flags |= ALLOC_CMA;
+ #endif
+ 	/* Compact each zone in the list */
+diff -puN mm/page_alloc.c~mm-rename-allocflags_to_migratetype-for-clarity mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-rename-allocflags_to_migratetype-for-clarity
++++ a/mm/page_alloc.c
+@@ -2523,7 +2523,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 			alloc_flags |= ALLOC_NO_WATERMARKS;
  	}
- 
-+	/* Record how far we have got within the block */
-+	*start_pfn = blockpfn;
-+
- 	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
- 
- 	/*
-@@ -463,14 +467,16 @@ isolate_freepages_range(struct compact_c
- 
- 	for (; pfn < end_pfn; pfn += isolated,
- 				block_end_pfn += pageblock_nr_pages) {
-+		/* Protect pfn from changing by isolate_freepages_block */
-+		unsigned long isolate_start_pfn = pfn;
- 
- 		block_end_pfn = min(block_end_pfn, end_pfn);
- 
- 		if (!pageblock_pfn_to_page(pfn, block_end_pfn, cc->zone))
- 			break;
- 
--		isolated = isolate_freepages_block(cc, pfn, block_end_pfn,
--						   &freelist, true);
-+		isolated = isolate_freepages_block(cc, &isolate_start_pfn,
-+						block_end_pfn, &freelist, true);
- 
- 		/*
- 		 * In strict mode, isolate_freepages_block() returns 0 if
-@@ -773,6 +779,7 @@ static void isolate_freepages(struct com
- 	struct zone *zone = cc->zone;
- 	struct page *page;
- 	unsigned long block_start_pfn;	/* start of current pageblock */
-+	unsigned long isolate_start_pfn; /* exact pfn we start at */
- 	unsigned long block_end_pfn;	/* end of current pageblock */
- 	unsigned long low_pfn;	     /* lowest pfn scanner is able to scan */
- 	int nr_freepages = cc->nr_freepages;
-@@ -781,14 +788,15 @@ static void isolate_freepages(struct com
- 	/*
- 	 * Initialise the free scanner. The starting point is where we last
- 	 * successfully isolated from, zone-cached value, or the end of the
--	 * zone when isolating for the first time. We need this aligned to
--	 * the pageblock boundary, because we do
-+	 * zone when isolating for the first time. For looping we also need
-+	 * this pfn aligned down to the pageblock boundary, because we do
- 	 * block_start_pfn -= pageblock_nr_pages in the for loop.
- 	 * For ending point, take care when isolating in last pageblock of a
- 	 * a zone which ends in the middle of a pageblock.
- 	 * The low boundary is the end of the pageblock the migration scanner
- 	 * is using.
- 	 */
-+	isolate_start_pfn = cc->free_pfn;
- 	block_start_pfn = cc->free_pfn & ~(pageblock_nr_pages-1);
- 	block_end_pfn = min(block_start_pfn + pageblock_nr_pages,
- 						zone_end_pfn(zone));
-@@ -801,7 +809,8 @@ static void isolate_freepages(struct com
- 	 */
- 	for (; block_start_pfn >= low_pfn && cc->nr_migratepages > nr_freepages;
- 				block_end_pfn = block_start_pfn,
--				block_start_pfn -= pageblock_nr_pages) {
-+				block_start_pfn -= pageblock_nr_pages,
-+				isolate_start_pfn = block_start_pfn) {
- 		unsigned long isolated;
- 
- 		/*
-@@ -826,13 +835,25 @@ static void isolate_freepages(struct com
- 		if (!isolation_suitable(cc, page))
- 			continue;
- 
--		/* Found a block suitable for isolating free pages from */
--		cc->free_pfn = block_start_pfn;
--		isolated = isolate_freepages_block(cc, block_start_pfn,
-+		/* Found a block suitable for isolating free pages from. */
-+		isolated = isolate_freepages_block(cc, &isolate_start_pfn,
- 					block_end_pfn, freelist, false);
- 		nr_freepages += isolated;
- 
- 		/*
-+		 * Remember where the free scanner should restart next time,
-+		 * which is where isolate_freepages_block() left off.
-+		 * But if it scanned the whole pageblock, isolate_start_pfn
-+		 * now points at block_end_pfn, which is the start of the next
-+		 * pageblock.
-+		 * In that case we will however want to restart at the start
-+		 * of the previous pageblock.
-+		 */
-+		cc->free_pfn = (isolate_start_pfn < block_end_pfn) ?
-+				isolate_start_pfn :
-+				block_start_pfn - pageblock_nr_pages;
-+
-+		/*
- 		 * Set a flag that we successfully isolated in this pageblock.
- 		 * In the next loop iteration, zone->compact_cached_free_pfn
- 		 * will not be updated and thus it will effectively contain the
+ #ifdef CONFIG_CMA
+-	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
++	if (gfpflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
+ 		alloc_flags |= ALLOC_CMA;
+ #endif
+ 	return alloc_flags;
+@@ -2786,7 +2786,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	struct zone *preferred_zone;
+ 	struct zoneref *preferred_zoneref;
+ 	struct page *page = NULL;
+-	int migratetype = allocflags_to_migratetype(gfp_mask);
++	int migratetype = gfpflags_to_migratetype(gfp_mask);
+ 	unsigned int cpuset_mems_cookie;
+ 	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET|ALLOC_FAIR;
+ 	int classzone_idx;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from rientjes@google.com are
 
+x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute.patch
 mm-page_alloc-determine-migratetype-only-once.patch
 mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
 mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
@@ -215,5 +143,7 @@ mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
 mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
 mm-rename-allocflags_to_migratetype-for-clarity.patch
 mm-compaction-pass-gfp-mask-to-compact_control.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
+include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
+mm-utilc-add-kstrimdup.patch
+linux-next.patch
 
