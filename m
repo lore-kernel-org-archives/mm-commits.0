@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- x86-purgatory-use-approprate-m64-32-build-flag-for-arch-x86-purgatory.patch added to -mm tree
-Date: Thu, 21 Aug 2014 14:10:37 -0700
-Message-ID: <53f6604d.L2aY/d+A7vTzgtSw%akpm@linux-foundation.org>
+Subject: + block_dev-implement-readpages-to-optimize-sequential-read.patch added to -mm tree
+Date: Thu, 21 Aug 2014 14:44:19 -0700
+Message-ID: <53f66833.SKKHGwOzmNS2V1vS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:61399 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753571AbaHUVKi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 17:10:38 -0400
-Received: by mail-oa0-f73.google.com with SMTP id g18so2062452oah.2
-        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 14:10:37 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:56681 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755300AbaHUVoV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 17:44:21 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h3so1681846igd.2
+        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 14:44:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@redhat.com, hpa@zytor.com, thomas@glanzmann.de, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, axboe@kernel.dk, jmoyer@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/purgatory: use approprate -m64/-32 build flag for arch/x86/purgatory
+     Subject: block_dev: implement readpages() to optimize sequential read
 has been added to the -mm tree.  Its filename is
-     x86-purgatory-use-approprate-m64-32-build-flag-for-arch-x86-purgatory.patch
+     block_dev-implement-readpages-to-optimize-sequential-read.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-purgatory-use-approprate-m64-32-build-flag-for-arch-x86-purgatory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block_dev-implement-readpages-to-optimize-sequential-read.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-purgatory-use-approprate-m64-32-build-flag-for-arch-x86-purgatory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block_dev-implement-readpages-to-optimize-sequential-read.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,58 +40,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: x86/purgatory: use approprate -m64/-32 build flag for arch/x86/purgatory
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: block_dev: implement readpages() to optimize sequential read
 
-Thomas reported that build of x86_64 kernel was failing for him.  He is
-using 32bit tool chain.
+Sequential read from a block device is expected to be equal or faster than
+from the file on a filesystem.  But it is not correct due to the lack of
+effective readpages() in the address space operations for block device.
 
-Problem is that while compiling purgatory, I have not specified -m64 flag.
- And 32bit tool chain must be assuming -m32 by default.
+This implements readpages() operation for block device by using
+mpage_readpages() which can create multipage BIOs instead of BIOs for each
+page and reduce system CPU time consumption.
 
-Following is error message.
+Install 1GB of RAM disk storage:
 
-(mini) [~/work/linux-2.6] make
-scripts/kconfig/conf --silentoldconfig Kconfig
-  CHK     include/config/kernel.release
-  UPD     include/config/kernel.release
-  CHK     include/generated/uapi/linux/version.h
-  CHK     include/generated/utsrelease.h
-  UPD     include/generated/utsrelease.h
-  CC      arch/x86/purgatory/purgatory.o
-arch/x86/purgatory/purgatory.c:1:0: error: code model 'large' not supported in
-the 32 bit mode
+	# modprobe scsi_debug dev_size_mb=1024 delay=0
 
-Fix it by explicitly passing appropriate -m64/-m32 build flag for
-purgatory.
+Sequential read from file on a filesystem:
 
-Reported-by: Thomas Glanzmann <thomas@glanzmann.de>
-Tested-by: Thomas Glanzmann <thomas@glanzmann.de>
-Suggested-by: H. Peter Anvin <hpa@zytor.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+	# mkfs.ext4 /dev/$DEV
+	# mount /dev/$DEV /mnt
+	# fio --name=t --size=512m --rw=read --filename=/mnt/file
+	...
+	  read : io=524288KB, bw=2133.4MB/s, iops=546133, runt=   240msec
+
+Sequential read from a block device:
+	# fio --name=t --size=512m --rw=read --filename=/dev/$DEV
+	...
+(Without this commit)
+	  read : io=524288KB, bw=1700.2MB/s, iops=435455, runt=   301msec
+
+(With this commit)
+	  read : io=524288KB, bw=2160.4MB/s, iops=553046, runt=   237msec
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/purgatory/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ fs/block_dev.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/x86/purgatory/Makefile~x86-purgatory-use-approprate-m64-32-build-flag-for-arch-x86-purgatory arch/x86/purgatory/Makefile
---- a/arch/x86/purgatory/Makefile~x86-purgatory-use-approprate-m64-32-build-flag-for-arch-x86-purgatory
-+++ a/arch/x86/purgatory/Makefile
-@@ -11,6 +11,7 @@ targets += purgatory.ro
- # sure how to relocate those. Like kexec-tools, use custom flags.
+diff -puN fs/block_dev.c~block_dev-implement-readpages-to-optimize-sequential-read fs/block_dev.c
+--- a/fs/block_dev.c~block_dev-implement-readpages-to-optimize-sequential-read
++++ a/fs/block_dev.c
+@@ -304,6 +304,12 @@ static int blkdev_readpage(struct file *
+ 	return block_read_full_page(page, blkdev_get_block);
+ }
  
- KBUILD_CFLAGS := -fno-strict-aliasing -Wall -Wstrict-prototypes -fno-zero-initialized-in-bss -fno-builtin -ffreestanding -c -MD -Os -mcmodel=large
-+KBUILD_CFLAGS += -m$(BITS)
++static int blkdev_readpages(struct file *file, struct address_space *mapping,
++			struct list_head *pages, unsigned nr_pages)
++{
++	return mpage_readpages(mapping, pages, nr_pages, blkdev_get_block);
++}
++
+ static int blkdev_write_begin(struct file *file, struct address_space *mapping,
+ 			loff_t pos, unsigned len, unsigned flags,
+ 			struct page **pagep, void **fsdata)
+@@ -1622,6 +1628,7 @@ static int blkdev_releasepage(struct pag
  
- $(obj)/purgatory.ro: $(PURGATORY_OBJS) FORCE
- 		$(call if_changed,ld)
+ static const struct address_space_operations def_blk_aops = {
+ 	.readpage	= blkdev_readpage,
++	.readpages	= blkdev_readpages,
+ 	.writepage	= blkdev_writepage,
+ 	.write_begin	= blkdev_write_begin,
+ 	.write_end	= blkdev_write_end,
 _
 
-Patches currently in -mm which might be from vgoyal@redhat.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-resource-fix-the-case-of-null-pointer-access.patch
-kexec-create-a-new-config-option-config_kexec_file-for-new-syscall.patch
-kexec-remove-config_kexec-dependency-on-crypto.patch
-x86-purgatory-use-approprate-m64-32-build-flag-for-arch-x86-purgatory.patch
+vfs-make-guard_bh_eod-more-generic.patch
+vfs-guard-end-of-device-for-mpage-interface.patch
+block_dev-implement-readpages-to-optimize-sequential-read.patch
+linux-next.patch
 
