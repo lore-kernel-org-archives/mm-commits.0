@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + block_dev-implement-readpages-to-optimize-sequential-read.patch added to -mm tree
-Date: Thu, 21 Aug 2014 14:44:19 -0700
-Message-ID: <53f66833.SKKHGwOzmNS2V1vS%akpm@linux-foundation.org>
+Subject: + vfs-guard-end-of-device-for-mpage-interface.patch added to -mm
+ tree
+Date: Thu, 21 Aug 2014 14:44:18 -0700
+Message-ID: <53f66832.UjZNsspKrMSI9JX+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f201.google.com ([209.85.213.201]:56681 "EHLO
-	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755300AbaHUVoV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 17:44:21 -0400
-Received: by mail-ig0-f201.google.com with SMTP id h3so1681846igd.2
-        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 14:44:20 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:40573 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755283AbaHUVoU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 17:44:20 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so2685649pde.3
+        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 14:44:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akinobu.mita@gmail.com, axboe@kernel.dk, jmoyer@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block_dev: implement readpages() to optimize sequential read
+     Subject: vfs: guard end of device for mpage interface
 has been added to the -mm tree.  Its filename is
-     block_dev-implement-readpages-to-optimize-sequential-read.patch
+     vfs-guard-end-of-device-for-mpage-interface.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/block_dev-implement-readpages-to-optimize-sequential-read.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vfs-guard-end-of-device-for-mpage-interface.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/block_dev-implement-readpages-to-optimize-sequential-read.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-guard-end-of-device-for-mpage-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,36 +42,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: block_dev: implement readpages() to optimize sequential read
+Subject: vfs: guard end of device for mpage interface
 
-Sequential read from a block device is expected to be equal or faster than
-from the file on a filesystem.  But it is not correct due to the lack of
-effective readpages() in the address space operations for block device.
+Add guard_bio_eod() check for mpage code in order to allow us to do IO
+even on the odd last sectors of a device, even if the block size is some
+multiple of the physical sector size.
 
-This implements readpages() operation for block device by using
-mpage_readpages() which can create multipage BIOs instead of BIOs for each
-page and reduce system CPU time consumption.
-
-Install 1GB of RAM disk storage:
-
-	# modprobe scsi_debug dev_size_mb=1024 delay=0
-
-Sequential read from file on a filesystem:
-
-	# mkfs.ext4 /dev/$DEV
-	# mount /dev/$DEV /mnt
-	# fio --name=t --size=512m --rw=read --filename=/mnt/file
-	...
-	  read : io=524288KB, bw=2133.4MB/s, iops=546133, runt=   240msec
-
-Sequential read from a block device:
-	# fio --name=t --size=512m --rw=read --filename=/dev/$DEV
-	...
-(Without this commit)
-	  read : io=524288KB, bw=1700.2MB/s, iops=435455, runt=   301msec
-
-(With this commit)
-	  read : io=524288KB, bw=2160.4MB/s, iops=553046, runt=   237msec
+Using mpage_readpages() for block device requires this guard check.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -79,33 +57,57 @@ Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/buffer.c   |    2 +-
+ fs/internal.h |    5 +++++
+ fs/mpage.c    |    2 ++
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN fs/block_dev.c~block_dev-implement-readpages-to-optimize-sequential-read fs/block_dev.c
---- a/fs/block_dev.c~block_dev-implement-readpages-to-optimize-sequential-read
-+++ a/fs/block_dev.c
-@@ -304,6 +304,12 @@ static int blkdev_readpage(struct file *
- 	return block_read_full_page(page, blkdev_get_block);
- }
+diff -puN fs/buffer.c~vfs-guard-end-of-device-for-mpage-interface fs/buffer.c
+--- a/fs/buffer.c~vfs-guard-end-of-device-for-mpage-interface
++++ a/fs/buffer.c
+@@ -2964,7 +2964,7 @@ static void end_bio_bh_io_sync(struct bi
+  * errors, this only handles the "we need to be able to
+  * do IO at the final sector" case.
+  */
+-static void guard_bio_eod(int rw, struct bio *bio)
++void guard_bio_eod(int rw, struct bio *bio)
+ {
+ 	sector_t maxsector;
+ 	struct bio_vec *bvec = &bio->bi_io_vec[bio->bi_vcnt - 1];
+diff -puN fs/internal.h~vfs-guard-end-of-device-for-mpage-interface fs/internal.h
+--- a/fs/internal.h~vfs-guard-end-of-device-for-mpage-interface
++++ a/fs/internal.h
+@@ -35,6 +35,11 @@ static inline int __sync_blockdev(struct
+ #endif
  
-+static int blkdev_readpages(struct file *file, struct address_space *mapping,
-+			struct list_head *pages, unsigned nr_pages)
-+{
-+	return mpage_readpages(mapping, pages, nr_pages, blkdev_get_block);
-+}
+ /*
++ * buffer.c
++ */
++extern void guard_bio_eod(int rw, struct bio *bio);
 +
- static int blkdev_write_begin(struct file *file, struct address_space *mapping,
- 			loff_t pos, unsigned len, unsigned flags,
- 			struct page **pagep, void **fsdata)
-@@ -1622,6 +1628,7 @@ static int blkdev_releasepage(struct pag
++/*
+  * char_dev.c
+  */
+ extern void __init chrdev_init(void);
+diff -puN fs/mpage.c~vfs-guard-end-of-device-for-mpage-interface fs/mpage.c
+--- a/fs/mpage.c~vfs-guard-end-of-device-for-mpage-interface
++++ a/fs/mpage.c
+@@ -28,6 +28,7 @@
+ #include <linux/backing-dev.h>
+ #include <linux/pagevec.h>
+ #include <linux/cleancache.h>
++#include "internal.h"
  
- static const struct address_space_operations def_blk_aops = {
- 	.readpage	= blkdev_readpage,
-+	.readpages	= blkdev_readpages,
- 	.writepage	= blkdev_writepage,
- 	.write_begin	= blkdev_write_begin,
- 	.write_end	= blkdev_write_end,
+ /*
+  * I/O completion handler for multipage BIOs.
+@@ -57,6 +58,7 @@ static void mpage_end_io(struct bio *bio
+ static struct bio *mpage_bio_submit(int rw, struct bio *bio)
+ {
+ 	bio->bi_end_io = mpage_end_io;
++	guard_bio_eod(rw, bio);
+ 	submit_bio(rw, bio);
+ 	return NULL;
+ }
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
