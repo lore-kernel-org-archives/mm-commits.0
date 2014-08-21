@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-pass-gfp-mask-to-compact_control.patch added to
+Subject: +
+ prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch added to
  -mm tree
-Date: Thu, 21 Aug 2014 15:22:11 -0700
-Message-ID: <53f67113.y1WOSBEGWB82pHlh%akpm@linux-foundation.org>
+Date: Thu, 21 Aug 2014 15:51:37 -0700
+Message-ID: <53f677f9.hcvjHk6wgaj8Xx41%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:59328 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755471AbaHUWWM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 18:22:12 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so2702717pab.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 15:22:11 -0700 (PDT)
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:49368 "EHLO
+	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753311AbaHUWvj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 18:51:39 -0400
+Received: by mail-qg0-f73.google.com with SMTP id i50so725836qgf.4
+        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 15:51:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: gorcunov@openvz.org, avagin@openvz.org, ebiederm@xmission.com, hpa@zytor.com, jln@google.com, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, mtk.manpages@gmail.com, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: pass gfp mask to compact_control
+     Subject: prctl: PR_SET_MM -- factor out mmap_sem when updating mm::exe_file
 has been added to the -mm tree.  Its filename is
-     mm-compaction-pass-gfp-mask-to-compact_control.patch
+     prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-pass-gfp-mask-to-compact_control.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-pass-gfp-mask-to-compact_control.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,114 +42,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, compaction: pass gfp mask to compact_control
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: prctl: PR_SET_MM -- factor out mmap_sem when updating mm::exe_file
 
-struct compact_control currently converts the gfp mask to a migratetype,
-but we need the entire gfp mask in a follow-up patch.
+Instead of taking mm->mmap_sem inside prctl_set_mm_exe_file() move it out
+and rename the helper to prctl_set_mm_exe_file_locked().  This will allow
+to reuse this function in a next patch.
 
-Pass the entire gfp mask as part of struct compact_control.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Andrew Vagin <avagin@openvz.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Julien Tinnes <jln@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   12 +++++++-----
- mm/internal.h   |    2 +-
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ kernel/sys.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-pass-gfp-mask-to-compact_control mm/compaction.c
---- a/mm/compaction.c~mm-compaction-pass-gfp-mask-to-compact_control
-+++ a/mm/compaction.c
-@@ -1035,8 +1035,8 @@ static isolate_migrate_t isolate_migrate
- 	return cc->nr_migratepages ? ISOLATE_SUCCESS : ISOLATE_NONE;
+diff -puN kernel/sys.c~prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file kernel/sys.c
+--- a/kernel/sys.c~prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file
++++ a/kernel/sys.c
+@@ -1628,12 +1628,14 @@ SYSCALL_DEFINE1(umask, int, mask)
+ 	return mask;
  }
  
--static int compact_finished(struct zone *zone,
--			    struct compact_control *cc)
-+static int compact_finished(struct zone *zone, struct compact_control *cc,
-+			    const int migratetype)
+-static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
++static int prctl_set_mm_exe_file_locked(struct mm_struct *mm, unsigned int fd)
  {
- 	unsigned int order;
- 	unsigned long watermark;
-@@ -1082,7 +1082,7 @@ static int compact_finished(struct zone
- 		struct free_area *area = &zone->free_area[order];
+ 	struct fd exe;
+ 	struct inode *inode;
+ 	int err;
  
- 		/* Job done if page is free of the right migratetype */
--		if (!list_empty(&area->free_list[cc->migratetype]))
-+		if (!list_empty(&area->free_list[migratetype]))
- 			return COMPACT_PARTIAL;
++	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
++
+ 	exe = fdget(fd);
+ 	if (!exe.file)
+ 		return -EBADF;
+@@ -1654,8 +1656,6 @@ static int prctl_set_mm_exe_file(struct
+ 	if (err)
+ 		goto exit;
  
- 		/* Job done if allocation would set block type */
-@@ -1148,6 +1148,7 @@ static int compact_zone(struct zone *zon
- 	int ret;
- 	unsigned long start_pfn = zone->zone_start_pfn;
- 	unsigned long end_pfn = zone_end_pfn(zone);
-+	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
- 	const bool sync = cc->mode != MIGRATE_ASYNC;
+-	down_write(&mm->mmap_sem);
+-
+ 	/*
+ 	 * Forbid mm->exe_file change if old file still mapped.
+ 	 */
+@@ -1667,7 +1667,7 @@ static int prctl_set_mm_exe_file(struct
+ 			if (vma->vm_file &&
+ 			    path_equal(&vma->vm_file->f_path,
+ 				       &mm->exe_file->f_path))
+-				goto exit_unlock;
++				goto exit;
+ 	}
  
- 	ret = compaction_suitable(zone, cc->order);
-@@ -1190,7 +1191,8 @@ static int compact_zone(struct zone *zon
+ 	/*
+@@ -1678,13 +1678,10 @@ static int prctl_set_mm_exe_file(struct
+ 	 */
+ 	err = -EPERM;
+ 	if (test_and_set_bit(MMF_EXE_FILE_CHANGED, &mm->flags))
+-		goto exit_unlock;
++		goto exit;
  
- 	migrate_prep_local();
+ 	err = 0;
+ 	set_mm_exe_file(mm, exe.file);	/* this grabs a reference to exe.file */
+-exit_unlock:
+-	up_write(&mm->mmap_sem);
+-
+ exit:
+ 	fdput(exe);
+ 	return err;
+@@ -1703,8 +1700,12 @@ static int prctl_set_mm(int opt, unsigne
+ 	if (!capable(CAP_SYS_RESOURCE))
+ 		return -EPERM;
  
--	while ((ret = compact_finished(zone, cc)) == COMPACT_CONTINUE) {
-+	while ((ret = compact_finished(zone, cc, migratetype)) ==
-+						COMPACT_CONTINUE) {
- 		int err;
+-	if (opt == PR_SET_MM_EXE_FILE)
+-		return prctl_set_mm_exe_file(mm, (unsigned int)addr);
++	if (opt == PR_SET_MM_EXE_FILE) {
++		down_write(&mm->mmap_sem);
++		error = prctl_set_mm_exe_file_locked(mm, (unsigned int)addr);
++		up_write(&mm->mmap_sem);
++		return error;
++	}
  
- 		switch (isolate_migratepages(zone, cc)) {
-@@ -1245,7 +1247,7 @@ static unsigned long compact_zone_order(
- 		.nr_freepages = 0,
- 		.nr_migratepages = 0,
- 		.order = order,
--		.migratetype = gfpflags_to_migratetype(gfp_mask),
-+		.gfp_mask = gfp_mask,
- 		.zone = zone,
- 		.mode = mode,
- 	};
-diff -puN mm/internal.h~mm-compaction-pass-gfp-mask-to-compact_control mm/internal.h
---- a/mm/internal.h~mm-compaction-pass-gfp-mask-to-compact_control
-+++ a/mm/internal.h
-@@ -142,7 +142,7 @@ struct compact_control {
- 	bool finished_update_migrate;
- 
- 	int order;			/* order a direct compactor needs */
--	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
-+	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
- 	struct zone *zone;
- 	int contended;			/* Signal need_sched() or lock
- 					 * contention detected during
+ 	if (addr >= TASK_SIZE || addr < mmap_min_addr)
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
-x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute.patch
-mm-page_alloc-determine-migratetype-only-once.patch
-mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
-mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
-mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
-mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
-mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
-mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
-mm-compaction-skip-rechecks-when-lock-was-already-held.patch
-mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
-mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
-mm-rename-allocflags_to_migratetype-for-clarity.patch
-mm-compaction-pass-gfp-mask-to-compact_control.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-mm-utilc-add-kstrimdup.patch
-linux-next.patch
+mm-introduce-check_data_rlimit-helper-v2.patch
+mm-use-may_adjust_brk-helper.patch
+prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+fs-proc-task_mmuc-dont-use-task-mm-in-m_start-and-show_map.patch
+fs-proc-task_mmuc-unify-simplify-do_maps_open-and-numa_maps_open.patch
+proc-introduce-proc_mem_open.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
+fs-proc-task_mmuc-cleanup-the-tail_vma-horror-in-m_next.patch
+fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch
+fs-proc-task_mmuc-kill-the-suboptimal-and-confusing-m-version-logic.patch
+fs-proc-task_mmuc-simplify-m_start-to-make-it-readable.patch
+fs-proc-task_mmuc-introduce-m_next_vma-helper.patch
+fs-proc-task_mmuc-reintroduce-m-version-logic.patch
+fs-proc-task_mmuc-update-m-version-in-the-main-loop-in-m_start.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+fs-proc-task_nommuc-dont-use-priv-task-mm.patch
 
