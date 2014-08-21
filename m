@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rename-allocflags_to_migratetype-for-clarity.patch added to
- -mm tree
-Date: Thu, 21 Aug 2014 15:22:10 -0700
-Message-ID: <53f67112.CT+oE179kfHWi8id%akpm@linux-foundation.org>
+Subject: + mm-compaction-skip-rechecks-when-lock-was-already-held.patch
+ added to -mm tree
+Date: Thu, 21 Aug 2014 15:22:06 -0700
+Message-ID: <53f6710e.l/5L1Q62cFeRUqm4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:44525 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754919AbaHUWWL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 18:22:11 -0400
-Received: by mail-pd0-f202.google.com with SMTP id w10so2681564pde.5
-        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 15:22:11 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:35487 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755471AbaHUWWH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 18:22:07 -0400
+Received: by mail-pd0-f201.google.com with SMTP id g10so2626276pdj.4
+        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 15:22:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, cl@linux.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rename allocflags_to_migratetype for clarity
+     Subject: mm, compaction: skip rechecks when lock was already held
 has been added to the -mm tree.  Its filename is
-     mm-rename-allocflags_to_migratetype-for-clarity.patch
+     mm-compaction-skip-rechecks-when-lock-was-already-held.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-allocflags_to_migratetype-for-clarity.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-skip-rechecks-when-lock-was-already-held.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-allocflags_to_migratetype-for-clarity.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-skip-rechecks-when-lock-was-already-held.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,94 +41,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm: rename allocflags_to_migratetype for clarity
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: skip rechecks when lock was already held
 
-The page allocator has gfp flags (like __GFP_WAIT) and alloc flags (like
-ALLOC_CPUSET) that have separate semantics.
+Compaction scanners try to lock zone locks as late as possible by checking
+many page or pageblock properties opportunistically without lock and
+skipping them if not unsuitable.  For pages that pass the initial checks,
+some properties have to be checked again safely under lock.  However, if
+the lock was already held from a previous iteration in the initial checks,
+the rechecks are unnecessary.
 
-The function allocflags_to_migratetype() actually takes gfp flags, not
-alloc flags, and returns a migratetype.  Rename it to
-gfpflags_to_migratetype().
+This patch therefore skips the rechecks when the lock was already held. 
+This is now possible to do, since we don't (potentially) drop and
+reacquire the lock between the initial checks and the safe rechecks
+anymore.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Rik van Riel <riel@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- mm/compaction.c     |    4 ++--
- mm/page_alloc.c     |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ mm/compaction.c |   53 ++++++++++++++++++++++++++--------------------
+ 1 file changed, 31 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-rename-allocflags_to_migratetype-for-clarity include/linux/gfp.h
---- a/include/linux/gfp.h~mm-rename-allocflags_to_migratetype-for-clarity
-+++ a/include/linux/gfp.h
-@@ -156,7 +156,7 @@ struct vm_area_struct;
- #define GFP_DMA32	__GFP_DMA32
- 
- /* Convert GFP flags to their corresponding migrate type */
--static inline int allocflags_to_migratetype(gfp_t gfp_flags)
-+static inline int gfpflags_to_migratetype(const gfp_t gfp_flags)
- {
- 	WARN_ON((gfp_flags & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
- 
-diff -puN mm/compaction.c~mm-rename-allocflags_to_migratetype-for-clarity mm/compaction.c
---- a/mm/compaction.c~mm-rename-allocflags_to_migratetype-for-clarity
+diff -puN mm/compaction.c~mm-compaction-skip-rechecks-when-lock-was-already-held mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-skip-rechecks-when-lock-was-already-held
 +++ a/mm/compaction.c
-@@ -1245,7 +1245,7 @@ static unsigned long compact_zone_order(
- 		.nr_freepages = 0,
- 		.nr_migratepages = 0,
- 		.order = order,
--		.migratetype = allocflags_to_migratetype(gfp_mask),
-+		.migratetype = gfpflags_to_migratetype(gfp_mask),
- 		.zone = zone,
- 		.mode = mode,
- 	};
-@@ -1297,7 +1297,7 @@ unsigned long try_to_compact_pages(struc
- 		return COMPACT_SKIPPED;
+@@ -367,22 +367,30 @@ static unsigned long isolate_freepages_b
+ 			goto isolate_fail;
  
- #ifdef CONFIG_CMA
--	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
-+	if (gfpflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
- 		alloc_flags |= ALLOC_CMA;
- #endif
- 	/* Compact each zone in the list */
-diff -puN mm/page_alloc.c~mm-rename-allocflags_to_migratetype-for-clarity mm/page_alloc.c
---- a/mm/page_alloc.c~mm-rename-allocflags_to_migratetype-for-clarity
-+++ a/mm/page_alloc.c
-@@ -2523,7 +2523,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 			alloc_flags |= ALLOC_NO_WATERMARKS;
- 	}
- #ifdef CONFIG_CMA
--	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
-+	if (gfpflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
- 		alloc_flags |= ALLOC_CMA;
- #endif
- 	return alloc_flags;
-@@ -2786,7 +2786,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	struct zone *preferred_zone;
- 	struct zoneref *preferred_zoneref;
- 	struct page *page = NULL;
--	int migratetype = allocflags_to_migratetype(gfp_mask);
-+	int migratetype = gfpflags_to_migratetype(gfp_mask);
- 	unsigned int cpuset_mems_cookie;
- 	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET|ALLOC_FAIR;
- 	int classzone_idx;
+ 		/*
+-		 * The zone lock must be held to isolate freepages.
+-		 * Unfortunately this is a very coarse lock and can be
+-		 * heavily contended if there are parallel allocations
+-		 * or parallel compactions. For async compaction do not
+-		 * spin on the lock and we acquire the lock as late as
+-		 * possible.
++		 * If we already hold the lock, we can skip some rechecking.
++		 * Note that if we hold the lock now, checked_pageblock was
++		 * already set in some previous iteration (or strict is true),
++		 * so it is correct to skip the suitable migration target
++		 * recheck as well.
+ 		 */
+-		if (!locked)
++		if (!locked) {
++			/*
++			 * The zone lock must be held to isolate freepages.
++			 * Unfortunately this is a very coarse lock and can be
++			 * heavily contended if there are parallel allocations
++			 * or parallel compactions. For async compaction do not
++			 * spin on the lock and we acquire the lock as late as
++			 * possible.
++			 */
+ 			locked = compact_trylock_irqsave(&cc->zone->lock,
+ 								&flags, cc);
+-		if (!locked)
+-			break;
++			if (!locked)
++				break;
+ 
+-		/* Recheck this is a buddy page under lock */
+-		if (!PageBuddy(page))
+-			goto isolate_fail;
++			/* Recheck this is a buddy page under lock */
++			if (!PageBuddy(page))
++				goto isolate_fail;
++		}
+ 
+ 		/* Found a free page, break it into order-0 pages */
+ 		isolated = split_free_page(page);
+@@ -647,19 +655,20 @@ isolate_migratepages_block(struct compac
+ 		    page_count(page) > page_mapcount(page))
+ 			continue;
+ 
+-		/* If the lock is not held, try to take it */
+-		if (!locked)
++		/* If we already hold the lock, we can skip some rechecking */
++		if (!locked) {
+ 			locked = compact_trylock_irqsave(&zone->lru_lock,
+ 								&flags, cc);
+-		if (!locked)
+-			break;
++			if (!locked)
++				break;
+ 
+-		/* Recheck PageLRU and PageTransHuge under lock */
+-		if (!PageLRU(page))
+-			continue;
+-		if (PageTransHuge(page)) {
+-			low_pfn += (1 << compound_order(page)) - 1;
+-			continue;
++			/* Recheck PageLRU and PageTransHuge under lock */
++			if (!PageLRU(page))
++				continue;
++			if (PageTransHuge(page)) {
++				low_pfn += (1 << compound_order(page)) - 1;
++				continue;
++			}
+ 		}
+ 
+ 		lruvec = mem_cgroup_page_lruvec(page, zone);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-x86-numa-setup_node_data-drop-dead-code-and-rename-function.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute.patch
 mm-page_alloc-determine-migratetype-only-once.patch
 mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
 mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
@@ -143,7 +167,5 @@ mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
 mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
 mm-rename-allocflags_to_migratetype-for-clarity.patch
 mm-compaction-pass-gfp-mask-to-compact_control.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-mm-utilc-add-kstrimdup.patch
-linux-next.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 
