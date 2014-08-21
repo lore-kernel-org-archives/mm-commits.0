@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch added to
- -mm tree
-Date: Thu, 21 Aug 2014 15:51:37 -0700
-Message-ID: <53f677f9.hcvjHk6wgaj8Xx41%akpm@linux-foundation.org>
+Subject: + prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+ added to -mm tree
+Date: Thu, 21 Aug 2014 15:51:40 -0700
+Message-ID: <53f677fc.wRCusxPK5iocqT28%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qg0-f73.google.com ([209.85.192.73]:49368 "EHLO
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:43469 "EHLO
 	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753311AbaHUWvj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 18:51:39 -0400
-Received: by mail-qg0-f73.google.com with SMTP id i50so725836qgf.4
-        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 15:51:38 -0700 (PDT)
+	with ESMTP id S1755501AbaHUWvm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 18:51:42 -0400
+Received: by mail-qg0-f73.google.com with SMTP id i50so727551qgf.2
+        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 15:51:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@openvz.org, avagin@openvz.org, ebiederm@xmission.com, hpa@zytor.com, jln@google.com, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, mtk.manpages@gmail.com, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gorcunov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: prctl: PR_SET_MM -- factor out mmap_sem when updating mm::exe_file
+     Subject: prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix
 has been added to the -mm tree.  Its filename is
-     prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
+     prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,120 +41,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: prctl: PR_SET_MM -- factor out mmap_sem when updating mm::exe_file
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix
 
-Instead of taking mm->mmap_sem inside prctl_set_mm_exe_file() move it out
-and rename the helper to prctl_set_mm_exe_file_locked().  This will allow
-to reuse this function in a next patch.
+fix 80-col wordwrap in macro definitions
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Andrew Vagin <avagin@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Vasiliy Kulikov <segoon@openwall.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Julien Tinnes <jln@google.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ kernel/sys.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN kernel/sys.c~prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file kernel/sys.c
---- a/kernel/sys.c~prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file
+diff -puN kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix kernel/sys.c
+--- a/kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix
 +++ a/kernel/sys.c
-@@ -1628,12 +1628,14 @@ SYSCALL_DEFINE1(umask, int, mask)
- 	return mask;
- }
- 
--static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
-+static int prctl_set_mm_exe_file_locked(struct mm_struct *mm, unsigned int fd)
- {
- 	struct fd exe;
- 	struct inode *inode;
- 	int err;
- 
-+	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
-+
- 	exe = fdget(fd);
- 	if (!exe.file)
- 		return -EBADF;
-@@ -1654,8 +1656,6 @@ static int prctl_set_mm_exe_file(struct
- 	if (err)
- 		goto exit;
- 
--	down_write(&mm->mmap_sem);
--
- 	/*
- 	 * Forbid mm->exe_file change if old file still mapped.
+@@ -1703,15 +1703,15 @@ static int validate_prctl_map_locked(str
+ 	 * Make sure the members are not somewhere outside
+ 	 * of allowed address space.
  	 */
-@@ -1667,7 +1667,7 @@ static int prctl_set_mm_exe_file(struct
- 			if (vma->vm_file &&
- 			    path_equal(&vma->vm_file->f_path,
- 				       &mm->exe_file->f_path))
--				goto exit_unlock;
-+				goto exit;
+-#define __prctl_check_addr_space(__member)					\
+-	({									\
+-		int __rc;							\
+-		if ((unsigned long)prctl_map->__member < mmap_max_addr &&	\
+-		    (unsigned long)prctl_map->__member >= mmap_min_addr)	\
+-			__rc = 0;						\
+-		else								\
+-			__rc = -EINVAL;						\
+-		__rc;								\
++#define __prctl_check_addr_space(__member)				\
++	({								\
++		int __rc;						\
++		if ((unsigned long)prctl_map->__member < mmap_max_addr &&\
++		    (unsigned long)prctl_map->__member >= mmap_min_addr)\
++			__rc = 0;					\
++		else							\
++			__rc = -EINVAL;					\
++		__rc;							\
+ 	})
+ 	error |= __prctl_check_addr_space(start_code);
+ 	error |= __prctl_check_addr_space(end_code);
+@@ -1736,7 +1736,7 @@ static int validate_prctl_map_locked(str
+ 		error = -EINVAL;
+ 		goto out;
  	}
- 
+-#define __prctl_check_vma(__member)						\
++#define __prctl_check_vma(__member)					\
+ 	find_vma(mm, (unsigned long)prctl_map->__member) ? 0 : -EINVAL
+ 	error |= __prctl_check_vma(start_brk);
+ 	error |= __prctl_check_vma(brk);
+@@ -1751,8 +1751,8 @@ static int validate_prctl_map_locked(str
  	/*
-@@ -1678,13 +1678,10 @@ static int prctl_set_mm_exe_file(struct
+ 	 * Make sure the pairs are ordered.
  	 */
- 	err = -EPERM;
- 	if (test_and_set_bit(MMF_EXE_FILE_CHANGED, &mm->flags))
--		goto exit_unlock;
-+		goto exit;
- 
- 	err = 0;
- 	set_mm_exe_file(mm, exe.file);	/* this grabs a reference to exe.file */
--exit_unlock:
--	up_write(&mm->mmap_sem);
--
- exit:
- 	fdput(exe);
- 	return err;
-@@ -1703,8 +1700,12 @@ static int prctl_set_mm(int opt, unsigne
- 	if (!capable(CAP_SYS_RESOURCE))
- 		return -EPERM;
- 
--	if (opt == PR_SET_MM_EXE_FILE)
--		return prctl_set_mm_exe_file(mm, (unsigned int)addr);
-+	if (opt == PR_SET_MM_EXE_FILE) {
-+		down_write(&mm->mmap_sem);
-+		error = prctl_set_mm_exe_file_locked(mm, (unsigned int)addr);
-+		up_write(&mm->mmap_sem);
-+		return error;
-+	}
- 
- 	if (addr >= TASK_SIZE || addr < mmap_min_addr)
- 		return -EINVAL;
+-#define __prctl_check_order(__m1, __op, __m2)					\
+-	((unsigned long)prctl_map->__m1 __op					\
++#define __prctl_check_order(__m1, __op, __m2)				\
++	((unsigned long)prctl_map->__m1 __op				\
+ 	 (unsigned long)prctl_map->__m2) ? 0 : -EINVAL
+ 	error |= __prctl_check_order(start_code, <, end_code);
+ 	error |= __prctl_check_order(start_data, <, end_data);
 _
 
-Patches currently in -mm which might be from gorcunov@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-introduce-check_data_rlimit-helper-v2.patch
-mm-use-may_adjust_brk-helper.patch
-prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
 prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-fs-proc-task_mmuc-dont-use-task-mm-in-m_start-and-show_map.patch
-fs-proc-task_mmuc-unify-simplify-do_maps_open-and-numa_maps_open.patch
-proc-introduce-proc_mem_open.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
-fs-proc-task_mmuc-cleanup-the-tail_vma-horror-in-m_next.patch
-fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch
-fs-proc-task_mmuc-kill-the-suboptimal-and-confusing-m-version-logic.patch
-fs-proc-task_mmuc-simplify-m_start-to-make-it-readable.patch
-fs-proc-task_mmuc-introduce-m_next_vma-helper.patch
-fs-proc-task_mmuc-reintroduce-m-version-logic.patch
-fs-proc-task_mmuc-update-m-version-in-the-main-loop-in-m_start.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-fs-proc-task_nommuc-dont-use-priv-task-mm.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
