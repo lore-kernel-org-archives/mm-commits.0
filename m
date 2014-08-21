@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-make-guard_bh_eod-more-generic.patch added to -mm tree
-Date: Thu, 21 Aug 2014 14:44:17 -0700
-Message-ID: <53f66831.GfNAExqnDltkEH5z%akpm@linux-foundation.org>
+Subject: + fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+ added to -mm tree
+Date: Thu, 21 Aug 2014 14:58:58 -0700
+Message-ID: <53f66ba2.6LBoS52WcILzWu52%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:41172 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755172AbaHUVoT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 17:44:19 -0400
-Received: by mail-vc0-f201.google.com with SMTP id le20so1179578vcb.2
-        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 14:44:18 -0700 (PDT)
+Received: from mail-yk0-f202.google.com ([209.85.160.202]:44356 "EHLO
+	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754975AbaHUV67 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 17:58:59 -0400
+Received: by mail-yk0-f202.google.com with SMTP id q9so1184783ykb.3
+        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 14:58:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, axboe@kernel.dk, jmoyer@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, himangi774@gmail.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vfs: make guard_bh_eod() more generic
+     Subject: fs/ocfs2/stack_user.c: fix typo in ocfs2_control_release()
 has been added to the -mm tree.  Its filename is
-     vfs-make-guard_bh_eod-more-generic.patch
+     fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vfs-make-guard_bh_eod-more-generic.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-make-guard_bh_eod-more-generic.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,107 +41,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: vfs: make guard_bh_eod() more generic
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/ocfs2/stack_user.c: fix typo in ocfs2_control_release()
 
-This patchset implements readpages() operation for block device by using
-mpage_readpages() which can create multipage BIOs instead of BIOs for each
-page and reduce system CPU time consumption.
+It is supposed to zero pv_minor.
 
-
-This patch (of 3):
-
-guard_bh_eod() is used in submit_bh() to allow us to do IO even on the odd
-last sectors of a device, even if the block size is some multiple of the
-physical sector size.  This makes guard_bh_eod() more generic and renames
-it guard_bio_eod() so that we can use it without struct buffer_head
-argument.
-
-The reason for this change is that using mpage_readpages() for block
-device requires to add this guard check in mpage code.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Reported-by: Himangi Saraogi <himangi774@gmail.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ fs/ocfs2/stack_user.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/buffer.c~vfs-make-guard_bh_eod-more-generic fs/buffer.c
---- a/fs/buffer.c~vfs-make-guard_bh_eod-more-generic
-+++ a/fs/buffer.c
-@@ -2954,7 +2954,7 @@ static void end_bio_bh_io_sync(struct bi
- 
- /*
-  * This allows us to do IO even on the odd last sectors
-- * of a device, even if the bh block size is some multiple
-+ * of a device, even if the block size is some multiple
-  * of the physical sector size.
-  *
-  * We'll just truncate the bio to the size of the device,
-@@ -2964,10 +2964,11 @@ static void end_bio_bh_io_sync(struct bi
-  * errors, this only handles the "we need to be able to
-  * do IO at the final sector" case.
-  */
--static void guard_bh_eod(int rw, struct bio *bio, struct buffer_head *bh)
-+static void guard_bio_eod(int rw, struct bio *bio)
- {
- 	sector_t maxsector;
--	unsigned bytes;
-+	struct bio_vec *bvec = &bio->bi_io_vec[bio->bi_vcnt - 1];
-+	unsigned truncated_bytes;
- 
- 	maxsector = i_size_read(bio->bi_bdev->bd_inode) >> 9;
- 	if (!maxsector)
-@@ -2982,23 +2983,20 @@ static void guard_bh_eod(int rw, struct
- 		return;
- 
- 	maxsector -= bio->bi_iter.bi_sector;
--	bytes = bio->bi_iter.bi_size;
--	if (likely((bytes >> 9) <= maxsector))
-+	if (likely((bio->bi_iter.bi_size >> 9) <= maxsector))
- 		return;
- 
--	/* Uhhuh. We've got a bh that straddles the device size! */
--	bytes = maxsector << 9;
-+	/* Uhhuh. We've got a bio that straddles the device size! */
-+	truncated_bytes = bio->bi_iter.bi_size - (maxsector << 9);
- 
- 	/* Truncate the bio.. */
--	bio->bi_iter.bi_size = bytes;
--	bio->bi_io_vec[0].bv_len = bytes;
-+	bio->bi_iter.bi_size -= truncated_bytes;
-+	bvec->bv_len -= truncated_bytes;
- 
- 	/* ..and clear the end of the buffer for reads */
- 	if ((rw & RW_MASK) == READ) {
--		void *kaddr = kmap_atomic(bh->b_page);
--		memset(kaddr + bh_offset(bh) + bytes, 0, bh->b_size - bytes);
--		kunmap_atomic(kaddr);
--		flush_dcache_page(bh->b_page);
-+		zero_user(bvec->bv_page, bvec->bv_offset + bvec->bv_len,
-+				truncated_bytes);
+diff -puN fs/ocfs2/stack_user.c~fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release
++++ a/fs/ocfs2/stack_user.c
+@@ -591,7 +591,7 @@ static int ocfs2_control_release(struct
+ 		 */
+ 		ocfs2_control_this_node = -1;
+ 		running_proto.pv_major = 0;
+-		running_proto.pv_major = 0;
++		running_proto.pv_minor = 0;
  	}
- }
  
-@@ -3039,7 +3037,7 @@ int _submit_bh(int rw, struct buffer_hea
- 	bio->bi_flags |= bio_flags;
- 
- 	/* Take care of bh's that straddle the end of the device */
--	guard_bh_eod(rw, bio, bh);
-+	guard_bio_eod(rw, bio);
- 
- 	if (buffer_meta(bh))
- 		rw |= REQ_META;
+ out:
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vfs-make-guard_bh_eod-more-generic.patch
-vfs-guard-end-of-device-for-mpage-interface.patch
-block_dev-implement-readpages-to-optimize-sequential-read.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
 linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
