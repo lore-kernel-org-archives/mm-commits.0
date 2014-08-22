@@ -1,140 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: +
- rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2.patch added
- to -mm tree
-Date: Fri, 22 Aug 2014 13:43:51 -0700
-Message-ID: <53f7ab87.LBMK+L+OnC9YYntb%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch removed from -mm tree
+Date: Fri, 22 Aug 2014 14:36:31 -0700
+Message-ID: <53f7b7df.R/U0+3KXUeWttx2x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f73.google.com ([209.85.218.73]:53511 "EHLO
-	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751373AbaHVUnw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Aug 2014 16:43:52 -0400
-Received: by mail-oi0-f73.google.com with SMTP id u20so2249907oif.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2014 13:43:52 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:35688 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751591AbaHVVgd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Aug 2014 17:36:33 -0400
+Received: by mail-qa0-f74.google.com with SMTP id j15so1319472qaq.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2014 14:36:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cw00.choi@samsung.com, a.zummo@towertech.it, kgene.kim@samsung.com, kyungmin.park@samsung.com, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, hpa@zytor.com, rjw@sisk.pl, tangchen@cn.fujitsu.com, tj@kernel.org, wency@cn.fujitsu.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2
-has been added to the -mm tree.  Its filename is
-     rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2.patch
+     Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
+has been removed from the -mm tree.  Its filename was
+     mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
 
-Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
+Let memblock skip the hotpluggable memory regions in __next_mem_range(),
+it is used to to prevent memblock from allocating hotpluggable memory for
+the kernel at early time.  The code is the same as __next_mem_range_rev().
+
+Clear hotpluggable flag before releasing free pages to the buddy allocator.
+
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ mm/memblock.c  |    4 ++++
+ mm/nobootmem.c |    2 ++
+ 2 files changed, 6 insertions(+)
 
-diff -puN drivers/rtc/rtc-s3c.c~rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2 drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -121,6 +121,9 @@ static int s3c_rtc_setaie(struct device
- 	struct s3c_rtc *info = dev_get_drvdata(dev);
- 	unsigned int tmp;
+diff -puN mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/memblock.c
+--- a/mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
++++ a/mm/memblock.c
+@@ -816,6 +816,10 @@ void __init_memblock __next_mem_range(u6
+ 		if (nid != NUMA_NO_NODE && nid != m_nid)
+ 			continue;
  
-+	if (!info->base)
-+		return -EINVAL;
++		/* skip hotpluggable memory regions if needed */
++		if (movable_node_is_enabled() && memblock_is_hotpluggable(m))
++			continue;
 +
- 	dev_dbg(info->dev, "%s: aie=%d\n", __func__, enabled);
+ 		if (!type_b) {
+ 			if (out_start)
+ 				*out_start = m_start;
+diff -puN mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/nobootmem.c
+--- a/mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
++++ a/mm/nobootmem.c
+@@ -119,6 +119,8 @@ static unsigned long __init free_low_mem
+ 	phys_addr_t start, end;
+ 	u64 i;
  
- 	clk_enable(info->rtc_clk);
-@@ -180,6 +183,9 @@ static int s3c_rtc_gettime(struct device
- 	struct s3c_rtc *info = dev_get_drvdata(dev);
- 	unsigned int have_retried = 0;
- 
-+	if (!info->base)
-+		return -EINVAL;
++	memblock_clear_hotplug(0, ULLONG_MAX);
 +
- 	clk_enable(info->rtc_clk);
-  retry_get_time:
- 	rtc_tm->tm_min  = readb(info->base + S3C2410_RTCMIN);
-@@ -224,6 +230,9 @@ static int s3c_rtc_settime(struct device
- 	struct s3c_rtc *info = dev_get_drvdata(dev);
- 	int year = tm->tm_year - 100;
+ 	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
+ 		count += __free_memory_core(start, end);
  
-+	if (!info->base)
-+		return -EINVAL;
-+
- 	dev_dbg(dev, "set time %04d.%02d.%02d %02d:%02d:%02d\n",
- 		 1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
- 		 tm->tm_hour, tm->tm_min, tm->tm_sec);
-@@ -255,6 +264,9 @@ static int s3c_rtc_getalarm(struct devic
- 	struct rtc_time *alm_tm = &alrm->time;
- 	unsigned int alm_en;
- 
-+	if (!info->base)
-+		return -EINVAL;
-+
- 	clk_enable(info->rtc_clk);
- 	alm_tm->tm_sec  = readb(info->base + S3C2410_ALMSEC);
- 	alm_tm->tm_min  = readb(info->base + S3C2410_ALMMIN);
-@@ -317,6 +329,9 @@ static int s3c_rtc_setalarm(struct devic
- 	struct rtc_time *tm = &alrm->time;
- 	unsigned int alrm_en;
- 
-+	if (!info->base)
-+		return -EINVAL;
-+
- 	clk_enable(info->rtc_clk);
- 	dev_dbg(dev, "s3c_rtc_setalarm: %d, %04d.%02d.%02d %02d:%02d:%02d\n",
- 		 alrm->enabled,
-@@ -357,6 +372,9 @@ static int s3c_rtc_proc(struct device *d
- 	struct s3c_rtc *info = dev_get_drvdata(dev);
- 	unsigned int ticnt;
- 
-+	if (!info->base)
-+		return -EINVAL;
-+
- 	clk_enable(info->rtc_clk);
- 	if (info->cpu_type == TYPE_S3C64XX) {
- 		ticnt = readw(info->base + S3C2410_RTCCON);
-@@ -548,7 +566,7 @@ static int s3c_rtc_probe(struct platform
- 		rtc_tm.tm_min	= 0;
- 		rtc_tm.tm_sec	= 0;
- 
--		s3c_rtc_settime(NULL, &rtc_tm);
-+		s3c_rtc_settime(&pdev->dev, &rtc_tm);
- 
- 		dev_warn(&pdev->dev, "warning: invalid RTC value so initializing it\n");
- 	}
 _
 
-Patches currently in -mm which might be from cw00.choi@samsung.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
-rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables.patch
-rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2.patch
-rtc-s3c-remove-warning-message-when-checking-coding-style-with-checkpatch-script.patch
-rtc-s3c-add-s3c_rtc_data-structure-to-use-variant-data-instead-of-s3c_cpu_type.patch
-rtc-s3c-add-support-for-rtc-of-exynos3250-soc.patch
-arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch
+memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node.patch
 
