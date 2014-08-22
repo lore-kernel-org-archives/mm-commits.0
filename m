@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + kgdb-timeout-if-secondary-cpus-ignore-the-roundup.patch added
- to -mm tree
-Date: Fri, 22 Aug 2014 15:21:41 -0700
-Message-ID: <53f7c275.nT55lY8rfXMsV10W%akpm@linux-foundation.org>
+Subject: + flush_icache_range-export-symbol-to-fix-build-errors.patch
+ added to -mm tree
+Date: Fri, 22 Aug 2014 15:24:46 -0700
+Message-ID: <53f7c32e.LvjwYhjV/3KXihvU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:50497 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752221AbaHVWVm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Aug 2014 18:21:42 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so64774igi.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2014 15:21:42 -0700 (PDT)
+Received: from mail-oi0-f73.google.com ([209.85.218.73]:61534 "EHLO
+	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913AbaHVWYr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Aug 2014 18:24:47 -0400
+Received: by mail-oi0-f73.google.com with SMTP id u20so2268557oif.0
+        for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2014 15:24:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.thompson@linaro.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: bobby.prani@gmail.com, chris@zankel.net, cmetcalf@tilera.com, geert@linux-m68k.org, jcmvbkbc@gmail.com, masami.hiramatsu.pt@hitachi.com, noamc@ezchip.com, rkuo@codeaurora.org, tkhai@yandex.ru, vgupta@synopsys.com, zlu@tilera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kgdb: timeout if secondary CPUs ignore the roundup
+     Subject: flush_icache_range: export symbol to fix build errors
 has been added to the -mm tree.  Its filename is
-     kgdb-timeout-if-secondary-cpus-ignore-the-roundup.patch
+     flush_icache_range-export-symbol-to-fix-build-errors.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kgdb-timeout-if-secondary-cpus-ignore-the-roundup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/flush_icache_range-export-symbol-to-fix-build-errors.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kgdb-timeout-if-secondary-cpus-ignore-the-roundup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/flush_icache_range-export-symbol-to-fix-build-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,93 +41,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Thompson <daniel.thompson@linaro.org>
-Subject: kgdb: timeout if secondary CPUs ignore the roundup
+From: Pranith Kumar <bobby.prani@gmail.com>
+Subject: flush_icache_range: export symbol to fix build errors
 
-Currently if an active CPU fails to respond to a roundup request the CPU
-that requested the roundup will become stuck.  This needlessly reduces the
-robustness of the debugger.
+Fix building errors occuring due to a missing export of
+flush_icache_range() in
 
-This patch introduces a timeout allowing the system state to be examined
-even when the system contains unresponsive processors.  It also modifies
-kdb's cpu command to make it censor attempts to switch to unresponsive
-processors and to report their state as (D)ead.
+kisskb.ellerman.id.au/kisskb/buildresult/11677809/
 
-Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+ERROR: "flush_icache_range" [drivers/misc/lkdtm.ko] undefined!
+
+Signed-off-by: Pranith Kumar <bobby.prani@gmail.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Vineet Gupta <vgupta@synopsys.com>	[arc]
+Acked-by: Richard Kuo <rkuo@codeaurora.org>	[hexagon]
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Chris Zankel <chris@zankel.net>
+Acked-by: Max Filippov <jcmvbkbc@gmail.com>	[xtensa]
+Cc: Noam Camus <noamc@ezchip.com>
+Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Acked-by: Zhigang Lu <zlu@tilera.com>		[tile]
+Cc: Kirill Tkhai <tkhai@yandex.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/debug/debug_core.c       |    9 +++++++--
- kernel/debug/kdb/kdb_debugger.c |    4 ++++
- kernel/debug/kdb/kdb_main.c     |    4 +++-
- 3 files changed, 14 insertions(+), 3 deletions(-)
+ arch/arc/mm/cache_arc700.c |    1 +
+ arch/hexagon/mm/cache.c    |    1 +
+ arch/sh/mm/cache.c         |    1 +
+ arch/tile/kernel/smp.c     |    1 +
+ arch/xtensa/kernel/smp.c   |    1 +
+ 5 files changed, 5 insertions(+)
 
-diff -puN kernel/debug/debug_core.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup kernel/debug/debug_core.c
---- a/kernel/debug/debug_core.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup
-+++ a/kernel/debug/debug_core.c
-@@ -471,6 +471,7 @@ static int kgdb_cpu_enter(struct kgdb_st
- 	int cpu;
- 	int trace_on = 0;
- 	int online_cpus = num_online_cpus();
-+	u64 time_left;
- 
- 	kgdb_info[ks->cpu].enter_kgdb++;
- 	kgdb_info[ks->cpu].exception_state |= exception_state;
-@@ -595,9 +596,13 @@ return_normal:
- 	/*
- 	 * Wait for the other CPUs to be notified and be waiting for us:
- 	 */
--	while (kgdb_do_roundup && (atomic_read(&masters_in_kgdb) +
--				atomic_read(&slaves_in_kgdb)) != online_cpus)
-+	time_left = loops_per_jiffy * HZ;
-+	while (kgdb_do_roundup && --time_left &&
-+	       (atomic_read(&masters_in_kgdb) + atomic_read(&slaves_in_kgdb)) !=
-+		   online_cpus)
- 		cpu_relax();
-+	if (!time_left)
-+		pr_crit("KGDB: Timed out waiting for secondary CPUs.\n");
- 
- 	/*
- 	 * At this point the primary processor is completely
-diff -puN kernel/debug/kdb/kdb_debugger.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup kernel/debug/kdb/kdb_debugger.c
---- a/kernel/debug/kdb/kdb_debugger.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup
-+++ a/kernel/debug/kdb/kdb_debugger.c
-@@ -129,6 +129,10 @@ int kdb_stub(struct kgdb_state *ks)
- 		ks->pass_exception = 1;
- 		KDB_FLAG_SET(CATASTROPHIC);
+diff -puN arch/arc/mm/cache_arc700.c~flush_icache_range-export-symbol-to-fix-build-errors arch/arc/mm/cache_arc700.c
+--- a/arch/arc/mm/cache_arc700.c~flush_icache_range-export-symbol-to-fix-build-errors
++++ a/arch/arc/mm/cache_arc700.c
+@@ -581,6 +581,7 @@ void flush_icache_range(unsigned long ks
+ 		tot_sz -= sz;
  	}
-+	/* set CATASTROPHIC if the system contains unresponsive processors */
-+	for_each_online_cpu(i)
-+		if (!kgdb_info[i].enter_kgdb)
-+			KDB_FLAG_SET(CATASTROPHIC);
- 	if (KDB_STATE(SSBPT) && reason == KDB_REASON_SSTEP) {
- 		KDB_STATE_CLEAR(SSBPT);
- 		KDB_STATE_CLEAR(DOING_SS);
-diff -puN kernel/debug/kdb/kdb_main.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup kernel/debug/kdb/kdb_main.c
---- a/kernel/debug/kdb/kdb_main.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup
-+++ a/kernel/debug/kdb/kdb_main.c
-@@ -2157,6 +2157,8 @@ static void kdb_cpu_status(void)
- 	for (start_cpu = -1, i = 0; i < NR_CPUS; i++) {
- 		if (!cpu_online(i)) {
- 			state = 'F';	/* cpu is offline */
-+		} else if (!kgdb_info[i].enter_kgdb) {
-+			state = 'D';	/* cpu is online but unresponsive */
- 		} else {
- 			state = ' ';	/* cpu is responding to kdb */
- 			if (kdb_task_state_char(KDB_TSK(i)) == 'I')
-@@ -2210,7 +2212,7 @@ static int kdb_cpu(int argc, const char
- 	/*
- 	 * Validate cpunum
- 	 */
--	if ((cpunum > NR_CPUS) || !cpu_online(cpunum))
-+	if ((cpunum > NR_CPUS) || !kgdb_info[cpunum].enter_kgdb)
- 		return KDB_BADCPUNUM;
+ }
++EXPORT_SYMBOL(flush_icache_range);
  
- 	dbg_switch_cpu = cpunum;
+ /*
+  * General purpose helper to make I and D cache lines consistent.
+diff -puN arch/hexagon/mm/cache.c~flush_icache_range-export-symbol-to-fix-build-errors arch/hexagon/mm/cache.c
+--- a/arch/hexagon/mm/cache.c~flush_icache_range-export-symbol-to-fix-build-errors
++++ a/arch/hexagon/mm/cache.c
+@@ -68,6 +68,7 @@ void flush_icache_range(unsigned long st
+ 	);
+ 	local_irq_restore(flags);
+ }
++EXPORT_SYMBOL(flush_icache_range);
+ 
+ void hexagon_clean_dcache_range(unsigned long start, unsigned long end)
+ {
+diff -puN arch/sh/mm/cache.c~flush_icache_range-export-symbol-to-fix-build-errors arch/sh/mm/cache.c
+--- a/arch/sh/mm/cache.c~flush_icache_range-export-symbol-to-fix-build-errors
++++ a/arch/sh/mm/cache.c
+@@ -229,6 +229,7 @@ void flush_icache_range(unsigned long st
+ 
+ 	cacheop_on_each_cpu(local_flush_icache_range, (void *)&data, 1);
+ }
++EXPORT_SYMBOL(flush_icache_range);
+ 
+ void flush_icache_page(struct vm_area_struct *vma, struct page *page)
+ {
+diff -puN arch/tile/kernel/smp.c~flush_icache_range-export-symbol-to-fix-build-errors arch/tile/kernel/smp.c
+--- a/arch/tile/kernel/smp.c~flush_icache_range-export-symbol-to-fix-build-errors
++++ a/arch/tile/kernel/smp.c
+@@ -183,6 +183,7 @@ void flush_icache_range(unsigned long st
+ 		preempt_enable();
+ 	}
+ }
++EXPORT_SYMBOL(flush_icache_range);
+ 
+ 
+ /* Called when smp_send_reschedule() triggers IRQ_RESCHEDULE. */
+diff -puN arch/xtensa/kernel/smp.c~flush_icache_range-export-symbol-to-fix-build-errors arch/xtensa/kernel/smp.c
+--- a/arch/xtensa/kernel/smp.c~flush_icache_range-export-symbol-to-fix-build-errors
++++ a/arch/xtensa/kernel/smp.c
+@@ -571,6 +571,7 @@ void flush_icache_range(unsigned long st
+ 	};
+ 	on_each_cpu(ipi_flush_icache_range, &fd, 1);
+ }
++EXPORT_SYMBOL(flush_icache_range);
+ 
+ /* ------------------------------------------------------------------------- */
+ 
 _
 
-Patches currently in -mm which might be from daniel.thompson@linaro.org are
+Patches currently in -mm which might be from bobby.prani@gmail.com are
 
-kgdb-timeout-if-secondary-cpus-ignore-the-roundup.patch
+flush_icache_range-export-symbol-to-fix-build-errors.patch
+linux-next.patch
 
