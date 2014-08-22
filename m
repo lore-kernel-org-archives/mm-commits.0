@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- tools-selftests-fixing-build-issue-with-make-kselftests-target.patch added
+Subject: + kgdb-timeout-if-secondary-cpus-ignore-the-roundup.patch added
  to -mm tree
-Date: Fri, 22 Aug 2014 14:44:16 -0700
-Message-ID: <53f7b9b0.HWG0RepPypjn1FH8%akpm@linux-foundation.org>
+Date: Fri, 22 Aug 2014 15:21:41 -0700
+Message-ID: <53f7c275.nT55lY8rfXMsV10W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f73.google.com ([209.85.218.73]:52118 "EHLO
-	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751716AbaHVVoR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Aug 2014 17:44:17 -0400
-Received: by mail-oi0-f73.google.com with SMTP id u20so2261439oif.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2014 14:44:16 -0700 (PDT)
+Received: from mail-ig0-f202.google.com ([209.85.213.202]:50497 "EHLO
+	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752221AbaHVWVm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Aug 2014 18:21:42 -0400
+Received: by mail-ig0-f202.google.com with SMTP id r2so64774igi.5
+        for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2014 15:21:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tranmanphong@gmail.com, dh.herrmann@gmail.com, hughd@google.com, mmarek@suse.cz, sam@ravnborg.org, shuah.kh@samsung.com, mm-commits@vger.kernel.org
+To: daniel.thompson@linaro.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: selftests: fix build issue with make kselftests target
+     Subject: kgdb: timeout if secondary CPUs ignore the roundup
 has been added to the -mm tree.  Its filename is
-     tools-selftests-fixing-build-issue-with-make-kselftests-target.patch
+     kgdb-timeout-if-secondary-cpus-ignore-the-roundup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-selftests-fixing-build-issue-with-make-kselftests-target.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kgdb-timeout-if-secondary-cpus-ignore-the-roundup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-selftests-fixing-build-issue-with-make-kselftests-target.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kgdb-timeout-if-secondary-cpus-ignore-the-roundup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,121 +41,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Phong Tran <tranmanphong@gmail.com>
-Subject: tools: selftests: fix build issue with make kselftests target
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Subject: kgdb: timeout if secondary CPUs ignore the roundup
 
-Fix the typo of ARCH when running 'make kselftests'.  Change the 'X86' to
-'x86'.  Test by compilation.
+Currently if an active CPU fails to respond to a roundup request the CPU
+that requested the roundup will become stuck.  This needlessly reduces the
+robustness of the debugger.
 
-Signed-off-by: Phong Tran <tranmanphong@gmail.com>
-Cc: David Herrmann <dh.herrmann@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shuah Khan <shuah.kh@samsung.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Michal Marek <mmarek@suse.cz>
+This patch introduces a timeout allowing the system state to be examined
+even when the system contains unresponsive processors.  It also modifies
+kdb's cpu command to make it censor attempts to switch to unresponsive
+processors and to report their state as (D)ead.
+
+Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/ipc/Makefile   |    6 +++---
- tools/testing/selftests/kcmp/Makefile  |    6 +++---
- tools/testing/selftests/memfd/Makefile |   10 +++++-----
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ kernel/debug/debug_core.c       |    9 +++++++--
+ kernel/debug/kdb/kdb_debugger.c |    4 ++++
+ kernel/debug/kdb/kdb_main.c     |    4 +++-
+ 3 files changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN tools/testing/selftests/ipc/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target tools/testing/selftests/ipc/Makefile
---- a/tools/testing/selftests/ipc/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target
-+++ a/tools/testing/selftests/ipc/Makefile
-@@ -1,18 +1,18 @@
- uname_M := $(shell uname -m 2>/dev/null || echo not)
- ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
- ifeq ($(ARCH),i386)
--        ARCH := X86
-+        ARCH := x86
- 	CFLAGS := -DCONFIG_X86_32 -D__i386__
- endif
- ifeq ($(ARCH),x86_64)
--	ARCH := X86
-+	ARCH := x86
- 	CFLAGS := -DCONFIG_X86_64 -D__x86_64__
- endif
+diff -puN kernel/debug/debug_core.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup kernel/debug/debug_core.c
+--- a/kernel/debug/debug_core.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup
++++ a/kernel/debug/debug_core.c
+@@ -471,6 +471,7 @@ static int kgdb_cpu_enter(struct kgdb_st
+ 	int cpu;
+ 	int trace_on = 0;
+ 	int online_cpus = num_online_cpus();
++	u64 time_left;
  
- CFLAGS += -I../../../../usr/include/
+ 	kgdb_info[ks->cpu].enter_kgdb++;
+ 	kgdb_info[ks->cpu].exception_state |= exception_state;
+@@ -595,9 +596,13 @@ return_normal:
+ 	/*
+ 	 * Wait for the other CPUs to be notified and be waiting for us:
+ 	 */
+-	while (kgdb_do_roundup && (atomic_read(&masters_in_kgdb) +
+-				atomic_read(&slaves_in_kgdb)) != online_cpus)
++	time_left = loops_per_jiffy * HZ;
++	while (kgdb_do_roundup && --time_left &&
++	       (atomic_read(&masters_in_kgdb) + atomic_read(&slaves_in_kgdb)) !=
++		   online_cpus)
+ 		cpu_relax();
++	if (!time_left)
++		pr_crit("KGDB: Timed out waiting for secondary CPUs.\n");
  
- all:
--ifeq ($(ARCH),X86)
-+ifeq ($(ARCH),x86)
- 	gcc $(CFLAGS) msgque.c -o msgque_test
- else
- 	echo "Not an x86 target, can't build msgque selftest"
-diff -puN tools/testing/selftests/kcmp/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target tools/testing/selftests/kcmp/Makefile
---- a/tools/testing/selftests/kcmp/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target
-+++ a/tools/testing/selftests/kcmp/Makefile
-@@ -1,11 +1,11 @@
- uname_M := $(shell uname -m 2>/dev/null || echo not)
- ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
- ifeq ($(ARCH),i386)
--        ARCH := X86
-+        ARCH := x86
- 	CFLAGS := -DCONFIG_X86_32 -D__i386__
- endif
- ifeq ($(ARCH),x86_64)
--	ARCH := X86
-+	ARCH := x86
- 	CFLAGS := -DCONFIG_X86_64 -D__x86_64__
- endif
+ 	/*
+ 	 * At this point the primary processor is completely
+diff -puN kernel/debug/kdb/kdb_debugger.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup kernel/debug/kdb/kdb_debugger.c
+--- a/kernel/debug/kdb/kdb_debugger.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup
++++ a/kernel/debug/kdb/kdb_debugger.c
+@@ -129,6 +129,10 @@ int kdb_stub(struct kgdb_state *ks)
+ 		ks->pass_exception = 1;
+ 		KDB_FLAG_SET(CATASTROPHIC);
+ 	}
++	/* set CATASTROPHIC if the system contains unresponsive processors */
++	for_each_online_cpu(i)
++		if (!kgdb_info[i].enter_kgdb)
++			KDB_FLAG_SET(CATASTROPHIC);
+ 	if (KDB_STATE(SSBPT) && reason == KDB_REASON_SSTEP) {
+ 		KDB_STATE_CLEAR(SSBPT);
+ 		KDB_STATE_CLEAR(DOING_SS);
+diff -puN kernel/debug/kdb/kdb_main.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup kernel/debug/kdb/kdb_main.c
+--- a/kernel/debug/kdb/kdb_main.c~kgdb-timeout-if-secondary-cpus-ignore-the-roundup
++++ a/kernel/debug/kdb/kdb_main.c
+@@ -2157,6 +2157,8 @@ static void kdb_cpu_status(void)
+ 	for (start_cpu = -1, i = 0; i < NR_CPUS; i++) {
+ 		if (!cpu_online(i)) {
+ 			state = 'F';	/* cpu is offline */
++		} else if (!kgdb_info[i].enter_kgdb) {
++			state = 'D';	/* cpu is online but unresponsive */
+ 		} else {
+ 			state = ' ';	/* cpu is responding to kdb */
+ 			if (kdb_task_state_char(KDB_TSK(i)) == 'I')
+@@ -2210,7 +2212,7 @@ static int kdb_cpu(int argc, const char
+ 	/*
+ 	 * Validate cpunum
+ 	 */
+-	if ((cpunum > NR_CPUS) || !cpu_online(cpunum))
++	if ((cpunum > NR_CPUS) || !kgdb_info[cpunum].enter_kgdb)
+ 		return KDB_BADCPUNUM;
  
-@@ -15,7 +15,7 @@ CFLAGS += -I../../../../usr/include/
- CFLAGS += -I../../../../arch/x86/include/
- 
- all:
--ifeq ($(ARCH),X86)
-+ifeq ($(ARCH),x86)
- 	gcc $(CFLAGS) kcmp_test.c -o kcmp_test
- else
- 	echo "Not an x86 target, can't build kcmp selftest"
-diff -puN tools/testing/selftests/memfd/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target tools/testing/selftests/memfd/Makefile
---- a/tools/testing/selftests/memfd/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target
-+++ a/tools/testing/selftests/memfd/Makefile
-@@ -1,10 +1,10 @@
- uname_M := $(shell uname -m 2>/dev/null || echo not)
- ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
- ifeq ($(ARCH),i386)
--	ARCH := X86
-+	ARCH := x86
- endif
- ifeq ($(ARCH),x86_64)
--	ARCH := X86
-+	ARCH := x86
- endif
- 
- CFLAGS += -D_FILE_OFFSET_BITS=64
-@@ -14,20 +14,20 @@ CFLAGS += -I../../../../include/uapi/
- CFLAGS += -I../../../../include/
- 
- all:
--ifeq ($(ARCH),X86)
-+ifeq ($(ARCH),x86)
- 	gcc $(CFLAGS) memfd_test.c -o memfd_test
- else
- 	echo "Not an x86 target, can't build memfd selftest"
- endif
- 
- run_tests: all
--ifeq ($(ARCH),X86)
-+ifeq ($(ARCH),x86)
- 	gcc $(CFLAGS) memfd_test.c -o memfd_test
- endif
- 	@./memfd_test || echo "memfd_test: [FAIL]"
- 
- build_fuse:
--ifeq ($(ARCH),X86)
-+ifeq ($(ARCH),x86)
- 	gcc $(CFLAGS) fuse_mnt.c `pkg-config fuse --cflags --libs` -o fuse_mnt
- 	gcc $(CFLAGS) fuse_test.c -o fuse_test
- else
+ 	dbg_switch_cpu = cpunum;
 _
 
-Patches currently in -mm which might be from tranmanphong@gmail.com are
+Patches currently in -mm which might be from daniel.thompson@linaro.org are
 
-tools-selftests-fixing-build-issue-with-make-kselftests-target.patch
-linux-next.patch
+kgdb-timeout-if-secondary-cpus-ignore-the-roundup.patch
 
