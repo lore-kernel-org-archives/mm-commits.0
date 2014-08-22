@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + build-trivia-scripts-headers_installsh.patch added to -mm tree
-Date: Fri, 22 Aug 2014 15:30:44 -0700
-Message-ID: <53f7c494.wENTs/JYU6YJ230u%akpm@linux-foundation.org>
+Subject: +
+ mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch added to -mm tree
+Date: Fri, 22 Aug 2014 15:41:21 -0700
+Message-ID: <53f7c711.uvVCToIVWU9qijhq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:64812 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751882AbaHVWaq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Aug 2014 18:30:46 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hq11so1332115vcb.3
-        for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2014 15:30:44 -0700 (PDT)
+Received: from mail-ig0-f202.google.com ([209.85.213.202]:35642 "EHLO
+	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752107AbaHVWlW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Aug 2014 18:41:22 -0400
+Received: by mail-ig0-f202.google.com with SMTP id r2so67820igi.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2014 15:41:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: javier.barrio.mart@gmail.com, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, hpa@zytor.com, rjw@sisk.pl, tangchen@cn.fujitsu.com, tj@kernel.org, wency@cn.fujitsu.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/headers_install.sh: fix error handling
+     Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
 has been added to the -mm tree.  Its filename is
-     build-trivia-scripts-headers_installsh.patch
+     mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/build-trivia-scripts-headers_installsh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/build-trivia-scripts-headers_installsh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,38 +41,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Javier Barrio <javier.barrio.mart@gmail.com>
-Subject: scripts/headers_install.sh: fix error handling
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
 
-- headers_install requires at least two arguments
+Let memblock skip the hotpluggable memory regions in __next_mem_range(),
+it is used to to prevent memblock from allocating hotpluggable memory for
+the kernel at early time.  The code is the same as __next_mem_range_rev().
 
-- missed closing quote
+Clear hotpluggable flag before releasing free pages to the buddy
+allocator.  If we don't clear hotpluggable flag in
+free_low_memory_core_early(), the memory which marked hotpluggable flag
+will not free to buddy allocator.  Because __next_mem_range() will skip
+them.
 
-Signed-off-by: Javier Barrio <javier.barrio.mart@gmail.com>
-Cc: Michal Marek <mmarek@suse.cz>
+free_low_memory_core_early
+	for_each_free_mem_range
+		for_each_mem_range
+			__next_mem_range
+
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "Tang Chen" <tangchen@cn.fujitsu.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/headers_install.sh |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memblock.c  |    4 ++++
+ mm/nobootmem.c |    2 ++
+ 2 files changed, 6 insertions(+)
 
-diff -puN scripts/headers_install.sh~build-trivia-scripts-headers_installsh scripts/headers_install.sh
---- a/scripts/headers_install.sh~build-trivia-scripts-headers_installsh
-+++ a/scripts/headers_install.sh
-@@ -1,8 +1,8 @@
- #!/bin/sh
+diff -puN mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/memblock.c
+--- a/mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
++++ a/mm/memblock.c
+@@ -816,6 +816,10 @@ void __init_memblock __next_mem_range(u6
+ 		if (nid != NUMA_NO_NODE && nid != m_nid)
+ 			continue;
  
--if [ $# -lt 1 ]
-+if [ $# -lt 2 ]
- then
--	echo "Usage: headers_install.sh OUTDIR SRCDIR [FILES...]
-+	echo "Usage: headers_install.sh OUTDIR SRCDIR [FILES...]"
- 	echo
- 	echo "Prepares kernel header files for use by user space, by removing"
- 	echo "all compiler.h definitions and #includes, removing any"
++		/* skip hotpluggable memory regions if needed */
++		if (movable_node_is_enabled() && memblock_is_hotpluggable(m))
++			continue;
++
+ 		if (!type_b) {
+ 			if (out_start)
+ 				*out_start = m_start;
+diff -puN mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/nobootmem.c
+--- a/mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
++++ a/mm/nobootmem.c
+@@ -119,6 +119,8 @@ static unsigned long __init free_low_mem
+ 	phys_addr_t start, end;
+ 	u64 i;
+ 
++	memblock_clear_hotplug(0, ULLONG_MAX);
++
+ 	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
+ 		count += __free_memory_core(start, end);
+ 
 _
 
-Patches currently in -mm which might be from javier.barrio.mart@gmail.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
-build-trivia-scripts-headers_installsh.patch
+memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node.patch
+mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
 
