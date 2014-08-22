@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-check_data_rlimit-helper-v2.patch added to -mm
- tree
-Date: Thu, 21 Aug 2014 16:18:33 -0700
-Message-ID: <53f67e49.A8xJfIs9DR6GDw8Y%akpm@linux-foundation.org>
+Subject: +
+ rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2.patch added
+ to -mm tree
+Date: Fri, 22 Aug 2014 13:43:51 -0700
+Message-ID: <53f7ab87.LBMK+L+OnC9YYntb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:47467 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755089AbaHUXSe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Aug 2014 19:18:34 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so2718353pab.3
-        for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2014 16:18:34 -0700 (PDT)
+Received: from mail-oi0-f73.google.com ([209.85.218.73]:53511 "EHLO
+	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751373AbaHVUnw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Aug 2014 16:43:52 -0400
+Received: by mail-oi0-f73.google.com with SMTP id u20so2249907oif.0
+        for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2014 13:43:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@openvz.org, avagin@openvz.org, ebiederm@xmission.com, hpa@zytor.com, jln@google.com, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, mtk.manpages@gmail.com, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: cw00.choi@samsung.com, a.zummo@towertech.it, kgene.kim@samsung.com, kyungmin.park@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce check_data_rlimit helper
+     Subject: rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2
 has been added to the -mm tree.  Its filename is
-     mm-introduce-check_data_rlimit-helper-v2.patch
+     rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-check_data_rlimit-helper-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-check_data_rlimit-helper-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,84 +42,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: mm: introduce check_data_rlimit helper
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2
 
-To eliminate code duplication lets introduce check_data_rlimit helper
-which we will use in brk() and prctl() syscalls.
-
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Andrew Vagin <avagin@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Vasiliy Kulikov <segoon@openwall.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Julien Tinnes <jln@google.com>
+Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/rtc/rtc-s3c.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-introduce-check_data_rlimit-helper-v2 include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-check_data_rlimit-helper-v2
-+++ a/include/linux/mm.h
-@@ -18,6 +18,7 @@
- #include <linux/pfn.h>
- #include <linux/bit_spinlock.h>
- #include <linux/shrinker.h>
-+#include <linux/resource.h>
+diff -puN drivers/rtc/rtc-s3c.c~rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2 drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2
++++ a/drivers/rtc/rtc-s3c.c
+@@ -121,6 +121,9 @@ static int s3c_rtc_setaie(struct device
+ 	struct s3c_rtc *info = dev_get_drvdata(dev);
+ 	unsigned int tmp;
  
- struct mempolicy;
- struct anon_vma;
-@@ -1780,6 +1781,20 @@ extern struct vm_area_struct *copy_vma(s
- 	bool *need_rmap_locks);
- extern void exit_mmap(struct mm_struct *);
- 
-+static inline int check_data_rlimit(unsigned long rlim,
-+				    unsigned long new,
-+				    unsigned long start,
-+				    unsigned long end_data,
-+				    unsigned long start_data)
-+{
-+	if (rlim < RLIM_INFINITY) {
-+		if (((new - start) + (end_data - start_data)) > rlim)
-+			return -ENOSPC;
-+	}
++	if (!info->base)
++		return -EINVAL;
 +
-+	return 0;
-+}
-+
- extern int mm_take_all_locks(struct mm_struct *mm);
- extern void mm_drop_all_locks(struct mm_struct *mm);
+ 	dev_dbg(info->dev, "%s: aie=%d\n", __func__, enabled);
  
+ 	clk_enable(info->rtc_clk);
+@@ -180,6 +183,9 @@ static int s3c_rtc_gettime(struct device
+ 	struct s3c_rtc *info = dev_get_drvdata(dev);
+ 	unsigned int have_retried = 0;
+ 
++	if (!info->base)
++		return -EINVAL;
++
+ 	clk_enable(info->rtc_clk);
+  retry_get_time:
+ 	rtc_tm->tm_min  = readb(info->base + S3C2410_RTCMIN);
+@@ -224,6 +230,9 @@ static int s3c_rtc_settime(struct device
+ 	struct s3c_rtc *info = dev_get_drvdata(dev);
+ 	int year = tm->tm_year - 100;
+ 
++	if (!info->base)
++		return -EINVAL;
++
+ 	dev_dbg(dev, "set time %04d.%02d.%02d %02d:%02d:%02d\n",
+ 		 1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+ 		 tm->tm_hour, tm->tm_min, tm->tm_sec);
+@@ -255,6 +264,9 @@ static int s3c_rtc_getalarm(struct devic
+ 	struct rtc_time *alm_tm = &alrm->time;
+ 	unsigned int alm_en;
+ 
++	if (!info->base)
++		return -EINVAL;
++
+ 	clk_enable(info->rtc_clk);
+ 	alm_tm->tm_sec  = readb(info->base + S3C2410_ALMSEC);
+ 	alm_tm->tm_min  = readb(info->base + S3C2410_ALMMIN);
+@@ -317,6 +329,9 @@ static int s3c_rtc_setalarm(struct devic
+ 	struct rtc_time *tm = &alrm->time;
+ 	unsigned int alrm_en;
+ 
++	if (!info->base)
++		return -EINVAL;
++
+ 	clk_enable(info->rtc_clk);
+ 	dev_dbg(dev, "s3c_rtc_setalarm: %d, %04d.%02d.%02d %02d:%02d:%02d\n",
+ 		 alrm->enabled,
+@@ -357,6 +372,9 @@ static int s3c_rtc_proc(struct device *d
+ 	struct s3c_rtc *info = dev_get_drvdata(dev);
+ 	unsigned int ticnt;
+ 
++	if (!info->base)
++		return -EINVAL;
++
+ 	clk_enable(info->rtc_clk);
+ 	if (info->cpu_type == TYPE_S3C64XX) {
+ 		ticnt = readw(info->base + S3C2410_RTCCON);
+@@ -548,7 +566,7 @@ static int s3c_rtc_probe(struct platform
+ 		rtc_tm.tm_min	= 0;
+ 		rtc_tm.tm_sec	= 0;
+ 
+-		s3c_rtc_settime(NULL, &rtc_tm);
++		s3c_rtc_settime(&pdev->dev, &rtc_tm);
+ 
+ 		dev_warn(&pdev->dev, "warning: invalid RTC value so initializing it\n");
+ 	}
 _
 
-Patches currently in -mm which might be from gorcunov@openvz.org are
+Patches currently in -mm which might be from cw00.choi@samsung.com are
 
-mm-introduce-check_data_rlimit-helper-v2.patch
-mm-use-may_adjust_brk-helper.patch
-prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-fs-proc-task_mmuc-dont-use-task-mm-in-m_start-and-show_map.patch
-fs-proc-task_mmuc-unify-simplify-do_maps_open-and-numa_maps_open.patch
-proc-introduce-proc_mem_open.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
-fs-proc-task_mmuc-cleanup-the-tail_vma-horror-in-m_next.patch
-fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch
-fs-proc-task_mmuc-kill-the-suboptimal-and-confusing-m-version-logic.patch
-fs-proc-task_mmuc-simplify-m_start-to-make-it-readable.patch
-fs-proc-task_mmuc-introduce-m_next_vma-helper.patch
-fs-proc-task_mmuc-reintroduce-m-version-logic.patch
-fs-proc-task_mmuc-update-m-version-in-the-main-loop-in-m_start.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-fs-proc-task_nommuc-dont-use-priv-task-mm.patch
+rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables.patch
+rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables-v2.patch
+rtc-s3c-remove-warning-message-when-checking-coding-style-with-checkpatch-script.patch
+rtc-s3c-add-s3c_rtc_data-structure-to-use-variant-data-instead-of-s3c_cpu_type.patch
+rtc-s3c-add-support-for-rtc-of-exynos3250-soc.patch
+arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch
 
