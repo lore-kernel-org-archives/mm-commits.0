@@ -1,77 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] put_bh-debug.patch removed from -mm tree
-Date: Mon, 25 Aug 2014 16:08:43 -0700
-Message-ID: <53fbc1fb.qLgIgnClakHEMqIx%akpm@linux-foundation.org>
+Subject: + drivers-staging-unisys-fix-build.patch added to -mm tree
+Date: Mon, 25 Aug 2014 16:12:47 -0700
+Message-ID: <53fbc2ef.5r5Mz/ZNBtlaGfpc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:34313 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690AbaHYXIo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Aug 2014 19:08:44 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so552287igi.3
-        for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2014 16:08:43 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:56669 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755133AbaHYXMs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Aug 2014 19:12:48 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so1527832iec.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2014 16:12:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: put_bh() debug
-has been removed from the -mm tree.  Its filename was
-     put_bh-debug.patch
+     Subject: drivers/staging/unisys: fix build
+has been added to the -mm tree.  Its filename is
+     drivers-staging-unisys-fix-build.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-staging-unisys-fix-build.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-staging-unisys-fix-build.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: put_bh() debug
+Subject: drivers/staging/unisys: fix build
 
-Detect bh refcount underflows.
+
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |    8 ++++++++
- include/linux/buffer_head.h |    6 +-----
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ drivers/staging/unisys/visorchipset/file.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/buffer.c~put_bh-debug fs/buffer.c
---- a/fs/buffer.c~put_bh-debug
-+++ a/fs/buffer.c
-@@ -47,6 +47,14 @@ static int fsync_buffers_list(spinlock_t
+diff -puN drivers/staging/unisys/visorchipset/file.c~drivers-staging-unisys-fix-build drivers/staging/unisys/visorchipset/file.c
+--- a/drivers/staging/unisys/visorchipset/file.c~drivers-staging-unisys-fix-build
++++ a/drivers/staging/unisys/visorchipset/file.c
+@@ -28,8 +28,6 @@
  
- #define BH_ENTRY(list) list_entry((list), struct buffer_head, b_assoc_buffers)
+ #define CURRENT_FILE_PC VISOR_CHIPSET_PC_file_c
  
-+void put_bh(struct buffer_head *bh)
-+{
-+	WARN_ON(atomic_read(&bh->b_count) <= 0);
-+	smp_mb__before_atomic_dec();
-+	atomic_dec(&bh->b_count);
-+}
-+EXPORT_SYMBOL(put_bh);
-+
- void init_buffer(struct buffer_head *bh, bh_end_io_t *handler, void *private)
- {
- 	bh->b_end_io = handler;
-diff -puN include/linux/buffer_head.h~put_bh-debug include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~put_bh-debug
-+++ a/include/linux/buffer_head.h
-@@ -274,11 +274,7 @@ static inline void get_bh(struct buffer_
-         atomic_inc(&bh->b_count);
- }
- 
--static inline void put_bh(struct buffer_head *bh)
--{
--        smp_mb__before_atomic();
--        atomic_dec(&bh->b_count);
--}
-+void put_bh(struct buffer_head *bh);
- 
- static inline void brelse(struct buffer_head *bh)
- {
+-typedef u64 GUEST_PHYSICAL_ADDRESS;
+-
+ static struct cdev Cdev;
+ static VISORCHANNEL **PControlVm_channel;
+ static dev_t MajorDev = -1; /**< indicates major num for device */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +92,7 @@ fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
 fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
 linux-next.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
+drivers-staging-unisys-fix-build.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
 watchdog-control-hard-lockup-detection-default-fix.patch
 debugging-keep-track-of-page-owners.patch
