@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch added to -mm tree
-Date: Mon, 25 Aug 2014 15:24:28 -0700
-Message-ID: <53fbb79c.7EX6RS55lD8PRdQ+%akpm@linux-foundation.org>
+Subject: + watchdog-control-hard-lockup-detection-default-fix.patch added
+ to -mm tree
+Date: Mon, 25 Aug 2014 15:26:55 -0700
+Message-ID: <53fbb82f.qO6kto5Rkf8z70z5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:35517 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755225AbaHYWYa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Aug 2014 18:24:30 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rl12so1519737iec.5
-        for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2014 15:24:29 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:58962 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756643AbaHYW05 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Aug 2014 18:26:57 -0400
+Received: by mail-qc0-f202.google.com with SMTP id r5so1654139qcx.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2014 15:26:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, drjones@redhat.com, dzickus@redhat.com, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix
+     Subject: watchdog-control-hard-lockup-detection-default-fix
 has been added to the -mm tree.  Its filename is
-     mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+     watchdog-control-hard-lockup-detection-default-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-control-hard-lockup-detection-default-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-control-hard-lockup-detection-default-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,41 +42,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix
+Subject: watchdog-control-hard-lockup-detection-default-fix
 
-fix CONFIG_COMPACTION=n build
+fix build
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+In file included from arch/x86/mm/init_64.c:33:
+include/linux/nmi.h: In function 'watchdog_enable_hardlockup_detector':
+include/linux/nmi.h:27: error: parameter name omitted
+
+Cc: Andrew Jones <drjones@redhat.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/nmi.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix
-+++ a/mm/page_alloc.c
-@@ -2363,9 +2363,8 @@ static inline struct page *
- __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
- 	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
--	int classzone_idx, int migratetype,
--	enum migrate_mode mode, bool *contended_compaction,
--	bool *deferred_compaction, unsigned long *did_some_progress)
-+	int classzone_idx, int migratetype, enum migrate_mode mode,
-+	bool *contended_compaction, bool *deferred_compaction)
+diff -puN include/linux/nmi.h~watchdog-control-hard-lockup-detection-default-fix include/linux/nmi.h
+--- a/include/linux/nmi.h~watchdog-control-hard-lockup-detection-default-fix
++++ a/include/linux/nmi.h
+@@ -24,7 +24,7 @@ static inline void touch_nmi_watchdog(vo
  {
- 	return NULL;
+ 	touch_softlockup_watchdog();
  }
+-static inline void watchdog_enable_hardlockup_detector(bool)
++static inline void watchdog_enable_hardlockup_detector(bool val)
+ {
+ }
+ static inline bool watchdog_hardlockup_detector_is_enabled(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +99,7 @@ fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fi
 linux-next.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
 debugging-keep-track-of-page-owners.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
