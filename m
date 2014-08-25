@@ -1,108 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: +
- mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch added to -mm tree
-Date: Fri, 22 Aug 2014 15:41:21 -0700
-Message-ID: <53f7c711.uvVCToIVWU9qijhq%akpm@linux-foundation.org>
+Subject: [merged] watchdog-remove-unnecessary-head-files.patch removed
+ from -mm tree
+Date: Mon, 25 Aug 2014 12:27:20 -0700
+Message-ID: <53fb8e18.l1j+A2MsuiMAVWbS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f202.google.com ([209.85.213.202]:35642 "EHLO
-	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752107AbaHVWlW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Aug 2014 18:41:22 -0400
-Received: by mail-ig0-f202.google.com with SMTP id r2so67820igi.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2014 15:41:22 -0700 (PDT)
+Received: from mail-pd0-f201.google.com ([209.85.192.201]:44200 "EHLO
+	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752351AbaHYT1V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Aug 2014 15:27:21 -0400
+Received: by mail-pd0-f201.google.com with SMTP id g10so3680812pdj.0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2014 12:27:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, hpa@zytor.com, rjw@sisk.pl, tangchen@cn.fujitsu.com, tj@kernel.org, wency@cn.fujitsu.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: chaiw.fnst@cn.fujitsu.com, dzickus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
-has been added to the -mm tree.  Its filename is
-     mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
+     Subject: kernel/watchdog.c: remove unnecessary header files
+has been removed from the -mm tree.  Its filename was
+     watchdog-remove-unnecessary-head-files.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
+From: chai wen <chaiw.fnst@cn.fujitsu.com>
+Subject: kernel/watchdog.c: remove unnecessary header files
 
-Let memblock skip the hotpluggable memory regions in __next_mem_range(),
-it is used to to prevent memblock from allocating hotpluggable memory for
-the kernel at early time.  The code is the same as __next_mem_range_rev().
-
-Clear hotpluggable flag before releasing free pages to the buddy
-allocator.  If we don't clear hotpluggable flag in
-free_low_memory_core_early(), the memory which marked hotpluggable flag
-will not free to buddy allocator.  Because __next_mem_range() will skip
-them.
-
-free_low_memory_core_early
-	for_each_free_mem_range
-		for_each_mem_range
-			__next_mem_range
-
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: "Tang Chen" <tangchen@cn.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: chai wen <chaiw.fnst@cn.fujitsu.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c  |    4 ++++
- mm/nobootmem.c |    2 ++
- 2 files changed, 6 insertions(+)
+ kernel/watchdog.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/memblock.c
---- a/mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
-+++ a/mm/memblock.c
-@@ -816,6 +816,10 @@ void __init_memblock __next_mem_range(u6
- 		if (nid != NUMA_NO_NODE && nid != m_nid)
- 			continue;
- 
-+		/* skip hotpluggable memory regions if needed */
-+		if (movable_node_is_enabled() && memblock_is_hotpluggable(m))
-+			continue;
-+
- 		if (!type_b) {
- 			if (out_start)
- 				*out_start = m_start;
-diff -puN mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/nobootmem.c
---- a/mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
-+++ a/mm/nobootmem.c
-@@ -119,6 +119,8 @@ static unsigned long __init free_low_mem
- 	phys_addr_t start, end;
- 	u64 i;
- 
-+	memblock_clear_hotplug(0, ULLONG_MAX);
-+
- 	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
- 		count += __free_memory_core(start, end);
- 
+diff -puN kernel/watchdog.c~watchdog-remove-unnecessary-head-files kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-remove-unnecessary-head-files
++++ a/kernel/watchdog.c
+@@ -15,11 +15,6 @@
+ #include <linux/cpu.h>
+ #include <linux/nmi.h>
+ #include <linux/init.h>
+-#include <linux/delay.h>
+-#include <linux/freezer.h>
+-#include <linux/kthread.h>
+-#include <linux/lockdep.h>
+-#include <linux/notifier.h>
+ #include <linux/module.h>
+ #include <linux/sysctl.h>
+ #include <linux/smpboot.h>
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from chaiw.fnst@cn.fujitsu.com are
 
-memblock-memhotplug-fix-wrong-type-in-memblock_find_in_range_node.patch
-mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
+linux-next.patch
+softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
 
