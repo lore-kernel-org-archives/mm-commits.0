@@ -1,34 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
- added to -mm tree
-Date: Mon, 25 Aug 2014 15:32:19 -0700
-Message-ID: <53fbb973.uEpIPZdTA1I3goxZ%akpm@linux-foundation.org>
+Subject: + debugging-keep-track-of-page-owners-fix.patch added to -mm tree
+Date: Mon, 25 Aug 2014 15:52:38 -0700
+Message-ID: <53fbbe36.jtx2p8uG36Cay9pp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:36679 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755148AbaHYWcV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Aug 2014 18:32:21 -0400
-Received: by mail-qc0-f201.google.com with SMTP id c9so1650500qcz.4
-        for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2014 15:32:20 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:47078 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933608AbaHYWwj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Aug 2014 18:52:39 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so1525716iec.5
+        for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2014 15:52:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix
+     Subject: debugging-keep-track-of-page-owners-fix
 has been added to the -mm tree.  Its filename is
-     mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+     debugging-keep-track-of-page-owners-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/debugging-keep-track-of-page-owners-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/debugging-keep-track-of-page-owners-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,43 +41,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix
+Subject: debugging-keep-track-of-page-owners-fix
 
-fix warnings
 
-mm/page_alloc.c: In function '__alloc_pages_slowpath':
-mm/page_alloc.c:2649: warning: passing argument 11 of '__alloc_pages_direct_compact' from incompatible pointer type
-mm/page_alloc.c:2369: note: expected 'bool *' but argument is of type 'int *'
-mm/page_alloc.c:2762: warning: passing argument 11 of '__alloc_pages_direct_compact' from incompatible pointer type
-mm/page_alloc.c:2369: note: expected 'bool *' but argument is of type 'int *'
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/pageowner.c |    2 +-
+ mm/vmstat.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix
-+++ a/mm/page_alloc.c
-@@ -2370,7 +2370,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
- 	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
- 	int classzone_idx, int migratetype, enum migrate_mode mode,
--	bool *contended_compaction, bool *deferred_compaction)
-+	int *contended_compaction, bool *deferred_compaction)
- {
- 	return NULL;
- }
+diff -puN mm/pageowner.c~debugging-keep-track-of-page-owners-fix mm/pageowner.c
+--- a/mm/pageowner.c~debugging-keep-track-of-page-owners-fix
++++ a/mm/pageowner.c
+@@ -95,7 +95,7 @@ read_page_owner(struct file *file, char
+ 
+ 	/* Print information relevant to grouping pages by mobility */
+ 	blocktype = get_pageblock_migratetype(page);
+-	pagetype  = allocflags_to_migratetype(page->gfp_mask);
++	pagetype  = gfpflags_to_migratetype(page->gfp_mask);
+ 	ret += snprintf(kbuf+ret, count-ret,
+ 			"PFN %lu Block %lu type %d %s "
+ 			"Flags %s%s%s%s%s%s%s%s%s%s%s%s\n",
+diff -puN mm/vmstat.c~debugging-keep-track-of-page-owners-fix mm/vmstat.c
+--- a/mm/vmstat.c~debugging-keep-track-of-page-owners-fix
++++ a/mm/vmstat.c
+@@ -1059,7 +1059,7 @@ static void pagetypeinfo_showmixedcount_
+ 			if (page->order < 0)
+ 				continue;
+ 
+-			pagetype = allocflags_to_migratetype(page->gfp_mask);
++			pagetype = gfpflags_to_migratetype(page->gfp_mask);
+ 			if (pagetype != mtype) {
+ 				if (is_migrate_cma(pagetype))
+ 					count[MIGRATE_MOVABLE]++;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,6 +107,7 @@ drivers-gpio-gpio-zevioc-fix-build.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
 watchdog-control-hard-lockup-detection-default-fix.patch
 debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
