@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + proc-maps-make-vm_is_stack-logic-namespace-friendly.patch added to -mm tree
-Date: Tue, 26 Aug 2014 16:42:19 -0700
-Message-ID: <53fd1b5b.L/XiEcW/6tNaVZqA%akpm@linux-foundation.org>
+Subject: +
+ mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch added to -mm tree
+Date: Tue, 26 Aug 2014 16:48:36 -0700
+Message-ID: <53fd1cd4.YeDJaA8dLI5ar4Xk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:36609 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755541AbaHZXmU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:42:20 -0400
-Received: by mail-ob0-f201.google.com with SMTP id va2so2492335obc.2
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:42:20 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:64672 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756029AbaHZXsi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:48:38 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so4092086pab.0
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:48:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, ebiederm@xmission.com, gerg@uclinux.org, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: oleg@redhat.com, andi@firstfloor.org, ebiederm@xmission.com, gorcunov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc/maps: make vm_is_stack() logic namespace-friendly
+     Subject: mempolicy: remove the "task" arg of vma_policy_mof() and simplify it
 has been added to the -mm tree.  Its filename is
-     proc-maps-make-vm_is_stack-logic-namespace-friendly.patch
+     mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-maps-make-vm_is_stack-logic-namespace-friendly.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-maps-make-vm_is_stack-logic-namespace-friendly.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,193 +42,113 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: proc/maps: make vm_is_stack() logic namespace-friendly
+Subject: mempolicy: remove the "task" arg of vma_policy_mof() and simplify it
 
-- Rename vm_is_stack() to task_of_stack() and change it to return
-  "struct task_struct *" rather than the global (and thus wrong in
-  general) pid_t.
+1. vma_policy_mof(task) is simply not safe unless task == current,
+   it can race with do_exit()->mpol_put(). Remove this arg and update
+   its single caller.
 
-- Add the new pid_of_stack() helper which calls task_of_stack() and
-  uses the right namespace to report the correct pid_t.
-
-  Unfortunately we need to define this helper twice, in task_mmu.c
-  and in task_nommu.c. perhaps it makes sense to add fs/proc/util.c
-  and move at least pid_of_stack/task_of_stack there to avoid the
-  code duplication.
-
-- Change show_map_vma() and show_numa_map() to use the new helper.
+2. vma can not be NULL, remove this check and simplify the code.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c   |   25 +++++++++++++++++++++----
- fs/proc/task_nommu.c |   21 ++++++++++++++++++++-
- include/linux/mm.h   |    4 ++--
- mm/util.c            |   23 ++++++++---------------
- 4 files changed, 51 insertions(+), 22 deletions(-)
+ include/linux/mempolicy.h |    2 +-
+ kernel/sched/fair.c       |    2 +-
+ mm/mempolicy.c            |   25 +++++++++++--------------
+ 3 files changed, 13 insertions(+), 16 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~proc-maps-make-vm_is_stack-logic-namespace-friendly fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-maps-make-vm_is_stack-logic-namespace-friendly
-+++ a/fs/proc/task_mmu.c
-@@ -262,13 +262,31 @@ static int do_maps_open(struct inode *in
- 				sizeof(struct proc_maps_private));
+diff -puN include/linux/mempolicy.h~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it
++++ a/include/linux/mempolicy.h
+@@ -136,7 +136,7 @@ struct mempolicy *mpol_shared_policy_loo
+ 
+ struct mempolicy *get_vma_policy(struct task_struct *tsk,
+ 		struct vm_area_struct *vma, unsigned long addr);
+-bool vma_policy_mof(struct task_struct *task, struct vm_area_struct *vma);
++bool vma_policy_mof(struct vm_area_struct *vma);
+ 
+ extern void numa_default_policy(void);
+ extern void numa_policy_init(void);
+diff -puN kernel/sched/fair.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it kernel/sched/fair.c
+--- a/kernel/sched/fair.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it
++++ a/kernel/sched/fair.c
+@@ -1946,7 +1946,7 @@ void task_numa_work(struct callback_head
+ 		vma = mm->mmap;
+ 	}
+ 	for (; vma; vma = vma->vm_next) {
+-		if (!vma_migratable(vma) || !vma_policy_mof(p, vma))
++		if (!vma_migratable(vma) || !vma_policy_mof(vma))
+ 			continue;
+ 
+ 		/*
+diff -puN mm/mempolicy.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it
++++ a/mm/mempolicy.c
+@@ -1646,27 +1646,24 @@ struct mempolicy *get_vma_policy(struct
+ 	return pol;
  }
  
-+static pid_t pid_of_stack(struct proc_maps_private *priv,
-+				struct vm_area_struct *vma, bool is_pid)
-+{
-+	struct inode *inode = priv->inode;
-+	struct task_struct *task;
-+	pid_t ret = 0;
-+
-+	rcu_read_lock();
-+	task = pid_task(proc_pid(inode), PIDTYPE_PID);
-+	if (task) {
-+		task = task_of_stack(task, vma, is_pid);
-+		if (task)
-+			ret = task_pid_nr_ns(task, inode->i_sb->s_fs_info);
-+	}
-+	rcu_read_unlock();
-+
-+	return ret;
-+}
-+
- static void
- show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
+-bool vma_policy_mof(struct task_struct *task, struct vm_area_struct *vma)
++bool vma_policy_mof(struct vm_area_struct *vma)
  {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct file *file = vma->vm_file;
- 	struct proc_maps_private *priv = m->private;
--	struct task_struct *task = priv->task;
- 	vm_flags_t flags = vma->vm_flags;
- 	unsigned long ino = 0;
- 	unsigned long long pgoff = 0;
-@@ -333,8 +351,7 @@ show_map_vma(struct seq_file *m, struct
- 			goto done;
- 		}
+-	struct mempolicy *pol = NULL;
++	struct mempolicy *pol;
  
--		tid = vm_is_stack(task, vma, is_pid);
+-	if (vma) {
+-		if (vma->vm_ops && vma->vm_ops->get_policy) {
+-			bool ret = false;
++	if (vma->vm_ops && vma->vm_ops->get_policy) {
++		bool ret = false;
+ 
+-			pol = vma->vm_ops->get_policy(vma, vma->vm_start);
+-			if (pol && (pol->flags & MPOL_F_MOF))
+-				ret = true;
+-			mpol_cond_put(pol);
++		pol = vma->vm_ops->get_policy(vma, vma->vm_start);
++		if (pol && (pol->flags & MPOL_F_MOF))
++			ret = true;
++		mpol_cond_put(pol);
+ 
+-			return ret;
+-		}
 -
-+		tid = pid_of_stack(priv, vma, is_pid);
- 		if (tid != 0) {
- 			/*
- 			 * Thread stack in /proc/PID/task/TID/maps or
-@@ -1438,7 +1455,7 @@ static int show_numa_map(struct seq_file
- 	} else if (vma->vm_start <= mm->brk && vma->vm_end >= mm->start_brk) {
- 		seq_puts(m, " heap");
- 	} else {
--		pid_t tid = vm_is_stack(task, vma, is_pid);
-+		pid_t tid = pid_of_stack(proc_priv, vma, is_pid);
- 		if (tid != 0) {
- 			/*
- 			 * Thread stack in /proc/PID/task/TID/maps or
-diff -puN fs/proc/task_nommu.c~proc-maps-make-vm_is_stack-logic-namespace-friendly fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~proc-maps-make-vm_is_stack-logic-namespace-friendly
-+++ a/fs/proc/task_nommu.c
-@@ -123,6 +123,25 @@ unsigned long task_statm(struct mm_struc
- 	return size;
- }
- 
-+static pid_t pid_of_stack(struct proc_maps_private *priv,
-+				struct vm_area_struct *vma, bool is_pid)
-+{
-+	struct inode *inode = priv->inode;
-+	struct task_struct *task;
-+	pid_t ret = 0;
-+
-+	rcu_read_lock();
-+	task = pid_task(proc_pid(inode), PIDTYPE_PID);
-+	if (task) {
-+		task = task_of_stack(task, vma, is_pid);
-+		if (task)
-+			ret = task_pid_nr_ns(task, inode->i_sb->s_fs_info);
-+	}
-+	rcu_read_unlock();
-+
-+	return ret;
-+}
-+
- /*
-  * display a single VMA to a sequenced file
-  */
-@@ -163,7 +182,7 @@ static int nommu_vma_show(struct seq_fil
- 		seq_pad(m, ' ');
- 		seq_path(m, &file->f_path, "");
- 	} else if (mm) {
--		pid_t tid = vm_is_stack(priv->task, vma, is_pid);
-+		pid_t tid = pid_of_stack(priv, vma, is_pid);
- 
- 		if (tid != 0) {
- 			seq_pad(m, ' ');
-diff -puN include/linux/mm.h~proc-maps-make-vm_is_stack-logic-namespace-friendly include/linux/mm.h
---- a/include/linux/mm.h~proc-maps-make-vm_is_stack-logic-namespace-friendly
-+++ a/include/linux/mm.h
-@@ -1248,8 +1248,8 @@ static inline int stack_guard_page_end(s
- 		!vma_growsup(vma->vm_next, addr);
- }
- 
--extern pid_t
--vm_is_stack(struct task_struct *task, struct vm_area_struct *vma, int in_group);
-+extern struct task_struct *task_of_stack(struct task_struct *task,
-+				struct vm_area_struct *vma, bool in_group);
- 
- extern unsigned long move_page_tables(struct vm_area_struct *vma,
- 		unsigned long old_addr, struct vm_area_struct *new_vma,
-diff -puN mm/util.c~proc-maps-make-vm_is_stack-logic-namespace-friendly mm/util.c
---- a/mm/util.c~proc-maps-make-vm_is_stack-logic-namespace-friendly
-+++ a/mm/util.c
-@@ -200,32 +200,25 @@ static int vm_is_stack_for_task(struct t
- /*
-  * Check if the vma is being used as a stack.
-  * If is_group is non-zero, check in the entire thread group or else
-- * just check in the current task. Returns the pid of the task that
-- * the vma is stack for.
-+ * just check in the current task. Returns the task_struct of the task
-+ * that the vma is stack for. Must be called under rcu_read_lock().
-  */
--pid_t vm_is_stack(struct task_struct *task,
--		  struct vm_area_struct *vma, int in_group)
-+struct task_struct *task_of_stack(struct task_struct *task,
-+				struct vm_area_struct *vma, bool in_group)
- {
--	pid_t ret = 0;
--
- 	if (vm_is_stack_for_task(task, vma))
--		return task->pid;
-+		return task;
- 
- 	if (in_group) {
- 		struct task_struct *t;
- 
--		rcu_read_lock();
- 		for_each_thread(task, t) {
--			if (vm_is_stack_for_task(t, vma)) {
--				ret = t->pid;
--				goto done;
--			}
-+			if (vm_is_stack_for_task(t, vma))
-+				return t;
- 		}
--done:
--		rcu_read_unlock();
+-		pol = vma->vm_policy;
++		return ret;
  	}
  
--	return ret;
-+	return NULL;
- }
++	pol = vma->vm_policy;
+ 	if (!pol)
+-		pol = get_task_policy(task);
++		pol = get_task_policy(current);
  
- #if defined(CONFIG_MMU) && !defined(HAVE_ARCH_PICK_MMAP_LAYOUT)
+ 	return pol->flags & MPOL_F_MOF;
+ }
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
 prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put.patch
+mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
+mempolicy-sanitize-the-usage-of-get_task_policy.patch
+mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
+mempolicy-introduce-__get_vma_policy-export-get_task_policy.patch
+mempolicy-fix-show_numa_map-vs-exec-do_set_mempolicy-race.patch
+mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
+mempolicy-unexport-get_vma_policy-and-remove-its-task-arg.patch
 earlyprintk-re-enable-earlyprintk-calling-early_param.patch
 fs-proc-task_mmuc-dont-use-task-mm-in-m_start-and-show_map.patch
 fs-proc-task_mmuc-unify-simplify-do_maps_open-and-numa_maps_open.patch
