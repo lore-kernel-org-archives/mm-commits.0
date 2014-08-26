@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch added to -mm tree
-Date: Tue, 26 Aug 2014 16:48:36 -0700
-Message-ID: <53fd1cd4.YeDJaA8dLI5ar4Xk%akpm@linux-foundation.org>
+Subject: + mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
+ added to -mm tree
+Date: Tue, 26 Aug 2014 16:48:39 -0700
+Message-ID: <53fd1cd7.hX8/OC7HYgHKUK4Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:64672 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756029AbaHZXsi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:48:38 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so4092086pab.0
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:48:37 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:56450 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756029AbaHZXsk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:48:40 -0400
+Received: by mail-oa0-f74.google.com with SMTP id eb12so3060642oac.5
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:48:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, andi@firstfloor.org, ebiederm@xmission.com, gorcunov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: remove the "task" arg of vma_policy_mof() and simplify it
+     Subject: mempolicy: kill do_set_mempolicy()->down_write(&mm->mmap_sem)
 has been added to the -mm tree.  Its filename is
-     mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
+     mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,13 +42,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: mempolicy: remove the "task" arg of vma_policy_mof() and simplify it
+Subject: mempolicy: kill do_set_mempolicy()->down_write(&mm->mmap_sem)
 
-1. vma_policy_mof(task) is simply not safe unless task == current,
-   it can race with do_exit()->mpol_put(). Remove this arg and update
-   its single caller.
-
-2. vma can not be NULL, remove this check and simplify the code.
+Remove down_write(&mm->mmap_sem) in do_set_mempolicy(). This logic
+was never correct and it is no longer needed, see the previous patch.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -65,77 +62,52 @@ Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    2 +-
- kernel/sched/fair.c       |    2 +-
- mm/mempolicy.c            |   25 +++++++++++--------------
- 3 files changed, 13 insertions(+), 16 deletions(-)
+ mm/mempolicy.c |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it
-+++ a/include/linux/mempolicy.h
-@@ -136,7 +136,7 @@ struct mempolicy *mpol_shared_policy_loo
- 
- struct mempolicy *get_vma_policy(struct task_struct *tsk,
- 		struct vm_area_struct *vma, unsigned long addr);
--bool vma_policy_mof(struct task_struct *task, struct vm_area_struct *vma);
-+bool vma_policy_mof(struct vm_area_struct *vma);
- 
- extern void numa_default_policy(void);
- extern void numa_policy_init(void);
-diff -puN kernel/sched/fair.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it kernel/sched/fair.c
---- a/kernel/sched/fair.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it
-+++ a/kernel/sched/fair.c
-@@ -1946,7 +1946,7 @@ void task_numa_work(struct callback_head
- 		vma = mm->mmap;
- 	}
- 	for (; vma; vma = vma->vm_next) {
--		if (!vma_migratable(vma) || !vma_policy_mof(p, vma))
-+		if (!vma_migratable(vma) || !vma_policy_mof(vma))
- 			continue;
- 
- 		/*
-diff -puN mm/mempolicy.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it
+diff -puN mm/mempolicy.c~mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem
 +++ a/mm/mempolicy.c
-@@ -1646,27 +1646,24 @@ struct mempolicy *get_vma_policy(struct
- 	return pol;
- }
- 
--bool vma_policy_mof(struct task_struct *task, struct vm_area_struct *vma)
-+bool vma_policy_mof(struct vm_area_struct *vma)
+@@ -802,7 +802,6 @@ static long do_set_mempolicy(unsigned sh
+ 			     nodemask_t *nodes)
  {
--	struct mempolicy *pol = NULL;
-+	struct mempolicy *pol;
+ 	struct mempolicy *new, *old;
+-	struct mm_struct *mm = current->mm;
+ 	NODEMASK_SCRATCH(scratch);
+ 	int ret;
  
--	if (vma) {
--		if (vma->vm_ops && vma->vm_ops->get_policy) {
--			bool ret = false;
-+	if (vma->vm_ops && vma->vm_ops->get_policy) {
-+		bool ret = false;
- 
--			pol = vma->vm_ops->get_policy(vma, vma->vm_start);
--			if (pol && (pol->flags & MPOL_F_MOF))
--				ret = true;
--			mpol_cond_put(pol);
-+		pol = vma->vm_ops->get_policy(vma, vma->vm_start);
-+		if (pol && (pol->flags & MPOL_F_MOF))
-+			ret = true;
-+		mpol_cond_put(pol);
- 
--			return ret;
--		}
--
--		pol = vma->vm_policy;
-+		return ret;
+@@ -814,20 +813,11 @@ static long do_set_mempolicy(unsigned sh
+ 		ret = PTR_ERR(new);
+ 		goto out;
  	}
- 
-+	pol = vma->vm_policy;
- 	if (!pol)
--		pol = get_task_policy(task);
-+		pol = get_task_policy(current);
- 
- 	return pol->flags & MPOL_F_MOF;
- }
+-	/*
+-	 * prevent changing our mempolicy while show_numa_maps()
+-	 * is using it.
+-	 * Note:  do_set_mempolicy() can be called at init time
+-	 * with no 'mm'.
+-	 */
+-	if (mm)
+-		down_write(&mm->mmap_sem);
++
+ 	task_lock(current);
+ 	ret = mpol_set_nodemask(new, nodes, scratch);
+ 	if (ret) {
+ 		task_unlock(current);
+-		if (mm)
+-			up_write(&mm->mmap_sem);
+ 		mpol_put(new);
+ 		goto out;
+ 	}
+@@ -837,9 +827,6 @@ static long do_set_mempolicy(unsigned sh
+ 	    nodes_weight(new->v.nodes))
+ 		current->il_next = first_node(new->v.nodes);
+ 	task_unlock(current);
+-	if (mm)
+-		up_write(&mm->mmap_sem);
+-
+ 	mpol_put(old);
+ 	ret = 0;
+ out:
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
