@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-remove-noisy-remainder-of-the-scan_unevictable-interface.patch added to
+Subject: + autofs4-allow-rcu-walk-to-walk-through-autofs4.patch added to
  -mm tree
-Date: Tue, 26 Aug 2014 15:14:17 -0700
-Message-ID: <53fd06b9.xwixWgmZ1S5JLQrL%akpm@linux-foundation.org>
+Date: Tue, 26 Aug 2014 15:17:02 -0700
+Message-ID: <53fd075e.h3vSWLdFSL/mDNml%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:51102 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755414AbaHZWOS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 18:14:18 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so3043525oac.5
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 15:14:17 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:42384 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755557AbaHZWRD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 18:17:03 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so4100036pde.3
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 15:17:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: neilb@suse.de, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove noisy remainder of the scan_unevictable interface
+     Subject: autofs4: allow RCU-walk to walk through autofs4
 has been added to the -mm tree.  Its filename is
-     mm-remove-noisy-remainder-of-the-scan_unevictable-interface.patch
+     autofs4-allow-rcu-walk-to-walk-through-autofs4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-noisy-remainder-of-the-scan_unevictable-interface.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs4-allow-rcu-walk-to-walk-through-autofs4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-noisy-remainder-of-the-scan_unevictable-interface.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs4-allow-rcu-walk-to-walk-through-autofs4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,172 +41,227 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: remove noisy remainder of the scan_unevictable interface
+From: NeilBrown <neilb@suse.de>
+Subject: autofs4: allow RCU-walk to walk through autofs4
 
-The deprecation warnings for the scan_unevictable interface triggers by
-scripts doing `sysctl -a | grep something else'.  This is annoying and not
-helpful.
+This series teaches autofs about RCU-walk so that we don't drop straight
+into REF-walk when we hit an autofs directory, and so that we avoid
+spinlocks as much as possible when performing an RCU-walk.
 
-The interface has been defunct since 264e56d8247e ("mm: disable user
-interface to manually rescue unevictable pages"), which was in 2011, and
-there haven't been any reports of usecases for it, only reports that the
-deprecation warnings are annying.  It's unlikely that anybody is using
-this interface specifically at this point, so remove it.
+This is needed so that the benefits of the recent NFS support for RCU-walk
+are fully available when NFS filesystems are automounted.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Patches have been carefully reviewed and tested both with test suites and
+in production - thanks a lot to Ian Kent for his support there.
+
+
+
+This patch (of 6):
+
+Any attempt to look up a pathname that passes though an autofs4 mount is
+currently forced out of RCU-walk into REF-walk.
+
+This can significantly hurt performance of many-thread work loads on
+many-core systems, especially if the automounted filesystem supports
+RCU-walk but doesn't get to benefit from it.
+
+So if autofs4_d_manage is called with rcu_walk set, only fail with -ECHILD
+if it is necessary to wait longer than a spinlock.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+Reviewed-by: Ian Kent <raven@themaw.net>
+Tested-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/stable/sysfs-devices-node |    8 --
- drivers/base/node.c                         |    3 
- include/linux/swap.h                        |   16 ----
- kernel/sysctl.c                             |    7 --
- mm/vmscan.c                                 |   63 ------------------
- 5 files changed, 97 deletions(-)
+ fs/autofs4/autofs_i.h  |    2 -
+ fs/autofs4/dev-ioctl.c |    2 -
+ fs/autofs4/expire.c    |    4 ++-
+ fs/autofs4/root.c      |   44 +++++++++++++++++++++++++--------------
+ 4 files changed, 34 insertions(+), 18 deletions(-)
 
-diff -puN Documentation/ABI/stable/sysfs-devices-node~mm-remove-noisy-remainder-of-the-scan_unevictable-interface Documentation/ABI/stable/sysfs-devices-node
---- a/Documentation/ABI/stable/sysfs-devices-node~mm-remove-noisy-remainder-of-the-scan_unevictable-interface
-+++ a/Documentation/ABI/stable/sysfs-devices-node
-@@ -85,14 +85,6 @@ Description:
- 		will be compacted. When it completes, memory will be freed
- 		into blocks which have as many contiguous pages as possible
+diff -puN fs/autofs4/autofs_i.h~autofs4-allow-rcu-walk-to-walk-through-autofs4 fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-allow-rcu-walk-to-walk-through-autofs4
++++ a/fs/autofs4/autofs_i.h
+@@ -148,7 +148,7 @@ void autofs4_free_ino(struct autofs_info
  
--What:		/sys/devices/system/node/nodeX/scan_unevictable_pages
--Date:		October 2008
--Contact:	Lee Schermerhorn <lee.schermerhorn@hp.com>
--Description:
--		When set, it triggers scanning the node's unevictable lists
--		and move any pages that have become evictable onto the respective
--		zone's inactive list. See mm/vmscan.c
--
- What:		/sys/devices/system/node/nodeX/hugepages/hugepages-<size>/
- Date:		December 2009
- Contact:	Lee Schermerhorn <lee.schermerhorn@hp.com>
-diff -puN drivers/base/node.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface drivers/base/node.c
---- a/drivers/base/node.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface
-+++ a/drivers/base/node.c
-@@ -289,8 +289,6 @@ static int register_node(struct node *no
- 		device_create_file(&node->dev, &dev_attr_distance);
- 		device_create_file(&node->dev, &dev_attr_vmstat);
- 
--		scan_unevictable_register_node(node);
--
- 		hugetlb_register_node(node);
- 
- 		compaction_register_node(node);
-@@ -314,7 +312,6 @@ void unregister_node(struct node *node)
- 	device_remove_file(&node->dev, &dev_attr_distance);
- 	device_remove_file(&node->dev, &dev_attr_vmstat);
- 
--	scan_unevictable_unregister_node(node);
- 	hugetlb_unregister_node(node);		/* no-op, if memoryless node */
- 
- 	device_unregister(&node->dev);
-diff -puN include/linux/swap.h~mm-remove-noisy-remainder-of-the-scan_unevictable-interface include/linux/swap.h
---- a/include/linux/swap.h~mm-remove-noisy-remainder-of-the-scan_unevictable-interface
-+++ a/include/linux/swap.h
-@@ -354,22 +354,6 @@ static inline int zone_reclaim(struct zo
- extern int page_evictable(struct page *page);
- extern void check_move_unevictable_pages(struct page **, int nr_pages);
- 
--extern unsigned long scan_unevictable_pages;
--extern int scan_unevictable_handler(struct ctl_table *, int,
--					void __user *, size_t *, loff_t *);
--#ifdef CONFIG_NUMA
--extern int scan_unevictable_register_node(struct node *node);
--extern void scan_unevictable_unregister_node(struct node *node);
--#else
--static inline int scan_unevictable_register_node(struct node *node)
--{
--	return 0;
--}
--static inline void scan_unevictable_unregister_node(struct node *node)
--{
--}
--#endif
--
- extern int kswapd_run(int nid);
- extern void kswapd_stop(int nid);
- #ifdef CONFIG_MEMCG
-diff -puN kernel/sysctl.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface kernel/sysctl.c
---- a/kernel/sysctl.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface
-+++ a/kernel/sysctl.c
-@@ -1460,13 +1460,6 @@ static struct ctl_table vm_table[] = {
- 		.extra2		= &one,
- 	},
- #endif
--	{
--		.procname	= "scan_unevictable_pages",
--		.data		= &scan_unevictable_pages,
--		.maxlen		= sizeof(scan_unevictable_pages),
--		.mode		= 0644,
--		.proc_handler	= scan_unevictable_handler,
--	},
- #ifdef CONFIG_MEMORY_FAILURE
- 	{
- 		.procname	= "memory_failure_early_kill",
-diff -puN mm/vmscan.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface
-+++ a/mm/vmscan.c
-@@ -3797,66 +3797,3 @@ void check_move_unevictable_pages(struct
- 	}
+ /* Expiration */
+ int is_autofs4_dentry(struct dentry *);
+-int autofs4_expire_wait(struct dentry *dentry);
++int autofs4_expire_wait(struct dentry *dentry, int rcu_walk);
+ int autofs4_expire_run(struct super_block *, struct vfsmount *,
+ 			struct autofs_sb_info *,
+ 			struct autofs_packet_expire __user *);
+diff -puN fs/autofs4/dev-ioctl.c~autofs4-allow-rcu-walk-to-walk-through-autofs4 fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs4-allow-rcu-walk-to-walk-through-autofs4
++++ a/fs/autofs4/dev-ioctl.c
+@@ -450,7 +450,7 @@ static int autofs_dev_ioctl_requester(st
+ 	ino = autofs4_dentry_ino(path.dentry);
+ 	if (ino) {
+ 		err = 0;
+-		autofs4_expire_wait(path.dentry);
++		autofs4_expire_wait(path.dentry, 0);
+ 		spin_lock(&sbi->fs_lock);
+ 		param->requester.uid = from_kuid_munged(current_user_ns(), ino->uid);
+ 		param->requester.gid = from_kgid_munged(current_user_ns(), ino->gid);
+diff -puN fs/autofs4/expire.c~autofs4-allow-rcu-walk-to-walk-through-autofs4 fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs4-allow-rcu-walk-to-walk-through-autofs4
++++ a/fs/autofs4/expire.c
+@@ -467,7 +467,7 @@ found:
+ 	return expired;
  }
- #endif /* CONFIG_SHMEM */
+ 
+-int autofs4_expire_wait(struct dentry *dentry)
++int autofs4_expire_wait(struct dentry *dentry, int rcu_walk)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
+@@ -477,6 +477,8 @@ int autofs4_expire_wait(struct dentry *d
+ 	spin_lock(&sbi->fs_lock);
+ 	if (ino->flags & AUTOFS_INF_EXPIRING) {
+ 		spin_unlock(&sbi->fs_lock);
++		if (rcu_walk)
++			return -ECHILD;
+ 
+ 		DPRINTK("waiting for expire %p name=%.*s",
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
+diff -puN fs/autofs4/root.c~autofs4-allow-rcu-walk-to-walk-through-autofs4 fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-allow-rcu-walk-to-walk-through-autofs4
++++ a/fs/autofs4/root.c
+@@ -210,7 +210,8 @@ next:
+ 	return NULL;
+ }
+ 
+-static struct dentry *autofs4_lookup_expiring(struct dentry *dentry)
++static struct dentry *autofs4_lookup_expiring(struct dentry *dentry,
++					      bool rcu_walk)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct dentry *parent = dentry->d_parent;
+@@ -229,6 +230,11 @@ static struct dentry *autofs4_lookup_exp
+ 		struct dentry *expiring;
+ 		struct qstr *qstr;
+ 
++		if (rcu_walk) {
++			spin_unlock(&sbi->lookup_lock);
++			return ERR_PTR(-ECHILD);
++		}
++
+ 		ino = list_entry(p, struct autofs_info, expiring);
+ 		expiring = ino->dentry;
+ 
+@@ -264,13 +270,15 @@ next:
+ 	return NULL;
+ }
+ 
+-static int autofs4_mount_wait(struct dentry *dentry)
++static int autofs4_mount_wait(struct dentry *dentry, bool rcu_walk)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
+ 	int status = 0;
+ 
+ 	if (ino->flags & AUTOFS_INF_PENDING) {
++		if (rcu_walk)
++			return -ECHILD;
+ 		DPRINTK("waiting for mount name=%.*s",
+ 			dentry->d_name.len, dentry->d_name.name);
+ 		status = autofs4_wait(sbi, dentry, NFY_MOUNT);
+@@ -280,20 +288,22 @@ static int autofs4_mount_wait(struct den
+ 	return status;
+ }
+ 
+-static int do_expire_wait(struct dentry *dentry)
++static int do_expire_wait(struct dentry *dentry, bool rcu_walk)
+ {
+ 	struct dentry *expiring;
+ 
+-	expiring = autofs4_lookup_expiring(dentry);
++	expiring = autofs4_lookup_expiring(dentry, rcu_walk);
++	if (IS_ERR(expiring))
++		return PTR_ERR(expiring);
+ 	if (!expiring)
+-		return autofs4_expire_wait(dentry);
++		return autofs4_expire_wait(dentry, rcu_walk);
+ 	else {
+ 		/*
+ 		 * If we are racing with expire the request might not
+ 		 * be quite complete, but the directory has been removed
+ 		 * so it must have been successful, just wait for it.
+ 		 */
+-		autofs4_expire_wait(expiring);
++		autofs4_expire_wait(expiring, 0);
+ 		autofs4_del_expiring(expiring);
+ 		dput(expiring);
+ 	}
+@@ -345,7 +355,7 @@ static struct vfsmount *autofs4_d_automo
+ 	 * and the directory was removed, so just go ahead and try
+ 	 * the mount.
+ 	 */
+-	status = do_expire_wait(dentry);
++	status = do_expire_wait(dentry, 0);
+ 	if (status && status != -EAGAIN)
+ 		return NULL;
+ 
+@@ -353,7 +363,7 @@ static struct vfsmount *autofs4_d_automo
+ 	spin_lock(&sbi->fs_lock);
+ 	if (ino->flags & AUTOFS_INF_PENDING) {
+ 		spin_unlock(&sbi->fs_lock);
+-		status = autofs4_mount_wait(dentry);
++		status = autofs4_mount_wait(dentry, 0);
+ 		if (status)
+ 			return ERR_PTR(status);
+ 		goto done;
+@@ -394,7 +404,7 @@ static struct vfsmount *autofs4_d_automo
+ 		}
+ 		ino->flags |= AUTOFS_INF_PENDING;
+ 		spin_unlock(&sbi->fs_lock);
+-		status = autofs4_mount_wait(dentry);
++		status = autofs4_mount_wait(dentry, 0);
+ 		spin_lock(&sbi->fs_lock);
+ 		ino->flags &= ~AUTOFS_INF_PENDING;
+ 		if (status) {
+@@ -430,21 +440,25 @@ static int autofs4_d_manage(struct dentr
+ 		return 0;
+ 	}
+ 
+-	/* We need to sleep, so we need pathwalk to be in ref-mode */
+-	if (rcu_walk)
+-		return -ECHILD;
 -
--static void warn_scan_unevictable_pages(void)
--{
--	printk_once(KERN_WARNING
--		    "%s: The scan_unevictable_pages sysctl/node-interface has been "
--		    "disabled for lack of a legitimate use case.  If you have "
--		    "one, please send an email to linux-mm@kvack.org.\n",
--		    current->comm);
--}
--
--/*
-- * scan_unevictable_pages [vm] sysctl handler.  On demand re-scan of
-- * all nodes' unevictable lists for evictable pages
-- */
--unsigned long scan_unevictable_pages;
--
--int scan_unevictable_handler(struct ctl_table *table, int write,
--			   void __user *buffer,
--			   size_t *length, loff_t *ppos)
--{
--	warn_scan_unevictable_pages();
--	proc_doulongvec_minmax(table, write, buffer, length, ppos);
--	scan_unevictable_pages = 0;
--	return 0;
--}
--
--#ifdef CONFIG_NUMA
--/*
-- * per node 'scan_unevictable_pages' attribute.  On demand re-scan of
-- * a specified node's per zone unevictable lists for evictable pages.
-- */
--
--static ssize_t read_scan_unevictable_node(struct device *dev,
--					  struct device_attribute *attr,
--					  char *buf)
--{
--	warn_scan_unevictable_pages();
--	return sprintf(buf, "0\n");	/* always zero; should fit... */
--}
--
--static ssize_t write_scan_unevictable_node(struct device *dev,
--					   struct device_attribute *attr,
--					const char *buf, size_t count)
--{
--	warn_scan_unevictable_pages();
--	return 1;
--}
--
--
--static DEVICE_ATTR(scan_unevictable_pages, S_IRUGO | S_IWUSR,
--			read_scan_unevictable_node,
--			write_scan_unevictable_node);
--
--int scan_unevictable_register_node(struct node *node)
--{
--	return device_create_file(&node->dev, &dev_attr_scan_unevictable_pages);
--}
+ 	/* Wait for pending expires */
+-	do_expire_wait(dentry);
++	if (do_expire_wait(dentry, rcu_walk) == -ECHILD)
++		return -ECHILD;
+ 
+ 	/*
+ 	 * This dentry may be under construction so wait on mount
+ 	 * completion.
+ 	 */
+-	status = autofs4_mount_wait(dentry);
++	status = autofs4_mount_wait(dentry, rcu_walk);
+ 	if (status)
+ 		return status;
+ 
++	if (rcu_walk)
++		/* it is always safe to return 0 as the worst that
++		 * will happen is we retry in REF-walk mode.
++		 * Better than always taking a lock.
++		 */
++		return 0;
++
+ 	spin_lock(&sbi->fs_lock);
+ 	/*
+ 	 * If the dentry has been selected for expire while we slept
+_
+
+Patches currently in -mm which might be from neilb@suse.de are
+
+autofs4-allow-rcu-walk-to-walk-through-autofs4.patch
+autofs4-factor-should_expire-out-of-autofs4_expire_indirect.patch
+autofs4-make-autofs4_can_expire-idempotent.patch
+autofs4-avoid-taking-fs_lock-during-rcu-walk.patch
+autofs4-d_manage-should-return-eisdir-when-appropriate-in-rcu-walk-mode.patch
+autofs-the-documentation-i-wanted-to-read.patch
+linux-next.patch
+
