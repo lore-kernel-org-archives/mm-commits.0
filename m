@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch added to -mm tree
-Date: Tue, 26 Aug 2014 16:48:34 -0700
-Message-ID: <53fd1cd2.toyB4rD7ET+ZfrP4%akpm@linux-foundation.org>
+Subject: + mempolicy-unexport-get_vma_policy-and-remove-its-task-arg.patch added to -mm tree
+Date: Tue, 26 Aug 2014 16:48:40 -0700
+Message-ID: <53fd1cd8.oDy0hiaTUlhMdNJV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:56744 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755930AbaHZXsf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:48:35 -0400
-Received: by mail-ob0-f201.google.com with SMTP id va2so2494183obc.0
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:48:35 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:49716 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755935AbaHZXsl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:48:41 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so4129298pab.1
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:48:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, andi@firstfloor.org, ebiederm@xmission.com, gorcunov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: change get_task_policy() to return default_policy rather than NULL
+     Subject: mempolicy: unexport get_vma_policy() and remove its "task" arg
 has been added to the -mm tree.  Its filename is
-     mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
+     mempolicy-unexport-get_vma_policy-and-remove-its-task-arg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-unexport-get_vma_policy-and-remove-its-task-arg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-unexport-get_vma_policy-and-remove-its-task-arg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,10 +41,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: mempolicy: change get_task_policy() to return default_policy rather than NULL
+Subject: mempolicy: unexport get_vma_policy() and remove its "task" arg
 
-Every caller of get_task_policy() falls back to default_policy if it
-returns NULL. Change get_task_policy() to do this.
+- get_vma_policy(task) is not safe if task != current, remove this
+  argument.
+
+- get_vma_policy() no longer has callers outside of mempolicy.c,
+  make it static.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -62,81 +64,85 @@ Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   31 +++++++++++++------------------
- 1 file changed, 13 insertions(+), 18 deletions(-)
+ include/linux/mempolicy.h |    2 --
+ mm/mempolicy.c            |   19 ++++++++-----------
+ 2 files changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null
+diff -puN include/linux/mempolicy.h~mempolicy-unexport-get_vma_policy-and-remove-its-task-arg include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mempolicy-unexport-get_vma_policy-and-remove-its-task-arg
++++ a/include/linux/mempolicy.h
+@@ -137,8 +137,6 @@ struct mempolicy *mpol_shared_policy_loo
+ struct mempolicy *get_task_policy(struct task_struct *p);
+ struct mempolicy *__get_vma_policy(struct vm_area_struct *vma,
+ 		unsigned long addr);
+-struct mempolicy *get_vma_policy(struct task_struct *tsk,
+-		struct vm_area_struct *vma, unsigned long addr);
+ bool vma_policy_mof(struct vm_area_struct *vma);
+ 
+ extern void numa_default_policy(void);
+diff -puN mm/mempolicy.c~mempolicy-unexport-get_vma_policy-and-remove-its-task-arg mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-unexport-get_vma_policy-and-remove-its-task-arg
 +++ a/mm/mempolicy.c
-@@ -126,22 +126,20 @@ static struct mempolicy preferred_node_p
- static struct mempolicy *get_task_policy(struct task_struct *p)
- {
- 	struct mempolicy *pol = p->mempolicy;
-+	int node;
- 
--	if (!pol) {
--		int node = numa_node_id();
-+	if (pol)
-+		return pol;
- 
--		if (node != NUMA_NO_NODE) {
--			pol = &preferred_node_policy[node];
--			/*
--			 * preferred_node_policy is not initialised early in
--			 * boot
--			 */
--			if (!pol->mode)
--				pol = NULL;
--		}
-+	node = numa_node_id();
-+	if (node != NUMA_NO_NODE) {
-+		pol = &preferred_node_policy[node];
-+		/* preferred_node_policy is not initialised early in boot */
-+		if (pol->mode)
-+			return pol;
- 	}
- 
--	return pol;
-+	return &default_policy;
+@@ -1616,27 +1616,24 @@ struct mempolicy *__get_vma_policy(struc
  }
  
- static const struct mempolicy_operations {
-@@ -1644,14 +1642,14 @@ struct mempolicy *get_vma_policy(struct
- 				mpol_get(pol);
- 		}
- 	}
--	if (!pol)
--		pol = &default_policy;
-+
+ /*
+- * get_vma_policy(@task, @vma, @addr)
+- * @task: task for fallback if vma policy == default
++ * get_vma_policy(@vma, @addr)
+  * @vma: virtual memory area whose policy is sought
+  * @addr: address in @vma for shared policy lookup
+  *
+  * Returns effective policy for a VMA at specified address.
+- * Falls back to @task or system default policy, as necessary.
+- * Current or other task's task mempolicy and non-shared vma policies must be
+- * protected by task_lock(task) by the caller.
++ * Falls back to current->mempolicy or system default policy, as necessary.
+  * Shared policies [those marked as MPOL_F_SHARED] require an extra reference
+  * count--added by the get_policy() vm_op, as appropriate--to protect against
+  * freeing by another task.  It is the caller's responsibility to free the
+  * extra reference for shared policies.
+  */
+-struct mempolicy *get_vma_policy(struct task_struct *task,
+-		struct vm_area_struct *vma, unsigned long addr)
++static struct mempolicy *get_vma_policy(struct vm_area_struct *vma,
++						unsigned long addr)
+ {
+ 	struct mempolicy *pol = __get_vma_policy(vma, addr);
+ 
+ 	if (!pol)
+-		pol = get_task_policy(task);
++		pol = get_task_policy(current);
+ 
  	return pol;
  }
- 
- bool vma_policy_mof(struct task_struct *task, struct vm_area_struct *vma)
+@@ -1864,7 +1861,7 @@ struct zonelist *huge_zonelist(struct vm
  {
- 	struct mempolicy *pol = get_task_policy(task);
-+
- 	if (vma) {
- 		if (vma->vm_ops && vma->vm_ops->get_policy) {
- 			bool ret = false;
-@@ -1667,9 +1665,6 @@ bool vma_policy_mof(struct task_struct *
- 		}
- 	}
+ 	struct zonelist *zl;
  
--	if (!pol)
--		return default_policy.flags & MPOL_F_MOF;
--
- 	return pol->flags & MPOL_F_MOF;
- }
+-	*mpol = get_vma_policy(current, vma, addr);
++	*mpol = get_vma_policy(vma, addr);
+ 	*nodemask = NULL;	/* assume !MPOL_BIND */
  
-@@ -2077,7 +2072,7 @@ struct page *alloc_pages_current(gfp_t g
- 	struct page *page;
+ 	if (unlikely((*mpol)->mode == MPOL_INTERLEAVE)) {
+@@ -2019,7 +2016,7 @@ alloc_pages_vma(gfp_t gfp, int order, st
  	unsigned int cpuset_mems_cookie;
  
--	if (!pol || in_interrupt() || (gfp & __GFP_THISNODE))
-+	if (in_interrupt() || (gfp & __GFP_THISNODE))
- 		pol = &default_policy;
- 
  retry_cpuset:
+-	pol = get_vma_policy(current, vma, addr);
++	pol = get_vma_policy(vma, addr);
+ 	cpuset_mems_cookie = read_mems_allowed_begin();
+ 
+ 	if (unlikely(pol->mode == MPOL_INTERLEAVE)) {
+@@ -2285,7 +2282,7 @@ int mpol_misplaced(struct page *page, st
+ 
+ 	BUG_ON(!vma);
+ 
+-	pol = get_vma_policy(current, vma, addr);
++	pol = get_vma_policy(vma, addr);
+ 	if (!(pol->flags & MPOL_F_MOF))
+ 		goto out;
+ 
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
