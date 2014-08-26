@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + init-do_mounts-better-syntax-description.patch added to -mm
- tree
-Date: Tue, 26 Aug 2014 14:01:28 -0700
-Message-ID: <53fcf5a8.TilcbRI5TbYbX0T4%akpm@linux-foundation.org>
+Subject: + list-include-linux-kernelh.patch added to -mm tree
+Date: Tue, 26 Aug 2014 14:02:23 -0700
+Message-ID: <53fcf5df.nVZ545ppzcqUtUM4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:45014 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754609AbaHZVB3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 17:01:29 -0400
-Received: by mail-pd0-f201.google.com with SMTP id g10so4003090pdj.4
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 14:01:28 -0700 (PDT)
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:35440 "EHLO
+	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754115AbaHZVCY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 17:02:24 -0400
+Received: by mail-qg0-f73.google.com with SMTP id i50so1357446qgf.2
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 14:02:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, pavel@denx.de, mm-commits@vger.kernel.org
+To: yamada.m@jp.panasonic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/do_mounts: better syntax description
+     Subject: list: include linux/kernel.h
 has been added to the -mm tree.  Its filename is
-     init-do_mounts-better-syntax-description.patch
+     list-include-linux-kernelh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-do_mounts-better-syntax-description.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/list-include-linux-kernelh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-do_mounts-better-syntax-description.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/list-include-linux-kernelh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,37 +40,33 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pavel Machek <pavel@ucw.cz>
-Subject: init/do_mounts: better syntax description
+From: Masahiro Yamada <yamada.m@jp.panasonic.com>
+Subject: list: include linux/kernel.h
 
-Specify hex device number unambiguously.
+linux/list.h uses container_of, therefore it depends on linux/kernel.h.
 
-Signed-off-by: Pavel Machek <pavel@denx.de>
+Signed-off-by: Masahiro Yamada <yamada.m@jp.panasonic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/list.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN init/do_mounts.c~init-do_mounts-better-syntax-description init/do_mounts.c
---- a/init/do_mounts.c~init-do_mounts-better-syntax-description
-+++ a/init/do_mounts.c
-@@ -182,7 +182,8 @@ done:
+diff -puN include/linux/list.h~list-include-linux-kernelh include/linux/list.h
+--- a/include/linux/list.h~list-include-linux-kernelh
++++ a/include/linux/list.h
+@@ -5,6 +5,7 @@
+ #include <linux/stddef.h>
+ #include <linux/poison.h>
+ #include <linux/const.h>
++#include <linux/kernel.h>
+ 
  /*
-  *	Convert a name into device number.  We accept the following variants:
-  *
-- *	1) device number in hexadecimal	represents itself
-+ *	1) <hex_major><hex_minor> device number in hexadecimal represents itself
-+ *         no leading 0x, for example b302.
-  *	2) /dev/nfs represents Root_NFS (0xff)
-  *	3) /dev/<disk_name> represents the device number of disk
-  *	4) /dev/<disk_name><decimal> represents the device number
+  * Simple doubly linked list implementation.
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from yamada.m@jp.panasonic.com are
 
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-lib-vsprintf-add-%pt-format-specifier.patch
-init-do_mounts-better-syntax-description.patch
+list-include-linux-kernelh.patch
 linux-next.patch
 
