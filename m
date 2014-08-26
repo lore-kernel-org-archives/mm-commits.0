@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab_common-move-kmem_cache-definition-to-internal-header.patch added to -mm tree
-Date: Tue, 26 Aug 2014 16:17:09 -0700
-Message-ID: <53fd1575.rZQD7SpXF0WQQZDQ%akpm@linux-foundation.org>
+Subject: + mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
+ added to -mm tree
+Date: Tue, 26 Aug 2014 16:17:13 -0700
+Message-ID: <53fd1579.opfch0DA+bbWJOqr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:63866 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752275AbaHZXRK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:17:10 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so3054336oac.3
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:17:10 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:63655 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754228AbaHZXRP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:17:15 -0400
+Received: by mail-ie0-f201.google.com with SMTP id tr6so1789829ieb.2
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:17:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab_common: move kmem_cache definition to internal header
+     Subject: mm/slab: factor out unlikely part of cache_free_alien()
 has been added to the -mm tree.  Its filename is
-     mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
+     mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,159 +42,109 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab_common: move kmem_cache definition to internal header
+Subject: mm/slab: factor out unlikely part of cache_free_alien()
 
-We don't need to keep kmem_cache definition in include/linux/slab.h if we
-don't need to inline kmem_cache_size().  According to my code inspection,
-this function is only called at lc_create() in lib/lru_cache.c which may
-be called at initialization phase of something, so we don't need to inline
-it.  Therfore, move it to slab_common.c and move kmem_cache definition to
-internal header.
+cache_free_alien() is rarely used function when node mismatch.  But, it is
+defined with inline attribute so it is inlined to __cache_free() which is
+core free function of slab allocator.  It uselessly makes
+kmem_cache_free()/kfree() functions large.  What we really need to inline
+is just checking node match so this patch factor out other parts of
+cache_free_alien() to reduce code size of kmem_cache_free()/ kfree().
 
-After this change, we can change kmem_cache definition easily without full
-kernel build.  For instance, we can turn on/off CONFIG_SLUB_STATS without
-full kernel build.
+<Before>
+nm -S mm/slab.o | grep -e "T kfree" -e "T kmem_cache_free"
+00000000000011e0 0000000000000228 T kfree
+0000000000000670 0000000000000216 T kmem_cache_free
+
+<After>
+nm -S mm/slab.o | grep -e "T kfree" -e "T kmem_cache_free"
+0000000000001110 00000000000001b5 T kfree
+0000000000000750 0000000000000181 T kmem_cache_free
+
+You can see slightly reduced size of text: 0x228->0x1b5, 0x216->0x181.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |   42 -----------------------------------------
- mm/slab.h            |   33 ++++++++++++++++++++++++++++++++
- mm/slab_common.c     |    8 +++++++
- 3 files changed, 42 insertions(+), 41 deletions(-)
+ mm/slab.c |   38 +++++++++++++++++++++-----------------
+ 1 file changed, 21 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/slab.h~mm-slab_common-move-kmem_cache-definition-to-internal-header include/linux/slab.h
---- a/include/linux/slab.h~mm-slab_common-move-kmem_cache-definition-to-internal-header
-+++ a/include/linux/slab.h
-@@ -158,31 +158,6 @@ size_t ksize(const void *);
- #define ARCH_KMALLOC_MINALIGN __alignof__(unsigned long long)
+diff -puN mm/slab.c~mm-slab-factor-out-unlikely-part-of-cache_free_alien mm/slab.c
+--- a/mm/slab.c~mm-slab-factor-out-unlikely-part-of-cache_free_alien
++++ a/mm/slab.c
+@@ -984,46 +984,50 @@ static void drain_alien_cache(struct kme
+ 	}
+ }
+ 
+-static inline int cache_free_alien(struct kmem_cache *cachep, void *objp)
++static int __cache_free_alien(struct kmem_cache *cachep, void *objp,
++				int node, int page_node)
+ {
+-	int nodeid = page_to_nid(virt_to_page(objp));
+ 	struct kmem_cache_node *n;
+ 	struct alien_cache *alien = NULL;
+ 	struct array_cache *ac;
+-	int node;
+ 	LIST_HEAD(list);
+ 
+-	node = numa_mem_id();
+-
+-	/*
+-	 * Make sure we are not freeing a object from another node to the array
+-	 * cache on this cpu.
+-	 */
+-	if (likely(nodeid == node))
+-		return 0;
+-
+ 	n = get_node(cachep, node);
+ 	STATS_INC_NODEFREES(cachep);
+-	if (n->alien && n->alien[nodeid]) {
+-		alien = n->alien[nodeid];
++	if (n->alien && n->alien[page_node]) {
++		alien = n->alien[page_node];
+ 		ac = &alien->ac;
+ 		spin_lock(&alien->lock);
+ 		if (unlikely(ac->avail == ac->limit)) {
+ 			STATS_INC_ACOVERFLOW(cachep);
+-			__drain_alien_cache(cachep, ac, nodeid, &list);
++			__drain_alien_cache(cachep, ac, page_node, &list);
+ 		}
+ 		ac_put_obj(cachep, ac, objp);
+ 		spin_unlock(&alien->lock);
+ 		slabs_destroy(cachep, &list);
+ 	} else {
+-		n = get_node(cachep, nodeid);
++		n = get_node(cachep, page_node);
+ 		spin_lock(&n->list_lock);
+-		free_block(cachep, &objp, 1, nodeid, &list);
++		free_block(cachep, &objp, 1, page_node, &list);
+ 		spin_unlock(&n->list_lock);
+ 		slabs_destroy(cachep, &list);
+ 	}
+ 	return 1;
+ }
++
++static inline int cache_free_alien(struct kmem_cache *cachep, void *objp)
++{
++	int page_node = page_to_nid(virt_to_page(objp));
++	int node = numa_mem_id();
++	/*
++	 * Make sure we are not freeing a object from another node to the array
++	 * cache on this cpu.
++	 */
++	if (likely(node == page_node))
++		return 0;
++
++	return __cache_free_alien(cachep, objp, node, page_node);
++}
  #endif
  
--#ifdef CONFIG_SLOB
--/*
-- * Common fields provided in kmem_cache by all slab allocators
-- * This struct is either used directly by the allocator (SLOB)
-- * or the allocator must include definitions for all fields
-- * provided in kmem_cache_common in their definition of kmem_cache.
-- *
-- * Once we can do anonymous structs (C11 standard) we could put a
-- * anonymous struct definition in these allocators so that the
-- * separate allocations in the kmem_cache structure of SLAB and
-- * SLUB is no longer needed.
-- */
--struct kmem_cache {
--	unsigned int object_size;/* The original size of the object */
--	unsigned int size;	/* The aligned/padded/added on size  */
--	unsigned int align;	/* Alignment as calculated */
--	unsigned long flags;	/* Active flags on the slab */
--	const char *name;	/* Slab name for sysfs */
--	int refcount;		/* Use counter */
--	void (*ctor)(void *);	/* Called on object slot creation */
--	struct list_head list;	/* List of all slab caches on the system */
--};
--
--#endif /* CONFIG_SLOB */
--
  /*
-  * Kmalloc array related definitions
-  */
-@@ -363,14 +338,6 @@ kmem_cache_alloc_node_trace(struct kmem_
- }
- #endif /* CONFIG_TRACING */
- 
--#ifdef CONFIG_SLAB
--#include <linux/slab_def.h>
--#endif
--
--#ifdef CONFIG_SLUB
--#include <linux/slub_def.h>
--#endif
--
- extern void *kmalloc_order(size_t size, gfp_t flags, unsigned int order);
- 
- #ifdef CONFIG_TRACING
-@@ -650,14 +617,7 @@ static inline void *kzalloc_node(size_t
- 	return kmalloc_node(size, flags | __GFP_ZERO, node);
- }
- 
--/*
-- * Determine the size of a slab object
-- */
--static inline unsigned int kmem_cache_size(struct kmem_cache *s)
--{
--	return s->object_size;
--}
--
-+unsigned int kmem_cache_size(struct kmem_cache *s);
- void __init kmem_cache_init_late(void);
- 
- #endif	/* _LINUX_SLAB_H */
-diff -puN mm/slab.h~mm-slab_common-move-kmem_cache-definition-to-internal-header mm/slab.h
---- a/mm/slab.h~mm-slab_common-move-kmem_cache-definition-to-internal-header
-+++ a/mm/slab.h
-@@ -4,6 +4,39 @@
-  * Internal slab definitions
-  */
- 
-+#ifdef CONFIG_SLOB
-+/*
-+ * Common fields provided in kmem_cache by all slab allocators
-+ * This struct is either used directly by the allocator (SLOB)
-+ * or the allocator must include definitions for all fields
-+ * provided in kmem_cache_common in their definition of kmem_cache.
-+ *
-+ * Once we can do anonymous structs (C11 standard) we could put a
-+ * anonymous struct definition in these allocators so that the
-+ * separate allocations in the kmem_cache structure of SLAB and
-+ * SLUB is no longer needed.
-+ */
-+struct kmem_cache {
-+	unsigned int object_size;/* The original size of the object */
-+	unsigned int size;	/* The aligned/padded/added on size  */
-+	unsigned int align;	/* Alignment as calculated */
-+	unsigned long flags;	/* Active flags on the slab */
-+	const char *name;	/* Slab name for sysfs */
-+	int refcount;		/* Use counter */
-+	void (*ctor)(void *);	/* Called on object slot creation */
-+	struct list_head list;	/* List of all slab caches on the system */
-+};
-+
-+#endif /* CONFIG_SLOB */
-+
-+#ifdef CONFIG_SLAB
-+#include <linux/slab_def.h>
-+#endif
-+
-+#ifdef CONFIG_SLUB
-+#include <linux/slub_def.h>
-+#endif
-+
- /*
-  * State of the slab allocator.
-  *
-diff -puN mm/slab_common.c~mm-slab_common-move-kmem_cache-definition-to-internal-header mm/slab_common.c
---- a/mm/slab_common.c~mm-slab_common-move-kmem_cache-definition-to-internal-header
-+++ a/mm/slab_common.c
-@@ -30,6 +30,14 @@ LIST_HEAD(slab_caches);
- DEFINE_MUTEX(slab_mutex);
- struct kmem_cache *kmem_cache;
- 
-+/*
-+ * Determine the size of a slab object
-+ */
-+unsigned int kmem_cache_size(struct kmem_cache *s)
-+{
-+	return s->object_size;
-+}
-+
- #ifdef CONFIG_DEBUG_VM
- static int kmem_cache_sanity_check(const char *name, size_t size)
- {
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
