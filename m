@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- autofs4-d_manage-should-return-eisdir-when-appropriate-in-rcu-walk-mode.patch added to -mm tree
-Date: Tue, 26 Aug 2014 15:17:06 -0700
-Message-ID: <53fd0762.CnmMfi7o5ZVWbxn1%akpm@linux-foundation.org>
+Subject: + fix-faulty-logic-in-the-case-of-recursive-printk.patch added to -mm tree
+Date: Tue, 26 Aug 2014 15:26:16 -0700
+Message-ID: <53fd0988.NWryFeLeKKWoctxt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:59870 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756078AbaHZWRH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 18:17:07 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f73so1826983yha.2
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 15:17:07 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:40029 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754346AbaHZW0R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 18:26:17 -0400
+Received: by mail-oi0-f74.google.com with SMTP id a141so3012023oig.1
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 15:26:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, raven@themaw.net, mm-commits@vger.kernel.org
+To: patrick@parcs.ath.cx, jack@suse.cz, pmladek@suse.cz, rostedt@goodmis.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs4: d_manage() should return -EISDIR when appropriate in rcu-walk mode.
+     Subject: kernel/printk/printk.c: fix faulty logic in the case of recursive printk
 has been added to the -mm tree.  Its filename is
-     autofs4-d_manage-should-return-eisdir-when-appropriate-in-rcu-walk-mode.patch
+     fix-faulty-logic-in-the-case-of-recursive-printk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs4-d_manage-should-return-eisdir-when-appropriate-in-rcu-walk-mode.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fix-faulty-logic-in-the-case-of-recursive-printk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs4-d_manage-should-return-eisdir-when-appropriate-in-rcu-walk-mode.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fix-faulty-logic-in-the-case-of-recursive-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,86 +40,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.de>
-Subject: autofs4: d_manage() should return -EISDIR when appropriate in rcu-walk mode.
+From: Patrick Palka <patrick@parcs.ath.cx>
+Subject: kernel/printk/printk.c: fix faulty logic in the case of recursive printk
 
-If rcu-walk mode we don't *have* to return -EISDIR for non-mount-traps as
-we will simply drop into REF-walk and handling DCACHE_NEED_AUTOMOUNT
-dentrys the slow way.  But it is better if we do when possible.
+We shouldn't set text_len in the code path that detects printk recursion
+because text_len corresponds to the length of the string inside textbuf. 
+A few lines down from the line
 
-In 'oz_mode', use the same condition as ref-walk: if not a mountpoint,
-then it must be -EISDIR.
+    text_len = strlen(recursion_msg);
 
-In regular mode there are most tests needed.  Most of them can be
-performed without taking any spinlocks.  If we find a directory that isn't
-obviously empty, and isn't mounted on, we need to call 'simple_empty()'
-which does take a spinlock.  If this turned out to hurt performance, some
-other approach could be found to signal when a directory is known to be
-empty.
+is the line
 
-Signed-off-by: NeilBrown <neilb@suse.de>
-Reviewed-by: Ian Kent <raven@themaw.net>
-Tested-by: Ian Kent <raven@themaw.net>
+    text_len += vscnprintf(text + text_len, ...);
+
+So if printk detects recursion, it sets text_len to 29 (the length of
+recursion_msg) and logs an error.  Then the message supplied by the caller
+of printk is stored inside textbuf but offset by 29 bytes.  This means
+that the output of the recursive call to printk will contain 29 bytes of
+garbage in front of it.
+
+This defect is caused by commit 458df9fd ("printk: remove separate
+printk_sched buffers and use printk buf instead") which turned the line
+
+    text_len = vscnprintf(text, ...);
+
+into
+
+    text_len += vscnprintf(text + text_len, ...);
+
+To fix this, this patch avoids setting text_len when logging the printk
+recursion error.  This patch also marks unlikely() the branch leading up
+to this code.
+
+Fixes: 458df9fd4815b478 ("printk: remove separate printk_sched buffers and use printk buf instead")
+Signed-off-by: Patrick Palka <patrick@parcs.ath.cx>
+Cc: Petr Mladek <pmladek@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |   26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ kernel/printk/printk.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/autofs4/root.c~autofs4-d_manage-should-return-eisdir-when-appropriate-in-rcu-walk-mode fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-d_manage-should-return-eisdir-when-appropriate-in-rcu-walk-mode
-+++ a/fs/autofs4/root.c
-@@ -433,8 +433,6 @@ static int autofs4_d_manage(struct dentr
+diff -puN kernel/printk/printk.c~fix-faulty-logic-in-the-case-of-recursive-printk kernel/printk/printk.c
+--- a/kernel/printk/printk.c~fix-faulty-logic-in-the-case-of-recursive-printk
++++ a/kernel/printk/printk.c
+@@ -1665,15 +1665,15 @@ asmlinkage int vprintk_emit(int facility
+ 	raw_spin_lock(&logbuf_lock);
+ 	logbuf_cpu = this_cpu;
  
- 	/* The daemon never waits. */
- 	if (autofs4_oz_mode(sbi)) {
--		if (rcu_walk)
--			return 0;
- 		if (!d_mountpoint(dentry))
- 			return -EISDIR;
- 		return 0;
-@@ -452,12 +450,28 @@ static int autofs4_d_manage(struct dentr
- 	if (status)
- 		return status;
+-	if (recursion_bug) {
++	if (unlikely(recursion_bug)) {
+ 		static const char recursion_msg[] =
+ 			"BUG: recent printk recursion!";
  
--	if (rcu_walk)
--		/* it is always safe to return 0 as the worst that
--		 * will happen is we retry in REF-walk mode.
--		 * Better than always taking a lock.
-+	if (rcu_walk) {
-+		/* We don't need fs_lock in rcu_walk mode,
-+		 * just testing 'AUTOFS_INFO_NO_RCU' is enough.
-+		 * simple_empty() takes a spinlock, so leave it
-+		 * to last.
-+		 * We only return -EISDIR when certain this isn't
-+		 * a mount-trap.
- 		 */
-+		struct inode *inode;
-+		if (ino->flags & (AUTOFS_INF_EXPIRING | AUTOFS_INF_NO_RCU))
-+			return 0;
-+		if (d_mountpoint(dentry))
-+			return 0;
-+		inode = rcu_dereference(dentry->d_inode);
-+		if (inode && S_ISLNK(inode->i_mode))
-+			return -EISDIR;
-+		if (list_empty(&dentry->d_subdirs))
-+			return 0;
-+		if (!simple_empty(dentry))
-+			return -EISDIR;
- 		return 0;
-+	}
+ 		recursion_bug = 0;
+-		text_len = strlen(recursion_msg);
+ 		/* emit KERN_CRIT message */
+ 		printed_len += log_store(0, 2, LOG_PREFIX|LOG_NEWLINE, 0,
+-					 NULL, 0, recursion_msg, text_len);
++					 NULL, 0, recursion_msg,
++					 strlen(recursion_msg));
+ 	}
  
- 	spin_lock(&sbi->fs_lock);
  	/*
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from patrick@parcs.ath.cx are
 
-autofs4-allow-rcu-walk-to-walk-through-autofs4.patch
-autofs4-factor-should_expire-out-of-autofs4_expire_indirect.patch
-autofs4-make-autofs4_can_expire-idempotent.patch
-autofs4-avoid-taking-fs_lock-during-rcu-walk.patch
-autofs4-d_manage-should-return-eisdir-when-appropriate-in-rcu-walk-mode.patch
-autofs-the-documentation-i-wanted-to-read.patch
-linux-next.patch
+fix-faulty-logic-in-the-case-of-recursive-printk.patch
 
