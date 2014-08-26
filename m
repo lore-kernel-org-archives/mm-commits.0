@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch added to -mm tree
-Date: Tue, 26 Aug 2014 13:14:20 -0700
-Message-ID: <53fcea9c.qeYcLvYfZU7Vv/ge%akpm@linux-foundation.org>
+Subject: + watchdog-control-hard-lockup-detection-default-fix-2.patch
+ added to -mm tree
+Date: Tue, 26 Aug 2014 13:17:47 -0700
+Message-ID: <53fceb6b.jn61u9n8suYbl5VM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:40833 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753774AbaHZUOV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 16:14:21 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so4062887pab.3
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 13:14:21 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:45969 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753372AbaHZURs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 16:17:48 -0400
+Received: by mail-ie0-f201.google.com with SMTP id tr6so1749207ieb.2
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 13:17:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, hpa@zytor.com, qiuxishi@huawei.com, rjw@sisk.pl, tangchen@cn.fujitsu.com, tj@kernel.org, wency@cn.fujitsu.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: dzickus@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix
+     Subject: watchdog, nmi: Fix compile issues on sparc
 has been added to the -mm tree.  Its filename is
-     mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
+     watchdog-control-hard-lockup-detection-default-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-control-hard-lockup-detection-default-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-control-hard-lockup-detection-default-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,76 +41,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix
+From: Don Zickus <dzickus@redhat.com>
+Subject: watchdog, nmi: Fix compile issues on sparc
 
-fix warning
+Sparc doesn't use HARDLOCKUP_DETECTOR the same way x86 does.  As a result break
+out the new functions
 
-mm/nobootmem.c:122:2: warning: large integer implicitly truncated to unsigned type [-Woverflow]
+watchdog_hardlockup_detector_is_enabled
+watchdog_enable_hardlockup_detector
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+into their own #if defined area.  This resolves the compile issue where
+CONFIG_NMI_WATCHDOG=y and CONFIG_HARDLOCKUP_DETECTOR is not set on sparc.
+
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nobootmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/nmi.h |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix mm/nobootmem.c
---- a/mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix
-+++ a/mm/nobootmem.c
-@@ -119,7 +119,7 @@ static unsigned long __init free_low_mem
- 	phys_addr_t start, end;
- 	u64 i;
- 
--	memblock_clear_hotplug(0, ULLONG_MAX);
-+	memblock_clear_hotplug(0, -1);
- 
- 	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
- 		count += __free_memory_core(start, end);
+diff -puN include/linux/nmi.h~watchdog-control-hard-lockup-detection-default-fix-2 include/linux/nmi.h
+--- a/include/linux/nmi.h~watchdog-control-hard-lockup-detection-default-fix-2
++++ a/include/linux/nmi.h
+@@ -17,13 +17,17 @@
+ #if defined(CONFIG_HAVE_NMI_WATCHDOG) || defined(CONFIG_HARDLOCKUP_DETECTOR)
+ #include <asm/nmi.h>
+ extern void touch_nmi_watchdog(void);
+-extern void watchdog_enable_hardlockup_detector(bool val);
+-extern bool watchdog_hardlockup_detector_is_enabled(void);
+ #else
+ static inline void touch_nmi_watchdog(void)
+ {
+ 	touch_softlockup_watchdog();
+ }
++#endif
++
++#if defined(CONFIG_HARDLOCKUP_DETECTOR)
++extern void watchdog_enable_hardlockup_detector(bool val);
++extern bool watchdog_hardlockup_detector_is_enabled(void);
++#else
+ static inline void watchdog_enable_hardlockup_detector(bool val)
+ {
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dzickus@redhat.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
-mm-slab_commonc-suppress-warning.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-checkpatch-fix-spello.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-drivers-staging-unisys-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
+softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
+watchdog-control-hard-lockup-detection-default.patch
 watchdog-control-hard-lockup-detection-default-fix.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+watchdog-control-hard-lockup-detection-default-fix-2.patch
+kvm-ensure-hard-lockup-detection-is-disabled-by-default.patch
 
