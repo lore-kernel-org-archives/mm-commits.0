@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-use-c99-initializers-in-structures.patch added to -mm tree
-Date: Tue, 26 Aug 2014 15:30:19 -0700
-Message-ID: <53fd0a7b.KJFOUhOsEwSkkkNM%akpm@linux-foundation.org>
+Subject: + arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
+ added to -mm tree
+Date: Tue, 26 Aug 2014 16:10:09 -0700
+Message-ID: <53fd13d1.9Ads/3kNH5BlZCP6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:43019 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755922AbaHZWaU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 18:30:20 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so3011037oig.3
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 15:30:19 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:41783 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754993AbaHZXKK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:10:10 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so3054087oah.2
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:10:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Julia.Lawall@lip6.fr, mm-commits@vger.kernel.org
+To: m.szyprowski@samsung.com, drake@endlessm.com, iamjoonsoo.kim@lge.com, linux@arm.linux.org.uk, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: use c99 initializers in structures
+     Subject: ARM: mm: don't limit default CMA region only to low memory
 has been added to the -mm tree.  Its filename is
-     rtc-use-c99-initializers-in-structures.patch
+     arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-use-c99-initializers-in-structures.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-use-c99-initializers-in-structures.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,84 +41,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: rtc: use c99 initializers in structures
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: ARM: mm: don't limit default CMA region only to low memory
 
-Use c99 initializers for structures.
+DMA-mapping supports CMA regions places either in low or high memory, so
+there is no longer needed to limit default CMA regions only to low memory.
+ The real limit is still defined by architecture specific DMA limit.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@decl@
-identifier i1,fld;
-type T;
-field list[n] fs;
-@@
-
-struct i1 {
- fs
- T fld;
- ...};
-
-@bad@
-identifier decl.i1,i2;
-expression e;
-initializer list[decl.n] is;
-@@
-
-struct i1 i2 = { is,
-+ .fld = e
-- e
- ,...};
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reported-by: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Daniel Drake <drake@endlessm.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8583.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ arch/arm/mm/init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf8583.c~rtc-use-c99-initializers-in-structures drivers/rtc/rtc-pcf8583.c
---- a/drivers/rtc/rtc-pcf8583.c~rtc-use-c99-initializers-in-structures
-+++ a/drivers/rtc/rtc-pcf8583.c
-@@ -176,7 +176,11 @@ static int pcf8583_rtc_read_time(struct
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	unsigned char ctrl, year[2];
--	struct rtc_mem mem = { CMOS_YEAR, sizeof(year), year };
-+	struct rtc_mem mem = {
-+		.loc = CMOS_YEAR,
-+		.nr = sizeof(year),
-+		.data = year
-+	};
- 	int real_year, year_offset, err;
+diff -puN arch/arm/mm/init.c~arm-mm-dont-limit-default-cma-region-only-to-low-memory arch/arm/mm/init.c
+--- a/arch/arm/mm/init.c~arm-mm-dont-limit-default-cma-region-only-to-low-memory
++++ a/arch/arm/mm/init.c
+@@ -322,7 +322,7 @@ void __init arm_memblock_init(const stru
+ 	 * reserve memory for DMA contigouos allocations,
+ 	 * must come from DMA area inside low memory
+ 	 */
+-	dma_contiguous_reserve(min(arm_dma_limit, arm_lowmem_limit));
++	dma_contiguous_reserve(arm_dma_limit);
  
- 	/*
-@@ -222,8 +226,16 @@ static int pcf8583_rtc_set_time(struct d
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	unsigned char year[2], chk;
--	struct rtc_mem cmos_year  = { CMOS_YEAR, sizeof(year), year };
--	struct rtc_mem cmos_check = { CMOS_CHECKSUM, 1, &chk };
-+	struct rtc_mem cmos_year  = {
-+		.loc = CMOS_YEAR,
-+		.nr = sizeof(year),
-+		.data = year
-+	};
-+	struct rtc_mem cmos_check = {
-+		.loc = CMOS_CHECKSUM,
-+		.nr = 1,
-+		.data = &chk
-+	};
- 	unsigned int proper_year = tm->tm_year + 1900;
- 	int ret;
- 
+ 	arm_memblock_steal_permitted = false;
+ 	memblock_dump_all();
 _
 
-Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
+Patches currently in -mm which might be from m.szyprowski@samsung.com are
 
-rtc-use-c99-initializers-in-structures.patch
+mm-cma-adjust-address-limit-to-avoid-hitting-low-high-memory-boundary.patch
+arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
 linux-next.patch
 
