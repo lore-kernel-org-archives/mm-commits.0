@@ -1,18 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
- added to -mm tree
-Date: Tue, 26 Aug 2014 16:17:13 -0700
-Message-ID: <53fd1579.opfch0DA+bbWJOqr%akpm@linux-foundation.org>
+Subject: + mm-slab-noinline-__ac_put_obj.patch added to -mm tree
+Date: Tue, 26 Aug 2014 16:17:12 -0700
+Message-ID: <53fd1578.VaPCFdLv6HSeFwI1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:63655 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754228AbaHZXRP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:17:15 -0400
-Received: by mail-ie0-f201.google.com with SMTP id tr6so1789829ieb.2
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:50052 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754690AbaHZXRN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:17:13 -0400
+Received: by mail-qa0-f74.google.com with SMTP id j15so1841788qaq.5
         for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:17:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -20,14 +19,14 @@ To: iamjoonsoo.kim@lge.com, cl@linux.com, penberg@kernel.org, rientjes@google.co
 
 
 The patch titled
-     Subject: mm/slab: factor out unlikely part of cache_free_alien()
+     Subject: mm/slab: noinline __ac_put_obj()
 has been added to the -mm tree.  Its filename is
-     mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
+     mm-slab-noinline-__ac_put_obj.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-noinline-__ac_put_obj.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-noinline-__ac_put_obj.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,26 +41,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: factor out unlikely part of cache_free_alien()
+Subject: mm/slab: noinline __ac_put_obj()
 
-cache_free_alien() is rarely used function when node mismatch.  But, it is
-defined with inline attribute so it is inlined to __cache_free() which is
-core free function of slab allocator.  It uselessly makes
-kmem_cache_free()/kfree() functions large.  What we really need to inline
-is just checking node match so this patch factor out other parts of
-cache_free_alien() to reduce code size of kmem_cache_free()/ kfree().
+Our intention of __ac_put_obj() is that it doesn't affect anything if
+sk_memalloc_socks() is disabled.  But, because __ac_put_obj() is too
+small, compiler inline it to ac_put_obj() and affect code size of free
+path.  This patch add noinline keyword for __ac_put_obj() not to distrupt
+normal free path at all.
 
 <Before>
-nm -S mm/slab.o | grep -e "T kfree" -e "T kmem_cache_free"
+nm -S slab-orig.o |
+	grep -e "t cache_alloc_refill" -e "T kfree" -e "T kmem_cache_free"
+
+0000000000001e80 00000000000002f5 t cache_alloc_refill
+0000000000001230 0000000000000258 T kfree
+0000000000000690 000000000000024c T kmem_cache_free
+
+<After>
+nm -S slab-patched.o |
+	grep -e "t cache_alloc_refill" -e "T kfree" -e "T kmem_cache_free"
+
+0000000000001e00 00000000000002e5 t cache_alloc_refill
 00000000000011e0 0000000000000228 T kfree
 0000000000000670 0000000000000216 T kmem_cache_free
 
-<After>
-nm -S mm/slab.o | grep -e "T kfree" -e "T kmem_cache_free"
-0000000000001110 00000000000001b5 T kfree
-0000000000000750 0000000000000181 T kmem_cache_free
+cache_alloc_refill: 0x2f5->0x2e5
+kfree: 0x256->0x228
+kmem_cache_free: 0x24c->0x216
 
-You can see slightly reduced size of text: 0x228->0x1b5, 0x216->0x181.
+code size of each function is reduced slightly.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -71,80 +79,23 @@ Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   38 +++++++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 17 deletions(-)
+ mm/slab.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-factor-out-unlikely-part-of-cache_free_alien mm/slab.c
---- a/mm/slab.c~mm-slab-factor-out-unlikely-part-of-cache_free_alien
+diff -puN mm/slab.c~mm-slab-noinline-__ac_put_obj mm/slab.c
+--- a/mm/slab.c~mm-slab-noinline-__ac_put_obj
 +++ a/mm/slab.c
-@@ -984,46 +984,50 @@ static void drain_alien_cache(struct kme
- 	}
+@@ -785,8 +785,8 @@ static inline void *ac_get_obj(struct km
+ 	return objp;
  }
  
--static inline int cache_free_alien(struct kmem_cache *cachep, void *objp)
-+static int __cache_free_alien(struct kmem_cache *cachep, void *objp,
-+				int node, int page_node)
+-static void *__ac_put_obj(struct kmem_cache *cachep, struct array_cache *ac,
+-								void *objp)
++static noinline void *__ac_put_obj(struct kmem_cache *cachep,
++			struct array_cache *ac, void *objp)
  {
--	int nodeid = page_to_nid(virt_to_page(objp));
- 	struct kmem_cache_node *n;
- 	struct alien_cache *alien = NULL;
- 	struct array_cache *ac;
--	int node;
- 	LIST_HEAD(list);
- 
--	node = numa_mem_id();
--
--	/*
--	 * Make sure we are not freeing a object from another node to the array
--	 * cache on this cpu.
--	 */
--	if (likely(nodeid == node))
--		return 0;
--
- 	n = get_node(cachep, node);
- 	STATS_INC_NODEFREES(cachep);
--	if (n->alien && n->alien[nodeid]) {
--		alien = n->alien[nodeid];
-+	if (n->alien && n->alien[page_node]) {
-+		alien = n->alien[page_node];
- 		ac = &alien->ac;
- 		spin_lock(&alien->lock);
- 		if (unlikely(ac->avail == ac->limit)) {
- 			STATS_INC_ACOVERFLOW(cachep);
--			__drain_alien_cache(cachep, ac, nodeid, &list);
-+			__drain_alien_cache(cachep, ac, page_node, &list);
- 		}
- 		ac_put_obj(cachep, ac, objp);
- 		spin_unlock(&alien->lock);
- 		slabs_destroy(cachep, &list);
- 	} else {
--		n = get_node(cachep, nodeid);
-+		n = get_node(cachep, page_node);
- 		spin_lock(&n->list_lock);
--		free_block(cachep, &objp, 1, nodeid, &list);
-+		free_block(cachep, &objp, 1, page_node, &list);
- 		spin_unlock(&n->list_lock);
- 		slabs_destroy(cachep, &list);
- 	}
- 	return 1;
- }
-+
-+static inline int cache_free_alien(struct kmem_cache *cachep, void *objp)
-+{
-+	int page_node = page_to_nid(virt_to_page(objp));
-+	int node = numa_mem_id();
-+	/*
-+	 * Make sure we are not freeing a object from another node to the array
-+	 * cache on this cpu.
-+	 */
-+	if (likely(node == page_node))
-+		return 0;
-+
-+	return __cache_free_alien(cachep, objp, node, page_node);
-+}
- #endif
- 
- /*
+ 	if (unlikely(pfmemalloc_active)) {
+ 		/* Some pfmemalloc slabs exist, check if this is one */
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
