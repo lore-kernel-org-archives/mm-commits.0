@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-sanitize-the-usage-of-get_task_policy.patch added to
- -mm tree
-Date: Tue, 26 Aug 2014 16:48:35 -0700
-Message-ID: <53fd1cd3.JdsjRW37LnUF30cc%akpm@linux-foundation.org>
+Subject: + mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put.patch
+ added to -mm tree
+Date: Tue, 26 Aug 2014 16:48:33 -0700
+Message-ID: <53fd1cd1.kislOolD2aB1elR1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:41797 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755935AbaHZXsh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:48:37 -0400
-Received: by mail-ob0-f201.google.com with SMTP id va2so2493432obc.2
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:48:37 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:52750 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755673AbaHZXsf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:48:35 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so4031404pab.5
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:48:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, andi@firstfloor.org, ebiederm@xmission.com, gorcunov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: sanitize the usage of get_task_policy()
+     Subject: mempolicy: change alloc_pages_vma() to use mpol_cond_put()
 has been added to the -mm tree.  Its filename is
-     mempolicy-sanitize-the-usage-of-get_task_policy.patch
+     mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-sanitize-the-usage-of-get_task_policy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-sanitize-the-usage-of-get_task_policy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,17 +42,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: mempolicy: sanitize the usage of get_task_policy()
+Subject: mempolicy: change alloc_pages_vma() to use mpol_cond_put()
 
-Cleanup + preparation. Every user of get_task_policy() calls it
-unconditionally, even if it is not going to use the result.
-
-get_task_policy() is cheap but still this does not look clean, plus
-the code looks simpler if get_task_policy() is called only when this
-is really needed.
-
-Note: I hope this is correct, but it is not clear why vma_policy_mof()
-doesn't fall back to get_task_policy() if ->get_policy() returns NULL.
+Trivial cleanup. alloc_pages_vma() can use mpol_cond_put().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -69,79 +61,22 @@ Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ mm/mempolicy.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-sanitize-the-usage-of-get_task_policy mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-sanitize-the-usage-of-get_task_policy
+diff -puN mm/mempolicy.c~mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put
 +++ a/mm/mempolicy.c
-@@ -1621,14 +1621,11 @@ COMPAT_SYSCALL_DEFINE6(mbind, compat_ulo
- struct mempolicy *get_vma_policy(struct task_struct *task,
- 		struct vm_area_struct *vma, unsigned long addr)
- {
--	struct mempolicy *pol = get_task_policy(task);
-+	struct mempolicy *pol = NULL;
- 
- 	if (vma) {
- 		if (vma->vm_ops && vma->vm_ops->get_policy) {
--			struct mempolicy *vpol = vma->vm_ops->get_policy(vma,
--									addr);
--			if (vpol)
--				pol = vpol;
-+			pol = vma->vm_ops->get_policy(vma, addr);
- 		} else if (vma->vm_policy) {
- 			pol = vma->vm_policy;
- 
-@@ -1643,12 +1640,15 @@ struct mempolicy *get_vma_policy(struct
- 		}
- 	}
- 
-+	if (!pol)
-+		pol = get_task_policy(task);
-+
- 	return pol;
- }
- 
- bool vma_policy_mof(struct task_struct *task, struct vm_area_struct *vma)
- {
--	struct mempolicy *pol = get_task_policy(task);
-+	struct mempolicy *pol = NULL;
- 
- 	if (vma) {
- 		if (vma->vm_ops && vma->vm_ops->get_policy) {
-@@ -1660,11 +1660,14 @@ bool vma_policy_mof(struct task_struct *
- 			mpol_cond_put(pol);
- 
- 			return ret;
--		} else if (vma->vm_policy) {
--			pol = vma->vm_policy;
- 		}
-+
-+		pol = vma->vm_policy;
- 	}
- 
-+	if (!pol)
-+		pol = get_task_policy(task);
-+
- 	return pol->flags & MPOL_F_MOF;
- }
- 
-@@ -2068,12 +2071,12 @@ retry_cpuset:
-  */
- struct page *alloc_pages_current(gfp_t gfp, unsigned order)
- {
--	struct mempolicy *pol = get_task_policy(current);
-+	struct mempolicy *pol = &default_policy;
- 	struct page *page;
- 	unsigned int cpuset_mems_cookie;
- 
--	if (in_interrupt() || (gfp & __GFP_THISNODE))
--		pol = &default_policy;
-+	if (!in_interrupt() && !(gfp & __GFP_THISNODE))
-+		pol = get_task_policy(current);
- 
- retry_cpuset:
- 	cpuset_mems_cookie = read_mems_allowed_begin();
+@@ -2046,8 +2046,7 @@ retry_cpuset:
+ 	page = __alloc_pages_nodemask(gfp, order,
+ 				      policy_zonelist(gfp, pol, node),
+ 				      policy_nodemask(gfp, pol));
+-	if (unlikely(mpol_needs_cond_ref(pol)))
+-		__mpol_put(pol);
++	mpol_cond_put(pol);
+ 	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
+ 		goto retry_cpuset;
+ 	return page;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
