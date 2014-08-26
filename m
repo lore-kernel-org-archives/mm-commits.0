@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + fix-faulty-logic-in-the-case-of-recursive-printk.patch added to -mm tree
-Date: Tue, 26 Aug 2014 15:26:16 -0700
-Message-ID: <53fd0988.NWryFeLeKKWoctxt%akpm@linux-foundation.org>
+Subject: + ipc-shm-kill-the-historical-wrong-mm-start_stack-check.patch
+ added to -mm tree
+Date: Tue, 26 Aug 2014 15:29:46 -0700
+Message-ID: <53fd0a5a.7t//pXe43L8k1TB3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:40029 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754346AbaHZW0R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 18:26:17 -0400
-Received: by mail-oi0-f74.google.com with SMTP id a141so3012023oig.1
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 15:26:16 -0700 (PDT)
+Received: from mail-pa0-f74.google.com ([209.85.220.74]:59013 "EHLO
+	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755908AbaHZW3r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 18:29:47 -0400
+Received: by mail-pa0-f74.google.com with SMTP id lj1so4011102pab.5
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 15:29:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: patrick@parcs.ath.cx, jack@suse.cz, pmladek@suse.cz, rostedt@goodmis.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, davidlohr.bueso@hp.com, gorcunov@gmail.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/printk/printk.c: fix faulty logic in the case of recursive printk
+     Subject: ipc/shm: kill the historical/wrong mm->start_stack check
 has been added to the -mm tree.  Its filename is
-     fix-faulty-logic-in-the-case-of-recursive-printk.patch
+     ipc-shm-kill-the-historical-wrong-mm-start_stack-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fix-faulty-logic-in-the-case-of-recursive-printk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-kill-the-historical-wrong-mm-start_stack-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fix-faulty-logic-in-the-case-of-recursive-printk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-kill-the-historical-wrong-mm-start_stack-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,75 +41,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Patrick Palka <patrick@parcs.ath.cx>
-Subject: kernel/printk/printk.c: fix faulty logic in the case of recursive printk
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: ipc/shm: kill the historical/wrong mm->start_stack check
 
-We shouldn't set text_len in the code path that detects printk recursion
-because text_len corresponds to the length of the string inside textbuf. 
-A few lines down from the line
+do_shmat() is the only user of ->start_stack (proc just reports its
+value), and this check looks ugly and wrong.
 
-    text_len = strlen(recursion_msg);
+The reason for this check is not clear at all, and it wrongly assumes that
+the stack can only grow down.
 
-is the line
+But the main problem is that in general mm->start_stack has nothing to do
+with stack_vma->vm_start.  Not only the application can switch to another
+stack and even unmap this area, setup_arg_pages() expands the stack
+without updating mm->start_stack during exec().  This means that in the
+likely case "addr > start_stack - size - PAGE_SIZE * 5" is simply
+impossible after find_vma_intersection() == F, or the stack can't grow
+anyway because of RLIMIT_STACK.
 
-    text_len += vscnprintf(text + text_len, ...);
+Many thanks to Hugh for his explanations.
 
-So if printk detects recursion, it sets text_len to 29 (the length of
-recursion_msg) and logs an error.  Then the message supplied by the caller
-of printk is stored inside textbuf but offset by 29 bytes.  This means
-that the output of the recursive call to printk will contain 29 bytes of
-garbage in front of it.
-
-This defect is caused by commit 458df9fd ("printk: remove separate
-printk_sched buffers and use printk buf instead") which turned the line
-
-    text_len = vscnprintf(text, ...);
-
-into
-
-    text_len += vscnprintf(text + text_len, ...);
-
-To fix this, this patch avoids setting text_len when logging the printk
-recursion error.  This patch also marks unlikely() the branch leading up
-to this code.
-
-Fixes: 458df9fd4815b478 ("printk: remove separate printk_sched buffers and use printk buf instead")
-Signed-off-by: Patrick Palka <patrick@parcs.ath.cx>
-Cc: Petr Mladek <pmladek@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ ipc/shm.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN kernel/printk/printk.c~fix-faulty-logic-in-the-case-of-recursive-printk kernel/printk/printk.c
---- a/kernel/printk/printk.c~fix-faulty-logic-in-the-case-of-recursive-printk
-+++ a/kernel/printk/printk.c
-@@ -1665,15 +1665,15 @@ asmlinkage int vprintk_emit(int facility
- 	raw_spin_lock(&logbuf_lock);
- 	logbuf_cpu = this_cpu;
+diff -puN ipc/shm.c~ipc-shm-kill-the-historical-wrong-mm-start_stack-check ipc/shm.c
+--- a/ipc/shm.c~ipc-shm-kill-the-historical-wrong-mm-start_stack-check
++++ a/ipc/shm.c
+@@ -1172,13 +1172,6 @@ long do_shmat(int shmid, char __user *sh
  
--	if (recursion_bug) {
-+	if (unlikely(recursion_bug)) {
- 		static const char recursion_msg[] =
- 			"BUG: recent printk recursion!";
- 
- 		recursion_bug = 0;
--		text_len = strlen(recursion_msg);
- 		/* emit KERN_CRIT message */
- 		printed_len += log_store(0, 2, LOG_PREFIX|LOG_NEWLINE, 0,
--					 NULL, 0, recursion_msg, text_len);
-+					 NULL, 0, recursion_msg,
-+					 strlen(recursion_msg));
+ 		if (find_vma_intersection(current->mm, addr, addr + size))
+ 			goto invalid;
+-		/*
+-		 * If shm segment goes below stack, make sure there is some
+-		 * space left for the stack to grow (at least 4 pages).
+-		 */
+-		if (addr < current->mm->start_stack &&
+-		    addr > current->mm->start_stack - size - PAGE_SIZE * 5)
+-			goto invalid;
  	}
  
- 	/*
+ 	addr = do_mmap_pgoff(file, addr, size, prot, flags, 0, &populate);
 _
 
-Patches currently in -mm which might be from patrick@parcs.ath.cx are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-fix-faulty-logic-in-the-case-of-recursive-printk.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+earlyprintk-re-enable-earlyprintk-calling-early_param.patch
+fs-proc-task_mmuc-dont-use-task-mm-in-m_start-and-show_map.patch
+fs-proc-task_mmuc-unify-simplify-do_maps_open-and-numa_maps_open.patch
+proc-introduce-proc_mem_open.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_mmuc-cleanup-the-tail_vma-horror-in-m_next.patch
+fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch
+fs-proc-task_mmuc-kill-the-suboptimal-and-confusing-m-version-logic.patch
+fs-proc-task_mmuc-simplify-m_start-to-make-it-readable.patch
+fs-proc-task_mmuc-introduce-m_next_vma-helper.patch
+fs-proc-task_mmuc-reintroduce-m-version-logic.patch
+fs-proc-task_mmuc-update-m-version-in-the-main-loop-in-m_start.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_nommuc-dont-use-priv-task-mm.patch
+ipc-shm-kill-the-historical-wrong-mm-start_stack-check.patch
+linux-next.patch
 
