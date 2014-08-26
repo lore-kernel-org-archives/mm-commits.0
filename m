@@ -1,34 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh.patch
- added to -mm tree
-Date: Tue, 26 Aug 2014 16:17:56 -0700
-Message-ID: <53fd15a4.oGF/eCz7DHXhDoIP%akpm@linux-foundation.org>
+Subject: + acct-eliminate-compile-warning.patch added to -mm tree
+Date: Tue, 26 Aug 2014 16:25:30 -0700
+Message-ID: <53fd176a.k++lg/E6hrE4mz/n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:50588 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755024AbaHZXR5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:17:57 -0400
-Received: by mail-ob0-f201.google.com with SMTP id va2so2489935obc.4
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:17:56 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:42053 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750938AbaHZXZb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:25:31 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f73so1837341yha.0
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:25:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ryazanov.s.a@gmail.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: ying.xue@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: update $allowed_asm_includes macros, add reboot.h and time.h
+     Subject: acct: eliminate compile warning
 has been added to the -mm tree.  Its filename is
-     checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh.patch
+     acct-eliminate-compile-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/acct-eliminate-compile-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/acct-eliminate-compile-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,40 +40,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Ryazanov <ryazanov.s.a@gmail.com>
-Subject: checkpatch: update $allowed_asm_includes macros, add reboot.h and time.h
+From: Ying Xue <ying.xue@windriver.com>
+Subject: acct: eliminate compile warning
 
-Several architectures (e.g.  x86, MIPS, Blackfin) have asm/reboot.h and
-asm/time.h header files, which are not included in linux/reboot.h and
-linux/time.h headers.  This lead to generation of false positive errors.
+If ACCT_VERSION is not defined to 3, below warning appears:
+  CC      kernel/acct.o
+  kernel/acct.c: In function `do_acct_process':
+  kernel/acct.c:475:24: warning: unused variable `ns' [-Wunused-variable]
 
-Signed-off-by: Sergey Ryazanov <ryazanov.s.a@gmail.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Ying Xue <ying.xue@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/acct.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh
-+++ a/scripts/checkpatch.pl
-@@ -425,7 +425,9 @@ foreach my $entry (@mode_permission_func
+diff -puN kernel/acct.c~acct-eliminate-compile-warning kernel/acct.c
+--- a/kernel/acct.c~acct-eliminate-compile-warning
++++ a/kernel/acct.c
+@@ -472,7 +472,6 @@ static void do_acct_process(struct bsd_a
+ 	acct_t ac;
+ 	unsigned long flim;
+ 	const struct cred *orig_cred;
+-	struct pid_namespace *ns = acct->ns;
+ 	struct file *file = acct->file;
  
- our $allowed_asm_includes = qr{(?x:
- 	irq|
--	memory
-+	memory|
-+	time|
-+	reboot
- )};
- # memory.h: ARM has a custom one
- 
+ 	/*
+@@ -500,9 +499,10 @@ static void do_acct_process(struct bsd_a
+ 	ac.ac_gid16 = ac.ac_gid;
+ #endif
+ #if ACCT_VERSION == 3
+-	ac.ac_pid = task_tgid_nr_ns(current, ns);
++	ac.ac_pid = task_tgid_nr_ns(current, acct->ns);
+ 	rcu_read_lock();
+-	ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent), ns);
++	ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent),
++				     acct->ns);
+ 	rcu_read_unlock();
+ #endif
+ 	/*
 _
 
-Patches currently in -mm which might be from ryazanov.s.a@gmail.com are
+Patches currently in -mm which might be from ying.xue@windriver.com are
 
-checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh.patch
+acct-eliminate-compile-warning.patch
+acct-eliminate-compile-warning-fix.patch
 linux-next.patch
 
