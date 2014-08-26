@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
- added to -mm tree
-Date: Tue, 26 Aug 2014 16:48:39 -0700
-Message-ID: <53fd1cd7.hX8/OC7HYgHKUK4Z%akpm@linux-foundation.org>
+Subject: +
+ mempolicy-introduce-__get_vma_policy-export-get_task_policy.patch added to
+ -mm tree
+Date: Tue, 26 Aug 2014 16:48:37 -0700
+Message-ID: <53fd1cd5.J8LbQZwBaFE0zVxD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:56450 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756029AbaHZXsk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:48:40 -0400
-Received: by mail-oa0-f74.google.com with SMTP id eb12so3060642oac.5
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:48:40 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:45703 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756031AbaHZXsj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 19:48:39 -0400
+Received: by mail-qc0-f202.google.com with SMTP id r5so1847245qcx.1
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 16:48:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, andi@firstfloor.org, ebiederm@xmission.com, gorcunov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: kill do_set_mempolicy()->down_write(&mm->mmap_sem)
+     Subject: mempolicy: introduce __get_vma_policy(), export get_task_policy()
 has been added to the -mm tree.  Its filename is
-     mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
+     mempolicy-introduce-__get_vma_policy-export-get_task_policy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-introduce-__get_vma_policy-export-get_task_policy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-introduce-__get_vma_policy-export-get_task_policy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,10 +43,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: mempolicy: kill do_set_mempolicy()->down_write(&mm->mmap_sem)
+Subject: mempolicy: introduce __get_vma_policy(), export get_task_policy()
 
-Remove down_write(&mm->mmap_sem) in do_set_mempolicy(). This logic
-was never correct and it is no longer needed, see the previous patch.
+Extract the code which looks for vma's policy from get_vma_policy()
+into the new helper, __get_vma_policy(). Export get_task_policy().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -62,52 +63,91 @@ Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ include/linux/mempolicy.h |    3 ++
+ mm/mempolicy.c            |   44 +++++++++++++++++++++---------------
+ 2 files changed, 29 insertions(+), 18 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem
-+++ a/mm/mempolicy.c
-@@ -802,7 +802,6 @@ static long do_set_mempolicy(unsigned sh
- 			     nodemask_t *nodes)
- {
- 	struct mempolicy *new, *old;
--	struct mm_struct *mm = current->mm;
- 	NODEMASK_SCRATCH(scratch);
- 	int ret;
+diff -puN include/linux/mempolicy.h~mempolicy-introduce-__get_vma_policy-export-get_task_policy include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mempolicy-introduce-__get_vma_policy-export-get_task_policy
++++ a/include/linux/mempolicy.h
+@@ -134,6 +134,9 @@ void mpol_free_shared_policy(struct shar
+ struct mempolicy *mpol_shared_policy_lookup(struct shared_policy *sp,
+ 					    unsigned long idx);
  
-@@ -814,20 +813,11 @@ static long do_set_mempolicy(unsigned sh
- 		ret = PTR_ERR(new);
- 		goto out;
++struct mempolicy *get_task_policy(struct task_struct *p);
++struct mempolicy *__get_vma_policy(struct vm_area_struct *vma,
++		unsigned long addr);
+ struct mempolicy *get_vma_policy(struct task_struct *tsk,
+ 		struct vm_area_struct *vma, unsigned long addr);
+ bool vma_policy_mof(struct vm_area_struct *vma);
+diff -puN mm/mempolicy.c~mempolicy-introduce-__get_vma_policy-export-get_task_policy mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-introduce-__get_vma_policy-export-get_task_policy
++++ a/mm/mempolicy.c
+@@ -123,7 +123,7 @@ static struct mempolicy default_policy =
+ 
+ static struct mempolicy preferred_node_policy[MAX_NUMNODES];
+ 
+-static struct mempolicy *get_task_policy(struct task_struct *p)
++struct mempolicy *get_task_policy(struct task_struct *p)
+ {
+ 	struct mempolicy *pol = p->mempolicy;
+ 	int node;
+@@ -1603,23 +1603,8 @@ COMPAT_SYSCALL_DEFINE6(mbind, compat_ulo
+ 
+ #endif
+ 
+-/*
+- * get_vma_policy(@task, @vma, @addr)
+- * @task: task for fallback if vma policy == default
+- * @vma: virtual memory area whose policy is sought
+- * @addr: address in @vma for shared policy lookup
+- *
+- * Returns effective policy for a VMA at specified address.
+- * Falls back to @task or system default policy, as necessary.
+- * Current or other task's task mempolicy and non-shared vma policies must be
+- * protected by task_lock(task) by the caller.
+- * Shared policies [those marked as MPOL_F_SHARED] require an extra reference
+- * count--added by the get_policy() vm_op, as appropriate--to protect against
+- * freeing by another task.  It is the caller's responsibility to free the
+- * extra reference for shared policies.
+- */
+-struct mempolicy *get_vma_policy(struct task_struct *task,
+-		struct vm_area_struct *vma, unsigned long addr)
++struct mempolicy *__get_vma_policy(struct vm_area_struct *vma,
++						unsigned long addr)
+ {
+ 	struct mempolicy *pol = NULL;
+ 
+@@ -1640,6 +1625,29 @@ struct mempolicy *get_vma_policy(struct
+ 		}
  	}
--	/*
--	 * prevent changing our mempolicy while show_numa_maps()
--	 * is using it.
--	 * Note:  do_set_mempolicy() can be called at init time
--	 * with no 'mm'.
--	 */
--	if (mm)
--		down_write(&mm->mmap_sem);
+ 
++	return pol;
++}
 +
- 	task_lock(current);
- 	ret = mpol_set_nodemask(new, nodes, scratch);
- 	if (ret) {
- 		task_unlock(current);
--		if (mm)
--			up_write(&mm->mmap_sem);
- 		mpol_put(new);
- 		goto out;
- 	}
-@@ -837,9 +827,6 @@ static long do_set_mempolicy(unsigned sh
- 	    nodes_weight(new->v.nodes))
- 		current->il_next = first_node(new->v.nodes);
- 	task_unlock(current);
--	if (mm)
--		up_write(&mm->mmap_sem);
--
- 	mpol_put(old);
- 	ret = 0;
- out:
++/*
++ * get_vma_policy(@task, @vma, @addr)
++ * @task: task for fallback if vma policy == default
++ * @vma: virtual memory area whose policy is sought
++ * @addr: address in @vma for shared policy lookup
++ *
++ * Returns effective policy for a VMA at specified address.
++ * Falls back to @task or system default policy, as necessary.
++ * Current or other task's task mempolicy and non-shared vma policies must be
++ * protected by task_lock(task) by the caller.
++ * Shared policies [those marked as MPOL_F_SHARED] require an extra reference
++ * count--added by the get_policy() vm_op, as appropriate--to protect against
++ * freeing by another task.  It is the caller's responsibility to free the
++ * extra reference for shared policies.
++ */
++struct mempolicy *get_vma_policy(struct task_struct *task,
++		struct vm_area_struct *vma, unsigned long addr)
++{
++	struct mempolicy *pol = __get_vma_policy(vma, addr);
++
+ 	if (!pol)
+ 		pol = get_task_policy(task);
+ 
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
