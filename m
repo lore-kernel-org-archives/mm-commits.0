@@ -1,34 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- common-dma-mapping-introduce-common-remapping-functions-fix-2.patch added
- to -mm tree
-Date: Tue, 26 Aug 2014 13:35:13 -0700
-Message-ID: <53fcef81.tCB9RZMMeY9OX8GA%akpm@linux-foundation.org>
+Subject: + checkpatch-remove-debugging-message.patch added to -mm tree
+Date: Tue, 26 Aug 2014 13:58:52 -0700
+Message-ID: <53fcf50c.Wq5+VHxEBvaAt7RF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:49737 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753324AbaHZUfO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 16:35:14 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so4070974pab.3
-        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 13:35:13 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:60474 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754826AbaHZU6x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Aug 2014 16:58:53 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so1759261iec.3
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2014 13:58:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lauraa@codeaurora.org, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: common: dma-mapping: Protect remapping functions with CONFIG_MMU
+     Subject: checkpatch: remove debugging message
 has been added to the -mm tree.  Its filename is
-     common-dma-mapping-introduce-common-remapping-functions-fix-2.patch
+     checkpatch-remove-debugging-message.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/common-dma-mapping-introduce-common-remapping-functions-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-remove-debugging-message.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/common-dma-mapping-introduce-common-remapping-functions-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-remove-debugging-message.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,55 +40,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Laura Abbott <lauraa@codeaurora.org>
-Subject: common: dma-mapping: Protect remapping functions with CONFIG_MMU
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: remove debugging message
 
-The dma remapping functions use vmalloc features which are
-not defined for CONFIG_MMU=n
+An unnecessary --fix debugging left-over is removed.
 
-drivers/built-in.o: In function `dma_common_pages_remap':
-  drivers/base/dma-mapping.c:311: undefined reference to `get_vm_area_caller'
-  drivers/base/dma-mapping.c:315: undefined reference to `map_vm_area'
-drivers/built-in.o: In function `dma_common_free_remap':
-  drivers/base/dma-mapping.c:328: undefined reference to `find_vm_area'
-
-These functions aren't applicable for nommu targets so protect them
-with #ifdef CONFIG_MMU
-
-Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dma-mapping.c |    2 ++
- 1 file changed, 2 insertions(+)
+ scripts/checkpatch.pl |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/base/dma-mapping.c~common-dma-mapping-introduce-common-remapping-functions-fix-2 drivers/base/dma-mapping.c
---- a/drivers/base/dma-mapping.c~common-dma-mapping-introduce-common-remapping-functions-fix-2
-+++ a/drivers/base/dma-mapping.c
-@@ -270,6 +270,7 @@ int dma_common_mmap(struct device *dev,
- }
- EXPORT_SYMBOL(dma_common_mmap);
- 
-+#ifdef CONFIG_MMU
- /*
-  * remaps an array of PAGE_SIZE pages into another vm_area
-  * Cannot be used in non-sleeping contexts
-@@ -335,3 +336,4 @@ void dma_common_free_remap(void *cpu_add
- 	unmap_kernel_range((unsigned long)cpu_addr, size);
- 	vunmap(cpu_addr);
- }
-+#endif
+diff -puN scripts/checkpatch.pl~checkpatch-remove-debugging-message scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-remove-debugging-message
++++ a/scripts/checkpatch.pl
+@@ -3749,7 +3749,6 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "space prohibited before that close parenthesis ')'\n" . $herecurr) &&
+ 			    $fix) {
+-				print("fixlinenr: <$fixlinenr> fixed[fixlinenr]: <$fixed[$fixlinenr]>\n");
+ 				$fixed[$fixlinenr] =~
+ 				    s/\s+\)/\)/;
+ 			}
 _
 
-Patches currently in -mm which might be from lauraa@codeaurora.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-lib-genallocc-add-power-aligned-algorithm.patch
-lib-genallocc-add-genpool-range-check-function.patch
-common-dma-mapping-introduce-common-remapping-functions.patch
-common-dma-mapping-introduce-common-remapping-functions-fix.patch
-common-dma-mapping-introduce-common-remapping-functions-fix-2.patch
-arm-use-genalloc-for-the-atomic-pool.patch
-arm64-add-atomic-pool-for-non-coherent-and-cma-allocations.patch
-debugging-keep-track-of-page-owners.patch
+checkpatch-relax-check-for-length-of-git-commit-ids.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-fix-spello.patch
+checkpatch-remove-debugging-message.patch
+ipc-always-handle-a-new-value-of-auto_msgmni.patch
+linux-next.patch
 
