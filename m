@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + arm64-support-restart-through-restart-handler-call-chain.patch
+Subject: + arm-support-restart-through-restart-handler-call-chain.patch
  added to -mm tree
-Date: Wed, 27 Aug 2014 14:24:38 -0700
-Message-ID: <53fe4c96./hnJK3awKLifFLLK%akpm@linux-foundation.org>
+Date: Wed, 27 Aug 2014 14:24:39 -0700
+Message-ID: <53fe4c97.HCEJSwnxPdoWfmgx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f202.google.com ([209.85.160.202]:34650 "EHLO
-	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935709AbaH0VYk (ORCPT
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:33518 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932146AbaH0VYk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 17:24:40 -0400
-Received: by mail-yk0-f202.google.com with SMTP id q9so103758ykb.3
-        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 14:24:39 -0700 (PDT)
+Received: by mail-oa0-f74.google.com with SMTP id eb12so148612oac.5
+        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 14:24:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@roeck-us.net, arnd@arndb.de, catalin.marinas@arm.com, dbaryshkov@gmail.com, dwmw2@infradead.org, heiko@sntech.de, jonas.jensen@gmail.com, linux@arm.linux.org.uk, maxime.ripard@free-electrons.com, mingo@kernel.org, rdunlap@infradead.org, rostedt@goodmis.org, t.figa@samsung.com, will.deacon@arm.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: support restart through restart handler call chain
+     Subject: arm: support restart through restart handler call chain
 has been added to the -mm tree.  Its filename is
-     arm64-support-restart-through-restart-handler-call-chain.patch
+     arm-support-restart-through-restart-handler-call-chain.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-support-restart-through-restart-handler-call-chain.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-support-restart-through-restart-handler-call-chain.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-support-restart-through-restart-handler-call-chain.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-support-restart-through-restart-handler-call-chain.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,10 +42,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Guenter Roeck <linux@roeck-us.net>
-Subject: arm64: support restart through restart handler call chain
+Subject: arm: support restart through restart handler call chain
 
-The kernel core now supports a restart handler call chain to restart the
-system.  Call it if arm_pm_restart is not set.
+The kernel core now supports a restart handler call chain for system
+restart functions.
+
+With this change, the arm_pm_restart callback is now optional, so drop its
+initialization and check if it is set before calling it.  Only call the
+kernel restart handler if arm_pm_restart is not set.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
@@ -65,21 +69,43 @@ Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/process.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/kernel/process.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN arch/arm64/kernel/process.c~arm64-support-restart-through-restart-handler-call-chain arch/arm64/kernel/process.c
---- a/arch/arm64/kernel/process.c~arm64-support-restart-through-restart-handler-call-chain
-+++ a/arch/arm64/kernel/process.c
-@@ -180,6 +180,8 @@ void machine_restart(char *cmd)
- 	/* Now call the architecture specific reboot code. */
- 	if (arm_pm_restart)
- 		arm_pm_restart(reboot_mode, cmd);
+diff -puN arch/arm/kernel/process.c~arm-support-restart-through-restart-handler-call-chain arch/arm/kernel/process.c
+--- a/arch/arm/kernel/process.c~arm-support-restart-through-restart-handler-call-chain
++++ a/arch/arm/kernel/process.c
+@@ -114,17 +114,13 @@ void soft_restart(unsigned long addr)
+ 	BUG();
+ }
+ 
+-static void null_restart(enum reboot_mode reboot_mode, const char *cmd)
+-{
+-}
+-
+ /*
+  * Function pointers to optional machine specific functions
+  */
+ void (*pm_power_off)(void);
+ EXPORT_SYMBOL(pm_power_off);
+ 
+-void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd) = null_restart;
++void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd);
+ EXPORT_SYMBOL_GPL(arm_pm_restart);
+ 
+ /*
+@@ -230,7 +226,10 @@ void machine_restart(char *cmd)
+ 	local_irq_disable();
+ 	smp_send_stop();
+ 
+-	arm_pm_restart(reboot_mode, cmd);
++	if (arm_pm_restart)
++		arm_pm_restart(reboot_mode, cmd);
 +	else
 +		do_kernel_restart(cmd);
  
- 	/*
- 	 * Whoops - the architecture was unable to reboot.
+ 	/* Give a grace period for failure to restart of 1s */
+ 	mdelay(1000);
 _
 
 Patches currently in -mm which might be from linux@roeck-us.net are
