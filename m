@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + arm-arm64-unexport-restart-handlers.patch added to -mm tree
-Date: Wed, 27 Aug 2014 14:24:43 -0700
-Message-ID: <53fe4c9b.JzFiF4XupwfoYU3/%akpm@linux-foundation.org>
+Subject: + watchdog-s3c2410-add-restart-handler.patch added to -mm tree
+Date: Wed, 27 Aug 2014 14:24:44 -0700
+Message-ID: <53fe4c9c.TtX8g0FZAkOckBwg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:55119 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935908AbaH0VYq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 17:24:46 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so327746pab.0
+Received: from mail-ig0-f202.google.com ([209.85.213.202]:51311 "EHLO
+	mail-ig0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932146AbaH0VYp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 17:24:45 -0400
+Received: by mail-ig0-f202.google.com with SMTP id r2so166911igi.3
         for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 14:24:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@roeck-us.net, arnd@arndb.de, catalin.marinas@arm.com, dbaryshkov@gmail.com, dwmw2@infradead.org, heiko@sntech.de, jonas.jensen@gmail.com, linux@arm.linux.org.uk, maxime.ripard@free-electrons.com, mingo@kernel.org, rdunlap@infradead.org, rostedt@goodmis.org, t.figa@samsung.com, will.deacon@arm.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: heiko@sntech.de, arnd@arndb.de, catalin.marinas@arm.com, dbaryshkov@gmail.com, dwmw2@infradead.org, jonas.jensen@gmail.com, linux@arm.linux.org.uk, linux@roeck-us.net, maxime.ripard@free-electrons.com, mingo@kernel.org, rdunlap@infradead.org, rostedt@goodmis.org, t.figa@samsung.com, will.deacon@arm.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm/arm64: unexport restart handlers
+     Subject: watchdog: s3c2410: add restart handler
 has been added to the -mm tree.  Its filename is
-     arm-arm64-unexport-restart-handlers.patch
+     watchdog-s3c2410-add-restart-handler.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-arm64-unexport-restart-handlers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-s3c2410-add-resta=
+rt-handler.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-arm64-unexport-restart-handlers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-s3c2410-add-resta=
+rt-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +36,31 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: arm/arm64: unexport restart handlers
+=46rom: Heiko St=FCbner <heiko@sntech.de>
+Subject: watchdog: s3c2410: add restart handler
 
-Implementing a restart handler in a module don't make sense as there would
-be no guarantee that the module is loaded when a restart is needed. 
-Unexport arm_pm_restart to ensure that no one gets the idea to do it
-anyway.
+On a lot of Samsung systems the watchdog is responsible for restarting =
+the
+system and until now this code was contained in plat-samsung/watchdog-r=
+eset.c.
 
+With the introduction of the restart handlers, this code can now move i=
+nto
+driver itself, removing the need for arch-specific code.
+
+Tested on a S3C2442 based GTA02
+
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Heiko Stuebner <heiko@sntech.de>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
 Cc: Ingo Molnar <mingo@kernel.org>
@@ -66,46 +75,108 @@ Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/process.c   |    1 -
- arch/arm64/kernel/process.c |    1 -
- 2 files changed, 2 deletions(-)
+ drivers/watchdog/s3c2410_wdt.c |   36 +++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff -puN arch/arm/kernel/process.c~arm-arm64-unexport-restart-handlers arch/arm/kernel/process.c
---- a/arch/arm/kernel/process.c~arm-arm64-unexport-restart-handlers
-+++ a/arch/arm/kernel/process.c
-@@ -121,7 +121,6 @@ void (*pm_power_off)(void);
- EXPORT_SYMBOL(pm_power_off);
- 
- void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd);
--EXPORT_SYMBOL_GPL(arm_pm_restart);
- 
- /*
-  * This is our default idle handler.
-diff -puN arch/arm64/kernel/process.c~arm-arm64-unexport-restart-handlers arch/arm64/kernel/process.c
---- a/arch/arm64/kernel/process.c~arm-arm64-unexport-restart-handlers
-+++ a/arch/arm64/kernel/process.c
-@@ -98,7 +98,6 @@ void (*pm_power_off)(void);
- EXPORT_SYMBOL_GPL(pm_power_off);
- 
- void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd);
--EXPORT_SYMBOL_GPL(arm_pm_restart);
- 
- /*
-  * This is our default idle handler.
+diff -puN drivers/watchdog/s3c2410_wdt.c~watchdog-s3c2410-add-restart-h=
+andler drivers/watchdog/s3c2410_wdt.c
+--- a/drivers/watchdog/s3c2410_wdt.c~watchdog-s3c2410-add-restart-handl=
+er
++++ a/drivers/watchdog/s3c2410_wdt.c
+@@ -41,6 +41,8 @@
+ #include <linux/of.h>
+ #include <linux/mfd/syscon.h>
+ #include <linux/regmap.h>
++#include <linux/reboot.h>
++#include <linux/delay.h>
+=20
+ #define S3C2410_WTCON		0x00
+ #define S3C2410_WTDAT		0x04
+@@ -128,6 +130,7 @@ struct s3c2410_wdt {
+ 	unsigned long		wtdat_save;
+ 	struct watchdog_device	wdt_device;
+ 	struct notifier_block	freq_transition;
++	struct notifier_block	restart_handler;
+ 	struct s3c2410_wdt_variant *drv_data;
+ 	struct regmap *pmureg;
+ };
+@@ -438,6 +441,31 @@ static inline void s3c2410wdt_cpufreq_de
+ }
+ #endif
+=20
++static int s3c2410wdt_restart(struct notifier_block *this,
++			      unsigned long mode, void *cmd)
++{
++	struct s3c2410_wdt *wdt =3D container_of(this, struct s3c2410_wdt,
++					       restart_handler);
++	void __iomem *wdt_base =3D wdt->reg_base;
++
++	/* disable watchdog, to be safe  */
++	writel(0, wdt_base + S3C2410_WTCON);
++
++	/* put initial values into count and data */
++	writel(0x80, wdt_base + S3C2410_WTCNT);
++	writel(0x80, wdt_base + S3C2410_WTDAT);
++
++	/* set the watchdog to go and reset... */
++	writel(S3C2410_WTCON_ENABLE | S3C2410_WTCON_DIV16 |
++		S3C2410_WTCON_RSTEN | S3C2410_WTCON_PRESCALE(0x20),
++		wdt_base + S3C2410_WTCON);
++
++	/* wait for reset to assert... */
++	mdelay(500);
++
++	return NOTIFY_DONE;
++}
++
+ static inline unsigned int s3c2410wdt_get_bootstatus(struct s3c2410_wd=
+t *wdt)
+ {
+ 	unsigned int rst_stat;
+@@ -592,6 +620,12 @@ static int s3c2410wdt_probe(struct platf
+=20
+ 	platform_set_drvdata(pdev, wdt);
+=20
++	wdt->restart_handler.notifier_call =3D s3c2410wdt_restart;
++	wdt->restart_handler.priority =3D 128;
++	ret =3D register_restart_handler(&wdt->restart_handler);
++	if (ret)
++		pr_err("cannot register restart handler, %d\n", ret);
++
+ 	/* print out a statement of readiness */
+=20
+ 	wtcon =3D readl(wdt->reg_base + S3C2410_WTCON);
+@@ -621,6 +655,8 @@ static int s3c2410wdt_remove(struct plat
+ 	int ret;
+ 	struct s3c2410_wdt *wdt =3D platform_get_drvdata(dev);
+=20
++	unregister_restart_handler(&wdt->restart_handler);
++
+ 	ret =3D s3c2410wdt_mask_and_disable_reset(wdt, true);
+ 	if (ret < 0)
+ 		return ret;
 _
 
-Patches currently in -mm which might be from linux@roeck-us.net are
+Patches currently in -mm which might be from heiko@sntech.de are
 
 kernel-add-support-for-kernel-restart-handler-call-chain.patch
 power-restart-call-machine_restart-instead-of-arm_pm_restart.patch
 arm64-support-restart-through-restart-handler-call-chain.patch
 arm-support-restart-through-restart-handler-call-chain.patch
-watchdog-moxart-register-restart-handler-with-kernel-restart-handler.patch
-watchdog-alim7101-register-restart-handler-with-kernel-restart-handler.patch
-watchdog-sunxi-register-restart-handler-with-kernel-restart-handler.patch
+watchdog-moxart-register-restart-handler-with-kernel-restart-handler.pa=
+tch
+watchdog-alim7101-register-restart-handler-with-kernel-restart-handler.=
+patch
+watchdog-sunxi-register-restart-handler-with-kernel-restart-handler.pat=
+ch
 arm-arm64-unexport-restart-handlers.patch
 watchdog-s3c2410-add-restart-handler.patch
 clk-samsung-register-restart-handlers-for-s3c2412-and-s3c2443.patch
 clk-rockchip-add-restart-handler.patch
 linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
