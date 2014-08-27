@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: +
- watchdog-sunxi-register-restart-handler-with-kernel-restart-handler.patch
- added to -mm tree
-Date: Wed, 27 Aug 2014 14:24:42 -0700
-Message-ID: <53fe4c9a.XO0uOGjy4s5e/zJZ%akpm@linux-foundation.org>
+ watchdog-alim7101-register-restart-handler-with-kernel-restart-handler.patch added to -mm tree
+Date: Wed, 27 Aug 2014 14:24:41 -0700
+Message-ID: <53fe4c99.3TbmsYN1njSE3QU4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:39366 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935709AbaH0VYo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 17:24:44 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so325634pab.3
-        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 14:24:44 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:56465 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935888AbaH0VYm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 17:24:42 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so327699pab.0
+        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 14:24:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@roeck-us.net, arnd@arndb.de, catalin.marinas@arm.com, dbaryshkov@gmail.com, dwmw2@infradead.org, heiko@sntech.de, jonas.jensen@gmail.com, linux@arm.linux.org.uk, maxime.ripard@free-electrons.com, mingo@kernel.org, rdunlap@infradead.org, rostedt@goodmis.org, t.figa@samsung.com, will.deacon@arm.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: sunxi: register restart handler with kernel restart handler
+     Subject: watchdog: alim7101: register restart handler with kernel restart handler
 has been added to the -mm tree.  Its filename is
-     watchdog-sunxi-register-restart-handler-with-kernel-restart-handler.patch
+     watchdog-alim7101-register-restart-handler-with-kernel-restart-handler.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-sunxi-register-restart-handler-with-kernel-restart-handler.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-alim7101-register-restart-handler-with-kernel-restart-handler.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-sunxi-register-restart-handler-with-kernel-restart-handler.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-alim7101-register-restart-handler-with-kernel-restart-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,15 +42,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Guenter Roeck <linux@roeck-us.net>
-Subject: watchdog: sunxi: register restart handler with kernel restart handler
+Subject: watchdog: alim7101: register restart handler with kernel restart handler
 
 The kernel core now provides an API to trigger a system restart.  Register
-with it instead of setting arm_pm_restart.
+with it to restart the system instead of misusing the reboot notifier.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Acked-by: Heiko Stuebner <heiko@sntech.de>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
 Cc: Ingo Molnar <mingo@kernel.org>
@@ -66,96 +65,93 @@ Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/sunxi_wdt.c |   31 ++++++++++++++++++++-----------
- 1 file changed, 20 insertions(+), 11 deletions(-)
+ drivers/watchdog/alim7101_wdt.c |   42 ++++++++++++++++++++++--------
+ 1 file changed, 32 insertions(+), 10 deletions(-)
 
-diff -puN drivers/watchdog/sunxi_wdt.c~watchdog-sunxi-register-restart-handler-with-kernel-restart-handler drivers/watchdog/sunxi_wdt.c
---- a/drivers/watchdog/sunxi_wdt.c~watchdog-sunxi-register-restart-handler-with-kernel-restart-handler
-+++ a/drivers/watchdog/sunxi_wdt.c
-@@ -21,14 +21,13 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
-+#include <linux/notifier.h>
- #include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/reboot.h>
- #include <linux/types.h>
- #include <linux/watchdog.h>
- 
--#include <asm/system_misc.h>
--
- #define WDT_MAX_TIMEOUT         16
- #define WDT_MIN_TIMEOUT         1
- #define WDT_MODE_TIMEOUT(n)     ((n) << 3)
-@@ -50,6 +49,7 @@ static unsigned int timeout = WDT_MAX_TI
- struct sunxi_wdt_dev {
- 	struct watchdog_device wdt_dev;
- 	void __iomem *wdt_base;
-+	struct notifier_block restart_handler;
+diff -puN drivers/watchdog/alim7101_wdt.c~watchdog-alim7101-register-restart-handler-with-kernel-restart-handler drivers/watchdog/alim7101_wdt.c
+--- a/drivers/watchdog/alim7101_wdt.c~watchdog-alim7101-register-restart-handler-with-kernel-restart-handler
++++ a/drivers/watchdog/alim7101_wdt.c
+@@ -301,6 +301,28 @@ static struct miscdevice wdt_miscdev = {
+ 	.fops	=	&wdt_fops,
  };
  
- /*
-@@ -74,24 +74,29 @@ static const int wdt_timeout_map[] = {
- 	[16] = 0xB, /* 16s */
- };
- 
--static void __iomem *reboot_wdt_base;
- 
--static void sun4i_wdt_restart(enum reboot_mode mode, const char *cmd)
-+static int sunxi_restart_handle(struct notifier_block *this, unsigned long mode,
-+				void *cmd)
- {
-+	struct sunxi_wdt_dev *sunxi_wdt = container_of(this,
-+						       struct sunxi_wdt_dev,
-+						       restart_handler);
-+	void __iomem *wdt_base = sunxi_wdt->wdt_base;
++static int wdt_restart_handle(struct notifier_block *this, unsigned long mode,
++			      void *cmd)
++{
++	/*
++	 * Cobalt devices have no way of rebooting themselves other
++	 * than getting the watchdog to pull reset, so we restart the
++	 * watchdog on reboot with no heartbeat.
++	 */
++	wdt_change(WDT_ENABLE);
 +
- 	/* Enable timer and set reset bit in the watchdog */
--	writel(WDT_MODE_EN | WDT_MODE_RST_EN, reboot_wdt_base + WDT_MODE);
-+	writel(WDT_MODE_EN | WDT_MODE_RST_EN, wdt_base + WDT_MODE);
- 
- 	/*
- 	 * Restart the watchdog. The default (and lowest) interval
- 	 * value for the watchdog is 0.5s.
- 	 */
--	writel(WDT_CTRL_RELOAD, reboot_wdt_base + WDT_CTRL);
-+	writel(WDT_CTRL_RELOAD, wdt_base + WDT_CTRL);
- 
- 	while (1) {
- 		mdelay(5);
--		writel(WDT_MODE_EN | WDT_MODE_RST_EN,
--		       reboot_wdt_base + WDT_MODE);
-+		writel(WDT_MODE_EN | WDT_MODE_RST_EN, wdt_base + WDT_MODE);
- 	}
++	/* loop until the watchdog fires */
++	while (true)
++		;
++
 +	return NOTIFY_DONE;
++}
++
++static struct notifier_block wdt_restart_handler = {
++	.notifier_call = wdt_restart_handle,
++	.priority = 128,
++};
++
+ /*
+  *	Notifier for system down
+  */
+@@ -311,15 +333,6 @@ static int wdt_notify_sys(struct notifie
+ 	if (code == SYS_DOWN || code == SYS_HALT)
+ 		wdt_turnoff();
+ 
+-	if (code == SYS_RESTART) {
+-		/*
+-		 * Cobalt devices have no way of rebooting themselves other
+-		 * than getting the watchdog to pull reset, so we restart the
+-		 * watchdog on reboot with no heartbeat
+-		 */
+-		wdt_change(WDT_ENABLE);
+-		pr_info("Watchdog timer is now enabled with no heartbeat - should reboot in ~1 second\n");
+-	}
+ 	return NOTIFY_DONE;
  }
  
- static int sunxi_wdt_ping(struct watchdog_device *wdt_dev)
-@@ -205,8 +210,12 @@ static int sunxi_wdt_probe(struct platfo
- 	if (unlikely(err))
- 		return err;
+@@ -338,6 +351,7 @@ static void __exit alim7101_wdt_unload(v
+ 	/* Deregister */
+ 	misc_deregister(&wdt_miscdev);
+ 	unregister_reboot_notifier(&wdt_notifier);
++	unregister_restart_handler(&wdt_restart_handler);
+ 	pci_dev_put(alim7101_pmu);
+ }
  
--	reboot_wdt_base = sunxi_wdt->wdt_base;
--	arm_pm_restart = sun4i_wdt_restart;
-+	sunxi_wdt->restart_handler.notifier_call = sunxi_restart_handle;
-+	sunxi_wdt->restart_handler.priority = 128;
-+	err = register_restart_handler(&sunxi_wdt->restart_handler);
-+	if (err)
-+		dev_err(&pdev->dev,
-+			"cannot register restart handler (err=%d)\n", err);
+@@ -390,11 +404,17 @@ static int __init alim7101_wdt_init(void
+ 		goto err_out;
+ 	}
  
- 	dev_info(&pdev->dev, "Watchdog enabled (timeout=%d sec, nowayout=%d)",
- 			sunxi_wdt->wdt_dev.timeout, nowayout);
-@@ -218,7 +227,7 @@ static int sunxi_wdt_remove(struct platf
- {
- 	struct sunxi_wdt_dev *sunxi_wdt = platform_get_drvdata(pdev);
++	rc = register_restart_handler(&wdt_restart_handler);
++	if (rc) {
++		pr_err("cannot register restart handler (err=%d)\n", rc);
++		goto err_out_reboot;
++	}
++
+ 	rc = misc_register(&wdt_miscdev);
+ 	if (rc) {
+ 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
+ 		       wdt_miscdev.minor, rc);
+-		goto err_out_reboot;
++		goto err_out_restart;
+ 	}
  
--	arm_pm_restart = NULL;
-+	unregister_restart_handler(&sunxi_wdt->restart_handler);
+ 	if (nowayout)
+@@ -404,6 +424,8 @@ static int __init alim7101_wdt_init(void
+ 		timeout, nowayout);
+ 	return 0;
  
- 	watchdog_unregister_device(&sunxi_wdt->wdt_dev);
- 	watchdog_set_drvdata(&sunxi_wdt->wdt_dev, NULL);
++err_out_restart:
++	unregister_restart_handler(&wdt_restart_handler);
+ err_out_reboot:
+ 	unregister_reboot_notifier(&wdt_notifier);
+ err_out:
 _
 
 Patches currently in -mm which might be from linux@roeck-us.net are
