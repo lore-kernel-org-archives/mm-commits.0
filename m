@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq.patch added to -mm tree
-Date: Wed, 27 Aug 2014 13:09:47 -0700
-Message-ID: <53fe3b0b.fB55Uz96Y8o2DFH4%akpm@linux-foundation.org>
+Subject: + checkpatch-enable-whitespace-checks-for-dts-files.patch added
+ to -mm tree
+Date: Wed, 27 Aug 2014 13:10:52 -0700
+Message-ID: <53fe3b4c.hMhIwcBCxO3lQ7VL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yk0-f202.google.com ([209.85.160.202]:64711 "EHLO
-	mail-yk0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751731AbaH0UJs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 16:09:48 -0400
-Received: by mail-yk0-f202.google.com with SMTP id q9so91267ykb.3
-        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 13:09:47 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:42756 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755754AbaH0UKx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 16:10:53 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so129334iec.1
+        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 13:10:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: geert+renesas@glider.be, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix deadlock between o2hb thread and o2net_wq
+     Subject: checkpatch: enable whitespace checks for DTS files
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq.patch
+     checkpatch-enable-whitespace-checks-for-dts-files.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-enable-whitespace-checks-for-dts-files.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-enable-whitespace-checks-for-dts-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,102 +41,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix deadlock between o2hb thread and o2net_wq
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: checkpatch: enable whitespace checks for DTS files
 
-The following case may lead to o2net_wq and o2hb thread deadlock on
-o2hb_callback_sem.
-Currently there are 2 nodes say N1, N2 in the cluster. And N2 down, at
-the same time, N3 tries to join the cluster. So N1 will handle node
-down (N2) and join (N3) simultaneously.
-    o2hb                               o2net_wq
-    ->o2hb_do_disk_heartbeat
-    ->o2hb_check_slot
-    ->o2hb_run_event_list
-    ->o2hb_fire_callbacks
-    ->down_write(&o2hb_callback_sem)
-    ->o2net_hb_node_down_cb
-    ->flush_workqueue(o2net_wq)
-                                       ->o2net_process_message
-                                       ->dlm_query_join_handler
-                                       ->o2hb_check_node_heartbeating
-                                       ->o2hb_fill_node_map
-                                       ->down_read(&o2hb_callback_sem)
+When run on *.dtsi or *.dts files, the whitespace checks were skipped,
+while they are valid for DTS files.  Hence stop skipping them.
 
-No need to take o2hb_callback_sem in dlm_query_join_handler,
-o2hb_live_lock is enough to protect live node map.
+I ran checkpatch on all in-tree DTS files, and didn't notice any error or
+warning messages that are inappropriate for DTS files.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: xMark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: jiangyiwen <jiangyiwen@huawei.com>
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |   19 +++++++++++++++++++
- fs/ocfs2/cluster/heartbeat.h |    1 +
- fs/ocfs2/dlm/dlmdomain.c     |    2 +-
- 3 files changed, 21 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -2572,6 +2572,25 @@ int o2hb_check_node_heartbeating(u8 node
- }
- EXPORT_SYMBOL_GPL(o2hb_check_node_heartbeating);
+diff -puN scripts/checkpatch.pl~checkpatch-enable-whitespace-checks-for-dts-files scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-enable-whitespace-checks-for-dts-files
++++ a/scripts/checkpatch.pl
+@@ -2340,7 +2340,7 @@ sub process {
+ 		}
  
-+int o2hb_check_node_heartbeating_no_sem(u8 node_num)
-+{
-+	unsigned long testing_map[BITS_TO_LONGS(O2NM_MAX_NODES)];
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&o2hb_live_lock, flags);
-+	o2hb_fill_node_map_from_callback(testing_map, sizeof(testing_map));
-+	spin_unlock_irqrestore(&o2hb_live_lock, flags);
-+	if (!test_bit(node_num, testing_map)) {
-+		mlog(ML_HEARTBEAT,
-+		     "node (%u) does not have heartbeating enabled.\n",
-+		     node_num);
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+EXPORT_SYMBOL_GPL(o2hb_check_node_heartbeating_no_sem);
-+
- int o2hb_check_node_heartbeating_from_callback(u8 node_num)
- {
- 	unsigned long testing_map[BITS_TO_LONGS(O2NM_MAX_NODES)];
-diff -puN fs/ocfs2/cluster/heartbeat.h~ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq fs/ocfs2/cluster/heartbeat.h
---- a/fs/ocfs2/cluster/heartbeat.h~ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq
-+++ a/fs/ocfs2/cluster/heartbeat.h
-@@ -80,6 +80,7 @@ void o2hb_fill_node_map(unsigned long *m
- void o2hb_exit(void);
- int o2hb_init(void);
- int o2hb_check_node_heartbeating(u8 node_num);
-+int o2hb_check_node_heartbeating_no_sem(u8 node_num);
- int o2hb_check_node_heartbeating_from_callback(u8 node_num);
- int o2hb_check_local_node_heartbeating(void);
- void o2hb_stop_all_regions(void);
-diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq fs/ocfs2/dlm/dlmdomain.c
---- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -839,7 +839,7 @@ static int dlm_query_join_handler(struct
- 	 * to back off and try again.  This gives heartbeat a chance
- 	 * to catch up.
- 	 */
--	if (!o2hb_check_node_heartbeating(query->node_idx)) {
-+	if (!o2hb_check_node_heartbeating_no_sem(query->node_idx)) {
- 		mlog(0, "node %u is not in our live map yet\n",
- 		     query->node_idx);
+ # check we are in a valid source file if not then ignore this hunk
+-		next if ($realfile !~ /\.(h|c|s|S|pl|sh)$/);
++		next if ($realfile !~ /\.(h|c|s|S|pl|sh|dtsi|dts)$/);
  
+ #line length limit
+ 		if ($line =~ /^\+/ && $prevrawline !~ /\/\*\*/ &&
+@@ -2401,7 +2401,7 @@ sub process {
+ 		}
+ 
+ # check we are in a valid source file C or perl if not then ignore this hunk
+-		next if ($realfile !~ /\.(h|c|pl)$/);
++		next if ($realfile !~ /\.(h|c|pl|dtsi|dts)$/);
+ 
+ # at the beginning of a line any tabs must come first and anything
+ # more than 8 must use tabs.
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
-ocfs2-o2net-dont-shutdown-connection-when-idle-timeout.patch
-ocfs2-o2net-set-tcp-user-timeout-to-max-value.patch
-ocfs2-quorum-add-a-log-for-node-not-fenced.patch
-ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
-ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq.patch
+checkpatch-enable-whitespace-checks-for-dts-files.patch
+linux-next.patch
 
