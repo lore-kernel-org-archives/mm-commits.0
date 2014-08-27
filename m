@@ -1,97 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-staging-unisys-fix-build.patch removed from -mm
- tree
-Date: Wed, 27 Aug 2014 12:26:18 -0700
-Message-ID: <53fe30da.c9GmKV4hYTxLxa0I%akpm@linux-foundation.org>
+Subject: +
+ prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2.patch added to
+ -mm tree
+Date: Wed, 27 Aug 2014 12:35:53 -0700
+Message-ID: <53fe3319.BM/C8EEjqTe+fKtM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:50836 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935181AbaH0T0U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 15:26:20 -0400
-Received: by mail-vc0-f201.google.com with SMTP id le20so14420vcb.4
-        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 12:26:19 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:39650 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964959AbaH0Tfy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 15:35:54 -0400
+Received: by mail-oa0-f74.google.com with SMTP id eb12so120089oac.5
+        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 12:35:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benjamin.romer@unisys.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/staging/unisys: fix build
-has been removed from the -mm tree.  Its filename was
-     drivers-staging-unisys-fix-build.patch
+     Subject: prctl: return -EFAULT on auxv fetching failure
+has been added to the -mm tree.  Its filename is
+     prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/staging/unisys: fix build
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: prctl: return -EFAULT on auxv fetching failure
 
-drivers/staging/unisys/visorchipset/file.c:31: error: redefinition of typedef 'GUEST_PHYSICAL_ADDRESS'
-drivers/staging/unisys/common-spar/include/channels/controlvmchannel.h:23: note: previous declaration of 'GUEST_PHYSICAL_ADDRESS' was here
+Dan reported that returning bytes left if copy_from_user failed
+is a bad option, return traditional -EFAULT instead.
 
-Cc: Benjamin Romer <benjamin.romer@unisys.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/unisys/visorchipset/file.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/sys.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/staging/unisys/visorchipset/file.c~drivers-staging-unisys-fix-build drivers/staging/unisys/visorchipset/file.c
---- a/drivers/staging/unisys/visorchipset/file.c~drivers-staging-unisys-fix-build
-+++ a/drivers/staging/unisys/visorchipset/file.c
-@@ -28,8 +28,6 @@
+diff -puN kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2 kernel/sys.c
+--- a/kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2
++++ a/kernel/sys.c
+@@ -1809,11 +1809,10 @@ static int prctl_set_mm_map(int opt, con
  
- #define CURRENT_FILE_PC VISOR_CHIPSET_PC_file_c
+ 	if (prctl_map.auxv_size) {
+ 		memset(user_auxv, 0, sizeof(user_auxv));
+-		error = copy_from_user(user_auxv,
+-				       (const void __user *)prctl_map.auxv,
+-				       prctl_map.auxv_size);
+-		if (error)
+-			return error;
++		if (copy_from_user(user_auxv,
++				   (const void __user *)prctl_map.auxv,
++				   prctl_map.auxv_size))
++			return -EFAULT;
  
--typedef u64 GUEST_PHYSICAL_ADDRESS;
--
- static struct cdev Cdev;
- static VISORCHANNEL **PControlVm_channel;
- static dev_t MajorDev = -1; /**< indicates major num for device */
+ 		/* Last entry must be AT_NULL as specification requires */
+ 		user_auxv[AT_VECTOR_SIZE - 2] = AT_NULL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
-mm-slab_commonc-suppress-warning.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+x86mm-fix-pte_special-versus-pte_numa.patch
+mm-remove-misleading-arch_uses_numa_prot_none.patch
 prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zram-zram-memory-size-limitation-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2.patch
+ipc-shm-kill-the-historical-wrong-mm-start_stack-check.patch
 
