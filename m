@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + zram-zram-memory-size-limitation-fix-fix.patch added to -mm
- tree
-Date: Wed, 27 Aug 2014 12:47:53 -0700
-Message-ID: <53fe35e9.Exyk6DP/TSva1fkX%akpm@linux-foundation.org>
+Subject: + zram-zram-memory-size-limitation-fix-2.patch added to -mm tree
+Date: Wed, 27 Aug 2014 12:49:39 -0700
+Message-ID: <53fe3653.G1HqOv89GtkvehPq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:51368 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935594AbaH0Try (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 15:47:54 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wp18so122923obc.5
-        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 12:47:54 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:50379 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750796AbaH0Ttk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 15:49:40 -0400
+Received: by mail-oa0-f73.google.com with SMTP id g18so122817oah.4
+        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 12:49:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram-zram-memory-size-limitation-fix-fix
+     Subject: zram-zram-memory-size-limitation-fix-2
 has been added to the -mm tree.  Its filename is
-     zram-zram-memory-size-limitation-fix-fix.patch
+     zram-zram-memory-size-limitation-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-zram-memory-size-limitation-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-zram-memory-size-limitation-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-zram-memory-size-limitation-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-zram-memory-size-limitation-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,67 +40,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zram-zram-memory-size-limitation-fix-fix
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram-zram-memory-size-limitation-fix-2
 
-Cc: Minchan Kim <minchan@kernel.org>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-zram-memory-size-limitation-fix-fix Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-zram-memory-size-limitation-fix-fix
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -125,5 +125,6 @@ Date:		August 2014
- Contact:	Minchan Kim <minchan@kernel.org>
- Description:
- 		The mem_limit file is read/write and specifies the maximum
--		amount of memory ZRAM can use to store the compressed data.  The		limit could be changed in run time and "0" means disable the
-+		amount of memory ZRAM can use to store the compressed data.  The
-+		limit could be changed in run time and "0" means disable the
- 		limit.  No limit is the initial state.  Unit: bytes
+diff -puN drivers/block/zram/zram_drv.c~zram-zram-memory-size-limitation-fix-2 drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-zram-memory-size-limitation-fix-2
++++ a/drivers/block/zram/zram_drv.c
+@@ -139,9 +139,13 @@ static ssize_t mem_limit_store(struct de
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+ 	u64 limit;
++	char *tmp;
+ 	struct zram *zram = dev_to_zram(dev);
+ 
+-	limit = memparse(buf, NULL);
++	limit = memparse(buf, &tmp);
++	if (buf == tmp) /* no chars parsed, invalid input */
++		return -EINVAL;
++
+ 	down_write(&zram->init_lock);
+ 	zram->limit_pages = PAGE_ALIGN(limit) >> PAGE_SHIFT;
+ 	up_write(&zram->init_lock);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
-mm-slab_commonc-suppress-warning.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+zram-fix-incorrectly-stat-with-failed_reads.patch
+mm-zpool-use-prefixed-module-loading.patch
+mm-cma-adjust-address-limit-to-avoid-hitting-low-high-memory-boundary.patch
+arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
+mm-page_alloc-determine-migratetype-only-once.patch
+mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
 mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
+mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
+mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
 mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
+mm-compaction-skip-rechecks-when-lock-was-already-held.patch
+mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+mm-rename-allocflags_to_migratetype-for-clarity.patch
+mm-compaction-pass-gfp-mask-to-compact_control.patch
+zsmalloc-move-pages_allocated-to-zs_pool.patch
+zsmalloc-change-return-value-unit-of-zs_get_total_size_bytes.patch
+zram-zram-memory-size-limitation.patch
 zram-zram-memory-size-limitation-fix.patch
 zram-zram-memory-size-limitation-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+zram-zram-memory-size-limitation-fix-2.patch
+zram-report-maximum-used-memory.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
 debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
