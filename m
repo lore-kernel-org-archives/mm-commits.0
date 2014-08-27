@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
- added to -mm tree
-Date: Wed, 27 Aug 2014 13:25:06 -0700
-Message-ID: <53fe3ea2.ttqnDy8dRmBJeGbO%akpm@linux-foundation.org>
+Subject: +
+ not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch added
+ to -mm tree
+Date: Wed, 27 Aug 2014 13:28:50 -0700
+Message-ID: <53fe3f82.IRxcQf540cA42fSY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f73.google.com ([209.85.220.73]:32797 "EHLO
-	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964964AbaH0UZI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 16:25:08 -0400
-Received: by mail-pa0-f73.google.com with SMTP id kx10so271052pab.2
-        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 13:25:07 -0700 (PDT)
+Received: from mail-qg0-f73.google.com ([209.85.192.73]:40950 "EHLO
+	mail-qg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964856AbaH0U2v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 16:28:51 -0400
+Received: by mail-qg0-f73.google.com with SMTP id i50so95433qgf.0
+        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 13:28:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhenzhang.zhang@huawei.com, dave.hansen@intel.com, isimatu.yasuaki@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, toshi.kani@hp.com, wangnan0@huawei.com, mm-commits@vger.kernel.org
+To: bhe@redhat.com, paul.gortmaker@windriver.com, qiuxishi@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: rename zones_online_to to valid_zones
+     Subject: fs/proc/kcore.c: don't add modules range to kcore if it's equal to vmcore range
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
+     not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,125 +42,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Subject: memory-hotplug: rename zones_online_to to valid_zones
+From: Baoquan He <bhe@redhat.com>
+Subject: fs/proc/kcore.c: don't add modules range to kcore if it's equal to vmcore range
 
-Rename the interface to valid_zones according to most pepole's
-suggestion.
+On some ARCHs modules range is eauql to vmalloc range. E.g on i686
 
-Sample output of the sysfs files:
-	memory0/valid_zones: none
-	memory1/valid_zones: DMA32
-	memory2/valid_zones: DMA32
-	memory3/valid_zones: DMA32
-	memory4/valid_zones: Normal
-	memory5/valid_zones: Normal
-	memory6/valid_zones: Normal Movable
-	memory7/valid_zones: Movable Normal
-	memory8/valid_zones: Movable
+	"#define MODULES_VADDR   VMALLOC_START"
+	"#define MODULES_END     VMALLOC_END"
 
-Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Wang Nan <wangnan0@huawei.com>
+This will cause 2 duplicate program segments in /proc/kcore, and no flag
+to indicate they are different.  This is confusing.  And usually people
+who need check the elf header or read the content of kcore will check
+memory ranges.  Two program segments which are the same are unnecessary.
+
+So check if the modules range is equal to vmalloc range.  If so, just skip
+adding the modules range.
+
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-devices-memory |    8 ++++----
- Documentation/memory-hotplug.txt               |   11 +++++++++--
- drivers/base/memory.c                          |    6 +++---
- 3 files changed, 16 insertions(+), 9 deletions(-)
+ fs/proc/kcore.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/ABI/testing/sysfs-devices-memory~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4 Documentation/ABI/testing/sysfs-devices-memory
---- a/Documentation/ABI/testing/sysfs-devices-memory~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4
-+++ a/Documentation/ABI/testing/sysfs-devices-memory
-@@ -61,13 +61,13 @@ Users:		hotplug memory remove tools
- 		http://www.ibm.com/developerworks/wikis/display/LinuxP/powerpc-utils
- 
- 
--What:           /sys/devices/system/memory/memoryX/zones_online_to
-+What:           /sys/devices/system/memory/memoryX/valid_zones
- Date:           July 2014
- Contact:	Zhang Zhen <zhenzhang.zhang@huawei.com>
- Description:
--		The file /sys/devices/system/memory/memoryX/zones_online_to
--		is read-only and is designed to show which zone this memory block can
--		be onlined to.
-+		The file /sys/devices/system/memory/memoryX/valid_zones	is
-+		read-only and is designed to show which zone this memory
-+		block can be onlined to.
- 
- What:		/sys/devices/system/memoryX/nodeY
- Date:		October 2009
-diff -puN Documentation/memory-hotplug.txt~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4 Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4
-+++ a/Documentation/memory-hotplug.txt
-@@ -155,7 +155,7 @@ Under each memory block, you can see 4 f
- /sys/devices/system/memory/memoryXXX/phys_device
- /sys/devices/system/memory/memoryXXX/state
- /sys/devices/system/memory/memoryXXX/removable
--/sys/devices/system/memory/memoryXXX/zones_online_to
-+/sys/devices/system/memory/memoryXXX/valid_zones
- 
- 'phys_index'      : read-only and contains memory block id, same as XXX.
- 'state'           : read-write
-@@ -171,8 +171,15 @@ Under each memory block, you can see 4 f
-                     block is removable and a value of 0 indicates that
-                     it is not removable. A memory block is removable only if
-                     every section in the block is removable.
--'zones_online_to' : read-only: designed to show which zone this memory block
-+'valid_zones'     : read-only: designed to show which zones this memory block
- 		    can be onlined to.
-+		    The first column shows it's default zone.
-+		    "memory6/valid_zones: Normal Movable" shows this memoryblock
-+		    can be onlined to ZONE_NORMAL by default and to ZONE_MOVABLE
-+		    by online_movable.
-+		    "memory7/valid_zones: Movable Normal" shows this memoryblock
-+		    can be onlined to ZONE_MOVABLE by default and to ZONE_NORMAL
-+		    by online_kernel.
- 
- NOTE:
-   These directories/files appear after physical memory hotplug phase.
-diff -puN drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4 drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4
-+++ a/drivers/base/memory.c
-@@ -374,7 +374,7 @@ static ssize_t show_phys_device(struct d
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--static ssize_t show_zones_online_to(struct device *dev,
-+static ssize_t show_valid_zones(struct device *dev,
- 				struct device_attribute *attr, char *buf)
+diff -puN fs/proc/kcore.c~not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range fs/proc/kcore.c
+--- a/fs/proc/kcore.c~not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range
++++ a/fs/proc/kcore.c
+@@ -610,8 +610,11 @@ static void __init proc_kcore_text_init(
+ struct kcore_list kcore_modules;
+ static void __init add_modules_range(void)
  {
- 	struct memory_block *mem = to_memory_block(dev);
-@@ -409,7 +409,7 @@ static ssize_t show_zones_online_to(stru
- 
- 	return sprintf(buf, "%s\n", zone->name);
+-	kclist_add(&kcore_modules, (void *)MODULES_VADDR,
++	if ( (MODULES_VADDR != VMALLOC_START) &&
++		(MODULES_END != VMALLOC_END) ) {
++		kclist_add(&kcore_modules, (void *)MODULES_VADDR,
+ 			MODULES_END - MODULES_VADDR, KCORE_VMALLOC);
++	}
  }
--static DEVICE_ATTR(zones_online_to, 0444, show_zones_online_to, NULL);
-+static DEVICE_ATTR(valid_zones, 0444, show_valid_zones, NULL);
- #endif
- 
- static DEVICE_ATTR(phys_index, 0444, show_mem_start_phys_index, NULL);
-@@ -563,7 +563,7 @@ static struct attribute *memory_memblk_a
- 	&dev_attr_phys_device.attr,
- 	&dev_attr_removable.attr,
- #ifdef CONFIG_MEMORY_HOTREMOVE
--	&dev_attr_zones_online_to.attr,
-+	&dev_attr_valid_zones.attr,
- #endif
- 	NULL
- };
+ #else
+ static void __init add_modules_range(void)
 _
 
-Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-memory-hotplug-add-sysfs-zones_online_to-attribute.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
 
