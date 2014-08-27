@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-balloon_compaction-isolate-balloon-pages-without-lru_lock.patch added to -mm tree
-Date: Wed, 27 Aug 2014 14:04:28 -0700
-Message-ID: <53fe47dc.9KiPBurEuvRtDMXp%akpm__31069.2928419032$1409173502$gmane$org@linux-foundation.org>
+Subject: + mm-balloon_compaction-ignore-anonymous-pages.patch added to -mm tree
+Date: Wed, 27 Aug 2014 14:04:26 -0700
+Message-ID: <53fe47da.W/K5wZhHdoB3Wu1w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f73.google.com ([209.85.218.73]:48275 "EHLO
-	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965201AbaH0VE3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 17:04:29 -0400
-Received: by mail-oi0-f73.google.com with SMTP id u20so144858oif.0
-        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 14:04:28 -0700 (PDT)
+Received: from mail-oi0-f74.google.com ([209.85.218.74]:57794 "EHLO
+	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965297AbaH0VE1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 17:04:27 -0400
+Received: by mail-oi0-f74.google.com with SMTP id v63so69010oia.1
+        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 14:04:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.khlebnikov@samsung.com, aquini@redhat.com, ryabinin.a.a@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: k.khlebnikov@samsung.com, aquini@redhat.com, ryabinin.a.a@gmail.com, sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/balloon_compaction: isolate balloon pages without lru_lock
+     Subject: mm/balloon_compaction: ignore anonymous pages
 has been added to the -mm tree.  Its filename is
-     mm-balloon_compaction-isolate-balloon-pages-without-lru_lock.patch
+     mm-balloon_compaction-ignore-anonymous-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon_compaction-isolate-balloon-pages-without-lru_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon_compaction-ignore-anonymous-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon_compaction-isolate-balloon-pages-without-lru_lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon_compaction-ignore-anonymous-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,34 +41,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
-Subject: mm/balloon_compaction: isolate balloon pages without lru_lock
+Subject: mm/balloon_compaction: ignore anonymous pages
 
-LRU-lock isn't required for balloon page isolation.  This check makes
-migration of some ballooned pages mostly impossible because
-isolate_migratepages_range() drops LRU lock periodically.
+Sasha Levin reported KASAN splash inside isolate_migratepages_range(). 
+Problem is in function __is_movable_balloon_page() which tests
+AS_BALLOON_MAP in page->mapping->flags.  This function has no protection
+against anonymous pages.  As result it tried to check address space flags
+in inside anon-vma.
+
+See http://lkml.kernel.org/p/53E6CEAA.9020105@oracle.com.
 
 Signed-off-by: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
 Acked-by: Rafael Aquini <aquini@redhat.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: <stable@vger.kernel.org>	[v3.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
+ include/linux/balloon_compaction.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-balloon_compaction-isolate-balloon-pages-without-lru_lock mm/compaction.c
---- a/mm/compaction.c~mm-balloon_compaction-isolate-balloon-pages-without-lru_lock
-+++ a/mm/compaction.c
-@@ -643,7 +643,7 @@ isolate_migratepages_block(struct compac
- 		 */
- 		if (!PageLRU(page)) {
- 			if (unlikely(balloon_page_movable(page))) {
--				if (locked && balloon_page_isolate(page)) {
-+				if (balloon_page_isolate(page)) {
- 					/* Successfully isolated */
- 					goto isolate_success;
- 				}
+diff -puN include/linux/balloon_compaction.h~mm-balloon_compaction-ignore-anonymous-pages include/linux/balloon_compaction.h
+--- a/include/linux/balloon_compaction.h~mm-balloon_compaction-ignore-anonymous-pages
++++ a/include/linux/balloon_compaction.h
+@@ -128,7 +128,7 @@ static inline bool page_flags_cleared(st
+ static inline bool __is_movable_balloon_page(struct page *page)
+ {
+ 	struct address_space *mapping = page->mapping;
+-	return mapping_balloon(mapping);
++	return !PageAnon(page) && mapping_balloon(mapping);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from k.khlebnikov@samsung.com are
