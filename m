@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-balloon_compaction-ignore-anonymous-pages.patch added to -mm tree
-Date: Wed, 27 Aug 2014 14:04:26 -0700
-Message-ID: <53fe47da.W/K5wZhHdoB3Wu1w%akpm@linux-foundation.org>
+Subject: +
+ selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch added to -mm tree
+Date: Wed, 27 Aug 2014 14:04:29 -0700
+Message-ID: <53fe47dd.qeLxvFteX/AMcLAQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oi0-f74.google.com ([209.85.218.74]:57794 "EHLO
-	mail-oi0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965297AbaH0VE1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 17:04:27 -0400
-Received: by mail-oi0-f74.google.com with SMTP id v63so69010oia.1
-        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 14:04:27 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:38241 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965301AbaH0VEa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 17:04:30 -0400
+Received: by mail-qa0-f73.google.com with SMTP id s7so101573qap.2
+        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 14:04:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.khlebnikov@samsung.com, aquini@redhat.com, ryabinin.a.a@gmail.com, sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, aquini@redhat.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/balloon_compaction: ignore anonymous pages
+     Subject: selftests/vm/transhuge-stress: stress test for memory compaction
 has been added to the -mm tree.  Its filename is
-     mm-balloon_compaction-ignore-anonymous-pages.patch
+     selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon_compaction-ignore-anonymous-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon_compaction-ignore-anonymous-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,48 +41,185 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
-Subject: mm/balloon_compaction: ignore anonymous pages
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: selftests/vm/transhuge-stress: stress test for memory compaction
 
-Sasha Levin reported KASAN splash inside isolate_migratepages_range(). 
-Problem is in function __is_movable_balloon_page() which tests
-AS_BALLOON_MAP in page->mapping->flags.  This function has no protection
-against anonymous pages.  As result it tried to check address space flags
-in inside anon-vma.
+This tool induces memory fragmentation via sequential allocation of
+transparent huge pages and splitting off everything except their last
+sub-pages.
 
-See http://lkml.kernel.org/p/53E6CEAA.9020105@oracle.com.
-
-Signed-off-by: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Acked-by: Rafael Aquini <aquini@redhat.com>
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: <stable@vger.kernel.org>	[v3.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/balloon_compaction.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/Makefile           |    1 
+ tools/testing/selftests/vm/transhuge-stress.c |  144 ++++++++++++++++
+ 2 files changed, 145 insertions(+)
 
-diff -puN include/linux/balloon_compaction.h~mm-balloon_compaction-ignore-anonymous-pages include/linux/balloon_compaction.h
---- a/include/linux/balloon_compaction.h~mm-balloon_compaction-ignore-anonymous-pages
-+++ a/include/linux/balloon_compaction.h
-@@ -128,7 +128,7 @@ static inline bool page_flags_cleared(st
- static inline bool __is_movable_balloon_page(struct page *page)
- {
- 	struct address_space *mapping = page->mapping;
--	return mapping_balloon(mapping);
-+	return !PageAnon(page) && mapping_balloon(mapping);
- }
+diff -puN tools/testing/selftests/vm/Makefile~selftests-vm-transhuge-stress-stress-test-for-memory-compaction tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-transhuge-stress-stress-test-for-memory-compaction
++++ a/tools/testing/selftests/vm/Makefile
+@@ -3,6 +3,7 @@
+ CC = $(CROSS_COMPILE)gcc
+ CFLAGS = -Wall
+ BINARIES = hugepage-mmap hugepage-shm map_hugetlb thuge-gen hugetlbfstest
++BINARIES += transhuge-stress
  
- /*
+ all: $(BINARIES)
+ %: %.c
+diff -puN /dev/null tools/testing/selftests/vm/transhuge-stress.c
+--- /dev/null
++++ a/tools/testing/selftests/vm/transhuge-stress.c
+@@ -0,0 +1,144 @@
++/*
++ * Stress test for transparent huge pages, memory compaction and migration.
++ *
++ * Authors: Konstantin Khlebnikov <koct9i@gmail.com>
++ *
++ * This is free and unencumbered software released into the public domain.
++ */
++
++#include <stdlib.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <err.h>
++#include <time.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <string.h>
++#include <sys/mman.h>
++
++#define PAGE_SHIFT 12
++#define HPAGE_SHIFT 21
++
++#define PAGE_SIZE (1 << PAGE_SHIFT)
++#define HPAGE_SIZE (1 << HPAGE_SHIFT)
++
++#define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
++#define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
++
++int pagemap_fd;
++
++int64_t allocate_transhuge(void *ptr)
++{
++	uint64_t ent[2];
++
++	/* drop pmd */
++	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
++				MAP_FIXED | MAP_ANONYMOUS |
++				MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
++		errx(2, "mmap transhuge");
++
++	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
++		err(2, "MADV_HUGEPAGE");
++
++	/* allocate transparent huge page */
++	*(volatile void **)ptr = ptr;
++
++	if (pread(pagemap_fd, ent, sizeof(ent),
++			(uintptr_t)ptr >> (PAGE_SHIFT - 3)) != sizeof(ent))
++		err(2, "read pagemap");
++
++	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
++	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
++	    !(PAGEMAP_PFN(ent[0]) & ((1 << (HPAGE_SHIFT - PAGE_SHIFT)) - 1)))
++		return PAGEMAP_PFN(ent[0]);
++
++	return -1;
++}
++
++int main(int argc, char **argv)
++{
++	size_t ram, len;
++	void *ptr, *p;
++	struct timespec a, b;
++	double s;
++	uint8_t *map;
++	size_t map_len;
++
++	ram = sysconf(_SC_PHYS_PAGES);
++	if (ram > SIZE_MAX / sysconf(_SC_PAGESIZE) / 4)
++		ram = SIZE_MAX / 4;
++	else
++		ram *= sysconf(_SC_PAGESIZE);
++
++	if (argc == 1)
++		len = ram;
++	else if (!strcmp(argv[1], "-h"))
++		errx(1, "usage: %s [size in MiB]", argv[0]);
++	else
++		len = atoll(argv[1]) << 20;
++
++	warnx("allocate %zd transhuge pages, using %zd MiB virtual memory"
++	      " and %zd MiB of ram", len >> HPAGE_SHIFT, len >> 20,
++	      len >> (20 + HPAGE_SHIFT - PAGE_SHIFT - 1));
++
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		err(2, "open pagemap");
++
++	len -= len % HPAGE_SIZE;
++	ptr = mmap(NULL, len + HPAGE_SIZE, PROT_READ | PROT_WRITE,
++			MAP_ANONYMOUS | MAP_NORESERVE | MAP_PRIVATE, -1, 0);
++	if (ptr == MAP_FAILED)
++		err(2, "initial mmap");
++	ptr += HPAGE_SIZE - (uintptr_t)ptr % HPAGE_SIZE;
++
++	if (madvise(ptr, len, MADV_HUGEPAGE))
++		err(2, "MADV_HUGEPAGE");
++
++	map_len = ram >> (HPAGE_SHIFT - 1);
++	map = malloc(map_len);
++	if (!map)
++		errx(2, "map malloc");
++
++	while (1) {
++		int nr_succeed = 0, nr_failed = 0, nr_pages = 0;
++
++		memset(map, 0, map_len);
++
++		clock_gettime(CLOCK_MONOTONIC, &a);
++		for (p = ptr; p < ptr + len; p += HPAGE_SIZE) {
++			int64_t pfn;
++
++			pfn = allocate_transhuge(p);
++
++			if (pfn < 0) {
++				nr_failed++;
++			} else {
++				size_t idx = pfn >> (HPAGE_SHIFT - PAGE_SHIFT);
++
++				nr_succeed++;
++				if (idx >= map_len) {
++					map = realloc(map, idx + 1);
++					if (!map)
++						errx(2, "map realloc");
++					memset(map + map_len, 0, idx + 1 - map_len);
++					map_len = idx + 1;
++				}
++				if (!map[idx])
++					nr_pages++;
++				map[idx] = 1;
++			}
++
++			/* split transhuge page, keep last page */
++			if (madvise(p, HPAGE_SIZE - PAGE_SIZE, MADV_DONTNEED))
++				err(2, "MADV_DONTNEED");
++		}
++		clock_gettime(CLOCK_MONOTONIC, &b);
++		s = b.tv_sec - a.tv_sec + (b.tv_nsec - a.tv_nsec) / 1000000000.;
++
++		warnx("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
++		      "%4d succeed, %4d failed, %4d different pages",
++		      s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
++		      nr_succeed, nr_failed, nr_pages);
++	}
++}
 _
 
-Patches currently in -mm which might be from k.khlebnikov@samsung.com are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
-mm-balloon_compaction-ignore-anonymous-pages.patch
-mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path.patch
-mm-balloon_compaction-isolate-balloon-pages-without-lru_lock.patch
-mm-introduce-common-page-state-for-ballooned-memory.patch
-mm-balloon_compaction-use-common-page-ballooning.patch
-mm-balloon_compaction-general-cleanup.patch
+selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch
 
