@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
- added to -mm tree
-Date: Thu, 28 Aug 2014 16:24:24 -0700
-Message-ID: <53ffba28.Mtw5bvthEO1JsbtX%akpm@linux-foundation.org>
+Subject: + wireless-libertas-print-esaped-string-via-%pe.patch added to
+ -mm tree
+Date: Thu, 28 Aug 2014 14:09:11 -0700
+Message-ID: <53ff9a77.byYVjtTNZuDKX4+p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ig0-f201.google.com ([209.85.213.201]:48699 "EHLO
-	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578AbaH2FZF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 01:25:05 -0400
-Received: by mail-ig0-f201.google.com with SMTP id h3so484949igd.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2014 22:25:03 -0700 (PDT)
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:59798 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752150AbaH2NaX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 09:30:23 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so184073pde.3
+        for <mm-commits@vger.kernel.org>; Fri, 29 Aug 2014 06:30:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, geert@linux-m68k.org, joe.lawrence@stratus.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, gregkh@linuxfoundation.org, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: allow commit descriptions on separate line from commit id
+     Subject: wireless: libertas: print esaped string via %*pE
 has been added to the -mm tree.  Its filename is
-     checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
+     wireless-libertas-print-esaped-string-via-%pe.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/wireless-libertas-print-esaped-string-via-%pe.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/wireless-libertas-print-esaped-string-via-%pe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,56 +41,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: allow commit descriptions on separate line from commit id
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: wireless: libertas: print esaped string via %*pE
 
-The general form for commit id and description is
+Instead of custom approach this allows to print escaped strings via
+recently added kernel extension: %*pE.
 
-'Commit <12+hexdigits> ("commit description/subject line")'
-
-But commit logs often have relatively long commit ids and the commit
-description is on a separate line like:
-
-Some explanation as to why commit <12+hexdigits> ("commit
-description/subject line") is improved.
-
-Allow this form.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Joe Lawrence <joe.lawrence@stratus.com>
-Tested-by: Joe Lawrence <joe.lawrence@stratus.com>
-Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "John W . Linville" <linville@tuxdriver.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/net/wireless/libertas/cfg.c  |    8 ++------
+ drivers/net/wireless/libertas/mesh.c |    7 +++----
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id
-+++ a/scripts/checkpatch.pl
-@@ -2133,7 +2133,10 @@ sub process {
- # Check for improperly formed commit descriptions
- 		if ($in_commit_log &&
- 		    $line =~ /\bcommit\s+[0-9a-f]{5,}/i &&
--		    $line !~ /\b[Cc]ommit [0-9a-f]{12,40} \("/) {
-+		    !($line =~ /\b[Cc]ommit [0-9a-f]{12,40} \("/ ||
-+		      ($line =~ /\b[Cc]ommit [0-9a-f]{12,40}\s*$/ &&
-+		       defined $rawlines[$linenr] &&
-+		       $rawlines[$linenr] =~ /^\s*\("/))) {
- 			$line =~ /\b(c)ommit\s+([0-9a-f]{5,})/i;
- 			my $init_char = $1;
- 			my $orig_commit = lc($2);
+diff -puN drivers/net/wireless/libertas/cfg.c~wireless-libertas-print-esaped-string-via-%pe drivers/net/wireless/libertas/cfg.c
+--- a/drivers/net/wireless/libertas/cfg.c~wireless-libertas-print-esaped-string-via-%pe
++++ a/drivers/net/wireless/libertas/cfg.c
+@@ -590,7 +590,6 @@ static int lbs_ret_scan(struct lbs_priva
+ 		int chan_no = -1;
+ 		const u8 *ssid = NULL;
+ 		u8 ssid_len = 0;
+-		DECLARE_SSID_BUF(ssid_buf);
+ 
+ 		int len = get_unaligned_le16(pos);
+ 		pos += 2;
+@@ -644,10 +643,8 @@ static int lbs_ret_scan(struct lbs_priva
+ 			struct ieee80211_channel *channel =
+ 				ieee80211_get_channel(wiphy, freq);
+ 
+-			lbs_deb_scan("scan: %pM, capa %04x, chan %2d, %s, "
+-				     "%d dBm\n",
+-				     bssid, capa, chan_no,
+-				     print_ssid(ssid_buf, ssid, ssid_len),
++			lbs_deb_scan("scan: %pM, capa %04x, chan %2d, %*pE, %d dBm\n",
++				     bssid, capa, chan_no, ssid_len, ssid,
+ 				     LBS_SCAN_RSSI_TO_MBM(rssi)/100);
+ 
+ 			if (channel &&
+@@ -1982,7 +1979,6 @@ static int lbs_join_ibss(struct wiphy *w
+ 	struct lbs_private *priv = wiphy_priv(wiphy);
+ 	int ret = 0;
+ 	struct cfg80211_bss *bss;
+-	DECLARE_SSID_BUF(ssid_buf);
+ 
+ 	if (dev == priv->mesh_dev)
+ 		return -EOPNOTSUPP;
+diff -puN drivers/net/wireless/libertas/mesh.c~wireless-libertas-print-esaped-string-via-%pe drivers/net/wireless/libertas/mesh.c
+--- a/drivers/net/wireless/libertas/mesh.c~wireless-libertas-print-esaped-string-via-%pe
++++ a/drivers/net/wireless/libertas/mesh.c
+@@ -93,7 +93,6 @@ static int lbs_mesh_config(struct lbs_pr
+ {
+ 	struct cmd_ds_mesh_config cmd;
+ 	struct mrvl_meshie *ie;
+-	DECLARE_SSID_BUF(ssid);
+ 
+ 	memset(&cmd, 0, sizeof(cmd));
+ 	cmd.channel = cpu_to_le16(chan);
+@@ -122,9 +121,9 @@ static int lbs_mesh_config(struct lbs_pr
+ 	default:
+ 		return -1;
+ 	}
+-	lbs_deb_cmd("mesh config action %d type %x channel %d SSID %s\n",
+-		    action, priv->mesh_tlv, chan,
+-		    print_ssid(ssid, priv->mesh_ssid, priv->mesh_ssid_len));
++	lbs_deb_cmd("mesh config action %d type %x channel %d SSID %*pE\n",
++		    action, priv->mesh_tlv, chan, priv->mesh_ssid_len,
++		    priv->mesh_ssid);
+ 
+ 	return __lbs_mesh_config_send(priv, &cmd, action, priv->mesh_tlv);
+ }
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-checkpatch-relax-check-for-length-of-git-commit-ids.patch
-checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
 lib-string_helpers-move-documentation-to-c-file.patch
 lib-string_helpers-refactoring-the-test-suite.patch
 lib-string_helpers-introduce-string_escape_mem.patch
 lib-vsprintf-add-%pe-format-specifier.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
 wireless-libertas-print-esaped-string-via-%pe.patch
 wireless-ipw2x00-print-ssid-via-%pe.patch
 wireless-hostap-proc-print-properly-escaped-ssid.patch
@@ -99,11 +131,5 @@ lib80211-remove-unused-print_ssid.patch
 staging-wlan-ng-use-%pehp-to-print-sn.patch
 staging-rtl8192e-use-%pen-to-escape-buffer.patch
 staging-rtl8192u-use-%pen-to-escape-buffer.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-fix-spello.patch
-checkpatch-remove-debugging-message.patch
-checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh.patch
-checkpatch-enable-whitespace-checks-for-dts-files.patch
-ipc-always-handle-a-new-value-of-auto_msgmni.patch
 linux-next.patch
 
