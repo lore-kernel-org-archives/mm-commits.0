@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + wireless-libertas-print-esaped-string-via-%pe.patch added to
- -mm tree
-Date: Thu, 28 Aug 2014 14:09:11 -0700
-Message-ID: <53ff9a77.byYVjtTNZuDKX4+p%akpm@linux-foundation.org>
+Subject: + lib-vsprintf-add-%pe-format-specifier-fix.patch added to -mm
+ tree
+Date: Thu, 28 Aug 2014 14:09:10 -0700
+Message-ID: <53ff9a76.OXlZRdxvWJDSNCk0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pd0-f202.google.com ([209.85.192.202]:59798 "EHLO
-	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752150AbaH2NaX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 09:30:23 -0400
-Received: by mail-pd0-f202.google.com with SMTP id w10so184073pde.3
-        for <mm-commits@vger.kernel.org>; Fri, 29 Aug 2014 06:30:20 -0700 (PDT)
+Received: from mail-pa0-f73.google.com ([209.85.220.73]:52136 "EHLO
+	mail-pa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753104AbaH2NaM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 09:30:12 -0400
+Received: by mail-pa0-f73.google.com with SMTP id kx10so1371561pab.2
+        for <mm-commits@vger.kernel.org>; Fri, 29 Aug 2014 06:30:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, gregkh@linuxfoundation.org, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, gregkh@linuxfoundation.org, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: wireless: libertas: print esaped string via %*pE
+     Subject: lib-vsprintf-add-%pe-format-specifier-fix
 has been added to the -mm tree.  Its filename is
-     wireless-libertas-print-esaped-string-via-%pe.patch
+     lib-vsprintf-add-%pe-format-specifier-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/wireless-libertas-print-esaped-string-via-%pe.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintf-add-%pe-format-specifier-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/wireless-libertas-print-esaped-string-via-%pe.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintf-add-%pe-format-specifier-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,95 +41,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: wireless: libertas: print esaped string via %*pE
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-vsprintf-add-%pe-format-specifier-fix
 
-Instead of custom approach this allows to print escaped strings via
-recently added kernel extension: %*pE.
+tidy up comment layout, per Joe
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: "John W . Linville" <linville@tuxdriver.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joe Perches <joe@perches.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/libertas/cfg.c  |    8 ++------
- drivers/net/wireless/libertas/mesh.c |    7 +++----
- 2 files changed, 5 insertions(+), 10 deletions(-)
+ lib/vsprintf.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/wireless/libertas/cfg.c~wireless-libertas-print-esaped-string-via-%pe drivers/net/wireless/libertas/cfg.c
---- a/drivers/net/wireless/libertas/cfg.c~wireless-libertas-print-esaped-string-via-%pe
-+++ a/drivers/net/wireless/libertas/cfg.c
-@@ -590,7 +590,6 @@ static int lbs_ret_scan(struct lbs_priva
- 		int chan_no = -1;
- 		const u8 *ssid = NULL;
- 		u8 ssid_len = 0;
--		DECLARE_SSID_BUF(ssid_buf);
+diff -puN lib/vsprintf.c~lib-vsprintf-add-%pe-format-specifier-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintf-add-%pe-format-specifier-fix
++++ a/lib/vsprintf.c
+@@ -1111,12 +1111,11 @@ char *escaped_string(char *buf, char *en
+ 	int len;
  
- 		int len = get_unaligned_le16(pos);
- 		pos += 2;
-@@ -644,10 +643,8 @@ static int lbs_ret_scan(struct lbs_priva
- 			struct ieee80211_channel *channel =
- 				ieee80211_get_channel(wiphy, freq);
+ 	if (spec.field_width == 0)
+-		/* nothing to print */
+-		return buf;
++		return buf;				/* nothing to print */
  
--			lbs_deb_scan("scan: %pM, capa %04x, chan %2d, %s, "
--				     "%d dBm\n",
--				     bssid, capa, chan_no,
--				     print_ssid(ssid_buf, ssid, ssid_len),
-+			lbs_deb_scan("scan: %pM, capa %04x, chan %2d, %*pE, %d dBm\n",
-+				     bssid, capa, chan_no, ssid_len, ssid,
- 				     LBS_SCAN_RSSI_TO_MBM(rssi)/100);
+ 	if (ZERO_OR_NULL_PTR(addr))
+-		/* NULL pointer */
+-		return string(buf, end, NULL, spec);
++		return string(buf, end, NULL, spec);	/* NULL pointer */
++
  
- 			if (channel &&
-@@ -1982,7 +1979,6 @@ static int lbs_join_ibss(struct wiphy *w
- 	struct lbs_private *priv = wiphy_priv(wiphy);
- 	int ret = 0;
- 	struct cfg80211_bss *bss;
--	DECLARE_SSID_BUF(ssid_buf);
- 
- 	if (dev == priv->mesh_dev)
- 		return -EOPNOTSUPP;
-diff -puN drivers/net/wireless/libertas/mesh.c~wireless-libertas-print-esaped-string-via-%pe drivers/net/wireless/libertas/mesh.c
---- a/drivers/net/wireless/libertas/mesh.c~wireless-libertas-print-esaped-string-via-%pe
-+++ a/drivers/net/wireless/libertas/mesh.c
-@@ -93,7 +93,6 @@ static int lbs_mesh_config(struct lbs_pr
- {
- 	struct cmd_ds_mesh_config cmd;
- 	struct mrvl_meshie *ie;
--	DECLARE_SSID_BUF(ssid);
- 
- 	memset(&cmd, 0, sizeof(cmd));
- 	cmd.channel = cpu_to_le16(chan);
-@@ -122,9 +121,9 @@ static int lbs_mesh_config(struct lbs_pr
- 	default:
- 		return -1;
- 	}
--	lbs_deb_cmd("mesh config action %d type %x channel %d SSID %s\n",
--		    action, priv->mesh_tlv, chan,
--		    print_ssid(ssid, priv->mesh_ssid, priv->mesh_ssid_len));
-+	lbs_deb_cmd("mesh config action %d type %x channel %d SSID %*pE\n",
-+		    action, priv->mesh_tlv, chan, priv->mesh_ssid_len,
-+		    priv->mesh_ssid);
- 
- 	return __lbs_mesh_config_send(priv, &cmd, action, priv->mesh_tlv);
- }
+ 	do {
+ 		switch (fmt[count++]) {
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-string_helpers-move-documentation-to-c-file.patch
-lib-string_helpers-refactoring-the-test-suite.patch
-lib-string_helpers-introduce-string_escape_mem.patch
-lib-vsprintf-add-%pe-format-specifier.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
+mm-slab_commonc-suppress-warning.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
 lib-vsprintf-add-%pe-format-specifier-fix.patch
-wireless-libertas-print-esaped-string-via-%pe.patch
-wireless-ipw2x00-print-ssid-via-%pe.patch
-wireless-hostap-proc-print-properly-escaped-ssid.patch
-lib80211-remove-unused-print_ssid.patch
-staging-wlan-ng-use-%pehp-to-print-sn.patch
-staging-rtl8192e-use-%pen-to-escape-buffer.patch
-staging-rtl8192u-use-%pen-to-escape-buffer.patch
+checkpatch-fix-spello.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
 linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
