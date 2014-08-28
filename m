@@ -1,231 +1,243 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- x86-use-memblock_alloc_range-or-memblock_alloc_base.patch removed from -mm
- tree
-Date: Thu, 28 Aug 2014 14:41:49 -0700
-Message-ID: <53ffa21d.9gEHjKhmWmTVSMPQ%akpm@linux-foundation.org>
+Subject: + lib-vsprintf-add-%pe-format-specifier.patch added to -mm tree
+Date: Thu, 28 Aug 2014 14:09:09 -0700
+Message-ID: <53ff9a75.gmsHb+kdYsWWe48C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-pa0-f74.google.com ([209.85.220.74]:37369 "EHLO
-	mail-pa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894AbaH1Vlv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Aug 2014 17:41:51 -0400
-Received: by mail-pa0-f74.google.com with SMTP id lj1so1089941pab.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2014 14:41:50 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:45878 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752373AbaH1Vpx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Aug 2014 17:45:53 -0400
+Received: by mail-qa0-f74.google.com with SMTP id j15so269962qaq.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2014 14:45:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, gregkh@linuxfoundation.org, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: use memblock_alloc_range() or memblock_alloc_base()
-has been removed from the -mm tree.  Its filename was
-     x86-use-memblock_alloc_range-or-memblock_alloc_base.patch
+     Subject: lib/vsprintf: add %*pE[achnops] format specifier
+has been added to the -mm tree.  Its filename is
+     lib-vsprintf-add-%pe-format-specifier.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintf-add-%pe-format-specifier.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintf-add-%pe-format-specifier.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: x86: use memblock_alloc_range() or memblock_alloc_base()
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/vsprintf: add %*pE[achnops] format specifier
 
-Replace memblock_find_in_range() and memblock_reserve() with the
-equivalent memblock_alloc_range() or memblock_alloc_base().
+This allows user to print a given buffer as an escaped string.  The rules
+are applied according to an optional mix of flags provided by additional
+format letters.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+For example, if the given buffer is:
+
+	1b 62 20 5c 43 07 22 90 0d 5d
+
+The result strings would be:
+	%*pE            "\eb \C\a"\220\r]"
+	%*pEhp          "\x1bb \C\x07"\x90\x0d]"
+	%*pEa           "\e\142\040\\\103\a\042\220\r\135"
+
+Please, read Documentation/printk-formats.txt and lib/string_helpers.c
+kernel documentation to get further information.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Suggested-by: Joe Perches <joe@perches.com>
+Cc: "John W . Linville" <linville@tuxdriver.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/aperture_64.c |    6 +++---
- arch/x86/kernel/setup.c       |   22 ++++++++++------------
- arch/x86/mm/init.c            |    7 +++----
- arch/x86/mm/numa.c            |    4 +---
- arch/x86/mm/numa_emulation.c  |    5 ++---
- arch/x86/realmode/init.c      |    3 +--
- 6 files changed, 20 insertions(+), 27 deletions(-)
+ Documentation/printk-formats.txt |   32 ++++++++++++
+ lib/vsprintf.c                   |   72 +++++++++++++++++++++++++++++
+ 2 files changed, 104 insertions(+)
 
-diff -puN arch/x86/kernel/aperture_64.c~x86-use-memblock_alloc_range-or-memblock_alloc_base arch/x86/kernel/aperture_64.c
---- a/arch/x86/kernel/aperture_64.c~x86-use-memblock_alloc_range-or-memblock_alloc_base
-+++ a/arch/x86/kernel/aperture_64.c
-@@ -74,14 +74,14 @@ static u32 __init allocate_aperture(void
- 	 * memory. Unfortunately we cannot move it up because that would
- 	 * make the IOMMU useless.
- 	 */
--	addr = memblock_find_in_range(GART_MIN_ADDR, GART_MAX_ADDR,
--				      aper_size, aper_size);
-+	addr = memblock_alloc_range(aper_size, aper_size,
-+				    GART_MIN_ADDR, GART_MAX_ADDR);
+diff -puN Documentation/printk-formats.txt~lib-vsprintf-add-%pe-format-specifier Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~lib-vsprintf-add-%pe-format-specifier
++++ a/Documentation/printk-formats.txt
+@@ -70,6 +70,38 @@ DMA addresses types dma_addr_t:
+ 	For printing a dma_addr_t type which can vary based on build options,
+ 	regardless of the width of the CPU data path. Passed by reference.
+ 
++Raw buffer as an escaped string:
 +
- 	if (!addr) {
- 		pr_err("Cannot allocate aperture memory hole [mem %#010lx-%#010lx] (%uKB)\n",
- 		       addr, addr + aper_size - 1, aper_size >> 10);
- 		return 0;
- 	}
--	memblock_reserve(addr, aper_size);
- 	pr_info("Mapping aperture over RAM [mem %#010lx-%#010lx] (%uKB)\n",
- 		addr, addr + aper_size - 1, aper_size >> 10);
- 	register_nosave_region(addr >> PAGE_SHIFT,
-diff -puN arch/x86/kernel/setup.c~x86-use-memblock_alloc_range-or-memblock_alloc_base arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~x86-use-memblock_alloc_range-or-memblock_alloc_base
-+++ a/arch/x86/kernel/setup.c
-@@ -327,8 +327,8 @@ static void __init relocate_initrd(void)
- 	char *p, *q;
++	%*pE[achnops]
++
++	For printing raw buffer as an escaped string. For the following buffer
++
++		1b 62 20 5c 43 07 22 90 0d 5d
++
++	few examples show how the conversion would be done (the result string
++	without surrounding quotes):
++
++		%*pE		"\eb \C\a"\220\r]"
++		%*pEhp		"\x1bb \C\x07"\x90\x0d]"
++		%*pEa		"\e\142\040\\\103\a\042\220\r\135"
++
++	The conversion rules are applied according to an optional combination
++	of flags (see string_escape_mem() kernel documentation for the
++	details):
++		a - ESCAPE_ANY
++		c - ESCAPE_SPECIAL
++		h - ESCAPE_HEX
++		n - ESCAPE_NULL
++		o - ESCAPE_OCTAL
++		p - ESCAPE_NP
++		s - ESCAPE_SPACE
++	By default ESCAPE_ANY_NP is used.
++
++	ESCAPE_ANY_NP is the sane choice for many cases, in particularly for
++	printing SSIDs.
++
++	If field width is omitted the 1 byte only will be escaped.
++
+ Raw buffer as a hex string:
+ 	%*ph	00 01 02  ...  3f
+ 	%*phC	00:01:02: ... :3f
+diff -puN lib/vsprintf.c~lib-vsprintf-add-%pe-format-specifier lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintf-add-%pe-format-specifier
++++ a/lib/vsprintf.c
+@@ -33,6 +33,7 @@
+ #include <asm/page.h>		/* for PAGE_SIZE */
+ #include <asm/sections.h>	/* for dereference_function_descriptor() */
  
- 	/* We need to move the initrd down into directly mapped mem */
--	relocated_ramdisk = memblock_find_in_range(0, PFN_PHYS(max_pfn_mapped),
--						   area_size, PAGE_SIZE);
-+	relocated_ramdisk = memblock_alloc_base(area_size, PAGE_SIZE,
-+						PFN_PHYS(max_pfn_mapped));
++#include <linux/string_helpers.h>
+ #include "kstrtox.h"
  
- 	if (!relocated_ramdisk)
- 		panic("Cannot find place for new RAMDISK of size %lld\n",
-@@ -336,7 +336,6 @@ static void __init relocate_initrd(void)
+ /**
+@@ -1101,6 +1102,63 @@ char *ip4_addr_string_sa(char *buf, char
+ }
  
- 	/* Note: this includes all the mem currently occupied by
- 	   the initrd, we rely on that fact to keep the data intact. */
--	memblock_reserve(relocated_ramdisk, area_size);
- 	initrd_start = relocated_ramdisk + PAGE_OFFSET;
- 	initrd_end   = initrd_start + ramdisk_size;
- 	printk(KERN_INFO "Allocated new RAMDISK: [mem %#010llx-%#010llx]\n",
-@@ -545,8 +544,8 @@ static void __init reserve_crashkernel_l
- 			return;
- 	}
- 
--	low_base = memblock_find_in_range(low_size, (1ULL<<32),
--					low_size, alignment);
-+	low_base = memblock_alloc_range(low_size, alignment,
-+					low_size, 1ULL << 32);
- 
- 	if (!low_base) {
- 		if (!auto_set)
-@@ -555,7 +554,6 @@ static void __init reserve_crashkernel_l
- 		return;
- 	}
- 
--	memblock_reserve(low_base, low_size);
- 	pr_info("Reserving %ldMB of low memory at %ldMB for crashkernel (System low RAM: %ldMB)\n",
- 			(unsigned long)(low_size >> 20),
- 			(unsigned long)(low_base >> 20),
-@@ -593,10 +591,10 @@ static void __init reserve_crashkernel(v
- 		/*
- 		 *  kexec want bzImage is below CRASH_KERNEL_ADDR_MAX
- 		 */
--		crash_base = memblock_find_in_range(alignment,
-+		crash_base = memblock_alloc_range(crash_size, alignment,
-+					alignment,
- 					high ? CRASH_KERNEL_ADDR_HIGH_MAX :
--					       CRASH_KERNEL_ADDR_LOW_MAX,
--					crash_size, alignment);
-+					       CRASH_KERNEL_ADDR_LOW_MAX);
- 
- 		if (!crash_base) {
- 			pr_info("crashkernel reservation failed - No suitable area found.\n");
-@@ -606,14 +604,14 @@ static void __init reserve_crashkernel(v
- 	} else {
- 		unsigned long long start;
- 
--		start = memblock_find_in_range(crash_base,
--				 crash_base + crash_size, crash_size, 1<<20);
-+		start = memblock_alloc_range(crash_size, 1 << 20,
-+					     crash_base,
-+					     crash_base + crash_size);
- 		if (start != crash_base) {
- 			pr_info("crashkernel reservation failed - memory is in use.\n");
- 			return;
+ static noinline_for_stack
++char *escaped_string(char *buf, char *end, u8 *addr, struct printf_spec spec,
++		     const char *fmt)
++{
++	bool found = true;
++	int count = 1;
++	unsigned int flags = 0;
++	int len;
++
++	if (spec.field_width == 0)
++		/* nothing to print */
++		return buf;
++
++	if (ZERO_OR_NULL_PTR(addr))
++		/* NULL pointer */
++		return string(buf, end, NULL, spec);
++
++	do {
++		switch (fmt[count++]) {
++		case 'a':
++			flags |= ESCAPE_ANY;
++			break;
++		case 'c':
++			flags |= ESCAPE_SPECIAL;
++			break;
++		case 'h':
++			flags |= ESCAPE_HEX;
++			break;
++		case 'n':
++			flags |= ESCAPE_NULL;
++			break;
++		case 'o':
++			flags |= ESCAPE_OCTAL;
++			break;
++		case 'p':
++			flags |= ESCAPE_NP;
++			break;
++		case 's':
++			flags |= ESCAPE_SPACE;
++			break;
++		default:
++			found = false;
++			break;
++		}
++	} while (found);
++
++	if (!flags)
++		flags = ESCAPE_ANY_NP;
++
++	len = spec.field_width < 0 ? 1 : spec.field_width;
++
++	/* Ignore the error. We print as many characters as we can */
++	string_escape_mem(addr, len, &buf, end - buf, flags, NULL);
++
++	return buf;
++}
++
++static noinline_for_stack
+ char *uuid_string(char *buf, char *end, const u8 *addr,
+ 		  struct printf_spec spec, const char *fmt)
+ {
+@@ -1236,6 +1294,17 @@ int kptr_restrict __read_mostly;
+  * - '[Ii][4S][hnbl]' IPv4 addresses in host, network, big or little endian order
+  * - 'I[6S]c' for IPv6 addresses printed as specified by
+  *       http://tools.ietf.org/html/rfc5952
++ * - 'E[achnops]' For an escaped buffer, where rules are defined by combination
++ *                of the following flags (see string_escape_mem() for the
++ *                details):
++ *                  a - ESCAPE_ANY
++ *                  c - ESCAPE_SPECIAL
++ *                  h - ESCAPE_HEX
++ *                  n - ESCAPE_NULL
++ *                  o - ESCAPE_OCTAL
++ *                  p - ESCAPE_NP
++ *                  s - ESCAPE_SPACE
++ *                By default ESCAPE_ANY_NP is used.
+  * - 'U' For a 16 byte UUID/GUID, it prints the UUID/GUID in the form
+  *       "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  *       Options for %pU are:
+@@ -1337,6 +1406,8 @@ char *pointer(const char *fmt, char *buf
+ 			}}
  		}
- 	}
--	memblock_reserve(crash_base, crash_size);
- 
- 	printk(KERN_INFO "Reserving %ldMB of memory at %ldMB "
- 			"for crashkernel (System RAM: %ldMB)\n",
-diff -puN arch/x86/mm/init.c~x86-use-memblock_alloc_range-or-memblock_alloc_base arch/x86/mm/init.c
---- a/arch/x86/mm/init.c~x86-use-memblock_alloc_range-or-memblock_alloc_base
-+++ a/arch/x86/mm/init.c
-@@ -61,12 +61,11 @@ __ref void *alloc_low_pages(unsigned int
- 		unsigned long ret;
- 		if (min_pfn_mapped >= max_pfn_mapped)
- 			panic("alloc_low_pages: ran out of memory");
--		ret = memblock_find_in_range(min_pfn_mapped << PAGE_SHIFT,
--					max_pfn_mapped << PAGE_SHIFT,
--					PAGE_SIZE * num , PAGE_SIZE);
-+		ret = memblock_alloc_range(PAGE_SIZE * num, PAGE_SIZE,
-+					   min_pfn_mapped << PAGE_SHIFT,
-+					   max_pfn_mapped << PAGE_SHIFT);
- 		if (!ret)
- 			panic("alloc_low_pages: can not alloc memory");
--		memblock_reserve(ret, PAGE_SIZE * num);
- 		pfn = ret >> PAGE_SHIFT;
- 	} else {
- 		pfn = pgt_buf_end;
-diff -puN arch/x86/mm/numa.c~x86-use-memblock_alloc_range-or-memblock_alloc_base arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~x86-use-memblock_alloc_range-or-memblock_alloc_base
-+++ a/arch/x86/mm/numa.c
-@@ -360,15 +360,13 @@ static int __init numa_alloc_distance(vo
- 	cnt++;
- 	size = cnt * cnt * sizeof(numa_distance[0]);
- 
--	phys = memblock_find_in_range(0, PFN_PHYS(max_pfn_mapped),
--				      size, PAGE_SIZE);
-+	phys = memblock_alloc_base(size, PAGE_SIZE, PFN_PHYS(max_pfn_mapped));
- 	if (!phys) {
- 		pr_warning("NUMA: Warning: can't allocate distance table!\n");
- 		/* don't retry until explicitly reset */
- 		numa_distance = (void *)1LU;
- 		return -ENOMEM;
- 	}
--	memblock_reserve(phys, size);
- 
- 	numa_distance = __va(phys);
- 	numa_distance_cnt = cnt;
-diff -puN arch/x86/mm/numa_emulation.c~x86-use-memblock_alloc_range-or-memblock_alloc_base arch/x86/mm/numa_emulation.c
---- a/arch/x86/mm/numa_emulation.c~x86-use-memblock_alloc_range-or-memblock_alloc_base
-+++ a/arch/x86/mm/numa_emulation.c
-@@ -357,13 +357,12 @@ void __init numa_emulation(struct numa_m
- 	if (numa_dist_cnt) {
- 		u64 phys;
- 
--		phys = memblock_find_in_range(0, PFN_PHYS(max_pfn_mapped),
--					      phys_size, PAGE_SIZE);
-+		phys = memblock_alloc_base(phys_size, PAGE_SIZE,
-+					   PFN_PHYS(max_pfn_mapped));
- 		if (!phys) {
- 			pr_warning("NUMA: Warning: can't allocate copy of distance table, disabling emulation\n");
- 			goto no_emu;
- 		}
--		memblock_reserve(phys, phys_size);
- 		phys_dist = __va(phys);
- 
- 		for (i = 0; i < numa_dist_cnt; i++)
-diff -puN arch/x86/realmode/init.c~x86-use-memblock_alloc_range-or-memblock_alloc_base arch/x86/realmode/init.c
---- a/arch/x86/realmode/init.c~x86-use-memblock_alloc_range-or-memblock_alloc_base
-+++ a/arch/x86/realmode/init.c
-@@ -15,12 +15,11 @@ void __init reserve_real_mode(void)
- 	size_t size = PAGE_ALIGN(real_mode_blob_end - real_mode_blob);
- 
- 	/* Has to be under 1M so we can execute real-mode AP code. */
--	mem = memblock_find_in_range(0, 1<<20, size, PAGE_SIZE);
-+	mem = memblock_alloc_base(size, PAGE_SIZE, 1 << 20);
- 	if (!mem)
- 		panic("Cannot allocate trampoline\n");
- 
- 	base = __va(mem);
--	memblock_reserve(mem, size);
- 	real_mode_header = (struct real_mode_header *) base;
- 	printk(KERN_DEBUG "Base memory trampoline at [%p] %llx size %zu\n",
- 	       base, (unsigned long long)mem, size);
+ 		break;
++	case 'E':
++		return escaped_string(buf, end, ptr, spec, fmt);
+ 	case 'U':
+ 		return uuid_string(buf, end, ptr, spec, fmt);
+ 	case 'V':
+@@ -1651,6 +1722,7 @@ qualifier:
+  * %piS depending on sa_family of 'struct sockaddr *' print IPv4/IPv6 address
+  * %pU[bBlL] print a UUID/GUID in big or little endian using lower or upper
+  *   case.
++ * %*pE[achnops] print an escaped buffer
+  * %*ph[CDN] a variable-length hex string with a separator (supports up to 64
+  *           bytes of the input)
+  * %n is ignored
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-vfs-make-guard_bh_eod-more-generic.patch
-vfs-guard-end-of-device-for-mpage-interface.patch
-block_dev-implement-readpages-to-optimize-sequential-read.patch
-mm-use-memblock_alloc_range.patch
+lib-string_helpers-move-documentation-to-c-file.patch
+lib-string_helpers-refactoring-the-test-suite.patch
+lib-string_helpers-introduce-string_escape_mem.patch
+lib-vsprintf-add-%pe-format-specifier.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-libertas-print-esaped-string-via-%pe.patch
+wireless-ipw2x00-print-ssid-via-%pe.patch
+wireless-hostap-proc-print-properly-escaped-ssid.patch
+lib80211-remove-unused-print_ssid.patch
+staging-wlan-ng-use-%pehp-to-print-sn.patch
+staging-rtl8192e-use-%pen-to-escape-buffer.patch
+staging-rtl8192u-use-%pen-to-escape-buffer.patch
 linux-next.patch
 
