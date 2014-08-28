@@ -1,35 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + eventpoll-fix-uninitialized-variable-in-epoll_ctl.patch added
- to -mm tree
-Date: Wed, 27 Aug 2014 15:12:41 -0700
-Message-ID: <53fe57d9.1G+2axoypJ1r6gzg%akpm@linux-foundation.org>
+Subject: + lib-string_helpers-move-documentation-to-c-file.patch added to
+ -mm tree
+Date: Thu, 28 Aug 2014 14:09:05 -0700
+Message-ID: <53ff9a71.QSLEi9G0hwk3tzeh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:37427 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932246AbaH0WMm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Aug 2014 18:12:42 -0400
-Received: by mail-qc0-f202.google.com with SMTP id r5so110476qcx.3
-        for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2014 15:12:42 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:46067 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751383AbaH1VTM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Aug 2014 17:19:12 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so398519iec.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2014 14:19:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.iooss_linux@m4x.org, arve@android.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, gregkh@linuxfoundation.org, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: eventpoll: fix uninitialized variable in epoll_ctl
+     Subject: lib / string_helpers: move documentation to c-file
 has been added to the -mm tree.  Its filename is
-     eventpoll-fix-uninitialized-variable-in-epoll_ctl.patch
+     lib-string_helpers-move-documentation-to-c-file.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/eventpoll-fix-uninitialize=
-d-variable-in-epoll_ctl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-string_helpers-move-documentation-to-c-file.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/eventpoll-fix-uninitialize=
-d-variable-in-epoll_ctl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string_helpers-move-documentation-to-c-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,84 +35,150 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: eventpoll: fix uninitialized variable in epoll_ctl
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib / string_helpers: move documentation to c-file
 
-When calling epoll_ctl with operation EPOLL_CTL_DEL, structure epds is =
-not
-initialized but ep_take_care_of_epollwakeup reads its event field.  Whe=
-n
-this unintialized field has EPOLLWAKEUP bit set, a capability check is
-done for CAP_BLOCK_SUSPEND in ep_take_care_of_epollwakeup.  This produc=
-es
-unexpected messages in the audit log, such as (on a system running
-SELinux):
+The introduced function string_escape_mem() is a kind of opposite to
+string_unescape.  We have several users of such functionality each of them
+created custom implementation.  The series contains clean up of test
+suite, adding new call, and switching few users to use it via %*pE
+specifier.
 
-    type=3DAVC msg=3Daudit(1408212798.866:410): avc:  denied
-    { block_suspend } for  pid=3D7754 comm=3D"dbus-daemon" capability=3D=
-36
-    scontext=3Dunconfined_u:unconfined_r:unconfined_t
-    tcontext=3Dunconfined_u:unconfined_r:unconfined_t
-    tclass=3Dcapability2 permissive=3D1
+Test suite covers all of existing and most of potential use cases.
 
-    type=3DSYSCALL msg=3Daudit(1408212798.866:410): arch=3Dc000003e sys=
-call=3D233
-    success=3Dyes exit=3D0 a0=3D3 a1=3D2 a2=3D9 a3=3D7fffd4d66ec0 items=
-=3D0 ppid=3D1
-    pid=3D7754 auid=3D1000 uid=3D0 gid=3D0 euid=3D0 suid=3D0 fsuid=3D0 =
-egid=3D0 sgid=3D0
-    fsgid=3D0 tty=3D(none) ses=3D3 comm=3D"dbus-daemon"
-    exe=3D"/usr/bin/dbus-daemon"
-    subj=3Dunconfined_u:unconfined_r:unconfined_t key=3D(null)
 
-("arch=3Dc000003e syscall=3D233 a1=3D2" means "epoll_ctl(op=3DEPOLL_CTL=
-_DEL)")
+This patch (of 11):
 
-Remove use of epds in epoll_ctl when op =3D=3D EPOLL_CTL_DEL.
+The documentation of API belongs to c-file.  This patch moves it
+accordingly.
 
-=46ixes: 4d7e30d98939 ("epoll: Add a flag, EPOLLWAKEUP, to prevent susp=
-end while epoll events are ready")
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Arve Hj=F8nnev=E5g <arve@android.com>
-Cc: <stable@vger.kernel.org>
+There is no functional change.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "John W . Linville" <linville@tuxdriver.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/string_helpers.h |   34 ---------------------------
+ lib/string_helpers.c           |   38 +++++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+), 34 deletions(-)
 
-diff -puN fs/eventpoll.c~eventpoll-fix-uninitialized-variable-in-epoll_=
-ctl fs/eventpoll.c
---- a/fs/eventpoll.c~eventpoll-fix-uninitialized-variable-in-epoll_ctl
-+++ a/fs/eventpoll.c
-@@ -1852,7 +1852,8 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 		goto error_tgt_fput;
-=20
- 	/* Check if EPOLLWAKEUP is allowed */
--	ep_take_care_of_epollwakeup(&epds);
-+	if (ep_op_has_event(op))
-+		ep_take_care_of_epollwakeup(&epds);
-=20
- 	/*
- 	 * We have to check that the file structure underneath the file descr=
-iptor
+diff -puN include/linux/string_helpers.h~lib-string_helpers-move-documentation-to-c-file include/linux/string_helpers.h
+--- a/include/linux/string_helpers.h~lib-string_helpers-move-documentation-to-c-file
++++ a/include/linux/string_helpers.h
+@@ -20,40 +20,6 @@ int string_get_size(u64 size, enum strin
+ #define UNESCAPE_ANY		\
+ 	(UNESCAPE_SPACE | UNESCAPE_OCTAL | UNESCAPE_HEX | UNESCAPE_SPECIAL)
+ 
+-/**
+- * string_unescape - unquote characters in the given string
+- * @src:	source buffer (escaped)
+- * @dst:	destination buffer (unescaped)
+- * @size:	size of the destination buffer (0 to unlimit)
+- * @flags:	combination of the flags (bitwise OR):
+- *	%UNESCAPE_SPACE:
+- *		'\f' - form feed
+- *		'\n' - new line
+- *		'\r' - carriage return
+- *		'\t' - horizontal tab
+- *		'\v' - vertical tab
+- *	%UNESCAPE_OCTAL:
+- *		'\NNN' - byte with octal value NNN (1 to 3 digits)
+- *	%UNESCAPE_HEX:
+- *		'\xHH' - byte with hexadecimal value HH (1 to 2 digits)
+- *	%UNESCAPE_SPECIAL:
+- *		'\"' - double quote
+- *		'\\' - backslash
+- *		'\a' - alert (BEL)
+- *		'\e' - escape
+- *	%UNESCAPE_ANY:
+- *		all previous together
+- *
+- * Returns amount of characters processed to the destination buffer excluding
+- * trailing '\0'.
+- *
+- * Because the size of the output will be the same as or less than the size of
+- * the input, the transformation may be performed in place.
+- *
+- * Caller must provide valid source and destination pointers. Be aware that
+- * destination buffer will always be NULL-terminated. Source string must be
+- * NULL-terminated as well.
+- */
+ int string_unescape(char *src, char *dst, size_t size, unsigned int flags);
+ 
+ static inline int string_unescape_inplace(char *buf, unsigned int flags)
+diff -puN lib/string_helpers.c~lib-string_helpers-move-documentation-to-c-file lib/string_helpers.c
+--- a/lib/string_helpers.c~lib-string_helpers-move-documentation-to-c-file
++++ a/lib/string_helpers.c
+@@ -168,6 +168,44 @@ static bool unescape_special(char **src,
+ 	return true;
+ }
+ 
++/**
++ * string_unescape - unquote characters in the given string
++ * @src:	source buffer (escaped)
++ * @dst:	destination buffer (unescaped)
++ * @size:	size of the destination buffer (0 to unlimit)
++ * @flags:	combination of the flags (bitwise OR):
++ *	%UNESCAPE_SPACE:
++ *		'\f' - form feed
++ *		'\n' - new line
++ *		'\r' - carriage return
++ *		'\t' - horizontal tab
++ *		'\v' - vertical tab
++ *	%UNESCAPE_OCTAL:
++ *		'\NNN' - byte with octal value NNN (1 to 3 digits)
++ *	%UNESCAPE_HEX:
++ *		'\xHH' - byte with hexadecimal value HH (1 to 2 digits)
++ *	%UNESCAPE_SPECIAL:
++ *		'\"' - double quote
++ *		'\\' - backslash
++ *		'\a' - alert (BEL)
++ *		'\e' - escape
++ *	%UNESCAPE_ANY:
++ *		all previous together
++ *
++ * Description:
++ * The function unquotes characters in the given string.
++ *
++ * Because the size of the output will be the same as or less than the size of
++ * the input, the transformation may be performed in place.
++ *
++ * Caller must provide valid source and destination pointers. Be aware that
++ * destination buffer will always be NULL-terminated. Source string must be
++ * NULL-terminated as well.
++ *
++ * Return:
++ * The amount of the characters processed to the destination buffer excluding
++ * trailing '\0' is returned.
++ */
+ int string_unescape(char *src, char *dst, size_t size, unsigned int flags)
+ {
+ 	char *out = dst;
 _
 
-Patches currently in -mm which might be from nicolas.iooss_linux@m4x.or=
-g are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-eventpoll-fix-uninitialized-variable-in-epoll_ctl.patch
+lib-string_helpers-move-documentation-to-c-file.patch
+lib-string_helpers-refactoring-the-test-suite.patch
+lib-string_helpers-introduce-string_escape_mem.patch
+lib-vsprintf-add-%pe-format-specifier.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-libertas-print-esaped-string-via-%pe.patch
+wireless-ipw2x00-print-ssid-via-%pe.patch
+wireless-hostap-proc-print-properly-escaped-ssid.patch
+lib80211-remove-unused-print_ssid.patch
+staging-wlan-ng-use-%pehp-to-print-sn.patch
+staging-rtl8192e-use-%pen-to-escape-buffer.patch
+staging-rtl8192u-use-%pen-to-escape-buffer.patch
+linux-next.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
