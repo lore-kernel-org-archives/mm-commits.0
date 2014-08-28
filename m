@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
 Subject: +
- softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch added to -mm tree
-Date: Thu, 28 Aug 2014 16:08:01 -0700
-Message-ID: <53ffb651.+X3WZUw2oVeNx6ms%akpm@linux-foundation.org>
+ checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
+ added to -mm tree
+Date: Thu, 28 Aug 2014 16:24:24 -0700
+Message-ID: <53ffba28.Mtw5bvthEO1JsbtX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:44045 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559AbaH1XZt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Aug 2014 19:25:49 -0400
-Received: by mail-qc0-f202.google.com with SMTP id r5so280708qcx.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2014 16:25:48 -0700 (PDT)
+Received: from mail-ig0-f201.google.com ([209.85.213.201]:48699 "EHLO
+	mail-ig0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751578AbaH2FZF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 01:25:05 -0400
+Received: by mail-ig0-f201.google.com with SMTP id h3so484949igd.4
+        for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2014 22:25:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chaiw.fnst@cn.fujitsu.com, dzickus@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: joe@perches.com, geert@linux-m68k.org, joe.lawrence@stratus.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: softlockup: make detector be aware of task switch of processes hogging cpu
+     Subject: checkpatch: allow commit descriptions on separate line from commit id
 has been added to the -mm tree.  Its filename is
-     softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
+     checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,78 +42,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: chai wen <chaiw.fnst@cn.fujitsu.com>
-Subject: softlockup: make detector be aware of task switch of processes hogging cpu
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: allow commit descriptions on separate line from commit id
 
-For now, soft lockup detector warns once for each case of process
-softlockup.  But the thread 'watchdog/n' may not always get the cpu at the
-time slot between the task switch of two processes hogging that cpu to
-reset soft_watchdog_warn.
+The general form for commit id and description is
 
-An example would be two processes hogging the cpu.  Process A causes the
-softlockup warning and is killed manually by a user.  Process B
-immediately becomes the new process hogging the cpu preventing the
-softlockup code from resetting the soft_watchdog_warn variable.
+'Commit <12+hexdigits> ("commit description/subject line")'
 
-This case is a false negative of "warn only once for a process", as there
-may be a different process that is going to hog the cpu.  Resolve this by
-saving/checking the task pointer of the hogging process and use that to
-reset soft_watchdog_warn too.
+But commit logs often have relatively long commit ids and the commit
+description is on a separate line like:
 
-Signed-off-by: chai wen <chaiw.fnst@cn.fujitsu.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Some explanation as to why commit <12+hexdigits> ("commit
+description/subject line") is improved.
+
+Allow this form.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Suggested-by: Joe Lawrence <joe.lawrence@stratus.com>
+Tested-by: Joe Lawrence <joe.lawrence@stratus.com>
+Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu kernel/watchdog.c
---- a/kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu
-+++ a/kernel/watchdog.c
-@@ -47,6 +47,7 @@ static DEFINE_PER_CPU(bool, softlockup_t
- static DEFINE_PER_CPU(bool, soft_watchdog_warn);
- static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts);
- static DEFINE_PER_CPU(unsigned long, soft_lockup_hrtimer_cnt);
-+static DEFINE_PER_CPU(struct task_struct *, softlockup_task_ptr_saved);
- #ifdef CONFIG_HARDLOCKUP_DETECTOR
- static DEFINE_PER_CPU(bool, hard_watchdog_warn);
- static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
-@@ -333,8 +334,20 @@ static enum hrtimer_restart watchdog_tim
- 			return HRTIMER_RESTART;
- 
- 		/* only warn once */
--		if (__this_cpu_read(soft_watchdog_warn) == true)
-+		if (__this_cpu_read(soft_watchdog_warn) == true) {
-+			/*
-+			 * Handle the case where multiple processes are
-+			 * causing softlockups but the duration is small
-+			 * enough, the softlockup detector can not reset
-+			 * itself in time.  Use task pointers to detect this.
-+			 */
-+			if (__this_cpu_read(softlockup_task_ptr_saved) !=
-+			    current) {
-+				__this_cpu_write(soft_watchdog_warn, false);
-+				__touch_watchdog();
-+			}
- 			return HRTIMER_RESTART;
-+		}
- 
- 		if (softlockup_all_cpu_backtrace) {
- 			/* Prevent multiple soft-lockup reports if one cpu is already
-@@ -350,6 +363,7 @@ static enum hrtimer_restart watchdog_tim
- 		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
- 			smp_processor_id(), duration,
- 			current->comm, task_pid_nr(current));
-+		__this_cpu_write(softlockup_task_ptr_saved, current);
- 		print_modules();
- 		print_irqtrace_events(current);
- 		if (regs)
+diff -puN scripts/checkpatch.pl~checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id
++++ a/scripts/checkpatch.pl
+@@ -2133,7 +2133,10 @@ sub process {
+ # Check for improperly formed commit descriptions
+ 		if ($in_commit_log &&
+ 		    $line =~ /\bcommit\s+[0-9a-f]{5,}/i &&
+-		    $line !~ /\b[Cc]ommit [0-9a-f]{12,40} \("/) {
++		    !($line =~ /\b[Cc]ommit [0-9a-f]{12,40} \("/ ||
++		      ($line =~ /\b[Cc]ommit [0-9a-f]{12,40}\s*$/ &&
++		       defined $rawlines[$linenr] &&
++		       $rawlines[$linenr] =~ /^\s*\("/))) {
+ 			$line =~ /\b(c)ommit\s+([0-9a-f]{5,})/i;
+ 			my $init_char = $1;
+ 			my $orig_commit = lc($2);
 _
 
-Patches currently in -mm which might be from chaiw.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
+checkpatch-relax-check-for-length-of-git-commit-ids.patch
+checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
+lib-string_helpers-move-documentation-to-c-file.patch
+lib-string_helpers-refactoring-the-test-suite.patch
+lib-string_helpers-introduce-string_escape_mem.patch
+lib-vsprintf-add-%pe-format-specifier.patch
+wireless-libertas-print-esaped-string-via-%pe.patch
+wireless-ipw2x00-print-ssid-via-%pe.patch
+wireless-hostap-proc-print-properly-escaped-ssid.patch
+lib80211-remove-unused-print_ssid.patch
+staging-wlan-ng-use-%pehp-to-print-sn.patch
+staging-rtl8192e-use-%pen-to-escape-buffer.patch
+staging-rtl8192u-use-%pen-to-escape-buffer.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-fix-spello.patch
+checkpatch-remove-debugging-message.patch
+checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh.patch
+checkpatch-enable-whitespace-checks-for-dts-files.patch
+ipc-always-handle-a-new-value-of-auto_msgmni.patch
 linux-next.patch
 
