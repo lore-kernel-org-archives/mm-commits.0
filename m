@@ -1,64 +1,114 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch removed from -mm tree
-Date: Thu, 28 Aug 2014 14:59:11 -0700
-Message-ID: <53ffa62f.8bzBG5WHkW1pYQoN%akpm@linux-foundation.org>
+ softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch removed from -mm tree
+Date: Thu, 28 Aug 2014 16:02:03 -0700
+Message-ID: <53ffb4eb.FvubAjgHHUU26esx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:35536 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752234AbaH1WyT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Aug 2014 18:54:19 -0400
-Received: by mail-ie0-f201.google.com with SMTP id tr6so418684ieb.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2014 15:54:18 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:49837 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752047AbaH1XCF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Aug 2014 19:02:05 -0400
+Received: by mail-ob0-f201.google.com with SMTP id va2so420401obc.4
+        for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2014 16:02:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cw00.choi@samsung.com, a.zummo@towertech.it, kgene.kim@samsung.com, kyungmin.park@samsung.com, mm-commits@vger.kernel.org
+To: chaiw.fnst@cn.fujitsu.com, dzickus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: dts: fix wrong compatible string of Exynos3250 RTC dt node
+     Subject: softlockup: make detector be aware of task switch of processes hogging cpu
 has been removed from the -mm tree.  Its filename was
-     arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch
+     softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: ARM: dts: fix wrong compatible string of Exynos3250 RTC dt node
+From: chai wen <chaiw.fnst@cn.fujitsu.com>
+Subject: softlockup: make detector be aware of task switch of processes hogging cpu
 
-Fix wrong compatible string of Exynos3250 RTC (Real-Time Clock) dt node. 
-The RTC of Exynos3250 must need additional source clock (XrtcXTI).
+For now, soft lockup detector warns once for each case of process
+softlockup.  But the thread 'watchdog/n' may not always get the cpu at the
+time slot between the task switch of two processes hogging that cpu to
+reset soft_watchdog_warn.
 
-Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
+An example would be two processes hogging the cpu.  Process A causes the
+softlockup warning and is killed manually by a user.  Process B
+immediately becomes the new process hogging the cpu preventing the
+softlockup code from resetting the soft_watchdog_warn variable.
+
+This case is a false negative of "warn only once for a process", as there
+may be a different process that is going to hog the cpu.  Resolve this by
+saving/checking the pid of the hogging process and use that to reset
+soft_watchdog_warn too.
+
+[dzickus@redhat.com: modified the comment and changelog to be more specific]
+Signed-off-by: chai wen <chaiw.fnst@cn.fujitsu.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/dts/exynos3250.dtsi |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/watchdog.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/boot/dts/exynos3250.dtsi~arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node arch/arm/boot/dts/exynos3250.dtsi
---- a/arch/arm/boot/dts/exynos3250.dtsi~arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node
-+++ a/arch/arm/boot/dts/exynos3250.dtsi
-@@ -164,7 +164,7 @@
- 		};
+diff -puN kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu kernel/watchdog.c
+--- a/kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu
++++ a/kernel/watchdog.c
+@@ -42,6 +42,7 @@ static DEFINE_PER_CPU(bool, softlockup_t
+ static DEFINE_PER_CPU(bool, soft_watchdog_warn);
+ static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts);
+ static DEFINE_PER_CPU(unsigned long, soft_lockup_hrtimer_cnt);
++static DEFINE_PER_CPU(pid_t, softlockup_warn_pid_saved);
+ #ifdef CONFIG_HARDLOCKUP_DETECTOR
+ static DEFINE_PER_CPU(bool, hard_watchdog_warn);
+ static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
+@@ -319,6 +320,8 @@ static enum hrtimer_restart watchdog_tim
+ 	 */
+ 	duration = is_softlockup(touch_ts);
+ 	if (unlikely(duration)) {
++		pid_t pid = task_pid_nr(current);
++
+ 		/*
+ 		 * If a virtual machine is stopped by the host it can look to
+ 		 * the watchdog like a soft lockup, check to see if the host
+@@ -328,8 +331,20 @@ static enum hrtimer_restart watchdog_tim
+ 			return HRTIMER_RESTART;
  
- 		rtc: rtc@10070000 {
--			compatible = "samsung,s3c6410-rtc";
-+			compatible = "samsung,exynos3250-rtc";
- 			reg = <0x10070000 0x100>;
- 			interrupts = <0 73 0>, <0 74 0>;
- 			status = "disabled";
+ 		/* only warn once */
+-		if (__this_cpu_read(soft_watchdog_warn) == true)
++		if (__this_cpu_read(soft_watchdog_warn) == true) {
++
++			/*
++			 * Handle the case where multiple processes are
++			 * causing softlockups but the duration is small
++			 * enough, the softlockup detector can not reset
++			 * itself in time.  Use pids to detect this.
++			 */
++			if (__this_cpu_read(softlockup_warn_pid_saved) != pid) {
++				__this_cpu_write(soft_watchdog_warn, false);
++				__touch_watchdog();
++			}
+ 			return HRTIMER_RESTART;
++		}
+ 
+ 		if (softlockup_all_cpu_backtrace) {
+ 			/* Prevent multiple soft-lockup reports if one cpu is already
+@@ -344,7 +359,8 @@ static enum hrtimer_restart watchdog_tim
+ 
+ 		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
+ 			smp_processor_id(), duration,
+-			current->comm, task_pid_nr(current));
++			current->comm, pid);
++		__this_cpu_write(softlockup_warn_pid_saved, pid);
+ 		print_modules();
+ 		print_irqtrace_events(current);
+ 		if (regs)
 _
 
-Patches currently in -mm which might be from cw00.choi@samsung.com are
+Patches currently in -mm which might be from chaiw.fnst@cn.fujitsu.com are
 
-rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables.patch
 linux-next.patch
 
