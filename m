@@ -1,34 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch added
- to -mm tree
-Date: Thu, 28 Aug 2014 15:02:05 -0700
-Message-ID: <53ffa6dd.S2Y3fyX7MfUUrNub%akpm@linux-foundation.org>
+Subject: + maintainers-add-entry-for-kernel-selftest-framework.patch added to -mm tree
+Date: Thu, 28 Aug 2014 14:49:53 -0700
+Message-ID: <53ffa401.69uQWcid6w/1ZRyR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:53754 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752048AbaH1WCG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Aug 2014 18:02:06 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rl12so408371iec.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2014 15:02:05 -0700 (PDT)
+Received: from mail-oi0-f73.google.com ([209.85.218.73]:54494 "EHLO
+	mail-oi0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751506AbaH1WFd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Aug 2014 18:05:33 -0400
+Received: by mail-oi0-f73.google.com with SMTP id u20so409946oif.4
+        for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2014 15:05:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cw00.choi@samsung.com, a.zummo@towertech.it, kgene.kim@samsung.com, kyungmin.park@samsung.com, mm-commits@vger.kernel.org
+To: shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: dts: fix wrong compatible string of Exynos3250 RTC dt node
+     Subject: MAINTAINERS: add entry for Kernel Selftest Framework
 has been added to the -mm tree.  Its filename is
-     arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch
+     maintainers-add-entry-for-kernel-selftest-framework.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-entry-for-kernel-selftest-framework.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-entry-for-kernel-selftest-framework.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,42 +40,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: ARM: dts: fix wrong compatible string of Exynos3250 RTC dt node
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Subject: MAINTAINERS: add entry for Kernel Selftest Framework
 
-Fix wrong compatible string of Exynos3250 RTC (Real-Time Clock) dt node. 
-The RTC of Exynos3250 must need additional source clock (XrtcXTI).
+Add entry for Kernel Selftest Framework.  Individual tests continue to be
+maintained by the maintainers for those areas.
 
-Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/dts/exynos3250.dtsi |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/arm/boot/dts/exynos3250.dtsi~arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node arch/arm/boot/dts/exynos3250.dtsi
---- a/arch/arm/boot/dts/exynos3250.dtsi~arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node
-+++ a/arch/arm/boot/dts/exynos3250.dtsi
-@@ -164,7 +164,7 @@
- 		};
+diff -puN MAINTAINERS~maintainers-add-entry-for-kernel-selftest-framework MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-entry-for-kernel-selftest-framework
++++ a/MAINTAINERS
+@@ -5207,6 +5207,13 @@ F:	include/linux/lockd/
+ F:	include/linux/sunrpc/
+ F:	include/uapi/linux/sunrpc/
  
- 		rtc: rtc@10070000 {
--			compatible = "samsung,s3c6410-rtc";
-+			compatible = "samsung,exynos3250-rtc";
- 			reg = <0x10070000 0x100>;
- 			interrupts = <0 73 0>, <0 74 0>;
- 			status = "disabled";
++KERNEL SELFTEST FRAMEWORK
++M:	Shuah Khan <shuahkh@osg.samsung.com>
++L:	linux-api@vger.kernel.org
++T:	git git://git.kernel.org/pub/scm/shuah/linux-kselftest
++S:	Maintained
++F:	tools/testing/selftests
++
+ KERNEL VIRTUAL MACHINE (KVM)
+ M:	Gleb Natapov <gleb@kernel.org>
+ M:	Paolo Bonzini <pbonzini@redhat.com>
 _
 
-Patches currently in -mm which might be from cw00.choi@samsung.com are
+Patches currently in -mm which might be from shuahkh@osg.samsung.com are
 
-rtc-s3c-define-s3c_rtc-structure-to-remove-global-variables.patch
-rtc-s3c-remove-warning-message-when-checking-coding-style-with-checkpatch-script.patch
-rtc-s3c-add-s3c_rtc_data-structure-to-use-variant-data-instead-of-s3c_cpu_type.patch
-rtc-s3c-add-support-for-rtc-of-exynos3250-soc.patch
-arm-dts-fix-wrong-compatible-string-of-exynos3250-rtc-dt-node.patch
-linux-next.patch
+maintainers-add-entry-for-kernel-selftest-framework.patch
 
