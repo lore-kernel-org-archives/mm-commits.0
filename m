@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-dump_vma-fix.patch added to -mm tree
-Date: Fri, 29 Aug 2014 12:37:39 -0700
-Message-ID: <5400d683.Ee0lBwn4YhKb69Hl%akpm@linux-foundation.org>
+Subject: + init-resolve-shadow-warnings.patch added to -mm tree
+Date: Fri, 29 Aug 2014 12:48:51 -0700
+Message-ID: <5400d923.96kPGiqL1ACRIZEY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45841 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45938 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753104AbaH2Thk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 15:37:40 -0400
+	with ESMTP id S1753264AbaH2Tsw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 15:48:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, khlebnikov@openvz.org, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, walken@google.com, mm-commits@vger.kernel.org
+To: mark.d.rustad@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: introduce-dump_vma-fix
+     Subject: init/initramfs.c: resolve shadow warnings
 has been added to the -mm tree.  Its filename is
-     introduce-dump_vma-fix.patch
+     init-resolve-shadow-warnings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/introduce-dump_vma-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/init-resolve-shadow-warnings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/introduce-dump_vma-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/init-resolve-shadow-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,91 +38,138 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: introduce-dump_vma-fix
+From: Mark Rustad <mark.d.rustad@intel.com>
+Subject: init/initramfs.c: resolve shadow warnings
 
-make dump_vma() require CONFIG_DEBUG_VM
+Resolve shadow warnings that are produced in W=2 builds by renaming a
+global with a too-generic name and renaming a formal parameter.
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Mark Rustad <mark.d.rustad@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ init/initramfs.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN mm/page_alloc.c~introduce-dump_vma-fix mm/page_alloc.c
---- a/mm/page_alloc.c~introduce-dump_vma-fix
-+++ a/mm/page_alloc.c
-@@ -6683,6 +6683,8 @@ void dump_page(struct page *page, const
- }
- EXPORT_SYMBOL(dump_page);
+diff -puN init/initramfs.c~init-resolve-shadow-warnings init/initramfs.c
+--- a/init/initramfs.c~init-resolve-shadow-warnings
++++ a/init/initramfs.c
+@@ -197,14 +197,14 @@ static __initdata enum state {
+ } state, next_state;
  
-+#ifdef CONFIG_DEBUG_VM
-+
- static const struct trace_print_flags vmaflags_names[] = {
- 	{VM_READ,			"read"		},
- 	{VM_WRITE,			"write"		},
-@@ -6740,3 +6742,5 @@ void dump_vma(const struct vm_area_struc
- 	dump_flags(vma->vm_flags, vmaflags_names, ARRAY_SIZE(vmaflags_names));
+ static __initdata char *victim;
+-static unsigned long count __initdata;
++static unsigned long byte_count __initdata;
+ static __initdata loff_t this_header, next_header;
+ 
+ static inline void __init eat(unsigned n)
+ {
+ 	victim += n;
+ 	this_header += n;
+-	count -= n;
++	byte_count -= n;
  }
- EXPORT_SYMBOL(dump_vma);
-+
-+#endif		/* CONFIG_DEBUG_VM */
+ 
+ static __initdata char *vcollected;
+@@ -214,7 +214,7 @@ static __initdata char *collect;
+ 
+ static void __init read_into(char *buf, unsigned size, enum state next)
+ {
+-	if (count >= size) {
++	if (byte_count >= size) {
+ 		collected = victim;
+ 		eat(size);
+ 		state = next;
+@@ -237,8 +237,8 @@ static int __init do_start(void)
+ static int __init do_collect(void)
+ {
+ 	unsigned long n = remains;
+-	if (count < n)
+-		n = count;
++	if (byte_count < n)
++		n = byte_count;
+ 	memcpy(collect, victim, n);
+ 	eat(n);
+ 	collect += n;
+@@ -280,8 +280,8 @@ static int __init do_header(void)
+ 
+ static int __init do_skip(void)
+ {
+-	if (this_header + count < next_header) {
+-		eat(count);
++	if (this_header + byte_count < next_header) {
++		eat(byte_count);
+ 		return 1;
+ 	} else {
+ 		eat(next_header - this_header);
+@@ -292,9 +292,9 @@ static int __init do_skip(void)
+ 
+ static int __init do_reset(void)
+ {
+-	while(count && *victim == '\0')
++	while(byte_count && *victim == '\0')
+ 		eat(1);
+-	if (count && (this_header & 3))
++	if (byte_count && (this_header & 3))
+ 		error("broken padding");
+ 	return 1;
+ }
+@@ -309,11 +309,11 @@ static int __init maybe_link(void)
+ 	return 0;
+ }
+ 
+-static void __init clean_path(char *path, umode_t mode)
++static void __init clean_path(char *path, umode_t fmode)
+ {
+ 	struct stat st;
+ 
+-	if (!sys_newlstat(path, &st) && (st.st_mode^mode) & S_IFMT) {
++	if (!sys_newlstat(path, &st) && (st.st_mode ^ fmode) & S_IFMT) {
+ 		if (S_ISDIR(st.st_mode))
+ 			sys_rmdir(path);
+ 		else
+@@ -368,7 +368,7 @@ static int __init do_name(void)
+ 
+ static int __init do_copy(void)
+ {
+-	if (count >= body_len) {
++	if (byte_count >= body_len) {
+ 		if (xwrite(wfd, victim, body_len) != body_len)
+ 			error("write error");
+ 		sys_close(wfd);
+@@ -378,10 +378,10 @@ static int __init do_copy(void)
+ 		state = SkipIt;
+ 		return 0;
+ 	} else {
+-		if (xwrite(wfd, victim, count) != count)
++		if (xwrite(wfd, victim, byte_count) != byte_count)
+ 			error("write error");
+-		body_len -= count;
+-		eat(count);
++		body_len -= byte_count;
++		eat(byte_count);
+ 		return 1;
+ 	}
+ }
+@@ -411,12 +411,12 @@ static __initdata int (*actions[])(void)
+ 
+ static long __init write_buffer(char *buf, unsigned long len)
+ {
+-	count = len;
++	byte_count = len;
+ 	victim = buf;
+ 
+ 	while (!actions[state]())
+ 		;
+-	return len - count;
++	return len - byte_count;
+ }
+ 
+ static long __init flush_buffer(void *bufv, unsigned long len)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mark.d.rustad@intel.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
-mm-slab_commonc-suppress-warning.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
-introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-lib-vsprintf-add-%pe-format-specifier-fix.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+init-resolve-shadow-warnings.patch
 
