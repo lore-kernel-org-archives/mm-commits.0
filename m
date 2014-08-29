@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix.patch added to -mm tree
-Date: Fri, 29 Aug 2014 12:07:06 -0700
-Message-ID: <5400cf5a.uGPRYdSWj9fHs9yz%akpm@linux-foundation.org>
+Subject: + ipc-use-__seq_open_private-instead-of-seq_open.patch added to
+ -mm tree
+Date: Fri, 29 Aug 2014 12:21:19 -0700
+Message-ID: <5400d2af.iJjq3wGavPgs1K2f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45457 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45647 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752823AbaH2THH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 15:07:07 -0400
+	with ESMTP id S1753283AbaH2TVU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 15:21:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dzickus@redhat.com, chaiw.fnst@cn.fujitsu.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: rob.jones@codethink.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix
+     Subject: ipc/util.c: use __seq_open_private() instead of seq_open()
 has been added to the -mm tree.  Its filename is
-     softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix.patch
+     ipc-use-__seq_open_private-instead-of-seq_open.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-use-__seq_open_private-instead-of-seq_open.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-use-__seq_open_private-instead-of-seq_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,49 +39,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Don Zickus <dzickus@redhat.com>
-Subject: softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix
+From: Rob Jones <rob.jones@codethink.co.uk>
+Subject: ipc/util.c: use __seq_open_private() instead of seq_open()
 
-update comment
+Using __seq_open_private() removes boilerplate code from
+sysvipc_proc_open().
 
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: chai wen <chaiw.fnst@cn.fujitsu.com>
+The resultant code is shorter and easier to follow.
+
+However, please note that __seq_open_private() call kzalloc() rather than
+kmalloc() which may affect timing due to the memory initialisation
+overhead.
+
+Signed-off-by: Rob Jones <rob.jones@codethink.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ ipc/util.c |   20 ++++----------------
+ 1 file changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix kernel/watchdog.c
---- a/kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix
-+++ a/kernel/watchdog.c
-@@ -336,10 +336,12 @@ static enum hrtimer_restart watchdog_tim
- 		/* only warn once */
- 		if (__this_cpu_read(soft_watchdog_warn) == true) {
- 			/*
--			 * Handle the case where multiple processes are
--			 * causing softlockups but the duration is small
--			 * enough, the softlockup detector can not reset
--			 * itself in time.  Use task pointers to detect this.
-+			 * When multiple processes are causing softlockups the
-+			 * softlockup detector only warns on the first one
-+			 * because the code relies on a full quiet cycle to
-+			 * re-arm.  The second process prevents the quiet cycle
-+			 * and never gets reported.  Use task pointers to detect
-+			 * this.
- 			 */
- 			if (__this_cpu_read(softlockup_task_ptr_saved) !=
- 			    current) {
-_
-
-Patches currently in -mm which might be from dzickus@redhat.com are
-
-softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
-softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix.patch
-linux-next.patch
-watchdog-control-hard-lockup-detection-default.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
-watchdog-control-hard-lockup-detection-default-fix-2.patch
-kvm-ensure-hard-lockup-detection-is-disabled-by-default.patch
-
+diff -puN ipc/util.c~ipc-use-__seq_open_private-instead-of-seq_open ipc/util.c
+--- a/ipc/util.c~ipc-use-__seq_open_private-instead-of-seq_open
++++ a/ipc/util.c
+@@ -892,28 +892,16 @@ static const struct seq_operations sysvi
+ 
+ static int sysvipc_proc_open(struct inode *inode, struct file *file)
+ {
+-	int ret;
+-	struct seq_file *seq;
+ 	struct ipc_proc_iter *iter;
+ 
+-	ret = -ENOMEM;
+-	iter = kmalloc(sizeof(*iter), GFP_KERNEL);
++	iter = __seq_open_private(file, &sysvipc_proc_seqops, sizeof(*iter));
+ 	if (!iter)
+-		goto out;
+-
+-	ret = seq_open(file, &sysvipc_proc_seqops);
+-	if (ret) {
+-		kfree(iter);
+-		goto out;
+-	}
