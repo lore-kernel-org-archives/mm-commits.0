@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + x86-optimize-resource-lookups-for-ioremap.patch added to -mm
- tree
-Date: Fri, 29 Aug 2014 13:18:49 -0700
-Message-ID: <5400e029.gTEh7apYg4rL9Hn+%akpm@linux-foundation.org>
+Subject: + x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
+ added to -mm tree
+Date: Fri, 29 Aug 2014 13:18:51 -0700
+Message-ID: <5400e02b.vafP6nx+qI4YVOe4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46097 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46114 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754501AbaH2USu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 16:18:50 -0400
+	with ESMTP id S1754501AbaH2USw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 16:18:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: travis@sgi.com, athorlton@sgi.com, cpw@sgi.com, dyoung@redhat.com, hpa@zytor.com, mgorman@suse.de, mingo@elte.hu, msalter@redhat.com, peterz@infradead.org, riel@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: optimize resource lookups for ioremap
+     Subject: x86: use optimized ioresource lookup in ioremap function
 has been added to the -mm tree.  Its filename is
-     x86-optimize-resource-lookups-for-ioremap.patch
+     x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-optimize-resource-lookups-for-ioremap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-optimize-resource-lookups-for-ioremap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Travis <travis@sgi.com>
-Subject: x86: optimize resource lookups for ioremap
+Subject: x86: use optimized ioresource lookup in ioremap function
 
-We have a large university system in the UK that is experiencing very long
-delays modprobing the driver for a specific I/O device.  The delay is from
-8-10 minutes per device and there are 31 devices in the system.  This 4 to
-5 hour delay in starting up those I/O devices is very much a burden on the
-customer.
-
-There are two causes for requiring a restart/reload of the drivers.  First
-is periodic preventive maintenance (PM) and the second is if any of the
-devices experience a fatal error.  Both of these trigger this excessively
-long delay in bringing the system back up to full capability.
-
-The problem was tracked down to a very slow IOREMAP operation and the
-excessively long ioresource lookup to insure that the user is not
-attempting to ioremap RAM.  These patches provide a speed up to that
-function.
-
-
-This patch (of 2):
-
-Since the ioremap operation is verifying that the specified address range
-is NOT RAM, it will search the entire ioresource list if the condition is
-true.  To make matters worse, it does this one 4k page at a time.  For a
-128M BAR region this is 32 passes to determine the entire region does not
-contain any RAM addresses.
-
-This patch provides another resource lookup function, region_is_ram, that
-searches for the entire region specified, verifying that it is completely
-contained within the resource region.  If it is found, then it is checked
-to be RAM or not, within a single pass.
-
-The return result reflects if it was found or not (-1), and whether it is
-RAM (1) or not (0).  This allows the caller to fallback to the previous
-page by page search if it was not found.
+Use the optimized ioresource lookup, "region_is_ram", for the ioremap
+function.  If the region is not found, it falls back to the "page_is_ram"
+function.  If it is found and it is RAM, then the usual warning message is
+issued, and the ioremap operation is aborted.  Otherwise, the ioremap
+operation continues.
 
 Signed-off-by: Mike Travis <travis@sgi.com>
+Acked-by: Alex Thorlton <athorlton@sgi.com>
+Reviewed-by: Cliff Wickman <cpw@sgi.com>
 Acked-by: Alex Thorlton <athorlton@sgi.com>
 Reviewed-by: Cliff Wickman <cpw@sgi.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -90,67 +64,48 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- kernel/resource.c  |   36 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+)
+ arch/x86/mm/ioremap.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mm.h~x86-optimize-resource-lookups-for-ioremap include/linux/mm.h
---- a/include/linux/mm.h~x86-optimize-resource-lookups-for-ioremap
-+++ a/include/linux/mm.h
-@@ -347,6 +347,7 @@ static inline int put_page_unless_one(st
- }
+diff -puN arch/x86/mm/ioremap.c~x86-use-optimized-ioresource-lookup-in-ioremap-function arch/x86/mm/ioremap.c
+--- a/arch/x86/mm/ioremap.c~x86-use-optimized-ioresource-lookup-in-ioremap-function
++++ a/arch/x86/mm/ioremap.c
+@@ -86,6 +86,7 @@ static void __iomem *__ioremap_caller(re
+ 	pgprot_t prot;
+ 	int retval;
+ 	void __iomem *ret_addr;
++	int ram_region;
  
- extern int page_is_ram(unsigned long pfn);
-+extern int region_is_ram(resource_size_t phys_addr, unsigned long size);
- 
- /* Support for virtually mapped pages */
- struct page *vmalloc_to_page(const void *addr);
-diff -puN kernel/resource.c~x86-optimize-resource-lookups-for-ioremap kernel/resource.c
---- a/kernel/resource.c~x86-optimize-resource-lookups-for-ioremap
-+++ a/kernel/resource.c
-@@ -491,6 +491,42 @@ int __weak page_is_ram(unsigned long pfn
- }
- EXPORT_SYMBOL_GPL(page_is_ram);
- 
-+/*
-+ * Search for a resouce entry that fully contains the specified region.
-+ * If found, return 1 if it is RAM, 0 if not.
-+ * If not found, or region is not fully contained, return -1
-+ *
-+ * Used by the ioremap functions to insure user not remapping RAM and is as
-+ * vast speed up over walking through the resource table page by page.
-+ */
-+int region_is_ram(resource_size_t start, unsigned long size)
-+{
-+	struct resource *p;
-+	resource_size_t end = start + size - 1;
-+	int flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-+	const char *name = "System RAM";
-+	int ret = -1;
-+
-+	read_lock(&resource_lock);
-+	for (p = iomem_resource.child; p ; p = p->sibling) {
-+		if (end < p->start)
-+			continue;
-+
-+		if (p->start <= start && end <= p->end) {
-+			/* resource fully contains region */
-+			if ((p->flags != flags) || strcmp(p->name, name))
-+				ret = 0;
-+			else
-+				ret = 1;
-+			break;
-+		}
-+		if (p->end < start)
-+			break;	/* not found */
+ 	/* Don't allow wraparound or zero size */
+ 	last_addr = phys_addr + size - 1;
+@@ -108,12 +109,23 @@ static void __iomem *__ioremap_caller(re
+ 	/*
+ 	 * Don't allow anybody to remap normal RAM that we're using..
+ 	 */
+-	pfn      = phys_addr >> PAGE_SHIFT;
+-	last_pfn = last_addr >> PAGE_SHIFT;
+-	if (walk_system_ram_range(pfn, last_pfn - pfn + 1, NULL,
+-				  __ioremap_check_ram) == 1)
++	/* First check if whole region can be identified as RAM or not */
++	ram_region = region_is_ram(phys_addr, size);
++	if (ram_region > 0) {
++		WARN_ONCE(1, "ioremap on RAM at 0x%lx - 0x%lx\n",
++				(unsigned long int)phys_addr,
++				(unsigned long int)last_addr);
+ 		return NULL;
 +	}
-+	read_unlock(&resource_lock);
-+	return ret;
-+}
-+
- void __weak arch_remove_reservations(struct resource *avail)
- {
- }
+ 
++	/* If could not be identified(-1), check page by page */
++	if (ram_region < 0) {
++		pfn      = phys_addr >> PAGE_SHIFT;
++		last_pfn = last_addr >> PAGE_SHIFT;
++		if (walk_system_ram_range(pfn, last_pfn - pfn + 1, NULL,
++					  __ioremap_check_ram) == 1)
++			return NULL;
++	}
+ 	/*
+ 	 * Mappings have to be page-aligned
+ 	 */
 _
 
 Patches currently in -mm which might be from travis@sgi.com are
