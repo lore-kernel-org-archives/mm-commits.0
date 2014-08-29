@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+Subject: + mm-introduce-common-page-state-for-ballooned-memory-fix.patch
  added to -mm tree
-Date: Fri, 29 Aug 2014 13:40:49 -0700
-Message-ID: <5400e551.0aQXLKTzgiw5HX1g%akpm@linux-foundation.org>
+Date: Fri, 29 Aug 2014 13:43:34 -0700
+Message-ID: <5400e5f6.zsxWc3attSRS9G0r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46237 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796AbaH2Uku (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 16:40:50 -0400
+	with ESMTP id S1750796AbaH2Unf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 16:43:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aquini@redhat.com, k.khlebnikov@samsung.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slab_common-move-kmem_cache-definition-to-internal-header-fix
+     Subject: mm-introduce-common-page-state-for-ballooned-memory-fix
 has been added to the -mm tree.  Its filename is
-     mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+     mm-introduce-common-page-state-for-ballooned-memory-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-common-page-state-for-ballooned-memory-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-common-page-state-for-ballooned-memory-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,34 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-slab_common-move-kmem_cache-definition-to-internal-header-fix
+Subject: mm-introduce-common-page-state-for-ballooned-memory-fix
 
-export kmem_cache_size() to modules
+export __ClearPageBalloon() and __SetPageBalloon() to modules
 
-ERROR: "kmem_cache_size" [lib/lru_cache.ko] undefined!                          
+ERROR: "__ClearPageBalloon" [drivers/virtio/virtio_balloon.ko] undefined!
+ERROR: "__SetPageBalloon" [drivers/virtio/virtio_balloon.ko] undefined!
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/balloon_compaction.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/slab_common.c~mm-slab_common-move-kmem_cache-definition-to-internal-header-fix mm/slab_common.c
---- a/mm/slab_common.c~mm-slab_common-move-kmem_cache-definition-to-internal-header-fix
-+++ a/mm/slab_common.c
-@@ -37,6 +37,7 @@ unsigned int kmem_cache_size(struct kmem
- {
- 	return s->object_size;
+diff -puN mm/balloon_compaction.c~mm-introduce-common-page-state-for-ballooned-memory-fix mm/balloon_compaction.c
+--- a/mm/balloon_compaction.c~mm-introduce-common-page-state-for-ballooned-memory-fix
++++ a/mm/balloon_compaction.c
+@@ -16,6 +16,7 @@ void __SetPageBalloon(struct page *page)
+ 	atomic_set(&page->_mapcount, PAGE_BALLOON_MAPCOUNT_VALUE);
+ 	inc_zone_page_state(page, NR_BALLOON_PAGES);
  }
-+EXPORT_SYMBOL(kmem_cache_size);
++EXPORT_SYMBOL(__SetPageBalloon);
  
- #ifdef CONFIG_DEBUG_VM
- static int kmem_cache_sanity_check(const char *name, size_t size)
+ void __ClearPageBalloon(struct page *page)
+ {
+@@ -23,6 +24,7 @@ void __ClearPageBalloon(struct page *pag
+ 	atomic_set(&page->_mapcount, -1);
+ 	dec_zone_page_state(page, NR_BALLOON_PAGES);
+ }
++EXPORT_SYMBOL(__ClearPageBalloon);
+ 
+ /*
+  * balloon_devinfo_alloc - allocates a balloon device information descriptor.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,6 +98,7 @@ mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
 mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
 prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
 prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+mm-introduce-common-page-state-for-ballooned-memory-fix.patch
 mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
 introduce-dump_vma-fix.patch
 convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
