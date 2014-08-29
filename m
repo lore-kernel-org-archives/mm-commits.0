@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + init-kconfig-move-rcu_nocb_cpu-dependencies-to-choice.patch
+Subject: + mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
  added to -mm tree
-Date: Fri, 29 Aug 2014 12:50:26 -0700
-Message-ID: <5400d982.hPcMnwlOinkSOfVt%akpm@linux-foundation.org>
+Date: Fri, 29 Aug 2014 12:52:55 -0700
+Message-ID: <5400da17.J8rjSMorIITnNfLN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45942 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45950 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754294AbaH2Tu1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 15:50:27 -0400
+	with ESMTP id S1753085AbaH2Tw4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 15:52:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefan.hengelein@fau.de, josh@joshtriplett.org, rupran@einserver.de, mm-commits@vger.kernel.org
+To: weijie.yang@samsung.com, hannes@cmpxchg.org, mgorman@suse.de, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/Kconfig: move RCU_NOCB_CPU dependencies to choice
+     Subject: mm: page_alloc: avoid wakeup kswapd on the unintended node
 has been added to the -mm tree.  Its filename is
-     init-kconfig-move-rcu_nocb_cpu-dependencies-to-choice.patch
+     mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-kconfig-move-rcu_nocb_cpu-dependencies-to-choice.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-kconfig-move-rcu_nocb_cpu-dependencies-to-choice.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +39,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stefan Hengelein <stefan.hengelein@fau.de>
-Subject: init/Kconfig: move RCU_NOCB_CPU dependencies to choice
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: mm: page_alloc: avoid wakeup kswapd on the unintended node
 
-Every choice item of the "Build-forced no-CBs CPUs" choice had a
-dependency to RCU_NOCB_CPU.  It's more comprehensible if the choice itself
-has the dependency instead of every choice item.  The choice itself
-doesn't need to be visible if there are no items selectable (i.e.  on
-arch/frv) or RCU_NOCB_CPU is not defined.
+When entering the page_alloc slowpath, we wakeup kswapd on every pgdat
+according to the zonelist and high_zoneidx.  However, this doesn't take
+nodemask into account, and could prematurely wakeup kswapd on some
+unintended nodes.
 
-Signed-off-by: Stefan Hengelein <stefan.hengelein@fau.de>
-Signed-off-by: Andreas Ruprecht <rupran@einserver.de>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+This patch uses for_each_zone_zonelist_nodemask() instead of
+for_each_zone_zonelist() in wake_all_kswapds() to avoid the above
+situation.
+
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN init/Kconfig~init-kconfig-move-rcu_nocb_cpu-dependencies-to-choice init/Kconfig
---- a/init/Kconfig~init-kconfig-move-rcu_nocb_cpu-dependencies-to-choice
-+++ a/init/Kconfig
-@@ -729,6 +729,7 @@ config RCU_NOCB_CPU
- choice
- 	prompt "Build-forced no-CBs CPUs"
- 	default RCU_NOCB_CPU_NONE
-+	depends on RCU_NOCB_CPU
- 	help
- 	  This option allows no-CBs CPUs (whose RCU callbacks are invoked
- 	  from kthreads rather than from softirq context) to be specified
-@@ -737,7 +738,7 @@ choice
+diff -puN mm/page_alloc.c~mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node
++++ a/mm/page_alloc.c
+@@ -2470,12 +2470,14 @@ __alloc_pages_high_priority(gfp_t gfp_ma
+ static void wake_all_kswapds(unsigned int order,
+ 			     struct zonelist *zonelist,
+ 			     enum zone_type high_zoneidx,
+-			     struct zone *preferred_zone)
++			     struct zone *preferred_zone,
++			     nodemask_t *nodemask)
+ {
+ 	struct zoneref *z;
+ 	struct zone *zone;
  
- config RCU_NOCB_CPU_NONE
- 	bool "No build_forced no-CBs CPUs"
--	depends on RCU_NOCB_CPU && !NO_HZ_FULL_ALL
-+	depends on !NO_HZ_FULL_ALL
- 	help
- 	  This option does not force any of the CPUs to be no-CBs CPUs.
- 	  Only CPUs designated by the rcu_nocbs= boot parameter will be
-@@ -751,7 +752,7 @@ config RCU_NOCB_CPU_NONE
+-	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx)
++	for_each_zone_zonelist_nodemask(zone, z, zonelist,
++						high_zoneidx, nodemask)
+ 		wakeup_kswapd(zone, order, zone_idx(preferred_zone));
+ }
  
- config RCU_NOCB_CPU_ZERO
- 	bool "CPU 0 is a build_forced no-CBs CPU"
--	depends on RCU_NOCB_CPU && !NO_HZ_FULL_ALL
-+	depends on !NO_HZ_FULL_ALL
- 	help
- 	  This option forces CPU 0 to be a no-CBs CPU, so that its RCU
- 	  callbacks are invoked by a per-CPU kthread whose name begins
-@@ -766,7 +767,6 @@ config RCU_NOCB_CPU_ZERO
+@@ -2573,7 +2575,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
  
- config RCU_NOCB_CPU_ALL
- 	bool "All CPUs are build_forced no-CBs CPUs"
--	depends on RCU_NOCB_CPU
- 	help
- 	  This option forces all CPUs to be no-CBs CPUs.  The rcu_nocbs=
- 	  boot parameter will be ignored.  All CPUs' RCU callbacks will
+ restart:
+ 	if (!(gfp_mask & __GFP_NO_KSWAPD))
+-		wake_all_kswapds(order, zonelist, high_zoneidx, preferred_zone);
++		wake_all_kswapds(order, zonelist, high_zoneidx,
++				preferred_zone, nodemask);
+ 
+ 	/*
+ 	 * OK, we're below the kswapd watermark and have kicked background
 _
 
-Patches currently in -mm which might be from stefan.hengelein@fau.de are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
-init-kconfig-move-rcu_nocb_cpu-dependencies-to-choice.patch
+mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
 
