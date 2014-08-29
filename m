@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
- added to -mm tree
-Date: Fri, 29 Aug 2014 12:37:41 -0700
-Message-ID: <5400d685.WUyGjZVpnTXiL7dH%akpm@linux-foundation.org>
+Subject: + introduce-dump_vma-fix.patch added to -mm tree
+Date: Fri, 29 Aug 2014 12:37:39 -0700
+Message-ID: <5400d683.Ee0lBwn4YhKb69Hl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45845 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45841 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753104AbaH2Thm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 15:37:42 -0400
+	with ESMTP id S1753104AbaH2Thk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Aug 2014 15:37:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hughd@google.com, khlebnikov@openvz.org, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes
+     Subject: introduce-dump_vma-fix
 has been added to the -mm tree.  Its filename is
-     convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+     introduce-dump_vma-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/introduce-dump_vma-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/introduce-dump_vma-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,41 +39,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes
+Subject: introduce-dump_vma-fix
 
-WARNING: line over 80 characters
-#194: FILE: mm/mremap.c:198:
-+				VM_BUG_ON_VMA(vma->vm_file || !vma->anon_vma, vma);
+make dump_vma() require CONFIG_DEBUG_VM
 
-total: 0 errors, 1 warnings, 160 lines checked
-
-./patches/convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/mremap.c~convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes mm/mremap.c
---- a/mm/mremap.c~convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes
-+++ a/mm/mremap.c
-@@ -195,7 +195,8 @@ unsigned long move_page_tables(struct vm
- 		if (pmd_trans_huge(*old_pmd)) {
- 			int err = 0;
- 			if (extent == HPAGE_PMD_SIZE) {
--				VM_BUG_ON_VMA(vma->vm_file || !vma->anon_vma, vma);
-+				VM_BUG_ON_VMA(vma->vm_file || !vma->anon_vma,
-+					      vma);
- 				/* See comment in move_ptes() */
- 				if (need_rmap_locks)
- 					anon_vma_lock_write(vma->anon_vma);
+diff -puN mm/page_alloc.c~introduce-dump_vma-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~introduce-dump_vma-fix
++++ a/mm/page_alloc.c
+@@ -6683,6 +6683,8 @@ void dump_page(struct page *page, const
+ }
+ EXPORT_SYMBOL(dump_page);
+ 
++#ifdef CONFIG_DEBUG_VM
++
+ static const struct trace_print_flags vmaflags_names[] = {
+ 	{VM_READ,			"read"		},
+ 	{VM_WRITE,			"write"		},
+@@ -6740,3 +6742,5 @@ void dump_vma(const struct vm_area_struc
+ 	dump_flags(vma->vm_flags, vmaflags_names, ARRAY_SIZE(vmaflags_names));
+ }
+ EXPORT_SYMBOL(dump_vma);
++
++#endif		/* CONFIG_DEBUG_VM */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
