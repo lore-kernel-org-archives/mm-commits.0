@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch added to -mm tree
-Date: Wed, 03 Sep 2014 13:44:06 -0700
-Message-ID: <54077d96./nKd03d3UhdlG/k1%akpm@linux-foundation.org>
+Subject: + mm-balloon_compaction-use-common-page-ballooning-fix.patch
+ added to -mm tree
+Date: Wed, 03 Sep 2014 13:44:09 -0700
+Message-ID: <54077d99.zbQXswDNtpRHYzF/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44306 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44310 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755315AbaICUoH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 16:44:07 -0400
+	with ESMTP id S1756011AbaICUoK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 16:44:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@redhat.com, fengguang.wu@intel.com, k.khlebnikov@samsung.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aquini@redhat.com, k.khlebnikov@samsung.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix
+     Subject: mm-balloon_compaction-use-common-page-ballooning-fix
 has been added to the -mm tree.  Its filename is
-     mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
+     mm-balloon_compaction-use-common-page-ballooning-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon_compaction-use-common-page-ballooning-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon_compaction-use-common-page-ballooning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,33 +40,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix
+Subject: mm-balloon_compaction-use-common-page-ballooning-fix
 
-fix CONFIG_BALLOON_COMPACTION=n build
+undo mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
 Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/balloon_compaction.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/balloon_compaction.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN include/linux/balloon_compaction.h~mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix include/linux/balloon_compaction.h
---- a/include/linux/balloon_compaction.h~mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix
+diff -puN include/linux/balloon_compaction.h~mm-balloon_compaction-use-common-page-ballooning-fix include/linux/balloon_compaction.h
+--- a/include/linux/balloon_compaction.h~mm-balloon_compaction-use-common-page-ballooning-fix
 +++ a/include/linux/balloon_compaction.h
-@@ -293,5 +293,11 @@ static inline bool balloon_compaction_ch
+@@ -216,11 +216,5 @@ static inline bool balloon_compaction_ch
  {
  	return false;
  }
-+
-+static inline bool __is_movable_balloon_page(struct page *page)
-+{
-+	return false;
-+}
-+
+-
+-static inline bool __is_movable_balloon_page(struct page *page)
+-{
+-	return false;
+-}
+-
  #endif /* CONFIG_BALLOON_COMPACTION */
  #endif /* _LINUX_BALLOON_COMPACTION_H */
 _
