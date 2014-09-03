@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2.patch
+Subject: + wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
  added to -mm tree
-Date: Wed, 03 Sep 2014 12:40:52 -0700
-Message-ID: <54076ec4.SXX1dzKOV7x8UJki%akpm@linux-foundation.org>
+Date: Wed, 03 Sep 2014 13:17:06 -0700
+Message-ID: <54077742.vMV02tA9hiB6bgR0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44004 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755158AbaICTkx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 15:40:53 -0400
+	with ESMTP id S1752913AbaICURH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 16:17:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, fengguang.wu@intel.com, gregkh@linuxfoundation.org, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix kmemcheck.c build errors
+     Subject: wireless-hostap-proc-print-properly-escaped-ssid-fix
 has been added to the -mm tree.  Its filename is
-     mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2.patch
+     wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,70 +39,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: fix kmemcheck.c build errors
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: wireless-hostap-proc-print-properly-escaped-ssid-fix
 
-Add header files to fix kmemcheck.c build errors:
+drivers/net/wireless/hostap/hostap_proc.c: In function 'prism2_bss_list_proc_show':
+drivers/net/wireless/hostap/hostap_proc.c:184: warning: field width should have type 'int', but argument 3 has type 'size_t'
 
-../mm/kmemcheck.c:70:7: error: dereferencing pointer to incomplete type
-../mm/kmemcheck.c:83:15: error: dereferencing pointer to incomplete type
-../mm/kmemcheck.c:95:8: error: dereferencing pointer to incomplete type
-../mm/kmemcheck.c:95:21: error: dereferencing pointer to incomplete type
-
-../mm/slab.h: In function 'cache_from_obj':
-../mm/slab.h:283:2: error: implicit declaration of function 'memcg_kmem_enabled' [-Werror=implicit-function-declaration]
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: "John W . Linville" <linville@tuxdriver.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemcheck.c |    1 +
- mm/slab.h      |    2 ++
- 2 files changed, 3 insertions(+)
+ drivers/net/wireless/hostap/hostap_proc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/kmemcheck.c~mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2 mm/kmemcheck.c
---- a/mm/kmemcheck.c~mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2
-+++ a/mm/kmemcheck.c
-@@ -2,6 +2,7 @@
- #include <linux/mm_types.h>
- #include <linux/mm.h>
- #include <linux/slab.h>
-+#include "slab.h"
- #include <linux/kmemcheck.h>
+diff -puN drivers/net/wireless/hostap/hostap_proc.c~wireless-hostap-proc-print-properly-escaped-ssid-fix drivers/net/wireless/hostap/hostap_proc.c
+--- a/drivers/net/wireless/hostap/hostap_proc.c~wireless-hostap-proc-print-properly-escaped-ssid-fix
++++ a/drivers/net/wireless/hostap/hostap_proc.c
+@@ -181,7 +181,7 @@ static int prism2_bss_list_proc_show(str
+ 		   bss->bssid, bss->last_update,
+ 		   bss->count, bss->capab_info);
  
- void kmemcheck_alloc_shadow(struct page *page, int order, gfp_t flags, int node)
-diff -puN mm/slab.h~mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2 mm/slab.h
---- a/mm/slab.h~mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2
-+++ a/mm/slab.h
-@@ -268,6 +268,8 @@ static inline void memcg_uncharge_slab(s
- }
- #endif
+-	seq_printf(m, "%*pE", bss->ssid_len, bss->ssid);
++	seq_printf(m, "%*pE", (int)bss->ssid_len, bss->ssid);
  
-+#include <linux/memcontrol.h>
-+
- static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
- {
- 	struct kmem_cache *cachep;
+ 	seq_putc(m, '\t');
+ 	for (i = 0; i < bss->ssid_len; i++)
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
+mm-slab_commonc-suppress-warning.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
 memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-kernel-add-support-for-kernel-restart-handler-call-chain.patch
-power-restart-call-machine_restart-instead-of-arm_pm_restart.patch
-arm64-support-restart-through-restart-handler-call-chain.patch
-arm-support-restart-through-restart-handler-call-chain.patch
-watchdog-moxart-register-restart-handler-with-kernel-restart-handler.patch
-watchdog-alim7101-register-restart-handler-with-kernel-restart-handler.patch
-watchdog-sunxi-register-restart-handler-with-kernel-restart-handler.patch
-arm-arm64-unexport-restart-handlers.patch
-watchdog-s3c2410-add-restart-handler.patch
-clk-samsung-register-restart-handlers-for-s3c2412-and-s3c2443.patch
-clk-rockchip-add-restart-handler.patch
-maintainers-linaro-mm-sig-is-moderated.patch
-autofs-the-documentation-i-wanted-to-read.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+mm-introduce-common-page-state-for-ballooned-memory-fix.patch
+mm-balloon_compaction-general-cleanup-fix.patch
+mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
 linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
 debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
