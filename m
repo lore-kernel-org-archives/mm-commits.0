@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
- added to -mm tree
-Date: Wed, 03 Sep 2014 13:17:06 -0700
-Message-ID: <54077742.vMV02tA9hiB6bgR0%akpm@linux-foundation.org>
+Subject: +
+ mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch added to -mm tree
+Date: Wed, 03 Sep 2014 13:44:06 -0700
+Message-ID: <54077d96./nKd03d3UhdlG/k1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44004 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44306 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752913AbaICURH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 16:17:07 -0400
+	with ESMTP id S1755315AbaICUoH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 16:44:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, fengguang.wu@intel.com, gregkh@linuxfoundation.org, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aquini@redhat.com, fengguang.wu@intel.com, k.khlebnikov@samsung.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: wireless-hostap-proc-print-properly-escaped-ssid-fix
+     Subject: mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix
 has been added to the -mm tree.  Its filename is
-     wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+     mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,35 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: wireless-hostap-proc-print-properly-escaped-ssid-fix
+Subject: mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix
 
-drivers/net/wireless/hostap/hostap_proc.c: In function 'prism2_bss_list_proc_show':
-drivers/net/wireless/hostap/hostap_proc.c:184: warning: field width should have type 'int', but argument 3 has type 'size_t'
+fix CONFIG_BALLOON_COMPACTION=n build
 
 Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: "John W . Linville" <linville@tuxdriver.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/hostap/hostap_proc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/balloon_compaction.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/net/wireless/hostap/hostap_proc.c~wireless-hostap-proc-print-properly-escaped-ssid-fix drivers/net/wireless/hostap/hostap_proc.c
---- a/drivers/net/wireless/hostap/hostap_proc.c~wireless-hostap-proc-print-properly-escaped-ssid-fix
-+++ a/drivers/net/wireless/hostap/hostap_proc.c
-@@ -181,7 +181,7 @@ static int prism2_bss_list_proc_show(str
- 		   bss->bssid, bss->last_update,
- 		   bss->count, bss->capab_info);
- 
--	seq_printf(m, "%*pE", bss->ssid_len, bss->ssid);
-+	seq_printf(m, "%*pE", (int)bss->ssid_len, bss->ssid);
- 
- 	seq_putc(m, '\t');
- 	for (i = 0; i < bss->ssid_len; i++)
+diff -puN include/linux/balloon_compaction.h~mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix include/linux/balloon_compaction.h
+--- a/include/linux/balloon_compaction.h~mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix
++++ a/include/linux/balloon_compaction.h
+@@ -293,5 +293,11 @@ static inline bool balloon_compaction_ch
+ {
+ 	return false;
+ }
++
++static inline bool __is_movable_balloon_page(struct page *page)
++{
++	return false;
++}
++
+ #endif /* CONFIG_BALLOON_COMPACTION */
+ #endif /* _LINUX_BALLOON_COMPACTION_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +93,9 @@ mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
 prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
 prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
 include-linux-migrateh-remove-migratepage-define.patch
+mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
 mm-introduce-common-page-state-for-ballooned-memory-fix.patch
+mm-balloon_compaction-use-common-page-ballooning-fix.patch
 mm-balloon_compaction-general-cleanup-fix.patch
 mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
 introduce-dump_vma-fix.patch
