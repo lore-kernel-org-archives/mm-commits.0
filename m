@@ -1,146 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- tools-selftests-fixing-build-issue-with-make-kselftests-target.patch
+Subject: [merged] purgatory-add-clean-up-for-purgatory-directory.patch
  removed from -mm tree
-Date: Wed, 03 Sep 2014 10:57:53 -0700
-Message-ID: <540756a1.KZz5x4bOv8Ed9GL0%akpm@linux-foundation.org>
+Date: Wed, 03 Sep 2014 10:57:59 -0700
+Message-ID: <540756a7.m4hXZCnVoT23wOcE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42907 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42927 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755103AbaICR5y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 13:57:54 -0400
+	with ESMTP id S1755103AbaICR6A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 13:58:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tranmanphong@gmail.com, dh.herrmann@gmail.com, hughd@google.com, mmarek@suse.cz, sam@ravnborg.org, shuah.kh@samsung.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
+To: mwelling@ieee.org, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: selftests: fix build issue with make kselftests target
+     Subject: kexec: purgatory: add clean-up for purgatory directory
 has been removed from the -mm tree.  Its filename was
-     tools-selftests-fixing-build-issue-with-make-kselftests-target.patch
+     purgatory-add-clean-up-for-purgatory-directory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Phong Tran <tranmanphong@gmail.com>
-Subject: tools: selftests: fix build issue with make kselftests target
+From: Michael Welling <mwelling@ieee.org>
+Subject: kexec: purgatory: add clean-up for purgatory directory
 
-Fix the typo of ARCH when running 'make kselftests'.  Change the 'X86' to
-'x86'.  Test by compilation.
+Without this patch the kexec-purgatory.c and purgatory.ro files are not
+removed after make mrproper.
 
-Signed-off-by: Phong Tran <tranmanphong@gmail.com>
-Cc: David Herrmann <dh.herrmann@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shuah Khan <shuah.kh@samsung.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Michael Welling <mwelling@ieee.org>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/ipc/Makefile   |    6 +++---
- tools/testing/selftests/kcmp/Makefile  |    6 +++---
- tools/testing/selftests/memfd/Makefile |   10 +++++-----
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ arch/x86/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN tools/testing/selftests/ipc/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target tools/testing/selftests/ipc/Makefile
---- a/tools/testing/selftests/ipc/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target
-+++ a/tools/testing/selftests/ipc/Makefile
-@@ -1,18 +1,18 @@
- uname_M := $(shell uname -m 2>/dev/null || echo not)
- ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
- ifeq ($(ARCH),i386)
--        ARCH := X86
-+        ARCH := x86
- 	CFLAGS := -DCONFIG_X86_32 -D__i386__
- endif
- ifeq ($(ARCH),x86_64)
--	ARCH := X86
-+	ARCH := x86
- 	CFLAGS := -DCONFIG_X86_64 -D__x86_64__
- endif
+diff -puN arch/x86/Makefile~purgatory-add-clean-up-for-purgatory-directory arch/x86/Makefile
+--- a/arch/x86/Makefile~purgatory-add-clean-up-for-purgatory-directory
++++ a/arch/x86/Makefile
+@@ -251,6 +251,7 @@ archclean:
+ 	$(Q)rm -rf $(objtree)/arch/x86_64
+ 	$(Q)$(MAKE) $(clean)=$(boot)
+ 	$(Q)$(MAKE) $(clean)=arch/x86/tools
++	$(Q)$(MAKE) $(clean)=arch/x86/purgatory
  
- CFLAGS += -I../../../../usr/include/
- 
- all:
--ifeq ($(ARCH),X86)
-+ifeq ($(ARCH),x86)
- 	gcc $(CFLAGS) msgque.c -o msgque_test
- else
- 	echo "Not an x86 target, can't build msgque selftest"
-diff -puN tools/testing/selftests/kcmp/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target tools/testing/selftests/kcmp/Makefile
---- a/tools/testing/selftests/kcmp/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target
-+++ a/tools/testing/selftests/kcmp/Makefile
-@@ -1,11 +1,11 @@
- uname_M := $(shell uname -m 2>/dev/null || echo not)
- ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
- ifeq ($(ARCH),i386)
--        ARCH := X86
-+        ARCH := x86
- 	CFLAGS := -DCONFIG_X86_32 -D__i386__
- endif
- ifeq ($(ARCH),x86_64)
--	ARCH := X86
-+	ARCH := x86
- 	CFLAGS := -DCONFIG_X86_64 -D__x86_64__
- endif
- 
-@@ -15,7 +15,7 @@ CFLAGS += -I../../../../usr/include/
- CFLAGS += -I../../../../arch/x86/include/
- 
- all:
--ifeq ($(ARCH),X86)
-+ifeq ($(ARCH),x86)
- 	gcc $(CFLAGS) kcmp_test.c -o kcmp_test
- else
- 	echo "Not an x86 target, can't build kcmp selftest"
-diff -puN tools/testing/selftests/memfd/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target tools/testing/selftests/memfd/Makefile
---- a/tools/testing/selftests/memfd/Makefile~tools-selftests-fixing-build-issue-with-make-kselftests-target
-+++ a/tools/testing/selftests/memfd/Makefile
-@@ -1,10 +1,10 @@
- uname_M := $(shell uname -m 2>/dev/null || echo not)
- ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
- ifeq ($(ARCH),i386)
--	ARCH := X86
-+	ARCH := x86
- endif
- ifeq ($(ARCH),x86_64)
--	ARCH := X86
-+	ARCH := x86
- endif
- 
- CFLAGS += -D_FILE_OFFSET_BITS=64
-@@ -14,20 +14,20 @@ CFLAGS += -I../../../../include/uapi/
- CFLAGS += -I../../../../include/
- 
- all:
--ifeq ($(ARCH),X86)
-+ifeq ($(ARCH),x86)
- 	gcc $(CFLAGS) memfd_test.c -o memfd_test
- else
- 	echo "Not an x86 target, can't build memfd selftest"
- endif
- 
- run_tests: all
--ifeq ($(ARCH),X86)
-+ifeq ($(ARCH),x86)
- 	gcc $(CFLAGS) memfd_test.c -o memfd_test
- endif
- 	@./memfd_test || echo "memfd_test: [FAIL]"
- 
- build_fuse:
--ifeq ($(ARCH),X86)
-+ifeq ($(ARCH),x86)
- 	gcc $(CFLAGS) fuse_mnt.c `pkg-config fuse --cflags --libs` -o fuse_mnt
- 	gcc $(CFLAGS) fuse_test.c -o fuse_test
- else
+ PHONY += kvmconfig
+ kvmconfig:
 _
 
-Patches currently in -mm which might be from tranmanphong@gmail.com are
+Patches currently in -mm which might be from mwelling@ieee.org are
 
-linux-next.patch
 
