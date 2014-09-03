@@ -1,156 +1,358 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-remove-config_kexec-dependency-on-crypto.patch
- removed from -mm tree
-Date: Wed, 03 Sep 2014 10:57:37 -0700
-Message-ID: <54075691.NhhLj/yGCSZf026s%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-do-not-write-error-flag-to-user-structure-we-cannot-copy-from-to.patch removed from -mm tree
+Date: Wed, 03 Sep 2014 10:57:45 -0700
+Message-ID: <54075699.NBvzcjHHDx7qdT6V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42869 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42885 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755057AbaICR5i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 13:57:38 -0400
+	with ESMTP id S1755103AbaICR5q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 13:57:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@redhat.com, ebiederm@xmission.com, hpa@zytor.com, sruffell@digium.com, mm-commits@vger.kernel.org
+To: ben@decadent.org.uk, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: remove CONFIG_KEXEC dependency on crypto
+     Subject: ocfs2: do not write error flag to user structure we cannot copy from/to
 has been removed from the -mm tree.  Its filename was
-     kexec-remove-config_kexec-dependency-on-crypto.patch
+     ocfs2-do-not-write-error-flag-to-user-structure-we-cannot-copy-from-to.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kexec: remove CONFIG_KEXEC dependency on crypto
+From: Ben Hutchings <ben@decadent.org.uk>
+Subject: ocfs2: do not write error flag to user structure we cannot copy from/to
 
-New system call depends on crypto.  As it did not have a separate config
-option, CONFIG_KEXEC was modified to select CRYPTO and CRYPTO_SHA256.
+If we failed to copy from the structure, writing back the flags leaks 31
+bits of kernel memory (the rest of the ir_flags field).
 
-But now previous patch introduced a new config option for new syscall.  So
-CONFIG_KEXEC does not require crypto.  Remove that dependency.
+In any case, if we cannot copy from/to the structure, why should we expect
+putting just the flags to work?
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Shaun Ruffell <sruffell@digium.com>
+Also make sure ocfs2_info_handle_freeinode() returns the right error code
+if the copy_to_user() fails.
+
+Fixes: ddee5cdb70e6 ('Ocfs2: Add new OCFS2_IOC_INFO ioctl for ocfs2 v8.')
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Cc: Joel Becker <jlbec@evilplan.org>
+Acked-by: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig     |    2 --
- arch/ia64/Kconfig    |    2 --
- arch/m68k/Kconfig    |    2 --
- arch/mips/Kconfig    |    2 --
- arch/powerpc/Kconfig |    2 --
- arch/s390/Kconfig    |    2 --
- arch/sh/Kconfig      |    2 --
- arch/tile/Kconfig    |    2 --
- 8 files changed, 16 deletions(-)
+ fs/ocfs2/ioctl.c |  129 +++++++++++++++------------------------------
+ 1 file changed, 43 insertions(+), 86 deletions(-)
 
-diff -puN arch/arm/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/arm/Kconfig
---- a/arch/arm/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/arm/Kconfig
-@@ -1983,8 +1983,6 @@ config XIP_PHYS_ADDR
- config KEXEC
- 	bool "Kexec system call (EXPERIMENTAL)"
- 	depends on (!SMP || PM_SLEEP_SMP)
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/ia64/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/ia64/Kconfig
-@@ -549,8 +549,6 @@ source "drivers/sn/Kconfig"
- config KEXEC
- 	bool "kexec system call"
- 	depends on !IA64_HP_SIM && (!SMP || HOTPLUG_CPU)
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/m68k/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/m68k/Kconfig
-@@ -91,8 +91,6 @@ config MMU_SUN3
- config KEXEC
- 	bool "kexec system call"
- 	depends on M68KCLASSIC
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/mips/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/mips/Kconfig
---- a/arch/mips/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/mips/Kconfig
-@@ -2396,8 +2396,6 @@ source "kernel/Kconfig.preempt"
+diff -puN fs/ocfs2/ioctl.c~ocfs2-do-not-write-error-flag-to-user-structure-we-cannot-copy-from-to fs/ocfs2/ioctl.c
+--- a/fs/ocfs2/ioctl.c~ocfs2-do-not-write-error-flag-to-user-structure-we-cannot-copy-from-to
++++ a/fs/ocfs2/ioctl.c
+@@ -35,9 +35,8 @@
+ 		copy_to_user((typeof(a) __user *)b, &(a), sizeof(a))
  
- config KEXEC
- 	bool "Kexec system call"
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/powerpc/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/powerpc/Kconfig
-@@ -399,8 +399,6 @@ config PPC64_SUPPORTS_MEMORY_FAILURE
- config KEXEC
- 	bool "kexec system call"
- 	depends on (PPC_BOOK3S || FSL_BOOKE || (44x && !SMP))
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/s390/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/s390/Kconfig
---- a/arch/s390/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/s390/Kconfig
-@@ -48,8 +48,6 @@ config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ /*
+- * This call is void because we are already reporting an error that may
+- * be -EFAULT.  The error will be returned from the ioctl(2) call.  It's
+- * just a best-effort to tell userspace that this request caused the error.
++ * This is just a best-effort to tell userspace that this request
++ * caused the error.
+  */
+ static inline void o2info_set_request_error(struct ocfs2_info_request *kreq,
+ 					struct ocfs2_info_request __user *req)
+@@ -146,136 +145,105 @@ bail:
+ static int ocfs2_info_handle_blocksize(struct inode *inode,
+ 				       struct ocfs2_info_request __user *req)
+ {
+-	int status = -EFAULT;
+ 	struct ocfs2_info_blocksize oib;
  
- config KEXEC
- 	def_bool y
--	select CRYPTO
--	select CRYPTO_SHA256
+ 	if (o2info_from_user(oib, req))
+-		goto bail;
++		return -EFAULT;
  
- config AUDIT_ARCH
- 	def_bool y
-diff -puN arch/sh/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/sh/Kconfig
---- a/arch/sh/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/sh/Kconfig
-@@ -598,8 +598,6 @@ source kernel/Kconfig.hz
- config KEXEC
- 	bool "kexec system call (EXPERIMENTAL)"
- 	depends on SUPERH32 && MMU
--	select CRYPTO
--	select CRYPTO_SHA256
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-diff -puN arch/tile/Kconfig~kexec-remove-config_kexec-dependency-on-crypto arch/tile/Kconfig
---- a/arch/tile/Kconfig~kexec-remove-config_kexec-dependency-on-crypto
-+++ a/arch/tile/Kconfig
-@@ -191,8 +191,6 @@ source "kernel/Kconfig.hz"
+ 	oib.ib_blocksize = inode->i_sb->s_blocksize;
  
- config KEXEC
- 	bool "kexec system call"
--	select CRYPTO
--	select CRYPTO_SHA256
- 	---help---
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
-_
-
-Patches currently in -mm which might be from vgoyal@redhat.com are
-
-try-to-use-automatic-variable-in-kexec-purgatory-makefile.patch
-linux-next.patch
-
+ 	o2info_set_request_filled(&oib.ib_req);
+ 
+ 	if (o2info_to_user(oib, req))
+-		goto bail;
++		return -EFAULT;
+ 
+-	status = 0;
+-bail:
+-	if (status)
+-		o2info_set_request_error(&oib.ib_req, req);
+-
+-	return status;
++	return 0;
+ }
+ 
+ static int ocfs2_info_handle_clustersize(struct inode *inode,
+ 					 struct ocfs2_info_request __user *req)
+ {
+-	int status = -EFAULT;
+ 	struct ocfs2_info_clustersize oic;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 
+ 	if (o2info_from_user(oic, req))
+-		goto bail;
++		return -EFAULT;
+ 
+ 	oic.ic_clustersize = osb->s_clustersize;
+ 
+ 	o2info_set_request_filled(&oic.ic_req);
+ 
+ 	if (o2info_to_user(oic, req))
+-		goto bail;
++		return -EFAULT;
+ 
+-	status = 0;
+-bail:
+-	if (status)
+-		o2info_set_request_error(&oic.ic_req, req);
+-
+-	return status;
++	return 0;
+ }
+ 
+ static int ocfs2_info_handle_maxslots(struct inode *inode,
+ 				      struct ocfs2_info_request __user *req)
+ {
+-	int status = -EFAULT;
+ 	struct ocfs2_info_maxslots oim;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 
+ 	if (o2info_from_user(oim, req))
+-		goto bail;
++		return -EFAULT;
+ 
+ 	oim.im_max_slots = osb->max_slots;
+ 
+ 	o2info_set_request_filled(&oim.im_req);
+ 
+ 	if (o2info_to_user(oim, req))
+-		goto bail;
+-
+-	status = 0;
+-bail:
+-	if (status)
+-		o2info_set_request_error(&oim.im_req, req);
++		return -EFAULT;
+ 
+-	return status;
++	return 0;
+ }
+ 
+ static int ocfs2_info_handle_label(struct inode *inode,
+ 				   struct ocfs2_info_request __user *req)
+ {
+-	int status = -EFAULT;
+ 	struct ocfs2_info_label oil;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 
+ 	if (o2info_from_user(oil, req))
+-		goto bail;
++		return -EFAULT;
+ 
+ 	memcpy(oil.il_label, osb->vol_label, OCFS2_MAX_VOL_LABEL_LEN);
+ 
+ 	o2info_set_request_filled(&oil.il_req);
+ 
+ 	if (o2info_to_user(oil, req))
+-		goto bail;
++		return -EFAULT;
+ 
+-	status = 0;
+-bail:
+-	if (status)
+-		o2info_set_request_error(&oil.il_req, req);
+-
+-	return status;
++	return 0;
+ }
+ 
+ static int ocfs2_info_handle_uuid(struct inode *inode,
+ 				  struct ocfs2_info_request __user *req)
+ {
+-	int status = -EFAULT;
+ 	struct ocfs2_info_uuid oiu;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 
+ 	if (o2info_from_user(oiu, req))
+-		goto bail;
++		return -EFAULT;
+ 
+ 	memcpy(oiu.iu_uuid_str, osb->uuid_str, OCFS2_TEXT_UUID_LEN + 1);
+ 
+ 	o2info_set_request_filled(&oiu.iu_req);
+ 
+ 	if (o2info_to_user(oiu, req))
+-		goto bail;
+-
+-	status = 0;
+-bail:
+-	if (status)
+-		o2info_set_request_error(&oiu.iu_req, req);
++		return -EFAULT;
+ 
+-	return status;
++	return 0;
+ }
+ 
+ static int ocfs2_info_handle_fs_features(struct inode *inode,
+ 					 struct ocfs2_info_request __user *req)
+ {
+-	int status = -EFAULT;
+ 	struct ocfs2_info_fs_features oif;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 
+ 	if (o2info_from_user(oif, req))
+-		goto bail;
++		return -EFAULT;
+ 
+ 	oif.if_compat_features = osb->s_feature_compat;
+ 	oif.if_incompat_features = osb->s_feature_incompat;
+@@ -284,39 +252,28 @@ static int ocfs2_info_handle_fs_features
+ 	o2info_set_request_filled(&oif.if_req);
+ 
+ 	if (o2info_to_user(oif, req))
+-		goto bail;
++		return -EFAULT;
+ 
+-	status = 0;
+-bail:
+-	if (status)
+-		o2info_set_request_error(&oif.if_req, req);
+-
+-	return status;
++	return 0;
+ }
+ 
+ static int ocfs2_info_handle_journal_size(struct inode *inode,
+ 					  struct ocfs2_info_request __user *req)
+ {
+-	int status = -EFAULT;
+ 	struct ocfs2_info_journal_size oij;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 
+ 	if (o2info_from_user(oij, req))
+-		goto bail;
++		return -EFAULT;
+ 
+ 	oij.ij_journal_size = i_size_read(osb->journal->j_inode);
+ 
+ 	o2info_set_request_filled(&oij.ij_req);
+ 
+ 	if (o2info_to_user(oij, req))
+-		goto bail;
+-
+-	status = 0;
+-bail:
+-	if (status)
+-		o2info_set_request_error(&oij.ij_req, req);
++		return -EFAULT;
+ 
+-	return status;
++	return 0;
+ }
+ 
+ static int ocfs2_info_scan_inode_alloc(struct ocfs2_super *osb,
+@@ -373,7 +330,7 @@ static int ocfs2_info_handle_freeinode(s
+ 	u32 i;
+ 	u64 blkno = -1;
+ 	char namebuf[40];
+-	int status = -EFAULT, type = INODE_ALLOC_SYSTEM_INODE;
++	int status, type = INODE_ALLOC_SYSTEM_INODE;
+ 	struct ocfs2_info_freeinode *oifi = NULL;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	struct inode *inode_alloc = NULL;
+@@ -385,8 +342,10 @@ static int ocfs2_info_handle_freeinode(s
+ 		goto out_err;
+ 	}
+ 
+-	if (o2info_from_user(*oifi, req))
+-		goto bail;
++	if (o2info_from_user(*oifi, req)) {
++		status = -EFAULT;
++		goto out_free;
++	}
+ 
+ 	oifi->ifi_slotnum = osb->max_slots;
+ 
+@@ -424,14 +383,16 @@ static int ocfs2_info_handle_freeinode(s
+ 
+ 	o2info_set_request_filled(&oifi->ifi_req);
+ 
+-	if (o2info_to_user(*oifi, req))
+-		goto bail;
++	if (o2info_to_user(*oifi, req)) {
++		status = -EFAULT;
++		goto out_free;
++	}
+ 
+ 	status = 0;
+ bail:
+ 	if (status)
+ 		o2info_set_request_error(&oifi->ifi_req, req);
+-
++out_free:
+ 	kfree(oifi);
+ out_err:
+ 	return status;
+@@ -658,7 +619,7 @@ static int ocfs2_info_handle_freefrag(st
+ {
+ 	u64 blkno = -1;
+ 	char namebuf[40];
+-	int status = -EFAULT, type = GLOBAL_BITMAP_SYSTEM_INODE;
++	int status, type = GLOBAL_BITMAP_SYSTEM_INODE;
+ 
+ 	struct ocfs2_info_freefrag *oiff;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+@@ -671,8 +632,10 @@ static int ocfs2_info_handle_freefrag(st
+ 		goto out_err;
+ 	}
+ 
+-	if (o2info_from_user(*oiff, req))
+-		goto bail;
++	if (o2info_from_user(*oiff, req)) {
++		status = -EFAULT;
++		goto out_free;
++	}
+ 	/*
+ 	 * chunksize from userspace should be power of 2.
+ 	 */
+@@ -711,14 +674,14 @@ static int ocfs2_info_handle_freefrag(st
+ 
+ 	if (o2info_to_user(*oiff, req)) {
+ 		status = -EFAULT;
+-		goto bail;
++		goto out_free;
+ 	}
+ 
+ 	status = 0;
+ bail:
+ 	if (status)
+ 		o2info_set_request_error(&oiff->iff_req, req);
+-
++out_free:
+ 	kfree(oiff);
+ out_err:
+ 	return status;
+@@ -727,23 +690,17 @@ out_err:
+ static int ocfs2_info_handle_unknown(struct inode *inode,
+ 				     struct ocfs2_info_request __user *req)
+ {
+-	int status = -EFAULT;
+ 	struct ocfs2_info_request oir;
+ 
+ 	if (o2info_from_user(oir, req))
+-		goto bail;
++		return -EFAULT;
+ 
+ 	o2info_clear_request_filled(&oir);
+ 
+ 	if (o2info_to_user(oir, req))
+-		goto bail;
