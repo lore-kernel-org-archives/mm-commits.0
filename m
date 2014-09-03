@@ -1,96 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-zpool-use-prefixed-module-loading.patch removed from
+Subject: [merged]
+ xattr-fix-check-for-simultaneous-glibc-header-inclusion.patch removed from
  -mm tree
-Date: Wed, 03 Sep 2014 10:57:29 -0700
-Message-ID: <54075689.+Nx8NJS0vyhc4aC7%akpm@linux-foundation.org>
+Date: Wed, 03 Sep 2014 10:57:39 -0700
+Message-ID: <54075693.DuTP60vhDm0trTic%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42843 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42874 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754927AbaICR5a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 13:57:30 -0400
+	with ESMTP id S1754877AbaICR5k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 13:57:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, ddstreet@ieee.org, minchan@kernel.org, ngupta@vflare.org, sjennings@variantweb.net, mm-commits@vger.kernel.org
+To: filbranden@google.com, allan@archlinux.org, serge.hallyn@ubuntu.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zpool: use prefixed module loading
+     Subject: xattr: fix check for simultaneous glibc header inclusion
 has been removed from the -mm tree.  Its filename was
-     mm-zpool-use-prefixed-module-loading.patch
+     xattr-fix-check-for-simultaneous-glibc-header-inclusion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm/zpool: use prefixed module loading
+From: Filipe Brandenburger <filbranden@google.com>
+Subject: xattr: fix check for simultaneous glibc header inclusion
 
-To avoid potential format string expansion via module parameters, do not
-use the zpool type directly in request_module() without a format string. 
-Additionally, to avoid arbitrary modules being loaded via zpool API (e.g. 
-via the zswap_zpool_type module parameter) add a "zpool-" prefix to the
-requested module, as well as module aliases for the existing zpool types
-(zbud and zsmalloc).
+The guard was introduced in ea1a8217b06b41 ("xattr: guard against
+simultaneous glibc header inclusion") but it is using #ifdef to check for
+a define that is either set to 1 or 0.  Fix it to use #if instead.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Seth Jennings <sjennings@variantweb.net>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Acked-by: Dan Streetman <ddstreet@ieee.org>
+* Without this patch:
+  $ { echo "#include <sys/xattr.h>"; echo "#include <linux/xattr.h>"; } | gcc -E -Iinclude/uapi - >/dev/null
+  include/uapi/linux/xattr.h:19:0: warning: "XATTR_CREATE" redefined [enabled by default]
+   #define XATTR_CREATE 0x1 /* set value, fail if attr already exists */
+   ^
+  /usr/include/x86_64-linux-gnu/sys/xattr.h:32:0: note: this is the location of the previous definition
+   #define XATTR_CREATE XATTR_CREATE
+   ^
+
+* With this patch:
+  $ { echo "#include <sys/xattr.h>"; echo "#include <linux/xattr.h>"; } | gcc -E -Iinclude/uapi - >/dev/null
+  (no warnings)
+
+Signed-off-by: Filipe Brandenburger <filbranden@google.com>
+Acked-by: Serge E. Hallyn <serge.hallyn@ubuntu.com>
+Cc: Allan McRae <allan@archlinux.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zbud.c     |    1 +
- mm/zpool.c    |    2 +-
- mm/zsmalloc.c |    1 +
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ include/uapi/linux/xattr.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zbud.c~mm-zpool-use-prefixed-module-loading mm/zbud.c
---- a/mm/zbud.c~mm-zpool-use-prefixed-module-loading
-+++ a/mm/zbud.c
-@@ -195,6 +195,7 @@ static struct zpool_driver zbud_zpool_dr
- 	.total_size =	zbud_zpool_total_size,
- };
+diff -puN include/uapi/linux/xattr.h~xattr-fix-check-for-simultaneous-glibc-header-inclusion include/uapi/linux/xattr.h
+--- a/include/uapi/linux/xattr.h~xattr-fix-check-for-simultaneous-glibc-header-inclusion
++++ a/include/uapi/linux/xattr.h
+@@ -13,7 +13,7 @@
+ #ifndef _UAPI_LINUX_XATTR_H
+ #define _UAPI_LINUX_XATTR_H
  
-+MODULE_ALIAS("zpool-zbud");
- #endif /* CONFIG_ZPOOL */
+-#ifdef __UAPI_DEF_XATTR
++#if __UAPI_DEF_XATTR
+ #define __USE_KERNEL_XATTR_DEFS
  
- /*****************
-diff -puN mm/zpool.c~mm-zpool-use-prefixed-module-loading mm/zpool.c
---- a/mm/zpool.c~mm-zpool-use-prefixed-module-loading
-+++ a/mm/zpool.c
-@@ -150,7 +150,7 @@ struct zpool *zpool_create_pool(char *ty
- 	driver = zpool_get_driver(type);
- 
- 	if (!driver) {
--		request_module(type);
-+		request_module("zpool-%s", type);
- 		driver = zpool_get_driver(type);
- 	}
- 
-diff -puN mm/zsmalloc.c~mm-zpool-use-prefixed-module-loading mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zpool-use-prefixed-module-loading
-+++ a/mm/zsmalloc.c
-@@ -315,6 +315,7 @@ static struct zpool_driver zs_zpool_driv
- 	.total_size =	zs_zpool_total_size,
- };
- 
-+MODULE_ALIAS("zpool-zsmalloc");
- #endif /* CONFIG_ZPOOL */
- 
- /* per-cpu VM mapping areas for zspage accesses that cross page boundaries */
+ #define XATTR_CREATE	0x1	/* set value, fail if attr already exists */
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from filbranden@google.com are
 
-mm-introduce-check_data_rlimit-helper-v2.patch
-mm-use-may_adjust_brk-helper.patch
-prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-lib-vsprintf-add-%pt-format-specifier.patch
-linux-next.patch
 
