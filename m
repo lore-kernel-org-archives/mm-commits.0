@@ -1,88 +1,320 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mm-use-memblock_alloc_range.patch removed from -mm
- tree
-Date: Wed, 03 Sep 2014 16:11:33 -0700
-Message-ID: <5407a025./JjPDrCFLubJVR6t%akpm@linux-foundation.org>
+Subject: + mm-clean-up-zone-flags.patch added to -mm tree
+Date: Wed, 03 Sep 2014 16:20:06 -0700
+Message-ID: <5407a226.yPLQWKkxEFrW7WW2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47064 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47091 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933673AbaICXLe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 19:11:34 -0400
+	with ESMTP id S934802AbaICXUM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2014 19:20:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mgorman@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use memblock_alloc_range()
-has been removed from the -mm tree.  Its filename was
-     mm-use-memblock_alloc_range.patch
+     Subject: mm: clean up zone flags
+has been added to the -mm tree.  Its filename is
+     mm-clean-up-zone-flags.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-clean-up-zone-flags.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clean-up-zone-flags.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: mm: use memblock_alloc_range()
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: clean up zone flags
 
-Replace memblock_find_in_range() and memblock_reserve() with
-the equivalent memblock_alloc_range().
+Page reclaim tests zone_is_reclaim_dirty(), but the site that actually
+sets this state does zone_set_flag(zone, ZONE_TAIL_LRU_DIRTY), sending the
+reader through layers indirection just to track down a simple bit.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Remove all zone flag wrappers and just use bitops against zone->flags
+directly.  It's just as readable and the lines are barely any longer.
+
+Also rename ZONE_TAIL_LRU_DIRTY to ZONE_DIRTY to match ZONE_WRITEBACK, and
+remove the zone_flags_t typedef.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ include/linux/mmzone.h |   51 ++-------------------------------------
+ mm/backing-dev.c       |    2 -
+ mm/oom_kill.c          |    6 ++--
+ mm/page_alloc.c        |    8 +++---
+ mm/vmscan.c            |   28 ++++++++++-----------
+ 5 files changed, 25 insertions(+), 70 deletions(-)
 
-diff -puN mm/memblock.c~mm-use-memblock_alloc_range mm/memblock.c
---- a/mm/memblock.c~mm-use-memblock_alloc_range
-+++ a/mm/memblock.c
-@@ -1154,21 +1154,16 @@ static void * __init memblock_virt_alloc
- 	if (WARN_ON_ONCE(slab_is_available()))
- 		return kzalloc_node(size, GFP_NOWAIT, nid);
+diff -puN include/linux/mmzone.h~mm-clean-up-zone-flags include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-clean-up-zone-flags
++++ a/include/linux/mmzone.h
+@@ -524,13 +524,13 @@ struct zone {
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
+ } ____cacheline_internodealigned_in_smp;
  
--	if (!align)
--		align = SMP_CACHE_BYTES;
+-typedef enum {
++enum zone_flags {
+ 	ZONE_RECLAIM_LOCKED,		/* prevents concurrent reclaim */
+ 	ZONE_OOM_LOCKED,		/* zone is in OOM killer zonelist */
+ 	ZONE_CONGESTED,			/* zone has many dirty pages backed by
+ 					 * a congested BDI
+ 					 */
+-	ZONE_TAIL_LRU_DIRTY,		/* reclaim scanning has recently found
++	ZONE_DIRTY,			/* reclaim scanning has recently found
+ 					 * many dirty file pages at the tail
+ 					 * of the LRU.
+ 					 */
+@@ -538,52 +538,7 @@ typedef enum {
+ 					 * many pages under writeback
+ 					 */
+ 	ZONE_FAIR_DEPLETED,		/* fair zone policy batch depleted */
+-} zone_flags_t;
 -
- 	if (max_addr > memblock.current_limit)
- 		max_addr = memblock.current_limit;
+-static inline void zone_set_flag(struct zone *zone, zone_flags_t flag)
+-{
+-	set_bit(flag, &zone->flags);
+-}
+-
+-static inline int zone_test_and_set_flag(struct zone *zone, zone_flags_t flag)
+-{
+-	return test_and_set_bit(flag, &zone->flags);
+-}
+-
+-static inline void zone_clear_flag(struct zone *zone, zone_flags_t flag)
+-{
+-	clear_bit(flag, &zone->flags);
+-}
+-
+-static inline int zone_is_reclaim_congested(const struct zone *zone)
+-{
+-	return test_bit(ZONE_CONGESTED, &zone->flags);
+-}
+-
+-static inline int zone_is_reclaim_dirty(const struct zone *zone)
+-{
+-	return test_bit(ZONE_TAIL_LRU_DIRTY, &zone->flags);
+-}
+-
+-static inline int zone_is_reclaim_writeback(const struct zone *zone)
+-{
+-	return test_bit(ZONE_WRITEBACK, &zone->flags);
+-}
+-
+-static inline int zone_is_reclaim_locked(const struct zone *zone)
+-{
+-	return test_bit(ZONE_RECLAIM_LOCKED, &zone->flags);
+-}
+-
+-static inline int zone_is_fair_depleted(const struct zone *zone)
+-{
+-	return test_bit(ZONE_FAIR_DEPLETED, &zone->flags);
+-}
+-
+-static inline int zone_is_oom_locked(const struct zone *zone)
+-{
+-	return test_bit(ZONE_OOM_LOCKED, &zone->flags);
+-}
++};
  
- again:
--	alloc = memblock_find_in_range_node(size, align, min_addr, max_addr,
--					    nid);
-+	alloc = memblock_alloc_range_nid(size, align, min_addr, max_addr, nid);
- 	if (alloc)
- 		goto done;
+ static inline unsigned long zone_end_pfn(const struct zone *zone)
+ {
+diff -puN mm/backing-dev.c~mm-clean-up-zone-flags mm/backing-dev.c
+--- a/mm/backing-dev.c~mm-clean-up-zone-flags
++++ a/mm/backing-dev.c
+@@ -631,7 +631,7 @@ long wait_iff_congested(struct zone *zon
+ 	 * of sleeping on the congestion queue
+ 	 */
+ 	if (atomic_read(&nr_bdi_congested[sync]) == 0 ||
+-			!zone_is_reclaim_congested(zone)) {
++	    !test_bit(ZONE_CONGESTED, &zone->flags)) {
+ 		cond_resched();
  
- 	if (nid != NUMA_NO_NODE) {
--		alloc = memblock_find_in_range_node(size, align, min_addr,
--						    max_addr,  NUMA_NO_NODE);
-+		alloc = memblock_alloc_range(size, align, min_addr, max_addr);
- 		if (alloc)
- 			goto done;
+ 		/* In case we scheduled, work out time remaining */
+diff -puN mm/oom_kill.c~mm-clean-up-zone-flags mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-clean-up-zone-flags
++++ a/mm/oom_kill.c
+@@ -565,7 +565,7 @@ bool oom_zonelist_trylock(struct zonelis
+ 
+ 	spin_lock(&zone_scan_lock);
+ 	for_each_zone_zonelist(zone, z, zonelist, gfp_zone(gfp_mask))
+-		if (zone_is_oom_locked(zone)) {
++		if (test_bit(ZONE_OOM_LOCKED, &zone->flags)) {
+ 			ret = false;
+ 			goto out;
+ 		}
+@@ -575,7 +575,7 @@ bool oom_zonelist_trylock(struct zonelis
+ 	 * call to oom_zonelist_trylock() doesn't succeed when it shouldn't.
+ 	 */
+ 	for_each_zone_zonelist(zone, z, zonelist, gfp_zone(gfp_mask))
+-		zone_set_flag(zone, ZONE_OOM_LOCKED);
++		set_bit(ZONE_OOM_LOCKED, &zone->flags);
+ 
+ out:
+ 	spin_unlock(&zone_scan_lock);
+@@ -594,7 +594,7 @@ void oom_zonelist_unlock(struct zonelist
+ 
+ 	spin_lock(&zone_scan_lock);
+ 	for_each_zone_zonelist(zone, z, zonelist, gfp_zone(gfp_mask))
+-		zone_clear_flag(zone, ZONE_OOM_LOCKED);
++		clear_bit(ZONE_OOM_LOCKED, &zone->flags);
+ 	spin_unlock(&zone_scan_lock);
+ }
+ 
+diff -puN mm/page_alloc.c~mm-clean-up-zone-flags mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-clean-up-zone-flags
++++ a/mm/page_alloc.c
+@@ -1613,8 +1613,8 @@ again:
+ 
+ 	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
+ 	if (zone_page_state(zone, NR_ALLOC_BATCH) == 0 &&
+-	    !zone_is_fair_depleted(zone))
+-		zone_set_flag(zone, ZONE_FAIR_DEPLETED);
++	    !test_bit(ZONE_FAIR_DEPLETED, &zone->flags))
++		set_bit(ZONE_FAIR_DEPLETED, &zone->flags);
+ 
+ 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
+ 	zone_statistics(preferred_zone, zone, gfp_flags);
+@@ -1934,7 +1934,7 @@ static void reset_alloc_batches(struct z
+ 		mod_zone_page_state(zone, NR_ALLOC_BATCH,
+ 			high_wmark_pages(zone) - low_wmark_pages(zone) -
+ 			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
+-		zone_clear_flag(zone, ZONE_FAIR_DEPLETED);
++		clear_bit(ZONE_FAIR_DEPLETED, &zone->flags);
+ 	} while (zone++ != preferred_zone);
+ }
+ 
+@@ -1985,7 +1985,7 @@ zonelist_scan:
+ 		if (alloc_flags & ALLOC_FAIR) {
+ 			if (!zone_local(preferred_zone, zone))
+ 				break;
+-			if (zone_is_fair_depleted(zone)) {
++			if (test_bit(ZONE_FAIR_DEPLETED, &zone->flags)) {
+ 				nr_fair_skipped++;
+ 				continue;
+ 			}
+diff -puN mm/vmscan.c~mm-clean-up-zone-flags mm/vmscan.c
+--- a/mm/vmscan.c~mm-clean-up-zone-flags
++++ a/mm/vmscan.c
+@@ -920,7 +920,7 @@ static unsigned long shrink_page_list(st
+ 			/* Case 1 above */
+ 			if (current_is_kswapd() &&
+ 			    PageReclaim(page) &&
+-			    zone_is_reclaim_writeback(zone)) {
++			    test_bit(ZONE_WRITEBACK, &zone->flags)) {
+ 				nr_immediate++;
+ 				goto keep_locked;
+ 
+@@ -1002,7 +1002,7 @@ static unsigned long shrink_page_list(st
+ 			 */
+ 			if (page_is_file_cache(page) &&
+ 					(!current_is_kswapd() ||
+-					 !zone_is_reclaim_dirty(zone))) {
++					 !test_bit(ZONE_DIRTY, &zone->flags))) {
+ 				/*
+ 				 * Immediately reclaim when written back.
+ 				 * Similar in principal to deactivate_page()
+@@ -1563,7 +1563,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	 * are encountered in the nr_immediate check below.
+ 	 */
+ 	if (nr_writeback && nr_writeback == nr_taken)
+-		zone_set_flag(zone, ZONE_WRITEBACK);
++		set_bit(ZONE_WRITEBACK, &zone->flags);
+ 
+ 	/*
+ 	 * memcg will stall in page writeback so only consider forcibly
+@@ -1575,16 +1575,16 @@ shrink_inactive_list(unsigned long nr_to
+ 		 * backed by a congested BDI and wait_iff_congested will stall.
+ 		 */
+ 		if (nr_dirty && nr_dirty == nr_congested)
+-			zone_set_flag(zone, ZONE_CONGESTED);
++			set_bit(ZONE_CONGESTED, &zone->flags);
+ 
+ 		/*
+ 		 * If dirty pages are scanned that are not queued for IO, it
+ 		 * implies that flushers are not keeping up. In this case, flag
+-		 * the zone ZONE_TAIL_LRU_DIRTY and kswapd will start writing
+-		 * pages from reclaim context.
++		 * the zone ZONE_DIRTY and kswapd will start writing pages from
++		 * reclaim context.
+ 		 */
+ 		if (nr_unqueued_dirty == nr_taken)
+-			zone_set_flag(zone, ZONE_TAIL_LRU_DIRTY);
++			set_bit(ZONE_DIRTY, &zone->flags);
+ 
+ 		/*
+ 		 * If kswapd scans pages marked marked for immediate
+@@ -2984,7 +2984,7 @@ static bool kswapd_shrink_zone(struct zo
+ 	/* Account for the number of pages attempted to reclaim */
+ 	*nr_attempted += sc->nr_to_reclaim;
+ 
+-	zone_clear_flag(zone, ZONE_WRITEBACK);
++	clear_bit(ZONE_WRITEBACK, &zone->flags);
+ 
+ 	/*
+ 	 * If a zone reaches its high watermark, consider it to be no longer
+@@ -2994,8 +2994,8 @@ static bool kswapd_shrink_zone(struct zo
+ 	 */
+ 	if (zone_reclaimable(zone) &&
+ 	    zone_balanced(zone, testorder, 0, classzone_idx)) {
+-		zone_clear_flag(zone, ZONE_CONGESTED);
+-		zone_clear_flag(zone, ZONE_TAIL_LRU_DIRTY);
++		clear_bit(ZONE_CONGESTED, &zone->flags);
++		clear_bit(ZONE_DIRTY, &zone->flags);
  	}
-@@ -1181,7 +1176,6 @@ again:
- 	}
  
- done:
--	memblock_reserve(alloc, size);
- 	ptr = phys_to_virt(alloc);
- 	memset(ptr, 0, size);
+ 	return sc->nr_scanned >= sc->nr_to_reclaim;
+@@ -3086,8 +3086,8 @@ static unsigned long balance_pgdat(pg_da
+ 				 * If balanced, clear the dirty and congested
+ 				 * flags
+ 				 */
+-				zone_clear_flag(zone, ZONE_CONGESTED);
+-				zone_clear_flag(zone, ZONE_TAIL_LRU_DIRTY);
++				clear_bit(ZONE_CONGESTED, &zone->flags);
++				clear_bit(ZONE_DIRTY, &zone->flags);
+ 			}
+ 		}
  
+@@ -3714,11 +3714,11 @@ int zone_reclaim(struct zone *zone, gfp_
+ 	if (node_state(node_id, N_CPU) && node_id != numa_node_id())
+ 		return ZONE_RECLAIM_NOSCAN;
+ 
+-	if (zone_test_and_set_flag(zone, ZONE_RECLAIM_LOCKED))
++	if (test_and_set_bit(ZONE_RECLAIM_LOCKED, &zone->flags))
+ 		return ZONE_RECLAIM_NOSCAN;
+ 
+ 	ret = __zone_reclaim(zone, gfp_mask, order);
+-	zone_clear_flag(zone, ZONE_RECLAIM_LOCKED);
++	clear_bit(ZONE_RECLAIM_LOCKED, &zone->flags);
+ 
+ 	if (!ret)
+ 		count_vm_event(PGSCAN_ZONE_RECLAIM_FAILED);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-vfs-make-guard_bh_eod-more-generic.patch
-vfs-guard-end-of-device-for-mpage-interface.patch
-block_dev-implement-readpages-to-optimize-sequential-read.patch
-linux-next.patch
+mm-remove-misleading-arch_uses_numa_prot_none.patch
+mm-page_alloc-determine-migratetype-only-once.patch
+mm-remove-noisy-remainder-of-the-scan_unevictable-interface.patch
+mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
+mm-clean-up-zone-flags.patch
+debugging-keep-track-of-page-owners.patch
 
