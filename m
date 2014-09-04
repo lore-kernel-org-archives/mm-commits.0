@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-add-support-for-gcc-5.patch added to -mm tree
-Date: Thu, 04 Sep 2014 14:12:51 -0700
-Message-ID: <5408d5d3.G89qfjltyTmmG9DL%akpm__35352.9440508739$1409865183$gmane$org@linux-foundation.org>
+Subject: + kernel-add-support-for-gcc-5-checkpatch-fixes.patch added to
+ -mm tree
+Date: Thu, 04 Sep 2014 14:14:24 -0700
+Message-ID: <5408d630.vF1iGWnpPEoRI1v6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55884 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755316AbaIDVMw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2014 17:12:52 -0400
+	with ESMTP id S1755619AbaIDVOZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2014 17:14:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel: add support for gcc 5
+     Subject: kernel-add-support-for-gcc-5-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     kernel-add-support-for-gcc-5.patch
+     kernel-add-support-for-gcc-5-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-add-support-for-gcc-5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-add-support-for-gcc-5-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-add-support-for-gcc-5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-add-support-for-gcc-5-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,111 +39,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: kernel: add support for gcc 5
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-add-support-for-gcc-5-checkpatch-fixes
 
-We're missing include/linux/compiler-gcc5.h which is required now
-because gcc branched off to v5 in trunk.
+WARNING: line over 80 characters
+#25: FILE: include/linux/compiler-gcc5.h:2:
++#error "Please don't include <linux/compiler-gcc5.h> directly, include <linux/compiler.h> instead."
 
-Just copy the relevant bits out of include/linux/compiler-gcc4.h,
-no new code is added as of now.
+WARNING: please, no space before tabs
+#29: FILE: include/linux/compiler-gcc5.h:6:
++#define __must_check ^I^I__attribute__((warn_unused_result))$
 
-This fixes a build error when using gcc 5.
+ERROR: space required after that ',' (ctx:VxV)
+#30: FILE: include/linux/compiler-gcc5.h:7:
++#define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
+                              ^
 
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: <stable@vger.kernel.org>
+ERROR: space required after that ',' (ctx:VxV)
+#30: FILE: include/linux/compiler-gcc5.h:7:
++#define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
+                                                      ^
+
+total: 2 errors, 2 warnings, 66 lines checked
+
+./patches/kernel-add-support-for-gcc-5.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc5.h |   66 ++++++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ include/linux/compiler-gcc5.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN /dev/null include/linux/compiler-gcc5.h
---- /dev/null
+diff -puN include/linux/compiler-gcc5.h~kernel-add-support-for-gcc-5-checkpatch-fixes include/linux/compiler-gcc5.h
+--- a/include/linux/compiler-gcc5.h~kernel-add-support-for-gcc-5-checkpatch-fixes
 +++ a/include/linux/compiler-gcc5.h
-@@ -0,0 +1,66 @@
-+#ifndef __LINUX_COMPILER_H
-+#error "Please don't include <linux/compiler-gcc5.h> directly, include <linux/compiler.h> instead."
-+#endif
-+
-+#define __used			__attribute__((__used__))
-+#define __must_check 		__attribute__((warn_unused_result))
-+#define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
-+
-+/* Mark functions as cold. gcc will assume any path leading to a call
-+   to them will be unlikely.  This means a lot of manual unlikely()s
-+   are unnecessary now for any paths leading to the usual suspects
-+   like BUG(), printk(), panic() etc. [but let's keep them for now for
-+   older compilers]
-+
-+   Early snapshots of gcc 4.3 don't support this and we can't detect this
-+   in the preprocessor, but we can live with this because they're unreleased.
-+   Maketime probing would be overkill here.
-+
-+   gcc also has a __attribute__((__hot__)) to move hot functions into
-+   a special section, but I don't see any sense in this right now in
-+   the kernel context */
-+#define __cold			__attribute__((__cold__))
-+
-+#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
-+
-+#ifndef __CHECKER__
-+# define __compiletime_warning(message) __attribute__((warning(message)))
-+# define __compiletime_error(message) __attribute__((error(message)))
-+#endif /* __CHECKER__ */
-+
-+/*
-+ * Mark a position in code as unreachable.  This can be used to
-+ * suppress control flow warnings after asm blocks that transfer
-+ * control elsewhere.
-+ *
-+ * Early snapshots of gcc 4.5 don't support this and we can't detect
-+ * this in the preprocessor, but we can live with this because they're
-+ * unreleased.  Really, we need to have autoconf for the kernel.
-+ */
-+#define unreachable() __builtin_unreachable()
-+
-+/* Mark a function definition as prohibited from being cloned. */
-+#define __noclone	__attribute__((__noclone__))
-+
-+/*
-+ * Tell the optimizer that something else uses this function or variable.
-+ */
-+#define __visible __attribute__((externally_visible))
-+
-+/*
-+ * GCC 'asm goto' miscompiles certain code sequences:
-+ *
-+ *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58670
-+ *
-+ * Work it around via a compiler barrier quirk suggested by Jakub Jelinek.
-+ * Fixed in GCC 4.8.2 and later versions.
-+ *
-+ * (asm goto is automatically volatile - the naming reflects this.)
-+ */
-+#define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
-+
-+#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
-+#define __HAVE_BUILTIN_BSWAP32__
-+#define __HAVE_BUILTIN_BSWAP64__
-+#define __HAVE_BUILTIN_BSWAP16__
-+#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
+@@ -2,9 +2,9 @@
+ #error "Please don't include <linux/compiler-gcc5.h> directly, include <linux/compiler.h> instead."
+ #endif
+ 
+-#define __used			__attribute__((__used__))
+-#define __must_check 		__attribute__((warn_unused_result))
+-#define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
++#define __used				__attribute__((__used__))
++#define __must_check			__attribute__((warn_unused_result))
++#define __compiler_offsetof(a, b)	__builtin_offsetof(a, b)
+ 
+ /* Mark functions as cold. gcc will assume any path leading to a call
+    to them will be unlikely.  This means a lot of manual unlikely()s
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmap-use-pr_emerg-when-printing-bug-related-information.patch
-kernel-add-support-for-gcc-5.patch
-mm-balloon_compaction-ignore-anonymous-pages.patch
-introduce-dump_vma.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
+mm-slab_commonc-suppress-warning.patch
+kernel-add-support-for-gcc-5-checkpatch-fixes.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
+mm-introduce-common-page-state-for-ballooned-memory-fix.patch
+mm-balloon_compaction-use-common-page-ballooning-fix.patch
+mm-balloon_compaction-general-cleanup-fix.patch
+mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
 introduce-dump_vma-fix.patch
-introduce-dump_vma-fix-2.patch
-introduce-vm_bug_on_vma.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
 convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
 mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-vmstat-on-demand-vmstat-workers-v8-fix-2.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+lib-string_helpers-introduce-string_escape_mem-fix.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
