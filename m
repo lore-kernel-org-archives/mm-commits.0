@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-allow-optional-shorter-config-descriptions.patch
- added to -mm tree
-Date: Thu, 04 Sep 2014 14:06:56 -0700
-Message-ID: <5408d470.1eKu2/OokK4Zt4/3%akpm@linux-foundation.org>
+Subject: + kernel-add-support-for-gcc-5.patch added to -mm tree
+Date: Thu, 04 Sep 2014 14:12:51 -0700
+Message-ID: <5408d5d3.G89qfjltyTmmG9DL%akpm__35352.9440508739$1409865183$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55817 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55878 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751960AbaIDVG5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2014 17:06:57 -0400
+	with ESMTP id S1755316AbaIDVMw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2014 17:12:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbendeb@chromium.org, joe@perches.com, mm-commits@vger.kernel.org
+To: sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: allow optional shorter config descriptions
+     Subject: kernel: add support for gcc 5
 has been added to the -mm tree.  Its filename is
-     checkpatch-allow-optional-shorter-config-descriptions.patch
+     kernel-add-support-for-gcc-5.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-allow-optional-shorter-config-descriptions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-add-support-for-gcc-5.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-allow-optional-shorter-config-descriptions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-add-support-for-gcc-5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +38,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vadim Bendebury <vbendeb@chromium.org>
-Subject: checkpatch: allow optional shorter config descriptions
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: kernel: add support for gcc 5
 
-This script is used by many other projects, and in some of them the
-requirement of at least 4 line long description for all Kconfig items is
-excessive.  This patch adds a command line option to control the required
-minimum length.
+We're missing include/linux/compiler-gcc5.h which is required now
+because gcc branched off to v5 in trunk.
 
-Tested running this script over a patch including a two line config
-description.  The script generated a warning when invoked as is, and did
-not generate it when invoked with --min-conf-desc-length=2.
+Just copy the relevant bits out of include/linux/compiler-gcc4.h,
+no new code is added as of now.
 
-Signed-off-by: Vadim Bendebury <vbendeb@chromium.org>
-Cc: Joe Perches <joe@perches.com>
+This fixes a build error when using gcc 5.
+
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ include/linux/compiler-gcc5.h |   66 ++++++++++++++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-optional-shorter-config-descriptions scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-optional-shorter-config-descriptions
-+++ a/scripts/checkpatch.pl
-@@ -43,6 +43,7 @@ my $configuration_file = ".checkpatch.co
- my $max_line_length = 80;
- my $ignore_perl_version = 0;
- my $minimum_perl_version = 5.10.0;
-+my $min_conf_desc_length = 4;
- 
- sub help {
- 	my ($exitcode) = @_;
-@@ -63,6 +64,7 @@ Options:
-   --types TYPE(,TYPE2...)    show only these comma separated message types
-   --ignore TYPE(,TYPE2...)   ignore various comma separated message types
-   --max-line-length=n        set the maximum line length, if exceeded, warn
-+  --min-conf-desc-length=n   set the min description length, if shorter, warn
-   --show-types               show the message "types" in the output
-   --root=PATH                PATH to the kernel tree root
-   --no-summary               suppress the per-file summary
-@@ -131,6 +133,7 @@ GetOptions(
- 	'types=s'	=> \@use,
- 	'show-types!'	=> \$show_types,
- 	'max-line-length=i' => \$max_line_length,
-+	'min-conf-desc-length=i' => \$min_conf_desc_length,
- 	'root=s'	=> \$root,
- 	'summary!'	=> \$summary,
- 	'mailback!'	=> \$mailback,
-@@ -2285,8 +2288,10 @@ sub process {
- 				}
- 				$length++;
- 			}
--			WARN("CONFIG_DESCRIPTION",
--			     "please write a paragraph that describes the config symbol fully\n" . $herecurr) if ($is_start && $is_end && $length < 4);
-+			if ($is_start && $is_end && $length < $min_conf_desc_length) {
-+				WARN("CONFIG_DESCRIPTION",
-+				     "please write a paragraph that describes the config symbol fully\n" . $herecurr)
-+			}
- 			#print "is_start<$is_start> is_end<$is_end> length<$length>\n";
- 		}
- 
+diff -puN /dev/null include/linux/compiler-gcc5.h
+--- /dev/null
++++ a/include/linux/compiler-gcc5.h
+@@ -0,0 +1,66 @@
++#ifndef __LINUX_COMPILER_H
++#error "Please don't include <linux/compiler-gcc5.h> directly, include <linux/compiler.h> instead."
++#endif
++
++#define __used			__attribute__((__used__))
++#define __must_check 		__attribute__((warn_unused_result))
++#define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
++
++/* Mark functions as cold. gcc will assume any path leading to a call
++   to them will be unlikely.  This means a lot of manual unlikely()s
++   are unnecessary now for any paths leading to the usual suspects
++   like BUG(), printk(), panic() etc. [but let's keep them for now for
++   older compilers]
++
++   Early snapshots of gcc 4.3 don't support this and we can't detect this
++   in the preprocessor, but we can live with this because they're unreleased.
++   Maketime probing would be overkill here.
++
++   gcc also has a __attribute__((__hot__)) to move hot functions into
++   a special section, but I don't see any sense in this right now in
++   the kernel context */
++#define __cold			__attribute__((__cold__))
++
++#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
++
++#ifndef __CHECKER__
++# define __compiletime_warning(message) __attribute__((warning(message)))
++# define __compiletime_error(message) __attribute__((error(message)))
++#endif /* __CHECKER__ */
++
++/*
++ * Mark a position in code as unreachable.  This can be used to
++ * suppress control flow warnings after asm blocks that transfer
++ * control elsewhere.
++ *
++ * Early snapshots of gcc 4.5 don't support this and we can't detect
++ * this in the preprocessor, but we can live with this because they're
++ * unreleased.  Really, we need to have autoconf for the kernel.
++ */
++#define unreachable() __builtin_unreachable()
++
++/* Mark a function definition as prohibited from being cloned. */
++#define __noclone	__attribute__((__noclone__))
++
++/*
++ * Tell the optimizer that something else uses this function or variable.
++ */
++#define __visible __attribute__((externally_visible))
++
++/*
++ * GCC 'asm goto' miscompiles certain code sequences:
++ *
++ *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58670
++ *
++ * Work it around via a compiler barrier quirk suggested by Jakub Jelinek.
++ * Fixed in GCC 4.8.2 and later versions.
++ *
++ * (asm goto is automatically volatile - the naming reflects this.)
++ */
++#define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
++
++#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
++#define __HAVE_BUILTIN_BSWAP32__
++#define __HAVE_BUILTIN_BSWAP64__
++#define __HAVE_BUILTIN_BSWAP16__
++#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
 _
 
-Patches currently in -mm which might be from vbendeb@chromium.org are
+Patches currently in -mm which might be from sasha.levin@oracle.com are
 
-checkpatch-allow-optional-shorter-config-descriptions.patch
+mm-mmap-use-pr_emerg-when-printing-bug-related-information.patch
+kernel-add-support-for-gcc-5.patch
+mm-balloon_compaction-ignore-anonymous-pages.patch
+introduce-dump_vma.patch
+introduce-dump_vma-fix.patch
+introduce-dump_vma-fix-2.patch
+introduce-vm_bug_on_vma.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+vmstat-on-demand-vmstat-workers-v8-fix-2.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
 
