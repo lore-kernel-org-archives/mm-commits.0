@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-use-non-movable-memory-for-the-ext4-superblock.patch added to -mm tree
-Date: Thu, 04 Sep 2014 15:18:04 -0700
-Message-ID: <5408e51c.rkW2KI80ZAyjooqG%akpm@linux-foundation.org>
+Subject: + jbd-jbd2-use-non-movable-memory-for-the-jbd-superblock.patch
+ added to -mm tree
+Date: Thu, 04 Sep 2014 15:18:05 -0700
+Message-ID: <5408e51d.siw0/qXZNzzN3UwG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56625 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755223AbaIDWSF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2014 18:18:05 -0400
+	with ESMTP id S1755223AbaIDWSH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2014 18:18:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: gioh.kim@lge.com, adilger.kernel@dilger.ca, gunho.lee@lge.com, jack@suse.cz, js1304@gmail.com, minchan@kernel.org, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: use non-movable memory for the ext4 superblock
+     Subject: jbd/jbd2: use non-movable memory for the jbd superblock
 has been added to the -mm tree.  Its filename is
-     ext4-use-non-movable-memory-for-the-ext4-superblock.patch
+     jbd-jbd2-use-non-movable-memory-for-the-jbd-superblock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ext4-use-non-movable-memory-for-the-ext4-superblock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/jbd-jbd2-use-non-movable-memory-for-the-jbd-superblock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ext4-use-non-movable-memory-for-the-ext4-superblock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/jbd-jbd2-use-non-movable-memory-for-the-jbd-superblock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,11 +40,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Gioh Kim <gioh.kim@lge.com>
-Subject: ext4: use non-movable memory for the ext4 superblock
+Subject: jbd/jbd2: use non-movable memory for the jbd superblock
 
-A buffer-cache for superblock is disturbing page migration, because the
-buffer-cache is not released until unmount.  The buffer-cache must be
+A long-lasting buffer-cache can distrub page migration so that it must be
 allocated from non-movable area.
+
+The journal_init_inode is creating a buffer-cache for superblock
+journaling.  The superblock exists until system shutdown so that the
+buffer-cache for the superblock would also exist for a long time and it
+can distrub page migration.
+
+This patch make the buffer-cache be allocated from non-movable area not to
+distrub page migration.
 
 Signed-off-by: Gioh Kim <gioh.kim@lge.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
@@ -56,39 +64,34 @@ Cc: Gunho Lee <gunho.lee@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/jbd/journal.c  |    2 +-
+ fs/jbd2/journal.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext4/super.c~ext4-use-non-movable-memory-for-the-ext4-superblock fs/ext4/super.c
---- a/fs/ext4/super.c~ext4-use-non-movable-memory-for-the-ext4-superblock
-+++ a/fs/ext4/super.c
-@@ -3436,7 +3436,7 @@ static int ext4_fill_super(struct super_
- 		logical_sb_block = sb_block;
+diff -puN fs/jbd/journal.c~jbd-jbd2-use-non-movable-memory-for-the-jbd-superblock fs/jbd/journal.c
+--- a/fs/jbd/journal.c~jbd-jbd2-use-non-movable-memory-for-the-jbd-superblock
++++ a/fs/jbd/journal.c
+@@ -886,7 +886,7 @@ journal_t * journal_init_inode (struct i
+ 		goto out_err;
  	}
  
--	if (!(bh = sb_bread(sb, logical_sb_block))) {
-+	if (!(bh = sb_bread_unmovable(sb, logical_sb_block))) {
- 		ext4_msg(sb, KERN_ERR, "unable to read superblock");
- 		goto out_fail;
+-	bh = __getblk(journal->j_dev, blocknr, journal->j_blocksize);
++	bh = getblk_unmovable(journal->j_dev, blocknr, journal->j_blocksize);
+ 	if (!bh) {
+ 		printk(KERN_ERR
+ 		       "%s: Cannot get buffer for journal superblock\n",
+diff -puN fs/jbd2/journal.c~jbd-jbd2-use-non-movable-memory-for-the-jbd-superblock fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~jbd-jbd2-use-non-movable-memory-for-the-jbd-superblock
++++ a/fs/jbd2/journal.c
+@@ -1237,7 +1237,7 @@ journal_t * jbd2_journal_init_inode (str
+ 		goto out_err;
  	}
-@@ -3646,7 +3646,7 @@ static int ext4_fill_super(struct super_
- 		brelse(bh);
- 		logical_sb_block = sb_block * EXT4_MIN_BLOCK_SIZE;
- 		offset = do_div(logical_sb_block, blocksize);
--		bh = sb_bread(sb, logical_sb_block);
-+		bh = sb_bread_unmovable(sb, logical_sb_block);
- 		if (!bh) {
- 			ext4_msg(sb, KERN_ERR,
- 			       "Can't read superblock on 2nd try");
-@@ -3868,7 +3868,7 @@ static int ext4_fill_super(struct super_
  
- 	for (i = 0; i < db_count; i++) {
- 		block = descriptor_loc(sb, logical_sb_block, i);
--		sbi->s_group_desc[i] = sb_bread(sb, block);
-+		sbi->s_group_desc[i] = sb_bread_unmovable(sb, block);
- 		if (!sbi->s_group_desc[i]) {
- 			ext4_msg(sb, KERN_ERR,
- 			       "can't read group descriptor %d", i);
+-	bh = __getblk(journal->j_dev, blocknr, journal->j_blocksize);
++	bh = getblk_unmovable(journal->j_dev, blocknr, journal->j_blocksize);
+ 	if (!bh) {
+ 		printk(KERN_ERR
+ 		       "%s: Cannot get buffer for journal superblock\n",
 _
 
 Patches currently in -mm which might be from gioh.kim@lge.com are
