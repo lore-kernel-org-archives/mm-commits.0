@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix.patch added to -mm tree
-Date: Fri, 05 Sep 2014 13:02:19 -0700
-Message-ID: <540a16cb.F5whPfmiVFTGf6EQ%akpm@linux-foundation.org>
+Subject: + ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt.patch added to -mm tree
+Date: Fri, 05 Sep 2014 13:10:31 -0700
+Message-ID: <540a18b7.3Fn7fs+FO4bTYA1F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41882 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41893 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750869AbaIEUCU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 16:02:20 -0400
+	with ESMTP id S1752670AbaIEUKc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 16:10:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix
+     Subject: ocfs2/dlm: refactor error handling in dlm_alloc_ctxt
 has been added to the -mm tree.  Its filename is
-     mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix.patch
+     ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,75 +38,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2/dlm: refactor error handling in dlm_alloc_ctxt
 
-move up memcontrol.h header to fix build failure if CONFIG_MEMCG_KMEM=y too.
+Refactoring error handling in dlm_alloc_ctxt to simplify code.
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Alex Chen <alex.chen@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmdomain.c |   42 +++++++++++++++++++------------------
+ 1 file changed, 22 insertions(+), 20 deletions(-)
 
-diff -puN mm/kmemcheck.c~mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix mm/kmemcheck.c
-diff -puN mm/slab.h~mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix mm/slab.h
---- a/mm/slab.h~mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix
-+++ a/mm/slab.h
-@@ -37,6 +37,8 @@ struct kmem_cache {
- #include <linux/slub_def.h>
- #endif
+diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -1975,24 +1975,22 @@ static struct dlm_ctxt *dlm_alloc_ctxt(c
  
-+#include <linux/memcontrol.h>
+ 	dlm = kzalloc(sizeof(*dlm), GFP_KERNEL);
+ 	if (!dlm) {
+-		mlog_errno(-ENOMEM);
++		ret = -ENOMEM;
++		mlog_errno(ret);
+ 		goto leave;
+ 	}
+ 
+ 	dlm->name = kstrdup(domain, GFP_KERNEL);
+ 	if (dlm->name == NULL) {
+-		mlog_errno(-ENOMEM);
+-		kfree(dlm);
+-		dlm = NULL;
++		ret = -ENOMEM;
++		mlog_errno(ret);
+ 		goto leave;
+ 	}
+ 
+ 	dlm->lockres_hash = (struct hlist_head **)dlm_alloc_pagevec(DLM_HASH_PAGES);
+ 	if (!dlm->lockres_hash) {
+-		mlog_errno(-ENOMEM);
+-		kfree(dlm->name);
+-		kfree(dlm);
+-		dlm = NULL;
++		ret = -ENOMEM;
++		mlog_errno(ret);
+ 		goto leave;
+ 	}
+ 
+@@ -2002,11 +2000,8 @@ static struct dlm_ctxt *dlm_alloc_ctxt(c
+ 	dlm->master_hash = (struct hlist_head **)
+ 				dlm_alloc_pagevec(DLM_HASH_PAGES);
+ 	if (!dlm->master_hash) {
+-		mlog_errno(-ENOMEM);
+-		dlm_free_pagevec((void **)dlm->lockres_hash, DLM_HASH_PAGES);
+-		kfree(dlm->name);
+-		kfree(dlm);
+-		dlm = NULL;
++		ret = -ENOMEM;
++		mlog_errno(ret);
+ 		goto leave;
+ 	}
+ 
+@@ -2017,14 +2012,8 @@ static struct dlm_ctxt *dlm_alloc_ctxt(c
+ 	dlm->node_num = o2nm_this_node();
+ 
+ 	ret = dlm_create_debugfs_subroot(dlm);
+-	if (ret < 0) {
+-		dlm_free_pagevec((void **)dlm->master_hash, DLM_HASH_PAGES);
+-		dlm_free_pagevec((void **)dlm->lockres_hash, DLM_HASH_PAGES);
+-		kfree(dlm->name);
+-		kfree(dlm);
+-		dlm = NULL;
++	if (ret < 0)
+ 		goto leave;
+-	}
+ 
+ 	spin_lock_init(&dlm->spinlock);
+ 	spin_lock_init(&dlm->master_lock);
+@@ -2085,6 +2074,19 @@ static struct dlm_ctxt *dlm_alloc_ctxt(c
+ 		  atomic_read(&dlm->dlm_refs.refcount));
+ 
+ leave:
++	if (ret < 0 && dlm) {
++		if (dlm->master_hash)
++			dlm_free_pagevec((void **)dlm->master_hash,
++					DLM_HASH_PAGES);
 +
- /*
-  * State of the slab allocator.
-  *
-@@ -268,8 +270,6 @@ static inline void memcg_uncharge_slab(s
++		if (dlm->lockres_hash)
++			dlm_free_pagevec((void **)dlm->lockres_hash,
++					DLM_HASH_PAGES);
++
++		kfree(dlm->name);
++		kfree(dlm);
++		dlm = NULL;
++	}
+ 	return dlm;
  }
- #endif
  
--#include <linux/memcontrol.h>
--
- static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
- {
- 	struct kmem_cache *cachep;
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-mm-slab_commonc-suppress-warning.patch
-mm-cma-adjust-address-limit-to-avoid-hitting-low-high-memory-boundary.patch
-arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix.patch
-mm-slb-always-track-caller-in-kmalloc_node_track_caller.patch
-mm-slab-move-cache_flusharray-out-of-unlikelytext-section.patch
-mm-slab-noinline-__ac_put_obj.patch
-mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
-slub-disable-tracing-and-failslab-for-merged-slabs.patch
-mm-page_alloc-determine-migratetype-only-once.patch
-mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
-mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
-mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
-mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
-mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
-mm-rename-allocflags_to_migratetype-for-clarity.patch
-mm-compaction-pass-gfp-mask-to-compact_control.patch
-mm-use-__seq_open_private-instead-of-seq_open.patch
-zsmalloc-move-pages_allocated-to-zs_pool.patch
-zsmalloc-change-return-value-unit-of-zs_get_total_size_bytes.patch
-zram-zram-memory-size-limitation.patch
-zram-report-maximum-used-memory.patch
-page-owners-correct-page-order-when-to-free-page.patch
+ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt.patch
+ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
+ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq.patch
 
