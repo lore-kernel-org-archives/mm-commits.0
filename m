@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- checkpatch-add-strict-test-for-concatenated-string-elements.patch added to
- -mm tree
-Date: Fri, 05 Sep 2014 15:11:05 -0700
-Message-ID: <540a34f9.U0DPWsyrGjrjPVLe%akpm@linux-foundation.org>
+ use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on.patch added to -mm tree
+Date: Fri, 05 Sep 2014 15:33:57 -0700
+Message-ID: <540a3a55.Hc1EvFCt/+Lufirh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42632 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42756 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714AbaIEWLG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 18:11:06 -0400
+	with ESMTP id S1751684AbaIEWd6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 18:33:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: anton@tuxera.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add --strict test for concatenated string elements
+     Subject: ntfs: use find_get_page_flags() to mark page accessed as it is no longer marked later on
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-strict-test-for-concatenated-string-elements.patch
+     use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-strict-test-for-concatenated-string-elements.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-strict-test-for-concatenated-string-elements.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,69 +39,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add --strict test for concatenated string elements
+From: Anton Altaparmakov <anton@tuxera.com>
+Subject: ntfs: use find_get_page_flags() to mark page accessed as it is no longer marked later on
 
-Using a space between concatenated string elements is easier for a human
-to read.
+Mel Gorman's commit 2457aec63745 ("mm: non-atomically mark page accessed
+during page cache allocation where possible") removed mark_page_accessed()
+calls from NTFS without updating the matching find_lock_page() to
+find_get_page_flags(GFP_LOCK | FGP_ACCESSED) thus causing the page to
+never be marked accessed.
 
-ie:
-	"String"FOO"bar"
+This patch fixes that.
 
-is easier to read as:
-
-	"String" FOO "bar"
-
-So suggest this style with a --strict command line option.
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Anton Altaparmakov <anton@tuxera.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/ntfs/file.c  |    5 +++--
+ fs/ntfs/super.c |    2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-concatenated-string-elements scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-concatenated-string-elements
-+++ a/scripts/checkpatch.pl
-@@ -4344,6 +4344,12 @@ sub process {
- 			     "Use of volatile is usually wrong: see Documentation/volatile-considered-harmful.txt\n" . $herecurr);
- 		}
+diff -puN fs/ntfs/file.c~use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on fs/ntfs/file.c
+--- a/fs/ntfs/file.c~use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on
++++ a/fs/ntfs/file.c
+@@ -1,7 +1,7 @@
+ /*
+  * file.c - NTFS kernel file operations.  Part of the Linux-NTFS project.
+  *
+- * Copyright (c) 2001-2011 Anton Altaparmakov and Tuxera Inc.
++ * Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.
+  *
+  * This program/include file is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License as published
+@@ -410,7 +410,8 @@ static inline int __ntfs_grab_cache_page
+ 	BUG_ON(!nr_pages);
+ 	err = nr = 0;
+ 	do {
+-		pages[nr] = find_lock_page(mapping, index);
++		pages[nr] = find_get_page_flags(mapping, index, FGP_LOCK |
++				FGP_ACCESSED);
+ 		if (!pages[nr]) {
+ 			if (!*cached_page) {
+ 				*cached_page = page_cache_alloc(mapping);
+diff -puN fs/ntfs/super.c~use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on fs/ntfs/super.c
+--- a/fs/ntfs/super.c~use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on
++++ a/fs/ntfs/super.c
+@@ -3208,7 +3208,7 @@ static void __exit exit_ntfs_fs(void)
+ }
  
-+# concatenated string without spaces between elements
-+		if ($line =~ /"X+"[A-Z_]+/ || $line =~ /[A-Z_]+"X+"/) {
-+			CHK("CONCATENATED_STRING",
-+			    "Concatenated strings should use spaces between elements\n" . $herecurr);
-+		}
-+
- # warn about #if 0
- 		if ($line =~ /^.\s*\#\s*if\s+0\b/) {
- 			CHK("REDUNDANT_CODE",
+ MODULE_AUTHOR("Anton Altaparmakov <anton@tuxera.com>");
+-MODULE_DESCRIPTION("NTFS 1.2/3.x driver - Copyright (c) 2001-2011 Anton Altaparmakov and Tuxera Inc.");
++MODULE_DESCRIPTION("NTFS 1.2/3.x driver - Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.");
+ MODULE_VERSION(NTFS_VERSION);
+ MODULE_LICENSE("GPL");
+ #ifdef DEBUG
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from anton@tuxera.com are
 
-checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-fix-spello.patch
-checkpatch-remove-debugging-message.patch
-checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh.patch
-checkpatch-enable-whitespace-checks-for-dts-files.patch
-checkpatch-allow-optional-shorter-config-descriptions.patch
-checkpatch-allow-optional-shorter-config-descriptions-v4.patch
-checkpatch-add-strict-test-for-concatenated-string-elements.patch
-ipc-always-handle-a-new-value-of-auto_msgmni.patch
-linux-next.patch
-lib-string_helpers-move-documentation-to-c-file.patch
-lib-string_helpers-refactoring-the-test-suite.patch
-lib-string_helpers-introduce-string_escape_mem.patch
-lib-vsprintf-add-%pe-format-specifier.patch
-wireless-libertas-print-esaped-string-via-%pe.patch
-wireless-ipw2x00-print-ssid-via-%pe.patch
-wireless-hostap-proc-print-properly-escaped-ssid.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-lib80211-remove-unused-print_ssid.patch
-staging-wlan-ng-use-%pehp-to-print-sn.patch
-staging-rtl8192e-use-%pen-to-escape-buffer.patch
-staging-rtl8192u-use-%pen-to-escape-buffer.patch
+use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on.patch
 
