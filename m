@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values.patch added to -mm tree
-Date: Fri, 05 Sep 2014 14:22:39 -0700
-Message-ID: <540a299f.uTxntTCwvHDC7lE9%akpm@linux-foundation.org>
+ fs-notify-dont-show-f_handle-if-exportfs_encode_inode_fh-failed.patch added to -mm tree
+Date: Fri, 05 Sep 2014 14:22:40 -0700
+Message-ID: <540a29a0.YCDEmEIZJqFp8fwp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42280 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42285 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751078AbaIEVWk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 17:22:40 -0400
+	with ESMTP id S1751447AbaIEVWl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 17:22:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avagin@openvz.org, gorcunov@openvz.org, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify/fdinfo: use named constants instead of hardcoded values
+     Subject: fs/notify: don't show f_handle if exportfs_encode_inode_fh failed
 has been added to the -mm tree.  Its filename is
-     fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values.patch
+     fs-notify-dont-show-f_handle-if-exportfs_encode_inode_fh-failed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-notify-dont-show-f_handle-if-exportfs_encode_inode_fh-failed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-notify-dont-show-f_handle-if-exportfs_encode_inode_fh-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Vagin <avagin@openvz.org>
-Subject: fsnotify/fdinfo: use named constants instead of hardcoded values
+Subject: fs/notify: don't show f_handle if exportfs_encode_inode_fh failed
 
-MAX_HANDLE_SZ is equal to 128, but currently the size of pad is only 64
-bytes, so exportfs_encode_inode_fh can return an error.
+Currently we handle only ENOSPC.  In case of other errors the file_handle
+variable isn't filled properly and we will show a part of stack.
 
 Signed-off-by: Andrey Vagin <avagin@openvz.org>
 Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
@@ -52,27 +52,18 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fdinfo.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/notify/fdinfo.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/notify/fdinfo.c~fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values fs/notify/fdinfo.c
---- a/fs/notify/fdinfo.c~fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values
+diff -puN fs/notify/fdinfo.c~fs-notify-dont-show-f_handle-if-exportfs_encode_inode_fh-failed fs/notify/fdinfo.c
+--- a/fs/notify/fdinfo.c~fs-notify-dont-show-f_handle-if-exportfs_encode_inode_fh-failed
 +++ a/fs/notify/fdinfo.c
-@@ -42,7 +42,7 @@ static int show_mark_fhandle(struct seq_
- {
- 	struct {
- 		struct file_handle handle;
--		u8 pad[64];
-+		u8 pad[MAX_HANDLE_SZ];
- 	} f;
- 	int size, ret, i;
- 
 @@ -50,7 +50,7 @@ static int show_mark_fhandle(struct seq_
  	size = f.handle.handle_bytes >> 2;
  
  	ret = exportfs_encode_inode_fh(inode, (struct fid *)f.handle.f_handle, &size, 0);
--	if ((ret == 255) || (ret == -ENOSPC)) {
-+	if ((ret == FILEID_INVALID) || (ret == -ENOSPC)) {
+-	if ((ret == FILEID_INVALID) || (ret == -ENOSPC)) {
++	if ((ret == FILEID_INVALID) || (ret < 0)) {
  		WARN_ONCE(1, "Can't encode file handler for inotify: %d\n", ret);
  		return 0;
  	}
