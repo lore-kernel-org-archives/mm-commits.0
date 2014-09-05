@@ -1,179 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: + kcmp-fix-standard-comparison-bug.patch added to -mm tree
-Date: Fri, 05 Sep 2014 12:22:00 -0700
-Message-ID: <540a0d58.K0plgOgSAS6xPevn%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ zram-add-num_discard_req-discarded-for-discard-stat.patch removed from -mm
+ tree
+Date: Fri, 05 Sep 2014 12:42:43 -0700
+Message-ID: <540a1233.B9I1qzA/7Zou1HiW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41645 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41712 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751301AbaIETWB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 15:22:01 -0400
+	with ESMTP id S1751173AbaIETmo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 15:42:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, gorcunov@openvz.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: chao2.yu@samsung.com, ddstreet@ieee.org, jmarchan@redhat.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcmp: fix standard comparison bug
-has been added to the -mm tree.  Its filename is
-     kcmp-fix-standard-comparison-bug.patch
+     Subject: zram: add num_{discard_req, discarded} for discard stat
+has been removed from the -mm tree.  Its filename was
+     zram-add-num_discard_req-discarded-for-discard-stat.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kcmp-fix-standard-comparison-bug.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kcmp-fix-standard-comparison-bug.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: kcmp: fix standard comparison bug
+From: Chao Yu <chao2.yu@samsung.com>
+Subject: zram: add num_{discard_req, discarded} for discard stat
 
-The C operator <= defines a perfectly fine total ordering on the set
-of values representable in a long. However, unlike its namesake in the
-integers, it is not translation invariant, meaning that we do not have
-"b <= c" iff "a+b <= a+c" for all a,b,c.
+Since we supported handling discard request in f4659d8e620d ("zram:
+support REQ_DISCARD"), zram got one more chance to free unused memory
+whenever receiving a discard request.  But without stats for discard
+requests, there is no method for the user to know whether a discard
+request has been handled by zram or how many blocks were discarded by zram
+when the user wants to know the effect of discard.
 
-This means that it is always wrong to try to boil down the relationship
-between two longs to a question about the sign of their difference,
-because the resulting relation [a LEQ b iff a-b <= 0] is neither
-anti-symmetric or transitive.  The former is due to -LONG_MIN==LONG_MIN
-(take any two a,b with a-b = LONG_MIN; then a LEQ b and b LEQ a, but a !=
-b).  The latter can either be seen observing that x LEQ x+1 for all x,
-implying x LEQ x+1 LEQ x+2 ...  LEQ x-1 LEQ x; or more directly with the
-simple example a=LONG_MIN, b=0, c=1, for which a-b < 0, b-c < 0, but a-c >
-0.
+In this patch, we add num_discard_req to stat discard request and add
+num_discarded to stat real discarded blocks, and export them to sysfs for
+users.
 
-Note that it makes absolutely no difference that a transmogrying bijection
-has been applied before the comparison is done.  In fact, had the
-obfuscation not been done, one could probably not observe the bug
-(assuming all values being compared always lie in one half of the address
-space, the mathematical value of a-b is always representable in a long). 
-As it stands, one can easily obtain three file descriptors exhibiting the
-non-transitivity of kcmp().
-
-Side note 1: I can't see that ensuring the MSB of the multiplier is
-set serves any purpose other than obfuscating the obfuscating code.
-
-Side note 2:
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <assert.h>
-#include <sys/syscall.h>
-
-enum kcmp_type {
-        KCMP_FILE,
-        KCMP_VM,
-        KCMP_FILES,
-        KCMP_FS,
-        KCMP_SIGHAND,
-        KCMP_IO,
-        KCMP_SYSVSEM,
-        KCMP_TYPES,
-};
-pid_t pid;
-
-int kcmp(pid_t pid1, pid_t pid2, int type,
-	 unsigned long idx1, unsigned long idx2)
-{
-	return syscall(SYS_kcmp, pid1, pid2, type, idx1, idx2);
-}
-int cmp_fd(int fd1, int fd2)
-{
-	int c = kcmp(pid, pid, KCMP_FILE, fd1, fd2);
-	if (c < 0) {
-		perror("kcmp");
-		exit(1);
-	}
-	assert(0 <= c && c < 3);
-	return c;
-}
-int cmp_fdp(const void *a, const void *b)
-{
-	static const int normalize[] = {0, -1, 1};
-	return normalize[cmp_fd(*(int*)a, *(int*)b)];
-}
-#define MAX 100 /* This is plenty; I've seen it trigger for MAX==3 */
-int main(int argc, char *argv[])
-{
-	int r, s, count = 0;
-	int REL[3] = {0,0,0};
-	int fd[MAX];
-	pid = getpid();
-	while (count < MAX) {
-		r = open("/dev/null", O_RDONLY);
-		if (r < 0)
-			break;
-		fd[count++] = r;
-	}
-	printf("opened %d file descriptors\n", count);
-	for (r = 0; r < count; ++r) {
-		for (s = r+1; s < count; ++s) {
-			REL[cmp_fd(fd[r], fd[s])]++;
-		}
-	}
-	printf("== %d\t< %d\t> %d\n", REL[0], REL[1], REL[2]);
-	qsort(fd, count, sizeof(fd[0]), cmp_fdp);
-	memset(REL, 0, sizeof(REL));
-
-	for (r = 0; r < count; ++r) {
-		for (s = r+1; s < count; ++s) {
-			REL[cmp_fd(fd[r], fd[s])]++;
-		}
-	}
-	printf("== %d\t< %d\t> %d\n", REL[0], REL[1], REL[2]);
-	return (REL[0] + REL[2] != 0);
-}
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
-"Eric W. Biederman" <ebiederm@xmission.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Chao Yu <chao2.yu@samsung.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcmp.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-block-zram |   17 +++++++++++++++++
+ Documentation/blockdev/zram.txt            |    2 ++
+ drivers/block/zram/zram_drv.c              |   17 ++++++++++++++---
+ drivers/block/zram/zram_drv.h              |    2 ++
+ 4 files changed, 35 insertions(+), 3 deletions(-)
 
-diff -puN kernel/kcmp.c~kcmp-fix-standard-comparison-bug kernel/kcmp.c
---- a/kernel/kcmp.c~kcmp-fix-standard-comparison-bug
-+++ a/kernel/kcmp.c
-@@ -44,11 +44,12 @@ static long kptr_obfuscate(long v, int t
+diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-add-num_discard_req-discarded-for-discard-stat Documentation/ABI/testing/sysfs-block-zram
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-add-num_discard_req-discarded-for-discard-stat
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -57,6 +57,23 @@ Description:
+ 		The failed_writes file is read-only and specifies the number of
+ 		failed writes happened on this device.
+ 
++What:		/sys/block/zram<id>/num_discard_req
++Date:		August 2014
++Contact:	Chao Yu <chao2.yu@samsung.com>
++Description:
++		The num_discard_req file is read-only and specifies the number
++		of requests received by this device. These requests are sent by
++		swap layer or filesystem when they want to free blocks which are
++		no longer used.
++
++What:		/sys/block/zram<id>/num_discarded
++Date:		August 2014
++Contact:	Chao Yu <chao2.yu@samsung.com>
++Description:
++		The num_discarded file is read-only and specifies the number of
++		real discarded blocks (pages which are really freed) in this
++		device after discard request is sent to this device.
++
+ What:		/sys/block/zram<id>/max_comp_streams
+ Date:		February 2014
+ Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+diff -puN Documentation/blockdev/zram.txt~zram-add-num_discard_req-discarded-for-discard-stat Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-add-num_discard_req-discarded-for-discard-stat
++++ a/Documentation/blockdev/zram.txt
+@@ -105,6 +105,8 @@ size of the disk when not in use so a hu
+ 		num_writes
+ 		failed_reads
+ 		failed_writes
++		num_discard_req
++		num_discarded
+ 		invalid_io
+ 		notify_free
+ 		zero_pages
+diff -puN drivers/block/zram/zram_drv.c~zram-add-num_discard_req-discarded-for-discard-stat drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-add-num_discard_req-discarded-for-discard-stat
++++ a/drivers/block/zram/zram_drv.c
+@@ -388,7 +388,7 @@ static void handle_zero_page(struct bio_
+  * caller should hold this table index entry's bit_spinlock to
+  * indicate this index entry is accessing.
   */
- static int kcmp_ptr(void *v1, void *v2, enum kcmp_type type)
+-static void zram_free_page(struct zram *zram, size_t index)
++static bool zram_free_page(struct zram *zram, size_t index)
  {
--	long ret;
-+	long t1, t2;
+ 	struct zram_meta *meta = zram->meta;
+ 	unsigned long handle = meta->table[index].handle;
+@@ -402,7 +402,7 @@ static void zram_free_page(struct zram *
+ 			zram_clear_flag(meta, index, ZRAM_ZERO);
+ 			atomic64_dec(&zram->stats.zero_pages);
+ 		}
+-		return;
++		return false;
+ 	}
  
--	ret = kptr_obfuscate((long)v1, type) - kptr_obfuscate((long)v2, type);
-+	t1 = kptr_obfuscate((long)v1, type);
-+	t2 = kptr_obfuscate((long)v2, type);
+ 	zs_free(meta->mem_pool, handle);
+@@ -413,6 +413,7 @@ static void zram_free_page(struct zram *
  
--	return (ret < 0) | ((ret > 0) << 1);
-+	return (t1 < t2) | ((t1 > t2) << 1);
+ 	meta->table[index].handle = 0;
+ 	zram_set_obj_size(meta, index, 0);
++	return true;
  }
  
- /* The caller must have pinned the task */
+ static int zram_decompress_page(struct zram *zram, char *mem, u32 index)
+@@ -695,12 +696,18 @@ static void zram_bio_discard(struct zram
+ 	}
+ 
+ 	while (n >= PAGE_SIZE) {
++		bool discarded;
++
+ 		bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
+-		zram_free_page(zram, index);
++		discarded = zram_free_page(zram, index);
+ 		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
++		if (discarded)
++			atomic64_inc(&zram->stats.num_discarded);
+ 		index++;
+ 		n -= PAGE_SIZE;
+ 	}
++
++	atomic64_inc(&zram->stats.num_discard_req);
+ }
+ 
+ static void zram_reset_device(struct zram *zram, bool reset_capacity)
+@@ -965,6 +972,8 @@ ZRAM_ATTR_RO(num_reads);
+ ZRAM_ATTR_RO(num_writes);
+ ZRAM_ATTR_RO(failed_reads);
+ ZRAM_ATTR_RO(failed_writes);
++ZRAM_ATTR_RO(num_discard_req);
++ZRAM_ATTR_RO(num_discarded);
+ ZRAM_ATTR_RO(invalid_io);
+ ZRAM_ATTR_RO(notify_free);
+ ZRAM_ATTR_RO(zero_pages);
+@@ -978,6 +987,8 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_num_writes.attr,
+ 	&dev_attr_failed_reads.attr,
+ 	&dev_attr_failed_writes.attr,
++	&dev_attr_num_discard_req.attr,
++	&dev_attr_num_discarded.attr,
+ 	&dev_attr_invalid_io.attr,
+ 	&dev_attr_notify_free.attr,
+ 	&dev_attr_zero_pages.attr,
+diff -puN drivers/block/zram/zram_drv.h~zram-add-num_discard_req-discarded-for-discard-stat drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-add-num_discard_req-discarded-for-discard-stat
++++ a/drivers/block/zram/zram_drv.h
+@@ -86,6 +86,8 @@ struct zram_stats {
+ 	atomic64_t num_writes;	/* --do-- */
+ 	atomic64_t failed_reads;	/* can happen when memory is too low */
+ 	atomic64_t failed_writes;	/* can happen when memory is too low */
++	atomic64_t num_discard_req;	/* no. of discard req */
++	atomic64_t num_discarded;	/* no. of discarded pages */
+ 	atomic64_t invalid_io;	/* non-page-aligned I/O requests */
+ 	atomic64_t notify_free;	/* no. of swap slot free notifications */
+ 	atomic64_t zero_pages;		/* no. of zero filled pages */
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from chao2.yu@samsung.com are
 
 origin.patch
-kcmp-fix-standard-comparison-bug.patch
-linux-next.patch
 
