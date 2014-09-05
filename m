@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zbud-avoid-accessing-in-last-unused-freelist.patch added to -mm tree
-Date: Fri, 05 Sep 2014 13:38:36 -0700
-Message-ID: <540a1f4c.8VON5o129yRl/RAP%akpm@linux-foundation.org>
+Subject: +
+ fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values.patch added to -mm tree
+Date: Fri, 05 Sep 2014 14:22:39 -0700
+Message-ID: <540a299f.uTxntTCwvHDC7lE9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42280 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752142AbaIEUih (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 16:38:37 -0400
+	with ESMTP id S1751078AbaIEVWk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 17:22:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chao2.yu@samsung.com, sjennings@variantweb.net, mm-commits@vger.kernel.org
+To: avagin@openvz.org, gorcunov@openvz.org, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zbud: avoid accessing last unused freelist
+     Subject: fsnotify/fdinfo: use named constants instead of hardcoded values
 has been added to the -mm tree.  Its filename is
-     zbud-avoid-accessing-in-last-unused-freelist.patch
+     fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zbud-avoid-accessing-in-last-unused-freelist.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zbud-avoid-accessing-in-last-unused-freelist.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,70 +39,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chao Yu <chao2.yu@samsung.com>
-Subject: zbud: avoid accessing last unused freelist
+From: Andrey Vagin <avagin@openvz.org>
+Subject: fsnotify/fdinfo: use named constants instead of hardcoded values
 
-For now, there are NCHUNKS of 64 freelists in zbud_pool, the last
-unbuddied[63] freelist linked with all zbud pages which have free chunks
-of 63.  Calculating according to context of num_free_chunks(), our max
-chunk number of unbuddied zbud page is 62, so none of zbud pages will be
-added/removed in last freelist, but still we will try to find an unbuddied
-zbud page in the last unused freelist, it is unneeded.
+MAX_HANDLE_SZ is equal to 128, but currently the size of pad is only 64
+bytes, so exportfs_encode_inode_fh can return an error.
 
-This patch redefines NCHUNKS to 63 as free chunk number in one zbud page,
-hence we can decrease size of zpool and avoid accessing the last unused
-freelist whenever failing to allocate zbud from freelist in zbud_alloc.
-
-Signed-off-by: Chao Yu <chao2.yu@samsung.com>
-Cc: Seth Jennings <sjennings@variantweb.net>
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zbud.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ fs/notify/fdinfo.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/zbud.c~zbud-avoid-accessing-in-last-unused-freelist mm/zbud.c
---- a/mm/zbud.c~zbud-avoid-accessing-in-last-unused-freelist
-+++ a/mm/zbud.c
-@@ -60,15 +60,17 @@
-  * NCHUNKS_ORDER determines the internal allocation granularity, effectively
-  * adjusting internal fragmentation.  It also determines the number of
-  * freelists maintained in each pool. NCHUNKS_ORDER of 6 means that the
-- * allocation granularity will be in chunks of size PAGE_SIZE/64, and there
-- * will be 64 freelists per pool.
-+ * allocation granularity will be in chunks of size PAGE_SIZE/64. As one chunk
-+ * in allocated page is occupied by zbud header, NCHUNKS will be calculated to
-+ * 63 which shows the max number of free chunks in zbud page, also there will be
-+ * 63 freelists per pool.
-  */
- #define NCHUNKS_ORDER	6
- 
- #define CHUNK_SHIFT	(PAGE_SHIFT - NCHUNKS_ORDER)
- #define CHUNK_SIZE	(1 << CHUNK_SHIFT)
--#define NCHUNKS		(PAGE_SIZE >> CHUNK_SHIFT)
- #define ZHDR_SIZE_ALIGNED CHUNK_SIZE
-+#define NCHUNKS		((PAGE_SIZE - ZHDR_SIZE_ALIGNED) >> CHUNK_SHIFT)
- 
- /**
-  * struct zbud_pool - stores metadata for each zbud pool
-@@ -268,10 +270,9 @@ static int num_free_chunks(struct zbud_h
+diff -puN fs/notify/fdinfo.c~fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values fs/notify/fdinfo.c
+--- a/fs/notify/fdinfo.c~fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values
++++ a/fs/notify/fdinfo.c
+@@ -42,7 +42,7 @@ static int show_mark_fhandle(struct seq_
  {
- 	/*
- 	 * Rather than branch for different situations, just use the fact that
--	 * free buddies have a length of zero to simplify everything. -1 at the
--	 * end for the zbud header.
-+	 * free buddies have a length of zero to simplify everything.
- 	 */
--	return NCHUNKS - zhdr->first_chunks - zhdr->last_chunks - 1;
-+	return NCHUNKS - zhdr->first_chunks - zhdr->last_chunks;
- }
+ 	struct {
+ 		struct file_handle handle;
+-		u8 pad[64];
++		u8 pad[MAX_HANDLE_SZ];
+ 	} f;
+ 	int size, ret, i;
  
- /*****************
+@@ -50,7 +50,7 @@ static int show_mark_fhandle(struct seq_
+ 	size = f.handle.handle_bytes >> 2;
+ 
+ 	ret = exportfs_encode_inode_fh(inode, (struct fid *)f.handle.f_handle, &size, 0);
+-	if ((ret == 255) || (ret == -ENOSPC)) {
++	if ((ret == FILEID_INVALID) || (ret == -ENOSPC)) {
+ 		WARN_ONCE(1, "Can't encode file handler for inotify: %d\n", ret);
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from chao2.yu@samsung.com are
+Patches currently in -mm which might be from avagin@openvz.org are
 
-origin.patch
-zram-use-notify_free-to-account-all-free-notifications.patch
-zbud-avoid-accessing-in-last-unused-freelist.patch
+fsnotify-fdinfo-use-named-constants-instead-of-hardcoded-values.patch
+fs-notify-dont-show-f_handle-if-exportfs_encode_inode_fh-failed.patch
+mm-introduce-check_data_rlimit-helper-v2.patch
+mm-use-may_adjust_brk-helper.patch
+prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+ipc-always-handle-a-new-value-of-auto_msgmni.patch
 
