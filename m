@@ -1,181 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- zram-add-num_discard_req-discarded-for-discard-stat.patch removed from -mm
- tree
-Date: Fri, 05 Sep 2014 12:42:43 -0700
-Message-ID: <540a1233.B9I1qzA/7Zou1HiW%akpm@linux-foundation.org>
+Subject: + zram-use-notify_free-to-account-all-free-notifications.patch
+ added to -mm tree
+Date: Fri, 05 Sep 2014 12:43:22 -0700
+Message-ID: <540a125a.QBaKFyd3hZ+zN8zr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41712 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41718 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173AbaIETmo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 15:42:44 -0400
+	with ESMTP id S1750906AbaIETnX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 15:43:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chao2.yu@samsung.com, ddstreet@ieee.org, jmarchan@redhat.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, chao2.yu@samsung.com, ddstreet@ieee.org, jmarchan@redhat.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: add num_{discard_req, discarded} for discard stat
-has been removed from the -mm tree.  Its filename was
-     zram-add-num_discard_req-discarded-for-discard-stat.patch
+     Subject: zram: use notify_free to account all free notifications
+has been added to the -mm tree.  Its filename is
+     zram-use-notify_free-to-account-all-free-notifications.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-use-notify_free-to-account-all-free-notifications.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-use-notify_free-to-account-all-free-notifications.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Chao Yu <chao2.yu@samsung.com>
-Subject: zram: add num_{discard_req, discarded} for discard stat
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: use notify_free to account all free notifications
 
-Since we supported handling discard request in f4659d8e620d ("zram:
-support REQ_DISCARD"), zram got one more chance to free unused memory
-whenever receiving a discard request.  But without stats for discard
-requests, there is no method for the user to know whether a discard
-request has been handled by zram or how many blocks were discarded by zram
-when the user wants to know the effect of discard.
+notify_free device attribute accounts the number of slot free
+notifications and internally represents the number of zram_free_page()
+calls.  Slot free notifications are sent only when device is used as a
+swap device, hence notify_free is used only for swap devices.  Since
+f4659d8e620d08 (zram: support REQ_DISCARD) ZRAM handles yet another one
+free notification (also via zram_free_page() call) -- REQ_DISCARD
+requests, which are sent by a filesystem, whenever some data blocks are
+discarded.  However, there is no way to know the number of notifications
+in the latter case.
 
-In this patch, we add num_discard_req to stat discard request and add
-num_discarded to stat real discarded blocks, and export them to sysfs for
-users.
+Use notify_free to account the number of pages freed in zram_free_page(),
+instead of accounting only swap_slot_free_notify() calls (each
+zram_slot_free_notify() call frees one page).
 
-Signed-off-by: Chao Yu <chao2.yu@samsung.com>
+This means that depending on usage scenario notify_free represents:
+ a) the number of pages freed because of slot free notifications, which is
+   equal to the number of swap_slot_free_notify() calls, so there is no
+   behaviour change
+
+ b) the number of pages freed because of REQ_DISCARD notifications
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Chao Yu <chao2.yu@samsung.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |   17 +++++++++++++++++
- Documentation/blockdev/zram.txt            |    2 ++
- drivers/block/zram/zram_drv.c              |   17 ++++++++++++++---
- drivers/block/zram/zram_drv.h              |    2 ++
- 4 files changed, 35 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-block-zram |   13 ++++++++-----
+ drivers/block/zram/zram_drv.c              |    2 +-
+ 2 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-add-num_discard_req-discarded-for-discard-stat Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-add-num_discard_req-discarded-for-discard-stat
+diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-use-notify_free-to-account-all-free-notifications Documentation/ABI/testing/sysfs-block-zram
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-use-notify_free-to-account-all-free-notifications
 +++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -57,6 +57,23 @@ Description:
- 		The failed_writes file is read-only and specifies the number of
- 		failed writes happened on this device.
+@@ -77,11 +77,14 @@ What:		/sys/block/zram<id>/notify_free
+ Date:		August 2010
+ Contact:	Nitin Gupta <ngupta@vflare.org>
+ Description:
+-		The notify_free file is read-only and specifies the number of
+-		swap slot free notifications received by this device. These
+-		notifications are sent to a swap block device when a swap slot
+-		is freed. This statistic is applicable only when this disk is
+-		being used as a swap disk.
++		The notify_free file is read-only. Depending on device usage
++		scenario it may account a) the number of pages freed because
++		of swap slot free notifications or b) the number of pages freed
++		because of REQ_DISCARD requests sent by bio. The former ones
++		are sent to a swap block device when a swap slot is freed, which
++		implies that this disk is being used as a swap disk. The latter
++		ones are sent by filesystem mounted with discard option,
++		whenever some data blocks are getting discarded.
  
-+What:		/sys/block/zram<id>/num_discard_req
-+Date:		August 2014
-+Contact:	Chao Yu <chao2.yu@samsung.com>
-+Description:
-+		The num_discard_req file is read-only and specifies the number
-+		of requests received by this device. These requests are sent by
-+		swap layer or filesystem when they want to free blocks which are
-+		no longer used.
-+
-+What:		/sys/block/zram<id>/num_discarded
-+Date:		August 2014
-+Contact:	Chao Yu <chao2.yu@samsung.com>
-+Description:
-+		The num_discarded file is read-only and specifies the number of
-+		real discarded blocks (pages which are really freed) in this
-+		device after discard request is sent to this device.
-+
- What:		/sys/block/zram<id>/max_comp_streams
- Date:		February 2014
- Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-diff -puN Documentation/blockdev/zram.txt~zram-add-num_discard_req-discarded-for-discard-stat Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-add-num_discard_req-discarded-for-discard-stat
-+++ a/Documentation/blockdev/zram.txt
-@@ -105,6 +105,8 @@ size of the disk when not in use so a hu
- 		num_writes
- 		failed_reads
- 		failed_writes
-+		num_discard_req
-+		num_discarded
- 		invalid_io
- 		notify_free
- 		zero_pages
-diff -puN drivers/block/zram/zram_drv.c~zram-add-num_discard_req-discarded-for-discard-stat drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-add-num_discard_req-discarded-for-discard-stat
+ What:		/sys/block/zram<id>/zero_pages
+ Date:		August 2010
+diff -puN drivers/block/zram/zram_drv.c~zram-use-notify_free-to-account-all-free-notifications drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-use-notify_free-to-account-all-free-notifications
 +++ a/drivers/block/zram/zram_drv.c
-@@ -388,7 +388,7 @@ static void handle_zero_page(struct bio_
-  * caller should hold this table index entry's bit_spinlock to
-  * indicate this index entry is accessing.
-  */
--static void zram_free_page(struct zram *zram, size_t index)
-+static bool zram_free_page(struct zram *zram, size_t index)
- {
- 	struct zram_meta *meta = zram->meta;
- 	unsigned long handle = meta->table[index].handle;
-@@ -402,7 +402,7 @@ static void zram_free_page(struct zram *
- 			zram_clear_flag(meta, index, ZRAM_ZERO);
- 			atomic64_dec(&zram->stats.zero_pages);
- 		}
--		return;
-+		return false;
- 	}
- 
- 	zs_free(meta->mem_pool, handle);
-@@ -413,6 +413,7 @@ static void zram_free_page(struct zram *
+@@ -410,6 +410,7 @@ static void zram_free_page(struct zram *
+ 	atomic64_sub(zram_get_obj_size(meta, index),
+ 			&zram->stats.compr_data_size);
+ 	atomic64_dec(&zram->stats.pages_stored);
++	atomic64_inc(&zram->stats.notify_free);
  
  	meta->table[index].handle = 0;
  	zram_set_obj_size(meta, index, 0);
-+	return true;
+@@ -938,7 +939,6 @@ static void zram_slot_free_notify(struct
+ 	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
+ 	zram_free_page(zram, index);
+ 	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
+-	atomic64_inc(&zram->stats.notify_free);
  }
  
- static int zram_decompress_page(struct zram *zram, char *mem, u32 index)
-@@ -695,12 +696,18 @@ static void zram_bio_discard(struct zram
- 	}
- 
- 	while (n >= PAGE_SIZE) {
-+		bool discarded;
-+
- 		bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
--		zram_free_page(zram, index);
-+		discarded = zram_free_page(zram, index);
- 		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
-+		if (discarded)
-+			atomic64_inc(&zram->stats.num_discarded);
- 		index++;
- 		n -= PAGE_SIZE;
- 	}
-+
-+	atomic64_inc(&zram->stats.num_discard_req);
- }
- 
- static void zram_reset_device(struct zram *zram, bool reset_capacity)
-@@ -965,6 +972,8 @@ ZRAM_ATTR_RO(num_reads);
- ZRAM_ATTR_RO(num_writes);
- ZRAM_ATTR_RO(failed_reads);
- ZRAM_ATTR_RO(failed_writes);
-+ZRAM_ATTR_RO(num_discard_req);
-+ZRAM_ATTR_RO(num_discarded);
- ZRAM_ATTR_RO(invalid_io);
- ZRAM_ATTR_RO(notify_free);
- ZRAM_ATTR_RO(zero_pages);
-@@ -978,6 +987,8 @@ static struct attribute *zram_disk_attrs
- 	&dev_attr_num_writes.attr,
- 	&dev_attr_failed_reads.attr,
- 	&dev_attr_failed_writes.attr,
-+	&dev_attr_num_discard_req.attr,
-+	&dev_attr_num_discarded.attr,
- 	&dev_attr_invalid_io.attr,
- 	&dev_attr_notify_free.attr,
- 	&dev_attr_zero_pages.attr,
-diff -puN drivers/block/zram/zram_drv.h~zram-add-num_discard_req-discarded-for-discard-stat drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-add-num_discard_req-discarded-for-discard-stat
-+++ a/drivers/block/zram/zram_drv.h
-@@ -86,6 +86,8 @@ struct zram_stats {
- 	atomic64_t num_writes;	/* --do-- */
- 	atomic64_t failed_reads;	/* can happen when memory is too low */
- 	atomic64_t failed_writes;	/* can happen when memory is too low */
-+	atomic64_t num_discard_req;	/* no. of discard req */
-+	atomic64_t num_discarded;	/* no. of discarded pages */
- 	atomic64_t invalid_io;	/* non-page-aligned I/O requests */
- 	atomic64_t notify_free;	/* no. of swap slot free notifications */
- 	atomic64_t zero_pages;		/* no. of zero filled pages */
+ static const struct block_device_operations zram_devops = {
 _
 
-Patches currently in -mm which might be from chao2.yu@samsung.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-origin.patch
+zsmalloc-move-pages_allocated-to-zs_pool.patch
+zsmalloc-change-return-value-unit-of-zs_get_total_size_bytes.patch
+zram-zram-memory-size-limitation.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-report-maximum-used-memory.patch
+zram-use-notify_free-to-account-all-free-notifications.patch
 
