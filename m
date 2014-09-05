@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on.patch added to -mm tree
-Date: Fri, 05 Sep 2014 15:33:57 -0700
-Message-ID: <540a3a55.Hc1EvFCt/+Lufirh%akpm@linux-foundation.org>
+Subject: + checkpatch-remove-unnecessary-after-88.patch added to -mm tree
+Date: Fri, 05 Sep 2014 15:56:28 -0700
+Message-ID: <540a3f9c.lhJ86K+1HJ42fsBQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42756 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42887 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751684AbaIEWd6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 18:33:58 -0400
+	with ESMTP id S1752054AbaIEW43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 18:56:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anton@tuxera.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: joe@perches.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ntfs: use find_get_page_flags() to mark page accessed as it is no longer marked later on
+     Subject: checkpatch: remove unnecessary + after {8,8}
 has been added to the -mm tree.  Its filename is
-     use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on.patch
+     checkpatch-remove-unnecessary-after-88.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-remove-unnecessary-after-88.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-remove-unnecessary-after-88.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +38,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anton Altaparmakov <anton@tuxera.com>
-Subject: ntfs: use find_get_page_flags() to mark page accessed as it is no longer marked later on
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: remove unnecessary + after {8,8}
 
-Mel Gorman's commit 2457aec63745 ("mm: non-atomically mark page accessed
-during page cache allocation where possible") removed mark_page_accessed()
-calls from NTFS without updating the matching find_lock_page() to
-find_get_page_flags(GFP_LOCK | FGP_ACCESSED) thus causing the page to
-never be marked accessed.
+There's a useless "+" use that needs to be removed as perl 5.20 emits a
+"Useless use of greediness modifier '+'" message each time it's hit.
 
-This patch fixes that.
-
-Signed-off-by: Anton Altaparmakov <anton@tuxera.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Greg KH <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/file.c  |    5 +++--
- fs/ntfs/super.c |    2 +-
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ntfs/file.c~use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on fs/ntfs/file.c
---- a/fs/ntfs/file.c~use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on
-+++ a/fs/ntfs/file.c
-@@ -1,7 +1,7 @@
- /*
-  * file.c - NTFS kernel file operations.  Part of the Linux-NTFS project.
-  *
-- * Copyright (c) 2001-2011 Anton Altaparmakov and Tuxera Inc.
-+ * Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.
-  *
-  * This program/include file is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as published
-@@ -410,7 +410,8 @@ static inline int __ntfs_grab_cache_page
- 	BUG_ON(!nr_pages);
- 	err = nr = 0;
- 	do {
--		pages[nr] = find_lock_page(mapping, index);
-+		pages[nr] = find_get_page_flags(mapping, index, FGP_LOCK |
-+				FGP_ACCESSED);
- 		if (!pages[nr]) {
- 			if (!*cached_page) {
- 				*cached_page = page_cache_alloc(mapping);
-diff -puN fs/ntfs/super.c~use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on fs/ntfs/super.c
---- a/fs/ntfs/super.c~use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on
-+++ a/fs/ntfs/super.c
-@@ -3208,7 +3208,7 @@ static void __exit exit_ntfs_fs(void)
- }
- 
- MODULE_AUTHOR("Anton Altaparmakov <anton@tuxera.com>");
--MODULE_DESCRIPTION("NTFS 1.2/3.x driver - Copyright (c) 2001-2011 Anton Altaparmakov and Tuxera Inc.");
-+MODULE_DESCRIPTION("NTFS 1.2/3.x driver - Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.");
- MODULE_VERSION(NTFS_VERSION);
- MODULE_LICENSE("GPL");
- #ifdef DEBUG
+diff -puN scripts/checkpatch.pl~checkpatch-remove-unnecessary-after-88 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-remove-unnecessary-after-88
++++ a/scripts/checkpatch.pl
+@@ -2431,7 +2431,7 @@ sub process {
+ 				"please, no space before tabs\n" . $herevet) &&
+ 			    $fix) {
+ 				while ($fixed[$fixlinenr] =~
+-					   s/(^\+.*) {8,8}+\t/$1\t\t/) {}
++					   s/(^\+.*) {8,8}\t/$1\t\t/) {}
+ 				while ($fixed[$fixlinenr] =~
+ 					   s/(^\+.*) +\t/$1\t/) {}
+ 			}
 _
 
-Patches currently in -mm which might be from anton@tuxera.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-use-find_get_page_flags-to-mark-page-accessed-as-it-is-no-longer-marked-later-on.patch
+checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-fix-spello.patch
+checkpatch-remove-debugging-message.patch
+checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh.patch
+checkpatch-enable-whitespace-checks-for-dts-files.patch
+checkpatch-allow-optional-shorter-config-descriptions.patch
+checkpatch-allow-optional-shorter-config-descriptions-v4.patch
+checkpatch-add-strict-test-for-concatenated-string-elements.patch
+checkpatch-remove-unnecessary-after-88.patch
+ipc-always-handle-a-new-value-of-auto_msgmni.patch
+linux-next.patch
+lib-string_helpers-move-documentation-to-c-file.patch
+lib-string_helpers-refactoring-the-test-suite.patch
+lib-string_helpers-introduce-string_escape_mem.patch
+lib-vsprintf-add-%pe-format-specifier.patch
+wireless-libertas-print-esaped-string-via-%pe.patch
+wireless-ipw2x00-print-ssid-via-%pe.patch
+wireless-hostap-proc-print-properly-escaped-ssid.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+lib80211-remove-unused-print_ssid.patch
+staging-wlan-ng-use-%pehp-to-print-sn.patch
+staging-rtl8192e-use-%pen-to-escape-buffer.patch
+staging-rtl8192u-use-%pen-to-escape-buffer.patch
 
