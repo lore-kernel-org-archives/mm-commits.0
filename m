@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-use-notify_free-to-account-all-free-notifications.patch
+Subject: + mm-page_alloc-fix-setting-of-zone_fair_depleted-on-up.patch
  added to -mm tree
-Date: Fri, 05 Sep 2014 12:43:22 -0700
-Message-ID: <540a125a.QBaKFyd3hZ+zN8zr%akpm@linux-foundation.org>
+Date: Fri, 05 Sep 2014 12:47:17 -0700
+Message-ID: <540a1345.lXnsg4s80hldtxn9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41718 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41772 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbaIETnX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 15:43:23 -0400
+	with ESMTP id S1750776AbaIETrS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2014 15:47:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, chao2.yu@samsung.com, ddstreet@ieee.org, jmarchan@redhat.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, hannes@cmpxchg.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: use notify_free to account all free notifications
+     Subject: mm/page_alloc.c: fix setting of ZONE_FAIR_DEPLETED on UP
 has been added to the -mm tree.  Its filename is
-     zram-use-notify_free-to-account-all-free-notifications.patch
+     mm-page_alloc-fix-setting-of-zone_fair_depleted-on-up.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-use-notify_free-to-account-all-free-notifications.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-setting-of-zone_fair_depleted-on-up.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-use-notify_free-to-account-all-free-notifications.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-setting-of-zone_fair_depleted-on-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,93 +39,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: use notify_free to account all free notifications
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm/page_alloc.c: fix setting of ZONE_FAIR_DEPLETED on UP
 
-notify_free device attribute accounts the number of slot free
-notifications and internally represents the number of zram_free_page()
-calls.  Slot free notifications are sent only when device is used as a
-swap device, hence notify_free is used only for swap devices.  Since
-f4659d8e620d08 (zram: support REQ_DISCARD) ZRAM handles yet another one
-free notification (also via zram_free_page() call) -- REQ_DISCARD
-requests, which are sent by a filesystem, whenever some data blocks are
-discarded.  However, there is no way to know the number of notifications
-in the latter case.
+Commit 4ffeaf3560a52b4a69 ("mm: page_alloc: reduce cost of the fair zone
+allocation policy") broke the fair zone allocation policy on UP with these
+hunks:
 
-Use notify_free to account the number of pages freed in zram_free_page(),
-instead of accounting only swap_slot_free_notify() calls (each
-zram_slot_free_notify() call frees one page).
+: diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+: index 6e5e8f7..fb99081 100644
+: --- a/mm/page_alloc.c
+: +++ b/mm/page_alloc.c
+: @@ -1612,6 +1612,9 @@ again:
+:         }
+: 
+:         __mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
+: +       if (zone_page_state(zone, NR_ALLOC_BATCH) == 0 &&
+: +           !zone_is_fair_depleted(zone))
+: +               zone_set_flag(zone, ZONE_FAIR_DEPLETED);
+: 
+:         __count_zone_vm_events(PGALLOC, zone, 1 << order);
+:         zone_statistics(preferred_zone, zone, gfp_flags);
+: @@ -1966,8 +1985,10 @@ zonelist_scan:
+:                 if (alloc_flags & ALLOC_FAIR) {
+:                         if (!zone_local(preferred_zone, zone))
+:                                 break;
+: -                       if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
+: +                       if (zone_is_fair_depleted(zone)) {
+: +                               nr_fair_skipped++;
+:                                 continue;
+: +                       }
+:                 }
 
-This means that depending on usage scenario notify_free represents:
- a) the number of pages freed because of slot free notifications, which is
-   equal to the number of swap_slot_free_notify() calls, so there is no
-   behaviour change
+The problem is that a <= check was replaced with a ==.  On SMP it doesn't
+matter because negative values are returned as zero due to per-CPU drift
+which is not possible in the UP case.  Vlastimil Babka correctly pointed
+out that this can be negative due to high-order allocations.  This patch
+fixes the problem.
 
- b) the number of pages freed because of REQ_DISCARD notifications
-
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Chao Yu <chao2.yu@samsung.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |   13 ++++++++-----
- drivers/block/zram/zram_drv.c              |    2 +-
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-use-notify_free-to-account-all-free-notifications Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-use-notify_free-to-account-all-free-notifications
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -77,11 +77,14 @@ What:		/sys/block/zram<id>/notify_free
- Date:		August 2010
- Contact:	Nitin Gupta <ngupta@vflare.org>
- Description:
--		The notify_free file is read-only and specifies the number of
--		swap slot free notifications received by this device. These
--		notifications are sent to a swap block device when a swap slot
--		is freed. This statistic is applicable only when this disk is
--		being used as a swap disk.
-+		The notify_free file is read-only. Depending on device usage
-+		scenario it may account a) the number of pages freed because
-+		of swap slot free notifications or b) the number of pages freed
-+		because of REQ_DISCARD requests sent by bio. The former ones
-+		are sent to a swap block device when a swap slot is freed, which
-+		implies that this disk is being used as a swap disk. The latter
-+		ones are sent by filesystem mounted with discard option,
-+		whenever some data blocks are getting discarded.
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-setting-of-zone_fair_depleted-on-up mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-setting-of-zone_fair_depleted-on-up
++++ a/mm/page_alloc.c
+@@ -1612,7 +1612,7 @@ again:
+ 	}
  
- What:		/sys/block/zram<id>/zero_pages
- Date:		August 2010
-diff -puN drivers/block/zram/zram_drv.c~zram-use-notify_free-to-account-all-free-notifications drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-use-notify_free-to-account-all-free-notifications
-+++ a/drivers/block/zram/zram_drv.c
-@@ -410,6 +410,7 @@ static void zram_free_page(struct zram *
- 	atomic64_sub(zram_get_obj_size(meta, index),
- 			&zram->stats.compr_data_size);
- 	atomic64_dec(&zram->stats.pages_stored);
-+	atomic64_inc(&zram->stats.notify_free);
+ 	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
+-	if (zone_page_state(zone, NR_ALLOC_BATCH) == 0 &&
++	if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0 &&
+ 	    !zone_is_fair_depleted(zone))
+ 		zone_set_flag(zone, ZONE_FAIR_DEPLETED);
  
- 	meta->table[index].handle = 0;
- 	zram_set_obj_size(meta, index, 0);
-@@ -938,7 +939,6 @@ static void zram_slot_free_notify(struct
- 	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
- 	zram_free_page(zram, index);
- 	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
--	atomic64_inc(&zram->stats.notify_free);
- }
- 
- static const struct block_device_operations zram_devops = {
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-zsmalloc-move-pages_allocated-to-zs_pool.patch
-zsmalloc-change-return-value-unit-of-zs_get_total_size_bytes.patch
-zram-zram-memory-size-limitation.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-report-maximum-used-memory.patch
-zram-use-notify_free-to-account-all-free-notifications.patch
+mm-page_alloc-fix-setting-of-zone_fair_depleted-on-up.patch
+mm-remove-misleading-arch_uses_numa_prot_none.patch
+mm-page_alloc-determine-migratetype-only-once.patch
+mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
+mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
+mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
+mm-compaction-skip-rechecks-when-lock-was-already-held.patch
+mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+mm-rename-allocflags_to_migratetype-for-clarity.patch
+mm-compaction-pass-gfp-mask-to-compact_control.patch
+introduce-dump_vma.patch
+introduce-dump_vma-fix.patch
+introduce-vm_bug_on_vma.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
+mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
+mm-clean-up-zone-flags.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+x86-optimize-resource-lookups-for-ioremap.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
+linux-next.patch
 
