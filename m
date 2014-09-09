@@ -1,89 +1,122 @@
 From: akpm@linux-foundation.org
 Subject: [alternative-merged]
- init-kconfig-move-rcu_nocb_cpu-dependencies-to-choice.patch removed from
+ mm-page_alloc-fix-setting-of-zone_fair_depleted-on-up.patch removed from
  -mm tree
-Date: Tue, 09 Sep 2014 12:18:01 -0700
-Message-ID: <540f5269.Msx6feKv+5kCe8iV%akpm@linux-foundation.org>
+Date: Tue, 09 Sep 2014 12:47:06 -0700
+Message-ID: <540f593a.BBDKGGabDs9WRBk+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45358 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45736 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415AbaIITSC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Sep 2014 15:18:02 -0400
+	with ESMTP id S1751102AbaIITrH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Sep 2014 15:47:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefan.hengelein@fau.de, josh@joshtriplett.org, rupran@einserver.de, mm-commits@vger.kernel.org
+To: mgorman@suse.de, hannes@cmpxchg.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/Kconfig: move RCU_NOCB_CPU dependencies to choice
+     Subject: mm/page_alloc.c: fix setting of ZONE_FAIR_DEPLETED on UP
 has been removed from the -mm tree.  Its filename was
-     init-kconfig-move-rcu_nocb_cpu-dependencies-to-choice.patch
+     mm-page_alloc-fix-setting-of-zone_fair_depleted-on-up.patch
 
 This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Stefan Hengelein <stefan.hengelein@fau.de>
-Subject: init/Kconfig: move RCU_NOCB_CPU dependencies to choice
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm/page_alloc.c: fix setting of ZONE_FAIR_DEPLETED on UP
 
-Every choice item of the "Build-forced no-CBs CPUs" choice had a
-dependency to RCU_NOCB_CPU.  It's more comprehensible if the choice itself
-has the dependency instead of every choice item.  The choice itself
-doesn't need to be visible if there are no items selectable (i.e.  on
-arch/frv) or RCU_NOCB_CPU is not defined.
+Commit 4ffeaf3560a52b4a69 ("mm: page_alloc: reduce cost of the fair zone
+allocation policy") broke the fair zone allocation policy on UP with these
+hunks:
 
-Signed-off-by: Stefan Hengelein <stefan.hengelein@fau.de>
-Signed-off-by: Andreas Ruprecht <rupran@einserver.de>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+: diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+: index 6e5e8f7..fb99081 100644
+: --- a/mm/page_alloc.c
+: +++ b/mm/page_alloc.c
+: @@ -1612,6 +1612,9 @@ again:
+:         }
+: 
+:         __mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
+: +       if (zone_page_state(zone, NR_ALLOC_BATCH) == 0 &&
+: +           !zone_is_fair_depleted(zone))
+: +               zone_set_flag(zone, ZONE_FAIR_DEPLETED);
+: 
+:         __count_zone_vm_events(PGALLOC, zone, 1 << order);
+:         zone_statistics(preferred_zone, zone, gfp_flags);
+: @@ -1966,8 +1985,10 @@ zonelist_scan:
+:                 if (alloc_flags & ALLOC_FAIR) {
+:                         if (!zone_local(preferred_zone, zone))
+:                                 break;
+: -                       if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
+: +                       if (zone_is_fair_depleted(zone)) {
+: +                               nr_fair_skipped++;
+:                                 continue;
+: +                       }
+:                 }
+
+The problem is that a <= check was replaced with a ==.  On SMP it doesn't
+matter because negative values are returned as zero due to per-CPU drift
+which is not possible in the UP case.  Vlastimil Babka correctly pointed
+out that this can be negative due to high-order allocations.  This patch
+fixes the problem.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/Kconfig~init-kconfig-move-rcu_nocb_cpu-dependencies-to-choice init/Kconfig
---- a/init/Kconfig~init-kconfig-move-rcu_nocb_cpu-dependencies-to-choice
-+++ a/init/Kconfig
-@@ -729,6 +729,7 @@ config RCU_NOCB_CPU
- choice
- 	prompt "Build-forced no-CBs CPUs"
- 	default RCU_NOCB_CPU_NONE
-+	depends on RCU_NOCB_CPU
- 	help
- 	  This option allows no-CBs CPUs (whose RCU callbacks are invoked
- 	  from kthreads rather than from softirq context) to be specified
-@@ -737,7 +738,7 @@ choice
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-setting-of-zone_fair_depleted-on-up mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-setting-of-zone_fair_depleted-on-up
++++ a/mm/page_alloc.c
+@@ -1612,7 +1612,7 @@ again:
+ 	}
  
- config RCU_NOCB_CPU_NONE
- 	bool "No build_forced no-CBs CPUs"
--	depends on RCU_NOCB_CPU && !NO_HZ_FULL_ALL
-+	depends on !NO_HZ_FULL_ALL
- 	help
- 	  This option does not force any of the CPUs to be no-CBs CPUs.
- 	  Only CPUs designated by the rcu_nocbs= boot parameter will be
-@@ -751,7 +752,7 @@ config RCU_NOCB_CPU_NONE
+ 	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
+-	if (zone_page_state(zone, NR_ALLOC_BATCH) == 0 &&
++	if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0 &&
+ 	    !zone_is_fair_depleted(zone))
+ 		zone_set_flag(zone, ZONE_FAIR_DEPLETED);
  
- config RCU_NOCB_CPU_ZERO
- 	bool "CPU 0 is a build_forced no-CBs CPU"
--	depends on RCU_NOCB_CPU && !NO_HZ_FULL_ALL
-+	depends on !NO_HZ_FULL_ALL
- 	help
- 	  This option forces CPU 0 to be a no-CBs CPU, so that its RCU
- 	  callbacks are invoked by a per-CPU kthread whose name begins
-@@ -766,7 +767,6 @@ config RCU_NOCB_CPU_ZERO
- 
- config RCU_NOCB_CPU_ALL
- 	bool "All CPUs are build_forced no-CBs CPUs"
--	depends on RCU_NOCB_CPU
- 	help
- 	  This option forces all CPUs to be no-CBs CPUs.  The rcu_nocbs=
- 	  boot parameter will be ignored.  All CPUs' RCU callbacks will
 _
 
-Patches currently in -mm which might be from stefan.hengelein@fau.de are
+Patches currently in -mm which might be from mgorman@suse.de are
 
+mm-page_alloc-fix-zone-allocation-fairness-on-up.patch
+mm-remove-misleading-arch_uses_numa_prot_none.patch
+mm-page_alloc-determine-migratetype-only-once.patch
+mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
+mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
+mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
+mm-compaction-skip-rechecks-when-lock-was-already-held.patch
+mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+mm-rename-allocflags_to_migratetype-for-clarity.patch
+mm-compaction-pass-gfp-mask-to-compact_control.patch
+introduce-dump_vma.patch
+introduce-dump_vma-fix.patch
+introduce-vm_bug_on_vma.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
+mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
+mm-clean-up-zone-flags.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+x86-optimize-resource-lookups-for-ioremap.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
 linux-next.patch
 
