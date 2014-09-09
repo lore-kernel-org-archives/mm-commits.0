@@ -1,111 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: +
- mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch added to -mm tree
-Date: Tue, 09 Sep 2014 14:47:49 -0700
-Message-ID: <540f7585.Za1rw3w8bMBDAsqO%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch removed from -mm tree
+Date: Tue, 09 Sep 2014 14:47:59 -0700
+Message-ID: <540f758f.mhQIodUaEtGdURPq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46438 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910AbaIIVru (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Sep 2014 17:47:50 -0400
+	with ESMTP id S1751541AbaIIVsB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Sep 2014 17:48:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, hpa@zytor.com, rjw@sisk.pl, tangchen@cn.fujitsu.com, tj@kernel.org, wency@cn.fujitsu.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, hpa@zytor.com, qiuxishi@huawei.com, rjw@sisk.pl, tangchen@cn.fujitsu.com, tj@kernel.org, wency@cn.fujitsu.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
-has been added to the -mm tree.  Its filename is
-     mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
+     Subject: mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix
+has been removed from the -mm tree.  Its filename was
+     mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix
 
-Let memblock skip the hotpluggable memory regions in __next_mem_range(),
-it is used to to prevent memblock from allocating hotpluggable memory for
-the kernel at early time.  The code is the same as __next_mem_range_rev().
+fix warning
 
-Clear hotpluggable flag before releasing free pages to the buddy
-allocator.  If we don't clear hotpluggable flag in
-free_low_memory_core_early(), the memory which marked hotpluggable flag
-will not free to buddy allocator.  Because __next_mem_range() will skip
-them.
+mm/nobootmem.c:122:2: warning: large integer implicitly truncated to unsigned type [-Woverflow]
 
-free_low_memory_core_early
-	for_each_free_mem_range
-		for_each_mem_range
-			__next_mem_range
-
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c  |    4 ++++
- mm/nobootmem.c |    2 ++
- 2 files changed, 6 insertions(+)
+ mm/nobootmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/memblock.c
---- a/mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
-+++ a/mm/memblock.c
-@@ -816,6 +816,10 @@ void __init_memblock __next_mem_range(u6
- 		if (nid != NUMA_NO_NODE && nid != m_nid)
- 			continue;
- 
-+		/* skip hotpluggable memory regions if needed */
-+		if (movable_node_is_enabled() && memblock_is_hotpluggable(m))
-+			continue;
-+
- 		if (!type_b) {
- 			if (out_start)
- 				*out_start = m_start;
-diff -puN mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/nobootmem.c
---- a/mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
+diff -puN mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix mm/nobootmem.c
+--- a/mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix
 +++ a/mm/nobootmem.c
-@@ -119,6 +119,8 @@ static unsigned long __init free_low_mem
+@@ -119,7 +119,7 @@ static unsigned long __init free_low_mem
  	phys_addr_t start, end;
  	u64 i;
  
-+	memblock_clear_hotplug(0, ULLONG_MAX);
-+
+-	memblock_clear_hotplug(0, ULLONG_MAX);
++	memblock_clear_hotplug(0, -1);
+ 
  	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
  		count += __free_memory_core(start, end);
- 
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
 maintainers-akpm-maintenance.patch
 mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
-mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range-fix.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable.patch
+mm-slab_commonc-suppress-warning.patch
 mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
 not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
+mm-introduce-common-page-state-for-ballooned-memory-fix.patch
+mm-balloon_compaction-use-common-page-ballooning-fix.patch
+mm-balloon_compaction-general-cleanup-fix.patch
+mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+lib-string_helpers-introduce-string_escape_mem-fix.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
