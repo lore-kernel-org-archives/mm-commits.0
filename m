@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-warn-on-macros-with-flow-control-statements.patch
- added to -mm tree
-Date: Tue, 09 Sep 2014 16:22:17 -0700
-Message-ID: <540f8ba9.4CI/8GXdgmQfbMF8%akpm@linux-foundation.org>
+Subject: +
+ topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch added to -mm tree
+Date: Tue, 09 Sep 2014 17:11:01 -0700
+Message-ID: <540f9715.S4s35MbtM4n9ouYi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47108 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47459 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751957AbaIIXWS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Sep 2014 19:22:18 -0400
+	with ESMTP id S1750939AbaIJALD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Sep 2014 20:11:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, anton@samba.org, benh@kernel.crashing.org, cl@linux.com, hanpt@linux.vnet.ibm.com, liwanp@linux.vnet.ibm.com, mpe@ellerman.id.au, nacc@linux.vnet.ibm.com, paulus@samba.org, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn on macros with flow control statements
+     Subject: topology: add support for node_to_mem_node() to determine the fallback node
 has been added to the -mm tree.  Its filename is
-     checkpatch-warn-on-macros-with-flow-control-statements.patch
+     topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-warn-on-macros-with-flow-control-statements.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-warn-on-macros-with-flow-control-statements.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,101 +39,172 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on macros with flow control statements
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: topology: add support for node_to_mem_node() to determine the fallback node
 
-Macros with flow control statements (goto and return) are not very nice to
-read as any flow movement is unexpected.
+Anton noticed (http://www.spinics.net/lists/linux-mm/msg67489.html) that
+on ppc LPARs with memoryless nodes, a large amount of memory was consumed
+by slabs and was marked unreclaimable.  He tracked it down to slab
+deactivations in the SLUB core when we allocate remotely, leading to poor
+efficiency always when memoryless nodes are present.
 
-Try to highlight them and emit a warning on their definition.
+After much discussion, Joonsoo provided a few patches that help
+significantly.  They don't resolve the problem altogether:
 
-Avoid warning on macros that use argument concatenation as those macros
-commonly create another function where the concatenation is used in the
-function name definition like:
+ - memory hotplug still needs testing, that is when a memoryless node
+   becomes memory-ful, we want to dtrt
+ - there are other reasons for going off-node than memoryless nodes,
+   e.g., fully exhausted local nodes
 
-	#define FOO_FUNC(name, rtn_type)	\
-	rtn_type func##name(arg1, ...)		\
-	{					\
-		rtn_type rtn;			\
-		[code...]			\
-		return rtn;			\
-	}
+Neither case is resolved with this series, but I don't think that should
+block their acceptance, as they can be explored/resolved with follow-on
+patches.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+The series consists of:
+
+[1/3] topology: add support for node_to_mem_node() to determine the
+      fallback node
+
+[2/3] slub: fallback to node_to_mem_node() node if allocating on
+      memoryless node
+
+      - Joonsoo's patches to cache the nearest node with memory for each
+        NUMA node
+
+[3/3] Partial revert of 81c98869faa5 (""kthread: ensure locality of
+      task_struct allocations")
+
+ - At Tejun's request, keep the knowledge of memoryless node fallback
+   to the allocator core.
+
+
+
+This patch (of 3):
+
+We need to determine the fallback node in slub allocator if the allocation
+target node is memoryless node.  Without it, the SLUB wrongly select the
+node which has no memory and can't use a partial slab, because of node
+mismatch.  Introduced function, node_to_mem_node(X), will return a node Y
+with memory that has the nearest distance.  If X is memoryless node, it
+will return nearest distance node, but, if X is normal node, it will
+return itself.
+
+We will use this function in following patch to determine the fallback
+node.
+
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Han Pingtian <hanpt@linux.vnet.ibm.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ include/linux/topology.h |   17 +++++++++++++++++
+ mm/page_alloc.c          |    1 +
+ 2 files changed, 18 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-macros-with-flow-control-statements scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-macros-with-flow-control-statements
-+++ a/scripts/checkpatch.pl
-@@ -4066,12 +4066,17 @@ sub process {
- 			my $cnt = $realcnt;
- 			my ($off, $dstat, $dcond, $rest);
- 			my $ctx = '';
-+			my $has_flow_statement = 0;
-+			my $has_arg_concat = 0;
- 			($dstat, $dcond, $ln, $cnt, $off) =
- 				ctx_statement_block($linenr, $realcnt, 0);
- 			$ctx = $dstat;
- 			#print "dstat<$dstat> dcond<$dcond> cnt<$cnt> off<$off>\n";
- 			#print "LINE<$lines[$ln-1]> len<" . length($lines[$ln-1]) . "\n";
+diff -puN include/linux/topology.h~topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node include/linux/topology.h
+--- a/include/linux/topology.h~topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node
++++ a/include/linux/topology.h
+@@ -119,11 +119,20 @@ static inline int numa_node_id(void)
+  * Use the accessor functions set_numa_mem(), numa_mem_id() and cpu_to_mem().
+  */
+ DECLARE_PER_CPU(int, _numa_mem_);
++extern int _node_numa_mem_[MAX_NUMNODES];
  
-+			$has_flow_statement = 1 if ($ctx =~ /\b(goto|return)\b/);
-+			$has_arg_concat = 1 if ($ctx =~ /\#\#/);
+ #ifndef set_numa_mem
+ static inline void set_numa_mem(int node)
+ {
+ 	this_cpu_write(_numa_mem_, node);
++	_node_numa_mem_[numa_node_id()] = node;
++}
++#endif
 +
- 			$dstat =~ s/^.\s*\#\s*define\s+$Ident(?:\([^\)]*\))?\s*//;
- 			$dstat =~ s/$;//g;
- 			$dstat =~ s/\\\n.//g;
-@@ -4136,6 +4141,19 @@ sub process {
- 				}
- 			}
++#ifndef node_to_mem_node
++static inline int node_to_mem_node(int node)
++{
++	return _node_numa_mem_[node];
+ }
+ #endif
  
-+# check for macros with flow control, but without ## concatenation
-+# ## concatenation is commonly a macro that defines a function so ignore those
-+			if ($has_flow_statement && !$has_arg_concat) {
-+				my $herectx = $here . "\n";
-+				my $cnt = statement_rawlines($ctx);
-+
-+				for (my $n = 0; $n < $cnt; $n++) {
-+					$herectx .= raw_line($linenr, $n) . "\n";
-+				}
-+				WARN("MACRO_WITH_FLOW_CONTROL",
-+				     "Macros with flow control statements should be avoided\n" . "$herectx");
-+			}
-+
- # check for line continuations outside of #defines, preprocessor #, and asm
+@@ -146,6 +155,7 @@ static inline int cpu_to_mem(int cpu)
+ static inline void set_cpu_numa_mem(int cpu, int node)
+ {
+ 	per_cpu(_numa_mem_, cpu) = node;
++	_node_numa_mem_[cpu_to_node(cpu)] = node;
+ }
+ #endif
  
- 		} else {
+@@ -159,6 +169,13 @@ static inline int numa_mem_id(void)
+ }
+ #endif
+ 
++#ifndef node_to_mem_node
++static inline int node_to_mem_node(int node)
++{
++	return node;
++}
++#endif
++
+ #ifndef cpu_to_mem
+ static inline int cpu_to_mem(int cpu)
+ {
+diff -puN mm/page_alloc.c~topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node mm/page_alloc.c
+--- a/mm/page_alloc.c~topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node
++++ a/mm/page_alloc.c
+@@ -85,6 +85,7 @@ EXPORT_PER_CPU_SYMBOL(numa_node);
+  */
+ DEFINE_PER_CPU(int, _numa_mem_);		/* Kernel "local memory" node */
+ EXPORT_PER_CPU_SYMBOL(_numa_mem_);
++int _node_numa_mem_[MAX_NUMNODES];
+ #endif
+ 
+ /*
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-fix-spello.patch
-checkpatch-remove-debugging-message.patch
-checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh.patch
-checkpatch-enable-whitespace-checks-for-dts-files.patch
-checkpatch-allow-optional-shorter-config-descriptions.patch
-checkpatch-allow-optional-shorter-config-descriptions-v4.patch
-checkpatch-add-strict-test-for-concatenated-string-elements.patch
-checkpatch-remove-unnecessary-after-88.patch
-checkpatch-warn-on-macros-with-flow-control-statements.patch
-ipc-always-handle-a-new-value-of-auto_msgmni.patch
-linux-next.patch
-lib-string_helpers-move-documentation-to-c-file.patch
-lib-string_helpers-refactoring-the-test-suite.patch
-lib-string_helpers-introduce-string_escape_mem.patch
-lib-vsprintf-add-%pe-format-specifier.patch
-wireless-libertas-print-esaped-string-via-%pe.patch
-wireless-ipw2x00-print-ssid-via-%pe.patch
-wireless-hostap-proc-print-properly-escaped-ssid.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-lib80211-remove-unused-print_ssid.patch
-staging-wlan-ng-use-%pehp-to-print-sn.patch
-staging-rtl8192e-use-%pen-to-escape-buffer.patch
-staging-rtl8192u-use-%pen-to-escape-buffer.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix.patch
+mm-slb-always-track-caller-in-kmalloc_node_track_caller.patch
+mm-slab-move-cache_flusharray-out-of-unlikelytext-section.patch
+mm-slab-noinline-__ac_put_obj.patch
+mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
+slub-disable-tracing-and-failslab-for-merged-slabs.patch
+topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
+slub-fallback-to-node_to_mem_node-node-if-allocating-on-memoryless-node.patch
+partial-revert-of-81c98869faa5-kthread-ensure-locality-of-task_struct-allocations.patch
+mm-cma-adjust-address-limit-to-avoid-hitting-low-high-memory-boundary.patch
+arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
+mm-page_alloc-determine-migratetype-only-once.patch
+mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
+mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
+mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+mm-rename-allocflags_to_migratetype-for-clarity.patch
+mm-compaction-pass-gfp-mask-to-compact_control.patch
+mm-use-__seq_open_private-instead-of-seq_open.patch
+zsmalloc-move-pages_allocated-to-zs_pool.patch
+zsmalloc-change-return-value-unit-of-zs_get_total_size_bytes.patch
+zram-zram-memory-size-limitation.patch
+zram-report-maximum-used-memory.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
