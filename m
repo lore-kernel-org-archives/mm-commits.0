@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ocfs2-dlmgluec-use-__seq_open_private-not-seq_open.patch
- added to -mm tree
-Date: Wed, 10 Sep 2014 12:27:48 -0700
-Message-ID: <5410a634.FRvhMxj99fR8/vQU%akpm@linux-foundation.org>
+Subject: + mm-vmstat-regularize-up-and-smp-behavior.patch added to -mm
+ tree
+Date: Wed, 10 Sep 2014 12:45:00 -0700
+Message-ID: <5410aa3c.8UUGJ72C+PoYcHkg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57515 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57550 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701AbaIJT1t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 15:27:49 -0400
+	with ESMTP id S1753254AbaIJTpB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 15:45:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob.jones@codethink.co.uk, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, hannes@cmpxchg.org, leon@leon.nu, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ocfs2/dlmglue.c: use __seq_open_private() not seq_open()
+     Subject: mm: vmstat: regularize UP and SMP behavior
 has been added to the -mm tree.  Its filename is
-     fs-ocfs2-dlmgluec-use-__seq_open_private-not-seq_open.patch
+     mm-vmstat-regularize-up-and-smp-behavior.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ocfs2-dlmgluec-use-__seq_open_private-not-seq_open.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-regularize-up-and-smp-behavior.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ocfs2-dlmgluec-use-__seq_open_private-not-seq_open.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-regularize-up-and-smp-behavior.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +39,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rob Jones <rob.jones@codethink.co.uk>
-Subject: fs/ocfs2/dlmglue.c: use __seq_open_private() not seq_open()
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: vmstat: regularize UP and SMP behavior
 
-Reduce boilerplate code by using seq_open_private() instead of seq_open()
+zone_page_state and friends are an API hazard because of the difference in
+behaviour between SMP and UP is very surprising.  There is a good reason
+to allow NR_ALLOC_BATCH to go negative -- when the counter is reset the
+negative value takes recent activity into account.  NR_ALLOC_BATCH callers
+that matter access the raw counter but the API hazard is a lesson.
 
-Signed-off-by: Rob Jones <rob.jones@codethink.co.uk>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+This patch makes zone_page_state, global_page_state and
+zone_page_state_snapshot return the same values on SMP and UP as saving
+the branches on UP is unlikely to make a measurable performance
+difference.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Leon Romanovsky <leon@leon.nu>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |   23 +++++------------------
- 1 file changed, 5 insertions(+), 18 deletions(-)
+ include/linux/vmstat.h |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/dlmglue.c~fs-ocfs2-dlmgluec-use-__seq_open_private-not-seq_open fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~fs-ocfs2-dlmgluec-use-__seq_open_private-not-seq_open
-+++ a/fs/ocfs2/dlmglue.c
-@@ -2892,37 +2892,24 @@ static int ocfs2_dlm_debug_release(struc
- 
- static int ocfs2_dlm_debug_open(struct inode *inode, struct file *file)
+diff -puN include/linux/vmstat.h~mm-vmstat-regularize-up-and-smp-behavior include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-vmstat-regularize-up-and-smp-behavior
++++ a/include/linux/vmstat.h
+@@ -120,10 +120,8 @@ static inline void zone_page_state_add(l
+ static inline unsigned long global_page_state(enum zone_stat_item item)
  {
--	int ret;
- 	struct ocfs2_dlm_seq_priv *priv;
--	struct seq_file *seq;
- 	struct ocfs2_super *osb;
+ 	long x = atomic_long_read(&vm_stat[item]);
+-#ifdef CONFIG_SMP
+ 	if (x < 0)
+ 		x = 0;
+-#endif
+ 	return x;
+ }
  
--	priv = kzalloc(sizeof(struct ocfs2_dlm_seq_priv), GFP_KERNEL);
-+	priv = __seq_open_private(file, &ocfs2_dlm_seq_ops, sizeof(*priv));
- 	if (!priv) {
--		ret = -ENOMEM;
--		mlog_errno(ret);
--		goto out;
-+		mlog_errno(-ENOMEM);
-+		return -ENOMEM;
- 	}
-+
- 	osb = inode->i_private;
- 	ocfs2_get_dlm_debug(osb->osb_dlm_debug);
- 	priv->p_dlm_debug = osb->osb_dlm_debug;
- 	INIT_LIST_HEAD(&priv->p_iter_res.l_debug_list);
+@@ -131,10 +129,8 @@ static inline unsigned long zone_page_st
+ 					enum zone_stat_item item)
+ {
+ 	long x = atomic_long_read(&zone->vm_stat[item]);
+-#ifdef CONFIG_SMP
+ 	if (x < 0)
+ 		x = 0;
+-#endif
+ 	return x;
+ }
  
--	ret = seq_open(file, &ocfs2_dlm_seq_ops);
--	if (ret) {
--		kfree(priv);
--		mlog_errno(ret);
--		goto out;
--	}
+@@ -153,10 +149,10 @@ static inline unsigned long zone_page_st
+ 	int cpu;
+ 	for_each_online_cpu(cpu)
+ 		x += per_cpu_ptr(zone->pageset, cpu)->vm_stat_diff[item];
 -
--	seq = file->private_data;
--	seq->private = priv;
++#endif
+ 	if (x < 0)
+ 		x = 0;
+-#endif
++
+ 	return x;
+ }
+ 
+_
+
+Patches currently in -mm which might be from mgorman@suse.de are
+
+mm-page_alloc-fix-zone-allocation-fairness-on-up.patch
+mm-remove-misleading-arch_uses_numa_prot_none.patch
+mm-page_alloc-determine-migratetype-only-once.patch
+mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
+mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
+mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
+mm-compaction-skip-rechecks-when-lock-was-already-held.patch
+mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+mm-rename-allocflags_to_migratetype-for-clarity.patch
+mm-compaction-pass-gfp-mask-to-compact_control.patch
+introduce-dump_vma.patch
+introduce-dump_vma-fix.patch
+introduce-vm_bug_on_vma.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
+mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
+mm-clean-up-zone-flags.patch
+mm-vmstat-regularize-up-and-smp-behavior.patch
+mm-zone_page_state-regularize-up-and-smp-behavior.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+x86-optimize-resource-lookups-for-ioremap.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
+linux-next.patch
+
