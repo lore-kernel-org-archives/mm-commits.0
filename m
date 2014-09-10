@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch added to -mm tree
-Date: Wed, 10 Sep 2014 12:18:01 -0700
-Message-ID: <5410a3e9.mUBB8Ajia24CizUL%akpm@linux-foundation.org>
+ check-if-crashk_res_low-exists-when-exclude-it-from-crash-mem-ranges.patch
+ added to -mm tree
+Date: Wed, 10 Sep 2014 12:22:19 -0700
+Message-ID: <5410a4eb.SUOUWBXlf3UYAa90%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57407 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57419 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882AbaIJTSC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 15:18:02 -0400
+	with ESMTP id S1753030AbaIJTWU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 15:22:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pfeiner@google.com, gorcunov@openvz.org, hughd@google.com, jamieliu@google.com, kirill@shutemov.name, n-horiguchi@ah.jp.nec.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: bhe@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: softdirty: addresses before VMAs in PTE holes aren't softdirty
+     Subject: kexec: check if crashk_res_low exists when exclude it from crash mem ranges
 has been added to the -mm tree.  Its filename is
-     mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch
+     check-if-crashk_res_low-exists-when-exclude-it-from-crash-mem-ranges.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/check-if-crashk_res_low-exists-when-exclude-it-from-crash-mem-ranges.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/check-if-crashk_res_low-exists-when-exclude-it-from-crash-mem-ranges.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,72 +40,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Feiner <pfeiner@google.com>
-Subject: mm: softdirty: addresses before VMAs in PTE holes aren't softdirty
+From: Baoquan He <bhe@redhat.com>
+Subject: kexec: check if crashk_res_low exists when exclude it from crash mem ranges
 
-In PTE holes that contain VM_SOFTDIRTY VMAs, unmapped addresses before
-VM_SOFTDIRTY VMAs are reported as softdirty by /proc/pid/pagemap.  This
-bug was introduced in 68b5a652485682f67eacdee3deae640fb7845b63.  The
-aforementioned patch made /proc/pid/pagemap look at VM_SOFTDIRTY in PTE
-holes but neglected to observe the start of VMAs returned by find_vma.
+Add a check if crashk_res_low exists just like GART region does.  If
+crashk_res_low doesn't exist, calling exclude_mem_range is unnecessary.
 
-Tested:
-  Wrote a selftest that creates a PMD-sized VMA then unmaps the first
-  page and asserts that the page is not softdirty. I'm going to send the
-  pagemap selftest in a later commit.
+Meanwhile, since crashk_res_low has been initialized at definition, it's
+safe just use "if (crashk_low_res.end)" to check if it's exist.  And this
+can make it consistent with other places of check.
 
-Signed-off-by: Peter Feiner <pfeiner@google.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Jamie Liu <jamieliu@google.com>
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+ arch/x86/kernel/crash.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty
-+++ a/fs/proc/task_mmu.c
-@@ -931,16 +931,26 @@ static int pagemap_pte_hole(unsigned lon
- 	while (addr < end) {
- 		struct vm_area_struct *vma = find_vma(walk->mm, addr);
- 		pagemap_entry_t pme = make_pme(PM_NOT_PRESENT(pm->v2));
--		unsigned long vm_end;
-+		unsigned long vm_start = end;
-+		unsigned long vm_end = end;
-+		unsigned long vm_flags = 0;
+diff -puN arch/x86/kernel/crash.c~check-if-crashk_res_low-exists-when-exclude-it-from-crash-mem-ranges arch/x86/kernel/crash.c
+--- a/arch/x86/kernel/crash.c~check-if-crashk_res_low-exists-when-exclude-it-from-crash-mem-ranges
++++ a/arch/x86/kernel/crash.c
+@@ -237,7 +237,7 @@ static void fill_up_crash_elf_data(struc
+ 	ced->max_nr_ranges++;
  
--		if (!vma) {
--			vm_end = end;
--		} else {
-+		if (vma) {
-+			vm_start = min(end, vma->vm_start);
- 			vm_end = min(end, vma->vm_end);
--			if (vma->vm_flags & VM_SOFTDIRTY)
--				pme.pme |= PM_STATUS2(pm->v2, __PM_SOFT_DIRTY);
-+			vm_flags = vma->vm_flags;
- 		}
+ 	/* If crashk_low_res is not 0, another range split possible */
+-	if (crashk_low_res.end != 0)
++	if (crashk_low_res.end)
+ 		ced->max_nr_ranges++;
+ }
  
-+		/* Addresses before the VMA. */
-+		for (; addr < vm_start; addr += PAGE_SIZE) {
-+			err = add_to_pagemap(addr, &pme, pm);
-+			if (err)
-+				goto out;
-+		}
-+
-+		/* Addresses in the VMA. */
-+		if (vm_flags & VM_SOFTDIRTY)
-+			pme.pme |= PM_STATUS2(pm->v2, __PM_SOFT_DIRTY);
- 		for (; addr < vm_end; addr += PAGE_SIZE) {
- 			err = add_to_pagemap(addr, &pme, pm);
- 			if (err)
+@@ -335,9 +335,11 @@ static int elf_header_exclude_ranges(str
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = exclude_mem_range(cmem, crashk_low_res.start, crashk_low_res.end);
+-	if (ret)
+-		return ret;
++	if (crashk_low_res.end) {
++		ret = exclude_mem_range(cmem, crashk_low_res.start, crashk_low_res.end);
++		if (ret)
++			return ret;
++	}
+ 
+ 	/* Exclude GART region */
+ 	if (ced->gart_end) {
 _
 
-Patches currently in -mm which might be from pfeiner@google.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+try-to-use-automatic-variable-in-kexec-purgatory-makefile.patch
+take-the-segment-adding-out-of-locate_mem_hole-functions.patch
+check-if-crashk_res_low-exists-when-exclude-it-from-crash-mem-ranges.patch
+kexec-remove-the-unused-function-parameter.patch
 
