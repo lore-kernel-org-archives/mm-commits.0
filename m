@@ -1,139 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rk808-add-rtc-driver-for-rk808-fix.patch added to -mm tree
-Date: Wed, 10 Sep 2014 13:44:16 -0700
-Message-ID: <5410b820.M2bSlmwNLnNHTgDI%akpm@linux-foundation.org>
+Subject: [nacked] mm-vmstat-regularize-up-and-smp-behavior.patch removed
+ from -mm tree
+Date: Wed, 10 Sep 2014 14:06:37 -0700
+Message-ID: <5410bd5d.1TawaiYOZFawc6C9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57860 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58152 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753287AbaIJUoR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 16:44:17 -0400
+	with ESMTP id S1753182AbaIJVGi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 17:06:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, zyw@rock-chips.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, hannes@cmpxchg.org, leon@leon.nu, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-rk808-add-rtc-driver-for-rk808-fix
-has been added to the -mm tree.  Its filename is
-     rtc-rk808-add-rtc-driver-for-rk808-fix.patch
+     Subject: mm: vmstat: regularize UP and SMP behavior
+has been removed from the -mm tree.  Its filename was
+     mm-vmstat-regularize-up-and-smp-behavior.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rk808-add-rtc-driver-for-rk808-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rk808-add-rtc-driver-for-rk808-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-rk808-add-rtc-driver-for-rk808-fix
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: vmstat: regularize UP and SMP behavior
 
-make tm_def static
+zone_page_state and friends are an API hazard because of the difference in
+behaviour between SMP and UP is very surprising.  There is a good reason
+to allow NR_ALLOC_BATCH to go negative -- when the counter is reset the
+negative value takes recent activity into account.  NR_ALLOC_BATCH callers
+that matter access the raw counter but the API hazard is a lesson.
 
-Cc: Chris Zhong <zyw@rock-chips.com>
+This patch makes zone_page_state, global_page_state and
+zone_page_state_snapshot return the same values on SMP and UP as saving
+the branches on UP is unlikely to make a measurable performance
+difference.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Leon Romanovsky <leon@leon.nu>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rk808.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/vmstat.h |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-rk808.c~rtc-rk808-add-rtc-driver-for-rk808-fix drivers/rtc/rtc-rk808.c
---- a/drivers/rtc/rtc-rk808.c~rtc-rk808-add-rtc-driver-for-rk808-fix
-+++ a/drivers/rtc/rtc-rk808.c
-@@ -326,14 +326,14 @@ static SIMPLE_DEV_PM_OPS(rk808_rtc_pm_op
- 	rk808_rtc_suspend, rk808_rtc_resume);
+diff -puN include/linux/vmstat.h~mm-vmstat-regularize-up-and-smp-behavior include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-vmstat-regularize-up-and-smp-behavior
++++ a/include/linux/vmstat.h
+@@ -120,10 +120,8 @@ static inline void zone_page_state_add(l
+ static inline unsigned long global_page_state(enum zone_stat_item item)
+ {
+ 	long x = atomic_long_read(&vm_stat[item]);
+-#ifdef CONFIG_SMP
+ 	if (x < 0)
+ 		x = 0;
+-#endif
+ 	return x;
+ }
  
- /* 2014.1.1 12:00:00 Saturday */
--struct rtc_time tm_def = {
--			.tm_wday = 6,
--			.tm_year = 114,
--			.tm_mon = 0,
--			.tm_mday = 1,
--			.tm_hour = 12,
--			.tm_min = 0,
--			.tm_sec = 0,
-+static struct rtc_time tm_def = {
-+	.tm_wday = 6,
-+	.tm_year = 114,
-+	.tm_mon = 0,
-+	.tm_mday = 1,
-+	.tm_hour = 12,
-+	.tm_min = 0,
-+	.tm_sec = 0,
- };
+@@ -131,10 +129,8 @@ static inline unsigned long zone_page_st
+ 					enum zone_stat_item item)
+ {
+ 	long x = atomic_long_read(&zone->vm_stat[item]);
+-#ifdef CONFIG_SMP
+ 	if (x < 0)
+ 		x = 0;
+-#endif
+ 	return x;
+ }
  
- static int rk808_rtc_probe(struct platform_device *pdev)
+@@ -153,10 +149,10 @@ static inline unsigned long zone_page_st
+ 	int cpu;
+ 	for_each_online_cpu(cpu)
+ 		x += per_cpu_ptr(zone->pageset, cpu)->vm_stat_diff[item];
+-
++#endif
+ 	if (x < 0)
+ 		x = 0;
+-#endif
++
+ 	return x;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-page_alloc-fix-zone-allocation-fairness-on-up.patch
+mm-remove-misleading-arch_uses_numa_prot_none.patch
+mm-page_alloc-determine-migratetype-only-once.patch
+mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
 mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
+mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
+mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
 mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
-mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
-mm-introduce-common-page-state-for-ballooned-memory-fix.patch
-mm-balloon_compaction-use-common-page-ballooning-fix.patch
-mm-balloon_compaction-general-cleanup-fix.patch
-mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
+mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
+mm-compaction-skip-rechecks-when-lock-was-already-held.patch
+mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+mm-rename-allocflags_to_migratetype-for-clarity.patch
+mm-compaction-pass-gfp-mask-to-compact_control.patch
+introduce-dump_vma.patch
 introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+introduce-vm_bug_on_vma.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
+mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
+mm-clean-up-zone-flags.patch
+mm-compaction-fix-warning-of-flags-may-be-used-uninitialized.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix.patch
+x86-optimize-resource-lookups-for-ioremap.patch
 x86-optimize-resource-lookups-for-ioremap-fix.patch
-init-resolve-shadow-warnings-checkpatch-fixes.patch
+x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-lib-string_helpers-introduce-string_escape_mem-fix.patch
-lib-vsprintf-add-%pe-format-specifier-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
