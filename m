@@ -1,57 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmstat-regularize-up-and-smp-behavior.patch added to -mm
+Subject: [to-be-updated]
+ mm-zone_page_state-regularize-up-and-smp-behavior.patch removed from -mm
  tree
-Date: Wed, 10 Sep 2014 12:45:00 -0700
-Message-ID: <5410aa3c.8UUGJ72C+PoYcHkg%akpm@linux-foundation.org>
+Date: Wed, 10 Sep 2014 12:45:06 -0700
+Message-ID: <5410aa42.SC9VF0W3BQUV7hHW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57550 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57556 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753254AbaIJTpB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 15:45:01 -0400
+	with ESMTP id S1753254AbaIJTpG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 15:45:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, hannes@cmpxchg.org, leon@leon.nu, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat: regularize UP and SMP behavior
-has been added to the -mm tree.  Its filename is
-     mm-vmstat-regularize-up-and-smp-behavior.patch
+     Subject: mm: zone_page_state(): regularize UP and SMP behavior
+has been removed from the -mm tree.  Its filename was
+     mm-zone_page_state-regularize-up-and-smp-behavior.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-regularize-up-and-smp-behavior.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-regularize-up-and-smp-behavior.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmstat: regularize UP and SMP behavior
+Subject: mm: zone_page_state(): regularize UP and SMP behavior
 
-zone_page_state and friends are an API hazard because of the difference in
-behaviour between SMP and UP is very surprising.  There is a good reason
-to allow NR_ALLOC_BATCH to go negative -- when the counter is reset the
-negative value takes recent activity into account.  NR_ALLOC_BATCH callers
-that matter access the raw counter but the API hazard is a lesson.
-
-This patch makes zone_page_state, global_page_state and
-zone_page_state_snapshot return the same values on SMP and UP as saving
-the branches on UP is unlikely to make a measurable performance
-difference.
+zone_page_state is an API hazard because of the difference in behaviour
+between SMP and UP is very surprising.  There is a good reason to allow
+NR_ALLOC_BATCH to go negative -- when the counter is reset the negative
+value takes recent activity into account.  This patch makes
+zone_page_state behave the same on SMP and UP as saving one branch on UP
+is not likely to make a measurable performance difference.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reported-by: Vlastimil Babka <vbabka@suse.cz>
@@ -60,24 +43,13 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ include/linux/vmstat.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/vmstat.h~mm-vmstat-regularize-up-and-smp-behavior include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-vmstat-regularize-up-and-smp-behavior
+diff -puN include/linux/vmstat.h~mm-zone_page_state-regularize-up-and-smp-behavior include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-zone_page_state-regularize-up-and-smp-behavior
 +++ a/include/linux/vmstat.h
-@@ -120,10 +120,8 @@ static inline void zone_page_state_add(l
- static inline unsigned long global_page_state(enum zone_stat_item item)
- {
- 	long x = atomic_long_read(&vm_stat[item]);
--#ifdef CONFIG_SMP
- 	if (x < 0)
- 		x = 0;
--#endif
- 	return x;
- }
- 
-@@ -131,10 +129,8 @@ static inline unsigned long zone_page_st
+@@ -131,10 +131,8 @@ static inline unsigned long zone_page_st
  					enum zone_stat_item item)
  {
  	long x = atomic_long_read(&zone->vm_stat[item]);
@@ -85,19 +57,6 @@ diff -puN include/linux/vmstat.h~mm-vmstat-regularize-up-and-smp-behavior includ
  	if (x < 0)
  		x = 0;
 -#endif
- 	return x;
- }
- 
-@@ -153,10 +149,10 @@ static inline unsigned long zone_page_st
- 	int cpu;
- 	for_each_online_cpu(cpu)
- 		x += per_cpu_ptr(zone->pageset, cpu)->vm_stat_diff[item];
--
-+#endif
- 	if (x < 0)
- 		x = 0;
--#endif
-+
  	return x;
  }
  
@@ -130,7 +89,6 @@ convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
 mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
 mm-clean-up-zone-flags.patch
 mm-vmstat-regularize-up-and-smp-behavior.patch
-mm-zone_page_state-regularize-up-and-smp-behavior.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 x86-optimize-resource-lookups-for-ioremap.patch
