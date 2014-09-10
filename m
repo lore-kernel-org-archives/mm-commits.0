@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + take-the-segment-adding-out-of-locate_mem_hole-functions.patch
+Subject: + fs-ocfs2-dlm-dlmdebugc-use-seq_open_private-not-seq_open.patch
  added to -mm tree
-Date: Wed, 10 Sep 2014 12:22:18 -0700
-Message-ID: <5410a4ea.OBctybfF7k4mvx5Q%akpm@linux-foundation.org>
+Date: Wed, 10 Sep 2014 12:27:46 -0700
+Message-ID: <5410a632.kXygsgjJNsJScVKj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57415 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57505 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752877AbaIJTWT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 15:22:19 -0400
+	with ESMTP id S1750967AbaIJT1r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 15:27:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: rob.jones@codethink.co.uk, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: take the segment adding out of locate_mem_hole functions
+     Subject: fs/ocfs2/dlm/dlmdebug.c: use seq_open_private() not seq_open()
 has been added to the -mm tree.  Its filename is
-     take-the-segment-adding-out-of-locate_mem_hole-functions.patch
+     fs-ocfs2-dlm-dlmdebugc-use-seq_open_private-not-seq_open.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/take-the-segment-adding-out-of-locate_mem_hole-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ocfs2-dlm-dlmdebugc-use-seq_open_private-not-seq_open.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/take-the-segment-adding-out-of-locate_mem_hole-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ocfs2-dlm-dlmdebugc-use-seq_open_private-not-seq_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,115 +39,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: kexec: take the segment adding out of locate_mem_hole functions
+From: Rob Jones <rob.jones@codethink.co.uk>
+Subject: fs/ocfs2/dlm/dlmdebug.c: use seq_open_private() not seq_open()
 
-In locate_mem_hole functions, a memory hole is located and added as
-kexec_segment.  But from the name of locate_mem_hole, it should only take
-responsibility of searching a available memory hole to contain data of a
-specified size.
+Reduce boilerplate code by using seq_open_private() instead of seq_open()
 
-So in this patch add a new field 'mem' into kexec_buf, then take that
-kexec segment adding code out of locate_mem_hole_top_down and
-locate_mem_hole_bottom_up.  This make clear of the functionality of
-locate_mem_hole just like it declars to do.  And by this
-locate_mem_hole_callback chould be used later if anyone want to locate a
-memory hole for other use.
-
-Meanwhile Vivek suggested opening code function __kexec_add_segment(),
-that way we have to retreive ksegment pointer once and it is easy to read.
- So just do it in this patch and remove __kexec_add_segment() since no one
-use it anymore.
-
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Rob Jones <rob.jones@codethink.co.uk>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    1 +
- kernel/kexec.c        |   29 ++++++++---------------------
- 2 files changed, 9 insertions(+), 21 deletions(-)
+ fs/ocfs2/dlm/dlmdebug.c |   39 +++++++++++++-------------------------
+ 1 file changed, 14 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/kexec.h~take-the-segment-adding-out-of-locate_mem_hole-functions include/linux/kexec.h
---- a/include/linux/kexec.h~take-the-segment-adding-out-of-locate_mem_hole-functions
-+++ a/include/linux/kexec.h
-@@ -178,6 +178,7 @@ struct kexec_buf {
- 	struct kimage *image;
- 	char *buffer;
- 	unsigned long bufsz;
-+	unsigned long mem;
- 	unsigned long memsz;
- 	unsigned long buf_align;
- 	unsigned long buf_min;
-diff -puN kernel/kexec.c~take-the-segment-adding-out-of-locate_mem_hole-functions kernel/kexec.c
---- a/kernel/kexec.c~take-the-segment-adding-out-of-locate_mem_hole-functions
-+++ a/kernel/kexec.c
-@@ -2016,22 +2016,6 @@ static int __init crash_save_vmcoreinfo_
- subsys_initcall(crash_save_vmcoreinfo_init);
- 
- #ifdef CONFIG_KEXEC_FILE
--static int __kexec_add_segment(struct kimage *image, char *buf,
--			       unsigned long bufsz, unsigned long mem,
--			       unsigned long memsz)
--{
--	struct kexec_segment *ksegment;
--
--	ksegment = &image->segment[image->nr_segments];
--	ksegment->kbuf = buf;
--	ksegment->bufsz = bufsz;
--	ksegment->mem = mem;
--	ksegment->memsz = memsz;
--	image->nr_segments++;
--
--	return 0;
--}
--
- static int locate_mem_hole_top_down(unsigned long start, unsigned long end,
- 				    struct kexec_buf *kbuf)
+diff -puN fs/ocfs2/dlm/dlmdebug.c~fs-ocfs2-dlm-dlmdebugc-use-seq_open_private-not-seq_open fs/ocfs2/dlm/dlmdebug.c
+--- a/fs/ocfs2/dlm/dlmdebug.c~fs-ocfs2-dlm-dlmdebugc-use-seq_open_private-not-seq_open
++++ a/fs/ocfs2/dlm/dlmdebug.c
+@@ -647,41 +647,30 @@ static const struct seq_operations debug
+ static int debug_lockres_open(struct inode *inode, struct file *file)
  {
-@@ -2064,8 +2048,7 @@ static int locate_mem_hole_top_down(unsi
- 	} while (1);
+ 	struct dlm_ctxt *dlm = inode->i_private;
+-	int ret = -ENOMEM;
+-	struct seq_file *seq;
+-	struct debug_lockres *dl = NULL;
+-
+-	dl = kzalloc(sizeof(struct debug_lockres), GFP_KERNEL);
+-	if (!dl) {
+-		mlog_errno(ret);
+-		goto bail;
+-	}
++	struct debug_lockres *dl;
++	void *buf;
  
- 	/* If we are here, we found a suitable memory range */
--	__kexec_add_segment(image, kbuf->buffer, kbuf->bufsz, temp_start,
--			    kbuf->memsz);
-+	kbuf->mem = temp_start;
+-	dl->dl_len = PAGE_SIZE;
+-	dl->dl_buf = kmalloc(dl->dl_len, GFP_KERNEL);
+-	if (!dl->dl_buf) {
+-		mlog_errno(ret);
++	buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!buf)
+ 		goto bail;
+-	}
  
- 	/* Success, stop navigating through remaining System RAM ranges */
- 	return 1;
-@@ -2099,8 +2082,7 @@ static int locate_mem_hole_bottom_up(uns
- 	} while (1);
+-	ret = seq_open(file, &debug_lockres_ops);
+-	if (ret) {
+-		mlog_errno(ret);
+-		goto bail;
+-	}
++	dl = __seq_open_private(file, &debug_lockres_ops, sizeof(*dl));
++	if (!dl)
++		goto bailfree;
  
- 	/* If we are here, we found a suitable memory range */
--	__kexec_add_segment(image, kbuf->buffer, kbuf->bufsz, temp_start,
--			    kbuf->memsz);
-+	kbuf->mem = temp_start;
+-	seq = file->private_data;
+-	seq->private = dl;
++	dl->dl_len = PAGE_SIZE;
++	dl->dl_buf = buf;
  
- 	/* Success, stop navigating through remaining System RAM ranges */
- 	return 1;
-@@ -2187,7 +2169,12 @@ int kexec_add_buffer(struct kimage *imag
- 	}
+ 	dlm_grab(dlm);
+ 	dl->dl_ctxt = dlm;
  
- 	/* Found a suitable memory range */
--	ksegment = &image->segment[image->nr_segments - 1];
-+	ksegment = &image->segment[image->nr_segments];
-+	ksegment->kbuf = kbuf->buffer;
-+	ksegment->bufsz = kbuf->bufsz;
-+	ksegment->mem = kbuf->mem;
-+	ksegment->memsz = kbuf->memsz;
-+	image->nr_segments++;
- 	*load_addr = ksegment->mem;
  	return 0;
++
++bailfree:
++	kfree(buf);
+ bail:
+-	if (dl)
+-		kfree(dl->dl_buf);
+-	kfree(dl);
+-	return ret;
++	mlog_errno(-ENOMEM);
++	return -ENOMEM;
  }
+ 
+ static int debug_lockres_release(struct inode *inode, struct file *file)
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from rob.jones@codethink.co.uk are
 
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
-try-to-use-automatic-variable-in-kexec-purgatory-makefile.patch
-take-the-segment-adding-out-of-locate_mem_hole-functions.patch
-check-if-crashk_res_low-exists-when-exclude-it-from-crash-mem-ranges.patch
-kexec-remove-the-unused-function-parameter.patch
+fs-ocfs2-dlm-dlmdebugc-use-seq_open_private-not-seq_open.patch
+fs-ocfs2-cluster-netdebugc-use-seq_open_private-not-seq_open.patch
+fs-ocfs2-dlmgluec-use-__seq_open_private-not-seq_open.patch
+mm-use-seq_open_private-instead-of-seq_open.patch
+mm-use-__seq_open_private-instead-of-seq_open.patch
+lib-use-seq_open_private-instead-of-seq_open.patch
+ipc-use-__seq_open_private-instead-of-seq_open.patch
 
