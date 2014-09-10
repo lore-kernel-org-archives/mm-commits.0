@@ -1,125 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] mm-vmstat-regularize-up-and-smp-behavior.patch removed
- from -mm tree
-Date: Wed, 10 Sep 2014 14:06:37 -0700
-Message-ID: <5410bd5d.1TawaiYOZFawc6C9%akpm@linux-foundation.org>
+Subject: + mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set.patch added to
+ -mm tree
+Date: Wed, 10 Sep 2014 15:23:36 -0700
+Message-ID: <5410cf68./gl5e3T20R05r6oQ%akpm__17978.2687024728$1410387829$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58152 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58500 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753182AbaIJVGi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 17:06:38 -0400
+	with ESMTP id S1752564AbaIJWXh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Sep 2014 18:23:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, hannes@cmpxchg.org, leon@leon.nu, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, david@fromorbit.com, ming.lei@canonical.com, stable@vger.kernel.org, trond.myklebust@primarydata.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat: regularize UP and SMP behavior
-has been removed from the -mm tree.  Its filename was
-     mm-vmstat-regularize-up-and-smp-behavior.patch
+     Subject: mm: clear __GFP_FS when PF_MEMALLOC_NOIO is set
+has been added to the -mm tree.  Its filename is
+     mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmstat: regularize UP and SMP behavior
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: mm: clear __GFP_FS when PF_MEMALLOC_NOIO is set
 
-zone_page_state and friends are an API hazard because of the difference in
-behaviour between SMP and UP is very surprising.  There is a good reason
-to allow NR_ALLOC_BATCH to go negative -- when the counter is reset the
-negative value takes recent activity into account.  NR_ALLOC_BATCH callers
-that matter access the raw counter but the API hazard is a lesson.
+commit 21caf2fc1931 ("mm: teach mm by current context info to not do I/O
+during memory allocation") introduces PF_MEMALLOC_NOIO flag to avoid doing
+I/O inside memory allocation, __GFP_IO is cleared when this flag is set,
+but __GFP_FS implies __GFP_IO, it should also be cleared.  Or it may still
+run into I/O, like in superblock shrinker.  And this will make the kernel
+run into the deadlock case described in that commit.
 
-This patch makes zone_page_state, global_page_state and
-zone_page_state_snapshot return the same values on SMP and UP as saving
-the branches on UP is unlikely to make a measurable performance
-difference.
+See Dave Chinner's comment about io in superblock shrinker:
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Leon Romanovsky <leon@leon.nu>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Filesystem shrinkers do indeed perform IO from the superblock shrinker and
+have for years.  Even clean inodes can require IO before they can be freed
+- e.g.  on an orphan list, need truncation of post-eof blocks, need to
+wait for ordered operations to complete before it can be freed, etc.
+
+IOWs, Ext4, btrfs and XFS all can issue and/or block on arbitrary amounts
+of IO in the superblock shrinker context.  XFS, in particular, has been
+doing transactions and IO from the VFS inode cache shrinker since it was
+first introduced....
+
+Fix this by clearing __GFP_FS in memalloc_noio_flags(), this function has
+masked all the gfp_mask that will be passed into fs for the processes
+setting PF_MEMALLOC_NOIO in the direct reclaim path.
+
+v1 thread at: https://lkml.org/lkml/2014/9/3/32
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: joyce.xue <xuejiufei@huawei.com>
+Cc: Ming Lei <ming.lei@canonical.com>
+Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ include/linux/sched.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/vmstat.h~mm-vmstat-regularize-up-and-smp-behavior include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-vmstat-regularize-up-and-smp-behavior
-+++ a/include/linux/vmstat.h
-@@ -120,10 +120,8 @@ static inline void zone_page_state_add(l
- static inline unsigned long global_page_state(enum zone_stat_item item)
- {
- 	long x = atomic_long_read(&vm_stat[item]);
--#ifdef CONFIG_SMP
- 	if (x < 0)
- 		x = 0;
--#endif
- 	return x;
- }
+diff -puN include/linux/sched.h~mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set include/linux/sched.h
+--- a/include/linux/sched.h~mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set
++++ a/include/linux/sched.h
+@@ -1936,11 +1936,13 @@ extern void thread_group_cputime_adjuste
+ #define tsk_used_math(p) ((p)->flags & PF_USED_MATH)
+ #define used_math() tsk_used_math(current)
  
-@@ -131,10 +129,8 @@ static inline unsigned long zone_page_st
- 					enum zone_stat_item item)
+-/* __GFP_IO isn't allowed if PF_MEMALLOC_NOIO is set in current->flags */
++/* __GFP_IO isn't allowed if PF_MEMALLOC_NOIO is set in current->flags
++ * __GFP_FS is also cleared as it implies __GFP_IO.
++ */
+ static inline gfp_t memalloc_noio_flags(gfp_t flags)
  {
- 	long x = atomic_long_read(&zone->vm_stat[item]);
--#ifdef CONFIG_SMP
- 	if (x < 0)
- 		x = 0;
--#endif
- 	return x;
- }
- 
-@@ -153,10 +149,10 @@ static inline unsigned long zone_page_st
- 	int cpu;
- 	for_each_online_cpu(cpu)
- 		x += per_cpu_ptr(zone->pageset, cpu)->vm_stat_diff[item];
--
-+#endif
- 	if (x < 0)
- 		x = 0;
--#endif
-+
- 	return x;
+ 	if (unlikely(current->flags & PF_MEMALLOC_NOIO))
+-		flags &= ~__GFP_IO;
++		flags &= ~(__GFP_IO | __GFP_FS);
+ 	return flags;
  }
  
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-mm-page_alloc-fix-zone-allocation-fairness-on-up.patch
-mm-remove-misleading-arch_uses_numa_prot_none.patch
-mm-page_alloc-determine-migratetype-only-once.patch
-mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
-mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
-mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
-mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
-mm-compaction-skip-rechecks-when-lock-was-already-held.patch
-mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
-mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
-mm-rename-allocflags_to_migratetype-for-clarity.patch
-mm-compaction-pass-gfp-mask-to-compact_control.patch
-introduce-dump_vma.patch
-introduce-dump_vma-fix.patch
-introduce-vm_bug_on_vma.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
-mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
-mm-clean-up-zone-flags.patch
-mm-compaction-fix-warning-of-flags-may-be-used-uninitialized.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-x86-optimize-resource-lookups-for-ioremap.patch
-x86-optimize-resource-lookups-for-ioremap-fix.patch
-x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
-linux-next.patch
+ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
+ocfs2-fix-journal-commit-deadlock.patch
+ocfs2-fix-deadlock-due-to-wrong-locking-order.patch
+mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set.patch
 
