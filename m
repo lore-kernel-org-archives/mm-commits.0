@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-call-o2quo_exit-if-malloc-failed-in-o2net_init.patch
- added to -mm tree
-Date: Thu, 11 Sep 2014 13:30:11 -0700
-Message-ID: <54120653.OSFRa617ETCuOwr6%akpm@linux-foundation.org>
+Subject: + fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch added to -mm tree
+Date: Thu, 11 Sep 2014 13:41:31 -0700
+Message-ID: <541208fb.5/moeP7AksomEfxc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43147 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43247 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756420AbaIKUaM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 16:30:12 -0400
+	with ESMTP id S1754290AbaIKUlc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 16:41:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: call o2quo_exit() if malloc failed in o2net_init()
+     Subject: fs/notify/group.c: make fsnotify_final_destroy_group() static
 has been added to the -mm tree.  Its filename is
-     ocfs2-call-o2quo_exit-if-malloc-failed-in-o2net_init.patch
+     fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-call-o2quo_exit-if-malloc-failed-in-o2net_init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-call-o2quo_exit-if-malloc-failed-in-o2net_init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +38,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: call o2quo_exit() if malloc failed in o2net_init()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/notify/group.c: make fsnotify_final_destroy_group() static
 
-In o2net_init, if malloc failed, it directly returns -ENOMEM.  Then
-o2quo_exit won't be called in init_o2nm.
+No callers outside this file.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: joyce.xue <xuejiufei@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ fs/notify/fsnotify.h |    3 ---
+ fs/notify/group.c    |    2 +-
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-call-o2quo_exit-if-malloc-failed-in-o2net_init fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-call-o2quo_exit-if-malloc-failed-in-o2net_init
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -2146,17 +2146,13 @@ int o2net_init(void)
- 	o2quo_init();
+diff -puN fs/notify/fsnotify.h~fs-notify-groupc-make-fsnotify_final_destroy_group-static fs/notify/fsnotify.h
+--- a/fs/notify/fsnotify.h~fs-notify-groupc-make-fsnotify_final_destroy_group-static
++++ a/fs/notify/fsnotify.h
+@@ -23,9 +23,6 @@ extern int fsnotify_add_vfsmount_mark(st
+ 				      struct fsnotify_group *group, struct vfsmount *mnt,
+ 				      int allow_dups);
  
- 	if (o2net_debugfs_init())
--		return -ENOMEM;
-+		goto out;
- 
- 	o2net_hand = kzalloc(sizeof(struct o2net_handshake), GFP_KERNEL);
- 	o2net_keep_req = kzalloc(sizeof(struct o2net_msg), GFP_KERNEL);
- 	o2net_keep_resp = kzalloc(sizeof(struct o2net_msg), GFP_KERNEL);
--	if (!o2net_hand || !o2net_keep_req || !o2net_keep_resp) {
--		kfree(o2net_hand);
--		kfree(o2net_keep_req);
--		kfree(o2net_keep_resp);
--		return -ENOMEM;
--	}
-+	if (!o2net_hand || !o2net_keep_req || !o2net_keep_resp)
-+		goto out;
- 
- 	o2net_hand->protocol_version = cpu_to_be64(O2NET_PROTOCOL_VERSION);
- 	o2net_hand->connector_id = cpu_to_be64(1);
-@@ -2181,6 +2177,14 @@ int o2net_init(void)
- 	}
- 
- 	return 0;
-+
-+out:
-+	kfree(o2net_hand);
-+	kfree(o2net_keep_req);
-+	kfree(o2net_keep_resp);
-+
-+	o2quo_exit();
-+	return -ENOMEM;
- }
- 
- void o2net_exit(void)
+-/* final kfree of a group */
+-extern void fsnotify_final_destroy_group(struct fsnotify_group *group);
+-
+ /* vfsmount specific destruction of a mark */
+ extern void fsnotify_destroy_vfsmount_mark(struct fsnotify_mark *mark);
+ /* inode specific destruction of a mark */
+diff -puN fs/notify/group.c~fs-notify-groupc-make-fsnotify_final_destroy_group-static fs/notify/group.c
+--- a/fs/notify/group.c~fs-notify-groupc-make-fsnotify_final_destroy_group-static
++++ a/fs/notify/group.c
+@@ -31,7 +31,7 @@
+ /*
+  * Final freeing of a group
+  */
+-void fsnotify_final_destroy_group(struct fsnotify_group *group)
++static void fsnotify_final_destroy_group(struct fsnotify_group *group)
+ {
+ 	if (group->ops->free_group_priv)
+ 		group->ops->free_group_priv(group);
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-free-vol_lable-in-ocfs2_delete_osb.patch
-ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt.patch
-ocfs2-fix-shift-left-operations-overflow.patch
-ocfs2-call-o2quo_exit-if-malloc-failed-in-o2net_init.patch
-ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
-ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
+mm-introduce-common-page-state-for-ballooned-memory-fix.patch
+mm-balloon_compaction-use-common-page-ballooning-fix.patch
+mm-balloon_compaction-general-cleanup-fix.patch
+mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+rtc-rk808-add-rtc-driver-for-rk808-fix.patch
+rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+lib-string_helpers-introduce-string_escape_mem-fix.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
