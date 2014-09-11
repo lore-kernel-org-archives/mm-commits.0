@@ -2,25 +2,25 @@ From: akpm@linux-foundation.org
 Subject: +
  mm-apply-the-section-attribute-to-the-variable-not-its-type.patch added to
  -mm tree
-Date: Thu, 11 Sep 2014 14:39:02 -0700
-Message-ID: <54121676.9NrBhVDtnxaKSOJy%akpm@linux-foundation.org>
+Date: Thu, 11 Sep 2014 14:40:01 -0700
+Message-ID: <541216b1.vADspcAHm1ySeHKO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43905 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43912 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753767AbaIKVjD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 17:39:03 -0400
+	with ESMTP id S1752704AbaIKVkD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 17:40:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dl9pf@gmx.de, behanw@converseincode.com, mm-commits@vger.kernel.org
+To: dl9pf@gmx.de, behanw@converseincode.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: Apply the section attribute to the variable, not its =
-type
+     Subject: arch/x86/mm/mmap.c: apply the section attribute to the va=
+riable, not its type
 has been added to the -mm tree.  Its filename is
      mm-apply-the-section-attribute-to-the-variable-not-its-type.patch
 
@@ -45,7 +45,8 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Jan-Simon M=F6ller <dl9pf@gmx.de>
-Subject: mm: Apply the section attribute to the variable, not its type
+Subject: arch/x86/mm/mmap.c: apply the section attribute to the variabl=
+e, not its type
 
 This fixes a compilation error in clang in that a linker section attrib=
 ute
@@ -68,6 +69,9 @@ effect is acheived.
 
 Signed-off-by: Jan-Simon M=F6ller <dl9pf@gmx.de>
 Signed-off-by: Behan Webster <behanw@converseincode.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
