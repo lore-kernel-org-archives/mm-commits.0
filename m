@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- rtc-bq32000-add-trickle-charger-option-with-device-tree-binding.patch added to -mm tree
-Date: Thu, 11 Sep 2014 13:27:29 -0700
-Message-ID: <541205b1.OBIJbyG0/ZhCCg7x%akpm@linux-foundation.org>
+ rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 11 Sep 2014 13:28:04 -0700
+Message-ID: <541205d4.fmyeTJFW3FN9shSK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43137 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753889AbaIKU1a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 16:27:30 -0400
+	with ESMTP id S1757126AbaIKU2F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 16:28:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, a.zummo@towertech.it, ijc+devicetree@hellion.org.uk, jason@lakedameon.net, linux@roeck-us.net, matti.vaittinen@nsn.com, pavel@denx.de, robh+dt@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: bq32000: add trickle charger option, with device tree binding
+     Subject: rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     rtc-bq32000-add-trickle-charger-option-with-device-tree-binding.patch
+     rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-bq32000-add-trickle-charger-option-with-device-tree-binding.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-bq32000-add-trickle-charger-option-with-device-tree-binding.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,134 +39,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pavel Machek <pavel@ucw.cz>
-Subject: rtc: bq32000: add trickle charger option, with device tree binding
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes
 
-BQ32000 devices have "trickle chargers".  Introduce a code to enable the
-charger, based on device tree.
-
-Without charger, RTC does not keep time after power off.
-
-Signed-off-by: Pavel Machek <pavel@denx.de>
-Cc: Jason Cooper <jason@lakedameon.net>
-Cc: Matti Vaittinen <matti.vaittinen@nsn.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/rtc/rtc-bq32k.c |   65 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
-
-diff -puN drivers/rtc/rtc-bq32k.c~rtc-bq32000-add-trickle-charger-option-with-device-tree-binding drivers/rtc/rtc-bq32k.c
---- a/drivers/rtc/rtc-bq32k.c~rtc-bq32000-add-trickle-charger-option-with-device-tree-binding
-+++ a/drivers/rtc/rtc-bq32k.c
-@@ -2,10 +2,14 @@
-  * Driver for TI BQ32000 RTC.
-  *
-  * Copyright (C) 2009 Semihalf.
-+ * Copyright (C) 2014 Pavel Machek <pavel@denx.de>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-+ *
-+ * You can get hardware description at
-+ * http://www.ti.com/lit/ds/symlink/bq32000.pdf
-  */
- 
- #include <linux/module.h>
-@@ -27,6 +31,10 @@
- #define BQ32K_CENT		0x40	/* Century flag */
- #define BQ32K_CENT_EN		0x80	/* Century flag enable bit */
- 
-+#define BQ32K_CALIBRATION	0x07	/* CAL_CFG1, calibration and control */
-+#define BQ32K_TCH2		0x08	/* Trickle charge enable */
-+#define BQ32K_CFG2		0x09	/* Trickle charger control */
-+
- struct bq32k_regs {
- 	uint8_t		seconds;
- 	uint8_t		minutes;
-@@ -122,6 +130,59 @@ static const struct rtc_class_ops bq32k_
- 	.set_time	= bq32k_rtc_set_time,
- };
- 
-+static int trickle_charger_of_init(struct device *dev, struct device_node *node)
-+{
-+	int plen = 0;
-+	const uint32_t *setup;
-+	const uint32_t *reg;
-+	int error;
-+	u32 ohms = 0;
-+
-+	if (of_property_read_u32(node, "trickle-resistor-ohms" , &ohms))
-+		return 0;
-+
-+	switch (ohms) {
-+	case 180+940:
-+		/*
-+		 * TCHE[3:0] == 0x05, TCH2 == 1, TCFE == 0 (charging
-+		 * over diode and 940ohm resistor)
-+		 */
-+
-+		if (of_property_read_bool(node, "trickle-diode-disable")) {
-+			dev_err(dev, "diode and resistor mismatch\n");
-+			return -EINVAL;
-+		}
-+		reg = 0x05;
-+		break;
-+
-+	case 180+20000:
-+		/* diode disabled */
-+
-+		if (!of_property_read_bool(node, "trickle-diode-disable")) {
-+			dev_err(dev, "bq32k: diode and resistor mismatch\n");
-+			return -EINVAL;
-+		}
-+		reg = 0x25;
-+		break;
-+
-+	default:
-+		dev_err(dev, "invalid resistor value (%d)\n", *setup);
-+		return -EINVAL;
-+	}
-+
-+	error = bq32k_write(dev, &reg, BQ32K_CFG2, 1);
-+	if (error)
-+		return error;
-+
-+	reg = 0x20;
-+	error = bq32k_write(dev, &reg, BQ32K_TCH2, 1);
-+	if (error)
-+		return error;
-+
-+	dev_info(dev, "Enabled trickle RTC battery charge.\n");
-+	return 0;
-+}
-+
- static int bq32k_probe(struct i2c_client *client,
- 				const struct i2c_device_id *id)
- {
-@@ -153,6 +214,10 @@ static int bq32k_probe(struct i2c_client
- 	if (error)
- 		return error;
- 
+WARNING: braces {} are not necessary for single statement blocks
+#115: FILE: drivers/rtc/rtc-bq32k.c:217:
 +	if (client && client->dev.of_node) {
 +		trickle_charger_of_init(dev, client->dev.of_node);
 +	}
-+
+
+total: 0 errors, 1 warnings, 93 lines checked
+
+./patches/rtc-bq32000-add-trickle-charger-option-with-device-tree-binding.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/rtc/rtc-bq32k.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff -puN drivers/rtc/rtc-bq32k.c~rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes drivers/rtc/rtc-bq32k.c
+--- a/drivers/rtc/rtc-bq32k.c~rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes
++++ a/drivers/rtc/rtc-bq32k.c
+@@ -214,9 +214,8 @@ static int bq32k_probe(struct i2c_client
+ 	if (error)
+ 		return error;
+ 
+-	if (client && client->dev.of_node) {
++	if (client && client->dev.of_node)
+ 		trickle_charger_of_init(dev, client->dev.of_node);
+-	}
+ 
  	rtc = devm_rtc_device_register(&client->dev, bq32k_driver.driver.name,
  						&bq32k_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc))
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
 input-route-kbd-leds-through-the-generic-leds-layer.patch
-lib-vsprintf-add-%pt-format-specifier.patch
-rtc-bq32000-add-trickle-charger-option-with-device-tree-binding.patch
-rtc-bq32000-add-trickle-charger-device-tree-binding.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
+mm-introduce-common-page-state-for-ballooned-memory-fix.patch
+mm-balloon_compaction-use-common-page-ballooning-fix.patch
+mm-balloon_compaction-general-cleanup-fix.patch
+mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+rtc-rk808-add-rtc-driver-for-rk808-fix.patch
+rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
 linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+lib-string_helpers-introduce-string_escape_mem-fix.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
