@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-debugc-use-pr_emerg.patch added to -mm tree
-Date: Thu, 11 Sep 2014 14:16:54 -0700
-Message-ID: <54121146.C5JQzhg46Y4sIHSo%akpm@linux-foundation.org>
+Subject: + mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch added to -mm
+ tree
+Date: Thu, 11 Sep 2014 14:18:19 -0700
+Message-ID: <5412119b.7RPEp/FJupEzkE9N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43413 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43415 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757516AbaIKVQz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 17:16:55 -0400
+	with ESMTP id S1752338AbaIKVSU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 17:18:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug.c: use pr_emerg()
+     Subject: mm-introduce-vm_bug_on_mm-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-debugc-use-pr_emerg.patch
+     mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-debugc-use-pr_emerg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debugc-use-pr_emerg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,83 +40,101 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/debug.c: use pr_emerg()
+Subject: mm-introduce-vm_bug_on_mm-checkpatch-fixes
 
-- s/KERN_ALERT/pr_emerg/: we're going BUG so let's maximize the changes
-  of getting the message out.
+ERROR: code indent should use tabs where possible
+#37: FILE: include/linux/mmdebug.h:33:
++        do {^I^I^I^I^I^I^I^I\$
 
-- convert debug.c to pr_foo()
+WARNING: please, no spaces at the start of a line
+#37: FILE: include/linux/mmdebug.h:33:
++        do {^I^I^I^I^I^I^I^I\$
+
+ERROR: code indent should use tabs where possible
+#38: FILE: include/linux/mmdebug.h:34:
++                if (unlikely(cond)) {^I^I^I^I^I\$
+
+WARNING: please, no spaces at the start of a line
+#38: FILE: include/linux/mmdebug.h:34:
++                if (unlikely(cond)) {^I^I^I^I^I\$
+
+ERROR: code indent should use tabs where possible
+#39: FILE: include/linux/mmdebug.h:35:
++                        dump_mm(mm);^I^I^I^I^I\$
+
+WARNING: please, no spaces at the start of a line
+#39: FILE: include/linux/mmdebug.h:35:
++                        dump_mm(mm);^I^I^I^I^I\$
+
+ERROR: code indent should use tabs where possible
+#40: FILE: include/linux/mmdebug.h:36:
++                        BUG();^I^I^I^I^I^I\$
+
+WARNING: please, no spaces at the start of a line
+#40: FILE: include/linux/mmdebug.h:36:
++                        BUG();^I^I^I^I^I^I\$
+
+ERROR: code indent should use tabs where possible
+#41: FILE: include/linux/mmdebug.h:37:
++                }^I^I^I^I^I^I^I\$
+
+WARNING: please, no spaces at the start of a line
+#41: FILE: include/linux/mmdebug.h:37:
++                }^I^I^I^I^I^I^I\$
+
+ERROR: code indent should use tabs where possible
+#42: FILE: include/linux/mmdebug.h:38:
++        } while (0)$
+
+WARNING: please, no spaces at the start of a line
+#42: FILE: include/linux/mmdebug.h:38:
++        } while (0)$
+
+WARNING: Prefer [subsystem eg: netdev]_alert([subsystem]dev, ... then dev_alert(dev, ... then pr_alert(...  to printk(KERN_ALERT ...
+#74: FILE: mm/debug.c:171:
++	printk(KERN_ALERT
+
+total: 6 errors, 7 warnings, 109 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-introduce-vm_bug_on_mm.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |   21 +++++++++------------
- 1 file changed, 9 insertions(+), 12 deletions(-)
+ include/linux/mmdebug.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/debug.c~mm-debugc-use-pr_emerg mm/debug.c
---- a/mm/debug.c~mm-debugc-use-pr_emerg
-+++ a/mm/debug.c
-@@ -57,7 +57,7 @@ static void dump_flags(unsigned long fla
- 	unsigned long mask;
- 	int i;
- 
--	printk(KERN_ALERT "flags: %#lx(", flags);
-+	pr_emerg("flags: %#lx(", flags);
- 
- 	/* remove zone id */
- 	flags &= (1UL << NR_PAGEFLAGS) - 1;
-@@ -69,24 +69,23 @@ static void dump_flags(unsigned long fla
- 			continue;
- 
- 		flags &= ~mask;
--		printk("%s%s", delim, names[i].name);
-+		pr_cont("%s%s", delim, names[i].name);
- 		delim = "|";
- 	}
- 
- 	/* check for left over flags */
- 	if (flags)
--		printk("%s%#lx", delim, flags);
-+		pr_cont("%s%#lx", delim, flags);
- 
--	printk(")\n");
-+	pr_cont(")\n");
- }
- 
- void dump_page_badflags(struct page *page, const char *reason,
- 		unsigned long badflags)
- {
--	printk(KERN_ALERT
--	       "page:%p count:%d mapcount:%d mapping:%p index:%#lx\n",
--		page, atomic_read(&page->_count), page_mapcount(page),
--		page->mapping, page->index);
-+	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx\n",
-+		  page, atomic_read(&page->_count), page_mapcount(page),
-+		  page->mapping, page->index);
- 	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS);
- 	dump_flags(page->flags, pageflag_names, ARRAY_SIZE(pageflag_names));
- 	if (reason)
-@@ -152,8 +151,7 @@ static const struct trace_print_flags vm
- 
- void dump_vma(const struct vm_area_struct *vma)
- {
--	printk(KERN_ALERT
--		"vma %p start %p end %p\n"
-+	pr_emerg("vma %p start %p end %p\n"
- 		"next %p prev %p mm %p\n"
- 		"prot %lx anon_vma %p vm_ops %p\n"
- 		"pgoff %lx file %p private_data %p\n",
-@@ -168,8 +166,7 @@ EXPORT_SYMBOL(dump_vma);
- 
- void dump_mm(const struct mm_struct *mm)
- {
--	printk(KERN_ALERT
--		"mm %p mmap %p seqnum %d task_size %lu\n"
-+	pr_emerg("mm %p mmap %p seqnum %d task_size %lu\n"
- #ifdef CONFIG_MMU
- 		"get_unmapped_area %p\n"
- #endif
+diff -puN include/linux/mmdebug.h~mm-introduce-vm_bug_on_mm-checkpatch-fixes include/linux/mmdebug.h
+--- a/include/linux/mmdebug.h~mm-introduce-vm_bug_on_mm-checkpatch-fixes
++++ a/include/linux/mmdebug.h
+@@ -30,12 +30,12 @@ void dump_mm(const struct mm_struct *mm)
+ 		}							\
+ 	} while (0)
+ #define VM_BUG_ON_MM(cond, mm)						\
+-        do {								\
+-                if (unlikely(cond)) {					\
+-                        dump_mm(mm);					\
+-                        BUG();						\
+-                }							\
+-        } while (0)
++	do {								\
++		if (unlikely(cond)) {					\
++			dump_mm(mm);					\
++			BUG();						\
++		}							\
++	} while (0)
+ #define VM_WARN_ON(cond) WARN_ON(cond)
+ #define VM_WARN_ON_ONCE(cond) WARN_ON_ONCE(cond)
+ #define VM_WARN_ONCE(cond, format...) WARN_ONCE(cond, format)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,6 +173,7 @@ mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
 introduce-dump_vma-fix.patch
 convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
 mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
 mm-debugc-use-pr_emerg.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 zram-zram-memory-size-limitation-fix.patch
