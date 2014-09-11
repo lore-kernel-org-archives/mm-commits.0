@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch added to -mm tree
-Date: Thu, 11 Sep 2014 13:41:31 -0700
-Message-ID: <541208fb.5/moeP7AksomEfxc%akpm@linux-foundation.org>
+Subject: + fsnotify-dont-put-user-context-if-it-was-never-assigned.patch
+ added to -mm tree
+Date: Thu, 11 Sep 2014 13:44:48 -0700
+Message-ID: <541209c0.wU3kzwIW6L7/AE2+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43247 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43260 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754290AbaIKUlc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 16:41:32 -0400
+	with ESMTP id S1751634AbaIKUot (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 16:44:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: sasha.levin@oracle.com, eparis@parisplace.org, john@johnmccutchan.com, rlove@rlove.org, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/notify/group.c: make fsnotify_final_destroy_group() static
+     Subject: fsnotify: don't put user context if it was never assigned
 has been added to the -mm tree.  Its filename is
-     fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+     fsnotify-dont-put-user-context-if-it-was-never-assigned.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-dont-put-user-context-if-it-was-never-assigned.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-dont-put-user-context-if-it-was-never-assigned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,104 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/notify/group.c: make fsnotify_final_destroy_group() static
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: fsnotify: don't put user context if it was never assigned
 
-No callers outside this file.
+On some failure paths we may attempt to free user context even if it
+wasn't assigned yet.  This will cause a NULL ptr deref and a kernel BUG.
 
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
+Cc: Eric Paris <eparis@parisplace.org>
+Reviewed-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fsnotify.h |    3 ---
- fs/notify/group.c    |    2 +-
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ fs/notify/inotify/inotify_fsnotify.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/notify/fsnotify.h~fs-notify-groupc-make-fsnotify_final_destroy_group-static fs/notify/fsnotify.h
---- a/fs/notify/fsnotify.h~fs-notify-groupc-make-fsnotify_final_destroy_group-static
-+++ a/fs/notify/fsnotify.h
-@@ -23,9 +23,6 @@ extern int fsnotify_add_vfsmount_mark(st
- 				      struct fsnotify_group *group, struct vfsmount *mnt,
- 				      int allow_dups);
+diff -puN fs/notify/inotify/inotify_fsnotify.c~fsnotify-dont-put-user-context-if-it-was-never-assigned fs/notify/inotify/inotify_fsnotify.c
+--- a/fs/notify/inotify/inotify_fsnotify.c~fsnotify-dont-put-user-context-if-it-was-never-assigned
++++ a/fs/notify/inotify/inotify_fsnotify.c
+@@ -165,8 +165,10 @@ static void inotify_free_group_priv(stru
+ 	/* ideally the idr is empty and we won't hit the BUG in the callback */
+ 	idr_for_each(&group->inotify_data.idr, idr_callback, group);
+ 	idr_destroy(&group->inotify_data.idr);
+-	atomic_dec(&group->inotify_data.user->inotify_devs);
+-	free_uid(group->inotify_data.user);
++	if (group->inotify_data.user) {
++		atomic_dec(&group->inotify_data.user->inotify_devs);
++		free_uid(group->inotify_data.user);
++	}
+ }
  
--/* final kfree of a group */
--extern void fsnotify_final_destroy_group(struct fsnotify_group *group);
--
- /* vfsmount specific destruction of a mark */
- extern void fsnotify_destroy_vfsmount_mark(struct fsnotify_mark *mark);
- /* inode specific destruction of a mark */
-diff -puN fs/notify/group.c~fs-notify-groupc-make-fsnotify_final_destroy_group-static fs/notify/group.c
---- a/fs/notify/group.c~fs-notify-groupc-make-fsnotify_final_destroy_group-static
-+++ a/fs/notify/group.c
-@@ -31,7 +31,7 @@
- /*
-  * Final freeing of a group
-  */
--void fsnotify_final_destroy_group(struct fsnotify_group *group)
-+static void fsnotify_final_destroy_group(struct fsnotify_group *group)
- {
- 	if (group->ops->free_group_priv)
- 		group->ops->free_group_priv(group);
+ static void inotify_free_event(struct fsnotify_event *fsn_event)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sasha.levin@oracle.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+mm-mmap-use-pr_emerg-when-printing-bug-related-information.patch
 fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
-mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
-mm-introduce-common-page-state-for-ballooned-memory-fix.patch
-mm-balloon_compaction-use-common-page-ballooning-fix.patch
-mm-balloon_compaction-general-cleanup-fix.patch
-mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
+fsnotify-dont-put-user-context-if-it-was-never-assigned.patch
+mm-balloon_compaction-ignore-anonymous-pages.patch
+introduce-dump_vma.patch
 introduce-dump_vma-fix.patch
+introduce-dump_vma-fix-2.patch
+introduce-vm_bug_on_vma.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
 convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
 mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+vmstat-on-demand-vmstat-workers-v8-fix-2.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix.patch
-rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
-x86-optimize-resource-lookups-for-ioremap-fix.patch
-init-resolve-shadow-warnings-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-lib-string_helpers-introduce-string_escape_mem-fix.patch
-lib-vsprintf-add-%pe-format-specifier-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
