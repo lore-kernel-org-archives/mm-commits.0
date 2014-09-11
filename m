@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rk808-add-rtc-driver-for-rk808-fix-2.patch added to -mm
- tree
-Date: Thu, 11 Sep 2014 12:48:27 -0700
-Message-ID: <5411fc8b.YSe6s0gyTyaSI8i/%akpm@linux-foundation.org>
+Subject: + rtc-bq32000-add-trickle-charger-device-tree-binding.patch added to -mm tree
+Date: Thu, 11 Sep 2014 13:24:46 -0700
+Message-ID: <5412050e.vOCTaxIoICsg1Q5B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42819 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43116 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752673AbaIKTs2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 15:48:28 -0400
+	with ESMTP id S1753889AbaIKUYr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 16:24:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zyw@rock-chips.com, dianders@chromium.org, heiko@sntech.de, zhangqing@rock-chips.com, mm-commits@vger.kernel.org
+To: pavel@ucw.cz, a.zummo@towertech.it, ijc+devicetree@hellion.org.uk, jason@lakedameon.net, linux@roeck-us.net, matti.vaittinen@nsn.com, pavel@denx.de, robh+dt@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: RTC: RK808: remove tm_def structure
+     Subject: rtc: bq32000: add trickle charger device tree binding
 has been added to the -mm tree.  Its filename is
-     rtc-rk808-add-rtc-driver-for-rk808-fix-2.patch
+     rtc-bq32000-add-trickle-charger-device-tree-binding.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rk808-add-rtc-driver-for-rk808-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-bq32000-add-trickle-charger-device-tree-binding.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rk808-add-rtc-driver-for-rk808-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-bq32000-add-trickle-charger-device-tree-binding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +38,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Zhong <zyw@rock-chips.com>
-Subject: RTC: RK808: remove tm_def structure
+From: Pavel Machek <pavel@ucw.cz>
+Subject: rtc: bq32000: add trickle charger device tree binding
 
-If the date/time is invalid at bootup, there's no reason to set it to
-a bogus value. We can just let the data and time be invalid until
-someone makes it valid.
+BQ32000 have "trickle chargers".  Introduce a device tree binding for
+specifying the trickle charger configuration for that.
 
-Signed-off-by: Chris Zhong <zyw@rock-chips.com>
-Cc: Zhang Qing <zhangqing@rock-chips.com>
-Reviewed-by: Doug Anderson <dianders@chromium.org>
-Tested-by: Doug Anderson <dianders@chromium.org>
-Tested-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Pavel Machek <pavel@denx.de>
+Reviewed-by: Jason Cooper <jason@lakedameon.net>
+Cc: Matti Vaittinen <matti.vaittinen@nsn.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rk808.c |   17 ++---------------
- 1 file changed, 2 insertions(+), 15 deletions(-)
+ Documentation/devicetree/bindings/i2c/ti,bq32k.txt |   18 +++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN drivers/rtc/rtc-rk808.c~rtc-rk808-add-rtc-driver-for-rk808-fix-2 drivers/rtc/rtc-rk808.c
---- a/drivers/rtc/rtc-rk808.c~rtc-rk808-add-rtc-driver-for-rk808-fix-2
-+++ a/drivers/rtc/rtc-rk808.c
-@@ -325,17 +325,6 @@ static int rk808_rtc_resume(struct devic
- static SIMPLE_DEV_PM_OPS(rk808_rtc_pm_ops,
- 	rk808_rtc_suspend, rk808_rtc_resume);
- 
--/* 2014.1.1 12:00:00 Saturday */
--static struct rtc_time tm_def = {
--	.tm_wday = 6,
--	.tm_year = 114,
--	.tm_mon = 0,
--	.tm_mday = 1,
--	.tm_hour = 12,
--	.tm_min = 0,
--	.tm_sec = 0,
--};
--
- static int rk808_rtc_probe(struct platform_device *pdev)
- {
- 	struct rk808 *rk808 = dev_get_drvdata(pdev->dev.parent);
-@@ -376,10 +365,8 @@ static int rk808_rtc_probe(struct platfo
- 		return ret;
- 	}
- 	ret = rtc_valid_tm(&tm);
--	if (ret) {
--		dev_warn(&pdev->dev, "invalid date/time and init time\n");
--		rk808_rtc_set_time(&pdev->dev, &tm_def);
--	}
-+	if (ret)
-+		dev_warn(&pdev->dev, "invalid date/time\n");
- 
- 	device_init_wakeup(&pdev->dev, 1);
- 
+diff -puN /dev/null Documentation/devicetree/bindings/i2c/ti,bq32k.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/i2c/ti,bq32k.txt
+@@ -0,0 +1,18 @@
++* TI BQ32000                I2C Serial Real-Time Clock
++
++Required properties:
++- compatible: Should contain "ti,bq32000".
++- reg: I2C address for chip
++
++Optional properties:
++- trickle-resistor-ohms : Selected resistor for trickle charger
++       Values usable are 1120 and 20180
++       Should be given if trickle charger should be enabled
++- trickle-diode-disable : Do not use internal trickle charger diode
++       Should be given if internal trickle charger diode should be disabled
++Example:
++       bq32000: rtc@68 {
++               compatible = "ti,bq32000";
++               trickle-resistor-ohms = <1120>;
++               reg = <0x68>;
++       };
 _
 
-Patches currently in -mm which might be from zyw@rock-chips.com are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
-rtc-rk808-add-rtc-driver-for-rk808.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix-2.patch
-clk-rk808-add-clkout-driver-for-rk808.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+lib-vsprintf-add-%pt-format-specifier.patch
+rtc-bq32000-add-trickle-charger-device-tree-binding.patch
 linux-next.patch
 
