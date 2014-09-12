@@ -1,125 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-mmap-use-pr_emerg-when-printing-bug-related-information.patch removed
- from -mm tree
-Date: Fri, 12 Sep 2014 13:13:08 -0700
-Message-ID: <541353d4./Huwe0EhP1Ak2N8q%akpm@linux-foundation.org>
+Subject: [merged] kcmp-fix-standard-comparison-bug.patch removed from -mm
+ tree
+Date: Fri, 12 Sep 2014 13:13:10 -0700
+Message-ID: <541353d6.nu4vntsRIpR4RLlz%akpm__26230.9008431204$1410552811$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54683 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54685 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752821AbaILUNJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Sep 2014 16:13:09 -0400
+	with ESMTP id S1752812AbaILUNL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Sep 2014 16:13:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, gorcunov@openvz.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: use pr_emerg when printing BUG related information
+     Subject: kcmp: fix standard comparison bug
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-use-pr_emerg-when-printing-bug-related-information.patch
+     kcmp-fix-standard-comparison-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: mm/mmap.c: use pr_emerg when printing BUG related information
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: kcmp: fix standard comparison bug
 
-Make sure we actually see the output of validate_mm() and browse_rb()
-before triggering a BUG().  pr_info isn't shown by default so the reason
-for the BUG() isn't obvious.
+The C operator <= defines a perfectly fine total ordering on the set
+of values representable in a long. However, unlike its namesake in the
+integers, it is not translation invariant, meaning that we do not have
+"b <= c" iff "a+b <= a+c" for all a,b,c.
 
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+This means that it is always wrong to try to boil down the relationship
+between two longs to a question about the sign of their difference,
+because the resulting relation [a LEQ b iff a-b <= 0] is neither
+anti-symmetric or transitive.  The former is due to -LONG_MIN==LONG_MIN
+(take any two a,b with a-b = LONG_MIN; then a LEQ b and b LEQ a, but a !=
+b).  The latter can either be seen observing that x LEQ x+1 for all x,
+implying x LEQ x+1 LEQ x+2 ...  LEQ x-1 LEQ x; or more directly with the
+simple example a=LONG_MIN, b=0, c=1, for which a-b < 0, b-c < 0, but a-c >
+0.
+
+Note that it makes absolutely no difference that a transmogrying bijection
+has been applied before the comparison is done.  In fact, had the
+obfuscation not been done, one could probably not observe the bug
+(assuming all values being compared always lie in one half of the address
+space, the mathematical value of a-b is always representable in a long). 
+As it stands, one can easily obtain three file descriptors exhibiting the
+non-transitivity of kcmp().
+
+Side note 1: I can't see that ensuring the MSB of the multiplier is
+set serves any purpose other than obfuscating the obfuscating code.
+
+Side note 2:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <assert.h>
+#include <sys/syscall.h>
+
+enum kcmp_type {
+        KCMP_FILE,
+        KCMP_VM,
+        KCMP_FILES,
+        KCMP_FS,
+        KCMP_SIGHAND,
+        KCMP_IO,
+        KCMP_SYSVSEM,
+        KCMP_TYPES,
+};
+pid_t pid;
+
+int kcmp(pid_t pid1, pid_t pid2, int type,
+	 unsigned long idx1, unsigned long idx2)
+{
+	return syscall(SYS_kcmp, pid1, pid2, type, idx1, idx2);
+}
+int cmp_fd(int fd1, int fd2)
+{
+	int c = kcmp(pid, pid, KCMP_FILE, fd1, fd2);
+	if (c < 0) {
+		perror("kcmp");
+		exit(1);
+	}
+	assert(0 <= c && c < 3);
+	return c;
+}
+int cmp_fdp(const void *a, const void *b)
+{
+	static const int normalize[] = {0, -1, 1};
+	return normalize[cmp_fd(*(int*)a, *(int*)b)];
+}
+#define MAX 100 /* This is plenty; I've seen it trigger for MAX==3 */
+int main(int argc, char *argv[])
+{
+	int r, s, count = 0;
+	int REL[3] = {0,0,0};
+	int fd[MAX];
+	pid = getpid();
+	while (count < MAX) {
+		r = open("/dev/null", O_RDONLY);
+		if (r < 0)
+			break;
+		fd[count++] = r;
+	}
+	printf("opened %d file descriptors\n", count);
+	for (r = 0; r < count; ++r) {
+		for (s = r+1; s < count; ++s) {
+			REL[cmp_fd(fd[r], fd[s])]++;
+		}
+	}
+	printf("== %d\t< %d\t> %d\n", REL[0], REL[1], REL[2]);
+	qsort(fd, count, sizeof(fd[0]), cmp_fdp);
+	memset(REL, 0, sizeof(REL));
+
+	for (r = 0; r < count; ++r) {
+		for (s = r+1; s < count; ++s) {
+			REL[cmp_fd(fd[r], fd[s])]++;
+		}
+	}
+	printf("== %d\t< %d\t> %d\n", REL[0], REL[1], REL[2]);
+	return (REL[0] + REL[2] != 0);
+}
+
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
+"Eric W. Biederman" <ebiederm@xmission.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ kernel/kcmp.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/mmap.c~mm-mmap-use-pr_emerg-when-printing-bug-related-information mm/mmap.c
---- a/mm/mmap.c~mm-mmap-use-pr_emerg-when-printing-bug-related-information
-+++ a/mm/mmap.c
-@@ -369,20 +369,20 @@ static int browse_rb(struct rb_root *roo
- 		struct vm_area_struct *vma;
- 		vma = rb_entry(nd, struct vm_area_struct, vm_rb);
- 		if (vma->vm_start < prev) {
--			pr_info("vm_start %lx prev %lx\n", vma->vm_start, prev);
-+			pr_emerg("vm_start %lx prev %lx\n", vma->vm_start, prev);
- 			bug = 1;
- 		}
- 		if (vma->vm_start < pend) {
--			pr_info("vm_start %lx pend %lx\n", vma->vm_start, pend);
-+			pr_emerg("vm_start %lx pend %lx\n", vma->vm_start, pend);
- 			bug = 1;
- 		}
- 		if (vma->vm_start > vma->vm_end) {
--			pr_info("vm_end %lx < vm_start %lx\n",
-+			pr_emerg("vm_end %lx < vm_start %lx\n",
- 				vma->vm_end, vma->vm_start);
- 			bug = 1;
- 		}
- 		if (vma->rb_subtree_gap != vma_compute_subtree_gap(vma)) {
--			pr_info("free gap %lx, correct %lx\n",
-+			pr_emerg("free gap %lx, correct %lx\n",
- 			       vma->rb_subtree_gap,
- 			       vma_compute_subtree_gap(vma));
- 			bug = 1;
-@@ -396,7 +396,7 @@ static int browse_rb(struct rb_root *roo
- 	for (nd = pn; nd; nd = rb_prev(nd))
- 		j++;
- 	if (i != j) {
--		pr_info("backwards %d, forwards %d\n", j, i);
-+		pr_emerg("backwards %d, forwards %d\n", j, i);
- 		bug = 1;
- 	}
- 	return bug ? -1 : i;
-@@ -431,17 +431,17 @@ static void validate_mm(struct mm_struct
- 		i++;
- 	}
- 	if (i != mm->map_count) {
--		pr_info("map_count %d vm_next %d\n", mm->map_count, i);
-+		pr_emerg("map_count %d vm_next %d\n", mm->map_count, i);
- 		bug = 1;
- 	}
- 	if (highest_address != mm->highest_vm_end) {
--		pr_info("mm->highest_vm_end %lx, found %lx\n",
-+		pr_emerg("mm->highest_vm_end %lx, found %lx\n",
- 		       mm->highest_vm_end, highest_address);
- 		bug = 1;
- 	}
- 	i = browse_rb(&mm->mm_rb);
- 	if (i != mm->map_count) {
--		pr_info("map_count %d rb %d\n", mm->map_count, i);
-+		pr_emerg("map_count %d rb %d\n", mm->map_count, i);
- 		bug = 1;
- 	}
- 	BUG_ON(bug);
+diff -puN kernel/kcmp.c~kcmp-fix-standard-comparison-bug kernel/kcmp.c
+--- a/kernel/kcmp.c~kcmp-fix-standard-comparison-bug
++++ a/kernel/kcmp.c
+@@ -44,11 +44,12 @@ static long kptr_obfuscate(long v, int t
+  */
+ static int kcmp_ptr(void *v1, void *v2, enum kcmp_type type)
+ {
+-	long ret;
++	long t1, t2;
+ 
+-	ret = kptr_obfuscate((long)v1, type) - kptr_obfuscate((long)v2, type);
++	t1 = kptr_obfuscate((long)v1, type);
++	t2 = kptr_obfuscate((long)v2, type);
+ 
+-	return (ret < 0) | ((ret > 0) << 1);
++	return (t1 < t2) | ((t1 > t2) << 1);
+ }
+ 
+ /* The caller must have pinned the task */
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 origin.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-fsnotify-dont-put-user-context-if-it-was-never-assigned.patch
-mm-balloon_compaction-ignore-anonymous-pages.patch
-introduce-dump_vma.patch
-introduce-dump_vma-fix.patch
-introduce-dump_vma-fix-2.patch
-introduce-vm_bug_on_vma.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-move-debug-code-out-of-page_allocc.patch
-mm-introduce-vm_bug_on_mm.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-use-vm_bug_on_mm-where-possible.patch
-mm-debugc-use-pr_emerg.patch
-vmstat-on-demand-vmstat-workers-v8-fix-2.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
+lib-string-remove-duplicated-function.patch
+lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
+linux-next.patch
 
