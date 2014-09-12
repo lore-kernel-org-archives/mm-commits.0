@@ -1,98 +1,99 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch removed from -mm tree
-Date: Fri, 12 Sep 2014 13:12:56 -0700
-Message-ID: <541353c8.ZQixGHPjnMTXKLRo%akpm@linux-foundation.org>
+ checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
+ removed from -mm tree
+Date: Fri, 12 Sep 2014 13:13:04 -0700
+Message-ID: <541353d0.Y6oBo8q/L+ZDbQSC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54661 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54676 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125AbaILUM5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Sep 2014 16:12:57 -0400
+	with ESMTP id S1752812AbaILUNF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Sep 2014 16:13:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, fengguang.wu@intel.com, hpa@zytor.com, rjw@sisk.pl, tangchen@cn.fujitsu.com, tj@kernel.org, wency@cn.fujitsu.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: joe@perches.com, geert@linux-m68k.org, joe.lawrence@stratus.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
+     Subject: checkpatch: allow commit descriptions on separate line from commit id
 has been removed from the -mm tree.  Its filename was
-     mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range.patch
+     checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mem-hotplug: let memblock skip the hotpluggable memory regions in __next_mem_range()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: allow commit descriptions on separate line from commit id
 
-Let memblock skip the hotpluggable memory regions in __next_mem_range(),
-it is used to to prevent memblock from allocating hotpluggable memory for
-the kernel at early time.  The code is the same as __next_mem_range_rev().
+The general form for commit id and description is
 
-Clear hotpluggable flag before releasing free pages to the buddy
-allocator.  If we don't clear hotpluggable flag in
-free_low_memory_core_early(), the memory which marked hotpluggable flag
-will not free to buddy allocator.  Because __next_mem_range() will skip
-them.
+'Commit <12+hexdigits> ("commit description/subject line")'
 
-free_low_memory_core_early
-	for_each_free_mem_range
-		for_each_mem_range
-			__next_mem_range
+But commit logs often have relatively long commit ids and the commit
+description is on a separate line like:
 
-[akpm@linux-foundation.org: fix warning]
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Some explanation as to why commit <12+hexdigits> ("commit
+description/subject line") is improved.
+
+Allow this form.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Suggested-by: Joe Lawrence <joe.lawrence@stratus.com>
+Tested-by: Joe Lawrence <joe.lawrence@stratus.com>
+Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c  |    4 ++++
- mm/nobootmem.c |    2 ++
- 2 files changed, 6 insertions(+)
+ scripts/checkpatch.pl |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/memblock.c
---- a/mm/memblock.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
-+++ a/mm/memblock.c
-@@ -816,6 +816,10 @@ void __init_memblock __next_mem_range(u6
- 		if (nid != NUMA_NO_NODE && nid != m_nid)
- 			continue;
- 
-+		/* skip hotpluggable memory regions if needed */
-+		if (movable_node_is_enabled() && memblock_is_hotpluggable(m))
-+			continue;
-+
- 		if (!type_b) {
- 			if (out_start)
- 				*out_start = m_start;
-diff -puN mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range mm/nobootmem.c
---- a/mm/nobootmem.c~mem-hotplug-let-memblock-skip-the-hotpluggable-memory-regions-in-__next_mem_range
-+++ a/mm/nobootmem.c
-@@ -119,6 +119,8 @@ static unsigned long __init free_low_mem
- 	phys_addr_t start, end;
- 	u64 i;
- 
-+	memblock_clear_hotplug(0, -1);
-+
- 	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
- 		count += __free_memory_core(start, end);
- 
+diff -puN scripts/checkpatch.pl~checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-commit-descriptions-on-separate-line-from-commit-id
++++ a/scripts/checkpatch.pl
+@@ -2133,7 +2133,10 @@ sub process {
+ # Check for improperly formed commit descriptions
+ 		if ($in_commit_log &&
+ 		    $line =~ /\bcommit\s+[0-9a-f]{5,}/i &&
+-		    $line !~ /\b[Cc]ommit [0-9a-f]{12,40} \("/) {
++		    !($line =~ /\b[Cc]ommit [0-9a-f]{12,40} \("/ ||
++		      ($line =~ /\b[Cc]ommit [0-9a-f]{12,40}\s*$/ &&
++		       defined $rawlines[$linenr] &&
++		       $rawlines[$linenr] =~ /^\s*\("/))) {
+ 			$line =~ /\b(c)ommit\s+([0-9a-f]{5,})/i;
+ 			my $init_char = $1;
+ 			my $orig_commit = lc($2);
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-maintainers-akpm-maintenance.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-fix-spello.patch
+checkpatch-remove-debugging-message.patch
+checkpatch-update-allowed_asm_includes-macros-add-rebooth-and-timeh.patch
+checkpatch-enable-whitespace-checks-for-dts-files.patch
+checkpatch-allow-optional-shorter-config-descriptions.patch
+checkpatch-allow-optional-shorter-config-descriptions-v4.patch
+checkpatch-add-strict-test-for-concatenated-string-elements.patch
+checkpatch-remove-unnecessary-after-88.patch
+checkpatch-warn-on-macros-with-flow-control-statements.patch
+checkpatch-look-for-common-misspellings.patch
+ipc-always-handle-a-new-value-of-auto_msgmni.patch
+linux-next.patch
+lib-string_helpers-move-documentation-to-c-file.patch
+lib-string_helpers-refactoring-the-test-suite.patch
+lib-string_helpers-introduce-string_escape_mem.patch
+lib-vsprintf-add-%pe-format-specifier.patch
+wireless-libertas-print-esaped-string-via-%pe.patch
+wireless-ipw2x00-print-ssid-via-%pe.patch
+wireless-hostap-proc-print-properly-escaped-ssid.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+lib80211-remove-unused-print_ssid.patch
+staging-wlan-ng-use-%pehp-to-print-sn.patch
+staging-rtl8192e-use-%pen-to-escape-buffer.patch
+staging-rtl8192u-use-%pen-to-escape-buffer.patch
 
