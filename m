@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch added to -mm tree
-Date: Fri, 12 Sep 2014 10:59:15 -0700
-Message-ID: <54133473.ctsklN0HrErNSEy6%akpm@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Fri, 12 Sep 2014 12:56:10 -0700
+Message-ID: <54134fda.u3k7Ei+3S1FiOe5S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54432 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750881AbaILR7Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Sep 2014 13:59:16 -0400
+	with ESMTP id S1751014AbaILT4L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Sep 2014 15:56:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: string: Make all calls to strnicmp into calls to strncasecmp
+     Subject: linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
+     linux-next-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +38,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: string: Make all calls to strnicmp into calls to strncasecmp
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-The previous patch made strnicmp into a wrapper for strncasecmp.  This
-patch makes all in-tree users of strnicmp call strncasecmp directly, while
-still making sure that the strnicmp symbol can be used by out-of-tree
-modules.  It should be considered a temporary hack until all in-tree
-callers have been converted.
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h |    2 +-
- lib/string.c           |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/clk/Kconfig |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN include/linux/string.h~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp include/linux/string.h
---- a/include/linux/string.h~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp
-+++ a/include/linux/string.h
-@@ -41,7 +41,7 @@ extern int strcmp(const char *,const cha
- extern int strncmp(const char *,const char *,__kernel_size_t);
- #endif
- #ifndef __HAVE_ARCH_STRNICMP
--extern int strnicmp(const char *, const char *, __kernel_size_t);
-+#define strnicmp strncasecmp
- #endif
- #ifndef __HAVE_ARCH_STRCASECMP
- extern int strcasecmp(const char *s1, const char *s2);
-diff -puN lib/string.c~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp lib/string.c
---- a/lib/string.c~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp
-+++ a/lib/string.c
-@@ -59,6 +59,7 @@ int strncasecmp(const char *s1, const ch
- EXPORT_SYMBOL(strncasecmp);
- #endif
- #ifndef __HAVE_ARCH_STRNICMP
-+#undef strnicmp
- int strnicmp(const char *s1, const char *s2, size_t len)
- {
- 	return strncasecmp(s1, s2, len);
+diff -puN drivers/clk/Kconfig~linux-next-rejects drivers/clk/Kconfig
+--- a/drivers/clk/Kconfig~linux-next-rejects
++++ a/drivers/clk/Kconfig
+@@ -32,12 +32,23 @@ config COMMON_CLK_WM831X
+ 
+ source "drivers/clk/versatile/Kconfig"
+ 
++config COMMON_CLK_MAX_GEN
++	bool
++
+ config COMMON_CLK_MAX77686
+ 	tristate "Clock driver for Maxim 77686 MFD"
+ 	depends on MFD_MAX77686
++	select COMMON_CLK_MAX_GEN
+ 	---help---
+ 	  This driver supports Maxim 77686 crystal oscillator clock. 
+ 
++config COMMON_CLK_MAX77802
++	tristate "Clock driver for Maxim 77802 PMIC"
++	depends on MFD_MAX77686
++	select COMMON_CLK_MAX_GEN
++	---help---
++	  This driver supports Maxim 77802 crystal oscillator clock.
++
+ config COMMON_CLK_RK808
+ 	tristate "Clock driver for RK808"
+ 	depends on MFD_RK808
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kcmp-fix-standard-comparison-bug.patch
-lib-string-remove-duplicated-function.patch
-lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
+origin.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
+mm-introduce-common-page-state-for-ballooned-memory-fix.patch
+mm-balloon_compaction-use-common-page-ballooning-fix.patch
+mm-balloon_compaction-general-cleanup-fix.patch
+mm-balloon_compaction-general-cleanup-checkpatch-fixes.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-debugc-use-pr_emerg.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+rtc-rk808-add-rtc-driver-for-rk808-fix.patch
+rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+lib-string_helpers-introduce-string_escape_mem-fix.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
