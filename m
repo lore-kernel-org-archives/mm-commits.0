@@ -1,102 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] eventpoll-fix-uninitialized-variable-in-epoll_ctl.patch
+Subject: [merged] ufs-fix-deadlocks-introduced-by-sb-mutex-merge.patch
  removed from -mm tree
-Date: Fri, 12 Sep 2014 13:13:00 -0700
-Message-ID: <541353cc.RjQXkzK/UK0Qqu/F%akpm__35976.1976906613$1410552803$gmane$org@linux-foundation.org>
+Date: Fri, 12 Sep 2014 13:12:50 -0700
+Message-ID: <541353c2.Xbxs7dParnHTHndD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54669 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54648 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812AbaILUNB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Sep 2014 16:13:01 -0400
+	with ESMTP id S1752346AbaILUMv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Sep 2014 16:12:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.iooss_linux@m4x.org, arve@android.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: khoroshilov@ispras.ru, dushistov@mail.ru, fabf@skynet.be, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: eventpoll: fix uninitialized variable in epoll_ctl
+     Subject: ufs: fix deadlocks introduced by sb mutex merge
 has been removed from the -mm tree.  Its filename was
-     eventpoll-fix-uninitialized-variable-in-epoll_ctl.patch
+     ufs-fix-deadlocks-introduced-by-sb-mutex-merge.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: eventpoll: fix uninitialized variable in epoll_ctl
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Subject: ufs: fix deadlocks introduced by sb mutex merge
 
-When calling epoll_ctl with operation EPOLL_CTL_DEL, structure epds is =
-not
-initialized but ep_take_care_of_epollwakeup reads its event field.  Whe=
-n
-this unintialized field has EPOLLWAKEUP bit set, a capability check is
-done for CAP_BLOCK_SUSPEND in ep_take_care_of_epollwakeup.  This produc=
-es
-unexpected messages in the audit log, such as (on a system running
-SELinux):
+Commit 0244756edc4b ("ufs: sb mutex merge + mutex_destroy") introduces
+deadlocks in ufs_new_inode() and ufs_free_inode().
 
-    type=3DAVC msg=3Daudit(1408212798.866:410): avc:  denied
-    { block_suspend } for  pid=3D7754 comm=3D"dbus-daemon" capability=3D=
-36
-    scontext=3Dunconfined_u:unconfined_r:unconfined_t
-    tcontext=3Dunconfined_u:unconfined_r:unconfined_t
-    tclass=3Dcapability2 permissive=3D1
+Most callers of those functions acquire the mutex by themselves and
+ufs_{new,free}_inode() do that via lock_ufs(), i.e we have an unavoidable
+double lock.
 
-    type=3DSYSCALL msg=3Daudit(1408212798.866:410): arch=3Dc000003e sys=
-call=3D233
-    success=3Dyes exit=3D0 a0=3D3 a1=3D2 a2=3D9 a3=3D7fffd4d66ec0 items=
-=3D0 ppid=3D1
-    pid=3D7754 auid=3D1000 uid=3D0 gid=3D0 euid=3D0 suid=3D0 fsuid=3D0 =
-egid=3D0 sgid=3D0
-    fsgid=3D0 tty=3D(none) ses=3D3 comm=3D"dbus-daemon"
-    exe=3D"/usr/bin/dbus-daemon"
-    subj=3Dunconfined_u:unconfined_r:unconfined_t key=3D(null)
+The patch resolves the issue by making sure that ufs_{new,free}_inode()
+are not called with the mutex held.
 
-("arch=3Dc000003e syscall=3D233 a1=3D2" means "epoll_ctl(op=3DEPOLL_CTL=
-_DEL)")
+Found by Linux Driver Verification project (linuxtesting.org).
 
-Remove use of epds in epoll_ctl when op =3D=3D EPOLL_CTL_DEL.
-
-=46ixes: 4d7e30d98939 ("epoll: Add a flag, EPOLLWAKEUP, to prevent susp=
-end while epoll events are ready")
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Arve Hj=F8nnev=E5g <arve@android.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ufs/inode.c |    7 ++-----
+ fs/ufs/namei.c |   14 ++++++--------
+ 2 files changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN fs/eventpoll.c~eventpoll-fix-uninitialized-variable-in-epoll_=
-ctl fs/eventpoll.c
---- a/fs/eventpoll.c~eventpoll-fix-uninitialized-variable-in-epoll_ctl
-+++ a/fs/eventpoll.c
-@@ -1852,7 +1852,8 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 		goto error_tgt_fput;
-=20
- 	/* Check if EPOLLWAKEUP is allowed */
--	ep_take_care_of_epollwakeup(&epds);
-+	if (ep_op_has_event(op))
-+		ep_take_care_of_epollwakeup(&epds);
-=20
- 	/*
- 	 * We have to check that the file structure underneath the file descr=
-iptor
+diff -puN fs/ufs/inode.c~ufs-fix-deadlocks-introduced-by-sb-mutex-merge fs/ufs/inode.c
+--- a/fs/ufs/inode.c~ufs-fix-deadlocks-introduced-by-sb-mutex-merge
++++ a/fs/ufs/inode.c
+@@ -902,9 +902,6 @@ void ufs_evict_inode(struct inode * inod
+ 	invalidate_inode_buffers(inode);
+ 	clear_inode(inode);
+ 
+-	if (want_delete) {
+-		lock_ufs(inode->i_sb);
+-		ufs_free_inode (inode);
+-		unlock_ufs(inode->i_sb);
+-	}
++	if (want_delete)
++		ufs_free_inode(inode);
+ }
+diff -puN fs/ufs/namei.c~ufs-fix-deadlocks-introduced-by-sb-mutex-merge fs/ufs/namei.c
+--- a/fs/ufs/namei.c~ufs-fix-deadlocks-introduced-by-sb-mutex-merge
++++ a/fs/ufs/namei.c
+@@ -126,12 +126,12 @@ static int ufs_symlink (struct inode * d
+ 	if (l > sb->s_blocksize)
+ 		goto out_notlocked;
+ 
+-	lock_ufs(dir->i_sb);
+ 	inode = ufs_new_inode(dir, S_IFLNK | S_IRWXUGO);
+ 	err = PTR_ERR(inode);
+ 	if (IS_ERR(inode))
+-		goto out;
++		goto out_notlocked;
+ 
++	lock_ufs(dir->i_sb);
+ 	if (l > UFS_SB(sb)->s_uspi->s_maxsymlinklen) {
+ 		/* slow symlink */
+ 		inode->i_op = &ufs_symlink_inode_operations;
+@@ -181,13 +181,9 @@ static int ufs_mkdir(struct inode * dir,
+ 	struct inode * inode;
+ 	int err;
+ 
+-	lock_ufs(dir->i_sb);
+-	inode_inc_link_count(dir);
+-
+ 	inode = ufs_new_inode(dir, S_IFDIR|mode);
+-	err = PTR_ERR(inode);
+ 	if (IS_ERR(inode))
+-		goto out_dir;
++		return PTR_ERR(inode);
+ 
+ 	inode->i_op = &ufs_dir_inode_operations;
+ 	inode->i_fop = &ufs_dir_operations;
+@@ -195,6 +191,9 @@ static int ufs_mkdir(struct inode * dir,
+ 
+ 	inode_inc_link_count(inode);
+ 
++	lock_ufs(dir->i_sb);
++	inode_inc_link_count(dir);
++
+ 	err = ufs_make_empty(inode, dir);
+ 	if (err)
+ 		goto out_fail;
+@@ -212,7 +211,6 @@ out_fail:
+ 	inode_dec_link_count(inode);
+ 	inode_dec_link_count(inode);
+ 	iput (inode);
+-out_dir:
+ 	inode_dec_link_count(dir);
+ 	unlock_ufs(dir->i_sb);
+ 	goto out;
 _
 
-Patches currently in -mm which might be from nicolas.iooss_linux@m4x.or=
-g are
+Patches currently in -mm which might be from khoroshilov@ispras.ru are
 
 origin.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
