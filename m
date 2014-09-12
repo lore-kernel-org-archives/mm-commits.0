@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-string-remove-duplicated-function.patch added to -mm tree
-Date: Thu, 11 Sep 2014 15:18:44 -0700
-Message-ID: <54121fc4.A9jDV4XjUmSnkxg0%akpm@linux-foundation.org>
+Subject: +
+ lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch added to -mm tree
+Date: Fri, 12 Sep 2014 10:59:15 -0700
+Message-ID: <54133473.ctsklN0HrErNSEy6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44139 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53424 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753827AbaIKWSp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Sep 2014 18:18:45 -0400
+	with ESMTP id S1750881AbaILR7Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Sep 2014 13:59:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, ak@linux.intel.com, dan.carpenter@oracle.com, grant.likely@linaro.org, hpa@linux.intel.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/string.c: remove duplicated function
+     Subject: lib: string: Make all calls to strnicmp into calls to strncasecmp
 has been added to the -mm tree.  Its filename is
-     lib-string-remove-duplicated-function.patch
+     lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-string-remove-duplicated-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string-remove-duplicated-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +40,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/string.c: remove duplicated function
+Subject: lib: string: Make all calls to strnicmp into calls to strncasecmp
 
-lib/string.c contains two functions, strnicmp and strncasecmp, which do
-roughly the same thing, namely compare two strings case-insensitively up
-to a given bound.  They have slightly different implementations, but the
-only important difference is that strncasecmp doesn't handle len==0
-appropriately; it effectively becomes strcasecmp in that case.  strnicmp
-correctly says that two strings are always equal in their first 0
-characters.
-
-strncasecmp is the POSIX name for this functionality.  So rename the
-non-broken function to the standard name.  To minimize the impact on the
-rest of the kernel (and since both are exported to modules), make strnicmp
-a wrapper for strncasecmp.
+The previous patch made strnicmp into a wrapper for strncasecmp.  This
+patch makes all in-tree users of strnicmp call strncasecmp directly, while
+still making sure that the strnicmp symbol can be used by out-of-tree
+modules.  It should be considered a temporary hack until all in-tree
+callers have been converted.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: "H. Peter Anvin" <hpa@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |   27 ++++++++++-----------------
- 1 file changed, 10 insertions(+), 17 deletions(-)
+ include/linux/string.h |    2 +-
+ lib/string.c           |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN lib/string.c~lib-string-remove-duplicated-function lib/string.c
---- a/lib/string.c~lib-string-remove-duplicated-function
+diff -puN include/linux/string.h~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp include/linux/string.h
+--- a/include/linux/string.h~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp
++++ a/include/linux/string.h
+@@ -41,7 +41,7 @@ extern int strcmp(const char *,const cha
+ extern int strncmp(const char *,const char *,__kernel_size_t);
+ #endif
+ #ifndef __HAVE_ARCH_STRNICMP
+-extern int strnicmp(const char *, const char *, __kernel_size_t);
++#define strnicmp strncasecmp
+ #endif
+ #ifndef __HAVE_ARCH_STRCASECMP
+ extern int strcasecmp(const char *s1, const char *s2);
+diff -puN lib/string.c~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp lib/string.c
+--- a/lib/string.c~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp
 +++ a/lib/string.c
-@@ -27,14 +27,14 @@
- #include <linux/bug.h>
- #include <linux/errno.h>
- 
--#ifndef __HAVE_ARCH_STRNICMP
-+#ifndef __HAVE_ARCH_STRNCASECMP
- /**
-- * strnicmp - Case insensitive, length-limited string comparison
-+ * strncasecmp - Case insensitive, length-limited string comparison
-  * @s1: One string
-  * @s2: The other string
-  * @len: the maximum number of characters to compare
-  */
--int strnicmp(const char *s1, const char *s2, size_t len)
-+int strncasecmp(const char *s1, const char *s2, size_t len)
+@@ -59,6 +59,7 @@ int strncasecmp(const char *s1, const ch
+ EXPORT_SYMBOL(strncasecmp);
+ #endif
+ #ifndef __HAVE_ARCH_STRNICMP
++#undef strnicmp
+ int strnicmp(const char *s1, const char *s2, size_t len)
  {
- 	/* Yes, Virginia, it had better be unsigned */
- 	unsigned char c1, c2;
-@@ -56,6 +56,13 @@ int strnicmp(const char *s1, const char
- 	} while (--len);
- 	return (int)c1 - (int)c2;
- }
-+EXPORT_SYMBOL(strncasecmp);
-+#endif
-+#ifndef __HAVE_ARCH_STRNICMP
-+int strnicmp(const char *s1, const char *s2, size_t len)
-+{
-+	return strncasecmp(s1, s2, len);
-+}
- EXPORT_SYMBOL(strnicmp);
- #endif
- 
-@@ -73,20 +80,6 @@ int strcasecmp(const char *s1, const cha
- EXPORT_SYMBOL(strcasecmp);
- #endif
- 
--#ifndef __HAVE_ARCH_STRNCASECMP
--int strncasecmp(const char *s1, const char *s2, size_t n)
--{
--	int c1, c2;
--
--	do {
--		c1 = tolower(*s1++);
--		c2 = tolower(*s2++);
--	} while ((--n > 0) && c1 == c2 && c1 != 0);
--	return c1 - c2;
--}
--EXPORT_SYMBOL(strncasecmp);
--#endif
+ 	return strncasecmp(s1, s2, len);
+_
+
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+
+kcmp-fix-standard-comparison-bug.patch
+lib-string-remove-duplicated-function.patch
+lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
+linux-next.patch
+
