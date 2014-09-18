@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch added
- to -mm tree
-Date: Thu, 18 Sep 2014 14:36:19 -0700
-Message-ID: <541b5053.z68On0G8+ujUe4Wz%akpm@linux-foundation.org>
+Subject: + s390-cio-replace-strnicmp-with-strncasecmp.patch added to -mm
+ tree
+Date: Thu, 18 Sep 2014 14:36:23 -0700
+Message-ID: <541b5057.aihcQxKBzwz7kGJW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41784 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757311AbaIRVgU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:20 -0400
+	with ESMTP id S1757504AbaIRVgY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, dmitry.torokhov@gmail.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, oberpar@linux.vnet.ibm.com, sebott@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: input: edt-ft5x06: replace strnicmp with strncasecmp
+     Subject: s390/cio: replace strnicmp with strncasecmp
 has been added to the -mm tree.  Its filename is
-     input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch
+     s390-cio-replace-strnicmp-with-strncasecmp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/s390-cio-replace-strnicmp-with-strncasecmp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/s390-cio-replace-strnicmp-with-strncasecmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: input: edt-ft5x06: replace strnicmp with strncasecmp
+Subject: s390/cio: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -53,25 +53,31 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/edt-ft5x06.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/s390/cio/chp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/touchscreen/edt-ft5x06.c~input-edt-ft5x06-replace-strnicmp-with-strncasecmp drivers/input/touchscreen/edt-ft5x06.c
---- a/drivers/input/touchscreen/edt-ft5x06.c~input-edt-ft5x06-replace-strnicmp-with-strncasecmp
-+++ a/drivers/input/touchscreen/edt-ft5x06.c
-@@ -812,7 +812,7 @@ static int edt_ft5x06_ts_identify(struct
- 	/* if we find something consistent, stay with that assumption
- 	 * at least M09 won't send 3 bytes here
- 	 */
--	if (!(strnicmp(rdbuf + 1, "EP0", 3))) {
-+	if (!(strncasecmp(rdbuf + 1, "EP0", 3))) {
- 		tsdata->version = M06;
+diff -puN drivers/s390/cio/chp.c~s390-cio-replace-strnicmp-with-strncasecmp drivers/s390/cio/chp.c
+--- a/drivers/s390/cio/chp.c~s390-cio-replace-strnicmp-with-strncasecmp
++++ a/drivers/s390/cio/chp.c
+@@ -257,11 +257,11 @@ static ssize_t chp_status_write(struct d
+ 	if (!num_args)
+ 		return count;
  
- 		/* remove last '$' end marker */
+-	if (!strnicmp(cmd, "on", 2) || !strcmp(cmd, "1")) {
++	if (!strncasecmp(cmd, "on", 2) || !strcmp(cmd, "1")) {
+ 		mutex_lock(&cp->lock);
+ 		error = s390_vary_chpid(cp->chpid, 1);
+ 		mutex_unlock(&cp->lock);
+-	} else if (!strnicmp(cmd, "off", 3) || !strcmp(cmd, "0")) {
++	} else if (!strncasecmp(cmd, "off", 3) || !strcmp(cmd, "0")) {
+ 		mutex_lock(&cp->lock);
+ 		error = s390_vary_chpid(cp->chpid, 0);
+ 		mutex_unlock(&cp->lock);
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
