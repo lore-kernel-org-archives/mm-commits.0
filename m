@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + altera-stapl-replace-strnicmp-with-strncasecmp.patch added to
- -mm tree
-Date: Thu, 18 Sep 2014 14:36:20 -0700
-Message-ID: <541b5054.83/0h25Sy83IrNMh%akpm@linux-foundation.org>
+Subject: + input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch added
+ to -mm tree
+Date: Thu, 18 Sep 2014 14:36:19 -0700
+Message-ID: <541b5053.z68On0G8+ujUe4Wz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41773 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41770 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757372AbaIRVgV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:21 -0400
+	with ESMTP id S1757311AbaIRVgU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, liplianin@netup.ru, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, dmitry.torokhov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: altera-stapl: replace strnicmp with strncasecmp
+     Subject: input: edt-ft5x06: replace strnicmp with strncasecmp
 has been added to the -mm tree.  Its filename is
-     altera-stapl-replace-strnicmp-with-strncasecmp.patch
+     input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/altera-stapl-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/altera-stapl-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: altera-stapl: replace strnicmp with strncasecmp
+Subject: input: edt-ft5x06: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -53,34 +53,25 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: "Igor M. Liplianin" <liplianin@netup.ru>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/altera-stapl/altera.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/input/touchscreen/edt-ft5x06.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/altera-stapl/altera.c~altera-stapl-replace-strnicmp-with-strncasecmp drivers/misc/altera-stapl/altera.c
---- a/drivers/misc/altera-stapl/altera.c~altera-stapl-replace-strnicmp-with-strncasecmp
-+++ a/drivers/misc/altera-stapl/altera.c
-@@ -454,7 +454,7 @@ exit_done:
+diff -puN drivers/input/touchscreen/edt-ft5x06.c~input-edt-ft5x06-replace-strnicmp-with-strncasecmp drivers/input/touchscreen/edt-ft5x06.c
+--- a/drivers/input/touchscreen/edt-ft5x06.c~input-edt-ft5x06-replace-strnicmp-with-strncasecmp
++++ a/drivers/input/touchscreen/edt-ft5x06.c
+@@ -812,7 +812,7 @@ static int edt_ft5x06_ts_identify(struct
+ 	/* if we find something consistent, stay with that assumption
+ 	 * at least M09 won't send 3 bytes here
+ 	 */
+-	if (!(strnicmp(rdbuf + 1, "EP0", 3))) {
++	if (!(strncasecmp(rdbuf + 1, "EP0", 3))) {
+ 		tsdata->version = M06;
  
- 				name = &p[str_table + name_id];
- 
--				if (strnicmp(aconf->action, name, strlen(name)) == 0) {
-+				if (strncasecmp(aconf->action, name, strlen(name)) == 0) {
- 					action_found = 1;
- 					current_proc =
- 						get_unaligned_be32(&p[action_table +
-@@ -2176,7 +2176,7 @@ static int altera_get_note(u8 *p, s32 pr
- 			key_ptr = &p[note_strings +
- 					get_unaligned_be32(
- 					&p[note_table + (8 * i)])];
--			if ((strnicmp(key, key_ptr, strlen(key_ptr)) == 0) &&
-+			if ((strncasecmp(key, key_ptr, strlen(key_ptr)) == 0) &&
- 						(key != NULL)) {
- 				status = 0;
- 
+ 		/* remove last '$' end marker */
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
