@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + thermal-replace-strnicmp-with-strncasecmp.patch added to -mm
- tree
-Date: Thu, 18 Sep 2014 14:36:25 -0700
-Message-ID: <541b5059.HUvEtabX60c9HAnU%akpm@linux-foundation.org>
+Subject: + kdb-replace-strnicmp-with-strncasecmp.patch added to -mm tree
+Date: Thu, 18 Sep 2014 14:36:26 -0700
+Message-ID: <541b505a.V9lWEvouYU+XkwcM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41791 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41795 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757504AbaIRVg0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:26 -0400
+	with ESMTP id S1757504AbaIRVg1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, edubezval@gmail.com, rui.zhang@intel.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thermal: replace strnicmp with strncasecmp
+     Subject: kdb: replace strnicmp with strncasecmp
 has been added to the -mm tree.  Its filename is
-     thermal-replace-strnicmp-with-strncasecmp.patch
+     kdb-replace-strnicmp-with-strncasecmp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thermal-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kdb-replace-strnicmp-with-strncasecmp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thermal-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kdb-replace-strnicmp-with-strncasecmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: thermal: replace strnicmp with strncasecmp
+Subject: kdb: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -53,53 +52,31 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/thermal_core.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/debug/kdb/kdb_bp.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/thermal/thermal_core.c~thermal-replace-strnicmp-with-strncasecmp drivers/thermal/thermal_core.c
---- a/drivers/thermal/thermal_core.c~thermal-replace-strnicmp-with-strncasecmp
-+++ a/drivers/thermal/thermal_core.c
-@@ -66,7 +66,7 @@ static struct thermal_governor *__find_g
- 		return def_governor;
+diff -puN kernel/debug/kdb/kdb_bp.c~kdb-replace-strnicmp-with-strncasecmp kernel/debug/kdb/kdb_bp.c
+--- a/kernel/debug/kdb/kdb_bp.c~kdb-replace-strnicmp-with-strncasecmp
++++ a/kernel/debug/kdb/kdb_bp.c
+@@ -52,11 +52,11 @@ static int kdb_parsebp(int argc, const c
  
- 	list_for_each_entry(pos, &thermal_governor_list, governor_list)
--		if (!strnicmp(name, pos->name, THERMAL_NAME_LENGTH))
-+		if (!strncasecmp(name, pos->name, THERMAL_NAME_LENGTH))
- 			return pos;
- 
- 	return NULL;
-@@ -104,7 +104,7 @@ int thermal_register_governor(struct the
- 
- 		name = pos->tzp->governor_name;
- 
--		if (!strnicmp(name, governor->name, THERMAL_NAME_LENGTH))
-+		if (!strncasecmp(name, governor->name, THERMAL_NAME_LENGTH))
- 			pos->governor = governor;
- 	}
- 
-@@ -129,7 +129,7 @@ void thermal_unregister_governor(struct
- 	mutex_lock(&thermal_list_lock);
- 
- 	list_for_each_entry(pos, &thermal_tz_list, node) {
--		if (!strnicmp(pos->governor->name, governor->name,
-+		if (!strncasecmp(pos->governor->name, governor->name,
- 						THERMAL_NAME_LENGTH))
- 			pos->governor = NULL;
- 	}
-@@ -1665,7 +1665,7 @@ struct thermal_zone_device *thermal_zone
- 
- 	mutex_lock(&thermal_list_lock);
- 	list_for_each_entry(pos, &thermal_tz_list, node)
--		if (!strnicmp(name, pos->type, THERMAL_NAME_LENGTH)) {
-+		if (!strncasecmp(name, pos->type, THERMAL_NAME_LENGTH)) {
- 			found++;
- 			ref = pos;
- 		}
+ 	bp->bph_length = 1;
+ 	if ((argc + 1) != nextarg) {
+-		if (strnicmp(argv[nextarg], "datar", sizeof("datar")) == 0)
++		if (strncasecmp(argv[nextarg], "datar", sizeof("datar")) == 0)
+ 			bp->bp_type = BP_ACCESS_WATCHPOINT;
+-		else if (strnicmp(argv[nextarg], "dataw", sizeof("dataw")) == 0)
++		else if (strncasecmp(argv[nextarg], "dataw", sizeof("dataw")) == 0)
+ 			bp->bp_type = BP_WRITE_WATCHPOINT;
+-		else if (strnicmp(argv[nextarg], "inst", sizeof("inst")) == 0)
++		else if (strncasecmp(argv[nextarg], "inst", sizeof("inst")) == 0)
+ 			bp->bp_type = BP_HARDWARE_BREAKPOINT;
+ 		else
+ 			return KDB_ARGCOUNT;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
