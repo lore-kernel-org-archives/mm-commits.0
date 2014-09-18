@@ -1,140 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch added to -mm tree
-Date: Thu, 18 Sep 2014 16:02:08 -0700
-Message-ID: <541b6470.WQ9j+Cf0jXwxTH1K%akpm__33776.1810551912$1411081343$gmane$org@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch
+ removed from -mm tree
+Date: Thu, 18 Sep 2014 16:13:02 -0700
+Message-ID: <541b66fe.I9ytJUQFgUrrPAN8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42786 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752000AbaIRXCJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 19:02:09 -0400
+	with ESMTP id S1750815AbaIRXND (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 19:13:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, hughd@google.com, james.hogan@imgtec.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: pfeiner@google.com, gorcunov@openvz.org, hughd@google.com, jamieliu@google.com, kirill@shutemov.name, n-horiguchi@ah.jp.nec.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: add migration/hwpoisoned entry check in hugetlb_change_protection
-has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+     Subject: mm: softdirty: addresses before VMAs in PTE holes aren't softdirty
+has been removed from the -mm tree.  Its filename was
+     mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/hugetlb: add migration/hwpoisoned entry check in hugetlb_change_protection
+From: Peter Feiner <pfeiner@google.com>
+Subject: mm: softdirty: addresses before VMAs in PTE holes aren't softdirty
 
-There is a race condition between hugepage migration and
-change_protection(), where hugetlb_change_protection() doesn't care about
-migration entries and wrongly overwrites them.  That causes unexpected
-results like kernel crash.  HWPoison entries also can cause the same
-problem.
+In PTE holes that contain VM_SOFTDIRTY VMAs, unmapped addresses before
+VM_SOFTDIRTY VMAs are reported as softdirty by /proc/pid/pagemap.  This
+bug was introduced in 68b5a652485682f67eacdee3deae640fb7845b63.  The
+aforementioned patch made /proc/pid/pagemap look at VM_SOFTDIRTY in PTE
+holes but neglected to observe the start of VMAs returned by find_vma.
 
-This patch adds is_hugetlb_entry_(migration|hwpoisoned) check in this
-function to do proper actions.
+Tested:
+  Wrote a selftest that creates a PMD-sized VMA then unmaps the first
+  page and asserts that the page is not softdirty. I'm going to send the
+  pagemap selftest in a later commit.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Peter Feiner <pfeiner@google.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[2.6.36+]
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Jamie Liu <jamieliu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection
-+++ a/mm/hugetlb.c
-@@ -3372,7 +3372,26 @@ unsigned long hugetlb_change_protection(
- 			spin_unlock(ptl);
- 			continue;
+diff -puN fs/proc/task_mmu.c~mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty
++++ a/fs/proc/task_mmu.c
+@@ -931,16 +931,26 @@ static int pagemap_pte_hole(unsigned lon
+ 	while (addr < end) {
+ 		struct vm_area_struct *vma = find_vma(walk->mm, addr);
+ 		pagemap_entry_t pme = make_pme(PM_NOT_PRESENT(pm->v2));
+-		unsigned long vm_end;
++		unsigned long vm_start = end;
++		unsigned long vm_end = end;
++		unsigned long vm_flags = 0;
+ 
+-		if (!vma) {
+-			vm_end = end;
+-		} else {
++		if (vma) {
++			vm_start = min(end, vma->vm_start);
+ 			vm_end = min(end, vma->vm_end);
+-			if (vma->vm_flags & VM_SOFTDIRTY)
+-				pme.pme |= PM_STATUS2(pm->v2, __PM_SOFT_DIRTY);
++			vm_flags = vma->vm_flags;
  		}
--		if (!huge_pte_none(huge_ptep_get(ptep))) {
-+		pte = huge_ptep_get(ptep);
-+		if (unlikely(is_hugetlb_entry_hwpoisoned(pte))) {
-+			spin_unlock(ptl);
-+			continue;
+ 
++		/* Addresses before the VMA. */
++		for (; addr < vm_start; addr += PAGE_SIZE) {
++			err = add_to_pagemap(addr, &pme, pm);
++			if (err)
++				goto out;
 +		}
-+		if (unlikely(is_hugetlb_entry_migration(pte))) {
-+			swp_entry_t entry = pte_to_swp_entry(pte);
 +
-+			if (is_write_migration_entry(entry)) {
-+				pte_t newpte;
-+
-+				make_migration_entry_read(&entry);
-+				newpte = swp_entry_to_pte(entry);
-+				set_huge_pte_at(mm, address, ptep, newpte);
-+				pages++;
-+			}
-+			spin_unlock(ptl);
-+			continue;
-+		}
-+		if (!huge_pte_none(pte)) {
- 			pte = huge_ptep_get_and_clear(mm, address, ptep);
- 			pte = pte_mkhuge(huge_pte_modify(pte, newprot));
- 			pte = arch_make_huge_pte(pte, vma, NULL, 0);
++		/* Addresses in the VMA. */
++		if (vm_flags & VM_SOFTDIRTY)
++			pme.pme |= PM_STATUS2(pm->v2, __PM_SOFT_DIRTY);
+ 		for (; addr < vm_end; addr += PAGE_SIZE) {
+ 			err = add_to_pagemap(addr, &pme, pm);
+ 			if (err)
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from pfeiner@google.com are
 
-mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
-mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
-mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
-mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
-mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
-mm-compaction-skip-rechecks-when-lock-was-already-held.patch
-mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
-mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
-mm-rename-allocflags_to_migratetype-for-clarity.patch
-mm-compaction-pass-gfp-mask-to-compact_control.patch
-mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put.patch
-mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
-mempolicy-sanitize-the-usage-of-get_task_policy.patch
-mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
-mempolicy-introduce-__get_vma_policy-export-get_task_policy.patch
-mempolicy-fix-show_numa_map-vs-exec-do_set_mempolicy-race.patch
-mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
-mempolicy-unexport-get_vma_policy-and-remove-its-task-arg.patch
-introduce-dump_vma.patch
-introduce-dump_vma-fix.patch
-introduce-vm_bug_on_vma.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
 mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
 mm-softdirty-unmapped-addresses-between-vmas-are-clean.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
-mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
-mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 
