@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + thinkpad_acpi-replace-strnicmp-with-strncasecmp.patch added to
+Subject: + altera-stapl-replace-strnicmp-with-strncasecmp.patch added to
  -mm tree
-Date: Thu, 18 Sep 2014 14:36:21 -0700
-Message-ID: <541b5055.0CqlV8SGX6RmOOqX%akpm@linux-foundation.org>
+Date: Thu, 18 Sep 2014 14:36:20 -0700
+Message-ID: <541b5054.83/0h25Sy83IrNMh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41776 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41773 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757372AbaIRVgW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:22 -0400
+	with ESMTP id S1757372AbaIRVgV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, dvhart@infradead.org, ibm-acpi@hmh.eng.br, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, liplianin@netup.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thinkpad_acpi: replace strnicmp with strncasecmp
+     Subject: altera-stapl: replace strnicmp with strncasecmp
 has been added to the -mm tree.  Its filename is
-     thinkpad_acpi-replace-strnicmp-with-strncasecmp.patch
+     altera-stapl-replace-strnicmp-with-strncasecmp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thinkpad_acpi-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/altera-stapl-replace-strnicmp-with-strncasecmp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thinkpad_acpi-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/altera-stapl-replace-strnicmp-with-strncasecmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: thinkpad_acpi: replace strnicmp with strncasecmp
+Subject: altera-stapl: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -53,33 +53,34 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>
-Cc: Darren Hart <dvhart@infradead.org>
+Cc: "Igor M. Liplianin" <liplianin@netup.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/thinkpad_acpi.c |    4 ++--
+ drivers/misc/altera-stapl/altera.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad_acpi-replace-strnicmp-with-strncasecmp drivers/platform/x86/thinkpad_acpi.c
---- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad_acpi-replace-strnicmp-with-strncasecmp
-+++ a/drivers/platform/x86/thinkpad_acpi.c
-@@ -8878,13 +8878,13 @@ static int __must_check __init get_think
- 	}
+diff -puN drivers/misc/altera-stapl/altera.c~altera-stapl-replace-strnicmp-with-strncasecmp drivers/misc/altera-stapl/altera.c
+--- a/drivers/misc/altera-stapl/altera.c~altera-stapl-replace-strnicmp-with-strncasecmp
++++ a/drivers/misc/altera-stapl/altera.c
+@@ -454,7 +454,7 @@ exit_done:
  
- 	s = dmi_get_system_info(DMI_PRODUCT_VERSION);
--	if (s && !(strnicmp(s, "ThinkPad", 8) && strnicmp(s, "Lenovo", 6))) {
-+	if (s && !(strncasecmp(s, "ThinkPad", 8) && strncasecmp(s, "Lenovo", 6))) {
- 		tp->model_str = kstrdup(s, GFP_KERNEL);
- 		if (!tp->model_str)
- 			return -ENOMEM;
- 	} else {
- 		s = dmi_get_system_info(DMI_BIOS_VENDOR);
--		if (s && !(strnicmp(s, "Lenovo", 6))) {
-+		if (s && !(strncasecmp(s, "Lenovo", 6))) {
- 			tp->model_str = kstrdup(s, GFP_KERNEL);
- 			if (!tp->model_str)
- 				return -ENOMEM;
+ 				name = &p[str_table + name_id];
+ 
+-				if (strnicmp(aconf->action, name, strlen(name)) == 0) {
++				if (strncasecmp(aconf->action, name, strlen(name)) == 0) {
+ 					action_found = 1;
+ 					current_proc =
+ 						get_unaligned_be32(&p[action_table +
+@@ -2176,7 +2176,7 @@ static int altera_get_note(u8 *p, s32 pr
+ 			key_ptr = &p[note_strings +
+ 					get_unaligned_be32(
+ 					&p[note_table + (8 * i)])];
+-			if ((strnicmp(key, key_ptr, strlen(key_ptr)) == 0) &&
++			if ((strncasecmp(key, key_ptr, strlen(key_ptr)) == 0) &&
+ 						(key != NULL)) {
+ 				status = 0;
+ 
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
