@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + cpuidle-replace-strnicmp-with-strncasecmp.patch added to -mm
- tree
-Date: Thu, 18 Sep 2014 14:36:16 -0700
-Message-ID: <541b5050.die3ZReRA6voGHxV%akpm@linux-foundation.org>
+Subject: + isofs-replace-strnicmp-with-strncasecmp.patch added to -mm tree
+Date: Thu, 18 Sep 2014 14:36:12 -0700
+Message-ID: <541b504c./6Zg085NMGupoQCw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41745 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757345AbaIRVgR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:17 -0400
+	with ESMTP id S1757235AbaIRVgN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, daniel.lezcano@linaro.org, rjw@rjwysocki.net, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpuidle: replace strnicmp with strncasecmp
+     Subject: isofs: replace strnicmp with strncasecmp
 has been added to the -mm tree.  Its filename is
-     cpuidle-replace-strnicmp-with-strncasecmp.patch
+     isofs-replace-strnicmp-with-strncasecmp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cpuidle-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/isofs-replace-strnicmp-with-strncasecmp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cpuidle-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/isofs-replace-strnicmp-with-strncasecmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: cpuidle: replace strnicmp with strncasecmp
+Subject: isofs: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -53,26 +52,25 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governor.c |    2 +-
+ fs/isofs/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cpuidle/governor.c~cpuidle-replace-strnicmp-with-strncasecmp drivers/cpuidle/governor.c
---- a/drivers/cpuidle/governor.c~cpuidle-replace-strnicmp-with-strncasecmp
-+++ a/drivers/cpuidle/governor.c
-@@ -28,7 +28,7 @@ static struct cpuidle_governor * __cpuid
- 	struct cpuidle_governor *gov;
- 
- 	list_for_each_entry(gov, &cpuidle_governors, governor_list)
--		if (!strnicmp(str, gov->name, CPUIDLE_NAME_LEN))
-+		if (!strncasecmp(str, gov->name, CPUIDLE_NAME_LEN))
- 			return gov;
- 
- 	return NULL;
+diff -puN fs/isofs/inode.c~isofs-replace-strnicmp-with-strncasecmp fs/isofs/inode.c
+--- a/fs/isofs/inode.c~isofs-replace-strnicmp-with-strncasecmp
++++ a/fs/isofs/inode.c
+@@ -247,7 +247,7 @@ static int isofs_dentry_cmp_common(
+ 	}
+ 	if (alen == blen) {
+ 		if (ci) {
+-			if (strnicmp(name->name, str, alen) == 0)
++			if (strncasecmp(name->name, str, alen) == 0)
+ 				return 0;
+ 		} else {
+ 			if (strncmp(name->name, str, alen) == 0)
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
