@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + s390-cio-replace-strnicmp-with-strncasecmp.patch added to -mm
- tree
-Date: Thu, 18 Sep 2014 14:36:23 -0700
-Message-ID: <541b5057.aihcQxKBzwz7kGJW%akpm@linux-foundation.org>
+Subject: + pnp-replace-strnicmp-with-strncasecmp.patch added to -mm tree
+Date: Thu, 18 Sep 2014 14:36:22 -0700
+Message-ID: <541b5056.opK6e8Kb8XVodryZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41780 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757504AbaIRVgY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:24 -0400
+	with ESMTP id S1757372AbaIRVgX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, oberpar@linux.vnet.ibm.com, sebott@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, rafael.j.wysocki@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/cio: replace strnicmp with strncasecmp
+     Subject: PNP: replace strnicmp with strncasecmp
 has been added to the -mm tree.  Its filename is
-     s390-cio-replace-strnicmp-with-strncasecmp.patch
+     pnp-replace-strnicmp-with-strncasecmp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/s390-cio-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pnp-replace-strnicmp-with-strncasecmp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/s390-cio-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pnp-replace-strnicmp-with-strncasecmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: s390/cio: replace strnicmp with strncasecmp
+Subject: PNP: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -53,31 +52,102 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
-Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/cio/chp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pnp/interface.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/s390/cio/chp.c~s390-cio-replace-strnicmp-with-strncasecmp drivers/s390/cio/chp.c
---- a/drivers/s390/cio/chp.c~s390-cio-replace-strnicmp-with-strncasecmp
-+++ a/drivers/s390/cio/chp.c
-@@ -257,11 +257,11 @@ static ssize_t chp_status_write(struct d
- 	if (!num_args)
- 		return count;
+diff -puN drivers/pnp/interface.c~pnp-replace-strnicmp-with-strncasecmp drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~pnp-replace-strnicmp-with-strncasecmp
++++ a/drivers/pnp/interface.c
+@@ -346,41 +346,41 @@ static ssize_t resources_store(struct de
+ 	}
  
--	if (!strnicmp(cmd, "on", 2) || !strcmp(cmd, "1")) {
-+	if (!strncasecmp(cmd, "on", 2) || !strcmp(cmd, "1")) {
- 		mutex_lock(&cp->lock);
- 		error = s390_vary_chpid(cp->chpid, 1);
- 		mutex_unlock(&cp->lock);
--	} else if (!strnicmp(cmd, "off", 3) || !strcmp(cmd, "0")) {
-+	} else if (!strncasecmp(cmd, "off", 3) || !strcmp(cmd, "0")) {
- 		mutex_lock(&cp->lock);
- 		error = s390_vary_chpid(cp->chpid, 0);
- 		mutex_unlock(&cp->lock);
+ 	buf = skip_spaces(buf);
+-	if (!strnicmp(buf, "disable", 7)) {
++	if (!strncasecmp(buf, "disable", 7)) {
+ 		retval = pnp_disable_dev(dev);
+ 		goto done;
+ 	}
+-	if (!strnicmp(buf, "activate", 8)) {
++	if (!strncasecmp(buf, "activate", 8)) {
+ 		retval = pnp_activate_dev(dev);
+ 		goto done;
+ 	}
+-	if (!strnicmp(buf, "fill", 4)) {
++	if (!strncasecmp(buf, "fill", 4)) {
+ 		if (dev->active)
+ 			goto done;
+ 		retval = pnp_auto_config_dev(dev);
+ 		goto done;
+ 	}
+-	if (!strnicmp(buf, "auto", 4)) {
++	if (!strncasecmp(buf, "auto", 4)) {
+ 		if (dev->active)
+ 			goto done;
+ 		pnp_init_resources(dev);
+ 		retval = pnp_auto_config_dev(dev);
+ 		goto done;
+ 	}
+-	if (!strnicmp(buf, "clear", 5)) {
++	if (!strncasecmp(buf, "clear", 5)) {
+ 		if (dev->active)
+ 			goto done;
+ 		pnp_init_resources(dev);
+ 		goto done;
+ 	}
+-	if (!strnicmp(buf, "get", 3)) {
++	if (!strncasecmp(buf, "get", 3)) {
+ 		mutex_lock(&pnp_res_mutex);
+ 		if (pnp_can_read(dev))
+ 			dev->protocol->get(dev);
+ 		mutex_unlock(&pnp_res_mutex);
+ 		goto done;
+ 	}
+-	if (!strnicmp(buf, "set", 3)) {
++	if (!strncasecmp(buf, "set", 3)) {
+ 		resource_size_t start;
+ 		resource_size_t end;
+ 		unsigned long flags;
+@@ -392,31 +392,31 @@ static ssize_t resources_store(struct de
+ 		mutex_lock(&pnp_res_mutex);
+ 		while (1) {
+ 			buf = skip_spaces(buf);
+-			if (!strnicmp(buf, "io", 2)) {
++			if (!strncasecmp(buf, "io", 2)) {
+ 				buf = pnp_get_resource_value(buf + 2,
+ 							     IORESOURCE_IO,
+ 							     &start, &end,
+ 							     &flags);
+ 				pnp_add_io_resource(dev, start, end, flags);
+-			} else if (!strnicmp(buf, "mem", 3)) {
++			} else if (!strncasecmp(buf, "mem", 3)) {
+ 				buf = pnp_get_resource_value(buf + 3,
+ 							     IORESOURCE_MEM,
+ 							     &start, &end,
+ 							     &flags);
+ 				pnp_add_mem_resource(dev, start, end, flags);
+-			} else if (!strnicmp(buf, "irq", 3)) {
++			} else if (!strncasecmp(buf, "irq", 3)) {
+ 				buf = pnp_get_resource_value(buf + 3,
+ 							     IORESOURCE_IRQ,
+ 							     &start, NULL,
+ 							     &flags);
+ 				pnp_add_irq_resource(dev, start, flags);
+-			} else if (!strnicmp(buf, "dma", 3)) {
++			} else if (!strncasecmp(buf, "dma", 3)) {
+ 				buf = pnp_get_resource_value(buf + 3,
+ 							     IORESOURCE_DMA,
+ 							     &start, NULL,
+ 							     &flags);
+ 				pnp_add_dma_resource(dev, start, flags);
+-			} else if (!strnicmp(buf, "bus", 3)) {
++			} else if (!strncasecmp(buf, "bus", 3)) {
+ 				buf = pnp_get_resource_value(buf + 3,
+ 							     IORESOURCE_BUS,
+ 							     &start, &end,
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
