@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + batman-adv-replace-strnicmp-with-strncasecmp.patch added to -mm tree
-Date: Thu, 18 Sep 2014 14:36:13 -0700
-Message-ID: <541b504d./LIewl1RxY21gbs5%akpm@linux-foundation.org>
+Subject: + scsi-replace-strnicmp-with-strncasecmp.patch added to -mm tree
+Date: Thu, 18 Sep 2014 14:36:17 -0700
+Message-ID: <541b5051.7487+TJK1NbUDNjU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41747 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41763 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757218AbaIRVgO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:14 -0400
+	with ESMTP id S1757311AbaIRVgS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, antonio@meshcoding.com, mareklindner@neomailbox.ch, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, JBottomley@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: batman-adv: replace strnicmp with strncasecmp
+     Subject: scsi: replace strnicmp with strncasecmp
 has been added to the -mm tree.  Its filename is
-     batman-adv-replace-strnicmp-with-strncasecmp.patch
+     scsi-replace-strnicmp-with-strncasecmp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/batman-adv-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scsi-replace-strnicmp-with-strncasecmp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/batman-adv-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scsi-replace-strnicmp-with-strncasecmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: batman-adv: replace strnicmp with strncasecmp
+Subject: scsi: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -52,43 +52,38 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Marek Lindner <mareklindner@neomailbox.ch>
-Acked-by: Antonio Quartulli <antonio@meshcoding.com>
+Cc: "James E.J. Bottomley" <JBottomley@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/batman-adv/gateway_common.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/ips.c        |    2 +-
+ drivers/scsi/scsi_debug.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/batman-adv/gateway_common.c~batman-adv-replace-strnicmp-with-strncasecmp net/batman-adv/gateway_common.c
---- a/net/batman-adv/gateway_common.c~batman-adv-replace-strnicmp-with-strncasecmp
-+++ a/net/batman-adv/gateway_common.c
-@@ -44,10 +44,10 @@ static bool batadv_parse_gw_bandwidth(st
- 	if (strlen(buff) > 4) {
- 		tmp_ptr = buff + strlen(buff) - 4;
+diff -puN drivers/scsi/ips.c~scsi-replace-strnicmp-with-strncasecmp drivers/scsi/ips.c
+--- a/drivers/scsi/ips.c~scsi-replace-strnicmp-with-strncasecmp
++++ a/drivers/scsi/ips.c
+@@ -528,7 +528,7 @@ ips_setup(char *ips_str)
+ 		 * Update the variables
+ 		 */
+ 		for (i = 0; i < ARRAY_SIZE(options); i++) {
+-			if (strnicmp
++			if (strncasecmp
+ 			    (key, options[i].option_name,
+ 			     strlen(options[i].option_name)) == 0) {
+ 				if (value)
+diff -puN drivers/scsi/scsi_debug.c~scsi-replace-strnicmp-with-strncasecmp drivers/scsi/scsi_debug.c
+--- a/drivers/scsi/scsi_debug.c~scsi-replace-strnicmp-with-strncasecmp
++++ a/drivers/scsi/scsi_debug.c
+@@ -3366,7 +3366,7 @@ static ssize_t opts_store(struct device_
+ 	char work[20];
  
--		if (strnicmp(tmp_ptr, "mbit", 4) == 0)
-+		if (strncasecmp(tmp_ptr, "mbit", 4) == 0)
- 			bw_unit_type = BATADV_BW_UNIT_MBIT;
- 
--		if ((strnicmp(tmp_ptr, "kbit", 4) == 0) ||
-+		if ((strncasecmp(tmp_ptr, "kbit", 4) == 0) ||
- 		    (bw_unit_type == BATADV_BW_UNIT_MBIT))
- 			*tmp_ptr = '\0';
- 	}
-@@ -77,10 +77,10 @@ static bool batadv_parse_gw_bandwidth(st
- 		if (strlen(slash_ptr + 1) > 4) {
- 			tmp_ptr = slash_ptr + 1 - 4 + strlen(slash_ptr + 1);
- 
--			if (strnicmp(tmp_ptr, "mbit", 4) == 0)
-+			if (strncasecmp(tmp_ptr, "mbit", 4) == 0)
- 				bw_unit_type = BATADV_BW_UNIT_MBIT;
- 
--			if ((strnicmp(tmp_ptr, "kbit", 4) == 0) ||
-+			if ((strncasecmp(tmp_ptr, "kbit", 4) == 0) ||
- 			    (bw_unit_type == BATADV_BW_UNIT_MBIT))
- 				*tmp_ptr = '\0';
- 		}
+         if (1 == sscanf(buf, "%10s", work)) {
+-		if (0 == strnicmp(work,"0x", 2)) {
++		if (0 == strncasecmp(work,"0x", 2)) {
+ 			if (1 == sscanf(&work[2], "%x", &opts))
+ 				goto opts_done;
+ 		} else {
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
