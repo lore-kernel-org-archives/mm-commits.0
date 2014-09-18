@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + staging-r8188eu-replace-strnicmp-with-strncasecmp.patch added
- to -mm tree
-Date: Thu, 18 Sep 2014 14:36:24 -0700
-Message-ID: <541b5058.F6555nP7idtqCtSZ%akpm@linux-foundation.org>
+Subject: + thermal-replace-strnicmp-with-strncasecmp.patch added to -mm
+ tree
+Date: Thu, 18 Sep 2014 14:36:25 -0700
+Message-ID: <541b5059.HUvEtabX60c9HAnU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41787 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41791 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757504AbaIRVgZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:25 -0400
+	with ESMTP id S1757504AbaIRVg0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, Larry.Finger@lwfinger.net, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, edubezval@gmail.com, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: staging: r8188eu: replace strnicmp with strncasecmp
+     Subject: thermal: replace strnicmp with strncasecmp
 has been added to the -mm tree.  Its filename is
-     staging-r8188eu-replace-strnicmp-with-strncasecmp.patch
+     thermal-replace-strnicmp-with-strncasecmp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/staging-r8188eu-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thermal-replace-strnicmp-with-strncasecmp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/staging-r8188eu-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thermal-replace-strnicmp-with-strncasecmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: staging: r8188eu: replace strnicmp with strncasecmp
+Subject: thermal: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -53,26 +53,53 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Larry Finger <Larry.Finger@lwfinger.net>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rtl8188eu/os_dep/rtw_android.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/thermal/thermal_core.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/staging/rtl8188eu/os_dep/rtw_android.c~staging-r8188eu-replace-strnicmp-with-strncasecmp drivers/staging/rtl8188eu/os_dep/rtw_android.c
---- a/drivers/staging/rtl8188eu/os_dep/rtw_android.c~staging-r8188eu-replace-strnicmp-with-strncasecmp
-+++ a/drivers/staging/rtl8188eu/os_dep/rtw_android.c
-@@ -79,7 +79,7 @@ int rtw_android_cmdstr_to_num(char *cmds
- {
- 	int cmd_num;
- 	for (cmd_num = 0; cmd_num < ANDROID_WIFI_CMD_MAX; cmd_num++)
--		if (0 == strnicmp(cmdstr , android_wifi_cmd_str[cmd_num],
-+		if (0 == strncasecmp(cmdstr , android_wifi_cmd_str[cmd_num],
- 				  strlen(android_wifi_cmd_str[cmd_num])))
- 			break;
- 	return cmd_num;
+diff -puN drivers/thermal/thermal_core.c~thermal-replace-strnicmp-with-strncasecmp drivers/thermal/thermal_core.c
+--- a/drivers/thermal/thermal_core.c~thermal-replace-strnicmp-with-strncasecmp
++++ a/drivers/thermal/thermal_core.c
+@@ -66,7 +66,7 @@ static struct thermal_governor *__find_g
+ 		return def_governor;
+ 
+ 	list_for_each_entry(pos, &thermal_governor_list, governor_list)
+-		if (!strnicmp(name, pos->name, THERMAL_NAME_LENGTH))
++		if (!strncasecmp(name, pos->name, THERMAL_NAME_LENGTH))
+ 			return pos;
+ 
+ 	return NULL;
+@@ -104,7 +104,7 @@ int thermal_register_governor(struct the
+ 
+ 		name = pos->tzp->governor_name;
+ 
+-		if (!strnicmp(name, governor->name, THERMAL_NAME_LENGTH))
++		if (!strncasecmp(name, governor->name, THERMAL_NAME_LENGTH))
+ 			pos->governor = governor;
+ 	}
+ 
+@@ -129,7 +129,7 @@ void thermal_unregister_governor(struct
+ 	mutex_lock(&thermal_list_lock);
+ 
+ 	list_for_each_entry(pos, &thermal_tz_list, node) {
+-		if (!strnicmp(pos->governor->name, governor->name,
++		if (!strncasecmp(pos->governor->name, governor->name,
+ 						THERMAL_NAME_LENGTH))
+ 			pos->governor = NULL;
+ 	}
+@@ -1665,7 +1665,7 @@ struct thermal_zone_device *thermal_zone
+ 
+ 	mutex_lock(&thermal_list_lock);
+ 	list_for_each_entry(pos, &thermal_tz_list, node)
+-		if (!strnicmp(name, pos->type, THERMAL_NAME_LENGTH)) {
++		if (!strncasecmp(name, pos->type, THERMAL_NAME_LENGTH)) {
+ 			found++;
+ 			ref = pos;
+ 		}
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
