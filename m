@@ -1,16 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + x.patch added to -mm tree
-Date: Thu, 18 Sep 2014 15:33:26 -0700
-Message-ID: <541b5db6.z7nOHfDnd/S5ORH/%akpm@linux-foundation.org>
+Subject: +
+ scripts-sortextable-suppress-warning-relocs_size-may-be-used-uninitialized.patch added to -mm tree
+Date: Thu, 18 Sep 2014 15:33:39 -0700
+Message-ID: <541b5dc3.651yAc9s5K3cFmhd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42599 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42603 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932255AbaIRWd1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 18:33:27 -0400
+	with ESMTP id S932255AbaIRWdk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 18:33:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tim.gardner@canonical.com, jamie.iles@oracle.com, mm-commits@vger.kernel.org
@@ -19,12 +20,12 @@ To: tim.gardner@canonical.com, jamie.iles@oracle.com, mm-commits@vger.kernel.org
 The patch titled
      Subject: scripts/sortextable: suppress warning: `relocs_size' may be used uninitialized
 has been added to the -mm tree.  Its filename is
-     x.patch
+     scripts-sortextable-suppress-warning-relocs_size-may-be-used-uninitialized.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-sortextable-suppress-warning-relocs_size-may-be-used-uninitialized.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-sortextable-suppress-warning-relocs_size-may-be-used-uninitialized.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,8 +69,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  scripts/sortextable.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/sortextable.h~x scripts/sortextable.h
---- a/scripts/sortextable.h~x
+diff -puN scripts/sortextable.h~scripts-sortextable-suppress-warning-relocs_size-may-be-used-uninitialized scripts/sortextable.h
+--- a/scripts/sortextable.h~scripts-sortextable-suppress-warning-relocs_size-may-be-used-uninitialized
 +++ a/scripts/sortextable.h
 @@ -103,7 +103,7 @@ do_func(Elf_Ehdr *ehdr, char const *cons
  	Elf_Sym *sort_needed_sym;
@@ -84,6 +85,6 @@ _
 
 Patches currently in -mm which might be from tim.gardner@canonical.com are
 
-x.patch
+scripts-sortextable-suppress-warning-relocs_size-may-be-used-uninitialized.patch
 linux-next.patch
 
