@@ -1,199 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- x86mem-hotplug-modify-pgd-entry-when-removing-memory.patch removed from -mm tree
-Date: Thu, 18 Sep 2014 11:31:19 -0700
-Message-ID: <541b24f7.yHbmv62zHSXnCacK%akpm@linux-foundation.org>
+ mm-apply-the-section-attribute-to-the-variable-not-its-type.patch removed
+ from -mm tree
+Date: Thu, 18 Sep 2014 11:31:23 -0700
+Message-ID: <541b24fb.mksFyGmCgRvEimhA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39509 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39523 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932117AbaIRSbU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 14:31:20 -0400
+	with ESMTP id S932117AbaIRSbY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 14:31:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: isimatu.yasuaki@jp.fujitsu.com, guz.fnst@cn.fujitsu.com, hpa@zytor.com, mingo@redhat.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, toshi.kani@hp.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: dl9pf@gmx.de, behanw@converseincode.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86,mem-hotplug: modify PGD entry when removing memory
+     Subject: arch/x86/mm/mmap.c: apply the section attribute to the va=
+riable, not its type
 has been removed from the -mm tree.  Its filename was
-     x86mem-hotplug-modify-pgd-entry-when-removing-memory.patch
+     mm-apply-the-section-attribute-to-the-variable-not-its-type.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: x86,mem-hotplug: modify PGD entry when removing memory
+=46rom: Jan-Simon M=F6ller <dl9pf@gmx.de>
+Subject: arch/x86/mm/mmap.c: apply the section attribute to the variabl=
+e, not its type
 
-When hot-adding/removing memory, sync_global_pgds() is called for
-synchronizing PGD to PGD entries of all processes MM.  But when
-hot-removing memory, sync_global_pgds() does not work correctly.
+This fixes a compilation error in clang in that a linker section attrib=
+ute
+can't be added to a type.
 
-At first, sync_global_pgds() checks whether target PGD is none or not. 
-And if PGD is none, the PGD is skipped.  But when hot-removing memory, PGD
-may be none since PGD may be cleared by free_pud_table().  So when
-sync_global_pgds() is called after hot-removing memory, sync_global_pgds()
-should not skip PGD even if the PGD is none.  And sync_global_pgds() must
-clear PGD entries of all processes MM.
+arch/x86/mm/mmap.c:34:8: error: '__section__' attribute only applies to=
+ functions and global variables
+struct __read_mostly va_alignment va_align =3D {
+       ^
+arch/x86/include/asm/cache.h:10:38: note: expanded from macro '__read_m=
+ostly'
+#define __read_mostly __attribute__((__section__(".data..read_mostly"))=
+)
+                                     ^
+1 error generated.
 
-Currently sync_global_pgds() does not clear PGD entries of all processes
-MM when hot-removing memory.  So when hot adding memory which is same
-memory range as removed memory after hot-removing memory, following call
-traces are shown:
+By moving the section attribute to the variable declaration, the desire=
+d
+effect is acheived.
 
-kernel BUG at arch/x86/mm/init_64.c:206!
-...
- [<ffffffff815e0c80>] kernel_physical_mapping_init+0x1b2/0x1d2
- [<ffffffff815ced94>] init_memory_mapping+0x1d4/0x380
- [<ffffffff8104aebd>] arch_add_memory+0x3d/0xd0
- [<ffffffff815d03d9>] add_memory+0xb9/0x1b0
- [<ffffffff81352415>] acpi_memory_device_add+0x1af/0x28e
- [<ffffffff81325dc4>] acpi_bus_device_attach+0x8c/0xf0
- [<ffffffff813413b9>] acpi_ns_walk_namespace+0xc8/0x17f
- [<ffffffff81325d38>] ? acpi_bus_type_and_status+0xb7/0xb7
- [<ffffffff81325d38>] ? acpi_bus_type_and_status+0xb7/0xb7
- [<ffffffff813418ed>] acpi_walk_namespace+0x95/0xc5
- [<ffffffff81326b4c>] acpi_bus_scan+0x9a/0xc2
- [<ffffffff81326bff>] acpi_scan_bus_device_check+0x8b/0x12e
- [<ffffffff81326cb5>] acpi_scan_device_check+0x13/0x15
- [<ffffffff81320122>] acpi_os_execute_deferred+0x25/0x32
- [<ffffffff8107e02b>] process_one_work+0x17b/0x460
- [<ffffffff8107edfb>] worker_thread+0x11b/0x400
- [<ffffffff8107ece0>] ? rescuer_thread+0x400/0x400
- [<ffffffff81085aef>] kthread+0xcf/0xe0
- [<ffffffff81085a20>] ? kthread_create_on_node+0x140/0x140
- [<ffffffff815fc76c>] ret_from_fork+0x7c/0xb0
- [<ffffffff81085a20>] ? kthread_create_on_node+0x140/0x140
-
-This patch clears PGD entries of all processes MM when sync_global_pgds()
-is called after hot-removing memory
-
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Jan-Simon M=F6ller <dl9pf@gmx.de>
+Signed-off-by: Behan Webster <behanw@converseincode.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Acked-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable_64.h |    3 ++-
- arch/x86/mm/fault.c               |    2 +-
- arch/x86/mm/init_64.c             |   27 +++++++++++++++++++--------
- 3 files changed, 22 insertions(+), 10 deletions(-)
+ arch/x86/mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/pgtable_64.h~x86mem-hotplug-modify-pgd-entry-when-removing-memory arch/x86/include/asm/pgtable_64.h
---- a/arch/x86/include/asm/pgtable_64.h~x86mem-hotplug-modify-pgd-entry-when-removing-memory
-+++ a/arch/x86/include/asm/pgtable_64.h
-@@ -115,7 +115,8 @@ static inline void native_pgd_clear(pgd_
- 	native_set_pgd(pgd, native_make_pgd(0));
- }
- 
--extern void sync_global_pgds(unsigned long start, unsigned long end);
-+extern void sync_global_pgds(unsigned long start, unsigned long end,
-+			     int removed);
- 
- /*
-  * Conversion functions: convert a page and protection to a page entry,
-diff -puN arch/x86/mm/fault.c~x86mem-hotplug-modify-pgd-entry-when-removing-memory arch/x86/mm/fault.c
---- a/arch/x86/mm/fault.c~x86mem-hotplug-modify-pgd-entry-when-removing-memory
-+++ a/arch/x86/mm/fault.c
-@@ -350,7 +350,7 @@ out:
- 
- void vmalloc_sync_all(void)
- {
--	sync_global_pgds(VMALLOC_START & PGDIR_MASK, VMALLOC_END);
-+	sync_global_pgds(VMALLOC_START & PGDIR_MASK, VMALLOC_END, 0);
- }
- 
- /*
-diff -puN arch/x86/mm/init_64.c~x86mem-hotplug-modify-pgd-entry-when-removing-memory arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~x86mem-hotplug-modify-pgd-entry-when-removing-memory
-+++ a/arch/x86/mm/init_64.c
-@@ -178,7 +178,7 @@ __setup("noexec32=", nonx32_setup);
-  * When memory was added/removed make sure all the processes MM have
-  * suitable PGD entries in the local PGD level page.
-  */
--void sync_global_pgds(unsigned long start, unsigned long end)
-+void sync_global_pgds(unsigned long start, unsigned long end, int removed)
- {
- 	unsigned long address;
- 
-@@ -186,7 +186,12 @@ void sync_global_pgds(unsigned long star
- 		const pgd_t *pgd_ref = pgd_offset_k(address);
- 		struct page *page;
- 
--		if (pgd_none(*pgd_ref))
-+		/*
-+		 * When it is called after memory hot remove, pgd_none()
-+		 * returns true. In this case (removed == 1), we must clear
-+		 * the PGD entries in the local PGD level page.
-+		 */
-+		if (pgd_none(*pgd_ref) && !removed)
- 			continue;
- 
- 		spin_lock(&pgd_lock);
-@@ -199,12 +204,18 @@ void sync_global_pgds(unsigned long star
- 			pgt_lock = &pgd_page_get_mm(page)->page_table_lock;
- 			spin_lock(pgt_lock);
- 
--			if (pgd_none(*pgd))
--				set_pgd(pgd, *pgd_ref);
--			else
-+			if (!pgd_none(*pgd_ref) && !pgd_none(*pgd))
- 				BUG_ON(pgd_page_vaddr(*pgd)
- 				       != pgd_page_vaddr(*pgd_ref));
- 
-+			if (removed) {
-+				if (pgd_none(*pgd_ref) && !pgd_none(*pgd))
-+					pgd_clear(pgd);
-+			} else {
-+				if (pgd_none(*pgd))
-+					set_pgd(pgd, *pgd_ref);
-+			}
-+
- 			spin_unlock(pgt_lock);
- 		}
- 		spin_unlock(&pgd_lock);
-@@ -633,7 +644,7 @@ kernel_physical_mapping_init(unsigned lo
- 	}
- 
- 	if (pgd_changed)
--		sync_global_pgds(addr, end - 1);
-+		sync_global_pgds(addr, end - 1, 0);
- 
- 	__flush_tlb_all();
- 
-@@ -995,7 +1006,7 @@ remove_pagetable(unsigned long start, un
- 	}
- 
- 	if (pgd_changed)
--		sync_global_pgds(start, end - 1);
-+		sync_global_pgds(start, end - 1, 1);
- 
- 	flush_tlb_all();
- }
-@@ -1342,7 +1353,7 @@ int __meminit vmemmap_populate(unsigned
- 	else
- 		err = vmemmap_populate_basepages(start, end, node);
- 	if (!err)
--		sync_global_pgds(start, end - 1);
-+		sync_global_pgds(start, end - 1, 0);
- 	return err;
- }
- 
+diff -puN arch/x86/mm/mmap.c~mm-apply-the-section-attribute-to-the-vari=
+able-not-its-type arch/x86/mm/mmap.c
+--- a/arch/x86/mm/mmap.c~mm-apply-the-section-attribute-to-the-variable=
+-not-its-type
++++ a/arch/x86/mm/mmap.c
+@@ -31,7 +31,7 @@
+ #include <linux/sched.h>
+ #include <asm/elf.h>
+=20
+-struct __read_mostly va_alignment va_align =3D {
++struct va_alignment __read_mostly va_align =3D {
+ 	.flags =3D -1,
+ };
+=20
 _
 
-Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
+Patches currently in -mm which might be from dl9pf@gmx.de are
 
-memory-hotplug-add-sysfs-zones_online_to-attribute.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
 linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
