@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + arm-replace-strnicmp-with-strncasecmp.patch added to -mm tree
-Date: Thu, 18 Sep 2014 14:36:06 -0700
-Message-ID: <541b5046.VSOfjqEIPzBUBZsH%akpm@linux-foundation.org>
+Subject: + block-replace-strnicmp-with-strncasecmp.patch added to -mm tree
+Date: Thu, 18 Sep 2014 14:36:07 -0700
+Message-ID: <541b5047.WsnmT1TMzOH5HHs2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41722 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41727 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755906AbaIRVgH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:07 -0400
+	with ESMTP id S1755783AbaIRVgI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: replace strnicmp with strncasecmp
+     Subject: block: replace strnicmp with strncasecmp
 has been added to the -mm tree.  Its filename is
-     arm-replace-strnicmp-with-strncasecmp.patch
+     block-replace-strnicmp-with-strncasecmp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-replace-strnicmp-with-strncasecmp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-replace-strnicmp-with-strncasecmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: ARM: replace strnicmp with strncasecmp
+Subject: block: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -52,40 +52,50 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-pxa/lpd270.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ block/partitions/mac.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/mach-pxa/lpd270.c~arm-replace-strnicmp-with-strncasecmp arch/arm/mach-pxa/lpd270.c
---- a/arch/arm/mach-pxa/lpd270.c~arm-replace-strnicmp-with-strncasecmp
-+++ a/arch/arm/mach-pxa/lpd270.c
-@@ -416,17 +416,17 @@ static struct pxafb_mach_info *lpd270_lc
+diff -puN block/partitions/mac.c~block-replace-strnicmp-with-strncasecmp block/partitions/mac.c
+--- a/block/partitions/mac.c~block-replace-strnicmp-with-strncasecmp
++++ a/block/partitions/mac.c
+@@ -81,7 +81,7 @@ int mac_partition(struct parsed_partitio
+ 			be32_to_cpu(part->start_block) * (secsize/512),
+ 			be32_to_cpu(part->block_count) * (secsize/512));
  
- static int __init lpd270_set_lcd(char *str)
- {
--	if (!strnicmp(str, "lq057q3dc02", 11)) {
-+	if (!strncasecmp(str, "lq057q3dc02", 11)) {
- 		lpd270_lcd_to_use = &sharp_lq057q3dc02;
--	} else if (!strnicmp(str, "lq121s1dg31", 11)) {
-+	} else if (!strncasecmp(str, "lq121s1dg31", 11)) {
- 		lpd270_lcd_to_use = &sharp_lq121s1dg31;
--	} else if (!strnicmp(str, "lq036q1da01", 11)) {
-+	} else if (!strncasecmp(str, "lq036q1da01", 11)) {
- 		lpd270_lcd_to_use = &sharp_lq036q1da01;
--	} else if (!strnicmp(str, "lq64d343", 8)) {
-+	} else if (!strncasecmp(str, "lq64d343", 8)) {
- 		lpd270_lcd_to_use = &sharp_lq64d343;
--	} else if (!strnicmp(str, "lq10d368", 8)) {
-+	} else if (!strncasecmp(str, "lq10d368", 8)) {
- 		lpd270_lcd_to_use = &sharp_lq10d368;
--	} else if (!strnicmp(str, "lq035q7db02-20", 14)) {
-+	} else if (!strncasecmp(str, "lq035q7db02-20", 14)) {
- 		lpd270_lcd_to_use = &sharp_lq035q7db02_20;
- 	} else {
- 		printk(KERN_INFO "lpd270: unknown lcd panel [%s]\n", str);
+-		if (!strnicmp(part->type, "Linux_RAID", 10))
++		if (!strncasecmp(part->type, "Linux_RAID", 10))
+ 			state->parts[slot].flags = ADDPART_FLAG_RAID;
+ #ifdef CONFIG_PPC_PMAC
+ 		/*
+@@ -100,7 +100,7 @@ int mac_partition(struct parsed_partitio
+ 				goodness++;
+ 
+ 			if (strcasecmp(part->type, "Apple_UNIX_SVR2") == 0
+-			    || (strnicmp(part->type, "Linux", 5) == 0
++			    || (strncasecmp(part->type, "Linux", 5) == 0
+ 			        && strcasecmp(part->type, "Linux_swap") != 0)) {
+ 				int i, l;
+ 
+@@ -109,13 +109,13 @@ int mac_partition(struct parsed_partitio
+ 				if (strcmp(part->name, "/") == 0)
+ 					goodness++;
+ 				for (i = 0; i <= l - 4; ++i) {
+-					if (strnicmp(part->name + i, "root",
++					if (strncasecmp(part->name + i, "root",
+ 						     4) == 0) {
+ 						goodness += 2;
+ 						break;
+ 					}
+ 				}
+-				if (strnicmp(part->name, "swap", 4) == 0)
++				if (strncasecmp(part->name, "swap", 4) == 0)
+ 					goodness--;
+ 			}
+ 
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
