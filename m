@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-replace-strnicmp-with-strncasecmp.patch added to -mm tree
-Date: Thu, 18 Sep 2014 14:36:11 -0700
-Message-ID: <541b504b.09YTNisIhXUqJJzB%akpm@linux-foundation.org>
+Subject: + cifs-replace-strnicmp-with-strncasecmp.patch added to -mm tree
+Date: Thu, 18 Sep 2014 14:36:10 -0700
+Message-ID: <541b504a.GXHfJ3Yio2z19oZX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41737 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757218AbaIRVgM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:12 -0400
+	with ESMTP id S1757235AbaIRVgL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 17:36:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, sfrench@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: replace strnicmp with strncasecmp
+     Subject: cifs: replace strnicmp with strncasecmp
 has been added to the -mm tree.  Its filename is
-     ocfs2-replace-strnicmp-with-strncasecmp.patch
+     cifs-replace-strnicmp-with-strncasecmp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cifs-replace-strnicmp-with-strncasecmp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-replace-strnicmp-with-strncasecmp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cifs-replace-strnicmp-with-strncasecmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: ocfs2: replace strnicmp with strncasecmp
+Subject: cifs: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -52,47 +52,57 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    2 +-
- fs/ocfs2/cluster/masklog.c   |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ fs/cifs/cifs_dfs_ref.c |    6 +++---
+ fs/cifs/connect.c      |    4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-replace-strnicmp-with-strncasecmp fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-replace-strnicmp-with-strncasecmp
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -2244,7 +2244,7 @@ ssize_t o2hb_heartbeat_group_mode_store(
- 		return -EINVAL;
+diff -puN fs/cifs/cifs_dfs_ref.c~cifs-replace-strnicmp-with-strncasecmp fs/cifs/cifs_dfs_ref.c
+--- a/fs/cifs/cifs_dfs_ref.c~cifs-replace-strnicmp-with-strncasecmp
++++ a/fs/cifs/cifs_dfs_ref.c
+@@ -195,15 +195,15 @@ char *cifs_compose_mount_options(const c
+ 		else
+ 			noff = tkn_e - (sb_mountdata + off) + 1;
  
- 	for (i = 0; i < O2HB_HEARTBEAT_NUM_MODES; ++i) {
--		if (strnicmp(page, o2hb_heartbeat_mode_desc[i], len))
-+		if (strncasecmp(page, o2hb_heartbeat_mode_desc[i], len))
+-		if (strnicmp(sb_mountdata + off, "unc=", 4) == 0) {
++		if (strncasecmp(sb_mountdata + off, "unc=", 4) == 0) {
+ 			off += noff;
  			continue;
+ 		}
+-		if (strnicmp(sb_mountdata + off, "ip=", 3) == 0) {
++		if (strncasecmp(sb_mountdata + off, "ip=", 3) == 0) {
+ 			off += noff;
+ 			continue;
+ 		}
+-		if (strnicmp(sb_mountdata + off, "prefixpath=", 11) == 0) {
++		if (strncasecmp(sb_mountdata + off, "prefixpath=", 11) == 0) {
+ 			off += noff;
+ 			continue;
+ 		}
+diff -puN fs/cifs/connect.c~cifs-replace-strnicmp-with-strncasecmp fs/cifs/connect.c
+--- a/fs/cifs/connect.c~cifs-replace-strnicmp-with-strncasecmp
++++ a/fs/cifs/connect.c
+@@ -1718,7 +1718,7 @@ cifs_parse_mount_options(const char *mou
+ 				goto cifs_parse_mount_err;
+ 			}
  
- 		ret = o2hb_global_heartbeat_mode_set(i);
-diff -puN fs/ocfs2/cluster/masklog.c~ocfs2-replace-strnicmp-with-strncasecmp fs/ocfs2/cluster/masklog.c
---- a/fs/ocfs2/cluster/masklog.c~ocfs2-replace-strnicmp-with-strncasecmp
-+++ a/fs/ocfs2/cluster/masklog.c
-@@ -49,13 +49,13 @@ static ssize_t mlog_mask_show(u64 mask,
+-			 if (strnicmp(string, "default", 7) != 0) {
++			 if (strncasecmp(string, "default", 7) != 0) {
+ 				vol->iocharset = kstrdup(string,
+ 							 GFP_KERNEL);
+ 				if (!vol->iocharset) {
+@@ -1790,7 +1790,7 @@ cifs_parse_mount_options(const char *mou
+ 			if (string == NULL)
+ 				goto out_nomem;
  
- static ssize_t mlog_mask_store(u64 mask, const char *buf, size_t count)
- {
--	if (!strnicmp(buf, "allow", 5)) {
-+	if (!strncasecmp(buf, "allow", 5)) {
- 		__mlog_set_u64(mask, mlog_and_bits);
- 		__mlog_clear_u64(mask, mlog_not_bits);
--	} else if (!strnicmp(buf, "deny", 4)) {
-+	} else if (!strncasecmp(buf, "deny", 4)) {
- 		__mlog_set_u64(mask, mlog_not_bits);
- 		__mlog_clear_u64(mask, mlog_and_bits);
--	} else if (!strnicmp(buf, "off", 3)) {
-+	} else if (!strncasecmp(buf, "off", 3)) {
- 		__mlog_clear_u64(mask, mlog_not_bits);
- 		__mlog_clear_u64(mask, mlog_and_bits);
- 	} else
+-			if (strnicmp(string, "1", 1) == 0) {
++			if (strncasecmp(string, "1", 1) == 0) {
+ 				/* This is the default */
+ 				break;
+ 			}
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
