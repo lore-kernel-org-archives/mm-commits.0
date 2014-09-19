@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-simplify-init_zspage-free-obj-linking.patch added to
- -mm tree
-Date: Fri, 19 Sep 2014 15:57:45 -0700
-Message-ID: <541cb4e9.xKSe+mWmYxajSYdf%akpm@linux-foundation.org>
+Subject: + nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
+ added to -mm tree
+Date: Fri, 19 Sep 2014 15:59:28 -0700
+Message-ID: <541cb550.q8oqzJkviXjknmde%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57043 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932237AbaISW5q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 18:57:46 -0400
+	with ESMTP id S932237AbaISW73 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 18:59:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, sjennings@variantweb.net, mm-commits@vger.kernel.org
+To: andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: simplify init_zspage free obj linking
+     Subject: nilfs2: add missing blkdev_issue_flush() to nilfs_sync_fs()
 has been added to the -mm tree.  Its filename is
-     zsmalloc-simplify-init_zspage-free-obj-linking.patch
+     nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-simplify-init_zspage-free-obj-linking.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-simplify-init_zspage-free-obj-linking.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,80 +39,162 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Streetman <ddstreet@ieee.org>
-Subject: zsmalloc: simplify init_zspage free obj linking
+From: Andreas Rohner <andreas.rohner@gmx.net>
+Subject: nilfs2: add missing blkdev_issue_flush() to nilfs_sync_fs()
 
-Change zsmalloc init_zspage() logic to iterate through each object on each
-of its pages, checking the offset to verify the object is on the current
-page before linking it into the zspage.
+Under normal circumstances nilfs_sync_fs() writes out the super block,
+which causes a flush of the underlying block device.  But this depends on
+the THE_NILFS_SB_DIRTY flag, which is only set if the pointer to the last
+segment crosses a segment boundary.  So if only a small amount of data is
+written before the call to nilfs_sync_fs(), no flush of the block device
+occurs.
 
-The current zsmalloc init_zspage free object linking code has logic that
-relies on there only being one page per zspage when PAGE_SIZE is a
-multiple of class->size.  It calculates the number of objects for the
-current page, and iterates through all of them plus one, to account for
-the assumed partial object at the end of the page.  While this currently
-works, the logic can be simplified to just link the object at each
-successive offset until the offset is larger than PAGE_SIZE, which does
-not rely on PAGE_SIZE being a multiple of class->size.
+In the above case an additional call to blkdev_issue_flush() is needed. 
+To prevent unnecessary overhead, the new flag nilfs->ns_flushed_device is
+introduced, which is cleared whenever new logs are written and set
+whenever the block device is flushed.  For convenience the function
+nilfs_flush_device() is added, which contains the above logic.
 
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Seth Jennings <sjennings@variantweb.net>
+Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ fs/nilfs2/file.c      |    8 +++-----
+ fs/nilfs2/ioctl.c     |    8 +++-----
+ fs/nilfs2/segment.c   |    3 +++
+ fs/nilfs2/super.c     |    6 ++++++
+ fs/nilfs2/the_nilfs.h |   22 ++++++++++++++++++++++
+ 5 files changed, 37 insertions(+), 10 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-simplify-init_zspage-free-obj-linking mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-simplify-init_zspage-free-obj-linking
-+++ a/mm/zsmalloc.c
-@@ -628,7 +628,7 @@ static void init_zspage(struct page *fir
- 	while (page) {
- 		struct page *next_page;
- 		struct link_free *link;
--		unsigned int i, objs_on_page;
-+		unsigned int i = 1;
+diff -puN fs/nilfs2/file.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/file.c
+--- a/fs/nilfs2/file.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
++++ a/fs/nilfs2/file.c
+@@ -56,11 +56,9 @@ int nilfs_sync_file(struct file *file, l
+ 	mutex_unlock(&inode->i_mutex);
  
- 		/*
- 		 * page->index stores offset of first object starting
-@@ -641,14 +641,10 @@ static void init_zspage(struct page *fir
- 
- 		link = (struct link_free *)kmap_atomic(page) +
- 						off / sizeof(*link);
--		objs_on_page = (PAGE_SIZE - off) / class->size;
- 
--		for (i = 1; i <= objs_on_page; i++) {
--			off += class->size;
--			if (off < PAGE_SIZE) {
--				link->next = obj_location_to_handle(page, i);
--				link += class->size / sizeof(*link);
--			}
-+		while ((off += class->size) < PAGE_SIZE) {
-+			link->next = obj_location_to_handle(page, i++);
-+			link += class->size / sizeof(*link);
- 		}
- 
- 		/*
-@@ -660,7 +656,7 @@ static void init_zspage(struct page *fir
- 		link->next = obj_location_to_handle(next_page, 0);
- 		kunmap_atomic(link);
- 		page = next_page;
--		off = (off + class->size) % PAGE_SIZE;
-+		off %= PAGE_SIZE;
- 	}
+ 	nilfs = inode->i_sb->s_fs_info;
+-	if (!err && nilfs_test_opt(nilfs, BARRIER)) {
+-		err = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
+-		if (err != -EIO)
+-			err = 0;
+-	}
++	if (!err)
++		err = nilfs_flush_device(nilfs);
++
+ 	return err;
  }
  
+diff -puN fs/nilfs2/ioctl.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
++++ a/fs/nilfs2/ioctl.c
+@@ -1022,11 +1022,9 @@ static int nilfs_ioctl_sync(struct inode
+ 		return ret;
+ 
+ 	nilfs = inode->i_sb->s_fs_info;
+-	if (nilfs_test_opt(nilfs, BARRIER)) {
+-		ret = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
+-		if (ret == -EIO)
+-			return ret;
+-	}
++	ret = nilfs_flush_device(nilfs);
++	if (ret < 0)
++		return ret;
+ 
+ 	if (argp != NULL) {
+ 		down_read(&nilfs->ns_segctor_sem);
+diff -puN fs/nilfs2/segment.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
++++ a/fs/nilfs2/segment.c
+@@ -1833,6 +1833,7 @@ static void nilfs_segctor_complete_write
+ 	nilfs_set_next_segment(nilfs, segbuf);
+ 
+ 	if (update_sr) {
++		nilfs->ns_flushed_device = 0;
+ 		nilfs_set_last_segment(nilfs, segbuf->sb_pseg_start,
+ 				       segbuf->sb_sum.seg_seq, nilfs->ns_cno++);
+ 
+@@ -2216,6 +2217,8 @@ int nilfs_construct_dsync_segment(struct
+ 	sci->sc_dsync_end = end;
+ 
+ 	err = nilfs_segctor_do_construct(sci, SC_LSEG_DSYNC);
++	if (!err)
++		nilfs->ns_flushed_device = 0;
+ 
+ 	nilfs_transaction_unlock(sb);
+ 	return err;
+diff -puN fs/nilfs2/super.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
++++ a/fs/nilfs2/super.c
+@@ -310,6 +310,9 @@ int nilfs_commit_super(struct super_bloc
+ 					    nilfs->ns_sbsize));
+ 	}
+ 	clear_nilfs_sb_dirty(nilfs);
++	nilfs->ns_flushed_device = 1;
++	/* make sure store to ns_flushed_device cannot be reordered */
++	smp_wmb();
+ 	return nilfs_sync_super(sb, flag);
+ }
+ 
+@@ -514,6 +517,9 @@ static int nilfs_sync_fs(struct super_bl
+ 	}
+ 	up_write(&nilfs->ns_sem);
+ 
++	if (!err)
++		err = nilfs_flush_device(nilfs);
++
+ 	return err;
+ }
+ 
+diff -puN fs/nilfs2/the_nilfs.h~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/the_nilfs.h
+--- a/fs/nilfs2/the_nilfs.h~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
++++ a/fs/nilfs2/the_nilfs.h
+@@ -46,6 +46,7 @@ enum {
+ /**
+  * struct the_nilfs - struct to supervise multiple nilfs mount points
+  * @ns_flags: flags
++ * @ns_flushed_device: flag indicating if all volatile data was flushed
+  * @ns_bdev: block device
+  * @ns_sem: semaphore for shared states
+  * @ns_snapshot_mount_mutex: mutex to protect snapshot mounts
+@@ -103,6 +104,7 @@ enum {
+  */
+ struct the_nilfs {
+ 	unsigned long		ns_flags;
++	int			ns_flushed_device;
+ 
+ 	struct block_device    *ns_bdev;
+ 	struct rw_semaphore	ns_sem;
+@@ -371,4 +373,24 @@ static inline int nilfs_segment_is_activ
+ 	return n == nilfs->ns_segnum || n == nilfs->ns_nextnum;
+ }
+ 
++static inline int nilfs_flush_device(struct the_nilfs *nilfs)
++{
++	int err;
++
++	if (!nilfs_test_opt(nilfs, BARRIER) || nilfs->ns_flushed_device)
++		return 0;
++
++	nilfs->ns_flushed_device = 1;
++	/*
++	 * the store to ns_flushed_device must not be reordered after
++	 * blkdev_issue_flush().
++	 */
++	smp_wmb();
++
++	err = blkdev_issue_flush(nilfs->ns_bdev, GFP_KERNEL, NULL);
++	if (err != -EIO)
++		err = 0;
++	return err;
++}
++
+ #endif /* _THE_NILFS_H */
 _
 
-Patches currently in -mm which might be from ddstreet@ieee.org are
+Patches currently in -mm which might be from andreas.rohner@gmx.net are
 
-zsmalloc-move-pages_allocated-to-zs_pool.patch
-zsmalloc-change-return-value-unit-of-zs_get_total_size_bytes.patch
-zram-zram-memory-size-limitation.patch
-zram-report-maximum-used-memory.patch
-zsmalloc-simplify-init_zspage-free-obj-linking.patch
-linux-next.patch
+nilfs2-fix-data-loss-with-mmap.patch
+nilfs2-fix-data-loss-with-mmap-fix.patch
+nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
 
