@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+Subject: + nosave-consolidate-__nosave_beginend-in-asm-sectionsh.patch
  added to -mm tree
-Date: Fri, 19 Sep 2014 16:08:30 -0700
-Message-ID: <541cb76e.2hYXyLwI5755sdy+%akpm@linux-foundation.org>
+Date: Fri, 19 Sep 2014 16:09:31 -0700
+Message-ID: <541cb7ab.wN3RI5Pla4VV9Akp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57173 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57178 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752139AbaISXIc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 19:08:32 -0400
+	with ESMTP id S1752139AbaISXJc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 19:09:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, joshc@codeaurora.org, sboyd@codeaurora.org, svarbanov@mm-sol.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, benh@kernel.crashing.org, davem@davemloft.net, gxt@mprc.pku.edu.cn, hpa@zytor.com, linux@arm.linux.org.uk, mingo@redhat.com, ralf@linux-mips.org, schwidefsky@de.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes
+     Subject: nosave: consolidate __nosave_{begin,end} in <asm/sections.h>
 has been added to the -mm tree.  Its filename is
-     rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+     nosave-consolidate-__nosave_beginend-in-asm-sectionsh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nosave-consolidate-__nosave_beginend-in-asm-sectionsh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nosave-consolidate-__nosave_beginend-in-asm-sectionsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,128 +39,232 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: nosave: consolidate __nosave_{begin,end} in <asm/sections.h>
 
-WARNING: Statements terminations use 1 semicolon
-#159: FILE: drivers/rtc/rtc-pm8xxx.c:143:
-+		ctrl_reg |= regs->alarm_en;;
+The different architectures used their own (and different) declarations:
 
-WARNING: Statements terminations use 1 semicolon
-#313: FILE: drivers/rtc/rtc-pm8xxx.c:348:
-+	ctrl_reg &= ~regs->alarm_en;;
+    extern __visible const void __nosave_begin, __nosave_end;
+    extern const void __nosave_begin, __nosave_end;
+    extern long __nosave_begin, __nosave_end;
 
-WARNING: DT compatible string "qcom,pm8941-rtc" appears un-documented -- check ./Documentation/devicetree/bindings/
-#414: FILE: drivers/rtc/rtc-pm8xxx.c:435:
-+	{ .compatible = "qcom,pm8941-rtc", .data = &pm8941_regs },
+Consolidate them using the first variant in <asm/sections.h>.
 
-total: 0 errors, 3 warnings, 418 lines checked
-
-./patches/rtc-pm8xxx-rework-to-support-pm8941-rtc.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Josh Cartwright <joshc@codeaurora.org>
-Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pm8xxx.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/kernel/hibernate.c       |    3 +--
+ arch/mips/include/asm/suspend.h   |    7 -------
+ arch/mips/power/cpu.c             |    2 +-
+ arch/powerpc/kernel/suspend.c     |    4 +---
+ arch/s390/kernel/suspend.c        |    6 +-----
+ arch/sh/include/asm/sections.h    |    1 -
+ arch/sparc/power/hibernate.c      |    4 +---
+ arch/unicore32/include/mach/pm.h  |    3 ---
+ arch/unicore32/kernel/hibernate.c |    1 +
+ arch/x86/power/hibernate_32.c     |    4 +---
+ arch/x86/power/hibernate_64.c     |    4 +---
+ include/asm-generic/sections.h    |    4 ++++
+ 12 files changed, 12 insertions(+), 31 deletions(-)
 
-diff -puN drivers/rtc/rtc-pm8xxx.c~rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes drivers/rtc/rtc-pm8xxx.c
---- a/drivers/rtc/rtc-pm8xxx.c~rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes
-+++ a/drivers/rtc/rtc-pm8xxx.c
-@@ -140,7 +140,7 @@ static int pm8xxx_rtc_set_time(struct de
- 	}
+diff -puN arch/arm/kernel/hibernate.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh arch/arm/kernel/hibernate.c
+--- a/arch/arm/kernel/hibernate.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh
++++ a/arch/arm/kernel/hibernate.c
+@@ -21,8 +21,7 @@
+ #include <asm/idmap.h>
+ #include <asm/suspend.h>
+ #include <asm/memory.h>
+-
+-extern const void __nosave_begin, __nosave_end;
++#include <asm/sections.h>
  
- 	if (alarm_enabled) {
--		ctrl_reg |= regs->alarm_en;;
-+		ctrl_reg |= regs->alarm_en;
- 		rc = regmap_write(rtc_dd->regmap, regs->ctrl, ctrl_reg);
- 		if (rc) {
- 			dev_err(dev, "Write to RTC control register failed\n");
-@@ -345,7 +345,7 @@ static irqreturn_t pm8xxx_alarm_trigger(
- 		goto rtc_alarm_handled;
- 	}
+ int pfn_is_nosave(unsigned long pfn)
+ {
+diff -puN arch/mips/include/asm/suspend.h~nosave-consolidate-__nosave_beginend-in-asm-sectionsh /dev/null
+--- a/arch/mips/include/asm/suspend.h
++++ /dev/null
+@@ -1,7 +0,0 @@
+-#ifndef __ASM_SUSPEND_H
+-#define __ASM_SUSPEND_H
+-
+-/* References to section boundaries */
+-extern const void __nosave_begin, __nosave_end;
+-
+-#endif /* __ASM_SUSPEND_H */
+diff -puN arch/mips/power/cpu.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh arch/mips/power/cpu.c
+--- a/arch/mips/power/cpu.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh
++++ a/arch/mips/power/cpu.c
+@@ -7,7 +7,7 @@
+  * Author: Hu Hongbing <huhb@lemote.com>
+  *	   Wu Zhangjin <wuzhangjin@gmail.com>
+  */
+-#include <asm/suspend.h>
++#include <asm/sections.h>
+ #include <asm/fpu.h>
+ #include <asm/dsp.h>
  
--	ctrl_reg &= ~regs->alarm_en;;
-+	ctrl_reg &= ~regs->alarm_en;
+diff -puN arch/powerpc/kernel/suspend.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh arch/powerpc/kernel/suspend.c
+--- a/arch/powerpc/kernel/suspend.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh
++++ a/arch/powerpc/kernel/suspend.c
+@@ -9,9 +9,7 @@
  
- 	rc = regmap_write(rtc_dd->regmap, regs->alarm_ctrl, ctrl_reg);
- 	if (rc) {
+ #include <linux/mm.h>
+ #include <asm/page.h>
+-
+-/* References to section boundaries */
+-extern const void __nosave_begin, __nosave_end;
++#include <asm/sections.h>
+ 
+ /*
+  *	pfn_is_nosave - check if given pfn is in the 'nosave' section
+diff -puN arch/s390/kernel/suspend.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh arch/s390/kernel/suspend.c
+--- a/arch/s390/kernel/suspend.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh
++++ a/arch/s390/kernel/suspend.c
+@@ -13,14 +13,10 @@
+ #include <asm/ipl.h>
+ #include <asm/cio.h>
+ #include <asm/pci.h>
++#include <asm/sections.h>
+ #include "entry.h"
+ 
+ /*
+- * References to section boundaries
+- */
+-extern const void __nosave_begin, __nosave_end;
+-
+-/*
+  * The restore of the saved pages in an hibernation image will set
+  * the change and referenced bits in the storage key for each page.
+  * Overindication of the referenced bits after an hibernation cycle
+diff -puN arch/sh/include/asm/sections.h~nosave-consolidate-__nosave_beginend-in-asm-sectionsh arch/sh/include/asm/sections.h
+--- a/arch/sh/include/asm/sections.h~nosave-consolidate-__nosave_beginend-in-asm-sectionsh
++++ a/arch/sh/include/asm/sections.h
+@@ -3,7 +3,6 @@
+ 
+ #include <asm-generic/sections.h>
+ 
+-extern long __nosave_begin, __nosave_end;
+ extern long __machvec_start, __machvec_end;
+ extern char __uncached_start, __uncached_end;
+ extern char __start_eh_frame[], __stop_eh_frame[];
+diff -puN arch/sparc/power/hibernate.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh arch/sparc/power/hibernate.c
+--- a/arch/sparc/power/hibernate.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh
++++ a/arch/sparc/power/hibernate.c
+@@ -9,11 +9,9 @@
+ #include <asm/hibernate.h>
+ #include <asm/visasm.h>
+ #include <asm/page.h>
++#include <asm/sections.h>
+ #include <asm/tlb.h>
+ 
+-/* References to section boundaries */
+-extern const void __nosave_begin, __nosave_end;
+-
+ struct saved_context saved_context;
+ 
+ /*
+diff -puN arch/unicore32/include/mach/pm.h~nosave-consolidate-__nosave_beginend-in-asm-sectionsh arch/unicore32/include/mach/pm.h
+--- a/arch/unicore32/include/mach/pm.h~nosave-consolidate-__nosave_beginend-in-asm-sectionsh
++++ a/arch/unicore32/include/mach/pm.h
+@@ -36,8 +36,5 @@ extern int puv3_pm_enter(suspend_state_t
+ /* Defined in hibernate_asm.S */
+ extern int restore_image(pgd_t *resume_pg_dir, struct pbe *restore_pblist);
+ 
+-/* References to section boundaries */
+-extern const void __nosave_begin, __nosave_end;
+-
+ extern struct pbe *restore_pblist;
+ #endif
+diff -puN arch/unicore32/kernel/hibernate.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh arch/unicore32/kernel/hibernate.c
+--- a/arch/unicore32/kernel/hibernate.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh
++++ a/arch/unicore32/kernel/hibernate.c
+@@ -18,6 +18,7 @@
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+ #include <asm/pgalloc.h>
++#include <asm/sections.h>
+ #include <asm/suspend.h>
+ 
+ #include "mach/pm.h"
+diff -puN arch/x86/power/hibernate_32.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh arch/x86/power/hibernate_32.c
+--- a/arch/x86/power/hibernate_32.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh
++++ a/arch/x86/power/hibernate_32.c
+@@ -13,13 +13,11 @@
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+ #include <asm/mmzone.h>
++#include <asm/sections.h>
+ 
+ /* Defined in hibernate_asm_32.S */
+ extern int restore_image(void);
+ 
+-/* References to section boundaries */
+-extern const void __nosave_begin, __nosave_end;
+-
+ /* Pointer to the temporary resume page tables */
+ pgd_t *resume_pg_dir;
+ 
+diff -puN arch/x86/power/hibernate_64.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh arch/x86/power/hibernate_64.c
+--- a/arch/x86/power/hibernate_64.c~nosave-consolidate-__nosave_beginend-in-asm-sectionsh
++++ a/arch/x86/power/hibernate_64.c
+@@ -17,11 +17,9 @@
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+ #include <asm/mtrr.h>
++#include <asm/sections.h>
+ #include <asm/suspend.h>
+ 
+-/* References to section boundaries */
+-extern __visible const void __nosave_begin, __nosave_end;
+-
+ /* Defined in hibernate_asm_64.S */
+ extern asmlinkage __visible int restore_image(void);
+ 
+diff -puN include/asm-generic/sections.h~nosave-consolidate-__nosave_beginend-in-asm-sectionsh include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~nosave-consolidate-__nosave_beginend-in-asm-sectionsh
++++ a/include/asm-generic/sections.h
+@@ -3,6 +3,8 @@
+ 
+ /* References to section boundaries */
+ 
++#include <linux/compiler.h>
++
+ /*
+  * Usage guidelines:
+  * _text, _data: architecture specific, don't use them in arch-independent code
+@@ -37,6 +39,8 @@ extern char __start_rodata[], __end_roda
+ /* Start and end of .ctors section - used for constructor calls. */
+ extern char __ctors_start[], __ctors_end[];
+ 
++extern __visible const void __nosave_begin, __nosave_end;
++
+ /* function descriptor handling (if any).  Override
+  * in asm/sections.h */
+ #ifndef dereference_function_descriptor
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-nilfs2-fix-data-loss-with-mmap-fix.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
-mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
-mm-introduce-common-page-state-for-ballooned-memory-fix.patch
-mm-balloon_compaction-use-common-page-ballooning-fix.patch
-introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-debugc-use-pr_emerg.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix.patch
-rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
-rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
-rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-x86-optimize-resource-lookups-for-ioremap-fix.patch
-init-resolve-shadow-warnings-checkpatch-fixes.patch
+mn10300-use-kbuild-logic-to-include-asm-generic-sectionsh.patch
+cris-use-kbuild-logic-to-include-asm-generic-sectionsh.patch
+m32r-use-kbuild-logic-to-include-asm-generic-sectionsh.patch
+score-use-kbuild-logic-to-include-asm-generic-sectionsh.patch
+m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
+m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush-v2.patch
+alpha-use-kbuild-logic-to-include-asm-generic-sectionsh.patch
+include-linux-screen_infoh-remove-unused-orig_-macros.patch
+nosave-consolidate-__nosave_beginend-in-asm-sectionsh.patch
+printk-dont-bother-using-log_cpu_max_buf_shift-on-smp.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-lib-string_helpers-introduce-string_escape_mem-fix.patch
-lib-vsprintf-add-%pe-format-specifier-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
