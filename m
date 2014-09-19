@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- frv-remove-unused-declarations-of-__start___ex_table-and-__stop___ex_table.patch added to -mm tree
-Date: Fri, 19 Sep 2014 16:21:02 -0700
-Message-ID: <541cba5e.I7ZlChdGkw5Rshp6%akpm@linux-foundation.org>
+ ia64-remove-duplicate-declarations-of-__per_cpu_start-and-__per_cpu_end.patch added to -mm tree
+Date: Fri, 19 Sep 2014 16:21:03 -0700
+Message-ID: <541cba5f.0aEGbWmn/NS62blU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57356 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57360 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756141AbaISXVD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 19:21:03 -0400
+	with ESMTP id S1756485AbaISXVE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 19:21:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: frv: remove unused declarations of __start___ex_table and __stop___ex_table
+     Subject: ia64: remove duplicate declarations of __per_cpu_start[] and __per_cpu_end[]
 has been added to the -mm tree.  Its filename is
-     frv-remove-unused-declarations-of-__start___ex_table-and-__stop___ex_table.patch
+     ia64-remove-duplicate-declarations-of-__per_cpu_start-and-__per_cpu_end.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/frv-remove-unused-declarations-of-__start___ex_table-and-__stop___ex_table.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ia64-remove-duplicate-declarations-of-__per_cpu_start-and-__per_cpu_end.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/frv-remove-unused-declarations-of-__start___ex_table-and-__stop___ex_table.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-remove-duplicate-declarations-of-__per_cpu_start-and-__per_cpu_end.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,28 +40,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: frv: remove unused declarations of __start___ex_table and __stop___ex_table
+Subject: ia64: remove duplicate declarations of __per_cpu_start[] and __per_cpu_end[]
+
+They're already provided by <asm/sections.h>.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/extable.c |    2 --
- 1 file changed, 2 deletions(-)
+ arch/ia64/include/asm/sections.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/frv/mm/extable.c~frv-remove-unused-declarations-of-__start___ex_table-and-__stop___ex_table arch/frv/mm/extable.c
---- a/arch/frv/mm/extable.c~frv-remove-unused-declarations-of-__start___ex_table-and-__stop___ex_table
-+++ a/arch/frv/mm/extable.c
-@@ -6,8 +6,6 @@
- #include <linux/spinlock.h>
- #include <asm/uaccess.h>
+diff -puN arch/ia64/include/asm/sections.h~ia64-remove-duplicate-declarations-of-__per_cpu_start-and-__per_cpu_end arch/ia64/include/asm/sections.h
+--- a/arch/ia64/include/asm/sections.h~ia64-remove-duplicate-declarations-of-__per_cpu_start-and-__per_cpu_end
++++ a/arch/ia64/include/asm/sections.h
+@@ -10,7 +10,7 @@
+ #include <linux/uaccess.h>
+ #include <asm-generic/sections.h>
  
--extern const struct exception_table_entry __attribute__((aligned(8))) __start___ex_table[];
--extern const struct exception_table_entry __attribute__((aligned(8))) __stop___ex_table[];
- extern const void __memset_end, __memset_user_error_lr, __memset_user_error_handler;
- extern const void __memcpy_end, __memcpy_user_error_lr, __memcpy_user_error_handler;
- extern spinlock_t modlist_lock;
+-extern char __per_cpu_start[], __per_cpu_end[], __phys_per_cpu_start[];
++extern char __phys_per_cpu_start[];
+ #ifdef	CONFIG_SMP
+ extern char __cpu0_per_cpu[];
+ #endif
 _
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
