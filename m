@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
- added to -mm tree
-Date: Fri, 19 Sep 2014 15:59:28 -0700
-Message-ID: <541cb550.q8oqzJkviXjknmde%akpm@linux-foundation.org>
+Subject: + rtc-pm8xxx-rework-to-support-pm8941-rtc.patch added to -mm tree
+Date: Fri, 19 Sep 2014 16:02:45 -0700
+Message-ID: <541cb615.MxfWE/dLi+BlFhXX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57043 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57093 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932237AbaISW73 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 18:59:29 -0400
+	with ESMTP id S1752685AbaISXCq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 19:02:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: svarbanov@mm-sol.com, a.zummo@towertech.it, joshc@codeaurora.org, sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add missing blkdev_issue_flush() to nilfs_sync_fs()
+     Subject: drivers/rtc/rtc-pm8xxx.c: rework to support pm8941 rtc
 has been added to the -mm tree.  Its filename is
-     nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
+     rtc-pm8xxx-rework-to-support-pm8941-rtc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-pm8xxx-rework-to-support-pm8941-rtc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-pm8xxx-rework-to-support-pm8941-rtc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,162 +38,460 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andreas Rohner <andreas.rohner@gmx.net>
-Subject: nilfs2: add missing blkdev_issue_flush() to nilfs_sync_fs()
+From: Stanimir Varbanov <svarbanov@mm-sol.com>
+Subject: drivers/rtc/rtc-pm8xxx.c: rework to support pm8941 rtc
 
-Under normal circumstances nilfs_sync_fs() writes out the super block,
-which causes a flush of the underlying block device.  But this depends on
-the THE_NILFS_SB_DIRTY flag, which is only set if the pointer to the last
-segment crosses a segment boundary.  So if only a small amount of data is
-written before the call to nilfs_sync_fs(), no flush of the block device
-occurs.
+Adds support for RTC device inside PM8941 PMIC.  The RTC in this PMIC have
+two register spaces.  Thus the rtc-pm8xxx is slightly reworked to reflect
+these differences.
 
-In the above case an additional call to blkdev_issue_flush() is needed. 
-To prevent unnecessary overhead, the new flag nilfs->ns_flushed_device is
-introduced, which is cleared whenever new logs are written and set
-whenever the block device is flushed.  For convenience the function
-nilfs_flush_device() is added, which contains the above logic.
+The register set for different PMIC chips are selected on DT compatible
+string base.
 
-Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Josh Cartwright <joshc@codeaurora.org>
+Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/file.c      |    8 +++-----
- fs/nilfs2/ioctl.c     |    8 +++-----
- fs/nilfs2/segment.c   |    3 +++
- fs/nilfs2/super.c     |    6 ++++++
- fs/nilfs2/the_nilfs.h |   22 ++++++++++++++++++++++
- 5 files changed, 37 insertions(+), 10 deletions(-)
+ drivers/rtc/Kconfig      |    2 
+ drivers/rtc/rtc-pm8xxx.c |  217 ++++++++++++++++++++++---------------
+ 2 files changed, 134 insertions(+), 85 deletions(-)
 
-diff -puN fs/nilfs2/file.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/file.c
---- a/fs/nilfs2/file.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
-+++ a/fs/nilfs2/file.c
-@@ -56,11 +56,9 @@ int nilfs_sync_file(struct file *file, l
- 	mutex_unlock(&inode->i_mutex);
+diff -puN drivers/rtc/Kconfig~rtc-pm8xxx-rework-to-support-pm8941-rtc drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-pm8xxx-rework-to-support-pm8941-rtc
++++ a/drivers/rtc/Kconfig
+@@ -1303,7 +1303,7 @@ config RTC_DRV_LPC32XX
  
- 	nilfs = inode->i_sb->s_fs_info;
--	if (!err && nilfs_test_opt(nilfs, BARRIER)) {
--		err = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
--		if (err != -EIO)
--			err = 0;
--	}
-+	if (!err)
-+		err = nilfs_flush_device(nilfs);
-+
- 	return err;
- }
+ config RTC_DRV_PM8XXX
+ 	tristate "Qualcomm PMIC8XXX RTC"
+-	depends on MFD_PM8XXX
++	depends on MFD_PM8XXX || MFD_SPMI_PMIC
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Qualcomm PMIC8XXX RTC.
+diff -puN drivers/rtc/rtc-pm8xxx.c~rtc-pm8xxx-rework-to-support-pm8941-rtc drivers/rtc/rtc-pm8xxx.c
+--- a/drivers/rtc/rtc-pm8xxx.c~rtc-pm8xxx-rework-to-support-pm8941-rtc
++++ a/drivers/rtc/rtc-pm8xxx.c
+@@ -27,21 +27,36 @@
  
-diff -puN fs/nilfs2/ioctl.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
-+++ a/fs/nilfs2/ioctl.c
-@@ -1022,11 +1022,9 @@ static int nilfs_ioctl_sync(struct inode
- 		return ret;
+ /* RTC_CTRL register bit fields */
+ #define PM8xxx_RTC_ENABLE		BIT(7)
+-#define PM8xxx_RTC_ALARM_ENABLE		BIT(1)
+ #define PM8xxx_RTC_ALARM_CLEAR		BIT(0)
  
- 	nilfs = inode->i_sb->s_fs_info;
--	if (nilfs_test_opt(nilfs, BARRIER)) {
--		ret = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
--		if (ret == -EIO)
--			return ret;
--	}
-+	ret = nilfs_flush_device(nilfs);
-+	if (ret < 0)
-+		return ret;
+ #define NUM_8_BIT_RTC_REGS		0x4
  
- 	if (argp != NULL) {
- 		down_read(&nilfs->ns_segctor_sem);
-diff -puN fs/nilfs2/segment.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
-+++ a/fs/nilfs2/segment.c
-@@ -1833,6 +1833,7 @@ static void nilfs_segctor_complete_write
- 	nilfs_set_next_segment(nilfs, segbuf);
- 
- 	if (update_sr) {
-+		nilfs->ns_flushed_device = 0;
- 		nilfs_set_last_segment(nilfs, segbuf->sb_pseg_start,
- 				       segbuf->sb_sum.seg_seq, nilfs->ns_cno++);
- 
-@@ -2216,6 +2217,8 @@ int nilfs_construct_dsync_segment(struct
- 	sci->sc_dsync_end = end;
- 
- 	err = nilfs_segctor_do_construct(sci, SC_LSEG_DSYNC);
-+	if (!err)
-+		nilfs->ns_flushed_device = 0;
- 
- 	nilfs_transaction_unlock(sb);
- 	return err;
-diff -puN fs/nilfs2/super.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
-+++ a/fs/nilfs2/super.c
-@@ -310,6 +310,9 @@ int nilfs_commit_super(struct super_bloc
- 					    nilfs->ns_sbsize));
- 	}
- 	clear_nilfs_sb_dirty(nilfs);
-+	nilfs->ns_flushed_device = 1;
-+	/* make sure store to ns_flushed_device cannot be reordered */
-+	smp_wmb();
- 	return nilfs_sync_super(sb, flag);
- }
- 
-@@ -514,6 +517,9 @@ static int nilfs_sync_fs(struct super_bl
- 	}
- 	up_write(&nilfs->ns_sem);
- 
-+	if (!err)
-+		err = nilfs_flush_device(nilfs);
-+
- 	return err;
- }
- 
-diff -puN fs/nilfs2/the_nilfs.h~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/the_nilfs.h
---- a/fs/nilfs2/the_nilfs.h~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
-+++ a/fs/nilfs2/the_nilfs.h
-@@ -46,6 +46,7 @@ enum {
  /**
-  * struct the_nilfs - struct to supervise multiple nilfs mount points
-  * @ns_flags: flags
-+ * @ns_flushed_device: flag indicating if all volatile data was flushed
-  * @ns_bdev: block device
-  * @ns_sem: semaphore for shared states
-  * @ns_snapshot_mount_mutex: mutex to protect snapshot mounts
-@@ -103,6 +104,7 @@ enum {
-  */
- struct the_nilfs {
- 	unsigned long		ns_flags;
-+	int			ns_flushed_device;
++ * struct pm8xxx_rtc_regs - describe RTC registers per PMIC versions
++ * @ctrl: base address of control register
++ * @write: base address of write register
++ * @read: base address of read register
++ * @alarm_ctrl: base address of alarm control register
++ * @alarm_ctrl2: base address of alarm control2 register
++ * @alarm_rw: base address of alarm read-write register
++ * @alarm_en: alarm enable mask
++ */
++struct pm8xxx_rtc_regs {
++	unsigned int ctrl;
++	unsigned int write;
++	unsigned int read;
++	unsigned int alarm_ctrl;
++	unsigned int alarm_ctrl2;
++	unsigned int alarm_rw;
++	unsigned int alarm_en;
++};
++
++/**
+  * struct pm8xxx_rtc -  rtc driver internal structure
+  * @rtc:		rtc device for this driver.
+  * @regmap:		regmap used to access RTC registers
+  * @allow_set_time:	indicates whether writing to the RTC is allowed
+  * @rtc_alarm_irq:	rtc alarm irq number.
+- * @rtc_base:		address of rtc control register.
+- * @rtc_read_base:	base address of read registers.
+- * @rtc_write_base:	base address of write registers.
+- * @alarm_rw_base:	base address of alarm registers.
+  * @ctrl_reg:		rtc control register.
+  * @rtc_dev:		device structure.
+  * @ctrl_reg_lock:	spinlock protecting access to ctrl_reg.
+@@ -51,11 +66,7 @@ struct pm8xxx_rtc {
+ 	struct regmap *regmap;
+ 	bool allow_set_time;
+ 	int rtc_alarm_irq;
+-	int rtc_base;
+-	int rtc_read_base;
+-	int rtc_write_base;
+-	int alarm_rw_base;
+-	u8 ctrl_reg;
++	const struct pm8xxx_rtc_regs *regs;
+ 	struct device *rtc_dev;
+ 	spinlock_t ctrl_reg_lock;
+ };
+@@ -71,8 +82,10 @@ static int pm8xxx_rtc_set_time(struct de
+ {
+ 	int rc, i;
+ 	unsigned long secs, irq_flags;
+-	u8 value[NUM_8_BIT_RTC_REGS], alarm_enabled = 0, ctrl_reg;
++	u8 value[NUM_8_BIT_RTC_REGS], alarm_enabled = 0;
++	unsigned int ctrl_reg;
+ 	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
++	const struct pm8xxx_rtc_regs *regs = rtc_dd->regs;
  
- 	struct block_device    *ns_bdev;
- 	struct rw_semaphore	ns_sem;
-@@ -371,4 +373,24 @@ static inline int nilfs_segment_is_activ
- 	return n == nilfs->ns_segnum || n == nilfs->ns_nextnum;
+ 	if (!rtc_dd->allow_set_time)
+ 		return -EACCES;
+@@ -87,30 +100,32 @@ static int pm8xxx_rtc_set_time(struct de
+ 	dev_dbg(dev, "Seconds value to be written to RTC = %lu\n", secs);
+ 
+ 	spin_lock_irqsave(&rtc_dd->ctrl_reg_lock, irq_flags);
+-	ctrl_reg = rtc_dd->ctrl_reg;
+ 
+-	if (ctrl_reg & PM8xxx_RTC_ALARM_ENABLE) {
++	rc = regmap_read(rtc_dd->regmap, regs->ctrl, &ctrl_reg);
++	if (rc)
++		goto rtc_rw_fail;
++
++	if (ctrl_reg & regs->alarm_en) {
+ 		alarm_enabled = 1;
+-		ctrl_reg &= ~PM8xxx_RTC_ALARM_ENABLE;
+-		rc = regmap_write(rtc_dd->regmap, rtc_dd->rtc_base, ctrl_reg);
++		ctrl_reg &= ~regs->alarm_en;
++		rc = regmap_write(rtc_dd->regmap, regs->ctrl, ctrl_reg);
+ 		if (rc) {
+ 			dev_err(dev, "Write to RTC control register failed\n");
+ 			goto rtc_rw_fail;
+ 		}
+-		rtc_dd->ctrl_reg = ctrl_reg;
+ 	} else {
+ 		spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
+ 	}
+ 
+ 	/* Write 0 to Byte[0] */
+-	rc = regmap_write(rtc_dd->regmap, rtc_dd->rtc_write_base, 0);
++	rc = regmap_write(rtc_dd->regmap, regs->write, 0);
+ 	if (rc) {
+ 		dev_err(dev, "Write to RTC write data register failed\n");
+ 		goto rtc_rw_fail;
+ 	}
+ 
+ 	/* Write Byte[1], Byte[2], Byte[3] */
+-	rc = regmap_bulk_write(rtc_dd->regmap, rtc_dd->rtc_write_base + 1,
++	rc = regmap_bulk_write(rtc_dd->regmap, regs->write + 1,
+ 			       &value[1], sizeof(value) - 1);
+ 	if (rc) {
+ 		dev_err(dev, "Write to RTC write data register failed\n");
+@@ -118,20 +133,19 @@ static int pm8xxx_rtc_set_time(struct de
+ 	}
+ 
+ 	/* Write Byte[0] */
+-	rc = regmap_write(rtc_dd->regmap, rtc_dd->rtc_write_base, value[0]);
++	rc = regmap_write(rtc_dd->regmap, regs->write, value[0]);
+ 	if (rc) {
+ 		dev_err(dev, "Write to RTC write data register failed\n");
+ 		goto rtc_rw_fail;
+ 	}
+ 
+ 	if (alarm_enabled) {
+-		ctrl_reg |= PM8xxx_RTC_ALARM_ENABLE;
+-		rc = regmap_write(rtc_dd->regmap, rtc_dd->rtc_base, ctrl_reg);
++		ctrl_reg |= regs->alarm_en;;
++		rc = regmap_write(rtc_dd->regmap, regs->ctrl, ctrl_reg);
+ 		if (rc) {
+ 			dev_err(dev, "Write to RTC control register failed\n");
+ 			goto rtc_rw_fail;
+ 		}
+-		rtc_dd->ctrl_reg = ctrl_reg;
+ 	}
+ 
+ rtc_rw_fail:
+@@ -148,9 +162,9 @@ static int pm8xxx_rtc_read_time(struct d
+ 	unsigned long secs;
+ 	unsigned int reg;
+ 	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
++	const struct pm8xxx_rtc_regs *regs = rtc_dd->regs;
+ 
+-	rc = regmap_bulk_read(rtc_dd->regmap, rtc_dd->rtc_read_base,
+-			      value, sizeof(value));
++	rc = regmap_bulk_read(rtc_dd->regmap, regs->read, value, sizeof(value));
+ 	if (rc) {
+ 		dev_err(dev, "RTC read data register failed\n");
+ 		return rc;
+@@ -160,14 +174,14 @@ static int pm8xxx_rtc_read_time(struct d
+ 	 * Read the LSB again and check if there has been a carry over.
+ 	 * If there is, redo the read operation.
+ 	 */
+-	rc = regmap_read(rtc_dd->regmap, rtc_dd->rtc_read_base, &reg);
++	rc = regmap_read(rtc_dd->regmap, regs->read, &reg);
+ 	if (rc < 0) {
+ 		dev_err(dev, "RTC read data register failed\n");
+ 		return rc;
+ 	}
+ 
+ 	if (unlikely(reg < value[0])) {
+-		rc = regmap_bulk_read(rtc_dd->regmap, rtc_dd->rtc_read_base,
++		rc = regmap_bulk_read(rtc_dd->regmap, regs->read,
+ 				      value, sizeof(value));
+ 		if (rc) {
+ 			dev_err(dev, "RTC read data register failed\n");
+@@ -195,9 +209,11 @@ static int pm8xxx_rtc_read_time(struct d
+ static int pm8xxx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
+ {
+ 	int rc, i;
+-	u8 value[NUM_8_BIT_RTC_REGS], ctrl_reg;
++	u8 value[NUM_8_BIT_RTC_REGS];
++	unsigned int ctrl_reg;
+ 	unsigned long secs, irq_flags;
+ 	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
++	const struct pm8xxx_rtc_regs *regs = rtc_dd->regs;
+ 
+ 	rtc_tm_to_time(&alarm->time, &secs);
+ 
+@@ -208,28 +224,28 @@ static int pm8xxx_rtc_set_alarm(struct d
+ 
+ 	spin_lock_irqsave(&rtc_dd->ctrl_reg_lock, irq_flags);
+ 
+-	rc = regmap_bulk_write(rtc_dd->regmap, rtc_dd->alarm_rw_base, value,
++	rc = regmap_bulk_write(rtc_dd->regmap, regs->alarm_rw, value,
+ 			       sizeof(value));
+ 	if (rc) {
+ 		dev_err(dev, "Write to RTC ALARM register failed\n");
+ 		goto rtc_rw_fail;
+ 	}
+ 
+-	ctrl_reg = rtc_dd->ctrl_reg;
++	rc = regmap_read(rtc_dd->regmap, regs->alarm_ctrl, &ctrl_reg);
++	if (rc)
++		goto rtc_rw_fail;
+ 
+ 	if (alarm->enabled)
+-		ctrl_reg |= PM8xxx_RTC_ALARM_ENABLE;
++		ctrl_reg |= regs->alarm_en;
+ 	else
+-		ctrl_reg &= ~PM8xxx_RTC_ALARM_ENABLE;
++		ctrl_reg &= ~regs->alarm_en;
+ 
+-	rc = regmap_write(rtc_dd->regmap, rtc_dd->rtc_base, ctrl_reg);
++	rc = regmap_write(rtc_dd->regmap, regs->alarm_ctrl, ctrl_reg);
+ 	if (rc) {
+-		dev_err(dev, "Write to RTC control register failed\n");
++		dev_err(dev, "Write to RTC alarm control register failed\n");
+ 		goto rtc_rw_fail;
+ 	}
+ 
+-	rtc_dd->ctrl_reg = ctrl_reg;
+-
+ 	dev_dbg(dev, "Alarm Set for h:r:s=%d:%d:%d, d/m/y=%d/%d/%d\n",
+ 		alarm->time.tm_hour, alarm->time.tm_min,
+ 		alarm->time.tm_sec, alarm->time.tm_mday,
+@@ -245,8 +261,9 @@ static int pm8xxx_rtc_read_alarm(struct
+ 	u8 value[NUM_8_BIT_RTC_REGS];
+ 	unsigned long secs;
+ 	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
++	const struct pm8xxx_rtc_regs *regs = rtc_dd->regs;
+ 
+-	rc = regmap_bulk_read(rtc_dd->regmap, rtc_dd->alarm_rw_base, value,
++	rc = regmap_bulk_read(rtc_dd->regmap, regs->alarm_rw, value,
+ 			      sizeof(value));
+ 	if (rc) {
+ 		dev_err(dev, "RTC alarm time read failed\n");
+@@ -276,25 +293,26 @@ static int pm8xxx_rtc_alarm_irq_enable(s
+ 	int rc;
+ 	unsigned long irq_flags;
+ 	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
+-	u8 ctrl_reg;
++	const struct pm8xxx_rtc_regs *regs = rtc_dd->regs;
++	unsigned int ctrl_reg;
+ 
+ 	spin_lock_irqsave(&rtc_dd->ctrl_reg_lock, irq_flags);
+ 
+-	ctrl_reg = rtc_dd->ctrl_reg;
++	rc = regmap_read(rtc_dd->regmap, regs->alarm_ctrl, &ctrl_reg);
++	if (rc)
++		goto rtc_rw_fail;
+ 
+ 	if (enable)
+-		ctrl_reg |= PM8xxx_RTC_ALARM_ENABLE;
++		ctrl_reg |= regs->alarm_en;
+ 	else
+-		ctrl_reg &= ~PM8xxx_RTC_ALARM_ENABLE;
++		ctrl_reg &= ~regs->alarm_en;
+ 
+-	rc = regmap_write(rtc_dd->regmap, rtc_dd->rtc_base, ctrl_reg);
++	rc = regmap_write(rtc_dd->regmap, regs->alarm_ctrl, ctrl_reg);
+ 	if (rc) {
+ 		dev_err(dev, "Write to RTC control register failed\n");
+ 		goto rtc_rw_fail;
+ 	}
+ 
+-	rtc_dd->ctrl_reg = ctrl_reg;
+-
+ rtc_rw_fail:
+ 	spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
+ 	return rc;
+@@ -311,6 +329,7 @@ static const struct rtc_class_ops pm8xxx
+ static irqreturn_t pm8xxx_alarm_trigger(int irq, void *dev_id)
+ {
+ 	struct pm8xxx_rtc *rtc_dd = dev_id;
++	const struct pm8xxx_rtc_regs *regs = rtc_dd->regs;
+ 	unsigned int ctrl_reg;
+ 	int rc;
+ 	unsigned long irq_flags;
+@@ -320,48 +339,100 @@ static irqreturn_t pm8xxx_alarm_trigger(
+ 	spin_lock_irqsave(&rtc_dd->ctrl_reg_lock, irq_flags);
+ 
+ 	/* Clear the alarm enable bit */
+-	ctrl_reg = rtc_dd->ctrl_reg;
+-	ctrl_reg &= ~PM8xxx_RTC_ALARM_ENABLE;
++	rc = regmap_read(rtc_dd->regmap, regs->alarm_ctrl, &ctrl_reg);
++	if (rc) {
++		spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
++		goto rtc_alarm_handled;
++	}
++
++	ctrl_reg &= ~regs->alarm_en;;
+ 
+-	rc = regmap_write(rtc_dd->regmap, rtc_dd->rtc_base, ctrl_reg);
++	rc = regmap_write(rtc_dd->regmap, regs->alarm_ctrl, ctrl_reg);
+ 	if (rc) {
+ 		spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
+ 		dev_err(rtc_dd->rtc_dev,
+-			"Write to RTC control register failed\n");
++			"Write to alarm control register failed\n");
+ 		goto rtc_alarm_handled;
+ 	}
+ 
+-	rtc_dd->ctrl_reg = ctrl_reg;
+ 	spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
+ 
+ 	/* Clear RTC alarm register */
+-	rc = regmap_read(rtc_dd->regmap,
+-			 rtc_dd->rtc_base + PM8XXX_ALARM_CTRL_OFFSET,
+-			 &ctrl_reg);
++	rc = regmap_read(rtc_dd->regmap, regs->alarm_ctrl2, &ctrl_reg);
+ 	if (rc) {
+ 		dev_err(rtc_dd->rtc_dev,
+-			"RTC Alarm control register read failed\n");
++			"RTC Alarm control2 register read failed\n");
+ 		goto rtc_alarm_handled;
+ 	}
+ 
+-	ctrl_reg &= ~PM8xxx_RTC_ALARM_CLEAR;
+-	rc = regmap_write(rtc_dd->regmap,
+-			  rtc_dd->rtc_base + PM8XXX_ALARM_CTRL_OFFSET,
+-			  ctrl_reg);
++	ctrl_reg |= PM8xxx_RTC_ALARM_CLEAR;
++	rc = regmap_write(rtc_dd->regmap, regs->alarm_ctrl2, ctrl_reg);
+ 	if (rc)
+ 		dev_err(rtc_dd->rtc_dev,
+-			"Write to RTC Alarm control register failed\n");
++			"Write to RTC Alarm control2 register failed\n");
+ 
+ rtc_alarm_handled:
+ 	return IRQ_HANDLED;
  }
  
-+static inline int nilfs_flush_device(struct the_nilfs *nilfs)
++static int pm8xxx_rtc_enable(struct pm8xxx_rtc *rtc_dd)
 +{
-+	int err;
++	const struct pm8xxx_rtc_regs *regs = rtc_dd->regs;
++	unsigned int ctrl_reg;
++	int rc;
 +
-+	if (!nilfs_test_opt(nilfs, BARRIER) || nilfs->ns_flushed_device)
-+		return 0;
++	/* Check if the RTC is on, else turn it on */
++	rc = regmap_read(rtc_dd->regmap, regs->ctrl, &ctrl_reg);
++	if (rc)
++		return rc;
 +
-+	nilfs->ns_flushed_device = 1;
-+	/*
-+	 * the store to ns_flushed_device must not be reordered after
-+	 * blkdev_issue_flush().
-+	 */
-+	smp_wmb();
++	if (!(ctrl_reg & PM8xxx_RTC_ENABLE)) {
++		ctrl_reg |= PM8xxx_RTC_ENABLE;
++		rc = regmap_write(rtc_dd->regmap, regs->ctrl, ctrl_reg);
++		if (rc)
++			return rc;
++	}
 +
-+	err = blkdev_issue_flush(nilfs->ns_bdev, GFP_KERNEL, NULL);
-+	if (err != -EIO)
-+		err = 0;
-+	return err;
++	return 0;
 +}
 +
- #endif /* _THE_NILFS_H */
-_
-
-Patches currently in -mm which might be from andreas.rohner@gmx.net are
-
-nilfs2-fix-data-loss-with-mmap.patch
-nilfs2-fix-data-loss-with-mmap-fix.patch
-nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
-
++static const struct pm8xxx_rtc_regs pm8921_regs = {
++	.ctrl		= 0x11d,
++	.write		= 0x11f,
++	.read		= 0x123,
++	.alarm_rw	= 0x127,
++	.alarm_ctrl	= 0x11d,
++	.alarm_ctrl2	= 0x11e,
++	.alarm_en	= BIT(1),
++};
++
++static const struct pm8xxx_rtc_regs pm8058_regs = {
++	.ctrl		= 0x1e8,
++	.write		= 0x1ea,
++	.read		= 0x1ee,
++	.alarm_rw	= 0x1f2,
++	.alarm_ctrl	= 0x1e8,
++	.alarm_ctrl2	= 0x1e9,
++	.alarm_en	= BIT(1),
++};
++
++static const struct pm8xxx_rtc_regs pm8941_regs = {
++	.ctrl		= 0x6046,
++	.write		= 0x6040,
++	.read		= 0x6048,
++	.alarm_rw	= 0x6140,
++	.alarm_ctrl	= 0x6146,
++	.alarm_ctrl2	= 0x6148,
++	.alarm_en	= BIT(7),
++};
++
+ /*
+  * Hardcoded RTC bases until IORESOURCE_REG mapping is figured out
+  */
+ static const struct of_device_id pm8xxx_id_table[] = {
+-	{ .compatible = "qcom,pm8921-rtc", .data = (void *) 0x11D },
+-	{ .compatible = "qcom,pm8058-rtc", .data = (void *) 0x1E8 },
++	{ .compatible = "qcom,pm8921-rtc", .data = &pm8921_regs },
++	{ .compatible = "qcom,pm8058-rtc", .data = &pm8058_regs },
++	{ .compatible = "qcom,pm8941-rtc", .data = &pm8941_regs },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, pm8xxx_id_table);
+@@ -369,7 +440,6 @@ MODULE_DEVICE_TABLE(of, pm8xxx_id_table)
+ static int pm8xxx_rtc_probe(struct platform_device *pdev)
+ {
+ 	int rc;
+-	unsigned int ctrl_reg;
+ 	struct pm8xxx_rtc *rtc_dd;
+ 	const struct of_device_id *match;
+ 
+@@ -399,33 +469,12 @@ static int pm8xxx_rtc_probe(struct platf
+ 	rtc_dd->allow_set_time = of_property_read_bool(pdev->dev.of_node,
+ 						      "allow-set-time");
+ 
+-	rtc_dd->rtc_base = (long) match->data;
+-
+-	/* Setup RTC register addresses */
+-	rtc_dd->rtc_write_base = rtc_dd->rtc_base + PM8XXX_RTC_WRITE_OFFSET;
+-	rtc_dd->rtc_read_base = rtc_dd->rtc_base + PM8XXX_RTC_READ_OFFSET;
+-	rtc_dd->alarm_rw_base = rtc_dd->rtc_base + PM8XXX_ALARM_RW_OFFSET;
+-
++	rtc_dd->regs = match->data;
+ 	rtc_dd->rtc_dev = &pdev->dev;
+ 
+-	/* Check if the RTC is on, else turn it on */
+-	rc = regmap_read(rtc_dd->regmap, rtc_dd->rtc_base, &ctrl_reg);
+-	if (rc) {
+-		dev_err(&pdev->dev, "RTC control register read failed!\n");
++	rc = pm8xxx_rtc_enable(rtc_dd);
++	if (rc)
+ 		return rc;
+-	}
+-
+-	if (!(ctrl_reg & PM8xxx_RTC_ENABLE)) {
+-		ctrl_reg |= PM8xxx_RTC_ENABLE;
+-		rc = regmap_write(rtc_dd->regmap, rtc_dd->rtc_base, ctrl_reg);
+-		if (rc) {
+-			dev_err(&pdev->dev,
+-				"Write to RTC control register failed\n");
+-			return rc;
+-		}
+-	}
