@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-balloon_compaction-use-common-page-ballooning-v2-fix-1.patch added to -mm tree
-Date: Fri, 19 Sep 2014 14:35:35 -0700
-Message-ID: <541ca1a7.EINzcZAYmb4tp65l%akpm@linux-foundation.org>
+Subject: + rtc-max77686-use-ffs-to-calculate-tm_wday.patch added to -mm
+ tree
+Date: Fri, 19 Sep 2014 14:51:18 -0700
+Message-ID: <541ca556.ZZD1n8FBygOgKuEC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55538 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758033AbaISVff (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 17:35:35 -0400
+	with ESMTP id S932195AbaISVvT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 17:51:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, mm-commits@vger.kernel.org
+To: javier.martinez@collabora.co.uk, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-balloon_compaction-use-common-page-ballooning-v2-fix-1
+     Subject: rtc: max77686: Use ffs() to calculate tm_wday
 has been added to the -mm tree.  Its filename is
-     mm-balloon_compaction-use-common-page-ballooning-v2-fix-1.patch
+     rtc-max77686-use-ffs-to-calculate-tm_wday.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon_compaction-use-common-page-ballooning-v2-fix-1.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-max77686-use-ffs-to-calculate-tm_wday.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon_compaction-use-common-page-ballooning-v2-fix-1.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-max77686-use-ffs-to-calculate-tm_wday.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,72 +39,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mm-balloon_compaction-use-common-page-ballooning-v2-fix-1
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: rtc: max77686: Use ffs() to calculate tm_wday
 
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+max77686_rtc_calculate_wday() is used to calculate the day of the week to
+be filled in struct rtc_time but that function only calculates the number
+of bits shifted.  So the ffs() function can be used to find the first bit
+set instead of a special function.
+
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c    |    1 +
- include/linux/balloon_compaction.h |    2 --
- mm/balloon_compaction.c            |    2 ++
- 3 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-max77686.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN drivers/virtio/virtio_balloon.c~mm-balloon_compaction-use-common-page-ballooning-v2-fix-1 drivers/virtio/virtio_balloon.c
---- a/drivers/virtio/virtio_balloon.c~mm-balloon_compaction-use-common-page-ballooning-v2-fix-1
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -395,6 +395,7 @@ static int virtballoon_migratepage(struc
- 	/* balloon's page migration 1st step  -- inflate "newpage" */
- 	spin_lock_irqsave(&vb_dev_info->pages_lock, flags);
- 	balloon_page_insert(vb_dev_info, newpage);
-+	__count_vm_event(BALLOON_MIGRATE);
- 	vb_dev_info->isolated_pages--;
- 	spin_unlock_irqrestore(&vb_dev_info->pages_lock, flags);
- 	vb->num_pfns = VIRTIO_BALLOON_PAGES_PER_PAGE;
-diff -puN include/linux/balloon_compaction.h~mm-balloon_compaction-use-common-page-ballooning-v2-fix-1 include/linux/balloon_compaction.h
---- a/include/linux/balloon_compaction.h~mm-balloon_compaction-use-common-page-ballooning-v2-fix-1
-+++ a/include/linux/balloon_compaction.h
-@@ -87,7 +87,6 @@ static inline void
- balloon_page_insert(struct balloon_dev_info *b_dev_info, struct page *page)
+diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-use-ffs-to-calculate-tm_wday drivers/rtc/rtc-max77686.c
+--- a/drivers/rtc/rtc-max77686.c~rtc-max77686-use-ffs-to-calculate-tm_wday
++++ a/drivers/rtc/rtc-max77686.c
+@@ -70,16 +70,6 @@ enum MAX77686_RTC_OP {
+ 	MAX77686_RTC_READ,
+ };
+ 
+-static inline int max77686_rtc_calculate_wday(u8 shifted)
+-{
+-	int counter = -1;
+-	while (shifted) {
+-		shifted >>= 1;
+-		counter++;
+-	}
+-	return counter;
+-}
+-
+ static void max77686_rtc_data_to_tm(u8 *data, struct rtc_time *tm,
+ 				   int rtc_24hr_mode)
  {
- 	__SetPageBalloon(page);
--	inc_zone_page_state(page, NR_BALLOON_PAGES);
- 	set_page_private(page, (unsigned long)b_dev_info);
- 	list_add(&page->lru, &b_dev_info->pages);
- }
-@@ -104,7 +103,6 @@ balloon_page_insert(struct balloon_dev_i
- static inline void balloon_page_delete(struct page *page, bool isolated)
- {
- 	__ClearPageBalloon(page);
--	dec_zone_page_state(page, NR_BALLOON_PAGES);
- 	set_page_private(page, 0);
- 	if (!isolated)
- 		list_del(&page->lru);
-diff -puN mm/balloon_compaction.c~mm-balloon_compaction-use-common-page-ballooning-v2-fix-1 mm/balloon_compaction.c
---- a/mm/balloon_compaction.c~mm-balloon_compaction-use-common-page-ballooning-v2-fix-1
-+++ a/mm/balloon_compaction.c
-@@ -36,6 +36,7 @@ struct page *balloon_page_enqueue(struct
- 	BUG_ON(!trylock_page(page));
- 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
- 	balloon_page_insert(b_dev_info, page);
-+	__count_vm_event(BALLOON_INFLATE);
- 	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
- 	unlock_page(page);
- 	return page;
-@@ -67,6 +68,7 @@ struct page *balloon_page_dequeue(struct
- 		if (trylock_page(page)) {
- 			spin_lock_irqsave(&b_dev_info->pages_lock, flags);
- 			balloon_page_delete(page, false);
-+			__count_vm_event(BALLOON_DEFLATE);
- 			spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
- 			unlock_page(page);
- 			return page;
+@@ -93,7 +83,7 @@ static void max77686_rtc_data_to_tm(u8 *
+ 			tm->tm_hour += 12;
+ 	}
+ 
+-	tm->tm_wday = max77686_rtc_calculate_wday(data[RTC_WEEKDAY] & 0x7f);
++	tm->tm_wday = ffs(data[RTC_WEEKDAY] & 0x7f) - 1;
+ 	tm->tm_mday = data[RTC_DATE] & 0x1f;
+ 	tm->tm_mon = (data[RTC_MONTH] & 0x0f) - 1;
+ 	tm->tm_year = (data[RTC_YEAR] & 0x7f) + 100;
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from javier.martinez@collabora.co.uk are
 
-selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch
-mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2.patch
-mm-balloon_compaction-use-common-page-ballooning-v2-fix-1.patch
+rtc-rk808-add-rtc-driver-for-rk808.patch
+clk-rk808-add-clkout-driver-for-rk808.patch
+rtc-max77686-allow-the-max77686-rtc-to-wakeup-the-system.patch
+rtc-max77686-remove-dead-code-for-smpl-and-wtsr.patch
+rtc-max77686-fail-to-probe-if-no-rtc-regmap-irqchip-is-set.patch
+rtc-max77686-remove-unneded-info-log.patch
+rtc-max77686-use-ffs-to-calculate-tm_wday.patch
+rtc-add-driver-for-maxim-77802-pmic-real-time-clock.patch
+rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10.patch
+linux-next.patch
 
