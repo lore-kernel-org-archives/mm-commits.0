@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch added to
- -mm tree
-Date: Fri, 19 Sep 2014 14:53:09 -0700
-Message-ID: <541ca5c5.5zYdgjpkWTtFsD1l%akpm@linux-foundation.org>
+Subject: + mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2.patch added to -mm tree
+Date: Fri, 19 Sep 2014 15:02:42 -0700
+Message-ID: <541ca802.kiZ/FTIn0swmjDua%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55551 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55719 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932195AbaISVxJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 17:53:09 -0400
+	with ESMTP id S1757837AbaISWCn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 18:02:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, javier.martinez@collabora.co.uk, k.kozlowski@samsung.com, mm-commits@vger.kernel.org
+To: pfeiner@google.com, gorcunov@openvz.org, hughd@google.com, jamieliu@google.com, kirill@shutemov.name, n-horiguchi@ah.jp.nec.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix
+     Subject: mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2
 has been added to the -mm tree.  Its filename is
-     rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
+     mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,96 +38,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix
+From: Peter Feiner <pfeiner@google.com>
+Subject: mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2
 
-add comment clarifying ffs() use
+Restructured patch to make logic more clear.
 
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Signed-off-by: Peter Feiner <pfeiner@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Jamie Liu <jamieliu@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max77802.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/task_mmu.c |   42 +++++++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN drivers/rtc/rtc-max77802.c~rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix drivers/rtc/rtc-max77802.c
---- a/drivers/rtc/rtc-max77802.c~rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix
-+++ a/drivers/rtc/rtc-max77802.c
-@@ -88,6 +88,7 @@ static void max77802_rtc_data_to_tm(u8 *
- 			tm->tm_hour += 12;
- 	}
+diff -puN fs/proc/task_mmu.c~mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2
++++ a/fs/proc/task_mmu.c
+@@ -1067,27 +1067,15 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 		return 0;
  
-+	/* Only a single bit is set in data[], so fls() would be equivalent */
- 	tm->tm_wday = ffs(data[RTC_WEEKDAY] & 0xff) - 1;
- 	tm->tm_mday = data[RTC_DATE] & 0x1f;
- 	tm->tm_mon = (data[RTC_MONTH] & 0x0f) - 1;
+ 	while (1) {
+-		unsigned long vm_start = end;
+-		unsigned long vm_end = end;
+-		unsigned long vm_flags = 0;
+-
+-		if (vma) {
+-			/*
+-			 * We can't possibly be in a hugetlb VMA. In general,
+-			 * for a mm_walk with a pmd_entry and a hugetlb_entry,
+-			 * the pmd_entry can only be called on addresses in a
+-			 * hugetlb if the walk starts in a non-hugetlb VMA and
+-			 * spans a hugepage VMA. Since pagemap_read walks are
+-			 * PMD-sized and PMD-aligned, this will never be true.
+-			 */
+-			BUG_ON(is_vm_hugetlb_page(vma));
+-			vm_start = vma->vm_start;
+-			vm_end = min(end, vma->vm_end);
+-			vm_flags = vma->vm_flags;
+-		}
++		/* End of address space hole, which we mark as non-present. */
++		unsigned long hole_end;
++
++		if (vma)
++			hole_end = min(end, vma->vm_start);
++		else
++			hole_end = end;
+ 
+-		/* Addresses before the VMA. */
+-		for (; addr < vm_start; addr += PAGE_SIZE) {
++		for (; addr < hole_end; addr += PAGE_SIZE) {
+ 			pagemap_entry_t pme = make_pme(PM_NOT_PRESENT(pm->v2));
+ 
+ 			err = add_to_pagemap(addr, &pme, pm);
+@@ -1095,8 +1083,20 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 				return err;
+ 		}
+ 
++		if (!vma)
++			break;
++		/*
++		 * We can't possibly be in a hugetlb VMA. In general,
++		 * for a mm_walk with a pmd_entry and a hugetlb_entry,
++		 * the pmd_entry can only be called on addresses in a
++		 * hugetlb if the walk starts in a non-hugetlb VMA and
++		 * spans a hugepage VMA. Since pagemap_read walks are
++		 * PMD-sized and PMD-aligned, this will never be true.
++		 */
++		BUG_ON(is_vm_hugetlb_page(vma));
++
+ 		/* Addresses in the VMA. */
+-		for (; addr < vm_end; addr += PAGE_SIZE) {
++		for (; addr < min(end, vma->vm_end); addr += PAGE_SIZE) {
+ 			pagemap_entry_t pme;
+ 			pte = pte_offset_map(pmd, addr);
+ 			pte_to_pagemap_entry(&pme, pm, vma, addr, *pte);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pfeiner@google.com are
 
-origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-nilfs2-fix-data-loss-with-mmap-fix.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
-mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
-mm-introduce-common-page-state-for-ballooned-memory-fix.patch
-mm-balloon_compaction-use-common-page-ballooning-fix.patch
-introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-debugc-use-pr_emerg.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix.patch
-rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
-rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
-rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
-x86-optimize-resource-lookups-for-ioremap-fix.patch
-init-resolve-shadow-warnings-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-lib-string_helpers-introduce-string_escape_mem-fix.patch
-lib-vsprintf-add-%pe-format-specifier-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch
+mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
+mm-softdirty-unmapped-addresses-between-vmas-are-clean.patch
+mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2.patch
 
