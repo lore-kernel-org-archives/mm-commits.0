@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
  added to -mm tree
-Date: Fri, 19 Sep 2014 16:06:35 -0700
-Message-ID: <541cb6fb.Gql+aiaSrIOCK60o%akpm@linux-foundation.org>
+Date: Fri, 19 Sep 2014 16:08:30 -0700
+Message-ID: <541cb76e.2hYXyLwI5755sdy+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57158 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57173 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752139AbaISXGg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 19:06:36 -0400
+	with ESMTP id S1752139AbaISXIc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 19:08:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.zummo@towertech.it, joshc@codeaurora.org, sboyd@codeaurora.org, svarbanov@mm-sol.com, mm-commits@vger.kernel.org
@@ -70,7 +70,30 @@ Cc: Stephen Boyd <sboyd@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/rtc/rtc-pm8xxx.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff -puN drivers/rtc/rtc-pm8xxx.c~rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes drivers/rtc/rtc-pm8xxx.c
+--- a/drivers/rtc/rtc-pm8xxx.c~rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes
++++ a/drivers/rtc/rtc-pm8xxx.c
+@@ -140,7 +140,7 @@ static int pm8xxx_rtc_set_time(struct de
+ 	}
+ 
+ 	if (alarm_enabled) {
+-		ctrl_reg |= regs->alarm_en;;
++		ctrl_reg |= regs->alarm_en;
+ 		rc = regmap_write(rtc_dd->regmap, regs->ctrl, ctrl_reg);
+ 		if (rc) {
+ 			dev_err(dev, "Write to RTC control register failed\n");
+@@ -345,7 +345,7 @@ static irqreturn_t pm8xxx_alarm_trigger(
+ 		goto rtc_alarm_handled;
+ 	}
+ 
+-	ctrl_reg &= ~regs->alarm_en;;
++	ctrl_reg &= ~regs->alarm_en;
+ 
+ 	rc = regmap_write(rtc_dd->regmap, regs->alarm_ctrl, ctrl_reg);
+ 	if (rc) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
