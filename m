@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch added to -mm tree
-Date: Thu, 18 Sep 2014 16:14:33 -0700
-Message-ID: <541b6759.EhEzPtLJlWVXTpO/%akpm@linux-foundation.org>
+ common-dma-mapping-introduce-common-remapping-functions-fix-4.patch added
+ to -mm tree
+Date: Fri, 19 Sep 2014 14:07:43 -0700
+Message-ID: <541c9b1f.KEwsLXlSJu+oSiNh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54878 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750815AbaIRXOe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Sep 2014 19:14:34 -0400
+	with ESMTP id S1757740AbaISVHo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 17:07:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pfeiner@google.com, gorcunov@openvz.org, hughd@google.com, jamieliu@google.com, kirill@shutemov.name, n-horiguchi@ah.jp.nec.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: lauraa@codeaurora.org, mitchelh@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: softdirty: addresses before VMAs in PTE holes aren't softdirty
+     Subject: common: dma-mapping: Store page array in vm_struct
 has been added to the -mm tree.  Its filename is
-     mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch
+     common-dma-mapping-introduce-common-remapping-functions-fix-4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/common-dma-mapping-introduce-common-remapping-functions-fix-4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/common-dma-mapping-introduce-common-remapping-functions-fix-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,71 +40,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Feiner <pfeiner@google.com>
-Subject: mm: softdirty: addresses before VMAs in PTE holes aren't softdirty
+From: Laura Abbott <lauraa@codeaurora.org>
+Subject: common: dma-mapping: Store page array in vm_struct
 
-In PTE holes that contain VM_SOFTDIRTY VMAs, unmapped addresses before
-VM_SOFTDIRTY VMAs are reported as softdirty by /proc/pid/pagemap.  This
-bug was introduced in 68b5a652485682f67eacdee3deae640fb7845b63.  The
-aforementioned patch made /proc/pid/pagemap look at VM_SOFTDIRTY in PTE
-holes but neglected to observe the start of VMAs returned by find_vma.
+Commit 54329ac (common: dma-mapping: introduce common remapping functions)
+factored out common code for remapping arrays of pages.  The code before
+the refactor relied on setting area->pages with the array of mapped pages
+for easy access later.  The refactor dropped this, breaking parts of the
+ARM DMA API.  Fix this by setting the page array in the same place.
 
-Tested:
-  Wrote a selftest that creates a PMD-sized VMA then unmaps the first
-  page and asserts that the page is not softdirty. I'm going to send the
-  pagemap selftest in a later commit.
-
-Signed-off-by: Peter Feiner <pfeiner@google.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Jamie Liu <jamieliu@google.com>
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Reported-by: Mitchel Humpherys <mitchelh@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   27 ++++++++++++++++++---------
- 1 file changed, 18 insertions(+), 9 deletions(-)
+ drivers/base/dma-mapping.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-softdirty-addresses-before-vmas-in-pte-holes-arent-softdirty
-+++ a/fs/proc/task_mmu.c
-@@ -931,23 +931,32 @@ static int pagemap_pte_hole(unsigned lon
- 	while (addr < end) {
- 		struct vm_area_struct *vma = find_vma(walk->mm, addr);
- 		pagemap_entry_t pme = make_pme(PM_NOT_PRESENT(pm->v2));
--		unsigned long vm_end;
-+		/* End of address space hole, which we mark as non-present. */
-+		unsigned long hole_end;
+diff -puN drivers/base/dma-mapping.c~common-dma-mapping-introduce-common-remapping-functions-fix-4 drivers/base/dma-mapping.c
+--- a/drivers/base/dma-mapping.c~common-dma-mapping-introduce-common-remapping-functions-fix-4
++++ a/drivers/base/dma-mapping.c
+@@ -285,6 +285,8 @@ void *dma_common_pages_remap(struct page
+ 	if (!area)
+ 		return NULL;
  
--		if (!vma) {
--			vm_end = end;
--		} else {
--			vm_end = min(end, vma->vm_end);
--			if (vma->vm_flags & VM_SOFTDIRTY)
--				pme.pme |= PM_STATUS2(pm->v2, __PM_SOFT_DIRTY);
-+		if (vma)
-+			hole_end = min(end, vma->vm_start);
-+		else
-+			hole_end = end;
++	area->pages = pages;
 +
-+		for (; addr < hole_end; addr += PAGE_SIZE) {
-+			err = add_to_pagemap(addr, &pme, pm);
-+			if (err)
-+				goto out;
- 		}
- 
--		for (; addr < vm_end; addr += PAGE_SIZE) {
-+		if (!vma)
-+			break;
-+
-+		/* Addresses in the VMA. */
-+		if (vma->vm_flags & VM_SOFTDIRTY)
-+			pme.pme |= PM_STATUS2(pm->v2, __PM_SOFT_DIRTY);
-+		for (; addr < min(end, vma->vm_end); addr += PAGE_SIZE) {
- 			err = add_to_pagemap(addr, &pme, pm);
- 			if (err)
- 				goto out;
- 		}
- 	}
+ 	if (map_vm_area(area, prot, pages)) {
+ 		vunmap(area->addr);
+ 		return NULL;
+_
+
+Patches currently in -mm which might be from lauraa@codeaurora.org are
+
+lib-genallocc-add-power-aligned-algorithm.patch
+lib-genallocc-add-genpool-range-check-function.patch
+common-dma-mapping-introduce-common-remapping-functions.patch
+common-dma-mapping-introduce-common-remapping-functions-fix.patch
+common-dma-mapping-introduce-common-remapping-functions-fix-2.patch
+common-dma-mapping-introduce-common-remapping-functions-fix-4.patch
+arm-use-genalloc-for-the-atomic-pool.patch
+arm64-add-atomic-pool-for-non-coherent-and-cma-allocations.patch
+linux-next.patch
+debugging-keep-track-of-page-owners.patch
+
