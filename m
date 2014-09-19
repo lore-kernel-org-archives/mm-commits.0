@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
- added to -mm tree
-Date: Fri, 19 Sep 2014 14:20:49 -0700
-Message-ID: <541c9e31.3AUCSGGZNvK1la/s%akpm@linux-foundation.org>
+Subject: +
+ mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2.patch added to -mm tree
+Date: Fri, 19 Sep 2014 14:27:27 -0700
+Message-ID: <541c9fbf.+CvdfH4+9iAbLMnW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54898 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54909 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932200AbaISVUu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 17:20:50 -0400
+	with ESMTP id S1757728AbaISV12 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Sep 2014 17:27:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, fengguang.wu@intel.com, gregkh@linuxfoundation.org, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: wireless-hostap-proc-print-properly-escaped-ssid-fix-2
+     Subject: mm-introduce-common-page-state-for-ballooned-memory-fix-v2--2
 has been added to the -mm tree.  Its filename is
-     wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
+     mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,98 +39,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: wireless-hostap-proc-print-properly-escaped-ssid-fix-2
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: mm-introduce-common-page-state-for-ballooned-memory-fix-v2--2
 
-remove now-unused local `i'
+This reverts per-zone balloon counters and removes them from meminfo,
+zoneinfo.  Instead of that this patch adds three /proc/vmstat counters:
+"balloon_inflate", "balloon_deflate" and "balloon_migrate".  Current size
+of balloon is (balloon_inflate - balloon_deflate) pages.
 
-Cc: "John W . Linville" <linville@tuxdriver.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/hostap/hostap_proc.c |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/filesystems/proc.txt |    2 --
+ drivers/base/node.c                |    6 ------
+ fs/proc/meminfo.c                  |    6 ------
+ include/linux/mmzone.h             |    3 ---
+ include/linux/vm_event_item.h      |    7 +++++++
+ mm/vmstat.c                        |   10 +++++++---
+ 6 files changed, 14 insertions(+), 20 deletions(-)
 
-diff -puN drivers/net/wireless/hostap/hostap_proc.c~wireless-hostap-proc-print-properly-escaped-ssid-fix-2 drivers/net/wireless/hostap/hostap_proc.c
---- a/drivers/net/wireless/hostap/hostap_proc.c~wireless-hostap-proc-print-properly-escaped-ssid-fix-2
-+++ a/drivers/net/wireless/hostap/hostap_proc.c
-@@ -168,7 +168,6 @@ static int prism2_bss_list_proc_show(str
- 	local_info_t *local = m->private;
- 	struct list_head *ptr = v;
- 	struct hostap_bss_info *bss;
--	int i;
+diff -puN Documentation/filesystems/proc.txt~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2 Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2
++++ a/Documentation/filesystems/proc.txt
+@@ -796,7 +796,6 @@ VmallocTotal:   112216 kB
+ VmallocUsed:       428 kB
+ VmallocChunk:   111088 kB
+ AnonHugePages:   49152 kB
+-BalloonPages:        0 kB
  
- 	if (ptr == &local->bss_list) {
- 		seq_printf(m, "#BSSID\tlast_update\tcount\tcapab_info\tSSID(txt)\t"
+     MemTotal: Total usable ram (i.e. physical ram minus a few reserved
+               bits and the kernel binary code)
+@@ -839,7 +838,6 @@ MemAvailable: An estimate of how much me
+    Writeback: Memory which is actively being written back to the disk
+    AnonPages: Non-file backed pages mapped into userspace page tables
+ AnonHugePages: Non-file backed huge pages mapped into userspace page tables
+-BalloonPages: Memory which was ballooned, not included into MemTotal
+       Mapped: files which have been mmaped, such as libraries
+         Slab: in-kernel data structures cache
+ SReclaimable: Part of Slab, that might be reclaimed, such as caches
+diff -puN drivers/base/node.c~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2 drivers/base/node.c
+--- a/drivers/base/node.c~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2
++++ a/drivers/base/node.c
+@@ -120,9 +120,6 @@ static ssize_t node_read_meminfo(struct
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 		       "Node %d AnonHugePages:  %8lu kB\n"
+ #endif
+-#ifdef CONFIG_MEMORY_BALLOON
+-		       "Node %d BalloonPages:   %8lu kB\n"
+-#endif
+ 			,
+ 		       nid, K(node_page_state(nid, NR_FILE_DIRTY)),
+ 		       nid, K(node_page_state(nid, NR_WRITEBACK)),
+@@ -144,9 +141,6 @@ static ssize_t node_read_meminfo(struct
+ 		       ,nid, K(node_page_state(nid,
+ 				NR_ANON_TRANSPARENT_HUGEPAGES) * HPAGE_PMD_NR)
+ #endif
+-#ifdef CONFIG_MEMORY_BALLOON
+-		       ,nid, K(node_page_state(nid, NR_BALLOON_PAGES))
+-#endif
+ 		       );
+ 	n += hugetlb_report_node_meminfo(nid, buf + n);
+ 	return n;
+diff -puN fs/proc/meminfo.c~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2 fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2
++++ a/fs/proc/meminfo.c
+@@ -138,9 +138,6 @@ static int meminfo_proc_show(struct seq_
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 		"AnonHugePages:  %8lu kB\n"
+ #endif
+-#ifdef CONFIG_MEMORY_BALLOON
+-		"BalloonPages:   %8lu kB\n"
+-#endif
+ 		,
+ 		K(i.totalram),
+ 		K(i.freeram),
+@@ -196,9 +193,6 @@ static int meminfo_proc_show(struct seq_
+ 		,K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
+ 		   HPAGE_PMD_NR)
+ #endif
+-#ifdef CONFIG_MEMORY_BALLOON
+-		,K(global_page_state(NR_BALLOON_PAGES))
+-#endif
+ 		);
+ 
+ 	hugetlb_report_meminfo(m);
+diff -puN include/linux/mmzone.h~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2 include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2
++++ a/include/linux/mmzone.h
+@@ -157,9 +157,6 @@ enum zone_stat_item {
+ 	WORKINGSET_NODERECLAIM,
+ 	NR_ANON_TRANSPARENT_HUGEPAGES,
+ 	NR_FREE_CMA_PAGES,
+-#ifdef CONFIG_MEMORY_BALLOON
+-	NR_BALLOON_PAGES,
+-#endif
+ 	NR_VM_ZONE_STAT_ITEMS };
+ 
+ /*
+diff -puN include/linux/vm_event_item.h~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2 include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2
++++ a/include/linux/vm_event_item.h
+@@ -72,6 +72,13 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		THP_ZERO_PAGE_ALLOC,
+ 		THP_ZERO_PAGE_ALLOC_FAILED,
+ #endif
++#ifdef CONFIG_MEMORY_BALLOON
++		BALLOON_INFLATE,
++		BALLOON_DEFLATE,
++#ifdef CONFIG_BALLOON_COMPACTION
++		BALLOON_MIGRATE,
++#endif
++#endif
+ #ifdef CONFIG_DEBUG_TLBFLUSH
+ #ifdef CONFIG_SMP
+ 		NR_TLB_REMOTE_FLUSH,	/* cpu tried to flush others' tlbs */
+diff -puN mm/vmstat.c~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2 mm/vmstat.c
+--- a/mm/vmstat.c~mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2
++++ a/mm/vmstat.c
+@@ -778,9 +778,6 @@ const char * const vmstat_text[] = {
+ 	"workingset_nodereclaim",
+ 	"nr_anon_transparent_hugepages",
+ 	"nr_free_cma",
+-#ifdef CONFIG_MEMORY_BALLOON
+-	"nr_balloon_pages",
+-#endif
+ 
+ 	/* enum writeback_stat_item counters */
+ 	"nr_dirty_threshold",
+@@ -866,6 +863,13 @@ const char * const vmstat_text[] = {
+ 	"thp_zero_page_alloc",
+ 	"thp_zero_page_alloc_failed",
+ #endif
++#ifdef CONFIG_MEMORY_BALLOON
++	"balloon_inflate",
++	"balloon_deflate",
++#ifdef CONFIG_BALLOON_COMPACTION
++	"balloon_migrate",
++#endif
++#endif /* CONFIG_MEMORY_BALLOON */
+ #ifdef CONFIG_DEBUG_TLBFLUSH
+ #ifdef CONFIG_SMP
+ 	"nr_tlb_remote_flush",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
-origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-maintainers-akpm-maintenance.patch
-nilfs2-fix-data-loss-with-mmap-fix.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
-mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
-mm-introduce-common-page-state-for-ballooned-memory-fix.patch
-mm-balloon_compaction-use-common-page-ballooning-fix.patch
-introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-debugc-use-pr_emerg.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix.patch
-rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
-x86-optimize-resource-lookups-for-ioremap-fix.patch
-init-resolve-shadow-warnings-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-lib-string_helpers-introduce-string_escape_mem-fix.patch
-lib-vsprintf-add-%pe-format-specifier-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch
+mm-introduce-common-page-state-for-ballooned-memory-fix-v2-2.patch
+mm-balloon_compaction-use-common-page-ballooning-v2-fix-1.patch
 
