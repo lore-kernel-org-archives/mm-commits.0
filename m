@@ -1,196 +1,126 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-balloon_compaction-use-common-page-ballooning-v2.patch removed from -mm
- tree
-Date: Fri, 19 Sep 2014 23:21:34 -0700
-Message-ID: <541d1cee.WO2m9xzYwZ0AlqAx%akpm@linux-foundation.org>
+ mm-balloon_compaction-use-common-page-ballooning-fix.patch removed from -mm tree
+Date: Fri, 19 Sep 2014 23:21:32 -0700
+Message-ID: <541d1cec.kF2CQfRERUIKTQTU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60083 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60080 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754532AbaITGVj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 20 Sep 2014 02:21:39 -0400
+	with ESMTP id S1754306AbaITGVh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 20 Sep 2014 02:21:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.khlebnikov@samsung.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aquini@redhat.com, k.khlebnikov@samsung.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-balloon_compaction-use-common-page-ballooning-v2
+     Subject: mm-balloon_compaction-use-common-page-ballooning-fix
 has been removed from the -mm tree.  Its filename was
-     mm-balloon_compaction-use-common-page-ballooning-v2.patch
+     mm-balloon_compaction-use-common-page-ballooning-fix.patch
 
 This patch was dropped because it was folded into mm-balloon_compaction-use-common-page-ballooning.patch
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
-Subject: mm-balloon_compaction-use-common-page-ballooning-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-balloon_compaction-use-common-page-ballooning-fix
 
-This patch replaces checking AS_BALLOON_MAP in page->mapping->flags
-with PageBalloon which is stored directly in the struct page.
-All code of balloon_compaction now under CONFIG_MEMORY_BALLOON.
+undo mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path-fix.patch
 
-Signed-off-by: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/Kconfig             |    1 
- include/linux/balloon_compaction.h |   49 +++++++++++----------------
- mm/Makefile                        |    3 +
- mm/migrate.c                       |    2 +
- 4 files changed, 26 insertions(+), 29 deletions(-)
+ include/linux/balloon_compaction.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/virtio/Kconfig~mm-balloon_compaction-use-common-page-ballooning-v2 drivers/virtio/Kconfig
---- a/drivers/virtio/Kconfig~mm-balloon_compaction-use-common-page-ballooning-v2
-+++ a/drivers/virtio/Kconfig
-@@ -25,6 +25,7 @@ config VIRTIO_PCI
- config VIRTIO_BALLOON
- 	tristate "Virtio balloon driver"
- 	depends on VIRTIO
-+	select MEMORY_BALLOON
- 	---help---
- 	 This driver supports increasing and decreasing the amount
- 	 of memory within a KVM guest.
-diff -puN include/linux/balloon_compaction.h~mm-balloon_compaction-use-common-page-ballooning-v2 include/linux/balloon_compaction.h
---- a/include/linux/balloon_compaction.h~mm-balloon_compaction-use-common-page-ballooning-v2
+diff -puN include/linux/balloon_compaction.h~mm-balloon_compaction-use-common-page-ballooning-fix include/linux/balloon_compaction.h
+--- a/include/linux/balloon_compaction.h~mm-balloon_compaction-use-common-page-ballooning-fix
 +++ a/include/linux/balloon_compaction.h
-@@ -46,6 +46,8 @@
- #include <linux/gfp.h>
- #include <linux/err.h>
- 
-+#ifdef CONFIG_MEMORY_BALLOON
-+
- /*
-  * Balloon device information descriptor.
-  * This struct is used to allow the common balloon compaction interface
-@@ -93,20 +95,6 @@ static inline void balloon_page_free(str
- 	__free_page(page);
- }
- 
--#ifdef CONFIG_BALLOON_COMPACTION
--extern bool balloon_page_isolate(struct page *page);
--extern void balloon_page_putback(struct page *page);
--extern int balloon_page_migrate(struct page *newpage,
--				struct page *page, enum migrate_mode mode);
--extern struct address_space
--*balloon_mapping_alloc(struct balloon_dev_info *b_dev_info,
--			const struct address_space_operations *a_ops);
--
--static inline void balloon_mapping_free(struct address_space *balloon_mapping)
--{
--	kfree(balloon_mapping);
--}
--
- /*
-  * balloon_page_insert - insert a page into the balloon's page list and make
-  *		         the page->mapping assignment accordingly.
-@@ -122,6 +110,7 @@ static inline void balloon_page_insert(s
- 				       struct list_head *head)
- {
- 	__SetPageBalloon(page);
-+	inc_zone_page_state(page, NR_BALLOON_PAGES);
- 	page->mapping = mapping;
- 	list_add(&page->lru, head);
- }
-@@ -137,10 +126,28 @@ static inline void balloon_page_insert(s
- static inline void balloon_page_delete(struct page *page)
- {
- 	__ClearPageBalloon(page);
-+	dec_zone_page_state(page, NR_BALLOON_PAGES);
- 	page->mapping = NULL;
+@@ -191,11 +191,6 @@ static inline void balloon_page_delete(s
  	list_del(&page->lru);
  }
  
-+#endif /* CONFIG_MEMORY_BALLOON */
-+
-+#ifdef CONFIG_BALLOON_COMPACTION
-+
-+extern bool balloon_page_isolate(struct page *page);
-+extern void balloon_page_putback(struct page *page);
-+extern int balloon_page_migrate(struct page *newpage,
-+				struct page *page, enum migrate_mode mode);
-+extern struct address_space
-+*balloon_mapping_alloc(struct balloon_dev_info *b_dev_info,
-+			const struct address_space_operations *a_ops);
-+
-+static inline void balloon_mapping_free(struct address_space *balloon_mapping)
-+{
-+	kfree(balloon_mapping);
-+}
-+
- /*
-  * balloon_page_device - get the b_dev_info descriptor for the balloon device
-  *			 that enqueues the given page.
-@@ -177,20 +184,6 @@ static inline void balloon_mapping_free(
- 	return;
- }
- 
--static inline void balloon_page_insert(struct page *page,
--				       struct address_space *mapping,
--				       struct list_head *head)
+-static inline bool __is_movable_balloon_page(struct page *page)
 -{
--	__SetPageBalloon(page);
--	list_add(&page->lru, head);
--}
--
--static inline void balloon_page_delete(struct page *page)
--{
--	__ClearPageBalloon(page);
--	list_del(&page->lru);
+-	return false;
 -}
 -
  static inline bool balloon_page_isolate(struct page *page)
  {
  	return false;
-diff -puN mm/Makefile~mm-balloon_compaction-use-common-page-ballooning-v2 mm/Makefile
---- a/mm/Makefile~mm-balloon_compaction-use-common-page-ballooning-v2
-+++ a/mm/Makefile
-@@ -16,7 +16,7 @@ obj-y			:= filemap.o mempool.o oom_kill.
- 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
- 			   util.o mmzone.o vmstat.o backing-dev.o \
- 			   mm_init.o mmu_context.o percpu.o slab_common.o \
--			   compaction.o balloon_compaction.o vmacache.o \
-+			   compaction.o vmacache.o \
- 			   interval_tree.o list_lru.o workingset.o \
- 			   iov_iter.o $(mmu-y)
- 
-@@ -64,3 +64,4 @@ obj-$(CONFIG_ZBUD)	+= zbud.o
- obj-$(CONFIG_ZSMALLOC)	+= zsmalloc.o
- obj-$(CONFIG_GENERIC_EARLY_IOREMAP) += early_ioremap.o
- obj-$(CONFIG_CMA)	+= cma.o
-+obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
-diff -puN mm/migrate.c~mm-balloon_compaction-use-common-page-ballooning-v2 mm/migrate.c
---- a/mm/migrate.c~mm-balloon_compaction-use-common-page-ballooning-v2
-+++ a/mm/migrate.c
-@@ -952,6 +952,7 @@ static int unmap_and_move(new_page_t get
- 
- 	rc = __unmap_and_move(page, newpage, force, mode);
- 
-+#ifdef CONFIG_MEMORY_BALLOON
- 	if (unlikely(rc == MIGRATEPAGE_BALLOON_SUCCESS)) {
- 		/*
- 		 * A ballooned page has been migrated already.
-@@ -963,6 +964,7 @@ static int unmap_and_move(new_page_t get
- 		balloon_page_free(page);
- 		return MIGRATEPAGE_SUCCESS;
- 	}
-+#endif
- out:
- 	if (rc != -EAGAIN) {
- 		/*
 _
 
-Patches currently in -mm which might be from k.khlebnikov@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+maintainers-akpm-maintenance.patch
+nilfs2-fix-data-loss-with-mmap-fix.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
 include-linux-migrateh-remove-migratepage-define.patch
-mm-balloon_compaction-ignore-anonymous-pages.patch
 mm-balloon_compaction-keep-ballooned-pages-away-from-normal-migration-path.patch
-mm-balloon_compaction-isolate-balloon-pages-without-lru_lock.patch
 mm-introduce-common-page-state-for-ballooned-memory.patch
 mm-balloon_compaction-use-common-page-ballooning.patch
-mm-balloon_compaction-general-cleanup.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-debugc-use-pr_emerg.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+rtc-rk808-add-rtc-driver-for-rk808-fix.patch
+rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
+rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
+rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+lib-string_helpers-introduce-string_escape_mem-fix.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
