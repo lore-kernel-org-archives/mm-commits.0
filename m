@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch added to -mm tree
-Date: Mon, 22 Sep 2014 12:44:42 -0700
-Message-ID: <54207c2a.btcnUV+DLTbZuAk+%akpm@linux-foundation.org>
+Subject: + lib-remove-prio_heap.patch added to -mm tree
+Date: Mon, 22 Sep 2014 12:51:18 -0700
+Message-ID: <54207db6.oMT/qdLvoZchHhvA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53898 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54035 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750914AbaIVTon (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Sep 2014 15:44:43 -0400
+	with ESMTP id S1754783AbaIVTvT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Sep 2014 15:51:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, glommer@gmail.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: laijs@cn.fujitsu.com, chris@chris-wilson.co.uk, davem@davemloft.net, ffusco@redhat.com, gthelen@google.com, keescook@chromium.org, linux@horizon.com, mingo@kernel.org, msalter@redhat.com, peterz@infradead.org, rdunlap@infradead.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: don't call memcg_update_all_caches if new cache id fits
+     Subject: lib: remove prio_heap
 has been added to the -mm tree.  Its filename is
-     memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
+     lib-remove-prio_heap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-remove-prio_heap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-remove-prio_heap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,225 +38,190 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: don't call memcg_update_all_caches if new cache id fits
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: lib: remove prio_heap
 
-memcg_update_all_caches grows arrays of per-memcg caches, so we only need
-to call it when memcg_limited_groups_array_size is increased.  However,
-currently we invoke it each time a new kmem-active memory cgroup is
-created.  Then it just iterates over all slab_caches and does nothing
-(memcg_update_cache_size returns immediately).
+The prio_heap code is unused since 889ed9ceaa97 ("cgroup: remove
+css_scan_tasks()").  It should be compiled out to shrink the binary kernel
+size which can be done via introducing CONFIG_PRIO_HEAD or by removing
+the code.
 
-This patch fixes this insanity.  In the meantime it moves the code dealing
-with id allocations to separate functions, memcg_alloc_cache_id and
-memcg_free_cache_id.
+We can simply recover the code from git when needed, so it would be better
+to remove it IMO.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Glauber Costa <glommer@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@kernel.org>
+Acked-by: Peter Zijlstra <peterz@infradead.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Francesco Fusco <ffusco@redhat.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: George Spelvin <linux@horizon.com>
+Cc: Mark Salter <msalter@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  136 ++++++++++++++++++++++++----------------------
- 1 file changed, 72 insertions(+), 64 deletions(-)
+ include/linux/prio_heap.h |   58 -----------------------------
+ lib/Makefile              |    2 -
+ lib/prio_heap.c           |   70 ------------------------------------
+ 3 files changed, 1 insertion(+), 129 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits
-+++ a/mm/memcontrol.c
-@@ -646,11 +646,13 @@ int memcg_limited_groups_array_size;
- struct static_key memcg_kmem_enabled_key;
- EXPORT_SYMBOL(memcg_kmem_enabled_key);
- 
-+static void memcg_free_cache_id(int id);
-+
- static void disarm_kmem_keys(struct mem_cgroup *memcg)
- {
- 	if (memcg_kmem_is_active(memcg)) {
- 		static_key_slow_dec(&memcg_kmem_enabled_key);
--		ida_simple_remove(&kmem_limited_groups, memcg->kmemcg_id);
-+		memcg_free_cache_id(memcg->kmemcg_id);
- 	}
- 	/*
- 	 * This check can't live in kmem destruction function,
-@@ -2892,19 +2894,44 @@ int memcg_cache_id(struct mem_cgroup *me
- 	return memcg ? memcg->kmemcg_id : -1;
- }
- 
--static size_t memcg_caches_array_size(int num_groups)
-+static int memcg_alloc_cache_id(void)
- {
--	ssize_t size;
--	if (num_groups <= 0)
--		return 0;
-+	int id, size;
-+	int err;
-+
-+	id = ida_simple_get(&kmem_limited_groups,
-+			    0, MEMCG_CACHES_MAX_SIZE, GFP_KERNEL);
-+	if (id < 0)
-+		return id;
-+
-+	if (id < memcg_limited_groups_array_size)
-+		return id;
-+
-+	/*
-+	 * There's no space for the new id in memcg_caches arrays,
-+	 * so we have to grow them.
-+	 */
- 
--	size = 2 * num_groups;
-+	size = 2 * (id + 1);
- 	if (size < MEMCG_CACHES_MIN_SIZE)
- 		size = MEMCG_CACHES_MIN_SIZE;
- 	else if (size > MEMCG_CACHES_MAX_SIZE)
- 		size = MEMCG_CACHES_MAX_SIZE;
- 
--	return size;
-+	mutex_lock(&memcg_slab_mutex);
-+	err = memcg_update_all_caches(size);
-+	mutex_unlock(&memcg_slab_mutex);
-+
-+	if (err) {
-+		ida_simple_remove(&kmem_limited_groups, id);
-+		return err;
-+	}
-+	return id;
-+}
-+
-+static void memcg_free_cache_id(int id)
-+{
-+	ida_simple_remove(&kmem_limited_groups, id);
- }
- 
- /*
-@@ -2914,59 +2941,55 @@ static size_t memcg_caches_array_size(in
-  */
- void memcg_update_array_size(int num)
- {
--	if (num > memcg_limited_groups_array_size)
--		memcg_limited_groups_array_size = memcg_caches_array_size(num);
-+	memcg_limited_groups_array_size = num;
- }
- 
- int memcg_update_cache_size(struct kmem_cache *s, int num_groups)
- {
- 	struct memcg_cache_params *cur_params = s->memcg_params;
-+	struct memcg_cache_params *new_params;
-+	size_t size;
-+	int i;
- 
- 	VM_BUG_ON(!is_root_cache(s));
- 
--	if (num_groups > memcg_limited_groups_array_size) {
--		int i;
--		struct memcg_cache_params *new_params;
--		ssize_t size = memcg_caches_array_size(num_groups);
+diff -puN include/linux/prio_heap.h~lib-remove-prio_heap /dev/null
+--- a/include/linux/prio_heap.h
++++ /dev/null
+@@ -1,58 +0,0 @@
+-#ifndef _LINUX_PRIO_HEAP_H
+-#define _LINUX_PRIO_HEAP_H
 -
--		size *= sizeof(void *);
--		size += offsetof(struct memcg_cache_params, memcg_caches);
+-/*
+- * Simple insertion-only static-sized priority heap containing
+- * pointers, based on CLR, chapter 7
+- */
 -
--		new_params = kzalloc(size, GFP_KERNEL);
--		if (!new_params)
--			return -ENOMEM;
-+	size = num_groups * sizeof(void *);
-+	size += offsetof(struct memcg_cache_params, memcg_caches);
+-#include <linux/gfp.h>
+-
+-/**
+- * struct ptr_heap - simple static-sized priority heap
+- * @ptrs - pointer to data area
+- * @max - max number of elements that can be stored in @ptrs
+- * @size - current number of valid elements in @ptrs (in the range 0..@size-1
+- * @gt: comparison operator, which should implement "greater than"
+- */
+-struct ptr_heap {
+-	void **ptrs;
+-	int max;
+-	int size;
+-	int (*gt)(void *, void *);
+-};
+-
+-/**
+- * heap_init - initialize an empty heap with a given memory size
+- * @heap: the heap structure to be initialized
+- * @size: amount of memory to use in bytes
+- * @gfp_mask: mask to pass to kmalloc()
+- * @gt: comparison operator, which should implement "greater than"
+- */
+-extern int heap_init(struct ptr_heap *heap, size_t size, gfp_t gfp_mask,
+-		     int (*gt)(void *, void *));
+-
+-/**
+- * heap_free - release a heap's storage
+- * @heap: the heap structure whose data should be released
+- */
+-void heap_free(struct ptr_heap *heap);
+-
+-/**
+- * heap_insert - insert a value into the heap and return any overflowed value
+- * @heap: the heap to be operated on
+- * @p: the pointer to be inserted
+- *
+- * Attempts to insert the given value into the priority heap. If the
+- * heap is full prior to the insertion, then the resulting heap will
+- * consist of the smallest @max elements of the original heap and the
+- * new element; the greatest element will be removed from the heap and
+- * returned. Note that the returned element will be the new element
+- * (i.e. no change to the heap) if the new element is greater than all
+- * elements currently in the heap.
+- */
+-extern void *heap_insert(struct ptr_heap *heap, void *p);
+-
+-
+-
+-#endif /* _LINUX_PRIO_HEAP_H */
+diff -puN lib/Makefile~lib-remove-prio_heap lib/Makefile
+--- a/lib/Makefile~lib-remove-prio_heap
++++ a/lib/Makefile
+@@ -11,7 +11,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 rbtree.o radix-tree.o dump_stack.o timerqueue.o\
+ 	 idr.o int_sqrt.o extable.o \
+ 	 sha1.o md5.o irq_regs.o reciprocal_div.o argv_split.o \
+-	 proportions.o flex_proportions.o prio_heap.o ratelimit.o show_mem.o \
++	 proportions.o flex_proportions.o ratelimit.o show_mem.o \
+ 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
+ 	 earlycpio.o
  
--		new_params->is_root_cache = true;
-+	new_params = kzalloc(size, GFP_KERNEL);
-+	if (!new_params)
-+		return -ENOMEM;
- 
--		/*
--		 * There is the chance it will be bigger than
--		 * memcg_limited_groups_array_size, if we failed an allocation
--		 * in a cache, in which case all caches updated before it, will
--		 * have a bigger array.
--		 *
--		 * But if that is the case, the data after
--		 * memcg_limited_groups_array_size is certainly unused
--		 */
--		for (i = 0; i < memcg_limited_groups_array_size; i++) {
--			if (!cur_params->memcg_caches[i])
--				continue;
--			new_params->memcg_caches[i] =
--						cur_params->memcg_caches[i];
+diff -puN lib/prio_heap.c~lib-remove-prio_heap /dev/null
+--- a/lib/prio_heap.c
++++ /dev/null
+@@ -1,70 +0,0 @@
+-/*
+- * Simple insertion-only static-sized priority heap containing
+- * pointers, based on CLR, chapter 7
+- */
+-
+-#include <linux/slab.h>
+-#include <linux/prio_heap.h>
+-
+-int heap_init(struct ptr_heap *heap, size_t size, gfp_t gfp_mask,
+-	      int (*gt)(void *, void *))
+-{
+-	heap->ptrs = kmalloc(size, gfp_mask);
+-	if (!heap->ptrs)
+-		return -ENOMEM;
+-	heap->size = 0;
+-	heap->max = size / sizeof(void *);
+-	heap->gt = gt;
+-	return 0;
+-}
+-
+-void heap_free(struct ptr_heap *heap)
+-{
+-	kfree(heap->ptrs);
+-}
+-
+-void *heap_insert(struct ptr_heap *heap, void *p)
+-{
+-	void *res;
+-	void **ptrs = heap->ptrs;
+-	int pos;
+-
+-	if (heap->size < heap->max) {
+-		/* Heap insertion */
+-		pos = heap->size++;
+-		while (pos > 0 && heap->gt(p, ptrs[(pos-1)/2])) {
+-			ptrs[pos] = ptrs[(pos-1)/2];
+-			pos = (pos-1)/2;
 -		}
-+	new_params->is_root_cache = true;
- 
--		/*
--		 * Ideally, we would wait until all caches succeed, and only
--		 * then free the old one. But this is not worth the extra
--		 * pointer per-cache we'd have to have for this.
--		 *
--		 * It is not a big deal if some caches are left with a size
--		 * bigger than the others. And all updates will reset this
--		 * anyway.
--		 */
--		rcu_assign_pointer(s->memcg_params, new_params);
--		if (cur_params)
--			kfree_rcu(cur_params, rcu_head);
-+	/*
-+	 * There is the chance it will be bigger than
-+	 * memcg_limited_groups_array_size, if we failed an allocation
-+	 * in a cache, in which case all caches updated before it, will
-+	 * have a bigger array.
-+	 *
-+	 * But if that is the case, the data after
-+	 * memcg_limited_groups_array_size is certainly unused
-+	 */
-+	for (i = 0; i < memcg_limited_groups_array_size; i++) {
-+		if (!cur_params->memcg_caches[i])
-+			continue;
-+		new_params->memcg_caches[i] =
-+			cur_params->memcg_caches[i];
- 	}
-+
-+	/*
-+	 * Ideally, we would wait until all caches succeed, and only
-+	 * then free the old one. But this is not worth the extra
-+	 * pointer per-cache we'd have to have for this.
-+	 *
-+	 * It is not a big deal if some caches are left with a size
-+	 * bigger than the others. And all updates will reset this
-+	 * anyway.
-+	 */
-+	rcu_assign_pointer(s->memcg_params, new_params);
-+	if (cur_params)
-+		kfree_rcu(cur_params, rcu_head);
- 	return 0;
- }
- 
-@@ -4167,23 +4190,12 @@ static int __memcg_activate_kmem(struct
- 	if (err)
- 		goto out;
- 
--	memcg_id = ida_simple_get(&kmem_limited_groups,
--				  0, MEMCG_CACHES_MAX_SIZE, GFP_KERNEL);
-+	memcg_id = memcg_alloc_cache_id();
- 	if (memcg_id < 0) {
- 		err = memcg_id;
- 		goto out;
- 	}
- 
--	/*
--	 * Make sure we have enough space for this cgroup in each root cache's
--	 * memcg_params.
--	 */
--	mutex_lock(&memcg_slab_mutex);
--	err = memcg_update_all_caches(memcg_id + 1);
--	mutex_unlock(&memcg_slab_mutex);
--	if (err)
--		goto out_rmid;
+-		ptrs[pos] = p;
+-		return NULL;
+-	}
 -
- 	memcg->kmemcg_id = memcg_id;
- 	INIT_LIST_HEAD(&memcg->memcg_slab_caches);
- 
-@@ -4204,10 +4216,6 @@ static int __memcg_activate_kmem(struct
- out:
- 	memcg_resume_kmem_account();
- 	return err;
+-	/* The heap is full, so something will have to be dropped */
+-
+-	/* If the new pointer is greater than the current max, drop it */
+-	if (heap->gt(p, ptrs[0]))
+-		return p;
+-
+-	/* Replace the current max and heapify */
+-	res = ptrs[0];
+-	ptrs[0] = p;
+-	pos = 0;
+-
+-	while (1) {
+-		int left = 2 * pos + 1;
+-		int right = 2 * pos + 2;
+-		int largest = pos;
+-		if (left < heap->size && heap->gt(ptrs[left], p))
+-			largest = left;
+-		if (right < heap->size && heap->gt(ptrs[right], ptrs[largest]))
+-			largest = right;
+-		if (largest == pos)
+-			break;
+-		/* Push p down the heap one level and bump one up */
+-		ptrs[pos] = ptrs[largest];
+-		ptrs[largest] = p;
+-		pos = largest;
+-	}
+-	return res;
+-}
+_
+
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+
+lib-remove-prio_heap.patch
+rbtree-add-comment-to-rb_insert_augmented.patch
+linux-next.patch
+
