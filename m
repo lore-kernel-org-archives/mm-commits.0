@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch added
- to -mm tree
-Date: Tue, 23 Sep 2014 12:48:57 -0700
-Message-ID: <5421cea9.DebQemD/IAnfYEMW%akpm@linux-foundation.org>
+Subject: + mm-introduce-vm_bug_on_mm-fix.patch added to -mm tree
+Date: Tue, 23 Sep 2014 12:52:43 -0700
+Message-ID: <5421cf8b.Acqn/RH79b1YG5tR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37244 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37253 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751860AbaIWTs6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 15:48:58 -0400
+	with ESMTP id S1751638AbaIWTwo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 15:52:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix
+     Subject: mm-introduce-vm_bug_on_mm-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
+     mm-introduce-vm_bug_on_mm-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-vm_bug_on_mm-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-vm_bug_on_mm-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,29 +39,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix
+Subject: mm-introduce-vm_bug_on_mm-fix
 
-fix build in arch/powerpc/mm/hugetlbpage.c
+fix build
 
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hugetlbpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/debug.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -708,7 +708,7 @@ follow_huge_pmd(struct mm_struct *mm, un
- 
- struct page *
- follow_huge_pud(struct mm_struct *mm, unsigned long address,
--		pmd_t *pmd, int write)
-+		pud_t *pud, int write)
- {
- 	BUG();
- 	return NULL;
+diff -puN mm/debug.c~mm-introduce-vm_bug_on_mm-fix mm/debug.c
+--- a/mm/debug.c~mm-introduce-vm_bug_on_mm-fix
++++ a/mm/debug.c
+@@ -212,7 +212,10 @@ void dump_mm(const struct mm_struct *mm)
+ #ifdef CONFIG_AIO
+ 		mm->ioctx_table,
+ #endif
+-		mm->owner, mm->exe_file,
++#ifdef CONFIG_MEMCG
++		mm->owner,
++#endif
++		mm->exe_file,
+ #ifdef CONFIG_MMU_NOTIFIER
+ 		mm->mmu_notifier_mm,
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +99,7 @@ introduce-dump_vma-fix.patch
 convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
 mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
 mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-introduce-vm_bug_on_mm-fix.patch
 mm-debugc-use-pr_emerg.patch
 mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
