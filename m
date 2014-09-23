@@ -1,122 +1,82 @@
-From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-introduce-vm_bug_on_mm-fix.patch removed from
- -mm tree
-Date: Tue, 23 Sep 2014 13:43:35 -0700
-Message-ID: <5421db77.AiHfdCmdemkPrvPu%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] mm, debug: mm-introduce-vm_bug_on_mm-fix-fix.patch
+Date: Tue, 23 Sep 2014 13:52:58 -0700
+Message-ID: <20140923135258.faf628403a58701da5a981df@linux-foundation.org>
+References: <5420b8b0.9HdYLyyuTikszzH8%akpm@linux-foundation.org>
+	<1411464279-20158-1-git-send-email-mhocko@suse.cz>
+	<20140923112848.GA10046@dhcp22.suse.cz>
+	<83907.1411489189@turing-police.cc.vt.edu>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37605 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37741 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756188AbaIWUnf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 16:43:35 -0400
+	with ESMTP id S1751790AbaIWUxA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 16:53:00 -0400
+In-Reply-To: <83907.1411489189@turing-police.cc.vt.edu>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: Valdis.Kletnieks@vt.edu
+Cc: Michal Hocko <mhocko@suse.cz>, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, Sasha Levin <sasha.levin@oracle.com>
+
+On Tue, 23 Sep 2014 12:19:49 -0400 Valdis.Kletnieks@vt.edu wrote:
+
+> On Tue, 23 Sep 2014 13:28:48 +0200, Michal Hocko said:
+> > And there is another one hitting during randconfig. The patch makes my
+> > eyes bleed
+> 
+> Amen.  But I'm not seeing a better fix either.
+> 
+> >  #if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
+> > -		"tlb_flush_pending %d\n",
+> > +		"tlb_flush_pending %d\n"
+> >  #endif
+> > -		mm, mm->mmap, mm->vmacache_seqnum, mm->task_size,
+> > +		, mm, mm->mmap, mm->vmacache_seqnum, mm->task_size,
+> 
+> I'm surprised that checkpatch doesn't explode on this.  And I'm starting
+> a pool on how soon somebody submits a patch to "fix" this. :)
+
+It is all pretty godawful.  We can eliminate the tricks with the comma
+separators by adding an always-there, does-nothing argument:
 
 
-The patch titled
-     Subject: mm-introduce-vm_bug_on_mm-fix
-has been removed from the -mm tree.  Its filename was
-     mm-introduce-vm_bug_on_mm-fix.patch
-
-This patch was dropped because an updated version will be merged
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-introduce-vm_bug_on_mm-fix
-
-fix build
-
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/debug.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff -puN mm/debug.c~mm-introduce-vm_bug_on_mm-fix mm/debug.c
---- a/mm/debug.c~mm-introduce-vm_bug_on_mm-fix
+--- a/mm/debug.c~mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix
 +++ a/mm/debug.c
-@@ -212,7 +212,10 @@ void dump_mm(const struct mm_struct *mm)
- #ifdef CONFIG_AIO
- 		mm->ioctx_table,
+@@ -197,7 +197,9 @@ void dump_mm(const struct mm_struct *mm)
+ #if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
+ 		"tlb_flush_pending %d\n"
  #endif
--		mm->owner, mm->exe_file,
-+#ifdef CONFIG_MEMCG
-+		mm->owner,
-+#endif
+-		, mm, mm->mmap, mm->vmacache_seqnum, mm->task_size,
++		"%s",	/* This is here to hold the comma */
++
++		mm, mm->mmap, mm->vmacache_seqnum, mm->task_size,
+ #ifdef CONFIG_MMU
+ 		mm->get_unmapped_area,
+ #endif
+@@ -218,16 +220,17 @@ void dump_mm(const struct mm_struct *mm)
+ #ifdef CONFIG_MEMCG
+ 		mm->owner,
+ #endif
+-		mm->exe_file
 +		mm->exe_file,
  #ifdef CONFIG_MMU_NOTIFIER
- 		mm->mmu_notifier_mm,
+-		, mm->mmu_notifier_mm
++		mm->mmu_notifier_mm,
  #endif
+ #ifdef CONFIG_NUMA_BALANCING
+-		, mm->numa_next_scan, mm->numa_scan_offset, mm->numa_scan_seq
++		mm->numa_next_scan, mm->numa_scan_offset, mm->numa_scan_seq,
+ #endif
+ #if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
+-		, mm->tlb_flush_pending
++		mm->tlb_flush_pending,
+ #endif
++		""		/* This is here to not have a comma! */
+ 		);
+ 
+ 		dump_flags(mm->def_flags, vmaflags_names,
 _
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-nilfs2-fix-data-loss-with-mmap-fix.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
-introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-debugc-use-pr_emerg.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix.patch
-rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
-rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
-rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-x86-optimize-resource-lookups-for-ioremap-fix.patch
-init-resolve-shadow-warnings-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-lib-string_helpers-introduce-string_escape_mem-fix.patch
-lib-vsprintf-add-%pe-format-specifier-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
