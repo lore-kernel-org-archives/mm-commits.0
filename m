@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-efi-add-missing-module-alias.patch added to -mm tree
-Date: Tue, 23 Sep 2014 15:55:23 -0700
-Message-ID: <5421fa5b.6vJ/Tea/lNf6U/nI%akpm@linux-foundation.org>
+Subject: + tools-add-more-endianh-macros.patch added to -mm tree
+Date: Tue, 23 Sep 2014 15:59:32 -0700
+Message-ID: <5421fb54.QBkp+iTZGvWCi2OV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38895 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38987 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756791AbaIWWzY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 18:55:24 -0400
+	with ESMTP id S932286AbaIWW7d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 18:59:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pali.rohar@gmail.com, a.zummo@towertech.it, dannf@hp.com, mm-commits@vger.kernel.org
+To: pefoley2@pefoley.com, ashutosh.dixit@intel.com, gregkh@linuxfoundation.org, nikhil.rao@intel.com, rdunlap@infradead.org, sudeep.dutt@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-efi.c: add missing module alias
+     Subject: tools/include/tools/endian.h: add more macros
 has been added to the -mm tree.  Its filename is
-     rtc-efi-add-missing-module-alias.patch
+     tools-add-more-endianh-macros.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-efi-add-missing-module=
--alias.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-add-more-endianh-macros.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-efi-add-missing-module=
--alias.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-add-more-endianh-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +32,75 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Pali Roh=E1r <pali.rohar@gmail.com>
-Subject: drivers/rtc/rtc-efi.c: add missing module alias
+From: Peter Foley <pefoley2@pefoley.com>
+Subject: tools/include/tools/endian.h: add more macros
 
-Without proper alias kernel module is not loaded for rtc-efi driver.
+Add some more macros to tools/endian.h to allow mpssd to be compiled
+against glibc < 2.9.
 
-Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
-Cc: dann frazier <dannf@hp.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Peter Foley <pefoley2@pefoley.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Sudeep Dutt <sudeep.dutt@intel.com>
+Cc: Nikhil Rao <nikhil.rao@intel.com>
+Cc: Ashutosh Dixit <ashutosh.dixit@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-efi.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/include/tools/endian.h |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN drivers/rtc/rtc-efi.c~rtc-efi-add-missing-module-alias driver=
-s/rtc/rtc-efi.c
---- a/drivers/rtc/rtc-efi.c~rtc-efi-add-missing-module-alias
-+++ a/drivers/rtc/rtc-efi.c
-@@ -232,6 +232,7 @@ static struct platform_driver efi_rtc_dr
-=20
- module_platform_driver_probe(efi_rtc_driver, efi_rtc_probe);
-=20
-+MODULE_ALIAS("platform:rtc-efi");
- MODULE_AUTHOR("dann frazier <dannf@hp.com>");
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("EFI RTC driver");
+diff -puN tools/include/tools/endian.h~tools-add-more-endianh-macros tools/include/tools/endian.h
+--- a/tools/include/tools/endian.h~tools-add-more-endianh-macros
++++ a/tools/include/tools/endian.h
+@@ -15,6 +15,18 @@
+ #define htole64(x) (x)
+ #endif
+ 
++#ifndef le16toh
++#define le16toh(x) (x)
++#endif
++
++#ifndef le32toh
++#define le32toh(x) (x)
++#endif
++
++#ifndef le64toh
++#define le64toh(x) (x)
++#endif
++
+ #else /* __BYTE_ORDER */
+ 
+ #ifndef htole16
+@@ -27,6 +39,18 @@
+ #define htole64(x) __bswap_64(x)
+ #endif
+ 
++#ifndef le16toh
++#define le16toh(x) __bswap_16(x)
++#endif
++
++#ifndef le32toh
++#define le32toh(x) __bswap_32(x)
++#endif
++
++#ifndef le64toh
++#define le64toh(x) __bswap_64(x)
++#endif
++
+ #endif
+ 
+ #endif /* _TOOLS_ENDIAN_H */
 _
 
-Patches currently in -mm which might be from pali.rohar@gmail.com are
+Patches currently in -mm which might be from pefoley2@pefoley.com are
 
-rtc-efi-add-missing-module-alias.patch
 linux-next.patch
+tools-add-more-endianh-macros.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
