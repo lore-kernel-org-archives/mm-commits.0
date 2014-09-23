@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-debug-mm-introduce-vm_bug_on_mm-fixpatch.patch added to -mm
- tree
-Date: Tue, 23 Sep 2014 13:46:25 -0700
-Message-ID: <5421dc21.RZTXDNOIQpPOBunu%akpm@linux-foundation.org>
+Subject: + mm-slab-initialize-object-alignment-on-cache-creation.patch
+ added to -mm tree
+Date: Tue, 23 Sep 2014 14:49:28 -0700
+Message-ID: <5421eae8.R/zKTweD7zsbaSEZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37611 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38071 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756879AbaIWUq0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 16:46:26 -0400
+	with ESMTP id S1756999AbaIWVt3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 17:49:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, Valdis.Kletnieks@vt.edu, davej@redhat.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, a.elovikov@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, debug: mm-introduce-vm_bug_on_mm-fix.patch
+     Subject: mm, slab: initialize object alignment on cache creation
 has been added to the -mm tree.  Its filename is
-     mm-debug-mm-introduce-vm_bug_on_mm-fixpatch.patch
+     mm-slab-initialize-object-alignment-on-cache-creation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug-mm-introduce-vm_bug_on_mm-fixpatch.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-initialize-object-alignment-on-cache-creation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug-mm-introduce-vm_bug_on_mm-fixpatch.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-initialize-object-alignment-on-cache-creation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +39,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm, debug: mm-introduce-vm_bug_on_mm-fix.patch
+From: David Rientjes <rientjes@google.com>
+Subject: mm, slab: initialize object alignment on cache creation
 
-dump_mm wants to dump mm->owner even when CONFIG_MEMCG is not defined
-which leads to a compilation error:
-mm/debug.c: In function `dump_mm':
-mm/debug.c:212:5: error: `const struct mm_struct' has no member named `owner'
-   mm->owner, mm->exe_file,
+Since 4590685546a3 ("mm/sl[aou]b: Common alignment code"), the "ralign"
+automatic variable in __kmem_cache_create() may be used as uninitialized.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Cc: Dave Jones <davej@redhat.com>
+The proper alignment defaults to BYTES_PER_WORD and can be overridden by
+SLAB_RED_ZONE or the alignment specified by the caller.
+
+This fixes https://bugzilla.kernel.org/show_bug.cgi?id=85031
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Andrei Elovikov <a.elovikov@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/slab.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN mm/debug.c~mm-debug-mm-introduce-vm_bug_on_mm-fixpatch mm/debug.c
---- a/mm/debug.c~mm-debug-mm-introduce-vm_bug_on_mm-fixpatch
-+++ a/mm/debug.c
-@@ -184,7 +184,10 @@ void dump_mm(const struct mm_struct *mm)
- #ifdef CONFIG_AIO
- 		"ioctx_table %p\n"
- #endif
--		"owner %p exe_file %p\n"
-+#ifdef CONFIG_MEMCG
-+		"owner %p "
-+#endif
-+		"exe_file %p\n"
- #ifdef CONFIG_MMU_NOTIFIER
- 		"mmu_notifier_mm %p\n"
- #endif
-@@ -212,7 +215,10 @@ void dump_mm(const struct mm_struct *mm)
- #ifdef CONFIG_AIO
- 		mm->ioctx_table,
- #endif
--		mm->owner, mm->exe_file,
-+#ifdef CONFIG_MEMCG
-+		mm->owner,
-+#endif
-+		mm->exe_file,
- #ifdef CONFIG_MMU_NOTIFIER
- 		mm->mmu_notifier_mm,
- #endif
+diff -puN mm/slab.c~mm-slab-initialize-object-alignment-on-cache-creation mm/slab.c
+--- a/mm/slab.c~mm-slab-initialize-object-alignment-on-cache-creation
++++ a/mm/slab.c
+@@ -2128,7 +2128,8 @@ static int __init_refok setup_cpu_cache(
+ int
+ __kmem_cache_create (struct kmem_cache *cachep, unsigned long flags)
+ {
+-	size_t left_over, freelist_size, ralign;
++	size_t left_over, freelist_size;
++	size_t ralign = BYTES_PER_WORD;
+ 	gfp_t gfp;
+ 	int err;
+ 	size_t size = cachep->size;
+@@ -2161,14 +2162,6 @@ __kmem_cache_create (struct kmem_cache *
+ 		size &= ~(BYTES_PER_WORD - 1);
+ 	}
+ 
+-	/*
+-	 * Redzoning and user store require word alignment or possibly larger.
+-	 * Note this will be overridden by architecture or caller mandated
+-	 * alignment if either is greater than BYTES_PER_WORD.
+-	 */
+-	if (flags & SLAB_STORE_USER)
+-		ralign = BYTES_PER_WORD;
+-
+ 	if (flags & SLAB_RED_ZONE) {
+ 		ralign = REDZONE_ALIGN;
+ 		/* If redzoning, ensure that the second redzone is suitably
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from rientjes@google.com are
 
-introduce-dump_vma.patch
-introduce-dump_vma-fix.patch
-introduce-vm_bug_on_vma.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
-mm-debug-mm-introduce-vm_bug_on_mm-fixpatch.patch
-mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch.patch
-free-the-reserved-memblock-when-free-cma-pages.patch
+mm-slab-initialize-object-alignment-on-cache-creation.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+mm-slb-always-track-caller-in-kmalloc_node_track_caller.patch
+mm-slab-move-cache_flusharray-out-of-unlikelytext-section.patch
+mm-slab-noinline-__ac_put_obj.patch
+mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
+slub-disable-tracing-and-failslab-for-merged-slabs.patch
+topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
+slub-fallback-to-node_to_mem_node-node-if-allocating-on-memoryless-node.patch
+partial-revert-of-81c98869faa5-kthread-ensure-locality-of-task_struct-allocations.patch
+slab-fix-for_each_kmem_cache_node.patch
+mm-slab_common-commonize-slab-merge-logic.patch
+mm-slab_common-commonize-slab-merge-logic-fix.patch
+mm-slab-support-slab-merge.patch
+mm-slab-use-percpu-allocator-for-cpu-cache.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
+mm-page_alloc-determine-migratetype-only-once.patch
+mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
+mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
+mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
+mm-compaction-skip-rechecks-when-lock-was-already-held.patch
+mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+mm-rename-allocflags_to_migratetype-for-clarity.patch
+mm-compaction-pass-gfp-mask-to-compact_control.patch
+mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put.patch
+mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
+mempolicy-sanitize-the-usage-of-get_task_policy.patch
+mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
+mempolicy-introduce-__get_vma_policy-export-get_task_policy.patch
+mempolicy-fix-show_numa_map-vs-exec-do_set_mempolicy-race.patch
+mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
+mempolicy-unexport-get_vma_policy-and-remove-its-task-arg.patch
+mm-use-__seq_open_private-instead-of-seq_open.patch
+mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
+mm-clean-up-zone-flags.patch
+mm-compaction-fix-warning-of-flags-may-be-used-uninitialized.patch
+mm-page_alloc-make-paranoid-check-in-move_freepages-a-vm_bug_on.patch
+mm-page_alloc-default-node-ordering-on-64-bit-numa-zone-ordering-on-32-bit-v2.patch
 memcg-move-memcg_allocfree_cache_params-to-slab_commonc.patch
 memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
 memcg-move-memcg_update_cache_size-to-slab_commonc.patch
+mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
+mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
+include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
 
