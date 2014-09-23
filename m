@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-improve-the-performance-of-fdatasync.patch added to -mm
- tree
-Date: Tue, 23 Sep 2014 14:58:41 -0700
-Message-ID: <5421ed11.oZUzSaQYu73+h0PN%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch added to
+ -mm tree
+Date: Tue, 23 Sep 2014 15:15:19 -0700
+Message-ID: <5421f0f7.h5kQHaNfNjKTHeVY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38220 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38402 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751735AbaIWV6l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 17:58:41 -0400
+	with ESMTP id S1756943AbaIWWPU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 18:15:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: wangww631@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: improve the performance of fdatasync()
+     Subject: ] ocfs2: add and remove inode in orphan dir in ocfs2_direct_IO
 has been added to the -mm tree.  Its filename is
-     nilfs2-improve-the-performance-of-fdatasync.patch
+     ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-improve-the-performance-of-fdatasync.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-improve-the-performance-of-fdatasync.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,168 +40,175 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andreas Rohner <andreas.rohner@gmx.net>
-Subject: nilfs2: improve the performance of fdatasync()
+From: WeiWei Wang <wangww631@huawei.com>
+Subject: ] ocfs2: add and remove inode in orphan dir in ocfs2_direct_IO
 
-Support for fdatasync() has been implemented in NILFS2 for a long time,
-but whenever the corresponding inode is dirty the implementation falls
-back to a full-flegded sync().  Since every write operation has to update
-the modification time of the file, the inode will almost always be dirty
-and fdatasync() will fall back to sync() most of the time.  But this
-fallback is only necessary for a change of the file size and not for a
-change of the various timestamps.
+Add the inode to orphan first, after direct-io write is finished, remove
+the inode from orphan dir.  So the allocate blocks and change
+inode->i_size will be safe.
 
-This patch adds a new flag NILFS_I_INODE_SYNC to differentiate between
-those two situations.
-
- * If it is set the file size was changed and a full sync is necessary.
- * If it is not set then only the timestamps were updated and
-   fdatasync() can go ahead.
-
-There is already a similar flag I_DIRTY_DATASYNC on the VFS layer with the
-exact same semantics.  Unfortunately it cannot be used directly, because
-NILFS2 doesn't implement write_inode() and doesn't clear the VFS flags
-when inodes are written out.  So the VFS writeback thread can clear
-I_DIRTY_DATASYNC at any time without notifying NILFS2.  So
-I_DIRTY_DATASYNC has to be mapped onto NILFS_I_INODE_SYNC in
-nilfs_update_inode().
-
-Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Weiwei Wang <wangww631@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c   |   13 +++++++------
- fs/nilfs2/nilfs.h   |   14 +++++++++++---
- fs/nilfs2/segment.c |    4 ++--
- 3 files changed, 20 insertions(+), 11 deletions(-)
+ fs/ocfs2/aops.c |  118 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 114 insertions(+), 4 deletions(-)
 
-diff -puN fs/nilfs2/inode.c~nilfs2-improve-the-performance-of-fdatasync fs/nilfs2/inode.c
---- a/fs/nilfs2/inode.c~nilfs2-improve-the-performance-of-fdatasync
-+++ a/fs/nilfs2/inode.c
-@@ -126,7 +126,7 @@ int nilfs_get_block(struct inode *inode,
- 			nilfs_transaction_abort(inode->i_sb);
- 			goto out;
- 		}
--		nilfs_mark_inode_dirty(inode);
-+		nilfs_mark_inode_dirty_sync(inode);
- 		nilfs_transaction_commit(inode->i_sb); /* never fails */
- 		/* Error handling should be detailed */
- 		set_buffer_new(bh_result);
-@@ -672,7 +672,7 @@ void nilfs_write_inode_common(struct ino
- 	   for substitutions of appended fields */
- }
+diff -puN fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io
++++ a/fs/ocfs2/aops.c
+@@ -47,6 +47,9 @@
+ #include "ocfs2_trace.h"
  
--void nilfs_update_inode(struct inode *inode, struct buffer_head *ibh)
-+void nilfs_update_inode(struct inode *inode, struct buffer_head *ibh, int flags)
+ #include "buffer_head_io.h"
++#include "dir.h"
++#include "namei.h"
++#include "sysfile.h"
+ 
+ static int ocfs2_symlink_get_block(struct inode *inode, sector_t iblock,
+ 				   struct buffer_head *bh_result, int create)
+@@ -602,8 +605,16 @@ static ssize_t ocfs2_direct_IO(int rw,
+ 			       struct iov_iter *iter,
+ 			       loff_t offset)
  {
- 	ino_t ino = inode->i_ino;
- 	struct nilfs_inode_info *ii = NILFS_I(inode);
-@@ -683,7 +683,8 @@ void nilfs_update_inode(struct inode *in
++	ssize_t ret = 0;
++	int status = 0;
++	int orphan = 0;
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file_inode(file)->i_mapping->host;
++	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
++	struct buffer_head *di_bh = NULL;
++	handle_t *handle = NULL;
++	size_t count = iter->count;
++	journal_t *journal = osb->journal->j_journal;
  
- 	if (test_and_clear_bit(NILFS_I_NEW, &ii->i_state))
- 		memset(raw_inode, 0, NILFS_MDT(ifile)->mi_entry_size);
--	set_bit(NILFS_I_INODE_DIRTY, &ii->i_state);
-+	if (flags & I_DIRTY_DATASYNC)
-+		set_bit(NILFS_I_INODE_SYNC, &ii->i_state);
+ 	/*
+ 	 * Fallback to buffered I/O if we see an inode without
+@@ -616,10 +627,109 @@ static ssize_t ocfs2_direct_IO(int rw,
+ 	if (i_size_read(inode) <= offset)
+ 		return 0;
  
- 	nilfs_write_inode_common(inode, raw_inode, 0);
- 		/* XXX: call with has_bmap = 0 is a workaround to avoid
-@@ -939,7 +940,7 @@ int nilfs_set_file_dirty(struct inode *i
- 	return 0;
+-	return __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev,
+-				    iter, offset,
+-				    ocfs2_direct_IO_get_blocks,
+-				    ocfs2_dio_end_io, NULL, 0);
++	if (rw == WRITE) {
++		loff_t final_size = offset + count;
++		/*
++		 * when final_size > inode->i_size, inode->i_size will be
++		 * updated after direct write, so add the inode to orphan
++		 * dir first.
++		 */
++		if (final_size > i_size_read(inode)) {
++			handle = ocfs2_start_trans(osb,
++					OCFS2_INODE_ADD_TO_ORPHAN_CREDITS);
++			if (IS_ERR(handle)) {
++				status = PTR_ERR(handle);
++				goto out;
++			}
++			status = ocfs2_add_inode_to_orphan(osb, handle, inode);
++			if (status < 0)
++				goto out;
++
++			orphan = 1;
++			ocfs2_commit_trans(osb, handle);
++			handle = NULL;
++		}
++	}
++
++	if (rw == READ)
++		ret = __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev,
++					iter, offset,
++					ocfs2_direct_IO_get_blocks,
++					ocfs2_dio_end_io, NULL, 0);
++	else {
++		ret =  blockdev_direct_IO(rw, iocb, inode,
++					iter, offset,
++					ocfs2_direct_IO_get_blocks);
++
++		if (unlikely((rw & WRITE) && ret < 0)) {
++			loff_t isize = i_size_read(inode);
++
++			if (offset + count  > isize) {
++				status = ocfs2_inode_lock(inode, &di_bh, 1);
++				if (status < 0) {
++					mlog_errno(status);
++					goto out;
++				}
++				if (isize == i_size_read(inode))
++					ocfs2_truncate_file(inode, di_bh,
++							    isize);
++
++				ocfs2_inode_unlock(inode, 1);
++				brelse(di_bh);
++				di_bh = NULL;
++
++				status = jbd2_journal_force_commit(journal);
++				if (status < 0)
++					mlog_errno(status);
++			}
++		}
++	}
++
++	if (orphan) {
++		handle = ocfs2_start_trans(osb,
++					OCFS2_INODE_DEL_FROM_ORPHAN_CREDITS);
++		if (IS_ERR(handle)) {
++			status = PTR_ERR(handle);
++			goto out;
++		}
++
++		status = ocfs2_del_inode_from_orphan(osb, handle, inode);
++		if (status < 0)
++			goto out;
++
++		/* after update the inode->i_size, call
++		 * jbd2_journal_force_commit to flush the journal to disk */
++		if (ret > 0) {
++			loff_t end = offset + ret;
++
++			if (end > i_size_read(inode)) {
++				status = ocfs2_inode_lock(inode, &di_bh, 1);
++				if (status < 0) {
++					mlog_errno(status);
++					goto out;
++				}
++				status = ocfs2_set_inode_size(handle, inode,
++							      di_bh, end);
++				if (status < 0)
++					mlog_errno(status);
++				ocfs2_inode_unlock(inode, 1);
++				brelse(di_bh);
++			}
++		}
++		ocfs2_commit_trans(osb, handle);
++		handle = NULL;
++
++		status = jbd2_journal_force_commit(journal);
++		if (status < 0)
++			mlog_errno(status);
++	}
++
++out:
++	if (status < 0)
++		ret = status;
++	if (handle)
++		ocfs2_commit_trans(osb, handle);
++	return ret;
  }
  
--int nilfs_mark_inode_dirty(struct inode *inode)
-+int __nilfs_mark_inode_dirty(struct inode *inode, int flags)
- {
- 	struct buffer_head *ibh;
- 	int err;
-@@ -950,7 +951,7 @@ int nilfs_mark_inode_dirty(struct inode
- 			      "failed to reget inode block.\n");
- 		return err;
- 	}
--	nilfs_update_inode(inode, ibh);
-+	nilfs_update_inode(inode, ibh, flags);
- 	mark_buffer_dirty(ibh);
- 	nilfs_mdt_mark_dirty(NILFS_I(inode)->i_root->ifile);
- 	brelse(ibh);
-@@ -983,7 +984,7 @@ void nilfs_dirty_inode(struct inode *ino
- 		return;
- 	}
- 	nilfs_transaction_begin(inode->i_sb, &ti, 0);
--	nilfs_mark_inode_dirty(inode);
-+	__nilfs_mark_inode_dirty(inode, flags);
- 	nilfs_transaction_commit(inode->i_sb); /* never fails */
- }
- 
-diff -puN fs/nilfs2/nilfs.h~nilfs2-improve-the-performance-of-fdatasync fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~nilfs2-improve-the-performance-of-fdatasync
-+++ a/fs/nilfs2/nilfs.h
-@@ -104,7 +104,7 @@ enum {
- 					   constructor */
- 	NILFS_I_COLLECTED,		/* All dirty blocks are collected */
- 	NILFS_I_UPDATED,		/* The file has been written back */
--	NILFS_I_INODE_DIRTY,		/* write_inode is requested */
-+	NILFS_I_INODE_SYNC,		/* dsync is not allowed for inode */
- 	NILFS_I_BMAP,			/* has bmap and btnode_cache */
- 	NILFS_I_GCINODE,		/* inode for GC, on memory only */
- };
-@@ -273,7 +273,7 @@ struct inode *nilfs_iget(struct super_bl
- 			 unsigned long ino);
- extern struct inode *nilfs_iget_for_gc(struct super_block *sb,
- 				       unsigned long ino, __u64 cno);
--extern void nilfs_update_inode(struct inode *, struct buffer_head *);
-+extern void nilfs_update_inode(struct inode *, struct buffer_head *, int);
- extern void nilfs_truncate(struct inode *);
- extern void nilfs_evict_inode(struct inode *);
- extern int nilfs_setattr(struct dentry *, struct iattr *);
-@@ -282,10 +282,18 @@ int nilfs_permission(struct inode *inode
- int nilfs_load_inode_block(struct inode *inode, struct buffer_head **pbh);
- extern int nilfs_inode_dirty(struct inode *);
- int nilfs_set_file_dirty(struct inode *inode, unsigned nr_dirty);
--extern int nilfs_mark_inode_dirty(struct inode *);
-+extern int __nilfs_mark_inode_dirty(struct inode *, int);
- extern void nilfs_dirty_inode(struct inode *, int flags);
- int nilfs_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
- 		 __u64 start, __u64 len);
-+static inline int nilfs_mark_inode_dirty(struct inode *inode)
-+{
-+	return __nilfs_mark_inode_dirty(inode, I_DIRTY);
-+}
-+static inline int nilfs_mark_inode_dirty_sync(struct inode *inode)
-+{
-+	return __nilfs_mark_inode_dirty(inode, I_DIRTY_SYNC);
-+}
- 
- /* super.c */
- extern struct inode *nilfs_alloc_inode(struct super_block *);
-diff -puN fs/nilfs2/segment.c~nilfs2-improve-the-performance-of-fdatasync fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-improve-the-performance-of-fdatasync
-+++ a/fs/nilfs2/segment.c
-@@ -930,7 +930,7 @@ static void nilfs_drop_collected_inodes(
- 		if (!test_and_clear_bit(NILFS_I_COLLECTED, &ii->i_state))
- 			continue;
- 
--		clear_bit(NILFS_I_INODE_DIRTY, &ii->i_state);
-+		clear_bit(NILFS_I_INODE_SYNC, &ii->i_state);
- 		set_bit(NILFS_I_UPDATED, &ii->i_state);
- 	}
- }
-@@ -2195,7 +2195,7 @@ int nilfs_construct_dsync_segment(struct
- 	nilfs_transaction_lock(sb, &ti, 0);
- 
- 	ii = NILFS_I(inode);
--	if (test_bit(NILFS_I_INODE_DIRTY, &ii->i_state) ||
-+	if (test_bit(NILFS_I_INODE_SYNC, &ii->i_state) ||
- 	    nilfs_test_opt(nilfs, STRICT_ORDER) ||
- 	    test_bit(NILFS_SC_UNCLOSED, &sci->sc_flags) ||
- 	    nilfs_discontinued(nilfs)) {
+ static void ocfs2_figure_cluster_boundaries(struct ocfs2_super *osb,
 _
 
-Patches currently in -mm which might be from andreas.rohner@gmx.net are
+Patches currently in -mm which might be from wangww631@huawei.com are
 
-nilfs2-fix-data-loss-with-mmap.patch
-nilfs2-fix-data-loss-with-mmap-fix.patch
-nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
-nilfs2-improve-the-performance-of-fdatasync.patch
+ocfs2-eliminate-the-static-flag-of-some-functions.patch
+ocfs2-add-two-functions-of-add-and-remove-inode-in-orphan-dir.patch
+ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
+ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch
+ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
 
