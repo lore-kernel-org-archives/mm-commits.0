@@ -1,16 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-vm_bug_on_mm-fix.patch added to -mm tree
-Date: Tue, 23 Sep 2014 12:52:43 -0700
-Message-ID: <5421cf8b.Acqn/RH79b1YG5tR%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-introduce-vm_bug_on_mm-fix.patch removed from
+ -mm tree
+Date: Tue, 23 Sep 2014 13:43:35 -0700
+Message-ID: <5421db77.AiHfdCmdemkPrvPu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37253 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37605 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638AbaIWTwo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 15:52:44 -0400
+	with ESMTP id S1756188AbaIWUnf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Sep 2014 16:43:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
@@ -18,24 +19,10 @@ To: akpm@linux-foundation.org, sasha.levin@oracle.com, mm-commits@vger.kernel.or
 
 The patch titled
      Subject: mm-introduce-vm_bug_on_mm-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-introduce-vm_bug_on_mm-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-vm_bug_on_mm-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-vm_bug_on_mm-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -99,7 +86,6 @@ introduce-dump_vma-fix.patch
 convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
 mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
 mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-introduce-vm_bug_on_mm-fix.patch
 mm-debugc-use-pr_emerg.patch
 mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
