@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-pcf8563-fix-uninitialized-use-warning.patch added to -mm
- tree
-Date: Wed, 24 Sep 2014 15:39:06 -0700
-Message-ID: <5423480a.ho4+GKpxi2rHWqYy%akpm@linux-foundation.org>
+Subject: + rtc-pcf8563-fix-pcf8563_irq-error-return-value.patch added to
+ -mm tree
+Date: Wed, 24 Sep 2014 15:39:17 -0700
+Message-ID: <54234815.8dWk9KTlBzR5Ibmu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51480 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076AbaIXWjH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Sep 2014 18:39:07 -0400
+	with ESMTP id S1751076AbaIXWjR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Sep 2014 18:39:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, a.zummo@towertech.it, sergei.shtylyov@cogentembedded.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf8563.c: fix uninitialized use warning
+     Subject: drivers/rtc/rtc-pcf8563.c: fix pcf8563_irq() error return value
 has been added to the -mm tree.  Its filename is
-     rtc-pcf8563-fix-uninitialized-use-warning.patch
+     rtc-pcf8563-fix-pcf8563_irq-error-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-pcf8563-fix-uninitialized-use-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-pcf8563-fix-pcf8563_irq-error-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-pcf8563-fix-uninitialized-use-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-pcf8563-fix-pcf8563_irq-error-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,22 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: drivers/rtc/rtc-pcf8563.c: fix uninitialized use warning
+Subject: drivers/rtc/rtc-pcf8563.c: fix pcf8563_irq() error return value
 
-gcc-4.9 found a potential condition under which the 'pending' variable may
-be used uninitialized:
+As pointed out by Sergei Shtylyov, the pcf8563_irq function contains a bug
+in the error handling: an interrupt handler is not supposed to return an
+errno value but an 'enum irqreturn'.
 
-drivers/rtc/rtc-pcf8563.c: In function 'pcf8563_irq':
-drivers/rtc/rtc-pcf8563.c:173:5: warning: 'pending' may be used uninitialized in this function [-Wmaybe-uninitialized]
-
-This is because in the pcf8563_get_alarm_mode() function, we check any
-nonzero return of pcf8563_read_block_data, but in the irq function we only
-check for negative values, so a possible positive value does not get
-detected if the compiler chooses not to inline the entire call chain.
-
-Checking for any non-zero value in the interrupt handler as well is just
-as correct and lets the compiler know what we are doing, without needing a
-bogus initialization.
+Let's fix this by returning IRQ_NONE in case of a communication error.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
@@ -66,18 +57,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/rtc/rtc-pcf8563.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-fix-uninitialized-use-warning drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-fix-uninitialized-use-warning
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-fix-pcf8563_irq-error-return-value drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-fix-pcf8563_irq-error-return-value
 +++ a/drivers/rtc/rtc-pcf8563.c
-@@ -167,7 +167,7 @@ static irqreturn_t pcf8563_irq(int irq,
- 	char pending;
+@@ -168,7 +168,7 @@ static irqreturn_t pcf8563_irq(int irq,
  
  	err = pcf8563_get_alarm_mode(pcf8563->client, NULL, &pending);
--	if (err < 0)
-+	if (err)
- 		return err;
+ 	if (err)
+-		return err;
++		return IRQ_NONE;
  
  	if (pending) {
+ 		rtc_update_irq(pcf8563->rtc, 1, RTC_IRQF | RTC_AF);
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
