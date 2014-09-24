@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache.patch removed from -mm tree
-Date: Wed, 24 Sep 2014 14:06:25 -0700
-Message-ID: <54233251.Xqk5QOskGsb9oUVX%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache.patch added to -mm tree
+Date: Wed, 24 Sep 2014 14:16:14 -0700
+Message-ID: <5423349e.5YoBP1bLtNZKSRAE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49904 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49934 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351AbaIXVG0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Sep 2014 17:06:26 -0400
+	with ESMTP id S1751600AbaIXVQP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Sep 2014 17:16:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.cz, dave@sr71.net, gthelen@google.com, hannes@cmpxchg.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
@@ -19,10 +19,24 @@ To: mhocko@suse.cz, dave@sr71.net, gthelen@google.com, hannes@cmpxchg.org, vdavy
 
 The patch titled
      Subject: mm: memcontrol: do not kill uncharge batching in free_pages_and_swap_cache
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
@@ -76,8 +90,16 @@ function.  mem_cgroup_uncharge_list and free_hot_cold_page_list do not
 hold any lock for the whole pages_to_free list so it is safe to call them
 in a single run.
 
-Page reference count and LRU handling is moved to release_lru_pages and
-that is run in PAGEVEC_SIZE batches.
+The release_pages() code was previously breaking the lru_lock each
+PAGEVEC_SIZE pages (ie, 14 pages).  However this code has no usage of
+pagevecs so switch to breaking the lock at least every SWAP_CLUSTER_MAX
+(32) pages.  This means that the lock acquisition frequency is
+approximately halved and the max hold times are approximately doubled.
+
+The now unneeded batching is removed from free_pages_and_swap_cache().
+
+
+Also update the grossly out-of-date release_pages documentation.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -87,67 +109,80 @@ Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c       |   27 +++++++++++++++++++++------
+ mm/swap.c       |   31 ++++++++++++++++++++-----------
  mm/swap_state.c |   14 ++++----------
- 2 files changed, 25 insertions(+), 16 deletions(-)
+ 2 files changed, 24 insertions(+), 21 deletions(-)
 
 diff -puN mm/swap.c~mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache mm/swap.c
 --- a/mm/swap.c~mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache
 +++ a/mm/swap.c
-@@ -888,9 +888,9 @@ void lru_add_drain_all(void)
+@@ -887,18 +887,14 @@ void lru_add_drain_all(void)
+ 	mutex_unlock(&lock);
  }
  
- /*
+-/*
 - * Batched page_cache_release().  Decrement the reference count on all the
 - * passed pages.  If it fell to zero then remove the page from the LRU and
 - * free it.
-+ * Batched lru release. Decrement the reference count on all the passed pages.
-+ * If it fell to zero then remove the page from the LRU and add it to the given
-+ * list to be freed by the caller.
++/**
++ * release_pages - batched page_cache_release()
++ * @pages: array of pages to release
++ * @nr: number of pages
++ * @cold: whether the pages are cache cold
   *
-  * Avoid taking zone->lru_lock if possible, but if it is taken, retain it
-  * for the remainder of the operation.
-@@ -900,10 +900,10 @@ void lru_add_drain_all(void)
-  * grabbed the page via the LRU.  If it did, give up: shrink_inactive_list()
-  * will free it.
+- * Avoid taking zone->lru_lock if possible, but if it is taken, retain it
+- * for the remainder of the operation.
+- *
+- * The locking in this function is against shrink_inactive_list(): we recheck
+- * the page count inside the lock to see whether shrink_inactive_list()
+- * grabbed the page via the LRU.  If it did, give up: shrink_inactive_list()
+- * will free it.
++ * Decrement the reference count on all the pages in @pages.  If it
++ * fell to zero, remove the page from the LRU and free it.
   */
--void release_pages(struct page **pages, int nr, bool cold)
-+static void release_lru_pages(struct page **pages, int nr,
-+			      struct list_head *pages_to_free)
+ void release_pages(struct page **pages, int nr, bool cold)
  {
- 	int i;
--	LIST_HEAD(pages_to_free);
+@@ -907,6 +903,7 @@ void release_pages(struct page **pages,
  	struct zone *zone = NULL;
  	struct lruvec *lruvec;
  	unsigned long uninitialized_var(flags);
-@@ -943,11 +943,26 @@ void release_pages(struct page **pages,
- 		/* Clear Active bit in case of parallel mark_page_accessed */
- 		__ClearPageActive(page);
++	unsigned int uninitialized_var(lock_batch);
  
--		list_add(&page->lru, &pages_to_free);
-+		list_add(&page->lru, pages_to_free);
- 	}
- 	if (zone)
- 		spin_unlock_irqrestore(&zone->lru_lock, flags);
-+}
-+/*
-+ * Batched page_cache_release(). Frees and uncharges all given pages
-+ * for which the reference count drops to 0.
-+ */
-+void release_pages(struct page **pages, int nr, bool cold)
-+{
-+	LIST_HEAD(pages_to_free);
- 
-+	while (nr) {
-+		int batch = min(nr, PAGEVEC_SIZE);
+ 	for (i = 0; i < nr; i++) {
+ 		struct page *page = pages[i];
+@@ -914,6 +911,7 @@ void release_pages(struct page **pages,
+ 		if (unlikely(PageCompound(page))) {
+ 			if (zone) {
+ 				spin_unlock_irqrestore(&zone->lru_lock, flags);
++				lock_batch = 0;
+ 				zone = NULL;
+ 			}
+ 			put_compound_page(page);
+@@ -930,6 +928,7 @@ void release_pages(struct page **pages,
+ 				if (zone)
+ 					spin_unlock_irqrestore(&zone->lru_lock,
+ 									flags);
++				lock_batch = 0;
+ 				zone = pagezone;
+ 				spin_lock_irqsave(&zone->lru_lock, flags);
+ 			}
+@@ -938,6 +937,16 @@ void release_pages(struct page **pages,
+ 			VM_BUG_ON_PAGE(!PageLRU(page), page);
+ 			__ClearPageLRU(page);
+ 			del_page_from_lru_list(page, lruvec, page_off_lru(page));
 +
-+		release_lru_pages(pages, batch, &pages_to_free);
-+		pages += batch;
-+		nr -= batch;
-+	}
- 	mem_cgroup_uncharge_list(&pages_to_free);
- 	free_hot_cold_page_list(&pages_to_free, cold);
- }
++			/*
++			 * Make sure the IRQ-safe lock-holding time
++			 * does not get excessive with a continuous
++			 * string of pages from the same zone.
++			 */
++			if (++lock_batch == SWAP_CLUSTER_MAX) {
++				spin_unlock_irqrestore(&zone->lru_lock, flags);
++				zone = NULL;
++			}
+ 		}
+ 
+ 		/* Clear Active bit in case of parallel mark_page_accessed */
 diff -puN mm/swap_state.c~mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache mm/swap_state.c
 --- a/mm/swap_state.c~mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache
 +++ a/mm/swap_state.c
@@ -188,6 +223,7 @@ mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
 memcg-move-memcg_allocfree_cache_params-to-slab_commonc.patch
 memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
 memcg-move-memcg_update_cache_size-to-slab_commonc.patch
+mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache.patch
 mm-memcontrol-simplify-detecting-when-the-memoryswap-limit-is-hit.patch
 mm-memcontrol-fix-transparent-huge-page-allocations-under-pressure.patch
 memcg-zap-memcg_can_account_kmem.patch
