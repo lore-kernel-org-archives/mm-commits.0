@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-dma-contiguous-add-initialization-from-device-tree.patch added to
- -mm tree
-Date: Wed, 24 Sep 2014 15:30:47 -0700
-Message-ID: <54234617.1HuGTTyPk/4e32EJ%akpm@linux-foundation.org>
+ drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 24 Sep 2014 15:30:46 -0700
+Message-ID: <54234616.8nsQsTZhc3aAx4iP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51242 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51234 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751239AbaIXWas (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Sep 2014 18:30:48 -0400
+	with ESMTP id S1751228AbaIXWar (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Sep 2014 18:30:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.szyprowski@samsung.com, arnd@arndb.de, grant.likely@linaro.org, iamjoonsoo.kim@lge.com, joshc@codeaurora.org, kyungmin.park@samsung.com, lauraa@codeaurora.org, mina86@mina86.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arnd@arndb.de, grant.likely@linaro.org, iamjoonsoo.kim@lge.com, joshc@codeaurora.org, kyungmin.park@samsung.com, lauraa@codeaurora.org, m.szyprowski@samsung.com, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers: dma-contiguous: add initialization from device tree
+     Subject: drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     drivers-dma-contiguous-add-initialization-from-device-tree.patch
+     drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-dma-contiguous-add-initialization-from-device-tree.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-dma-contiguous-add-initialization-from-device-tree.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,221 +39,125 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: drivers: dma-contiguous: add initialization from device tree
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes
 
-Add a function to create CMA region from previously reserved memory and
-add support for handling 'shared-dma-pool' reserved-memory device tree
-nodes.
-
-Based on previous code provided by Josh Cartwright <joshc@codeaurora.org>
-
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
+
+WARNING: line over 80 characters
+#130: FILE: drivers/base/dma-coherent.c:20:
++static int dma_init_coherent_memory(phys_addr_t phys_addr, dma_addr_t device_addr,
+
+WARNING: Missing a blank line after declarations
+#320: FILE: drivers/base/dma-coherent.c:283:
++	struct dma_coherent_mem *mem = rmem->priv;
++	if (!mem &&
+
+total: 0 errors, 2 warnings, 233 lines checked
+
+./patches/drivers-dma-coherent-add-initialization-from-device-tree.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Laura Abbott <lauraa@codeaurora.org>
-Cc: Josh Cartwright <joshc@codeaurora.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Josh Cartwright <joshc@codeaurora.org>
 Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dma-contiguous.c |   71 ++++++++++++++++++++++++++++++++
- include/linux/cma.h           |    3 +
- mm/cma.c                      |   62 ++++++++++++++++++++++-----
- 3 files changed, 125 insertions(+), 11 deletions(-)
+ drivers/base/dma-coherent.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/base/dma-contiguous.c~drivers-dma-contiguous-add-initialization-from-device-tree drivers/base/dma-contiguous.c
---- a/drivers/base/dma-contiguous.c~drivers-dma-contiguous-add-initialization-from-device-tree
-+++ a/drivers/base/dma-contiguous.c
-@@ -211,3 +211,74 @@ bool dma_release_from_contiguous(struct
+diff -puN drivers/base/dma-coherent.c~drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes drivers/base/dma-coherent.c
+--- a/drivers/base/dma-coherent.c~drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes
++++ a/drivers/base/dma-coherent.c
+@@ -279,6 +279,7 @@ EXPORT_SYMBOL(dma_mmap_from_coherent);
+ static int rmem_dma_device_init(struct reserved_mem *rmem, struct device *dev)
  {
- 	return cma_release(dev_get_cma_area(dev), pages, count);
- }
+ 	struct dma_coherent_mem *mem = rmem->priv;
 +
-+/*
-+ * Support for reserved memory regions defined in device tree
-+ */
-+#ifdef CONFIG_OF_RESERVED_MEM
-+#include <linux/of.h>
-+#include <linux/of_fdt.h>
-+#include <linux/of_reserved_mem.h>
-+
-+#undef pr_fmt
-+#define pr_fmt(fmt) fmt
-+
-+static int rmem_cma_device_init(struct reserved_mem *rmem, struct device *dev)
-+{
-+	struct cma *cma = rmem->priv;
-+	if (!cma)
-+		return -ENODEV;
-+
-+	dev_set_cma_area(dev, cma);
-+	return 0;
-+}
-+
-+static void rmem_cma_device_release(struct reserved_mem *rmem,
-+				    struct device *dev)
-+{
-+	dev_set_cma_area(dev, NULL);
-+}
-+
-+static const struct reserved_mem_ops rmem_cma_ops = {
-+	.device_init	= rmem_cma_device_init,
-+	.device_release = rmem_cma_device_release,
-+};
-+
-+static int __init rmem_cma_setup(struct reserved_mem *rmem)
-+{
-+	phys_addr_t align = PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order);
-+	phys_addr_t mask = align - 1;
-+	unsigned long node = rmem->fdt_node;
-+	struct cma *cma;
-+	int err;
-+
-+	if (!of_get_flat_dt_prop(node, "reusable", NULL) ||
-+	    of_get_flat_dt_prop(node, "no-map", NULL))
-+		return -EINVAL;
-+
-+	if ((rmem->base & mask) || (rmem->size & mask)) {
-+		pr_err("Reserved memory: incorrect alignment of CMA region\n");
-+		return -EINVAL;
-+	}
-+
-+	err = cma_init_reserved_mem(rmem->base, rmem->size, 0, &cma);
-+	if (err) {
-+		pr_err("Reserved memory: unable to setup CMA region\n");
-+		return err;
-+	}
-+	/* Architecture specific contiguous memory fixup. */
-+	dma_contiguous_early_fixup(rmem->base, rmem->size);
-+
-+	if (of_get_flat_dt_prop(node, "linux,cma-default", NULL))
-+		dma_contiguous_set_default(cma);
-+
-+	rmem->ops = &rmem_cma_ops;
-+	rmem->priv = cma;
-+
-+	pr_info("Reserved memory: created CMA memory pool at %pa, size %ld MiB\n",
-+		&rmem->base, (unsigned long)rmem->size / SZ_1M);
-+
-+	return 0;
-+}
-+RESERVEDMEM_OF_DECLARE(cma, "shared-dma-pool", rmem_cma_setup);
-+#endif
-diff -puN include/linux/cma.h~drivers-dma-contiguous-add-initialization-from-device-tree include/linux/cma.h
---- a/include/linux/cma.h~drivers-dma-contiguous-add-initialization-from-device-tree
-+++ a/include/linux/cma.h
-@@ -22,6 +22,9 @@ extern int __init cma_declare_contiguous
- 			phys_addr_t base, phys_addr_t limit,
- 			phys_addr_t alignment, unsigned int order_per_bit,
- 			bool fixed, struct cma **res_cma);
-+extern int cma_init_reserved_mem(phys_addr_t size,
-+					phys_addr_t base, int order_per_bit,
-+					struct cma **res_cma);
- extern struct page *cma_alloc(struct cma *cma, int count, unsigned int align);
- extern bool cma_release(struct cma *cma, struct page *pages, int count);
- #endif
-diff -puN mm/cma.c~drivers-dma-contiguous-add-initialization-from-device-tree mm/cma.c
---- a/mm/cma.c~drivers-dma-contiguous-add-initialization-from-device-tree
-+++ a/mm/cma.c
-@@ -141,6 +141,54 @@ static int __init cma_init_reserved_area
- core_initcall(cma_init_reserved_areas);
- 
- /**
-+ * cma_init_reserved_mem() - create custom contiguous area from reserved memory
-+ * @base: Base address of the reserved area
-+ * @size: Size of the reserved area (in bytes),
-+ * @order_per_bit: Order of pages represented by one bit on bitmap.
-+ * @res_cma: Pointer to store the created cma region.
-+ *
-+ * This function creates custom contiguous area from already reserved memory.
-+ */
-+int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
-+				 int order_per_bit, struct cma **res_cma)
-+{
-+	struct cma *cma;
-+	phys_addr_t alignment;
-+
-+	/* Sanity checks */
-+	if (cma_area_count == ARRAY_SIZE(cma_areas)) {
-+		pr_err("Not enough slots for CMA reserved regions!\n");
-+		return -ENOSPC;
-+	}
-+
-+	if (!size || !memblock_is_region_reserved(base, size))
-+		return -EINVAL;
-+
-+	/* ensure minimal alignment requied by mm core */
-+	alignment = PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order);
-+
-+	/* alignment should be aligned with order_per_bit */
-+	if (!IS_ALIGNED(alignment >> PAGE_SHIFT, 1 << order_per_bit))
-+		return -EINVAL;
-+
-+	if (ALIGN(base, alignment) != base || ALIGN(size, alignment) != size)
-+		return -EINVAL;
-+
-+	/*
-+	 * Each reserved area must be initialised later, when more kernel
-+	 * subsystems (like slab allocator) are available.
-+	 */
-+	cma = &cma_areas[cma_area_count];
-+	cma->base_pfn = PFN_DOWN(base);
-+	cma->count = size >> PAGE_SHIFT;
-+	cma->order_per_bit = order_per_bit;
-+	*res_cma = cma;
-+	cma_area_count++;
-+
-+	return 0;
-+}
-+
-+/**
-  * cma_declare_contiguous() - reserve custom contiguous area
-  * @base: Base address of the reserved area optional, use 0 for any
-  * @size: Size of the reserved area (in bytes),
-@@ -163,7 +211,6 @@ int __init cma_declare_contiguous(phys_a
- 			phys_addr_t alignment, unsigned int order_per_bit,
- 			bool fixed, struct cma **res_cma)
- {
--	struct cma *cma;
- 	phys_addr_t memblock_end = memblock_end_of_DRAM();
- 	phys_addr_t highmem_start = __pa(high_memory);
- 	int ret = 0;
-@@ -235,16 +282,9 @@ int __init cma_declare_contiguous(phys_a
- 		}
- 	}
- 
--	/*
--	 * Each reserved area must be initialised later, when more kernel
--	 * subsystems (like slab allocator) are available.
--	 */
--	cma = &cma_areas[cma_area_count];
--	cma->base_pfn = PFN_DOWN(base);
--	cma->count = size >> PAGE_SHIFT;
--	cma->order_per_bit = order_per_bit;
--	*res_cma = cma;
--	cma_area_count++;
-+	ret = cma_init_reserved_mem(base, size, order_per_bit, res_cma);
-+	if (ret)
-+		goto err;
- 
- 	pr_info("Reserved %ld MiB at %08lx\n", (unsigned long)size / SZ_1M,
- 		(unsigned long)base);
+ 	if (!mem &&
+ 	    dma_init_coherent_memory(rmem->base, rmem->base, rmem->size,
+ 				     DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE,
 _
 
-Patches currently in -mm which might be from m.szyprowski@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-cma-adjust-address-limit-to-avoid-hitting-low-high-memory-boundary.patch
-arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
-drivers-of-add-return-value-to-of_reserved_mem_device_init.patch
-drivers-dma-coherent-add-initialization-from-device-tree.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+nilfs2-fix-data-loss-with-mmap-fix.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+kernel-add-support-for-gcc-5-checkpatch-fixes.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
+mm-debugc-use-pr_emerg.patch
+mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
 drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
 drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
 drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
-drivers-dma-contiguous-add-initialization-from-device-tree.patch
 drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+rtc-rk808-add-rtc-driver-for-rk808-fix.patch
+rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
+rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
+rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+lib-string_helpers-introduce-string_escape_mem-fix.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
