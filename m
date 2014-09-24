@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- signal-use-build_bug-instead-of-_nsig_words_is_unsupported_size.patch added to -mm tree
-Date: Wed, 24 Sep 2014 14:49:39 -0700
-Message-ID: <54233c73.e39lcM9zZdEyBcsO%akpm@linux-foundation.org>
+Subject: + fs-cachefiles-add-missing-n-to-kerror-conversions.patch added
+ to -mm tree
+Date: Wed, 24 Sep 2014 14:53:57 -0700
+Message-ID: <54233d75.VUkzCz3NKKhPIwF8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50496 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750821AbaIXVtk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Sep 2014 17:49:40 -0400
+	with ESMTP id S1751182AbaIXVx5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Sep 2014 17:53:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, jeffrey.t.kirsher@intel.com, josh@joshtriplett.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, dhowells@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: use BUILD_BUG() instead of _NSIG_WORDS_is_unsupported_size()
+     Subject: fs/cachefiles: add missing \n to kerror conversions
 has been added to the -mm tree.  Its filename is
-     signal-use-build_bug-instead-of-_nsig_words_is_unsupported_size.patch
+     fs-cachefiles-add-missing-n-to-kerror-conversions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/signal-use-build_bug-instead-of-_nsig_words_is_unsupported_size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-cachefiles-add-missing-n-to-kerror-conversions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/signal-use-build_bug-instead-of-_nsig_words_is_unsupported_size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-cachefiles-add-missing-n-to-kerror-conversions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,139 +39,325 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: use BUILD_BUG() instead of _NSIG_WORDS_is_unsupported_size()
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/cachefiles: add missing \n to kerror conversions
 
-Kill _NSIG_WORDS_is_unsupported_size(), use BUILD_BUG() instead.  This
-simplifies the code, avoids the nested-externs warnings, and this way we
-do not defer the problem to linker.
+Commit 0227d6abb378 ("fs/cachefiles: replace kerror by pr_err") didn't
+include newline featuring in original kerror definition
 
-Also, fix the indentation in _SIG_SET_BINOP() and _SIG_SET_OP().
-
-Note: this patch assumes that the code like "if (0) BUILD_BUG();" is
-valid.  If not (say __compiletime_error() is not defined and thus
-__compiletime_error_fallback() uses a negative array) we should fix
-BUILD_BUG() and/or BUILD_BUG_ON_MSG().  This code should be fine by
-definition, this is the documented purpose of BUILD_BUG().
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Reported-by: David Howells <dhowells@redhat.com>
+Cc: <stable@vger.kernel.org>	[3.16.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/signal.h |   28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
+ fs/cachefiles/bind.c     |    8 ++++----
+ fs/cachefiles/daemon.c   |   30 +++++++++++++++---------------
+ fs/cachefiles/internal.h |    2 +-
+ fs/cachefiles/main.c     |    2 +-
+ fs/cachefiles/namei.c    |   14 +++++++-------
+ fs/cachefiles/xattr.c    |   10 +++++-----
+ 6 files changed, 33 insertions(+), 33 deletions(-)
 
-diff -puN include/linux/signal.h~signal-use-build_bug-instead-of-_nsig_words_is_unsupported_size include/linux/signal.h
---- a/include/linux/signal.h~signal-use-build_bug-instead-of-_nsig_words_is_unsupported_size
-+++ a/include/linux/signal.h
-@@ -67,7 +67,6 @@ static inline int sigismember(sigset_t *
+diff -puN fs/cachefiles/bind.c~fs-cachefiles-add-missing-n-to-kerror-conversions fs/cachefiles/bind.c
+--- a/fs/cachefiles/bind.c~fs-cachefiles-add-missing-n-to-kerror-conversions
++++ a/fs/cachefiles/bind.c
+@@ -50,18 +50,18 @@ int cachefiles_daemon_bind(struct cachef
+ 	       cache->brun_percent  < 100);
  
- static inline int sigisemptyset(sigset_t *set)
- {
--	extern void _NSIG_WORDS_is_unsupported_size(void);
- 	switch (_NSIG_WORDS) {
- 	case 4:
- 		return (set->sig[3] | set->sig[2] |
-@@ -77,7 +76,7 @@ static inline int sigisemptyset(sigset_t
- 	case 1:
- 		return set->sig[0] == 0;
- 	default:
--		_NSIG_WORDS_is_unsupported_size();
-+		BUILD_BUG();
- 		return 0;
+ 	if (*args) {
+-		pr_err("'bind' command doesn't take an argument");
++		pr_err("'bind' command doesn't take an argument\n");
+ 		return -EINVAL;
  	}
- }
-@@ -90,24 +89,23 @@ static inline int sigisemptyset(sigset_t
- #define _SIG_SET_BINOP(name, op)					\
- static inline void name(sigset_t *r, const sigset_t *a, const sigset_t *b) \
- {									\
--	extern void _NSIG_WORDS_is_unsupported_size(void);		\
- 	unsigned long a0, a1, a2, a3, b0, b1, b2, b3;			\
- 									\
- 	switch (_NSIG_WORDS) {						\
--	    case 4:							\
-+	case 4:								\
- 		a3 = a->sig[3]; a2 = a->sig[2];				\
- 		b3 = b->sig[3]; b2 = b->sig[2];				\
- 		r->sig[3] = op(a3, b3);					\
- 		r->sig[2] = op(a2, b2);					\
--	    case 2:							\
-+	case 2:								\
- 		a1 = a->sig[1]; b1 = b->sig[1];				\
- 		r->sig[1] = op(a1, b1);					\
--	    case 1:							\
-+	case 1:								\
- 		a0 = a->sig[0]; b0 = b->sig[0];				\
- 		r->sig[0] = op(a0, b0);					\
- 		break;							\
--	    default:							\
--		_NSIG_WORDS_is_unsupported_size();			\
-+	default:							\
-+		BUILD_BUG();						\
- 	}								\
+ 
+ 	if (!cache->rootdirname) {
+-		pr_err("No cache directory specified");
++		pr_err("No cache directory specified\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	/* don't permit already bound caches to be re-bound */
+ 	if (test_bit(CACHEFILES_READY, &cache->flags)) {
+-		pr_err("Cache already bound");
++		pr_err("Cache already bound\n");
+ 		return -EBUSY;
+ 	}
+ 
+@@ -248,7 +248,7 @@ error_open_root:
+ 	kmem_cache_free(cachefiles_object_jar, fsdef);
+ error_root_object:
+ 	cachefiles_end_secure(cache, saved_cred);
+-	pr_err("Failed to register: %d", ret);
++	pr_err("Failed to register: %d\n", ret);
+ 	return ret;
  }
  
-@@ -128,16 +126,14 @@ _SIG_SET_BINOP(sigandnsets, _sig_andn)
- #define _SIG_SET_OP(name, op)						\
- static inline void name(sigset_t *set)					\
- {									\
--	extern void _NSIG_WORDS_is_unsupported_size(void);		\
--									\
- 	switch (_NSIG_WORDS) {						\
--	    case 4: set->sig[3] = op(set->sig[3]);			\
--		    set->sig[2] = op(set->sig[2]);			\
--	    case 2: set->sig[1] = op(set->sig[1]);			\
--	    case 1: set->sig[0] = op(set->sig[0]);			\
-+	case 4:	set->sig[3] = op(set->sig[3]);				\
-+		set->sig[2] = op(set->sig[2]);				\
-+	case 2:	set->sig[1] = op(set->sig[1]);				\
-+	case 1:	set->sig[0] = op(set->sig[0]);				\
- 		    break;						\
--	    default:							\
--		_NSIG_WORDS_is_unsupported_size();			\
-+	default:							\
-+		BUILD_BUG();						\
- 	}								\
+diff -puN fs/cachefiles/daemon.c~fs-cachefiles-add-missing-n-to-kerror-conversions fs/cachefiles/daemon.c
+--- a/fs/cachefiles/daemon.c~fs-cachefiles-add-missing-n-to-kerror-conversions
++++ a/fs/cachefiles/daemon.c
+@@ -315,7 +315,7 @@ static unsigned int cachefiles_daemon_po
+ static int cachefiles_daemon_range_error(struct cachefiles_cache *cache,
+ 					 char *args)
+ {
+-	pr_err("Free space limits must be in range 0%%<=stop<cull<run<100%%");
++	pr_err("Free space limits must be in range 0%%<=stop<cull<run<100%%\n");
+ 
+ 	return -EINVAL;
+ }
+@@ -475,12 +475,12 @@ static int cachefiles_daemon_dir(struct
+ 	_enter(",%s", args);
+ 
+ 	if (!*args) {
+-		pr_err("Empty directory specified");
++		pr_err("Empty directory specified\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (cache->rootdirname) {
+-		pr_err("Second cache directory specified");
++		pr_err("Second cache directory specified\n");
+ 		return -EEXIST;
+ 	}
+ 
+@@ -503,12 +503,12 @@ static int cachefiles_daemon_secctx(stru
+ 	_enter(",%s", args);
+ 
+ 	if (!*args) {
+-		pr_err("Empty security context specified");
++		pr_err("Empty security context specified\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (cache->secctx) {
+-		pr_err("Second security context specified");
++		pr_err("Second security context specified\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -531,7 +531,7 @@ static int cachefiles_daemon_tag(struct
+ 	_enter(",%s", args);
+ 
+ 	if (!*args) {
+-		pr_err("Empty tag specified");
++		pr_err("Empty tag specified\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -562,12 +562,12 @@ static int cachefiles_daemon_cull(struct
+ 		goto inval;
+ 
+ 	if (!test_bit(CACHEFILES_READY, &cache->flags)) {
+-		pr_err("cull applied to unready cache");
++		pr_err("cull applied to unready cache\n");
+ 		return -EIO;
+ 	}
+ 
+ 	if (test_bit(CACHEFILES_DEAD, &cache->flags)) {
+-		pr_err("cull applied to dead cache");
++		pr_err("cull applied to dead cache\n");
+ 		return -EIO;
+ 	}
+ 
+@@ -587,11 +587,11 @@ static int cachefiles_daemon_cull(struct
+ 
+ notdir:
+ 	path_put(&path);
+-	pr_err("cull command requires dirfd to be a directory");
++	pr_err("cull command requires dirfd to be a directory\n");
+ 	return -ENOTDIR;
+ 
+ inval:
+-	pr_err("cull command requires dirfd and filename");
++	pr_err("cull command requires dirfd and filename\n");
+ 	return -EINVAL;
  }
  
+@@ -614,7 +614,7 @@ static int cachefiles_daemon_debug(struc
+ 	return 0;
+ 
+ inval:
+-	pr_err("debug command requires mask");
++	pr_err("debug command requires mask\n");
+ 	return -EINVAL;
+ }
+ 
+@@ -634,12 +634,12 @@ static int cachefiles_daemon_inuse(struc
+ 		goto inval;
+ 
+ 	if (!test_bit(CACHEFILES_READY, &cache->flags)) {
+-		pr_err("inuse applied to unready cache");
++		pr_err("inuse applied to unready cache\n");
+ 		return -EIO;
+ 	}
+ 
+ 	if (test_bit(CACHEFILES_DEAD, &cache->flags)) {
+-		pr_err("inuse applied to dead cache");
++		pr_err("inuse applied to dead cache\n");
+ 		return -EIO;
+ 	}
+ 
+@@ -659,11 +659,11 @@ static int cachefiles_daemon_inuse(struc
+ 
+ notdir:
+ 	path_put(&path);
+-	pr_err("inuse command requires dirfd to be a directory");
++	pr_err("inuse command requires dirfd to be a directory\n");
+ 	return -ENOTDIR;
+ 
+ inval:
+-	pr_err("inuse command requires dirfd and filename");
++	pr_err("inuse command requires dirfd and filename\n");
+ 	return -EINVAL;
+ }
+ 
+diff -puN fs/cachefiles/internal.h~fs-cachefiles-add-missing-n-to-kerror-conversions fs/cachefiles/internal.h
+--- a/fs/cachefiles/internal.h~fs-cachefiles-add-missing-n-to-kerror-conversions
++++ a/fs/cachefiles/internal.h
+@@ -255,7 +255,7 @@ extern int cachefiles_remove_object_xatt
+ 
+ #define cachefiles_io_error(___cache, FMT, ...)		\
+ do {							\
+-	pr_err("I/O Error: " FMT, ##__VA_ARGS__);	\
++	pr_err("I/O Error: " FMT"\n", ##__VA_ARGS__);	\
+ 	fscache_io_error(&(___cache)->cache);		\
+ 	set_bit(CACHEFILES_DEAD, &(___cache)->flags);	\
+ } while (0)
+diff -puN fs/cachefiles/main.c~fs-cachefiles-add-missing-n-to-kerror-conversions fs/cachefiles/main.c
+--- a/fs/cachefiles/main.c~fs-cachefiles-add-missing-n-to-kerror-conversions
++++ a/fs/cachefiles/main.c
+@@ -84,7 +84,7 @@ error_proc:
+ error_object_jar:
+ 	misc_deregister(&cachefiles_dev);
+ error_dev:
+-	pr_err("failed to register: %d", ret);
++	pr_err("failed to register: %d\n", ret);
+ 	return ret;
+ }
+ 
+diff -puN fs/cachefiles/namei.c~fs-cachefiles-add-missing-n-to-kerror-conversions fs/cachefiles/namei.c
+--- a/fs/cachefiles/namei.c~fs-cachefiles-add-missing-n-to-kerror-conversions
++++ a/fs/cachefiles/namei.c
+@@ -543,7 +543,7 @@ lookup_again:
+ 			       next, next->d_inode, next->d_inode->i_ino);
+ 
+ 		} else if (!S_ISDIR(next->d_inode->i_mode)) {
+-			pr_err("inode %lu is not a directory",
++			pr_err("inode %lu is not a directory\n",
+ 			       next->d_inode->i_ino);
+ 			ret = -ENOBUFS;
+ 			goto error;
+@@ -574,7 +574,7 @@ lookup_again:
+ 		} else if (!S_ISDIR(next->d_inode->i_mode) &&
+ 			   !S_ISREG(next->d_inode->i_mode)
+ 			   ) {
+-			pr_err("inode %lu is not a file or directory",
++			pr_err("inode %lu is not a file or directory\n",
+ 			       next->d_inode->i_ino);
+ 			ret = -ENOBUFS;
+ 			goto error;
+@@ -768,7 +768,7 @@ struct dentry *cachefiles_get_directory(
+ 	ASSERT(subdir->d_inode);
+ 
+ 	if (!S_ISDIR(subdir->d_inode->i_mode)) {
+-		pr_err("%s is not a directory", dirname);
++		pr_err("%s is not a directory\n", dirname);
+ 		ret = -EIO;
+ 		goto check_error;
+ 	}
+@@ -796,13 +796,13 @@ check_error:
+ mkdir_error:
+ 	mutex_unlock(&dir->d_inode->i_mutex);
+ 	dput(subdir);
+-	pr_err("mkdir %s failed with error %d", dirname, ret);
++	pr_err("mkdir %s failed with error %d\n", dirname, ret);
+ 	return ERR_PTR(ret);
+ 
+ lookup_error:
+ 	mutex_unlock(&dir->d_inode->i_mutex);
+ 	ret = PTR_ERR(subdir);
+-	pr_err("Lookup %s failed with error %d", dirname, ret);
++	pr_err("Lookup %s failed with error %d\n", dirname, ret);
+ 	return ERR_PTR(ret);
+ 
+ nomem_d_alloc:
+@@ -892,7 +892,7 @@ lookup_error:
+ 	if (ret == -EIO) {
+ 		cachefiles_io_error(cache, "Lookup failed");
+ 	} else if (ret != -ENOMEM) {
+-		pr_err("Internal error: %d", ret);
++		pr_err("Internal error: %d\n", ret);
+ 		ret = -EIO;
+ 	}
+ 
+@@ -951,7 +951,7 @@ error:
+ 	}
+ 
+ 	if (ret != -ENOMEM) {
+-		pr_err("Internal error: %d", ret);
++		pr_err("Internal error: %d\n", ret);
+ 		ret = -EIO;
+ 	}
+ 
+diff -puN fs/cachefiles/xattr.c~fs-cachefiles-add-missing-n-to-kerror-conversions fs/cachefiles/xattr.c
+--- a/fs/cachefiles/xattr.c~fs-cachefiles-add-missing-n-to-kerror-conversions
++++ a/fs/cachefiles/xattr.c
+@@ -51,7 +51,7 @@ int cachefiles_check_object_type(struct
+ 	}
+ 
+ 	if (ret != -EEXIST) {
+-		pr_err("Can't set xattr on %*.*s [%lu] (err %d)",
++		pr_err("Can't set xattr on %*.*s [%lu] (err %d)\n",
+ 		       dentry->d_name.len, dentry->d_name.len,
+ 		       dentry->d_name.name, dentry->d_inode->i_ino,
+ 		       -ret);
+@@ -64,7 +64,7 @@ int cachefiles_check_object_type(struct
+ 		if (ret == -ERANGE)
+ 			goto bad_type_length;
+ 
+-		pr_err("Can't read xattr on %*.*s [%lu] (err %d)",
++		pr_err("Can't read xattr on %*.*s [%lu] (err %d)\n",
+ 		       dentry->d_name.len, dentry->d_name.len,
+ 		       dentry->d_name.name, dentry->d_inode->i_ino,
+ 		       -ret);
+@@ -85,14 +85,14 @@ error:
+ 	return ret;
+ 
+ bad_type_length:
+-	pr_err("Cache object %lu type xattr length incorrect",
++	pr_err("Cache object %lu type xattr length incorrect\n",
+ 	       dentry->d_inode->i_ino);
+ 	ret = -EIO;
+ 	goto error;
+ 
+ bad_type:
+ 	xtype[2] = 0;
+-	pr_err("Cache object %*.*s [%lu] type %s not %s",
++	pr_err("Cache object %*.*s [%lu] type %s not %s\n",
+ 	       dentry->d_name.len, dentry->d_name.len,
+ 	       dentry->d_name.name, dentry->d_inode->i_ino,
+ 	       xtype, type);
+@@ -293,7 +293,7 @@ error:
+ 	return ret;
+ 
+ bad_type_length:
+-	pr_err("Cache object %lu xattr length incorrect",
++	pr_err("Cache object %lu xattr length incorrect\n",
+ 	       dentry->d_inode->i_ino);
+ 	ret = -EIO;
+ 	goto error;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-fs-proc-task_mmuc-dont-use-task-mm-in-m_start-and-show_map.patch
-fs-proc-task_mmuc-unify-simplify-do_maps_open-and-numa_maps_open.patch
-proc-introduce-proc_mem_open.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_mmuc-cleanup-the-tail_vma-horror-in-m_next.patch
-fs-proc-task_mmuc-shift-priv-task-=-null-from-m_start-to-m_stop.patch
-fs-proc-task_mmuc-kill-the-suboptimal-and-confusing-m-version-logic.patch
-fs-proc-task_mmuc-simplify-m_start-to-make-it-readable.patch
-fs-proc-task_mmuc-introduce-m_next_vma-helper.patch
-fs-proc-task_mmuc-reintroduce-m-version-logic.patch
-fs-proc-task_mmuc-update-m-version-in-the-main-loop-in-m_start.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_nommuc-dont-use-priv-task-mm.patch
-proc-maps-replace-proc_maps_private-pid-with-struct-inode-inode.patch
-proc-maps-make-vm_is_stack-logic-namespace-friendly.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put.patch
-mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
-mempolicy-sanitize-the-usage-of-get_task_policy.patch
-mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
-mempolicy-introduce-__get_vma_policy-export-get_task_policy.patch
-mempolicy-fix-show_numa_map-vs-exec-do_set_mempolicy-race.patch
-mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
-mempolicy-unexport-get_vma_policy-and-remove-its-task-arg.patch
-signal-use-build_bug-instead-of-_nsig_words_is_unsupported_size.patch
-coredump-add-%i-%i-in-core_pattern-to-report-the-tid-of-the-crashed-thread.patch
-ipc-shm-kill-the-historical-wrong-mm-start_stack-check.patch
+origin.patch
+fs-cachefiles-add-missing-n-to-kerror-conversions.patch
+fs-cifs-remove-obsolete-__constant.patch
+fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
+fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
+kernel-posix-timersc-code-clean-up.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-reiserfs-journalc-fix-sparse-context-imbalance-warning.patch
 linux-next.patch
 
