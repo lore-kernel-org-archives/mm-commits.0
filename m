@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
- added to -mm tree
-Date: Wed, 24 Sep 2014 15:30:45 -0700
-Message-ID: <54234615.pMx+r1unPDDo30Jn%akpm@linux-foundation.org>
+ drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 24 Sep 2014 15:30:48 -0700
+Message-ID: <54234618.eEMEizqtSa6B8UFh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51250 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750821AbaIXWaq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Sep 2014 18:30:46 -0400
+	with ESMTP id S1751228AbaIXWat (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Sep 2014 18:30:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, arnd@arndb.de, grant.likely@linaro.org, iamjoonsoo.kim@lge.com, joshc@codeaurora.org, kyungmin.park@samsung.com, lauraa@codeaurora.org, m.szyprowski@samsung.com, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers-dma-coherent-add-initialization-from-device-tree-fix-fix
+     Subject: drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
+     drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,9 +40,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-dma-coherent-add-initialization-from-device-tree-fix-fix
+Subject: drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes
 
-use more appropriate printk facility levels
+Cc: Arnd Bergmann <arnd@arndb.de>
+
+WARNING: Missing a blank line after declarations
+#140: FILE: drivers/base/dma-contiguous.c:229:
++	struct cma *cma = rmem->priv;
++	if (!cma)
+
+total: 0 errors, 1 warnings, 163 lines checked
+
+./patches/drivers-dma-contiguous-add-initialization-from-device-tree.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Grant Likely <grant.likely@linaro.org>
@@ -56,30 +69,20 @@ Cc: Michal Nazarewicz <mina86@mina86.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dma-coherent.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/dma-contiguous.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/base/dma-coherent.c~drivers-dma-coherent-add-initialization-from-device-tree-fix-fix drivers/base/dma-coherent.c
---- a/drivers/base/dma-coherent.c~drivers-dma-coherent-add-initialization-from-device-tree-fix-fix
-+++ a/drivers/base/dma-coherent.c
-@@ -283,7 +283,7 @@ static int rmem_dma_device_init(struct r
- 	    dma_init_coherent_memory(rmem->base, rmem->base, rmem->size,
- 				     DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE,
- 				     &mem) != DMA_MEMORY_MAP) {
--		pr_info("Reserved memory: failed to init DMA memory pool at %pa, size %ld MiB\n",
-+		pr_err("Reserved memory: failed to init DMA memory pool at %pa, size %ld MiB\n",
- 			&rmem->base, (unsigned long)rmem->size / SZ_1M);
+diff -puN drivers/base/dma-contiguous.c~drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes drivers/base/dma-contiguous.c
+--- a/drivers/base/dma-contiguous.c~drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes
++++ a/drivers/base/dma-contiguous.c
+@@ -226,6 +226,7 @@ bool dma_release_from_contiguous(struct
+ static int rmem_cma_device_init(struct reserved_mem *rmem, struct device *dev)
+ {
+ 	struct cma *cma = rmem->priv;
++
+ 	if (!cma)
  		return -ENODEV;
- 	}
-@@ -312,7 +312,7 @@ static int __init rmem_dma_setup(struct
  
- #ifdef CONFIG_ARM
- 	if (!of_get_flat_dt_prop(node, "no-map", NULL)) {
--		pr_info("Reserved memory: regions without no-map are not yet supported\n");
-+		pr_err("Reserved memory: regions without no-map are not yet supported\n");
- 		return -EINVAL;
- 	}
- #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
