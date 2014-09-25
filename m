@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-do-not-iterate-uninitialized-memcgs.patch added
- to -mm tree
-Date: Thu, 25 Sep 2014 13:52:59 -0700
-Message-ID: <542480ab.J8pI2Zm2ZcDC7MQE%akpm@linux-foundation.org>
+Subject: +
+ drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch added to -mm tree
+Date: Thu, 25 Sep 2014 14:08:51 -0700
+Message-ID: <54248463.C5DsrLn2ypeJAEI3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35642 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750889AbaIYUxA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Sep 2014 16:53:00 -0400
+	with ESMTP id S1751753AbaIYVIw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Sep 2014 17:08:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, peterz@infradead.org, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, k.kozlowski@samsung.com, lee.jones@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: do not iterate uninitialized memcgs
+     Subject: drivers/power/Kconfig: revert part of "charger: max14577: Add support for MAX77836 charger"
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-do-not-iterate-uninitialized-memcgs.patch
+     drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-do-not-iterate-uninitialized-memcgs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-do-not-iterate-uninitialized-memcgs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,123 +39,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: do not iterate uninitialized memcgs
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/power/Kconfig: revert part of "charger: max14577: Add support for MAX77836 charger"
 
-The cgroup iterators yield css objects that have not yet gone through
-css_online(), but they are not complete memcgs at this point and so the
-memcg iterators should not return them.  d8ad30559715 ("mm/memcg:
-iteration skip memcgs not yet fully initialized") set out to implement
-exactly this, but it uses CSS_ONLINE, a cgroup-internal flag that does not
-meet the ordering requirements for memcg, and so the iterator may skip
-over initialized groups, or return partially initialized memcgs.
+`make allnoconfig':
 
-The cgroup core can not reasonably provide a clear answer on whether the
-object around the css has been fully initialized, as that depends on
-controller-specific locking and lifetime rules.  Thus, introduce a
-memcg-specific flag that is set after the memcg has been initialized in
-css_online(), and read before mem_cgroup_iter() callers access the memcg
-members.
+scripts/kconfig/conf --allnoconfig Kconfig
+#
+# configuration written to .config
+#
+make: `allnoconfig' is up to date.
+fs/sysfs/Kconfig:1:error: recursive dependency detected!
+fs/sysfs/Kconfig:1:     symbol SYSFS is selected by CHARGER_MAX14577
+drivers/power/Kconfig:327:      symbol CHARGER_MAX14577 depends on POWER_SUPPLY
+drivers/power/Kconfig:1:        symbol POWER_SUPPLY is selected by HID_SONY
+drivers/hid/Kconfig:649:        symbol HID_SONY depends on NEW_LEDS
+drivers/leds/Kconfig:8: symbol NEW_LEDS is selected by SENSORS_APPLESMC
+drivers/hwmon/Kconfig:299:      symbol SENSORS_APPLESMC depends on HWMON
+drivers/hwmon/Kconfig:5:        symbol HWMON is selected by EEEPC_LAPTOP
+drivers/platform/x86/Kconfig:496:       symbol EEEPC_LAPTOP depends on HOTPLUG_PCI
+drivers/pci/hotplug/Kconfig:5:  symbol HOTPLUG_PCI depends on SYSFS
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <tj@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: <stable@vger.kernel.org>	[3.12+]
+
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Lee Jones <lee.jones@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   36 +++++++++++++++++++++++++++++++-----
- 1 file changed, 31 insertions(+), 5 deletions(-)
+ drivers/power/Kconfig |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-do-not-iterate-uninitialized-memcgs mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-do-not-iterate-uninitialized-memcgs
-+++ a/mm/memcontrol.c
-@@ -292,6 +292,9 @@ struct mem_cgroup {
- 	/* vmpressure notifications */
- 	struct vmpressure vmpressure;
+diff -puN drivers/power/Kconfig~drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger drivers/power/Kconfig
+--- a/drivers/power/Kconfig~drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger
++++ a/drivers/power/Kconfig
+@@ -325,12 +325,11 @@ config CHARGER_MANAGER
+           with help of suspend_again support.
  
-+	/* css_online() has been completed */
-+	int initialized;
-+
- 	/*
- 	 * the counter to account for mem+swap usage.
- 	 */
-@@ -1099,10 +1102,21 @@ skip_node:
- 	 * skipping css reference should be safe.
- 	 */
- 	if (next_css) {
--		if ((next_css == &root->css) ||
--		    ((next_css->flags & CSS_ONLINE) &&
--		     css_tryget_online(next_css)))
--			return mem_cgroup_from_css(next_css);
-+		struct mem_cgroup *memcg = mem_cgroup_from_css(next_css);
-+
-+		if (next_css == &root->css)
-+			return memcg;
-+
-+		if (css_tryget_online(next_css)) {
-+			/*
-+			 * Make sure the memcg is initialized:
-+			 * mem_cgroup_css_online() orders the the
-+			 * initialization against setting the flag.
-+			 */
-+			if (smp_load_acquire(&memcg->initialized))
-+				return memcg;
-+			css_put(next_css);
-+		}
+ config CHARGER_MAX14577
+-	tristate "Maxim MAX14577/77836 battery charger driver"
++	tristate "Maxim MAX14577 MUIC battery charger driver"
+ 	depends on MFD_MAX14577
+-	select SYSFS
+ 	help
+ 	  Say Y to enable support for the battery charger control sysfs and
+-	  platform data of MAX14577/77836 MUICs.
++	  platform data of MAX14577 MUICs.
  
- 		prev_css = next_css;
- 		goto skip_node;
-@@ -5549,6 +5563,7 @@ mem_cgroup_css_online(struct cgroup_subs
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
- 	struct mem_cgroup *parent = mem_cgroup_from_css(css->parent);
-+	int ret;
- 
- 	if (css->id > MEM_CGROUP_ID_MAX)
- 		return -ENOSPC;
-@@ -5585,7 +5600,18 @@ mem_cgroup_css_online(struct cgroup_subs
- 	}
- 	mutex_unlock(&memcg_create_mutex);
- 
--	return memcg_init_kmem(memcg, &memory_cgrp_subsys);
-+	ret = memcg_init_kmem(memcg, &memory_cgrp_subsys);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * Make sure the memcg is initialized: mem_cgroup_iter()
-+	 * orders reading memcg->initialized against its callers
-+	 * reading the memcg members.
-+	 */
-+	smp_store_release(&memcg->initialized, 1);
-+
-+	return 0;
- }
- 
- /*
+ config CHARGER_MAX8997
+ 	tristate "Maxim MAX8997/MAX8966 PMIC battery charger driver"
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-fix-zone-allocation-fairness-on-up.patch
-mm-memcontrol-do-not-iterate-uninitialized-memcgs.patch
-mm-remove-misleading-arch_uses_numa_prot_none.patch
-mm-page_alloc-determine-migratetype-only-once.patch
-mm-remove-noisy-remainder-of-the-scan_unevictable-interface.patch
-mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
-mm-clean-up-zone-flags.patch
-mm-page_alloc-make-paranoid-check-in-move_freepages-a-vm_bug_on.patch
-mm-page_alloc-default-node-ordering-on-64-bit-numa-zone-ordering-on-32-bit-v2.patch
-memcg-move-memcg_allocfree_cache_params-to-slab_commonc.patch
-memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
-memcg-move-memcg_update_cache_size-to-slab_commonc.patch
-mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache.patch
-mm-memcontrol-simplify-detecting-when-the-memoryswap-limit-is-hit.patch
-mm-memcontrol-fix-transparent-huge-page-allocations-under-pressure.patch
-memcg-zap-memcg_can_account_kmem.patch
+origin.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+nilfs2-fix-data-loss-with-mmap-fix.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+kernel-add-support-for-gcc-5-checkpatch-fixes.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
+mm-debugc-use-pr_emerg.patch
+mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
+drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+rtc-rk808-add-rtc-driver-for-rk808-fix.patch
+rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
+rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
+rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
+drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+lib-string_helpers-introduce-string_escape_mem-fix.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
 debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
