@@ -1,38 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- fat-zero-out-seek-range-on-_fat_get_block-v4.patch removed from -mm tree
-Date: Thu, 25 Sep 2014 12:56:00 -0700
-Message-ID: <54247350.KlSWWumVLTo076sw%akpm@linux-foundation.org>
+ fat-fallback-to-buffered-write-in-case-of-fallocated-region-on-direct-io-v4.patch removed from -mm tree
+Date: Thu, 25 Sep 2014 12:56:02 -0700
+Message-ID: <54247352.ExX1zKnjpbcaAbk1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35324 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35328 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751543AbaIYT4A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Sep 2014 15:56:00 -0400
+	with ESMTP id S1751543AbaIYT4C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Sep 2014 15:56:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: zero out seek range on _fat_get_block
+     Subject: fat: fallback to buffered write in case of fallocated region on direct IO
 has been removed from the -mm tree.  Its filename was
-     fat-zero-out-seek-range-on-_fat_get_block-v4.patch
+     fat-fallback-to-buffered-write-in-case-of-fallocated-region-on-direct-io-v4.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: zero out seek range on _fat_get_block
+Subject: fat: fallback to buffered write in case of fallocated region on direct IO
 
-For normal buffered write operations, normally if we try to write to an
-offset > than file size, it does a cont_expand_zero till that offset. 
-Now, in case of fallocated regions, since the blocks are already
-allocated.  So, make it zero out that buffers for those blocks till the
-seek'ed offset.
+For normal cases of direct IO write, trying to seek to location greater
+than file size, makes it fall back to buffered write to fill that region. 
+Similarly, in case for write in Fallocated region, make it fall to
+buffered write.
 
 Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
 Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
@@ -40,57 +39,31 @@ Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+ fs/fat/inode.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/fat/inode.c~fat-zero-out-seek-range-on-_fat_get_block-v4 fs/fat/inode.c
---- a/fs/fat/inode.c~fat-zero-out-seek-range-on-_fat_get_block-v4
+diff -puN fs/fat/inode.c~fat-fallback-to-buffered-write-in-case-of-fallocated-region-on-direct-io-v4 fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-fallback-to-buffered-write-in-case-of-fallocated-region-on-direct-io-v4
 +++ a/fs/fat/inode.c
-@@ -116,6 +116,25 @@ static int fat_add_cluster(struct inode
- 	return err;
- }
- 
-+static void check_fallocated_region(struct inode *inode, sector_t iblock,
-+		unsigned long *max_blocks, struct buffer_head *bh_result)
-+{
-+	struct super_block *sb = inode->i_sb;
-+	sector_t last_block, disk_block;
-+	const unsigned long blocksize = sb->s_blocksize;
-+	const unsigned char blocksize_bits = sb->s_blocksize_bits;
+@@ -292,6 +292,13 @@ static ssize_t fat_direct_IO(int rw, str
+ 		loff_t size = offset + count;
+ 		if (MSDOS_I(inode)->mmu_private < size)
+ 			return 0;
 +
-+	last_block = (MSDOS_I(inode)->mmu_private + (blocksize - 1))
-+		>> blocksize_bits;
-+	disk_block = (MSDOS_I(inode)->i_disksize + (blocksize - 1))
-+		>> blocksize_bits;
-+	if (iblock >= last_block && iblock <= disk_block) {
-+		MSDOS_I(inode)->mmu_private += *max_blocks << blocksize_bits;
-+		set_buffer_new(bh_result);
-+	}
-+
-+}
-+
- static inline int __fat_get_block(struct inode *inode, sector_t iblock,
- 				  unsigned long *max_blocks,
- 				  struct buffer_head *bh_result, int create)
-@@ -130,8 +149,11 @@ static inline int __fat_get_block(struct
- 	if (err)
- 		return err;
- 	if (phys) {
--		map_bh(bh_result, sb, phys);
- 		*max_blocks = min(mapped_blocks, *max_blocks);
-+		if (create)
-+			check_fallocated_region(inode, iblock, max_blocks,
-+				bh_result);
-+		map_bh(bh_result, sb, phys);
- 		return 0;
++		/*
++		 * In case of writing in fallocated region, return 0 and
++		 * fallback to buffered write.
++		 */
++		if (MSDOS_I(inode)->i_disksize > MSDOS_I(inode)->mmu_private)
++			return 0;
  	}
- 	if (!create)
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from namjae.jeon@samsung.com are
 
 linux-next.patch
-fat-fallback-to-buffered-write-in-case-of-fallocated-region-on-direct-io-v4.patch
 fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region-v4.patch
 documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate-v4.patch
 
