@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fat-add-i_disksize-to-represent-uninitialized-size.patch added
- to -mm tree
-Date: Thu, 25 Sep 2014 13:26:50 -0700
-Message-ID: <54247a8a.k8AkYRiJ4gCNHOXv%akpm@linux-foundation.org>
+Subject: +
+ fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
+ added to -mm tree
+Date: Thu, 25 Sep 2014 13:26:53 -0700
+Message-ID: <54247a8d.yV8hvimk3O+N8tuM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35463 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187AbaIYU0v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Sep 2014 16:26:51 -0400
+	with ESMTP id S1751321AbaIYU0y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Sep 2014 16:26:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: add i_disksize to represent uninitialized size
+     Subject: fat: permit to return phy block number by fibmap in fallocated region
 has been added to the -mm tree.  Its filename is
-     fat-add-i_disksize-to-represent-uninitialized-size.patch
+     fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fat-add-i_disksize-to-represent-uninitialized-size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fat-add-i_disksize-to-represent-uninitialized-size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,17 +41,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: add i_disksize to represent uninitialized size
+Subject: fat: permit to return phy block number by fibmap in fallocated region
 
-This patchset provides support for doing fallocate operation on FAT
-filesystem.
-
-
-This patch (of 5):
-
-Add i_disksize to represent uninitialized allocated size.  And mmu_private
-represent initialized allocated size.  i_disksize - is always kept cluster
-size aligned mmu_private - is normally block size aligned
+Make the fibmap call the return the proper physical block number for any
+offset request in the fallocated range.
 
 Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
 Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
@@ -58,90 +52,137 @@ Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fat.h   |    3 ++-
- fs/fat/file.c  |    5 ++++-
- fs/fat/inode.c |   11 +++++++++--
- 3 files changed, 15 insertions(+), 4 deletions(-)
+ fs/fat/cache.c |   40 +++++++++++++++++++++++++++-------------
+ fs/fat/fat.h   |    3 +++
+ fs/fat/inode.c |   35 ++++++++++++++++++++++++++++++++++-
+ 3 files changed, 64 insertions(+), 14 deletions(-)
 
-diff -puN fs/fat/fat.h~fat-add-i_disksize-to-represent-uninitialized-size fs/fat/fat.h
---- a/fs/fat/fat.h~fat-add-i_disksize-to-represent-uninitialized-size
-+++ a/fs/fat/fat.h
-@@ -119,7 +119,8 @@ struct msdos_inode_info {
- 	unsigned int cache_valid_id;
- 
- 	/* NOTE: mmu_private is 64bits, so must hold ->i_mutex to access */
--	loff_t mmu_private;	/* physically allocated size */
-+	loff_t mmu_private;	/* physically allocated size (initialized) */
-+	loff_t i_disksize;	/* physically allocated size (uninitialized) */
- 
- 	int i_start;		/* first cluster or 0 */
- 	int i_logstart;		/* logical first cluster */
-diff -puN fs/fat/file.c~fat-add-i_disksize-to-represent-uninitialized-size fs/fat/file.c
---- a/fs/fat/file.c~fat-add-i_disksize-to-represent-uninitialized-size
-+++ a/fs/fat/file.c
-@@ -300,8 +300,11 @@ void fat_truncate_blocks(struct inode *i
- 	 * This protects against truncating a file bigger than it was then
- 	 * trying to write into the hole.
- 	 */
--	if (MSDOS_I(inode)->mmu_private > offset)
-+	if (MSDOS_I(inode)->mmu_private > offset) {
- 		MSDOS_I(inode)->mmu_private = offset;
-+		MSDOS_I(inode)->i_disksize = round_up(offset,
-+			sbi->cluster_size);
-+	}
- 
- 	nr_clusters = (offset + (cluster_size - 1)) >> sbi->cluster_bits;
- 
-diff -puN fs/fat/inode.c~fat-add-i_disksize-to-represent-uninitialized-size fs/fat/inode.c
---- a/fs/fat/inode.c~fat-add-i_disksize-to-represent-uninitialized-size
-+++ a/fs/fat/inode.c
-@@ -104,6 +104,7 @@ static struct fat_floppy_defaults {
- static int fat_add_cluster(struct inode *inode)
- {
- 	int err, cluster;
-+	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
- 
- 	err = fat_alloc_clusters(inode, &cluster, 1);
- 	if (err)
-@@ -113,6 +114,9 @@ static int fat_add_cluster(struct inode
- 	err = fat_chain_add(inode, cluster, 1);
- 	if (err)
- 		fat_free_clusters(inode, cluster);
-+	else
-+		MSDOS_I(inode)->i_disksize += sbi->cluster_size;
-+
- 	return err;
+diff -puN fs/fat/cache.c~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region fs/fat/cache.c
+--- a/fs/fat/cache.c~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region
++++ a/fs/fat/cache.c
+@@ -303,6 +303,31 @@ static int fat_bmap_cluster(struct inode
+ 	return dclus;
  }
  
-@@ -469,7 +473,6 @@ int fat_fill_inode(struct inode *inode,
- 		error = fat_calc_dir_size(inode);
- 		if (error < 0)
- 			return error;
--		MSDOS_I(inode)->mmu_private = inode->i_size;
++int fat_get_mapped_cluster(struct inode *inode, sector_t sector,
++			   sector_t last_block,
++			   unsigned long *mapped_blocks, sector_t *bmap)
++{
++	struct super_block *sb = inode->i_sb;
++	struct msdos_sb_info *sbi = MSDOS_SB(sb);
++	int cluster, offset;
++
++	cluster = sector >> (sbi->cluster_bits - sb->s_blocksize_bits);
++	offset  = sector & (sbi->sec_per_clus - 1);
++	cluster = fat_bmap_cluster(inode, cluster);
++
++	if (cluster < 0)
++		return cluster;
++
++	else if (cluster) {
++		*bmap = fat_clus_to_blknr(sbi, cluster) + offset;
++		*mapped_blocks = sbi->sec_per_clus - offset;
++		if (*mapped_blocks > last_block - sector)
++			*mapped_blocks = last_block - sector;
++	}
++
++	return 0;
++}
++
+ int fat_bmap(struct inode *inode, sector_t sector, sector_t *phys,
+ 	     unsigned long *mapped_blocks, int create)
+ {
+@@ -311,7 +336,6 @@ int fat_bmap(struct inode *inode, sector
+ 	const unsigned long blocksize = sb->s_blocksize;
+ 	const unsigned char blocksize_bits = sb->s_blocksize_bits;
+ 	sector_t last_block;
+-	int cluster, offset;
  
- 		set_nlink(inode, fat_subdirs(inode));
- 	} else { /* not a directory */
-@@ -484,8 +487,11 @@ int fat_fill_inode(struct inode *inode,
- 		inode->i_op = &fat_file_inode_operations;
- 		inode->i_fop = &fat_file_operations;
- 		inode->i_mapping->a_ops = &fat_aops;
--		MSDOS_I(inode)->mmu_private = inode->i_size;
+ 	*phys = 0;
+ 	*mapped_blocks = 0;
+@@ -338,16 +362,6 @@ int fat_bmap(struct inode *inode, sector
+ 			return 0;
  	}
-+
-+	MSDOS_I(inode)->mmu_private = inode->i_size;
-+	MSDOS_I(inode)->i_disksize = round_up(inode->i_size, sbi->cluster_size);
-+
- 	if (de->attr & ATTR_SYS) {
- 		if (sbi->options.sys_immutable)
- 			inode->i_flags |= S_IMMUTABLE;
-@@ -1293,6 +1299,7 @@ static int fat_read_root(struct inode *i
- 			   & ~((loff_t)sbi->cluster_size - 1)) >> 9;
- 	MSDOS_I(inode)->i_logstart = 0;
- 	MSDOS_I(inode)->mmu_private = inode->i_size;
-+	MSDOS_I(inode)->i_disksize = round_up(inode->i_size, sbi->cluster_size);
  
- 	fat_save_attrs(inode, ATTR_DIR);
- 	inode->i_mtime.tv_sec = inode->i_atime.tv_sec = inode->i_ctime.tv_sec = 0;
+-	cluster = sector >> (sbi->cluster_bits - sb->s_blocksize_bits);
+-	offset  = sector & (sbi->sec_per_clus - 1);
+-	cluster = fat_bmap_cluster(inode, cluster);
+-	if (cluster < 0)
+-		return cluster;
+-	else if (cluster) {
+-		*phys = fat_clus_to_blknr(sbi, cluster) + offset;
+-		*mapped_blocks = sbi->sec_per_clus - offset;
+-		if (*mapped_blocks > last_block - sector)
+-			*mapped_blocks = last_block - sector;
+-	}
+-	return 0;
++	return fat_get_mapped_cluster(inode, sector, last_block, mapped_blocks,
++				      phys);
+ }
+diff -puN fs/fat/fat.h~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region
++++ a/fs/fat/fat.h
+@@ -289,6 +289,9 @@ static inline void fatwchar_to16(__u8 *d
+ extern void fat_cache_inval_inode(struct inode *inode);
+ extern int fat_get_cluster(struct inode *inode, int cluster,
+ 			   int *fclus, int *dclus);
++extern int fat_get_mapped_cluster(struct inode *inode, sector_t sector,
++				  sector_t last_block,
++				  unsigned long *mapped_blocks, sector_t *bmap);
+ extern int fat_bmap(struct inode *inode, sector_t sector, sector_t *phys,
+ 		    unsigned long *mapped_blocks, int create);
+ 
+diff -puN fs/fat/inode.c~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region
++++ a/fs/fat/inode.c
+@@ -294,13 +294,46 @@ static ssize_t fat_direct_IO(int rw, str
+ 	return ret;
+ }
+ 
++static int fat_get_block_bmap(struct inode *inode, sector_t iblock,
++		struct buffer_head *bh_result, int create)
++{
++	struct super_block *sb = inode->i_sb;
++	unsigned long max_blocks = bh_result->b_size >> inode->i_blkbits;
++	int err;
++	sector_t bmap, last_block;
++	unsigned long mapped_blocks;
++	const unsigned long blocksize = sb->s_blocksize;
++	const unsigned char blocksize_bits = sb->s_blocksize_bits;
++
++	BUG_ON(create != 0);
++
++	last_block = (MSDOS_I(inode)->i_disksize + (blocksize - 1))
++		>> blocksize_bits;
++
++	if (iblock >= last_block)
++		return 0;
++
++	err = fat_get_mapped_cluster(inode, iblock, last_block, &mapped_blocks,
++		&bmap);
++	if (err)
++		return err;
++
++	if (bmap) {
++		map_bh(bh_result, sb, bmap);
++		max_blocks = min(mapped_blocks, max_blocks);
++	}
++
++	bh_result->b_size = max_blocks << sb->s_blocksize_bits;
++	return 0;
++}
++
+ static sector_t _fat_bmap(struct address_space *mapping, sector_t block)
+ {
+ 	sector_t blocknr;
+ 
+ 	/* fat_get_cluster() assumes the requested blocknr isn't truncated. */
+ 	down_read(&MSDOS_I(mapping->host)->truncate_lock);
+-	blocknr = generic_block_bmap(mapping, block, fat_get_block);
++	blocknr = generic_block_bmap(mapping, block, fat_get_block_bmap);
+ 	up_read(&MSDOS_I(mapping->host)->truncate_lock);
+ 
+ 	return blocknr;
 _
 
 Patches currently in -mm which might be from namjae.jeon@samsung.com are
