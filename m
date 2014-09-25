@@ -1,92 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch added to -mm tree
-Date: Thu, 25 Sep 2014 14:08:51 -0700
-Message-ID: <54248463.C5DsrLn2ypeJAEI3%akpm@linux-foundation.org>
+Subject: [folded-merged] nilfs2-fix-data-loss-with-mmap-fix.patch removed
+ from -mm tree
+Date: Thu, 25 Sep 2014 16:02:38 -0700
+Message-ID: <54249f0e.t5vustRSssxLyjOQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35642 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36124 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753AbaIYVIw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Sep 2014 17:08:52 -0400
+	with ESMTP id S1751981AbaIYXCj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Sep 2014 19:02:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, k.kozlowski@samsung.com, lee.jones@linaro.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/power/Kconfig: revert part of "charger: max14577: Add support for MAX77836 charger"
-has been added to the -mm tree.  Its filename is
-     drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch
+     Subject: nilfs2-fix-data-loss-with-mmap-fix
+has been removed from the -mm tree.  Its filename was
+     nilfs2-fix-data-loss-with-mmap-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into nilfs2-fix-data-loss-with-mmap.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/power/Kconfig: revert part of "charger: max14577: Add support for MAX77836 charger"
+Subject: nilfs2-fix-data-loss-with-mmap-fix
 
-`make allnoconfig':
+s/PAGE_SHIFT/PAGE_CACHE_SHIFT/
 
-scripts/kconfig/conf --allnoconfig Kconfig
-#
-# configuration written to .config
-#
-make: `allnoconfig' is up to date.
-fs/sysfs/Kconfig:1:error: recursive dependency detected!
-fs/sysfs/Kconfig:1:     symbol SYSFS is selected by CHARGER_MAX14577
-drivers/power/Kconfig:327:      symbol CHARGER_MAX14577 depends on POWER_SUPPLY
-drivers/power/Kconfig:1:        symbol POWER_SUPPLY is selected by HID_SONY
-drivers/hid/Kconfig:649:        symbol HID_SONY depends on NEW_LEDS
-drivers/leds/Kconfig:8: symbol NEW_LEDS is selected by SENSORS_APPLESMC
-drivers/hwmon/Kconfig:299:      symbol SENSORS_APPLESMC depends on HWMON
-drivers/hwmon/Kconfig:5:        symbol HWMON is selected by EEEPC_LAPTOP
-drivers/platform/x86/Kconfig:496:       symbol EEEPC_LAPTOP depends on HOTPLUG_PCI
-drivers/pci/hotplug/Kconfig:5:  symbol HOTPLUG_PCI depends on SYSFS
-
-
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
+Cc: <stable@vger.kernel.org>
+Cc: Andreas Rohner <andreas.rohner@gmx.net>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/Kconfig |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/nilfs2/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/power/Kconfig~drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger drivers/power/Kconfig
---- a/drivers/power/Kconfig~drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger
-+++ a/drivers/power/Kconfig
-@@ -325,12 +325,11 @@ config CHARGER_MANAGER
-           with help of suspend_again support.
+diff -puN fs/nilfs2/inode.c~nilfs2-fix-data-loss-with-mmap-fix fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-fix-data-loss-with-mmap-fix
++++ a/fs/nilfs2/inode.c
+@@ -24,6 +24,7 @@
+ #include <linux/buffer_head.h>
+ #include <linux/gfp.h>
+ #include <linux/mpage.h>
++#include <linux/pagemap.h>
+ #include <linux/writeback.h>
+ #include <linux/aio.h>
+ #include "nilfs.h"
+@@ -246,7 +247,7 @@ static int nilfs_set_page_dirty(struct p
+ 		if (nr_dirty)
+ 			nilfs_set_file_dirty(inode, nr_dirty);
+ 	} else if (ret) {
+-		unsigned nr_dirty = 1 << (PAGE_SHIFT - inode->i_blkbits);
++		unsigned nr_dirty = 1 << (PAGE_CACHE_SHIFT - inode->i_blkbits);
  
- config CHARGER_MAX14577
--	tristate "Maxim MAX14577/77836 battery charger driver"
-+	tristate "Maxim MAX14577 MUIC battery charger driver"
- 	depends on MFD_MAX14577
--	select SYSFS
- 	help
- 	  Say Y to enable support for the battery charger control sysfs and
--	  platform data of MAX14577/77836 MUICs.
-+	  platform data of MAX14577 MUICs.
- 
- config CHARGER_MAX8997
- 	tristate "Maxim MAX8997/MAX8966 PMIC battery charger driver"
+ 		nilfs_set_file_dirty(inode, nr_dirty);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,7 +66,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
-nilfs2-fix-data-loss-with-mmap-fix.patch
+nilfs2-fix-data-loss-with-mmap.patch
 fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
 kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
 input-route-kbd-leds-through-the-generic-leds-layer.patch
