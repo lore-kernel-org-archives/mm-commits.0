@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fat-add-fat_fallocate-operation.patch added to -mm tree
-Date: Thu, 25 Sep 2014 13:26:51 -0700
-Message-ID: <54247a8b.6YyBf/lhkuNVCIXj%akpm@linux-foundation.org>
+Subject: + fat-skip-cluster-allocation-on-fallocated-region.patch added to -mm tree
+Date: Thu, 25 Sep 2014 13:26:52 -0700
+Message-ID: <54247a8c.RsXECVynp8Z0RT77%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35458 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35461 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752193AbaIYU0w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Sep 2014 16:26:52 -0400
+	with ESMTP id S1752194AbaIYU0x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Sep 2014 16:26:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: add fat_fallocate operation
+     Subject: fat: skip cluster allocation on fallocated region
 has been added to the -mm tree.  Its filename is
-     fat-add-fat_fallocate-operation.patch
+     fat-skip-cluster-allocation-on-fallocated-region.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fat-add-fat_fallocate-operation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fat-skip-cluster-allocation-on-fallocated-region.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fat-add-fat_fallocate-operation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fat-skip-cluster-allocation-on-fallocated-region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: add fat_fallocate operation
+Subject: fat: skip cluster allocation on fallocated region
 
-Implement preallocation via the fallocate syscall on VFAT partitions. 
-This patch is based on an earlier patch of the same name which had some
-issues detailed below and did not get accepted.  Refer
-https://lkml.org/lkml/2007/12/22/130.
-
-a) The preallocated space was not persistent when the
-   FALLOC_FL_KEEP_SIZE flag was set.  It will deallocate cluster at evict
-   time.
-
-b) There was no need to zero out the clusters when the flag was set
-   Instead of doing an expanding truncate, just allocate clusters and add
-   them to the fat chain.  This reduces preallocation time.
-
-Compatibility with windows:
-
-There are no issues when FALLOC_FL_KEEP_SIZE is not set because it just
-does an expanding truncate.  Thus reading from the preallocated area on
-windows returns null until data is written to it.
-
-When a file with preallocated area using the FALLOC_FL_KEEP_SIZE was
-written to on windows, the windows driver freed-up the preallocated
-clusters and allocated new clusters for the new data.  The freed up
-clusters gets reflected in the free space available for the partition
-which can be seen from the Volume properties.
-
-The windows chkdsk tool also does not report any errors on a disk
-containing files with preallocated space.
-
-And there is also no issue using linux fat fsck.  because discard
-preallocated clusters at repair time.
+Skip new cluster allocation after checking i_disksize in _fat_get_block.
+because the blocks are already allocated in fallocated region.
 
 Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
 Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
@@ -78,152 +50,36 @@ Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/file.c  |   77 +++++++++++++++++++++++++++++++++++++++++++++++
- fs/fat/inode.c |   23 ++++++++++++++
- 2 files changed, 100 insertions(+)
+ fs/fat/inode.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN fs/fat/file.c~fat-add-fat_fallocate-operation fs/fat/file.c
---- a/fs/fat/file.c~fat-add-fat_fallocate-operation
-+++ a/fs/fat/file.c
-@@ -17,8 +17,12 @@
- #include <linux/blkdev.h>
- #include <linux/fsnotify.h>
- #include <linux/security.h>
-+#include <linux/falloc.h>
- #include "fat.h"
- 
-+static long fat_fallocate(struct file *file, int mode,
-+			  loff_t offset, loff_t len);
-+
- static int fat_ioctl_get_attributes(struct inode *inode, u32 __user *user_attr)
- {
- 	u32 attr;
-@@ -182,6 +186,7 @@ const struct file_operations fat_file_op
- #endif
- 	.fsync		= fat_file_fsync,
- 	.splice_read	= generic_file_splice_read,
-+	.fallocate	= fat_fallocate,
- };
- 
- static int fat_cont_expand(struct inode *inode, loff_t size)
-@@ -220,6 +225,78 @@ out:
+diff -puN fs/fat/inode.c~fat-skip-cluster-allocation-on-fallocated-region fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-skip-cluster-allocation-on-fallocated-region
++++ a/fs/fat/inode.c
+@@ -120,6 +120,14 @@ static int fat_add_cluster(struct inode
  	return err;
  }
  
-+/*
-+ * Preallocate space for a file. This implements fat's fallocate file
-+ * operation, which gets called from sys_fallocate system call. User
-+ * space requests len bytes at offset. If FALLOC_FL_KEEP_SIZE is set
-+ * we just allocate clusters without zeroing them out. Otherwise we
-+ * allocate and zero out clusters via an expanding truncate.
-+ */
-+static long fat_fallocate(struct file *file, int mode,
-+			  loff_t offset, loff_t len)
++static inline int check_fallocated_region(struct inode *inode, sector_t iblock)
 +{
-+	int cluster;
-+	int nr_cluster; /* Number of clusters to be allocated */
-+	loff_t mm_bytes; /* Number of bytes to be allocated for file */
-+	struct inode *inode = file->f_mapping->host;
 +	struct super_block *sb = inode->i_sb;
-+	struct msdos_sb_info *sbi = MSDOS_SB(sb);
-+	int err = 0;
-+
-+	/* No support for hole punch or other fallocate flags. */
-+	if (mode & ~FALLOC_FL_KEEP_SIZE)
-+		return -EOPNOTSUPP;
-+
-+	/* No support for dir */
-+	if (!S_ISREG(inode->i_mode))
-+		return -EOPNOTSUPP;
-+
-+	mutex_lock(&inode->i_mutex);
-+
-+	if (mode & FALLOC_FL_KEEP_SIZE) {
-+		if ((offset + len) <= MSDOS_I(inode)->i_disksize)
-+			goto error;
-+
-+		/* First compute the number of clusters to be allocated */
-+		mm_bytes = offset + len - MSDOS_I(inode)->i_disksize;
-+		nr_cluster = (mm_bytes + (sbi->cluster_size - 1)) >>
-+			sbi->cluster_bits;
-+
-+		/* Start the allocation.We are not zeroing out the clusters */
-+		while (nr_cluster-- > 0) {
-+			err = fat_alloc_clusters(inode, &cluster, 1);
-+			if (err) {
-+				fat_msg(sb, KERN_ERR,
-+					"fat_fallocate(): fat_alloc_clusters() error");
-+				goto error;
-+			}
-+			err = fat_chain_add(inode, cluster, 1);
-+			if (err) {
-+				fat_free_clusters(inode, cluster);
-+				goto error;
-+			}
-+			MSDOS_I(inode)->i_disksize += sbi->cluster_size;
-+		}
-+	} else {
-+		if ((offset + len) <= MSDOS_I(inode)->i_disksize)
-+			goto error;
-+
-+		err = inode_newsize_ok(inode, (len + offset));
-+		if (err)
-+			goto error;
-+
-+		/* This is just an expanding truncate */
-+		err = fat_cont_expand(inode, (offset + len));
-+		if (err)
-+			fat_msg(sb, KERN_ERR,
-+				"fat_fallocate(): fat_cont_expand() error");
-+	}
-+
-+error:
-+	mutex_unlock(&inode->i_mutex);
-+	return err;
++	sector_t last_disk_block = MSDOS_I(inode)->i_disksize >>
++		sb->s_blocksize_bits;
++	return iblock < last_disk_block;
 +}
 +
- /* Free all clusters after the skip'th cluster. */
- static int fat_free(struct inode *inode, int skip)
- {
-diff -puN fs/fat/inode.c~fat-add-fat_fallocate-operation fs/fat/inode.c
---- a/fs/fat/inode.c~fat-add-fat_fallocate-operation
-+++ a/fs/fat/inode.c
-@@ -556,12 +556,35 @@ out:
- 
- EXPORT_SYMBOL_GPL(fat_build_inode);
- 
-+static int __fat_write_inode(struct inode *inode, int wait);
- static void fat_evict_inode(struct inode *inode)
- {
- 	truncate_inode_pages_final(&inode->i_data);
- 	if (!inode->i_nlink) {
- 		inode->i_size = 0;
- 		fat_truncate_blocks(inode, 0);
-+	} else {
-+		/* Release unwritten fallocated blocks on inode eviction. */
-+		if (MSDOS_I(inode)->i_disksize >
-+		    round_up(MSDOS_I(inode)->mmu_private,
-+				inode->i_sb->s_blocksize)) {
-+			int err;
-+
-+			fat_truncate_blocks(inode, MSDOS_I(inode)->mmu_private);
-+			/* Fallocate results in updating the i_start/iogstart
-+			 * for the zero byte file. So, make it return to
-+			 * original state during evict and commit it to avoid
-+			 * any corruption on the next access to the cluster
-+			 * chain for the file.
-+			 */
-+			err = __fat_write_inode(inode, inode_needs_sync(inode));
-+			if (err) {
-+				fat_msg(inode->i_sb, KERN_WARNING, "Failed to "
-+				"update on disk inode for unused fallocated "
-+				"blocks, inode could be corrupted. Please run "
-+				"fsck");
-+			}
-+		}
+ static inline int __fat_get_block(struct inode *inode, sector_t iblock,
+ 				  unsigned long *max_blocks,
+ 				  struct buffer_head *bh_result, int create)
+@@ -148,7 +156,7 @@ static inline int __fat_get_block(struct
  	}
- 	invalidate_inode_buffers(inode);
- 	clear_inode(inode);
+ 
+ 	offset = (unsigned long)iblock & (sbi->sec_per_clus - 1);
+-	if (!offset) {
++	if (!offset && !check_fallocated_region(inode, iblock)) {
+ 		/* TODO: multiple cluster allocation would be desirable. */
+ 		err = fat_add_cluster(inode);
+ 		if (err)
 _
 
 Patches currently in -mm which might be from namjae.jeon@samsung.com are
