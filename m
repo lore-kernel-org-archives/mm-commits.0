@@ -1,122 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 29 Sep 2014 13:21:31 -0700
-Message-ID: <5429bf4b.zJAGCbVp5758HntT%akpm@linux-foundation.org>
+Subject: [obsolete]
+ drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch removed from -mm tree
+Date: Mon, 29 Sep 2014 13:21:50 -0700
+Message-ID: <5429bf5e.DHZhUeZwtowYEmnK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40239 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40244 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751917AbaI2UVb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:21:31 -0400
+	with ESMTP id S1750968AbaI2UVu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:21:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, k.kozlowski@samsung.com, lee.jones@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: drivers/power/Kconfig: revert part of "charger: max14577: Add support for MAX77836 charger"
+has been removed from the -mm tree.  Its filename was
+     drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: drivers/power/Kconfig: revert part of "charger: max14577: Add support for MAX77836 charger"
 
+`make allnoconfig':
+
+scripts/kconfig/conf --allnoconfig Kconfig
+#
+# configuration written to .config
+#
+make: `allnoconfig' is up to date.
+fs/sysfs/Kconfig:1:error: recursive dependency detected!
+fs/sysfs/Kconfig:1:     symbol SYSFS is selected by CHARGER_MAX14577
+drivers/power/Kconfig:327:      symbol CHARGER_MAX14577 depends on POWER_SUPPLY
+drivers/power/Kconfig:1:        symbol POWER_SUPPLY is selected by HID_SONY
+drivers/hid/Kconfig:649:        symbol HID_SONY depends on NEW_LEDS
+drivers/leds/Kconfig:8: symbol NEW_LEDS is selected by SENSORS_APPLESMC
+drivers/hwmon/Kconfig:299:      symbol SENSORS_APPLESMC depends on HWMON
+drivers/hwmon/Kconfig:5:        symbol HWMON is selected by EEEPC_LAPTOP
+drivers/platform/x86/Kconfig:496:       symbol EEEPC_LAPTOP depends on HOTPLUG_PCI
+drivers/pci/hotplug/Kconfig:5:  symbol HOTPLUG_PCI depends on SYSFS
+
+
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Lee Jones <lee.jones@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/prm3xxx.c     |    3 ---
- arch/x86/boot/compressed/Makefile |    6 ------
- scripts/tags.sh                   |   14 --------------
- 3 files changed, 23 deletions(-)
+ drivers/power/Kconfig |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/mach-omap2/prm3xxx.c~linux-next-git-rejects arch/arm/mach-omap2/prm3xxx.c
---- a/arch/arm/mach-omap2/prm3xxx.c~linux-next-git-rejects
-+++ a/arch/arm/mach-omap2/prm3xxx.c
-@@ -693,8 +693,6 @@ static int omap3xxx_prm_late_init(void)
- 		omap3_prcm_irq_setup.reconfigure_io_chain =
- 			omap3430_pre_es3_1_reconfigure_io_chain;
+diff -puN drivers/power/Kconfig~drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger drivers/power/Kconfig
+--- a/drivers/power/Kconfig~drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger
++++ a/drivers/power/Kconfig
+@@ -325,12 +325,11 @@ config CHARGER_MANAGER
+           with help of suspend_again support.
  
--<<<<<<< HEAD
--=======
- 	if (of_have_populated_dt()) {
- 		struct device_node *np;
- 		int irq_num;
-@@ -707,7 +705,6 @@ static int omap3xxx_prm_late_init(void)
- 		}
- 	}
+ config CHARGER_MAX14577
+-	tristate "Maxim MAX14577/77836 battery charger driver"
++	tristate "Maxim MAX14577 MUIC battery charger driver"
+ 	depends on MFD_MAX14577
+-	select SYSFS
+ 	help
+ 	  Say Y to enable support for the battery charger control sysfs and
+-	  platform data of MAX14577/77836 MUICs.
++	  platform data of MAX14577 MUICs.
  
-->>>>>>> linux-next/akpm-base
- 	omap3xxx_prm_enable_io_wakeup();
- 	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
- 	if (!ret)
-diff -puN arch/x86/boot/compressed/Makefile~linux-next-git-rejects arch/x86/boot/compressed/Makefile
---- a/arch/x86/boot/compressed/Makefile~linux-next-git-rejects
-+++ a/arch/x86/boot/compressed/Makefile
-@@ -35,13 +35,7 @@ vmlinux-objs-$(CONFIG_RANDOMIZE_BASE) +=
- 
- $(obj)/eboot.o: KBUILD_CFLAGS += -fshort-wchar -mno-red-zone
- 
--<<<<<<< HEAD
--ifeq ($(CONFIG_EFI_STUB), y)
--	VMLINUX_OBJS += $(obj)/eboot.o $(obj)/efi_stub_$(BITS).o
--endif
--=======
- vmlinux-objs-$(CONFIG_EFI_STUB) += $(obj)/eboot.o $(obj)/efi_stub_$(BITS).o
-->>>>>>> linux-next/akpm-base
- 
- $(obj)/vmlinux: $(vmlinux-objs-y) FORCE
- 	$(call if_changed,ld)
-diff -puN scripts/tags.sh~linux-next-git-rejects scripts/tags.sh
---- a/scripts/tags.sh~linux-next-git-rejects
-+++ a/scripts/tags.sh
-@@ -193,13 +193,6 @@ exuberant()
- 	--regex-c++='/TESTCLEARFLAG_FALSE\(([^,)]*).*/TestClearPage\1/' \
- 	--regex-c++='/__TESTCLEARFLAG_FALSE\(([^,)]*).*/__TestClearPage\1/' \
- 	--regex-c++='/_PE\(([^,)]*).*/PEVENT_ERRNO__\1/'		\
--<<<<<<< HEAD
--	--regex-c++='/TESTPCGFLAG\(([^,)]*).*/PageCgroup\1/'		\
--	--regex-c++='/SETPCGFLAG\(([^,)]*).*/SetPageCgroup\1/'		\
--	--regex-c++='/CLEARPCGFLAG\(([^,)]*).*/ClearPageCgroup\1/'	\
--	--regex-c++='/TESTCLEARPCGFLAG\(([^,)]*).*/TestClearPageCgroup\1/' \
--=======
-->>>>>>> linux-next/akpm-base
- 	--regex-c++='/TASK_PFA_TEST\([^,]*,\s*([^)]*)\)/task_\1/'	\
- 	--regex-c++='/TASK_PFA_SET\([^,]*,\s*([^)]*)\)/task_set_\1/'	\
- 	--regex-c++='/TASK_PFA_CLEAR\([^,]*,\s*([^)]*)\)/task_clear_\1/'\
-@@ -262,13 +255,6 @@ emacs()
- 	--regex='/__CLEARPAGEFLAG_NOOP(\([^,)]*\).*/__ClearPage\1/' \
- 	--regex='/TESTCLEARFLAG_FALSE(\([^,)]*\).*/TestClearPage\1/' \
- 	--regex='/__TESTCLEARFLAG_FALSE(\([^,)]*\).*/__TestClearPage\1/' \
--<<<<<<< HEAD
--	--regex='/TESTPCGFLAG\(([^,)]*).*/PageCgroup\1/'	\
--	--regex='/SETPCGFLAG\(([^,)]*).*/SetPageCgroup\1/'	\
--	--regex='/CLEARPCGFLAG\(([^,)]*).*/ClearPageCgroup\1/'	\
--	--regex='/TESTCLEARPCGFLAG\(([^,)]*).*/TestClearPageCgroup\1/' \
--=======
-->>>>>>> linux-next/akpm-base
- 	--regex='/TASK_PFA_TEST\([^,]*,\s*([^)]*)\)/task_\1/'		\
- 	--regex='/TASK_PFA_SET\([^,]*,\s*([^)]*)\)/task_set_\1/'	\
- 	--regex='/TASK_PFA_CLEAR\([^,]*,\s*([^)]*)\)/task_clear_\1/'	\
+ config CHARGER_MAX8997
+ 	tristate "Maxim MAX8997/MAX8966 PMIC battery charger driver"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -175,7 +131,6 @@ linux-next-rejects.patch
 linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
-drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch
 mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
 lib-string_helpers-introduce-string_escape_mem-fix.patch
 lib-vsprintf-add-%pe-format-specifier-fix.patch
