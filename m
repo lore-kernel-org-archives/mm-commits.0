@@ -1,83 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-new-documentation-maintainer.patch removed
+Subject: [merged] cpuidle-replace-strnicmp-with-strncasecmp.patch removed
  from -mm tree
-Date: Mon, 29 Sep 2014 13:22:38 -0700
-Message-ID: <5429bf8e.0/+Xw75ViqYQYZ3U%akpm@linux-foundation.org>
+Date: Mon, 29 Sep 2014 13:22:46 -0700
+Message-ID: <5429bf96.HOSRxVFzxhzEWnSN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40289 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40305 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754275AbaI2UWi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:22:38 -0400
+	with ESMTP id S1753820AbaI2UWq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:22:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, daniel.lezcano@linaro.org, rjw@rjwysocki.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: new Documentation maintainer
+     Subject: cpuidle: replace strnicmp with strncasecmp
 has been removed from the -mm tree.  Its filename was
-     maintainers-new-documentation-maintainer.patch
+     cpuidle-replace-strnicmp-with-strncasecmp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: MAINTAINERS: new Documentation maintainer
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: cpuidle: replace strnicmp with strncasecmp
 
-Transfer Documentation maintainership to Jiri Kosina.  Thanks, Jiri.
+The kernel used to contain two functions for length-delimited,
+case-insensitive string comparison, strnicmp with correct semantics and a
+slightly buggy strncasecmp.  The latter is the POSIX name, so strnicmp was
+renamed to strncasecmp, and strnicmp made into a wrapper for the new
+strncasecmp to avoid breaking existing users.
 
-I'll still be reviewing and working on documentation.
+To allow the compat wrapper strnicmp to be removed at some point in the
+future, and to avoid the extra indirection cost, do
+s/strnicmp/strncasecmp/g.
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/cpuidle/governor.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-new-documentation-maintainer MAINTAINERS
---- a/MAINTAINERS~maintainers-new-documentation-maintainer
-+++ a/MAINTAINERS
-@@ -3012,9 +3012,8 @@ S:	Supported
- F:	drivers/acpi/dock.c
+diff -puN drivers/cpuidle/governor.c~cpuidle-replace-strnicmp-with-strncasecmp drivers/cpuidle/governor.c
+--- a/drivers/cpuidle/governor.c~cpuidle-replace-strnicmp-with-strncasecmp
++++ a/drivers/cpuidle/governor.c
+@@ -28,7 +28,7 @@ static struct cpuidle_governor * __cpuid
+ 	struct cpuidle_governor *gov;
  
- DOCUMENTATION
--M:	Randy Dunlap <rdunlap@infradead.org>
-+M:	Jiri Kosina <jkosina@suse.cz>
- L:	linux-doc@vger.kernel.org
--T:	quilt http://www.infradead.org/~rdunlap/Doc/patches/
- S:	Maintained
- F:	Documentation/
- X:	Documentation/ABI/
+ 	list_for_each_entry(gov, &cpuidle_governors, governor_list)
+-		if (!strnicmp(str, gov->name, CPUIDLE_NAME_LEN))
++		if (!strncasecmp(str, gov->name, CPUIDLE_NAME_LEN))
+ 			return gov;
+ 
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix.patch
-mm-slab_common-commonize-slab-merge-logic.patch
-mm-slab_common-commonize-slab-merge-logic-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-maintainers-linaro-mm-sig-is-moderated.patch
-lib-remove-prio_heap.patch
-lib-rename-test_module-to-test_lkm.patch
-autofs-the-documentation-i-wanted-to-read.patch
 linux-next.patch
-kernel-add-support-for-kernel-restart-handler-call-chain.patch
-power-restart-call-machine_restart-instead-of-arm_pm_restart.patch
-arm64-support-restart-through-restart-handler-call-chain.patch
-arm-support-restart-through-restart-handler-call-chain.patch
-watchdog-moxart-register-restart-handler-with-kernel-restart-handler.patch
-watchdog-alim7101-register-restart-handler-with-kernel-restart-handler.patch
-watchdog-sunxi-register-restart-handler-with-kernel-restart-handler.patch
-arm-arm64-unexport-restart-handlers.patch
-watchdog-s3c2410-add-restart-handler.patch
-clk-samsung-register-restart-handlers-for-s3c2412-and-s3c2443.patch
-clk-rockchip-add-restart-handler.patch
-debugging-keep-track-of-page-owners.patch
+lib-string-remove-duplicated-function.patch
+lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
+arm-replace-strnicmp-with-strncasecmp.patch
+block-replace-strnicmp-with-strncasecmp.patch
+netfilter-replace-strnicmp-with-strncasecmp.patch
+video-fbdev-replace-strnicmp-with-strncasecmp.patch
+cifs-replace-strnicmp-with-strncasecmp.patch
+ocfs2-replace-strnicmp-with-strncasecmp.patch
+isofs-replace-strnicmp-with-strncasecmp.patch
+batman-adv-replace-strnicmp-with-strncasecmp.patch
+scsi-replace-strnicmp-with-strncasecmp.patch
+ib_srpt-replace-strnicmp-with-strncasecmp.patch
+input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch
+altera-stapl-replace-strnicmp-with-strncasecmp.patch
+thinkpad_acpi-replace-strnicmp-with-strncasecmp.patch
+pnp-replace-strnicmp-with-strncasecmp.patch
+s390-cio-replace-strnicmp-with-strncasecmp.patch
+staging-r8188eu-replace-strnicmp-with-strncasecmp.patch
+thermal-replace-strnicmp-with-strncasecmp.patch
+kdb-replace-strnicmp-with-strncasecmp.patch
 
