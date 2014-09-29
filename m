@@ -1,100 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpufreq-replace-strnicmp-with-strncasecmp.patch removed
- from -mm tree
-Date: Mon, 29 Sep 2014 13:22:44 -0700
-Message-ID: <5429bf94.jtUNhct7ubJM4bUY%akpm@linux-foundation.org>
+Subject: [merged] mm-softdirty-keep-bit-when-zapping-file-pte.patch
+ removed from -mm tree
+Date: Mon, 29 Sep 2014 13:22:36 -0700
+Message-ID: <5429bf8c.fAmBymWKJsvL02cF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40301 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40285 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754017AbaI2UWo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:22:44 -0400
+	with ESMTP id S1753411AbaI2UWg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:22:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, rjw@rjwysocki.net, viresh.kumar@linaro.org, mm-commits@vger.kernel.org
+To: pfeiner@google.com, gorcunov@openvz.org, hughd@google.com, jamieliu@google.com, stable@vger.kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpufreq: replace strnicmp with strncasecmp
+     Subject: mm: softdirty: keep bit when zapping file pte
 has been removed from the -mm tree.  Its filename was
-     cpufreq-replace-strnicmp-with-strncasecmp.patch
+     mm-softdirty-keep-bit-when-zapping-file-pte.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: cpufreq: replace strnicmp with strncasecmp
+From: Peter Feiner <pfeiner@google.com>
+Subject: mm: softdirty: keep bit when zapping file pte
 
-The kernel used to contain two functions for length-delimited,
-case-insensitive string comparison, strnicmp with correct semantics and a
-slightly buggy strncasecmp.  The latter is the POSIX name, so strnicmp was
-renamed to strncasecmp, and strnicmp made into a wrapper for the new
-strncasecmp to avoid breaking existing users.
+Fixes the same bug as b43790eedd31e9 ("mm: softdirty: don't forget to save
+file map softdiry bit on unmap") and 9aed8614af5a05cd ("mm/memory.c: don't
+forget to set softdirty on file mapped fault") where the return value of
+pte_*mksoft_dirty was being ignored.
 
-To allow the compat wrapper strnicmp to be removed at some point in the
-future, and to avoid the extra indirection cost, do
-s/strnicmp/strncasecmp/g.
+To be sure that no other pte/pmd "mk" function return values were being
+ignored, I annotated the functions in arch/x86/include/asm/pgtable.h with
+__must_check and rebuilt.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+The userspace effect of this bug is that the softdirty mark might be
+lost if a file mapped pte get zapped.
+
+Signed-off-by: Peter Feiner <pfeiner@google.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Jamie Liu <jamieliu@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>	[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-replace-strnicmp-with-strncasecmp drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-replace-strnicmp-with-strncasecmp
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -437,7 +437,7 @@ static struct cpufreq_governor *__find_g
- 	struct cpufreq_governor *t;
- 
- 	list_for_each_entry(t, &cpufreq_governor_list, governor_list)
--		if (!strnicmp(str_governor, t->name, CPUFREQ_NAME_LEN))
-+		if (!strncasecmp(str_governor, t->name, CPUFREQ_NAME_LEN))
- 			return t;
- 
- 	return NULL;
-@@ -455,10 +455,10 @@ static int cpufreq_parse_governor(char *
- 		goto out;
- 
- 	if (cpufreq_driver->setpolicy) {
--		if (!strnicmp(str_governor, "performance", CPUFREQ_NAME_LEN)) {
-+		if (!strncasecmp(str_governor, "performance", CPUFREQ_NAME_LEN)) {
- 			*policy = CPUFREQ_POLICY_PERFORMANCE;
- 			err = 0;
--		} else if (!strnicmp(str_governor, "powersave",
-+		} else if (!strncasecmp(str_governor, "powersave",
- 						CPUFREQ_NAME_LEN)) {
- 			*policy = CPUFREQ_POLICY_POWERSAVE;
- 			err = 0;
+diff -puN mm/memory.c~mm-softdirty-keep-bit-when-zapping-file-pte mm/memory.c
+--- a/mm/memory.c~mm-softdirty-keep-bit-when-zapping-file-pte
++++ a/mm/memory.c
+@@ -1127,7 +1127,7 @@ again:
+ 						addr) != page->index) {
+ 				pte_t ptfile = pgoff_to_pte(page->index);
+ 				if (pte_soft_dirty(ptent))
+-					pte_file_mksoft_dirty(ptfile);
++					ptfile = pte_file_mksoft_dirty(ptfile);
+ 				set_pte_at(mm, addr, pte, ptfile);
+ 			}
+ 			if (PageAnon(page))
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from pfeiner@google.com are
 
-linux-next.patch
-lib-string-remove-duplicated-function.patch
-lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
-arm-replace-strnicmp-with-strncasecmp.patch
-block-replace-strnicmp-with-strncasecmp.patch
-netfilter-replace-strnicmp-with-strncasecmp.patch
-video-fbdev-replace-strnicmp-with-strncasecmp.patch
-cifs-replace-strnicmp-with-strncasecmp.patch
-ocfs2-replace-strnicmp-with-strncasecmp.patch
-isofs-replace-strnicmp-with-strncasecmp.patch
-batman-adv-replace-strnicmp-with-strncasecmp.patch
-scsi-replace-strnicmp-with-strncasecmp.patch
-ib_srpt-replace-strnicmp-with-strncasecmp.patch
-input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch
-altera-stapl-replace-strnicmp-with-strncasecmp.patch
-thinkpad_acpi-replace-strnicmp-with-strncasecmp.patch
-pnp-replace-strnicmp-with-strncasecmp.patch
-s390-cio-replace-strnicmp-with-strncasecmp.patch
-staging-r8188eu-replace-strnicmp-with-strncasecmp.patch
-thermal-replace-strnicmp-with-strncasecmp.patch
-kdb-replace-strnicmp-with-strncasecmp.patch
+mm-softdirty-unmapped-addresses-between-vmas-are-clean.patch
+mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2.patch
+mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
+mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix.patch
 
