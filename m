@@ -1,144 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-slab-initialize-object-alignment-on-cache-creation.patch removed from
- -mm tree
-Date: Mon, 29 Sep 2014 13:22:28 -0700
-Message-ID: <5429bf84.HHNbcPaM3B7tIJv8%akpm__45860.8763212853$1412022203$gmane$org@linux-foundation.org>
+Subject: +
+ ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch added to -mm tree
+Date: Mon, 29 Sep 2014 14:09:27 -0700
+Message-ID: <5429ca87.MFs+gpGHMji+CWnB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41043 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753300AbaI2UWa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:22:30 -0400
+	with ESMTP id S1751335AbaI2VJ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 17:09:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, a.elovikov@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.carpenter@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, wangww631@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slab: initialize object alignment on cache creation
-has been removed from the -mm tree.  Its filename was
-     mm-slab-initialize-object-alignment-on-cache-creation.patch
+     Subject: ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix
+has been added to the -mm tree.  Its filename is
+     ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, slab: initialize object alignment on cache creation
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix
 
-Since 4590685546a3 ("mm/sl[aou]b: Common alignment code"), the "ralign"
-automatic variable in __kmem_cache_create() may be used as uninitialized.
+fix missed unlock on error path
 
-The proper alignment defaults to BYTES_PER_WORD and can be overridden by
-SLAB_RED_ZONE or the alignment specified by the caller.
-
-This fixes https://bugzilla.kernel.org/show_bug.cgi?id=85031
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Andrei Elovikov <a.elovikov@gmail.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: <stable@vger.kernel.org>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Weiwei Wang <wangww631@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ fs/ocfs2/journal.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-initialize-object-alignment-on-cache-creation mm/slab.c
---- a/mm/slab.c~mm-slab-initialize-object-alignment-on-cache-creation
-+++ a/mm/slab.c
-@@ -2124,7 +2124,8 @@ static int __init_refok setup_cpu_cache(
- int
- __kmem_cache_create (struct kmem_cache *cachep, unsigned long flags)
- {
--	size_t left_over, freelist_size, ralign;
-+	size_t left_over, freelist_size;
-+	size_t ralign = BYTES_PER_WORD;
- 	gfp_t gfp;
- 	int err;
- 	size_t size = cachep->size;
-@@ -2157,14 +2158,6 @@ __kmem_cache_create (struct kmem_cache *
- 		size &= ~(BYTES_PER_WORD - 1);
+diff -puN fs/ocfs2/journal.c~ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix
++++ a/fs/ocfs2/journal.c
+@@ -2160,8 +2160,7 @@ static int ocfs2_recover_orphans(struct
+ 			ret = ocfs2_inode_lock(inode, &di_bh, 1);
+ 			if (ret) {
+ 				mlog_errno(ret);
+-				spin_unlock(&oi->ip_lock);
+-				goto out;
++				goto out_unlock;
+ 			}
+ 			ocfs2_truncate_file(inode, di_bh, i_size_read(inode));
+ 			ocfs2_inode_unlock(inode, 1);
+@@ -2173,14 +2172,13 @@ static int ocfs2_recover_orphans(struct
+ 					OCFS2_INODE_DEL_FROM_ORPHAN_CREDITS);
+ 			if (IS_ERR(handle)) {
+ 				ret = PTR_ERR(handle);
+-				goto out;
++				goto out_unlock;
+ 			}
+ 			ret = ocfs2_del_inode_from_orphan(osb, handle, inode);
+ 			if (ret) {
+ 				mlog_errno(ret);
+ 				ocfs2_commit_trans(osb, handle);
+-				spin_unlock(&oi->ip_lock);
+-				goto out;
++				goto out_unlock;
+ 			}
+ 			ocfs2_commit_trans(osb, handle);
+ 		}
+@@ -2200,7 +2198,10 @@ static int ocfs2_recover_orphans(struct
+ 		inode = iter;
  	}
  
--	/*
--	 * Redzoning and user store require word alignment or possibly larger.
--	 * Note this will be overridden by architecture or caller mandated
--	 * alignment if either is greater than BYTES_PER_WORD.
--	 */
--	if (flags & SLAB_STORE_USER)
--		ralign = BYTES_PER_WORD;
--
- 	if (flags & SLAB_RED_ZONE) {
- 		ralign = REDZONE_ALIGN;
- 		/* If redzoning, ensure that the second redzone is suitably
+-out:
++	return ret;
++
++out_unlock:
++	spin_unlock(&oi->ip_lock);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+kernel-add-support-for-gcc-5-checkpatch-fixes.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
+mm.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
 mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
 mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-mm-slb-always-track-caller-in-kmalloc_node_track_caller.patch
-mm-slab-move-cache_flusharray-out-of-unlikelytext-section.patch
-mm-slab-noinline-__ac_put_obj.patch
-mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
-slub-disable-tracing-and-failslab-for-merged-slabs.patch
-topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
-slub-fallback-to-node_to_mem_node-node-if-allocating-on-memoryless-node.patch
-partial-revert-of-81c98869faa5-kthread-ensure-locality-of-task_struct-allocations.patch
-slab-fix-for_each_kmem_cache_node.patch
-mm-slab_common-commonize-slab-merge-logic.patch
-mm-slab_common-commonize-slab-merge-logic-fix.patch
-mm-slab-support-slab-merge.patch
-mm-slab-use-percpu-allocator-for-cpu-cache.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
-mm-page_alloc-determine-migratetype-only-once.patch
-mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
 mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
-mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
-mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
-mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
 mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
-mm-compaction-skip-rechecks-when-lock-was-already-held.patch
-mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
-mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
-mm-rename-allocflags_to_migratetype-for-clarity.patch
-mm-compaction-pass-gfp-mask-to-compact_control.patch
-mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put.patch
-mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
-mempolicy-sanitize-the-usage-of-get_task_policy.patch
-mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
-mempolicy-introduce-__get_vma_policy-export-get_task_policy.patch
-mempolicy-fix-show_numa_map-vs-exec-do_set_mempolicy-race.patch
-mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
-mempolicy-unexport-get_vma_policy-and-remove-its-task-arg.patch
-mm-use-__seq_open_private-instead-of-seq_open.patch
-mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
-mm-clean-up-zone-flags.patch
-mm-compaction-fix-warning-of-flags-may-be-used-uninitialized.patch
-mm-page_alloc-make-paranoid-check-in-move_freepages-a-vm_bug_on.patch
-mm-page_alloc-default-node-ordering-on-64-bit-numa-zone-ordering-on-32-bit-v2.patch
-memcg-move-memcg_allocfree_cache_params-to-slab_commonc.patch
-memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
-memcg-move-memcg_update_cache_size-to-slab_commonc.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
-mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
-mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
-include-kernelh-rewrite-min3-max3-and-clamp-using-min-and-max.patch
-mm-utilc-add-kstrimdup.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
+mm-debugc-use-pr_emerg.patch
+mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
+drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+rtc-rk808-add-rtc-driver-for-rk808-fix.patch
+rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
+rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
+rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
 linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+lib-string_helpers-introduce-string_escape_mem-fix.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
