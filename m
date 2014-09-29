@@ -1,148 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch removed from -mm tree
-Date: Mon, 29 Sep 2014 13:21:50 -0700
-Message-ID: <5429bf5e.DHZhUeZwtowYEmnK%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-free-vol_lable-in-ocfs2_delete_osb.patch removed
+ from -mm tree
+Date: Mon, 29 Sep 2014 13:22:20 -0700
+Message-ID: <5429bf7c.PcLITjE3X8QuZA46%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40244 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40248 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750968AbaI2UVu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:21:50 -0400
+	with ESMTP id S1751176AbaI2UWV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:22:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, k.kozlowski@samsung.com, lee.jones@linaro.org, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/power/Kconfig: revert part of "charger: max14577: Add support for MAX77836 charger"
+     Subject: ocfs2: free vol_label in ocfs2_delete_osb()
 has been removed from the -mm tree.  Its filename was
-     drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger.patch
+     ocfs2-free-vol_lable-in-ocfs2_delete_osb.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/power/Kconfig: revert part of "charger: max14577: Add support for MAX77836 charger"
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: free vol_label in ocfs2_delete_osb()
 
-`make allnoconfig':
+osb->vol_label is malloced in ocfs2_initialize_super but not freed if
+error occurs or during umount, thus causing a memory leak.
 
-scripts/kconfig/conf --allnoconfig Kconfig
-#
-# configuration written to .config
-#
-make: `allnoconfig' is up to date.
-fs/sysfs/Kconfig:1:error: recursive dependency detected!
-fs/sysfs/Kconfig:1:     symbol SYSFS is selected by CHARGER_MAX14577
-drivers/power/Kconfig:327:      symbol CHARGER_MAX14577 depends on POWER_SUPPLY
-drivers/power/Kconfig:1:        symbol POWER_SUPPLY is selected by HID_SONY
-drivers/hid/Kconfig:649:        symbol HID_SONY depends on NEW_LEDS
-drivers/leds/Kconfig:8: symbol NEW_LEDS is selected by SENSORS_APPLESMC
-drivers/hwmon/Kconfig:299:      symbol SENSORS_APPLESMC depends on HWMON
-drivers/hwmon/Kconfig:5:        symbol HWMON is selected by EEEPC_LAPTOP
-drivers/platform/x86/Kconfig:496:       symbol EEEPC_LAPTOP depends on HOTPLUG_PCI
-drivers/pci/hotplug/Kconfig:5:  symbol HOTPLUG_PCI depends on SYSFS
-
-
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: joyce.xue <xuejiufei@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/Kconfig |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/ocfs2/super.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/power/Kconfig~drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger drivers/power/Kconfig
---- a/drivers/power/Kconfig~drivers-power-kconfig-revert-part-of-charger-max14577-add-support-for-max77836-charger
-+++ a/drivers/power/Kconfig
-@@ -325,12 +325,11 @@ config CHARGER_MANAGER
-           with help of suspend_again support.
- 
- config CHARGER_MAX14577
--	tristate "Maxim MAX14577/77836 battery charger driver"
-+	tristate "Maxim MAX14577 MUIC battery charger driver"
- 	depends on MFD_MAX14577
--	select SYSFS
- 	help
- 	  Say Y to enable support for the battery charger control sysfs and
--	  platform data of MAX14577/77836 MUICs.
-+	  platform data of MAX14577 MUICs.
- 
- config CHARGER_MAX8997
- 	tristate "Maxim MAX8997/MAX8966 PMIC battery charger driver"
+diff -puN fs/ocfs2/super.c~ocfs2-free-vol_lable-in-ocfs2_delete_osb fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-free-vol_lable-in-ocfs2_delete_osb
++++ a/fs/ocfs2/super.c
+@@ -2532,6 +2532,7 @@ static void ocfs2_delete_osb(struct ocfs
+ 	kfree(osb->journal);
+ 	kfree(osb->local_alloc_copy);
+ 	kfree(osb->uuid_str);
++	kfree(osb->vol_label);
+ 	ocfs2_put_dlm_debug(osb->osb_dlm_debug);
+ 	memset(osb, 0, sizeof(struct ocfs2_super));
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kernel-add-support-for-gcc-5-checkpatch-fixes.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
-introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
-mm-debugc-use-pr_emerg.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
-drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
-drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
-drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
-drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix.patch
-rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
-rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
-rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-x86-optimize-resource-lookups-for-ioremap-fix.patch
-init-resolve-shadow-warnings-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-lib-string_helpers-introduce-string_escape_mem-fix.patch
-lib-vsprintf-add-%pe-format-specifier-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+ocfs2-dlm-should-put-mle-when-goto-kill-in-dlm_assert_master_handler.patch
+ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt.patch
+ocfs2-fix-shift-left-operations-overflow.patch
+ocfs2-call-o2quo_exit-if-malloc-failed-in-o2net_init.patch
+ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
+ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq.patch
 
