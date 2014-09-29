@@ -1,172 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch added to -mm tree
-Date: Mon, 29 Sep 2014 14:09:27 -0700
-Message-ID: <5429ca87.MFs+gpGHMji+CWnB%akpm@linux-foundation.org>
+Subject: [failures]
+ drivers-of-add-return-value-to-of_reserved_mem_device_init.patch removed
+ from -mm tree
+Date: Mon, 29 Sep 2014 14:29:49 -0700
+Message-ID: <5429cf4d.fHh7KekzwMIoLKL2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41043 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41749 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751335AbaI2VJ2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 17:09:28 -0400
+	with ESMTP id S1751335AbaI2V3v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 17:29:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.carpenter@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, wangww631@huawei.com, mm-commits@vger.kernel.org
+To: m.szyprowski@samsung.com, arnd@arndb.de, grant.likely@linaro.org, iamjoonsoo.kim@lge.com, joshc@codeaurora.org, kyungmin.park@samsung.com, lauraa@codeaurora.org, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix
-has been added to the -mm tree.  Its filename is
-     ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
+     Subject: drivers: of: add return value to of_reserved_mem_device_init
+has been removed from the -mm tree.  Its filename was
+     drivers-of-add-return-value-to-of_reserved_mem_device_init.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: drivers: of: add return value to of_reserved_mem_device_init
 
-fix missed unlock on error path
+This is another approach to finish support for reserved memory regions
+defined in device tree.  Previous attempts
+(http://lists.linaro.org/pipermail/linaro-mm-sig/2014-February/003738.html
+and https://lkml.org/lkml/2014/7/14/108) ended in merging parts of the
+code and documentation.  Merged patches allow to reserve memory, but there
+is still no reserved memory drivers nor any code that actually uses
+reserved memory regions.
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Weiwei Wang <wangww631@huawei.com>
+The final conclusion from the above mentioned threads is that there is no
+automated reserved memory initialization.  All drivers that want to use
+reserved memory, should initialize it on their own.
+
+This patch series provides two driver for reserved memory regions (one
+based on CMA and one based on dma_coherent allocator).  The main
+improvement comparing to the previous version is removal of automated
+reserved memory for every device and support for named memory regions.
+
+
+
+This patch (of 3):
+
+Driver calling of_reserved_mem_device_init() might be interested if the
+initialization has been successful or not, so add support for returning
+error code.
+
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Josh Cartwright <joshc@codeaurora.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/of/of_reserved_mem.c    |    3 ++-
+ include/linux/of_reserved_mem.h |    9 ++++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix
-+++ a/fs/ocfs2/journal.c
-@@ -2160,8 +2160,7 @@ static int ocfs2_recover_orphans(struct
- 			ret = ocfs2_inode_lock(inode, &di_bh, 1);
- 			if (ret) {
- 				mlog_errno(ret);
--				spin_unlock(&oi->ip_lock);
--				goto out;
-+				goto out_unlock;
- 			}
- 			ocfs2_truncate_file(inode, di_bh, i_size_read(inode));
- 			ocfs2_inode_unlock(inode, 1);
-@@ -2173,14 +2172,13 @@ static int ocfs2_recover_orphans(struct
- 					OCFS2_INODE_DEL_FROM_ORPHAN_CREDITS);
- 			if (IS_ERR(handle)) {
- 				ret = PTR_ERR(handle);
--				goto out;
-+				goto out_unlock;
- 			}
- 			ret = ocfs2_del_inode_from_orphan(osb, handle, inode);
- 			if (ret) {
- 				mlog_errno(ret);
- 				ocfs2_commit_trans(osb, handle);
--				spin_unlock(&oi->ip_lock);
--				goto out;
-+				goto out_unlock;
- 			}
- 			ocfs2_commit_trans(osb, handle);
- 		}
-@@ -2200,7 +2198,10 @@ static int ocfs2_recover_orphans(struct
- 		inode = iter;
- 	}
+diff -puN drivers/of/of_reserved_mem.c~drivers-of-add-return-value-to-of_reserved_mem_device_init drivers/of/of_reserved_mem.c
+--- a/drivers/of/of_reserved_mem.c~drivers-of-add-return-value-to-of_reserved_mem_device_init
++++ a/drivers/of/of_reserved_mem.c
+@@ -243,7 +243,7 @@ static inline struct reserved_mem *__fin
+  * This function assign memory region pointed by "memory-region" device tree
+  * property to the given device.
+  */
+-void of_reserved_mem_device_init(struct device *dev)
++int of_reserved_mem_device_init(struct device *dev)
+ {
+ 	struct reserved_mem *rmem;
+ 	struct device_node *np;
+@@ -260,6 +260,7 @@ void of_reserved_mem_device_init(struct
  
--out:
-+	return ret;
-+
-+out_unlock:
-+	spin_unlock(&oi->ip_lock);
- 	return ret;
+ 	rmem->ops->device_init(rmem, dev);
+ 	dev_info(dev, "assigned reserved memory node %s\n", rmem->name);
++	return 0;
  }
  
+ /**
+diff -puN include/linux/of_reserved_mem.h~drivers-of-add-return-value-to-of_reserved_mem_device_init include/linux/of_reserved_mem.h
+--- a/include/linux/of_reserved_mem.h~drivers-of-add-return-value-to-of_reserved_mem_device_init
++++ a/include/linux/of_reserved_mem.h
+@@ -16,7 +16,7 @@ struct reserved_mem {
+ };
+ 
+ struct reserved_mem_ops {
+-	void	(*device_init)(struct reserved_mem *rmem,
++	int	(*device_init)(struct reserved_mem *rmem,
+ 			       struct device *dev);
+ 	void	(*device_release)(struct reserved_mem *rmem,
+ 				  struct device *dev);
+@@ -28,14 +28,17 @@ typedef int (*reservedmem_of_init_fn)(st
+ 	_OF_DECLARE(reservedmem, name, compat, init, reservedmem_of_init_fn)
+ 
+ #ifdef CONFIG_OF_RESERVED_MEM
+-void of_reserved_mem_device_init(struct device *dev);
++int of_reserved_mem_device_init(struct device *dev);
+ void of_reserved_mem_device_release(struct device *dev);
+ 
+ void fdt_init_reserved_mem(void);
+ void fdt_reserved_mem_save_node(unsigned long node, const char *uname,
+ 			       phys_addr_t base, phys_addr_t size);
+ #else
+-static inline void of_reserved_mem_device_init(struct device *dev) { }
++static inline int of_reserved_mem_device_init(struct device *dev)
++{
++	return -ENOSYS;
++}
+ static inline void of_reserved_mem_device_release(struct device *pdev) { }
+ 
+ static inline void fdt_init_reserved_mem(void) { }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from m.szyprowski@samsung.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kernel-add-support-for-gcc-5-checkpatch-fixes.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
-mm.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
-introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
-mm-debugc-use-pr_emerg.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
+mm-cma-adjust-address-limit-to-avoid-hitting-low-high-memory-boundary.patch
+arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
+drivers-dma-coherent-add-initialization-from-device-tree.patch
 drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
 drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
 drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
+drivers-dma-contiguous-add-initialization-from-device-tree.patch
 drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix.patch
-rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
-rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
-rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-x86-optimize-resource-lookups-for-ioremap-fix.patch
-init-resolve-shadow-warnings-checkpatch-fixes.patch
 linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-lib-string_helpers-introduce-string_escape_mem-fix.patch
-lib-vsprintf-add-%pe-format-specifier-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
