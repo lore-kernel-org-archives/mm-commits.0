@@ -1,137 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [failures]
- drivers-of-add-return-value-to-of_reserved_mem_device_init.patch removed
- from -mm tree
-Date: Mon, 29 Sep 2014 14:29:49 -0700
-Message-ID: <5429cf4d.fHh7KekzwMIoLKL2%akpm@linux-foundation.org>
+Subject: +
+ signal-use-build_bug-instead-of-_nsig_words_is_unsupported_sizefix.patch
+ added to -mm tree
+Date: Mon, 29 Sep 2014 14:31:18 -0700
+Message-ID: <5429cfa6.RKTFaVP+g6TAn7Wa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41749 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41768 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751335AbaI2V3v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 17:29:51 -0400
+	with ESMTP id S1754745AbaI2VbS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 17:31:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.szyprowski@samsung.com, arnd@arndb.de, grant.likely@linaro.org, iamjoonsoo.kim@lge.com, joshc@codeaurora.org, kyungmin.park@samsung.com, lauraa@codeaurora.org, mina86@mina86.com, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers: of: add return value to of_reserved_mem_device_init
-has been removed from the -mm tree.  Its filename was
-     drivers-of-add-return-value-to-of_reserved_mem_device_init.patch
+     Subject: signal-use-build_bug-instead-of-_nsig_words_is_unsupported_size.fix
+has been added to the -mm tree.  Its filename is
+     signal-use-build_bug-instead-of-_nsig_words_is_unsupported_sizefix.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/signal-use-build_bug-instead-of-_nsig_words_is_unsupported_sizefix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/signal-use-build_bug-instead-of-_nsig_words_is_unsupported_sizefix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: drivers: of: add return value to of_reserved_mem_device_init
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: signal-use-build_bug-instead-of-_nsig_words_is_unsupported_size.fix
 
-This is another approach to finish support for reserved memory regions
-defined in device tree.  Previous attempts
-(http://lists.linaro.org/pipermail/linaro-mm-sig/2014-February/003738.html
-and https://lkml.org/lkml/2014/7/14/108) ended in merging parts of the
-code and documentation.  Merged patches allow to reserve memory, but there
-is still no reserved memory drivers nor any code that actually uses
-reserved memory regions.
+Fixes signal-use-build_bug-instead-of-_nsig_words_is_unsupported_size.patch
+which caused the build failure on powerpc.
 
-The final conclusion from the above mentioned threads is that there is no
-automated reserved memory initialization.  All drivers that want to use
-reserved memory, should initialize it on their own.
+Add missing "include <linux/bug.h>" which defines BUILD_BUG()
+used by that patch.
 
-This patch series provides two driver for reserved memory regions (one
-based on CMA and one based on dma_coherent allocator).  The main
-improvement comparing to the previous version is removal of automated
-reserved memory for every device and support for named memory regions.
-
-
-
-This patch (of 3):
-
-Driver calling of_reserved_mem_device_init() might be interested if the
-initialization has been successful or not, so add support for returning
-error code.
-
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Laura Abbott <lauraa@codeaurora.org>
-Cc: Josh Cartwright <joshc@codeaurora.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/of/of_reserved_mem.c    |    3 ++-
- include/linux/of_reserved_mem.h |    9 ++++++---
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ include/linux/signal.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/of/of_reserved_mem.c~drivers-of-add-return-value-to-of_reserved_mem_device_init drivers/of/of_reserved_mem.c
---- a/drivers/of/of_reserved_mem.c~drivers-of-add-return-value-to-of_reserved_mem_device_init
-+++ a/drivers/of/of_reserved_mem.c
-@@ -243,7 +243,7 @@ static inline struct reserved_mem *__fin
-  * This function assign memory region pointed by "memory-region" device tree
-  * property to the given device.
-  */
--void of_reserved_mem_device_init(struct device *dev)
-+int of_reserved_mem_device_init(struct device *dev)
- {
- 	struct reserved_mem *rmem;
- 	struct device_node *np;
-@@ -260,6 +260,7 @@ void of_reserved_mem_device_init(struct
+diff -puN include/linux/signal.h~signal-use-build_bug-instead-of-_nsig_words_is_unsupported_sizefix include/linux/signal.h
+--- a/include/linux/signal.h~signal-use-build_bug-instead-of-_nsig_words_is_unsupported_sizefix
++++ a/include/linux/signal.h
+@@ -2,6 +2,7 @@
+ #define _LINUX_SIGNAL_H
  
- 	rmem->ops->device_init(rmem, dev);
- 	dev_info(dev, "assigned reserved memory node %s\n", rmem->name);
-+	return 0;
- }
+ #include <linux/list.h>
++#include <linux/bug.h>
+ #include <uapi/linux/signal.h>
  
- /**
-diff -puN include/linux/of_reserved_mem.h~drivers-of-add-return-value-to-of_reserved_mem_device_init include/linux/of_reserved_mem.h
---- a/include/linux/of_reserved_mem.h~drivers-of-add-return-value-to-of_reserved_mem_device_init
-+++ a/include/linux/of_reserved_mem.h
-@@ -16,7 +16,7 @@ struct reserved_mem {
- };
- 
- struct reserved_mem_ops {
--	void	(*device_init)(struct reserved_mem *rmem,
-+	int	(*device_init)(struct reserved_mem *rmem,
- 			       struct device *dev);
- 	void	(*device_release)(struct reserved_mem *rmem,
- 				  struct device *dev);
-@@ -28,14 +28,17 @@ typedef int (*reservedmem_of_init_fn)(st
- 	_OF_DECLARE(reservedmem, name, compat, init, reservedmem_of_init_fn)
- 
- #ifdef CONFIG_OF_RESERVED_MEM
--void of_reserved_mem_device_init(struct device *dev);
-+int of_reserved_mem_device_init(struct device *dev);
- void of_reserved_mem_device_release(struct device *dev);
- 
- void fdt_init_reserved_mem(void);
- void fdt_reserved_mem_save_node(unsigned long node, const char *uname,
- 			       phys_addr_t base, phys_addr_t size);
- #else
--static inline void of_reserved_mem_device_init(struct device *dev) { }
-+static inline int of_reserved_mem_device_init(struct device *dev)
-+{
-+	return -ENOSYS;
-+}
- static inline void of_reserved_mem_device_release(struct device *pdev) { }
- 
- static inline void fdt_init_reserved_mem(void) { }
+ struct task_struct;
 _
 
-Patches currently in -mm which might be from m.szyprowski@samsung.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mm-cma-adjust-address-limit-to-avoid-hitting-low-high-memory-boundary.patch
-arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
-drivers-dma-coherent-add-initialization-from-device-tree.patch
-drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
-drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
-drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
-drivers-dma-contiguous-add-initialization-from-device-tree.patch
-drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix.patch
+signal-use-build_bug-instead-of-_nsig_words_is_unsupported_sizefix.patch
+try-to-use-automatic-variable-in-kexec-purgatory-makefile.patch
 linux-next.patch
+watchdog-control-hard-lockup-detection-default-fix-2.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
