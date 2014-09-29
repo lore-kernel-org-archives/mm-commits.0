@@ -1,65 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-free-vol_lable-in-ocfs2_delete_osb.patch removed
+Subject: [merged] maintainers-new-documentation-maintainer.patch removed
  from -mm tree
-Date: Mon, 29 Sep 2014 13:22:20 -0700
-Message-ID: <5429bf7c.PcLITjE3X8QuZA46%akpm@linux-foundation.org>
+Date: Mon, 29 Sep 2014 13:22:38 -0700
+Message-ID: <5429bf8e.0/+Xw75ViqYQYZ3U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40248 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40289 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176AbaI2UWV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:22:21 -0400
+	with ESMTP id S1754275AbaI2UWi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:22:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: free vol_label in ocfs2_delete_osb()
+     Subject: MAINTAINERS: new Documentation maintainer
 has been removed from the -mm tree.  Its filename was
-     ocfs2-free-vol_lable-in-ocfs2_delete_osb.patch
+     maintainers-new-documentation-maintainer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: free vol_label in ocfs2_delete_osb()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: MAINTAINERS: new Documentation maintainer
 
-osb->vol_label is malloced in ocfs2_initialize_super but not freed if
-error occurs or during umount, thus causing a memory leak.
+Transfer Documentation maintainership to Jiri Kosina.  Thanks, Jiri.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: joyce.xue <xuejiufei@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+I'll still be reviewing and working on documentation.
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/super.c~ocfs2-free-vol_lable-in-ocfs2_delete_osb fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-free-vol_lable-in-ocfs2_delete_osb
-+++ a/fs/ocfs2/super.c
-@@ -2532,6 +2532,7 @@ static void ocfs2_delete_osb(struct ocfs
- 	kfree(osb->journal);
- 	kfree(osb->local_alloc_copy);
- 	kfree(osb->uuid_str);
-+	kfree(osb->vol_label);
- 	ocfs2_put_dlm_debug(osb->osb_dlm_debug);
- 	memset(osb, 0, sizeof(struct ocfs2_super));
- }
+diff -puN MAINTAINERS~maintainers-new-documentation-maintainer MAINTAINERS
+--- a/MAINTAINERS~maintainers-new-documentation-maintainer
++++ a/MAINTAINERS
+@@ -3012,9 +3012,8 @@ S:	Supported
+ F:	drivers/acpi/dock.c
+ 
+ DOCUMENTATION
+-M:	Randy Dunlap <rdunlap@infradead.org>
++M:	Jiri Kosina <jkosina@suse.cz>
+ L:	linux-doc@vger.kernel.org
+-T:	quilt http://www.infradead.org/~rdunlap/Doc/patches/
+ S:	Maintained
+ F:	Documentation/
+ X:	Documentation/ABI/
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-ocfs2-dlm-should-put-mle-when-goto-kill-in-dlm_assert_master_handler.patch
-ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt.patch
-ocfs2-fix-shift-left-operations-overflow.patch
-ocfs2-call-o2quo_exit-if-malloc-failed-in-o2net_init.patch
-ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
-ocfs2-fix-deadlock-between-o2hb-thread-and-o2net_wq.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix.patch
+mm-slab_common-commonize-slab-merge-logic.patch
+mm-slab_common-commonize-slab-merge-logic-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+maintainers-linaro-mm-sig-is-moderated.patch
+lib-remove-prio_heap.patch
+lib-rename-test_module-to-test_lkm.patch
+autofs-the-documentation-i-wanted-to-read.patch
+linux-next.patch
+kernel-add-support-for-kernel-restart-handler-call-chain.patch
+power-restart-call-machine_restart-instead-of-arm_pm_restart.patch
+arm64-support-restart-through-restart-handler-call-chain.patch
+arm-support-restart-through-restart-handler-call-chain.patch
+watchdog-moxart-register-restart-handler-with-kernel-restart-handler.patch
+watchdog-alim7101-register-restart-handler-with-kernel-restart-handler.patch
+watchdog-sunxi-register-restart-handler-with-kernel-restart-handler.patch
+arm-arm64-unexport-restart-handlers.patch
+watchdog-s3c2410-add-restart-handler.patch
+clk-samsung-register-restart-handlers-for-s3c2412-and-s3c2443.patch
+clk-rockchip-add-restart-handler.patch
+debugging-keep-track-of-page-owners.patch
 
