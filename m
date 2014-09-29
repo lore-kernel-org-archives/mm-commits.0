@@ -1,87 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpuidle-replace-strnicmp-with-strncasecmp.patch removed
- from -mm tree
-Date: Mon, 29 Sep 2014 13:22:46 -0700
-Message-ID: <5429bf96.HOSRxVFzxhzEWnSN%akpm@linux-foundation.org>
+Subject: [merged] tools-add-more-endianh-macros.patch removed from -mm
+ tree
+Date: Mon, 29 Sep 2014 13:22:40 -0700
+Message-ID: <5429bf90.M50ytnSECGyFQzih%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40305 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40291 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753820AbaI2UWq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:22:46 -0400
+	with ESMTP id S1750970AbaI2UWk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Sep 2014 16:22:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, daniel.lezcano@linaro.org, rjw@rjwysocki.net, mm-commits@vger.kernel.org
+To: pefoley2@pefoley.com, ashutosh.dixit@intel.com, gregkh@linuxfoundation.org, nikhil.rao@intel.com, rdunlap@infradead.org, sudeep.dutt@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpuidle: replace strnicmp with strncasecmp
+     Subject: tools/include/tools/endian.h: add more macros
 has been removed from the -mm tree.  Its filename was
-     cpuidle-replace-strnicmp-with-strncasecmp.patch
+     tools-add-more-endianh-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: cpuidle: replace strnicmp with strncasecmp
+From: Peter Foley <pefoley2@pefoley.com>
+Subject: tools/include/tools/endian.h: add more macros
 
-The kernel used to contain two functions for length-delimited,
-case-insensitive string comparison, strnicmp with correct semantics and a
-slightly buggy strncasecmp.  The latter is the POSIX name, so strnicmp was
-renamed to strncasecmp, and strnicmp made into a wrapper for the new
-strncasecmp to avoid breaking existing users.
+Add some more macros to tools/endian.h to allow mpssd to be compiled
+against glibc < 2.9.
 
-To allow the compat wrapper strnicmp to be removed at some point in the
-future, and to avoid the extra indirection cost, do
-s/strnicmp/strncasecmp/g.
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Signed-off-by: Peter Foley <pefoley2@pefoley.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Sudeep Dutt <sudeep.dutt@intel.com>
+Cc: Nikhil Rao <nikhil.rao@intel.com>
+Cc: Ashutosh Dixit <ashutosh.dixit@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governor.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/include/tools/endian.h |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN drivers/cpuidle/governor.c~cpuidle-replace-strnicmp-with-strncasecmp drivers/cpuidle/governor.c
---- a/drivers/cpuidle/governor.c~cpuidle-replace-strnicmp-with-strncasecmp
-+++ a/drivers/cpuidle/governor.c
-@@ -28,7 +28,7 @@ static struct cpuidle_governor * __cpuid
- 	struct cpuidle_governor *gov;
+diff -puN tools/include/tools/endian.h~tools-add-more-endianh-macros tools/include/tools/endian.h
+--- a/tools/include/tools/endian.h~tools-add-more-endianh-macros
++++ a/tools/include/tools/endian.h
+@@ -15,6 +15,18 @@
+ #define htole64(x) (x)
+ #endif
  
- 	list_for_each_entry(gov, &cpuidle_governors, governor_list)
--		if (!strnicmp(str, gov->name, CPUIDLE_NAME_LEN))
-+		if (!strncasecmp(str, gov->name, CPUIDLE_NAME_LEN))
- 			return gov;
++#ifndef le16toh
++#define le16toh(x) (x)
++#endif
++
++#ifndef le32toh
++#define le32toh(x) (x)
++#endif
++
++#ifndef le64toh
++#define le64toh(x) (x)
++#endif
++
+ #else /* __BYTE_ORDER */
  
- 	return NULL;
+ #ifndef htole16
+@@ -27,6 +39,18 @@
+ #define htole64(x) __bswap_64(x)
+ #endif
+ 
++#ifndef le16toh
++#define le16toh(x) __bswap_16(x)
++#endif
++
++#ifndef le32toh
++#define le32toh(x) __bswap_32(x)
++#endif
++
++#ifndef le64toh
++#define le64toh(x) __bswap_64(x)
++#endif
++
+ #endif
+ 
+ #endif /* _TOOLS_ENDIAN_H */
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from pefoley2@pefoley.com are
 
 linux-next.patch
-lib-string-remove-duplicated-function.patch
-lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
-arm-replace-strnicmp-with-strncasecmp.patch
-block-replace-strnicmp-with-strncasecmp.patch
-netfilter-replace-strnicmp-with-strncasecmp.patch
-video-fbdev-replace-strnicmp-with-strncasecmp.patch
-cifs-replace-strnicmp-with-strncasecmp.patch
-ocfs2-replace-strnicmp-with-strncasecmp.patch
-isofs-replace-strnicmp-with-strncasecmp.patch
-batman-adv-replace-strnicmp-with-strncasecmp.patch
-scsi-replace-strnicmp-with-strncasecmp.patch
-ib_srpt-replace-strnicmp-with-strncasecmp.patch
-input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch
-altera-stapl-replace-strnicmp-with-strncasecmp.patch
-thinkpad_acpi-replace-strnicmp-with-strncasecmp.patch
-pnp-replace-strnicmp-with-strncasecmp.patch
-s390-cio-replace-strnicmp-with-strncasecmp.patch
-staging-r8188eu-replace-strnicmp-with-strncasecmp.patch
-thermal-replace-strnicmp-with-strncasecmp.patch
-kdb-replace-strnicmp-with-strncasecmp.patch
 
