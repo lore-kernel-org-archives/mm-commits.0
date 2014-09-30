@@ -1,17 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] watchdog-s3c2410-add-restart-handler.patch removed
- from -mm tree
-Date: Tue, 30 Sep 2014 14:17:27 -0700
-Message-ID: <542b1de7.fVWY7+pexTTO6yfm%akpm@linux-foundation.org>
+Subject: + watchdog-s3c2410-add-restart-handler.patch added to -mm tree
+Date: Tue, 30 Sep 2014 14:18:30 -0700
+Message-ID: <542b1e26.GEZtgcEpf2+48CYh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54682 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54701 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750717AbaI3VR2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Sep 2014 17:17:28 -0400
+	with ESMTP id S1750717AbaI3VSb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Sep 2014 17:18:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: heiko@sntech.de, arnd@arndb.de, catalin.marinas@arm.com, dbaryshkov@gmail.com, dwmw2@infradead.org, jonas.jensen@gmail.com, linux@arm.linux.org.uk, linux@roeck-us.net, maxime.ripard@free-electrons.com, mingo@kernel.org, rdunlap@infradead.org, rostedt@goodmis.org, t.figa@samsung.com, will.deacon@arm.com, wim@iguana.be, mm-commits@vger.kernel.org
@@ -19,10 +18,27 @@ To: heiko@sntech.de, arnd@arndb.de, catalin.marinas@arm.com, dbaryshkov@gmail.co
 
 The patch titled
      Subject: watchdog: s3c2410: add restart handler
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      watchdog-s3c2410-add-restart-handler.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-s3c2410-add-resta=
+rt-handler.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-s3c2410-add-resta=
+rt-handler.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Heiko St=FCbner <heiko@sntech.de>
@@ -145,6 +161,7 @@ rtc-rk808-add-rtc-driver-for-rk808.patch
 rtc-rk808-add-rtc-driver-for-rk808-fix-2.patch
 clk-rk808-add-clkout-driver-for-rk808.patch
 linux-next.patch
+watchdog-s3c2410-add-restart-handler.patch
 clk-samsung-register-restart-handlers-for-s3c2412-and-s3c2443.patch
 clk-rockchip-add-restart-handler.patch
 
