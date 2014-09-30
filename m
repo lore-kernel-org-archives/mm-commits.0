@@ -1,159 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: +
- revert-x86-sched-add-new-topology-for-multi-numa-node-cpus.patch added to
- -mm tree
-Date: Tue, 30 Sep 2014 12:22:04 -0700
-Message-ID: <542b02dc.w6cm+VL4zf1nA75+%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 30 Sep 2014 14:16:19 -0700
+Message-ID: <542b1da3.SBEtxlanni4yQ+hG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51619 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53767 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214AbaI3TWF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Sep 2014 15:22:05 -0400
+	with ESMTP id S1750717AbaI3VQU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Sep 2014 17:16:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave.hansen@linux.intel.com, mingo@elte.hu, peterz@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "x86, sched: Add new topology for multi-NUMA-node CPUs"
-has been added to the -mm tree.  Its filename is
-     revert-x86-sched-add-new-topology-for-multi-numa-node-cpus.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-x86-sched-add-new-topology-for-multi-numa-node-cpus.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-x86-sched-add-new-topology-for-multi-numa-node-cpus.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "x86, sched: Add new topology for multi-NUMA-node CPUs"
+Subject: linux-next-git-rejects
 
-Revert
-
-: commit cebf15eb09a2fd2fa73ee4faa9c4d2f813cf0f09
-: Author: Dave Hansen <dave.hansen@linux.intel.com>
-: Date:   Thu Sep 18 12:33:34 2014 -0700
-: 
-:     x86, sched: Add new topology for multi-NUMA-node CPUs
-
-Due to mysterious loss of 75% of my CPU power.
-
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/smpboot.c |   55 +++++-------------------------------
- 1 file changed, 9 insertions(+), 46 deletions(-)
+ arch/arm/mach-omap2/prm3xxx.c     |    3 ---
+ arch/x86/boot/compressed/Makefile |    6 ------
+ scripts/tags.sh                   |   14 --------------
+ 3 files changed, 23 deletions(-)
 
-diff -puN arch/x86/kernel/smpboot.c~revert-x86-sched-add-new-topology-for-multi-numa-node-cpus arch/x86/kernel/smpboot.c
---- a/arch/x86/kernel/smpboot.c~revert-x86-sched-add-new-topology-for-multi-numa-node-cpus
-+++ a/arch/x86/kernel/smpboot.c
-@@ -266,19 +266,11 @@ void smp_store_cpu_info(int id)
- }
+diff -puN arch/arm/mach-omap2/prm3xxx.c~linux-next-git-rejects arch/arm/mach-omap2/prm3xxx.c
+--- a/arch/arm/mach-omap2/prm3xxx.c~linux-next-git-rejects
++++ a/arch/arm/mach-omap2/prm3xxx.c
+@@ -693,8 +693,6 @@ static int omap3xxx_prm_late_init(void)
+ 		omap3_prcm_irq_setup.reconfigure_io_chain =
+ 			omap3430_pre_es3_1_reconfigure_io_chain;
  
- static bool
--topology_same_node(struct cpuinfo_x86 *c, struct cpuinfo_x86 *o)
--{
--	int cpu1 = c->cpu_index, cpu2 = o->cpu_index;
--
--	return (cpu_to_node(cpu1) == cpu_to_node(cpu2));
--}
--
--static bool
- topology_sane(struct cpuinfo_x86 *c, struct cpuinfo_x86 *o, const char *name)
- {
- 	int cpu1 = c->cpu_index, cpu2 = o->cpu_index;
- 
--	return !WARN_ONCE(!topology_same_node(c, o),
-+	return !WARN_ONCE(cpu_to_node(cpu1) != cpu_to_node(cpu2),
- 		"sched: CPU #%d's %s-sibling CPU #%d is not on the same node! "
- 		"[node: %d != %d]. Ignoring dependency.\n",
- 		cpu1, name, cpu2, cpu_to_node(cpu1), cpu_to_node(cpu2));
-@@ -319,42 +311,15 @@ static bool match_llc(struct cpuinfo_x86
- 	return false;
- }
- 
--/*
-- * Unlike the other levels, we do not enforce keeping a
-- * multicore group inside a NUMA node.  If this happens, we will
-- * discard the MC level of the topology later.
-- */
--static bool match_die(struct cpuinfo_x86 *c, struct cpuinfo_x86 *o)
-+static bool match_mc(struct cpuinfo_x86 *c, struct cpuinfo_x86 *o)
- {
--	if (c->phys_proc_id == o->phys_proc_id)
--		return true;
--	return false;
--}
-+	if (c->phys_proc_id == o->phys_proc_id) {
-+		if (cpu_has(c, X86_FEATURE_AMD_DCM))
-+			return true;
- 
--static struct sched_domain_topology_level numa_inside_package_topology[] = {
--#ifdef CONFIG_SCHED_SMT
--	{ cpu_smt_mask, cpu_smt_flags, SD_INIT_NAME(SMT) },
--#endif
--#ifdef CONFIG_SCHED_MC
--	{ cpu_coregroup_mask, cpu_core_flags, SD_INIT_NAME(MC) },
--#endif
--	{ NULL, },
--};
--/*
-- * set_sched_topology() sets the topology internal to a CPU.  The
-- * NUMA topologies are layered on top of it to build the full
-- * system topology.
-- *
-- * If NUMA nodes are observed to occur within a CPU package, this
-- * function should be called.  It forces the sched domain code to
-- * only use the SMT level for the CPU portion of the topology.
-- * This essentially falls back to relying on NUMA information
-- * from the SRAT table to describe the entire system topology
-- * (except for hyperthreads).
-- */
--static void primarily_use_numa_for_topology(void)
--{
--	set_sched_topology(numa_inside_package_topology);
-+		return topology_sane(c, o, "mc");
-+	}
-+	return false;
- }
- 
- void set_cpu_sibling_map(int cpu)
-@@ -393,7 +358,7 @@ void set_cpu_sibling_map(int cpu)
- 	for_each_cpu(i, cpu_sibling_setup_mask) {
- 		o = &cpu_data(i);
- 
--		if ((i == cpu) || (has_mp && match_die(c, o))) {
-+		if ((i == cpu) || (has_mp && match_mc(c, o))) {
- 			link_mask(core, cpu, i);
- 
- 			/*
-@@ -415,8 +380,6 @@ void set_cpu_sibling_map(int cpu)
- 			} else if (i != cpu && !c->booted_cores)
- 				c->booted_cores = cpu_data(i).booted_cores;
+-<<<<<<< HEAD
+-=======
+ 	if (of_have_populated_dt()) {
+ 		struct device_node *np;
+ 		int irq_num;
+@@ -707,7 +705,6 @@ static int omap3xxx_prm_late_init(void)
  		}
--		if (match_die(c, o) == !topology_same_node(c, o))
--			primarily_use_numa_for_topology();
  	}
- }
  
+->>>>>>> linux-next/akpm-base
+ 	omap3xxx_prm_enable_io_wakeup();
+ 	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
+ 	if (!ret)
+diff -puN arch/x86/boot/compressed/Makefile~linux-next-git-rejects arch/x86/boot/compressed/Makefile
+--- a/arch/x86/boot/compressed/Makefile~linux-next-git-rejects
++++ a/arch/x86/boot/compressed/Makefile
+@@ -35,13 +35,7 @@ vmlinux-objs-$(CONFIG_RANDOMIZE_BASE) +=
+ 
+ $(obj)/eboot.o: KBUILD_CFLAGS += -fshort-wchar -mno-red-zone
+ 
+-<<<<<<< HEAD
+-ifeq ($(CONFIG_EFI_STUB), y)
+-	VMLINUX_OBJS += $(obj)/eboot.o $(obj)/efi_stub_$(BITS).o
+-endif
+-=======
+ vmlinux-objs-$(CONFIG_EFI_STUB) += $(obj)/eboot.o $(obj)/efi_stub_$(BITS).o
+->>>>>>> linux-next/akpm-base
+ 
+ $(obj)/vmlinux: $(vmlinux-objs-y) FORCE
+ 	$(call if_changed,ld)
+diff -puN scripts/tags.sh~linux-next-git-rejects scripts/tags.sh
+--- a/scripts/tags.sh~linux-next-git-rejects
++++ a/scripts/tags.sh
+@@ -193,13 +193,6 @@ exuberant()
+ 	--regex-c++='/TESTCLEARFLAG_FALSE\(([^,)]*).*/TestClearPage\1/' \
+ 	--regex-c++='/__TESTCLEARFLAG_FALSE\(([^,)]*).*/__TestClearPage\1/' \
+ 	--regex-c++='/_PE\(([^,)]*).*/PEVENT_ERRNO__\1/'		\
+-<<<<<<< HEAD
+-	--regex-c++='/TESTPCGFLAG\(([^,)]*).*/PageCgroup\1/'		\
+-	--regex-c++='/SETPCGFLAG\(([^,)]*).*/SetPageCgroup\1/'		\
+-	--regex-c++='/CLEARPCGFLAG\(([^,)]*).*/ClearPageCgroup\1/'	\
+-	--regex-c++='/TESTCLEARPCGFLAG\(([^,)]*).*/TestClearPageCgroup\1/' \
+-=======
+->>>>>>> linux-next/akpm-base
+ 	--regex-c++='/TASK_PFA_TEST\([^,]*,\s*([^)]*)\)/task_\1/'	\
+ 	--regex-c++='/TASK_PFA_SET\([^,]*,\s*([^)]*)\)/task_set_\1/'	\
+ 	--regex-c++='/TASK_PFA_CLEAR\([^,]*,\s*([^)]*)\)/task_clear_\1/'\
+@@ -262,13 +255,6 @@ emacs()
+ 	--regex='/__CLEARPAGEFLAG_NOOP(\([^,)]*\).*/__ClearPage\1/' \
+ 	--regex='/TESTCLEARFLAG_FALSE(\([^,)]*\).*/TestClearPage\1/' \
+ 	--regex='/__TESTCLEARFLAG_FALSE(\([^,)]*\).*/__TestClearPage\1/' \
+-<<<<<<< HEAD
+-	--regex='/TESTPCGFLAG\(([^,)]*).*/PageCgroup\1/'	\
+-	--regex='/SETPCGFLAG\(([^,)]*).*/SetPageCgroup\1/'	\
+-	--regex='/CLEARPCGFLAG\(([^,)]*).*/ClearPageCgroup\1/'	\
+-	--regex='/TESTCLEARPCGFLAG\(([^,)]*).*/TestClearPageCgroup\1/' \
+-=======
+->>>>>>> linux-next/akpm-base
+ 	--regex='/TASK_PFA_TEST\([^,]*,\s*([^)]*)\)/task_\1/'		\
+ 	--regex='/TASK_PFA_SET\([^,]*,\s*([^)]*)\)/task_set_\1/'	\
+ 	--regex='/TASK_PFA_CLEAR\([^,]*,\s*([^)]*)\)/task_clear_\1/'	\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -210,7 +159,6 @@ x86-optimize-resource-lookups-for-ioremap-fix.patch
 init-resolve-shadow-warnings-checkpatch-fixes.patch
 linux-next.patch
 linux-next-rejects.patch
-linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
 revert-x86-sched-add-new-topology-for-multi-numa-node-cpus.patch
