@@ -1,48 +1,49 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- watchdog-sunxi-register-restart-handler-with-kernel-restart-handler.patch
- removed from -mm tree
-Date: Tue, 30 Sep 2014 14:21:00 -0700
-Message-ID: <542b1ebc.8+KR0FHM5oy7MjG6%akpm@linux-foundation.org>
+ power-restart-call-machine_restart-instead-of-arm_pm_restart.patch removed
+ from -mm tree
+Date: Tue, 30 Sep 2014 14:20:50 -0700
+Message-ID: <542b1eb2./sElxjLa0Z74Gm29%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54747 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751803AbaI3VVC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Sep 2014 17:21:02 -0400
+	with ESMTP id S1751743AbaI3VUv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Sep 2014 17:20:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@roeck-us.net, arnd@arndb.de, catalin.marinas@arm.com, dbaryshkov@gmail.com, dwmw2@infradead.org, heiko@sntech.de, jonas.jensen@gmail.com, linux@arm.linux.org.uk, maxime.ripard@free-electrons.com, mingo@kernel.org, rdunlap@infradead.org, rostedt@goodmis.org, t.figa@samsung.com, will.deacon@arm.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: sunxi: register restart handler with kernel restart handler
+     Subject: power/restart: call machine_restart instead of arm_pm_restart
 has been removed from the -mm tree.  Its filename was
-     watchdog-sunxi-register-restart-handler-with-kernel-restart-handler.patch
+     power-restart-call-machine_restart-instead-of-arm_pm_restart.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Guenter Roeck <linux@roeck-us.net>
-Subject: watchdog: sunxi: register restart handler with kernel restart handler
+Subject: power/restart: call machine_restart instead of arm_pm_restart
 
-The kernel core now provides an API to trigger a system restart.  Register
-with it instead of setting arm_pm_restart.
+machine_restart is supported on non-ARM platforms, and and ultimately
+calls arm_pm_restart, so dont call arm_pm_restart directly but use the
+more generic function.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Acked-by: Heiko Stuebner <heiko@sntech.de>
+Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Jonas Jensen <jonas.jensen@gmail.com>
 Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Tomasz Figa <t.figa@samsung.com>
 Cc: Will Deacon <will.deacon@arm.com>
@@ -50,96 +51,22 @@ Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/sunxi_wdt.c |   31 ++++++++++++++++++++-----------
- 1 file changed, 20 insertions(+), 11 deletions(-)
+ drivers/power/reset/restart-poweroff.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/sunxi_wdt.c~watchdog-sunxi-register-restart-handler-with-kernel-restart-handler drivers/watchdog/sunxi_wdt.c
---- a/drivers/watchdog/sunxi_wdt.c~watchdog-sunxi-register-restart-handler-with-kernel-restart-handler
-+++ a/drivers/watchdog/sunxi_wdt.c
-@@ -21,14 +21,13 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
-+#include <linux/notifier.h>
- #include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/reboot.h>
- #include <linux/types.h>
- #include <linux/watchdog.h>
+diff -puN drivers/power/reset/restart-poweroff.c~power-restart-call-machine_restart-instead-of-arm_pm_restart drivers/power/reset/restart-poweroff.c
+--- a/drivers/power/reset/restart-poweroff.c~power-restart-call-machine_restart-instead-of-arm_pm_restart
++++ a/drivers/power/reset/restart-poweroff.c
+@@ -20,7 +20,8 @@
  
--#include <asm/system_misc.h>
--
- #define WDT_MAX_TIMEOUT         16
- #define WDT_MIN_TIMEOUT         1
- #define WDT_MODE_TIMEOUT(n)     ((n) << 3)
-@@ -50,6 +49,7 @@ static unsigned int timeout = WDT_MAX_TI
- struct sunxi_wdt_dev {
- 	struct watchdog_device wdt_dev;
- 	void __iomem *wdt_base;
-+	struct notifier_block restart_handler;
- };
- 
- /*
-@@ -74,24 +74,29 @@ static const int wdt_timeout_map[] = {
- 	[16] = 0xB, /* 16s */
- };
- 
--static void __iomem *reboot_wdt_base;
- 
--static void sun4i_wdt_restart(enum reboot_mode mode, const char *cmd)
-+static int sunxi_restart_handle(struct notifier_block *this, unsigned long mode,
-+				void *cmd)
+ static void restart_poweroff_do_poweroff(void)
  {
-+	struct sunxi_wdt_dev *sunxi_wdt = container_of(this,
-+						       struct sunxi_wdt_dev,
-+						       restart_handler);
-+	void __iomem *wdt_base = sunxi_wdt->wdt_base;
-+
- 	/* Enable timer and set reset bit in the watchdog */
--	writel(WDT_MODE_EN | WDT_MODE_RST_EN, reboot_wdt_base + WDT_MODE);
-+	writel(WDT_MODE_EN | WDT_MODE_RST_EN, wdt_base + WDT_MODE);
- 
- 	/*
- 	 * Restart the watchdog. The default (and lowest) interval
- 	 * value for the watchdog is 0.5s.
- 	 */
--	writel(WDT_CTRL_RELOAD, reboot_wdt_base + WDT_CTRL);
-+	writel(WDT_CTRL_RELOAD, wdt_base + WDT_CTRL);
- 
- 	while (1) {
- 		mdelay(5);
--		writel(WDT_MODE_EN | WDT_MODE_RST_EN,
--		       reboot_wdt_base + WDT_MODE);
-+		writel(WDT_MODE_EN | WDT_MODE_RST_EN, wdt_base + WDT_MODE);
- 	}
-+	return NOTIFY_DONE;
+-	arm_pm_restart(REBOOT_HARD, NULL);
++	reboot_mode = REBOOT_HARD;
++	machine_restart(NULL);
  }
  
- static int sunxi_wdt_ping(struct watchdog_device *wdt_dev)
-@@ -205,8 +210,12 @@ static int sunxi_wdt_probe(struct platfo
- 	if (unlikely(err))
- 		return err;
- 
--	reboot_wdt_base = sunxi_wdt->wdt_base;
--	arm_pm_restart = sun4i_wdt_restart;
-+	sunxi_wdt->restart_handler.notifier_call = sunxi_restart_handle;
-+	sunxi_wdt->restart_handler.priority = 128;
-+	err = register_restart_handler(&sunxi_wdt->restart_handler);
-+	if (err)
-+		dev_err(&pdev->dev,
-+			"cannot register restart handler (err=%d)\n", err);
- 
- 	dev_info(&pdev->dev, "Watchdog enabled (timeout=%d sec, nowayout=%d)",
- 			sunxi_wdt->wdt_dev.timeout, nowayout);
-@@ -218,7 +227,7 @@ static int sunxi_wdt_remove(struct platf
- {
- 	struct sunxi_wdt_dev *sunxi_wdt = platform_get_drvdata(pdev);
- 
--	arm_pm_restart = NULL;
-+	unregister_restart_handler(&sunxi_wdt->restart_handler);
- 
- 	watchdog_unregister_device(&sunxi_wdt->wdt_dev);
- 	watchdog_set_drvdata(&sunxi_wdt->wdt_dev, NULL);
+ static int restart_poweroff_probe(struct platform_device *pdev)
 _
 
 Patches currently in -mm which might be from linux@roeck-us.net are
