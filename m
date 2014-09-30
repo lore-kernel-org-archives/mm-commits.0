@@ -1,40 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- arm-support-restart-through-restart-handler-call-chain.patch removed from
- -mm tree
-Date: Tue, 30 Sep 2014 14:20:54 -0700
-Message-ID: <542b1eb6.YLtt9MjzTiFOM/g3%akpm@linux-foundation.org>
+ watchdog-moxart-register-restart-handler-with-kernel-restart-handler.patch
+ removed from -mm tree
+Date: Tue, 30 Sep 2014 14:20:56 -0700
+Message-ID: <542b1eb8.KLCfK2dONsXjylT2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54773 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54786 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751615AbaI3VUz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Sep 2014 17:20:55 -0400
+	with ESMTP id S1751615AbaI3VU5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Sep 2014 17:20:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@roeck-us.net, arnd@arndb.de, catalin.marinas@arm.com, dbaryshkov@gmail.com, dwmw2@infradead.org, heiko@sntech.de, jonas.jensen@gmail.com, linux@arm.linux.org.uk, maxime.ripard@free-electrons.com, mingo@kernel.org, rdunlap@infradead.org, rostedt@goodmis.org, t.figa@samsung.com, will.deacon@arm.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: support restart through restart handler call chain
+     Subject: watchdog: moxart: register restart handler with kernel restart handler
 has been removed from the -mm tree.  Its filename was
-     arm-support-restart-through-restart-handler-call-chain.patch
+     watchdog-moxart-register-restart-handler-with-kernel-restart-handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Guenter Roeck <linux@roeck-us.net>
-Subject: arm: support restart through restart handler call chain
+Subject: watchdog: moxart: register restart handler with kernel restart handler
 
-The kernel core now supports a restart handler call chain for system
-restart functions.
-
-With this change, the arm_pm_restart callback is now optional, so drop its
-initialization and check if it is set before calling it.  Only call the
-kernel restart handler if arm_pm_restart is not set.
+The kernel now provides an API to trigger a system restart.  Register with
+it instead of setting arm_pm_restart.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
@@ -54,43 +50,82 @@ Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/process.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/watchdog/moxart_wdt.c |   32 ++++++++++++++++++++------------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
 
-diff -puN arch/arm/kernel/process.c~arm-support-restart-through-restart-handler-call-chain arch/arm/kernel/process.c
---- a/arch/arm/kernel/process.c~arm-support-restart-through-restart-handler-call-chain
-+++ a/arch/arm/kernel/process.c
-@@ -114,17 +114,13 @@ void soft_restart(unsigned long addr)
- 	BUG();
+diff -puN drivers/watchdog/moxart_wdt.c~watchdog-moxart-register-restart-handler-with-kernel-restart-handler drivers/watchdog/moxart_wdt.c
+--- a/drivers/watchdog/moxart_wdt.c~watchdog-moxart-register-restart-handler-with-kernel-restart-handler
++++ a/drivers/watchdog/moxart_wdt.c
+@@ -15,12 +15,12 @@
+ #include <linux/module.h>
+ #include <linux/err.h>
+ #include <linux/kernel.h>
++#include <linux/notifier.h>
+ #include <linux/platform_device.h>
++#include <linux/reboot.h>
+ #include <linux/watchdog.h>
+ #include <linux/moduleparam.h>
+ 
+-#include <asm/system_misc.h>
+-
+ #define REG_COUNT			0x4
+ #define REG_MODE			0x8
+ #define REG_ENABLE			0xC
+@@ -29,17 +29,22 @@ struct moxart_wdt_dev {
+ 	struct watchdog_device dev;
+ 	void __iomem *base;
+ 	unsigned int clock_frequency;
++	struct notifier_block restart_handler;
+ };
+ 
+-static struct moxart_wdt_dev *moxart_restart_ctx;
+-
+ static int heartbeat;
+ 
+-static void moxart_wdt_restart(enum reboot_mode reboot_mode, const char *cmd)
++static int moxart_restart_handle(struct notifier_block *this,
++				 unsigned long mode, void *cmd)
+ {
+-	writel(1, moxart_restart_ctx->base + REG_COUNT);
+-	writel(0x5ab9, moxart_restart_ctx->base + REG_MODE);
+-	writel(0x03, moxart_restart_ctx->base + REG_ENABLE);
++	struct moxart_wdt_dev *moxart_wdt = container_of(this,
++							 struct moxart_wdt_dev,
++							 restart_handler);
++	writel(1, moxart_wdt->base + REG_COUNT);
++	writel(0x5ab9, moxart_wdt->base + REG_MODE);
++	writel(0x03, moxart_wdt->base + REG_ENABLE);
++
++	return NOTIFY_DONE;
  }
  
--static void null_restart(enum reboot_mode reboot_mode, const char *cmd)
--{
--}
--
- /*
-  * Function pointers to optional machine specific functions
-  */
- void (*pm_power_off)(void);
- EXPORT_SYMBOL(pm_power_off);
+ static int moxart_wdt_stop(struct watchdog_device *wdt_dev)
+@@ -136,8 +141,12 @@ static int moxart_wdt_probe(struct platf
+ 	if (err)
+ 		return err;
  
--void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd) = null_restart;
-+void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd);
- EXPORT_SYMBOL_GPL(arm_pm_restart);
+-	moxart_restart_ctx = moxart_wdt;
+-	arm_pm_restart = moxart_wdt_restart;
++	moxart_wdt->restart_handler.notifier_call = moxart_restart_handle;
++	moxart_wdt->restart_handler.priority = 128;
++	err = register_restart_handler(&moxart_wdt->restart_handler);
++	if (err)
++		dev_err(dev, "cannot register restart notifier (err=%d)\n",
++			err);
  
- /*
-@@ -230,7 +226,10 @@ void machine_restart(char *cmd)
- 	local_irq_disable();
- 	smp_send_stop();
+ 	dev_dbg(dev, "Watchdog enabled (heartbeat=%d sec, nowayout=%d)\n",
+ 		moxart_wdt->dev.timeout, nowayout);
+@@ -149,9 +158,8 @@ static int moxart_wdt_remove(struct plat
+ {
+ 	struct moxart_wdt_dev *moxart_wdt = platform_get_drvdata(pdev);
  
--	arm_pm_restart(reboot_mode, cmd);
-+	if (arm_pm_restart)
-+		arm_pm_restart(reboot_mode, cmd);
-+	else
-+		do_kernel_restart(cmd);
+-	arm_pm_restart = NULL;
++	unregister_restart_handler(&moxart_wdt->restart_handler);
+ 	moxart_wdt_stop(&moxart_wdt->dev);
+-	watchdog_unregister_device(&moxart_wdt->dev);
  
- 	/* Give a grace period for failure to restart of 1s */
- 	mdelay(1000);
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from linux@roeck-us.net are
