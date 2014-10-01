@@ -1,153 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] clk-rockchip-add-restart-handler.patch removed from
- -mm tree
-Date: Tue, 30 Sep 2014 15:33:13 -0700
-Message-ID: <542b2fa9.G0tGJ/jCOyj0HGD8%akpm@linux-foundation.org>
+Subject: [merged] block-replace-strnicmp-with-strncasecmp.patch removed
+ from -mm tree
+Date: Wed, 01 Oct 2014 12:11:38 -0700
+Message-ID: <542c51ea.6QyZQhAOWdUuXH0N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55446 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43685 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752719AbaI3WdO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Sep 2014 18:33:14 -0400
+	with ESMTP id S1751063AbaJATLj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 15:11:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko@sntech.de, arnd@arndb.de, catalin.marinas@arm.com, dbaryshkov@gmail.com, dwmw2@infradead.org, jonas.jensen@gmail.com, linux@arm.linux.org.uk, linux@roeck-us.net, maxime.ripard@free-electrons.com, mingo@kernel.org, mturquette@linaro.org, rdunlap@infradead.org, rostedt@goodmis.org, t.figa@samsung.com, tomasz.figa@gmail.com, will.deacon@arm.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: clk: rockchip: add restart handler
+     Subject: block: replace strnicmp with strncasecmp
 has been removed from the -mm tree.  Its filename was
-     clk-rockchip-add-restart-handler.patch
+     block-replace-strnicmp-with-strncasecmp.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Heiko St=FCbner <heiko@sntech.de>
-Subject: clk: rockchip: add restart handler
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: block: replace strnicmp with strncasecmp
 
-Add infrastructure to write the correct value to the restart register a=
-nd
-register the restart notifier for both rk3188 (including rk3066) and rk=
-3288.
+The kernel used to contain two functions for length-delimited,
+case-insensitive string comparison, strnicmp with correct semantics and a
+slightly buggy strncasecmp.  The latter is the POSIX name, so strnicmp was
+renamed to strncasecmp, and strnicmp made into a wrapper for the new
+strncasecmp to avoid breaking existing users.
 
-Signed-off-by: Heiko Stuebner <heiko@sntech.de>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jonas Jensen <jonas.jensen@gmail.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tomasz Figa <t.figa@samsung.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Mike Turquette <mturquette@linaro.org>
+To allow the compat wrapper strnicmp to be removed at some point in the
+future, and to avoid the extra indirection cost, do
+s/strnicmp/strncasecmp/g.
+
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clk/rockchip/clk-rk3188.c |    2 ++
- drivers/clk/rockchip/clk-rk3288.c |    2 ++
- drivers/clk/rockchip/clk.c        |   25 +++++++++++++++++++++++++
- drivers/clk/rockchip/clk.h        |    1 +
- 4 files changed, 30 insertions(+)
+ block/partitions/mac.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/clk/rockchip/clk-rk3188.c~clk-rockchip-add-restart-ha=
-ndler drivers/clk/rockchip/clk-rk3188.c
---- a/drivers/clk/rockchip/clk-rk3188.c~clk-rockchip-add-restart-handle=
-r
-+++ a/drivers/clk/rockchip/clk-rk3188.c
-@@ -735,6 +735,8 @@ static void __init rk3188_common_clk_ini
-=20
- 	rockchip_register_softrst(np, 9, reg_base + RK2928_SOFTRST_CON(0),
- 				  ROCKCHIP_SOFTRST_HIWORD_MASK);
-+
-+	rockchip_register_restart_notifier(RK2928_GLB_SRST_FST);
- }
-=20
- static void __init rk3066a_clk_init(struct device_node *np)
-diff -puN drivers/clk/rockchip/clk-rk3288.c~clk-rockchip-add-restart-ha=
-ndler drivers/clk/rockchip/clk-rk3288.c
---- a/drivers/clk/rockchip/clk-rk3288.c~clk-rockchip-add-restart-handle=
-r
-+++ a/drivers/clk/rockchip/clk-rk3288.c
-@@ -808,5 +808,7 @@ static void __init rk3288_clk_init(struc
-=20
- 	rockchip_register_softrst(np, 12, reg_base + RK3288_SOFTRST_CON(0),
- 				  ROCKCHIP_SOFTRST_HIWORD_MASK);
-+
-+	rockchip_register_restart_notifier(RK3288_GLB_SRST_FST);
- }
- CLK_OF_DECLARE(rk3288_cru, "rockchip,rk3288-cru", rk3288_clk_init);
-diff -puN drivers/clk/rockchip/clk.c~clk-rockchip-add-restart-handler d=
-rivers/clk/rockchip/clk.c
---- a/drivers/clk/rockchip/clk.c~clk-rockchip-add-restart-handler
-+++ a/drivers/clk/rockchip/clk.c
-@@ -25,6 +25,7 @@
- #include <linux/clk-provider.h>
- #include <linux/mfd/syscon.h>
- #include <linux/regmap.h>
-+#include <linux/reboot.h>
- #include "clk.h"
-=20
- /**
-@@ -330,3 +331,27 @@ void __init rockchip_clk_protect_critica
- 			clk_prepare_enable(clk);
- 	}
- }
-+
-+static unsigned int reg_restart;
-+static int rockchip_restart_notify(struct notifier_block *this,
-+				   unsigned long mode, void *cmd)
-+{
-+	writel(0xfdb9, reg_base + reg_restart);
-+	return NOTIFY_DONE;
-+}
-+
-+static struct notifier_block rockchip_restart_handler =3D {
-+	.notifier_call =3D rockchip_restart_notify,
-+	.priority =3D 128,
-+};
-+
-+void __init rockchip_register_restart_notifier(unsigned int reg)
-+{
-+	int ret;
-+
-+	reg_restart =3D reg;
-+	ret =3D register_restart_handler(&rockchip_restart_handler);
-+	if (ret)
-+		pr_err("%s: cannot register restart handler, %d\n",
-+		       __func__, ret);
-+}
-diff -puN drivers/clk/rockchip/clk.h~clk-rockchip-add-restart-handler d=
-rivers/clk/rockchip/clk.h
---- a/drivers/clk/rockchip/clk.h~clk-rockchip-add-restart-handler
-+++ a/drivers/clk/rockchip/clk.h
-@@ -366,6 +366,7 @@ void rockchip_clk_register_armclk(unsign
- 			const struct rockchip_cpuclk_reg_data *reg_data,
- 			const struct rockchip_cpuclk_rate_table *rates,
- 			int nrates);
-+void rockchip_register_restart_notifier(unsigned int reg);
- void rockchip_clk_protect_critical(const char *clocks[], int nclocks);
-=20
- #define ROCKCHIP_SOFTRST_HIWORD_MASK	BIT(0)
+diff -puN block/partitions/mac.c~block-replace-strnicmp-with-strncasecmp block/partitions/mac.c
+--- a/block/partitions/mac.c~block-replace-strnicmp-with-strncasecmp
++++ a/block/partitions/mac.c
+@@ -81,7 +81,7 @@ int mac_partition(struct parsed_partitio
+ 			be32_to_cpu(part->start_block) * (secsize/512),
+ 			be32_to_cpu(part->block_count) * (secsize/512));
+ 
+-		if (!strnicmp(part->type, "Linux_RAID", 10))
++		if (!strncasecmp(part->type, "Linux_RAID", 10))
+ 			state->parts[slot].flags = ADDPART_FLAG_RAID;
+ #ifdef CONFIG_PPC_PMAC
+ 		/*
+@@ -100,7 +100,7 @@ int mac_partition(struct parsed_partitio
+ 				goodness++;
+ 
+ 			if (strcasecmp(part->type, "Apple_UNIX_SVR2") == 0
+-			    || (strnicmp(part->type, "Linux", 5) == 0
++			    || (strncasecmp(part->type, "Linux", 5) == 0
+ 			        && strcasecmp(part->type, "Linux_swap") != 0)) {
+ 				int i, l;
+ 
+@@ -109,13 +109,13 @@ int mac_partition(struct parsed_partitio
+ 				if (strcmp(part->name, "/") == 0)
+ 					goodness++;
+ 				for (i = 0; i <= l - 4; ++i) {
+-					if (strnicmp(part->name + i, "root",
++					if (strncasecmp(part->name + i, "root",
+ 						     4) == 0) {
+ 						goodness += 2;
+ 						break;
+ 					}
+ 				}
+-				if (strnicmp(part->name, "swap", 4) == 0)
++				if (strncasecmp(part->name, "swap", 4) == 0)
+ 					goodness--;
+ 			}
+ 
 _
 
-Patches currently in -mm which might be from heiko@sntech.de are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-rtc-rk808-add-rtc-driver-for-rk808.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix-2.patch
-clk-rk808-add-clkout-driver-for-rk808.patch
 linux-next.patch
+lib-string-remove-duplicated-function.patch
+lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
+arm-replace-strnicmp-with-strncasecmp.patch
+netfilter-replace-strnicmp-with-strncasecmp.patch
+video-fbdev-replace-strnicmp-with-strncasecmp.patch
+cifs-replace-strnicmp-with-strncasecmp.patch
+ocfs2-replace-strnicmp-with-strncasecmp.patch
+isofs-replace-strnicmp-with-strncasecmp.patch
+batman-adv-replace-strnicmp-with-strncasecmp.patch
+scsi-replace-strnicmp-with-strncasecmp.patch
+ib_srpt-replace-strnicmp-with-strncasecmp.patch
+input-edt-ft5x06-replace-strnicmp-with-strncasecmp.patch
+altera-stapl-replace-strnicmp-with-strncasecmp.patch
+thinkpad_acpi-replace-strnicmp-with-strncasecmp.patch
+pnp-replace-strnicmp-with-strncasecmp.patch
+s390-cio-replace-strnicmp-with-strncasecmp.patch
+staging-r8188eu-replace-strnicmp-with-strncasecmp.patch
+thermal-replace-strnicmp-with-strncasecmp.patch
+kdb-replace-strnicmp-with-strncasecmp.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
