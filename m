@@ -1,41 +1,38 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch removed from -mm tree
-Date: Wed, 01 Oct 2014 13:36:18 -0700
-Message-ID: <542c65c2.jkqT5Tc5TYhzzRBR%akpm__30865.104965824$1412195791$gmane$org@linux-foundation.org>
+ mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
+ removed from -mm tree
+Date: Wed, 01 Oct 2014 13:36:20 -0700
+Message-ID: <542c65c4.Ss9rMGdBO2jiAD6J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44444 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44449 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751614AbaJAUgS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 16:36:18 -0400
+	with ESMTP id S1752506AbaJAUgV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 16:36:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, hughd@google.com, james.hogan@imgtec.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: add migration/hwpoisoned entry check in hugetlb_change_protection
+     Subject: mm/hugetlb: add migration entry check in __unmap_hugepage_range
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+     mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/hugetlb: add migration/hwpoisoned entry check in hugetlb_change_protection
+Subject: mm/hugetlb: add migration entry check in __unmap_hugepage_range
 
-There is a race condition between hugepage migration and
-change_protection(), where hugetlb_change_protection() doesn't care about
-migration entries and wrongly overwrites them.  That causes unexpected
-results like kernel crash.  HWPoison entries also can cause the same
-problem.
-
-This patch adds is_hugetlb_entry_(migration|hwpoisoned) check in this
-function to do proper actions.
+If __unmap_hugepage_range() tries to unmap the address range over which
+hugepage migration is on the way, we get the wrong page because pte_page()
+doesn't work for migration entries.  This patch simply clears the pte for
+migration entries as we do for hwpoison entries.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -45,40 +42,25 @@ Cc: <stable@vger.kernel.org>	[2.6.36+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection
+diff -puN mm/hugetlb.c~mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range
 +++ a/mm/hugetlb.c
-@@ -3372,7 +3372,26 @@ unsigned long hugetlb_change_protection(
- 			spin_unlock(ptl);
- 			continue;
+@@ -2653,9 +2653,10 @@ again:
+ 			goto unlock;
+ 
+ 		/*
+-		 * HWPoisoned hugepage is already unmapped and dropped reference
++		 * Migrating hugepage or HWPoisoned hugepage is already
++		 * unmapped and its refcount is dropped, so just clear pte here.
+ 		 */
+-		if (unlikely(is_hugetlb_entry_hwpoisoned(pte))) {
++		if (unlikely(!pte_present(pte))) {
+ 			huge_pte_clear(mm, address, ptep);
+ 			goto unlock;
  		}
--		if (!huge_pte_none(huge_ptep_get(ptep))) {
-+		pte = huge_ptep_get(ptep);
-+		if (unlikely(is_hugetlb_entry_hwpoisoned(pte))) {
-+			spin_unlock(ptl);
-+			continue;
-+		}
-+		if (unlikely(is_hugetlb_entry_migration(pte))) {
-+			swp_entry_t entry = pte_to_swp_entry(pte);
-+
-+			if (is_write_migration_entry(entry)) {
-+				pte_t newpte;
-+
-+				make_migration_entry_read(&entry);
-+				newpte = swp_entry_to_pte(entry);
-+				set_huge_pte_at(mm, address, ptep, newpte);
-+				pages++;
-+			}
-+			spin_unlock(ptl);
-+			continue;
-+		}
-+		if (!huge_pte_none(pte)) {
- 			pte = huge_ptep_get_and_clear(mm, address, ptep);
- 			pte = pte_mkhuge(huge_pte_modify(pte, newprot));
- 			pte = arch_make_huge_pte(pte, vma, NULL, 0);
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
@@ -115,7 +97,6 @@ introduce-vm_bug_on_vma.patch
 convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
 mm-softdirty-unmapped-addresses-between-vmas-are-clean.patch
 mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2.patch
-mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
