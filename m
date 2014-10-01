@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-remove-redundant-sys_tz-declarations.patch added to -mm tree
-Date: Wed, 01 Oct 2014 15:29:45 -0700
-Message-ID: <542c8059.wgbuxovOwIPnn8uO%akpm@linux-foundation.org>
+Subject: + maintainers-orphan-m32r.patch added to -mm tree
+Date: Wed, 01 Oct 2014 15:37:08 -0700
+Message-ID: <542c8214.L4PhgaLQM7O2PK2o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45138 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45215 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632AbaJAW3p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 18:29:45 -0400
+	with ESMTP id S1752654AbaJAWhK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 18:37:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mm-commits@vger.kernel.org
+To: michael.opdenacker@free-electrons.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs: remove redundant sys_tz declarations
+     Subject: MAINTAINERS: orphan m32r
 has been added to the -mm tree.  Its filename is
-     fs-affs-remove-redundant-sys_tz-declarations.patch
+     maintainers-orphan-m32r.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-remove-redundant-sys_tz-declarations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-orphan-m32r.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-remove-redundant-sys_tz-declarations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-orphan-m32r.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,74 +38,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs: remove redundant sys_tz declarations
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: MAINTAINERS: orphan m32r
 
-sys_tz is already declared in include/linux/time.h
+Update the maintenance status for m32r
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+- Removing Hirokazu Takata as maintainer
+  (last commit merged: Nov. 2009)
+
+- Remove mailing lists that no longer exist,
+  as the ml.linux-m32r.org subdomain no longer exists.
+
+- Maintenance status moved to "Orphan"
+
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Acked-by: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/amigaffs.c |    2 --
- fs/affs/inode.c    |    1 -
- fs/affs/super.c    |    2 --
- 3 files changed, 5 deletions(-)
+ MAINTAINERS |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN fs/affs/amigaffs.c~fs-affs-remove-redundant-sys_tz-declarations fs/affs/amigaffs.c
---- a/fs/affs/amigaffs.c~fs-affs-remove-redundant-sys_tz-declarations
-+++ a/fs/affs/amigaffs.c
-@@ -10,8 +10,6 @@
+diff -puN MAINTAINERS~maintainers-orphan-m32r MAINTAINERS
+--- a/MAINTAINERS~maintainers-orphan-m32r
++++ a/MAINTAINERS
+@@ -5658,11 +5658,8 @@ T:	git git://github.com/linux-test-proje
+ S:	Maintained
  
- #include "affs.h"
+ M32R ARCHITECTURE
+-M:	Hirokazu Takata <takata@linux-m32r.org>
+-L:	linux-m32r@ml.linux-m32r.org (moderated for non-subscribers)
+-L:	linux-m32r-ja@ml.linux-m32r.org (in Japanese)
+ W:	http://www.linux-m32r.org/
+-S:	Maintained
++S:	Orphan
+ F:	arch/m32r/
  
--extern struct timezone sys_tz;
--
- static char ErrorBuffer[256];
- 
- /*
-diff -puN fs/affs/inode.c~fs-affs-remove-redundant-sys_tz-declarations fs/affs/inode.c
---- a/fs/affs/inode.c~fs-affs-remove-redundant-sys_tz-declarations
-+++ a/fs/affs/inode.c
-@@ -14,7 +14,6 @@
- #include "affs.h"
- 
- extern const struct inode_operations affs_symlink_inode_operations;
--extern struct timezone sys_tz;
- 
- struct inode *affs_iget(struct super_block *sb, unsigned long ino)
- {
-diff -puN fs/affs/super.c~fs-affs-remove-redundant-sys_tz-declarations fs/affs/super.c
---- a/fs/affs/super.c~fs-affs-remove-redundant-sys_tz-declarations
-+++ a/fs/affs/super.c
-@@ -20,8 +20,6 @@
- #include <linux/writeback.h>
- #include "affs.h"
- 
--extern struct timezone sys_tz;
--
- static int affs_statfs(struct dentry *dentry, struct kstatfs *buf);
- static int affs_remount (struct super_block *sb, int *flags, char *data);
- 
+ M68K ARCHITECTURE
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from michael.opdenacker@free-electrons.com are
 
-fs-cifs-remove-obsolete-__constant.patch
-fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-ufs-ballocc-remove-unused-variable.patch
-fs-reiserfs-journalc-fix-sparse-context-imbalance-warning.patch
-fat-remove-redundant-sys_tz-declaration.patch
-fs-affs-superc-remove-unused-variable.patch
-fs-affs-inodec-remove-unused-variable.patch
-fs-affs-filec-fix-shadow-warnings.patch
-fs-omfs-block-number-sanity-check-during-fill_super-operation.patch
+score-remove-deprecated-irqf_disabled.patch
+frv-remove-deprecated-irqf_disabled.patch
+maintainers-orphan-m32r.patch
 linux-next.patch
-fs-hfs-hfs_fsh-remove-redundant-sys_tz-declaration.patch
-fs-ncpfs-dirc-remove-redundant-sys_tz-declaration.patch
-fs-affs-remove-redundant-sys_tz-declarations.patch
 
