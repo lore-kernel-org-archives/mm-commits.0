@@ -1,66 +1,275 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
- removed from -mm tree
-Date: Wed, 01 Oct 2014 13:36:20 -0700
-Message-ID: <542c65c4.Ss9rMGdBO2jiAD6J%akpm@linux-foundation.org>
+ mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch removed from -mm
+ tree
+Date: Wed, 01 Oct 2014 13:36:14 -0700
+Message-ID: <542c65be.p6P3KP1Ge7q8bkpX%akpm__21938.0703907975$1412195799$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44449 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44439 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752506AbaJAUgV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 16:36:21 -0400
+	with ESMTP id S1752474AbaJAUgP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 16:36:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, hughd@google.com, james.hogan@imgtec.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: add migration entry check in __unmap_hugepage_range
+     Subject: mm/hugetlb: take page table lock in follow_huge_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
+     mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/hugetlb: add migration entry check in __unmap_hugepage_range
+Subject: mm/hugetlb: take page table lock in follow_huge_pmd()
 
-If __unmap_hugepage_range() tries to unmap the address range over which
-hugepage migration is on the way, we get the wrong page because pte_page()
-doesn't work for migration entries.  This patch simply clears the pte for
-migration entries as we do for hwpoison entries.
+We have a race condition between move_pages() and freeing hugepages, where
+move_pages() calls follow_page(FOLL_GET) for hugepages internally and
+tries to get its refcount without preventing concurrent freeing.  This
+race crashes the kernel, so this patch fixes it by moving FOLL_GET code
+for hugepages into follow_huge_pmd() with taking the page table lock.
 
+This patch intentionally removes page==NULL check after pte_page.  This is
+justified because pte_page() never returns NULL for any architectures or
+configurations.
+
+This patch changes the behavior of follow_huge_pmd() for tail pages and
+then tail pages can be pinned/returned.  So the caller must be changed to
+properly handle the returned tail pages.
+
+We could have a choice to add the similar locking to
+follow_huge_(addr|pud) for consistency, but it's not necessary because
+currently these functions don't support FOLL_GET flag, so let's leave it
+for future development.
+
+Here is the reproducer:
+
+  $ cat movepages.c
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <numaif.h>
+
+  #define ADDR_INPUT      0x700000000000UL
+  #define HPS             0x200000
+  #define PS              0x1000
+
+  int main(int argc, char *argv[]) {
+          int i;
+          int nr_hp = strtol(argv[1], NULL, 0);
+          int nr_p  = nr_hp * HPS / PS;
+          int ret;
+          void **addrs;
+          int *status;
+          int *nodes;
+          pid_t pid;
+
+          pid = strtol(argv[2], NULL, 0);
+          addrs  = malloc(sizeof(char *) * nr_p + 1);
+          status = malloc(sizeof(char *) * nr_p + 1);
+          nodes  = malloc(sizeof(char *) * nr_p + 1);
+
+          while (1) {
+                  for (i = 0; i < nr_p; i++) {
+                          addrs[i] = (void *)ADDR_INPUT + i * PS;
+                          nodes[i] = 1;
+                          status[i] = 0;
+                  }
+                  ret = numa_move_pages(pid, nr_p, addrs, nodes, status,
+                                        MPOL_MF_MOVE_ALL);
+                  if (ret == -1)
+                          err("move_pages");
+
+                  for (i = 0; i < nr_p; i++) {
+                          addrs[i] = (void *)ADDR_INPUT + i * PS;
+                          nodes[i] = 0;
+                          status[i] = 0;
+                  }
+                  ret = numa_move_pages(pid, nr_p, addrs, nodes, status,
+                                        MPOL_MF_MOVE_ALL);
+                  if (ret == -1)
+                          err("move_pages");
+          }
+          return 0;
+  }
+
+  $ cat hugepage.c
+  #include <stdio.h>
+  #include <sys/mman.h>
+  #include <string.h>
+
+  #define ADDR_INPUT      0x700000000000UL
+  #define HPS             0x200000
+
+  int main(int argc, char *argv[]) {
+          int nr_hp = strtol(argv[1], NULL, 0);
+          char *p;
+
+          while (1) {
+                  p = mmap((void *)ADDR_INPUT, nr_hp * HPS, PROT_READ | PROT_WRITE,
+                           MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+                  if (p != (void *)ADDR_INPUT) {
+                          perror("mmap");
+                          break;
+                  }
+                  memset(p, 0, nr_hp * HPS);
+                  munmap(p, nr_hp * HPS);
+          }
+  }
+
+  $ sysctl vm.nr_hugepages=40
+  $ ./hugepage 10 &
+  $ ./movepages 10 $(pgrep -f hugepage)
+
+Fixes: e632a938d914 ("mm: migrate: add hugepage migration code to move_pages()")
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hugh Dickins <hughd@google.com>
+Reported-by: Hugh Dickins <hughd@google.com>
 Cc: James Hogan <james.hogan@imgtec.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[2.6.36+]
+Cc: <stable@vger.kernel.org>	[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/hugetlb.h |    8 ++++----
+ mm/gup.c                |   25 ++++---------------------
+ mm/hugetlb.c            |   30 +++++++++++++++++++-----------
+ mm/migrate.c            |    3 ++-
+ 4 files changed, 29 insertions(+), 37 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range
-+++ a/mm/hugetlb.c
-@@ -2653,9 +2653,10 @@ again:
- 			goto unlock;
+diff -puN include/linux/hugetlb.h~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd
++++ a/include/linux/hugetlb.h
+@@ -99,9 +99,9 @@ int huge_pmd_unshare(struct mm_struct *m
+ struct page *follow_huge_addr(struct mm_struct *mm, unsigned long address,
+ 			      int write);
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-				pmd_t *pmd, int write);
++				pmd_t *pmd, int flags);
+ struct page *follow_huge_pud(struct mm_struct *mm, unsigned long address,
+-				pud_t *pud, int write);
++				pud_t *pud, int flags);
+ int pmd_huge(pmd_t pmd);
+ int pud_huge(pud_t pmd);
+ unsigned long hugetlb_change_protection(struct vm_area_struct *vma,
+@@ -133,8 +133,8 @@ static inline void hugetlb_report_meminf
+ static inline void hugetlb_show_meminfo(void)
+ {
+ }
+-#define follow_huge_pmd(mm, addr, pmd, write)	NULL
+-#define follow_huge_pud(mm, addr, pud, write)	NULL
++#define follow_huge_pmd(mm, addr, pmd, flags)	NULL
++#define follow_huge_pud(mm, addr, pud, flags)	NULL
+ #define prepare_hugepage_range(file, addr, len)	(-EINVAL)
+ #define pmd_huge(x)	0
+ #define pud_huge(x)	0
+diff -puN mm/gup.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd mm/gup.c
+--- a/mm/gup.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd
++++ a/mm/gup.c
+@@ -162,33 +162,16 @@ struct page *follow_page_mask(struct vm_
+ 	pud = pud_offset(pgd, address);
+ 	if (pud_none(*pud))
+ 		return no_page_table(vma, flags);
+-	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
+-		if (flags & FOLL_GET)
+-			return NULL;
+-		page = follow_huge_pud(mm, address, pud, flags & FOLL_WRITE);
+-		return page;
+-	}
++	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB)
++		return follow_huge_pud(mm, address, pud, flags);
+ 	if (unlikely(pud_bad(*pud)))
+ 		return no_page_table(vma, flags);
  
- 		/*
--		 * HWPoisoned hugepage is already unmapped and dropped reference
-+		 * Migrating hugepage or HWPoisoned hugepage is already
-+		 * unmapped and its refcount is dropped, so just clear pte here.
- 		 */
--		if (unlikely(is_hugetlb_entry_hwpoisoned(pte))) {
-+		if (unlikely(!pte_present(pte))) {
- 			huge_pte_clear(mm, address, ptep);
- 			goto unlock;
+ 	pmd = pmd_offset(pud, address);
+ 	if (pmd_none(*pmd))
+ 		return no_page_table(vma, flags);
+-	if (pmd_huge(*pmd) && vma->vm_flags & VM_HUGETLB) {
+-		page = follow_huge_pmd(mm, address, pmd, flags & FOLL_WRITE);
+-		if (flags & FOLL_GET) {
+-			/*
+-			 * Refcount on tail pages are not well-defined and
+-			 * shouldn't be taken. The caller should handle a NULL
+-			 * return when trying to follow tail pages.
+-			 */
+-			if (PageHead(page))
+-				get_page(page);
+-			else
+-				page = NULL;
+-		}
+-		return page;
+-	}
++	if (pmd_huge(*pmd) && vma->vm_flags & VM_HUGETLB)
++		return follow_huge_pmd(mm, address, pmd, flags);
+ 	if ((flags & FOLL_NUMA) && pmd_numa(*pmd))
+ 		return no_page_table(vma, flags);
+ 	if (pmd_trans_huge(*pmd)) {
+diff -puN mm/hugetlb.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd
++++ a/mm/hugetlb.c
+@@ -3668,26 +3668,34 @@ follow_huge_addr(struct mm_struct *mm, u
+ 
+ struct page * __weak
+ follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-		pmd_t *pmd, int write)
++		pmd_t *pmd, int flags)
+ {
+-	struct page *page;
++	struct page *page = NULL;
++	spinlock_t *ptl;
+ 
+-	page = pte_page(*(pte_t *)pmd);
+-	if (page)
+-		page += ((address & ~PMD_MASK) >> PAGE_SHIFT);
++	ptl = pmd_lockptr(mm, pmd);
++	spin_lock(ptl);
++
++	if (!pmd_huge(*pmd))
++		goto out;
++
++	page = pte_page(*(pte_t *)pmd) + ((address & ~PMD_MASK) >> PAGE_SHIFT);
++
++	if (flags & FOLL_GET)
++		get_page(page);
++out:
++	spin_unlock(ptl);
+ 	return page;
+ }
+ 
+ struct page * __weak
+ follow_huge_pud(struct mm_struct *mm, unsigned long address,
+-		pud_t *pud, int write)
++		pud_t *pud, int flags)
+ {
+-	struct page *page;
++	if (flags & FOLL_GET)
++		return NULL;
+ 
+-	page = pte_page(*(pte_t *)pud);
+-	if (page)
+-		page += ((address & ~PUD_MASK) >> PAGE_SHIFT);
+-	return page;
++	return pte_page(*(pte_t *)pud) + ((address & ~PUD_MASK) >> PAGE_SHIFT);
+ }
+ 
+ #ifdef CONFIG_MEMORY_FAILURE
+diff -puN mm/migrate.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd mm/migrate.c
+--- a/mm/migrate.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd
++++ a/mm/migrate.c
+@@ -1265,7 +1265,8 @@ static int do_move_page_to_node_array(st
+ 			goto put_and_set;
+ 
+ 		if (PageHuge(page)) {
+-			isolate_huge_page(page, &pagelist);
++			if (PageHead(page))
++				isolate_huge_page(page, &pagelist);
+ 			goto put_and_set;
  		}
+ 
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
@@ -97,6 +306,9 @@ introduce-vm_bug_on_vma.patch
 convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
 mm-softdirty-unmapped-addresses-between-vmas-are-clean.patch
 mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2.patch
+mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
