@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-change-git-url-for-mpc5xxx-tree.patch added to -mm
- tree
-Date: Wed, 01 Oct 2014 13:27:56 -0700
-Message-ID: <542c63cc.8MTlHdCfqWJcZy8b%akpm@linux-foundation.org>
+Subject: + mm-filemap-remove-trailing-whitespace.patch added to -mm tree
+Date: Wed, 01 Oct 2014 13:28:38 -0700
+Message-ID: <542c63f6.e+yli0cMvjkNWW/k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44411 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44413 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751470AbaJAU14 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 16:27:56 -0400
+	with ESMTP id S1751874AbaJAU2i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 16:28:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agust@denx.de, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: paulmcquad@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: change git URL for mpc5xxx tree
+     Subject: mm/filemap.c: remove trailing whitespace
 has been added to the -mm tree.  Its filename is
-     maintainers-change-git-url-for-mpc5xxx-tree.patch
+     mm-filemap-remove-trailing-whitespace.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-change-git-url-for-mpc5xxx-tree.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-remove-trailing-whitespace.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-change-git-url-for-mpc5xxx-tree.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-remove-trailing-whitespace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,34 +38,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anatolij Gustschin <agust@denx.de>
-Subject: MAINTAINERS: change git URL for mpc5xxx tree
+From: Paul McQuade <paulmcquad@gmail.com>
+Subject: mm/filemap.c: remove trailing whitespace
 
-The repository for mpc5xxx has been moved, update git URL to new location.
-
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Paul McQuade <paulmcquad@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-change-git-url-for-mpc5xxx-tree MAINTAINERS
---- a/MAINTAINERS~maintainers-change-git-url-for-mpc5xxx-tree
-+++ a/MAINTAINERS
-@@ -5478,7 +5478,7 @@ F:	drivers/macintosh/
- LINUX FOR POWERPC EMBEDDED MPC5XXX
- M:	Anatolij Gustschin <agust@denx.de>
- L:	linuxppc-dev@lists.ozlabs.org
--T:	git git://git.denx.de/linux-2.6-agust.git
-+T:	git git://git.denx.de/linux-denx-agust.git
- S:	Maintained
- F:	arch/powerpc/platforms/512x/
- F:	arch/powerpc/platforms/52xx/
+diff -puN mm/filemap.c~mm-filemap-remove-trailing-whitespace mm/filemap.c
+--- a/mm/filemap.c~mm-filemap-remove-trailing-whitespace
++++ a/mm/filemap.c
+@@ -1744,7 +1744,7 @@ EXPORT_SYMBOL(generic_file_read_iter);
+ static int page_cache_read(struct file *file, pgoff_t offset)
+ {
+ 	struct address_space *mapping = file->f_mapping;
+-	struct page *page; 
++	struct page *page;
+ 	int ret;
+ 
+ 	do {
+@@ -1761,7 +1761,7 @@ static int page_cache_read(struct file *
+ 		page_cache_release(page);
+ 
+ 	} while (ret == AOP_TRUNCATED_PAGE);
+-		
++
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from agust@denx.de are
+Patches currently in -mm which might be from paulmcquad@gmail.com are
 
-maintainers-change-git-url-for-mpc5xxx-tree.patch
+mm-mremap-use-linux-headers.patch
+mm-filemap-remove-trailing-whitespace.patch
 
