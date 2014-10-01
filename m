@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map.patch
- added to -mm tree
-Date: Wed, 01 Oct 2014 15:22:08 -0700
-Message-ID: <542c7e90.gXMhR9JS8g9dda9b%akpm@linux-foundation.org>
+ selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch added to -mm tree
+Date: Wed, 01 Oct 2014 15:22:10 -0700
+Message-ID: <542c7e92.N6uC7cQSzCLozHDW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45107 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45114 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720AbaJAWWJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 18:22:09 -0400
+	with ESMTP id S1751975AbaJAWWL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 18:22:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.khlebnikov@samsung.com, aquini@redhat.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, aquini@redhat.com, ryabinin.a.a@gmail.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/balloon_compaction: remove balloon mapping and flag AS_BALLOON_MAP
+     From: Konstantin Khlebnikov <koct9i@gmail.com>
 has been added to the -mm tree.  Its filename is
-     mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map.patch
+     selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,514 +39,206 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
-Subject: mm/balloon_compaction: remove balloon mapping and flag AS_BALLOON_MAP
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: selftests/vm/transhuge-stress: stress test for memory compaction
 
-Now ballooned pages are detected using PageBalloon().  Fake mapping is no
-longer required.  This patch links ballooned pages to balloon device using
-field page->private instead of page->mapping.  Also this patch embeds
-balloon_dev_info directly into struct virtio_balloon.
+This tool induces memory fragmentation via sequential allocation of
+transparent huge pages and splitting off everything except their last
+sub-pages.  It easily generates pressure to the memory compaction code.
 
-Signed-off-by: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+$ perf stat -e 'compaction:*' -e 'migrate:*' ./transhuge-stress
+transhuge-stress: allocate 7858 transhuge pages, using 15716 MiB virtual memory and 61 MiB of ram
+transhuge-stress: 1.653 s/loop, 0.210 ms/page,   9504.828 MiB/s	7858 succeed,    0 failed, 2439 different pages
+transhuge-stress: 1.537 s/loop, 0.196 ms/page,  10226.227 MiB/s	7858 succeed,    0 failed, 2364 different pages
+transhuge-stress: 1.658 s/loop, 0.211 ms/page,   9479.215 MiB/s	7858 succeed,    0 failed, 2179 different pages
+transhuge-stress: 1.617 s/loop, 0.206 ms/page,   9716.992 MiB/s	7858 succeed,    0 failed, 2421 different pages
+^C./transhuge-stress: Interrupt
+
+ Performance counter stats for './transhuge-stress':
+
+         1.744.051      compaction:mm_compaction_isolate_migratepages
+             1.014      compaction:mm_compaction_isolate_freepages
+         1.744.051      compaction:mm_compaction_migratepages
+             1.647      compaction:mm_compaction_begin
+             1.647      compaction:mm_compaction_end
+         1.744.051      migrate:mm_migrate_pages
+                 0      migrate:mm_numa_migrate_ratelimit
+
+       7,964696835 seconds time elapsed
+
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Rafael Aquini <aquini@redhat.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c    |   60 +++--------------
- include/linux/balloon_compaction.h |   72 +++++---------------
- include/linux/pagemap.h            |   18 -----
- mm/balloon_compaction.c            |   95 +--------------------------
- 4 files changed, 39 insertions(+), 206 deletions(-)
+ tools/testing/selftests/vm/Makefile           |    1 
+ tools/testing/selftests/vm/transhuge-stress.c |  144 ++++++++++++++++
+ 2 files changed, 145 insertions(+)
 
-diff -puN drivers/virtio/virtio_balloon.c~mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map drivers/virtio/virtio_balloon.c
---- a/drivers/virtio/virtio_balloon.c~mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -59,7 +59,7 @@ struct virtio_balloon
- 	 * Each page on this list adds VIRTIO_BALLOON_PAGES_PER_PAGE
- 	 * to num_pages above.
- 	 */
--	struct balloon_dev_info *vb_dev_info;
-+	struct balloon_dev_info vb_dev_info;
+diff -puN tools/testing/selftests/vm/Makefile~selftests-vm-transhuge-stress-stress-test-for-memory-compaction tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-transhuge-stress-stress-test-for-memory-compaction
++++ a/tools/testing/selftests/vm/Makefile
+@@ -3,6 +3,7 @@
+ CC = $(CROSS_COMPILE)gcc
+ CFLAGS = -Wall
+ BINARIES = hugepage-mmap hugepage-shm map_hugetlb thuge-gen hugetlbfstest
++BINARIES += transhuge-stress
  
- 	/* Synchronize access/update to this struct virtio_balloon elements */
- 	struct mutex balloon_lock;
-@@ -127,7 +127,7 @@ static void set_page_pfns(u32 pfns[], st
- 
- static void fill_balloon(struct virtio_balloon *vb, size_t num)
- {
--	struct balloon_dev_info *vb_dev_info = vb->vb_dev_info;
-+	struct balloon_dev_info *vb_dev_info = &vb->vb_dev_info;
- 
- 	/* We can only do one array worth at a time. */
- 	num = min(num, ARRAY_SIZE(vb->pfns));
-@@ -171,7 +171,7 @@ static void release_pages_by_pfn(const u
- static void leak_balloon(struct virtio_balloon *vb, size_t num)
- {
- 	struct page *page;
--	struct balloon_dev_info *vb_dev_info = vb->vb_dev_info;
-+	struct balloon_dev_info *vb_dev_info = &vb->vb_dev_info;
- 
- 	/* We can only do one array worth at a time. */
- 	num = min(num, ARRAY_SIZE(vb->pfns));
-@@ -353,12 +353,11 @@ static int init_vqs(struct virtio_balloo
- 	return 0;
- }
- 
--static const struct address_space_operations virtio_balloon_aops;
- #ifdef CONFIG_BALLOON_COMPACTION
- /*
-  * virtballoon_migratepage - perform the balloon page migration on behalf of
-  *			     a compation thread.     (called under page lock)
-- * @mapping: the page->mapping which will be assigned to the new migrated page.
-+ * @vb_dev_info: the balloon device
-  * @newpage: page that will replace the isolated page after migration finishes.
-  * @page   : the isolated (old) page that is about to be migrated to newpage.
-  * @mode   : compaction mode -- not used for balloon page migration.
-@@ -373,17 +372,13 @@ static const struct address_space_operat
-  * This function preforms the balloon page migration task.
-  * Called through balloon_mapping->a_ops->migratepage
-  */
--static int virtballoon_migratepage(struct address_space *mapping,
-+static int virtballoon_migratepage(struct balloon_dev_info *vb_dev_info,
- 		struct page *newpage, struct page *page, enum migrate_mode mode)
- {
--	struct balloon_dev_info *vb_dev_info = balloon_page_device(page);
--	struct virtio_balloon *vb;
-+	struct virtio_balloon *vb = container_of(vb_dev_info,
-+			struct virtio_balloon, vb_dev_info);
- 	unsigned long flags;
- 
--	BUG_ON(!vb_dev_info);
--
--	vb = vb_dev_info->balloon_device;
--
- 	/*
- 	 * In order to avoid lock contention while migrating pages concurrently
- 	 * to leak_balloon() or fill_balloon() we just give up the balloon_lock
-@@ -399,7 +394,7 @@ static int virtballoon_migratepage(struc
- 
- 	/* balloon's page migration 1st step  -- inflate "newpage" */
- 	spin_lock_irqsave(&vb_dev_info->pages_lock, flags);
--	balloon_page_insert(newpage, mapping, &vb_dev_info->pages);
-+	balloon_page_insert(vb_dev_info, newpage);
- 	vb_dev_info->isolated_pages--;
- 	spin_unlock_irqrestore(&vb_dev_info->pages_lock, flags);
- 	vb->num_pfns = VIRTIO_BALLOON_PAGES_PER_PAGE;
-@@ -418,18 +413,11 @@ static int virtballoon_migratepage(struc
- 
- 	return MIGRATEPAGE_SUCCESS;
- }
--
--/* define the balloon_mapping->a_ops callback to allow balloon page migration */
--static const struct address_space_operations virtio_balloon_aops = {
--			.migratepage = virtballoon_migratepage,
--};
- #endif /* CONFIG_BALLOON_COMPACTION */
- 
- static int virtballoon_probe(struct virtio_device *vdev)
- {
- 	struct virtio_balloon *vb;
--	struct address_space *vb_mapping;
--	struct balloon_dev_info *vb_devinfo;
- 	int err;
- 
- 	vdev->priv = vb = kmalloc(sizeof(*vb), GFP_KERNEL);
-@@ -445,30 +433,14 @@ static int virtballoon_probe(struct virt
- 	vb->vdev = vdev;
- 	vb->need_stats_update = 0;
- 
--	vb_devinfo = balloon_devinfo_alloc(vb);
--	if (IS_ERR(vb_devinfo)) {
--		err = PTR_ERR(vb_devinfo);
--		goto out_free_vb;
--	}
--
--	vb_mapping = balloon_mapping_alloc(vb_devinfo,
--					   (balloon_compaction_check()) ?
--					   &virtio_balloon_aops : NULL);
--	if (IS_ERR(vb_mapping)) {
--		/*
--		 * IS_ERR(vb_mapping) && PTR_ERR(vb_mapping) == -EOPNOTSUPP
--		 * This means !CONFIG_BALLOON_COMPACTION, otherwise we get off.
--		 */
--		err = PTR_ERR(vb_mapping);
--		if (err != -EOPNOTSUPP)
--			goto out_free_vb_devinfo;
--	}
--
--	vb->vb_dev_info = vb_devinfo;
-+	balloon_devinfo_init(&vb->vb_dev_info);
-+#ifdef CONFIG_BALLOON_COMPACTION
-+	vb->vb_dev_info.migratepage = virtballoon_migratepage;
-+#endif
- 
- 	err = init_vqs(vb);
- 	if (err)
--		goto out_free_vb_mapping;
-+		goto out_free_vb;
- 
- 	vb->thread = kthread_run(balloon, vb, "vballoon");
- 	if (IS_ERR(vb->thread)) {
-@@ -480,10 +452,6 @@ static int virtballoon_probe(struct virt
- 
- out_del_vqs:
- 	vdev->config->del_vqs(vdev);
--out_free_vb_mapping:
--	balloon_mapping_free(vb_mapping);
--out_free_vb_devinfo:
--	balloon_devinfo_free(vb_devinfo);
- out_free_vb:
- 	kfree(vb);
- out:
-@@ -509,8 +477,6 @@ static void virtballoon_remove(struct vi
- 
- 	kthread_stop(vb->thread);
- 	remove_common(vb);
--	balloon_mapping_free(vb->vb_dev_info->mapping);
--	balloon_devinfo_free(vb->vb_dev_info);
- 	kfree(vb);
- }
- 
-diff -puN include/linux/balloon_compaction.h~mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map include/linux/balloon_compaction.h
---- a/include/linux/balloon_compaction.h~mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map
-+++ a/include/linux/balloon_compaction.h
-@@ -57,21 +57,22 @@
-  * balloon driver as a page book-keeper for its registered balloon devices.
-  */
- struct balloon_dev_info {
--	void *balloon_device;		/* balloon device descriptor */
--	struct address_space *mapping;	/* balloon special page->mapping */
- 	unsigned long isolated_pages;	/* # of isolated pages for migration */
- 	spinlock_t pages_lock;		/* Protection to pages list */
- 	struct list_head pages;		/* Pages enqueued & handled to Host */
-+	int (*migratepage)(struct balloon_dev_info *, struct page *newpage,
-+			struct page *page, enum migrate_mode mode);
- };
- 
- extern struct page *balloon_page_enqueue(struct balloon_dev_info *b_dev_info);
- extern struct page *balloon_page_dequeue(struct balloon_dev_info *b_dev_info);
--extern struct balloon_dev_info *balloon_devinfo_alloc(
--						void *balloon_dev_descriptor);
- 
--static inline void balloon_devinfo_free(struct balloon_dev_info *b_dev_info)
-+static inline void balloon_devinfo_init(struct balloon_dev_info *balloon)
- {
--	kfree(b_dev_info);
-+	balloon->isolated_pages = 0;
-+	spin_lock_init(&balloon->pages_lock);
-+	INIT_LIST_HEAD(&balloon->pages);
-+	balloon->migratepage = NULL;
- }
- 
- #ifdef CONFIG_BALLOON_COMPACTION
-@@ -79,14 +80,6 @@ extern bool balloon_page_isolate(struct
- extern void balloon_page_putback(struct page *page);
- extern int balloon_page_migrate(struct page *newpage,
- 				struct page *page, enum migrate_mode mode);
--extern struct address_space
--*balloon_mapping_alloc(struct balloon_dev_info *b_dev_info,
--			const struct address_space_operations *a_ops);
--
--static inline void balloon_mapping_free(struct address_space *balloon_mapping)
--{
--	kfree(balloon_mapping);
--}
- 
- /*
-  * __is_movable_balloon_page - helper to perform @page PageBalloon tests
-@@ -120,27 +113,25 @@ static inline bool isolated_balloon_page
- 
- /*
-  * balloon_page_insert - insert a page into the balloon's page list and make
-- *		         the page->mapping assignment accordingly.
-+ *			 the page->private assignment accordingly.
-+ * @balloon : pointer to balloon device
-  * @page    : page to be assigned as a 'balloon page'
-- * @mapping : allocated special 'balloon_mapping'
-- * @head    : balloon's device page list head
-  *
-  * Caller must ensure the page is locked and the spin_lock protecting balloon
-  * pages list is held before inserting a page into the balloon device.
-  */
--static inline void balloon_page_insert(struct page *page,
--				       struct address_space *mapping,
--				       struct list_head *head)
-+static inline void balloon_page_insert(struct balloon_dev_info *balloon,
-+				       struct page *page)
- {
- 	__SetPageBalloon(page);
- 	SetPagePrivate(page);
--	page->mapping = mapping;
--	list_add(&page->lru, head);
-+	set_page_private(page, (unsigned long)balloon);
-+	list_add(&page->lru, &balloon->pages);
- }
- 
- /*
-  * balloon_page_delete - delete a page from balloon's page list and clear
-- *			 the page->mapping assignement accordingly.
-+ *			 the page->private assignement accordingly.
-  * @page    : page to be released from balloon's page list
-  *
-  * Caller must ensure the page is locked and the spin_lock protecting balloon
-@@ -149,7 +140,7 @@ static inline void balloon_page_insert(s
- static inline void balloon_page_delete(struct page *page)
- {
- 	__ClearPageBalloon(page);
--	page->mapping = NULL;
-+	set_page_private(page, 0);
- 	if (PagePrivate(page)) {
- 		ClearPagePrivate(page);
- 		list_del(&page->lru);
-@@ -162,11 +153,7 @@ static inline void balloon_page_delete(s
-  */
- static inline struct balloon_dev_info *balloon_page_device(struct page *page)
- {
--	struct address_space *mapping = page->mapping;
--	if (likely(mapping))
--		return mapping->private_data;
--
--	return NULL;
-+	return (struct balloon_dev_info *)page_private(page);
- }
- 
- static inline gfp_t balloon_mapping_gfp_mask(void)
-@@ -174,29 +161,12 @@ static inline gfp_t balloon_mapping_gfp_
- 	return GFP_HIGHUSER_MOVABLE;
- }
- 
--static inline bool balloon_compaction_check(void)
--{
--	return true;
--}
--
- #else /* !CONFIG_BALLOON_COMPACTION */
- 
--static inline void *balloon_mapping_alloc(void *balloon_device,
--				const struct address_space_operations *a_ops)
-+static inline void balloon_page_insert(struct balloon_dev_info *balloon,
-+				       struct page *page)
- {
--	return ERR_PTR(-EOPNOTSUPP);
--}
--
--static inline void balloon_mapping_free(struct address_space *balloon_mapping)
--{
--	return;
--}
--
--static inline void balloon_page_insert(struct page *page,
--				       struct address_space *mapping,
--				       struct list_head *head)
--{
--	list_add(&page->lru, head);
-+	list_add(&page->lru, &balloon->pages);
- }
- 
- static inline void balloon_page_delete(struct page *page)
-@@ -240,9 +210,5 @@ static inline gfp_t balloon_mapping_gfp_
- 	return GFP_HIGHUSER;
- }
- 
--static inline bool balloon_compaction_check(void)
--{
--	return false;
--}
- #endif /* CONFIG_BALLOON_COMPACTION */
- #endif /* _LINUX_BALLOON_COMPACTION_H */
-diff -puN include/linux/pagemap.h~mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map
-+++ a/include/linux/pagemap.h
-@@ -24,8 +24,7 @@ enum mapping_flags {
- 	AS_ENOSPC	= __GFP_BITS_SHIFT + 1,	/* ENOSPC on async write */
- 	AS_MM_ALL_LOCKS	= __GFP_BITS_SHIFT + 2,	/* under mm_take_all_locks() */
- 	AS_UNEVICTABLE	= __GFP_BITS_SHIFT + 3,	/* e.g., ramdisk, SHM_LOCK */
--	AS_BALLOON_MAP  = __GFP_BITS_SHIFT + 4, /* balloon page special map */
--	AS_EXITING	= __GFP_BITS_SHIFT + 5, /* final truncate in progress */
-+	AS_EXITING	= __GFP_BITS_SHIFT + 4, /* final truncate in progress */
- };
- 
- static inline void mapping_set_error(struct address_space *mapping, int error)
-@@ -55,21 +54,6 @@ static inline int mapping_unevictable(st
- 	return !!mapping;
- }
- 
--static inline void mapping_set_balloon(struct address_space *mapping)
--{
--	set_bit(AS_BALLOON_MAP, &mapping->flags);
--}
--
--static inline void mapping_clear_balloon(struct address_space *mapping)
--{
--	clear_bit(AS_BALLOON_MAP, &mapping->flags);
--}
--
--static inline int mapping_balloon(struct address_space *mapping)
--{
--	return mapping && test_bit(AS_BALLOON_MAP, &mapping->flags);
--}
--
- static inline void mapping_set_exiting(struct address_space *mapping)
- {
- 	set_bit(AS_EXITING, &mapping->flags);
-diff -puN mm/balloon_compaction.c~mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map mm/balloon_compaction.c
---- a/mm/balloon_compaction.c~mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map
-+++ a/mm/balloon_compaction.c
-@@ -11,32 +11,6 @@
- #include <linux/balloon_compaction.h>
- 
- /*
-- * balloon_devinfo_alloc - allocates a balloon device information descriptor.
-- * @balloon_dev_descriptor: pointer to reference the balloon device which
-- *                          this struct balloon_dev_info will be servicing.
-- *
-- * Driver must call it to properly allocate and initialize an instance of
-- * struct balloon_dev_info which will be used to reference a balloon device
-- * as well as to keep track of the balloon device page list.
-- */
--struct balloon_dev_info *balloon_devinfo_alloc(void *balloon_dev_descriptor)
--{
--	struct balloon_dev_info *b_dev_info;
--	b_dev_info = kmalloc(sizeof(*b_dev_info), GFP_KERNEL);
--	if (!b_dev_info)
--		return ERR_PTR(-ENOMEM);
--
--	b_dev_info->balloon_device = balloon_dev_descriptor;
--	b_dev_info->mapping = NULL;
--	b_dev_info->isolated_pages = 0;
--	spin_lock_init(&b_dev_info->pages_lock);
--	INIT_LIST_HEAD(&b_dev_info->pages);
--
--	return b_dev_info;
--}
--EXPORT_SYMBOL_GPL(balloon_devinfo_alloc);
--
--/*
-  * balloon_page_enqueue - allocates a new page and inserts it into the balloon
-  *			  page list.
-  * @b_dev_info: balloon device decriptor where we will insert a new page to
-@@ -61,7 +35,7 @@ struct page *balloon_page_enqueue(struct
- 	 */
- 	BUG_ON(!trylock_page(page));
- 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
--	balloon_page_insert(page, b_dev_info->mapping, &b_dev_info->pages);
-+	balloon_page_insert(b_dev_info, page);
- 	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
- 	unlock_page(page);
- 	return page;
-@@ -127,60 +101,10 @@ struct page *balloon_page_dequeue(struct
- EXPORT_SYMBOL_GPL(balloon_page_dequeue);
- 
- #ifdef CONFIG_BALLOON_COMPACTION
--/*
-- * balloon_mapping_alloc - allocates a special ->mapping for ballooned pages.
-- * @b_dev_info: holds the balloon device information descriptor.
-- * @a_ops: balloon_mapping address_space_operations descriptor.
-- *
-- * Driver must call it to properly allocate and initialize an instance of
-- * struct address_space which will be used as the special page->mapping for
-- * balloon device enlisted page instances.
-- */
--struct address_space *balloon_mapping_alloc(struct balloon_dev_info *b_dev_info,
--				const struct address_space_operations *a_ops)
--{
--	struct address_space *mapping;
--
--	mapping = kmalloc(sizeof(*mapping), GFP_KERNEL);
--	if (!mapping)
--		return ERR_PTR(-ENOMEM);
--
--	/*
--	 * Give a clean 'zeroed' status to all elements of this special
--	 * balloon page->mapping struct address_space instance.
--	 */
--	address_space_init_once(mapping);
--
--	/*
--	 * Set mapping->flags appropriately, to allow balloon pages
--	 * ->mapping identification.
--	 */
--	mapping_set_balloon(mapping);
--	mapping_set_gfp_mask(mapping, balloon_mapping_gfp_mask());
--
--	/* balloon's page->mapping->a_ops callback descriptor */
--	mapping->a_ops = a_ops;
--
--	/*
--	 * Establish a pointer reference back to the balloon device descriptor
--	 * this particular page->mapping will be servicing.
--	 * This is used by compaction / migration procedures to identify and
--	 * access the balloon device pageset while isolating / migrating pages.
--	 *
--	 * As some balloon drivers can register multiple balloon devices
--	 * for a single guest, this also helps compaction / migration to
--	 * properly deal with multiple balloon pagesets, when required.
--	 */
--	mapping->private_data = b_dev_info;
--	b_dev_info->mapping = mapping;
--
--	return mapping;
--}
--EXPORT_SYMBOL_GPL(balloon_mapping_alloc);
- 
- static inline void __isolate_balloon_page(struct page *page)
- {
--	struct balloon_dev_info *b_dev_info = page->mapping->private_data;
-+	struct balloon_dev_info *b_dev_info = balloon_page_device(page);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-@@ -192,7 +116,7 @@ static inline void __isolate_balloon_pag
- 
- static inline void __putback_balloon_page(struct page *page)
- {
--	struct balloon_dev_info *b_dev_info = page->mapping->private_data;
-+	struct balloon_dev_info *b_dev_info = balloon_page_device(page);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-@@ -202,12 +126,6 @@ static inline void __putback_balloon_pag
- 	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
- }
- 
--static inline int __migrate_balloon_page(struct address_space *mapping,
--		struct page *newpage, struct page *page, enum migrate_mode mode)
--{
--	return page->mapping->a_ops->migratepage(mapping, newpage, page, mode);
--}
--
- /* __isolate_lru_page() counterpart for a ballooned page */
- bool balloon_page_isolate(struct page *page)
- {
-@@ -274,7 +192,7 @@ void balloon_page_putback(struct page *p
- int balloon_page_migrate(struct page *newpage,
- 			 struct page *page, enum migrate_mode mode)
- {
--	struct address_space *mapping;
-+	struct balloon_dev_info *balloon = balloon_page_device(page);
- 	int rc = -EAGAIN;
- 
- 	/*
-@@ -290,9 +208,8 @@ int balloon_page_migrate(struct page *ne
- 		return rc;
- 	}
- 
--	mapping = page->mapping;
--	if (mapping)
--		rc = __migrate_balloon_page(mapping, newpage, page, mode);
-+	if (balloon && balloon->migratepage)
-+		rc = balloon->migratepage(balloon, newpage, page, mode);
- 
- 	unlock_page(newpage);
- 	return rc;
+ all: $(BINARIES)
+ %: %.c
+diff -puN /dev/null tools/testing/selftests/vm/transhuge-stress.c
+--- /dev/null
++++ a/tools/testing/selftests/vm/transhuge-stress.c
+@@ -0,0 +1,144 @@
++/*
++ * Stress test for transparent huge pages, memory compaction and migration.
++ *
++ * Authors: Konstantin Khlebnikov <koct9i@gmail.com>
++ *
++ * This is free and unencumbered software released into the public domain.
++ */
++
++#include <stdlib.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <err.h>
++#include <time.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <string.h>
++#include <sys/mman.h>
++
++#define PAGE_SHIFT 12
++#define HPAGE_SHIFT 21
++
++#define PAGE_SIZE (1 << PAGE_SHIFT)
++#define HPAGE_SIZE (1 << HPAGE_SHIFT)
++
++#define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
++#define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
++
++int pagemap_fd;
++
++int64_t allocate_transhuge(void *ptr)
++{
++	uint64_t ent[2];
++
++	/* drop pmd */
++	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
++				MAP_FIXED | MAP_ANONYMOUS |
++				MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
++		errx(2, "mmap transhuge");
++
++	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
++		err(2, "MADV_HUGEPAGE");
++
++	/* allocate transparent huge page */
++	*(volatile void **)ptr = ptr;
++
++	if (pread(pagemap_fd, ent, sizeof(ent),
++			(uintptr_t)ptr >> (PAGE_SHIFT - 3)) != sizeof(ent))
++		err(2, "read pagemap");
++
++	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
++	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
++	    !(PAGEMAP_PFN(ent[0]) & ((1 << (HPAGE_SHIFT - PAGE_SHIFT)) - 1)))
++		return PAGEMAP_PFN(ent[0]);
++
++	return -1;
++}
++
++int main(int argc, char **argv)
++{
++	size_t ram, len;
++	void *ptr, *p;
++	struct timespec a, b;
++	double s;
++	uint8_t *map;
++	size_t map_len;
++
++	ram = sysconf(_SC_PHYS_PAGES);
++	if (ram > SIZE_MAX / sysconf(_SC_PAGESIZE) / 4)
++		ram = SIZE_MAX / 4;
++	else
++		ram *= sysconf(_SC_PAGESIZE);
++
++	if (argc == 1)
++		len = ram;
++	else if (!strcmp(argv[1], "-h"))
++		errx(1, "usage: %s [size in MiB]", argv[0]);
++	else
++		len = atoll(argv[1]) << 20;
++
++	warnx("allocate %zd transhuge pages, using %zd MiB virtual memory"
++	      " and %zd MiB of ram", len >> HPAGE_SHIFT, len >> 20,
++	      len >> (20 + HPAGE_SHIFT - PAGE_SHIFT - 1));
++
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		err(2, "open pagemap");
++
++	len -= len % HPAGE_SIZE;
++	ptr = mmap(NULL, len + HPAGE_SIZE, PROT_READ | PROT_WRITE,
++			MAP_ANONYMOUS | MAP_NORESERVE | MAP_PRIVATE, -1, 0);
++	if (ptr == MAP_FAILED)
++		err(2, "initial mmap");
++	ptr += HPAGE_SIZE - (uintptr_t)ptr % HPAGE_SIZE;
++
++	if (madvise(ptr, len, MADV_HUGEPAGE))
++		err(2, "MADV_HUGEPAGE");
++
++	map_len = ram >> (HPAGE_SHIFT - 1);
++	map = malloc(map_len);
++	if (!map)
++		errx(2, "map malloc");
++
++	while (1) {
++		int nr_succeed = 0, nr_failed = 0, nr_pages = 0;
++
++		memset(map, 0, map_len);
++
++		clock_gettime(CLOCK_MONOTONIC, &a);
++		for (p = ptr; p < ptr + len; p += HPAGE_SIZE) {
++			int64_t pfn;
++
++			pfn = allocate_transhuge(p);
++
++			if (pfn < 0) {
++				nr_failed++;
++			} else {
++				size_t idx = pfn >> (HPAGE_SHIFT - PAGE_SHIFT);
++
++				nr_succeed++;
++				if (idx >= map_len) {
++					map = realloc(map, idx + 1);
++					if (!map)
++						errx(2, "map realloc");
++					memset(map + map_len, 0, idx + 1 - map_len);
++					map_len = idx + 1;
++				}
++				if (!map[idx])
++					nr_pages++;
++				map[idx] = 1;
++			}
++
++			/* split transhuge page, keep last page */
++			if (madvise(p, HPAGE_SIZE - PAGE_SIZE, MADV_DONTNEED))
++				err(2, "MADV_DONTNEED");
++		}
++		clock_gettime(CLOCK_MONOTONIC, &b);
++		s = b.tv_sec - a.tv_sec + (b.tv_nsec - a.tv_nsec) / 1000000000.;
++
++		warnx("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
++		      "%4d succeed, %4d failed, %4d different pages",
++		      s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
++		      nr_succeed, nr_failed, nr_pages);
++	}
++}
 _
 
-Patches currently in -mm which might be from k.khlebnikov@samsung.com are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
-include-linux-migrateh-remove-migratepage-define.patch
-mm-balloon_compaction-redesign-ballooned-pages-management.patch
-mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map.patch
-mm-balloon_compaction-add-vmstat-counters-and-kpageflags-bit.patch
-linux-next.patch
+selftests-vm-transhuge-stress-stress-test-for-memory-compaction.patch
 
