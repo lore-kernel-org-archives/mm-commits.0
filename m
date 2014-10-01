@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-ksm-use-pr_err-instead-of-printk.patch added to -mm tree
-Date: Wed, 01 Oct 2014 13:51:10 -0700
-Message-ID: <542c693e.pTFsvw1dm5xDSN5q%akpm@linux-foundation.org>
+Subject: + mm-dmapool-fixed-a-brace-coding-style-issue.patch added to -mm
+ tree
+Date: Wed, 01 Oct 2014 13:55:58 -0700
+Message-ID: <542c6a5e.dpPQjt6p1ZjqgaN5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44576 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751786AbaJAUvL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 16:51:11 -0400
+	with ESMTP id S1751208AbaJAUz6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 16:55:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: paulmcquad@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: ksm use pr_err instead of printk
+     Subject: mm/dmapool.c: fixed a brace coding style issue
 has been added to the -mm tree.  Its filename is
-     mm-ksm-use-pr_err-instead-of-printk.patch
+     mm-dmapool-fixed-a-brace-coding-style-issue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-ksm-use-pr_err-instead-of-printk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dmapool-fixed-a-brace-coding-style-issue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-ksm-use-pr_err-instead-of-printk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dmapool-fixed-a-brace-coding-style-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +40,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Paul McQuade <paulmcquad@gmail.com>
-Subject: mm: ksm use pr_err instead of printk
+Subject: mm/dmapool.c: fixed a brace coding style issue
 
-WARNING: Prefer: pr_err(...  to printk(KERN_ERR ...
+Remove 3 brace coding style for any arm of this statement
 
 Signed-off-by: Paul McQuade <paulmcquad@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/dmapool.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN mm/ksm.c~mm-ksm-use-pr_err-instead-of-printk mm/ksm.c
---- a/mm/ksm.c~mm-ksm-use-pr_err-instead-of-printk
-+++ a/mm/ksm.c
-@@ -2310,7 +2310,7 @@ static int __init ksm_init(void)
+diff -puN mm/dmapool.c~mm-dmapool-fixed-a-brace-coding-style-issue mm/dmapool.c
+--- a/mm/dmapool.c~mm-dmapool-fixed-a-brace-coding-style-issue
++++ a/mm/dmapool.c
+@@ -135,28 +135,25 @@ struct dma_pool *dma_pool_create(const c
+ 	size_t allocation;
+ 	bool empty = false;
  
- 	ksm_thread = kthread_run(ksm_scan_thread, NULL, "ksmd");
- 	if (IS_ERR(ksm_thread)) {
--		printk(KERN_ERR "ksm: creating kthread failed\n");
-+		pr_err(KERN_ERR "ksm: creating kthread failed\n");
- 		err = PTR_ERR(ksm_thread);
- 		goto out_free;
- 	}
-@@ -2318,7 +2318,7 @@ static int __init ksm_init(void)
- #ifdef CONFIG_SYSFS
- 	err = sysfs_create_group(mm_kobj, &ksm_attr_group);
- 	if (err) {
--		printk(KERN_ERR "ksm: register sysfs failed\n");
-+		pr_err(KERN_ERR "ksm: register sysfs failed\n");
- 		kthread_stop(ksm_thread);
- 		goto out_free;
- 	}
+-	if (align == 0) {
++	if (align == 0)
+ 		align = 1;
+-	} else if (align & (align - 1)) {
++	else if (align & (align - 1))
+ 		return NULL;
+-	}
+ 
+-	if (size == 0) {
++	if (size == 0)
+ 		return NULL;
+-	} else if (size < 4) {
++	else if (size < 4)
+ 		size = 4;
+-	}
+ 
+ 	if ((size % align) != 0)
+ 		size = ALIGN(size, align);
+ 
+ 	allocation = max_t(size_t, size, PAGE_SIZE);
+ 
+-	if (!boundary) {
++	if (!boundary)
+ 		boundary = allocation;
+-	} else if ((boundary < size) || (boundary & (boundary - 1))) {
++	else if ((boundary < size) || (boundary & (boundary - 1)))
+ 		return NULL;
+-	}
+ 
+ 	retval = kmalloc_node(sizeof(*retval), GFP_KERNEL, dev_to_node(dev));
+ 	if (!retval)
 _
 
 Patches currently in -mm which might be from paulmcquad@gmail.com are
@@ -80,4 +98,5 @@ mm-filemap-remove-trailing-whitespace.patch
 mm-bootmem-added-headers.patch
 mm-ksm-use-pr_err-instead-of-printk.patch
 mm-ksm-use-pr_err-instead-of-printk-fix.patch
+mm-dmapool-fixed-a-brace-coding-style-issue.patch
 
