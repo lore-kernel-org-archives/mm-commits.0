@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch added to -mm tree
-Date: Wed, 01 Oct 2014 14:53:33 -0700
-Message-ID: <542c77dd.tI31s1Kw6x9oZ+Li%akpm@linux-foundation.org>
+Subject: + mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch added to
+ -mm tree
+Date: Wed, 01 Oct 2014 14:57:31 -0700
+Message-ID: <542c78cb.52mN50Y7M69IlZk8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44934 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44950 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646AbaJAVxe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 17:53:34 -0400
+	with ESMTP id S1751720AbaJAV5b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 17:57:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, cl@linux.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, cl@linux.com, jmmahler@gmail.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: fix isolated page counting bug in compaction
+     Subject: mm/slab: fix cpu on/off handling
 has been added to the -mm tree.  Its filename is
-     mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch
+     mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,97 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/compaction: fix isolated page counting bug in compaction
+Subject: mm/slab: fix cpu on/off handling
 
-acct_isolated() is the function to adjust isolated page count.  It
-iterates cc->migratepages list and add NR_ISOLATED_ANON/NR_ISOLATED_FILE
-count according to number of anon, file pages in migratepages list,
-respectively.  Before commit (mm, compaction: move pageblock checks up
-from isolate_migratepages_range()), it is called just once in
-isolate_migratepages_range(), but, after commit, it is called in newly
-introduced isolate_migratepages_block() and this
-isolate_migratepages_block() could be called many times in
-isolate_migratepages_range() so that some page could be counted more than
-once.  This duplicate counting bug results in hang in cma_alloc(), because
-too_many_isolated() returns true continually.
-
-This patch fixes this bug by moving acct_isolated() into upper layer
-function, isolate_migratepages_range() and isolate_migratepages().  After
-this change, isolated page would be counted only once so problem would be
-gone.
+When cpu off, we flush all cpu cached objects to it's own slab. 
+free_block() is used for this purpose and it's role is just to flush
+objects from array_cache to proper slab.  It doesn't adjust array_cache's
+internal fields so we should manually reset them to proper value.  Without
+this fix, we maintain free objects duplicately, one is in cpu cache, and,
+the other one is in the slab.  So system would be broken.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: Jeremiah Mahler <jmmahler@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ mm/slab.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix mm/compaction.c
---- a/mm/compaction.c~mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix
-+++ a/mm/compaction.c
-@@ -414,22 +414,19 @@ isolate_freepages_range(struct compact_c
- }
+diff -puN mm/slab.c~mm-slab-use-percpu-allocator-for-cpu-cache-fix mm/slab.c
+--- a/mm/slab.c~mm-slab-use-percpu-allocator-for-cpu-cache-fix
++++ a/mm/slab.c
+@@ -1102,8 +1102,10 @@ static void cpuup_canceled(long cpu)
  
- /* Update the number of anon and file isolated pages in the zone */
--static void acct_isolated(struct zone *zone, bool locked, struct compact_control *cc)
-+static void acct_isolated(struct zone *zone, struct compact_control *cc)
- {
- 	struct page *page;
- 	unsigned int count[2] = { 0, };
+ 		/* cpu is dead; no one can alloc from it. */
+ 		nc = per_cpu_ptr(cachep->cpu_cache, cpu);
+-		if (nc)
++		if (nc) {
+ 			free_block(cachep, nc->entry, nc->avail, node, &list);
++			nc->avail = 0;
++		}
  
-+	if (list_empty(&cc->migratepages))
-+		return;
-+
- 	list_for_each_entry(page, &cc->migratepages, lru)
- 		count[!!page_is_file_cache(page)]++;
- 
--	/* If locked we can use the interrupt unsafe versions */
--	if (locked) {
--		__mod_zone_page_state(zone, NR_ISOLATED_ANON, count[0]);
--		__mod_zone_page_state(zone, NR_ISOLATED_FILE, count[1]);
--	} else {
--		mod_zone_page_state(zone, NR_ISOLATED_ANON, count[0]);
--		mod_zone_page_state(zone, NR_ISOLATED_FILE, count[1]);
--	}
-+	mod_zone_page_state(zone, NR_ISOLATED_ANON, count[0]);
-+	mod_zone_page_state(zone, NR_ISOLATED_FILE, count[1]);
- }
- 
- /* Similar to reclaim, but different enough that they don't share logic */
-@@ -612,8 +609,6 @@ isolate_success:
- 		}
- 	}
- 
--	acct_isolated(zone, locked, cc);
--
- 	if (locked)
- 		spin_unlock_irqrestore(&zone->lru_lock, flags);
- 
-@@ -676,6 +671,7 @@ isolate_migratepages_range(struct compac
- 			break;
- 		}
- 	}
-+	acct_isolated(cc->zone, cc);
- 
- 	return pfn;
- }
-@@ -911,6 +907,7 @@ static isolate_migrate_t isolate_migrate
- 		break;
- 	}
- 
-+	acct_isolated(zone, cc);
- 	/* Record where migration scanner will be restarted */
- 	cc->migrate_pfn = low_pfn;
- 
+ 		if (!cpumask_empty(mask)) {
+ 			spin_unlock_irq(&n->list_lock);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
@@ -153,6 +97,7 @@ mm-slab_common-commonize-slab-merge-logic.patch
 mm-slab_common-commonize-slab-merge-logic-fix.patch
 mm-slab-support-slab-merge.patch
 mm-slab-use-percpu-allocator-for-cpu-cache.patch
+mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch
 mm-cma-adjust-address-limit-to-avoid-hitting-low-high-memory-boundary.patch
 arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
 mm-page_alloc-determine-migratetype-only-once.patch
