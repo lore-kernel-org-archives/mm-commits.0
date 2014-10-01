@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + perf-fix-perf-bug-in-fork.patch added to -mm tree
-Date: Wed, 01 Oct 2014 15:45:50 -0700
-Message-ID: <542c841e.WOoavQZX85fk+El5%akpm__33356.4638895497$1412203560$gmane$org@linux-foundation.org>
+Subject: +
+ mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2-fix.patch added
+ to -mm tree
+Date: Wed, 01 Oct 2014 15:49:25 -0700
+Message-ID: <542c84f5.GNFwynQEIs6U3uB4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45239 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45335 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753285AbaJAWpu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 18:45:50 -0400
+	with ESMTP id S1751990AbaJAWtZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 18:49:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterz@infradead.org, mingo@kernel.org, oleg@redhat.com, stable@vger.kernel.org, sylvain.hitier@gmail.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, gorcunov@openvz.org, hughd@google.com, jamieliu@google.com, kirill@shutemov.name, pfeiner@google.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: perf: fix perf bug in fork()
+     Subject: pagemap: prevent pagemap_pte_range() from overrunning
 has been added to the -mm tree.  Its filename is
-     perf-fix-perf-bug-in-fork.patch
+     mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/perf-fix-perf-bug-in-fork.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/perf-fix-perf-bug-in-fork.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,72 +40,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: perf: fix perf bug in fork()
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: pagemap: prevent pagemap_pte_range() from overrunning
 
-Oleg noticed that a cleanup by Sylvain actually uncovered a bug; by
-calling perf_event_free_task() when failing sched_fork() we will not yet
-have done the memset() on ->perf_event_ctxp[] and will therefore try and
-'free' the inherited contexts, which are still in use by the parent
-process.  This is bad..
+When the vm_end address of the last vma just before vma(VM_HUGETLB) is not
+aligned to PMD boundary, the while loop in pagemap_pte_range() gets
+vma(VM_HUGETLB) and triggers BUG_ON(is_vm_hugetlb_page(vma)).  This patch
+fixes it by checking the overrun.
 
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Sylvain 'ythier' Hitier <sylvain.hitier@gmail.com>
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: <stable@vger.kernel.org>
+Fixes: 62c98294410d ("mm: softdirty: unmapped addresses between VMAs are clean")
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Peter Feiner <pfeiner@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Jamie Liu <jamieliu@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/core.c |    4 +++-
- kernel/fork.c        |    5 +++--
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/events/core.c~perf-fix-perf-bug-in-fork kernel/events/core.c
---- a/kernel/events/core.c~perf-fix-perf-bug-in-fork
-+++ a/kernel/events/core.c
-@@ -7948,8 +7948,10 @@ int perf_event_init_task(struct task_str
+diff -puN fs/proc/task_mmu.c~mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2-fix
++++ a/fs/proc/task_mmu.c
+@@ -1074,7 +1074,7 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 				return err;
+ 		}
  
- 	for_each_task_context_nr(ctxn) {
- 		ret = perf_event_init_context(child, ctxn);
--		if (ret)
-+		if (ret) {
-+			perf_event_free_task(child);
- 			return ret;
-+		}
- 	}
- 
- 	return 0;
-diff -puN kernel/fork.c~perf-fix-perf-bug-in-fork kernel/fork.c
---- a/kernel/fork.c~perf-fix-perf-bug-in-fork
-+++ a/kernel/fork.c
-@@ -1360,7 +1360,7 @@ static struct task_struct *copy_process(
- 		goto bad_fork_cleanup_policy;
- 	retval = audit_alloc(p);
- 	if (retval)
--		goto bad_fork_cleanup_policy;
-+		goto bad_fork_cleanup_perf;
- 	/* copy all the process information */
- 	shm_init_task(p);
- 	retval = copy_semundo(clone_flags, p);
-@@ -1566,8 +1566,9 @@ bad_fork_cleanup_semundo:
- 	exit_sem(p);
- bad_fork_cleanup_audit:
- 	audit_free(p);
--bad_fork_cleanup_policy:
-+bad_fork_cleanup_perf:
- 	perf_event_free_task(p);
-+bad_fork_cleanup_policy:
- #ifdef CONFIG_NUMA
- 	mpol_put(p->mempolicy);
- bad_fork_cleanup_threadgroup_lock:
+-		if (!vma)
++		if (!vma || vma->vm_start >= end)
+ 			break;
+ 		/*
+ 		 * We can't possibly be in a hugetlb VMA. In general,
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-memcontrol-do-not-iterate-uninitialized-memcgs.patch
-perf-fix-perf-bug-in-fork.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
+mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
+mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch
+mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
+mm-compaction-skip-rechecks-when-lock-was-already-held.patch
+mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+mm-rename-allocflags_to_migratetype-for-clarity.patch
+mm-compaction-pass-gfp-mask-to-compact_control.patch
 mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put.patch
 mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
 mempolicy-sanitize-the-usage-of-get_task_policy.patch
@@ -112,13 +105,15 @@ mempolicy-introduce-__get_vma_policy-export-get_task_policy.patch
 mempolicy-fix-show_numa_map-vs-exec-do_set_mempolicy-race.patch
 mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
 mempolicy-unexport-get_vma_policy-and-remove-its-task-arg.patch
-vmstat-on-demand-vmstat-workers-v8.patch
-vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
-printk-git-rid-of-message-for-printk_deferred.patch
-lib-remove-prio_heap.patch
-x86-optimize-resource-lookups-for-ioremap.patch
-x86-optimize-resource-lookups-for-ioremap-fix.patch
-x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
-linux-next.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
+introduce-dump_vma.patch
+introduce-dump_vma-fix.patch
+introduce-vm_bug_on_vma.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
+mm-softdirty-unmapped-addresses-between-vmas-are-clean.patch
+mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2.patch
+mm-softdirty-unmapped-addresses-between-vmas-are-clean-v2-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
+mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix.patch
 
