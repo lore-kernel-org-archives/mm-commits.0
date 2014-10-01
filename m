@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arm64-mm-enable-rcu-fast_gup.patch added to -mm tree
-Date: Wed, 01 Oct 2014 14:23:27 -0700
-Message-ID: <542c70cf.Rh4VBdVC8rs6J2U4%akpm@linux-foundation.org>
+Subject: + arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch added to
+ -mm tree
+Date: Wed, 01 Oct 2014 14:30:43 -0700
+Message-ID: <542c7283.lsOj8PH8enKgo81k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44769 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44790 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018AbaJAVX2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 17:23:28 -0400
+	with ESMTP id S1751554AbaJAVan (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 17:30:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steve.capper@linaro.org, aarcange@redhat.com, catalin.marinas@arm.com, christoffer.dall@linaro.org, dann.frazier@canonical.com, hughd@google.com, mark.rutland@arm.com, mel@csn.ul.ie, rmk@arm.linux.org.uk, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, steve.capper@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: mm: enable RCU fast_gup
+     Subject: arm64-mm-enable-rcu-fast_gup-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     arm64-mm-enable-rcu-fast_gup.patch
+     arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-mm-enable-rcu-fast_gup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-mm-enable-rcu-fast_gup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,130 +39,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Steve Capper <steve.capper@linaro.org>
-Subject: arm64: mm: enable RCU fast_gup
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arm64-mm-enable-rcu-fast_gup-checkpatch-fixes
 
-Activate the RCU fast_gup for ARM64.  We also need to force THP splits to
-broadcast an IPI s.t.  we block in the fast_gup page walker.  As THP
-splits are comparatively rare, this should not lead to a noticeable
-performance degradation.
+WARNING: Missing a blank line after declarations
+#108: FILE: arch/arm64/mm/flush.c:114:
++	pmd_t pmd = pmd_mksplitting(*pmdp);
++	VM_BUG_ON(address & ~PMD_MASK);
 
-Some pre-requisite functions pud_write and pud_page are also added.
+total: 0 errors, 1 warnings, 72 lines checked
 
-Signed-off-by: Steve Capper <steve.capper@linaro.org>
-Tested-by: Dann Frazier <dann.frazier@canonical.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+./patches/arm64-mm-enable-rcu-fast_gup.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Steve Capper <steve.capper@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig               |    3 +++
- arch/arm64/include/asm/pgtable.h |   21 ++++++++++++++++++++-
- arch/arm64/mm/flush.c            |   15 +++++++++++++++
- 3 files changed, 38 insertions(+), 1 deletion(-)
+ arch/arm64/mm/flush.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/arm64/Kconfig~arm64-mm-enable-rcu-fast_gup arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~arm64-mm-enable-rcu-fast_gup
-+++ a/arch/arm64/Kconfig
-@@ -109,6 +109,9 @@ config GENERIC_CALIBRATE_DELAY
- config ZONE_DMA
- 	def_bool y
- 
-+config HAVE_GENERIC_RCU_GUP
-+	def_bool y
-+
- config ARCH_DMA_ADDR_T_64BIT
- 	def_bool y
- 
-diff -puN arch/arm64/include/asm/pgtable.h~arm64-mm-enable-rcu-fast_gup arch/arm64/include/asm/pgtable.h
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-enable-rcu-fast_gup
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -239,6 +239,16 @@ static inline void set_pte_at(struct mm_
- 
- #define __HAVE_ARCH_PTE_SPECIAL
- 
-+static inline pte_t pud_pte(pud_t pud)
-+{
-+	return __pte(pud_val(pud));
-+}
-+
-+static inline pmd_t pud_pmd(pud_t pud)
-+{
-+	return __pmd(pud_val(pud));
-+}
-+
- static inline pte_t pmd_pte(pmd_t pmd)
- {
- 	return __pte(pmd_val(pmd));
-@@ -256,7 +266,13 @@ static inline pmd_t pte_pmd(pte_t pte)
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- #define pmd_trans_huge(pmd)	(pmd_val(pmd) && !(pmd_val(pmd) & PMD_TABLE_BIT))
- #define pmd_trans_splitting(pmd)	pte_special(pmd_pte(pmd))
--#endif
-+#ifdef CONFIG_HAVE_RCU_TABLE_FREE
-+#define __HAVE_ARCH_PMDP_SPLITTING_FLUSH
-+struct vm_area_struct;
-+void pmdp_splitting_flush(struct vm_area_struct *vma, unsigned long address,
-+			  pmd_t *pmdp);
-+#endif /* CONFIG_HAVE_RCU_TABLE_FREE */
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
- #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
-@@ -277,6 +293,7 @@ static inline pmd_t pte_pmd(pte_t pte)
- #define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
- 
- #define pmd_page(pmd)           pfn_to_page(__phys_to_pfn(pmd_val(pmd) & PHYS_MASK))
-+#define pud_write(pud)		pte_write(pud_pte(pud))
- #define pud_pfn(pud)		(((pud_val(pud) & PUD_MASK) & PHYS_MASK) >> PAGE_SHIFT)
- 
- #define set_pmd_at(mm, addr, pmdp, pmd)	set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd))
-@@ -376,6 +393,8 @@ static inline pmd_t *pmd_offset(pud_t *p
- 	return (pmd_t *)pud_page_vaddr(*pud) + pmd_index(addr);
- }
- 
-+#define pud_page(pud)           pmd_page(pud_pmd(pud))
-+
- #endif	/* CONFIG_ARM64_PGTABLE_LEVELS > 2 */
- 
- #if CONFIG_ARM64_PGTABLE_LEVELS > 3
-diff -puN arch/arm64/mm/flush.c~arm64-mm-enable-rcu-fast_gup arch/arm64/mm/flush.c
---- a/arch/arm64/mm/flush.c~arm64-mm-enable-rcu-fast_gup
+diff -puN arch/arm64/Kconfig~arm64-mm-enable-rcu-fast_gup-checkpatch-fixes arch/arm64/Kconfig
+diff -puN arch/arm64/include/asm/pgtable.h~arm64-mm-enable-rcu-fast_gup-checkpatch-fixes arch/arm64/include/asm/pgtable.h
+diff -puN arch/arm64/mm/flush.c~arm64-mm-enable-rcu-fast_gup-checkpatch-fixes arch/arm64/mm/flush.c
+--- a/arch/arm64/mm/flush.c~arm64-mm-enable-rcu-fast_gup-checkpatch-fixes
 +++ a/arch/arm64/mm/flush.c
-@@ -104,3 +104,18 @@ EXPORT_SYMBOL(flush_dcache_page);
-  */
- EXPORT_SYMBOL(flush_cache_all);
- EXPORT_SYMBOL(flush_icache_range);
+@@ -111,6 +111,7 @@ void pmdp_splitting_flush(struct vm_area
+ 			  pmd_t *pmdp)
+ {
+ 	pmd_t pmd = pmd_mksplitting(*pmdp);
 +
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#ifdef CONFIG_HAVE_RCU_TABLE_FREE
-+void pmdp_splitting_flush(struct vm_area_struct *vma, unsigned long address,
-+			  pmd_t *pmdp)
-+{
-+	pmd_t pmd = pmd_mksplitting(*pmdp);
-+	VM_BUG_ON(address & ~PMD_MASK);
-+	set_pmd_at(vma->vm_mm, address, pmdp, pmd);
-+
-+	/* dummy IPI to serialise against fast_gup */
-+	kick_all_cpus_sync();
-+}
-+#endif /* CONFIG_HAVE_RCU_TABLE_FREE */
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 	VM_BUG_ON(address & ~PMD_MASK);
+ 	set_pmd_at(vma->vm_mm, address, pmdp, pmd);
+ 
 _
 
-Patches currently in -mm which might be from steve.capper@linaro.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-introduce-a-general-rcu-get_user_pages_fast.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+kernel-add-support-for-gcc-5-checkpatch-fixes.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
+mm.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
+mm-debugc-use-pr_emerg.patch
+drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
+drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
+mm-ksm-use-pr_err-instead-of-printk-fix.patch
 mm-introduce-a-general-rcu-get_user_pages_fast-fix.patch
-arm-mm-introduce-special-ptes-for-lpae.patch
-arm-mm-enable-have_rcu_table_free-logic.patch
-arm-mm-enable-rcu-fast_gup.patch
-arm64-mm-enable-have_rcu_table_free-logic.patch
-arm64-mm-enable-rcu-fast_gup.patch
+arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+rtc-rk808-add-rtc-driver-for-rk808-fix.patch
+rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
+rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
+rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
+sched-fix-typo.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+lib-string_helpers-introduce-string_escape_mem-fix.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+fs-affs-superc-remove-unused-variable.patch
 
