@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch added to
- -mm tree
-Date: Wed, 01 Oct 2014 14:57:31 -0700
-Message-ID: <542c78cb.52mN50Y7M69IlZk8%akpm@linux-foundation.org>
+Subject: + mm-balloon_compaction-redesign-ballooned-pages-management.patch added to -mm tree
+Date: Wed, 01 Oct 2014 15:22:06 -0700
+Message-ID: <542c7e8e.FZSnOpEjgPqPg4yj%akpm__19340.7366438352$1412202139$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45101 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720AbaJAV5b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 17:57:31 -0400
+	with ESMTP id S1751759AbaJAWWH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 18:22:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, cl@linux.com, jmmahler@gmail.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: k.khlebnikov@samsung.com, aquini@redhat.com, ryabinin.a.a@gmail.com, sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: fix cpu on/off handling
+     Subject: mm/balloon_compaction: redesign ballooned pages management
 has been added to the -mm tree.  Its filename is
-     mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch
+     mm-balloon_compaction-redesign-ballooned-pages-management.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon_compaction-redesign-ballooned-pages-management.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon_compaction-redesign-ballooned-pages-management.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,95 +38,452 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: fix cpu on/off handling
+From: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+Subject: mm/balloon_compaction: redesign ballooned pages management
 
-When cpu off, we flush all cpu cached objects to it's own slab. 
-free_block() is used for this purpose and it's role is just to flush
-objects from array_cache to proper slab.  It doesn't adjust array_cache's
-internal fields so we should manually reset them to proper value.  Without
-this fix, we maintain free objects duplicately, one is in cpu cache, and,
-the other one is in the slab.  So system would be broken.
+Sasha Levin reported KASAN splash inside isolate_migratepages_range(). 
+Problem is in the function __is_movable_balloon_page() which tests
+AS_BALLOON_MAP in page->mapping->flags.  This function has no protection
+against anonymous pages.  As result it tried to check address space flags
+inside struct anon_vma.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Jeremiah Mahler <jmmahler@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+Further investigation shows more problems in current implementation:
+
+* Special branch in __unmap_and_move() never works:
+  balloon_page_movable() checks page flags and page_count.  In
+  __unmap_and_move() page is locked, reference counter is elevated, thus
+  balloon_page_movable() always fails.  As a result execution goes to the
+  normal migration path.  virtballoon_migratepage() returns
+  MIGRATEPAGE_BALLOON_SUCCESS instead of MIGRATEPAGE_SUCCESS,
+  move_to_new_page() thinks this is an error code and assigns
+  newpage->mapping to NULL.  Newly migrated page lose connectivity with
+  balloon an all ability for further migration.
+
+* lru_lock erroneously required in isolate_migratepages_range() for
+  isolation ballooned page.  This function releases lru_lock periodically,
+  this makes migration mostly impossible for some pages.
+
+* balloon_page_dequeue have a tight race with balloon_page_isolate:
+  balloon_page_isolate could be executed in parallel with dequeue between
+  picking page from list and locking page_lock.  Race is rare because they
+  use trylock_page() for locking.
+
+This patch fixes all of them.
+
+Instead of fake mapping with special flag this patch uses special state of
+page->_mapcount: PAGE_BALLOON_MAPCOUNT_VALUE = -256.  Buddy allocator uses
+PAGE_BUDDY_MAPCOUNT_VALUE = -128 for similar purpose.  Storing mark
+directly in struct page makes everything safer and easier.
+
+PagePrivate is used to mark pages present in page list (i.e.  not
+isolated, like PageLRU for normal pages).  It replaces special rules for
+reference counter and makes balloon migration similar to migration of
+normal pages.  This flag is protected by page_lock together with link to
+the balloon device.
+
+Signed-off-by: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Link: http://lkml.kernel.org/p/53E6CEAA.9020105@oracle.com
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: <stable@vger.kernel.org>	[3.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/virtio/virtio_balloon.c    |   15 +---
+ include/linux/balloon_compaction.h |   97 ++++++---------------------
+ include/linux/migrate.h            |   11 ---
+ include/linux/mm.h                 |   19 +++++
+ mm/balloon_compaction.c            |   26 +++----
+ mm/compaction.c                    |    2 
+ mm/migrate.c                       |   16 +---
+ 7 files changed, 68 insertions(+), 118 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-use-percpu-allocator-for-cpu-cache-fix mm/slab.c
---- a/mm/slab.c~mm-slab-use-percpu-allocator-for-cpu-cache-fix
-+++ a/mm/slab.c
-@@ -1102,8 +1102,10 @@ static void cpuup_canceled(long cpu)
+diff -puN drivers/virtio/virtio_balloon.c~mm-balloon_compaction-redesign-ballooned-pages-management drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~mm-balloon_compaction-redesign-ballooned-pages-management
++++ a/drivers/virtio/virtio_balloon.c
+@@ -163,8 +163,8 @@ static void release_pages_by_pfn(const u
+ 	/* Find pfns pointing at start of each page, get pages and free them. */
+ 	for (i = 0; i < num; i += VIRTIO_BALLOON_PAGES_PER_PAGE) {
+ 		struct page *page = balloon_pfn_to_page(pfns[i]);
+-		balloon_page_free(page);
+ 		adjust_managed_page_count(page, 1);
++		put_page(page); /* balloon reference */
+ 	}
+ }
  
- 		/* cpu is dead; no one can alloc from it. */
- 		nc = per_cpu_ptr(cachep->cpu_cache, cpu);
--		if (nc)
-+		if (nc) {
- 			free_block(cachep, nc->entry, nc->avail, node, &list);
-+			nc->avail = 0;
-+		}
+@@ -395,6 +395,8 @@ static int virtballoon_migratepage(struc
+ 	if (!mutex_trylock(&vb->balloon_lock))
+ 		return -EAGAIN;
  
- 		if (!cpumask_empty(mask)) {
- 			spin_unlock_irq(&n->list_lock);
++	get_page(newpage); /* balloon reference */
++
+ 	/* balloon's page migration 1st step  -- inflate "newpage" */
+ 	spin_lock_irqsave(&vb_dev_info->pages_lock, flags);
+ 	balloon_page_insert(newpage, mapping, &vb_dev_info->pages);
+@@ -404,12 +406,7 @@ static int virtballoon_migratepage(struc
+ 	set_page_pfns(vb->pfns, newpage);
+ 	tell_host(vb, vb->inflate_vq);
+ 
+-	/*
+-	 * balloon's page migration 2nd step -- deflate "page"
+-	 *
+-	 * It's safe to delete page->lru here because this page is at
+-	 * an isolated migration list, and this step is expected to happen here
+-	 */
++	/* balloon's page migration 2nd step -- deflate "page" */
+ 	balloon_page_delete(page);
+ 	vb->num_pfns = VIRTIO_BALLOON_PAGES_PER_PAGE;
+ 	set_page_pfns(vb->pfns, page);
+@@ -417,7 +414,9 @@ static int virtballoon_migratepage(struc
+ 
+ 	mutex_unlock(&vb->balloon_lock);
+ 
+-	return MIGRATEPAGE_BALLOON_SUCCESS;
++	put_page(page); /* balloon reference */
++
++	return MIGRATEPAGE_SUCCESS;
+ }
+ 
+ /* define the balloon_mapping->a_ops callback to allow balloon page migration */
+diff -puN include/linux/balloon_compaction.h~mm-balloon_compaction-redesign-ballooned-pages-management include/linux/balloon_compaction.h
+--- a/include/linux/balloon_compaction.h~mm-balloon_compaction-redesign-ballooned-pages-management
++++ a/include/linux/balloon_compaction.h
+@@ -27,10 +27,13 @@
+  *      counter raised only while it is under our special handling;
+  *
+  * iii. after the lockless scan step have selected a potential balloon page for
+- *      isolation, re-test the page->mapping flags and the page ref counter
++ *      isolation, re-test the PageBalloon mark and the PagePrivate flag
+  *      under the proper page lock, to ensure isolating a valid balloon page
+  *      (not yet isolated, nor under release procedure)
+  *
++ *  iv. isolation or dequeueing procedure must clear PagePrivate flag under
++ *      page lock together with removing page from balloon device page list.
++ *
+  * The functions provided by this interface are placed to help on coping with
+  * the aforementioned balloon page corner case, as well as to ensure the simple
+  * set of exposed rules are satisfied while we are dealing with balloon pages
+@@ -71,28 +74,6 @@ static inline void balloon_devinfo_free(
+ 	kfree(b_dev_info);
+ }
+ 
+-/*
+- * balloon_page_free - release a balloon page back to the page free lists
+- * @page: ballooned page to be set free
+- *
+- * This function must be used to properly set free an isolated/dequeued balloon
+- * page at the end of a sucessful page migration, or at the balloon driver's
+- * page release procedure.
+- */
+-static inline void balloon_page_free(struct page *page)
+-{
+-	/*
+-	 * Balloon pages always get an extra refcount before being isolated
+-	 * and before being dequeued to help on sorting out fortuite colisions
+-	 * between a thread attempting to isolate and another thread attempting
+-	 * to release the very same balloon page.
+-	 *
+-	 * Before we handle the page back to Buddy, lets drop its extra refcnt.
+-	 */
+-	put_page(page);
+-	__free_page(page);
+-}
+-
+ #ifdef CONFIG_BALLOON_COMPACTION
+ extern bool balloon_page_isolate(struct page *page);
+ extern void balloon_page_putback(struct page *page);
+@@ -108,74 +89,33 @@ static inline void balloon_mapping_free(
+ }
+ 
+ /*
+- * page_flags_cleared - helper to perform balloon @page ->flags tests.
+- *
+- * As balloon pages are obtained from buddy and we do not play with page->flags
+- * at driver level (exception made when we get the page lock for compaction),
+- * we can safely identify a ballooned page by checking if the
+- * PAGE_FLAGS_CHECK_AT_PREP page->flags are all cleared.  This approach also
+- * helps us skip ballooned pages that are locked for compaction or release, thus
+- * mitigating their racy check at balloon_page_movable()
+- */
+-static inline bool page_flags_cleared(struct page *page)
+-{
+-	return !(page->flags & PAGE_FLAGS_CHECK_AT_PREP);
+-}
+-
+-/*
+- * __is_movable_balloon_page - helper to perform @page mapping->flags tests
++ * __is_movable_balloon_page - helper to perform @page PageBalloon tests
+  */
+ static inline bool __is_movable_balloon_page(struct page *page)
+ {
+-	struct address_space *mapping = page->mapping;
+-	return mapping_balloon(mapping);
++	return PageBalloon(page);
+ }
+ 
+ /*
+- * balloon_page_movable - test page->mapping->flags to identify balloon pages
+- *			  that can be moved by compaction/migration.
+- *
+- * This function is used at core compaction's page isolation scheme, therefore
+- * most pages exposed to it are not enlisted as balloon pages and so, to avoid
+- * undesired side effects like racing against __free_pages(), we cannot afford
+- * holding the page locked while testing page->mapping->flags here.
++ * balloon_page_movable - test PageBalloon to identify balloon pages
++ *			  and PagePrivate to check that the page is not
++ *			  isolated and can be moved by compaction/migration.
+  *
+  * As we might return false positives in the case of a balloon page being just
+- * released under us, the page->mapping->flags need to be re-tested later,
+- * under the proper page lock, at the functions that will be coping with the
+- * balloon page case.
++ * released under us, this need to be re-tested later, under the page lock.
+  */
+ static inline bool balloon_page_movable(struct page *page)
+ {
+-	/*
+-	 * Before dereferencing and testing mapping->flags, let's make sure
+-	 * this is not a page that uses ->mapping in a different way
+-	 */
+-	if (page_flags_cleared(page) && !page_mapped(page) &&
+-	    page_count(page) == 1)
+-		return __is_movable_balloon_page(page);
+-
+-	return false;
++	return PageBalloon(page) && PagePrivate(page);
+ }
+ 
+ /*
+  * isolated_balloon_page - identify an isolated balloon page on private
+  *			   compaction/migration page lists.
+- *
+- * After a compaction thread isolates a balloon page for migration, it raises
+- * the page refcount to prevent concurrent compaction threads from re-isolating
+- * the same page. For that reason putback_movable_pages(), or other routines
+- * that need to identify isolated balloon pages on private pagelists, cannot
+- * rely on balloon_page_movable() to accomplish the task.
+  */
+ static inline bool isolated_balloon_page(struct page *page)
+ {
+-	/* Already isolated balloon pages, by default, have a raised refcount */
+-	if (page_flags_cleared(page) && !page_mapped(page) &&
+-	    page_count(page) >= 2)
+-		return __is_movable_balloon_page(page);
+-
+-	return false;
++	return PageBalloon(page);
+ }
+ 
+ /*
+@@ -192,6 +132,8 @@ static inline void balloon_page_insert(s
+ 				       struct address_space *mapping,
+ 				       struct list_head *head)
+ {
++	__SetPageBalloon(page);
++	SetPagePrivate(page);
+ 	page->mapping = mapping;
+ 	list_add(&page->lru, head);
+ }
+@@ -206,8 +148,12 @@ static inline void balloon_page_insert(s
+  */
+ static inline void balloon_page_delete(struct page *page)
+ {
++	__ClearPageBalloon(page);
+ 	page->mapping = NULL;
+-	list_del(&page->lru);
++	if (PagePrivate(page)) {
++		ClearPagePrivate(page);
++		list_del(&page->lru);
++	}
+ }
+ 
+ /*
+@@ -258,6 +204,11 @@ static inline void balloon_page_delete(s
+ 	list_del(&page->lru);
+ }
+ 
++static inline bool __is_movable_balloon_page(struct page *page)
++{
++	return false;
++}
++
+ static inline bool balloon_page_movable(struct page *page)
+ {
+ 	return false;
+diff -puN include/linux/migrate.h~mm-balloon_compaction-redesign-ballooned-pages-management include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-balloon_compaction-redesign-ballooned-pages-management
++++ a/include/linux/migrate.h
+@@ -13,18 +13,9 @@ typedef void free_page_t(struct page *pa
+  * Return values from addresss_space_operations.migratepage():
+  * - negative errno on page migration failure;
+  * - zero on page migration success;
+- *
+- * The balloon page migration introduces this special case where a 'distinct'
+- * return code is used to flag a successful page migration to unmap_and_move().
+- * This approach is necessary because page migration can race against balloon
+- * deflation procedure, and for such case we could introduce a nasty page leak
+- * if a successfully migrated balloon page gets released concurrently with
+- * migration's unmap_and_move() wrap-up steps.
+  */
+ #define MIGRATEPAGE_SUCCESS		0
+-#define MIGRATEPAGE_BALLOON_SUCCESS	1 /* special ret code for balloon page
+-					   * sucessful migration case.
+-					   */
++
+ enum migrate_reason {
+ 	MR_COMPACTION,
+ 	MR_MEMORY_FAILURE,
+diff -puN include/linux/mm.h~mm-balloon_compaction-redesign-ballooned-pages-management include/linux/mm.h
+--- a/include/linux/mm.h~mm-balloon_compaction-redesign-ballooned-pages-management
++++ a/include/linux/mm.h
+@@ -554,6 +554,25 @@ static inline void __ClearPageBuddy(stru
+ 	atomic_set(&page->_mapcount, -1);
+ }
+ 
++#define PAGE_BALLOON_MAPCOUNT_VALUE (-256)
++
++static inline int PageBalloon(struct page *page)
++{
++	return atomic_read(&page->_mapcount) == PAGE_BALLOON_MAPCOUNT_VALUE;
++}
++
++static inline void __SetPageBalloon(struct page *page)
++{
++	VM_BUG_ON_PAGE(atomic_read(&page->_mapcount) != -1, page);
++	atomic_set(&page->_mapcount, PAGE_BALLOON_MAPCOUNT_VALUE);
++}
++
++static inline void __ClearPageBalloon(struct page *page)
++{
++	VM_BUG_ON_PAGE(!PageBalloon(page), page);
++	atomic_set(&page->_mapcount, -1);
++}
++
+ void put_page(struct page *page);
+ void put_pages_list(struct list_head *pages);
+ 
+diff -puN mm/balloon_compaction.c~mm-balloon_compaction-redesign-ballooned-pages-management mm/balloon_compaction.c
+--- a/mm/balloon_compaction.c~mm-balloon_compaction-redesign-ballooned-pages-management
++++ a/mm/balloon_compaction.c
+@@ -93,17 +93,12 @@ struct page *balloon_page_dequeue(struct
+ 		 * to be released by the balloon driver.
+ 		 */
+ 		if (trylock_page(page)) {
++			if (!PagePrivate(page)) {
++				/* raced with isolation */
++				unlock_page(page);
++				continue;
++			}
+ 			spin_lock_irqsave(&b_dev_info->pages_lock, flags);
+-			/*
+-			 * Raise the page refcount here to prevent any wrong
+-			 * attempt to isolate this page, in case of coliding
+-			 * with balloon_page_isolate() just after we release
+-			 * the page lock.
+-			 *
+-			 * balloon_page_free() will take care of dropping
+-			 * this extra refcount later.
+-			 */
+-			get_page(page);
+ 			balloon_page_delete(page);
+ 			spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
+ 			unlock_page(page);
+@@ -187,7 +182,9 @@ static inline void __isolate_balloon_pag
+ {
+ 	struct balloon_dev_info *b_dev_info = page->mapping->private_data;
+ 	unsigned long flags;
++
+ 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
++	ClearPagePrivate(page);
+ 	list_del(&page->lru);
+ 	b_dev_info->isolated_pages++;
+ 	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
+@@ -197,7 +194,9 @@ static inline void __putback_balloon_pag
+ {
+ 	struct balloon_dev_info *b_dev_info = page->mapping->private_data;
+ 	unsigned long flags;
++
+ 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
++	SetPagePrivate(page);
+ 	list_add(&page->lru, &b_dev_info->pages);
+ 	b_dev_info->isolated_pages--;
+ 	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
+@@ -235,12 +234,11 @@ bool balloon_page_isolate(struct page *p
+ 		 */
+ 		if (likely(trylock_page(page))) {
+ 			/*
+-			 * A ballooned page, by default, has just one refcount.
++			 * A ballooned page, by default, has PagePrivate set.
+ 			 * Prevent concurrent compaction threads from isolating
+-			 * an already isolated balloon page by refcount check.
++			 * an already isolated balloon page by clearing it.
+ 			 */
+-			if (__is_movable_balloon_page(page) &&
+-			    page_count(page) == 2) {
++			if (balloon_page_movable(page)) {
+ 				__isolate_balloon_page(page);
+ 				unlock_page(page);
+ 				return true;
+diff -puN mm/compaction.c~mm-balloon_compaction-redesign-ballooned-pages-management mm/compaction.c
+--- a/mm/compaction.c~mm-balloon_compaction-redesign-ballooned-pages-management
++++ a/mm/compaction.c
+@@ -640,7 +640,7 @@ isolate_migratepages_block(struct compac
+ 		 */
+ 		if (!PageLRU(page)) {
+ 			if (unlikely(balloon_page_movable(page))) {
+-				if (locked && balloon_page_isolate(page)) {
++				if (balloon_page_isolate(page)) {
+ 					/* Successfully isolated */
+ 					goto isolate_success;
+ 				}
+diff -puN mm/migrate.c~mm-balloon_compaction-redesign-ballooned-pages-management mm/migrate.c
+--- a/mm/migrate.c~mm-balloon_compaction-redesign-ballooned-pages-management
++++ a/mm/migrate.c
+@@ -873,7 +873,7 @@ static int __unmap_and_move(struct page
+ 		}
+ 	}
+ 
+-	if (unlikely(balloon_page_movable(page))) {
++	if (unlikely(isolated_balloon_page(page))) {
+ 		/*
+ 		 * A ballooned page does not need any special attention from
+ 		 * physical to virtual reverse mapping procedures.
+@@ -952,17 +952,6 @@ static int unmap_and_move(new_page_t get
+ 
+ 	rc = __unmap_and_move(page, newpage, force, mode);
+ 
+-	if (unlikely(rc == MIGRATEPAGE_BALLOON_SUCCESS)) {
+-		/*
+-		 * A ballooned page has been migrated already.
+-		 * Now, it's the time to wrap-up counters,
+-		 * handle the page back to Buddy and return.
+-		 */
+-		dec_zone_page_state(page, NR_ISOLATED_ANON +
+-				    page_is_file_cache(page));
+-		balloon_page_free(page);
+-		return MIGRATEPAGE_SUCCESS;
+-	}
+ out:
+ 	if (rc != -EAGAIN) {
+ 		/*
+@@ -985,6 +974,9 @@ out:
+ 	if (rc != MIGRATEPAGE_SUCCESS && put_new_page) {
+ 		ClearPageSwapBacked(newpage);
+ 		put_new_page(newpage, private);
++	} else if (unlikely(__is_movable_balloon_page(newpage))) {
++		/* drop our reference, page already in the balloon */
++		put_page(newpage);
+ 	} else
+ 		putback_lru_page(newpage);
+ 
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from k.khlebnikov@samsung.com are
 
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix-2-fix.patch
-mm-slb-always-track-caller-in-kmalloc_node_track_caller.patch
-mm-slab-move-cache_flusharray-out-of-unlikelytext-section.patch
-mm-slab-noinline-__ac_put_obj.patch
-mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
-slub-disable-tracing-and-failslab-for-merged-slabs.patch
-topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
-slub-fallback-to-node_to_mem_node-node-if-allocating-on-memoryless-node.patch
-partial-revert-of-81c98869faa5-kthread-ensure-locality-of-task_struct-allocations.patch
-slab-fix-for_each_kmem_cache_node.patch
-mm-slab_common-commonize-slab-merge-logic.patch
-mm-slab_common-commonize-slab-merge-logic-fix.patch
-mm-slab-support-slab-merge.patch
-mm-slab-use-percpu-allocator-for-cpu-cache.patch
-mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch
-mm-cma-adjust-address-limit-to-avoid-hitting-low-high-memory-boundary.patch
-arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
-mm-page_alloc-determine-migratetype-only-once.patch
-mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
-mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
-mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
-mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch
-mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
-mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
-mm-rename-allocflags_to_migratetype-for-clarity.patch
-mm-compaction-pass-gfp-mask-to-compact_control.patch
-mm-use-__seq_open_private-instead-of-seq_open.patch
-memcg-move-memcg_allocfree_cache_params-to-slab_commonc.patch
-memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
-memcg-move-memcg_update_cache_size-to-slab_commonc.patch
-drivers-dma-coherent-add-initialization-from-device-tree.patch
-drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
-drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
-drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
-drivers-dma-contiguous-add-initialization-from-device-tree.patch
-drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
-zsmalloc-move-pages_allocated-to-zs_pool.patch
-zsmalloc-change-return-value-unit-of-zs_get_total_size_bytes.patch
-zram-zram-memory-size-limitation.patch
-zram-report-maximum-used-memory.patch
-page-owners-correct-page-order-when-to-free-page.patch
+include-linux-migrateh-remove-migratepage-define.patch
+mm-balloon_compaction-redesign-ballooned-pages-management.patch
+mm-balloon_compaction-remove-balloon-mapping-and-flag-as_balloon_map.patch
+mm-balloon_compaction-add-vmstat-counters-and-kpageflags-bit.patch
+linux-next.patch
 
