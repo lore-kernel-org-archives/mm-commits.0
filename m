@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 02 Oct 2014 12:23:57 -0700
-Message-ID: <542da64d.r05FbbUprphW0pz3%akpm@linux-foundation.org>
+Subject: +
+ mm-migrate-close-race-between-migration-completion-and-mprotect.patch added to -mm tree
+Date: Thu, 02 Oct 2014 13:06:43 -0700
+Message-ID: <542db053.3UdgNeol18U1McJh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55212 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbaJBTX6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2014 15:23:58 -0400
+	with ESMTP id S1752030AbaJBUGo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2014 16:06:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, riel@redhat.com, sasha.levin@oracle.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm: migrate: close race between migration completion and mprotect
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-migrate-close-race-between-migration-completion-and-mprotect.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-close-race-between-migration-completion-and-mprotect.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-close-race-between-migration-completion-and-mprotect.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,129 +39,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: migrate: close race between migration completion and mprotect
 
+A migration entry is marked as write if pte_write was true at the time the
+entry was created.  The VMA protections are not double checked when
+migration entries are being removed as mprotect marks
+write-migration-entries as read.  It means that potentially we take a
+spurious fault to mark PTEs write again but it's straight-forward. 
+However, there is a race between write migrations being marked read and
+migrations finishing.  This potentially allows a PTE to be write that
+should have been read.  Close this race by double checking the VMA
+permissions using maybe_mkwrite when migration completes.
+
+[torvalds@linux-foundation.org: use maybe_mkwrite]
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Kirill A Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/usb/r8152.c   |    5 -----
- net/netfilter/nfnetlink.c |    6 +-----
- 2 files changed, 1 insertion(+), 10 deletions(-)
+ mm/migrate.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/usb/r8152.c~linux-next-git-rejects drivers/net/usb/r8152.c
---- a/drivers/net/usb/r8152.c~linux-next-git-rejects
-+++ a/drivers/net/usb/r8152.c
-@@ -3203,14 +3203,9 @@ static int rtl8152_resume(struct usb_int
- 		} else {
- 			tp->rtl_ops.up(tp);
- 			rtl8152_set_speed(tp, AUTONEG_ENABLE,
--<<<<<<< HEAD
--				tp->mii.supports_gmii ? SPEED_1000 : SPEED_100,
--				DUPLEX_FULL);
--=======
- 					  tp->mii.supports_gmii ?
- 					  SPEED_1000 : SPEED_100,
- 					  DUPLEX_FULL);
-->>>>>>> linux-next/akpm-base
- 			tp->speed = 0;
- 			netif_carrier_off(tp->netdev);
- 			set_bit(WORK_ENABLE, &tp->flags);
-diff -puN net/netfilter/nfnetlink.c~linux-next-git-rejects net/netfilter/nfnetlink.c
---- a/net/netfilter/nfnetlink.c~linux-next-git-rejects
-+++ a/net/netfilter/nfnetlink.c
-@@ -1,4 +1,4 @@
--/* Netfilter messages via netlink socket. Allows for user space
-+q/* Netfilter messages via netlink socket. Allows for user space
-  * protocol helpers and general trouble making from userspace.
-  *
-  * (C) 2001 by Jay Schulist <jschlst@samba.org>,
-@@ -381,11 +381,7 @@ replay:
- 			 */
- 			if (err == -EAGAIN) {
- 				nfnl_err_reset(&err_list);
--<<<<<<< HEAD
--				ss->abort(skb);
--=======
- 				ss->abort(oskb);
-->>>>>>> linux-next/akpm-base
- 				nfnl_unlock(subsys_id);
- 				kfree_skb(nskb);
- 				goto replay;
+diff -puN mm/migrate.c~mm-migrate-close-race-between-migration-completion-and-mprotect mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-close-race-between-migration-completion-and-mprotect
++++ a/mm/migrate.c
+@@ -146,8 +146,11 @@ static int remove_migration_pte(struct p
+ 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
+ 	if (pte_swp_soft_dirty(*ptep))
+ 		pte = pte_mksoft_dirty(pte);
++
++	/* Recheck VMA as permissions can change since migration started  */
+ 	if (is_write_migration_entry(entry))
+-		pte = pte_mkwrite(pte);
++		pte = maybe_mkwrite(pte, vma);
++
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	if (PageHuge(new)) {
+ 		pte = pte_mkhuge(pte);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-kernel-add-support-for-gcc-5-checkpatch-fixes.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
-mm.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-migrate-close-race-between-migration-completion-and-mprotect.patch
+mm-numa-do-not-mark-ptes-pte_numa-when-splitting-huge-pages.patch
+mm-page_alloc-fix-zone-allocation-fairness-on-up.patch
+mm-remove-misleading-arch_uses_numa_prot_none.patch
+mm-page_alloc-determine-migratetype-only-once.patch
+mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
 mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
+mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch
+mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
 mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
+mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
+mm-compaction-skip-rechecks-when-lock-was-already-held.patch
+mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+mm-rename-allocflags_to_migratetype-for-clarity.patch
+mm-compaction-pass-gfp-mask-to-compact_control.patch
+introduce-dump_vma.patch
 introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
-mm-debugc-use-pr_emerg.patch
-drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
-drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
-drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
-drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
-mm-ksm-use-pr_err-instead-of-printk-fix.patch
-mm-introduce-a-general-rcu-get_user_pages_fast-fix.patch
-arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
+introduce-vm_bug_on_vma.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
+mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
+mm-clean-up-zone-flags.patch
+mm-compaction-fix-warning-of-flags-may-be-used-uninitialized.patch
+mm-page_alloc-make-paranoid-check-in-move_freepages-a-vm_bug_on.patch
+mm-page_alloc-default-node-ordering-on-64-bit-numa-zone-ordering-on-32-bit-v2.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-acct-eliminate-compile-warning-fix.patch
-checkpatch-fix-spello.patch
-rtc-rk808-add-rtc-driver-for-rk808-fix.patch
-rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
-rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
-rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+x86-optimize-resource-lookups-for-ioremap.patch
 x86-optimize-resource-lookups-for-ioremap-fix.patch
-init-resolve-shadow-warnings-checkpatch-fixes.patch
+x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
 linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
-sched-fix-typo.patch
-mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
-lib-string_helpers-introduce-string_escape_mem-fix.patch
-lib-vsprintf-add-%pe-format-specifier-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
