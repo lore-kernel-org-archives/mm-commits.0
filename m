@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-migrate-close-race-between-migration-completion-and-mprotect.patch added to -mm tree
-Date: Thu, 02 Oct 2014 13:06:43 -0700
-Message-ID: <542db053.3UdgNeol18U1McJh%akpm@linux-foundation.org>
+ mm-numa-do-not-mark-ptes-pte_numa-when-splitting-huge-pages.patch added to
+ -mm tree
+Date: Thu, 02 Oct 2014 13:06:44 -0700
+Message-ID: <542db054.lWlR9aKh2hixThmE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55219 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752030AbaJBUGo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2014 16:06:44 -0400
+	with ESMTP id S1752160AbaJBUGp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2014 16:06:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, riel@redhat.com, sasha.levin@oracle.com, walken@google.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, riel@redhat.com, sasha.levin@oracle.com, stable@vger.kernel.org, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: close race between migration completion and mprotect
+     Subject: mm: numa: do not mark PTEs pte_numa when splitting huge pages
 has been added to the -mm tree.  Its filename is
-     mm-migrate-close-race-between-migration-completion-and-mprotect.patch
+     mm-numa-do-not-mark-ptes-pte_numa-when-splitting-huge-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-close-race-between-migration-completion-and-mprotect.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-do-not-mark-ptes-pte_numa-when-splitting-huge-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-close-race-between-migration-completion-and-mprotect.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-do-not-mark-ptes-pte_numa-when-splitting-huge-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,48 +41,79 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: migrate: close race between migration completion and mprotect
+Subject: mm: numa: do not mark PTEs pte_numa when splitting huge pages
 
-A migration entry is marked as write if pte_write was true at the time the
-entry was created.  The VMA protections are not double checked when
-migration entries are being removed as mprotect marks
-write-migration-entries as read.  It means that potentially we take a
-spurious fault to mark PTEs write again but it's straight-forward. 
-However, there is a race between write migrations being marked read and
-migrations finishing.  This potentially allows a PTE to be write that
-should have been read.  Close this race by double checking the VMA
-permissions using maybe_mkwrite when migration completes.
+This patch reverts 1ba6e0b50b ("mm: numa: split_huge_page: transfer the
+NUMA type from the pmd to the pte").  If a huge page is being split due a
+protection change and the tail will be in a PROT_NONE vma then NUMA
+hinting PTEs are temporarily created in the protected VMA.
 
-[torvalds@linux-foundation.org: use maybe_mkwrite]
+ VM_RW|VM_PROTNONE
+|-----------------|
+      ^
+      split here
+
+In the specific case above, it should get fixed up by change_pte_range()
+(but it does not - see below) but there is a window of opportunity for
+weirdness to happen.  Similarly, if a huge page is shrunk and split during
+a protection update but before pmd_numa is cleared then a pte_numa can be
+left behind.
+
+Instead of adding complexity trying to deal with the case, this patch will
+not mark PTEs NUMA when splitting a huge page.  NUMA hinting faults will
+not be triggered which is marginal in comparison to the complexity in
+dealing with the corner cases during THP split.
+
+Hugh said:
+
+: You say "it should get fixed up by change_pte_range()".  Well, I agree it
+: "should", but it does not: because once the pte has both _PAGE_NUMA and
+: _PAGE_PROTNONE on it, then it fails our pte_numa() test, and so _PAGE_NUMA
+: is not cleared, even if later replacing _PAGE_PROTNONE by _PAGE_PRESENT
+: (whereupon the _PAGE_NUMA looks like _PAGE_SPECIAL).
+: 
+: This patch is clearly safe, and fixes a real bug, almost certainly the one
+: seen by Sasha; but I still can't tie the ends together to see how it would
+: explain the endless refaulting seen by Dave.
+
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Dave Jones <davej@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Michel Lespinasse <walken@google.com>
-Cc: Kirill A Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~mm-migrate-close-race-between-migration-completion-and-mprotect mm/migrate.c
---- a/mm/migrate.c~mm-migrate-close-race-between-migration-completion-and-mprotect
-+++ a/mm/migrate.c
-@@ -146,8 +146,11 @@ static int remove_migration_pte(struct p
- 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
- 	if (pte_swp_soft_dirty(*ptep))
- 		pte = pte_mksoft_dirty(pte);
-+
-+	/* Recheck VMA as permissions can change since migration started  */
- 	if (is_write_migration_entry(entry))
--		pte = pte_mkwrite(pte);
-+		pte = maybe_mkwrite(pte, vma);
-+
- #ifdef CONFIG_HUGETLB_PAGE
- 	if (PageHuge(new)) {
- 		pte = pte_mkhuge(pte);
+diff -puN mm/huge_memory.c~mm-numa-do-not-mark-ptes-pte_numa-when-splitting-huge-pages mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-do-not-mark-ptes-pte_numa-when-splitting-huge-pages
++++ a/mm/huge_memory.c
+@@ -1795,14 +1795,17 @@ static int __split_huge_page_map(struct
+ 		for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
+ 			pte_t *pte, entry;
+ 			BUG_ON(PageCompound(page+i));
++			/*
++			 * Note that pmd_numa is not transferred deliberately
++			 * to avoid any possibility that pte_numa leaks to
++			 * a PROT_NONE VMA by accident.
++			 */
+ 			entry = mk_pte(page + i, vma->vm_page_prot);
+ 			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 			if (!pmd_write(*pmd))
+ 				entry = pte_wrprotect(entry);
+ 			if (!pmd_young(*pmd))
+ 				entry = pte_mkold(entry);
+-			if (pmd_numa(*pmd))
+-				entry = pte_mknuma(entry);
+ 			pte = pte_offset_map(&_pmd, haddr);
+ 			BUG_ON(!pte_none(*pte));
+ 			set_pte_at(mm, haddr, pte, entry);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
