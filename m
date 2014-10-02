@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-dlm-call-dlm_lockres_put-without-resource-spinlock.patch
- added to -mm tree
-Date: Wed, 01 Oct 2014 15:56:05 -0700
-Message-ID: <542c8685.gGfSAoQsfHA0p/WB%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 02 Oct 2014 12:23:57 -0700
+Message-ID: <542da64d.r05FbbUprphW0pz3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45360 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54260 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751825AbaJAW4F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2014 18:56:05 -0400
+	with ESMTP id S1751445AbaJBTX6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2014 15:23:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: call dlm_lockres_put without resource spinlock
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlm-call-dlm_lockres_put-without-resource-spinlock.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-call-dlm_lockres_put-without-resource-spinlock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-call-dlm_lockres_put-without-resource-spinlock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,55 +38,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2/dlm: call dlm_lockres_put without resource spinlock
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-dlm_lockres_put() should be called without &res->spinlock, otherwise a
-deadlock case may happen.
-
-spin_lock(&res->spinlock)
-...
-dlm_lockres_put
-  ->dlm_lockres_release
-    ->dlm_print_one_lock_resource
-      ->spin_lock(&res->spinlock)
-
-Signed-off-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/net/usb/r8152.c   |    5 -----
+ net/netfilter/nfnetlink.c |    6 +-----
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-call-dlm_lockres_put-without-resource-spinlock fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-call-dlm_lockres_put-without-resource-spinlock
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -1710,9 +1710,12 @@ int dlm_master_requery_handler(struct o2
- 				BUG();
- 			} else
- 				__dlm_lockres_grab_inflight_worker(dlm, res);
--		} else /* put.. incase we are not the master */
-+			spin_unlock(&res->spinlock);
-+		} else {
-+			/* put.. incase we are not the master */
-+			spin_unlock(&res->spinlock);
- 			dlm_lockres_put(res);
--		spin_unlock(&res->spinlock);
-+		}
- 	}
- 	spin_unlock(&dlm->spinlock);
- 
+diff -puN drivers/net/usb/r8152.c~linux-next-git-rejects drivers/net/usb/r8152.c
+--- a/drivers/net/usb/r8152.c~linux-next-git-rejects
++++ a/drivers/net/usb/r8152.c
+@@ -3203,14 +3203,9 @@ static int rtl8152_resume(struct usb_int
+ 		} else {
+ 			tp->rtl_ops.up(tp);
+ 			rtl8152_set_speed(tp, AUTONEG_ENABLE,
+-<<<<<<< HEAD
+-				tp->mii.supports_gmii ? SPEED_1000 : SPEED_100,
+-				DUPLEX_FULL);
+-=======
+ 					  tp->mii.supports_gmii ?
+ 					  SPEED_1000 : SPEED_100,
+ 					  DUPLEX_FULL);
+->>>>>>> linux-next/akpm-base
+ 			tp->speed = 0;
+ 			netif_carrier_off(tp->netdev);
+ 			set_bit(WORK_ENABLE, &tp->flags);
+diff -puN net/netfilter/nfnetlink.c~linux-next-git-rejects net/netfilter/nfnetlink.c
+--- a/net/netfilter/nfnetlink.c~linux-next-git-rejects
++++ a/net/netfilter/nfnetlink.c
+@@ -1,4 +1,4 @@
+-/* Netfilter messages via netlink socket. Allows for user space
++q/* Netfilter messages via netlink socket. Allows for user space
+  * protocol helpers and general trouble making from userspace.
+  *
+  * (C) 2001 by Jay Schulist <jschlst@samba.org>,
+@@ -381,11 +381,7 @@ replay:
+ 			 */
+ 			if (err == -EAGAIN) {
+ 				nfnl_err_reset(&err_list);
+-<<<<<<< HEAD
+-				ss->abort(skb);
+-=======
+ 				ss->abort(oskb);
+->>>>>>> linux-next/akpm-base
+ 				nfnl_unlock(subsys_id);
+ 				kfree_skb(nskb);
+ 				goto replay;
 _
 
-Patches currently in -mm which might be from alex.chen@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-dlm-should-put-mle-when-goto-kill-in-dlm_assert_master_handler.patch
-ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt.patch
-ocfs2-fix-shift-left-operations-overflow.patch
-ocfs2-dlm-call-dlm_lockres_put-without-resource-spinlock.patch
-ocfs2-fix-deadlock-due-to-wrong-locking-order.patch
-ocfs2-fix-deadlock-due-to-wrong-locking-order-fix.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+kernel-add-support-for-gcc-5-checkpatch-fixes.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
+mm.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
+mm-debugc-use-pr_emerg.patch
+drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
+drivers-dma-contiguous-add-initialization-from-device-tree-checkpatch-fixes.patch
+mm-ksm-use-pr_err-instead-of-printk-fix.patch
+mm-introduce-a-general-rcu-get_user_pages_fast-fix.patch
+arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+acct-eliminate-compile-warning-fix.patch
+checkpatch-fix-spello.patch
+rtc-rk808-add-rtc-driver-for-rk808-fix.patch
+rtc-bq32000-add-trickle-charger-option-with-device-tree-binding-checkpatch-fixes.patch
+rtc-max77686-use-ffs-to-calculate-tm_wday-fix.patch
+rtc-add-driver-for-maxim-77802-pmic-real-time-clock-v10-fix.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+init-resolve-shadow-warnings-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
+sched-fix-typo.patch
+mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
+lib-string_helpers-introduce-string_escape_mem-fix.patch
+lib-vsprintf-add-%pe-format-specifier-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
+watchdog-control-hard-lockup-detection-default-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
