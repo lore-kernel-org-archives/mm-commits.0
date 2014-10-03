@@ -1,101 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_alloc-fix-zone-allocation-fairness-on-up.patch
- removed from -mm tree
-Date: Fri, 03 Oct 2014 11:04:21 -0700
-Message-ID: <542ee525.kQac6u6+4TDPrbDU%akpm@linux-foundation.org>
+Subject: [merged] perf-fix-perf-bug-in-fork.patch removed from -mm tree
+Date: Fri, 03 Oct 2014 11:04:19 -0700
+Message-ID: <542ee523.59L/6LITo9lrrA68%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41052 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754688AbaJCSEW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2014 14:04:22 -0400
+	with ESMTP id S1753233AbaJCSET (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2014 14:04:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, leon@leon.nu, mgorman@suse.de, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: peterz@infradead.org, mingo@kernel.org, oleg@redhat.com, stable@vger.kernel.org, sylvain.hitier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: fix zone allocation fairness on UP
+     Subject: perf: fix perf bug in fork()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-zone-allocation-fairness-on-up.patch
+     perf-fix-perf-bug-in-fork.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: fix zone allocation fairness on UP
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: perf: fix perf bug in fork()
 
-The zone allocation batches can easily underflow due to higher-order
-allocations or spills to remote nodes.  On SMP that's fine, because
-underflows are expected from concurrency and dealt with by returning 0. 
-But on UP, zone_page_state will just return a wrapped unsigned long, which
-will get past the <= 0 check and then consider the zone eligible until its
-watermarks are hit.
+Oleg noticed that a cleanup by Sylvain actually uncovered a bug; by
+calling perf_event_free_task() when failing sched_fork() we will not yet
+have done the memset() on ->perf_event_ctxp[] and will therefore try and
+'free' the inherited contexts, which are still in use by the parent
+process.  This is bad..
 
-3a025760fc15 ("mm: page_alloc: spill to remote nodes before waking
-kswapd") already made the counter-resetting use atomic_long_read() to
-accomodate underflows from remote spills, but it didn't go all the way
-with it.  Make it clear that these batches are expected to go negative
-regardless of concurrency, and use atomic_long_read() everywhere.
-
-Fixes: 81c0a2bb515f ("mm: page_alloc: fair zone allocator policy")
-Reported-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Leon Romanovsky <leon@leon.nu>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: <stable@vger.kernel.org>	[3.12+]
+Suggested-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: Sylvain 'ythier' Hitier <sylvain.hitier@gmail.com>
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/events/core.c |    4 +++-
+ kernel/fork.c        |    5 +++--
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-fix-zone-allocation-fairness-on-up mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fix-zone-allocation-fairness-on-up
-+++ a/mm/page_alloc.c
-@@ -1612,7 +1612,7 @@ again:
+diff -puN kernel/events/core.c~perf-fix-perf-bug-in-fork kernel/events/core.c
+--- a/kernel/events/core.c~perf-fix-perf-bug-in-fork
++++ a/kernel/events/core.c
+@@ -7948,8 +7948,10 @@ int perf_event_init_task(struct task_str
+ 
+ 	for_each_task_context_nr(ctxn) {
+ 		ret = perf_event_init_context(child, ctxn);
+-		if (ret)
++		if (ret) {
++			perf_event_free_task(child);
+ 			return ret;
++		}
  	}
  
- 	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
--	if (zone_page_state(zone, NR_ALLOC_BATCH) == 0 &&
-+	if (atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]) <= 0 &&
- 	    !zone_is_fair_depleted(zone))
- 		zone_set_flag(zone, ZONE_FAIR_DEPLETED);
- 
-@@ -5701,9 +5701,8 @@ static void __setup_per_zone_wmarks(void
- 		zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp >> 1);
- 
- 		__mod_zone_page_state(zone, NR_ALLOC_BATCH,
--				      high_wmark_pages(zone) -
--				      low_wmark_pages(zone) -
--				      zone_page_state(zone, NR_ALLOC_BATCH));
-+			high_wmark_pages(zone) - low_wmark_pages(zone) -
-+			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
- 
- 		setup_zone_migrate_reserve(zone);
- 		spin_unlock_irqrestore(&zone->lock, flags);
+ 	return 0;
+diff -puN kernel/fork.c~perf-fix-perf-bug-in-fork kernel/fork.c
+--- a/kernel/fork.c~perf-fix-perf-bug-in-fork
++++ a/kernel/fork.c
+@@ -1360,7 +1360,7 @@ static struct task_struct *copy_process(
+ 		goto bad_fork_cleanup_policy;
+ 	retval = audit_alloc(p);
+ 	if (retval)
+-		goto bad_fork_cleanup_policy;
++		goto bad_fork_cleanup_perf;
+ 	/* copy all the process information */
+ 	shm_init_task(p);
+ 	retval = copy_semundo(clone_flags, p);
+@@ -1566,8 +1566,9 @@ bad_fork_cleanup_semundo:
+ 	exit_sem(p);
+ bad_fork_cleanup_audit:
+ 	audit_free(p);
+-bad_fork_cleanup_policy:
++bad_fork_cleanup_perf:
+ 	perf_event_free_task(p);
++bad_fork_cleanup_policy:
+ #ifdef CONFIG_NUMA
+ 	mpol_put(p->mempolicy);
+ bad_fork_cleanup_threadgroup_lock:
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from peterz@infradead.org are
 
 origin.patch
-mm-remove-misleading-arch_uses_numa_prot_none.patch
-mm-page_alloc-determine-migratetype-only-once.patch
-mm-remove-noisy-remainder-of-the-scan_unevictable-interface.patch
-mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
-mm-clean-up-zone-flags.patch
-mm-page_alloc-make-paranoid-check-in-move_freepages-a-vm_bug_on.patch
-mm-page_alloc-default-node-ordering-on-64-bit-numa-zone-ordering-on-32-bit-v2.patch
-memcg-move-memcg_allocfree_cache_params-to-slab_commonc.patch
-memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
-memcg-move-memcg_update_cache_size-to-slab_commonc.patch
-mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache.patch
-mm-memcontrol-simplify-detecting-when-the-memoryswap-limit-is-hit.patch
-mm-memcontrol-fix-transparent-huge-page-allocations-under-pressure.patch
-memcg-zap-memcg_can_account_kmem.patch
+mempolicy-change-alloc_pages_vma-to-use-mpol_cond_put.patch
+mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
+mempolicy-sanitize-the-usage-of-get_task_policy.patch
+mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
+mempolicy-introduce-__get_vma_policy-export-get_task_policy.patch
+mempolicy-fix-show_numa_map-vs-exec-do_set_mempolicy-race.patch
+mempolicy-kill-do_set_mempolicy-down_writemm-mmap_sem.patch
+mempolicy-unexport-get_vma_policy-and-remove-its-task-arg.patch
+mm-mempolicy-skip-inaccessible-vmas-when-setting-mpol_mf_lazy.patch
+vmstat-on-demand-vmstat-workers-v8.patch
+vmstat-on-demand-vmstat-workers-v8-do-not-open-code-alloc_cpumask_var.patch
+printk-git-rid-of-message-for-printk_deferred.patch
+lib-remove-prio_heap.patch
+x86-optimize-resource-lookups-for-ioremap.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
 
