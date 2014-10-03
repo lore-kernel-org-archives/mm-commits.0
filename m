@@ -1,111 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-migrate-close-race-between-migration-completion-and-mprotect.patch
- removed from -mm tree
-Date: Fri, 03 Oct 2014 11:04:23 -0700
-Message-ID: <542ee527.Dm5WCsviC7DZdqUj%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache-fix.patch added to -mm tree
+Date: Fri, 03 Oct 2014 11:12:37 -0700
+Message-ID: <542ee715.387i5wQU0JA7AaXe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41085 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753103AbaJCSEY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2014 14:04:24 -0400
+	with ESMTP id S1751573AbaJCSMi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2014 14:12:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, riel@redhat.com, sasha.levin@oracle.com, walken@google.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, dave@sr71.net, gthelen@google.com, hannes@cmpxchg.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: close race between migration completion and mprotect
-has been removed from the -mm tree.  Its filename was
-     mm-migrate-close-race-between-migration-completion-and-mprotect.patch
+     Subject: mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache-fix
+has been added to the -mm tree.  Its filename is
+     mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: migrate: close race between migration completion and mprotect
+From: Michal Hocko <mhocko@suse.cz>
+Subject: mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache-fix
 
-A migration entry is marked as write if pte_write was true at the time the
-entry was created.  The VMA protections are not double checked when
-migration entries are being removed as mprotect marks
-write-migration-entries as read.  It means that potentially we take a
-spurious fault to mark PTEs write again but it's straight-forward. 
-However, there is a race between write migrations being marked read and
-migrations finishing.  This potentially allows a PTE to be write that
-should have been read.  Close this race by double checking the VMA
-permissions using maybe_mkwrite when migration completes.
+count all pages because many pages might be off LRU already.
 
-[torvalds@linux-foundation.org: use maybe_mkwrite]
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Kirill A Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dave Hansen <dave@sr71.net>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/swap.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN mm/migrate.c~mm-migrate-close-race-between-migration-completion-and-mprotect mm/migrate.c
---- a/mm/migrate.c~mm-migrate-close-race-between-migration-completion-and-mprotect
-+++ a/mm/migrate.c
-@@ -146,8 +146,11 @@ static int remove_migration_pte(struct p
- 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
- 	if (pte_swp_soft_dirty(*ptep))
- 		pte = pte_mksoft_dirty(pte);
+diff -puN mm/swap.c~mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache-fix mm/swap.c
+--- a/mm/swap.c~mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache-fix
++++ a/mm/swap.c
+@@ -911,13 +911,22 @@ void release_pages(struct page **pages,
+ 		if (unlikely(PageCompound(page))) {
+ 			if (zone) {
+ 				spin_unlock_irqrestore(&zone->lru_lock, flags);
+-				lock_batch = 0;
+ 				zone = NULL;
+ 			}
+ 			put_compound_page(page);
+ 			continue;
+ 		}
+ 
++		/*
++		 * Make sure the IRQ-safe lock-holding time does not get
++		 * excessive with a continuous string of pages from the
++		 * same zone. The lock is held only if zone != NULL.
++		 */
++		if (zone && ++lock_batch == SWAP_CLUSTER_MAX) {
++			spin_unlock_irqrestore(&zone->lru_lock, flags);
++			zone = NULL;
++		}
 +
-+	/* Recheck VMA as permissions can change since migration started  */
- 	if (is_write_migration_entry(entry))
--		pte = pte_mkwrite(pte);
-+		pte = maybe_mkwrite(pte, vma);
-+
- #ifdef CONFIG_HUGETLB_PAGE
- 	if (PageHuge(new)) {
- 		pte = pte_mkhuge(pte);
+ 		if (!put_page_testzero(page))
+ 			continue;
+ 
+@@ -937,16 +946,6 @@ void release_pages(struct page **pages,
+ 			VM_BUG_ON_PAGE(!PageLRU(page), page);
+ 			__ClearPageLRU(page);
+ 			del_page_from_lru_list(page, lruvec, page_off_lru(page));
+-
+-			/*
+-			 * Make sure the IRQ-safe lock-holding time
+-			 * does not get excessive with a continuous
+-			 * string of pages from the same zone.
+-			 */
+-			if (++lock_batch == SWAP_CLUSTER_MAX) {
+-				spin_unlock_irqrestore(&zone->lru_lock, flags);
+-				zone = NULL;
+-			}
+ 		}
+ 
+ 		/* Clear Active bit in case of parallel mark_page_accessed */
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-mm-remove-misleading-arch_uses_numa_prot_none.patch
-mm-page_alloc-determine-migratetype-only-once.patch
-mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
-mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
-mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
-mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch
-mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
-mm-compaction-skip-rechecks-when-lock-was-already-held.patch
-mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
-mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
-mm-rename-allocflags_to_migratetype-for-clarity.patch
-mm-compaction-pass-gfp-mask-to-compact_control.patch
 introduce-dump_vma.patch
 introduce-dump_vma-fix.patch
 introduce-vm_bug_on_vma.patch
 convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
-mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
-mm-clean-up-zone-flags.patch
-mm-compaction-fix-warning-of-flags-may-be-used-uninitialized.patch
-mm-page_alloc-make-paranoid-check-in-move_freepages-a-vm_bug_on.patch
-mm-page_alloc-default-node-ordering-on-64-bit-numa-zone-ordering-on-32-bit-v2.patch
-mm-mempolicy-skip-inaccessible-vmas-when-setting-mpol_mf_lazy.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-x86-optimize-resource-lookups-for-ioremap.patch
-x86-optimize-resource-lookups-for-ioremap-fix.patch
-x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fixpatch.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
+memcg-move-memcg_allocfree_cache_params-to-slab_commonc.patch
+memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
+memcg-move-memcg_update_cache_size-to-slab_commonc.patch
+mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache.patch
+mm-memcontrol-do-not-kill-uncharge-batching-in-free_pages_and_swap_cache-fix.patch
+mm-memcontrol-simplify-detecting-when-the-memoryswap-limit-is-hit.patch
+mm-memcontrol-fix-transparent-huge-page-allocations-under-pressure.patch
+memcg-zap-memcg_can_account_kmem.patch
 linux-next.patch
 
