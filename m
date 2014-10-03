@@ -1,70 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-dlm-should-put-mle-when-goto-kill-in-dlm_assert_master_handler.patch
+ mm-migrate-close-race-between-migration-completion-and-mprotect.patch
  removed from -mm tree
-Date: Fri, 03 Oct 2014 11:04:13 -0700
-Message-ID: <542ee51d.15t7BUTnNjilq8Cv%akpm@linux-foundation.org>
+Date: Fri, 03 Oct 2014 11:04:23 -0700
+Message-ID: <542ee527.Dm5WCsviC7DZdqUj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41037 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41062 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754655AbaJCSEO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2014 14:04:14 -0400
+	with ESMTP id S1753103AbaJCSEY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2014 14:04:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, riel@redhat.com, sasha.levin@oracle.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: should put mle when goto kill in dlm_assert_master_handler
+     Subject: mm: migrate: close race between migration completion and mprotect
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-should-put-mle-when-goto-kill-in-dlm_assert_master_handler.patch
+     mm-migrate-close-race-between-migration-completion-and-mprotect.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2/dlm: should put mle when goto kill in dlm_assert_master_handler
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: migrate: close race between migration completion and mprotect
 
-In dlm_assert_master_handler, the mle is get in dlm_find_mle, should be
-put when goto kill, otherwise, this mle will never be released.
+A migration entry is marked as write if pte_write was true at the time the
+entry was created.  The VMA protections are not double checked when
+migration entries are being removed as mprotect marks
+write-migration-entries as read.  It means that potentially we take a
+spurious fault to mark PTEs write again but it's straight-forward. 
+However, there is a race between write migrations being marked read and
+migrations finishing.  This potentially allows a PTE to be write that
+should have been read.  Close this race by double checking the VMA
+permissions using maybe_mkwrite when migration completes.
 
-Signed-off-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: joyce.xue <xuejiufei@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+[torvalds@linux-foundation.org: use maybe_mkwrite]
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Kirill A Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/migrate.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-should-put-mle-when-goto-kill-in-dlm_assert_master_handler fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-should-put-mle-when-goto-kill-in-dlm_assert_master_handler
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -2039,6 +2039,10 @@ kill:
- 	     "and killing the other node now!  This node is OK and can continue.\n");
- 	__dlm_print_one_lock_resource(res);
- 	spin_unlock(&res->spinlock);
-+	spin_lock(&dlm->master_lock);
-+	if (mle)
-+		__dlm_put_mle(mle);
-+	spin_unlock(&dlm->master_lock);
- 	spin_unlock(&dlm->spinlock);
- 	*ret_data = (void *)res;
- 	dlm_put(dlm);
+diff -puN mm/migrate.c~mm-migrate-close-race-between-migration-completion-and-mprotect mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-close-race-between-migration-completion-and-mprotect
++++ a/mm/migrate.c
+@@ -146,8 +146,11 @@ static int remove_migration_pte(struct p
+ 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
+ 	if (pte_swp_soft_dirty(*ptep))
+ 		pte = pte_mksoft_dirty(pte);
++
++	/* Recheck VMA as permissions can change since migration started  */
+ 	if (is_write_migration_entry(entry))
+-		pte = pte_mkwrite(pte);
++		pte = maybe_mkwrite(pte, vma);
++
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	if (PageHuge(new)) {
+ 		pte = pte_mkhuge(pte);
 _
 
-Patches currently in -mm which might be from alex.chen@huawei.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-ocfs2-dlm-refactor-error-handling-in-dlm_alloc_ctxt.patch
-ocfs2-fix-shift-left-operations-overflow.patch
-ocfs2-dlm-call-dlm_lockres_put-without-resource-spinlock.patch
-ocfs2-fix-deadlock-due-to-wrong-locking-order.patch
-ocfs2-fix-deadlock-due-to-wrong-locking-order-fix.patch
+mm-remove-misleading-arch_uses_numa_prot_none.patch
+mm-page_alloc-determine-migratetype-only-once.patch
+mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
+mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch
+mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+mm-compaction-periodically-drop-lock-and-restore-irqs-in-scanners.patch
+mm-compaction-skip-rechecks-when-lock-was-already-held.patch
+mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+mm-rename-allocflags_to_migratetype-for-clarity.patch
+mm-compaction-pass-gfp-mask-to-compact_control.patch
+introduce-dump_vma.patch
+introduce-dump_vma-fix.patch
+introduce-vm_bug_on_vma.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma.patch
+mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
+mm-clean-up-zone-flags.patch
+mm-compaction-fix-warning-of-flags-may-be-used-uninitialized.patch
+mm-page_alloc-make-paranoid-check-in-move_freepages-a-vm_bug_on.patch
+mm-page_alloc-default-node-ordering-on-64-bit-numa-zone-ordering-on-32-bit-v2.patch
+mm-mempolicy-skip-inaccessible-vmas-when-setting-mpol_mf_lazy.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+x86-optimize-resource-lookups-for-ioremap.patch
+x86-optimize-resource-lookups-for-ioremap-fix.patch
+x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
+linux-next.patch
 
