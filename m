@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + cma-document-cma=0.patch added to -mm tree
-Date: Mon, 06 Oct 2014 11:23:59 -0700
-Message-ID: <5432de3f.x3cbVDy0z2fnQALV%akpm@linux-foundation.org>
+Subject: + rtc-cmos-fix-wakeup-from-s5-without-config_pm_sleep.patch added to -mm tree
+Date: Mon, 06 Oct 2014 11:25:51 -0700
+Message-ID: <5432deaf.DjyJ6IE28IEp/A7+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51455 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51461 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753036AbaJFSYA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Oct 2014 14:24:00 -0400
+	with ESMTP id S1753155AbaJFSZv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Oct 2014 14:25:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdelvare@suse.de, akinobu.mita@gmail.com, cebbert.lkml@gmail.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, konrad.wilk@oracle.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
+To: daniel-gl@gmx.net, a.zummo@towertech.it, mika.westerberg@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: CMA: document cma=0
+     Subject: rtc-cmos: fix wakeup from S5 without CONFIG_PM_SLEEP
 has been added to the -mm tree.  Its filename is
-     cma-document-cma=0.patch
+     rtc-cmos-fix-wakeup-from-s5-without-config_pm_sleep.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cma-document-cma=0.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-cmos-fix-wakeup-from-s=
+5-without-config_pm_sleep.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cma-document-cma=0.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-cmos-fix-wakeup-from-s=
+5-without-config_pm_sleep.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -32,62 +34,74 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jean Delvare <jdelvare@suse.de>
-Subject: CMA: document cma=0
+=46rom: Daniel Gl=F6ckner <daniel-gl@gmx.net>
+Subject: rtc-cmos: fix wakeup from S5 without CONFIG_PM_SLEEP
 
-It isn't obvious that CMA can be disabled on the kernel's command line, so
-document it.
+b5ada4600d ("drivers/rtc/rtc-cmos.c: fix compilation warning when
+!CONFIG_PM_SLEEP") broke wakeup from S5 by making cmos_poweroff a nop
+unless CONFIG_PM_SLEEP was defined.  Fix this by restricting the #ifdef=
+ to
+cmos_resume and restoring the old dependency on CONFIG_PM for cmos_susp=
+end
+and cmos_poweroff.
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Chuck Ebbert <cebbert.lkml@gmail.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: Daniel Gl=F6ckner <daniel-gl@gmx.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    3 ++-
- drivers/base/Kconfig                |    3 +++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-cmos.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~cma-document-cma=0 Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~cma-document-cma=0
-+++ a/Documentation/kernel-parameters.txt
-@@ -656,7 +656,8 @@ bytes respectively. Such letter suffixes
- 			Sets the size of kernel global memory area for
- 			contiguous memory allocations and optionally the
- 			placement constraint by the physical address range of
--			memory allocations. For more information, see
-+			memory allocations. A value of 0 disables CMA
-+			altogether. For more information, see
- 			include/linux/dma-contiguous.h
- 
- 	cmo_free_hint=	[PPC] Format: { yes | no }
-diff -puN drivers/base/Kconfig~cma-document-cma=0 drivers/base/Kconfig
---- a/drivers/base/Kconfig~cma-document-cma=0
-+++ a/drivers/base/Kconfig
-@@ -231,6 +231,9 @@ config DMA_CMA
- 	  to allocate big physically-contiguous blocks of memory for use with
- 	  hardware components that do not support I/O map nor scatter-gather.
- 
-+	  You can disable CMA by specifying "cma=0" on the kernel's command
-+	  line.
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-fix-wakeup-from-s5-without-co=
+nfig_pm_sleep drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-fix-wakeup-from-s5-without-config=
+_pm_sleep
++++ a/drivers/rtc/rtc-cmos.c
+@@ -856,7 +856,7 @@ static void __exit cmos_do_remove(struct
+ 	cmos->dev =3D NULL;
+ }
+=20
+-#ifdef	CONFIG_PM_SLEEP
++#ifdef CONFIG_PM
+=20
+ static int cmos_suspend(struct device *dev)
+ {
+@@ -907,6 +907,8 @@ static inline int cmos_poweroff(struct d
+ 	return cmos_suspend(dev);
+ }
+=20
++#ifdef	CONFIG_PM_SLEEP
 +
- 	  For more information see <include/linux/dma-contiguous.h>.
- 	  If unsure, say "n".
- 
+ static int cmos_resume(struct device *dev)
+ {
+ 	struct cmos_rtc	*cmos =3D dev_get_drvdata(dev);
+@@ -954,6 +956,7 @@ static int cmos_resume(struct device *de
+ 	return 0;
+ }
+=20
++#endif
+ #else
+=20
+ static inline int cmos_poweroff(struct device *dev)
 _
 
-Patches currently in -mm which might be from jdelvare@suse.de are
+Patches currently in -mm which might be from daniel-gl@gmx.net are
 
-cma-document-cma=0.patch
+rtc-cmos-fix-wakeup-from-s5-without-config_pm_sleep.patch
 linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
