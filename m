@@ -1,96 +1,162 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch removed from -mm tree
-Date: Thu, 09 Oct 2014 13:36:04 -0700
-Message-ID: <5436f1b4.hKHl+bmgwl1MvaOk%akpm@linux-foundation.org>
+ mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch removed from -mm tree
+Date: Thu, 09 Oct 2014 13:36:30 -0700
+Message-ID: <5436f1ce.NHuutnQ+joK2hY7d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35477 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35490 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751364AbaJIUgF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:36:05 -0400
+	with ESMTP id S1751030AbaJIUga (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:36:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, cl@linux.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix
+     Subject: mm/compaction: fix isolated page counting bug in compaction
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+     mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+This patch was dropped because it was folded into mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/compaction: fix isolated page counting bug in compaction
 
-fix CONFIG_COMPACTION=n build
+acct_isolated() is the function to adjust isolated page count.  It
+iterates cc->migratepages list and add NR_ISOLATED_ANON/NR_ISOLATED_FILE
+count according to number of anon, file pages in migratepages list,
+respectively.  Before commit (mm, compaction: move pageblock checks up
+from isolate_migratepages_range()), it is called just once in
+isolate_migratepages_range(), but, after commit, it is called in newly
+introduced isolate_migratepages_block() and this
+isolate_migratepages_block() could be called many times in
+isolate_migratepages_range() so that some page could be counted more than
+once.  This duplicate counting bug results in hang in cma_alloc(), because
+too_many_isolated() returns true continually.
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+This patch fixes this bug by moving acct_isolated() into upper layer
+function, isolate_migratepages_range() and isolate_migratepages().  After
+this change, isolated page would be counted only once so problem would be
+gone.
+
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/compaction.c |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix
-+++ a/mm/page_alloc.c
-@@ -2364,9 +2364,8 @@ static inline struct page *
- __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
- 	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
--	int classzone_idx, int migratetype,
--	enum migrate_mode mode, bool *contended_compaction,
--	bool *deferred_compaction, unsigned long *did_some_progress)
-+	int classzone_idx, int migratetype, enum migrate_mode mode,
-+	bool *contended_compaction, bool *deferred_compaction)
- {
- 	return NULL;
+diff -puN mm/compaction.c~mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix
++++ a/mm/compaction.c
+@@ -414,22 +414,19 @@ isolate_freepages_range(struct compact_c
  }
+ 
+ /* Update the number of anon and file isolated pages in the zone */
+-static void acct_isolated(struct zone *zone, bool locked, struct compact_control *cc)
++static void acct_isolated(struct zone *zone, struct compact_control *cc)
+ {
+ 	struct page *page;
+ 	unsigned int count[2] = { 0, };
+ 
++	if (list_empty(&cc->migratepages))
++		return;
++
+ 	list_for_each_entry(page, &cc->migratepages, lru)
+ 		count[!!page_is_file_cache(page)]++;
+ 
+-	/* If locked we can use the interrupt unsafe versions */
+-	if (locked) {
+-		__mod_zone_page_state(zone, NR_ISOLATED_ANON, count[0]);
+-		__mod_zone_page_state(zone, NR_ISOLATED_FILE, count[1]);
+-	} else {
+-		mod_zone_page_state(zone, NR_ISOLATED_ANON, count[0]);
+-		mod_zone_page_state(zone, NR_ISOLATED_FILE, count[1]);
+-	}
++	mod_zone_page_state(zone, NR_ISOLATED_ANON, count[0]);
++	mod_zone_page_state(zone, NR_ISOLATED_FILE, count[1]);
+ }
+ 
+ /* Similar to reclaim, but different enough that they don't share logic */
+@@ -612,8 +609,6 @@ isolate_success:
+ 		}
+ 	}
+ 
+-	acct_isolated(zone, locked, cc);
+-
+ 	if (locked)
+ 		spin_unlock_irqrestore(&zone->lru_lock, flags);
+ 
+@@ -676,6 +671,7 @@ isolate_migratepages_range(struct compac
+ 			break;
+ 		}
+ 	}
++	acct_isolated(cc->zone, cc);
+ 
+ 	return pfn;
+ }
+@@ -911,6 +907,7 @@ static isolate_migrate_t isolate_migrate
+ 		break;
+ 	}
+ 
++	acct_isolated(zone, cc);
+ 	/* Record where migration scanner will be restarted */
+ 	cc->migrate_pfn = low_pfn;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-origin.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
 mm-slab_commonc-suppress-warning.patch
 mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute.patch
+mm-slb-always-track-caller-in-kmalloc_node_track_caller.patch
+mm-slab-move-cache_flusharray-out-of-unlikelytext-section.patch
+mm-slab-noinline-__ac_put_obj.patch
+mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
+slub-disable-tracing-and-failslab-for-merged-slabs.patch
+topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
+slub-fallback-to-node_to_mem_node-node-if-allocating-on-memoryless-node.patch
+partial-revert-of-81c98869faa5-kthread-ensure-locality-of-task_struct-allocations.patch
+slab-fix-for_each_kmem_cache_node.patch
+mm-slab_common-commonize-slab-merge-logic.patch
+mm-slab-support-slab-merge.patch
+mm-slab-use-percpu-allocator-for-cpu-cache.patch
+mm-cma-adjust-address-limit-to-avoid-hitting-low-high-memory-boundary.patch
+arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
+mm-page_alloc-determine-migratetype-only-once.patch
+mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
 mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
+mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
+mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
 mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
-introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
-mm-debugc-use-pr_emerg.patch
-mm-ksm-use-pr_err-instead-of-printk-fix.patch
-mm-introduce-a-general-rcu-get_user_pages_fast-fix.patch
-arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-acct-eliminate-compile-warning-fix.patch
+mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
+mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+mm-rename-allocflags_to_migratetype-for-clarity.patch
+mm-compaction-pass-gfp-mask-to-compact_control.patch
+mm-use-__seq_open_private-instead-of-seq_open.patch
+memcg-move-memcg_allocfree_cache_params-to-slab_commonc.patch
+memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
+memcg-move-memcg_update_cache_size-to-slab_commonc.patch
+cma-document-cma=0.patch
+zsmalloc-move-pages_allocated-to-zs_pool.patch
+zsmalloc-change-return-value-unit-of-zs_get_total_size_bytes.patch
+zram-zram-memory-size-limitation.patch
+zram-report-maximum-used-memory.patch
 
