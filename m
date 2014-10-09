@@ -1,51 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] zram-zram-memory-size-limitation-fix-fix.patch
+Subject: [folded-merged] zram-zram-memory-size-limitation-fix.patch
  removed from -mm tree
-Date: Thu, 09 Oct 2014 13:47:04 -0700
-Message-ID: <5436f448.rrh1tI7GcFfI1ap3%akpm@linux-foundation.org>
+Date: Thu, 09 Oct 2014 13:47:02 -0700
+Message-ID: <5436f446.TH5h9e3HpbQf+ZF7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35712 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35709 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbaJIUrE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:47:04 -0400
+	with ESMTP id S1751002AbaJIUrD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:47:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram-zram-memory-size-limitation-fix-fix
+     Subject: zram-zram-memory-size-limitation-fix
 has been removed from the -mm tree.  Its filename was
-     zram-zram-memory-size-limitation-fix-fix.patch
+     zram-zram-memory-size-limitation-fix.patch
 
 This patch was dropped because it was folded into zram-zram-memory-size-limitation.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zram-zram-memory-size-limitation-fix-fix
+Subject: zram-zram-memory-size-limitation-fix
+
+fix typo, per Sergey
 
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-block-zram |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-zram-memory-size-limitation-fix-fix Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-zram-memory-size-limitation-fix-fix
+diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-zram-memory-size-limitation-fix Documentation/ABI/testing/sysfs-block-zram
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-zram-memory-size-limitation-fix
 +++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -125,5 +125,6 @@ Date:		August 2014
+@@ -124,8 +124,6 @@ What:		/sys/block/zram<id>/mem_limit
+ Date:		August 2014
  Contact:	Minchan Kim <minchan@kernel.org>
  Description:
- 		The mem_limit file is read/write and specifies the maximum
--		amount of memory ZRAM can use to store the compressed data.  The		limit could be changed in run time and "0" means disable the
-+		amount of memory ZRAM can use to store the compressed data.  The
-+		limit could be changed in run time and "0" means disable the
- 		limit.  No limit is the initial state.  Unit: bytes
+-		The mem_limit file is read/write and specifies the amount
+-		of memory to be able to consume memory to store store
+-		compressed data. The limit could be changed in run time
+-		and "0" means disable the limit. No limit is the initial state.
+-		Unit: bytes
++		The mem_limit file is read/write and specifies the maximum
++		amount of memory ZRAM can use to store the compressed data.  The		limit could be changed in run time and "0" means disable the
++		limit.  No limit is the initial state.  Unit: bytes
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,5 +81,6 @@ mm-ksm-use-pr_err-instead-of-printk.patch
 mm-introduce-a-general-rcu-get_user_pages_fast.patch
 arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
 zram-zram-memory-size-limitation.patch
+zram-zram-memory-size-limitation-fix-fix.patch
 acct-eliminate-compile-warning-fix.patch
 
