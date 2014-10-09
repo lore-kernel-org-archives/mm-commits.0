@@ -1,67 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- common-dma-mapping-introduce-common-remapping-functions-fix-4.patch removed from -mm tree
-Date: Thu, 09 Oct 2014 13:35:04 -0700
-Message-ID: <5436f178.XrPqBFCzuAwvV4fM%akpm@linux-foundation.org>
+ mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch removed from -mm tree
+Date: Thu, 09 Oct 2014 13:36:04 -0700
+Message-ID: <5436f1b4.hKHl+bmgwl1MvaOk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35477 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751060AbaJIUfE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:35:04 -0400
+	with ESMTP id S1751364AbaJIUgF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:36:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lauraa@codeaurora.org, mitchelh@codeaurora.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: common: dma-mapping: Store page array in vm_struct
+     Subject: mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix
 has been removed from the -mm tree.  Its filename was
-     common-dma-mapping-introduce-common-remapping-functions-fix-4.patch
+     mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
 
-This patch was dropped because it was folded into common-dma-mapping-introduce-common-remapping-functions.patch
+This patch was dropped because it was folded into mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
 
 ------------------------------------------------------
-From: Laura Abbott <lauraa@codeaurora.org>
-Subject: common: dma-mapping: Store page array in vm_struct
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix
 
-Commit 54329ac (common: dma-mapping: introduce common remapping functions)
-factored out common code for remapping arrays of pages.  The code before
-the refactor relied on setting area->pages with the array of mapped pages
-for easy access later.  The refactor dropped this, breaking parts of the
-ARM DMA API.  Fix this by setting the page array in the same place.
+fix CONFIG_COMPACTION=n build
 
-Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
-Reported-by: Mitchel Humpherys <mitchelh@codeaurora.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dma-mapping.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page_alloc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/dma-mapping.c~common-dma-mapping-introduce-common-remapping-functions-fix-4 drivers/base/dma-mapping.c
---- a/drivers/base/dma-mapping.c~common-dma-mapping-introduce-common-remapping-functions-fix-4
-+++ a/drivers/base/dma-mapping.c
-@@ -285,6 +285,8 @@ void *dma_common_pages_remap(struct page
- 	if (!area)
- 		return NULL;
- 
-+	area->pages = pages;
-+
- 	if (map_vm_area(area, prot, pages)) {
- 		vunmap(area->addr);
- 		return NULL;
+diff -puN mm/page_alloc.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix
++++ a/mm/page_alloc.c
+@@ -2364,9 +2364,8 @@ static inline struct page *
+ __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
+ 	struct zonelist *zonelist, enum zone_type high_zoneidx,
+ 	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
+-	int classzone_idx, int migratetype,
+-	enum migrate_mode mode, bool *contended_compaction,
+-	bool *deferred_compaction, unsigned long *did_some_progress)
++	int classzone_idx, int migratetype, enum migrate_mode mode,
++	bool *contended_compaction, bool *deferred_compaction)
+ {
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from lauraa@codeaurora.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-lib-genallocc-add-power-aligned-algorithm.patch
-lib-genallocc-add-genpool-range-check-function.patch
-common-dma-mapping-introduce-common-remapping-functions.patch
-arm-use-genalloc-for-the-atomic-pool.patch
-arm64-add-atomic-pool-for-non-coherent-and-cma-allocations.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
+mm-debugc-use-pr_emerg.patch
+mm-ksm-use-pr_err-instead-of-printk-fix.patch
+mm-introduce-a-general-rcu-get_user_pages_fast-fix.patch
+arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+acct-eliminate-compile-warning-fix.patch
 
