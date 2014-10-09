@@ -1,110 +1,120 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch removed from -mm tree
-Date: Thu, 09 Oct 2014 13:32:38 -0700
-Message-ID: <5436f0e6.CyJJK3gozyDLjYUw%akpm@linux-foundation.org>
+ memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3.patch removed from -mm tree
+Date: Thu, 09 Oct 2014 13:32:40 -0700
+Message-ID: <5436f0e8.yPhwfcSEgGD218+E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35441 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35445 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbaJIUci (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:32:38 -0400
+	with ESMTP id S1751041AbaJIUck (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:32:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rdunlap@infradead.org, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
+To: zhenzhang.zhang@huawei.com, dave.hansen@intel.com, isimatu.yasuaki@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, toshi.kani@hp.com, wangnan0@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2
+     Subject: memory-hotplug: fix not enough check of valid zones
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+     memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3.patch
 
 This patch was dropped because it was folded into memory-hotplug-add-sysfs-zones_online_to-attribute.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2
+From: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Subject: memory-hotplug: fix not enough check of valid zones
 
-fix build with CONFIG_MEMORY_HOTREMOVE=n
+As Yasuaki Ishimatsu described the check here is not enough
+if memory has hole as follows:
 
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
+PFN       0x00          0xd0          0xe0          0xf0
+             +-------------+-------------+-------------+
+zone type   |   Normal    |     hole    |   Normal    |
+             +-------------+-------------+-------------+
+
+In this case, the check can't guarantee that this is "the last block of
+memory".  The check of ZONE_MOVABLE has the same problem.
+
+Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wang Nan <wangnan0@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/base/memory.c |   36 ++++++------------------------------
+ 1 file changed, 6 insertions(+), 30 deletions(-)
 
-diff -puN drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2 drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2
+diff -puN drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3 drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3
 +++ a/drivers/base/memory.c
-@@ -373,6 +373,7 @@ static ssize_t show_phys_device(struct d
- 	return sprintf(buf, "%d\n", mem->phys_device);
+@@ -374,20 +374,6 @@ static ssize_t show_phys_device(struct d
  }
  
-+#ifdef CONFIG_MEMORY_HOTREMOVE
- static int __zones_online_to(unsigned long end_pfn,
- 				struct page *first_page, unsigned long nr_pages)
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-static int __zones_online_to(unsigned long end_pfn,
+-				struct page *first_page, unsigned long nr_pages)
+-{
+-	struct zone *zone_next;
+-
+-	/* The mem block is the last block of memory. */
+-	if (!pfn_valid(end_pfn + 1))
+-		return 1;
+-	zone_next = page_zone(first_page + nr_pages);
+-	if (zone_idx(zone_next) == ZONE_MOVABLE)
+-		return 1;
+-	return 0;
+-}
+-
+ static ssize_t show_zones_online_to(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
  {
-@@ -432,12 +433,13 @@ static ssize_t show_zones_online_to(stru
+@@ -407,28 +393,18 @@ static ssize_t show_zones_online_to(stru
+ 
+ 	zone = page_zone(first_page);
+ 
+-#ifdef CONFIG_HIGHMEM
+-	if (zone_idx(zone) == ZONE_HIGHMEM) {
+-		if (__zones_online_to(end_pfn, first_page, nr_pages))
++	if (zone_idx(zone) == ZONE_MOVABLE - 1) {
++		/*The mem block is the last memoryblock of this zone.*/
++		if (end_pfn == zone_end_pfn(zone))
+ 			return sprintf(buf, "%s %s\n",
+ 					zone->name, (zone + 1)->name);
+ 	}
+-#else
+-	if (zone_idx(zone) == ZONE_NORMAL) {
+-		if (__zones_online_to(end_pfn, first_page, nr_pages))
+-			return sprintf(buf, "%s %s\n",
+-					zone->name, (zone + 1)->name);
+-	}
+-#endif
+ 
+ 	if (zone_idx(zone) == ZONE_MOVABLE) {
+-		if (!pfn_valid(start_pfn - nr_pages))
+-			return sprintf(buf, "%s %s\n",
+-						zone->name, (zone - 1)->name);
+-		zone_prev = page_zone(first_page - nr_pages);
+-		if (zone_idx(zone_prev) != ZONE_MOVABLE)
++		/*The mem block is the first memoryblock of ZONE_MOVABLE.*/
++		if (start_pfn == zone->zone_start_pfn)
+ 			return sprintf(buf, "%s %s\n",
+-						zone->name, (zone - 1)->name);
++					zone->name, (zone - 1)->name);
+ 	}
  
  	return sprintf(buf, "%s\n", zone->name);
- }
-+static DEVICE_ATTR(zones_online_to, 0444, show_zones_online_to, NULL);
-+#endif
- 
- static DEVICE_ATTR(phys_index, 0444, show_mem_start_phys_index, NULL);
- static DEVICE_ATTR(state, 0644, show_mem_state, store_mem_state);
- static DEVICE_ATTR(phys_device, 0444, show_phys_device, NULL);
- static DEVICE_ATTR(removable, 0444, show_mem_removable, NULL);
--static DEVICE_ATTR(zones_online_to, 0444, show_zones_online_to, NULL);
- 
- /*
-  * Block size attribute stuff
-@@ -584,7 +586,9 @@ static struct attribute *memory_memblk_a
- 	&dev_attr_state.attr,
- 	&dev_attr_phys_device.attr,
- 	&dev_attr_removable.attr,
-+#ifdef CONFIG_MEMORY_HOTREMOVE
- 	&dev_attr_zones_online_to.attr,
-+#endif
- 	NULL
- };
- 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
 
-origin.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
 memory-hotplug-add-sysfs-zones_online_to-attribute.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
-introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
-mm-debugc-use-pr_emerg.patch
-mm-ksm-use-pr_err-instead-of-printk-fix.patch
-mm-introduce-a-general-rcu-get_user_pages_fast-fix.patch
-arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-acct-eliminate-compile-warning-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
 
