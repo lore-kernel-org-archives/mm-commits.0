@@ -1,58 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
- removed from -mm tree
-Date: Thu, 09 Oct 2014 13:28:59 -0700
-Message-ID: <5436f00b.Vzj4ya6Oi8quoZYS%akpm@linux-foundation.org>
+ fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 09 Oct 2014 13:29:24 -0700
+Message-ID: <5436f024.2Gm+OfCtVF9pALC2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35393 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35395 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751030AbaJIU3A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:29:00 -0400
+	with ESMTP id S1751064AbaJIU3Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:29:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix
+     Subject: fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
+     fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
+This patch was dropped because it was folded into fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix
+Subject: fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes
 
-deuglify
+WARNING: Missing a blank line after declarations
+#46: FILE: fs/proc/task_nommu.c:280:
++		int err = PTR_ERR(priv->mm);
++		seq_release_private(inode, file);
+
+total: 0 errors, 1 warnings, 57 lines checked
+
+./patches/fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_nommu.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/proc/task_nommu.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/task_nommu.c~fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix
+diff -puN fs/proc/task_nommu.c~fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes
 +++ a/fs/proc/task_nommu.c
-@@ -268,8 +268,9 @@ static const struct seq_operations proc_
- static int maps_open(struct inode *inode, struct file *file,
- 		     const struct seq_operations *ops)
+@@ -270,7 +270,7 @@ static int maps_open(struct inode *inode
  {
--	struct proc_maps_private *priv = __seq_open_private(file, ops,
--					 sizeof(struct proc_maps_private));
-+	struct proc_maps_private *priv;
-+
-+	priv = __seq_open_private(file, ops, sizeof(struct proc_maps_private));
+ 	struct proc_maps_private *priv;
+ 
+-	priv = __seq_open_private(file, ops, sizeof(struct proc_maps_private));
++	priv = __seq_open_private(file, ops, sizeof(*priv));
  	if (!priv)
  		return -ENOMEM;
  
+@@ -278,6 +278,7 @@ static int maps_open(struct inode *inode
+ 	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
+ 	if (IS_ERR(priv->mm)) {
+ 		int err = PTR_ERR(priv->mm);
++
+ 		seq_release_private(inode, file);
+ 		return err;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +79,7 @@ fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
 fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
 fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
 fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
 not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
 mm-slab_commonc-suppress-warning.patch
 mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
