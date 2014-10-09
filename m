@@ -1,66 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] acct-eliminate-compile-warning-fix.patch removed
- from -mm tree
-Date: Thu, 09 Oct 2014 13:48:05 -0700
-Message-ID: <5436f485.Wkc+z76DhcqtMAs2%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 09 Oct 2014 14:29:13 -0700
+Message-ID: <5436fe29.rgB5TjDJktRYV2y1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35724 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36099 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872AbaJIUsG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:48:06 -0400
+	with ESMTP id S932588AbaJIV3O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 17:29:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ying.xue@windriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, steve.capper@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: acct-eliminate-compile-warning-fix
+     Subject: arm64-mm-enable-rcu-fast_gup-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     acct-eliminate-compile-warning-fix.patch
+     arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into acct-eliminate-compile-warning.patch
+This patch was dropped because it was folded into arm64-mm-enable-rcu-fast_gup.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: acct-eliminate-compile-warning-fix
+Subject: arm64-mm-enable-rcu-fast_gup-checkpatch-fixes
 
-retain the local for code size improvements
+WARNING: Missing a blank line after declarations
+#108: FILE: arch/arm64/mm/flush.c:114:
++	pmd_t pmd = pmd_mksplitting(*pmdp);
++	VM_BUG_ON(address & ~PMD_MASK);
 
-Cc: Ying Xue <ying.xue@windriver.com>
+total: 0 errors, 1 warnings, 72 lines checked
+
+./patches/arm64-mm-enable-rcu-fast_gup.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Steve Capper <steve.capper@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ arch/arm64/mm/flush.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/acct.c~acct-eliminate-compile-warning-fix kernel/acct.c
---- a/kernel/acct.c~acct-eliminate-compile-warning-fix
-+++ a/kernel/acct.c
-@@ -499,11 +499,15 @@ static void do_acct_process(struct bsd_a
- 	ac.ac_gid16 = ac.ac_gid;
- #endif
- #if ACCT_VERSION == 3
--	ac.ac_pid = task_tgid_nr_ns(current, acct->ns);
--	rcu_read_lock();
--	ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent),
--				     acct->ns);
--	rcu_read_unlock();
-+	{
-+		struct pid_namespace *ns = acct->ns;
+diff -puN arch/arm64/mm/flush.c~arm64-mm-enable-rcu-fast_gup-checkpatch-fixes arch/arm64/mm/flush.c
+--- a/arch/arm64/mm/flush.c~arm64-mm-enable-rcu-fast_gup-checkpatch-fixes
++++ a/arch/arm64/mm/flush.c
+@@ -111,6 +111,7 @@ void pmdp_splitting_flush(struct vm_area
+ 			  pmd_t *pmdp)
+ {
+ 	pmd_t pmd = pmd_mksplitting(*pmdp);
 +
-+		ac.ac_pid = task_tgid_nr_ns(current, ns);
-+		rcu_read_lock();
-+		ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent),
-+					     ns);
-+		rcu_read_unlock();
-+	}
- #endif
- 	/*
- 	 * Get freeze protection. If the fs is frozen, just skip the write
+ 	VM_BUG_ON(address & ~PMD_MASK);
+ 	set_pmd_at(vma->vm_mm, address, pmdp, pmd);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,7 +86,7 @@ mm-introduce-vm_bug_on_mm.patch
 mm-debugc-use-pr_emerg.patch
 mm-ksm-use-pr_err-instead-of-printk.patch
 mm-introduce-a-general-rcu-get_user_pages_fast.patch
-arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
+arm64-mm-enable-rcu-fast_gup.patch
 zram-zram-memory-size-limitation.patch
 acct-eliminate-compile-warning.patch
 
