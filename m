@@ -1,72 +1,85 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix.patch removed from -mm tree
-Date: Thu, 09 Oct 2014 13:37:47 -0700
-Message-ID: <5436f21b.4MeIUuH8W9dYqMfD%akpm@linux-foundation.org>
+ prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch removed from -mm tree
+Date: Thu, 09 Oct 2014 13:37:45 -0700
+Message-ID: <5436f219.qhi51AchAZOXOU11%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35520 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbaJIUhr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:37:47 -0400
+	with ESMTP id S1751041AbaJIUhp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:37:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, gorcunov@openvz.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gorcunov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: headers: prctl.h -- Add missing linux/types.h
+     Subject: prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix
 has been removed from the -mm tree.  Its filename was
-     prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix.patch
+     prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
 
 This patch was dropped because it was folded into prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3.patch
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: headers: prctl.h -- Add missing linux/types.h
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix
 
-Stephen reported:
+fix 80-col wordwrap in macro definitions
 
- | After merging the akpm-current tree, today's linux-next build (x86_64
- | allmodconfig) failed like this:
- |
- | ./usr/include/linux/prctl.h:132: found __[us]{8,16,32,64} type without #include <linux/types.h>
- | In file included from /usr/include/x86_64-linux-gnu/sys/prctl.h:23:0,
- |                 from Documentation/prctl/disable-tsc-test.c:14:
- | ./usr/include/linux/prctl.h:132:2: error: unknown type name '__u64'
- |
-
-Include the header needed.
-
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/prctl.h |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/sys.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/uapi/linux/prctl.h~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix include/uapi/linux/prctl.h
---- a/include/uapi/linux/prctl.h~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix
-+++ a/include/uapi/linux/prctl.h
-@@ -1,6 +1,8 @@
- #ifndef _LINUX_PRCTL_H
- #define _LINUX_PRCTL_H
- 
-+#include <linux/types.h>
-+
- /* Values to pass as first argument to prctl() */
- 
- #define PR_SET_PDEATHSIG  1  /* Second arg is a signal */
+diff -puN kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix kernel/sys.c
+--- a/kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix
++++ a/kernel/sys.c
+@@ -1727,8 +1727,8 @@ static int validate_prctl_map(struct prc
+ 	/*
+ 	 * Make sure the pairs are ordered.
+ 	 */
+-#define __prctl_check_order(__m1, __op, __m2)					\
+-	((unsigned long)prctl_map->__m1 __op					\
++#define __prctl_check_order(__m1, __op, __m2)				\
++	((unsigned long)prctl_map->__m1 __op				\
+ 	 (unsigned long)prctl_map->__m2) ? 0 : -EINVAL
+ 	error  = __prctl_check_order(start_code, <, end_code);
+ 	error |= __prctl_check_order(start_data, <, end_data);
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-remove-misleading-arch_uses_numa_prot_none.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
 prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2.patch
+include-linux-migrateh-remove-migratepage-define.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
+mm-debugc-use-pr_emerg.patch
+mm-ksm-use-pr_err-instead-of-printk-fix.patch
+mm-introduce-a-general-rcu-get_user_pages_fast-fix.patch
+arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+acct-eliminate-compile-warning-fix.patch
 
