@@ -1,86 +1,145 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch removed
- from -mm tree
-Date: Thu, 09 Oct 2014 13:32:42 -0700
-Message-ID: <5436f0ea.BWnSb1qm8MreOq+q%akpm@linux-foundation.org>
+ memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch removed from -mm tree
+Date: Thu, 09 Oct 2014 13:32:44 -0700
+Message-ID: <5436f0ec.tlbIOAbhUoANyhP5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35451 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35456 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbaJIUcm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:32:42 -0400
+	with ESMTP id S1751041AbaJIUco (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:32:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave.hansen@intel.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: zhenzhang.zhang@huawei.com, dave.hansen@intel.com, isimatu.yasuaki@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, toshi.kani@hp.com, wangnan0@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix
+     Subject: memory-hotplug: rename zones_online_to to valid_zones
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+     memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
 
 This patch was dropped because it was folded into memory-hotplug-add-sysfs-zones_online_to-attribute.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix
+From: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Subject: memory-hotplug: rename zones_online_to to valid_zones
 
-remove unused local zone_prev
+Rename the interface to valid_zones according to most pepole's
+suggestion.
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Sample output of the sysfs files:
+	memory0/valid_zones: none
+	memory1/valid_zones: DMA32
+	memory2/valid_zones: DMA32
+	memory3/valid_zones: DMA32
+	memory4/valid_zones: Normal
+	memory5/valid_zones: Normal
+	memory6/valid_zones: Normal Movable
+	memory7/valid_zones: Movable Normal
+	memory8/valid_zones: Movable
+
+Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wang Nan <wangnan0@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-devices-memory |    8 ++++----
+ Documentation/memory-hotplug.txt               |   11 +++++++++--
+ drivers/base/memory.c                          |    6 +++---
+ 3 files changed, 16 insertions(+), 9 deletions(-)
 
-diff -puN drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix
-+++ a/drivers/base/memory.c
-@@ -381,7 +381,7 @@ static ssize_t show_zones_online_to(stru
- 	unsigned long start_pfn, end_pfn;
- 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
- 	struct page *first_page;
--	struct zone *zone, *zone_prev;
-+	struct zone *zone;
+diff -puN Documentation/ABI/testing/sysfs-devices-memory~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4 Documentation/ABI/testing/sysfs-devices-memory
+--- a/Documentation/ABI/testing/sysfs-devices-memory~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4
++++ a/Documentation/ABI/testing/sysfs-devices-memory
+@@ -61,13 +61,13 @@ Users:		hotplug memory remove tools
+ 		http://www.ibm.com/developerworks/wikis/display/LinuxP/powerpc-utils
  
- 	start_pfn = section_nr_to_pfn(mem->start_section_nr);
- 	end_pfn = start_pfn + nr_pages;
+ 
+-What:           /sys/devices/system/memory/memoryX/zones_online_to
++What:           /sys/devices/system/memory/memoryX/valid_zones
+ Date:           July 2014
+ Contact:	Zhang Zhen <zhenzhang.zhang@huawei.com>
+ Description:
+-		The file /sys/devices/system/memory/memoryX/zones_online_to
+-		is read-only and is designed to show which zone this memory block can
+-		be onlined to.
++		The file /sys/devices/system/memory/memoryX/valid_zones	is
++		read-only and is designed to show which zone this memory
++		block can be onlined to.
+ 
+ What:		/sys/devices/system/memoryX/nodeY
+ Date:		October 2009
+diff -puN Documentation/memory-hotplug.txt~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4 Documentation/memory-hotplug.txt
+--- a/Documentation/memory-hotplug.txt~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4
++++ a/Documentation/memory-hotplug.txt
+@@ -155,7 +155,7 @@ Under each memory block, you can see 4 f
+ /sys/devices/system/memory/memoryXXX/phys_device
+ /sys/devices/system/memory/memoryXXX/state
+ /sys/devices/system/memory/memoryXXX/removable
+-/sys/devices/system/memory/memoryXXX/zones_online_to
++/sys/devices/system/memory/memoryXXX/valid_zones
+ 
+ 'phys_index'      : read-only and contains memory block id, same as XXX.
+ 'state'           : read-write
+@@ -171,8 +171,15 @@ Under each memory block, you can see 4 f
+                     block is removable and a value of 0 indicates that
+                     it is not removable. A memory block is removable only if
+                     every section in the block is removable.
+-'zones_online_to' : read-only: designed to show which zone this memory block
++'valid_zones'     : read-only: designed to show which zones this memory block
+ 		    can be onlined to.
++		    The first column shows it's default zone.
++		    "memory6/valid_zones: Normal Movable" shows this memoryblock
++		    can be onlined to ZONE_NORMAL by default and to ZONE_MOVABLE
++		    by online_movable.
++		    "memory7/valid_zones: Movable Normal" shows this memoryblock
++		    can be onlined to ZONE_MOVABLE by default and to ZONE_NORMAL
++		    by online_kernel.
+ 
+ NOTE:
+   These directories/files appear after physical memory hotplug phase.
+diff -puN drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4 drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4
++++ a/drivers/base/memory.c
+@@ -374,7 +374,7 @@ static ssize_t show_phys_device(struct d
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-static ssize_t show_zones_online_to(struct device *dev,
++static ssize_t show_valid_zones(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+ 	struct memory_block *mem = to_memory_block(dev);
+@@ -409,7 +409,7 @@ static ssize_t show_zones_online_to(stru
+ 
+ 	return sprintf(buf, "%s\n", zone->name);
+ }
+-static DEVICE_ATTR(zones_online_to, 0444, show_zones_online_to, NULL);
++static DEVICE_ATTR(valid_zones, 0444, show_valid_zones, NULL);
+ #endif
+ 
+ static DEVICE_ATTR(phys_index, 0444, show_mem_start_phys_index, NULL);
+@@ -563,7 +563,7 @@ static struct attribute *memory_memblk_a
+ 	&dev_attr_phys_device.attr,
+ 	&dev_attr_removable.attr,
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-	&dev_attr_zones_online_to.attr,
++	&dev_attr_valid_zones.attr,
+ #endif
+ 	NULL
+ };
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
 
-origin.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
 memory-hotplug-add-sysfs-zones_online_to-attribute.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
-prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
-include-linux-migrateh-remove-migratepage-define.patch
-introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
-mm-debugc-use-pr_emerg.patch
-mm-ksm-use-pr_err-instead-of-printk-fix.patch
-mm-introduce-a-general-rcu-get_user_pages_fast-fix.patch
-arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-acct-eliminate-compile-warning-fix.patch
 
