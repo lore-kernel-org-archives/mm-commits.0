@@ -1,67 +1,97 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix.patch removed from -mm tree
-Date: Thu, 09 Oct 2014 13:27:19 -0700
-Message-ID: <5436efa7.8ubBf3KAELnBKHS1%akpm@linux-foundation.org>
+ fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 09 Oct 2014 13:27:58 -0700
+Message-ID: <5436efce.ofpI7Md0E1NJTwDR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35348 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35353 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751217AbaJIU1U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:27:20 -0400
+	with ESMTP id S1751045AbaJIU17 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:27:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dzickus@redhat.com, chaiw.fnst@cn.fujitsu.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix
+     Subject: fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix.patch
+     fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
+This patch was dropped because it was folded into fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
 
 ------------------------------------------------------
-From: Don Zickus <dzickus@redhat.com>
-Subject: softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes
 
-update comment
+WARNING: Missing a blank line after declarations
+#77: FILE: fs/proc/task_mmu.c:246:
++		int err = PTR_ERR(priv->mm);
++		seq_release_private(inode, file);
 
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: chai wen <chaiw.fnst@cn.fujitsu.com>
+total: 0 errors, 1 warnings, 94 lines checked
+
+./patches/fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/proc/task_mmu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix kernel/watchdog.c
---- a/kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix
-+++ a/kernel/watchdog.c
-@@ -336,10 +336,12 @@ static enum hrtimer_restart watchdog_tim
- 		/* only warn once */
- 		if (__this_cpu_read(soft_watchdog_warn) == true) {
- 			/*
--			 * Handle the case where multiple processes are
--			 * causing softlockups but the duration is small
--			 * enough, the softlockup detector can not reset
--			 * itself in time.  Use task pointers to detect this.
-+			 * When multiple processes are causing softlockups the
-+			 * softlockup detector only warns on the first one
-+			 * because the code relies on a full quiet cycle to
-+			 * re-arm.  The second process prevents the quiet cycle
-+			 * and never gets reported.  Use task pointers to detect
-+			 * this.
- 			 */
- 			if (__this_cpu_read(softlockup_task_ptr_saved) !=
- 			    current) {
+diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes
++++ a/fs/proc/task_mmu.c
+@@ -243,6 +243,7 @@ static int proc_maps_open(struct inode *
+ 	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
+ 	if (IS_ERR(priv->mm)) {
+ 		int err = PTR_ERR(priv->mm);
++
+ 		seq_release_private(inode, file);
+ 		return err;
+ 	}
 _
 
-Patches currently in -mm which might be from dzickus@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
+origin.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic-checkpatch-fixes.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private-fix.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open-checkpatch-fixes.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range-checkpatch-fixes.patch
+mm-slab_commonc-suppress-warning.patch
+mm-slab_common-move-kmem_cache-definition-to-internal-header-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
+mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
+mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
+mm-debugc-use-pr_emerg.patch
+mm-ksm-use-pr_err-instead-of-printk-fix.patch
+mm-introduce-a-general-rcu-get_user_pages_fast-fix.patch
+arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+acct-eliminate-compile-warning-fix.patch
 
