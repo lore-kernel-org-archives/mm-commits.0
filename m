@@ -1,58 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] zram-zram-memory-size-limitation-fix.patch
- removed from -mm tree
-Date: Thu, 09 Oct 2014 13:47:02 -0700
-Message-ID: <5436f446.TH5h9e3HpbQf+ZF7%akpm@linux-foundation.org>
+Subject: [folded-merged] acct-eliminate-compile-warning-fix.patch removed
+ from -mm tree
+Date: Thu, 09 Oct 2014 13:48:05 -0700
+Message-ID: <5436f485.Wkc+z76DhcqtMAs2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35709 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35724 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbaJIUrD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:47:03 -0400
+	with ESMTP id S1751872AbaJIUsG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:48:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ying.xue@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram-zram-memory-size-limitation-fix
+     Subject: acct-eliminate-compile-warning-fix
 has been removed from the -mm tree.  Its filename was
-     zram-zram-memory-size-limitation-fix.patch
+     acct-eliminate-compile-warning-fix.patch
 
-This patch was dropped because it was folded into zram-zram-memory-size-limitation.patch
+This patch was dropped because it was folded into acct-eliminate-compile-warning.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zram-zram-memory-size-limitation-fix
+Subject: acct-eliminate-compile-warning-fix
 
-fix typo, per Sergey
+retain the local for code size improvements
 
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Ying Xue <ying.xue@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ kernel/acct.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-zram-memory-size-limitation-fix Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-zram-memory-size-limitation-fix
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -124,8 +124,6 @@ What:		/sys/block/zram<id>/mem_limit
- Date:		August 2014
- Contact:	Minchan Kim <minchan@kernel.org>
- Description:
--		The mem_limit file is read/write and specifies the amount
--		of memory to be able to consume memory to store store
--		compressed data. The limit could be changed in run time
--		and "0" means disable the limit. No limit is the initial state.
--		Unit: bytes
-+		The mem_limit file is read/write and specifies the maximum
-+		amount of memory ZRAM can use to store the compressed data.  The		limit could be changed in run time and "0" means disable the
-+		limit.  No limit is the initial state.  Unit: bytes
+diff -puN kernel/acct.c~acct-eliminate-compile-warning-fix kernel/acct.c
+--- a/kernel/acct.c~acct-eliminate-compile-warning-fix
++++ a/kernel/acct.c
+@@ -499,11 +499,15 @@ static void do_acct_process(struct bsd_a
+ 	ac.ac_gid16 = ac.ac_gid;
+ #endif
+ #if ACCT_VERSION == 3
+-	ac.ac_pid = task_tgid_nr_ns(current, acct->ns);
+-	rcu_read_lock();
+-	ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent),
+-				     acct->ns);
+-	rcu_read_unlock();
++	{
++		struct pid_namespace *ns = acct->ns;
++
++		ac.ac_pid = task_tgid_nr_ns(current, ns);
++		rcu_read_lock();
++		ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent),
++					     ns);
++		rcu_read_unlock();
++	}
+ #endif
+ 	/*
+ 	 * Get freeze protection. If the fs is frozen, just skip the write
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +89,5 @@ mm-ksm-use-pr_err-instead-of-printk.patch
 mm-introduce-a-general-rcu-get_user_pages_fast.patch
 arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
 zram-zram-memory-size-limitation.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-acct-eliminate-compile-warning-fix.patch
+acct-eliminate-compile-warning.patch
 
