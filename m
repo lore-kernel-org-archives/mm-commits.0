@@ -1,83 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] vmstat-on-demand-vmstat-workers-v8-fix-2.patch
+Subject: [folded-merged]
+ m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush-v2.patch
  removed from -mm tree
-Date: Thu, 09 Oct 2014 13:46:02 -0700
-Message-ID: <5436f40a.Q0K27Zmvv4jFMpNj%akpm@linux-foundation.org>
+Date: Thu, 09 Oct 2014 13:46:40 -0700
+Message-ID: <5436f430.jbkBxwgPLlnvD6bH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35702 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35706 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750815AbaJIUqH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:46:07 -0400
+	with ESMTP id S1751002AbaJIUqk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:46:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@gentwo.org, cl@linux.com, gilad@benyossef.com, sasha.levin@oracle.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: davidlohr@hp.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmstat ondemand: fix online/offline races
+     Subject: m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush-v2
 has been removed from the -mm tree.  Its filename was
-     vmstat-on-demand-vmstat-workers-v8-fix-2.patch
+     m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush-v2.patch
 
-This patch was dropped because it was folded into vmstat-on-demand-vmstat-workers-v8.patch
+This patch was dropped because it was folded into m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@gentwo.org>
-Subject: vmstat ondemand: fix online/offline races
+From: Davidlohr Bueso <davidlohr@hp.com>
+Subject: m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush-v2
 
-Do not allow onlining/offlining while the shepherd task is checking
-for vmstat threads.
+So I wasn't sure if we *really* required to serialize the entire address
+space for this operation. However, looking at other archs, sh seems to
+do exactly that, so I guess, at least for safety, we should hold the
+lock until we exit the function. I guess taking it as a reader enables
+us to guarantee it won't be removed underneath us. So here's v2.
 
-On offlining a processor do the right thing cancelling the vmstat
-worker thread if it exista and also exclude it from the shepherd
-process checks.
-
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Gilad Ben-Yossef <gilad@benyossef.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/m68k/kernel/sys_m68k.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmstat.c~vmstat-on-demand-vmstat-workers-v8-fix-2 mm/vmstat.c
---- a/mm/vmstat.c~vmstat-on-demand-vmstat-workers-v8-fix-2
-+++ a/mm/vmstat.c
-@@ -1327,6 +1327,7 @@ static void vmstat_shepherd(struct work_
- {
- 	int cpu;
+diff -puN arch/m68k/kernel/sys_m68k.c~m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush-v2 arch/m68k/kernel/sys_m68k.c
+--- a/arch/m68k/kernel/sys_m68k.c~m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush-v2
++++ a/arch/m68k/kernel/sys_m68k.c
+@@ -389,7 +389,6 @@ sys_cacheflush (unsigned long addr, int
+ 			goto out;
+ 	} else {
+ 		struct vm_area_struct *vma;
+-		bool invalid;
  
-+	get_online_cpus();
- 	/* Check processors whose vmstat worker threads have been disabled */
- 	for_each_cpu(cpu, cpu_stat_off)
- 		if (need_update(cpu) &&
-@@ -1335,6 +1336,7 @@ static void vmstat_shepherd(struct work_
- 			schedule_delayed_work_on(cpu, &per_cpu(vmstat_work, cpu),
- 				__round_jiffies_relative(sysctl_stat_interval, cpu));
+ 		/* Check for overflow.  */
+ 		if (addr + len < addr)
+@@ -402,10 +401,8 @@ sys_cacheflush (unsigned long addr, int
+ 		ret = -EINVAL;
+ 		down_read(&current->mm->mmap_sem);
+ 		vma = find_vma(current->mm, addr);
+-		invalid = !vma || addr < vma->vm_start || addr + len > vma->vm_end;
+-		up_read(&current->mm->mmap_sem);
+-		if (invalid)
+-			goto out;
++		if (!vma || addr < vma->vm_start || addr + len > vma->vm_end)
++			goto out_unlock;
+ 	}
  
-+	put_online_cpus();
- 
- 	schedule_delayed_work(&shepherd,
- 		round_jiffies_relative(sysctl_stat_interval));
-@@ -1390,8 +1392,8 @@ static int vmstat_cpuup_callback(struct
- 		break;
- 	case CPU_DOWN_PREPARE:
- 	case CPU_DOWN_PREPARE_FROZEN:
--		if (!cpumask_test_and_set_cpu(cpu, cpu_stat_off))
--			cancel_delayed_work_sync(&per_cpu(vmstat_work, cpu));
-+		cancel_delayed_work_sync(&per_cpu(vmstat_work, cpu));
-+		cpumask_clear_cpu(cpu, cpu_stat_off);
- 		break;
- 	case CPU_DOWN_FAILED:
- 	case CPU_DOWN_FAILED_FROZEN:
+ 	if (CPU_IS_020_OR_030) {
+@@ -435,7 +432,7 @@ sys_cacheflush (unsigned long addr, int
+ 			__asm__ __volatile__ ("movec %0, %%cacr" : : "r" (cacr));
+ 		}
+ 		ret = 0;
+-		goto out;
++		goto out_unlock;
+ 	} else {
+ 	    /*
+ 	     * 040 or 060: don't blindly trust 'scope', someone could
+@@ -452,6 +449,8 @@ sys_cacheflush (unsigned long addr, int
+ 		ret = cache_flush_060 (addr, scope, cache, len);
+ 	    }
+ 	}
++out_unlock:
++	up_read(&current->mm->mmap_sem);
+ out:
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from cl@gentwo.org are
+Patches currently in -mm which might be from davidlohr@hp.com are
 
-vmstat-on-demand-vmstat-workers-v8.patch
+m68k-call-find_vma-with-the-mmap_sem-held-in-sys_cacheflush.patch
 
