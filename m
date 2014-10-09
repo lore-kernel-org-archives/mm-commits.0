@@ -1,78 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ocfs2-fix-deadlock-due-to-wrong-locking-order-fix.patch removed from -mm
- tree
-Date: Thu, 09 Oct 2014 13:26:57 -0700
-Message-ID: <5436ef91.D1CPlvyUGvspjx5f%akpm@linux-foundation.org>
+ softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix.patch removed from -mm tree
+Date: Thu, 09 Oct 2014 13:27:19 -0700
+Message-ID: <5436efa7.8ubBf3KAELnBKHS1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35345 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35348 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751008AbaJIU06 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:26:58 -0400
+	with ESMTP id S1751217AbaJIU1U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:27:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: dzickus@redhat.com, chaiw.fnst@cn.fujitsu.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix null handle in ocfs2_write_zero_page
+     Subject: softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-deadlock-due-to-wrong-locking-order-fix.patch
+     softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix.patch
 
-This patch was dropped because it was folded into ocfs2-fix-deadlock-due-to-wrong-locking-order.patch
+This patch was dropped because it was folded into softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: fix null handle in ocfs2_write_zero_page
+From: Don Zickus <dzickus@redhat.com>
+Subject: softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix
 
-ocfs2_zero_start_ordered_transaction() will return NULL handle in data
-writeback mode, this should be checked and bypass journal ops, or kernel
-panic will be triggered.
+update comment
 
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Alex Chen <alex.chen@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: chai wen <chaiw.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ kernel/watchdog.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-fix-deadlock-due-to-wrong-locking-order-fix fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-fix-deadlock-due-to-wrong-locking-order-fix
-+++ a/fs/ocfs2/file.c
-@@ -833,14 +833,17 @@ static int ocfs2_write_zero_page(struct
- 	di->i_mtime = di->i_ctime = cpu_to_le64(inode->i_mtime.tv_sec);
- 	di->i_ctime_nsec = cpu_to_le32(inode->i_mtime.tv_nsec);
- 	di->i_mtime_nsec = di->i_ctime_nsec;
--	ocfs2_journal_dirty(handle, di_bh);
--	ocfs2_update_inode_fsync_trans(handle, inode, 1);
-+	if (handle) {
-+		ocfs2_journal_dirty(handle, di_bh);
-+		ocfs2_update_inode_fsync_trans(handle, inode, 1);
-+	}
- 
- out_unlock:
- 	unlock_page(page);
- 	page_cache_release(page);
- out_commit_trans:
--	ocfs2_commit_trans(OCFS2_SB(inode->i_sb), handle);
-+	if (handle)
-+		ocfs2_commit_trans(OCFS2_SB(inode->i_sb), handle);
- out:
- 	return ret;
- }
+diff -puN kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix kernel/watchdog.c
+--- a/kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu-fix
++++ a/kernel/watchdog.c
+@@ -336,10 +336,12 @@ static enum hrtimer_restart watchdog_tim
+ 		/* only warn once */
+ 		if (__this_cpu_read(soft_watchdog_warn) == true) {
+ 			/*
+-			 * Handle the case where multiple processes are
+-			 * causing softlockups but the duration is small
+-			 * enough, the softlockup detector can not reset
+-			 * itself in time.  Use task pointers to detect this.
++			 * When multiple processes are causing softlockups the
++			 * softlockup detector only warns on the first one
++			 * because the code relies on a full quiet cycle to
++			 * re-arm.  The second process prevents the quiet cycle
++			 * and never gets reported.  Use task pointers to detect
++			 * this.
+ 			 */
+ 			if (__this_cpu_read(softlockup_task_ptr_saved) !=
+ 			    current) {
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from dzickus@redhat.com are
 
-ocfs2-dont-fire-quorum-before-connection-established.patch
-ocfs2-fix-deadlock-due-to-wrong-locking-order.patch
-mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set.patch
-ocfs2-fix-a-deadlock-while-o2net_wq-doing-direct-memory-reclaim.patch
+softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
 
