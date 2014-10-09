@@ -1,94 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- driver-base-node-remove-unnecessary-kfree-of-node-struct-from-unregister_one_node.patch removed from -mm tree
-Date: Thu, 09 Oct 2014 11:22:00 -0700
-Message-ID: <5436d248.NUEp8mlBCpgKuGj3%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ocfs2-fix-deadlock-due-to-wrong-locking-order-fix.patch removed from -mm
+ tree
+Date: Thu, 09 Oct 2014 13:26:57 -0700
+Message-ID: <5436ef91.D1CPlvyUGvspjx5f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34046 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35345 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751462AbaJISWA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 14:22:00 -0400
+	with ESMTP id S1751008AbaJIU06 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:26:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: isimatu.yasuaki@jp.fujitsu.com, akpm@linux-foundation.org, gregkh@linuxfoundation.org, qiuxishi@huawei.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: driver/base/node,c: remove unnecessary kfree of node struct from unregister_one_node
+     Subject: ocfs2: fix null handle in ocfs2_write_zero_page
 has been removed from the -mm tree.  Its filename was
-     driver-base-node-remove-unnecessary-kfree-of-node-struct-from-unregister_one_node.patch
+     ocfs2-fix-deadlock-due-to-wrong-locking-order-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into ocfs2-fix-deadlock-due-to-wrong-locking-order.patch
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: driver/base/node,c: remove unnecessary kfree of node struct from unregister_one_node
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: fix null handle in ocfs2_write_zero_page
 
-Commit 92d585ef067d ("numa: fix NULL pointer access and memory leak in
-unregister_one_node()") added kfree() of node struct in
-unregister_one_node().  But node struct is freed by node_device_release()
-which is called in unregister_node().  So by adding the kfree(), node
-struct is freed two times.
+ocfs2_zero_start_ordered_transaction() will return NULL handle in data
+writeback mode, this should be checked and bypass journal ops, or kernel
+panic will be triggered.
 
-While hot removing memory, the commit leads the following BUG_ON():
-
-  kernel BUG at mm/slub.c:3346!
-  invalid opcode: 0000 [#1] SMP
-  [...]
-  Call Trace:
-   [...] unregister_one_node
-   [...] try_offline_node
-   [...] remove_memory
-   [...] acpi_memory_device_remove
-   [...] acpi_bus_trim
-   [...] acpi_bus_trim
-   [...] acpi_device_hotplug
-   [...] acpi_hotplug_work_fn
-   [...] process_one_work
-   [...] worker_thread
-   [...] ? rescuer_thread
-   [...] kthread
-   [...] ? kthread_create_on_node
-   [...] ret_from_fork
-   [...] ? kthread_create_on_node
-
-This patch removes unnecessary kfree() from unregister_one_node().
-
-Fixes: 92d585ef067d "numa: fix NULL pointer access and memory leak in unregister_one_node()"
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: <stable@vger.kernel.org>	[3.16+]
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Alex Chen <alex.chen@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ocfs2/file.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/node.c~driver-base-node-remove-unnecessary-kfree-of-node-struct-from-unregister_one_node drivers/base/node.c
---- a/drivers/base/node.c~driver-base-node-remove-unnecessary-kfree-of-node-struct-from-unregister_one_node
-+++ a/drivers/base/node.c
-@@ -600,7 +600,6 @@ void unregister_one_node(int nid)
- 		return;
+diff -puN fs/ocfs2/file.c~ocfs2-fix-deadlock-due-to-wrong-locking-order-fix fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-deadlock-due-to-wrong-locking-order-fix
++++ a/fs/ocfs2/file.c
+@@ -833,14 +833,17 @@ static int ocfs2_write_zero_page(struct
+ 	di->i_mtime = di->i_ctime = cpu_to_le64(inode->i_mtime.tv_sec);
+ 	di->i_ctime_nsec = cpu_to_le32(inode->i_mtime.tv_nsec);
+ 	di->i_mtime_nsec = di->i_ctime_nsec;
+-	ocfs2_journal_dirty(handle, di_bh);
+-	ocfs2_update_inode_fsync_trans(handle, inode, 1);
++	if (handle) {
++		ocfs2_journal_dirty(handle, di_bh);
++		ocfs2_update_inode_fsync_trans(handle, inode, 1);
++	}
  
- 	unregister_node(node_devices[nid]);
--	kfree(node_devices[nid]);
- 	node_devices[nid] = NULL;
+ out_unlock:
+ 	unlock_page(page);
+ 	page_cache_release(page);
+ out_commit_trans:
+-	ocfs2_commit_trans(OCFS2_SB(inode->i_sb), handle);
++	if (handle)
++		ocfs2_commit_trans(OCFS2_SB(inode->i_sb), handle);
+ out:
+ 	return ret;
  }
- 
 _
 
-Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-origin.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute-fix-4.patch
-driver-firmware-memmap-dont-create-memmap-sysfs-of-same-firmware_map_entry.patch
-linux-next.patch
+ocfs2-dont-fire-quorum-before-connection-established.patch
+ocfs2-fix-deadlock-due-to-wrong-locking-order.patch
+mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set.patch
+ocfs2-fix-a-deadlock-while-o2net_wq-doing-direct-memory-reclaim.patch
 
