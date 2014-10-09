@@ -1,85 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch removed from -mm tree
-Date: Thu, 09 Oct 2014 13:37:45 -0700
-Message-ID: <5436f219.qhi51AchAZOXOU11%akpm@linux-foundation.org>
+ prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2.patch removed
+ from -mm tree
+Date: Thu, 09 Oct 2014 13:37:49 -0700
+Message-ID: <5436f21d.uSS6yEXYBaWeVi3s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35520 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35526 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbaJIUhp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:37:45 -0400
+	with ESMTP id S1751041AbaJIUht (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:37:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gorcunov@openvz.org, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix
+     Subject: prctl: return -EFAULT on auxv fetching failure
 has been removed from the -mm tree.  Its filename was
-     prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+     prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2.patch
 
 This patch was dropped because it was folded into prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: prctl: return -EFAULT on auxv fetching failure
 
-fix 80-col wordwrap in macro definitions
+Dan reported that returning bytes left if copy_from_user failed
+is a bad option, return traditional -EFAULT instead.
 
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sys.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix kernel/sys.c
---- a/kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix
+diff -puN kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2 kernel/sys.c
+--- a/kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4-fix-2
 +++ a/kernel/sys.c
-@@ -1727,8 +1727,8 @@ static int validate_prctl_map(struct prc
- 	/*
- 	 * Make sure the pairs are ordered.
- 	 */
--#define __prctl_check_order(__m1, __op, __m2)					\
--	((unsigned long)prctl_map->__m1 __op					\
-+#define __prctl_check_order(__m1, __op, __m2)				\
-+	((unsigned long)prctl_map->__m1 __op				\
- 	 (unsigned long)prctl_map->__m2) ? 0 : -EINVAL
- 	error  = __prctl_check_order(start_code, <, end_code);
- 	error |= __prctl_check_order(start_data, <, end_data);
+@@ -1809,11 +1809,10 @@ static int prctl_set_mm_map(int opt, con
+ 
+ 	if (prctl_map.auxv_size) {
+ 		memset(user_auxv, 0, sizeof(user_auxv));
+-		error = copy_from_user(user_auxv,
+-				       (const void __user *)prctl_map.auxv,
+-				       prctl_map.auxv_size);
+-		if (error)
+-			return error;
++		if (copy_from_user(user_auxv,
++				   (const void __user *)prctl_map.auxv,
++				   prctl_map.auxv_size))
++			return -EFAULT;
+ 
+ 		/* Last entry must be AT_NULL as specification requires */
+ 		user_auxv[AT_VECTOR_SIZE - 2] = AT_NULL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
-fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
-fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
-fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
-fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
-fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
-not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
-mm-slab_commonc-suppress-warning.patch
-mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
-memory-hotplug-add-sysfs-zones_online_to-attribute.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
+mm-remove-misleading-arch_uses_numa_prot_none.patch
 prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3.patch
-include-linux-migrateh-remove-migratepage-define.patch
-introduce-dump_vma-fix.patch
-convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
-mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
-mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
-mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
-mm-debugc-use-pr_emerg.patch
-mm-ksm-use-pr_err-instead-of-printk-fix.patch
-mm-introduce-a-general-rcu-get_user_pages_fast-fix.patch
-arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
-zram-zram-memory-size-limitation-fix.patch
-zram-zram-memory-size-limitation-fix-fix.patch
-acct-eliminate-compile-warning-fix.patch
 
