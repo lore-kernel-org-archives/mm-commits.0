@@ -1,108 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch removed from -mm tree
-Date: Thu, 09 Oct 2014 13:32:04 -0700
-Message-ID: <5436f0c4./BIo8ot3rHIxTOjd%akpm@linux-foundation.org>
+ memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch removed from
+ -mm tree
+Date: Thu, 09 Oct 2014 13:32:36 -0700
+Message-ID: <5436f0e4.Eqsti8RExdjIJlHz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35435 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35439 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbaJIUcF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:32:05 -0400
+	with ESMTP id S1751008AbaJIUcg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2014 16:32:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, cl@linux.com, jmmahler@gmail.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: fix cpu on/off handling
+     Subject: memory-hotplug-add-sysfs-zones_online_to-attribute-fix
 has been removed from the -mm tree.  Its filename was
-     mm-slab-use-percpu-allocator-for-cpu-cache-fix.patch
+     memory-hotplug-add-sysfs-zones_online_to-attribute-fix.patch
 
-This patch was dropped because it was folded into mm-slab-use-percpu-allocator-for-cpu-cache.patch
+This patch was dropped because it was folded into memory-hotplug-add-sysfs-zones_online_to-attribute.patch
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: fix cpu on/off handling
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-hotplug-add-sysfs-zones_online_to-attribute-fix
 
-When cpu off, we flush all cpu cached objects to it's own slab. 
-free_block() is used for this purpose and it's role is just to flush
-objects from array_cache to proper slab.  It doesn't adjust array_cache's
-internal fields so we should manually reset them to proper value.  Without
-this fix, we maintain free objects duplicately, one is in cpu cache, and,
-the other one is in the slab.  So system would be broken.
+use conventional comment layout
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Jeremiah Mahler <jmmahler@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/base/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-use-percpu-allocator-for-cpu-cache-fix mm/slab.c
---- a/mm/slab.c~mm-slab-use-percpu-allocator-for-cpu-cache-fix
-+++ a/mm/slab.c
-@@ -1102,8 +1102,10 @@ static void cpuup_canceled(long cpu)
+diff -puN drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute-fix
++++ a/drivers/base/memory.c
+@@ -378,7 +378,7 @@ static int __zones_online_to(unsigned lo
+ {
+ 	struct zone *zone_next;
  
- 		/* cpu is dead; no one can alloc from it. */
- 		nc = per_cpu_ptr(cachep->cpu_cache, cpu);
--		if (nc)
-+		if (nc) {
- 			free_block(cachep, nc->entry, nc->avail, node, &list);
-+			nc->avail = 0;
-+		}
+-	/*The mem block is the last block of memory.*/
++	/* The mem block is the last block of memory. */
+ 	if (!pfn_valid(end_pfn + 1))
+ 		return 1;
+ 	zone_next = page_zone(first_page + nr_pages);
+@@ -400,7 +400,7 @@ static ssize_t show_zones_online_to(stru
+ 	end_pfn = start_pfn + nr_pages;
+ 	first_page = pfn_to_page(start_pfn);
  
- 		if (!cpumask_empty(mask)) {
- 			spin_unlock_irq(&n->list_lock);
+-	/*The block contains more than one zone can not be offlined.*/
++	/* The block contains more than one zone can not be offlined. */
+ 	if (!test_pages_in_a_zone(start_pfn, end_pfn))
+ 		return sprintf(buf, "none\n");
+ 
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+fs-notify-groupc-make-fsnotify_final_destroy_group-static.patch
+fs-ocfs2-stack_userc-fix-typo-in-ocfs2_control_release.patch
+fs-proc-task_mmuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+fs-proc-task_mmuc-simplify-the-vma_stop-logic.patch
+fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
+fs-proc-task_nommuc-shift-mm_access-from-m_start-to-proc_maps_open.patch
+not-adding-modules-range-to-kcore-if-its-equal-to-vmcore-range.patch
 mm-slab_commonc-suppress-warning.patch
 mm-slab_common-move-kmem_cache-definition-to-internal-header.patch
-mm-slb-always-track-caller-in-kmalloc_node_track_caller.patch
-mm-slab-move-cache_flusharray-out-of-unlikelytext-section.patch
-mm-slab-noinline-__ac_put_obj.patch
-mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
-slub-disable-tracing-and-failslab-for-merged-slabs.patch
-topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
-slub-fallback-to-node_to_mem_node-node-if-allocating-on-memoryless-node.patch
-partial-revert-of-81c98869faa5-kthread-ensure-locality-of-task_struct-allocations.patch
-slab-fix-for_each_kmem_cache_node.patch
-mm-slab_common-commonize-slab-merge-logic.patch
-mm-slab-support-slab-merge.patch
-mm-slab-use-percpu-allocator-for-cpu-cache.patch
-mm-cma-adjust-address-limit-to-avoid-hitting-low-high-memory-boundary.patch
-arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
-mm-page_alloc-determine-migratetype-only-once.patch
-mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
-mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-2.patch
+memory-hotplug-add-sysfs-zones_online_to-attribute-fix-3-fix.patch
 mm-compaction-defer-each-zone-individually-instead-of-preferred-zone-fix.patch
-mm-compaction-do-not-count-compact_stall-if-all-zones-skipped-compaction.patch
-mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
-mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range.patch
-mm-compaction-move-pageblock-checks-up-from-isolate_migratepages_range-fix.patch
-mm-compaction-reduce-zone-checking-frequency-in-the-migration-scanner.patch
-mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
 mm-compaction-khugepaged-should-not-give-up-due-to-need_resched-fix.patch
-mm-compaction-remember-position-within-pageblock-in-free-pages-scanner.patch
-mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
-mm-rename-allocflags_to_migratetype-for-clarity.patch
-mm-compaction-pass-gfp-mask-to-compact_control.patch
-mm-use-__seq_open_private-instead-of-seq_open.patch
-memcg-move-memcg_allocfree_cache_params-to-slab_commonc.patch
-memcg-dont-call-memcg_update_all_caches-if-new-cache-id-fits.patch
-memcg-move-memcg_update_cache_size-to-slab_commonc.patch
-cma-document-cma=0.patch
-zsmalloc-move-pages_allocated-to-zs_pool.patch
-zsmalloc-change-return-value-unit-of-zs_get_total_size_bytes.patch
-zram-zram-memory-size-limitation.patch
-zram-report-maximum-used-memory.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v4.patch
+prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3-fix.patch
+include-linux-migrateh-remove-migratepage-define.patch
+introduce-dump_vma-fix.patch
+convert-a-few-vm_bug_on-callers-to-vm_bug_on_vma-checkpatch-fixes.patch
+mm-mmapc-clean-up-config_debug_vm_rb-checks.patch
+mm-introduce-vm_bug_on_mm-checkpatch-fixes.patch
+mm-debug-mm-introduce-vm_bug_on_mm-fix-fixpatch-fix.patch
+mm-debugc-use-pr_emerg.patch
+mm-ksm-use-pr_err-instead-of-printk-fix.patch
+mm-introduce-a-general-rcu-get_user_pages_fast-fix.patch
+arm64-mm-enable-rcu-fast_gup-checkpatch-fixes.patch
+zram-zram-memory-size-limitation-fix.patch
+zram-zram-memory-size-limitation-fix-fix.patch
+acct-eliminate-compile-warning-fix.patch
 
