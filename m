@@ -1,72 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_alloc-make-paranoid-check-in-move_freepages-a-vm_bug_on.patch
+Subject: [merged] mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set.patch
  removed from -mm tree
-Date: Mon, 13 Oct 2014 11:20:45 -0700
-Message-ID: <543c17fd.JslxbuEyJ7lLchp7%akpm@linux-foundation.org>
+Date: Mon, 13 Oct 2014 11:20:41 -0700
+Message-ID: <543c17f9.q8+lDrTw3Z2Raf13%akpm__48367.2075941742$1413224456$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60634 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754236AbaJMSUp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:20:45 -0400
+	with ESMTP id S1754236AbaJMSUl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:20:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, hannes@cmpxchg.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, david@fromorbit.com, ming.lei@canonical.com, stable@vger.kernel.org, trond.myklebust@primarydata.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: Make paranoid check in move_freepages a VM_BUG_ON
+     Subject: mm: clear __GFP_FS when PF_MEMALLOC_NOIO is set
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-make-paranoid-check-in-move_freepages-a-vm_bug_on.patch
+     mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: Make paranoid check in move_freepages a VM_BUG_ON
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: mm: clear __GFP_FS when PF_MEMALLOC_NOIO is set
 
-Since 2.6.24 there has been a paranoid check in move_freepages that looks
-up the zone of two pages.  This is a very slow path and the only time I've
-seen this bug trigger recently is when memory initialisation was broken
-during patch development.  Despite the fact it's a slow path, this patch
-converts the check to a VM_BUG_ON anyway as it has served its purpose by
-now.
+commit 21caf2fc1931 ("mm: teach mm by current context info to not do I/O
+during memory allocation") introduces PF_MEMALLOC_NOIO flag to avoid doing
+I/O inside memory allocation, __GFP_IO is cleared when this flag is set,
+but __GFP_FS implies __GFP_IO, it should also be cleared.  Or it may still
+run into I/O, like in superblock shrinker.  And this will make the kernel
+run into the deadlock case described in that commit.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+See Dave Chinner's comment about io in superblock shrinker:
+
+Filesystem shrinkers do indeed perform IO from the superblock shrinker and
+have for years.  Even clean inodes can require IO before they can be freed
+- e.g.  on an orphan list, need truncation of post-eof blocks, need to
+wait for ordered operations to complete before it can be freed, etc.
+
+IOWs, Ext4, btrfs and XFS all can issue and/or block on arbitrary amounts
+of IO in the superblock shrinker context.  XFS, in particular, has been
+doing transactions and IO from the VFS inode cache shrinker since it was
+first introduced....
+
+Fix this by clearing __GFP_FS in memalloc_noio_flags(), this function has
+masked all the gfp_mask that will be passed into fs for the processes
+setting PF_MEMALLOC_NOIO in the direct reclaim path.
+
+v1 thread at: https://lkml.org/lkml/2014/9/3/32
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: joyce.xue <xuejiufei@huawei.com>
+Cc: Ming Lei <ming.lei@canonical.com>
+Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-make-paranoid-check-in-move_freepages-a-vm_bug_on mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-make-paranoid-check-in-move_freepages-a-vm_bug_on
-+++ a/mm/page_alloc.c
-@@ -1015,7 +1015,7 @@ int move_freepages(struct zone *zone,
- 	 * Remove at a later date when no bug reports exist related to
- 	 * grouping pages by mobility
- 	 */
--	BUG_ON(page_zone(start_page) != page_zone(end_page));
-+	VM_BUG_ON(page_zone(start_page) != page_zone(end_page));
- #endif
+diff -puN include/linux/sched.h~mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set include/linux/sched.h
+--- a/include/linux/sched.h~mm-clear-__gfp_fs-when-pf_memalloc_noio-is-set
++++ a/include/linux/sched.h
+@@ -1935,11 +1935,13 @@ extern void thread_group_cputime_adjuste
+ #define tsk_used_math(p) ((p)->flags & PF_USED_MATH)
+ #define used_math() tsk_used_math(current)
  
- 	for (page = start_page; page <= end_page;) {
+-/* __GFP_IO isn't allowed if PF_MEMALLOC_NOIO is set in current->flags */
++/* __GFP_IO isn't allowed if PF_MEMALLOC_NOIO is set in current->flags
++ * __GFP_FS is also cleared as it implies __GFP_IO.
++ */
+ static inline gfp_t memalloc_noio_flags(gfp_t flags)
+ {
+ 	if (unlikely(current->flags & PF_MEMALLOC_NOIO))
+-		flags &= ~__GFP_IO;
++		flags &= ~(__GFP_IO | __GFP_FS);
+ 	return flags;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-x86-optimize-resource-lookups-for-ioremap.patch
-x86-optimize-resource-lookups-for-ioremap-fix.patch
-x86-use-optimized-ioresource-lookup-in-ioremap-function.patch
-linux-next.patch
+ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
+ocfs2-fix-journal-commit-deadlock.patch
 
