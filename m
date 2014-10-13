@@ -1,176 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
- removed from -mm tree
-Date: Mon, 13 Oct 2014 11:19:47 -0700
-Message-ID: <543c17c3.rUqCDCSkdIR6n++E%akpm@linux-foundation.org>
+Subject: [merged] mm-introduce-check_data_rlimit-helper-v2.patch removed
+ from -mm tree
+Date: Mon, 13 Oct 2014 11:19:53 -0700
+Message-ID: <543c17c9.FVC5feYDxb2/8iF/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60405 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60433 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754796AbaJMSTr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:47 -0400
+	with ESMTP id S1754833AbaJMSTx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: gorcunov@openvz.org, avagin@openvz.org, ebiederm@xmission.com, hpa@zytor.com, jln@google.com, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, mtk.manpages@gmail.com, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: skip buddy pages by their order in the migrate scanner
+     Subject: mm: introduce check_data_rlimit helper
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner.patch
+     mm-introduce-check_data_rlimit-helper-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: skip buddy pages by their order in the migrate scanner
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: mm: introduce check_data_rlimit helper
 
-The migration scanner skips PageBuddy pages, but does not consider their
-order as checking page_order() is generally unsafe without holding the
-zone->lock, and acquiring the lock just for the check wouldn't be a good
-tradeoff.
+To eliminate code duplication lets introduce check_data_rlimit helper
+which we will use in brk() and prctl() syscalls.
 
-Still, this could avoid some iterations over the rest of the buddy page,
-and if we are careful, the race window between PageBuddy() check and
-page_order() is small, and the worst thing that can happen is that we skip
-too much and miss some isolation candidates.  This is not that bad, as
-compaction can already fail for many other reasons like parallel
-allocations, and those have much larger race window.
-
-This patch therefore makes the migration scanner obtain the buddy page
-order and use it to skip the whole buddy page, if the order appears to be
-in the valid range.
-
-It's important that the page_order() is read only once, so that the value
-used in the checks and in the pfn calculation is the same.  But in theory
-the compiler can replace the local variable by multiple inlines of
-page_order().  Therefore, the patch introduces page_order_unsafe() that
-uses ACCESS_ONCE to prevent this.
-
-Testing with stress-highalloc from mmtests shows a 15% reduction in number
-of pages scanned by migration scanner.  The reduction is >60% with
-__GFP_NO_KSWAPD allocations, along with success rates better by few
-percent.
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Rik van Riel <riel@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Andrew Vagin <avagin@openvz.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Julien Tinnes <jln@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   36 +++++++++++++++++++++++++++++++-----
- mm/internal.h   |   16 +++++++++++++++-
- 2 files changed, 46 insertions(+), 6 deletions(-)
+ include/linux/mm.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner mm/compaction.c
---- a/mm/compaction.c~mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner
-+++ a/mm/compaction.c
-@@ -313,8 +313,15 @@ static inline bool compact_should_abort(
- static bool suitable_migration_target(struct page *page)
- {
- 	/* If the page is a large free page, then disallow migration */
--	if (PageBuddy(page) && page_order(page) >= pageblock_order)
--		return false;
-+	if (PageBuddy(page)) {
-+		/*
-+		 * We are checking page_order without zone->lock taken. But
-+		 * the only small danger is that we skip a potentially suitable
-+		 * pageblock, so it's not worth to check order for valid range.
-+		 */
-+		if (page_order_unsafe(page) >= pageblock_order)
-+			return false;
+diff -puN include/linux/mm.h~mm-introduce-check_data_rlimit-helper-v2 include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-check_data_rlimit-helper-v2
++++ a/include/linux/mm.h
+@@ -18,6 +18,7 @@
+ #include <linux/pfn.h>
+ #include <linux/bit_spinlock.h>
+ #include <linux/shrinker.h>
++#include <linux/resource.h>
+ 
+ struct mempolicy;
+ struct anon_vma;
+@@ -1780,6 +1781,20 @@ extern struct vm_area_struct *copy_vma(s
+ 	bool *need_rmap_locks);
+ extern void exit_mmap(struct mm_struct *);
+ 
++static inline int check_data_rlimit(unsigned long rlim,
++				    unsigned long new,
++				    unsigned long start,
++				    unsigned long end_data,
++				    unsigned long start_data)
++{
++	if (rlim < RLIM_INFINITY) {
++		if (((new - start) + (end_data - start_data)) > rlim)
++			return -ENOSPC;
 +	}
- 
- 	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
- 	if (migrate_async_suitable(get_pageblock_migratetype(page)))
-@@ -608,11 +615,23 @@ isolate_migratepages_block(struct compac
- 			valid_page = page;
- 
- 		/*
--		 * Skip if free. page_order cannot be used without zone->lock
--		 * as nothing prevents parallel allocations or buddy merging.
-+		 * Skip if free. We read page order here without zone lock
-+		 * which is generally unsafe, but the race window is small and
-+		 * the worst thing that can happen is that we skip some
-+		 * potential isolation targets.
- 		 */
--		if (PageBuddy(page))
-+		if (PageBuddy(page)) {
-+			unsigned long freepage_order = page_order_unsafe(page);
 +
-+			/*
-+			 * Without lock, we cannot be sure that what we got is
-+			 * a valid page order. Consider only values in the
-+			 * valid order range to prevent low_pfn overflow.
-+			 */
-+			if (freepage_order > 0 && freepage_order < MAX_ORDER)
-+				low_pfn += (1UL << freepage_order) - 1;
- 			continue;
-+		}
- 
- 		/*
- 		 * Check may be lockless but that's ok as we recheck later.
-@@ -698,6 +717,13 @@ isolate_success:
- 		}
- 	}
- 
-+	/*
-+	 * The PageBuddy() check could have potentially brought us outside
-+	 * the range to be scanned.
-+	 */
-+	if (unlikely(low_pfn > end_pfn))
-+		low_pfn = end_pfn;
++	return 0;
++}
 +
- 	if (locked)
- 		spin_unlock_irqrestore(&zone->lru_lock, flags);
+ extern int mm_take_all_locks(struct mm_struct *mm);
+ extern void mm_drop_all_locks(struct mm_struct *mm);
  
-diff -puN mm/internal.h~mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner mm/internal.h
---- a/mm/internal.h~mm-compaction-skip-buddy-pages-by-their-order-in-the-migrate-scanner
-+++ a/mm/internal.h
-@@ -164,7 +164,8 @@ isolate_migratepages_range(struct compac
-  * general, page_zone(page)->lock must be held by the caller to prevent the
-  * page from being allocated in parallel and returning garbage as the order.
-  * If a caller does not hold page_zone(page)->lock, it must guarantee that the
-- * page cannot be allocated or merged in parallel.
-+ * page cannot be allocated or merged in parallel. Alternatively, it must
-+ * handle invalid values gracefully, and use page_order_unsafe() below.
-  */
- static inline unsigned long page_order(struct page *page)
- {
-@@ -172,6 +173,19 @@ static inline unsigned long page_order(s
- 	return page_private(page);
- }
- 
-+/*
-+ * Like page_order(), but for callers who cannot afford to hold the zone lock.
-+ * PageBuddy() should be checked first by the caller to minimize race window,
-+ * and invalid values must be handled gracefully.
-+ *
-+ * ACCESS_ONCE is used so that if the caller assigns the result into a local
-+ * variable and e.g. tests it for valid range before using, the compiler cannot
-+ * decide to remove the variable and inline the page_private(page) multiple
-+ * times, potentially observing different values in the tests and the actual
-+ * use of the result.
-+ */
-+#define page_order_unsafe(page)		ACCESS_ONCE(page_private(page))
-+
- static inline bool is_cow_mapping(vm_flags_t flags)
- {
- 	return (flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 origin.patch
+mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
+mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix.patch
 
