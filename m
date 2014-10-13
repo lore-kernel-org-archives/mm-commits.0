@@ -1,64 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] lib-vsprintf-add-%pe-format-specifier-fix.patch
- removed from -mm tree
-Date: Mon, 13 Oct 2014 15:42:15 -0700
-Message-ID: <543c5547.MB8ukESRBx5TF2TI%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch removed from
+ -mm tree
+Date: Mon, 13 Oct 2014 15:42:44 -0700
+Message-ID: <543c5564.ZeY2EiRvwbxY9u6h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34706 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34722 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825AbaJMWmP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 18:42:15 -0400
+	with ESMTP id S1752987AbaJMWmo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 18:42:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, gregkh@linuxfoundation.org, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, fengguang.wu@intel.com, gregkh@linuxfoundation.org, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-vsprintf-add-%pe-format-specifier-fix
+     Subject: wireless-hostap-proc-print-properly-escaped-ssid-fix-2
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintf-add-%pe-format-specifier-fix.patch
+     wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
 
-This patch was dropped because it was folded into lib-vsprintf-add-%pe-format-specifier.patch
+This patch was dropped because it was folded into wireless-hostap-proc-print-properly-escaped-ssid.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-vsprintf-add-%pe-format-specifier-fix
+Subject: wireless-hostap-proc-print-properly-escaped-ssid-fix-2
 
-tidy up comment layout, per Joe
+remove now-unused local `i'
 
 Cc: "John W . Linville" <linville@tuxdriver.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/net/wireless/hostap/hostap_proc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintf-add-%pe-format-specifier-fix lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintf-add-%pe-format-specifier-fix
-+++ a/lib/vsprintf.c
-@@ -1111,12 +1111,11 @@ char *escaped_string(char *buf, char *en
- 	int len;
+diff -puN drivers/net/wireless/hostap/hostap_proc.c~wireless-hostap-proc-print-properly-escaped-ssid-fix-2 drivers/net/wireless/hostap/hostap_proc.c
+--- a/drivers/net/wireless/hostap/hostap_proc.c~wireless-hostap-proc-print-properly-escaped-ssid-fix-2
++++ a/drivers/net/wireless/hostap/hostap_proc.c
+@@ -168,7 +168,6 @@ static int prism2_bss_list_proc_show(str
+ 	local_info_t *local = m->private;
+ 	struct list_head *ptr = v;
+ 	struct hostap_bss_info *bss;
+-	int i;
  
- 	if (spec.field_width == 0)
--		/* nothing to print */
--		return buf;
-+		return buf;				/* nothing to print */
- 
- 	if (ZERO_OR_NULL_PTR(addr))
--		/* NULL pointer */
--		return string(buf, end, NULL, spec);
-+		return string(buf, end, NULL, spec);	/* NULL pointer */
-+
- 
- 	do {
- 		switch (fmt[count++]) {
+ 	if (ptr == &local->bss_list) {
+ 		seq_printf(m, "#BSSID\tlast_update\tcount\tcapab_info\tSSID(txt)\t"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +73,6 @@ arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
 mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable.patch
 lib-string_helpers-introduce-string_escape_mem.patch
 lib-vsprintf-add-%pe-format-specifier.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
+wireless-hostap-proc-print-properly-escaped-ssid.patch
 watchdog-control-hard-lockup-detection-default-fix.patch
 
