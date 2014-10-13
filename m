@@ -1,446 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3.patch removed from -mm tree
-Date: Mon, 13 Oct 2014 11:19:59 -0700
-Message-ID: <543c17cf.e72Z82T2BYhEFscr%akpm@linux-foundation.org>
+ mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
+ removed from -mm tree
+Date: Mon, 13 Oct 2014 11:20:09 -0700
+Message-ID: <543c17d9.7reKGEotGZWdBVuU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60520 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754591AbaJMSUA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:20:00 -0400
+	with ESMTP id S1754872AbaJMSUJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:20:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@openvz.org, avagin@openvz.org, ebiederm@xmission.com, hpa@zytor.com, jln@google.com, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, mtk.manpages@gmail.com, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, andi@firstfloor.org, ebiederm@xmission.com, gorcunov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: prctl: PR_SET_MM -- introduce PR_SET_MM_MAP operation
+     Subject: mempolicy: remove the "task" arg of vma_policy_mof() and simplify it
 has been removed from the -mm tree.  Its filename was
-     prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3.patch
+     mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: prctl: PR_SET_MM -- introduce PR_SET_MM_MAP operation
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mempolicy: remove the "task" arg of vma_policy_mof() and simplify it
 
-During development of c/r we've noticed that in case if we need to support
-user namespaces we face a problem with capabilities in prctl(PR_SET_MM,
-...) call, in particular once new user namespace is created
-capable(CAP_SYS_RESOURCE) no longer passes.
+1. vma_policy_mof(task) is simply not safe unless task == current,
+   it can race with do_exit()->mpol_put(). Remove this arg and update
+   its single caller.
 
-A approach is to eliminate CAP_SYS_RESOURCE check but pass all new values
-in one bundle, which would allow the kernel to make more intensive test
-for sanity of values and same time allow us to support checkpoint/restore
-of user namespaces.
+2. vma can not be NULL, remove this check and simplify the code.
 
-Thus a new command PR_SET_MM_MAP introduced. It takes a pointer of
-prctl_mm_map structure which carries all the members to be updated.
-
-	prctl(PR_SET_MM, PR_SET_MM_MAP, struct prctl_mm_map *, size)
-
-	struct prctl_mm_map {
-		__u64	start_code;
-		__u64	end_code;
-		__u64	start_data;
-		__u64	end_data;
-		__u64	start_brk;
-		__u64	brk;
-		__u64	start_stack;
-		__u64	arg_start;
-		__u64	arg_end;
-		__u64	env_start;
-		__u64	env_end;
-		__u64	*auxv;
-		__u32	auxv_size;
-		__u32	exe_fd;
-	};
-
-All members except @exe_fd correspond ones of struct mm_struct.  To figure
-out which available values these members may take here are meanings of the
-members.
-
- - start_code, end_code: represent bounds of executable code area
- - start_data, end_data: represent bounds of data area
- - start_brk, brk: used to calculate bounds for brk() syscall
- - start_stack: used when accounting space needed for command
-   line arguments, environment and shmat() syscall
- - arg_start, arg_end, env_start, env_end: represent memory area
-   supplied for command line arguments and environment variables
- - auxv, auxv_size: carries auxiliary vector, Elf format specifics
- - exe_fd: file descriptor number for executable link (/proc/self/exe)
-
-Thus we apply the following requirements to the values
-
-1) Any member except @auxv, @auxv_size, @exe_fd is rather an address
-   in user space thus it must be laying inside [mmap_min_addr, mmap_max_addr)
-   interval.
-
-2) While @[start|end]_code and @[start|end]_data may point to an nonexisting
-   VMAs (say a program maps own new .text and .data segments during execution)
-   the rest of members should belong to VMA which must exist.
-
-3) Addresses must be ordered, ie @start_ member must not be greater or
-   equal to appropriate @end_ member.
-
-4) As in regular Elf loading procedure we require that @start_brk and
-   @brk be greater than @end_data.
-
-5) If RLIMIT_DATA rlimit is set to non-infinity new values should not
-   exceed existing limit. Same applies to RLIMIT_STACK.
-
-6) Auxiliary vector size must not exceed existing one (which is
-   predefined as AT_VECTOR_SIZE and depends on architecture).
-
-7) File descriptor passed in @exe_file should be pointing
-   to executable file (because we use existing prctl_set_mm_exe_file_locked
-   helper it ensures that the file we are going to use as exe link has all
-   required permission granted).
-
-Now about where these members are involved inside kernel code:
-
- - @start_code and @end_code are used in /proc/$pid/[stat|statm] output;
-
- - @start_data and @end_data are used in /proc/$pid/[stat|statm] output,
-   also they are considered if there enough space for brk() syscall
-   result if RLIMIT_DATA is set;
-
- - @start_brk shown in /proc/$pid/stat output and accounted in brk()
-   syscall if RLIMIT_DATA is set; also this member is tested to
-   find a symbolic name of mmap event for perf system (we choose
-   if event is generated for "heap" area); one more aplication is
-   selinux -- we test if a process has PROCESS__EXECHEAP permission
-   if trying to make heap area being executable with mprotect() syscall;
-
- - @brk is a current value for brk() syscall which lays inside heap
-   area, it's shown in /proc/$pid/stat. When syscall brk() succesfully
-   provides new memory area to a user space upon brk() completion the
-   mm::brk is updated to carry new value;
-
-   Both @start_brk and @brk are actively used in /proc/$pid/maps
-   and /proc/$pid/smaps output to find a symbolic name "heap" for
-   VMA being scanned;
-
- - @start_stack is printed out in /proc/$pid/stat and used to
-   find a symbolic name "stack" for task and threads in
-   /proc/$pid/maps and /proc/$pid/smaps output, and as the same
-   as with @start_brk -- perf system uses it for event naming.
-   Also kernel treat this member as a start address of where
-   to map vDSO pages and to check if there is enough space
-   for shmat() syscall;
-
- - @arg_start, @arg_end, @env_start and @env_end are printed out
-   in /proc/$pid/stat. Another access to the data these members
-   represent is to read /proc/$pid/environ or /proc/$pid/cmdline.
-   Any attempt to read these areas kernel tests with access_process_vm
-   helper so a user must have enough rights for this action;
-
- - @auxv and @auxv_size may be read from /proc/$pid/auxv. Strictly
-   speaking kernel doesn't care much about which exactly data is
-   sitting there because it is solely for userspace;
-
- - @exe_fd is referred from /proc/$pid/exe and when generating
-   coredump. We uses prctl_set_mm_exe_file_locked helper to update
-   this member, so exe-file link modification remains one-shot
-   action.
-
-Still note that updating exe-file link now doesn't require sys-resource
-capability anymore, after all there is no much profit in preventing setup
-own file link (there are a number of ways to execute own code -- ptrace,
-ld-preload, so that the only reliable way to find which exactly code is
-executed is to inspect running program memory).  Still we require the
-caller to be at least user-namespace root user.
-
-I believe the old interface should be deprecated and ripped off in a
-couple of kernel releases if no one against.
-
-To test if new interface is implemented in the kernel one can pass
-PR_SET_MM_MAP_SIZE opcode and the kernel returns the size of currently
-supported struct prctl_mm_map.
-
-[akpm@linux-foundation.org: fix 80-col wordwrap in macro definitions]
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tejun Heo <tj@kernel.org>
-Acked-by: Andrew Vagin <avagin@openvz.org>
-Tested-by: Andrew Vagin <avagin@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Vasiliy Kulikov <segoon@openwall.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Julien Tinnes <jln@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/prctl.h |   27 ++++
- kernel/sys.c               |  190 ++++++++++++++++++++++++++++++++++-
- 2 files changed, 216 insertions(+), 1 deletion(-)
+ include/linux/mempolicy.h |    2 +-
+ kernel/sched/fair.c       |    2 +-
+ mm/mempolicy.c            |   25 +++++++++++--------------
+ 3 files changed, 13 insertions(+), 16 deletions(-)
 
-diff -puN include/uapi/linux/prctl.h~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3 include/uapi/linux/prctl.h
---- a/include/uapi/linux/prctl.h~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3
-+++ a/include/uapi/linux/prctl.h
-@@ -1,6 +1,8 @@
- #ifndef _LINUX_PRCTL_H
- #define _LINUX_PRCTL_H
+diff -puN include/linux/mempolicy.h~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it
++++ a/include/linux/mempolicy.h
+@@ -136,7 +136,7 @@ struct mempolicy *mpol_shared_policy_loo
  
-+#include <linux/types.h>
-+
- /* Values to pass as first argument to prctl() */
+ struct mempolicy *get_vma_policy(struct task_struct *tsk,
+ 		struct vm_area_struct *vma, unsigned long addr);
+-bool vma_policy_mof(struct task_struct *task, struct vm_area_struct *vma);
++bool vma_policy_mof(struct vm_area_struct *vma);
  
- #define PR_SET_PDEATHSIG  1  /* Second arg is a signal */
-@@ -119,6 +121,31 @@
- # define PR_SET_MM_ENV_END		11
- # define PR_SET_MM_AUXV			12
- # define PR_SET_MM_EXE_FILE		13
-+# define PR_SET_MM_MAP			14
-+# define PR_SET_MM_MAP_SIZE		15
-+
-+/*
-+ * This structure provides new memory descriptor
-+ * map which mostly modifies /proc/pid/stat[m]
-+ * output for a task. This mostly done in a
-+ * sake of checkpoint/restore functionality.
-+ */
-+struct prctl_mm_map {
-+	__u64	start_code;		/* code section bounds */
-+	__u64	end_code;
-+	__u64	start_data;		/* data section bounds */
-+	__u64	end_data;
-+	__u64	start_brk;		/* heap for brk() syscall */
-+	__u64	brk;
-+	__u64	start_stack;		/* stack starts at */
-+	__u64	arg_start;		/* command line arguments bounds */
-+	__u64	arg_end;
-+	__u64	env_start;		/* environment variables bounds */
-+	__u64	env_end;
-+	__u64	*auxv;			/* auxiliary vector */
-+	__u32	auxv_size;		/* vector size */
-+	__u32	exe_fd;			/* /proc/$pid/exe link file */
-+};
+ extern void numa_default_policy(void);
+ extern void numa_policy_init(void);
+diff -puN kernel/sched/fair.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it kernel/sched/fair.c
+--- a/kernel/sched/fair.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it
++++ a/kernel/sched/fair.c
+@@ -1946,7 +1946,7 @@ void task_numa_work(struct callback_head
+ 		vma = mm->mmap;
+ 	}
+ 	for (; vma; vma = vma->vm_next) {
+-		if (!vma_migratable(vma) || !vma_policy_mof(p, vma))
++		if (!vma_migratable(vma) || !vma_policy_mof(vma))
+ 			continue;
  
- /*
-  * Set specific pid that is allowed to ptrace the current task.
-diff -puN kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3 kernel/sys.c
---- a/kernel/sys.c~prctl-pr_set_mm-introduce-pr_set_mm_map-operation-v3
-+++ a/kernel/sys.c
-@@ -1687,6 +1687,187 @@ exit:
- 	return err;
+ 		/*
+diff -puN mm/mempolicy.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-remove-the-task-arg-of-vma_policy_mof-and-simplify-it
++++ a/mm/mempolicy.c
+@@ -1646,27 +1646,24 @@ struct mempolicy *get_vma_policy(struct
+ 	return pol;
  }
  
-+#ifdef CONFIG_CHECKPOINT_RESTORE
-+/*
-+ * WARNING: we don't require any capability here so be very careful
-+ * in what is allowed for modification from userspace.
-+ */
-+static int validate_prctl_map(struct prctl_mm_map *prctl_map)
-+{
-+	unsigned long mmap_max_addr = TASK_SIZE;
-+	struct mm_struct *mm = current->mm;
-+	int error = -EINVAL, i;
-+
-+	static const unsigned char offsets[] = {
-+		offsetof(struct prctl_mm_map, start_code),
-+		offsetof(struct prctl_mm_map, end_code),
-+		offsetof(struct prctl_mm_map, start_data),
-+		offsetof(struct prctl_mm_map, end_data),
-+		offsetof(struct prctl_mm_map, start_brk),
-+		offsetof(struct prctl_mm_map, brk),
-+		offsetof(struct prctl_mm_map, start_stack),
-+		offsetof(struct prctl_mm_map, arg_start),
-+		offsetof(struct prctl_mm_map, arg_end),
-+		offsetof(struct prctl_mm_map, env_start),
-+		offsetof(struct prctl_mm_map, env_end),
-+	};
-+
-+	/*
-+	 * Make sure the members are not somewhere outside
-+	 * of allowed address space.
-+	 */
-+	for (i = 0; i < ARRAY_SIZE(offsets); i++) {
-+		u64 val = *(u64 *)((char *)prctl_map + offsets[i]);
-+
-+		if ((unsigned long)val >= mmap_max_addr ||
-+		    (unsigned long)val < mmap_min_addr)
-+			goto out;
-+	}
-+
-+	/*
-+	 * Make sure the pairs are ordered.
-+	 */
-+#define __prctl_check_order(__m1, __op, __m2)				\
-+	((unsigned long)prctl_map->__m1 __op				\
-+	 (unsigned long)prctl_map->__m2) ? 0 : -EINVAL
-+	error  = __prctl_check_order(start_code, <, end_code);
-+	error |= __prctl_check_order(start_data, <, end_data);
-+	error |= __prctl_check_order(start_brk, <=, brk);
-+	error |= __prctl_check_order(arg_start, <=, arg_end);
-+	error |= __prctl_check_order(env_start, <=, env_end);
-+	if (error)
-+		goto out;
-+#undef __prctl_check_order
-+
-+	error = -EINVAL;
-+
-+	/*
-+	 * @brk should be after @end_data in traditional maps.
-+	 */
-+	if (prctl_map->start_brk <= prctl_map->end_data ||
-+	    prctl_map->brk <= prctl_map->end_data)
-+		goto out;
-+
-+	/*
-+	 * Neither we should allow to override limits if they set.
-+	 */
-+	if (check_data_rlimit(rlimit(RLIMIT_DATA), prctl_map->brk,
-+			      prctl_map->start_brk, prctl_map->end_data,
-+			      prctl_map->start_data))
-+			goto out;
-+
-+	/*
-+	 * Someone is trying to cheat the auxv vector.
-+	 */
-+	if (prctl_map->auxv_size) {
-+		if (!prctl_map->auxv || prctl_map->auxv_size > sizeof(mm->saved_auxv))
-+			goto out;
-+	}
-+
-+	/*
-+	 * Finally, make sure the caller has the rights to
-+	 * change /proc/pid/exe link: only local root should
-+	 * be allowed to.
-+	 */
-+	if (prctl_map->exe_fd != (u32)-1) {
-+		struct user_namespace *ns = current_user_ns();
-+		const struct cred *cred = current_cred();
-+
-+		if (!uid_eq(cred->uid, make_kuid(ns, 0)) ||
-+		    !gid_eq(cred->gid, make_kgid(ns, 0)))
-+			goto out;
-+	}
-+
-+	error = 0;
-+out:
-+	return error;
-+}
-+
-+static int prctl_set_mm_map(int opt, const void __user *addr, unsigned long data_size)
-+{
-+	struct prctl_mm_map prctl_map = { .exe_fd = (u32)-1, };
-+	unsigned long user_auxv[AT_VECTOR_SIZE];
-+	struct mm_struct *mm = current->mm;
-+	int error;
-+
-+	BUILD_BUG_ON(sizeof(user_auxv) != sizeof(mm->saved_auxv));
-+	BUILD_BUG_ON(sizeof(struct prctl_mm_map) > 256);
-+
-+	if (opt == PR_SET_MM_MAP_SIZE)
-+		return put_user((unsigned int)sizeof(prctl_map),
-+				(unsigned int __user *)addr);
-+
-+	if (data_size != sizeof(prctl_map))
-+		return -EINVAL;
-+
-+	if (copy_from_user(&prctl_map, addr, sizeof(prctl_map)))
-+		return -EFAULT;
-+
-+	error = validate_prctl_map(&prctl_map);
-+	if (error)
-+		return error;
-+
-+	if (prctl_map.auxv_size) {
-+		memset(user_auxv, 0, sizeof(user_auxv));
-+		if (copy_from_user(user_auxv,
-+				   (const void __user *)prctl_map.auxv,
-+				   prctl_map.auxv_size))
-+			return -EFAULT;
-+
-+		/* Last entry must be AT_NULL as specification requires */
-+		user_auxv[AT_VECTOR_SIZE - 2] = AT_NULL;
-+		user_auxv[AT_VECTOR_SIZE - 1] = AT_NULL;
-+	}
-+
-+	down_write(&mm->mmap_sem);
-+	if (prctl_map.exe_fd != (u32)-1)
-+		error = prctl_set_mm_exe_file_locked(mm, prctl_map.exe_fd);
-+	downgrade_write(&mm->mmap_sem);
-+	if (error)
-+		goto out;
-+
-+	/*
-+	 * We don't validate if these members are pointing to
-+	 * real present VMAs because application may have correspond
-+	 * VMAs already unmapped and kernel uses these members for statistics
-+	 * output in procfs mostly, except
-+	 *
-+	 *  - @start_brk/@brk which are used in do_brk but kernel lookups
-+	 *    for VMAs when updating these memvers so anything wrong written
-+	 *    here cause kernel to swear at userspace program but won't lead
-+	 *    to any problem in kernel itself
-+	 */
-+
-+	mm->start_code	= prctl_map.start_code;
-+	mm->end_code	= prctl_map.end_code;
-+	mm->start_data	= prctl_map.start_data;
-+	mm->end_data	= prctl_map.end_data;
-+	mm->start_brk	= prctl_map.start_brk;
-+	mm->brk		= prctl_map.brk;
-+	mm->start_stack	= prctl_map.start_stack;
-+	mm->arg_start	= prctl_map.arg_start;
-+	mm->arg_end	= prctl_map.arg_end;
-+	mm->env_start	= prctl_map.env_start;
-+	mm->env_end	= prctl_map.env_end;
-+
-+	/*
-+	 * Note this update of @saved_auxv is lockless thus
-+	 * if someone reads this member in procfs while we're
-+	 * updating -- it may get partly updated results. It's
-+	 * known and acceptable trade off: we leave it as is to
-+	 * not introduce additional locks here making the kernel
-+	 * more complex.
-+	 */
-+	if (prctl_map.auxv_size)
-+		memcpy(mm->saved_auxv, user_auxv, sizeof(user_auxv));
-+
-+	error = 0;
-+out:
-+	up_read(&mm->mmap_sem);
-+	return error;
-+}
-+#endif /* CONFIG_CHECKPOINT_RESTORE */
-+
- static int prctl_set_mm(int opt, unsigned long addr,
- 			unsigned long arg4, unsigned long arg5)
+-bool vma_policy_mof(struct task_struct *task, struct vm_area_struct *vma)
++bool vma_policy_mof(struct vm_area_struct *vma)
  {
-@@ -1694,9 +1875,16 @@ static int prctl_set_mm(int opt, unsigne
- 	struct vm_area_struct *vma;
- 	int error;
+-	struct mempolicy *pol = NULL;
++	struct mempolicy *pol;
  
--	if (arg5 || (arg4 && opt != PR_SET_MM_AUXV))
-+	if (arg5 || (arg4 && (opt != PR_SET_MM_AUXV &&
-+			      opt != PR_SET_MM_MAP &&
-+			      opt != PR_SET_MM_MAP_SIZE)))
- 		return -EINVAL;
+-	if (vma) {
+-		if (vma->vm_ops && vma->vm_ops->get_policy) {
+-			bool ret = false;
++	if (vma->vm_ops && vma->vm_ops->get_policy) {
++		bool ret = false;
  
-+#ifdef CONFIG_CHECKPOINT_RESTORE
-+	if (opt == PR_SET_MM_MAP || opt == PR_SET_MM_MAP_SIZE)
-+		return prctl_set_mm_map(opt, (const void __user *)addr, arg4);
-+#endif
-+
- 	if (!capable(CAP_SYS_RESOURCE))
- 		return -EPERM;
+-			pol = vma->vm_ops->get_policy(vma, vma->vm_start);
+-			if (pol && (pol->flags & MPOL_F_MOF))
+-				ret = true;
+-			mpol_cond_put(pol);
++		pol = vma->vm_ops->get_policy(vma, vma->vm_start);
++		if (pol && (pol->flags & MPOL_F_MOF))
++			ret = true;
++		mpol_cond_put(pol);
  
-_
-
-Patches currently in -mm which might be from gorcunov@openvz.org are
-
-origin.patch
-mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
-mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix.patch
-
+-			return ret;
+-		}
