@@ -1,239 +1,164 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memcg-move-memcg_allocfree_cache_params-to-slab_commonc.patch removed from
- -mm tree
-Date: Mon, 13 Oct 2014 11:20:59 -0700
-Message-ID: <543c180b.tDDfaYTm3FG6Kabi%akpm@linux-foundation.org>
+ mm-dmapool-add-remove-sysfs-file-outside-of-the-pool-lock-lock.patch
+ removed from -mm tree
+Date: Mon, 13 Oct 2014 11:21:05 -0700
+Message-ID: <543c1811.ile9zBMb0CX4b3Se%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60675 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60699 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754501AbaJMSU7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:20:59 -0400
+	with ESMTP id S1754501AbaJMSVF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:21:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, glommer@gmail.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: bigeasy@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: move memcg_{alloc,free}_cache_params to slab_common.c
+     Subject: mm: dmapool: add/remove sysfs file outside of the pool lock lock
 has been removed from the -mm tree.  Its filename was
-     memcg-move-memcg_allocfree_cache_params-to-slab_commonc.patch
+     mm-dmapool-add-remove-sysfs-file-outside-of-the-pool-lock-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: move memcg_{alloc,free}_cache_params to slab_common.c
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm: dmapool: add/remove sysfs file outside of the pool lock lock
 
-The only reason why they live in memcontrol.c is that we get/put css
-reference to the owner memory cgroup in them.  However, we can do that in
-memcg_{un,}register_cache.  OTOH, there are several reasons to move them
-to slab_common.c.
+cat /sys/.../pools followed by removal the device leads to:
 
-First, I think that the less public interface functions we have in
-memcontrol.h the better.  Since the functions I move don't depend on
-memcontrol, I think it's worth making them private to slab, especially
-taking into account that the arrays are defined on the slab's side too.
+|======================================================
+|[ INFO: possible circular locking dependency detected ]
+|3.17.0-rc4+ #1498 Not tainted
+|-------------------------------------------------------
+|rmmod/2505 is trying to acquire lock:
+| (s_active#28){++++.+}, at: [<c017f754>] kernfs_remove_by_name_ns+0x3c/0x88
+|
+|but task is already holding lock:
+| (pools_lock){+.+.+.}, at: [<c011494c>] dma_pool_destroy+0x18/0x17c
+|
+|which lock already depends on the new lock.
+|the existing dependency chain (in reverse order) is:
+|
+|-> #1 (pools_lock){+.+.+.}:
+|   [<c0114ae8>] show_pools+0x30/0xf8
+|   [<c0313210>] dev_attr_show+0x1c/0x48
+|   [<c0180e84>] sysfs_kf_seq_show+0x88/0x10c
+|   [<c017f960>] kernfs_seq_show+0x24/0x28
+|   [<c013efc4>] seq_read+0x1b8/0x480
+|   [<c011e820>] vfs_read+0x8c/0x148
+|   [<c011ea10>] SyS_read+0x40/0x8c
+|   [<c000e960>] ret_fast_syscall+0x0/0x48
+|
+|-> #0 (s_active#28){++++.+}:
+|   [<c017e9ac>] __kernfs_remove+0x258/0x2ec
+|   [<c017f754>] kernfs_remove_by_name_ns+0x3c/0x88
+|   [<c0114a7c>] dma_pool_destroy+0x148/0x17c
+|   [<c03ad288>] hcd_buffer_destroy+0x20/0x34
+|   [<c03a4780>] usb_remove_hcd+0x110/0x1a4
 
-Second, the way how per-memcg arrays are updated looks rather awkward: it
-proceeds from memcontrol.c (__memcg_activate_kmem) to slab_common.c
-(memcg_update_all_caches) and back to memcontrol.c again
-(memcg_update_array_size).  In the following patches I move the function
-relocating the arrays (memcg_update_array_size) to slab_common.c and
-therefore get rid this circular call path.  I think we should have the
-cache allocation stuff in the same place where we have relocation, because
-it's easier to follow the code then.  So I move arrays alloc/free
-functions to slab_common.c too.
+The problem is the lock order of pools_lock and kernfs_mutex in
+dma_pool_destroy() vs show_pools() call path.
 
-The third point isn't obvious.  I'm going to make the list_lru structure
-per-memcg to allow targeted kmem reclaim.  That means we will have
-per-memcg arrays in list_lrus too.  It turns out that it's much easier to
-update these arrays in list_lru.c rather than in memcontrol.c, because all
-the stuff we need is defined there.  This patch makes memcg caches arrays
-allocation path conform that of the upcoming list_lru.
+This patch breaks out the creation of the sysfs file outside of the
+pools_lock mutex.  The newly added pools_reg_lock ensures that there is no
+race of create vs destroy code path in terms whether or not the sysfs file
+has to be deleted (and was it deleted before we try to create a new one)
+and what to do if device_create_file() failed.
 
-So let's move these functions to slab_common.c and make them static.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Glauber Costa <glommer@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   14 -----------
- mm/memcontrol.c            |   41 +++-----------------------------
- mm/slab_common.c           |   44 ++++++++++++++++++++++++++++++++++-
- 3 files changed, 47 insertions(+), 52 deletions(-)
+ mm/dmapool.c |   41 ++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 34 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-move-memcg_allocfree_cache_params-to-slab_commonc include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-move-memcg_allocfree_cache_params-to-slab_commonc
-+++ a/include/linux/memcontrol.h
-@@ -440,10 +440,6 @@ void __memcg_kmem_uncharge_pages(struct
+diff -puN mm/dmapool.c~mm-dmapool-add-remove-sysfs-file-outside-of-the-pool-lock-lock mm/dmapool.c
+--- a/mm/dmapool.c~mm-dmapool-add-remove-sysfs-file-outside-of-the-pool-lock-lock
++++ a/mm/dmapool.c
+@@ -62,6 +62,7 @@ struct dma_page {		/* cacheable header f
+ };
  
- int memcg_cache_id(struct mem_cgroup *memcg);
+ static DEFINE_MUTEX(pools_lock);
++static DEFINE_MUTEX(pools_reg_lock);
  
--int memcg_alloc_cache_params(struct mem_cgroup *memcg, struct kmem_cache *s,
--			     struct kmem_cache *root_cache);
--void memcg_free_cache_params(struct kmem_cache *s);
--
- int memcg_update_cache_size(struct kmem_cache *s, int num_groups);
- void memcg_update_array_size(int num_groups);
- 
-@@ -574,16 +570,6 @@ static inline int memcg_cache_id(struct
- 	return -1;
- }
- 
--static inline int memcg_alloc_cache_params(struct mem_cgroup *memcg,
--		struct kmem_cache *s, struct kmem_cache *root_cache)
--{
--	return 0;
--}
--
--static inline void memcg_free_cache_params(struct kmem_cache *s)
--{
--}
--
- static inline struct kmem_cache *
- memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
+ static ssize_t
+ show_pools(struct device *dev, struct device_attribute *attr, char *buf)
+@@ -132,6 +133,7 @@ struct dma_pool *dma_pool_create(const c
  {
-diff -puN mm/memcontrol.c~memcg-move-memcg_allocfree_cache_params-to-slab_commonc mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-memcg_allocfree_cache_params-to-slab_commonc
-+++ a/mm/memcontrol.c
-@@ -2984,43 +2984,6 @@ int memcg_update_cache_size(struct kmem_
- 	return 0;
- }
+ 	struct dma_pool *retval;
+ 	size_t allocation;
++	bool empty = false;
  
--int memcg_alloc_cache_params(struct mem_cgroup *memcg, struct kmem_cache *s,
--			     struct kmem_cache *root_cache)
--{
--	size_t size;
--
--	if (!memcg_kmem_enabled())
--		return 0;
--
--	if (!memcg) {
--		size = offsetof(struct memcg_cache_params, memcg_caches);
--		size += memcg_limited_groups_array_size * sizeof(void *);
+ 	if (align == 0) {
+ 		align = 1;
+@@ -172,15 +174,34 @@ struct dma_pool *dma_pool_create(const c
+ 
+ 	INIT_LIST_HEAD(&retval->pools);
+ 
++	/*
++	 * pools_lock ensures that the ->dma_pools list does not get corrupted.
++	 * pools_reg_lock ensures that there is not a race between
++	 * dma_pool_create() and dma_pool_destroy() or within dma_pool_create()
++	 * when the first invocation of dma_pool_create() failed on
++	 * device_create_file() and the second assumes that it has been done (I
++	 * know it is a short window).
++	 */
++	mutex_lock(&pools_reg_lock);
+ 	mutex_lock(&pools_lock);
+-	if (list_empty(&dev->dma_pools) &&
+-	    device_create_file(dev, &dev_attr_pools)) {
+-		kfree(retval);
+-		retval = NULL;
 -	} else
--		size = sizeof(struct memcg_cache_params);
--
--	s->memcg_params = kzalloc(size, GFP_KERNEL);
--	if (!s->memcg_params)
--		return -ENOMEM;
--
--	if (memcg) {
--		s->memcg_params->memcg = memcg;
--		s->memcg_params->root_cache = root_cache;
--		css_get(&memcg->css);
--	} else
--		s->memcg_params->is_root_cache = true;
--
--	return 0;
--}
--
--void memcg_free_cache_params(struct kmem_cache *s)
--{
--	if (!s->memcg_params)
--		return;
--	if (!s->memcg_params->is_root_cache)
--		css_put(&s->memcg_params->memcg->css);
--	kfree(s->memcg_params);
--}
--
- static void memcg_register_cache(struct mem_cgroup *memcg,
- 				 struct kmem_cache *root_cache)
- {
-@@ -3051,6 +3014,7 @@ static void memcg_register_cache(struct
- 	if (!cachep)
- 		return;
+-		list_add(&retval->pools, &dev->dma_pools);
++	if (list_empty(&dev->dma_pools))
++		empty = true;
++	list_add(&retval->pools, &dev->dma_pools);
+ 	mutex_unlock(&pools_lock);
++	if (empty) {
++		int err;
  
-+	css_get(&memcg->css);
- 	list_add(&cachep->memcg_params->list, &memcg->memcg_slab_caches);
- 
- 	/*
-@@ -3084,6 +3048,9 @@ static void memcg_unregister_cache(struc
- 	list_del(&cachep->memcg_params->list);
- 
- 	kmem_cache_destroy(cachep);
-+
-+	/* drop the reference taken in memcg_register_cache */
-+	css_put(&memcg->css);
++		err = device_create_file(dev, &dev_attr_pools);
++		if (err) {
++			mutex_lock(&pools_lock);
++			list_del(&retval->pools);
++			mutex_unlock(&pools_lock);
++			mutex_unlock(&pools_reg_lock);
++			kfree(retval);
++			return NULL;
++		}
++	}
++	mutex_unlock(&pools_reg_lock);
+ 	return retval;
  }
- 
- /*
-diff -puN mm/slab_common.c~memcg-move-memcg_allocfree_cache_params-to-slab_commonc mm/slab_common.c
---- a/mm/slab_common.c~memcg-move-memcg_allocfree_cache_params-to-slab_commonc
-+++ a/mm/slab_common.c
-@@ -116,6 +116,38 @@ static inline int kmem_cache_sanity_chec
- #endif
- 
- #ifdef CONFIG_MEMCG_KMEM
-+static int memcg_alloc_cache_params(struct mem_cgroup *memcg,
-+		struct kmem_cache *s, struct kmem_cache *root_cache)
-+{
-+	size_t size;
-+
-+	if (!memcg_kmem_enabled())
-+		return 0;
-+
-+	if (!memcg) {
-+		size = offsetof(struct memcg_cache_params, memcg_caches);
-+		size += memcg_limited_groups_array_size * sizeof(void *);
-+	} else
-+		size = sizeof(struct memcg_cache_params);
-+
-+	s->memcg_params = kzalloc(size, GFP_KERNEL);
-+	if (!s->memcg_params)
-+		return -ENOMEM;
-+
-+	if (memcg) {
-+		s->memcg_params->memcg = memcg;
-+		s->memcg_params->root_cache = root_cache;
-+	} else
-+		s->memcg_params->is_root_cache = true;
-+
-+	return 0;
-+}
-+
-+static void memcg_free_cache_params(struct kmem_cache *s)
-+{
-+	kfree(s->memcg_params);
-+}
-+
- int memcg_update_all_caches(int num_memcgs)
+ EXPORT_SYMBOL(dma_pool_create);
+@@ -251,11 +272,17 @@ static void pool_free_page(struct dma_po
+  */
+ void dma_pool_destroy(struct dma_pool *pool)
  {
- 	struct kmem_cache *s;
-@@ -141,7 +173,17 @@ out:
- 	mutex_unlock(&slab_mutex);
- 	return ret;
- }
--#endif
-+#else
-+static inline int memcg_alloc_cache_params(struct mem_cgroup *memcg,
-+		struct kmem_cache *s, struct kmem_cache *root_cache)
-+{
-+	return 0;
-+}
++	bool empty = false;
 +
-+static inline void memcg_free_cache_params(struct kmem_cache *s)
-+{
-+}
-+#endif /* CONFIG_MEMCG_KMEM */
++	mutex_lock(&pools_reg_lock);
+ 	mutex_lock(&pools_lock);
+ 	list_del(&pool->pools);
+ 	if (pool->dev && list_empty(&pool->dev->dma_pools))
+-		device_remove_file(pool->dev, &dev_attr_pools);
++		empty = true;
+ 	mutex_unlock(&pools_lock);
++	if (empty)
++		device_remove_file(pool->dev, &dev_attr_pools);
++	mutex_unlock(&pools_reg_lock);
  
- /*
-  * Find a mergeable slab cache
+ 	while (!list_empty(&pool->page_list)) {
+ 		struct dma_page *page;
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
 origin.patch
 linux-next.patch
