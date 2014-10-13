@@ -1,119 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- lib-string_helpers-introduce-string_escape_mem-fix.patch removed from -mm
- tree
-Date: Mon, 13 Oct 2014 15:41:45 -0700
-Message-ID: <543c5529.r4WX1eDJ+2bKNua6%akpm@linux-foundation.org>
+Subject: [folded-merged] lib-vsprintf-add-%pe-format-specifier-fix.patch
+ removed from -mm tree
+Date: Mon, 13 Oct 2014 15:42:15 -0700
+Message-ID: <543c5547.MB8ukESRBx5TF2TI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34701 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34706 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752827AbaJMWlp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 18:41:45 -0400
+	with ESMTP id S1752825AbaJMWmP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 18:42:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, gregkh@linuxfoundation.org, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-string_helpers-introduce-string_escape_mem-fix
+     Subject: lib-vsprintf-add-%pe-format-specifier-fix
 has been removed from the -mm tree.  Its filename was
-     lib-string_helpers-introduce-string_escape_mem-fix.patch
+     lib-vsprintf-add-%pe-format-specifier-fix.patch
 
-This patch was dropped because it was folded into lib-string_helpers-introduce-string_escape_mem.patch
+This patch was dropped because it was folded into lib-vsprintf-add-%pe-format-specifier.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-string_helpers-introduce-string_escape_mem-fix
+Subject: lib-vsprintf-add-%pe-format-specifier-fix
 
-avoid 1k stack consumption
+tidy up comment layout, per Joe
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: "John W . Linville" <linville@tuxdriver.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test-string_helpers.c |   37 +++++++++++++++++++++++++++---------
- 1 file changed, 28 insertions(+), 9 deletions(-)
+ lib/vsprintf.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN lib/test-string_helpers.c~lib-string_helpers-introduce-string_escape_mem-fix lib/test-string_helpers.c
---- a/lib/test-string_helpers.c~lib-string_helpers-introduce-string_escape_mem-fix
-+++ a/lib/test-string_helpers.c
-@@ -5,6 +5,7 @@
+diff -puN lib/vsprintf.c~lib-vsprintf-add-%pe-format-specifier-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintf-add-%pe-format-specifier-fix
++++ a/lib/vsprintf.c
+@@ -1111,12 +1111,11 @@ char *escaped_string(char *buf, char *en
+ 	int len;
  
- #include <linux/init.h>
- #include <linux/kernel.h>
-+#include <linux/slab.h>
- #include <linux/module.h>
- #include <linux/random.h>
- #include <linux/string.h>
-@@ -62,10 +63,14 @@ static const struct test_string strings[
- static void __init test_string_unescape(const char *name, unsigned int flags,
- 					bool inplace)
- {
--	char in[256];
--	char out_test[256];
--	char out_real[256];
--	int i, p = 0, q_test = 0, q_real = sizeof(out_real);
-+	int q_real = 256;
-+	char *in = kmalloc(q_real, GFP_KERNEL);
-+	char *out_test = kmalloc(q_real, GFP_KERNEL);
-+	char *out_real = kmalloc(q_real, GFP_KERNEL);
-+	int i, p = 0, q_test = 0;
+ 	if (spec.field_width == 0)
+-		/* nothing to print */
+-		return buf;
++		return buf;				/* nothing to print */
+ 
+ 	if (ZERO_OR_NULL_PTR(addr))
+-		/* NULL pointer */
+-		return string(buf, end, NULL, spec);
++		return string(buf, end, NULL, spec);	/* NULL pointer */
 +
-+	if (!in || !out_test || !out_real)
-+		goto out;
  
- 	for (i = 0; i < ARRAY_SIZE(strings); i++) {
- 		const char *s = strings[i].in;
-@@ -100,6 +105,10 @@ static void __init test_string_unescape(
- 
- 	test_string_check_buf(name, flags, in, p - 1, out_real, q_real,
- 			      out_test, q_test);
-+out:
-+	kfree(out_real);
-+	kfree(out_test);
-+	kfree(in);
- }
- 
- struct test_string_1 {
-@@ -255,10 +264,15 @@ static __init void test_string_escape(co
- 				      const struct test_string_2 *s2,
- 				      unsigned int flags, const char *esc)
- {
--	char in[256];
--	char out_test[512];
--	char out_real[512], *buf = out_real;
--	int p = 0, q_test = 0, q_real = sizeof(out_real);
-+	int q_real = 512;
-+	char *out_test = kmalloc(q_real, GFP_KERNEL);
-+	char *out_real = kmalloc(q_real, GFP_KERNEL);
-+	char *in = kmalloc(256, GFP_KERNEL);
-+	char *buf = out_real;
-+	int p = 0, q_test = 0;
-+
-+	if (!out_test || !out_real || !in)
-+		goto out;
- 
- 	for (; s2->in; s2++) {
- 		const char *out;
-@@ -289,7 +303,12 @@ static __init void test_string_escape(co
- 
- 	q_real = string_escape_mem(in, p, &buf, q_real, flags, esc);
- 
--	test_string_check_buf(name, flags, in, p, out_real, q_real, out_test, q_test);
-+	test_string_check_buf(name, flags, in, p, out_real, q_real, out_test,
-+			      q_test);
-+out:
-+	kfree(in);
-+	kfree(out_real);
-+	kfree(out_test);
- }
- 
- static __init void test_string_escape_nomem(void)
+ 	do {
+ 		switch (fmt[count++]) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,7 +77,7 @@ init-resolve-shadow-warnings.patch
 arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
 mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable.patch
 lib-string_helpers-introduce-string_escape_mem.patch
-lib-vsprintf-add-%pe-format-specifier-fix.patch
+lib-vsprintf-add-%pe-format-specifier.patch
 wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
 wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
 watchdog-control-hard-lockup-detection-default-fix.patch
