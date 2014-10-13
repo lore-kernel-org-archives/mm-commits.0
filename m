@@ -1,38 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vfs-guard-end-of-device-for-mpage-interface.patch
- removed from -mm tree
-Date: Mon, 13 Oct 2014 11:19:23 -0700
-Message-ID: <543c17ab.uZJ1Xj31zw/xiCNS%akpm@linux-foundation.org>
+Subject: [merged]
+ block_dev-implement-readpages-to-optimize-sequential-read.patch removed
+ from -mm tree
+Date: Mon, 13 Oct 2014 11:19:25 -0700
+Message-ID: <543c17ad.O9EdjeK16Y+aPFAZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60281 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60285 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754140AbaJMSTX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:23 -0400
+	with ESMTP id S1754140AbaJMSTZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akinobu.mita@gmail.com, axboe@kernel.dk, jmoyer@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vfs: guard end of device for mpage interface
+     Subject: block_dev: implement readpages() to optimize sequential read
 has been removed from the -mm tree.  Its filename was
-     vfs-guard-end-of-device-for-mpage-interface.patch
+     block_dev-implement-readpages-to-optimize-sequential-read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: vfs: guard end of device for mpage interface
+Subject: block_dev: implement readpages() to optimize sequential read
 
-Add guard_bio_eod() check for mpage code in order to allow us to do IO
-even on the odd last sectors of a device, even if the block size is some
-multiple of the physical sector size.
+Sequential read from a block device is expected to be equal or faster than
+from the file on a filesystem.  But it is not correct due to the lack of
+effective readpages() in the address space operations for block device.
 
-Using mpage_readpages() for block device requires this guard check.
+This implements readpages() operation for block device by using
+mpage_readpages() which can create multipage BIOs instead of BIOs for each
+page and reduce system CPU time consumption.
+
+Install 1GB of RAM disk storage:
+
+	# modprobe scsi_debug dev_size_mb=1024 delay=0
+
+Sequential read from file on a filesystem:
+
+	# mkfs.ext4 /dev/$DEV
+	# mount /dev/$DEV /mnt
+	# fio --name=t --size=512m --rw=read --filename=/mnt/file
+	...
+	  read : io=524288KB, bw=2133.4MB/s, iops=546133, runt=   240msec
+
+Sequential read from a block device:
+	# fio --name=t --size=512m --rw=read --filename=/dev/$DEV
+	...
+(Without this commit)
+	  read : io=524288KB, bw=1700.2MB/s, iops=435455, runt=   301msec
+
+(With this commit)
+	  read : io=524288KB, bw=2160.4MB/s, iops=553046, runt=   237msec
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -41,57 +65,33 @@ Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c   |    2 +-
- fs/internal.h |    5 +++++
- fs/mpage.c    |    2 ++
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ fs/block_dev.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/buffer.c~vfs-guard-end-of-device-for-mpage-interface fs/buffer.c
---- a/fs/buffer.c~vfs-guard-end-of-device-for-mpage-interface
-+++ a/fs/buffer.c
-@@ -2966,7 +2966,7 @@ static void end_bio_bh_io_sync(struct bi
-  * errors, this only handles the "we need to be able to
-  * do IO at the final sector" case.
-  */
--static void guard_bio_eod(int rw, struct bio *bio)
-+void guard_bio_eod(int rw, struct bio *bio)
- {
- 	sector_t maxsector;
- 	struct bio_vec *bvec = &bio->bi_io_vec[bio->bi_vcnt - 1];
-diff -puN fs/internal.h~vfs-guard-end-of-device-for-mpage-interface fs/internal.h
---- a/fs/internal.h~vfs-guard-end-of-device-for-mpage-interface
-+++ a/fs/internal.h
-@@ -35,6 +35,11 @@ static inline int __sync_blockdev(struct
- #endif
- 
- /*
-+ * buffer.c
-+ */
-+extern void guard_bio_eod(int rw, struct bio *bio);
-+
-+/*
-  * char_dev.c
-  */
- extern void __init chrdev_init(void);
-diff -puN fs/mpage.c~vfs-guard-end-of-device-for-mpage-interface fs/mpage.c
---- a/fs/mpage.c~vfs-guard-end-of-device-for-mpage-interface
-+++ a/fs/mpage.c
-@@ -28,6 +28,7 @@
- #include <linux/backing-dev.h>
- #include <linux/pagevec.h>
- #include <linux/cleancache.h>
-+#include "internal.h"
- 
- /*
-  * I/O completion handler for multipage BIOs.
-@@ -57,6 +58,7 @@ static void mpage_end_io(struct bio *bio
- static struct bio *mpage_bio_submit(int rw, struct bio *bio)
- {
- 	bio->bi_end_io = mpage_end_io;
-+	guard_bio_eod(rw, bio);
- 	submit_bio(rw, bio);
- 	return NULL;
+diff -puN fs/block_dev.c~block_dev-implement-readpages-to-optimize-sequential-read fs/block_dev.c
+--- a/fs/block_dev.c~block_dev-implement-readpages-to-optimize-sequential-read
++++ a/fs/block_dev.c
+@@ -304,6 +304,12 @@ static int blkdev_readpage(struct file *
+ 	return block_read_full_page(page, blkdev_get_block);
  }
+ 
++static int blkdev_readpages(struct file *file, struct address_space *mapping,
++			struct list_head *pages, unsigned nr_pages)
++{
++	return mpage_readpages(mapping, pages, nr_pages, blkdev_get_block);
++}
++
+ static int blkdev_write_begin(struct file *file, struct address_space *mapping,
+ 			loff_t pos, unsigned len, unsigned flags,
+ 			struct page **pagep, void **fsdata)
+@@ -1622,6 +1628,7 @@ static int blkdev_releasepage(struct pag
+ 
+ static const struct address_space_operations def_blk_aops = {
+ 	.readpage	= blkdev_readpage,
++	.readpages	= blkdev_readpages,
+ 	.writepage	= blkdev_writepage,
+ 	.write_begin	= blkdev_write_begin,
+ 	.write_end	= blkdev_write_end,
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
