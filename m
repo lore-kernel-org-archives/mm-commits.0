@@ -1,42 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-proc-task_nommuc-dont-use-priv-task-mm.patch removed
- from -mm tree
-Date: Mon, 13 Oct 2014 11:18:22 -0700
-Message-ID: <543c176e.YdL/8EK74sBYqM74%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
+ removed from -mm tree
+Date: Mon, 13 Oct 2014 11:18:18 -0700
+Message-ID: <543c176a.LuMZVX1X2LpGP2Vh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60071 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60058 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754102AbaJMSSW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:18:22 -0400
+	with ESMTP id S1754102AbaJMSSS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:18:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, ebiederm@xmission.com, gerg@uclinux.org, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/task_nommu.c: don't use priv->task->mm
+     Subject: fs/proc/task_nommu.c: change maps_open() to use __seq_open_private()
 has been removed from the -mm tree.  Its filename was
-     fs-proc-task_nommuc-dont-use-priv-task-mm.patch
+     fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: fs/proc/task_nommu.c: don't use priv->task->mm
+Subject: fs/proc/task_nommu.c: change maps_open() to use __seq_open_private()
 
-I do not know if CONFIG_PREEMPT/SMP is possible without CONFIG_MMU
-but the usage of task->mm in m_stop(). The task can exit/exec before
-we take mmap_sem, in this case m_stop() can hit NULL or unlock the
-wrong rw_semaphore.
+Cleanup and preparation. maps_open() can use __seq_open_private()
+like proc_maps_open() does.
 
-Also, this code uses priv->task != NULL to decide whether we need
-up_read/mmput. This is correct, but we will probably kill priv->task.
-Change m_start/m_stop to rely on IS_ERR_OR_NULL() like task_mmu.c does.
-
+[akpm@linux-foundation.org: deuglify]
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
@@ -45,52 +41,39 @@ Acked-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_nommu.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ fs/proc/task_nommu.c |   19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
-diff -puN fs/proc/task_nommu.c~fs-proc-task_nommuc-dont-use-priv-task-mm fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~fs-proc-task_nommuc-dont-use-priv-task-mm
+diff -puN fs/proc/task_nommu.c~fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~fs-proc-task_nommuc-change-maps_open-to-use-__seq_open_private
 +++ a/fs/proc/task_nommu.c
-@@ -217,17 +217,17 @@ static void *m_start(struct seq_file *m,
- 		return ERR_PTR(-ESRCH);
- 
- 	mm = priv->mm;
--	if (!mm || !atomic_inc_not_zero(&mm->mm_users)) {
--		put_task_struct(priv->task);
--		priv->task = NULL;
-+	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
- 		return NULL;
--	}
--	down_read(&mm->mmap_sem);
- 
-+	down_read(&mm->mmap_sem);
- 	/* start from the Nth VMA */
- 	for (p = rb_first(&mm->mm_rb); p; p = rb_next(p))
- 		if (n-- == 0)
- 			return p;
-+
-+	up_read(&mm->mmap_sem);
-+	mmput(mm);
- 	return NULL;
- }
- 
-@@ -235,11 +235,13 @@ static void m_stop(struct seq_file *m, v
+@@ -269,20 +269,13 @@ static int maps_open(struct inode *inode
+ 		     const struct seq_operations *ops)
  {
- 	struct proc_maps_private *priv = m->private;
+ 	struct proc_maps_private *priv;
+-	int ret = -ENOMEM;
  
-+	if (!IS_ERR_OR_NULL(_vml)) {
-+		up_read(&priv->mm->mmap_sem);
-+		mmput(priv->mm);
-+	}
- 	if (priv->task) {
--		struct mm_struct *mm = priv->task->mm;
--		up_read(&mm->mmap_sem);
--		mmput(mm);
- 		put_task_struct(priv->task);
-+		priv->task = NULL;
- 	}
+-	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+-	if (priv) {
+-		priv->pid = proc_pid(inode);
+-		ret = seq_open(file, ops);
+-		if (!ret) {
+-			struct seq_file *m = file->private_data;
+-			m->private = priv;
+-		} else {
+-			kfree(priv);
+-		}
+-	}
+-	return ret;
++	priv = __seq_open_private(file, ops, sizeof(struct proc_maps_private));
++	if (!priv)
++		return -ENOMEM;
++
++	priv->pid = proc_pid(inode);
++	return 0;
  }
  
+ static int pid_maps_open(struct inode *inode, struct file *file)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
