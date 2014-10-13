@@ -1,134 +1,166 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch removed from -mm tree
-Date: Mon, 13 Oct 2014 11:18:40 -0700
-Message-ID: <543c1780.4OlTsylBRYPwdMbt%akpm@linux-foundation.org>
+ mm-slb-always-track-caller-in-kmalloc_node_track_caller.patch removed from
+ -mm tree
+Date: Mon, 13 Oct 2014 11:18:34 -0700
+Message-ID: <543c177a.sgoinE94fcgayYFT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60131 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60106 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754102AbaJMSSk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:18:40 -0400
+	with ESMTP id S1754102AbaJMSSe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:18:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: factor out unlikely part of cache_free_alien()
+     Subject: mm/sl[ao]b: always track caller in kmalloc_(node_)track_caller()
 has been removed from the -mm tree.  Its filename was
-     mm-slab-factor-out-unlikely-part-of-cache_free_alien.patch
+     mm-slb-always-track-caller-in-kmalloc_node_track_caller.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: factor out unlikely part of cache_free_alien()
+Subject: mm/sl[ao]b: always track caller in kmalloc_(node_)track_caller()
 
-cache_free_alien() is rarely used function when node mismatch.  But, it is
-defined with inline attribute so it is inlined to __cache_free() which is
-core free function of slab allocator.  It uselessly makes
-kmem_cache_free()/kfree() functions large.  What we really need to inline
-is just checking node match so this patch factor out other parts of
-cache_free_alien() to reduce code size of kmem_cache_free()/ kfree().
+Now, we track caller if tracing or slab debugging is enabled.  If they are
+disabled, we could save one argument passing overhead by calling
+__kmalloc(_node)().  But, I think that it would be marginal.  Furthermore,
+default slab allocator, SLUB, doesn't use this technique so I think that
+it's okay to change this situation.
 
-<Before>
-nm -S mm/slab.o | grep -e "T kfree" -e "T kmem_cache_free"
-00000000000011e0 0000000000000228 T kfree
-0000000000000670 0000000000000216 T kmem_cache_free
-
-<After>
-nm -S mm/slab.o | grep -e "T kfree" -e "T kmem_cache_free"
-0000000000001110 00000000000001b5 T kfree
-0000000000000750 0000000000000181 T kmem_cache_free
-
-You can see slightly reduced size of text: 0x228->0x1b5, 0x216->0x181.
+After this change, we can turn on/off CONFIG_DEBUG_SLAB without full
+kernel build and remove some complicated '#if' defintion.  It looks more
+benefitial to me.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Christoph Lameter <cl@linux.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   38 +++++++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 17 deletions(-)
+ include/linux/slab.h |   22 ----------------------
+ mm/slab.c            |   18 ------------------
+ mm/slob.c            |    2 --
+ 3 files changed, 42 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-factor-out-unlikely-part-of-cache_free_alien mm/slab.c
---- a/mm/slab.c~mm-slab-factor-out-unlikely-part-of-cache_free_alien
+diff -puN include/linux/slab.h~mm-slb-always-track-caller-in-kmalloc_node_track_caller include/linux/slab.h
+--- a/include/linux/slab.h~mm-slb-always-track-caller-in-kmalloc_node_track_caller
++++ a/include/linux/slab.h
+@@ -549,37 +549,15 @@ static inline void *kcalloc(size_t n, si
+  * allocator where we care about the real place the memory allocation
+  * request comes from.
+  */
+-#if defined(CONFIG_DEBUG_SLAB) || defined(CONFIG_SLUB) || \
+-	(defined(CONFIG_SLAB) && defined(CONFIG_TRACING)) || \
+-	(defined(CONFIG_SLOB) && defined(CONFIG_TRACING))
+ extern void *__kmalloc_track_caller(size_t, gfp_t, unsigned long);
+ #define kmalloc_track_caller(size, flags) \
+ 	__kmalloc_track_caller(size, flags, _RET_IP_)
+-#else
+-#define kmalloc_track_caller(size, flags) \
+-	__kmalloc(size, flags)
+-#endif /* DEBUG_SLAB */
+ 
+ #ifdef CONFIG_NUMA
+-/*
+- * kmalloc_node_track_caller is a special version of kmalloc_node that
+- * records the calling function of the routine calling it for slab leak
+- * tracking instead of just the calling function (confusing, eh?).
+- * It's useful when the call to kmalloc_node comes from a widely-used
+- * standard allocator where we care about the real place the memory
+- * allocation request comes from.
+- */
+-#if defined(CONFIG_DEBUG_SLAB) || defined(CONFIG_SLUB) || \
+-	(defined(CONFIG_SLAB) && defined(CONFIG_TRACING)) || \
+-	(defined(CONFIG_SLOB) && defined(CONFIG_TRACING))
+ extern void *__kmalloc_node_track_caller(size_t, gfp_t, int, unsigned long);
+ #define kmalloc_node_track_caller(size, flags, node) \
+ 	__kmalloc_node_track_caller(size, flags, node, \
+ 			_RET_IP_)
+-#else
+-#define kmalloc_node_track_caller(size, flags, node) \
+-	__kmalloc_node(size, flags, node)
+-#endif
+ 
+ #else /* CONFIG_NUMA */
+ 
+diff -puN mm/slab.c~mm-slb-always-track-caller-in-kmalloc_node_track_caller mm/slab.c
+--- a/mm/slab.c~mm-slb-always-track-caller-in-kmalloc_node_track_caller
 +++ a/mm/slab.c
-@@ -984,46 +984,50 @@ static void drain_alien_cache(struct kme
- 	}
+@@ -3496,7 +3496,6 @@ __do_kmalloc_node(size_t size, gfp_t fla
+ 	return kmem_cache_alloc_node_trace(cachep, flags, node, size);
  }
  
--static inline int cache_free_alien(struct kmem_cache *cachep, void *objp)
-+static int __cache_free_alien(struct kmem_cache *cachep, void *objp,
-+				int node, int page_node)
+-#if defined(CONFIG_DEBUG_SLAB) || defined(CONFIG_TRACING)
+ void *__kmalloc_node(size_t size, gfp_t flags, int node)
  {
--	int nodeid = page_to_nid(virt_to_page(objp));
- 	struct kmem_cache_node *n;
- 	struct alien_cache *alien = NULL;
- 	struct array_cache *ac;
--	int node;
- 	LIST_HEAD(list);
- 
--	node = numa_mem_id();
--
--	/*
--	 * Make sure we are not freeing a object from another node to the array
--	 * cache on this cpu.
--	 */
--	if (likely(nodeid == node))
--		return 0;
--
- 	n = get_node(cachep, node);
- 	STATS_INC_NODEFREES(cachep);
--	if (n->alien && n->alien[nodeid]) {
--		alien = n->alien[nodeid];
-+	if (n->alien && n->alien[page_node]) {
-+		alien = n->alien[page_node];
- 		ac = &alien->ac;
- 		spin_lock(&alien->lock);
- 		if (unlikely(ac->avail == ac->limit)) {
- 			STATS_INC_ACOVERFLOW(cachep);
--			__drain_alien_cache(cachep, ac, nodeid, &list);
-+			__drain_alien_cache(cachep, ac, page_node, &list);
- 		}
- 		ac_put_obj(cachep, ac, objp);
- 		spin_unlock(&alien->lock);
- 		slabs_destroy(cachep, &list);
- 	} else {
--		n = get_node(cachep, nodeid);
-+		n = get_node(cachep, page_node);
- 		spin_lock(&n->list_lock);
--		free_block(cachep, &objp, 1, nodeid, &list);
-+		free_block(cachep, &objp, 1, page_node, &list);
- 		spin_unlock(&n->list_lock);
- 		slabs_destroy(cachep, &list);
- 	}
- 	return 1;
+ 	return __do_kmalloc_node(size, flags, node, _RET_IP_);
+@@ -3509,13 +3508,6 @@ void *__kmalloc_node_track_caller(size_t
+ 	return __do_kmalloc_node(size, flags, node, caller);
  }
-+
-+static inline int cache_free_alien(struct kmem_cache *cachep, void *objp)
-+{
-+	int page_node = page_to_nid(virt_to_page(objp));
-+	int node = numa_mem_id();
-+	/*
-+	 * Make sure we are not freeing a object from another node to the array
-+	 * cache on this cpu.
-+	 */
-+	if (likely(node == page_node))
-+		return 0;
-+
-+	return __cache_free_alien(cachep, objp, node, page_node);
-+}
- #endif
+ EXPORT_SYMBOL(__kmalloc_node_track_caller);
+-#else
+-void *__kmalloc_node(size_t size, gfp_t flags, int node)
+-{
+-	return __do_kmalloc_node(size, flags, node, 0);
+-}
+-EXPORT_SYMBOL(__kmalloc_node);
+-#endif /* CONFIG_DEBUG_SLAB || CONFIG_TRACING */
+ #endif /* CONFIG_NUMA */
  
- /*
+ /**
+@@ -3541,8 +3533,6 @@ static __always_inline void *__do_kmallo
+ 	return ret;
+ }
+ 
+-
+-#if defined(CONFIG_DEBUG_SLAB) || defined(CONFIG_TRACING)
+ void *__kmalloc(size_t size, gfp_t flags)
+ {
+ 	return __do_kmalloc(size, flags, _RET_IP_);
+@@ -3555,14 +3545,6 @@ void *__kmalloc_track_caller(size_t size
+ }
+ EXPORT_SYMBOL(__kmalloc_track_caller);
+ 
+-#else
+-void *__kmalloc(size_t size, gfp_t flags)
+-{
+-	return __do_kmalloc(size, flags, 0);
+-}
+-EXPORT_SYMBOL(__kmalloc);
+-#endif
+-
+ /**
+  * kmem_cache_free - Deallocate an object
+  * @cachep: The cache the allocation was from.
+diff -puN mm/slob.c~mm-slb-always-track-caller-in-kmalloc_node_track_caller mm/slob.c
+--- a/mm/slob.c~mm-slb-always-track-caller-in-kmalloc_node_track_caller
++++ a/mm/slob.c
+@@ -468,7 +468,6 @@ void *__kmalloc(size_t size, gfp_t gfp)
+ }
+ EXPORT_SYMBOL(__kmalloc);
+ 
+-#ifdef CONFIG_TRACING
+ void *__kmalloc_track_caller(size_t size, gfp_t gfp, unsigned long caller)
+ {
+ 	return __do_kmalloc_node(size, gfp, NUMA_NO_NODE, caller);
+@@ -481,7 +480,6 @@ void *__kmalloc_node_track_caller(size_t
+ 	return __do_kmalloc_node(size, gfp, node, caller);
+ }
+ #endif
+-#endif
+ 
+ void kfree(const void *block)
+ {
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
