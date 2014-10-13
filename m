@@ -1,110 +1,128 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch removed from -mm tree
-Date: Mon, 13 Oct 2014 11:20:05 -0700
-Message-ID: <543c17d5.JciRFcIGKrg+iqtQ%akpm@linux-foundation.org>
+ prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch removed
+ from -mm tree
+Date: Mon, 13 Oct 2014 11:19:57 -0700
+Message-ID: <543c17cd.MItp3jLlG2vJy+Ub%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60496 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60455 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754606AbaJMSUF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:20:05 -0400
+	with ESMTP id S1754606AbaJMST5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, andi@firstfloor.org, ebiederm@xmission.com, gorcunov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: gorcunov@openvz.org, avagin@openvz.org, ebiederm@xmission.com, hpa@zytor.com, jln@google.com, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, mtk.manpages@gmail.com, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: change get_task_policy() to return default_policy rather than NULL
+     Subject: prctl: PR_SET_MM -- factor out mmap_sem when updating mm::exe_file
 has been removed from the -mm tree.  Its filename was
-     mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
+     prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: mempolicy: change get_task_policy() to return default_policy rather than NULL
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: prctl: PR_SET_MM -- factor out mmap_sem when updating mm::exe_file
 
-Every caller of get_task_policy() falls back to default_policy if it
-returns NULL. Change get_task_policy() to do this.
+Instead of taking mm->mmap_sem inside prctl_set_mm_exe_file() move it out
+and rename the helper to prctl_set_mm_exe_file_locked().  This will allow
+to reuse this function in a next patch.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Andrew Vagin <avagin@openvz.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Julien Tinnes <jln@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   31 +++++++++++++------------------
- 1 file changed, 13 insertions(+), 18 deletions(-)
+ kernel/sys.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null
-+++ a/mm/mempolicy.c
-@@ -126,22 +126,20 @@ static struct mempolicy preferred_node_p
- static struct mempolicy *get_task_policy(struct task_struct *p)
- {
- 	struct mempolicy *pol = p->mempolicy;
-+	int node;
- 
--	if (!pol) {
--		int node = numa_node_id();
-+	if (pol)
-+		return pol;
- 
--		if (node != NUMA_NO_NODE) {
--			pol = &preferred_node_policy[node];
--			/*
--			 * preferred_node_policy is not initialised early in
--			 * boot
--			 */
--			if (!pol->mode)
--				pol = NULL;
--		}
-+	node = numa_node_id();
-+	if (node != NUMA_NO_NODE) {
-+		pol = &preferred_node_policy[node];
-+		/* preferred_node_policy is not initialised early in boot */
-+		if (pol->mode)
-+			return pol;
- 	}
- 
--	return pol;
-+	return &default_policy;
+diff -puN kernel/sys.c~prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file kernel/sys.c
+--- a/kernel/sys.c~prctl-pr_set_mm-factor-out-mmap_sem-when-update-mm-exe_file
++++ a/kernel/sys.c
+@@ -1628,12 +1628,14 @@ SYSCALL_DEFINE1(umask, int, mask)
+ 	return mask;
  }
  
- static const struct mempolicy_operations {
-@@ -1644,14 +1642,14 @@ struct mempolicy *get_vma_policy(struct
- 				mpol_get(pol);
- 		}
- 	}
--	if (!pol)
--		pol = &default_policy;
-+
- 	return pol;
- }
- 
- bool vma_policy_mof(struct task_struct *task, struct vm_area_struct *vma)
+-static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
++static int prctl_set_mm_exe_file_locked(struct mm_struct *mm, unsigned int fd)
  {
- 	struct mempolicy *pol = get_task_policy(task);
+ 	struct fd exe;
+ 	struct inode *inode;
+ 	int err;
+ 
++	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
 +
- 	if (vma) {
- 		if (vma->vm_ops && vma->vm_ops->get_policy) {
- 			bool ret = false;
-@@ -1667,9 +1665,6 @@ bool vma_policy_mof(struct task_struct *
- 		}
+ 	exe = fdget(fd);
+ 	if (!exe.file)
+ 		return -EBADF;
+@@ -1654,8 +1656,6 @@ static int prctl_set_mm_exe_file(struct
+ 	if (err)
+ 		goto exit;
+ 
+-	down_write(&mm->mmap_sem);
+-
+ 	/*
+ 	 * Forbid mm->exe_file change if old file still mapped.
+ 	 */
+@@ -1667,7 +1667,7 @@ static int prctl_set_mm_exe_file(struct
+ 			if (vma->vm_file &&
+ 			    path_equal(&vma->vm_file->f_path,
+ 				       &mm->exe_file->f_path))
+-				goto exit_unlock;
++				goto exit;
  	}
  
--	if (!pol)
--		return default_policy.flags & MPOL_F_MOF;
+ 	/*
+@@ -1678,13 +1678,10 @@ static int prctl_set_mm_exe_file(struct
+ 	 */
+ 	err = -EPERM;
+ 	if (test_and_set_bit(MMF_EXE_FILE_CHANGED, &mm->flags))
+-		goto exit_unlock;
++		goto exit;
+ 
+ 	err = 0;
+ 	set_mm_exe_file(mm, exe.file);	/* this grabs a reference to exe.file */
+-exit_unlock:
+-	up_write(&mm->mmap_sem);
+-
+ exit:
+ 	fdput(exe);
+ 	return err;
+@@ -1703,8 +1700,12 @@ static int prctl_set_mm(int opt, unsigne
+ 	if (!capable(CAP_SYS_RESOURCE))
+ 		return -EPERM;
+ 
+-	if (opt == PR_SET_MM_EXE_FILE)
+-		return prctl_set_mm_exe_file(mm, (unsigned int)addr);
++	if (opt == PR_SET_MM_EXE_FILE) {
++		down_write(&mm->mmap_sem);
++		error = prctl_set_mm_exe_file_locked(mm, (unsigned int)addr);
++		up_write(&mm->mmap_sem);
++		return error;
++	}
+ 
+ 	if (addr >= TASK_SIZE || addr < mmap_min_addr)
+ 		return -EINVAL;
+_
+
+Patches currently in -mm which might be from gorcunov@openvz.org are
+
+origin.patch
+mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
+mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix.patch
+
