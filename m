@@ -1,86 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
- removed from -mm tree
-Date: Mon, 13 Oct 2014 11:19:33 -0700
-Message-ID: <543c17b5.30BCxbjgYuLW0Wmm%akpm@linux-foundation.org>
+Subject: [merged] mm-use-may_adjust_brk-helper.patch removed from -mm tree
+Date: Mon, 13 Oct 2014 11:19:55 -0700
+Message-ID: <543c17cb.bKkDmxYWI53dlUhf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60331 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60445 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754823AbaJMSTe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:34 -0400
+	with ESMTP id S1754817AbaJMSTz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: gorcunov@openvz.org, avagin@openvz.org, ebiederm@xmission.com, hpa@zytor.com, jln@google.com, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, mtk.manpages@gmail.com, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: do not recheck suitable_migration_target under lock
+     Subject: mm: use may_adjust_brk helper
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-do-not-recheck-suitable_migration_target-under-lock.patch
+     mm-use-may_adjust_brk-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: do not recheck suitable_migration_target under lock
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: mm: use may_adjust_brk helper
 
-isolate_freepages_block() rechecks if the pageblock is suitable to be a
-target for migration after it has taken the zone->lock.  However, the
-check has been optimized to occur only once per pageblock, and
-compact_checklock_irqsave() might be dropping and reacquiring lock, which
-means somebody else might have changed the pageblock's migratetype
-meanwhile.
-
-Furthermore, nothing prevents the migratetype to change right after
-isolate_freepages_block() has finished isolating.  Given how imperfect
-this is, it's simpler to just rely on the check done in
-isolate_freepages() without lock, and not pretend that the recheck under
-lock guarantees anything.  It is just a heuristic after all.
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Rik van Riel <riel@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Andrew Vagin <avagin@openvz.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Julien Tinnes <jln@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ kernel/sys.c |   11 ++++-------
+ mm/mmap.c    |    7 +++----
+ 2 files changed, 7 insertions(+), 11 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-do-not-recheck-suitable_migration_target-under-lock mm/compaction.c
---- a/mm/compaction.c~mm-compaction-do-not-recheck-suitable_migration_target-under-lock
-+++ a/mm/compaction.c
-@@ -276,7 +276,6 @@ static unsigned long isolate_freepages_b
- 	struct page *cursor, *valid_page = NULL;
- 	unsigned long flags;
- 	bool locked = false;
--	bool checked_pageblock = false;
+diff -puN kernel/sys.c~mm-use-may_adjust_brk-helper kernel/sys.c
+--- a/kernel/sys.c~mm-use-may_adjust_brk-helper
++++ a/kernel/sys.c
+@@ -1693,7 +1693,6 @@ exit:
+ static int prctl_set_mm(int opt, unsigned long addr,
+ 			unsigned long arg4, unsigned long arg5)
+ {
+-	unsigned long rlim = rlimit(RLIMIT_DATA);
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+ 	int error;
+@@ -1733,9 +1732,8 @@ static int prctl_set_mm(int opt, unsigne
+ 		if (addr <= mm->end_data)
+ 			goto out;
  
- 	cursor = pfn_to_page(blockpfn);
+-		if (rlim < RLIM_INFINITY &&
+-		    (mm->brk - addr) +
+-		    (mm->end_data - mm->start_data) > rlim)
++		if (check_data_rlimit(rlimit(RLIMIT_DATA), mm->brk, addr,
++				      mm->end_data, mm->start_data))
+ 			goto out;
  
-@@ -307,18 +306,6 @@ static unsigned long isolate_freepages_b
- 		if (!locked)
- 			break;
+ 		mm->start_brk = addr;
+@@ -1745,9 +1743,8 @@ static int prctl_set_mm(int opt, unsigne
+ 		if (addr <= mm->end_data)
+ 			goto out;
  
--		/* Recheck this is a suitable migration target under lock */
--		if (!strict && !checked_pageblock) {
--			/*
--			 * We need to check suitability of pageblock only once
--			 * and this isolate_freepages_block() is called with
--			 * pageblock range, so just check once is sufficient.
--			 */
--			checked_pageblock = true;
--			if (!suitable_migration_target(page))
--				break;
--		}
+-		if (rlim < RLIM_INFINITY &&
+-		    (addr - mm->start_brk) +
+-		    (mm->end_data - mm->start_data) > rlim)
++		if (check_data_rlimit(rlimit(RLIMIT_DATA), addr, mm->start_brk,
++				      mm->end_data, mm->start_data))
+ 			goto out;
+ 
+ 		mm->brk = addr;
+diff -puN mm/mmap.c~mm-use-may_adjust_brk-helper mm/mmap.c
+--- a/mm/mmap.c~mm-use-may_adjust_brk-helper
++++ a/mm/mmap.c
+@@ -268,7 +268,7 @@ static unsigned long do_brk(unsigned lon
+ 
+ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ {
+-	unsigned long rlim, retval;
++	unsigned long retval;
+ 	unsigned long newbrk, oldbrk;
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long min_brk;
+@@ -298,9 +298,8 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 	 * segment grow beyond its set limit the in case where the limit is
+ 	 * not page aligned -Ram Gupta
+ 	 */
+-	rlim = rlimit(RLIMIT_DATA);
+-	if (rlim < RLIM_INFINITY && (brk - mm->start_brk) +
+-			(mm->end_data - mm->start_data) > rlim)
++	if (check_data_rlimit(rlimit(RLIMIT_DATA), brk, mm->start_brk,
++			      mm->end_data, mm->start_data))
+ 		goto out;
+ 
+ 	newbrk = PAGE_ALIGN(brk);
+_
+
+Patches currently in -mm which might be from gorcunov@openvz.org are
+
+origin.patch
+mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
+mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix.patch
+
