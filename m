@@ -1,71 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch removed from
- -mm tree
-Date: Mon, 13 Oct 2014 11:19:17 -0700
-Message-ID: <543c17a5.Q1FTrdHw8EKZ00C1%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-determine-migratetype-only-once.patch
+ removed from -mm tree
+Date: Mon, 13 Oct 2014 11:19:19 -0700
+Message-ID: <543c17a7.nH8oLvMIqnqUTGHV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60263 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60272 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754140AbaJMSTR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:17 -0400
+	with ESMTP id S1754752AbaJMSTT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.szyprowski@samsung.com, drake@endlessm.com, iamjoonsoo.kim@lge.com, linux@arm.linux.org.uk, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, rientjes@google.com, srivatsa.bhat@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: mm: don't limit default CMA region only to low memory
+     Subject: mm: page_alloc: determine migratetype only once
 has been removed from the -mm tree.  Its filename was
-     arm-mm-dont-limit-default-cma-region-only-to-low-memory.patch
+     mm-page_alloc-determine-migratetype-only-once.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: ARM: mm: don't limit default CMA region only to low memory
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: page_alloc: determine migratetype only once
 
-DMA-mapping supports CMA regions places either in low or high memory, so
-there is no longer needed to limit default CMA regions only to low memory.
- The real limit is still defined by architecture specific DMA limit.
+The check for ALLOC_CMA in __alloc_pages_nodemask() derives migratetype
+from gfp_mask in each retry pass, although the migratetype variable
+already has the value determined and it does not change.  Use the variable
+and perform the check only once.  Also convert #ifdef CONFIG_CMA to
+IS_ENABLED.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reported-by: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Daniel Drake <drake@endlessm.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/mm/init.c~arm-mm-dont-limit-default-cma-region-only-to-low-memory arch/arm/mm/init.c
---- a/arch/arm/mm/init.c~arm-mm-dont-limit-default-cma-region-only-to-low-memory
-+++ a/arch/arm/mm/init.c
-@@ -322,7 +322,7 @@ void __init arm_memblock_init(const stru
- 	 * reserve memory for DMA contigouos allocations,
- 	 * must come from DMA area inside low memory
- 	 */
--	dma_contiguous_reserve(min(arm_dma_limit, arm_lowmem_limit));
-+	dma_contiguous_reserve(arm_dma_limit);
+diff -puN mm/page_alloc.c~mm-page_alloc-determine-migratetype-only-once mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-determine-migratetype-only-once
++++ a/mm/page_alloc.c
+@@ -2776,6 +2776,9 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	if (unlikely(!zonelist->_zonerefs->zone))
+ 		return NULL;
  
- 	arm_memblock_steal_permitted = false;
- 	memblock_dump_all();
++	if (IS_ENABLED(CONFIG_CMA) && migratetype == MIGRATE_MOVABLE)
++		alloc_flags |= ALLOC_CMA;
++
+ retry_cpuset:
+ 	cpuset_mems_cookie = read_mems_allowed_begin();
+ 
+@@ -2787,10 +2790,6 @@ retry_cpuset:
+ 		goto out;
+ 	classzone_idx = zonelist_zone_idx(preferred_zoneref);
+ 
+-#ifdef CONFIG_CMA
+-	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
+-		alloc_flags |= ALLOC_CMA;
+-#endif
+ 	/* First allocation attempt */
+ 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
+ 			zonelist, high_zoneidx, alloc_flags,
 _
 
-Patches currently in -mm which might be from m.szyprowski@samsung.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 origin.patch
-drivers-dma-coherent-add-initialization-from-device-tree.patch
-drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
-drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
-drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
-drivers-dma-contiguous-add-initialization-from-device-tree.patch
-linux-next.patch
 
