@@ -1,101 +1,101 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- block_dev-implement-readpages-to-optimize-sequential-read.patch removed
+ mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch removed
  from -mm tree
-Date: Mon, 13 Oct 2014 11:19:25 -0700
-Message-ID: <543c17ad.O9EdjeK16Y+aPFAZ%akpm@linux-foundation.org>
+Date: Mon, 13 Oct 2014 11:19:27 -0700
+Message-ID: <543c17af.2fjv2v3cKQcf5hJN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60285 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60297 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754140AbaJMSTZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:25 -0400
+	with ESMTP id S1754140AbaJMST1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, axboe@kernel.dk, jmoyer@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block_dev: implement readpages() to optimize sequential read
+     Subject: mm, THP: don't hold mmap_sem in khugepaged when allocating THP
 has been removed from the -mm tree.  Its filename was
-     block_dev-implement-readpages-to-optimize-sequential-read.patch
+     mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: block_dev: implement readpages() to optimize sequential read
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, THP: don't hold mmap_sem in khugepaged when allocating THP
 
-Sequential read from a block device is expected to be equal or faster than
-from the file on a filesystem.  But it is not correct due to the lack of
-effective readpages() in the address space operations for block device.
+When allocating huge page for collapsing, khugepaged currently holds
+mmap_sem for reading on the mm where collapsing occurs.  Afterwards the
+read lock is dropped before write lock is taken on the same mmap_sem.
 
-This implements readpages() operation for block device by using
-mpage_readpages() which can create multipage BIOs instead of BIOs for each
-page and reduce system CPU time consumption.
+Holding mmap_sem during whole huge page allocation is therefore useless,
+the vma needs to be rechecked after taking the write lock anyway. 
+Furthemore, huge page allocation might involve a rather long sync
+compaction, and thus block any mmap_sem writers and i.e.  affect workloads
+that perform frequent m(un)map or mprotect oterations.
 
-Install 1GB of RAM disk storage:
+This patch simply releases the read lock before allocating a huge page. 
+It also deletes an outdated comment that assumed vma must be stable, as it
+was using alloc_hugepage_vma().  This is no longer true since commit
+9f1b868a13ac ("mm: thp: khugepaged: add policy for finding target node").
 
-	# modprobe scsi_debug dev_size_mb=1024 delay=0
-
-Sequential read from file on a filesystem:
-
-	# mkfs.ext4 /dev/$DEV
-	# mount /dev/$DEV /mnt
-	# fio --name=t --size=512m --rw=read --filename=/mnt/file
-	...
-	  read : io=524288KB, bw=2133.4MB/s, iops=546133, runt=   240msec
-
-Sequential read from a block device:
-	# fio --name=t --size=512m --rw=read --filename=/dev/$DEV
-	...
-(Without this commit)
-	  read : io=524288KB, bw=1700.2MB/s, iops=435455, runt=   301msec
-
-(With this commit)
-	  read : io=524288KB, bw=2160.4MB/s, iops=553046, runt=   237msec
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/huge_memory.c |   20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
 
-diff -puN fs/block_dev.c~block_dev-implement-readpages-to-optimize-sequential-read fs/block_dev.c
---- a/fs/block_dev.c~block_dev-implement-readpages-to-optimize-sequential-read
-+++ a/fs/block_dev.c
-@@ -304,6 +304,12 @@ static int blkdev_readpage(struct file *
- 	return block_read_full_page(page, blkdev_get_block);
- }
- 
-+static int blkdev_readpages(struct file *file, struct address_space *mapping,
-+			struct list_head *pages, unsigned nr_pages)
-+{
-+	return mpage_readpages(mapping, pages, nr_pages, blkdev_get_block);
-+}
+diff -puN mm/huge_memory.c~mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-dont-hold-mmap_sem-in-khugepaged-when-allocating-thp
++++ a/mm/huge_memory.c
+@@ -2322,23 +2322,17 @@ static struct page
+ 		       int node)
+ {
+ 	VM_BUG_ON_PAGE(*hpage, *hpage);
 +
- static int blkdev_write_begin(struct file *file, struct address_space *mapping,
- 			loff_t pos, unsigned len, unsigned flags,
- 			struct page **pagep, void **fsdata)
-@@ -1622,6 +1628,7 @@ static int blkdev_releasepage(struct pag
- 
- static const struct address_space_operations def_blk_aops = {
- 	.readpage	= blkdev_readpage,
-+	.readpages	= blkdev_readpages,
- 	.writepage	= blkdev_writepage,
- 	.write_begin	= blkdev_write_begin,
- 	.write_end	= blkdev_write_end,
+ 	/*
+-	 * Allocate the page while the vma is still valid and under
+-	 * the mmap_sem read mode so there is no memory allocation
+-	 * later when we take the mmap_sem in write mode. This is more
+-	 * friendly behavior (OTOH it may actually hide bugs) to
+-	 * filesystems in userland with daemons allocating memory in
+-	 * the userland I/O paths.  Allocating memory with the
+-	 * mmap_sem in read mode is good idea also to allow greater
+-	 * scalability.
++	 * Before allocating the hugepage, release the mmap_sem read lock.
++	 * The allocation can take potentially a long time if it involves
++	 * sync compaction, and we do not need to hold the mmap_sem during
++	 * that. We will recheck the vma after taking it again in write mode.
+ 	 */
++	up_read(&mm->mmap_sem);
++
+ 	*hpage = alloc_pages_exact_node(node, alloc_hugepage_gfpmask(
+ 		khugepaged_defrag(), __GFP_OTHER_NODE), HPAGE_PMD_ORDER);
+-	/*
+-	 * After allocating the hugepage, release the mmap_sem read lock in
+-	 * preparation for taking it in write mode.
+-	 */
+-	up_read(&mm->mmap_sem);
+ 	if (unlikely(!*hpage)) {
+ 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
+ 		*hpage = ERR_PTR(-ENOMEM);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 origin.patch
-linux-next.patch
 
