@@ -1,84 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-async-fixed-coding-style-issues.patch removed
- from -mm tree
-Date: Mon, 13 Oct 2014 11:22:22 -0700
-Message-ID: <543c185e.sWIWiB1jPyG1qRrd%akpm@linux-foundation.org>
+Subject: + mm-slab-fix-unaligned-access-on-sparc64.patch added to -mm tree
+Date: Mon, 13 Oct 2014 12:27:57 -0700
+Message-ID: <543c27bd.tTCE7KqfP6APVAEa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60712 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60982 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754084AbaJMSWx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:22:53 -0400
+	with ESMTP id S1752909AbaJMT16 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 15:27:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ionut.m.alexa@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, cl@linux.com, davem@davemloft.net, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/async.c: switch to pr_foo()
-has been removed from the -mm tree.  Its filename was
-     kernel-async-fixed-coding-style-issues.patch
+     Subject: mm/slab: fix unaligned access on sparc64
+has been added to the -mm tree.  Its filename is
+     mm-slab-fix-unaligned-access-on-sparc64.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-fix-unaligned-access-on-sparc64.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-fix-unaligned-access-on-sparc64.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Ionut Alexa <ionut.m.alexa@gmail.com>
-Subject: kernel/async.c: switch to pr_foo()
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/slab: fix unaligned access on sparc64
 
-Signed-off-by: Ionut Alexa <ionut.m.alexa@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
+commit bf0dea23a9c0 ("mm/slab: use percpu allocator for cpu cache")
+changes allocation method for cpu cache array from slab allocator to
+percpu allocator.  Alignment should be provided for aligned memory in
+percpu allocator case, but, that commit mistakenly set this alignment to
+0.  So, percpu allocator returns unaligned memory address.  It doesn't
+cause any problem on x86 which permits unaligned access, but, it causes
+the problem on sparc64 which needs strong guarantee of alignment.
+
+Following bug report is reported from David Miller.
+
+  I'm getting tons of the following on sparc64:
+
+  [603965.383447] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603965.396987] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
+  [603965.410523] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603965.424061] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
+  [603965.437617] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603970.554394] log_unaligned: 333 callbacks suppressed
+  [603970.564041] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603970.577576] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
+  [603970.591122] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603970.604669] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
+  [603970.618216] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603976.515633] log_unaligned: 31 callbacks suppressed
+  snip...
+
+This patch provides proper alignment parameter when allocating cpu cache
+to fix this unaligned memory access problem on sparc64.
+
+Reported-by: David Miller <davem@davemloft.net>
+Tested-by: David Miller <davem@davemloft.net>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/async.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/async.c~kernel-async-fixed-coding-style-issues kernel/async.c
---- a/kernel/async.c~kernel-async-fixed-coding-style-issues
-+++ a/kernel/async.c
-@@ -115,7 +115,7 @@ static void async_run_entry_fn(struct wo
+diff -puN mm/slab.c~mm-slab-fix-unaligned-access-on-sparc64 mm/slab.c
+--- a/mm/slab.c~mm-slab-fix-unaligned-access-on-sparc64
++++ a/mm/slab.c
+@@ -1992,7 +1992,7 @@ static struct array_cache __percpu *allo
+ 	struct array_cache __percpu *cpu_cache;
  
- 	/* 1) run (and print duration) */
- 	if (initcall_debug && system_state == SYSTEM_BOOTING) {
--		printk(KERN_DEBUG "calling  %lli_%pF @ %i\n",
-+		pr_debug("calling  %lli_%pF @ %i\n",
- 			(long long)entry->cookie,
- 			entry->func, task_pid_nr(current));
- 		calltime = ktime_get();
-@@ -124,7 +124,7 @@ static void async_run_entry_fn(struct wo
- 	if (initcall_debug && system_state == SYSTEM_BOOTING) {
- 		rettime = ktime_get();
- 		delta = ktime_sub(rettime, calltime);
--		printk(KERN_DEBUG "initcall %lli_%pF returned 0 after %lld usecs\n",
-+		pr_debug("initcall %lli_%pF returned 0 after %lld usecs\n",
- 			(long long)entry->cookie,
- 			entry->func,
- 			(long long)ktime_to_ns(delta) >> 10);
-@@ -285,7 +285,7 @@ void async_synchronize_cookie_domain(asy
- 	ktime_t uninitialized_var(starttime), delta, endtime;
+ 	size = sizeof(void *) * entries + sizeof(struct array_cache);
+-	cpu_cache = __alloc_percpu(size, 0);
++	cpu_cache = __alloc_percpu(size, sizeof(void *));
  
- 	if (initcall_debug && system_state == SYSTEM_BOOTING) {
--		printk(KERN_DEBUG "async_waiting @ %i\n", task_pid_nr(current));
-+		pr_debug("async_waiting @ %i\n", task_pid_nr(current));
- 		starttime = ktime_get();
- 	}
- 
-@@ -295,7 +295,7 @@ void async_synchronize_cookie_domain(asy
- 		endtime = ktime_get();
- 		delta = ktime_sub(endtime, starttime);
- 
--		printk(KERN_DEBUG "async_continuing @ %i after %lli usec\n",
-+		pr_debug("async_continuing @ %i after %lli usec\n",
- 			task_pid_nr(current),
- 			(long long)ktime_to_ns(delta) >> 10);
- 	}
+ 	if (!cpu_cache)
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from ionut.m.alexa@gmail.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 origin.patch
-linux-next.patch
+mm-slab-fix-unaligned-access-on-sparc64.patch
+drivers-dma-coherent-add-initialization-from-device-tree.patch
+drivers-dma-coherent-add-initialization-from-device-tree-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-fix-fix.patch
+drivers-dma-coherent-add-initialization-from-device-tree-checkpatch-fixes.patch
+drivers-dma-contiguous-add-initialization-from-device-tree.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
