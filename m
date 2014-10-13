@@ -1,60 +1,61 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- wireless-hostap-proc-print-properly-escaped-ssid-fix.patch removed from -mm tree
-Date: Mon, 13 Oct 2014 15:42:42 -0700
-Message-ID: <543c5562.Q+JJl4+pF428OV/E%akpm@linux-foundation.org>
+ watchdog-control-hard-lockup-detection-default-fix.patch removed from -mm
+ tree
+Date: Mon, 13 Oct 2014 15:43:39 -0700
+Message-ID: <543c559b.HsezVpImdRxab9Y7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34714 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34723 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752827AbaJMWmm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 18:42:42 -0400
+	with ESMTP id S1752985AbaJMWnk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 18:43:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, fengguang.wu@intel.com, gregkh@linuxfoundation.org, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, drjones@redhat.com, dzickus@redhat.com, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: wireless-hostap-proc-print-properly-escaped-ssid-fix
+     Subject: watchdog-control-hard-lockup-detection-default-fix
 has been removed from the -mm tree.  Its filename was
-     wireless-hostap-proc-print-properly-escaped-ssid-fix.patch
+     watchdog-control-hard-lockup-detection-default-fix.patch
 
-This patch was dropped because it was folded into wireless-hostap-proc-print-properly-escaped-ssid.patch
+This patch was dropped because it was folded into watchdog-control-hard-lockup-detection-default.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: wireless-hostap-proc-print-properly-escaped-ssid-fix
+Subject: watchdog-control-hard-lockup-detection-default-fix
 
-drivers/net/wireless/hostap/hostap_proc.c: In function 'prism2_bss_list_proc_show':
-drivers/net/wireless/hostap/hostap_proc.c:184: warning: field width should have type 'int', but argument 3 has type 'size_t'
+fix build
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: "John W . Linville" <linville@tuxdriver.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+In file included from arch/x86/mm/init_64.c:33:
+include/linux/nmi.h: In function 'watchdog_enable_hardlockup_detector':
+include/linux/nmi.h:27: error: parameter name omitted
+
+Cc: Andrew Jones <drjones@redhat.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/hostap/hostap_proc.c |    2 +-
+ include/linux/nmi.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/hostap/hostap_proc.c~wireless-hostap-proc-print-properly-escaped-ssid-fix drivers/net/wireless/hostap/hostap_proc.c
---- a/drivers/net/wireless/hostap/hostap_proc.c~wireless-hostap-proc-print-properly-escaped-ssid-fix
-+++ a/drivers/net/wireless/hostap/hostap_proc.c
-@@ -181,7 +181,7 @@ static int prism2_bss_list_proc_show(str
- 		   bss->bssid, bss->last_update,
- 		   bss->count, bss->capab_info);
- 
--	seq_printf(m, "%*pE", bss->ssid_len, bss->ssid);
-+	seq_printf(m, "%*pE", (int)bss->ssid_len, bss->ssid);
- 
- 	seq_putc(m, '\t');
- 	seq_printf(m, "%*phN", (int)bss->ssid_len, bss->ssid);
+diff -puN include/linux/nmi.h~watchdog-control-hard-lockup-detection-default-fix include/linux/nmi.h
+--- a/include/linux/nmi.h~watchdog-control-hard-lockup-detection-default-fix
++++ a/include/linux/nmi.h
+@@ -24,7 +24,7 @@ static inline void touch_nmi_watchdog(vo
+ {
+ 	touch_softlockup_watchdog();
+ }
+-static inline void watchdog_enable_hardlockup_detector(bool)
++static inline void watchdog_enable_hardlockup_detector(bool val)
+ {
+ }
+ static inline bool watchdog_hardlockup_detector_is_enabled(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +76,5 @@ mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable.patch
 lib-string_helpers-introduce-string_escape_mem.patch
 lib-vsprintf-add-%pe-format-specifier.patch
 wireless-hostap-proc-print-properly-escaped-ssid.patch
-wireless-hostap-proc-print-properly-escaped-ssid-fix-2.patch
-watchdog-control-hard-lockup-detection-default-fix.patch
+watchdog-control-hard-lockup-detection-default.patch
 
