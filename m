@@ -1,379 +1,403 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+ mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
  removed from -mm tree
-Date: Mon, 13 Oct 2014 11:19:29 -0700
-Message-ID: <543c17b1.zX2UZWS267KjVDAt%akpm@linux-foundation.org>
+Date: Mon, 13 Oct 2014 11:19:39 -0700
+Message-ID: <543c17bb.MfE38Ci56ifPaAhi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60361 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754769AbaJMSTa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:30 -0400
+	with ESMTP id S1754835AbaJMSTj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: defer each zone individually instead of preferred zone
+     Subject: mm, compaction: khugepaged should not give up due to need_resched()
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-defer-each-zone-individually-instead-of-preferred-zone.patch
+     mm-compaction-khugepaged-should-not-give-up-due-to-need_resched.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: defer each zone individually instead of preferred zone
+Subject: mm, compaction: khugepaged should not give up due to need_resched()
 
-When direct sync compaction is often unsuccessful, it may become deferred
-for some time to avoid further useless attempts, both sync and async. 
-Successful high-order allocations un-defer compaction, while further
-unsuccessful compaction attempts prolong the compaction deferred period.
+Async compaction aborts when it detects zone lock contention or
+need_resched() is true.  David Rientjes has reported that in practice,
+most direct async compactions for THP allocation abort due to
+need_resched().  This means that a second direct compaction is never
+attempted, which might be OK for a page fault, but khugepaged is intended
+to attempt a sync compaction in such case and in these cases it won't.
 
-Currently the checking and setting deferred status is performed only on
-the preferred zone of the allocation that invoked direct compaction.  But
-compaction itself is attempted on all eligible zones in the zonelist, so
-the behavior is suboptimal and may lead both to scenarios where 1)
-compaction is attempted uselessly, or 2) where it's not attempted despite
-good chances of succeeding, as shown on the examples below:
+This patch replaces "bool contended" in compact_control with an int that
+distinguishes between aborting due to need_resched() and aborting due to
+lock contention.  This allows propagating the abort through all compaction
+functions as before, but passing the abort reason up to
+__alloc_pages_slowpath() which decides when to continue with direct
+reclaim and another compaction attempt.
 
-1) A direct compaction with Normal preferred zone failed and set
-   deferred compaction for the Normal zone.  Another unrelated direct
-   compaction with DMA32 as preferred zone will attempt to compact DMA32
-   zone even though the first compaction attempt also included DMA32 zone.
+Another problem is that try_to_compact_pages() did not act upon the
+reported contention (both need_resched() or lock contention) immediately
+and would proceed with another zone from the zonelist.  When
+need_resched() is true, that means initializing another zone compaction,
+only to check again need_resched() in isolate_migratepages() and aborting.
+ For zone lock contention, the unintended consequence is that the lock
+contended status reported back to the allocator is detrmined from the last
+zone where compaction was attempted, which is rather arbitrary.
 
-   In another scenario, compaction with Normal preferred zone failed to
-   compact Normal zone, but succeeded in the DMA32 zone, so it will not
-   defer compaction.  In the next attempt, it will try Normal zone which
-   will fail again, instead of skipping Normal zone and trying DMA32
-   directly.
+This patch fixes the problem in the following way:
+- async compaction of a zone aborting due to need_resched() or fatal signal
+  pending means that further zones should not be tried. We report
+  COMPACT_CONTENDED_SCHED to the allocator.
+- aborting zone compaction due to lock contention means we can still try
+  another zone, since it has different set of locks. We report back
+  COMPACT_CONTENDED_LOCK only if *all* zones where compaction was attempted,
+  it was aborted due to lock contention.
 
-2) Kswapd will balance DMA32 zone and reset defer status based on
-   watermarks looking good.  A direct compaction with preferred Normal
-   zone will skip compaction of all zones including DMA32 because Normal
-   was still deferred.  The allocation might have succeeded in DMA32, but
-   won't.
+As a result of these fixes, khugepaged will proceed with second sync
+compaction as intended, when the preceding async compaction aborted due to
+need_resched().  Page fault compactions aborting due to need_resched()
+will spare some cycles previously wasted by initializing another zone
+compaction only to abort again.  Lock contention will be reported only
+when compaction in all zones aborted due to lock contention, and therefore
+it's not a good idea to try again after reclaim.
 
-This patch makes compaction deferring work on individual zone basis
-instead of preferred zone.  For each zone, it checks compaction_deferred()
-to decide if the zone should be skipped.  If watermarks fail after
-compacting the zone, defer_compaction() is called.  The zone where
-watermarks passed can still be deferred when the allocation attempt is
-unsuccessful.  When allocation is successful, compaction_defer_reset() is
-called for the zone containing the allocated page.  This approach should
-approximate calling defer_compaction() only on zones where compaction was
-attempted and did not yield allocated page.  There might be corner cases
-but that is inevitable as long as the decision to stop compacting dues not
-guarantee that a page will be allocated.
+In stress-highalloc from mmtests configured to use __GFP_NO_KSWAPD, this
+has improved number of THP collapse allocations by 10%, which shows
+positive effect on khugepaged.  The benchmark's success rates are
+unchanged as it is not recognized as khugepaged.  Numbers of compact_stall
+and compact_fail events have however decreased by 20%, with
+compact_success still a bit improved, which is good.  With benchmark
+configured not to use __GFP_NO_KSWAPD, there is 6% improvement in THP
+collapse allocations, and only slight improvement in stalls and failures.
 
-Due to a new COMPACT_DEFERRED return value, some functions relying
-implicitly on COMPACT_SKIPPED = 0 had to be updated, with comments made
-more accurate.  The did_some_progress output parameter of
-__alloc_pages_direct_compact() is removed completely, as the caller
-actually does not use it after compaction sets it - it is only considered
-when direct reclaim sets it.
-
-During testing on a two-node machine with a single very small Normal zone
-on node 1, this patch has improved success rates in stress-highalloc
-mmtests benchmark.  The success here were previously made worse by commit
-3a025760fc15 ("mm: page_alloc: spill to remote nodes before waking
-kswapd") as kswapd was no longer resetting often enough the deferred
-compaction for the Normal zone, and DMA32 zones on both nodes were thus
-not considered for compaction.  On different machine, success rates were
-improved with __GFP_NO_KSWAPD allocations.
-
-[akpm@linux-foundation.org: fix CONFIG_COMPACTION=n build]
+[akpm@linux-foundation.org: fix warnings]
+Reported-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Nazarewicz <mina86@mina86.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |   16 ++++++---
- mm/compaction.c            |   32 +++++++++++++++----
- mm/page_alloc.c            |   57 +++++++++++++++++++----------------
- mm/vmscan.c                |   14 ++++++--
- 4 files changed, 76 insertions(+), 43 deletions(-)
+ include/linux/compaction.h |   12 ++++
+ mm/compaction.c            |   87 ++++++++++++++++++++++++++++++-----
+ mm/internal.h              |    4 -
+ mm/page_alloc.c            |   45 +++++++++++++-----
+ 4 files changed, 121 insertions(+), 27 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone
+diff -puN include/linux/compaction.h~mm-compaction-khugepaged-should-not-give-up-due-to-need_resched include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-khugepaged-should-not-give-up-due-to-need_resched
 +++ a/include/linux/compaction.h
-@@ -2,14 +2,16 @@
- #define _LINUX_COMPACTION_H
- 
- /* Return values for compact_zone() and try_to_compact_pages() */
-+/* compaction didn't start as it was deferred due to past failures */
-+#define COMPACT_DEFERRED	0
- /* compaction didn't start as it was not possible or direct reclaim was more suitable */
--#define COMPACT_SKIPPED		0
-+#define COMPACT_SKIPPED		1
- /* compaction should continue to another pageblock */
--#define COMPACT_CONTINUE	1
-+#define COMPACT_CONTINUE	2
- /* direct compaction partially compacted a zone and there are suitable pages */
--#define COMPACT_PARTIAL		2
-+#define COMPACT_PARTIAL		3
+@@ -13,6 +13,14 @@
  /* The full zone was compacted */
--#define COMPACT_COMPLETE	3
-+#define COMPACT_COMPLETE	4
+ #define COMPACT_COMPLETE	4
  
++/* Used to signal whether compaction detected need_sched() or lock contention */
++/* No contention detected */
++#define COMPACT_CONTENDED_NONE	0
++/* Either need_sched() was true or fatal signal pending */
++#define COMPACT_CONTENDED_SCHED	1
++/* Zone lock or lru_lock was contended in async compaction */
++#define COMPACT_CONTENDED_LOCK	2
++
  #ifdef CONFIG_COMPACTION
  extern int sysctl_compact_memory;
-@@ -22,7 +24,8 @@ extern int sysctl_extfrag_handler(struct
+ extern int sysctl_compaction_handler(struct ctl_table *table, int write,
+@@ -24,7 +32,7 @@ extern int sysctl_extfrag_handler(struct
  extern int fragmentation_index(struct zone *zone, unsigned int order);
  extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
  			int order, gfp_t gfp_mask, nodemask_t *mask,
--			enum migrate_mode mode, bool *contended);
-+			enum migrate_mode mode, bool *contended,
-+			struct zone **candidate_zone);
+-			enum migrate_mode mode, bool *contended,
++			enum migrate_mode mode, int *contended,
+ 			struct zone **candidate_zone);
  extern void compact_pgdat(pg_data_t *pgdat, int order);
  extern void reset_isolation_suitable(pg_data_t *pgdat);
- extern unsigned long compaction_suitable(struct zone *zone, int order);
-@@ -91,7 +94,8 @@ static inline bool compaction_restarting
+@@ -94,7 +102,7 @@ static inline bool compaction_restarting
  #else
  static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
  			int order, gfp_t gfp_mask, nodemask_t *nodemask,
--			enum migrate_mode mode, bool *contended)
-+			enum migrate_mode mode, bool *contended,
-+			struct zone **candidate_zone)
+-			enum migrate_mode mode, bool *contended,
++			enum migrate_mode mode, int *contended,
+ 			struct zone **candidate_zone)
  {
  	return COMPACT_CONTINUE;
- }
-diff -puN mm/compaction.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone mm/compaction.c
---- a/mm/compaction.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone
+diff -puN mm/compaction.c~mm-compaction-khugepaged-should-not-give-up-due-to-need_resched mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-khugepaged-should-not-give-up-due-to-need_resched
 +++ a/mm/compaction.c
-@@ -1125,27 +1125,26 @@ int sysctl_extfrag_threshold = 500;
+@@ -223,9 +223,21 @@ static void update_pageblock_skip(struct
+ }
+ #endif /* CONFIG_COMPACTION */
+ 
+-static inline bool should_release_lock(spinlock_t *lock)
++static int should_release_lock(spinlock_t *lock)
+ {
+-	return need_resched() || spin_is_contended(lock);
++	/*
++	 * Sched contention has higher priority here as we may potentially
++	 * have to abort whole compaction ASAP. Returning with lock contention
++	 * means we will try another zone, and further decisions are
++	 * influenced only when all zones are lock contended. That means
++	 * potentially missing a lock contention is less critical.
++	 */
++	if (need_resched())
++		return COMPACT_CONTENDED_SCHED;
++	else if (spin_is_contended(lock))
++		return COMPACT_CONTENDED_LOCK;
++
++	return COMPACT_CONTENDED_NONE;
+ }
+ 
+ /*
+@@ -240,7 +252,9 @@ static inline bool should_release_lock(s
+ static bool compact_checklock_irqsave(spinlock_t *lock, unsigned long *flags,
+ 				      bool locked, struct compact_control *cc)
+ {
+-	if (should_release_lock(lock)) {
++	int contended = should_release_lock(lock);
++
++	if (contended) {
+ 		if (locked) {
+ 			spin_unlock_irqrestore(lock, *flags);
+ 			locked = false;
+@@ -248,7 +262,7 @@ static bool compact_checklock_irqsave(sp
+ 
+ 		/* async aborts if taking too long or contended */
+ 		if (cc->mode == MIGRATE_ASYNC) {
+-			cc->contended = true;
++			cc->contended = contended;
+ 			return false;
+ 		}
+ 
+@@ -274,7 +288,7 @@ static inline bool compact_should_abort(
+ 	/* async compaction aborts if contended */
+ 	if (need_resched()) {
+ 		if (cc->mode == MIGRATE_ASYNC) {
+-			cc->contended = true;
++			cc->contended = COMPACT_CONTENDED_SCHED;
+ 			return true;
+ 		}
+ 
+@@ -1140,7 +1154,7 @@ out:
+ }
+ 
+ static unsigned long compact_zone_order(struct zone *zone, int order,
+-		gfp_t gfp_mask, enum migrate_mode mode, bool *contended)
++		gfp_t gfp_mask, enum migrate_mode mode, int *contended)
+ {
+ 	unsigned long ret;
+ 	struct compact_control cc = {
+@@ -1172,14 +1186,15 @@ int sysctl_extfrag_threshold = 500;
+  * @gfp_mask: The GFP mask of the current allocation
   * @nodemask: The allowed nodes to allocate from
   * @mode: The migration mode for async, sync light, or sync migration
-  * @contended: Return value that is true if compaction was aborted due to lock contention
-- * @page: Optionally capture a free page of the requested order during compaction
-+ * @candidate_zone: Return the zone where we think allocation should succeed
+- * @contended: Return value that is true if compaction was aborted due to lock contention
++ * @contended: Return value that determines if compaction was aborted due to
++ *	       need_resched() or lock contention
+  * @candidate_zone: Return the zone where we think allocation should succeed
   *
   * This is the main entry point for direct page compaction.
   */
  unsigned long try_to_compact_pages(struct zonelist *zonelist,
  			int order, gfp_t gfp_mask, nodemask_t *nodemask,
--			enum migrate_mode mode, bool *contended)
-+			enum migrate_mode mode, bool *contended,
-+			struct zone **candidate_zone)
+-			enum migrate_mode mode, bool *contended,
++			enum migrate_mode mode, int *contended,
+ 			struct zone **candidate_zone)
  {
  	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
- 	int may_enter_fs = gfp_mask & __GFP_FS;
- 	int may_perform_io = gfp_mask & __GFP_IO;
- 	struct zoneref *z;
+@@ -1189,6 +1204,9 @@ unsigned long try_to_compact_pages(struc
  	struct zone *zone;
--	int rc = COMPACT_SKIPPED;
-+	int rc = COMPACT_DEFERRED;
+ 	int rc = COMPACT_DEFERRED;
  	int alloc_flags = 0;
++	int all_zones_contended = COMPACT_CONTENDED_LOCK; /* init for &= op */
++
++	*contended = COMPACT_CONTENDED_NONE;
  
  	/* Check if the GFP flags allow compaction */
  	if (!order || !may_enter_fs || !may_perform_io)
--		return rc;
--
--	count_compact_event(COMPACTSTALL);
-+		return COMPACT_SKIPPED;
- 
- #ifdef CONFIG_CMA
- 	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
-@@ -1156,14 +1155,33 @@ unsigned long try_to_compact_pages(struc
+@@ -1202,13 +1220,19 @@ unsigned long try_to_compact_pages(struc
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist, high_zoneidx,
  								nodemask) {
  		int status;
++		int zone_contended;
  
-+		if (compaction_deferred(zone, order))
-+			continue;
-+
+ 		if (compaction_deferred(zone, order))
+ 			continue;
+ 
  		status = compact_zone_order(zone, order, gfp_mask, mode,
- 						contended);
+-						contended);
++							&zone_contended);
  		rc = max(status, rc);
++		/*
++		 * It takes at least one zone that wasn't lock contended
++		 * to clear all_zones_contended.
++		 */
++		all_zones_contended &= zone_contended;
  
  		/* If a normal allocation would succeed, stop compacting */
  		if (zone_watermark_ok(zone, order, low_wmark_pages(zone), 0,
--				      alloc_flags))
-+				      alloc_flags)) {
-+			*candidate_zone = zone;
+@@ -1221,8 +1245,21 @@ unsigned long try_to_compact_pages(struc
+ 			 * succeeds in this zone.
+ 			 */
+ 			compaction_defer_reset(zone, order, false);
+-			break;
+-		} else if (mode != MIGRATE_ASYNC) {
 +			/*
-+			 * We think the allocation will succeed in this zone,
-+			 * but it is not certain, hence the false. The caller
-+			 * will repeat this with true if allocation indeed
-+			 * succeeds in this zone.
++			 * It is possible that async compaction aborted due to
++			 * need_resched() and the watermarks were ok thanks to
++			 * somebody else freeing memory. The allocation can
++			 * however still fail so we better signal the
++			 * need_resched() contention anyway (this will not
++			 * prevent the allocation attempt).
 +			 */
-+			compaction_defer_reset(zone, order, false);
- 			break;
-+		} else if (mode != MIGRATE_ASYNC) {
-+			/*
-+			 * We think that allocation won't succeed in this zone
-+			 * so we defer compaction there. If it ends up
-+			 * succeeding after all, it will be reset.
-+			 */
-+			defer_compaction(zone, order);
++			if (zone_contended == COMPACT_CONTENDED_SCHED)
++				*contended = COMPACT_CONTENDED_SCHED;
++
++			goto break_loop;
 +		}
++
++		if (mode != MIGRATE_ASYNC) {
+ 			/*
+ 			 * We think that allocation won't succeed in this zone
+ 			 * so we defer compaction there. If it ends up
+@@ -1230,8 +1267,36 @@ unsigned long try_to_compact_pages(struc
+ 			 */
+ 			defer_compaction(zone, order);
+ 		}
++
++		/*
++		 * We might have stopped compacting due to need_resched() in
++		 * async compaction, or due to a fatal signal detected. In that
++		 * case do not try further zones and signal need_resched()
++		 * contention.
++		 */
++		if ((zone_contended == COMPACT_CONTENDED_SCHED)
++					|| fatal_signal_pending(current)) {
++			*contended = COMPACT_CONTENDED_SCHED;
++			goto break_loop;
++		}
++
++		continue;
++break_loop:
++		/*
++		 * We might not have tried all the zones, so  be conservative
++		 * and assume they are not all lock contended.
++		 */
++		all_zones_contended = 0;
++		break;
  	}
  
++	/*
++	 * If at least one zone wasn't deferred or skipped, we report if all
++	 * zones that were tried were lock contended.
++	 */
++	if (rc > COMPACT_SKIPPED && all_zones_contended)
++		*contended = COMPACT_CONTENDED_LOCK;
++
  	return rc;
-diff -puN mm/page_alloc.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone
+ }
+ 
+diff -puN mm/internal.h~mm-compaction-khugepaged-should-not-give-up-due-to-need_resched mm/internal.h
+--- a/mm/internal.h~mm-compaction-khugepaged-should-not-give-up-due-to-need_resched
++++ a/mm/internal.h
+@@ -144,8 +144,8 @@ struct compact_control {
+ 	int order;			/* order a direct compactor needs */
+ 	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
+ 	struct zone *zone;
+-	bool contended;			/* True if a lock was contended, or
+-					 * need_resched() true during async
++	int contended;			/* Signal need_sched() or lock
++					 * contention detected during
+ 					 * compaction
+ 					 */
+ };
+diff -puN mm/page_alloc.c~mm-compaction-khugepaged-should-not-give-up-due-to-need_resched mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-khugepaged-should-not-give-up-due-to-need_resched
 +++ a/mm/page_alloc.c
-@@ -2297,24 +2297,28 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+@@ -2297,7 +2297,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
  	struct zonelist *zonelist, enum zone_type high_zoneidx,
  	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
  	int classzone_idx, int migratetype, enum migrate_mode mode,
--	bool *contended_compaction, bool *deferred_compaction,
--	unsigned long *did_some_progress)
-+	bool *contended_compaction, bool *deferred_compaction)
+-	bool *contended_compaction, bool *deferred_compaction)
++	int *contended_compaction, bool *deferred_compaction)
  {
--	if (!order)
--		return NULL;
-+	struct zone *last_compact_zone = NULL;
-+	unsigned long compact_result;
- 
--	if (compaction_deferred(preferred_zone, order)) {
--		*deferred_compaction = true;
-+
-+	if (!order)
- 		return NULL;
--	}
- 
- 	current->flags |= PF_MEMALLOC;
--	*did_some_progress = try_to_compact_pages(zonelist, order, gfp_mask,
-+	compact_result = try_to_compact_pages(zonelist, order, gfp_mask,
- 						nodemask, mode,
--						contended_compaction);
-+						contended_compaction,
-+						&last_compact_zone);
- 	current->flags &= ~PF_MEMALLOC;
- 
--	if (*did_some_progress != COMPACT_SKIPPED) {
-+	if (compact_result > COMPACT_DEFERRED)
-+		count_vm_event(COMPACTSTALL);
-+	else
-+		*deferred_compaction = true;
-+
-+	if (compact_result > COMPACT_SKIPPED) {
- 		struct page *page;
- 
- 		/* Page migration frees to the PCP lists but we want merging */
-@@ -2325,27 +2329,31 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 				order, zonelist, high_zoneidx,
- 				alloc_flags & ~ALLOC_NO_WATERMARKS,
- 				preferred_zone, classzone_idx, migratetype);
-+
- 		if (page) {
--			preferred_zone->compact_blockskip_flush = false;
--			compaction_defer_reset(preferred_zone, order, true);
-+			struct zone *zone = page_zone(page);
-+
-+			zone->compact_blockskip_flush = false;
-+			compaction_defer_reset(zone, order, true);
- 			count_vm_event(COMPACTSUCCESS);
- 			return page;
- 		}
- 
- 		/*
-+		 * last_compact_zone is where try_to_compact_pages thought
-+		 * allocation should succeed, so it did not defer compaction.
-+		 * But now we know that it didn't succeed, so we do the defer.
-+		 */
-+		if (last_compact_zone && mode != MIGRATE_ASYNC)
-+			defer_compaction(last_compact_zone, order);
-+
-+		/*
- 		 * It's bad if compaction run occurs and fails.
- 		 * The most likely reason is that pages exist,
- 		 * but not enough to satisfy watermarks.
- 		 */
- 		count_vm_event(COMPACTFAIL);
- 
--		/*
--		 * As async compaction considers a subset of pageblocks, only
--		 * defer if the failure was a sync compaction failure.
--		 */
--		if (mode != MIGRATE_ASYNC)
--			defer_compaction(preferred_zone, order);
--
- 		cond_resched();
- 	}
- 
-@@ -2356,9 +2364,8 @@ static inline struct page *
- __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
+ 	struct zone *last_compact_zone = NULL;
+ 	unsigned long compact_result;
+@@ -2371,7 +2371,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
  	struct zonelist *zonelist, enum zone_type high_zoneidx,
  	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
--	int classzone_idx, int migratetype,
--	enum migrate_mode mode, bool *contended_compaction,
--	bool *deferred_compaction, unsigned long *did_some_progress)
-+	int classzone_idx, int migratetype, enum migrate_mode mode,
-+	bool *contended_compaction, bool *deferred_compaction)
+ 	int classzone_idx, int migratetype, enum migrate_mode mode,
+-	bool *contended_compaction, bool *deferred_compaction)
++	int *contended_compaction, bool *deferred_compaction)
  {
  	return NULL;
  }
-@@ -2634,8 +2641,7 @@ rebalance:
- 					preferred_zone,
- 					classzone_idx, migratetype,
- 					migration_mode, &contended_compaction,
--					&deferred_compaction,
--					&did_some_progress);
-+					&deferred_compaction);
+@@ -2547,7 +2547,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	unsigned long did_some_progress;
+ 	enum migrate_mode migration_mode = MIGRATE_ASYNC;
+ 	bool deferred_compaction = false;
+-	bool contended_compaction = false;
++	int contended_compaction = COMPACT_CONTENDED_NONE;
+ 
+ 	/*
+ 	 * In the slowpath, we sanity check order to avoid ever trying to
+@@ -2651,15 +2651,36 @@ rebalance:
  	if (page)
  		goto got_pg;
  
-@@ -2727,8 +2733,7 @@ rebalance:
- 					preferred_zone,
- 					classzone_idx, migratetype,
- 					migration_mode, &contended_compaction,
--					&deferred_compaction,
--					&did_some_progress);
-+					&deferred_compaction);
- 		if (page)
- 			goto got_pg;
- 	}
-diff -puN mm/vmscan.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone mm/vmscan.c
---- a/mm/vmscan.c~mm-compaction-defer-each-zone-individually-instead-of-preferred-zone
-+++ a/mm/vmscan.c
-@@ -2315,7 +2315,10 @@ static bool shrink_zone(struct zone *zon
- 	return reclaimable;
- }
+-	/*
+-	 * If compaction is deferred for high-order allocations, it is because
+-	 * sync compaction recently failed. In this is the case and the caller
+-	 * requested a movable allocation that does not heavily disrupt the
+-	 * system then fail the allocation instead of entering direct reclaim.
+-	 */
+-	if ((deferred_compaction || contended_compaction) &&
+-						(gfp_mask & __GFP_NO_KSWAPD))
+-		goto nopage;
++	/* Checks for THP-specific high-order allocations */
++	if ((gfp_mask & GFP_TRANSHUGE) == GFP_TRANSHUGE) {
++		/*
++		 * If compaction is deferred for high-order allocations, it is
++		 * because sync compaction recently failed. If this is the case
++		 * and the caller requested a THP allocation, we do not want
++		 * to heavily disrupt the system, so we fail the allocation
++		 * instead of entering direct reclaim.
++		 */
++		if (deferred_compaction)
++			goto nopage;
++
++		/*
++		 * In all zones where compaction was attempted (and not
++		 * deferred or skipped), lock contention has been detected.
++		 * For THP allocation we do not want to disrupt the others
++		 * so we fallback to base pages instead.
++		 */
++		if (contended_compaction == COMPACT_CONTENDED_LOCK)
++			goto nopage;
++
++		/*
++		 * If compaction was aborted due to need_resched(), we do not
++		 * want to further increase allocation latency, unless it is
++		 * khugepaged trying to collapse.
++		 */
++		if (contended_compaction == COMPACT_CONTENDED_SCHED
++			&& !(current->flags & PF_KTHREAD))
++			goto nopage;
++	}
  
--/* Returns true if compaction should go ahead for a high-order request */
-+/*
-+ * Returns true if compaction should go ahead for a high-order request, or
-+ * the high-order allocation would succeed without compaction.
-+ */
- static inline bool compaction_ready(struct zone *zone, int order)
- {
- 	unsigned long balance_gap, watermark;
-@@ -2339,8 +2342,11 @@ static inline bool compaction_ready(stru
- 	if (compaction_deferred(zone, order))
- 		return watermark_ok;
- 
--	/* If compaction is not ready to start, keep reclaiming */
--	if (!compaction_suitable(zone, order))
-+	/*
-+	 * If compaction is not ready to start and allocation is not likely
-+	 * to succeed without it, then keep reclaiming.
-+	 */
-+	if (compaction_suitable(zone, order) == COMPACT_SKIPPED)
- 		return false;
- 
- 	return watermark_ok;
-@@ -2818,7 +2824,7 @@ static bool zone_balanced(struct zone *z
- 		return false;
- 
- 	if (IS_ENABLED(CONFIG_COMPACTION) && order &&
--	    !compaction_suitable(zone, order))
-+	    compaction_suitable(zone, order) == COMPACT_SKIPPED)
- 		return false;
- 
- 	return true;
+ 	/*
+ 	 * It can become very expensive to allocate transparent hugepages at
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
