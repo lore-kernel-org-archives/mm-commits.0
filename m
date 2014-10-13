@@ -1,105 +1,85 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch removed from -mm tree
-Date: Mon, 13 Oct 2014 11:17:53 -0700
-Message-ID: <543c1751.ShZmjB24KEqskA05%akpm@linux-foundation.org>
+ ocfs2-dont-fire-quorum-before-connection-established.patch removed from -mm tree
+Date: Mon, 13 Oct 2014 11:17:47 -0700
+Message-ID: <543c174b.xqai4hvvUaWeMLUo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59979 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754140AbaJMSRx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:17:53 -0400
+	with ESMTP id S1754140AbaJMSRr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:17:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chaiw.fnst@cn.fujitsu.com, dzickus@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, srinivas.eeda@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: softlockup: make detector be aware of task switch of processes hogging cpu
+     Subject: ocfs2: don't fire quorum before connection established
 has been removed from the -mm tree.  Its filename was
-     softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu.patch
+     ocfs2-dont-fire-quorum-before-connection-established.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: chai wen <chaiw.fnst@cn.fujitsu.com>
-Subject: softlockup: make detector be aware of task switch of processes hogging cpu
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: don't fire quorum before connection established
 
-For now, soft lockup detector warns once for each case of process
-softlockup.  But the thread 'watchdog/n' may not always get the cpu at the
-time slot between the task switch of two processes hogging that cpu to
-reset soft_watchdog_warn.
+Firing quorum before connection established can cause unexpected node to
+reboot.
 
-An example would be two processes hogging the cpu.  Process A causes the
-softlockup warning and is killed manually by a user.  Process B
-immediately becomes the new process hogging the cpu preventing the
-softlockup code from resetting the soft_watchdog_warn variable.
+Assume there are 3 nodes in the cluster, Node 1, 2, 3.  Node 2 and 3 have
+wrong ip address of Node 1 in cluster.conf and global heartbeat is enabled
+in the cluster.  After the heatbeats are started on these three nodes,
+Node 1 will reboot due to quorum fencing.  It is similar case if Node 1's
+networking is not ready when starting the global heartbeat.
 
-This case is a false negative of "warn only once for a process", as there
-may be a different process that is going to hog the cpu.  Resolve this by
-saving/checking the task pointer of the hogging process and use that to
-reset soft_watchdog_warn too.
+The reboot is not friendly as customer is not fully ready for ocfs2 to
+work.  Fix it by not allowing firing quorum before the connection is
+established.  In this case, ocfs2 will wait until the wrong configuration
+is fixed or networking is up to continue.  Also update the log to guide
+the user where to check when connection is not built for a long time.
 
-[dzickus@redhat.com: update comment]
-Signed-off-by: chai wen <chaiw.fnst@cn.fujitsu.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ fs/ocfs2/cluster/tcp.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu kernel/watchdog.c
---- a/kernel/watchdog.c~softlockup-make-detector-be-aware-of-task-switch-of-processes-hogging-cpu
-+++ a/kernel/watchdog.c
-@@ -47,6 +47,7 @@ static DEFINE_PER_CPU(bool, softlockup_t
- static DEFINE_PER_CPU(bool, soft_watchdog_warn);
- static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts);
- static DEFINE_PER_CPU(unsigned long, soft_lockup_hrtimer_cnt);
-+static DEFINE_PER_CPU(struct task_struct *, softlockup_task_ptr_saved);
- #ifdef CONFIG_HARDLOCKUP_DETECTOR
- static DEFINE_PER_CPU(bool, hard_watchdog_warn);
- static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
-@@ -333,8 +334,22 @@ static enum hrtimer_restart watchdog_tim
- 			return HRTIMER_RESTART;
+diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-dont-fire-quorum-before-connection-established fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-dont-fire-quorum-before-connection-established
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -536,7 +536,7 @@ static void o2net_set_nn_state(struct o2
+ 	if (nn->nn_persistent_error || nn->nn_sc_valid)
+ 		wake_up(&nn->nn_sc_wq);
  
- 		/* only warn once */
--		if (__this_cpu_read(soft_watchdog_warn) == true)
-+		if (__this_cpu_read(soft_watchdog_warn) == true) {
-+			/*
-+			 * When multiple processes are causing softlockups the
-+			 * softlockup detector only warns on the first one
-+			 * because the code relies on a full quiet cycle to
-+			 * re-arm.  The second process prevents the quiet cycle
-+			 * and never gets reported.  Use task pointers to detect
-+			 * this.
-+			 */
-+			if (__this_cpu_read(softlockup_task_ptr_saved) !=
-+			    current) {
-+				__this_cpu_write(soft_watchdog_warn, false);
-+				__touch_watchdog();
-+			}
- 			return HRTIMER_RESTART;
-+		}
- 
- 		if (softlockup_all_cpu_backtrace) {
- 			/* Prevent multiple soft-lockup reports if one cpu is already
-@@ -350,6 +365,7 @@ static enum hrtimer_restart watchdog_tim
- 		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
- 			smp_processor_id(), duration,
- 			current->comm, task_pid_nr(current));
-+		__this_cpu_write(softlockup_task_ptr_saved, current);
- 		print_modules();
- 		print_irqtrace_events(current);
- 		if (regs)
+-	if (!was_err && nn->nn_persistent_error) {
++	if (was_valid && !was_err && nn->nn_persistent_error) {
+ 		o2quo_conn_err(o2net_num_from_nn(nn));
+ 		queue_delayed_work(o2net_wq, &nn->nn_still_up,
+ 				   msecs_to_jiffies(O2NET_QUORUM_DELAY_MS));
+@@ -1721,7 +1721,8 @@ static void o2net_connect_expired(struct
+ 	spin_lock(&nn->nn_lock);
+ 	if (!nn->nn_sc_valid) {
+ 		printk(KERN_NOTICE "o2net: No connection established with "
+-		       "node %u after %u.%u seconds, giving up.\n",
++		       "node %u after %u.%u seconds, check network and"
++		       " cluster configuration.\n",
+ 		     o2net_num_from_nn(nn),
+ 		     o2net_idle_timeout() / 1000,
+ 		     o2net_idle_timeout() % 1000);
 _
 
-Patches currently in -mm which might be from chaiw.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
 origin.patch
-linux-next.patch
+ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
+ocfs2-fix-journal-commit-deadlock.patch
 
