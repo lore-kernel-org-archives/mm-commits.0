@@ -1,80 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-dont-fire-quorum-before-connection-established.patch removed from -mm tree
-Date: Mon, 13 Oct 2014 11:17:47 -0700
-Message-ID: <543c174b.xqai4hvvUaWeMLUo%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-fix-deadlock-due-to-wrong-locking-order.patch
+ removed from -mm tree
+Date: Mon, 13 Oct 2014 11:17:51 -0700
+Message-ID: <543c174f.D/RTO7oZHgeut73Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59979 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59985 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754140AbaJMSRr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:17:47 -0400
+	with ESMTP id S1754140AbaJMSRv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:17:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, srinivas.eeda@oracle.com, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: don't fire quorum before connection established
+     Subject: ocfs2: fix deadlock due to wrong locking order
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dont-fire-quorum-before-connection-established.patch
+     ocfs2-fix-deadlock-due-to-wrong-locking-order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: don't fire quorum before connection established
+Subject: ocfs2: fix deadlock due to wrong locking order
 
-Firing quorum before connection established can cause unexpected node to
-reboot.
+For commit ocfs2 journal, ocfs2 journal thread will acquire the mutex
+osb->journal->j_trans_barrier and wake up jbd2 commit thread, then it
+will wait until jbd2 commit thread done. In order journal mode, jbd2
+needs flushing dirty data pages first, and this needs get page lock.
+So osb->journal->j_trans_barrier should be got before page lock.
 
-Assume there are 3 nodes in the cluster, Node 1, 2, 3.  Node 2 and 3 have
-wrong ip address of Node 1 in cluster.conf and global heartbeat is enabled
-in the cluster.  After the heatbeats are started on these three nodes,
-Node 1 will reboot due to quorum fencing.  It is similar case if Node 1's
-networking is not ready when starting the global heartbeat.
+But ocfs2_write_zero_page() and ocfs2_write_begin_inline() obey this
+locking order, and this will cause deadlock and hung the whole cluster.
 
-The reboot is not friendly as customer is not fully ready for ocfs2 to
-work.  Fix it by not allowing firing quorum before the connection is
-established.  In this case, ocfs2 will wait until the wrong configuration
-is fixed or networking is up to continue.  Also update the log to guide
-the user where to check when connection is not built for a long time.
+One deadlock catched is the following:
+
+PID: 13449  TASK: ffff8802e2f08180  CPU: 31  COMMAND: "oracle"
+ #0 [ffff8802ee3f79b0] __schedule at ffffffff8150a524
+ #1 [ffff8802ee3f7a58] schedule at ffffffff8150acbf
+ #2 [ffff8802ee3f7a68] rwsem_down_failed_common at ffffffff8150cb85
+ #3 [ffff8802ee3f7ad8] rwsem_down_read_failed at ffffffff8150cc55
+ #4 [ffff8802ee3f7ae8] call_rwsem_down_read_failed at ffffffff812617a4
+ #5 [ffff8802ee3f7b50] ocfs2_start_trans at ffffffffa0498919 [ocfs2]
+ #6 [ffff8802ee3f7ba0] ocfs2_zero_start_ordered_transaction at ffffffffa048b2b8 [ocfs2]
+ #7 [ffff8802ee3f7bf0] ocfs2_write_zero_page at ffffffffa048e9bd [ocfs2]
+ #8 [ffff8802ee3f7c80] ocfs2_zero_extend_range at ffffffffa048ec83 [ocfs2]
+ #9 [ffff8802ee3f7ce0] ocfs2_zero_extend at ffffffffa048edfd [ocfs2]
+ #10 [ffff8802ee3f7d50] ocfs2_extend_file at ffffffffa049079e [ocfs2]
+ #11 [ffff8802ee3f7da0] ocfs2_setattr at ffffffffa04910ed [ocfs2]
+ #12 [ffff8802ee3f7e70] notify_change at ffffffff81187d29
+ #13 [ffff8802ee3f7ee0] do_truncate at ffffffff8116bbc1
+ #14 [ffff8802ee3f7f50] sys_ftruncate at ffffffff8116bcbd
+ #15 [ffff8802ee3f7f80] system_call_fastpath at ffffffff81515142
+    RIP: 00007f8de750c6f7  RSP: 00007fffe786e478  RFLAGS: 00000206
+    RAX: 000000000000004d  RBX: ffffffff81515142  RCX: 0000000000000000
+    RDX: 0000000000000200  RSI: 0000000000028400  RDI: 000000000000000d
+    RBP: 00007fffe786e040   R8: 0000000000000000   R9: 000000000000000d
+    R10: 0000000000000000  R11: 0000000000000206  R12: 000000000000000d
+    R13: 00007fffe786e710  R14: 00007f8de70f8340  R15: 0000000000028400
+    ORIG_RAX: 000000000000004d  CS: 0033  SS: 002b
+
+crash64> bt
+PID: 7610   TASK: ffff88100fd56140  CPU: 1   COMMAND: "ocfs2cmt"
+ #0 [ffff88100f4d1c50] __schedule at ffffffff8150a524
+ #1 [ffff88100f4d1cf8] schedule at ffffffff8150acbf
+ #2 [ffff88100f4d1d08] jbd2_log_wait_commit at ffffffffa01274fd [jbd2]
+ #3 [ffff88100f4d1d98] jbd2_journal_flush at ffffffffa01280b4 [jbd2]
+ #4 [ffff88100f4d1dd8] ocfs2_commit_cache at ffffffffa0499b14 [ocfs2]
+ #5 [ffff88100f4d1e38] ocfs2_commit_thread at ffffffffa0499d38 [ocfs2]
+ #6 [ffff88100f4d1ee8] kthread at ffffffff81090db6
+ #7 [ffff88100f4d1f48] kernel_thread_helper at ffffffff81516284
+
+crash64> bt
+PID: 7609   TASK: ffff88100f2d4480  CPU: 0   COMMAND: "jbd2/dm-20-86"
+ #0 [ffff88100def3920] __schedule at ffffffff8150a524
+ #1 [ffff88100def39c8] schedule at ffffffff8150acbf
+ #2 [ffff88100def39d8] io_schedule at ffffffff8150ad6c
+ #3 [ffff88100def39f8] sleep_on_page at ffffffff8111069e
+ #4 [ffff88100def3a08] __wait_on_bit_lock at ffffffff8150b30a
+ #5 [ffff88100def3a58] __lock_page at ffffffff81110687
+ #6 [ffff88100def3ab8] write_cache_pages at ffffffff8111b752
+ #7 [ffff88100def3be8] generic_writepages at ffffffff8111b901
+ #8 [ffff88100def3c48] journal_submit_data_buffers at ffffffffa0120f67 [jbd2]
+ #9 [ffff88100def3cf8] jbd2_journal_commit_transaction at ffffffffa0121372[jbd2]
+ #10 [ffff88100def3e68] kjournald2 at ffffffffa0127a86 [jbd2]
+ #11 [ffff88100def3ee8] kthread at ffffffff81090db6
+ #12 [ffff88100def3f48] kernel_thread_helper at ffffffff81516284
 
 Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Alex Chen <alex.chen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/aops.c |   15 +++++++-------
+ fs/ocfs2/file.c |   47 ++++++++++++++++++++++------------------------
+ 2 files changed, 31 insertions(+), 31 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-dont-fire-quorum-before-connection-established fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-dont-fire-quorum-before-connection-established
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -536,7 +536,7 @@ static void o2net_set_nn_state(struct o2
- 	if (nn->nn_persistent_error || nn->nn_sc_valid)
- 		wake_up(&nn->nn_sc_wq);
+diff -puN fs/ocfs2/aops.c~ocfs2-fix-deadlock-due-to-wrong-locking-order fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-fix-deadlock-due-to-wrong-locking-order
++++ a/fs/ocfs2/aops.c
+@@ -1481,8 +1481,16 @@ static int ocfs2_write_begin_inline(stru
+ 	handle_t *handle;
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)wc->w_di_bh->b_data;
  
--	if (!was_err && nn->nn_persistent_error) {
-+	if (was_valid && !was_err && nn->nn_persistent_error) {
- 		o2quo_conn_err(o2net_num_from_nn(nn));
- 		queue_delayed_work(o2net_wq, &nn->nn_still_up,
- 				   msecs_to_jiffies(O2NET_QUORUM_DELAY_MS));
-@@ -1721,7 +1721,8 @@ static void o2net_connect_expired(struct
- 	spin_lock(&nn->nn_lock);
- 	if (!nn->nn_sc_valid) {
- 		printk(KERN_NOTICE "o2net: No connection established with "
--		       "node %u after %u.%u seconds, giving up.\n",
-+		       "node %u after %u.%u seconds, check network and"
-+		       " cluster configuration.\n",
- 		     o2net_num_from_nn(nn),
- 		     o2net_idle_timeout() / 1000,
- 		     o2net_idle_timeout() % 1000);
++	handle = ocfs2_start_trans(osb, OCFS2_INODE_UPDATE_CREDITS);
++	if (IS_ERR(handle)) {
++		ret = PTR_ERR(handle);
++		mlog_errno(ret);
++		goto out;
++	}
++
+ 	page = find_or_create_page(mapping, 0, GFP_NOFS);
+ 	if (!page) {
++		ocfs2_commit_trans(osb, handle);
+ 		ret = -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto out;
+@@ -1494,13 +1502,6 @@ static int ocfs2_write_begin_inline(stru
+ 	wc->w_pages[0] = wc->w_target_page = page;
+ 	wc->w_num_pages = 1;
+ 
+-	handle = ocfs2_start_trans(osb, OCFS2_INODE_UPDATE_CREDITS);
+-	if (IS_ERR(handle)) {
+-		ret = PTR_ERR(handle);
+-		mlog_errno(ret);
+-		goto out;
+-	}
+-
+ 	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), wc->w_di_bh,
+ 				      OCFS2_JOURNAL_ACCESS_WRITE);
+ 	if (ret) {
+diff -puN fs/ocfs2/file.c~ocfs2-fix-deadlock-due-to-wrong-locking-order fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-deadlock-due-to-wrong-locking-order
++++ a/fs/ocfs2/file.c
+@@ -760,7 +760,7 @@ static int ocfs2_write_zero_page(struct
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct page *page;
+ 	unsigned long index = abs_from >> PAGE_CACHE_SHIFT;
+-	handle_t *handle = NULL;
++	handle_t *handle;
+ 	int ret = 0;
+ 	unsigned zero_from, zero_to, block_start, block_end;
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)di_bh->b_data;
+@@ -769,11 +769,17 @@ static int ocfs2_write_zero_page(struct
+ 	BUG_ON(abs_to > (((u64)index + 1) << PAGE_CACHE_SHIFT));
+ 	BUG_ON(abs_from & (inode->i_blkbits - 1));
+ 
++	handle = ocfs2_zero_start_ordered_transaction(inode, di_bh);
++	if (IS_ERR(handle)) {
++		ret = PTR_ERR(handle);
++		goto out;
++	}
++
+ 	page = find_or_create_page(mapping, index, GFP_NOFS);
+ 	if (!page) {
+ 		ret = -ENOMEM;
+ 		mlog_errno(ret);
+-		goto out;
++		goto out_commit_trans;
+ 	}
+ 
+ 	/* Get the offsets within the page that we want to zero */
+@@ -805,15 +811,6 @@ static int ocfs2_write_zero_page(struct
+ 			goto out_unlock;
+ 		}
+ 
+-		if (!handle) {
+-			handle = ocfs2_zero_start_ordered_transaction(inode,
+-								      di_bh);
+-			if (IS_ERR(handle)) {
+-				ret = PTR_ERR(handle);
+-				handle = NULL;
+-				break;
+-			}
+-		}
+ 
+ 		/* must not update i_size! */
+ 		ret = block_commit_write(page, block_start + 1,
+@@ -824,27 +821,29 @@ static int ocfs2_write_zero_page(struct
+ 			ret = 0;
+ 	}
+ 
++	/*
++	 * fs-writeback will release the dirty pages without page lock
++	 * whose offset are over inode size, the release happens at
++	 * block_write_full_page().
++	 */
++	i_size_write(inode, abs_to);
++	inode->i_blocks = ocfs2_inode_sector_count(inode);
++	di->i_size = cpu_to_le64((u64)i_size_read(inode));
++	inode->i_mtime = inode->i_ctime = CURRENT_TIME;
++	di->i_mtime = di->i_ctime = cpu_to_le64(inode->i_mtime.tv_sec);
++	di->i_ctime_nsec = cpu_to_le32(inode->i_mtime.tv_nsec);
++	di->i_mtime_nsec = di->i_ctime_nsec;
+ 	if (handle) {
+-		/*
+-		 * fs-writeback will release the dirty pages without page lock
+-		 * whose offset are over inode size, the release happens at
+-		 * block_write_full_page().
+-		 */
+-		i_size_write(inode, abs_to);
+-		inode->i_blocks = ocfs2_inode_sector_count(inode);
+-		di->i_size = cpu_to_le64((u64)i_size_read(inode));
+-		inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+-		di->i_mtime = di->i_ctime = cpu_to_le64(inode->i_mtime.tv_sec);
+-		di->i_ctime_nsec = cpu_to_le32(inode->i_mtime.tv_nsec);
+-		di->i_mtime_nsec = di->i_ctime_nsec;
+ 		ocfs2_journal_dirty(handle, di_bh);
+ 		ocfs2_update_inode_fsync_trans(handle, inode, 1);
+-		ocfs2_commit_trans(OCFS2_SB(inode->i_sb), handle);
+ 	}
+ 
+ out_unlock:
+ 	unlock_page(page);
+ 	page_cache_release(page);
++out_commit_trans:
++	if (handle)
++		ocfs2_commit_trans(OCFS2_SB(inode->i_sb), handle);
+ out:
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from junxiao.bi@oracle.com are
