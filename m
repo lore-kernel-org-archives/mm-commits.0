@@ -1,73 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-min3-max3-macros-to-avoid-shadow-warnings.patch
- removed from -mm tree
-Date: Mon, 13 Oct 2014 11:20:33 -0700
-Message-ID: <543c17f1.C4rCYW8qFY3d+1TP%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch removed from -mm tree
+Date: Mon, 13 Oct 2014 11:20:31 -0700
+Message-ID: <543c17ef.O92Ig7e7fgLEjj7A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60617 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60615 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754592AbaJMSUd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:20:33 -0400
+	with ESMTP id S1754730AbaJMSUb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:20:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mark.d.rustad@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
+To: weijie.yang@samsung.com, hannes@cmpxchg.org, mgorman@suse.de, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page-writeback.c: use min3/max3 macros to avoid shadow warnings
+     Subject: mm: page_alloc: avoid wakeup kswapd on the unintended node
 has been removed from the -mm tree.  Its filename was
-     mm-use-min3-max3-macros-to-avoid-shadow-warnings.patch
+     mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mark Rustad <mark.d.rustad@intel.com>
-Subject: mm/page-writeback.c: use min3/max3 macros to avoid shadow warnings
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: mm: page_alloc: avoid wakeup kswapd on the unintended node
 
-Nested calls to min/max functions result in shadow warnings in W=2 builds.
- Avoid the warning by using the min3 and max3 macros to get the min/max of
-3 values instead of nested calls.
+When entering the page_alloc slowpath, we wakeup kswapd on every pgdat
+according to the zonelist and high_zoneidx.  However, this doesn't take
+nodemask into account, and could prematurely wakeup kswapd on some
+unintended nodes.
 
-Signed-off-by: Mark Rustad <mark.d.rustad@intel.com>
-Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+This patch uses for_each_zone_zonelist_nodemask() instead of
+for_each_zone_zonelist() in wake_all_kswapds() to avoid the above
+situation.
+
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-use-min3-max3-macros-to-avoid-shadow-warnings mm/page-writeback.c
---- a/mm/page-writeback.c~mm-use-min3-max3-macros-to-avoid-shadow-warnings
-+++ a/mm/page-writeback.c
-@@ -1075,13 +1075,13 @@ static void bdi_update_dirty_ratelimit(s
- 	}
+diff -puN mm/page_alloc.c~mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-wakeup-kswapd-on-the-unintended-node
++++ a/mm/page_alloc.c
+@@ -2471,12 +2471,14 @@ __alloc_pages_high_priority(gfp_t gfp_ma
+ static void wake_all_kswapds(unsigned int order,
+ 			     struct zonelist *zonelist,
+ 			     enum zone_type high_zoneidx,
+-			     struct zone *preferred_zone)
++			     struct zone *preferred_zone,
++			     nodemask_t *nodemask)
+ {
+ 	struct zoneref *z;
+ 	struct zone *zone;
  
- 	if (dirty < setpoint) {
--		x = min(bdi->balanced_dirty_ratelimit,
--			 min(balanced_dirty_ratelimit, task_ratelimit));
-+		x = min3(bdi->balanced_dirty_ratelimit,
-+			 balanced_dirty_ratelimit, task_ratelimit);
- 		if (dirty_ratelimit < x)
- 			step = x - dirty_ratelimit;
- 	} else {
--		x = max(bdi->balanced_dirty_ratelimit,
--			 max(balanced_dirty_ratelimit, task_ratelimit));
-+		x = max3(bdi->balanced_dirty_ratelimit,
-+			 balanced_dirty_ratelimit, task_ratelimit);
- 		if (dirty_ratelimit > x)
- 			step = dirty_ratelimit - x;
- 	}
+-	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx)
++	for_each_zone_zonelist_nodemask(zone, z, zonelist,
++						high_zoneidx, nodemask)
+ 		wakeup_kswapd(zone, order, zone_idx(preferred_zone));
+ }
+ 
+@@ -2574,7 +2576,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 
+ restart:
+ 	if (!(gfp_mask & __GFP_NO_KSWAPD))
+-		wake_all_kswapds(order, zonelist, high_zoneidx, preferred_zone);
++		wake_all_kswapds(order, zonelist, high_zoneidx,
++				preferred_zone, nodemask);
+ 
+ 	/*
+ 	 * OK, we're below the kswapd watermark and have kicked background
 _
 
-Patches currently in -mm which might be from mark.d.rustad@intel.com are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
 origin.patch
-init-resolve-shadow-warnings.patch
-init-resolve-shadow-warnings-checkpatch-fixes.patch
-ipc-resolve-shadow-warnings.patch
-linux-next.patch
 
