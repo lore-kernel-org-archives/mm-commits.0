@@ -1,142 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-vm_bug_on_mm-where-possible.patch removed from
- -mm tree
-Date: Mon, 13 Oct 2014 11:20:55 -0700
-Message-ID: <543c1807.27NFZLVRMyQeUEUR%akpm@linux-foundation.org>
+Subject: [merged] memcg-move-memcg_update_cache_size-to-slab_commonc.patch removed from -mm tree
+Date: Mon, 13 Oct 2014 11:21:03 -0700
+Message-ID: <543c180f.OmaCn6cKF+g06Kmq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60668 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60696 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754501AbaJMSUz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:20:55 -0400
+	with ESMTP id S1754501AbaJMSVD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:21:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, glommer@gmail.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use VM_BUG_ON_MM where possible
+     Subject: memcg: move memcg_update_cache_size() to slab_common.c
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_bug_on_mm-where-possible.patch
+     memcg-move-memcg_update_cache_size-to-slab_commonc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: mm: use VM_BUG_ON_MM where possible
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: memcg: move memcg_update_cache_size() to slab_common.c
 
-Dump the contents of the relevant struct_mm when we hit the bug condition.
+`While growing per memcg caches arrays, we jump between memcontrol.c and
+slab_common.c in a weird way:
 
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+  memcg_alloc_cache_id - memcontrol.c
+    memcg_update_all_caches - slab_common.c
+      memcg_update_cache_size - memcontrol.c
+
+There's absolutely no reason why memcg_update_cache_size can't live on the
+slab's side though.  So let's move it there and settle it comfortably amid
+per-memcg cache allocation functions.
+
+Besides, this patch cleans this function up a bit, removing all the
+useless comments from it, and renames it to memcg_update_cache_params to
+conform to memcg_alloc/free_cache_params, which we already have in
+slab_common.c.
+
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Glauber Costa <glommer@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c    |    3 +--
- kernel/sys.c     |    2 +-
- mm/huge_memory.c |    2 +-
- mm/mlock.c       |    2 +-
- mm/mmap.c        |    7 ++++---
- mm/pagewalk.c    |    2 +-
- 6 files changed, 9 insertions(+), 9 deletions(-)
+ include/linux/memcontrol.h |    1 
+ mm/memcontrol.c            |   49 -----------------------------------
+ mm/slab_common.c           |   30 ++++++++++++++++++++-
+ 3 files changed, 28 insertions(+), 52 deletions(-)
 
-diff -puN kernel/fork.c~mm-use-vm_bug_on_mm-where-possible kernel/fork.c
---- a/kernel/fork.c~mm-use-vm_bug_on_mm-where-possible
-+++ a/kernel/fork.c
-@@ -601,9 +601,8 @@ static void check_mm(struct mm_struct *m
- 			printk(KERN_ALERT "BUG: Bad rss-counter state "
- 					  "mm:%p idx:%d val:%ld\n", mm, i, x);
- 	}
+diff -puN include/linux/memcontrol.h~memcg-move-memcg_update_cache_size-to-slab_commonc include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-move-memcg_update_cache_size-to-slab_commonc
++++ a/include/linux/memcontrol.h
+@@ -440,7 +440,6 @@ void __memcg_kmem_uncharge_pages(struct
+ 
+ int memcg_cache_id(struct mem_cgroup *memcg);
+ 
+-int memcg_update_cache_size(struct kmem_cache *s, int num_groups);
+ void memcg_update_array_size(int num_groups);
+ 
+ struct kmem_cache *
+diff -puN mm/memcontrol.c~memcg-move-memcg_update_cache_size-to-slab_commonc mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-move-memcg_update_cache_size-to-slab_commonc
++++ a/mm/memcontrol.c
+@@ -2958,55 +2958,6 @@ void memcg_update_array_size(int num)
+ 	memcg_limited_groups_array_size = num;
+ }
+ 
+-int memcg_update_cache_size(struct kmem_cache *s, int num_groups)
+-{
+-	struct memcg_cache_params *cur_params = s->memcg_params;
+-	struct memcg_cache_params *new_params;
+-	size_t size;
+-	int i;
 -
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
--	VM_BUG_ON(mm->pmd_huge_pte);
-+	VM_BUG_ON_MM(mm->pmd_huge_pte, mm);
- #endif
+-	VM_BUG_ON(!is_root_cache(s));
+-
+-	size = num_groups * sizeof(void *);
+-	size += offsetof(struct memcg_cache_params, memcg_caches);
+-
+-	new_params = kzalloc(size, GFP_KERNEL);
+-	if (!new_params)
+-		return -ENOMEM;
+-
+-	new_params->is_root_cache = true;
+-
+-	/*
+-	 * There is the chance it will be bigger than
+-	 * memcg_limited_groups_array_size, if we failed an allocation
+-	 * in a cache, in which case all caches updated before it, will
+-	 * have a bigger array.
+-	 *
+-	 * But if that is the case, the data after
+-	 * memcg_limited_groups_array_size is certainly unused
+-	 */
+-	for (i = 0; i < memcg_limited_groups_array_size; i++) {
+-		if (!cur_params->memcg_caches[i])
+-			continue;
+-		new_params->memcg_caches[i] =
+-			cur_params->memcg_caches[i];
+-	}
+-
+-	/*
+-	 * Ideally, we would wait until all caches succeed, and only
+-	 * then free the old one. But this is not worth the extra
+-	 * pointer per-cache we'd have to have for this.
+-	 *
+-	 * It is not a big deal if some caches are left with a size
+-	 * bigger than the others. And all updates will reset this
+-	 * anyway.
+-	 */
+-	rcu_assign_pointer(s->memcg_params, new_params);
+-	if (cur_params)
+-		kfree_rcu(cur_params, rcu_head);
+-	return 0;
+-}
+-
+ static void memcg_register_cache(struct mem_cgroup *memcg,
+ 				 struct kmem_cache *root_cache)
+ {
+diff -puN mm/slab_common.c~memcg-move-memcg_update_cache_size-to-slab_commonc mm/slab_common.c
+--- a/mm/slab_common.c~memcg-move-memcg_update_cache_size-to-slab_commonc
++++ a/mm/slab_common.c
+@@ -148,6 +148,33 @@ static void memcg_free_cache_params(stru
+ 	kfree(s->memcg_params);
  }
  
-diff -puN kernel/sys.c~mm-use-vm_bug_on_mm-where-possible kernel/sys.c
---- a/kernel/sys.c~mm-use-vm_bug_on_mm-where-possible
-+++ a/kernel/sys.c
-@@ -1634,7 +1634,7 @@ static int prctl_set_mm_exe_file_locked(
- 	struct inode *inode;
- 	int err;
++static int memcg_update_cache_params(struct kmem_cache *s, int num_memcgs)
++{
++	int size;
++	struct memcg_cache_params *new_params, *cur_params;
++
++	BUG_ON(!is_root_cache(s));
++
++	size = offsetof(struct memcg_cache_params, memcg_caches);
++	size += num_memcgs * sizeof(void *);
++
++	new_params = kzalloc(size, GFP_KERNEL);
++	if (!new_params)
++		return -ENOMEM;
++
++	cur_params = s->memcg_params;
++	memcpy(new_params->memcg_caches, cur_params->memcg_caches,
++	       memcg_limited_groups_array_size * sizeof(void *));
++
++	new_params->is_root_cache = true;
++
++	rcu_assign_pointer(s->memcg_params, new_params);
++	if (cur_params)
++		kfree_rcu(cur_params, rcu_head);
++
++	return 0;
++}
++
+ int memcg_update_all_caches(int num_memcgs)
+ {
+ 	struct kmem_cache *s;
+@@ -158,9 +185,8 @@ int memcg_update_all_caches(int num_memc
+ 		if (!is_root_cache(s))
+ 			continue;
  
--	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
-+	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_sem), mm);
- 
- 	exe = fdget(fd);
- 	if (!exe.file)
-diff -puN mm/huge_memory.c~mm-use-vm_bug_on_mm-where-possible mm/huge_memory.c
---- a/mm/huge_memory.c~mm-use-vm_bug_on_mm-where-possible
-+++ a/mm/huge_memory.c
-@@ -2048,7 +2048,7 @@ int __khugepaged_enter(struct mm_struct
- 		return -ENOMEM;
- 
- 	/* __khugepaged_exit() must not run from under us */
--	VM_BUG_ON(khugepaged_test_exit(mm));
-+	VM_BUG_ON_MM(khugepaged_test_exit(mm), mm);
- 	if (unlikely(test_and_set_bit(MMF_VM_HUGEPAGE, &mm->flags))) {
- 		free_mm_slot(mm_slot);
- 		return 0;
-diff -puN mm/mlock.c~mm-use-vm_bug_on_mm-where-possible mm/mlock.c
---- a/mm/mlock.c~mm-use-vm_bug_on_mm-where-possible
-+++ a/mm/mlock.c
-@@ -235,7 +235,7 @@ long __mlock_vma_pages_range(struct vm_a
- 	VM_BUG_ON(end   & ~PAGE_MASK);
- 	VM_BUG_ON_VMA(start < vma->vm_start, vma);
- 	VM_BUG_ON_VMA(end   > vma->vm_end, vma);
--	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
-+	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_sem), mm);
- 
- 	gup_flags = FOLL_TOUCH | FOLL_MLOCK;
- 	/*
-diff -puN mm/mmap.c~mm-use-vm_bug_on_mm-where-possible mm/mmap.c
---- a/mm/mmap.c~mm-use-vm_bug_on_mm-where-possible
-+++ a/mm/mmap.c
-@@ -410,8 +410,9 @@ static void validate_mm_rb(struct rb_roo
- 	for (nd = rb_first(root); nd; nd = rb_next(nd)) {
- 		struct vm_area_struct *vma;
- 		vma = rb_entry(nd, struct vm_area_struct, vm_rb);
--		BUG_ON(vma != ignore &&
--		       vma->rb_subtree_gap != vma_compute_subtree_gap(vma));
-+		VM_BUG_ON_VMA(vma != ignore &&
-+			vma->rb_subtree_gap != vma_compute_subtree_gap(vma),
-+			vma);
- 	}
- }
- 
-@@ -448,7 +449,7 @@ static void validate_mm(struct mm_struct
- 			pr_emerg("map_count %d rb %d\n", mm->map_count, i);
- 		bug = 1;
- 	}
--	BUG_ON(bug);
-+	VM_BUG_ON_MM(bug, mm);
- }
- #else
- #define validate_mm_rb(root, ignore) do { } while (0)
-diff -puN mm/pagewalk.c~mm-use-vm_bug_on_mm-where-possible mm/pagewalk.c
---- a/mm/pagewalk.c~mm-use-vm_bug_on_mm-where-possible
-+++ a/mm/pagewalk.c
-@@ -177,7 +177,7 @@ int walk_page_range(unsigned long addr,
- 	if (!walk->mm)
- 		return -EINVAL;
- 
--	VM_BUG_ON(!rwsem_is_locked(&walk->mm->mmap_sem));
-+	VM_BUG_ON_MM(!rwsem_is_locked(&walk->mm->mmap_sem), walk->mm);
- 
- 	pgd = pgd_offset(walk->mm, addr);
- 	do {
+-		ret = memcg_update_cache_size(s, num_memcgs);
++		ret = memcg_update_cache_params(s, num_memcgs);
+ 		/*
+-		 * See comment in memcontrol.c, memcg_update_cache_size:
+ 		 * Instead of freeing the memory, we'll just leave the caches
+ 		 * up to this point in an updated state.
+ 		 */
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-kernel-add-support-for-gcc-5.patch
-kernel-add-support-for-gcc-5-checkpatch-fixes.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
 
