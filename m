@@ -1,186 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fix-checkpatch-errors-for-mm-mmapc.patch removed from
- -mm tree
-Date: Mon, 13 Oct 2014 11:18:59 -0700
-Message-ID: <543c1793.9G6LxImSLl1/oHcu%akpm@linux-foundation.org>
+Subject: [merged] memory-hotplug-add-sysfs-zones_online_to-attribute.patch removed from -mm tree
+Date: Mon, 13 Oct 2014 11:19:01 -0700
+Message-ID: <543c1795.2CiS5o0x5TjIjNmT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60192 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60194 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754214AbaJMSS7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:18:59 -0400
+	with ESMTP id S1754690AbaJMSTC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vishnu.ps@samsung.com, mm-commits@vger.kernel.org
+To: zhenzhang.zhang@huawei.com, dave.hansen@intel.com, isimatu.yasuaki@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, toshi.kani@hp.com, wangnan0@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: whitespace fixes
+     Subject: memory-hotplug: add sysfs valid_zones attribute
 has been removed from the -mm tree.  Its filename was
-     fix-checkpatch-errors-for-mm-mmapc.patch
+     memory-hotplug-add-sysfs-zones_online_to-attribute.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "vishnu.ps" <vishnu.ps@samsung.com>
-Subject: mm/mmap.c: whitespace fixes
+From: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Subject: memory-hotplug: add sysfs valid_zones attribute
 
-Signed-off-by: vishnu.ps <vishnu.ps@samsung.com>
+Currently memory-hotplug has two limits:
+
+1. If the memory block is in ZONE_NORMAL, you can change it to
+   ZONE_MOVABLE, but this memory block must be adjacent to ZONE_MOVABLE.
+
+2. If the memory block is in ZONE_MOVABLE, you can change it to
+   ZONE_NORMAL, but this memory block must be adjacent to ZONE_NORMAL.
+
+With this patch, we can easy to know a memory block can be onlined to
+which zone, and don't need to know the above two limits.
+
+Updated the related Documentation.
+
+[akpm@linux-foundation.org: use conventional comment layout]
+[akpm@linux-foundation.org: fix build with CONFIG_MEMORY_HOTREMOVE=n]
+[akpm@linux-foundation.org: remove unused local zone_prev]
+Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wang Nan <wangnan0@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   37 +++++++++++++++++++------------------
- 1 file changed, 19 insertions(+), 18 deletions(-)
+ Documentation/ABI/testing/sysfs-devices-memory |    8 ++
+ Documentation/memory-hotplug.txt               |   11 +++
+ drivers/base/memory.c                          |   42 +++++++++++++++
+ include/linux/memory_hotplug.h                 |    1 
+ mm/memory_hotplug.c                            |    2 
+ 5 files changed, 62 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~fix-checkpatch-errors-for-mm-mmapc mm/mmap.c
---- a/mm/mmap.c~fix-checkpatch-errors-for-mm-mmapc
-+++ a/mm/mmap.c
-@@ -70,7 +70,7 @@ static void unmap_region(struct mm_struc
-  * MAP_SHARED	r: (no) no	r: (yes) yes	r: (no) yes	r: (no) yes
-  *		w: (no) no	w: (no) no	w: (yes) yes	w: (no) no
-  *		x: (no) no	x: (no) yes	x: (no) yes	x: (yes) yes
-- *		
-+ *
-  * MAP_PRIVATE	r: (no) no	r: (yes) yes	r: (no) yes	r: (no) yes
-  *		w: (no) no	w: (no) no	w: (copy) copy	w: (no) no
-  *		x: (no) no	x: (no) yes	x: (no) yes	x: (yes) yes
-@@ -741,7 +741,7 @@ again:			remove_next = 1 + (end > next->
- 			 * split_vma inserting another: so it must be
- 			 * mprotect case 4 shifting the boundary down.
- 			 */
--			adjust_next = - ((vma->vm_end - end) >> PAGE_SHIFT);
-+			adjust_next = -((vma->vm_end - end) >> PAGE_SHIFT);
- 			exporter = vma;
- 			importer = next;
- 		}
-@@ -1010,7 +1010,7 @@ can_vma_merge_after(struct vm_area_struc
- struct vm_area_struct *vma_merge(struct mm_struct *mm,
- 			struct vm_area_struct *prev, unsigned long addr,
- 			unsigned long end, unsigned long vm_flags,
--		     	struct anon_vma *anon_vma, struct file *file,
-+			struct anon_vma *anon_vma, struct file *file,
- 			pgoff_t pgoff, struct mempolicy *policy)
- {
- 	pgoff_t pglen = (end - addr) >> PAGE_SHIFT;
-@@ -1036,7 +1036,7 @@ struct vm_area_struct *vma_merge(struct
- 	 * Can it merge with the predecessor?
- 	 */
- 	if (prev && prev->vm_end == addr &&
--  			mpol_equal(vma_policy(prev), policy) &&
-+			mpol_equal(vma_policy(prev), policy) &&
- 			can_vma_merge_after(prev, vm_flags,
- 						anon_vma, file, pgoff)) {
- 		/*
-@@ -1064,7 +1064,7 @@ struct vm_area_struct *vma_merge(struct
- 	 * Can this new request be merged in front of next?
- 	 */
- 	if (next && end == next->vm_start &&
-- 			mpol_equal(policy, vma_policy(next)) &&
-+			mpol_equal(policy, vma_policy(next)) &&
- 			can_vma_merge_before(next, vm_flags,
- 					anon_vma, file, pgoff+pglen)) {
- 		if (prev && addr < prev->vm_end)	/* case 4 */
-@@ -1235,7 +1235,7 @@ unsigned long do_mmap_pgoff(struct file
- 			unsigned long flags, unsigned long pgoff,
- 			unsigned long *populate)
- {
--	struct mm_struct * mm = current->mm;
-+	struct mm_struct *mm = current->mm;
- 	vm_flags_t vm_flags;
+diff -puN Documentation/ABI/testing/sysfs-devices-memory~memory-hotplug-add-sysfs-zones_online_to-attribute Documentation/ABI/testing/sysfs-devices-memory
+--- a/Documentation/ABI/testing/sysfs-devices-memory~memory-hotplug-add-sysfs-zones_online_to-attribute
++++ a/Documentation/ABI/testing/sysfs-devices-memory
+@@ -61,6 +61,14 @@ Users:		hotplug memory remove tools
+ 		http://www.ibm.com/developerworks/wikis/display/LinuxP/powerpc-utils
  
- 	*populate = 0;
-@@ -1263,7 +1263,7 @@ unsigned long do_mmap_pgoff(struct file
  
- 	/* offset overflow? */
- 	if ((pgoff + (len >> PAGE_SHIFT)) < pgoff)
--               return -EOVERFLOW;
-+		return -EOVERFLOW;
++What:           /sys/devices/system/memory/memoryX/valid_zones
++Date:           July 2014
++Contact:	Zhang Zhen <zhenzhang.zhang@huawei.com>
++Description:
++		The file /sys/devices/system/memory/memoryX/valid_zones	is
++		read-only and is designed to show which zone this memory
++		block can be onlined to.
++
+ What:		/sys/devices/system/memoryX/nodeY
+ Date:		October 2009
+ Contact:	Linux Memory Management list <linux-mm@kvack.org>
+diff -puN Documentation/memory-hotplug.txt~memory-hotplug-add-sysfs-zones_online_to-attribute Documentation/memory-hotplug.txt
+--- a/Documentation/memory-hotplug.txt~memory-hotplug-add-sysfs-zones_online_to-attribute
++++ a/Documentation/memory-hotplug.txt
+@@ -155,6 +155,7 @@ Under each memory block, you can see 4 f
+ /sys/devices/system/memory/memoryXXX/phys_device
+ /sys/devices/system/memory/memoryXXX/state
+ /sys/devices/system/memory/memoryXXX/removable
++/sys/devices/system/memory/memoryXXX/valid_zones
  
- 	/* Too many mappings? */
- 	if (mm->map_count > sysctl_max_map_count)
-@@ -1921,7 +1921,7 @@ arch_get_unmapped_area(struct file *filp
- 	info.align_mask = 0;
- 	return vm_unmapped_area(&info);
+ 'phys_index'      : read-only and contains memory block id, same as XXX.
+ 'state'           : read-write
+@@ -170,6 +171,15 @@ Under each memory block, you can see 4 f
+                     block is removable and a value of 0 indicates that
+                     it is not removable. A memory block is removable only if
+                     every section in the block is removable.
++'valid_zones'     : read-only: designed to show which zones this memory block
++		    can be onlined to.
++		    The first column shows it's default zone.
++		    "memory6/valid_zones: Normal Movable" shows this memoryblock
++		    can be onlined to ZONE_NORMAL by default and to ZONE_MOVABLE
++		    by online_movable.
++		    "memory7/valid_zones: Movable Normal" shows this memoryblock
++		    can be onlined to ZONE_MOVABLE by default and to ZONE_NORMAL
++		    by online_kernel.
+ 
+ NOTE:
+   These directories/files appear after physical memory hotplug phase.
+@@ -408,7 +418,6 @@ node if necessary.
+   - allowing memory hot-add to ZONE_MOVABLE. maybe we need some switch like
+     sysctl or new control file.
+   - showing memory block and physical device relationship.
+-  - showing memory block is under ZONE_MOVABLE or not
+   - test and make it better memory offlining.
+   - support HugeTLB page migration and offlining.
+   - memmap removing at memory offline.
+diff -puN drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-add-sysfs-zones_online_to-attribute
++++ a/drivers/base/memory.c
+@@ -373,6 +373,45 @@ static ssize_t show_phys_device(struct d
+ 	return sprintf(buf, "%d\n", mem->phys_device);
  }
--#endif	
+ 
++#ifdef CONFIG_MEMORY_HOTREMOVE
++static ssize_t show_valid_zones(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct memory_block *mem = to_memory_block(dev);
++	unsigned long start_pfn, end_pfn;
++	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
++	struct page *first_page;
++	struct zone *zone;
++
++	start_pfn = section_nr_to_pfn(mem->start_section_nr);
++	end_pfn = start_pfn + nr_pages;
++	first_page = pfn_to_page(start_pfn);
++
++	/* The block contains more than one zone can not be offlined. */
++	if (!test_pages_in_a_zone(start_pfn, end_pfn))
++		return sprintf(buf, "none\n");
++
++	zone = page_zone(first_page);
++
++	if (zone_idx(zone) == ZONE_MOVABLE - 1) {
++		/*The mem block is the last memoryblock of this zone.*/
++		if (end_pfn == zone_end_pfn(zone))
++			return sprintf(buf, "%s %s\n",
++					zone->name, (zone + 1)->name);
++	}
++
++	if (zone_idx(zone) == ZONE_MOVABLE) {
++		/*The mem block is the first memoryblock of ZONE_MOVABLE.*/
++		if (start_pfn == zone->zone_start_pfn)
++			return sprintf(buf, "%s %s\n",
++					zone->name, (zone - 1)->name);
++	}
++
++	return sprintf(buf, "%s\n", zone->name);
++}
++static DEVICE_ATTR(valid_zones, 0444, show_valid_zones, NULL);
 +#endif
++
+ static DEVICE_ATTR(phys_index, 0444, show_mem_start_phys_index, NULL);
+ static DEVICE_ATTR(state, 0644, show_mem_state, store_mem_state);
+ static DEVICE_ATTR(phys_device, 0444, show_phys_device, NULL);
+@@ -523,6 +562,9 @@ static struct attribute *memory_memblk_a
+ 	&dev_attr_state.attr,
+ 	&dev_attr_phys_device.attr,
+ 	&dev_attr_removable.attr,
++#ifdef CONFIG_MEMORY_HOTREMOVE
++	&dev_attr_valid_zones.attr,
++#endif
+ 	NULL
+ };
  
+diff -puN include/linux/memory_hotplug.h~memory-hotplug-add-sysfs-zones_online_to-attribute include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory-hotplug-add-sysfs-zones_online_to-attribute
++++ a/include/linux/memory_hotplug.h
+@@ -84,6 +84,7 @@ extern int zone_grow_waitqueues(struct z
+ extern int add_one_highpage(struct page *page, int pfn, int bad_ppro);
+ /* VM interface that may be used by firmware interface */
+ extern int online_pages(unsigned long, unsigned long, int);
++extern int test_pages_in_a_zone(unsigned long, unsigned long);
+ extern void __offline_isolated_pages(unsigned long, unsigned long);
+ 
+ typedef void (*online_page_callback_t)(struct page *page);
+diff -puN mm/memory_hotplug.c~memory-hotplug-add-sysfs-zones_online_to-attribute mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-add-sysfs-zones_online_to-attribute
++++ a/mm/memory_hotplug.c
+@@ -1307,7 +1307,7 @@ int is_mem_section_removable(unsigned lo
  /*
-  * This mmap-allocator allocates new areas top-down from below the
-@@ -2321,13 +2321,13 @@ int expand_stack(struct vm_area_struct *
- }
- 
- struct vm_area_struct *
--find_extend_vma(struct mm_struct * mm, unsigned long addr)
-+find_extend_vma(struct mm_struct *mm, unsigned long addr)
- {
--	struct vm_area_struct * vma;
-+	struct vm_area_struct *vma;
- 	unsigned long start;
- 
- 	addr &= PAGE_MASK;
--	vma = find_vma(mm,addr);
-+	vma = find_vma(mm, addr);
- 	if (!vma)
- 		return NULL;
- 	if (vma->vm_start <= addr)
-@@ -2376,7 +2376,7 @@ static void unmap_region(struct mm_struc
- 		struct vm_area_struct *vma, struct vm_area_struct *prev,
- 		unsigned long start, unsigned long end)
- {
--	struct vm_area_struct *next = prev? prev->vm_next: mm->mmap;
-+	struct vm_area_struct *next = prev ? prev->vm_next : mm->mmap;
- 	struct mmu_gather tlb;
- 
- 	lru_add_drain();
-@@ -2423,7 +2423,7 @@ detach_vmas_to_be_unmapped(struct mm_str
-  * __split_vma() bypasses sysctl_max_map_count checking.  We use this on the
-  * munmap path where it doesn't make sense to fail.
+  * Confirm all pages in a range [start, end) is belongs to the same zone.
   */
--static int __split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
-+static int __split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
- 	      unsigned long addr, int new_below)
+-static int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
++int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
  {
- 	struct vm_area_struct *new;
-@@ -2512,7 +2512,8 @@ int do_munmap(struct mm_struct *mm, unsi
- 	if ((start & ~PAGE_MASK) || start > TASK_SIZE || len > TASK_SIZE-start)
- 		return -EINVAL;
- 
--	if ((len = PAGE_ALIGN(len)) == 0)
-+	len = PAGE_ALIGN(len);
-+	if (len == 0)
- 		return -EINVAL;
- 
- 	/* Find the first overlapping VMA */
-@@ -2558,7 +2559,7 @@ int do_munmap(struct mm_struct *mm, unsi
- 		if (error)
- 			return error;
- 	}
--	vma = prev? prev->vm_next: mm->mmap;
-+	vma = prev ? prev->vm_next : mm->mmap;
- 
- 	/*
- 	 * unlock any mlock()ed ranges before detaching vmas
-@@ -2621,10 +2622,10 @@ static inline void verify_mm_writelocked
-  */
- static unsigned long do_brk(unsigned long addr, unsigned long len)
- {
--	struct mm_struct * mm = current->mm;
--	struct vm_area_struct * vma, * prev;
-+	struct mm_struct *mm = current->mm;
-+	struct vm_area_struct *vma, *prev;
- 	unsigned long flags;
--	struct rb_node ** rb_link, * rb_parent;
-+	struct rb_node **rb_link, *rb_parent;
- 	pgoff_t pgoff = addr >> PAGE_SHIFT;
- 	int error;
- 
+ 	unsigned long pfn;
+ 	struct zone *zone = NULL;
 _
 
-Patches currently in -mm which might be from vishnu.ps@samsung.com are
+Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
 
 origin.patch
 
