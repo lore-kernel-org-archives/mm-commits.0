@@ -1,66 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- x86-optimize-resource-lookups-for-ioremap-fix.patch removed from -mm tree
-Date: Mon, 13 Oct 2014 15:40:35 -0700
-Message-ID: <543c54e3.TnMF/7rC0wDLiKDm%akpm@linux-foundation.org>
+ init-resolve-shadow-warnings-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 13 Oct 2014 15:40:57 -0700
+Message-ID: <543c54f9.7vRMhNDkgyPNqKGa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580AbaJMWkg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 18:40:36 -0400
+	with ESMTP id S1752580AbaJMWk6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 18:40:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, athorlton@sgi.com, cpw@sgi.com, dyoung@redhat.com, hpa@zytor.com, mgorman@suse.de, mingo@elte.hu, msalter@redhat.com, peterz@infradead.org, riel@redhat.com, tglx@linutronix.de, travis@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeffrey.t.kirsher@intel.com, mark.d.rustad@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-optimize-resource-lookups-for-ioremap-fix
+     Subject: init-resolve-shadow-warnings-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     x86-optimize-resource-lookups-for-ioremap-fix.patch
+     init-resolve-shadow-warnings-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into x86-optimize-resource-lookups-for-ioremap.patch
+This patch was dropped because it was folded into init-resolve-shadow-warnings.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-optimize-resource-lookups-for-ioremap-fix
+Subject: init-resolve-shadow-warnings-checkpatch-fixes
 
-fix spellos and typos in comment
+ERROR: space required before the open parenthesis '('
+#71: FILE: init/initramfs.c:295:
++	while(byte_count && *victim == '\0')
 
-Cc: Alex Thorlton <athorlton@sgi.com>
-Cc: Cliff Wickman <cpw@sgi.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+total: 1 errors, 0 warnings, 103 lines checked
+
+./patches/init-resolve-shadow-warnings.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Mark Rustad <mark.d.rustad@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ init/initramfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/resource.c~x86-optimize-resource-lookups-for-ioremap-fix kernel/resource.c
---- a/kernel/resource.c~x86-optimize-resource-lookups-for-ioremap-fix
-+++ a/kernel/resource.c
-@@ -496,8 +496,8 @@ EXPORT_SYMBOL_GPL(page_is_ram);
-  * If found, return 1 if it is RAM, 0 if not.
-  * If not found, or region is not fully contained, return -1
-  *
-- * Used by the ioremap functions to insure user not remapping RAM and is as
-- * vast speed up over walking through the resource table page by page.
-+ * Used by the ioremap functions to ensure the user is not remapping RAM and is
-+ * a vast speed up over walking through the resource table page by page.
-  */
- int region_is_ram(resource_size_t start, unsigned long size)
+diff -puN init/initramfs.c~init-resolve-shadow-warnings-checkpatch-fixes init/initramfs.c
+--- a/init/initramfs.c~init-resolve-shadow-warnings-checkpatch-fixes
++++ a/init/initramfs.c
+@@ -292,7 +292,7 @@ static int __init do_skip(void)
+ 
+ static int __init do_reset(void)
  {
+-	while(byte_count && *victim == '\0')
++	while (byte_count && *victim == '\0')
+ 		eat(1);
+ 	if (byte_count && (this_header & 3))
+ 		error("broken padding");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +75,7 @@ rtc-bq32000-add-trickle-charger-option-with-device-tree-binding.patch
 rtc-max77686-use-ffs-to-calculate-tm_wday.patch
 rtc-add-driver-for-maxim-77802-pmic-real-time-clock.patch
 x86-optimize-resource-lookups-for-ioremap.patch
-init-resolve-shadow-warnings-checkpatch-fixes.patch
+init-resolve-shadow-warnings.patch
 arch-x86-kernel-cpu-commonc-fix-unused-symbol-warning.patch
 mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable-checkpatch-fixes.patch
 lib-string_helpers-introduce-string_escape_mem-fix.patch
