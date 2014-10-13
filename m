@@ -1,197 +1,110 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-remove-noisy-remainder-of-the-scan_unevictable-interface.patch removed
- from -mm tree
-Date: Mon, 13 Oct 2014 11:20:01 -0700
-Message-ID: <543c17d1.neALRl85ftVgz1SO%akpm@linux-foundation.org>
+ mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch removed from -mm tree
+Date: Mon, 13 Oct 2014 11:20:05 -0700
+Message-ID: <543c17d5.JciRFcIGKrg+iqtQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60477 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60496 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754817AbaJMSUB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:20:01 -0400
+	with ESMTP id S1754606AbaJMSUF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:20:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, andi@firstfloor.org, ebiederm@xmission.com, gorcunov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove noisy remainder of the scan_unevictable interface
+     Subject: mempolicy: change get_task_policy() to return default_policy rather than NULL
 has been removed from the -mm tree.  Its filename was
-     mm-remove-noisy-remainder-of-the-scan_unevictable-interface.patch
+     mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: remove noisy remainder of the scan_unevictable interface
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mempolicy: change get_task_policy() to return default_policy rather than NULL
 
-The deprecation warnings for the scan_unevictable interface triggers by
-scripts doing `sysctl -a | grep something else'.  This is annoying and not
-helpful.
+Every caller of get_task_policy() falls back to default_policy if it
+returns NULL. Change get_task_policy() to do this.
 
-The interface has been defunct since 264e56d8247e ("mm: disable user
-interface to manually rescue unevictable pages"), which was in 2011, and
-there haven't been any reports of usecases for it, only reports that the
-deprecation warnings are annying.  It's unlikely that anybody is using
-this interface specifically at this point, so remove it.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/stable/sysfs-devices-node |    8 --
- drivers/base/node.c                         |    3 
- include/linux/swap.h                        |   16 ----
- kernel/sysctl.c                             |    7 --
- mm/vmscan.c                                 |   63 ------------------
- 5 files changed, 97 deletions(-)
+ mm/mempolicy.c |   31 +++++++++++++------------------
+ 1 file changed, 13 insertions(+), 18 deletions(-)
 
-diff -puN Documentation/ABI/stable/sysfs-devices-node~mm-remove-noisy-remainder-of-the-scan_unevictable-interface Documentation/ABI/stable/sysfs-devices-node
---- a/Documentation/ABI/stable/sysfs-devices-node~mm-remove-noisy-remainder-of-the-scan_unevictable-interface
-+++ a/Documentation/ABI/stable/sysfs-devices-node
-@@ -85,14 +85,6 @@ Description:
- 		will be compacted. When it completes, memory will be freed
- 		into blocks which have as many contiguous pages as possible
+diff -puN mm/mempolicy.c~mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-change-get_task_policy-to-return-default_policy-rather-than-null
++++ a/mm/mempolicy.c
+@@ -126,22 +126,20 @@ static struct mempolicy preferred_node_p
+ static struct mempolicy *get_task_policy(struct task_struct *p)
+ {
+ 	struct mempolicy *pol = p->mempolicy;
++	int node;
  
--What:		/sys/devices/system/node/nodeX/scan_unevictable_pages
--Date:		October 2008
--Contact:	Lee Schermerhorn <lee.schermerhorn@hp.com>
--Description:
--		When set, it triggers scanning the node's unevictable lists
--		and move any pages that have become evictable onto the respective
--		zone's inactive list. See mm/vmscan.c
--
- What:		/sys/devices/system/node/nodeX/hugepages/hugepages-<size>/
- Date:		December 2009
- Contact:	Lee Schermerhorn <lee.schermerhorn@hp.com>
-diff -puN drivers/base/node.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface drivers/base/node.c
---- a/drivers/base/node.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface
-+++ a/drivers/base/node.c
-@@ -289,8 +289,6 @@ static int register_node(struct node *no
- 		device_create_file(&node->dev, &dev_attr_distance);
- 		device_create_file(&node->dev, &dev_attr_vmstat);
+-	if (!pol) {
+-		int node = numa_node_id();
++	if (pol)
++		return pol;
  
--		scan_unevictable_register_node(node);
--
- 		hugetlb_register_node(node);
- 
- 		compaction_register_node(node);
-@@ -314,7 +312,6 @@ void unregister_node(struct node *node)
- 	device_remove_file(&node->dev, &dev_attr_distance);
- 	device_remove_file(&node->dev, &dev_attr_vmstat);
- 
--	scan_unevictable_unregister_node(node);
- 	hugetlb_unregister_node(node);		/* no-op, if memoryless node */
- 
- 	device_unregister(&node->dev);
-diff -puN include/linux/swap.h~mm-remove-noisy-remainder-of-the-scan_unevictable-interface include/linux/swap.h
---- a/include/linux/swap.h~mm-remove-noisy-remainder-of-the-scan_unevictable-interface
-+++ a/include/linux/swap.h
-@@ -354,22 +354,6 @@ static inline int zone_reclaim(struct zo
- extern int page_evictable(struct page *page);
- extern void check_move_unevictable_pages(struct page **, int nr_pages);
- 
--extern unsigned long scan_unevictable_pages;
--extern int scan_unevictable_handler(struct ctl_table *, int,
--					void __user *, size_t *, loff_t *);
--#ifdef CONFIG_NUMA
--extern int scan_unevictable_register_node(struct node *node);
--extern void scan_unevictable_unregister_node(struct node *node);
--#else
--static inline int scan_unevictable_register_node(struct node *node)
--{
--	return 0;
--}
--static inline void scan_unevictable_unregister_node(struct node *node)
--{
--}
--#endif
--
- extern int kswapd_run(int nid);
- extern void kswapd_stop(int nid);
- #ifdef CONFIG_MEMCG
-diff -puN kernel/sysctl.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface kernel/sysctl.c
---- a/kernel/sysctl.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface
-+++ a/kernel/sysctl.c
-@@ -1460,13 +1460,6 @@ static struct ctl_table vm_table[] = {
- 		.extra2		= &one,
- 	},
- #endif
--	{
--		.procname	= "scan_unevictable_pages",
--		.data		= &scan_unevictable_pages,
--		.maxlen		= sizeof(scan_unevictable_pages),
--		.mode		= 0644,
--		.proc_handler	= scan_unevictable_handler,
--	},
- #ifdef CONFIG_MEMORY_FAILURE
- 	{
- 		.procname	= "memory_failure_early_kill",
-diff -puN mm/vmscan.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-noisy-remainder-of-the-scan_unevictable-interface
-+++ a/mm/vmscan.c
-@@ -3797,66 +3797,3 @@ void check_move_unevictable_pages(struct
+-		if (node != NUMA_NO_NODE) {
+-			pol = &preferred_node_policy[node];
+-			/*
+-			 * preferred_node_policy is not initialised early in
+-			 * boot
+-			 */
+-			if (!pol->mode)
+-				pol = NULL;
+-		}
++	node = numa_node_id();
++	if (node != NUMA_NO_NODE) {
++		pol = &preferred_node_policy[node];
++		/* preferred_node_policy is not initialised early in boot */
++		if (pol->mode)
++			return pol;
  	}
+ 
+-	return pol;
++	return &default_policy;
  }
- #endif /* CONFIG_SHMEM */
--
--static void warn_scan_unevictable_pages(void)
--{
--	printk_once(KERN_WARNING
--		    "%s: The scan_unevictable_pages sysctl/node-interface has been "
--		    "disabled for lack of a legitimate use case.  If you have "
--		    "one, please send an email to linux-mm@kvack.org.\n",
--		    current->comm);
--}
--
--/*
-- * scan_unevictable_pages [vm] sysctl handler.  On demand re-scan of
-- * all nodes' unevictable lists for evictable pages
-- */
--unsigned long scan_unevictable_pages;
--
--int scan_unevictable_handler(struct ctl_table *table, int write,
--			   void __user *buffer,
--			   size_t *length, loff_t *ppos)
--{
--	warn_scan_unevictable_pages();
--	proc_doulongvec_minmax(table, write, buffer, length, ppos);
--	scan_unevictable_pages = 0;
--	return 0;
--}
--
--#ifdef CONFIG_NUMA
--/*
-- * per node 'scan_unevictable_pages' attribute.  On demand re-scan of
-- * a specified node's per zone unevictable lists for evictable pages.
-- */
--
--static ssize_t read_scan_unevictable_node(struct device *dev,
--					  struct device_attribute *attr,
--					  char *buf)
--{
--	warn_scan_unevictable_pages();
--	return sprintf(buf, "0\n");	/* always zero; should fit... */
--}
--
--static ssize_t write_scan_unevictable_node(struct device *dev,
--					   struct device_attribute *attr,
--					const char *buf, size_t count)
--{
--	warn_scan_unevictable_pages();
--	return 1;
--}
--
--
--static DEVICE_ATTR(scan_unevictable_pages, S_IRUGO | S_IWUSR,
--			read_scan_unevictable_node,
--			write_scan_unevictable_node);
--
--int scan_unevictable_register_node(struct node *node)
--{
--	return device_create_file(&node->dev, &dev_attr_scan_unevictable_pages);
--}
+ 
+ static const struct mempolicy_operations {
+@@ -1644,14 +1642,14 @@ struct mempolicy *get_vma_policy(struct
+ 				mpol_get(pol);
+ 		}
+ 	}
+-	if (!pol)
+-		pol = &default_policy;
++
+ 	return pol;
+ }
+ 
+ bool vma_policy_mof(struct task_struct *task, struct vm_area_struct *vma)
+ {
+ 	struct mempolicy *pol = get_task_policy(task);
++
+ 	if (vma) {
+ 		if (vma->vm_ops && vma->vm_ops->get_policy) {
+ 			bool ret = false;
+@@ -1667,9 +1665,6 @@ bool vma_policy_mof(struct task_struct *
+ 		}
+ 	}
+ 
+-	if (!pol)
+-		return default_policy.flags & MPOL_F_MOF;
