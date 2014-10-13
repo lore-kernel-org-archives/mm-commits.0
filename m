@@ -1,40 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-genallocc-add-power-aligned-algorithm.patch removed
- from -mm tree
-Date: Mon, 13 Oct 2014 11:19:05 -0700
-Message-ID: <543c1799.Ctnao+Cz8x5qNUZo%akpm@linux-foundation.org>
+Subject: [merged] lib-genallocc-add-genpool-range-check-function.patch
+ removed from -mm tree
+Date: Mon, 13 Oct 2014 11:19:07 -0700
+Message-ID: <543c179b.teZ39HFmfWsMNLWo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60211 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60222 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754690AbaJMSTF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:05 -0400
+	with ESMTP id S1754690AbaJMSTH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 14:19:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lauraa@codeaurora.org, arnd@arndb.de, catalin.marinas@arm.com, davidriley@chromium.org, linux@arm.linux.org.uk, olof@lixom.net, ritesh.harjani@gmail.com, thierry.reding@gmail.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/genalloc.c: add power aligned algorithm
+     Subject: lib/genalloc.c: add genpool range check function
 has been removed from the -mm tree.  Its filename was
-     lib-genallocc-add-power-aligned-algorithm.patch
+     lib-genallocc-add-genpool-range-check-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Laura Abbott <lauraa@codeaurora.org>
-Subject: lib/genalloc.c: add power aligned algorithm
+Subject: lib/genalloc.c: add genpool range check function
 
-One of the more common algorithms used for allocation is to align the
-start address of the allocation to the order of size requested.  Add this
-as an algorithm option for genalloc.
+After allocating an address from a particular genpool, there is no good
+way to verify if that address actually belongs to a genpool.  Introduce
+addr_in_gen_pool which will return if an address plus size falls
+completely within the genpool range.
 
 Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
 Acked-by: Will Deacon <will.deacon@arm.com>
-Acked-by: Olof Johansson <olof@lixom.net>
+Reviewed-by: Olof Johansson <olof@lixom.net>
 Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: David Riley <davidriley@chromium.org>
@@ -44,54 +45,62 @@ Cc: Thierry Reding <thierry.reding@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genalloc.h |    4 ++++
- lib/genalloc.c           |   20 ++++++++++++++++++++
- 2 files changed, 24 insertions(+)
+ include/linux/genalloc.h |    3 +++
+ lib/genalloc.c           |   29 +++++++++++++++++++++++++++++
+ 2 files changed, 32 insertions(+)
 
-diff -puN include/linux/genalloc.h~lib-genallocc-add-power-aligned-algorithm include/linux/genalloc.h
---- a/include/linux/genalloc.h~lib-genallocc-add-power-aligned-algorithm
+diff -puN include/linux/genalloc.h~lib-genallocc-add-genpool-range-check-function include/linux/genalloc.h
+--- a/include/linux/genalloc.h~lib-genallocc-add-genpool-range-check-function
 +++ a/include/linux/genalloc.h
-@@ -110,6 +110,10 @@ extern void gen_pool_set_algo(struct gen
- extern unsigned long gen_pool_first_fit(unsigned long *map, unsigned long size,
- 		unsigned long start, unsigned int nr, void *data);
+@@ -121,6 +121,9 @@ extern struct gen_pool *devm_gen_pool_cr
+ 		int min_alloc_order, int nid);
+ extern struct gen_pool *dev_get_gen_pool(struct device *dev);
  
-+extern unsigned long gen_pool_first_fit_order_align(unsigned long *map,
-+		unsigned long size, unsigned long start, unsigned int nr,
-+		void *data);
++bool addr_in_gen_pool(struct gen_pool *pool, unsigned long start,
++			size_t size);
 +
- extern unsigned long gen_pool_best_fit(unsigned long *map, unsigned long size,
- 		unsigned long start, unsigned int nr, void *data);
- 
-diff -puN lib/genalloc.c~lib-genallocc-add-power-aligned-algorithm lib/genalloc.c
---- a/lib/genalloc.c~lib-genallocc-add-power-aligned-algorithm
+ #ifdef CONFIG_OF
+ extern struct gen_pool *of_get_named_gen_pool(struct device_node *np,
+ 	const char *propname, int index);
+diff -puN lib/genalloc.c~lib-genallocc-add-genpool-range-check-function lib/genalloc.c
+--- a/lib/genalloc.c~lib-genallocc-add-genpool-range-check-function
 +++ a/lib/genalloc.c
-@@ -481,6 +481,26 @@ unsigned long gen_pool_first_fit(unsigne
- EXPORT_SYMBOL(gen_pool_first_fit);
+@@ -403,6 +403,35 @@ void gen_pool_for_each_chunk(struct gen_
+ EXPORT_SYMBOL(gen_pool_for_each_chunk);
  
  /**
-+ * gen_pool_first_fit_order_align - find the first available region
-+ * of memory matching the size requirement. The region will be aligned
-+ * to the order of the size specified.
-+ * @map: The address to base the search on
-+ * @size: The bitmap size in bits
-+ * @start: The bitnumber to start searching at
-+ * @nr: The number of zeroed bits we're looking for
-+ * @data: additional data - unused
++ * addr_in_gen_pool - checks if an address falls within the range of a pool
++ * @pool:	the generic memory pool
++ * @start:	start address
++ * @size:	size of the region
++ *
++ * Check if the range of addresses falls within the specified pool. Returns
++ * true if the entire range is contained in the pool and false otherwise.
 + */
-+unsigned long gen_pool_first_fit_order_align(unsigned long *map,
-+		unsigned long size, unsigned long start,
-+		unsigned int nr, void *data)
++bool addr_in_gen_pool(struct gen_pool *pool, unsigned long start,
++			size_t size)
 +{
-+	unsigned long align_mask = roundup_pow_of_two(nr) - 1;
++	bool found = false;
++	unsigned long end = start + size;
++	struct gen_pool_chunk *chunk;
 +
-+	return bitmap_find_next_zero_area(map, size, start, nr, align_mask);
++	rcu_read_lock();
++	list_for_each_entry_rcu(chunk, &(pool)->chunks, next_chunk) {
++		if (start >= chunk->start_addr && start <= chunk->end_addr) {
++			if (end <= chunk->end_addr) {
++				found = true;
++				break;
++			}
++		}
++	}
++	rcu_read_unlock();
++	return found;
 +}
-+EXPORT_SYMBOL(gen_pool_first_fit_order_align);
 +
 +/**
-  * gen_pool_best_fit - find the best fitting region of memory
-  * macthing the size requirement (no alignment constraint)
-  * @map: The address to base the search on
+  * gen_pool_avail - get available free space of the pool
+  * @pool: pool to get available free space
+  *
 _
 
 Patches currently in -mm which might be from lauraa@codeaurora.org are
