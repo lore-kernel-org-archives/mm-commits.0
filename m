@@ -1,58 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-remove-debugging-message.patch removed from
+Subject: [merged] lib-rename-test_module-to-test_lkm.patch removed from
  -mm tree
-Date: Tue, 14 Oct 2014 11:19:35 -0700
-Message-ID: <543d6937.agP+o1fy6eZpljsx%akpm@linux-foundation.org>
+Date: Tue, 14 Oct 2014 11:19:31 -0700
+Message-ID: <543d6933.IrtRijvutd/z1Ozz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44151 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44145 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755448AbaJNSTd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:19:33 -0400
+	with ESMTP id S1755469AbaJNSTa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:19:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: valentinrothberg@gmail.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: remove debugging message
+     Subject: lib: rename TEST_MODULE to TEST_LKM
 has been removed from the -mm tree.  Its filename was
-     checkpatch-remove-debugging-message.patch
+     lib-rename-test_module-to-test_lkm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: remove debugging message
+From: Valentin Rothberg <valentinrothberg@gmail.com>
+Subject: lib: rename TEST_MODULE to TEST_LKM
 
-An unnecessary --fix debugging left-over is removed.
+The "_MODULE" suffix is reserved for tristates compiled as loadable kernel
+modules (LKM).  The "TEST_MODULE" feature thereby violates this
+convention.  The feature is used to compile the lib/test_module.c kernel
+module.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Sadly this convention is not made explicit, but the Kconfig code documents
+it.  The following code (./scripts/kconfig/confdata.c) is used to generate
+the autoconf.h header file during the build process.  When a feature is
+selected as a kernel module ('m'), it is suffixed with "_MODULE" to
+indicate it.  
+
+	switch (*value) {
+	case 'n':
+		break;
+	case 'm':
+		suffix = "_MODULE";
+		/* fall through */
+
+This causes problems for static code analysis, which assumes a consistent
+use of the "_MODULE" suffix.  
+
+This patch renames the feature and its reference in a Makefile to
+"TEST_LKM", which still expresses the test of a LKM.
+
+Signed-off-by: Valentin Rothberg <valentinrothberg@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 -
- 1 file changed, 1 deletion(-)
+ lib/Kconfig.debug |    2 +-
+ lib/Makefile      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-remove-debugging-message scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-remove-debugging-message
-+++ a/scripts/checkpatch.pl
-@@ -3752,7 +3752,6 @@ sub process {
- 			if (ERROR("SPACING",
- 				  "space prohibited before that close parenthesis ')'\n" . $herecurr) &&
- 			    $fix) {
--				print("fixlinenr: <$fixlinenr> fixed[fixlinenr]: <$fixed[$fixlinenr]>\n");
- 				$fixed[$fixlinenr] =~
- 				    s/\s+\)/\)/;
- 			}
+diff -puN lib/Kconfig.debug~lib-rename-test_module-to-test_lkm lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-rename-test_module-to-test_lkm
++++ a/lib/Kconfig.debug
+@@ -1648,7 +1648,7 @@ config DMA_API_DEBUG
+ 
+ 	  If unsure, say N.
+ 
+-config TEST_MODULE
++config TEST_LKM
+ 	tristate "Test module loading with 'hello world' module"
+ 	default n
+ 	depends on m
+diff -puN lib/Makefile~lib-rename-test_module-to-test_lkm lib/Makefile
+--- a/lib/Makefile~lib-rename-test_module-to-test_lkm
++++ a/lib/Makefile
+@@ -31,7 +31,7 @@ obj-y += string_helpers.o
+ obj-$(CONFIG_TEST_STRING_HELPERS) += test-string_helpers.o
+ obj-y += kstrtox.o
+ obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
+-obj-$(CONFIG_TEST_MODULE) += test_module.o
++obj-$(CONFIG_TEST_LKM) += test_module.o
+ obj-$(CONFIG_TEST_USER_COPY) += test_user_copy.o
+ obj-$(CONFIG_TEST_BPF) += test_bpf.o
+ obj-$(CONFIG_TEST_FIRMWARE) += test_firmware.o
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from valentinrothberg@gmail.com are
 
 origin.patch
-mm-utilc-add-kstrimdup.patch
-linux-next.patch
 
