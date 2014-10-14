@@ -1,57 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- bio-integrity-remove-the-needless-fail-handle-of-bip_slab-creating.patch
- removed from -mm tree
-Date: Tue, 14 Oct 2014 11:23:20 -0700
-Message-ID: <543d6a18.Gl/Txr2vhiCEDOa9%akpm@linux-foundation.org>
+Subject: +
+ cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch added to
+ -mm tree
+Date: Tue, 14 Oct 2014 12:41:04 -0700
+Message-ID: <543d7c50.LiaHpAW++wL/cJrc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44642 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45120 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755605AbaJNSXT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:23:19 -0400
+	with ESMTP id S1754840AbaJNTlF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 15:41:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guz.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: wangnan0@huawei.com, hannes@cmpxchg.org, mhocko@suse.cz, rostedt@goodmis.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bio-integrity: remove the needless fail handle of bip_slab creating
-has been removed from the -mm tree.  Its filename was
-     bio-integrity-remove-the-needless-fail-handle-of-bip_slab-creating.patch
+     Subject: cgroup/kmemleak: add kmemleak_free() for cgroup deallocations.
+has been added to the -mm tree.  Its filename is
+     cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: bio-integrity: remove the needless fail handle of bip_slab creating
+From: Wang Nan <wangnan0@huawei.com>
+Subject: cgroup/kmemleak: add kmemleak_free() for cgroup deallocations.
 
-bip_slab is created with SLAB_PANIC, so the fail handler is unneeded.
+Commit ff7ee93f4 ("cgroup/kmemleak: Annotate alloc_page() for cgroup
+allocations") introduces kmemleak_alloc() for alloc_page_cgroup(), but
+corresponding kmemleak_free() is missing, which makes kmemleak be wrongly
+disabled after memory offlining.  Log is pasted at the end of this commit
+message.
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+This patch add kmemleak_free() into free_page_cgroup().  During page
+offlining, this patch removes corresponding entries in kmemleak rbtree. 
+After that, the freed memory can be allocated again by other subsystems
+without killing kmemleak.
+
+bash # for x in 1 2 3 4; do echo offline > /sys/devices/system/memory/memory$x/state ; sleep 1; done ; dmesg | grep leak
+[   45.537934] Offlined Pages 32768
+[   46.617892] kmemleak: Cannot insert 0xffff880016969000 into the object search tree (overlaps existing)
+[   46.617892] CPU: 0 PID: 412 Comm: sleep Not tainted 3.17.0-rc5+ #86
+[   46.617892] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+[   46.617892]  ffff880016823d10 ffff880018bdfc38 ffffffff81725d2c ffff88001780e950
+[   46.617892]  ffff880016969000 ffff880018bdfc88 ffffffff8117a9e6 ffff880018bdfc78
+[   46.617892]  0000000000000096 ffff880017812800 ffffffff81c2eda0 ffff880016969000
+[   46.617892] Call Trace:
+[   46.617892]  [<ffffffff81725d2c>] dump_stack+0x46/0x58
+[   46.617892]  [<ffffffff8117a9e6>] create_object+0x266/0x2c0
+[   46.617892]  [<ffffffff8171d2f6>] kmemleak_alloc+0x26/0x50
+[   46.617892]  [<ffffffff8116a3a3>] kmem_cache_alloc+0xd3/0x160
+[   46.617892]  [<ffffffff81058e59>] __sigqueue_alloc+0x49/0xd0
+[   46.617892]  [<ffffffff8105a41b>] __send_signal+0xcb/0x410
+[   46.617892]  [<ffffffff8105a7a5>] send_signal+0x45/0x90
+[   46.617892]  [<ffffffff8105a803>] __group_send_sig_info+0x13/0x20
+[   46.617892]  [<ffffffff8105bd0b>] do_notify_parent+0x1bb/0x260
+[   46.617892]  [<ffffffff81077e7a>] ? sched_move_task+0xaa/0x130
+[   46.617892]  [<ffffffff81050917>] do_exit+0x767/0xa40
+[   46.617892]  [<ffffffff81050c84>] do_group_exit+0x44/0xa0
+[   46.617892]  [<ffffffff81050cf7>] SyS_exit_group+0x17/0x20
+[   46.617892]  [<ffffffff8172cd12>] system_call_fastpath+0x16/0x1b
+[   46.617892] kmemleak: Kernel memory leak detector disabled
+[   46.617892] kmemleak: Object 0xffff880016900000 (size 524288):
+[   46.617892] kmemleak:   comm "swapper/0", pid 0, jiffies 4294667296
+[   46.617892] kmemleak:   min_count = 0
+[   46.617892] kmemleak:   count = 0
+[   46.617892] kmemleak:   flags = 0x1
+[   46.617892] kmemleak:   checksum = 0
+[   46.617892] kmemleak:   backtrace:
+[   46.617892]      [<ffffffff81d0a7f0>] log_early+0x63/0x77
+[   46.617892]      [<ffffffff8171d31b>] kmemleak_alloc+0x4b/0x50
+[   46.617892]      [<ffffffff81720e4f>] init_section_page_cgroup+0x7f/0xf5
+[   46.617892]      [<ffffffff81d0a6f0>] page_cgroup_init+0xc5/0xd0
+[   46.617892]      [<ffffffff81ce4ed9>] start_kernel+0x333/0x408
+[   46.617892]      [<ffffffff81ce45b2>] x86_64_start_reservations+0x2a/0x2c
+[   46.617892]      [<ffffffff81ce46a9>] x86_64_start_kernel+0xf5/0xfc
+[   46.617892]      [<ffffffffffffffff>] 0xffffffffffffffff
+
+Fixes: ff7ee93f4 (cgroup/kmemleak: Annotate alloc_page() for cgroup allocations)
+Signed-off-by: Wang Nan <wangnan0@huawei.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: <stable@vger.kernel.org>	[3.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bio-integrity.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/page_cgroup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN block/bio-integrity.c~bio-integrity-remove-the-needless-fail-handle-of-bip_slab-creating block/bio-integrity.c
---- a/block/bio-integrity.c~bio-integrity-remove-the-needless-fail-handle-of-bip_slab-creating
-+++ a/block/bio-integrity.c
-@@ -646,6 +646,4 @@ void __init bio_integrity_init(void)
- 				     sizeof(struct bio_integrity_payload) +
- 				     sizeof(struct bio_vec) * BIP_INLINE_VECS,
- 				     0, SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL);
--	if (!bip_slab)
--		panic("Failed to create slab\n");
+diff -puN mm/page_cgroup.c~cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations mm/page_cgroup.c
+--- a/mm/page_cgroup.c~cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations
++++ a/mm/page_cgroup.c
+@@ -171,6 +171,7 @@ static void free_page_cgroup(void *addr)
+ 			sizeof(struct page_cgroup) * PAGES_PER_SECTION;
+ 
+ 		BUG_ON(PageReserved(page));
++		kmemleak_free(addr);
+ 		free_pages_exact(addr, table_size);
+ 	}
  }
 _
 
-Patches currently in -mm which might be from guz.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from wangnan0@huawei.com are
 
 origin.patch
-linux-next.patch
+cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
 
