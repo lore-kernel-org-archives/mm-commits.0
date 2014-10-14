@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [merged] altera-stapl-replace-strnicmp-with-strncasecmp.patch
- removed from -mm tree
-Date: Tue, 14 Oct 2014 11:22:26 -0700
-Message-ID: <543d69e2.VobA/Ly6apihAtK1%akpm@linux-foundation.org>
+Subject: [merged] ib_srpt-replace-strnicmp-with-strncasecmp.patch removed
+ from -mm tree
+Date: Tue, 14 Oct 2014 11:22:22 -0700
+Message-ID: <543d69de.QtwIGew4R2gKKAZF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44515 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44508 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755588AbaJNSWZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:22:25 -0400
+	with ESMTP id S1755584AbaJNSWV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:22:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, liplianin@netup.ru, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, nab@linux-iscsi.org, roland@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: altera-stapl: replace strnicmp with strncasecmp
+     Subject: ib_srpt: replace strnicmp with strncasecmp
 has been removed from the -mm tree.  Its filename was
-     altera-stapl-replace-strnicmp-with-strncasecmp.patch
+     ib_srpt-replace-strnicmp-with-strncasecmp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: altera-stapl: replace strnicmp with strncasecmp
+Subject: ib_srpt: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -39,34 +39,26 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: "Igor M. Liplianin" <liplianin@netup.ru>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/altera-stapl/altera.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/altera-stapl/altera.c~altera-stapl-replace-strnicmp-with-strncasecmp drivers/misc/altera-stapl/altera.c
---- a/drivers/misc/altera-stapl/altera.c~altera-stapl-replace-strnicmp-with-strncasecmp
-+++ a/drivers/misc/altera-stapl/altera.c
-@@ -454,7 +454,7 @@ exit_done:
+diff -puN drivers/infiniband/ulp/srpt/ib_srpt.c~ib_srpt-replace-strnicmp-with-strncasecmp drivers/infiniband/ulp/srpt/ib_srpt.c
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c~ib_srpt-replace-strnicmp-with-strncasecmp
++++ a/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -3574,7 +3574,7 @@ static int srpt_parse_i_port_id(u8 i_por
+ 	int ret, rc;
  
- 				name = &p[str_table + name_id];
- 
--				if (strnicmp(aconf->action, name, strlen(name)) == 0) {
-+				if (strncasecmp(aconf->action, name, strlen(name)) == 0) {
- 					action_found = 1;
- 					current_proc =
- 						get_unaligned_be32(&p[action_table +
-@@ -2176,7 +2176,7 @@ static int altera_get_note(u8 *p, s32 pr
- 			key_ptr = &p[note_strings +
- 					get_unaligned_be32(
- 					&p[note_table + (8 * i)])];
--			if ((strnicmp(key, key_ptr, strlen(key_ptr)) == 0) &&
-+			if ((strncasecmp(key, key_ptr, strlen(key_ptr)) == 0) &&
- 						(key != NULL)) {
- 				status = 0;
- 
+ 	p = name;
+-	if (strnicmp(p, "0x", 2) == 0)
++	if (strncasecmp(p, "0x", 2) == 0)
+ 		p += 2;
+ 	ret = -EINVAL;
+ 	len = strlen(p);
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
