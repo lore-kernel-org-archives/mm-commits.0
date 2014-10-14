@@ -1,93 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-rename-test_module-to-test_lkm.patch removed from
- -mm tree
-Date: Tue, 14 Oct 2014 11:19:31 -0700
-Message-ID: <543d6933.IrtRijvutd/z1Ozz%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-fix-spello.patch removed from -mm tree
+Date: Tue, 14 Oct 2014 11:19:33 -0700
+Message-ID: <543d6935.YrEZ2IJbdruJl98/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44145 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44148 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755469AbaJNSTa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:19:30 -0400
+	with ESMTP id S1755448AbaJNSTb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:19:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: valentinrothberg@gmail.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: rename TEST_MODULE to TEST_LKM
+     Subject: checkpatch: fix spello
 has been removed from the -mm tree.  Its filename was
-     lib-rename-test_module-to-test_lkm.patch
+     checkpatch-fix-spello.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Valentin Rothberg <valentinrothberg@gmail.com>
-Subject: lib: rename TEST_MODULE to TEST_LKM
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: checkpatch: fix spello
 
-The "_MODULE" suffix is reserved for tristates compiled as loadable kernel
-modules (LKM).  The "TEST_MODULE" feature thereby violates this
-convention.  The feature is used to compile the lib/test_module.c kernel
-module.
+The plural of parenthesis is parentheses.
 
-Sadly this convention is not made explicit, but the Kconfig code documents
-it.  The following code (./scripts/kconfig/confdata.c) is used to generate
-the autoconf.h header file during the build process.  When a feature is
-selected as a kernel module ('m'), it is suffixed with "_MODULE" to
-indicate it.  
-
-	switch (*value) {
-	case 'n':
-		break;
-	case 'm':
-		suffix = "_MODULE";
-		/* fall through */
-
-This causes problems for static code analysis, which assumes a consistent
-use of the "_MODULE" suffix.  
-
-This patch renames the feature and its reference in a Makefile to
-"TEST_LKM", which still expresses the test of a LKM.
-
-Signed-off-by: Valentin Rothberg <valentinrothberg@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
- lib/Makefile      |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.debug~lib-rename-test_module-to-test_lkm lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-rename-test_module-to-test_lkm
-+++ a/lib/Kconfig.debug
-@@ -1648,7 +1648,7 @@ config DMA_API_DEBUG
+diff -puN scripts/checkpatch.pl~checkpatch-fix-spello scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-spello
++++ a/scripts/checkpatch.pl
+@@ -4126,7 +4126,7 @@ sub process {
+ 					      "Macros with multiple statements should be enclosed in a do - while loop\n" . "$herectx");
+ 				} else {
+ 					ERROR("COMPLEX_MACRO",
+-					      "Macros with complex values should be enclosed in parenthesis\n" . "$herectx");
++					      "Macros with complex values should be enclosed in parentheses\n" . "$herectx");
+ 				}
+ 			}
  
- 	  If unsure, say N.
- 
--config TEST_MODULE
-+config TEST_LKM
- 	tristate "Test module loading with 'hello world' module"
- 	default n
- 	depends on m
-diff -puN lib/Makefile~lib-rename-test_module-to-test_lkm lib/Makefile
---- a/lib/Makefile~lib-rename-test_module-to-test_lkm
-+++ a/lib/Makefile
-@@ -31,7 +31,7 @@ obj-y += string_helpers.o
- obj-$(CONFIG_TEST_STRING_HELPERS) += test-string_helpers.o
- obj-y += kstrtox.o
- obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
--obj-$(CONFIG_TEST_MODULE) += test_module.o
-+obj-$(CONFIG_TEST_LKM) += test_module.o
- obj-$(CONFIG_TEST_USER_COPY) += test_user_copy.o
- obj-$(CONFIG_TEST_BPF) += test_bpf.o
- obj-$(CONFIG_TEST_FIRMWARE) += test_firmware.o
 _
 
-Patches currently in -mm which might be from valentinrothberg@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
+mm.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
