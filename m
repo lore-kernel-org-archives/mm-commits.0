@@ -1,91 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Tue, 14 Oct 2014 11:17:05 -0700
-Message-ID: <543d68a1.v7qydQE838Y8kTWs%akpm@linux-foundation.org>
+Subject: [merged] mm-slab-fix-unaligned-access-on-sparc64.patch removed
+ from -mm tree
+Date: Tue, 14 Oct 2014 11:18:54 -0700
+Message-ID: <543d690e.plHf48tXTslG3ouB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44070 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44074 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753241AbaJNSRF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:17:05 -0400
+	with ESMTP id S1753241AbaJNSSy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:18:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, cl@linux.com, davem@davemloft.net, mroos@linux.ee, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: mm/slab: fix unaligned access on sparc64
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     mm-slab-fix-unaligned-access-on-sparc64.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/slab: fix unaligned access on sparc64
 
+commit bf0dea23a9c0 ("mm/slab: use percpu allocator for cpu cache")
+changes allocation method for cpu cache array from slab allocator to
+percpu allocator.  Alignment should be provided for aligned memory in
+percpu allocator case, but, that commit mistakenly set this alignment to
+0.  So, percpu allocator returns unaligned memory address.  It doesn't
+cause any problem on x86 which permits unaligned access, but, it causes
+the problem on sparc64 which needs strong guarantee of alignment.
+
+Following bug report is reported from David Miller.
+
+  I'm getting tons of the following on sparc64:
+
+  [603965.383447] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603965.396987] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
+  [603965.410523] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603965.424061] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
+  [603965.437617] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603970.554394] log_unaligned: 333 callbacks suppressed
+  [603970.564041] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603970.577576] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
+  [603970.591122] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603970.604669] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
+  [603970.618216] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
+  [603976.515633] log_unaligned: 31 callbacks suppressed
+  snip...
+
+This patch provides proper alignment parameter when allocating cpu cache
+to fix this unaligned memory access problem on sparc64.
+
+Reported-by: David Miller <davem@davemloft.net>
+Tested-by: David Miller <davem@davemloft.net>
+Tested-by: Meelis Roos <mroos@linux.ee>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clk/Kconfig |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm64/mm/dma-mapping.c~linux-next-rejects arch/arm64/mm/dma-mapping.c
-diff -puN drivers/clk/Kconfig~linux-next-rejects drivers/clk/Kconfig
---- a/drivers/clk/Kconfig~linux-next-rejects
-+++ a/drivers/clk/Kconfig
-@@ -32,12 +32,23 @@ config COMMON_CLK_WM831X
+diff -puN mm/slab.c~mm-slab-fix-unaligned-access-on-sparc64 mm/slab.c
+--- a/mm/slab.c~mm-slab-fix-unaligned-access-on-sparc64
++++ a/mm/slab.c
+@@ -1992,7 +1992,7 @@ static struct array_cache __percpu *allo
+ 	struct array_cache __percpu *cpu_cache;
  
- source "drivers/clk/versatile/Kconfig"
+ 	size = sizeof(void *) * entries + sizeof(struct array_cache);
+-	cpu_cache = __alloc_percpu(size, 0);
++	cpu_cache = __alloc_percpu(size, sizeof(void *));
  
-+config COMMON_CLK_MAX_GEN
-+	bool
-+
- config COMMON_CLK_MAX77686
- 	tristate "Clock driver for Maxim 77686 MFD"
- 	depends on MFD_MAX77686
-+	select COMMON_CLK_MAX_GEN
- 	---help---
- 	  This driver supports Maxim 77686 crystal oscillator clock. 
- 
-+config COMMON_CLK_MAX77802
-+	tristate "Clock driver for Maxim 77802 PMIC"
-+	depends on MFD_MAX77686
-+	select COMMON_CLK_MAX_GEN
-+	---help---
-+	  This driver supports Maxim 77802 crystal oscillator clock.
-+
- config COMMON_CLK_RK808
- 	tristate "Clock driver for RK808"
- 	depends on MFD_RK808
+ 	if (!cpu_cache)
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
-mm.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
