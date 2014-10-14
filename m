@@ -1,64 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix.patch removed from -mm tree
-Date: Mon, 13 Oct 2014 15:44:27 -0700
-Message-ID: <543c55cb.6dwxyBK+1bi1/Ydp%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Tue, 14 Oct 2014 11:17:05 -0700
+Message-ID: <543d68a1.v7qydQE838Y8kTWs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44070 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753678AbaJMWo1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Oct 2014 18:44:27 -0400
+	with ESMTP id S1753241AbaJNSRF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:17:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pfeiner@google.com, bhelgaas@google.com, gorcunov@openvz.org, hughd@google.com, jamieliu@google.com, n-horiguchi@ah.jp.nec.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix
+     Subject: linux-next-rejects
 has been removed from the -mm tree.  Its filename was
-     mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix.patch
+     linux-next-rejects.patch
 
-This patch was dropped because it was folded into mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Peter Feiner <pfeiner@google.com>
-Subject: mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-For completeness of the arch-independent pgprot-modify,
-
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jamie Liu <jamieliu@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Peter Feiner <pfeiner@google.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/clk/Kconfig |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN include/asm-generic/pgtable.h~mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared-fix
-+++ a/include/asm-generic/pgtable.h
-@@ -261,6 +261,8 @@ static inline pgprot_t pgprot_modify(pgp
- 		newprot = pgprot_noncached(newprot);
- 	if (pgprot_val(oldprot) == pgprot_val(pgprot_writecombine(oldprot)))
- 		newprot = pgprot_writecombine(newprot);
-+	if (pgprot_val(oldprot) == pgprot_val(pgprot_device(oldprot)))
-+		newprot = pgprot_device(newprot);
- 	return newprot;
- }
- #endif
+diff -puN arch/arm64/mm/dma-mapping.c~linux-next-rejects arch/arm64/mm/dma-mapping.c
+diff -puN drivers/clk/Kconfig~linux-next-rejects drivers/clk/Kconfig
+--- a/drivers/clk/Kconfig~linux-next-rejects
++++ a/drivers/clk/Kconfig
+@@ -32,12 +32,23 @@ config COMMON_CLK_WM831X
+ 
+ source "drivers/clk/versatile/Kconfig"
+ 
++config COMMON_CLK_MAX_GEN
++	bool
++
+ config COMMON_CLK_MAX77686
+ 	tristate "Clock driver for Maxim 77686 MFD"
+ 	depends on MFD_MAX77686
++	select COMMON_CLK_MAX_GEN
+ 	---help---
+ 	  This driver supports Maxim 77686 crystal oscillator clock. 
+ 
++config COMMON_CLK_MAX77802
++	tristate "Clock driver for Maxim 77802 PMIC"
++	depends on MFD_MAX77686
++	select COMMON_CLK_MAX_GEN
++	---help---
++	  This driver supports Maxim 77802 crystal oscillator clock.
++
+ config COMMON_CLK_RK808
+ 	tristate "Clock driver for RK808"
+ 	depends on MFD_RK808
 _
 
-Patches currently in -mm which might be from pfeiner@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-softdirty-enable-write-notifications-on-vmas-after-vm_softdirty-cleared.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
+mm.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
