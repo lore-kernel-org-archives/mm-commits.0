@@ -1,92 +1,185 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- rtc-cmos-fix-wakeup-from-s5-without-config_pm_sleep.patch removed from -mm
- tree
-Date: Tue, 14 Oct 2014 11:20:58 -0700
-Message-ID: <543d698a.1hs7rYWHbyZmqOBN%akpm@linux-foundation.org>
+ nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch removed from
+ -mm tree
+Date: Tue, 14 Oct 2014 11:21:02 -0700
+Message-ID: <543d698e.gFUiN4ntoE1WP4Ea%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44361 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44369 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754840AbaJNSU5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:57 -0400
+	with ESMTP id S1754840AbaJNSVB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:21:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel-gl@gmx.net, a.zummo@towertech.it, mika.westerberg@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-cmos: fix wakeup from S5 without CONFIG_PM_SLEEP
+     Subject: nilfs2: add missing blkdev_issue_flush() to nilfs_sync_fs()
 has been removed from the -mm tree.  Its filename was
-     rtc-cmos-fix-wakeup-from-s5-without-config_pm_sleep.patch
+     nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Daniel Gl=F6ckner <daniel-gl@gmx.net>
-Subject: rtc-cmos: fix wakeup from S5 without CONFIG_PM_SLEEP
+From: Andreas Rohner <andreas.rohner@gmx.net>
+Subject: nilfs2: add missing blkdev_issue_flush() to nilfs_sync_fs()
 
-b5ada4600d ("drivers/rtc/rtc-cmos.c: fix compilation warning when
-!CONFIG_PM_SLEEP") broke wakeup from S5 by making cmos_poweroff a nop
-unless CONFIG_PM_SLEEP was defined.  Fix this by restricting the #ifdef=
- to
-cmos_resume and restoring the old dependency on CONFIG_PM for cmos_susp=
-end
-and cmos_poweroff.
+Under normal circumstances nilfs_sync_fs() writes out the super block,
+which causes a flush of the underlying block device.  But this depends on
+the THE_NILFS_SB_DIRTY flag, which is only set if the pointer to the last
+segment crosses a segment boundary.  So if only a small amount of data is
+written before the call to nilfs_sync_fs(), no flush of the block device
+occurs.
 
-Signed-off-by: Daniel Gl=F6ckner <daniel-gl@gmx.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: <stable@vger.kernel.org>
+In the above case an additional call to blkdev_issue_flush() is needed. 
+To prevent unnecessary overhead, the new flag nilfs->ns_flushed_device is
+introduced, which is cleared whenever new logs are written and set
+whenever the block device is flushed.  For convenience the function
+nilfs_flush_device() is added, which contains the above logic.
+
+Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/nilfs2/file.c      |    8 +++-----
+ fs/nilfs2/ioctl.c     |    8 +++-----
+ fs/nilfs2/segment.c   |    3 +++
+ fs/nilfs2/super.c     |    6 ++++++
+ fs/nilfs2/the_nilfs.h |   22 ++++++++++++++++++++++
+ 5 files changed, 37 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-fix-wakeup-from-s5-without-co=
-nfig_pm_sleep drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-fix-wakeup-from-s5-without-config=
-_pm_sleep
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -856,7 +856,7 @@ static void __exit cmos_do_remove(struct
- 	cmos->dev =3D NULL;
- }
-=20
--#ifdef	CONFIG_PM_SLEEP
-+#ifdef CONFIG_PM
-=20
- static int cmos_suspend(struct device *dev)
- {
-@@ -907,6 +907,8 @@ static inline int cmos_poweroff(struct d
- 	return cmos_suspend(dev);
- }
-=20
-+#ifdef	CONFIG_PM_SLEEP
+diff -puN fs/nilfs2/file.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/file.c
+--- a/fs/nilfs2/file.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
++++ a/fs/nilfs2/file.c
+@@ -56,11 +56,9 @@ int nilfs_sync_file(struct file *file, l
+ 	mutex_unlock(&inode->i_mutex);
+ 
+ 	nilfs = inode->i_sb->s_fs_info;
+-	if (!err && nilfs_test_opt(nilfs, BARRIER)) {
+-		err = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
+-		if (err != -EIO)
+-			err = 0;
+-	}
++	if (!err)
++		err = nilfs_flush_device(nilfs);
 +
- static int cmos_resume(struct device *dev)
- {
- 	struct cmos_rtc	*cmos =3D dev_get_drvdata(dev);
-@@ -954,6 +956,7 @@ static int cmos_resume(struct device *de
- 	return 0;
+ 	return err;
  }
-=20
-+#endif
- #else
-=20
- static inline int cmos_poweroff(struct device *dev)
+ 
+diff -puN fs/nilfs2/ioctl.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
++++ a/fs/nilfs2/ioctl.c
+@@ -1022,11 +1022,9 @@ static int nilfs_ioctl_sync(struct inode
+ 		return ret;
+ 
+ 	nilfs = inode->i_sb->s_fs_info;
+-	if (nilfs_test_opt(nilfs, BARRIER)) {
+-		ret = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
+-		if (ret == -EIO)
+-			return ret;
+-	}
++	ret = nilfs_flush_device(nilfs);
++	if (ret < 0)
++		return ret;
+ 
+ 	if (argp != NULL) {
+ 		down_read(&nilfs->ns_segctor_sem);
+diff -puN fs/nilfs2/segment.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
++++ a/fs/nilfs2/segment.c
+@@ -1833,6 +1833,7 @@ static void nilfs_segctor_complete_write
+ 	nilfs_set_next_segment(nilfs, segbuf);
+ 
+ 	if (update_sr) {
++		nilfs->ns_flushed_device = 0;
+ 		nilfs_set_last_segment(nilfs, segbuf->sb_pseg_start,
+ 				       segbuf->sb_sum.seg_seq, nilfs->ns_cno++);
+ 
+@@ -2216,6 +2217,8 @@ int nilfs_construct_dsync_segment(struct
+ 	sci->sc_dsync_end = end;
+ 
+ 	err = nilfs_segctor_do_construct(sci, SC_LSEG_DSYNC);
++	if (!err)
++		nilfs->ns_flushed_device = 0;
+ 
+ 	nilfs_transaction_unlock(sb);
+ 	return err;
+diff -puN fs/nilfs2/super.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
++++ a/fs/nilfs2/super.c
+@@ -310,6 +310,9 @@ int nilfs_commit_super(struct super_bloc
+ 					    nilfs->ns_sbsize));
+ 	}
+ 	clear_nilfs_sb_dirty(nilfs);
++	nilfs->ns_flushed_device = 1;
++	/* make sure store to ns_flushed_device cannot be reordered */
++	smp_wmb();
+ 	return nilfs_sync_super(sb, flag);
+ }
+ 
+@@ -514,6 +517,9 @@ static int nilfs_sync_fs(struct super_bl
+ 	}
+ 	up_write(&nilfs->ns_sem);
+ 
++	if (!err)
++		err = nilfs_flush_device(nilfs);
++
+ 	return err;
+ }
+ 
+diff -puN fs/nilfs2/the_nilfs.h~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/the_nilfs.h
+--- a/fs/nilfs2/the_nilfs.h~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
++++ a/fs/nilfs2/the_nilfs.h
+@@ -46,6 +46,7 @@ enum {
+ /**
+  * struct the_nilfs - struct to supervise multiple nilfs mount points
+  * @ns_flags: flags
++ * @ns_flushed_device: flag indicating if all volatile data was flushed
+  * @ns_bdev: block device
+  * @ns_sem: semaphore for shared states
+  * @ns_snapshot_mount_mutex: mutex to protect snapshot mounts
+@@ -103,6 +104,7 @@ enum {
+  */
+ struct the_nilfs {
+ 	unsigned long		ns_flags;
++	int			ns_flushed_device;
+ 
+ 	struct block_device    *ns_bdev;
+ 	struct rw_semaphore	ns_sem;
+@@ -371,4 +373,24 @@ static inline int nilfs_segment_is_activ
+ 	return n == nilfs->ns_segnum || n == nilfs->ns_nextnum;
+ }
+ 
++static inline int nilfs_flush_device(struct the_nilfs *nilfs)
++{
++	int err;
++
++	if (!nilfs_test_opt(nilfs, BARRIER) || nilfs->ns_flushed_device)
++		return 0;
++
++	nilfs->ns_flushed_device = 1;
++	/*
++	 * the store to ns_flushed_device must not be reordered after
++	 * blkdev_issue_flush().
++	 */
++	smp_wmb();
++
++	err = blkdev_issue_flush(nilfs->ns_bdev, GFP_KERNEL, NULL);
++	if (err != -EIO)
++		err = 0;
++	return err;
++}
++
+ #endif /* _THE_NILFS_H */
 _
 
-Patches currently in -mm which might be from daniel-gl@gmx.net are
+Patches currently in -mm which might be from andreas.rohner@gmx.net are
 
 origin.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
