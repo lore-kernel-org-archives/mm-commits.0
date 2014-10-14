@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-avoid-premature-range-skip-in-isolate_migratepages_range.patch added to -mm tree
-Date: Tue, 14 Oct 2014 13:53:44 -0700
-Message-ID: <543d8d58.g9K7YpzF5ZOXeQqj%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-lockless-page-counters-fix-fix.patch added to -mm tree
+Date: Tue, 14 Oct 2014 14:03:12 -0700
+Message-ID: <543d8f90.mC/MhoJws/PeQ+Eh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45542 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45569 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750971AbaJNUxp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 16:53:45 -0400
+	with ESMTP id S1751162AbaJNVDM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 17:03:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, cl@linux.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction.c: avoid premature range skip in isolate_migratepages_range
+     Subject: [patch] mm-memcontrol-lockless-page-counters-fix
 has been added to the -mm tree.  Its filename is
-     mm-compaction-avoid-premature-range-skip-in-isolate_migratepages_range.patch
+     mm-memcontrol-lockless-page-counters-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-avoid-premature-range-skip-in-isolate_migratepages_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-lockless-page-counters-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-avoid-premature-range-skip-in-isolate_migratepages_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-lockless-page-counters-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +38,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/compaction.c: avoid premature range skip in isolate_migratepages_range
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [patch] mm-memcontrol-lockless-page-counters-fix
 
-commit edc2ca612496 ("mm, compaction: move pageblock checks up from
-isolate_migratepages_range()") commonizes isolate_migratepages variants
-and make them use isolate_migratepages_block().
+add includes for WARN_ON_ONCE, memparse, strncmp, and PAGE_SIZE
 
-isolate_migratepages_block() could stop the execution when enough pages
-are isolated, but, there is no code in isolate_migratepages_range() to
-handle this case.  In the result, even if isolate_migratepages_block()
-returns prematurely without checking all pages in the range,
-
-isolate_migratepages_block() is called repeately on the following
-pageblock and some pages in the previous range are skipped to check.
-Then, CMA is failed frequently due to this fact.
-
-To fix this problem, this patch let isolate_migratepages_range() know the
-situation that enough pages are isolated and stop the isolation in that
-case.
-
-Note that isolate_migratepages() has no such problem, because, it always
-stops the isolation after just one call of isolate_migratepages_block().
-
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page_counter.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-avoid-premature-range-skip-in-isolate_migratepages_range mm/compaction.c
---- a/mm/compaction.c~mm-compaction-avoid-premature-range-skip-in-isolate_migratepages_range
-+++ a/mm/compaction.c
-@@ -784,6 +784,9 @@ isolate_migratepages_range(struct compac
- 			cc->nr_migratepages = 0;
- 			break;
- 		}
-+
-+		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
-+			break;
- 	}
- 	acct_isolated(cc->zone, cc);
+diff -puN mm/page_counter.c~mm-memcontrol-lockless-page-counters-fix-fix mm/page_counter.c
+--- a/mm/page_counter.c~mm-memcontrol-lockless-page-counters-fix-fix
++++ a/mm/page_counter.c
+@@ -4,11 +4,13 @@
+  * Copyright (C) 2014 Red Hat, Inc., Johannes Weiner
+  */
  
+-#include <linux/kernel.h>
+-#include <linux/bug.h>
+ #include <linux/page_counter.h>
+ #include <linux/atomic.h>
++#include <linux/kernel.h>
++#include <linux/string.h>
+ #include <linux/sched.h>
++#include <linux/bug.h>
++#include <asm/page.h>
+ 
+ /**
+  * page_counter_cancel - take pages out of the local counter
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-compaction-avoid-premature-range-skip-in-isolate_migratepages_range.patch
-zsmalloc-merge-size_class-to-reduce-fragmentation.patch
-page-owners-correct-page-order-when-to-free-page.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
+mm.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
