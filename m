@@ -1,95 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-allow-optional-shorter-config-descriptions.patch removed from
- -mm tree
-Date: Tue, 14 Oct 2014 11:19:41 -0700
-Message-ID: <543d693d.HuyvSzfOvtGM0wsX%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-add-exception-to-return-then-else-test.patch
+ removed from -mm tree
+Date: Tue, 14 Oct 2014 11:19:51 -0700
+Message-ID: <543d6947.Sv2+viySM7yoZXQc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44160 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44174 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755448AbaJNSTk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:19:40 -0400
+	with ESMTP id S1754278AbaJNSTu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:19:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbendeb@chromium.org, joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, elshadimo@gmail.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: allow optional shorter config descriptions
+     Subject: checkpatch: add exception to return then else test
 has been removed from the -mm tree.  Its filename was
-     checkpatch-allow-optional-shorter-config-descriptions.patch
+     checkpatch-add-exception-to-return-then-else-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vadim Bendebury <vbendeb@chromium.org>
-Subject: checkpatch: allow optional shorter config descriptions
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add exception to return then else test
 
-This script is used by many other projects, and in some of them the
-requirement of at least 4 line long description for all Kconfig items is
-excessive.  This patch adds a command line option to control the required
-minimum length.
+Add an exception to the return before else warning
+when the line following it is also a return like:
 
-Tested running this script over a patch including a two line config
-description.  The script generated a warning when invoked as is, and did
-not generate it when invoked with --min-conf-desc-length=2.
+	if (foo)
+		return bar;
+	else
+		return baz;
 
-Signed-off-by: Vadim Bendebury <vbendeb@chromium.org>
-Acked-by: Joe Perches <joe@perches.com>
+This form of a test then return is at least as readable as
+
+	if (foo)
+		return bar;
+	return baz;
+
+so don't emit a warning on the first form.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Elshad Mustafayev <elshadimo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-optional-shorter-config-descriptions scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-optional-shorter-config-descriptions
+diff -puN scripts/checkpatch.pl~checkpatch-add-exception-to-return-then-else-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-exception-to-return-then-else-test
 +++ a/scripts/checkpatch.pl
-@@ -43,6 +43,7 @@ my $configuration_file = ".checkpatch.co
- my $max_line_length = 80;
- my $ignore_perl_version = 0;
- my $minimum_perl_version = 5.10.0;
-+my $min_conf_desc_length = 4;
+@@ -2641,10 +2641,14 @@ sub process {
+ 		next if ($realfile !~ /\.(h|c)$/);
  
- sub help {
- 	my ($exitcode) = @_;
-@@ -63,6 +64,7 @@ Options:
-   --types TYPE(,TYPE2...)    show only these comma separated message types
-   --ignore TYPE(,TYPE2...)   ignore various comma separated message types
-   --max-line-length=n        set the maximum line length, if exceeded, warn
-+  --min-conf-desc-length=n   set the min description length, if shorter, warn
-   --show-types               show the message "types" in the output
-   --root=PATH                PATH to the kernel tree root
-   --no-summary               suppress the per-file summary
-@@ -131,6 +133,7 @@ GetOptions(
- 	'types=s'	=> \@use,
- 	'show-types!'	=> \$show_types,
- 	'max-line-length=i' => \$max_line_length,
-+	'min-conf-desc-length=i' => \$min_conf_desc_length,
- 	'root=s'	=> \$root,
- 	'summary!'	=> \$summary,
- 	'mailback!'	=> \$mailback,
-@@ -2285,8 +2288,10 @@ sub process {
- 				}
- 				$length++;
+ # check indentation of any line with a bare else
++# (but not if it is a multiple line "if (foo) return bar; else return baz;")
+ # if the previous line is a break or return and is indented 1 tab more...
+ 		if ($sline =~ /^\+([\t]+)(?:}[ \t]*)?else(?:[ \t]*{)?\s*$/) {
+ 			my $tabs = length($1) + 1;
+-			if ($prevline =~ /^\+\t{$tabs,$tabs}(?:break|return)\b/) {
++			if ($prevline =~ /^\+\t{$tabs,$tabs}break\b/ ||
++			    ($prevline =~ /^\+\t{$tabs,$tabs}return\b/ &&
++			     defined $lines[$linenr] &&
++			     $lines[$linenr] !~ /^[ \+]\t{$tabs,$tabs}return/)) {
+ 				WARN("UNNECESSARY_ELSE",
+ 				     "else is not generally useful after a break or return\n" . $hereprev);
  			}
--			WARN("CONFIG_DESCRIPTION",
--			     "please write a paragraph that describes the config symbol fully\n" . $herecurr) if ($is_start && $is_end && $length < 4);
-+			if ($is_start && $is_end && $length < $min_conf_desc_length) {
-+				WARN("CONFIG_DESCRIPTION",
-+				     "please write a paragraph that describes the config symbol fully\n" . $herecurr);
-+			}
- 			#print "is_start<$is_start> is_end<$is_end> length<$length>\n";
- 		}
- 
 _
 
-Patches currently in -mm which might be from vbendeb@chromium.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
 
