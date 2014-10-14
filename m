@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-lockless-page-counters-fix-fix.patch added to -mm tree
-Date: Tue, 14 Oct 2014 14:03:12 -0700
-Message-ID: <543d8f90.mC/MhoJws/PeQ+Eh%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-convert-boot-printks-without-log-level-to-pr_info.patch added to -mm tree
+Date: Tue, 14 Oct 2014 14:11:38 -0700
+Message-ID: <543d918a.lk2Hqwysuivgl8Bz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45569 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45696 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162AbaJNVDM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 17:03:12 -0400
+	with ESMTP id S1756046AbaJNVLi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 17:11:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: anton@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [patch] mm-memcontrol-lockless-page-counters-fix
+     Subject: mm/page_alloc.c: convert boot printks without log level to pr_info
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-lockless-page-counters-fix-fix.patch
+     mm-page_alloc-convert-boot-printks-without-log-level-to-pr_info.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-lockless-page-counters-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-convert-boot-printks-without-log-level-to-pr_info.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-lockless-page-counters-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-convert-boot-printks-without-log-level-to-pr_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,64 +39,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch] mm-memcontrol-lockless-page-counters-fix
+From: Anton Blanchard <anton@samba.org>
+Subject: mm/page_alloc.c: convert boot printks without log level to pr_info
 
-add includes for WARN_ON_ONCE, memparse, strncmp, and PAGE_SIZE
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Anton Blanchard <anton@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_counter.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN mm/page_counter.c~mm-memcontrol-lockless-page-counters-fix-fix mm/page_counter.c
---- a/mm/page_counter.c~mm-memcontrol-lockless-page-counters-fix-fix
-+++ a/mm/page_counter.c
-@@ -4,11 +4,13 @@
-  * Copyright (C) 2014 Red Hat, Inc., Johannes Weiner
-  */
+diff -puN mm/page_alloc.c~mm-page_alloc-convert-boot-printks-without-log-level-to-pr_info mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-convert-boot-printks-without-log-level-to-pr_info
++++ a/mm/page_alloc.c
+@@ -3894,14 +3894,14 @@ void __ref build_all_zonelists(pg_data_t
+ 	else
+ 		page_group_by_mobility_disabled = 0;
  
--#include <linux/kernel.h>
--#include <linux/bug.h>
- #include <linux/page_counter.h>
- #include <linux/atomic.h>
-+#include <linux/kernel.h>
-+#include <linux/string.h>
- #include <linux/sched.h>
-+#include <linux/bug.h>
-+#include <asm/page.h>
+-	printk("Built %i zonelists in %s order, mobility grouping %s.  "
++	pr_info("Built %i zonelists in %s order, mobility grouping %s.  "
+ 		"Total pages: %ld\n",
+ 			nr_online_nodes,
+ 			zonelist_order_name[current_zonelist_order],
+ 			page_group_by_mobility_disabled ? "off" : "on",
+ 			vm_total_pages);
+ #ifdef CONFIG_NUMA
+-	printk("Policy zone: %s\n", zone_names[policy_zone]);
++	pr_info("Policy zone: %s\n", zone_names[policy_zone]);
+ #endif
+ }
  
- /**
-  * page_counter_cancel - take pages out of the local counter
+@@ -5335,33 +5335,33 @@ void __init free_area_init_nodes(unsigne
+ 	find_zone_movable_pfns_for_nodes();
+ 
+ 	/* Print out the zone ranges */
+-	printk("Zone ranges:\n");
++	pr_info("Zone ranges:\n");
+ 	for (i = 0; i < MAX_NR_ZONES; i++) {
+ 		if (i == ZONE_MOVABLE)
+ 			continue;
+-		printk(KERN_CONT "  %-8s ", zone_names[i]);
++		pr_info("  %-8s ", zone_names[i]);
+ 		if (arch_zone_lowest_possible_pfn[i] ==
+ 				arch_zone_highest_possible_pfn[i])
+-			printk(KERN_CONT "empty\n");
++			pr_cont("empty\n");
+ 		else
+-			printk(KERN_CONT "[mem %0#10lx-%0#10lx]\n",
++			pr_cont("[mem %0#10lx-%0#10lx]\n",
+ 				arch_zone_lowest_possible_pfn[i] << PAGE_SHIFT,
+ 				(arch_zone_highest_possible_pfn[i]
+ 					<< PAGE_SHIFT) - 1);
+ 	}
+ 
+ 	/* Print out the PFNs ZONE_MOVABLE begins at in each node */
+-	printk("Movable zone start for each node\n");
++	pr_info("Movable zone start for each node\n");
+ 	for (i = 0; i < MAX_NUMNODES; i++) {
+ 		if (zone_movable_pfn[i])
+-			printk("  Node %d: %#010lx\n", i,
++			pr_info("  Node %d: %#010lx\n", i,
+ 			       zone_movable_pfn[i] << PAGE_SHIFT);
+ 	}
+ 
+ 	/* Print out the early node map */
+-	printk("Early memory node ranges\n");
++	pr_info("Early memory node ranges\n");
+ 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
+-		printk("  node %3d: [mem %#010lx-%#010lx]\n", nid,
++		pr_info("  node %3d: [mem %#010lx-%#010lx]\n", nid,
+ 		       start_pfn << PAGE_SHIFT, (end_pfn << PAGE_SHIFT) - 1);
+ 
+ 	/* Initialise every node */
+@@ -5497,7 +5497,7 @@ void __init mem_init_print_info(const ch
+ 
+ #undef	adj_init_size
+ 
+-	printk("Memory: %luK/%luK available "
++	pr_info("Memory: %luK/%luK available "
+ 	       "(%luK kernel code, %luK rwdata, %luK rodata, "
+ 	       "%luK init, %luK bss, %luK reserved"
+ #ifdef	CONFIG_HIGHMEM
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from anton@samba.org are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans-fix.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-page_alloc-convert-boot-printks-without-log-level-to-pr_info.patch
 
