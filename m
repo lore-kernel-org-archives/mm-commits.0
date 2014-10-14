@@ -1,124 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-add-support-for-gcc-5.patch removed from -mm tree
-Date: Tue, 14 Oct 2014 11:18:59 -0700
-Message-ID: <543d6913.ngyn+0gjbfgFty56%akpm@linux-foundation.org>
+Subject: [merged] mm-cma-fix-cma-bitmap-aligned-mask-computing.patch
+ removed from -mm tree
+Date: Tue, 14 Oct 2014 11:18:57 -0700
+Message-ID: <543d6911.YfSBrWcoMqexKgV3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44080 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754278AbaJNSS6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:18:58 -0400
+	with ESMTP id S1754278AbaJNSS4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:18:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: weijie.yang@samsung.com, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com, mina86@mina86.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel: add support for gcc 5
+     Subject: mm/cma: fix cma bitmap aligned mask computing
 has been removed from the -mm tree.  Its filename was
-     kernel-add-support-for-gcc-5.patch
+     mm-cma-fix-cma-bitmap-aligned-mask-computing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: kernel: add support for gcc 5
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: mm/cma: fix cma bitmap aligned mask computing
 
-We're missing include/linux/compiler-gcc5.h which is required now
-because gcc branched off to v5 in trunk.
+The current cma bitmap aligned mask computation is incorrect.  It could
+cause an unexpected alignment when using cma_alloc() if the wanted align
+order is larger than cma->order_per_bit.
 
-Just copy the relevant bits out of include/linux/compiler-gcc4.h,
-no new code is added as of now.
+Take kvm for example (PAGE_SHIFT = 12), kvm_cma->order_per_bit is set to
+6.  When kvm_alloc_rma() tries to alloc kvm_rma_pages, it will use 15 as
+the expected align value.  After using the current implementation however,
+we get 0 as cma bitmap aligned mask other than 511.
 
-This fixes a build error when using gcc 5.
+This patch fixes the cma bitmap aligned mask calculation.
 
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: <stable@vger.kernel.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>	[3.17]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc5.h |   66 ++++++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ mm/cma.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null include/linux/compiler-gcc5.h
---- /dev/null
-+++ a/include/linux/compiler-gcc5.h
-@@ -0,0 +1,66 @@
-+#ifndef __LINUX_COMPILER_H
-+#error "Please don't include <linux/compiler-gcc5.h> directly, include <linux/compiler.h> instead."
-+#endif
-+
-+#define __used				__attribute__((__used__))
-+#define __must_check			__attribute__((warn_unused_result))
-+#define __compiler_offsetof(a, b)	__builtin_offsetof(a, b)
-+
-+/* Mark functions as cold. gcc will assume any path leading to a call
-+   to them will be unlikely.  This means a lot of manual unlikely()s
-+   are unnecessary now for any paths leading to the usual suspects
-+   like BUG(), printk(), panic() etc. [but let's keep them for now for
-+   older compilers]
-+
-+   Early snapshots of gcc 4.3 don't support this and we can't detect this
-+   in the preprocessor, but we can live with this because they're unreleased.
-+   Maketime probing would be overkill here.
-+
-+   gcc also has a __attribute__((__hot__)) to move hot functions into
-+   a special section, but I don't see any sense in this right now in
-+   the kernel context */
-+#define __cold			__attribute__((__cold__))
-+
-+#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
-+
-+#ifndef __CHECKER__
-+# define __compiletime_warning(message) __attribute__((warning(message)))
-+# define __compiletime_error(message) __attribute__((error(message)))
-+#endif /* __CHECKER__ */
-+
-+/*
-+ * Mark a position in code as unreachable.  This can be used to
-+ * suppress control flow warnings after asm blocks that transfer
-+ * control elsewhere.
-+ *
-+ * Early snapshots of gcc 4.5 don't support this and we can't detect
-+ * this in the preprocessor, but we can live with this because they're
-+ * unreleased.  Really, we need to have autoconf for the kernel.
-+ */
-+#define unreachable() __builtin_unreachable()
-+
-+/* Mark a function definition as prohibited from being cloned. */
-+#define __noclone	__attribute__((__noclone__))
-+
-+/*
-+ * Tell the optimizer that something else uses this function or variable.
-+ */
-+#define __visible __attribute__((externally_visible))
-+
-+/*
-+ * GCC 'asm goto' miscompiles certain code sequences:
-+ *
-+ *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58670
-+ *
-+ * Work it around via a compiler barrier quirk suggested by Jakub Jelinek.
-+ * Fixed in GCC 4.8.2 and later versions.
-+ *
-+ * (asm goto is automatically volatile - the naming reflects this.)
-+ */
-+#define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
-+
-+#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
-+#define __HAVE_BUILTIN_BSWAP32__
-+#define __HAVE_BUILTIN_BSWAP64__
-+#define __HAVE_BUILTIN_BSWAP16__
-+#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
+diff -puN mm/cma.c~mm-cma-fix-cma-bitmap-aligned-mask-computing mm/cma.c
+--- a/mm/cma.c~mm-cma-fix-cma-bitmap-aligned-mask-computing
++++ a/mm/cma.c
+@@ -58,7 +58,9 @@ unsigned long cma_get_size(struct cma *c
+ 
+ static unsigned long cma_bitmap_aligned_mask(struct cma *cma, int align_order)
+ {
+-	return (1UL << (align_order >> cma->order_per_bit)) - 1;
++	if (align_order <= cma->order_per_bit)
++		return 0;
++	return (1UL << (align_order - cma->order_per_bit)) - 1;
+ }
+ 
+ static unsigned long cma_bitmap_maxno(struct cma *cma)
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
 
