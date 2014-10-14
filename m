@@ -1,108 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-use-c99-initializers-in-structures.patch removed
- from -mm tree
-Date: Tue, 14 Oct 2014 11:20:17 -0700
-Message-ID: <543d6961.qjr/EJNtSYosZ7oO%akpm@linux-foundation.org>
+Subject: [merged] rtc-make-of_device_ids-const.patch removed from -mm tree
+Date: Tue, 14 Oct 2014 11:20:24 -0700
+Message-ID: <543d6968.MmAn+V5OfPp8Qi3D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44213 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44235 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755353AbaJNSUQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:16 -0400
+	with ESMTP id S1755488AbaJNSUX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Julia.Lawall@lip6.fr, mm-commits@vger.kernel.org
+To: u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: use c99 initializers in structures
+     Subject: rtc: make of_device_ids const
 has been removed from the -mm tree.  Its filename was
-     rtc-use-c99-initializers-in-structures.patch
+     rtc-make-of_device_ids-const.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: rtc: use c99 initializers in structures
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: rtc: make of_device_ids const
 
-Use c99 initializers for structures.
+of_device_ids (i.e.  compatible strings and the respective data) are no=
+t
+supposed to change at runtime.  All functions working with of_device_id=
+s
+provided by <linux/of.h> work with const of_device_ids.  This allows to
+mark all struct of_device_id below drivers/rtc const, too.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@decl@
-identifier i1,fld;
-type T;
-field list[n] fs;
-@@
-
-struct i1 {
- fs
- T fld;
- ...};
-
-@bad@
-identifier decl.i1,i2;
-expression e;
-initializer list[decl.n] is;
-@@
-
-struct i1 i2 = { is,
-+ .fld = e
-- e
- ,...};
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8583.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-isl12022.c |    2 +-
+ drivers/rtc/rtc-mpc5121.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8583.c~rtc-use-c99-initializers-in-structures drivers/rtc/rtc-pcf8583.c
---- a/drivers/rtc/rtc-pcf8583.c~rtc-use-c99-initializers-in-structures
-+++ a/drivers/rtc/rtc-pcf8583.c
-@@ -176,7 +176,11 @@ static int pcf8583_rtc_read_time(struct
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	unsigned char ctrl, year[2];
--	struct rtc_mem mem = { CMOS_YEAR, sizeof(year), year };
-+	struct rtc_mem mem = {
-+		.loc = CMOS_YEAR,
-+		.nr = sizeof(year),
-+		.data = year
-+	};
- 	int real_year, year_offset, err;
- 
- 	/*
-@@ -222,8 +226,16 @@ static int pcf8583_rtc_set_time(struct d
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	unsigned char year[2], chk;
--	struct rtc_mem cmos_year  = { CMOS_YEAR, sizeof(year), year };
--	struct rtc_mem cmos_check = { CMOS_CHECKSUM, 1, &chk };
-+	struct rtc_mem cmos_year  = {
-+		.loc = CMOS_YEAR,
-+		.nr = sizeof(year),
-+		.data = year
-+	};
-+	struct rtc_mem cmos_check = {
-+		.loc = CMOS_CHECKSUM,
-+		.nr = 1,
-+		.data = &chk
-+	};
- 	unsigned int proper_year = tm->tm_year + 1900;
- 	int ret;
- 
+diff -puN drivers/rtc/rtc-isl12022.c~rtc-make-of_device_ids-const drive=
+rs/rtc/rtc-isl12022.c
+--- a/drivers/rtc/rtc-isl12022.c~rtc-make-of_device_ids-const
++++ a/drivers/rtc/rtc-isl12022.c
+@@ -274,7 +274,7 @@ static int isl12022_probe(struct i2c_cli
+ }
+=20
+ #ifdef CONFIG_OF
+-static struct of_device_id isl12022_dt_match[] =3D {
++static const struct of_device_id isl12022_dt_match[] =3D {
+ 	{ .compatible =3D "isl,isl12022" },
+ 	{ },
+ };
+diff -puN drivers/rtc/rtc-mpc5121.c~rtc-make-of_device_ids-const driver=
+s/rtc/rtc-mpc5121.c
+--- a/drivers/rtc/rtc-mpc5121.c~rtc-make-of_device_ids-const
++++ a/drivers/rtc/rtc-mpc5121.c
+@@ -401,7 +401,7 @@ static int mpc5121_rtc_remove(struct pla
+ }
+=20
+ #ifdef CONFIG_OF
+-static struct of_device_id mpc5121_rtc_match[] =3D {
++static const struct of_device_id mpc5121_rtc_match[] =3D {
+ 	{ .compatible =3D "fsl,mpc5121-rtc", },
+ 	{ .compatible =3D "fsl,mpc5200-rtc", },
+ 	{},
 _
 
-Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
 origin.patch
 linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
