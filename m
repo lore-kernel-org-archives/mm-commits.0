@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-replace-strnicmp-with-strncasecmp.patch removed from -mm tree
-Date: Tue, 14 Oct 2014 11:22:06 -0700
-Message-ID: <543d69ce.VKmoo5CzrE1oVfOh%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-replace-strnicmp-with-strncasecmp.patch removed
+ from -mm tree
+Date: Tue, 14 Oct 2014 11:22:14 -0700
+Message-ID: <543d69d6.CskLp0LpS7kvCqyS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44482 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44494 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754638AbaJNSWF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:22:05 -0400
+	with ESMTP id S1754241AbaJNSWN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:22:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: replace strnicmp with strncasecmp
+     Subject: ocfs2: replace strnicmp with strncasecmp
 has been removed from the -mm tree.  Its filename was
-     arm-replace-strnicmp-with-strncasecmp.patch
+     ocfs2-replace-strnicmp-with-strncasecmp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: ARM: replace strnicmp with strncasecmp
+Subject: ocfs2: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -38,40 +39,47 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-pxa/lpd270.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |    2 +-
+ fs/ocfs2/cluster/masklog.c   |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/mach-pxa/lpd270.c~arm-replace-strnicmp-with-strncasecmp arch/arm/mach-pxa/lpd270.c
---- a/arch/arm/mach-pxa/lpd270.c~arm-replace-strnicmp-with-strncasecmp
-+++ a/arch/arm/mach-pxa/lpd270.c
-@@ -416,17 +416,17 @@ static struct pxafb_mach_info *lpd270_lc
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-replace-strnicmp-with-strncasecmp fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-replace-strnicmp-with-strncasecmp
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -2244,7 +2244,7 @@ ssize_t o2hb_heartbeat_group_mode_store(
+ 		return -EINVAL;
  
- static int __init lpd270_set_lcd(char *str)
+ 	for (i = 0; i < O2HB_HEARTBEAT_NUM_MODES; ++i) {
+-		if (strnicmp(page, o2hb_heartbeat_mode_desc[i], len))
++		if (strncasecmp(page, o2hb_heartbeat_mode_desc[i], len))
+ 			continue;
+ 
+ 		ret = o2hb_global_heartbeat_mode_set(i);
+diff -puN fs/ocfs2/cluster/masklog.c~ocfs2-replace-strnicmp-with-strncasecmp fs/ocfs2/cluster/masklog.c
+--- a/fs/ocfs2/cluster/masklog.c~ocfs2-replace-strnicmp-with-strncasecmp
++++ a/fs/ocfs2/cluster/masklog.c
+@@ -49,13 +49,13 @@ static ssize_t mlog_mask_show(u64 mask,
+ 
+ static ssize_t mlog_mask_store(u64 mask, const char *buf, size_t count)
  {
--	if (!strnicmp(str, "lq057q3dc02", 11)) {
-+	if (!strncasecmp(str, "lq057q3dc02", 11)) {
- 		lpd270_lcd_to_use = &sharp_lq057q3dc02;
--	} else if (!strnicmp(str, "lq121s1dg31", 11)) {
-+	} else if (!strncasecmp(str, "lq121s1dg31", 11)) {
- 		lpd270_lcd_to_use = &sharp_lq121s1dg31;
--	} else if (!strnicmp(str, "lq036q1da01", 11)) {
-+	} else if (!strncasecmp(str, "lq036q1da01", 11)) {
- 		lpd270_lcd_to_use = &sharp_lq036q1da01;
--	} else if (!strnicmp(str, "lq64d343", 8)) {
-+	} else if (!strncasecmp(str, "lq64d343", 8)) {
- 		lpd270_lcd_to_use = &sharp_lq64d343;
--	} else if (!strnicmp(str, "lq10d368", 8)) {
-+	} else if (!strncasecmp(str, "lq10d368", 8)) {
- 		lpd270_lcd_to_use = &sharp_lq10d368;
--	} else if (!strnicmp(str, "lq035q7db02-20", 14)) {
-+	} else if (!strncasecmp(str, "lq035q7db02-20", 14)) {
- 		lpd270_lcd_to_use = &sharp_lq035q7db02_20;
- 	} else {
- 		printk(KERN_INFO "lpd270: unknown lcd panel [%s]\n", str);
+-	if (!strnicmp(buf, "allow", 5)) {
++	if (!strncasecmp(buf, "allow", 5)) {
+ 		__mlog_set_u64(mask, mlog_and_bits);
+ 		__mlog_clear_u64(mask, mlog_not_bits);
+-	} else if (!strnicmp(buf, "deny", 4)) {
++	} else if (!strncasecmp(buf, "deny", 4)) {
+ 		__mlog_set_u64(mask, mlog_not_bits);
+ 		__mlog_clear_u64(mask, mlog_and_bits);
+-	} else if (!strnicmp(buf, "off", 3)) {
++	} else if (!strncasecmp(buf, "off", 3)) {
+ 		__mlog_clear_u64(mask, mlog_not_bits);
+ 		__mlog_clear_u64(mask, mlog_and_bits);
+ 	} else
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
