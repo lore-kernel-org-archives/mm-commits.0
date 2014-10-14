@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [merged] video-fbdev-replace-strnicmp-with-strncasecmp.patch
- removed from -mm tree
-Date: Tue, 14 Oct 2014 11:22:10 -0700
-Message-ID: <543d69d2.mgqGuQoC2pItYsfT%akpm@linux-foundation.org>
+Subject: [merged] cifs-replace-strnicmp-with-strncasecmp.patch removed
+ from -mm tree
+Date: Tue, 14 Oct 2014 11:22:12 -0700
+Message-ID: <543d69d4.taDiuUgA5Pq3ffSz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44487 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44491 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755573AbaJNSWJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:22:09 -0400
+	with ESMTP id S1754241AbaJNSWL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:22:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, plagnioj@jcrosoft.com, tomi.valkeinen@ti.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, sfrench@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: video: fbdev: replace strnicmp with strncasecmp
+     Subject: cifs: replace strnicmp with strncasecmp
 has been removed from the -mm tree.  Its filename was
-     video-fbdev-replace-strnicmp-with-strncasecmp.patch
+     cifs-replace-strnicmp-with-strncasecmp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: video: fbdev: replace strnicmp with strncasecmp
+Subject: cifs: replace strnicmp with strncasecmp
 
 The kernel used to contain two functions for length-delimited,
 case-insensitive string comparison, strnicmp with correct semantics and a
@@ -39,224 +39,57 @@ future, and to avoid the extra indirection cost, do
 s/strnicmp/strncasecmp/g.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/pvr2fb.c       |    2 
- drivers/video/fbdev/s3c2410fb.c    |    8 +--
- drivers/video/fbdev/sis/sis_main.c |   66 +++++++++++++--------------
- drivers/video/fbdev/sm501fb.c      |    4 -
- 4 files changed, 40 insertions(+), 40 deletions(-)
+ fs/cifs/cifs_dfs_ref.c |    6 +++---
+ fs/cifs/connect.c      |    4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/fbdev/pvr2fb.c~video-fbdev-replace-strnicmp-with-strncasecmp drivers/video/fbdev/pvr2fb.c
---- a/drivers/video/fbdev/pvr2fb.c~video-fbdev-replace-strnicmp-with-strncasecmp
-+++ a/drivers/video/fbdev/pvr2fb.c
-@@ -1001,7 +1001,7 @@ static int pvr2_get_param(const struct p
+diff -puN fs/cifs/cifs_dfs_ref.c~cifs-replace-strnicmp-with-strncasecmp fs/cifs/cifs_dfs_ref.c
+--- a/fs/cifs/cifs_dfs_ref.c~cifs-replace-strnicmp-with-strncasecmp
++++ a/fs/cifs/cifs_dfs_ref.c
+@@ -195,15 +195,15 @@ char *cifs_compose_mount_options(const c
+ 		else
+ 			noff = tkn_e - (sb_mountdata + off) + 1;
  
- 	for (i = 0 ; i < size ; i++ ) {
- 		if (s != NULL) {
--			if (!strnicmp(p[i].name, s, strlen(s)))
-+			if (!strncasecmp(p[i].name, s, strlen(s)))
- 				return p[i].val;
- 		} else {
- 			if (p[i].val == val)
-diff -puN drivers/video/fbdev/s3c2410fb.c~video-fbdev-replace-strnicmp-with-strncasecmp drivers/video/fbdev/s3c2410fb.c
---- a/drivers/video/fbdev/s3c2410fb.c~video-fbdev-replace-strnicmp-with-strncasecmp
-+++ a/drivers/video/fbdev/s3c2410fb.c
-@@ -601,12 +601,12 @@ static int s3c2410fb_debug_store(struct
- 	if (len < 1)
- 		return -EINVAL;
- 
--	if (strnicmp(buf, "on", 2) == 0 ||
--	    strnicmp(buf, "1", 1) == 0) {
-+	if (strncasecmp(buf, "on", 2) == 0 ||
-+	    strncasecmp(buf, "1", 1) == 0) {
- 		debug = 1;
- 		dev_dbg(dev, "s3c2410fb: Debug On");
--	} else if (strnicmp(buf, "off", 3) == 0 ||
--		   strnicmp(buf, "0", 1) == 0) {
-+	} else if (strncasecmp(buf, "off", 3) == 0 ||
-+		   strncasecmp(buf, "0", 1) == 0) {
- 		debug = 0;
- 		dev_dbg(dev, "s3c2410fb: Debug Off");
- 	} else {
-diff -puN drivers/video/fbdev/sis/sis_main.c~video-fbdev-replace-strnicmp-with-strncasecmp drivers/video/fbdev/sis/sis_main.c
---- a/drivers/video/fbdev/sis/sis_main.c~video-fbdev-replace-strnicmp-with-strncasecmp
-+++ a/drivers/video/fbdev/sis/sis_main.c
-@@ -162,7 +162,7 @@ static void sisfb_search_mode(char *name
- 		return;
- 	}
- 
--	if(!strnicmp(name, sisbios_mode[MODE_INDEX_NONE].name, strlen(name))) {
-+	if(!strncasecmp(name, sisbios_mode[MODE_INDEX_NONE].name, strlen(name))) {
- 		if(!quiet)
- 			printk(KERN_ERR "sisfb: Mode 'none' not supported anymore. Using default.\n");
- 
-@@ -201,7 +201,7 @@ static void sisfb_search_mode(char *name
- 
- 	i = 0; j = 0;
- 	while(sisbios_mode[i].mode_no[0] != 0) {
--		if(!strnicmp(nameptr, sisbios_mode[i++].name, strlen(nameptr))) {
-+		if(!strncasecmp(nameptr, sisbios_mode[i++].name, strlen(nameptr))) {
- 			if(sisfb_fstn) {
- 				if(sisbios_mode[i-1].mode_no[1] == 0x50 ||
- 				   sisbios_mode[i-1].mode_no[1] == 0x56 ||
-@@ -262,7 +262,7 @@ sisfb_search_crt2type(const char *name)
- 	if(name == NULL) return;
- 
- 	while(sis_crt2type[i].type_no != -1) {
--		if(!strnicmp(name, sis_crt2type[i].name, strlen(sis_crt2type[i].name))) {
-+		if(!strncasecmp(name, sis_crt2type[i].name, strlen(sis_crt2type[i].name))) {
- 			sisfb_crt2type = sis_crt2type[i].type_no;
- 			sisfb_tvplug = sis_crt2type[i].tvplug_no;
- 			sisfb_crt2flags = sis_crt2type[i].flags;
-@@ -289,7 +289,7 @@ sisfb_search_tvstd(const char *name)
- 		return;
- 
- 	while(sis_tvtype[i].type_no != -1) {
--		if(!strnicmp(name, sis_tvtype[i].name, strlen(sis_tvtype[i].name))) {
-+		if(!strncasecmp(name, sis_tvtype[i].name, strlen(sis_tvtype[i].name))) {
- 			sisfb_tvstd = sis_tvtype[i].type_no;
- 			break;
+-		if (strnicmp(sb_mountdata + off, "unc=", 4) == 0) {
++		if (strncasecmp(sb_mountdata + off, "unc=", 4) == 0) {
+ 			off += noff;
+ 			continue;
  		}
-@@ -308,12 +308,12 @@ sisfb_search_specialtiming(const char *n
- 	if(name == NULL)
- 		return;
- 
--	if(!strnicmp(name, "none", 4)) {
-+	if(!strncasecmp(name, "none", 4)) {
- 		sisfb_specialtiming = CUT_FORCENONE;
- 		printk(KERN_DEBUG "sisfb: Special timing disabled\n");
- 	} else {
- 		while(mycustomttable[i].chipID != 0) {
--			if(!strnicmp(name,mycustomttable[i].optionName,
-+			if(!strncasecmp(name,mycustomttable[i].optionName,
- 			   strlen(mycustomttable[i].optionName))) {
- 				sisfb_specialtiming = mycustomttable[i].SpecialID;
- 				found = true;
-@@ -3952,68 +3952,68 @@ static int __init sisfb_setup(char *opti
- 
- 		if(!(*this_opt)) continue;
- 
--		if(!strnicmp(this_opt, "off", 3)) {
-+		if(!strncasecmp(this_opt, "off", 3)) {
- 			sisfb_off = 1;
--		} else if(!strnicmp(this_opt, "forcecrt2type:", 14)) {
-+		} else if(!strncasecmp(this_opt, "forcecrt2type:", 14)) {
- 			/* Need to check crt2 type first for fstn/dstn */
- 			sisfb_search_crt2type(this_opt + 14);
--		} else if(!strnicmp(this_opt, "tvmode:",7)) {
-+		} else if(!strncasecmp(this_opt, "tvmode:",7)) {
- 			sisfb_search_tvstd(this_opt + 7);
--		} else if(!strnicmp(this_opt, "tvstandard:",11)) {
-+		} else if(!strncasecmp(this_opt, "tvstandard:",11)) {
- 			sisfb_search_tvstd(this_opt + 11);
--		} else if(!strnicmp(this_opt, "mode:", 5)) {
-+		} else if(!strncasecmp(this_opt, "mode:", 5)) {
- 			sisfb_search_mode(this_opt + 5, false);
--		} else if(!strnicmp(this_opt, "vesa:", 5)) {
-+		} else if(!strncasecmp(this_opt, "vesa:", 5)) {
- 			sisfb_search_vesamode(simple_strtoul(this_opt + 5, NULL, 0), false);
--		} else if(!strnicmp(this_opt, "rate:", 5)) {
-+		} else if(!strncasecmp(this_opt, "rate:", 5)) {
- 			sisfb_parm_rate = simple_strtoul(this_opt + 5, NULL, 0);
--		} else if(!strnicmp(this_opt, "forcecrt1:", 10)) {
-+		} else if(!strncasecmp(this_opt, "forcecrt1:", 10)) {
- 			sisfb_forcecrt1 = (int)simple_strtoul(this_opt + 10, NULL, 0);
--		} else if(!strnicmp(this_opt, "mem:",4)) {
-+		} else if(!strncasecmp(this_opt, "mem:",4)) {
- 			sisfb_parm_mem = simple_strtoul(this_opt + 4, NULL, 0);
--		} else if(!strnicmp(this_opt, "pdc:", 4)) {
-+		} else if(!strncasecmp(this_opt, "pdc:", 4)) {
- 			sisfb_pdc = simple_strtoul(this_opt + 4, NULL, 0);
--		} else if(!strnicmp(this_opt, "pdc1:", 5)) {
-+		} else if(!strncasecmp(this_opt, "pdc1:", 5)) {
- 			sisfb_pdca = simple_strtoul(this_opt + 5, NULL, 0);
--		} else if(!strnicmp(this_opt, "noaccel", 7)) {
-+		} else if(!strncasecmp(this_opt, "noaccel", 7)) {
- 			sisfb_accel = 0;
--		} else if(!strnicmp(this_opt, "accel", 5)) {
-+		} else if(!strncasecmp(this_opt, "accel", 5)) {
- 			sisfb_accel = -1;
--		} else if(!strnicmp(this_opt, "noypan", 6)) {
-+		} else if(!strncasecmp(this_opt, "noypan", 6)) {
- 			sisfb_ypan = 0;
--		} else if(!strnicmp(this_opt, "ypan", 4)) {
-+		} else if(!strncasecmp(this_opt, "ypan", 4)) {
- 			sisfb_ypan = -1;
--		} else if(!strnicmp(this_opt, "nomax", 5)) {
-+		} else if(!strncasecmp(this_opt, "nomax", 5)) {
- 			sisfb_max = 0;
--		} else if(!strnicmp(this_opt, "max", 3)) {
-+		} else if(!strncasecmp(this_opt, "max", 3)) {
- 			sisfb_max = -1;
--		} else if(!strnicmp(this_opt, "userom:", 7)) {
-+		} else if(!strncasecmp(this_opt, "userom:", 7)) {
- 			sisfb_userom = (int)simple_strtoul(this_opt + 7, NULL, 0);
--		} else if(!strnicmp(this_opt, "useoem:", 7)) {
-+		} else if(!strncasecmp(this_opt, "useoem:", 7)) {
- 			sisfb_useoem = (int)simple_strtoul(this_opt + 7, NULL, 0);
--		} else if(!strnicmp(this_opt, "nocrt2rate", 10)) {
-+		} else if(!strncasecmp(this_opt, "nocrt2rate", 10)) {
- 			sisfb_nocrt2rate = 1;
--		} else if(!strnicmp(this_opt, "scalelcd:", 9)) {
-+		} else if(!strncasecmp(this_opt, "scalelcd:", 9)) {
- 			unsigned long temp = 2;
- 			temp = simple_strtoul(this_opt + 9, NULL, 0);
- 			if((temp == 0) || (temp == 1)) {
- 			   sisfb_scalelcd = temp ^ 1;
+-		if (strnicmp(sb_mountdata + off, "ip=", 3) == 0) {
++		if (strncasecmp(sb_mountdata + off, "ip=", 3) == 0) {
+ 			off += noff;
+ 			continue;
+ 		}
+-		if (strnicmp(sb_mountdata + off, "prefixpath=", 11) == 0) {
++		if (strncasecmp(sb_mountdata + off, "prefixpath=", 11) == 0) {
+ 			off += noff;
+ 			continue;
+ 		}
+diff -puN fs/cifs/connect.c~cifs-replace-strnicmp-with-strncasecmp fs/cifs/connect.c
+--- a/fs/cifs/connect.c~cifs-replace-strnicmp-with-strncasecmp
++++ a/fs/cifs/connect.c
+@@ -1718,7 +1718,7 @@ cifs_parse_mount_options(const char *mou
+ 				goto cifs_parse_mount_err;
  			}
--		} else if(!strnicmp(this_opt, "tvxposoffset:", 13)) {
-+		} else if(!strncasecmp(this_opt, "tvxposoffset:", 13)) {
- 			int temp = 0;
- 			temp = (int)simple_strtol(this_opt + 13, NULL, 0);
- 			if((temp >= -32) && (temp <= 32)) {
- 			   sisfb_tvxposoffset = temp;
- 			}
--		} else if(!strnicmp(this_opt, "tvyposoffset:", 13)) {
-+		} else if(!strncasecmp(this_opt, "tvyposoffset:", 13)) {
- 			int temp = 0;
- 			temp = (int)simple_strtol(this_opt + 13, NULL, 0);
- 			if((temp >= -32) && (temp <= 32)) {
- 			   sisfb_tvyposoffset = temp;
- 			}
--		} else if(!strnicmp(this_opt, "specialtiming:", 14)) {
-+		} else if(!strncasecmp(this_opt, "specialtiming:", 14)) {
- 			sisfb_search_specialtiming(this_opt + 14);
--		} else if(!strnicmp(this_opt, "lvdshl:", 7)) {
-+		} else if(!strncasecmp(this_opt, "lvdshl:", 7)) {
- 			int temp = 4;
- 			temp = simple_strtoul(this_opt + 7, NULL, 0);
- 			if((temp >= 0) && (temp <= 3)) {
-@@ -4022,9 +4022,9 @@ static int __init sisfb_setup(char *opti
- 		} else if(this_opt[0] >= '0' && this_opt[0] <= '9') {
- 			sisfb_search_mode(this_opt, true);
- #if !defined(__i386__) && !defined(__x86_64__)
--		} else if(!strnicmp(this_opt, "resetcard", 9)) {
-+		} else if(!strncasecmp(this_opt, "resetcard", 9)) {
- 			sisfb_resetcard = 1;
--	        } else if(!strnicmp(this_opt, "videoram:", 9)) {
-+	        } else if(!strncasecmp(this_opt, "videoram:", 9)) {
- 			sisfb_videoram = simple_strtoul(this_opt + 9, NULL, 0);
- #endif
- 		} else {
-diff -puN drivers/video/fbdev/sm501fb.c~video-fbdev-replace-strnicmp-with-strncasecmp drivers/video/fbdev/sm501fb.c
---- a/drivers/video/fbdev/sm501fb.c~video-fbdev-replace-strnicmp-with-strncasecmp
-+++ a/drivers/video/fbdev/sm501fb.c
-@@ -1187,9 +1187,9 @@ static ssize_t sm501fb_crtsrc_store(stru
- 	if (len < 1)
- 		return -EINVAL;
  
--	if (strnicmp(buf, "crt", 3) == 0)
-+	if (strncasecmp(buf, "crt", 3) == 0)
- 		head = HEAD_CRT;
--	else if (strnicmp(buf, "panel", 5) == 0)
-+	else if (strncasecmp(buf, "panel", 5) == 0)
- 		head = HEAD_PANEL;
- 	else
- 		return -EINVAL;
+-			 if (strnicmp(string, "default", 7) != 0) {
++			 if (strncasecmp(string, "default", 7) != 0) {
+ 				vol->iocharset = kstrdup(string,
+ 							 GFP_KERNEL);
+ 				if (!vol->iocharset) {
+@@ -1790,7 +1790,7 @@ cifs_parse_mount_options(const char *mou
+ 			if (string == NULL)
+ 				goto out_nomem;
+ 
+-			if (strnicmp(string, "1", 1) == 0) {
++			if (strncasecmp(string, "1", 1) == 0) {
+ 				/* This is the default */
+ 				break;
+ 			}
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
