@@ -1,64 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- maintainers-add-entry-for-kernel-selftest-framework.patch removed from -mm
- tree
-Date: Tue, 14 Oct 2014 11:19:15 -0700
-Message-ID: <543d6923.Qu41kgpGXagm8fgD%akpm@linux-foundation.org>
+Subject: [merged] maintainers-orphan-m32r.patch removed from -mm tree
+Date: Tue, 14 Oct 2014 11:19:19 -0700
+Message-ID: <543d6927.ruhx9FZQcBlFkgw6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44124 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755371AbaJNSTO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:19:14 -0400
+	with ESMTP id S1755375AbaJNSTS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:19:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
+To: michael.opdenacker@free-electrons.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add entry for Kernel Selftest Framework
+     Subject: MAINTAINERS: orphan m32r
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-entry-for-kernel-selftest-framework.patch
+     maintainers-orphan-m32r.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Subject: MAINTAINERS: add entry for Kernel Selftest Framework
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: MAINTAINERS: orphan m32r
 
-Add entry for Kernel Selftest Framework.  Individual tests continue to be
-maintained by the maintainers for those areas.
+Update the maintenance status for m32r
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+- Removing Hirokazu Takata as maintainer
+  (last commit merged: Nov. 2009)
+
+- Remove mailing lists that no longer exist,
+  as the ml.linux-m32r.org subdomain no longer exists.
+
+- Maintenance status moved to "Orphan"
+
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Acked-by: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++++++
- 1 file changed, 7 insertions(+)
+ MAINTAINERS |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-entry-for-kernel-selftest-framework MAINTAINERS
---- a/MAINTAINERS~maintainers-add-entry-for-kernel-selftest-framework
+diff -puN MAINTAINERS~maintainers-orphan-m32r MAINTAINERS
+--- a/MAINTAINERS~maintainers-orphan-m32r
 +++ a/MAINTAINERS
-@@ -5300,6 +5300,13 @@ F:	include/linux/lockd/
- F:	include/linux/sunrpc/
- F:	include/uapi/linux/sunrpc/
+@@ -5759,11 +5759,8 @@ T:	git git://github.com/linux-test-proje
+ S:	Maintained
  
-+KERNEL SELFTEST FRAMEWORK
-+M:	Shuah Khan <shuahkh@osg.samsung.com>
-+L:	linux-api@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/shuah/linux-kselftest
-+S:	Maintained
-+F:	tools/testing/selftests
-+
- KERNEL VIRTUAL MACHINE (KVM)
- M:	Gleb Natapov <gleb@kernel.org>
- M:	Paolo Bonzini <pbonzini@redhat.com>
+ M32R ARCHITECTURE
+-M:	Hirokazu Takata <takata@linux-m32r.org>
+-L:	linux-m32r@ml.linux-m32r.org (moderated for non-subscribers)
+-L:	linux-m32r-ja@ml.linux-m32r.org (in Japanese)
+ W:	http://www.linux-m32r.org/
+-S:	Maintained
++S:	Orphan
+ F:	arch/m32r/
+ 
+ M68K ARCHITECTURE
 _
 
-Patches currently in -mm which might be from shuahkh@osg.samsung.com are
+Patches currently in -mm which might be from michael.opdenacker@free-electrons.com are
 
 origin.patch
 linux-next.patch
