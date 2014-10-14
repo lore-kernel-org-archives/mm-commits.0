@@ -1,185 +1,153 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch removed from
- -mm tree
-Date: Tue, 14 Oct 2014 11:21:02 -0700
-Message-ID: <543d698e.gFUiN4ntoE1WP4Ea%akpm@linux-foundation.org>
+ drivers-rtc-kconfig-let-several-drivers-depend-on-has_iomem-to-avoid-compiling-issue.patch removed from -mm tree
+Date: Tue, 14 Oct 2014 11:20:56 -0700
+Message-ID: <543d6988.Gcf4Z3lCnBbEaZwv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44369 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44358 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754840AbaJNSVB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:21:01 -0400
+	with ESMTP id S1755348AbaJNSUz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add missing blkdev_issue_flush() to nilfs_sync_fs()
+     Subject: drivers/rtc/Kconfig: Let several drivers depend on HAS_IOMEM to avoid compiling issue
 has been removed from the -mm tree.  Its filename was
-     nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs.patch
+     drivers-rtc-kconfig-let-several-drivers-depend-on-has_iomem-to-avoid-compiling-issue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andreas Rohner <andreas.rohner@gmx.net>
-Subject: nilfs2: add missing blkdev_issue_flush() to nilfs_sync_fs()
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+Subject: drivers/rtc/Kconfig: Let several drivers depend on HAS_IOMEM to avoid compiling issue
 
-Under normal circumstances nilfs_sync_fs() writes out the super block,
-which causes a flush of the underlying block device.  But this depends on
-the THE_NILFS_SB_DIRTY flag, which is only set if the pointer to the last
-segment crosses a segment boundary.  So if only a small amount of data is
-written before the call to nilfs_sync_fs(), no flush of the block device
-occurs.
+Some drivers need 'devm_ioremap_resource' or 'devm_ioremap' which need
+HAS_IOMEM, so let them depend on it.
 
-In the above case an additional call to blkdev_issue_flush() is needed. 
-To prevent unnecessary overhead, the new flag nilfs->ns_flushed_device is
-introduced, which is cleared whenever new logs are written and set
-whenever the block device is flushed.  For convenience the function
-nilfs_flush_device() is added, which contains the above logic.
+The related error (with allmodconfig under score):
 
-Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+    MODPOST 1365 modules
+  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-xgene.ko] undefined!
+  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-stk17ta8.ko] undefined!
+  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-ds1742.ko] undefined!
+  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-ds1553.ko] undefined!
+  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-ds1511.ko] undefined!
+  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-ds1286.ko] undefined!
+  ERROR: "devm_ioremap" [drivers/rtc/rtc-rp5c01.ko] undefined!
+  ERROR: "devm_ioremap" [drivers/rtc/rtc-msm6242.ko] undefined!
+  ERROR: "devm_ioremap" [drivers/rtc/rtc-m48t59.ko] undefined!
+  ERROR: "devm_ioremap" [drivers/rtc/rtc-m48t35.ko] undefined!
+  ERROR: "devm_ioremap" [drivers/rtc/rtc-bq4802.ko] undefined!
+
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/file.c      |    8 +++-----
- fs/nilfs2/ioctl.c     |    8 +++-----
- fs/nilfs2/segment.c   |    3 +++
- fs/nilfs2/super.c     |    6 ++++++
- fs/nilfs2/the_nilfs.h |   22 ++++++++++++++++++++++
- 5 files changed, 37 insertions(+), 10 deletions(-)
+ drivers/rtc/Kconfig |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN fs/nilfs2/file.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/file.c
---- a/fs/nilfs2/file.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
-+++ a/fs/nilfs2/file.c
-@@ -56,11 +56,9 @@ int nilfs_sync_file(struct file *file, l
- 	mutex_unlock(&inode->i_mutex);
+diff -puN drivers/rtc/Kconfig~drivers-rtc-kconfig-let-several-drivers-depend-on-has_iomem-to-avoid-compiling-issue drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~drivers-rtc-kconfig-let-several-drivers-depend-on-has_iomem-to-avoid-compiling-issue
++++ a/drivers/rtc/Kconfig
+@@ -752,6 +752,7 @@ config RTC_DRV_DS1216
  
- 	nilfs = inode->i_sb->s_fs_info;
--	if (!err && nilfs_test_opt(nilfs, BARRIER)) {
--		err = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
--		if (err != -EIO)
--			err = 0;
--	}
-+	if (!err)
-+		err = nilfs_flush_device(nilfs);
-+
- 	return err;
- }
+ config RTC_DRV_DS1286
+ 	tristate "Dallas DS1286"
++	depends on HAS_IOMEM
+ 	help
+ 	  If you say yes here you get support for the Dallas DS1286 RTC chips.
  
-diff -puN fs/nilfs2/ioctl.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
-+++ a/fs/nilfs2/ioctl.c
-@@ -1022,11 +1022,9 @@ static int nilfs_ioctl_sync(struct inode
- 		return ret;
+@@ -763,6 +764,7 @@ config RTC_DRV_DS1302
  
- 	nilfs = inode->i_sb->s_fs_info;
--	if (nilfs_test_opt(nilfs, BARRIER)) {
--		ret = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
--		if (ret == -EIO)
--			return ret;
--	}
-+	ret = nilfs_flush_device(nilfs);
-+	if (ret < 0)
-+		return ret;
+ config RTC_DRV_DS1511
+ 	tristate "Dallas DS1511"
++	depends on HAS_IOMEM
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Dallas DS1511 timekeeping/watchdog chip.
+@@ -772,6 +774,7 @@ config RTC_DRV_DS1511
  
- 	if (argp != NULL) {
- 		down_read(&nilfs->ns_segctor_sem);
-diff -puN fs/nilfs2/segment.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
-+++ a/fs/nilfs2/segment.c
-@@ -1833,6 +1833,7 @@ static void nilfs_segctor_complete_write
- 	nilfs_set_next_segment(nilfs, segbuf);
+ config RTC_DRV_DS1553
+ 	tristate "Maxim/Dallas DS1553"
++	depends on HAS_IOMEM
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Maxim/Dallas DS1553 timekeeping chip.
+@@ -781,6 +784,7 @@ config RTC_DRV_DS1553
  
- 	if (update_sr) {
-+		nilfs->ns_flushed_device = 0;
- 		nilfs_set_last_segment(nilfs, segbuf->sb_pseg_start,
- 				       segbuf->sb_sum.seg_seq, nilfs->ns_cno++);
+ config RTC_DRV_DS1742
+ 	tristate "Maxim/Dallas DS1742/1743"
++	depends on HAS_IOMEM
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Maxim/Dallas DS1742/1743 timekeeping chip.
+@@ -836,6 +840,7 @@ config RTC_DRV_EFI
  
-@@ -2216,6 +2217,8 @@ int nilfs_construct_dsync_segment(struct
- 	sci->sc_dsync_end = end;
+ config RTC_DRV_STK17TA8
+ 	tristate "Simtek STK17TA8"
++	depends on HAS_IOMEM
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Simtek STK17TA8 timekeeping chip.
+@@ -854,6 +859,7 @@ config RTC_DRV_M48T86
  
- 	err = nilfs_segctor_do_construct(sci, SC_LSEG_DSYNC);
-+	if (!err)
-+		nilfs->ns_flushed_device = 0;
+ config RTC_DRV_M48T35
+ 	tristate "ST M48T35"
++	depends on HAS_IOMEM
+ 	help
+ 	  If you say Y here you will get support for the
+ 	  ST M48T35 RTC chip.
+@@ -863,6 +869,7 @@ config RTC_DRV_M48T35
  
- 	nilfs_transaction_unlock(sb);
- 	return err;
-diff -puN fs/nilfs2/super.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
-+++ a/fs/nilfs2/super.c
-@@ -310,6 +310,9 @@ int nilfs_commit_super(struct super_bloc
- 					    nilfs->ns_sbsize));
- 	}
- 	clear_nilfs_sb_dirty(nilfs);
-+	nilfs->ns_flushed_device = 1;
-+	/* make sure store to ns_flushed_device cannot be reordered */
-+	smp_wmb();
- 	return nilfs_sync_super(sb, flag);
- }
+ config RTC_DRV_M48T59
+ 	tristate "ST M48T59/M48T08/M48T02"
++	depends on HAS_IOMEM
+ 	help
+ 	  If you say Y here you will get support for the
+ 	  ST M48T59 RTC chip and compatible ST M48T08 and M48T02.
+@@ -875,6 +882,7 @@ config RTC_DRV_M48T59
  
-@@ -514,6 +517,9 @@ static int nilfs_sync_fs(struct super_bl
- 	}
- 	up_write(&nilfs->ns_sem);
+ config RTC_DRV_MSM6242
+ 	tristate "Oki MSM6242"
++	depends on HAS_IOMEM
+ 	help
+ 	  If you say yes here you get support for the Oki MSM6242
+ 	  timekeeping chip. It is used in some Amiga models (e.g. A2000).
+@@ -884,6 +892,7 @@ config RTC_DRV_MSM6242
  
-+	if (!err)
-+		err = nilfs_flush_device(nilfs);
-+
- 	return err;
- }
+ config RTC_DRV_BQ4802
+ 	tristate "TI BQ4802"
++	depends on HAS_IOMEM
+ 	help
+ 	  If you say Y here you will get support for the TI
+ 	  BQ4802 RTC chip.
+@@ -893,6 +902,7 @@ config RTC_DRV_BQ4802
  
-diff -puN fs/nilfs2/the_nilfs.h~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs fs/nilfs2/the_nilfs.h
---- a/fs/nilfs2/the_nilfs.h~nilfs2-add-missing-blkdev_issue_flush-to-nilfs_sync_fs
-+++ a/fs/nilfs2/the_nilfs.h
-@@ -46,6 +46,7 @@ enum {
- /**
-  * struct the_nilfs - struct to supervise multiple nilfs mount points
-  * @ns_flags: flags
-+ * @ns_flushed_device: flag indicating if all volatile data was flushed
-  * @ns_bdev: block device
-  * @ns_sem: semaphore for shared states
-  * @ns_snapshot_mount_mutex: mutex to protect snapshot mounts
-@@ -103,6 +104,7 @@ enum {
-  */
- struct the_nilfs {
- 	unsigned long		ns_flags;
-+	int			ns_flushed_device;
+ config RTC_DRV_RP5C01
+ 	tristate "Ricoh RP5C01"
++	depends on HAS_IOMEM
+ 	help
+ 	  If you say yes here you get support for the Ricoh RP5C01
+ 	  timekeeping chip. It is used in some Amiga models (e.g. A3000
+@@ -1394,6 +1404,7 @@ config RTC_DRV_MOXART
  
- 	struct block_device    *ns_bdev;
- 	struct rw_semaphore	ns_sem;
-@@ -371,4 +373,24 @@ static inline int nilfs_segment_is_activ
- 	return n == nilfs->ns_segnum || n == nilfs->ns_nextnum;
- }
- 
-+static inline int nilfs_flush_device(struct the_nilfs *nilfs)
-+{
-+	int err;
-+
-+	if (!nilfs_test_opt(nilfs, BARRIER) || nilfs->ns_flushed_device)
-+		return 0;
-+
-+	nilfs->ns_flushed_device = 1;
-+	/*
-+	 * the store to ns_flushed_device must not be reordered after
-+	 * blkdev_issue_flush().
-+	 */
-+	smp_wmb();
-+
-+	err = blkdev_issue_flush(nilfs->ns_bdev, GFP_KERNEL, NULL);
-+	if (err != -EIO)
-+		err = 0;
-+	return err;
-+}
-+
- #endif /* _THE_NILFS_H */
+ config RTC_DRV_XGENE
+ 	tristate "APM X-Gene RTC"
++	depends on HAS_IOMEM
+ 	help
+ 	  If you say yes here you get support for the APM X-Gene SoC real time
+ 	  clock.
 _
 
-Patches currently in -mm which might be from andreas.rohner@gmx.net are
+Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
 
 origin.patch
+linux-next.patch
 
