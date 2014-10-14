@@ -1,96 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] binfmt_misc-work-around-gcc-49-warning.patch removed
+Subject: [merged] checkpatch-remove-unnecessary-after-88.patch removed
  from -mm tree
-Date: Tue, 14 Oct 2014 11:19:59 -0700
-Message-ID: <543d694f.DHUJ0B6QlSwMFn9W%akpm@linux-foundation.org>
+Date: Tue, 14 Oct 2014 11:19:45 -0700
+Message-ID: <543d6941.+DQ7jvcZKfbLGNX+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44165 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755353AbaJNST5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:19:57 -0400
+	with ESMTP id S1754241AbaJNSTn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:19:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, mm-commits@vger.kernel.org
+To: joe@perches.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binfmt_misc: work around gcc-4.9 warning
+     Subject: checkpatch: remove unnecessary + after {8,8}
 has been removed from the -mm tree.  Its filename was
-     binfmt_misc-work-around-gcc-49-warning.patch
+     checkpatch-remove-unnecessary-after-88.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: binfmt_misc: work around gcc-4.9 warning
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: remove unnecessary + after {8,8}
 
-gcc-4.9 on ARM gives us a mysterious warning about the binfmt_misc
-parse_command function:
+There's a useless "+" use that needs to be removed as perl 5.20 emits a
+"Useless use of greediness modifier '+'" message each time it's hit.
 
-fs/binfmt_misc.c: In function 'parse_command.part.3':
-fs/binfmt_misc.c:405:7: warning: array subscript is above array bounds [-Warray-bounds]
-
-I've managed to trace this back to the ARM implementation of memset,
-which is called from copy_from_user in case of a fault and which does
-
- #define memset(p,v,n)                                                  \
-        ({                                                              \
-                void *__p = (p); size_t __n = n;                        \
-                if ((__n) != 0) {                                       \
-                        if (__builtin_constant_p((v)) && (v) == 0)      \
-                                __memzero((__p),(__n));                 \
-                        else                                            \
-                                memset((__p),(v),(__n));                \
-                }                                                       \
-                (__p);                                                  \
-        })
-
-Apparently gcc gets confused by the check for "size != 0" and believes
-that the size might be zero when it gets to the line that does "if
-(s[count-1] == '\n')", so it would access data outside of the array.
-
-gcc is clearly wrong here, since this condition was already checked
-earlier in the function and the 'size' value can not change in the
-meantime.
-
-Fortunately, we can work around it and get rid of the warning by
-rearranging the function to check for zero size after doing the
-copy_from_user.  It is still safe to pass a zero size into copy_from_user,
-so it does not cause any side effects.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Greg KH <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_misc.c~binfmt_misc-work-around-gcc-49-warning fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~binfmt_misc-work-around-gcc-49-warning
-+++ a/fs/binfmt_misc.c
-@@ -411,12 +411,12 @@ static int parse_command(const char __us
- {
- 	char s[4];
- 
--	if (!count)
--		return 0;
- 	if (count > 3)
- 		return -EINVAL;
- 	if (copy_from_user(s, buffer, count))
- 		return -EFAULT;
-+	if (!count)
-+		return 0;
- 	if (s[count-1] == '\n')
- 		count--;
- 	if (count == 1 && s[0] == '0')
+diff -puN scripts/checkpatch.pl~checkpatch-remove-unnecessary-after-88 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-remove-unnecessary-after-88
++++ a/scripts/checkpatch.pl
+@@ -2431,7 +2431,7 @@ sub process {
+ 				"please, no space before tabs\n" . $herevet) &&
+ 			    $fix) {
+ 				while ($fixed[$fixlinenr] =~
+-					   s/(^\+.*) {8,8}+\t/$1\t\t/) {}
++					   s/(^\+.*) {8,8}\t/$1\t\t/) {}
+ 				while ($fixed[$fixlinenr] =~
+ 					   s/(^\+.*) +\t/$1\t/) {}
+ 			}
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
 
