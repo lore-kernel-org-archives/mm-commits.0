@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch added to -mm tree
-Date: Tue, 14 Oct 2014 13:14:07 -0700
-Message-ID: <543d840f./wg+zEQCpe339GO9%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch added to -mm tree
+Date: Tue, 14 Oct 2014 13:14:06 -0700
+Message-ID: <543d840e.9A/7w4yrWfgWDgan%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45345 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45339 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755348AbaJNUOI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 16:14:08 -0400
+	with ESMTP id S1755422AbaJNUOH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 16:14:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: continue cache reclaim from offlined groups
+     Subject: mm: memcontrol: remove obsolete kmemcg pinning tricks
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+     mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,309 +39,206 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: continue cache reclaim from offlined groups
+Subject: mm: memcontrol: remove obsolete kmemcg pinning tricks
 
-On cgroup deletion, outstanding page cache charges are moved to the parent
-group so that they're not lost and can be reclaimed during pressure
-on/inside said parent.  But this reparenting is fairly tricky and its
-synchroneous nature has led to several lock-ups in the past.
+As charges now pin the css explicitely, there is no more need for kmemcg
+to acquire a proxy reference for outstanding pages during offlining, or
+maintain state to identify such "dead" groups.
 
-Since css iterators now also include offlined css, memcg iterators can be
-changed to include offlined children during reclaim of a group, and
-leftover cache can just stay put.
-
-There is a slight change of behavior in that charges of deleted groups no
-longer show up as local charges in the parent.  But they are still
-included in the parent's hierarchical statistics.
+This was the last user of the uncharge functions' return values, so remove
+them as well.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  218 ----------------------------------------------
- 1 file changed, 1 insertion(+), 217 deletions(-)
+ include/linux/page_counter.h |    4 -
+ mm/memcontrol.c              |   74 ---------------------------------
+ mm/page_counter.c            |   23 +---------
+ 3 files changed, 7 insertions(+), 94 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-continue-cache-reclaim-from-offlined-groups mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-continue-cache-reclaim-from-offlined-groups
+diff -puN include/linux/page_counter.h~mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks include/linux/page_counter.h
+--- a/include/linux/page_counter.h~mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks
++++ a/include/linux/page_counter.h
+@@ -32,12 +32,12 @@ static inline unsigned long page_counter
+ 	return atomic_long_read(&counter->count);
+ }
+ 
+-int page_counter_cancel(struct page_counter *counter, unsigned long nr_pages);
++void page_counter_cancel(struct page_counter *counter, unsigned long nr_pages);
+ void page_counter_charge(struct page_counter *counter, unsigned long nr_pages);
+ int page_counter_try_charge(struct page_counter *counter,
+ 			    unsigned long nr_pages,
+ 			    struct page_counter **fail);
+-int page_counter_uncharge(struct page_counter *counter, unsigned long nr_pages);
++void page_counter_uncharge(struct page_counter *counter, unsigned long nr_pages);
+ int page_counter_limit(struct page_counter *counter, unsigned long limit);
+ int page_counter_memparse(const char *buf, unsigned long *nr_pages);
+ 
+diff -puN mm/memcontrol.c~mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks
 +++ a/mm/memcontrol.c
-@@ -1132,7 +1132,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		if (css == &root->css)
- 			break;
+@@ -369,7 +369,6 @@ struct mem_cgroup {
+ /* internal only representation about the status of kmem accounting. */
+ enum {
+ 	KMEM_ACCOUNTED_ACTIVE, /* accounted by this cgroup itself */
+-	KMEM_ACCOUNTED_DEAD, /* dead memcg with pending kmem charges */
+ };
  
--		if (css_tryget_online(css)) {
-+		if (css_tryget(css)) {
- 			/*
- 			 * Make sure the memcg is initialized:
- 			 * mem_cgroup_css_online() orders the the
-@@ -3299,79 +3299,6 @@ out:
- 	return ret;
+ #ifdef CONFIG_MEMCG_KMEM
+@@ -383,22 +382,6 @@ static bool memcg_kmem_is_active(struct
+ 	return test_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags);
  }
  
--/**
-- * mem_cgroup_move_parent - moves page to the parent group
-- * @page: the page to move
-- * @pc: page_cgroup of the page
-- * @child: page's cgroup
-- *
-- * move charges to its parent or the root cgroup if the group has no
-- * parent (aka use_hierarchy==0).
-- * Although this might fail (get_page_unless_zero, isolate_lru_page or
-- * mem_cgroup_move_account fails) the failure is always temporary and
-- * it signals a race with a page removal/uncharge or migration. In the
-- * first case the page is on the way out and it will vanish from the LRU
-- * on the next attempt and the call should be retried later.
-- * Isolation from the LRU fails only if page has been isolated from
-- * the LRU since we looked at it and that usually means either global
-- * reclaim or migration going on. The page will either get back to the
-- * LRU or vanish.
-- * Finaly mem_cgroup_move_account fails only if the page got uncharged
-- * (!PageCgroupUsed) or moved to a different group. The page will
-- * disappear in the next attempt.
-- */
--static int mem_cgroup_move_parent(struct page *page,
--				  struct page_cgroup *pc,
--				  struct mem_cgroup *child)
+-static void memcg_kmem_mark_dead(struct mem_cgroup *memcg)
 -{
--	struct mem_cgroup *parent;
--	unsigned int nr_pages;
--	unsigned long uninitialized_var(flags);
--	int ret;
--
--	VM_BUG_ON(mem_cgroup_is_root(child));
--
--	ret = -EBUSY;
--	if (!get_page_unless_zero(page))
--		goto out;
--	if (isolate_lru_page(page))
--		goto put;
--
--	nr_pages = hpage_nr_pages(page);
--
--	parent = parent_mem_cgroup(child);
 -	/*
--	 * If no parent, move charges to root cgroup.
+-	 * Our caller must use css_get() first, because memcg_uncharge_kmem()
+-	 * will call css_put() if it sees the memcg is dead.
 -	 */
--	if (!parent)
--		parent = root_mem_cgroup;
--
--	if (nr_pages > 1) {
--		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
--		flags = compound_lock_irqsave(page);
--	}
--
--	ret = mem_cgroup_move_account(page, nr_pages,
--				pc, child, parent);
--	if (!ret) {
--		if (!mem_cgroup_is_root(parent))
--			css_get_many(&parent->css, nr_pages);
--		/* Take charge off the local counters */
--		page_counter_cancel(&child->memory, nr_pages);
--		if (do_swap_account)
--			page_counter_cancel(&child->memsw, nr_pages);
--		css_put_many(&child->css, nr_pages);
--	}
--
--	if (nr_pages > 1)
--		compound_unlock_irqrestore(page, flags);
--	putback_lru_page(page);
--put:
--	put_page(page);
--out:
--	return ret;
+-	smp_wmb();
+-	if (test_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags))
+-		set_bit(KMEM_ACCOUNTED_DEAD, &memcg->kmem_account_flags);
 -}
 -
- #ifdef CONFIG_MEMCG_SWAP
- static void mem_cgroup_swap_statistics(struct mem_cgroup *memcg,
- 					 bool charge)
-@@ -3665,105 +3592,6 @@ unsigned long mem_cgroup_soft_limit_recl
- 	return nr_reclaimed;
+-static bool memcg_kmem_test_and_clear_dead(struct mem_cgroup *memcg)
+-{
+-	return test_and_clear_bit(KMEM_ACCOUNTED_DEAD,
+-				  &memcg->kmem_account_flags);
+-}
+ #endif
+ 
+ /* Stuffs for move charges at task migration. */
+@@ -2741,22 +2724,7 @@ static void memcg_uncharge_kmem(struct m
+ 	if (do_swap_account)
+ 		page_counter_uncharge(&memcg->memsw, nr_pages);
+ 
+-	/* Not down to 0 */
+-	if (page_counter_uncharge(&memcg->kmem, nr_pages)) {
+-		css_put_many(&memcg->css, nr_pages);
+-		return;
+-	}
+-
+-	/*
+-	 * Releases a reference taken in kmem_cgroup_css_offline in case
+-	 * this last uncharge is racing with the offlining code or it is
+-	 * outliving the memcg existence.
+-	 *
+-	 * The memory barrier imposed by test&clear is paired with the
+-	 * explicit one in memcg_kmem_mark_dead().
+-	 */
+-	if (memcg_kmem_test_and_clear_dead(memcg))
+-		css_put(&memcg->css);
++	page_counter_uncharge(&memcg->kmem, nr_pages);
+ 
+ 	css_put_many(&memcg->css, nr_pages);
  }
- 
--/**
-- * mem_cgroup_force_empty_list - clears LRU of a group
-- * @memcg: group to clear
-- * @node: NUMA node
-- * @zid: zone id
-- * @lru: lru to to clear
-- *
-- * Traverse a specified page_cgroup list and try to drop them all.  This doesn't
-- * reclaim the pages page themselves - pages are moved to the parent (or root)
-- * group.
-- */
--static void mem_cgroup_force_empty_list(struct mem_cgroup *memcg,
--				int node, int zid, enum lru_list lru)
--{
--	struct lruvec *lruvec;
--	unsigned long flags;
--	struct list_head *list;
--	struct page *busy;
--	struct zone *zone;
--
--	zone = &NODE_DATA(node)->node_zones[zid];
--	lruvec = mem_cgroup_zone_lruvec(zone, memcg);
--	list = &lruvec->lists[lru];
--
--	busy = NULL;
--	do {
--		struct page_cgroup *pc;
--		struct page *page;
--
--		spin_lock_irqsave(&zone->lru_lock, flags);
--		if (list_empty(list)) {
--			spin_unlock_irqrestore(&zone->lru_lock, flags);
--			break;
--		}
--		page = list_entry(list->prev, struct page, lru);
--		if (busy == page) {
--			list_move(&page->lru, list);
--			busy = NULL;
--			spin_unlock_irqrestore(&zone->lru_lock, flags);
--			continue;
--		}
--		spin_unlock_irqrestore(&zone->lru_lock, flags);
--
--		pc = lookup_page_cgroup(page);
--
--		if (mem_cgroup_move_parent(page, pc, memcg)) {
--			/* found lock contention or "pc" is obsolete. */
--			busy = page;
--		} else
--			busy = NULL;
--		cond_resched();
--	} while (!list_empty(list));
--}
--
--/*
-- * make mem_cgroup's charge to be 0 if there is no task by moving
-- * all the charges and pages to the parent.
-- * This enables deleting this mem_cgroup.
-- *
-- * Caller is responsible for holding css reference on the memcg.
-- */
--static void mem_cgroup_reparent_charges(struct mem_cgroup *memcg)
--{
--	int node, zid;
--
--	do {
--		/* This is for making all *used* pages to be on LRU. */
--		lru_add_drain_all();
--		drain_all_stock_sync(memcg);
--		mem_cgroup_start_move(memcg);
--		for_each_node_state(node, N_MEMORY) {
--			for (zid = 0; zid < MAX_NR_ZONES; zid++) {
--				enum lru_list lru;
--				for_each_lru(lru) {
--					mem_cgroup_force_empty_list(memcg,
--							node, zid, lru);
--				}
--			}
--		}
--		mem_cgroup_end_move(memcg);
--		memcg_oom_recover(memcg);
--		cond_resched();
--
--		/*
--		 * Kernel memory may not necessarily be trackable to a specific
--		 * process. So they are not migrated, and therefore we can't
--		 * expect their value to drop to 0 here.
--		 * Having res filled up with kmem only is enough.
--		 *
--		 * This is a safety check because mem_cgroup_force_empty_list
--		 * could have raced with mem_cgroup_replace_page_cache callers
--		 * so the lru seemed empty but the page could have been added
--		 * right after the check. RES_USAGE should be safe as we always
--		 * charge before adding to the LRU.
--		 */
--	} while (page_counter_read(&memcg->memory) -
--		 page_counter_read(&memcg->kmem) > 0);
--}
--
- /*
-  * Test whether @memcg has children, dead or alive.  Note that this
-  * function doesn't care whether @memcg has use_hierarchy enabled and
-@@ -5306,7 +5134,6 @@ static void mem_cgroup_css_offline(struc
+@@ -4740,40 +4708,6 @@ static void memcg_destroy_kmem(struct me
  {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
- 	struct mem_cgroup_event *event, *tmp;
--	struct cgroup_subsys_state *iter;
+ 	mem_cgroup_sockets_destroy(memcg);
+ }
+-
+-static void kmem_cgroup_css_offline(struct mem_cgroup *memcg)
+-{
+-	if (!memcg_kmem_is_active(memcg))
+-		return;
+-
+-	/*
+-	 * kmem charges can outlive the cgroup. In the case of slab
+-	 * pages, for instance, a page contain objects from various
+-	 * processes. As we prevent from taking a reference for every
+-	 * such allocation we have to be careful when doing uncharge
+-	 * (see memcg_uncharge_kmem) and here during offlining.
+-	 *
+-	 * The idea is that that only the _last_ uncharge which sees
+-	 * the dead memcg will drop the last reference. An additional
+-	 * reference is taken here before the group is marked dead
+-	 * which is then paired with css_put during uncharge resp. here.
+-	 *
+-	 * Although this might sound strange as this path is called from
+-	 * css_offline() when the referencemight have dropped down to 0 and
+-	 * shouldn't be incremented anymore (css_tryget_online() would
+-	 * fail) we do not have other options because of the kmem
+-	 * allocations lifetime.
+-	 */
+-	css_get(&memcg->css);
+-
+-	memcg_kmem_mark_dead(memcg);
+-
+-	if (page_counter_read(&memcg->kmem))
+-		return;
+-
+-	if (memcg_kmem_test_and_clear_dead(memcg))
+-		css_put(&memcg->css);
+-}
+ #else
+ static int memcg_init_kmem(struct mem_cgroup *memcg, struct cgroup_subsys *ss)
+ {
+@@ -4783,10 +4717,6 @@ static int memcg_init_kmem(struct mem_cg
+ static void memcg_destroy_kmem(struct mem_cgroup *memcg)
+ {
+ }
+-
+-static void kmem_cgroup_css_offline(struct mem_cgroup *memcg)
+-{
+-}
+ #endif
  
- 	/*
- 	 * Unregister events and notify userspace.
-@@ -5320,13 +5147,6 @@ static void mem_cgroup_css_offline(struc
+ /*
+@@ -5390,8 +5320,6 @@ static void mem_cgroup_css_offline(struc
  	}
  	spin_unlock(&memcg->event_list_lock);
  
--	/*
--	 * This requires that offlining is serialized.  Right now that is
--	 * guaranteed because css_killed_work_fn() holds the cgroup_mutex.
--	 */
--	css_for_each_descendant_post(iter, css)
--		mem_cgroup_reparent_charges(mem_cgroup_from_css(iter));
+-	kmem_cgroup_css_offline(memcg);
 -
- 	memcg_unregister_all_caches(memcg);
- 	vmpressure_cleanup(&memcg->vmpressure);
- }
-@@ -5334,42 +5154,6 @@ static void mem_cgroup_css_offline(struc
- static void mem_cgroup_css_free(struct cgroup_subsys_state *css)
+ 	/*
+ 	 * This requires that offlining is serialized.  Right now that is
+ 	 * guaranteed because css_killed_work_fn() holds the cgroup_mutex.
+diff -puN mm/page_counter.c~mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks mm/page_counter.c
+--- a/mm/page_counter.c~mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks
++++ a/mm/page_counter.c
+@@ -14,19 +14,14 @@
+  * page_counter_cancel - take pages out of the local counter
+  * @counter: counter
+  * @nr_pages: number of pages to cancel
+- *
+- * Returns whether there are remaining pages in the counter.
+  */
+-int page_counter_cancel(struct page_counter *counter, unsigned long nr_pages)
++void page_counter_cancel(struct page_counter *counter, unsigned long nr_pages)
  {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
--	/*
--	 * XXX: css_offline() would be where we should reparent all
--	 * memory to prepare the cgroup for destruction.  However,
--	 * memcg does not do css_tryget_online() and page_counter charging
--	 * under the same RCU lock region, which means that charging
--	 * could race with offlining.  Offlining only happens to
--	 * cgroups with no tasks in them but charges can show up
--	 * without any tasks from the swapin path when the target
--	 * memcg is looked up from the swapout record and not from the
--	 * current task as it usually is.  A race like this can leak
--	 * charges and put pages with stale cgroup pointers into
--	 * circulation:
--	 *
--	 * #0                        #1
--	 *                           lookup_swap_cgroup_id()
--	 *                           rcu_read_lock()
--	 *                           mem_cgroup_lookup()
--	 *                           css_tryget_online()
--	 *                           rcu_read_unlock()
--	 * disable css_tryget_online()
--	 * call_rcu()
--	 *   offline_css()
--	 *     reparent_charges()
--	 *                           page_counter_try_charge()
--	 *                           css_put()
--	 *                             css_free()
--	 *                           pc->mem_cgroup = dead memcg
--	 *                           add page to lru
--	 *
--	 * The bulk of the charges are still moved in offline_css() to
--	 * avoid pinning a lot of pages in case a long-term reference
--	 * like a swapout record is deferring the css_free() to long
--	 * after offlining.  But this makes sure we catch any charges
--	 * made after offlining:
--	 */
--	mem_cgroup_reparent_charges(memcg);
+ 	long new;
  
- 	memcg_destroy_kmem(memcg);
- 	__mem_cgroup_free(memcg);
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-origin.patch
-cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
-mm-memcontrol-lockless-page-counters.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
-mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
-mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
-mm-memcontrol-remove-synchroneous-stock-draining-code.patch
-debugging-keep-track-of-page-owners.patch
-
+ 	new = atomic_long_sub_return(nr_pages, &counter->count);
+-
+ 	/* More uncharges than charges? */
+ 	WARN_ON_ONCE(new < 0);
+-
+-	return new > 0;
+ }
+ 
+ /**
+@@ -115,23 +110,13 @@ failed:
+  * page_counter_uncharge - hierarchically uncharge pages
+  * @counter: counter
+  * @nr_pages: number of pages to uncharge
+- *
+- * Returns whether there are remaining charges in @counter.
+  */
+-int page_counter_uncharge(struct page_counter *counter, unsigned long nr_pages)
++void page_counter_uncharge(struct page_counter *counter, unsigned long nr_pages)
+ {
+ 	struct page_counter *c;
+-	int ret = 1;
+ 
+-	for (c = counter; c; c = c->parent) {
+-		int remainder;
+-
+-		remainder = page_counter_cancel(c, nr_pages);
+-		if (c == counter && !remainder)
+-			ret = 0;
+-	}
