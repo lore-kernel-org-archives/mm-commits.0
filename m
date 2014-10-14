@@ -1,91 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slab-fix-unaligned-access-on-sparc64.patch removed
- from -mm tree
-Date: Tue, 14 Oct 2014 11:18:54 -0700
-Message-ID: <543d690e.plHf48tXTslG3ouB%akpm@linux-foundation.org>
+Subject: [merged] kernel-add-support-for-gcc-5.patch removed from -mm tree
+Date: Tue, 14 Oct 2014 11:18:59 -0700
+Message-ID: <543d6913.ngyn+0gjbfgFty56%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44074 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44084 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753241AbaJNSSy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:18:54 -0400
+	with ESMTP id S1754278AbaJNSS6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:18:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, cl@linux.com, davem@davemloft.net, mroos@linux.ee, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: sasha.levin@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: fix unaligned access on sparc64
+     Subject: kernel: add support for gcc 5
 has been removed from the -mm tree.  Its filename was
-     mm-slab-fix-unaligned-access-on-sparc64.patch
+     kernel-add-support-for-gcc-5.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: fix unaligned access on sparc64
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: kernel: add support for gcc 5
 
-commit bf0dea23a9c0 ("mm/slab: use percpu allocator for cpu cache")
-changes allocation method for cpu cache array from slab allocator to
-percpu allocator.  Alignment should be provided for aligned memory in
-percpu allocator case, but, that commit mistakenly set this alignment to
-0.  So, percpu allocator returns unaligned memory address.  It doesn't
-cause any problem on x86 which permits unaligned access, but, it causes
-the problem on sparc64 which needs strong guarantee of alignment.
+We're missing include/linux/compiler-gcc5.h which is required now
+because gcc branched off to v5 in trunk.
 
-Following bug report is reported from David Miller.
+Just copy the relevant bits out of include/linux/compiler-gcc4.h,
+no new code is added as of now.
 
-  I'm getting tons of the following on sparc64:
+This fixes a build error when using gcc 5.
 
-  [603965.383447] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
-  [603965.396987] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
-  [603965.410523] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
-  [603965.424061] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
-  [603965.437617] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
-  [603970.554394] log_unaligned: 333 callbacks suppressed
-  [603970.564041] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
-  [603970.577576] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
-  [603970.591122] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
-  [603970.604669] Kernel unaligned access at TPC[546b60] free_block+0xa0/0x1a0
-  [603970.618216] Kernel unaligned access at TPC[546b58] free_block+0x98/0x1a0
-  [603976.515633] log_unaligned: 31 callbacks suppressed
-  snip...
-
-This patch provides proper alignment parameter when allocating cpu cache
-to fix this unaligned memory access problem on sparc64.
-
-Reported-by: David Miller <davem@davemloft.net>
-Tested-by: David Miller <davem@davemloft.net>
-Tested-by: Meelis Roos <mroos@linux.ee>
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compiler-gcc5.h |   66 ++++++++++++++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
 
-diff -puN mm/slab.c~mm-slab-fix-unaligned-access-on-sparc64 mm/slab.c
---- a/mm/slab.c~mm-slab-fix-unaligned-access-on-sparc64
-+++ a/mm/slab.c
-@@ -1992,7 +1992,7 @@ static struct array_cache __percpu *allo
- 	struct array_cache __percpu *cpu_cache;
- 
- 	size = sizeof(void *) * entries + sizeof(struct array_cache);
--	cpu_cache = __alloc_percpu(size, 0);
-+	cpu_cache = __alloc_percpu(size, sizeof(void *));
- 
- 	if (!cpu_cache)
- 		return NULL;
+diff -puN /dev/null include/linux/compiler-gcc5.h
+--- /dev/null
++++ a/include/linux/compiler-gcc5.h
+@@ -0,0 +1,66 @@
++#ifndef __LINUX_COMPILER_H
++#error "Please don't include <linux/compiler-gcc5.h> directly, include <linux/compiler.h> instead."
++#endif
++
++#define __used				__attribute__((__used__))
++#define __must_check			__attribute__((warn_unused_result))
++#define __compiler_offsetof(a, b)	__builtin_offsetof(a, b)
++
++/* Mark functions as cold. gcc will assume any path leading to a call
++   to them will be unlikely.  This means a lot of manual unlikely()s
++   are unnecessary now for any paths leading to the usual suspects
++   like BUG(), printk(), panic() etc. [but let's keep them for now for
++   older compilers]
++
++   Early snapshots of gcc 4.3 don't support this and we can't detect this
++   in the preprocessor, but we can live with this because they're unreleased.
++   Maketime probing would be overkill here.
++
++   gcc also has a __attribute__((__hot__)) to move hot functions into
++   a special section, but I don't see any sense in this right now in
++   the kernel context */
++#define __cold			__attribute__((__cold__))
++
++#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
++
++#ifndef __CHECKER__
++# define __compiletime_warning(message) __attribute__((warning(message)))
++# define __compiletime_error(message) __attribute__((error(message)))
++#endif /* __CHECKER__ */
++
++/*
++ * Mark a position in code as unreachable.  This can be used to
++ * suppress control flow warnings after asm blocks that transfer
++ * control elsewhere.
++ *
++ * Early snapshots of gcc 4.5 don't support this and we can't detect
++ * this in the preprocessor, but we can live with this because they're
++ * unreleased.  Really, we need to have autoconf for the kernel.
++ */
++#define unreachable() __builtin_unreachable()
++
++/* Mark a function definition as prohibited from being cloned. */
++#define __noclone	__attribute__((__noclone__))
++
++/*
++ * Tell the optimizer that something else uses this function or variable.
++ */
++#define __visible __attribute__((externally_visible))
++
++/*
++ * GCC 'asm goto' miscompiles certain code sequences:
++ *
++ *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58670
++ *
++ * Work it around via a compiler barrier quirk suggested by Jakub Jelinek.
++ * Fixed in GCC 4.8.2 and later versions.
++ *
++ * (asm goto is automatically volatile - the naming reflects this.)
++ */
++#define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
++
++#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
++#define __HAVE_BUILTIN_BSWAP32__
++#define __HAVE_BUILTIN_BSWAP64__
++#define __HAVE_BUILTIN_BSWAP16__
++#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from sasha.levin@oracle.com are
 
 origin.patch
-page-owners-correct-page-order-when-to-free-page.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
 
