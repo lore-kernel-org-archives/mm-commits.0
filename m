@@ -1,153 +1,189 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-rtc-kconfig-let-several-drivers-depend-on-has_iomem-to-avoid-compiling-issue.patch removed from -mm tree
-Date: Tue, 14 Oct 2014 11:20:56 -0700
-Message-ID: <543d6988.Gcf4Z3lCnBbEaZwv%akpm@linux-foundation.org>
+Subject: [merged] nilfs2-improve-the-performance-of-fdatasync.patch
+ removed from -mm tree
+Date: Tue, 14 Oct 2014 11:21:04 -0700
+Message-ID: <543d6990.Q8iWghDR7t8P4IHC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44358 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44372 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755348AbaJNSUz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:55 -0400
+	with ESMTP id S1754840AbaJNSVD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:21:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
+To: andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/Kconfig: Let several drivers depend on HAS_IOMEM to avoid compiling issue
+     Subject: nilfs2: improve the performance of fdatasync()
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-kconfig-let-several-drivers-depend-on-has_iomem-to-avoid-compiling-issue.patch
+     nilfs2-improve-the-performance-of-fdatasync.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen.5i5j@gmail.com>
-Subject: drivers/rtc/Kconfig: Let several drivers depend on HAS_IOMEM to avoid compiling issue
+From: Andreas Rohner <andreas.rohner@gmx.net>
+Subject: nilfs2: improve the performance of fdatasync()
 
-Some drivers need 'devm_ioremap_resource' or 'devm_ioremap' which need
-HAS_IOMEM, so let them depend on it.
+Support for fdatasync() has been implemented in NILFS2 for a long time,
+but whenever the corresponding inode is dirty the implementation falls
+back to a full-flegded sync().  Since every write operation has to update
+the modification time of the file, the inode will almost always be dirty
+and fdatasync() will fall back to sync() most of the time.  But this
+fallback is only necessary for a change of the file size and not for a
+change of the various timestamps.
 
-The related error (with allmodconfig under score):
+This patch adds a new flag NILFS_I_INODE_SYNC to differentiate between
+those two situations.
 
-    MODPOST 1365 modules
-  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-xgene.ko] undefined!
-  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-stk17ta8.ko] undefined!
-  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-ds1742.ko] undefined!
-  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-ds1553.ko] undefined!
-  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-ds1511.ko] undefined!
-  ERROR: "devm_ioremap_resource" [drivers/rtc/rtc-ds1286.ko] undefined!
-  ERROR: "devm_ioremap" [drivers/rtc/rtc-rp5c01.ko] undefined!
-  ERROR: "devm_ioremap" [drivers/rtc/rtc-msm6242.ko] undefined!
-  ERROR: "devm_ioremap" [drivers/rtc/rtc-m48t59.ko] undefined!
-  ERROR: "devm_ioremap" [drivers/rtc/rtc-m48t35.ko] undefined!
-  ERROR: "devm_ioremap" [drivers/rtc/rtc-bq4802.ko] undefined!
+ * If it is set the file size was changed and a full sync is necessary.
+ * If it is not set then only the timestamps were updated and
+   fdatasync() can go ahead.
 
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+There is already a similar flag I_DIRTY_DATASYNC on the VFS layer with the
+exact same semantics.  Unfortunately it cannot be used directly, because
+NILFS2 doesn't implement write_inode() and doesn't clear the VFS flags
+when inodes are written out.  So the VFS writeback thread can clear
+I_DIRTY_DATASYNC at any time without notifying NILFS2.  So
+I_DIRTY_DATASYNC has to be mapped onto NILFS_I_INODE_SYNC in
+nilfs_update_inode().
+
+Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ fs/nilfs2/inode.c   |   13 +++++++------
+ fs/nilfs2/nilfs.h   |   14 +++++++++++---
+ fs/nilfs2/segment.c |    4 ++--
+ 3 files changed, 20 insertions(+), 11 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~drivers-rtc-kconfig-let-several-drivers-depend-on-has_iomem-to-avoid-compiling-issue drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~drivers-rtc-kconfig-let-several-drivers-depend-on-has_iomem-to-avoid-compiling-issue
-+++ a/drivers/rtc/Kconfig
-@@ -752,6 +752,7 @@ config RTC_DRV_DS1216
+diff -puN fs/nilfs2/inode.c~nilfs2-improve-the-performance-of-fdatasync fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-improve-the-performance-of-fdatasync
++++ a/fs/nilfs2/inode.c
+@@ -126,7 +126,7 @@ int nilfs_get_block(struct inode *inode,
+ 			nilfs_transaction_abort(inode->i_sb);
+ 			goto out;
+ 		}
+-		nilfs_mark_inode_dirty(inode);
++		nilfs_mark_inode_dirty_sync(inode);
+ 		nilfs_transaction_commit(inode->i_sb); /* never fails */
+ 		/* Error handling should be detailed */
+ 		set_buffer_new(bh_result);
+@@ -672,7 +672,7 @@ void nilfs_write_inode_common(struct ino
+ 	   for substitutions of appended fields */
+ }
  
- config RTC_DRV_DS1286
- 	tristate "Dallas DS1286"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say yes here you get support for the Dallas DS1286 RTC chips.
+-void nilfs_update_inode(struct inode *inode, struct buffer_head *ibh)
++void nilfs_update_inode(struct inode *inode, struct buffer_head *ibh, int flags)
+ {
+ 	ino_t ino = inode->i_ino;
+ 	struct nilfs_inode_info *ii = NILFS_I(inode);
+@@ -683,7 +683,8 @@ void nilfs_update_inode(struct inode *in
  
-@@ -763,6 +764,7 @@ config RTC_DRV_DS1302
+ 	if (test_and_clear_bit(NILFS_I_NEW, &ii->i_state))
+ 		memset(raw_inode, 0, NILFS_MDT(ifile)->mi_entry_size);
+-	set_bit(NILFS_I_INODE_DIRTY, &ii->i_state);
++	if (flags & I_DIRTY_DATASYNC)
++		set_bit(NILFS_I_INODE_SYNC, &ii->i_state);
  
- config RTC_DRV_DS1511
- 	tristate "Dallas DS1511"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say yes here you get support for the
- 	  Dallas DS1511 timekeeping/watchdog chip.
-@@ -772,6 +774,7 @@ config RTC_DRV_DS1511
+ 	nilfs_write_inode_common(inode, raw_inode, 0);
+ 		/* XXX: call with has_bmap = 0 is a workaround to avoid
+@@ -939,7 +940,7 @@ int nilfs_set_file_dirty(struct inode *i
+ 	return 0;
+ }
  
- config RTC_DRV_DS1553
- 	tristate "Maxim/Dallas DS1553"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say yes here you get support for the
- 	  Maxim/Dallas DS1553 timekeeping chip.
-@@ -781,6 +784,7 @@ config RTC_DRV_DS1553
+-int nilfs_mark_inode_dirty(struct inode *inode)
++int __nilfs_mark_inode_dirty(struct inode *inode, int flags)
+ {
+ 	struct buffer_head *ibh;
+ 	int err;
+@@ -950,7 +951,7 @@ int nilfs_mark_inode_dirty(struct inode
+ 			      "failed to reget inode block.\n");
+ 		return err;
+ 	}
+-	nilfs_update_inode(inode, ibh);
++	nilfs_update_inode(inode, ibh, flags);
+ 	mark_buffer_dirty(ibh);
+ 	nilfs_mdt_mark_dirty(NILFS_I(inode)->i_root->ifile);
+ 	brelse(ibh);
+@@ -983,7 +984,7 @@ void nilfs_dirty_inode(struct inode *ino
+ 		return;
+ 	}
+ 	nilfs_transaction_begin(inode->i_sb, &ti, 0);
+-	nilfs_mark_inode_dirty(inode);
++	__nilfs_mark_inode_dirty(inode, flags);
+ 	nilfs_transaction_commit(inode->i_sb); /* never fails */
+ }
  
- config RTC_DRV_DS1742
- 	tristate "Maxim/Dallas DS1742/1743"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say yes here you get support for the
- 	  Maxim/Dallas DS1742/1743 timekeeping chip.
-@@ -836,6 +840,7 @@ config RTC_DRV_EFI
+diff -puN fs/nilfs2/nilfs.h~nilfs2-improve-the-performance-of-fdatasync fs/nilfs2/nilfs.h
+--- a/fs/nilfs2/nilfs.h~nilfs2-improve-the-performance-of-fdatasync
++++ a/fs/nilfs2/nilfs.h
+@@ -104,7 +104,7 @@ enum {
+ 					   constructor */
+ 	NILFS_I_COLLECTED,		/* All dirty blocks are collected */
+ 	NILFS_I_UPDATED,		/* The file has been written back */
+-	NILFS_I_INODE_DIRTY,		/* write_inode is requested */
++	NILFS_I_INODE_SYNC,		/* dsync is not allowed for inode */
+ 	NILFS_I_BMAP,			/* has bmap and btnode_cache */
+ 	NILFS_I_GCINODE,		/* inode for GC, on memory only */
+ };
+@@ -273,7 +273,7 @@ struct inode *nilfs_iget(struct super_bl
+ 			 unsigned long ino);
+ extern struct inode *nilfs_iget_for_gc(struct super_block *sb,
+ 				       unsigned long ino, __u64 cno);
+-extern void nilfs_update_inode(struct inode *, struct buffer_head *);
++extern void nilfs_update_inode(struct inode *, struct buffer_head *, int);
+ extern void nilfs_truncate(struct inode *);
+ extern void nilfs_evict_inode(struct inode *);
+ extern int nilfs_setattr(struct dentry *, struct iattr *);
+@@ -282,10 +282,18 @@ int nilfs_permission(struct inode *inode
+ int nilfs_load_inode_block(struct inode *inode, struct buffer_head **pbh);
+ extern int nilfs_inode_dirty(struct inode *);
+ int nilfs_set_file_dirty(struct inode *inode, unsigned nr_dirty);
+-extern int nilfs_mark_inode_dirty(struct inode *);
++extern int __nilfs_mark_inode_dirty(struct inode *, int);
+ extern void nilfs_dirty_inode(struct inode *, int flags);
+ int nilfs_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+ 		 __u64 start, __u64 len);
++static inline int nilfs_mark_inode_dirty(struct inode *inode)
++{
++	return __nilfs_mark_inode_dirty(inode, I_DIRTY);
++}
++static inline int nilfs_mark_inode_dirty_sync(struct inode *inode)
++{
++	return __nilfs_mark_inode_dirty(inode, I_DIRTY_SYNC);
++}
  
- config RTC_DRV_STK17TA8
- 	tristate "Simtek STK17TA8"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say yes here you get support for the
- 	  Simtek STK17TA8 timekeeping chip.
-@@ -854,6 +859,7 @@ config RTC_DRV_M48T86
+ /* super.c */
+ extern struct inode *nilfs_alloc_inode(struct super_block *);
+diff -puN fs/nilfs2/segment.c~nilfs2-improve-the-performance-of-fdatasync fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-improve-the-performance-of-fdatasync
++++ a/fs/nilfs2/segment.c
+@@ -930,7 +930,7 @@ static void nilfs_drop_collected_inodes(
+ 		if (!test_and_clear_bit(NILFS_I_COLLECTED, &ii->i_state))
+ 			continue;
  
- config RTC_DRV_M48T35
- 	tristate "ST M48T35"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say Y here you will get support for the
- 	  ST M48T35 RTC chip.
-@@ -863,6 +869,7 @@ config RTC_DRV_M48T35
+-		clear_bit(NILFS_I_INODE_DIRTY, &ii->i_state);
++		clear_bit(NILFS_I_INODE_SYNC, &ii->i_state);
+ 		set_bit(NILFS_I_UPDATED, &ii->i_state);
+ 	}
+ }
+@@ -2195,7 +2195,7 @@ int nilfs_construct_dsync_segment(struct
+ 	nilfs_transaction_lock(sb, &ti, 0);
  
- config RTC_DRV_M48T59
- 	tristate "ST M48T59/M48T08/M48T02"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say Y here you will get support for the
- 	  ST M48T59 RTC chip and compatible ST M48T08 and M48T02.
-@@ -875,6 +882,7 @@ config RTC_DRV_M48T59
- 
- config RTC_DRV_MSM6242
- 	tristate "Oki MSM6242"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say yes here you get support for the Oki MSM6242
- 	  timekeeping chip. It is used in some Amiga models (e.g. A2000).
-@@ -884,6 +892,7 @@ config RTC_DRV_MSM6242
- 
- config RTC_DRV_BQ4802
- 	tristate "TI BQ4802"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say Y here you will get support for the TI
- 	  BQ4802 RTC chip.
-@@ -893,6 +902,7 @@ config RTC_DRV_BQ4802
- 
- config RTC_DRV_RP5C01
- 	tristate "Ricoh RP5C01"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say yes here you get support for the Ricoh RP5C01
- 	  timekeeping chip. It is used in some Amiga models (e.g. A3000
-@@ -1394,6 +1404,7 @@ config RTC_DRV_MOXART
- 
- config RTC_DRV_XGENE
- 	tristate "APM X-Gene RTC"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say yes here you get support for the APM X-Gene SoC real time
- 	  clock.
+ 	ii = NILFS_I(inode);
+-	if (test_bit(NILFS_I_INODE_DIRTY, &ii->i_state) ||
++	if (test_bit(NILFS_I_INODE_SYNC, &ii->i_state) ||
+ 	    nilfs_test_opt(nilfs, STRICT_ORDER) ||
+ 	    test_bit(NILFS_SC_UNCLOSED, &sci->sc_flags) ||
+ 	    nilfs_discontinued(nilfs)) {
 _
 
-Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
+Patches currently in -mm which might be from andreas.rohner@gmx.net are
 
 origin.patch
-linux-next.patch
 
