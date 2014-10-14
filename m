@@ -1,57 +1,76 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- frv-remove-unused-declarations-of-__start___ex_table-and-__stop___ex_table.patch removed from -mm tree
-Date: Tue, 14 Oct 2014 11:23:12 -0700
-Message-ID: <543d6a10.AvmqwY2nRxP7cA8n%akpm@linux-foundation.org>
+ kvm-ensure-hard-lockup-detection-is-disabled-by-default.patch removed from
+ -mm tree
+Date: Tue, 14 Oct 2014 11:23:10 -0700
+Message-ID: <543d6a0e.l61yh3GbCJuGxBCt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755597AbaJNSXL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:23:11 -0400
+	with ESMTP id S1754524AbaJNSXJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:23:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: uobergfe@redhat.com, drjones@redhat.com, dzickus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: frv: remove unused declarations of __start___ex_table and __stop___ex_table
+     Subject: kvm: ensure hard lockup detection is disabled by default
 has been removed from the -mm tree.  Its filename was
-     frv-remove-unused-declarations-of-__start___ex_table-and-__stop___ex_table.patch
+     kvm-ensure-hard-lockup-detection-is-disabled-by-default.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: frv: remove unused declarations of __start___ex_table and __stop___ex_table
+From: Ulrich Obergfell <uobergfe@redhat.com>
+Subject: kvm: ensure hard lockup detection is disabled by default
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: David Howells <dhowells@redhat.com>
+Use watchdog_enable_hardlockup_detector() to set hard lockup detection's
+default value to false.  It's risky to run this detection in a guest, as
+false positives are easy to trigger, especially if the host is
+overcommitted.
+
+Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
+Signed-off-by: Andrew Jones <drjones@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/extable.c |    2 --
- 1 file changed, 2 deletions(-)
+ arch/x86/kernel/kvm.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN arch/frv/mm/extable.c~frv-remove-unused-declarations-of-__start___ex_table-and-__stop___ex_table arch/frv/mm/extable.c
---- a/arch/frv/mm/extable.c~frv-remove-unused-declarations-of-__start___ex_table-and-__stop___ex_table
-+++ a/arch/frv/mm/extable.c
-@@ -6,8 +6,6 @@
- #include <linux/spinlock.h>
- #include <asm/uaccess.h>
+diff -puN arch/x86/kernel/kvm.c~kvm-ensure-hard-lockup-detection-is-disabled-by-default arch/x86/kernel/kvm.c
+--- a/arch/x86/kernel/kvm.c~kvm-ensure-hard-lockup-detection-is-disabled-by-default
++++ a/arch/x86/kernel/kvm.c
+@@ -35,6 +35,7 @@
+ #include <linux/slab.h>
+ #include <linux/kprobes.h>
+ #include <linux/debugfs.h>
++#include <linux/nmi.h>
+ #include <asm/timer.h>
+ #include <asm/cpu.h>
+ #include <asm/traps.h>
+@@ -499,6 +500,13 @@ void __init kvm_guest_init(void)
+ #else
+ 	kvm_guest_cpu_init();
+ #endif
++
++	/*
++	 * Hard lockup detection is enabled by default. Disable it, as guests
++	 * can get false positives too easily, for example if the host is
++	 * overcommitted.
++	 */
++	watchdog_enable_hardlockup_detector(false);
+ }
  
--extern const struct exception_table_entry __attribute__((aligned(8))) __start___ex_table[];
--extern const struct exception_table_entry __attribute__((aligned(8))) __stop___ex_table[];
- extern const void __memset_end, __memset_user_error_lr, __memset_user_error_handler;
- extern const void __memcpy_end, __memcpy_user_error_lr, __memcpy_user_error_handler;
- extern spinlock_t modlist_lock;
+ static noinline uint32_t __kvm_cpuid_base(void)
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from uobergfe@redhat.com are
 
 origin.patch
-linux-next.patch
 
