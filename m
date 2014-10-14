@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch added to -mm tree
-Date: Tue, 14 Oct 2014 13:04:35 -0700
-Message-ID: <543d81d3.vATWImDE6QI5RB91%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+ added to -mm tree
+Date: Tue, 14 Oct 2014 13:14:04 -0700
+Message-ID: <543d840c.26bnhKqKpHIIGpk5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45231 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45327 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755405AbaJNUEg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 16:04:36 -0400
+	with ESMTP id S1754524AbaJNUOE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 16:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb_cgroup: convert to lockless page counters
+     Subject: mm: memcontrol: convert reclaim iterator to simple css refcounting
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+     mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,300 +41,347 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: hugetlb_cgroup: convert to lockless page counters
+Subject: mm: memcontrol: convert reclaim iterator to simple css refcounting
 
-Abandon the spinlock-protected byte counters in favor of the unlocked
-page counters in the hugetlb controller as well.
+The memcg reclaim iterators use a complicated weak reference scheme to
+prevent pinning cgroups indefinitely in the absence of memory pressure.
+
+However, during the ongoing cgroup core rework, css lifetime has been
+decoupled such that a pinned css no longer interferes with removal of
+the user-visible cgroup, and all this complexity is now unnecessary.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/hugetlb.txt |    2 
- include/linux/hugetlb_cgroup.h    |    1 
- init/Kconfig                      |    3 
- mm/hugetlb_cgroup.c               |  103 +++++++++++++++-------------
- 4 files changed, 61 insertions(+), 48 deletions(-)
+ mm/memcontrol.c |  252 ++++++++++++++--------------------------------
+ 1 file changed, 77 insertions(+), 175 deletions(-)
 
-diff -puN Documentation/cgroups/hugetlb.txt~mm-hugetlb_cgroup-convert-to-lockless-page-counters Documentation/cgroups/hugetlb.txt
---- a/Documentation/cgroups/hugetlb.txt~mm-hugetlb_cgroup-convert-to-lockless-page-counters
-+++ a/Documentation/cgroups/hugetlb.txt
-@@ -29,7 +29,7 @@ Brief summary of control files
- 
-  hugetlb.<hugepagesize>.limit_in_bytes     # set/show limit of "hugepagesize" hugetlb usage
-  hugetlb.<hugepagesize>.max_usage_in_bytes # show max "hugepagesize" hugetlb  usage recorded
-- hugetlb.<hugepagesize>.usage_in_bytes     # show current res_counter usage for "hugepagesize" hugetlb
-+ hugetlb.<hugepagesize>.usage_in_bytes     # show current usage for "hugepagesize" hugetlb
-  hugetlb.<hugepagesize>.failcnt		   # show the number of allocation failure due to HugeTLB limit
- 
- For a system supporting two hugepage size (16M and 16G) the control
-diff -puN include/linux/hugetlb_cgroup.h~mm-hugetlb_cgroup-convert-to-lockless-page-counters include/linux/hugetlb_cgroup.h
---- a/include/linux/hugetlb_cgroup.h~mm-hugetlb_cgroup-convert-to-lockless-page-counters
-+++ a/include/linux/hugetlb_cgroup.h
-@@ -16,7 +16,6 @@
- #define _LINUX_HUGETLB_CGROUP_H
- 
- #include <linux/mmdebug.h>
--#include <linux/res_counter.h>
- 
- struct hugetlb_cgroup;
- /*
-diff -puN init/Kconfig~mm-hugetlb_cgroup-convert-to-lockless-page-counters init/Kconfig
---- a/init/Kconfig~mm-hugetlb_cgroup-convert-to-lockless-page-counters
-+++ a/init/Kconfig
-@@ -1058,7 +1058,8 @@ config MEMCG_KMEM
- 
- config CGROUP_HUGETLB
- 	bool "HugeTLB Resource Controller for Control Groups"
--	depends on RESOURCE_COUNTERS && HUGETLB_PAGE
-+	depends on HUGETLB_PAGE
-+	select PAGE_COUNTER
- 	default n
- 	help
- 	  Provides a cgroup Resource Controller for HugeTLB pages.
-diff -puN mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-convert-to-lockless-page-counters mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-convert-to-lockless-page-counters
-+++ a/mm/hugetlb_cgroup.c
-@@ -14,6 +14,7 @@
-  */
- 
- #include <linux/cgroup.h>
-+#include <linux/page_counter.h>
- #include <linux/slab.h>
- #include <linux/hugetlb.h>
- #include <linux/hugetlb_cgroup.h>
-@@ -23,7 +24,7 @@ struct hugetlb_cgroup {
- 	/*
- 	 * the counter to account for hugepages from hugetlb.
- 	 */
--	struct res_counter hugepage[HUGE_MAX_HSTATE];
-+	struct page_counter hugepage[HUGE_MAX_HSTATE];
+diff -puN mm/memcontrol.c~mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting
++++ a/mm/memcontrol.c
+@@ -143,14 +143,8 @@ struct mem_cgroup_stat_cpu {
+ 	unsigned long targets[MEM_CGROUP_NTARGETS];
  };
  
- #define MEMFILE_PRIVATE(x, val)	(((x) << 16) | (val))
-@@ -60,7 +61,7 @@ static inline bool hugetlb_cgroup_have_u
- 	int idx;
- 
- 	for (idx = 0; idx < hugetlb_max_hstate; idx++) {
--		if ((res_counter_read_u64(&h_cg->hugepage[idx], RES_USAGE)) > 0)
-+		if (page_counter_read(&h_cg->hugepage[idx]))
- 			return true;
- 	}
- 	return false;
-@@ -79,12 +80,12 @@ hugetlb_cgroup_css_alloc(struct cgroup_s
- 
- 	if (parent_h_cgroup) {
- 		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
--			res_counter_init(&h_cgroup->hugepage[idx],
--					 &parent_h_cgroup->hugepage[idx]);
-+			page_counter_init(&h_cgroup->hugepage[idx],
-+					  &parent_h_cgroup->hugepage[idx]);
- 	} else {
- 		root_h_cgroup = h_cgroup;
- 		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
--			res_counter_init(&h_cgroup->hugepage[idx], NULL);
-+			page_counter_init(&h_cgroup->hugepage[idx], NULL);
- 	}
- 	return &h_cgroup->css;
- }
-@@ -108,9 +109,8 @@ static void hugetlb_cgroup_css_free(stru
- static void hugetlb_cgroup_move_parent(int idx, struct hugetlb_cgroup *h_cg,
- 				       struct page *page)
- {
--	int csize;
--	struct res_counter *counter;
--	struct res_counter *fail_res;
-+	unsigned int nr_pages;
-+	struct page_counter *counter;
- 	struct hugetlb_cgroup *page_hcg;
- 	struct hugetlb_cgroup *parent = parent_hugetlb_cgroup(h_cg);
- 
-@@ -123,15 +123,15 @@ static void hugetlb_cgroup_move_parent(i
- 	if (!page_hcg || page_hcg != h_cg)
- 		goto out;
- 
--	csize = PAGE_SIZE << compound_order(page);
-+	nr_pages = 1 << compound_order(page);
- 	if (!parent) {
- 		parent = root_h_cgroup;
- 		/* root has no limit */
--		res_counter_charge_nofail(&parent->hugepage[idx],
--					  csize, &fail_res);
-+		page_counter_charge(&parent->hugepage[idx], nr_pages);
- 	}
- 	counter = &h_cg->hugepage[idx];
--	res_counter_uncharge_until(counter, counter->parent, csize);
-+	/* Take the pages off the local counter */
-+	page_counter_cancel(counter, nr_pages);
- 
- 	set_hugetlb_cgroup(page, parent);
- out:
-@@ -166,9 +166,8 @@ int hugetlb_cgroup_charge_cgroup(int idx
- 				 struct hugetlb_cgroup **ptr)
- {
- 	int ret = 0;
--	struct res_counter *fail_res;
-+	struct page_counter *counter;
- 	struct hugetlb_cgroup *h_cg = NULL;
--	unsigned long csize = nr_pages * PAGE_SIZE;
- 
- 	if (hugetlb_cgroup_disabled())
- 		goto done;
-@@ -187,7 +186,7 @@ again:
- 	}
- 	rcu_read_unlock();
- 
--	ret = res_counter_charge(&h_cg->hugepage[idx], csize, &fail_res);
-+	ret = page_counter_try_charge(&h_cg->hugepage[idx], nr_pages, &counter);
- 	css_put(&h_cg->css);
- done:
- 	*ptr = h_cg;
-@@ -213,7 +212,6 @@ void hugetlb_cgroup_uncharge_page(int id
- 				  struct page *page)
- {
- 	struct hugetlb_cgroup *h_cg;
--	unsigned long csize = nr_pages * PAGE_SIZE;
- 
- 	if (hugetlb_cgroup_disabled())
- 		return;
-@@ -222,61 +220,76 @@ void hugetlb_cgroup_uncharge_page(int id
- 	if (unlikely(!h_cg))
- 		return;
- 	set_hugetlb_cgroup(page, NULL);
--	res_counter_uncharge(&h_cg->hugepage[idx], csize);
-+	page_counter_uncharge(&h_cg->hugepage[idx], nr_pages);
- 	return;
- }
- 
- void hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
- 				    struct hugetlb_cgroup *h_cg)
- {
--	unsigned long csize = nr_pages * PAGE_SIZE;
+-struct mem_cgroup_reclaim_iter {
+-	/*
+-	 * last scanned hierarchy member. Valid only if last_dead_count
+-	 * matches memcg->dead_count of the hierarchy root group.
+-	 */
+-	struct mem_cgroup *last_visited;
+-	int last_dead_count;
 -
- 	if (hugetlb_cgroup_disabled() || !h_cg)
- 		return;
++struct reclaim_iter {
++	struct mem_cgroup *position;
+ 	/* scan generation, increased every round-trip */
+ 	unsigned int generation;
+ };
+@@ -162,7 +156,7 @@ struct mem_cgroup_per_zone {
+ 	struct lruvec		lruvec;
+ 	unsigned long		lru_size[NR_LRU_LISTS];
  
- 	if (huge_page_order(&hstates[idx]) < HUGETLB_CGROUP_MIN_ORDER)
- 		return;
+-	struct mem_cgroup_reclaim_iter reclaim_iter[DEF_PRIORITY + 1];
++	struct reclaim_iter	iter[DEF_PRIORITY + 1];
  
--	res_counter_uncharge(&h_cg->hugepage[idx], csize);
-+	page_counter_uncharge(&h_cg->hugepage[idx], nr_pages);
- 	return;
+ 	struct rb_node		tree_node;	/* RB tree node */
+ 	unsigned long		usage_in_excess;/* Set to the value by which */
+@@ -346,7 +340,6 @@ struct mem_cgroup {
+ 	struct mem_cgroup_stat_cpu nocpu_base;
+ 	spinlock_t pcp_counter_lock;
+ 
+-	atomic_t	dead_count;
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_INET)
+ 	struct cg_proto tcp_mem;
+ #endif
+@@ -1067,122 +1060,6 @@ static struct mem_cgroup *get_mem_cgroup
+ 	return memcg;
  }
  
-+enum {
-+	RES_USAGE,
-+	RES_LIMIT,
-+	RES_MAX_USAGE,
-+	RES_FAILCNT,
-+};
-+
- static u64 hugetlb_cgroup_read_u64(struct cgroup_subsys_state *css,
- 				   struct cftype *cft)
- {
--	int idx, name;
-+	struct page_counter *counter;
- 	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_css(css);
- 
--	idx = MEMFILE_IDX(cft->private);
--	name = MEMFILE_ATTR(cft->private);
-+	counter = &h_cg->hugepage[MEMFILE_IDX(cft->private)];
- 
--	return res_counter_read_u64(&h_cg->hugepage[idx], name);
-+	switch (MEMFILE_ATTR(cft->private)) {
-+	case RES_USAGE:
-+		return (u64)page_counter_read(counter) * PAGE_SIZE;
-+	case RES_LIMIT:
-+		return (u64)counter->limit * PAGE_SIZE;
-+	case RES_MAX_USAGE:
-+		return (u64)counter->watermark * PAGE_SIZE;
-+	case RES_FAILCNT:
-+		return counter->failcnt;
-+	default:
-+		BUG();
-+	}
- }
- 
-+static DEFINE_MUTEX(hugetlb_limit_mutex);
-+
- static ssize_t hugetlb_cgroup_write(struct kernfs_open_file *of,
- 				    char *buf, size_t nbytes, loff_t off)
- {
--	int idx, name, ret;
--	unsigned long long val;
-+	int ret, idx;
-+	unsigned long nr_pages;
- 	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_css(of_css(of));
- 
-+	if (hugetlb_cgroup_is_root(h_cg)) /* Can't set limit on root */
-+		return -EINVAL;
-+
- 	buf = strstrip(buf);
-+	ret = page_counter_memparse(buf, &nr_pages);
-+	if (ret)
-+		return ret;
-+
- 	idx = MEMFILE_IDX(of_cft(of)->private);
--	name = MEMFILE_ATTR(of_cft(of)->private);
- 
--	switch (name) {
-+	switch (MEMFILE_ATTR(of_cft(of)->private)) {
- 	case RES_LIMIT:
--		if (hugetlb_cgroup_is_root(h_cg)) {
--			/* Can't set limit on root */
--			ret = -EINVAL;
--			break;
+-/*
+- * Returns a next (in a pre-order walk) alive memcg (with elevated css
+- * ref. count) or NULL if the whole root's subtree has been visited.
+- *
+- * helper function to be used by mem_cgroup_iter
+- */
+-static struct mem_cgroup *__mem_cgroup_iter_next(struct mem_cgroup *root,
+-		struct mem_cgroup *last_visited)
+-{
+-	struct cgroup_subsys_state *prev_css, *next_css;
+-
+-	prev_css = last_visited ? &last_visited->css : NULL;
+-skip_node:
+-	next_css = css_next_descendant_pre(prev_css, &root->css);
+-
+-	/*
+-	 * Even if we found a group we have to make sure it is
+-	 * alive. css && !memcg means that the groups should be
+-	 * skipped and we should continue the tree walk.
+-	 * last_visited css is safe to use because it is
+-	 * protected by css_get and the tree walk is rcu safe.
+-	 *
+-	 * We do not take a reference on the root of the tree walk
+-	 * because we might race with the root removal when it would
+-	 * be the only node in the iterated hierarchy and mem_cgroup_iter
+-	 * would end up in an endless loop because it expects that at
+-	 * least one valid node will be returned. Root cannot disappear
+-	 * because caller of the iterator should hold it already so
+-	 * skipping css reference should be safe.
+-	 */
+-	if (next_css) {
+-		struct mem_cgroup *memcg = mem_cgroup_from_css(next_css);
+-
+-		if (next_css == &root->css)
+-			return memcg;
+-
+-		if (css_tryget_online(next_css)) {
+-			/*
+-			 * Make sure the memcg is initialized:
+-			 * mem_cgroup_css_online() orders the the
+-			 * initialization against setting the flag.
+-			 */
+-			if (smp_load_acquire(&memcg->initialized))
+-				return memcg;
+-			css_put(next_css);
 -		}
--		/* This function does all necessary parse...reuse it */
--		ret = res_counter_memparse_write_strategy(buf, &val);
--		if (ret)
--			break;
--		val = ALIGN(val, 1ULL << huge_page_shift(&hstates[idx]));
--		ret = res_counter_set_limit(&h_cg->hugepage[idx], val);
-+		mutex_lock(&hugetlb_limit_mutex);
-+		ret = page_counter_limit(&h_cg->hugepage[idx], nr_pages);
-+		mutex_unlock(&hugetlb_limit_mutex);
- 		break;
- 	default:
- 		ret = -EINVAL;
-@@ -288,18 +301,18 @@ static ssize_t hugetlb_cgroup_write(stru
- static ssize_t hugetlb_cgroup_reset(struct kernfs_open_file *of,
- 				    char *buf, size_t nbytes, loff_t off)
+-
+-		prev_css = next_css;
+-		goto skip_node;
+-	}
+-
+-	return NULL;
+-}
+-
+-static void mem_cgroup_iter_invalidate(struct mem_cgroup *root)
+-{
+-	/*
+-	 * When a group in the hierarchy below root is destroyed, the
+-	 * hierarchy iterator can no longer be trusted since it might
+-	 * have pointed to the destroyed group.  Invalidate it.
+-	 */
+-	atomic_inc(&root->dead_count);
+-}
+-
+-static struct mem_cgroup *
+-mem_cgroup_iter_load(struct mem_cgroup_reclaim_iter *iter,
+-		     struct mem_cgroup *root,
+-		     int *sequence)
+-{
+-	struct mem_cgroup *position = NULL;
+-	/*
+-	 * A cgroup destruction happens in two stages: offlining and
+-	 * release.  They are separated by a RCU grace period.
+-	 *
+-	 * If the iterator is valid, we may still race with an
+-	 * offlining.  The RCU lock ensures the object won't be
+-	 * released, tryget will fail if we lost the race.
+-	 */
+-	*sequence = atomic_read(&root->dead_count);
+-	if (iter->last_dead_count == *sequence) {
+-		smp_rmb();
+-		position = iter->last_visited;
+-
+-		/*
+-		 * We cannot take a reference to root because we might race
+-		 * with root removal and returning NULL would end up in
+-		 * an endless loop on the iterator user level when root
+-		 * would be returned all the time.
+-		 */
+-		if (position && position != root &&
+-		    !css_tryget_online(&position->css))
+-			position = NULL;
+-	}
+-	return position;
+-}
+-
+-static void mem_cgroup_iter_update(struct mem_cgroup_reclaim_iter *iter,
+-				   struct mem_cgroup *last_visited,
+-				   struct mem_cgroup *new_position,
+-				   struct mem_cgroup *root,
+-				   int sequence)
+-{
+-	/* root reference counting symmetric to mem_cgroup_iter_load */
+-	if (last_visited && last_visited != root)
+-		css_put(&last_visited->css);
+-	/*
+-	 * We store the sequence count from the time @last_visited was
+-	 * loaded successfully instead of rereading it here so that we
+-	 * don't lose destruction events in between.  We could have
+-	 * raced with the destruction of @new_position after all.
+-	 */
+-	iter->last_visited = new_position;
+-	smp_wmb();
+-	iter->last_dead_count = sequence;
+-}
+-
+ /**
+  * mem_cgroup_iter - iterate over memory cgroup hierarchy
+  * @root: hierarchy root
+@@ -1204,8 +1081,10 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 				   struct mem_cgroup *prev,
+ 				   struct mem_cgroup_reclaim_cookie *reclaim)
  {
--	int idx, name, ret = 0;
-+	int ret = 0;
-+	struct page_counter *counter;
- 	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_css(of_css(of));
++	struct reclaim_iter *uninitialized_var(iter);
++	struct cgroup_subsys_state *css = NULL;
+ 	struct mem_cgroup *memcg = NULL;
+-	struct mem_cgroup *last_visited = NULL;
++	struct mem_cgroup *pos = NULL;
  
--	idx = MEMFILE_IDX(of_cft(of)->private);
--	name = MEMFILE_ATTR(of_cft(of)->private);
-+	counter = &h_cg->hugepage[MEMFILE_IDX(of_cft(of)->private)];
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+@@ -1214,50 +1093,93 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 		root = root_mem_cgroup;
  
--	switch (name) {
-+	switch (MEMFILE_ATTR(of_cft(of)->private)) {
- 	case RES_MAX_USAGE:
--		res_counter_reset_max(&h_cg->hugepage[idx]);
-+		page_counter_reset_watermark(counter);
- 		break;
- 	case RES_FAILCNT:
--		res_counter_reset_failcnt(&h_cg->hugepage[idx]);
-+		counter->failcnt = 0;
- 		break;
- 	default:
- 		ret = -EINVAL;
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-origin.patch
-cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
-mm-memcontrol-lockless-page-counters.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
-debugging-keep-track-of-page-owners.patch
-
+ 	if (prev && !reclaim)
+-		last_visited = prev;
++		pos = prev;
+ 
+ 	if (!root->use_hierarchy && root != root_mem_cgroup) {
+ 		if (prev)
+-			goto out_css_put;
++			goto out;
+ 		return root;
+ 	}
+ 
+ 	rcu_read_lock();
+-	while (!memcg) {
+-		struct mem_cgroup_reclaim_iter *uninitialized_var(iter);
+-		int uninitialized_var(seq);
+-
+-		if (reclaim) {
+-			struct mem_cgroup_per_zone *mz;
+-
+-			mz = mem_cgroup_zone_zoneinfo(root, reclaim->zone);
+-			iter = &mz->reclaim_iter[reclaim->priority];
+-			if (prev && reclaim->generation != iter->generation) {
+-				iter->last_visited = NULL;
+-				goto out_unlock;
+-			}
+ 
+-			last_visited = mem_cgroup_iter_load(iter, root, &seq);
++	if (reclaim) {
++		struct mem_cgroup_per_zone *mz;
++
++		mz = mem_cgroup_zone_zoneinfo(root, reclaim->zone);
++		iter = &mz->iter[reclaim->priority];
++
++		if (prev && reclaim->generation != iter->generation)
++			goto out_unlock;
++
++		do {
++			pos = ACCESS_ONCE(iter->position);
++			/*
++			 * A racing update may change the position and
++			 * put the last reference, hence css_tryget(),
++			 * or retry to see the updated position.
++			 */
++		} while (pos && !css_tryget(&pos->css));
++	}
++
++	if (pos)
++		css = &pos->css;
++
++	for (;;) {
++		css = css_next_descendant_pre(css, &root->css);
++		if (!css) {
++			/*
++			 * Reclaimers share the hierarchy walk, and a
++			 * new one might jump in right at the end of
++			 * the hierarchy - make sure they see at least
++			 * one group and restart from the beginning.
++			 */
++			if (!prev)
++				continue;
++			break;
+ 		}
+ 
+-		memcg = __mem_cgroup_iter_next(root, last_visited);
++		/*
++		 * Verify the css and acquire a reference.  The root
++		 * is provided by the caller, so we know it's alive
++		 * and kicking, and don't take an extra reference.
++		 */
++		memcg = mem_cgroup_from_css(css);
+ 
+-		if (reclaim) {
+-			mem_cgroup_iter_update(iter, last_visited, memcg, root,
+-					seq);
+-
+-			if (!memcg)
+-				iter->generation++;
+-			else if (!prev && memcg)
+-				reclaim->generation = iter->generation;
++		if (css == &root->css)
++			break;
++
++		if (css_tryget_online(css)) {
++			/*
++			 * Make sure the memcg is initialized:
++			 * mem_cgroup_css_online() orders the the
++			 * initialization against setting the flag.
++			 */
++			if (smp_load_acquire(&memcg->initialized))
++				break;
++
++			css_put(css);
+ 		}
+ 
+-		if (prev && !memcg)
+-			goto out_unlock;
++		memcg = NULL;
+ 	}
++
++	if (reclaim) {
++		if (cmpxchg(&iter->position, pos, memcg) == pos && memcg)
++			css_get(&memcg->css);
++
++		if (pos)
++			css_put(&pos->css);
++
++		if (!memcg)
++			iter->generation++;
++		else if (!prev)
++			reclaim->generation = iter->generation;
++	}
++
+ out_unlock:
+ 	rcu_read_unlock();
+-out_css_put:
++out:
+ 	if (prev && prev != root)
+ 		css_put(&prev->css);
+ 
+@@ -5438,24 +5360,6 @@ mem_cgroup_css_online(struct cgroup_subs
+ 	return 0;
+ }
+ 
+-/*
+- * Announce all parents that a group from their hierarchy is gone.
+- */
+-static void mem_cgroup_invalidate_reclaim_iterators(struct mem_cgroup *memcg)
+-{
+-	struct mem_cgroup *parent = memcg;
+-
+-	while ((parent = parent_mem_cgroup(parent)))
+-		mem_cgroup_iter_invalidate(parent);
+-
+-	/*
+-	 * if the root memcg is not hierarchical we have to check it
+-	 * explicitely.
+-	 */
+-	if (!root_mem_cgroup->use_hierarchy)
+-		mem_cgroup_iter_invalidate(root_mem_cgroup);
+-}
+-
+ static void mem_cgroup_css_offline(struct cgroup_subsys_state *css)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+@@ -5476,8 +5380,6 @@ static void mem_cgroup_css_offline(struc
+ 
+ 	kmem_cgroup_css_offline(memcg);
+ 
+-	mem_cgroup_invalidate_reclaim_iterators(memcg);
