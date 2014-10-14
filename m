@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch added to
- -mm tree
-Date: Tue, 14 Oct 2014 13:18:09 -0700
-Message-ID: <543d8501.n16BzpDQXCpKzdoU%akpm@linux-foundation.org>
+Subject: + kernel-sysctl-resolve-missing-field-initializers-warnings.patch added to -mm tree
+Date: Tue, 14 Oct 2014 13:24:18 -0700
+Message-ID: <543d8672.FqRgpGBE3p3gXOaC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45360 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45375 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755611AbaJNUSJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 16:18:09 -0400
+	with ESMTP id S1755656AbaJNUYS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 16:24:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, joe@perches.com, mm-commits@vger.kernel.org
+To: mark.d.rustad@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs/amigaffs.c: use va_format instead of buffer/vnsprintf
+     Subject: kernel/sysctl: Resolve missing-field-initializers warnings
 has been added to the -mm tree.  Its filename is
-     fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
+     kernel-sysctl-resolve-missing-field-initializers-warnings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-sysctl-resolve-missing-field-initializers-warnings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-sysctl-resolve-missing-field-initializers-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,154 +38,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/amigaffs.c: use va_format instead of buffer/vnsprintf
+From: Mark Rustad <mark.d.rustad@intel.com>
+Subject: kernel/sysctl: Resolve missing-field-initializers warnings
 
--Remove ErrorBuffer and use %pV
+Resolve missing-field-initializers warnings in W=2 builds by
+using designated initialization.
 
--Add __printf to enable argument mistmatch warnings
-
-Original patch by Joe Perches.
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Mark Rustad <mark.d.rustad@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/affs.h     |    2 ++
- fs/affs/amigaffs.c |   28 +++++++++++++---------------
- fs/affs/file.c     |   16 ++++++++++------
- 3 files changed, 25 insertions(+), 21 deletions(-)
+ kernel/sysctl.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/affs/affs.h~fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf fs/affs/affs.h
---- a/fs/affs/affs.h~fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf
-+++ a/fs/affs/affs.h
-@@ -135,8 +135,10 @@ extern void	affs_fix_checksum(struct sup
- extern void	secs_to_datestamp(time_t secs, struct affs_date *ds);
- extern umode_t	prot_to_mode(u32 prot);
- extern void	mode_to_prot(struct inode *inode);
-+__printf(3, 4)
- extern void	affs_error(struct super_block *sb, const char *function,
- 			   const char *fmt, ...);
-+__printf(3, 4)
- extern void	affs_warning(struct super_block *sb, const char *function,
- 			     const char *fmt, ...);
- extern bool	affs_nofilenametruncate(const struct dentry *dentry);
-diff -puN fs/affs/amigaffs.c~fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf fs/affs/amigaffs.c
---- a/fs/affs/amigaffs.c~fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf
-+++ a/fs/affs/amigaffs.c
-@@ -10,8 +10,6 @@
+diff -puN kernel/sysctl.c~kernel-sysctl-resolve-missing-field-initializers-warnings kernel/sysctl.c
+--- a/kernel/sysctl.c~kernel-sysctl-resolve-missing-field-initializers-warnings
++++ a/kernel/sysctl.c
+@@ -257,7 +257,7 @@ static struct ctl_table sysctl_base_tabl
+ 		.mode		= 0555,
+ 		.child		= dev_table,
+ 	},
+-	{ }
++	{ .procname = NULL }
+ };
  
- #include "affs.h"
+ #ifdef CONFIG_SCHED_DEBUG
+@@ -1103,7 +1103,7 @@ static struct ctl_table kern_table[] = {
+ 		.proc_handler	= proc_dointvec,
+ 	},
+ #endif
+-	{ }
++	{ .procname = NULL }
+ };
  
--static char ErrorBuffer[256];
--
- /*
-  * Functions for accessing Amiga-FFS structures.
-  */
-@@ -444,30 +442,30 @@ mode_to_prot(struct inode *inode)
- void
- affs_error(struct super_block *sb, const char *function, const char *fmt, ...)
- {
--	va_list	 args;
--
--	va_start(args,fmt);
--	vsnprintf(ErrorBuffer,sizeof(ErrorBuffer),fmt,args);
--	va_end(args);
-+	struct va_format vaf;
-+	va_list args;
+ static struct ctl_table vm_table[] = {
+@@ -1485,12 +1485,12 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_doulongvec_minmax,
+ 	},
+-	{ }
++	{ .procname = NULL }
+ };
  
--	pr_crit("error (device %s): %s(): %s\n", sb->s_id,
--		function,ErrorBuffer);
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+	pr_crit("error (device %s): %s(): %pV\n", sb->s_id, function, &vaf);
- 	if (!(sb->s_flags & MS_RDONLY))
- 		pr_warn("Remounting filesystem read-only\n");
- 	sb->s_flags |= MS_RDONLY;
-+	va_end(args);
- }
+ #if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
+ static struct ctl_table binfmt_misc_table[] = {
+-	{ }
++	{ .procname = NULL }
+ };
+ #endif
  
- void
- affs_warning(struct super_block *sb, const char *function, const char *fmt, ...)
- {
--	va_list	 args;
-+	struct va_format vaf;
-+	va_list args;
+@@ -1658,7 +1658,7 @@ static struct ctl_table fs_table[] = {
+ 		.proc_handler	= &pipe_proc_fn,
+ 		.extra1		= &pipe_min_size,
+ 	},
+-	{ }
++	{ .procname = NULL }
+ };
  
--	va_start(args,fmt);
--	vsnprintf(ErrorBuffer,sizeof(ErrorBuffer),fmt,args);
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+	pr_warn("(device %s): %s(): %pV\n", sb->s_id, function, &vaf);
- 	va_end(args);
--
--	pr_warn("(device %s): %s(): %s\n", sb->s_id,
--		function,ErrorBuffer);
- }
+ static struct ctl_table debug_table[] = {
+@@ -1682,11 +1682,11 @@ static struct ctl_table debug_table[] =
+ 		.extra2		= &one,
+ 	},
+ #endif
+-	{ }
++	{ .procname = NULL }
+ };
  
- bool
-diff -puN fs/affs/file.c~fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf fs/affs/file.c
---- a/fs/affs/file.c~fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf
-+++ a/fs/affs/file.c
-@@ -333,7 +333,8 @@ affs_get_block(struct inode *inode, sect
+ static struct ctl_table dev_table[] = {
+-	{ }
++	{ .procname = NULL }
+ };
  
- 		/* store new block */
- 		if (bh_result->b_blocknr)
--			affs_warning(sb, "get_block", "block already set (%x)", bh_result->b_blocknr);
-+			affs_warning(sb, "get_block", "block already set (%lx)",
-+				     (unsigned long)bh_result->b_blocknr);
- 		AFFS_BLOCK(sb, ext_bh, block) = cpu_to_be32(blocknr);
- 		AFFS_HEAD(ext_bh)->block_count = cpu_to_be32(block + 1);
- 		affs_adjust_checksum(ext_bh, blocknr - bh_result->b_blocknr + 1);
-@@ -355,7 +356,8 @@ affs_get_block(struct inode *inode, sect
- 	return 0;
- 
- err_big:
--	affs_error(inode->i_sb,"get_block","strange block request %d", block);
-+	affs_error(inode->i_sb, "get_block", "strange block request %d",
-+		   (int)block);
- 	return -EIO;
- err_ext:
- 	// unlock cache
-@@ -845,8 +847,9 @@ affs_truncate(struct inode *inode)
- 	// lock cache
- 	ext_bh = affs_get_extblock(inode, ext);
- 	if (IS_ERR(ext_bh)) {
--		affs_warning(sb, "truncate", "unexpected read error for ext block %u (%d)",
--			     ext, PTR_ERR(ext_bh));
-+		affs_warning(sb, "truncate",
-+			     "unexpected read error for ext block %u (%ld)",
-+			     (unsigned int)ext, PTR_ERR(ext_bh));
- 		return;
- 	}
- 	if (AFFS_I(inode)->i_lc) {
-@@ -892,8 +895,9 @@ affs_truncate(struct inode *inode)
- 			struct buffer_head *bh = affs_bread_ino(inode, last_blk, 0);
- 			u32 tmp;
- 			if (IS_ERR(bh)) {
--				affs_warning(sb, "truncate", "unexpected read error for last block %u (%d)",
--					     ext, PTR_ERR(bh));
-+				affs_warning(sb, "truncate",
-+					     "unexpected read error for last block %u (%ld)",
-+					     (unsigned int)ext, PTR_ERR(bh));
- 				return;
- 			}
- 			tmp = be32_to_cpu(AFFS_DATA_HEAD(bh)->next);
+ int __init sysctl_init(void)
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from mark.d.rustad@intel.com are
 
 origin.patch
-fs-cifs-remove-obsolete-__constant.patch
-fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-kernel-posix-timersc-code-clean-up.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-affs-filec-forward-declaration-clean-up.patch
-fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
-linux-next.patch
+kernel-sysctl-resolve-missing-field-initializers-warnings.patch
 
