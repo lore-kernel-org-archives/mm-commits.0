@@ -1,71 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kdb-replace-strnicmp-with-strncasecmp.patch removed from -mm tree
-Date: Tue, 14 Oct 2014 11:22:38 -0700
-Message-ID: <543d69ee.neuH/EVUuWOOenYs%akpm@linux-foundation.org>
+Subject: [merged] fs-check-bh-blocknr-earlier-when-searching-lru.patch
+ removed from -mm tree
+Date: Tue, 14 Oct 2014 11:22:40 -0700
+Message-ID: <543d69f0.9kKhvqJRnA+/exJR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44537 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44541 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754524AbaJNSWh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:22:37 -0400
+	with ESMTP id S1754524AbaJNSWj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:22:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: zab@zabbo.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdb: replace strnicmp with strncasecmp
+     Subject: fs: check bh blocknr earlier when searching lru
 has been removed from the -mm tree.  Its filename was
-     kdb-replace-strnicmp-with-strncasecmp.patch
+     fs-check-bh-blocknr-earlier-when-searching-lru.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: kdb: replace strnicmp with strncasecmp
+From: Zach Brown <zab@zabbo.net>
+Subject: fs: check bh blocknr earlier when searching lru
 
-The kernel used to contain two functions for length-delimited,
-case-insensitive string comparison, strnicmp with correct semantics and a
-slightly buggy strncasecmp.  The latter is the POSIX name, so strnicmp was
-renamed to strncasecmp, and strnicmp made into a wrapper for the new
-strncasecmp to avoid breaking existing users.
+It's very common for the buffer heads in the lru to have different block
+numbers.  By comparing the blocknr before the bdev and size we can reduce
+the cost of searching in the very common case where all the entries have
+the same bdev and size.
 
-To allow the compat wrapper strnicmp to be removed at some point in the
-future, and to avoid the extra indirection cost, do
-s/strnicmp/strncasecmp/g.
+In quick hot cache cycle counting tests on a single fs workstation this
+cut the cost of a miss by about 20%.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+A diff of the disassembly shows the reordering of the bdev and blocknr
+comparisons.  This is in such a tiny loop that skipping one comparison is
+a meaningful portion of the total work being done:
+
+     1628:      83 c1 01                add    $0x1,%ecx
+     162b:      83 f9 08                cmp    $0x8,%ecx
+     162e:      74 60                   je     1690 <__find_get_block+0xa0>
+     1630:      89 c8                   mov    %ecx,%eax
+     1632:      65 4c 8b 04 c5 00 00    mov    %gs:0x0(,%rax,8),%r8
+     1639:      00 00
+     163b:      4d 85 c0                test   %r8,%r8
+     163e:      4c 89 c3                mov    %r8,%rbx
+     1641:      74 e5                   je     1628 <__find_get_block+0x38>
+-    1643:      4d 3b 68 30             cmp    0x30(%r8),%r13
++    1643:      4d 3b 68 18             cmp    0x18(%r8),%r13
+     1647:      75 df                   jne    1628 <__find_get_block+0x38>
+-    1649:      4d 3b 60 18             cmp    0x18(%r8),%r12
++    1649:      4d 3b 60 30             cmp    0x30(%r8),%r12
+     164d:      75 d9                   jne    1628 <__find_get_block+0x38>
+     164f:      49 39 50 20             cmp    %rdx,0x20(%r8)
+     1653:      75 d3                   jne    1628 <__find_get_block+0x38>
+
+Signed-off-by: Zach Brown <zab@zabbo.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/debug/kdb/kdb_bp.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/buffer.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/debug/kdb/kdb_bp.c~kdb-replace-strnicmp-with-strncasecmp kernel/debug/kdb/kdb_bp.c
---- a/kernel/debug/kdb/kdb_bp.c~kdb-replace-strnicmp-with-strncasecmp
-+++ a/kernel/debug/kdb/kdb_bp.c
-@@ -52,11 +52,11 @@ static int kdb_parsebp(int argc, const c
+diff -puN fs/buffer.c~fs-check-bh-blocknr-earlier-when-searching-lru fs/buffer.c
+--- a/fs/buffer.c~fs-check-bh-blocknr-earlier-when-searching-lru
++++ a/fs/buffer.c
+@@ -1331,8 +1331,8 @@ lookup_bh_lru(struct block_device *bdev,
+ 	for (i = 0; i < BH_LRU_SIZE; i++) {
+ 		struct buffer_head *bh = __this_cpu_read(bh_lrus.bhs[i]);
  
- 	bp->bph_length = 1;
- 	if ((argc + 1) != nextarg) {
--		if (strnicmp(argv[nextarg], "datar", sizeof("datar")) == 0)
-+		if (strncasecmp(argv[nextarg], "datar", sizeof("datar")) == 0)
- 			bp->bp_type = BP_ACCESS_WATCHPOINT;
--		else if (strnicmp(argv[nextarg], "dataw", sizeof("dataw")) == 0)
-+		else if (strncasecmp(argv[nextarg], "dataw", sizeof("dataw")) == 0)
- 			bp->bp_type = BP_WRITE_WATCHPOINT;
--		else if (strnicmp(argv[nextarg], "inst", sizeof("inst")) == 0)
-+		else if (strncasecmp(argv[nextarg], "inst", sizeof("inst")) == 0)
- 			bp->bp_type = BP_HARDWARE_BREAKPOINT;
- 		else
- 			return KDB_ARGCOUNT;
+-		if (bh && bh->b_bdev == bdev &&
+-				bh->b_blocknr == block && bh->b_size == size) {
++		if (bh && bh->b_blocknr == block && bh->b_bdev == bdev &&
++		    bh->b_size == size) {
+ 			if (i) {
+ 				while (i) {
+ 					__this_cpu_write(bh_lrus.bhs[i],
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from zab@zabbo.net are
 
 origin.patch
 linux-next.patch
