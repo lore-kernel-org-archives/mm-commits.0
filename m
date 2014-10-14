@@ -1,50 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs4-avoid-taking-fs_lock-during-rcu-walk.patch
- removed from -mm tree
-Date: Tue, 14 Oct 2014 11:20:11 -0700
-Message-ID: <543d695b.uXj/EG4qX4QH55bE%akpm@linux-foundation.org>
+Subject: [merged]
+ autofs4-factor-should_expire-out-of-autofs4_expire_indirect.patch removed
+ from -mm tree
+Date: Tue, 14 Oct 2014 11:20:07 -0700
+Message-ID: <543d6957.tFFz1g1AYmv8pNcp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44205 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44199 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755353AbaJNSUK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:10 -0400
+	with ESMTP id S1755353AbaJNSUG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: neilb@suse.de, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs4: avoid taking fs_lock during rcu-walk
+     Subject: autofs4: factor should_expire() out of autofs4_expire_indirect.
 has been removed from the -mm tree.  Its filename was
-     autofs4-avoid-taking-fs_lock-during-rcu-walk.patch
+     autofs4-factor-should_expire-out-of-autofs4_expire_indirect.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: NeilBrown <neilb@suse.de>
-Subject: autofs4: avoid taking fs_lock during rcu-walk
+Subject: autofs4: factor should_expire() out of autofs4_expire_indirect.
 
-->fs_lock protects AUTOFS_INF_EXPIRING.  We need to be sure that once the
-flag is set, no new references beneath the dentry are taken.  So rcu-walk
-currently needs to take fs_lock before checking the flag.  This hurts
-performance.
-
-Change the expiry to a two-stage process.  First set AUTOFS_INF_NO_RCU
-which forces any path walk into ref-walk mode, then drop the lock and call
-synchronize_rcu().  Once that returns we can be sure no rcu-walk is active
-beneath the dentry and we can check reference counts again.
-
-Now during an RCU-walk we can test AUTOFS_INF_EXPIRING without taking the
-lock as along as we test AUTOFS_INF_NO_RCU too.  If either are set, we
-must abort the RCU-walk If neither are set, we know that refcounts will be
-tested again after we finish the RCU-walk so we are safe to continue.
-
-->fs_lock is still taken in d_manage() to check for a non-trap directory. 
-That will be resolved in the next patch.
+Future patch will potentially call this twice, so make it separate.
 
 Signed-off-by: NeilBrown <neilb@suse.de>
 Reviewed-by: Ian Kent <raven@themaw.net>
@@ -52,114 +37,180 @@ Tested-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |    4 +++
- fs/autofs4/expire.c   |   46 +++++++++++++++++++++++++++++++++-------
- 2 files changed, 42 insertions(+), 8 deletions(-)
+ fs/autofs4/expire.c |  162 ++++++++++++++++++++++--------------------
+ 1 file changed, 88 insertions(+), 74 deletions(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs4-avoid-taking-fs_lock-during-rcu-walk fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs4-avoid-taking-fs_lock-during-rcu-walk
-+++ a/fs/autofs4/autofs_i.h
-@@ -79,6 +79,10 @@ struct autofs_info {
- };
- 
- #define AUTOFS_INF_EXPIRING	(1<<0) /* dentry is in the process of expiring */
-+#define AUTOFS_INF_NO_RCU	(1<<1) /* the dentry is being considered
-+					* for expiry, so RCU_walk is
-+					* not permitted
-+					*/
- #define AUTOFS_INF_PENDING	(1<<2) /* dentry pending mount */
- 
- struct autofs_wait_queue {
-diff -puN fs/autofs4/expire.c~autofs4-avoid-taking-fs_lock-during-rcu-walk fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs4-avoid-taking-fs_lock-during-rcu-walk
+diff -puN fs/autofs4/expire.c~autofs4-factor-should_expire-out-of-autofs4_expire_indirect fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs4-factor-should_expire-out-of-autofs4_expire_indirect
 +++ a/fs/autofs4/expire.c
-@@ -321,10 +321,19 @@ struct dentry *autofs4_expire_direct(str
- 	if (ino->flags & AUTOFS_INF_PENDING)
- 		goto out;
- 	if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
--		ino->flags |= AUTOFS_INF_EXPIRING;
--		init_completion(&ino->expire_complete);
-+		ino->flags |= AUTOFS_INF_NO_RCU;
- 		spin_unlock(&sbi->fs_lock);
--		return root;
-+		synchronize_rcu();
-+		spin_lock(&sbi->fs_lock);
-+		if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
-+			ino->flags |= AUTOFS_INF_EXPIRING;
-+			smp_mb();
-+			ino->flags &= ~AUTOFS_INF_NO_RCU;
-+			init_completion(&ino->expire_complete);
-+			spin_unlock(&sbi->fs_lock);
-+			return root;
+@@ -339,6 +339,89 @@ out:
+ 	return NULL;
+ }
+ 
++/* Check if 'dentry' should expire, or return a nearby
++ * dentry that is suitable.
++ * If returned dentry is different from arg dentry,
++ * then a dget() reference was taken, else not.
++ */
++static struct dentry *should_expire(struct dentry *dentry,
++				    struct vfsmount *mnt,
++				    unsigned long timeout,
++				    int how)
++{
++	int do_now = how & AUTOFS_EXP_IMMEDIATE;
++	int exp_leaves = how & AUTOFS_EXP_LEAVES;
++	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++	unsigned int ino_count;
++
++	/* No point expiring a pending mount */
++	if (ino->flags & AUTOFS_INF_PENDING)
++		return NULL;
++
++	/*
++	 * Case 1: (i) indirect mount or top level pseudo direct mount
++	 *	   (autofs-4.1).
++	 *	   (ii) indirect mount with offset mount, check the "/"
++	 *	   offset (autofs-5.0+).
++	 */
++	if (d_mountpoint(dentry)) {
++		DPRINTK("checking mountpoint %p %.*s",
++			dentry, (int)dentry->d_name.len, dentry->d_name.name);
++
++		/* Can we umount this guy */
++		if (autofs4_mount_busy(mnt, dentry))
++			return NULL;
++
++		/* Can we expire this guy */
++		if (autofs4_can_expire(dentry, timeout, do_now))
++			return dentry;
++		return NULL;
++	}
++
++	if (dentry->d_inode && S_ISLNK(dentry->d_inode->i_mode)) {
++		DPRINTK("checking symlink %p %.*s",
++			dentry, (int)dentry->d_name.len, dentry->d_name.name);
++		/*
++		 * A symlink can't be "busy" in the usual sense so
++		 * just check last used for expire timeout.
++		 */
++		if (autofs4_can_expire(dentry, timeout, do_now))
++			return dentry;
++		return NULL;
++	}
++
++	if (simple_empty(dentry))
++		return NULL;
++
++	/* Case 2: tree mount, expire iff entire tree is not busy */
++	if (!exp_leaves) {
++		/* Path walk currently on this dentry? */
++		ino_count = atomic_read(&ino->count) + 1;
++		if (d_count(dentry) > ino_count)
++			return NULL;
++
++		if (!autofs4_tree_busy(mnt, dentry, timeout, do_now))
++			return dentry;
++	/*
++	 * Case 3: pseudo direct mount, expire individual leaves
++	 *	   (autofs-4.1).
++	 */
++	} else {
++		/* Path walk currently on this dentry? */
++		struct dentry *expired;
++		ino_count = atomic_read(&ino->count) + 1;
++		if (d_count(dentry) > ino_count)
++			return NULL;
++
++		expired = autofs4_check_leaves(mnt, dentry, timeout, do_now);
++		if (expired) {
++			if (expired == dentry)
++				dput(dentry);
++			return expired;
 +		}
-+		ino->flags &= ~AUTOFS_INF_NO_RCU;
- 	}
- out:
- 	spin_unlock(&sbi->fs_lock);
-@@ -442,12 +451,29 @@ struct dentry *autofs4_expire_indirect(s
++	}
++	return NULL;
++}
+ /*
+  * Find an eligible tree to time-out
+  * A tree is eligible if :-
+@@ -353,11 +436,8 @@ struct dentry *autofs4_expire_indirect(s
+ 	unsigned long timeout;
+ 	struct dentry *root = sb->s_root;
+ 	struct dentry *dentry;
+-	struct dentry *expired = NULL;
+-	int do_now = how & AUTOFS_EXP_IMMEDIATE;
+-	int exp_leaves = how & AUTOFS_EXP_LEAVES;
++	struct dentry *expired;
+ 	struct autofs_info *ino;
+-	unsigned int ino_count;
+ 
+ 	if (!root)
+ 		return NULL;
+@@ -368,78 +448,12 @@ struct dentry *autofs4_expire_indirect(s
  	dentry = NULL;
  	while ((dentry = get_next_positive_subdir(dentry, root))) {
  		spin_lock(&sbi->fs_lock);
--		expired = should_expire(dentry, mnt, timeout, how);
--		if (expired) {
-+		ino = autofs4_dentry_ino(dentry);
-+		if (ino->flags & AUTOFS_INF_NO_RCU)
-+			expired = NULL;
-+		else
-+			expired = should_expire(dentry, mnt, timeout, how);
-+		if (!expired) {
-+			spin_unlock(&sbi->fs_lock);
-+			continue;
-+		}
-+		ino = autofs4_dentry_ino(expired);
-+		ino->flags |= AUTOFS_INF_NO_RCU;
-+		spin_unlock(&sbi->fs_lock);
-+		synchronize_rcu();
-+		spin_lock(&sbi->fs_lock);
-+		if (should_expire(expired, mnt, timeout, how)) {
- 			if (expired != dentry)
- 				dput(dentry);
- 			goto found;
- 		}
-+
-+		ino->flags &= ~AUTOFS_INF_NO_RCU;
-+		if (expired != dentry)
-+			dput(expired);
- 		spin_unlock(&sbi->fs_lock);
- 	}
- 	return NULL;
-@@ -455,8 +481,9 @@ struct dentry *autofs4_expire_indirect(s
- found:
- 	DPRINTK("returning %p %.*s",
- 		expired, (int)expired->d_name.len, expired->d_name.name);
--	ino = autofs4_dentry_ino(expired);
- 	ino->flags |= AUTOFS_INF_EXPIRING;
-+	smp_mb();
-+	ino->flags &= ~AUTOFS_INF_NO_RCU;
- 	init_completion(&ino->expire_complete);
- 	spin_unlock(&sbi->fs_lock);
- 	spin_lock(&sbi->lookup_lock);
-@@ -476,11 +503,14 @@ int autofs4_expire_wait(struct dentry *d
- 	int status;
- 
- 	/* Block on any pending expire */
-+	if (!(ino->flags & (AUTOFS_INF_EXPIRING | AUTOFS_INF_NO_RCU)))
-+		return 0;
-+	if (rcu_walk)
-+		return -ECHILD;
-+
- 	spin_lock(&sbi->fs_lock);
- 	if (ino->flags & AUTOFS_INF_EXPIRING) {
- 		spin_unlock(&sbi->fs_lock);
--		if (rcu_walk)
--			return -ECHILD;
- 
- 		DPRINTK("waiting for expire %p name=%.*s",
- 			 dentry, dentry->d_name.len, dentry->d_name.name);
-_
-
-Patches currently in -mm which might be from neilb@suse.de are
-
-origin.patch
-linux-next.patch
-
+-		ino = autofs4_dentry_ino(dentry);
+-		/* No point expiring a pending mount */
+-		if (ino->flags & AUTOFS_INF_PENDING)
+-			goto next;
+-
+-		/*
+-		 * Case 1: (i) indirect mount or top level pseudo direct mount
+-		 *	   (autofs-4.1).
+-		 *	   (ii) indirect mount with offset mount, check the "/"
+-		 *	   offset (autofs-5.0+).
+-		 */
+-		if (d_mountpoint(dentry)) {
+-			DPRINTK("checking mountpoint %p %.*s",
+-				dentry, (int)dentry->d_name.len, dentry->d_name.name);
+-
+-			/* Can we umount this guy */
+-			if (autofs4_mount_busy(mnt, dentry))
+-				goto next;
+-
+-			/* Can we expire this guy */
+-			if (autofs4_can_expire(dentry, timeout, do_now)) {
+-				expired = dentry;
+-				goto found;
+-			}
+-			goto next;
+-		}
+-
+-		if (dentry->d_inode && S_ISLNK(dentry->d_inode->i_mode)) {
+-			DPRINTK("checking symlink %p %.*s",
+-				dentry, (int)dentry->d_name.len, dentry->d_name.name);
+-			/*
+-			 * A symlink can't be "busy" in the usual sense so
+-			 * just check last used for expire timeout.
+-			 */
+-			if (autofs4_can_expire(dentry, timeout, do_now)) {
+-				expired = dentry;
+-				goto found;
+-			}
+-			goto next;
+-		}
+-
+-		if (simple_empty(dentry))
+-			goto next;
+-
+-		/* Case 2: tree mount, expire iff entire tree is not busy */
+-		if (!exp_leaves) {
+-			/* Path walk currently on this dentry? */
+-			ino_count = atomic_read(&ino->count) + 1;
+-			if (d_count(dentry) > ino_count)
+-				goto next;
+-
+-			if (!autofs4_tree_busy(mnt, dentry, timeout, do_now)) {
+-				expired = dentry;
+-				goto found;
+-			}
+-		/*
+-		 * Case 3: pseudo direct mount, expire individual leaves
+-		 *	   (autofs-4.1).
+-		 */
+-		} else {
+-			/* Path walk currently on this dentry? */
+-			ino_count = atomic_read(&ino->count) + 1;
+-			if (d_count(dentry) > ino_count)
+-				goto next;
