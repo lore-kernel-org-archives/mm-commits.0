@@ -1,63 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- try-to-use-automatic-variable-in-kexec-purgatory-makefile.patch removed
- from -mm tree
-Date: Tue, 14 Oct 2014 11:21:18 -0700
-Message-ID: <543d699e.7L21QUgLZ2+Gj1Bm%akpm@linux-foundation.org>
+Subject: [merged] kexec-remove-the-unused-function-parameter.patch removed from -mm tree
+Date: Tue, 14 Oct 2014 11:21:24 -0700
+Message-ID: <543d69a4.QZSuXEeb4FwIfYfH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44397 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44410 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755479AbaJNSVR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:21:17 -0400
+	with ESMTP id S1755447AbaJNSVX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:21:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, hpa@zytor.com, mingo@elte.hu, sfr@canb.auug.org.au, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: bhe@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/purgatory/Makefile: try to use automatic variable in kexec purgatory makefile
+     Subject: kexec: remove the unused function parameter
 has been removed from the -mm tree.  Its filename was
-     try-to-use-automatic-variable-in-kexec-purgatory-makefile.patch
+     kexec-remove-the-unused-function-parameter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: arch/x86/purgatory/Makefile: try to use automatic variable in kexec purgatory makefile
+Subject: kexec: remove the unused function parameter
 
-Make the Makefile of kexec purgatory be consistent with others in linux
-src tree, and make it look generic and simple.
+This is a cleanup.  In function parse_crashkernel_suffix, the parameter
+crash_base is not used.  So here remove it.
 
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/purgatory/Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/kexec.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/purgatory/Makefile~try-to-use-automatic-variable-in-kexec-purgatory-makefile arch/x86/purgatory/Makefile
---- a/arch/x86/purgatory/Makefile~try-to-use-automatic-variable-in-kexec-purgatory-makefile
-+++ a/arch/x86/purgatory/Makefile
-@@ -18,8 +18,9 @@ $(obj)/purgatory.ro: $(PURGATORY_OBJS) F
+diff -puN kernel/kexec.c~kexec-remove-the-unused-function-parameter kernel/kexec.c
+--- a/kernel/kexec.c~kexec-remove-the-unused-function-parameter
++++ a/kernel/kexec.c
+@@ -1759,7 +1759,6 @@ static __initdata char *suffix_tbl[] = {
+  */
+ static int __init parse_crashkernel_suffix(char *cmdline,
+ 					   unsigned long long	*crash_size,
+-					   unsigned long long	*crash_base,
+ 					   const char *suffix)
+ {
+ 	char *cur = cmdline;
+@@ -1848,7 +1847,7 @@ static int __init __parse_crashkernel(ch
  
- targets += kexec-purgatory.c
- 
-+CMD_BIN2C = $(objtree)/scripts/basic/bin2c
- quiet_cmd_bin2c = BIN2C   $@
--      cmd_bin2c = cat $(obj)/purgatory.ro | $(objtree)/scripts/basic/bin2c kexec_purgatory > $(obj)/kexec-purgatory.c
-+      cmd_bin2c = $(CMD_BIN2C) kexec_purgatory < $< > $@
- 
- $(obj)/kexec-purgatory.c: $(obj)/purgatory.ro FORCE
- 	$(call if_changed,bin2c)
+ 	if (suffix)
+ 		return parse_crashkernel_suffix(ck_cmdline, crash_size,
+-				crash_base, suffix);
++				suffix);
+ 	/*
+ 	 * if the commandline contains a ':', then that's the extended
+ 	 * syntax -- if not, it must be the classic syntax
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
