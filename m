@@ -1,75 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-sortextable-suppress-warning-relocs_size-may-be-used-uninitialized.patch removed from -mm tree
-Date: Tue, 14 Oct 2014 11:21:58 -0700
-Message-ID: <543d69c6.uDdB9bjWqa88aRU8%akpm@linux-foundation.org>
+ lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
+ removed from -mm tree
+Date: Tue, 14 Oct 2014 11:22:04 -0700
+Message-ID: <543d69cc.6l2gEqbSxAH7hQd7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44468 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44479 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754638AbaJNSV5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:21:57 -0400
+	with ESMTP id S1754638AbaJNSWC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:22:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tim.gardner@canonical.com, jamie.iles@oracle.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/sortextable: suppress warning: `relocs_size' may be used uninitialized
+     Subject: lib: string: Make all calls to strnicmp into calls to strncasecmp
 has been removed from the -mm tree.  Its filename was
-     scripts-sortextable-suppress-warning-relocs_size-may-be-used-uninitialized.patch
+     lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tim Gardner <tim.gardner@canonical.com>
-Subject: scripts/sortextable: suppress warning: `relocs_size' may be used uninitialized
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib: string: Make all calls to strnicmp into calls to strncasecmp
 
-In file included from scripts/sortextable.c:194:0:
-scripts/sortextable.c: In function `main':
-scripts/sortextable.h:176:3: warning: `relocs_size' may be used uninitialized in this function [-Wmaybe-uninitialized]
-   memset(relocs, 0, relocs_size);
-   ^
-scripts/sortextable.h:106:6: note: `relocs_size' was declared here
-  int relocs_size;
-      ^
-In file included from scripts/sortextable.c:192:0:
-scripts/sortextable.h:176:3: warning: `relocs_size' may be used uninitialized in this function [-Wmaybe-uninitialized]
-   memset(relocs, 0, relocs_size);
-   ^
-scripts/sortextable.h:106:6: note: `relocs_size' was declared here
-  int relocs_size;
-      ^
+The previous patch made strnicmp into a wrapper for strncasecmp.  This
+patch makes all in-tree users of strnicmp call strncasecmp directly, while
+still making sure that the strnicmp symbol can be used by out-of-tree
+modules.  It should be considered a temporary hack until all in-tree
+callers have been converted.
 
-gcc 4.9.1
-
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-Reviewed-by: Jamie Iles <jamie.iles@oracle.com>
-
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/sortextable.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/string.h |    2 +-
+ lib/string.c           |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/sortextable.h~scripts-sortextable-suppress-warning-relocs_size-may-be-used-uninitialized scripts/sortextable.h
---- a/scripts/sortextable.h~scripts-sortextable-suppress-warning-relocs_size-may-be-used-uninitialized
-+++ a/scripts/sortextable.h
-@@ -103,7 +103,7 @@ do_func(Elf_Ehdr *ehdr, char const *cons
- 	Elf_Sym *sort_needed_sym;
- 	Elf_Shdr *sort_needed_sec;
- 	Elf_Rel *relocs = NULL;
--	int relocs_size;
-+	int relocs_size = 0;
- 	uint32_t *sort_done_location;
- 	const char *secstrtab;
- 	const char *strtab;
+diff -puN include/linux/string.h~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp include/linux/string.h
+--- a/include/linux/string.h~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp
++++ a/include/linux/string.h
+@@ -41,7 +41,7 @@ extern int strcmp(const char *,const cha
+ extern int strncmp(const char *,const char *,__kernel_size_t);
+ #endif
+ #ifndef __HAVE_ARCH_STRNICMP
+-extern int strnicmp(const char *, const char *, __kernel_size_t);
++#define strnicmp strncasecmp
+ #endif
+ #ifndef __HAVE_ARCH_STRCASECMP
+ extern int strcasecmp(const char *s1, const char *s2);
+diff -puN lib/string.c~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp lib/string.c
+--- a/lib/string.c~lib-string-make-all-calls-to-strnicmp-into-calls-to-strncasecmp
++++ a/lib/string.c
+@@ -59,6 +59,7 @@ int strncasecmp(const char *s1, const ch
+ EXPORT_SYMBOL(strncasecmp);
+ #endif
+ #ifndef __HAVE_ARCH_STRNICMP
++#undef strnicmp
+ int strnicmp(const char *s1, const char *s2, size_t len)
+ {
+ 	return strncasecmp(s1, s2, len);
 _
 
-Patches currently in -mm which might be from tim.gardner@canonical.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 origin.patch
+linux-next.patch
 
