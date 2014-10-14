@@ -1,66 +1,256 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-rs5c372-use-%ph-to-dump-small-buffers.patch
+Subject: [merged] fs-befs-btreec-remove-typedef-befs_btree_node.patch
  removed from -mm tree
-Date: Tue, 14 Oct 2014 11:20:54 -0700
-Message-ID: <543d6986.qD6eGQdW9jUb2W2C%akpm@linux-foundation.org>
+Date: Tue, 14 Oct 2014 11:21:00 -0700
+Message-ID: <543d698c.jCX+KmvYSD3oekZe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44357 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44365 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755348AbaJNSUx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:53 -0400
+	with ESMTP id S1754840AbaJNSU7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
+To: himangi774@gmail.com, julia.lawall@lip6.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-rs5c372.c: use %*ph to dump small buffers
+     Subject: fs/befs/btree.c: remove typedef befs_btree_node
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-rs5c372-use-%ph-to-dump-small-buffers.patch
+     fs-befs-btreec-remove-typedef-befs_btree_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: drivers/rtc/rtc-rs5c372.c: use %*ph to dump small buffers
+From: Himangi Saraogi <himangi774@gmail.com>
+Subject: fs/befs/btree.c: remove typedef befs_btree_node
 
-Instead of pushing each byte let's reduce stack usage by using %*ph specifier.
+The Linux kernel coding style guidelines suggest not using typedefs for
+structure types.  This patch gets rid of the typedef for befs_btree_node.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+The following Coccinelle semantic patch detects the case.
+
+@tn1@
+type td;
+@@
+
+typedef struct { ... } td;
+
+@script:python tf@
+td << tn1.td;
+tdres;
+@@
+
+coccinelle.tdres = td;
+
+@@
+type tn1.td;
+identifier tf.tdres;
+@@
+
+-typedef
+ struct
++  tdres
+   { ... }
+-td
+ ;
+
+@@
+type tn1.td;
+identifier tf.tdres;
+@@
+
+-td
++ struct tdres
+
+Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+Acked-by: Julia Lawall <julia.lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c372.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ fs/befs/btree.c |   53 +++++++++++++++++++++++++---------------------
+ 1 file changed, 29 insertions(+), 24 deletions(-)
 
-diff -puN drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-use-%ph-to-dump-small-buffers drivers/rtc/rtc-rs5c372.c
---- a/drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-use-%ph-to-dump-small-buffers
-+++ a/drivers/rtc/rtc-rs5c372.c
-@@ -142,12 +142,11 @@ static int rs5c_get_regs(struct rs5c372
+diff -puN fs/befs/btree.c~fs-befs-btreec-remove-typedef-befs_btree_node fs/befs/btree.c
+--- a/fs/befs/btree.c~fs-befs-btreec-remove-typedef-befs_btree_node
++++ a/fs/befs/btree.c
+@@ -78,11 +78,11 @@
+ /*
+  * In memory structure of each btree node
+  */
+-typedef struct {
++struct befs_btree_node {
+ 	befs_host_btree_nodehead head;	/* head of node converted to cpu byteorder */
+ 	struct buffer_head *bh;
+ 	befs_btree_nodehead *od_node;	/* on disk node */
+-} befs_btree_node;
++};
+ 
+ /* local constants */
+ static const befs_off_t befs_bt_inval = 0xffffffffffffffffULL;
+@@ -90,27 +90,30 @@ static const befs_off_t befs_bt_inval =
+ /* local functions */
+ static int befs_btree_seekleaf(struct super_block *sb, befs_data_stream * ds,
+ 			       befs_btree_super * bt_super,
+-			       befs_btree_node * this_node,
++			       struct befs_btree_node *this_node,
+ 			       befs_off_t * node_off);
+ 
+ static int befs_bt_read_super(struct super_block *sb, befs_data_stream * ds,
+ 			      befs_btree_super * sup);
+ 
+ static int befs_bt_read_node(struct super_block *sb, befs_data_stream * ds,
+-			     befs_btree_node * node, befs_off_t node_off);
++			     struct befs_btree_node *node,
++			     befs_off_t node_off);
+ 
+-static int befs_leafnode(befs_btree_node * node);
++static int befs_leafnode(struct befs_btree_node *node);
+ 
+-static fs16 *befs_bt_keylen_index(befs_btree_node * node);
++static fs16 *befs_bt_keylen_index(struct befs_btree_node *node);
+ 
+-static fs64 *befs_bt_valarray(befs_btree_node * node);
++static fs64 *befs_bt_valarray(struct befs_btree_node *node);
+ 
+-static char *befs_bt_keydata(befs_btree_node * node);
++static char *befs_bt_keydata(struct befs_btree_node *node);
+ 
+-static int befs_find_key(struct super_block *sb, befs_btree_node * node,
++static int befs_find_key(struct super_block *sb,
++			 struct befs_btree_node *node,
+ 			 const char *findkey, befs_off_t * value);
+ 
+-static char *befs_bt_get_key(struct super_block *sb, befs_btree_node * node,
++static char *befs_bt_get_key(struct super_block *sb,
++			     struct befs_btree_node *node,
+ 			     int index, u16 * keylen);
+ 
+ static int befs_compare_strings(const void *key1, int keylen1,
+@@ -191,7 +194,7 @@ befs_bt_read_super(struct super_block *s
+ 
+ static int
+ befs_bt_read_node(struct super_block *sb, befs_data_stream * ds,
+-		  befs_btree_node * node, befs_off_t node_off)
++		  struct befs_btree_node *node, befs_off_t node_off)
+ {
+ 	uint off = 0;
+ 
+@@ -247,7 +250,7 @@ int
+ befs_btree_find(struct super_block *sb, befs_data_stream * ds,
+ 		const char *key, befs_off_t * value)
+ {
+-	befs_btree_node *this_node = NULL;
++	struct befs_btree_node *this_node = NULL;
+ 	befs_btree_super bt_super;
+ 	befs_off_t node_off;
+ 	int res;
+@@ -260,11 +263,11 @@ befs_btree_find(struct super_block *sb,
+ 		goto error;
  	}
  
- 	dev_dbg(&client->dev,
--		"%02x %02x %02x (%02x) %02x %02x %02x (%02x), "
--		"%02x %02x %02x, %02x %02x %02x; %02x %02x\n",
--		rs5c->regs[0],  rs5c->regs[1],  rs5c->regs[2],  rs5c->regs[3],
--		rs5c->regs[4],  rs5c->regs[5],  rs5c->regs[6],  rs5c->regs[7],
--		rs5c->regs[8],  rs5c->regs[9],  rs5c->regs[10], rs5c->regs[11],
--		rs5c->regs[12], rs5c->regs[13], rs5c->regs[14], rs5c->regs[15]);
-+		"%3ph (%02x) %3ph (%02x), %3ph, %3ph; %02x %02x\n",
-+		rs5c->regs + 0, rs5c->regs[3],
-+		rs5c->regs + 4, rs5c->regs[7],
-+		rs5c->regs + 8, rs5c->regs + 11,
-+		rs5c->regs[14], rs5c->regs[15]);
+-	this_node = kmalloc(sizeof (befs_btree_node),
++	this_node = kmalloc(sizeof(struct befs_btree_node),
+ 						GFP_NOFS);
+ 	if (!this_node) {
+ 		befs_error(sb, "befs_btree_find() failed to allocate %zu "
+-			   "bytes of memory", sizeof (befs_btree_node));
++			   "bytes of memory", sizeof(struct befs_btree_node));
+ 		goto error;
+ 	}
  
- 	return 0;
+@@ -333,7 +336,7 @@ befs_btree_find(struct super_block *sb,
+  * Use binary search instead of a linear.
+  */
+ static int
+-befs_find_key(struct super_block *sb, befs_btree_node * node,
++befs_find_key(struct super_block *sb, struct befs_btree_node *node,
+ 	      const char *findkey, befs_off_t * value)
+ {
+ 	int first, last, mid;
+@@ -417,7 +420,7 @@ befs_btree_read(struct super_block *sb,
+ 		loff_t key_no, size_t bufsize, char *keybuf, size_t * keysize,
+ 		befs_off_t * value)
+ {
+-	befs_btree_node *this_node;
++	struct befs_btree_node *this_node;
+ 	befs_btree_super bt_super;
+ 	befs_off_t node_off = 0;
+ 	int cur_key;
+@@ -436,9 +439,10 @@ befs_btree_read(struct super_block *sb,
+ 		goto error;
+ 	}
+ 
+-	if ((this_node = kmalloc(sizeof (befs_btree_node), GFP_NOFS)) == NULL) {
++	this_node = kmalloc(sizeof(struct befs_btree_node), GFP_NOFS);
++	if (this_node == NULL) {
+ 		befs_error(sb, "befs_btree_read() failed to allocate %zu "
+-			   "bytes of memory", sizeof (befs_btree_node));
++			   "bytes of memory", sizeof(struct befs_btree_node));
+ 		goto error;
+ 	}
+ 
+@@ -545,7 +549,8 @@ befs_btree_read(struct super_block *sb,
+  */
+ static int
+ befs_btree_seekleaf(struct super_block *sb, befs_data_stream * ds,
+-		    befs_btree_super * bt_super, befs_btree_node * this_node,
++		    befs_btree_super *bt_super,
++		    struct befs_btree_node *this_node,
+ 		    befs_off_t * node_off)
+ {
+ 
+@@ -600,7 +605,7 @@ befs_btree_seekleaf(struct super_block *
+  * Return 1 if leaf, 0 if interior
+  */
+ static int
+-befs_leafnode(befs_btree_node * node)
++befs_leafnode(struct befs_btree_node *node)
+ {
+ 	/* all interior nodes (and only interior nodes) have an overflow node */
+ 	if (node->head.overflow == befs_bt_inval)
+@@ -623,7 +628,7 @@ befs_leafnode(befs_btree_node * node)
+  * Except that rounding up to 8 works, and rounding up to 4 doesn't.
+  */
+ static fs16 *
+-befs_bt_keylen_index(befs_btree_node * node)
++befs_bt_keylen_index(struct befs_btree_node *node)
+ {
+ 	const int keylen_align = 8;
+ 	unsigned long int off =
+@@ -644,7 +649,7 @@ befs_bt_keylen_index(befs_btree_node * n
+  * of the node pointed to by the node header
+  */
+ static fs64 *
+-befs_bt_valarray(befs_btree_node * node)
++befs_bt_valarray(struct befs_btree_node *node)
+ {
+ 	void *keylen_index_start = (void *) befs_bt_keylen_index(node);
+ 	size_t keylen_index_size = node->head.all_key_count * sizeof (fs16);
+@@ -660,7 +665,7 @@ befs_bt_valarray(befs_btree_node * node)
+  * of the node pointed to by the node header 
+  */
+ static char *
+-befs_bt_keydata(befs_btree_node * node)
++befs_bt_keydata(struct befs_btree_node *node)
+ {
+ 	return (char *) ((void *) node->od_node + sizeof (befs_btree_nodehead));
  }
+@@ -676,7 +681,7 @@ befs_bt_keydata(befs_btree_node * node)
+  * Returns NULL on failure (bad input) and sets *@keylen = 0
+  */
+ static char *
+-befs_bt_get_key(struct super_block *sb, befs_btree_node * node,
++befs_bt_get_key(struct super_block *sb, struct befs_btree_node *node,
+ 		int index, u16 * keylen)
+ {
+ 	int prev_key_end;
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from himangi774@gmail.com are
 
 origin.patch
 linux-next.patch
