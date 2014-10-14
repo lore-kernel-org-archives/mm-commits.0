@@ -1,63 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-pcf8563-fix-pcf8563_irq-error-return-value.patch
+Subject: [merged] rtc-rtc-rs5c372-use-%ph-to-dump-small-buffers.patch
  removed from -mm tree
-Date: Tue, 14 Oct 2014 11:20:52 -0700
-Message-ID: <543d6984.U0RgZUgZCTEqEPut%akpm@linux-foundation.org>
+Date: Tue, 14 Oct 2014 11:20:54 -0700
+Message-ID: <543d6986.qD6eGQdW9jUb2W2C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44352 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44357 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753866AbaJNSUv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:51 -0400
+	with ESMTP id S1755348AbaJNSUx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, a.zummo@towertech.it, sergei.shtylyov@cogentembedded.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf8563.c: fix pcf8563_irq() error return value
+     Subject: drivers/rtc/rtc-rs5c372.c: use %*ph to dump small buffers
 has been removed from the -mm tree.  Its filename was
-     rtc-pcf8563-fix-pcf8563_irq-error-return-value.patch
+     rtc-rtc-rs5c372-use-%ph-to-dump-small-buffers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: drivers/rtc/rtc-pcf8563.c: fix pcf8563_irq() error return value
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: drivers/rtc/rtc-rs5c372.c: use %*ph to dump small buffers
 
-As pointed out by Sergei Shtylyov, the pcf8563_irq function contains a bug
-in the error handling: an interrupt handler is not supposed to return an
-errno value but an 'enum irqreturn'.
+Instead of pushing each byte let's reduce stack usage by using %*ph specifier.
 
-Let's fix this by returning IRQ_NONE in case of a communication error.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-rs5c372.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-fix-pcf8563_irq-error-return-value drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-fix-pcf8563_irq-error-return-value
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -168,7 +168,7 @@ static irqreturn_t pcf8563_irq(int irq,
+diff -puN drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-use-%ph-to-dump-small-buffers drivers/rtc/rtc-rs5c372.c
+--- a/drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-use-%ph-to-dump-small-buffers
++++ a/drivers/rtc/rtc-rs5c372.c
+@@ -142,12 +142,11 @@ static int rs5c_get_regs(struct rs5c372
+ 	}
  
- 	err = pcf8563_get_alarm_mode(pcf8563->client, NULL, &pending);
- 	if (err)
--		return err;
-+		return IRQ_NONE;
+ 	dev_dbg(&client->dev,
+-		"%02x %02x %02x (%02x) %02x %02x %02x (%02x), "
+-		"%02x %02x %02x, %02x %02x %02x; %02x %02x\n",
+-		rs5c->regs[0],  rs5c->regs[1],  rs5c->regs[2],  rs5c->regs[3],
+-		rs5c->regs[4],  rs5c->regs[5],  rs5c->regs[6],  rs5c->regs[7],
+-		rs5c->regs[8],  rs5c->regs[9],  rs5c->regs[10], rs5c->regs[11],
+-		rs5c->regs[12], rs5c->regs[13], rs5c->regs[14], rs5c->regs[15]);
++		"%3ph (%02x) %3ph (%02x), %3ph, %3ph; %02x %02x\n",
++		rs5c->regs + 0, rs5c->regs[3],
++		rs5c->regs + 4, rs5c->regs[7],
++		rs5c->regs + 8, rs5c->regs + 11,
++		rs5c->regs[14], rs5c->regs[15]);
  
- 	if (pending) {
- 		rtc_update_irq(pcf8563->rtc, 1, RTC_IRQF | RTC_AF);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 origin.patch
 linux-next.patch
