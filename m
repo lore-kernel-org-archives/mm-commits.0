@@ -1,60 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-affs-inodec-remove-unused-variable.patch removed from -mm tree
-Date: Tue, 14 Oct 2014 11:21:32 -0700
-Message-ID: <543d69ac.iTpQW/QBVps97YZX%akpm@linux-foundation.org>
+Subject: [merged] fs-affs-filec-fix-shadow-warnings.patch removed from -mm tree
+Date: Tue, 14 Oct 2014 11:21:34 -0700
+Message-ID: <543d69ae.KLXgAPvGlLK8ufGY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44419 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44421 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755447AbaJNSVa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:21:30 -0400
+	with ESMTP id S1755447AbaJNSVd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:21:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs/inode.c: remove unused variable
+     Subject: fs/affs/file.c: fix shadow warnings
 has been removed from the -mm tree.  Its filename was
-     fs-affs-inodec-remove-unused-variable.patch
+     fs-affs-filec-fix-shadow-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/inode.c: remove unused variable
+Subject: fs/affs/file.c: fix shadow warnings
 
-head is set to AFFS_HEAD(bh) but never used.
+4 functions declared variables twice resulting in shadow warnings.  This
+patch renames internal variables and adds blank line after declarations.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/inode.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/affs/file.c |   39 ++++++++++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 15 deletions(-)
 
-diff -puN fs/affs/inode.c~fs-affs-inodec-remove-unused-variable fs/affs/inode.c
---- a/fs/affs/inode.c~fs-affs-inodec-remove-unused-variable
-+++ a/fs/affs/inode.c
-@@ -20,7 +20,6 @@ struct inode *affs_iget(struct super_blo
- {
- 	struct affs_sb_info	*sbi = AFFS_SB(sb);
- 	struct buffer_head	*bh;
--	struct affs_head	*head;
- 	struct affs_tail	*tail;
- 	struct inode		*inode;
- 	u32			 block;
-@@ -49,7 +48,6 @@ struct inode *affs_iget(struct super_blo
- 		goto bad_inode;
- 	}
+diff -puN fs/affs/file.c~fs-affs-filec-fix-shadow-warnings fs/affs/file.c
+--- a/fs/affs/file.c~fs-affs-filec-fix-shadow-warnings
++++ a/fs/affs/file.c
+@@ -584,11 +584,14 @@ affs_extent_file_ofs(struct inode *inode
+ 		bh->b_state &= ~(1UL << BH_New);
+ 		mark_buffer_dirty_inode(bh, inode);
+ 		if (prev_bh) {
+-			u32 tmp = be32_to_cpu(AFFS_DATA_HEAD(prev_bh)->next);
+-			if (tmp)
+-				affs_warning(sb, "extent_file_ofs", "next block already set for %d (%d)", bidx, tmp);
++			u32 tmp_next = be32_to_cpu(AFFS_DATA_HEAD(prev_bh)->next);
++
++			if (tmp_next)
++				affs_warning(sb, "extent_file_ofs",
++					     "next block already set for %d (%d)",
++					     bidx, tmp_next);
+ 			AFFS_DATA_HEAD(prev_bh)->next = cpu_to_be32(bh->b_blocknr);
+-			affs_adjust_checksum(prev_bh, bh->b_blocknr - tmp);
++			affs_adjust_checksum(prev_bh, bh->b_blocknr - tmp_next);
+ 			mark_buffer_dirty_inode(prev_bh, inode);
+ 			affs_brelse(prev_bh);
+ 		}
+@@ -727,11 +730,14 @@ static int affs_write_end_ofs(struct fil
+ 			AFFS_DATA_HEAD(bh)->next = 0;
+ 			bh->b_state &= ~(1UL << BH_New);
+ 			if (prev_bh) {
+-				u32 tmp = be32_to_cpu(AFFS_DATA_HEAD(prev_bh)->next);
+-				if (tmp)
+-					affs_warning(sb, "commit_write_ofs", "next block already set for %d (%d)", bidx, tmp);
++				u32 tmp_next = be32_to_cpu(AFFS_DATA_HEAD(prev_bh)->next);
++
++				if (tmp_next)
++					affs_warning(sb, "commit_write_ofs",
++						     "next block already set for %d (%d)",
++						     bidx, tmp_next);
+ 				AFFS_DATA_HEAD(prev_bh)->next = cpu_to_be32(bh->b_blocknr);
+-				affs_adjust_checksum(prev_bh, bh->b_blocknr - tmp);
++				affs_adjust_checksum(prev_bh, bh->b_blocknr - tmp_next);
+ 				mark_buffer_dirty_inode(prev_bh, inode);
+ 			}
+ 		}
+@@ -758,11 +764,14 @@ static int affs_write_end_ofs(struct fil
+ 			AFFS_DATA_HEAD(bh)->next = 0;
+ 			bh->b_state &= ~(1UL << BH_New);
+ 			if (prev_bh) {
+-				u32 tmp = be32_to_cpu(AFFS_DATA_HEAD(prev_bh)->next);
+-				if (tmp)
+-					affs_warning(sb, "commit_write_ofs", "next block already set for %d (%d)", bidx, tmp);
++				u32 tmp_next = be32_to_cpu(AFFS_DATA_HEAD(prev_bh)->next);
++
++				if (tmp_next)
++					affs_warning(sb, "commit_write_ofs",
++						     "next block already set for %d (%d)",
++						     bidx, tmp_next);
+ 				AFFS_DATA_HEAD(prev_bh)->next = cpu_to_be32(bh->b_blocknr);
+-				affs_adjust_checksum(prev_bh, bh->b_blocknr - tmp);
++				affs_adjust_checksum(prev_bh, bh->b_blocknr - tmp_next);
+ 				mark_buffer_dirty_inode(prev_bh, inode);
+ 			}
+ 		} else if (be32_to_cpu(AFFS_DATA_HEAD(bh)->size) < tmp)
+@@ -842,12 +851,12 @@ affs_truncate(struct inode *inode)
+ 		struct address_space *mapping = inode->i_mapping;
+ 		struct page *page;
+ 		void *fsdata;
+-		loff_t size = inode->i_size;
++		loff_t isize = inode->i_size;
+ 		int res;
  
--	head = AFFS_HEAD(bh);
- 	tail = AFFS_TAIL(sb, bh);
- 	prot = be32_to_cpu(tail->protect);
- 
+-		res = mapping->a_ops->write_begin(NULL, mapping, size, 0, 0, &page, &fsdata);
++		res = mapping->a_ops->write_begin(NULL, mapping, isize, 0, 0, &page, &fsdata);
+ 		if (!res)
+-			res = mapping->a_ops->write_end(NULL, mapping, size, 0, 0, page, fsdata);
++			res = mapping->a_ops->write_end(NULL, mapping, isize, 0, 0, page, fsdata);
+ 		else
+ 			inode->i_size = AFFS_I(inode)->mmu_private;
+ 		mark_inode_dirty(inode);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
