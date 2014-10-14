@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-drain-single-zone-pcplists.patch added to -mm tree
-Date: Tue, 14 Oct 2014 15:56:59 -0700
-Message-ID: <543daa3b.nh0h2j9hSzJNsZ6Q%akpm@linux-foundation.org>
+Subject: + mm-page_isolation-drain-single-zone-pcplists.patch added to -mm tree
+Date: Tue, 14 Oct 2014 15:56:58 -0700
+Message-ID: <543daa3a.x7rx3doz4W0i39rd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47036 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47025 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755434AbaJNW5A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 18:57:00 -0400
+	with ESMTP id S1755434AbaJNW47 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 18:56:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, riel@redhat.com, vdavydov@parallels.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, cma: drain single zone pcplists
+     Subject: mm, page_isolation: drain single zone pcplists
 has been added to the -mm tree.  Its filename is
-     mm-cma-drain-single-zone-pcplists.patch
+     mm-page_isolation-drain-single-zone-pcplists.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-drain-single-zone-pcplists.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_isolation-drain-single-zone-pcplists.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-drain-single-zone-pcplists.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_isolation-drain-single-zone-pcplists.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,14 +39,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, cma: drain single zone pcplists
+Subject: mm, page_isolation: drain single zone pcplists
 
-CMA allocation drains pcplists so that pages can merge back to buddy
-allocator.  Since it operates on a single zone, we can reduce the pcplists
-drain to the single zone, which is now possible.
+When setting MIGRATETYPE_ISOLATE on a pageblock, pcplists are drained to
+have a better chance that all pages will be successfully isolated and not
+left in the per-cpu caches.  Since isolation is always concerned with a
+single zone, we can reduce the pcplists drain to the single zone, which is
+now possible.
 
-The change should make CMA allocations faster and not disturbing unrelated
-pcplists anymore.
+The change should make memory isolation faster and not disturbing
+unrelated pcplists anymore.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -62,21 +64,21 @@ Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ mm/page_isolation.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-cma-drain-single-zone-pcplists mm/page_alloc.c
---- a/mm/page_alloc.c~mm-cma-drain-single-zone-pcplists
-+++ a/mm/page_alloc.c
-@@ -6417,7 +6417,7 @@ int alloc_contig_range(unsigned long sta
- 	 */
+diff -puN mm/page_isolation.c~mm-page_isolation-drain-single-zone-pcplists mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_isolation-drain-single-zone-pcplists
++++ a/mm/page_isolation.c
+@@ -67,7 +67,7 @@ out:
  
- 	lru_add_drain_all();
--	drain_all_pages(NULL);
-+	drain_all_pages(cc.zone);
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 	if (!ret)
+-		drain_all_pages(NULL);
++		drain_all_pages(zone);
+ 	return ret;
+ }
  
- 	order = 0;
- 	outer_start = start;
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
