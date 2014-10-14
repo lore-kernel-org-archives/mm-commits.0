@@ -1,95 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thermal-replace-strnicmp-with-strncasecmp.patch removed
- from -mm tree
-Date: Tue, 14 Oct 2014 11:22:36 -0700
-Message-ID: <543d69ec.gYdYmg1BC8urunxW%akpm@linux-foundation.org>
+Subject: [merged]
+ mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable.patch
+ removed from -mm tree
+Date: Tue, 14 Oct 2014 11:22:42 -0700
+Message-ID: <543d69f2.ymEs8bqi2xGTLL8G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44533 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44544 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754340AbaJNSWf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:22:35 -0400
+	with ESMTP id S1754524AbaJNSWl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:22:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, edubezval@gmail.com, rui.zhang@intel.com, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, davej@redhat.com, guz.fnst@cn.fujitsu.com, hpa@zytor.com, mingo@elte.hu, tangchen@cn.fujitsu.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thermal: replace strnicmp with strncasecmp
+     Subject: arch/x86/mm/numa.c: fix boot failure when all nodes are hotpluggable
 has been removed from the -mm tree.  Its filename was
-     thermal-replace-strnicmp-with-strncasecmp.patch
+     mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: thermal: replace strnicmp with strncasecmp
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: arch/x86/mm/numa.c: fix boot failure when all nodes are hotpluggable
 
-The kernel used to contain two functions for length-delimited,
-case-insensitive string comparison, strnicmp with correct semantics and a
-slightly buggy strncasecmp.  The latter is the POSIX name, so strnicmp was
-renamed to strncasecmp, and strnicmp made into a wrapper for the new
-strncasecmp to avoid breaking existing users.
+If all the nodes are marked hotpluggable, alloc node data will fail. 
+Because __next_mem_range_rev() will skip the hotpluggable memory regions. 
+numa_clear_kernel_node_hotplug() is called after alloc node data.
 
-To allow the compat wrapper strnicmp to be removed at some point in the
-future, and to avoid the extra indirection cost, do
-s/strnicmp/strncasecmp/g.
+numa_init()
+	...
+	ret = init_func();  // this will mark hotpluggable flag from SRAT
+	...
+	memblock_set_bottom_up(false);
+	...
+	ret = numa_register_memblks(&numa_meminfo);  // this will alloc node data(pglist_data)
+	...
+	numa_clear_kernel_node_hotplug();  // in case all the nodes are hotpluggable
+	...
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>
+numa_register_memblks()
+	setup_node_data()
+		memblock_find_in_range_node()
+			__memblock_find_range_top_down()
+				for_each_mem_range_rev()
+					__next_mem_range_rev()
+
+This patch moves numa_clear_kernel_node_hotplug() into
+numa_register_memblks(), clear kernel node hotpluggable flag before alloc
+node data, then alloc node data won't fail even all the nodes are
+hotpluggable.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/thermal_core.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/mm/numa.c |   89 +++++++++++++++++++++----------------------
+ 1 file changed, 45 insertions(+), 44 deletions(-)
 
-diff -puN drivers/thermal/thermal_core.c~thermal-replace-strnicmp-with-strncasecmp drivers/thermal/thermal_core.c
---- a/drivers/thermal/thermal_core.c~thermal-replace-strnicmp-with-strncasecmp
-+++ a/drivers/thermal/thermal_core.c
-@@ -66,7 +66,7 @@ static struct thermal_governor *__find_g
- 		return def_governor;
+diff -puN arch/x86/mm/numa.c~mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~mem-hotplug-fix-boot-failed-in-case-all-the-nodes-are-hotpluggable
++++ a/arch/x86/mm/numa.c
+@@ -478,6 +478,42 @@ static bool __init numa_meminfo_cover_me
+ 	return true;
+ }
  
- 	list_for_each_entry(pos, &thermal_governor_list, governor_list)
--		if (!strnicmp(name, pos->name, THERMAL_NAME_LENGTH))
-+		if (!strncasecmp(name, pos->name, THERMAL_NAME_LENGTH))
- 			return pos;
- 
- 	return NULL;
-@@ -104,7 +104,7 @@ int thermal_register_governor(struct the
- 
- 		name = pos->tzp->governor_name;
- 
--		if (!strnicmp(name, governor->name, THERMAL_NAME_LENGTH))
-+		if (!strncasecmp(name, governor->name, THERMAL_NAME_LENGTH))
- 			pos->governor = governor;
++static void __init numa_clear_kernel_node_hotplug(void)
++{
++	int i, nid;
++	nodemask_t numa_kernel_nodes = NODE_MASK_NONE;
++	unsigned long start, end;
++	struct memblock_region *r;
++
++	/*
++	 * At this time, all memory regions reserved by memblock are
++	 * used by the kernel. Set the nid in memblock.reserved will
++	 * mark out all the nodes the kernel resides in.
++	 */
++	for (i = 0; i < numa_meminfo.nr_blks; i++) {
++		struct numa_memblk *mb = &numa_meminfo.blk[i];
++
++		memblock_set_node(mb->start, mb->end - mb->start,
++				  &memblock.reserved, mb->nid);
++	}
++
++	/* Mark all kernel nodes. */
++	for_each_memblock(reserved, r)
++		node_set(r->nid, numa_kernel_nodes);
++
++	/* Clear MEMBLOCK_HOTPLUG flag for memory in kernel nodes. */
++	for (i = 0; i < numa_meminfo.nr_blks; i++) {
++		nid = numa_meminfo.blk[i].nid;
++		if (!node_isset(nid, numa_kernel_nodes))
++			continue;
++
++		start = numa_meminfo.blk[i].start;
++		end = numa_meminfo.blk[i].end;
++
++		memblock_clear_hotplug(start, end - start);
++	}
++}
++
+ static int __init numa_register_memblks(struct numa_meminfo *mi)
+ {
+ 	unsigned long uninitialized_var(pfn_align);
+@@ -496,6 +532,15 @@ static int __init numa_register_memblks(
  	}
  
-@@ -129,7 +129,7 @@ void thermal_unregister_governor(struct
- 	mutex_lock(&thermal_list_lock);
- 
- 	list_for_each_entry(pos, &thermal_tz_list, node) {
--		if (!strnicmp(pos->governor->name, governor->name,
-+		if (!strncasecmp(pos->governor->name, governor->name,
- 						THERMAL_NAME_LENGTH))
- 			pos->governor = NULL;
+ 	/*
++	 * At very early time, the kernel have to use some memory such as
++	 * loading the kernel image. We cannot prevent this anyway. So any
++	 * node the kernel resides in should be un-hotpluggable.
++	 *
++	 * And when we come here, alloc node data won't fail.
++	 */
++	numa_clear_kernel_node_hotplug();
++
++	/*
+ 	 * If sections array is gonna be used for pfn -> nid mapping, check
+ 	 * whether its granularity is fine enough.
+ 	 */
+@@ -554,41 +599,6 @@ static void __init numa_init_array(void)
  	}
-@@ -1665,7 +1665,7 @@ struct thermal_zone_device *thermal_zone
+ }
  
- 	mutex_lock(&thermal_list_lock);
- 	list_for_each_entry(pos, &thermal_tz_list, node)
--		if (!strnicmp(name, pos->type, THERMAL_NAME_LENGTH)) {
-+		if (!strncasecmp(name, pos->type, THERMAL_NAME_LENGTH)) {
- 			found++;
- 			ref = pos;
- 		}
-_
-
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
-
-origin.patch
-linux-next.patch
-
+-static void __init numa_clear_kernel_node_hotplug(void)
+-{
+-	int i, nid;
+-	nodemask_t numa_kernel_nodes = NODE_MASK_NONE;
+-	unsigned long start, end;
+-	struct memblock_region *r;
+-
+-	/*
+-	 * At this time, all memory regions reserved by memblock are
+-	 * used by the kernel. Set the nid in memblock.reserved will
+-	 * mark out all the nodes the kernel resides in.
+-	 */
+-	for (i = 0; i < numa_meminfo.nr_blks; i++) {
+-		struct numa_memblk *mb = &numa_meminfo.blk[i];
+-		memblock_set_node(mb->start, mb->end - mb->start,
+-				  &memblock.reserved, mb->nid);
+-	}
+-
+-	/* Mark all kernel nodes. */
+-	for_each_memblock(reserved, r)
+-		node_set(r->nid, numa_kernel_nodes);
+-
+-	/* Clear MEMBLOCK_HOTPLUG flag for memory in kernel nodes. */
+-	for (i = 0; i < numa_meminfo.nr_blks; i++) {
+-		nid = numa_meminfo.blk[i].nid;
+-		if (!node_isset(nid, numa_kernel_nodes))
+-			continue;
+-
+-		start = numa_meminfo.blk[i].start;
+-		end = numa_meminfo.blk[i].end;
+-
+-		memblock_clear_hotplug(start, end - start);
+-	}
+-}
+-
+ static int __init numa_init(int (*init_func)(void))
+ {
+ 	int i;
+@@ -643,15 +653,6 @@ static int __init numa_init(int (*init_f
+ 	}
+ 	numa_init_array();
+ 
+-	/*
+-	 * At very early time, the kernel have to use some memory such as
+-	 * loading the kernel image. We cannot prevent this anyway. So any
+-	 * node the kernel resides in should be un-hotpluggable.
+-	 *
+-	 * And when we come here, numa_init() won't fail.
+-	 */
+-	numa_clear_kernel_node_hotplug();
