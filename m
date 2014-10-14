@@ -1,78 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rtc-bq32000-add-trickle-charger-device-tree-binding.patch removed from -mm
- tree
-Date: Tue, 14 Oct 2014 11:20:36 -0700
-Message-ID: <543d6974.2KPlDgEZUrUl6vsa%akpm@linux-foundation.org>
+Subject: [merged] rtc-max77686-remove-dead-code-for-smpl-and-wtsr.patch
+ removed from -mm tree
+Date: Tue, 14 Oct 2014 11:20:40 -0700
+Message-ID: <543d6978.719GlYI1B/e6bPOv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44311 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753866AbaJNSUf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:35 -0400
+	with ESMTP id S1753866AbaJNSUj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 14:20:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, a.zummo@towertech.it, ijc+devicetree@hellion.org.uk, jason@lakedameon.net, linux@roeck-us.net, matti.vaittinen@nsn.com, pavel@denx.de, robh+dt@kernel.org, mm-commits@vger.kernel.org
+To: javier.martinez@collabora.co.uk, a.zummo@towertech.it, dianders@chromium.org, k.kozlowski@samsung.com, olof@lixom.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: bq32000: add trickle charger device tree binding
+     Subject: rtc: max77686: remove dead code for SMPL and WTSR
 has been removed from the -mm tree.  Its filename was
-     rtc-bq32000-add-trickle-charger-device-tree-binding.patch
+     rtc-max77686-remove-dead-code-for-smpl-and-wtsr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pavel Machek <pavel@ucw.cz>
-Subject: rtc: bq32000: add trickle charger device tree binding
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: rtc: max77686: remove dead code for SMPL and WTSR
 
-BQ32000 have "trickle chargers".  Introduce a device tree binding for
-specifying the trickle charger configuration for that.
+The MAX77686 RTC chip has two features called SMPL (Sudden Momentary Power
+Loss) and WTSR (Watchdog Timeout and Software Resets).  Support for these
+features seems to be implemented in the driver but compilation is disabled
+using a C pre-processor conditional.
 
-Signed-off-by: Pavel Machek <pavel@denx.de>
-Reviewed-by: Jason Cooper <jason@lakedameon.net>
-Cc: Matti Vaittinen <matti.vaittinen@nsn.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+This code has been disabled since the driver was original merged in commit
+fca1dd03 ("rtc: max77686: add Maxim 77686 driver").
+
+So, since this code has never been built, let's just remove it.
+
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Reviewed-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Doug Anderson <dianders@chromium.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Olof Johansson <olof@lixom.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/i2c/ti,bq32k.txt |   18 +++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/rtc/rtc-max77686.c |  101 -----------------------------------
+ 1 file changed, 101 deletions(-)
 
-diff -puN /dev/null Documentation/devicetree/bindings/i2c/ti,bq32k.txt
---- /dev/null
-+++ a/Documentation/devicetree/bindings/i2c/ti,bq32k.txt
-@@ -0,0 +1,18 @@
-+* TI BQ32000                I2C Serial Real-Time Clock
-+
-+Required properties:
-+- compatible: Should contain "ti,bq32000".
-+- reg: I2C address for chip
-+
-+Optional properties:
-+- trickle-resistor-ohms : Selected resistor for trickle charger
-+       Values usable are 1120 and 20180
-+       Should be given if trickle charger should be enabled
-+- trickle-diode-disable : Do not use internal trickle charger diode
-+       Should be given if internal trickle charger diode should be disabled
-+Example:
-+       bq32000: rtc@68 {
-+               compatible = "ti,bq32000";
-+               trickle-resistor-ohms = <1120>;
-+               reg = <0x68>;
-+       };
-_
-
-Patches currently in -mm which might be from pavel@ucw.cz are
-
-origin.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-lib-vsprintf-add-%pt-format-specifier.patch
-linux-next.patch
-
+diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-remove-dead-code-for-smpl-and-wtsr drivers/rtc/rtc-max77686.c
+--- a/drivers/rtc/rtc-max77686.c~rtc-max77686-remove-dead-code-for-smpl-and-wtsr
++++ a/drivers/rtc/rtc-max77686.c
+@@ -32,15 +32,6 @@
+ #define RTC_UDR_MASK			(1 << RTC_UDR_SHIFT)
+ #define RTC_RBUDR_SHIFT			4
+ #define RTC_RBUDR_MASK			(1 << RTC_RBUDR_SHIFT)
+-/* WTSR and SMPL Register */
+-#define WTSRT_SHIFT			0
+-#define SMPLT_SHIFT			2
+-#define WTSR_EN_SHIFT			6
+-#define SMPL_EN_SHIFT			7
+-#define WTSRT_MASK			(3 << WTSRT_SHIFT)
+-#define SMPLT_MASK			(3 << SMPLT_SHIFT)
+-#define WTSR_EN_MASK			(1 << WTSR_EN_SHIFT)
+-#define SMPL_EN_MASK			(1 << SMPL_EN_SHIFT)
+ /* RTC Hour register */
+ #define HOUR_PM_SHIFT			6
+ #define HOUR_PM_MASK			(1 << HOUR_PM_SHIFT)
+@@ -49,7 +40,6 @@
+ #define ALARM_ENABLE_MASK		(1 << ALARM_ENABLE_SHIFT)
+ 
+ #define MAX77686_RTC_UPDATE_DELAY	16
+-#undef MAX77686_RTC_WTSR_SMPL
+ 
+ enum {
+ 	RTC_SEC = 0,
+@@ -412,64 +402,6 @@ static const struct rtc_class_ops max776
+ 	.alarm_irq_enable = max77686_rtc_alarm_irq_enable,
+ };
+ 
+-#ifdef MAX77686_RTC_WTSR_SMPL
+-static void max77686_rtc_enable_wtsr(struct max77686_rtc_info *info, bool enable)
+-{
+-	int ret;
+-	unsigned int val, mask;
+-
+-	if (enable)
+-		val = (1 << WTSR_EN_SHIFT) | (3 << WTSRT_SHIFT);
+-	else
+-		val = 0;
+-
+-	mask = WTSR_EN_MASK | WTSRT_MASK;
+-
+-	dev_info(info->dev, "%s: %s WTSR\n", __func__,
+-			enable ? "enable" : "disable");
+-
+-	ret = regmap_update_bits(info->max77686->rtc_regmap,
+-				 MAX77686_WTSR_SMPL_CNTL, mask, val);
+-	if (ret < 0) {
+-		dev_err(info->dev, "%s: fail to update WTSR reg(%d)\n",
+-				__func__, ret);
+-		return;
+-	}
+-
+-	max77686_rtc_update(info, MAX77686_RTC_WRITE);
+-}
+-
+-static void max77686_rtc_enable_smpl(struct max77686_rtc_info *info, bool enable)
+-{
+-	int ret;
+-	unsigned int val, mask;
+-
+-	if (enable)
+-		val = (1 << SMPL_EN_SHIFT) | (0 << SMPLT_SHIFT);
+-	else
+-		val = 0;
+-
+-	mask = SMPL_EN_MASK | SMPLT_MASK;
+-
+-	dev_info(info->dev, "%s: %s SMPL\n", __func__,
+-			enable ? "enable" : "disable");
+-
+-	ret = regmap_update_bits(info->max77686->rtc_regmap,
+-				 MAX77686_WTSR_SMPL_CNTL, mask, val);
+-	if (ret < 0) {
+-		dev_err(info->dev, "%s: fail to update SMPL reg(%d)\n",
+-				__func__, ret);
+-		return;
+-	}
+-
+-	max77686_rtc_update(info, MAX77686_RTC_WRITE);
+-
+-	val = 0;
+-	regmap_read(info->max77686->rtc_regmap, MAX77686_WTSR_SMPL_CNTL, &val);
+-	dev_info(info->dev, "%s: WTSR_SMPL(0x%02x)\n", __func__, val);
+-}
+-#endif /* MAX77686_RTC_WTSR_SMPL */
+-
+ static int max77686_rtc_init_reg(struct max77686_rtc_info *info)
+ {
+ 	u8 data[2];
+@@ -519,11 +451,6 @@ static int max77686_rtc_probe(struct pla
+ 		goto err_rtc;
+ 	}
+ 
+-#ifdef MAX77686_RTC_WTSR_SMPL
+-	max77686_rtc_enable_wtsr(info, true);
+-	max77686_rtc_enable_smpl(info, true);
+-#endif
+-
+ 	device_init_wakeup(&pdev->dev, 1);
+ 
+ 	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "max77686-rtc",
+@@ -556,33 +483,6 @@ err_rtc:
+ 	return ret;
+ }
+ 
+-static void max77686_rtc_shutdown(struct platform_device *pdev)
+-{
+-#ifdef MAX77686_RTC_WTSR_SMPL
+-	struct max77686_rtc_info *info = platform_get_drvdata(pdev);
+-	int i;
+-	u8 val = 0;
+-
+-	for (i = 0; i < 3; i++) {
+-		max77686_rtc_enable_wtsr(info, false);
+-		regmap_read(info->max77686->rtc_regmap, MAX77686_WTSR_SMPL_CNTL, &val);
+-		dev_info(info->dev, "%s: WTSR_SMPL reg(0x%02x)\n", __func__,
+-				val);
+-		if (val & WTSR_EN_MASK) {
+-			dev_emerg(info->dev, "%s: fail to disable WTSR\n",
+-					__func__);
+-		} else {
+-			dev_info(info->dev, "%s: success to disable WTSR\n",
+-					__func__);
+-			break;
+-		}
+-	}
+-
+-	/* Disable SMPL when power off */
+-	max77686_rtc_enable_smpl(info, false);
+-#endif /* MAX77686_RTC_WTSR_SMPL */
+-}
