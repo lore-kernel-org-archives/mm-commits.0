@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysctl-resolve-missing-field-initializers-warnings.patch added to -mm tree
-Date: Tue, 14 Oct 2014 13:24:18 -0700
-Message-ID: <543d8672.FqRgpGBE3p3gXOaC%akpm@linux-foundation.org>
+Subject: +
+ ppc-cell-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch added
+ to -mm tree
+Date: Tue, 14 Oct 2014 13:27:59 -0700
+Message-ID: <543d874f.zAleakwHXyLCQBnT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45375 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45383 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755656AbaJNUYS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 16:24:18 -0400
+	with ESMTP id S1755405AbaJNU2A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Oct 2014 16:28:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mark.d.rustad@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
+To: ydroneaud@opteya.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sysctl: Resolve missing-field-initializers warnings
+     Subject: ppc/cell: replace get_unused_fd() with get_unused_fd_flags(0)
 has been added to the -mm tree.  Its filename is
-     kernel-sysctl-resolve-missing-field-initializers-warnings.patch
+     ppc-cell-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-sysctl-resolve-missing-field-initializers-warnings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ppc-cell-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-sysctl-resolve-missing-field-initializers-warnings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ppc-cell-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,83 +40,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mark Rustad <mark.d.rustad@intel.com>
-Subject: kernel/sysctl: Resolve missing-field-initializers warnings
+From: Yann Droneaud <ydroneaud@opteya.com>
+Subject: ppc/cell: replace get_unused_fd() with get_unused_fd_flags(0)
 
-Resolve missing-field-initializers warnings in W=2 builds by
-using designated initialization.
+This patch replaces calls to get_unused_fd() with equivalent call to
+get_unused_fd_flags(0) to preserve current behavor for existing code.
 
-Signed-off-by: Mark Rustad <mark.d.rustad@intel.com>
-Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+In a further patch, get_unused_fd() will be removed so that new code start
+using get_unused_fd_flags(), with the hope O_CLOEXEC could be used, either
+by default or choosen by userspace.
+
+Signed-off-by: Yann Droneaud <ydroneaud@opteya.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/powerpc/platforms/cell/spufs/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sysctl.c~kernel-sysctl-resolve-missing-field-initializers-warnings kernel/sysctl.c
---- a/kernel/sysctl.c~kernel-sysctl-resolve-missing-field-initializers-warnings
-+++ a/kernel/sysctl.c
-@@ -257,7 +257,7 @@ static struct ctl_table sysctl_base_tabl
- 		.mode		= 0555,
- 		.child		= dev_table,
- 	},
--	{ }
-+	{ .procname = NULL }
- };
+diff -puN arch/powerpc/platforms/cell/spufs/inode.c~ppc-cell-trivial-replace-get_unused_fd-by-get_unused_fd_flags0 arch/powerpc/platforms/cell/spufs/inode.c
+--- a/arch/powerpc/platforms/cell/spufs/inode.c~ppc-cell-trivial-replace-get_unused_fd-by-get_unused_fd_flags0
++++ a/arch/powerpc/platforms/cell/spufs/inode.c
+@@ -301,7 +301,7 @@ static int spufs_context_open(struct pat
+ 	int ret;
+ 	struct file *filp;
  
- #ifdef CONFIG_SCHED_DEBUG
-@@ -1103,7 +1103,7 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= proc_dointvec,
- 	},
- #endif
--	{ }
-+	{ .procname = NULL }
- };
+-	ret = get_unused_fd();
++	ret = get_unused_fd_flags(0);
+ 	if (ret < 0)
+ 		return ret;
  
- static struct ctl_table vm_table[] = {
-@@ -1485,12 +1485,12 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_doulongvec_minmax,
- 	},
--	{ }
-+	{ .procname = NULL }
- };
+@@ -518,7 +518,7 @@ static int spufs_gang_open(struct path *
+ 	int ret;
+ 	struct file *filp;
  
- #if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
- static struct ctl_table binfmt_misc_table[] = {
--	{ }
-+	{ .procname = NULL }
- };
- #endif
+-	ret = get_unused_fd();
++	ret = get_unused_fd_flags(0);
+ 	if (ret < 0)
+ 		return ret;
  
-@@ -1658,7 +1658,7 @@ static struct ctl_table fs_table[] = {
- 		.proc_handler	= &pipe_proc_fn,
- 		.extra1		= &pipe_min_size,
- 	},
--	{ }
-+	{ .procname = NULL }
- };
- 
- static struct ctl_table debug_table[] = {
-@@ -1682,11 +1682,11 @@ static struct ctl_table debug_table[] =
- 		.extra2		= &one,
- 	},
- #endif
--	{ }
-+	{ .procname = NULL }
- };
- 
- static struct ctl_table dev_table[] = {
--	{ }
-+	{ .procname = NULL }
- };
- 
- int __init sysctl_init(void)
 _
 
-Patches currently in -mm which might be from mark.d.rustad@intel.com are
+Patches currently in -mm which might be from ydroneaud@opteya.com are
 
 origin.patch
-kernel-sysctl-resolve-missing-field-initializers-warnings.patch
+ia64-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
+ppc-cell-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
+binfmt_misc-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
+file-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
+file-remove-get_unused_fd-macro.patch
 
