@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-verify-compound-order-when-freeing-a-page.patch added to -mm tree
-Date: Wed, 15 Oct 2014 12:31:03 -0700
-Message-ID: <543ecb77.xKsf1r0MOS76uAfg%akpm@linux-foundation.org>
+Subject: +
+ arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message.patch added to -mm tree
+Date: Wed, 15 Oct 2014 12:53:06 -0700
+Message-ID: <543ed0a2.9YIqwNc+EnDbXE5j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36272 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751732AbaJOTbE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 15:31:04 -0400
+	with ESMTP id S1751364AbaJOTxG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 15:53:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yuzhao@google.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, lliubbo@gmail.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
+To: chaowang@redhat.com, bhe@redhat.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: verify compound order when freeing a page
+     Subject: arch/x86/purgatory/Makefile: supress kexec-purgatory.c is up to date message
 has been added to the -mm tree.  Its filename is
-     mm-verify-compound-order-when-freeing-a-page.patch
+     arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-verify-compound-order-when-freeing-a-page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-verify-compound-order-when-freeing-a-page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,44 +39,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: verify compound order when freeing a page
+From: WANG Chao <chaowang@redhat.com>
+Subject: arch/x86/purgatory/Makefile: supress kexec-purgatory.c is up to date message
 
-This allows us to catch the bug fixed in the previous patch (mm: free
-compound page with correct order).
+Supress this unnecessary message during kernel re-build
+(CONFIG_KEXEC_FILE=y):
 
-Here we also verify whether a page is tail page or not -- tail pages are
-supposed to be freed along with their head, not by themselves.
+make[1]: `arch/x86/purgatory/kexec-purgatory.c' is up to date.
 
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Bob Liu <lliubbo@gmail.com>
+(@ is used to suppress echoing. See
+https://www.gnu.org/software/make/manual/html_node/Echoing.html)
+
+Signed-off-by: WANG Chao <chaowang@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/x86/purgatory/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-verify-compound-order-when-freeing-a-page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-verify-compound-order-when-freeing-a-page
-+++ a/mm/page_alloc.c
-@@ -750,6 +750,9 @@ static bool free_pages_prepare(struct pa
- 	int i;
- 	int bad = 0;
+diff -puN arch/x86/purgatory/Makefile~arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message arch/x86/purgatory/Makefile
+--- a/arch/x86/purgatory/Makefile~arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message
++++ a/arch/x86/purgatory/Makefile
+@@ -24,6 +24,7 @@ quiet_cmd_bin2c = BIN2C   $@
  
-+	VM_BUG_ON_PAGE(PageTail(page), page);
-+	VM_BUG_ON_PAGE(PageHead(page) && compound_order(page) != order, page);
-+
- 	trace_mm_page_free(page, order);
- 	kmemcheck_free_shadow(page, order);
+ $(obj)/kexec-purgatory.c: $(obj)/purgatory.ro FORCE
+ 	$(call if_changed,bin2c)
++	@:
  
+ 
+ obj-$(CONFIG_KEXEC_FILE)	+= kexec-purgatory.o
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from chaowang@redhat.com are
 
-mm-free-compound-page-with-correct-order.patch
-mm-verify-compound-order-when-freeing-a-page.patch
+origin.patch
+arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message.patch
 
