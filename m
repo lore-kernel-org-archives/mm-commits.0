@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch removed
- from -mm tree
-Date: Wed, 15 Oct 2014 13:22:36 -0700
-Message-ID: <543ed78c.hvtBB3G6LaQgPd4X%akpm@linux-foundation.org>
+ ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch removed from
+ -mm tree
+Date: Wed, 15 Oct 2014 13:22:42 -0700
+Message-ID: <543ed792.tZDtEVOa2pXUMd+B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36830 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36839 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751651AbaJOUWg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 16:22:36 -0400
+	with ESMTP id S1751680AbaJOUWm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 16:22:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wangww631@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ] ocfs2: add and remove inode in orphan dir in ocfs2_direct_IO
+     Subject: ocfs2: do not fallback to buffer I/O write if filling holes
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch
+     ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: WeiWei Wang <wangww631@huawei.com>
-Subject: ] ocfs2: add and remove inode in orphan dir in ocfs2_direct_IO
+Subject: ocfs2: do not fallback to buffer I/O write if filling holes
 
-Add the inode to orphan first, after direct-io write is finished, remove
-the inode from orphan dir.  So the allocate blocks and change
-inode->i_size will be safe.
+In this commit, direct-io to a hole will go direct-io first, then fall
+through to buffered I/O for completing the rest of the request.
 
 Signed-off-by: Weiwei Wang <wangww631@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -39,158 +38,134 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |  118 ++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 114 insertions(+), 4 deletions(-)
+ fs/ocfs2/file.c |   87 +++++++++++++++++++---------------------------
+ 1 file changed, 36 insertions(+), 51 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io
-+++ a/fs/ocfs2/aops.c
-@@ -47,6 +47,9 @@
- #include "ocfs2_trace.h"
- 
- #include "buffer_head_io.h"
-+#include "dir.h"
-+#include "namei.h"
-+#include "sysfile.h"
- 
- static int ocfs2_symlink_get_block(struct inode *inode, sector_t iblock,
- 				   struct buffer_head *bh_result, int create)
-@@ -602,8 +605,16 @@ static ssize_t ocfs2_direct_IO(int rw,
- 			       struct iov_iter *iter,
- 			       loff_t offset)
- {
-+	ssize_t ret = 0;
-+	int status = 0;
-+	int orphan = 0;
- 	struct file *file = iocb->ki_filp;
- 	struct inode *inode = file_inode(file)->i_mapping->host;
-+	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
-+	struct buffer_head *di_bh = NULL;
-+	handle_t *handle = NULL;
-+	size_t count = iter->count;
-+	journal_t *journal = osb->journal->j_journal;
- 
- 	/*
- 	 * Fallback to buffered I/O if we see an inode without
-@@ -616,10 +627,109 @@ static ssize_t ocfs2_direct_IO(int rw,
- 	if (i_size_read(inode) <= offset)
- 		return 0;
- 
--	return __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev,
--				    iter, offset,
--				    ocfs2_direct_IO_get_blocks,
--				    ocfs2_dio_end_io, NULL, 0);
-+	if (rw == WRITE) {
-+		loff_t final_size = offset + count;
-+		/*
-+		 * when final_size > inode->i_size, inode->i_size will be
-+		 * updated after direct write, so add the inode to orphan
-+		 * dir first.
-+		 */
-+		if (final_size > i_size_read(inode)) {
-+			handle = ocfs2_start_trans(osb,
-+					OCFS2_INODE_ADD_TO_ORPHAN_CREDITS);
-+			if (IS_ERR(handle)) {
-+				status = PTR_ERR(handle);
-+				goto out;
-+			}
-+			status = ocfs2_add_inode_to_orphan(osb, handle, inode);
-+			if (status < 0)
-+				goto out;
-+
-+			orphan = 1;
-+			ocfs2_commit_trans(osb, handle);
-+			handle = NULL;
-+		}
-+	}
-+
-+	if (rw == READ)
-+		ret = __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev,
-+					iter, offset,
-+					ocfs2_direct_IO_get_blocks,
-+					ocfs2_dio_end_io, NULL, 0);
-+	else {
-+		ret =  blockdev_direct_IO(rw, iocb, inode,
-+					iter, offset,
-+					ocfs2_direct_IO_get_blocks);
-+
-+		if (unlikely((rw & WRITE) && ret < 0)) {
-+			loff_t isize = i_size_read(inode);
-+
-+			if (offset + count  > isize) {
-+				status = ocfs2_inode_lock(inode, &di_bh, 1);
-+				if (status < 0) {
-+					mlog_errno(status);
-+					goto out;
-+				}
-+				if (isize == i_size_read(inode))
-+					ocfs2_truncate_file(inode, di_bh,
-+							    isize);
-+
-+				ocfs2_inode_unlock(inode, 1);
-+				brelse(di_bh);
-+				di_bh = NULL;
-+
-+				status = jbd2_journal_force_commit(journal);
-+				if (status < 0)
-+					mlog_errno(status);
-+			}
-+		}
-+	}
-+
-+	if (orphan) {
-+		handle = ocfs2_start_trans(osb,
-+					OCFS2_INODE_DEL_FROM_ORPHAN_CREDITS);
-+		if (IS_ERR(handle)) {
-+			status = PTR_ERR(handle);
-+			goto out;
-+		}
-+
-+		status = ocfs2_del_inode_from_orphan(osb, handle, inode);
-+		if (status < 0)
-+			goto out;
-+
-+		/* after update the inode->i_size, call
-+		 * jbd2_journal_force_commit to flush the journal to disk */
-+		if (ret > 0) {
-+			loff_t end = offset + ret;
-+
-+			if (end > i_size_read(inode)) {
-+				status = ocfs2_inode_lock(inode, &di_bh, 1);
-+				if (status < 0) {
-+					mlog_errno(status);
-+					goto out;
-+				}
-+				status = ocfs2_set_inode_size(handle, inode,
-+							      di_bh, end);
-+				if (status < 0)
-+					mlog_errno(status);
-+				ocfs2_inode_unlock(inode, 1);
-+				brelse(di_bh);
-+			}
-+		}
-+		ocfs2_commit_trans(osb, handle);
-+		handle = NULL;
-+
-+		status = jbd2_journal_force_commit(journal);
-+		if (status < 0)
-+			mlog_errno(status);
-+	}
-+
-+out:
-+	if (status < 0)
-+		ret = status;
-+	if (handle)
-+		ocfs2_commit_trans(osb, handle);
-+	return ret;
+diff -puN fs/ocfs2/file.c~ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes
++++ a/fs/ocfs2/file.c
+@@ -1352,44 +1352,6 @@ out:
+ 	return ret;
  }
  
- static void ocfs2_figure_cluster_boundaries(struct ocfs2_super *osb,
+-/*
+- * Will look for holes and unwritten extents in the range starting at
+- * pos for count bytes (inclusive).
+- */
+-static int ocfs2_check_range_for_holes(struct inode *inode, loff_t pos,
+-				       size_t count)
+-{
+-	int ret = 0;
+-	unsigned int extent_flags;
+-	u32 cpos, clusters, extent_len, phys_cpos;
+-	struct super_block *sb = inode->i_sb;
+-
+-	cpos = pos >> OCFS2_SB(sb)->s_clustersize_bits;
+-	clusters = ocfs2_clusters_for_bytes(sb, pos + count) - cpos;
+-
+-	while (clusters) {
+-		ret = ocfs2_get_clusters(inode, cpos, &phys_cpos, &extent_len,
+-					 &extent_flags);
+-		if (ret < 0) {
+-			mlog_errno(ret);
+-			goto out;
+-		}
+-
+-		if (phys_cpos == 0 || (extent_flags & OCFS2_EXT_UNWRITTEN)) {
+-			ret = 1;
+-			break;
+-		}
+-
+-		if (extent_len > clusters)
+-			extent_len = clusters;
+-
+-		clusters -= extent_len;
+-		cpos += extent_len;
+-	}
+-out:
+-	return ret;
+-}
+-
+ static int ocfs2_write_remove_suid(struct inode *inode)
+ {
+ 	int ret;
+@@ -2190,19 +2152,6 @@ static int ocfs2_prepare_inode_for_write
+ 			*direct_io = 0;
+ 			break;
+ 		}
+-
+-		/*
+-		 * We don't fill holes during direct io, so
+-		 * check for them here. If any are found, the
+-		 * caller will have to retake some cluster
+-		 * locks and initiate the io as buffered.
+-		 */
+-		ret = ocfs2_check_range_for_holes(inode, saved_pos, count);
+-		if (ret == 1) {
+-			*direct_io = 0;
+-			ret = 0;
+-		} else if (ret < 0)
+-			mlog_errno(ret);
+ 		break;
+ 	}
+ 
+@@ -2232,6 +2181,7 @@ static ssize_t ocfs2_file_write_iter(str
+ 	u32 old_clusters;
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file_inode(file);
++	struct address_space *mapping = file->f_mapping;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	int full_coherency = !(osb->s_mount_opt &
+ 			       OCFS2_MOUNT_COHERENCY_BUFFERED);
+@@ -2346,11 +2296,46 @@ relock:
+ 
+ 	iov_iter_truncate(from, count);
+ 	if (direct_io) {
++		loff_t endbyte;
++		ssize_t written_buffered;
+ 		written = generic_file_direct_write(iocb, from, *ppos);
+ 		if (written < 0) {
+ 			ret = written;
+ 			goto out_dio;
+ 		}
++		/*
++		 * direct-io write to a hole: fall through to buffered I/O
++		 * for completing the rest of the request.
++		 */
++		*ppos += written;
++		count -= written;
++		written_buffered = generic_perform_write(file, from, *ppos);
++		/*
++		 * If generic_file_buffered_write() retuned a synchronous error
++		 * then we want to return the number of bytes which were
++		 * direct-written, or the error code if that was zero.  Note
++		 * that this differs from normal direct-io semantics, which
++		 * will return -EFOO even if some bytes were written.
++		 */
++		if (written_buffered < 0) {
++			ret = written_buffered;
++			goto out;
++		}
++
++		/*
++		 * We need to ensure that the page cache pages are written to
++		 * disk and invalidated to preserve the expected O_DIRECT
++		 * semantics.
++		 */
++		endbyte = *ppos + written_buffered - written - 1;
++		ret = filemap_write_and_wait_range(file->f_mapping, *ppos,
++						   endbyte);
++		if (ret == 0) {
++			written = written_buffered;
++			invalidate_mapping_pages(mapping,
++						 *ppos >> PAGE_CACHE_SHIFT,
++						 endbyte >> PAGE_CACHE_SHIFT);
++		}
+ 	} else {
+ 		current->backing_dev_info = file->f_mapping->backing_dev_info;
+ 		written = generic_perform_write(file, from, *ppos);
 _
 
 Patches currently in -mm which might be from wangww631@huawei.com are
 
-ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
 
