@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
- added to -mm tree
-Date: Wed, 15 Oct 2014 12:19:12 -0700
-Message-ID: <543ec8b0.9wH8FOkO2qKGmeVp%akpm@linux-foundation.org>
+Subject: + mm-free-compound-page-with-correct-order.patch added to -mm
+ tree
+Date: Wed, 15 Oct 2014 12:30:57 -0700
+Message-ID: <543ecb71.WE1QFef4Td6GEuVa%akpm__19109.217139385$1413401473$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36125 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953AbaJOTTM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 15:19:12 -0400
+	with ESMTP id S1751505AbaJOTa5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 15:30:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: yuzhao@google.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, lliubbo@gmail.com, mel@csn.ul.ie, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix
+     Subject: mm: free compound page with correct order
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
+     mm-free-compound-page-with-correct-order.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-free-compound-page-with-correct-order.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-free-compound-page-with-correct-order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,58 +39,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: free compound page with correct order
 
-Make sure that the cached reference is always released.
+Compound page should be freed by put_page() or free_pages() with correct
+order.  Not doing so will cause tail pages leaked.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+The compound order can be obtained by compound_order() or use
+HPAGE_PMD_ORDER in our case.  Some people would argue the latter is faster
+but I prefer the former which is more general.
+
+Fixes: 97ae17497e99 ("thp: implement refcounting for huge zero page")
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Bob Liu <lliubbo@gmail.com>
+Cc: <stable@vger.kernel.org>	[3.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix
-+++ a/mm/memcontrol.c
-@@ -1165,9 +1165,17 @@ struct mem_cgroup *mem_cgroup_iter(struc
+diff -puN mm/huge_memory.c~mm-free-compound-page-with-correct-order mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-free-compound-page-with-correct-order
++++ a/mm/huge_memory.c
+@@ -200,7 +200,7 @@ retry:
+ 	preempt_disable();
+ 	if (cmpxchg(&huge_zero_page, NULL, zero_page)) {
+ 		preempt_enable();
+-		__free_page(zero_page);
++		__free_pages(zero_page, compound_order(zero_page));
+ 		goto retry;
  	}
  
- 	if (reclaim) {
--		if (cmpxchg(&iter->position, pos, memcg) == pos && memcg)
--			css_get(&memcg->css);
-+		if (cmpxchg(&iter->position, pos, memcg) == pos) {
-+			if (memcg)
-+				css_get(&memcg->css);
-+			if (pos)
-+				css_put(&pos->css);
-+		}
- 
-+		/*
-+		 * pairs with css_tryget when dereferencing iter->position
-+		 * above.
-+		 */
- 		if (pos)
- 			css_put(&pos->css);
+@@ -232,7 +232,7 @@ static unsigned long shrink_huge_zero_pa
+ 	if (atomic_cmpxchg(&huge_zero_refcount, 1, 0) == 1) {
+ 		struct page *zero_page = xchg(&huge_zero_page, NULL);
+ 		BUG_ON(zero_page == NULL);
+-		__free_page(zero_page);
++		__free_pages(zero_page, compound_order(zero_page));
+ 		return HPAGE_PMD_NR;
+ 	}
  
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-origin.patch
-cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
-mm-memcontrol-lockless-page-counters.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
-mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
-mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
-mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
-mm-memcontrol-remove-synchroneous-stock-draining-code.patch
-freezer-check-oom-kill-while-being-frozen.patch
-freezer-remove-obsolete-comments-in-__thaw_task.patch
-oom-pm-oom-killed-task-cannot-escape-pm-suspend.patch
+mm-free-compound-page-with-correct-order.patch
+mm-verify-compound-order-when-freeing-a-page.patch
 
