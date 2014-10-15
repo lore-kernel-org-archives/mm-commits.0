@@ -1,46 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message.patch added to -mm tree
-Date: Wed, 15 Oct 2014 12:53:06 -0700
-Message-ID: <543ed0a2.9YIqwNc+EnDbXE5j%akpm@linux-foundation.org>
+Subject: [merged]
+ arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message.patch removed from -mm tree
+Date: Wed, 15 Oct 2014 12:53:43 -0700
+Message-ID: <543ed0c7.Sk29hDmiQfnxgcjx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36272 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36277 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751364AbaJOTxG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 15:53:06 -0400
+	with ESMTP id S1751456AbaJOTxn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 15:53:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: chaowang@redhat.com, bhe@redhat.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/purgatory/Makefile: supress kexec-purgatory.c is up to date message
-has been added to the -mm tree.  Its filename is
+     Subject: arch/x86/purgatory/Makefile: suppress kexec-purgatory.c is up to date message
+has been removed from the -mm tree.  Its filename was
      arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: WANG Chao <chaowang@redhat.com>
-Subject: arch/x86/purgatory/Makefile: supress kexec-purgatory.c is up to date message
+Subject: arch/x86/purgatory/Makefile: suppress kexec-purgatory.c is up to date message
 
 Supress this unnecessary message during kernel re-build
 (CONFIG_KEXEC_FILE=y):
@@ -78,5 +64,4 @@ _
 Patches currently in -mm which might be from chaowang@redhat.com are
 
 origin.patch
-arch-x86-purgatory-makefile-supress-kexec-purgatoryc-is-up-to-date-message.patch
 
