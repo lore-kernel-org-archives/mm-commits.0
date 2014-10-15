@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
- added to -mm tree
-Date: Wed, 15 Oct 2014 15:05:12 -0700
-Message-ID: <543eef98.P27r6GjPhc3PnhL4%akpm@linux-foundation.org>
+Subject: + mm-compaction-simplify-deferred-compaction-fix.patch added to
+ -mm tree
+Date: Wed, 15 Oct 2014 15:32:30 -0700
+Message-ID: <543ef5fe.uIoyEDjdDipkcoro%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37583 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37937 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750887AbaJOWFM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 18:05:12 -0400
+	with ESMTP id S1751287AbaJOWca (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 18:32:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@redhat.com, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes
+     Subject: mm-compaction-simplify-deferred-compaction-fix
 has been added to the -mm tree.  Its filename is
-     ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+     mm-compaction-simplify-deferred-compaction-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-simplify-deferred-compaction-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-simplify-deferred-compaction-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +40,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes
+Subject: mm-compaction-simplify-deferred-compaction-fix
 
-WARNING: 'dependant' may be misspelled - perhaps 'dependent'?
-#134: FILE: include/uapi/linux/msg.h:66:
-+ * size. The optimal value is application dependant.
+fix build
 
-total: 0 errors, 1 warnings, 378 lines checked
-
-./patches/ipc-msg-increase-msgmni-remove-scaling.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/msg.h |    2 +-
+ include/linux/compaction.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/uapi/linux/msg.h~ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes include/uapi/linux/msg.h
---- a/include/uapi/linux/msg.h~ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes
-+++ a/include/uapi/linux/msg.h
-@@ -63,7 +63,7 @@ struct msginfo {
-  * MSGMNB is the default size of a new message queue. Non-root tasks can
-  * decrease the size with msgctl(IPC_SET), root tasks
-  * (actually: CAP_SYS_RESOURCE) can both increase and decrease the queue
-- * size. The optimal value is application dependant.
-+ * size. The optimal value is application dependent.
-  * 16384 is used because it was always used (since 0.99.10)
-  *
-  * MAXMAX is the maximum size of an individual message, it's a global
+diff -puN include/linux/compaction.h~mm-compaction-simplify-deferred-compaction-fix include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-simplify-deferred-compaction-fix
++++ a/include/linux/compaction.h
+@@ -104,7 +104,7 @@ static inline bool compaction_restarting
+ static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
+ 			int order, gfp_t gfp_mask, nodemask_t *nodemask,
+ 			enum migrate_mode mode, int *contended,
+-			int alloc_flags, int classzone_idx);
++			int alloc_flags, int classzone_idx)
+ {
+ 	return COMPACT_CONTINUE;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,6 +78,7 @@ ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
 mm.patch
 mm-memcontrol-lockless-page-counters-fix.patch
 mm-memcontrol-lockless-page-counters-fix-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
