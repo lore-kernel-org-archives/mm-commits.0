@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-simplify-deferred-compaction-fix.patch added to
- -mm tree
-Date: Wed, 15 Oct 2014 15:32:30 -0700
-Message-ID: <543ef5fe.uIoyEDjdDipkcoro%akpm@linux-foundation.org>
+Subject: +
+ ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch added
+ to -mm tree
+Date: Wed, 15 Oct 2014 15:35:31 -0700
+Message-ID: <543ef6b3.pgeVynjewJBe48pt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37937 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37944 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751287AbaJOWca (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 18:32:30 -0400
+	with ESMTP id S1751188AbaJOWfc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 18:35:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aquini@redhat.com, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-simplify-deferred-compaction-fix
+     Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-compaction-simplify-deferred-compaction-fix.patch
+     ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-simplify-deferred-compaction-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-simplify-deferred-compaction-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,29 +41,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-simplify-deferred-compaction-fix
+Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix
 
-fix build
-
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    2 +-
+ ipc/sem.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-simplify-deferred-compaction-fix include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-simplify-deferred-compaction-fix
-+++ a/include/linux/compaction.h
-@@ -104,7 +104,7 @@ static inline bool compaction_restarting
- static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *nodemask,
- 			enum migrate_mode mode, int *contended,
--			int alloc_flags, int classzone_idx);
-+			int alloc_flags, int classzone_idx)
- {
- 	return COMPACT_CONTINUE;
- }
+diff -puN ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix
++++ a/ipc/sem.c
+@@ -330,7 +330,7 @@ static inline int sem_lock(struct sem_ar
+ 			 * The ipc object lock check must be visible on all
+ 			 * cores before rechecking the complex count.  Otherwise
+ 			 * we can race with  another thread that does:
+-			 * 	complex_count++++;
++			 * 	complex_count++;
+ 			 * 	spin_unlock(sem_perm.lock);
+ 			 */
+ 			smp_rmb();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,6 +85,7 @@ do_shared_fault-check-that-mmap_sem-is-held.patch
 fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
 rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
 ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
 ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
 linux-next-git-rejects.patch
