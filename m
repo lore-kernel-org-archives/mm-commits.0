@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch added to
- -mm tree
-Date: Wed, 15 Oct 2014 13:34:19 -0700
-Message-ID: <543eda4b.7hzlwSH2WG8zfluC%akpm@linux-foundation.org>
+Subject: + ocfs2-eliminate-the-static-flag-of-some-functions.patch added
+ to -mm tree
+Date: Wed, 15 Oct 2014 13:34:16 -0700
+Message-ID: <543eda48.EKg4kKGnnAhTSTSC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36872 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36860 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751480AbaJOUeT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 16:34:19 -0400
+	with ESMTP id S1751309AbaJOUeR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 16:34:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wangww631@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: add and remove inode in orphan dir in ocfs2_direct_IO
+     Subject: ocfs2: eliminate the static flag of some functions
 has been added to the -mm tree.  Its filename is
-     ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch
+     ocfs2-eliminate-the-static-flag-of-some-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-eliminate-the-static-flag-of-some-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-eliminate-the-static-flag-of-some-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,11 +40,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: WeiWei Wang <wangww631@huawei.com>
-Subject: ocfs2: add and remove inode in orphan dir in ocfs2_direct_IO
+Subject: ocfs2: eliminate the static flag of some functions
 
-Add the inode to orphan dir first, and then delete it once append O_DIRECT
-finished.  This is to make sure block allocation and inode size are
-consistent.
+Currently in case of O_DIRECT append write (block not allocated yet),
+ocfs2 will fall back to buffered I/O.  This has some disadvantages. 
+Firstly, it is not the behavior as expected.  Secondly, it will consume
+huge page cache, e.g.  in mass backup scenario.  Thirdly, modern
+filesystems such as ext4 support this feature.
+
+In this patch set, the direct I/O write doesn't fallback to buffer I/O
+write any more because the allocate blocks are enabled in direct I/O now.
+
+
+This patch (of 7):
+
+Eliminate the static flag of some functions.
 
 Signed-off-by: Weiwei Wang <wangww631@huawei.com>
 Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
@@ -54,227 +63,138 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |  178 ++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 172 insertions(+), 6 deletions(-)
+ fs/ocfs2/file.c  |    6 +++---
+ fs/ocfs2/file.h  |    9 +++++++++
+ fs/ocfs2/namei.c |   18 ++----------------
+ fs/ocfs2/namei.h |   15 ++++++++++++++-
+ 4 files changed, 28 insertions(+), 20 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io
-+++ a/fs/ocfs2/aops.c
-@@ -28,6 +28,7 @@
- #include <linux/pipe_fs_i.h>
- #include <linux/mpage.h>
- #include <linux/quotaops.h>
-+#include <linux/blkdev.h>
- 
- #include <cluster/masklog.h>
- 
-@@ -47,6 +48,9 @@
- #include "ocfs2_trace.h"
- 
- #include "buffer_head_io.h"
-+#include "dir.h"
-+#include "namei.h"
-+#include "sysfile.h"
- 
- static int ocfs2_symlink_get_block(struct inode *inode, sector_t iblock,
- 				   struct buffer_head *bh_result, int create)
-@@ -597,6 +601,159 @@ static int ocfs2_releasepage(struct page
- 	return try_to_free_buffers(page);
+diff -puN fs/ocfs2/file.c~ocfs2-eliminate-the-static-flag-of-some-functions fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-eliminate-the-static-flag-of-some-functions
++++ a/fs/ocfs2/file.c
+@@ -295,7 +295,7 @@ out:
+ 	return ret;
  }
  
-+static int ocfs2_is_overwrite(struct ocfs2_super *osb,
-+		struct inode *inode , loff_t offset)
-+{
-+	ssize_t ret = 0;
-+	u32 v_cpos = 0;
-+	u32 p_cpos = 0;
-+	unsigned int num_clusters = 0;
-+	unsigned int ext_flags = 0;
-+
-+	v_cpos = ocfs2_clusters_for_bytes(osb->sb, offset);
-+
-+	ret = ocfs2_get_clusters(inode, v_cpos, &p_cpos,
-+			&num_clusters, &ext_flags);
-+	if (ret < 0) {
-+		mlog_errno(ret);
-+		return ret;
-+	}
-+
-+	if (p_cpos && !(ext_flags & OCFS2_EXT_UNWRITTEN))
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static ssize_t ocfs2_direct_IO_write(struct kiocb *iocb,
-+		struct iov_iter *iter,
-+		loff_t offset)
-+{
-+	ssize_t ret = 0;
-+	int orphan = 0;
-+	int is_overwrite = 0;
-+	struct file *file = iocb->ki_filp;
-+	struct inode *inode = file->f_path.dentry->d_inode->i_mapping->host;
-+	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
-+	struct buffer_head *di_bh = NULL;
-+	size_t count = iter->count;
-+	journal_t *journal = osb->journal->j_journal;
-+	u32 p_cpos = 0;
-+	u32 v_cpos = ocfs2_clusters_for_bytes(osb->sb, offset);
-+	u32 zero_len = offset % (1 << osb->s_clustersize_bits);
-+	int cluster_align = offset % (1 << osb->s_clustersize_bits) ? 0 : 1;
-+	int append_write = offset >= i_size_read(inode) ? 1 : 0;
-+	unsigned int num_clusters = 0;
-+	unsigned int ext_flags = 0;
-+
-+	loff_t final_size = offset + count;
-+	/*
-+	 * when final_size > inode->i_size, inode->i_size will be
-+	 * updated after direct write, so add the inode to orphan
-+	 * dir first.
-+	 */
-+	if (final_size > i_size_read(inode)) {
-+		ret = ocfs2_add_inode_to_orphan(osb, inode);
-+		if (ret < 0)
-+			goto out;
-+		orphan = 1;
-+	}
-+
-+	if (append_write) {
-+		ret = ocfs2_inode_lock(inode, &di_bh, 1);
-+		if (ret < 0) {
-+			mlog_errno(ret);
-+			goto clean_orphan;
-+		}
-+
-+		if (ocfs2_sparse_alloc(OCFS2_SB(inode->i_sb)))
-+			ret = ocfs2_zero_extend(inode, di_bh, offset);
-+		else
-+			ret = ocfs2_extend_no_holes(inode, di_bh,
-+					offset, offset);
-+		if (ret < 0) {
-+			mlog_errno(ret);
-+			ocfs2_inode_unlock(inode, 1);
-+			brelse(di_bh);
-+			goto clean_orphan;
-+		}
-+
-+		is_overwrite = ocfs2_is_overwrite(osb, inode, offset);
-+		if (is_overwrite < 0) {
-+			mlog_errno(is_overwrite);
-+			ocfs2_inode_unlock(inode, 1);
-+			brelse(di_bh);
-+			goto clean_orphan;
-+		}
-+
-+		ocfs2_inode_unlock(inode, 1);
-+		brelse(di_bh);
-+	}
-+
-+	ret = blockdev_direct_IO(WRITE, iocb,
-+			inode, iter, offset,
-+			ocfs2_direct_IO_get_blocks);
-+	if (unlikely(ret < 0)) {
-+		loff_t isize = i_size_read(inode);
-+
-+		if (offset + count > isize) {
-+			ret = ocfs2_inode_lock(inode, &di_bh, 1);
-+			if (ret < 0) {
-+				mlog_errno(ret);
-+				goto clean_orphan;
-+			}
-+			if (isize == i_size_read(inode)) {
-+				ret = ocfs2_truncate_file(inode, di_bh,
-+						isize);
-+				if (ret < 0) {
-+					if (ret != -ENOSPC)
-+						mlog_errno(ret);
-+				}
-+			}
-+			ocfs2_inode_unlock(inode, 1);
-+			brelse(di_bh);
-+
-+			ret = jbd2_journal_force_commit(journal);
-+			if (ret < 0)
-+				mlog_errno(ret);
-+		}
-+	} else if (append_write && !is_overwrite && !cluster_align) {
-+		ret = ocfs2_get_clusters(inode, v_cpos, &p_cpos,
-+				&num_clusters, &ext_flags);
-+		if (ret < 0) {
-+			mlog_errno(ret);
-+			goto clean_orphan;
-+		}
-+
-+		BUG_ON(!p_cpos || (ext_flags & OCFS2_EXT_UNWRITTEN));
-+
-+		ret = blkdev_issue_zeroout(osb->sb->s_bdev,
-+				p_cpos << (osb->s_clustersize_bits - 9),
-+				zero_len >> 9,
-+				GFP_KERNEL);
-+		if (ret < 0)
-+			mlog_errno(ret);
-+	}
-+
-+clean_orphan:
-+	if (orphan) {
-+		int update_isize = ret > 0 ? 1 : 0;
-+		loff_t end = update_isize ? (offset + ret) : 0;
-+
-+		ret = ocfs2_del_inode_from_orphan(osb, inode,
-+				update_isize, end);
-+		if (ret < 0)
-+			goto out;
-+
-+		ret = jbd2_journal_force_commit(journal);
-+		if (ret < 0)
-+			mlog_errno(ret);
-+	}
-+
-+out:
-+	return ret;
-+}
-+
- static ssize_t ocfs2_direct_IO(int rw,
- 			       struct kiocb *iocb,
- 			       struct iov_iter *iter,
-@@ -604,6 +761,9 @@ static ssize_t ocfs2_direct_IO(int rw,
+-static int ocfs2_set_inode_size(handle_t *handle,
++int ocfs2_set_inode_size(handle_t *handle,
+ 				struct inode *inode,
+ 				struct buffer_head *fe_bh,
+ 				u64 new_i_size)
+@@ -441,7 +441,7 @@ out:
+ 	return status;
+ }
+ 
+-static int ocfs2_truncate_file(struct inode *inode,
++int ocfs2_truncate_file(struct inode *inode,
+ 			       struct buffer_head *di_bh,
+ 			       u64 new_i_size)
  {
- 	struct file *file = iocb->ki_filp;
- 	struct inode *inode = file_inode(file)->i_mapping->host;
-+	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
-+	int full_coherency = !(osb->s_mount_opt &
-+			OCFS2_MOUNT_COHERENCY_BUFFERED);
- 
- 	/*
- 	 * Fallback to buffered I/O if we see an inode without
-@@ -612,14 +772,20 @@ static ssize_t ocfs2_direct_IO(int rw,
- 	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL)
- 		return 0;
- 
--	/* Fallback to buffered I/O if we are appending. */
--	if (i_size_read(inode) <= offset)
-+	/* Fallback to buffered I/O if we are appending and
-+	 * concurrent O_DIRECT writes are allowed.
-+	 */
-+	if (i_size_read(inode) <= offset && !full_coherency)
- 		return 0;
- 
--	return __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev,
--				    iter, offset,
--				    ocfs2_direct_IO_get_blocks,
--				    ocfs2_dio_end_io, NULL, 0);
-+	if (rw == READ)
-+		return __blockdev_direct_IO(rw, iocb, inode,
-+				inode->i_sb->s_bdev,
-+				iter, offset,
-+				ocfs2_direct_IO_get_blocks,
-+				ocfs2_dio_end_io, NULL, 0);
-+	else
-+		return ocfs2_direct_IO_write(iocb, iter, offset);
+@@ -557,7 +557,7 @@ int ocfs2_add_inode_data(struct ocfs2_su
+ 	return ret;
  }
  
- static void ocfs2_figure_cluster_boundaries(struct ocfs2_super *osb,
+-static int __ocfs2_extend_allocation(struct inode *inode, u32 logical_start,
++int __ocfs2_extend_allocation(struct inode *inode, u32 logical_start,
+ 				     u32 clusters_to_add, int mark_unwritten)
+ {
+ 	int status = 0;
+diff -puN fs/ocfs2/file.h~ocfs2-eliminate-the-static-flag-of-some-functions fs/ocfs2/file.h
+--- a/fs/ocfs2/file.h~ocfs2-eliminate-the-static-flag-of-some-functions
++++ a/fs/ocfs2/file.h
+@@ -51,13 +51,22 @@ int ocfs2_add_inode_data(struct ocfs2_su
+ 			 struct ocfs2_alloc_context *data_ac,
+ 			 struct ocfs2_alloc_context *meta_ac,
+ 			 enum ocfs2_alloc_restarted *reason_ret);
++int ocfs2_set_inode_size(handle_t *handle,
++		struct inode *inode,
++		struct buffer_head *fe_bh,
++		u64 new_i_size);
+ int ocfs2_simple_size_update(struct inode *inode,
+ 			     struct buffer_head *di_bh,
+ 			     u64 new_i_size);
++int ocfs2_truncate_file(struct inode *inode,
++		struct buffer_head *di_bh,
++		u64 new_i_size);
+ int ocfs2_extend_no_holes(struct inode *inode, struct buffer_head *di_bh,
+ 			  u64 new_i_size, u64 zero_to);
+ int ocfs2_zero_extend(struct inode *inode, struct buffer_head *di_bh,
+ 		      loff_t zero_to);
++int __ocfs2_extend_allocation(struct inode *inode, u32 logical_start,
++		u32 clusters_to_add, int mark_unwritten);
+ int ocfs2_setattr(struct dentry *dentry, struct iattr *attr);
+ int ocfs2_getattr(struct vfsmount *mnt, struct dentry *dentry,
+ 		  struct kstat *stat);
+diff -puN fs/ocfs2/namei.c~ocfs2-eliminate-the-static-flag-of-some-functions fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-eliminate-the-static-flag-of-some-functions
++++ a/fs/ocfs2/namei.c
+@@ -75,20 +75,6 @@ static int ocfs2_mknod_locked(struct ocf
+ 			      handle_t *handle,
+ 			      struct ocfs2_alloc_context *inode_ac);
+ 
+-static int ocfs2_prepare_orphan_dir(struct ocfs2_super *osb,
+-				    struct inode **ret_orphan_dir,
+-				    u64 blkno,
+-				    char *name,
+-				    struct ocfs2_dir_lookup_result *lookup);
+-
+-static int ocfs2_orphan_add(struct ocfs2_super *osb,
+-			    handle_t *handle,
+-			    struct inode *inode,
+-			    struct buffer_head *fe_bh,
+-			    char *name,
+-			    struct ocfs2_dir_lookup_result *lookup,
+-			    struct inode *orphan_dir_inode);
+-
+ static int ocfs2_create_symlink_data(struct ocfs2_super *osb,
+ 				     handle_t *handle,
+ 				     struct inode *inode,
+@@ -2097,7 +2083,7 @@ static int __ocfs2_prepare_orphan_dir(st
+  *
+  * Returns non-zero on failure. 
+  */
+-static int ocfs2_prepare_orphan_dir(struct ocfs2_super *osb,
++int ocfs2_prepare_orphan_dir(struct ocfs2_super *osb,
+ 				    struct inode **ret_orphan_dir,
+ 				    u64 blkno,
+ 				    char *name,
+@@ -2137,7 +2123,7 @@ out:
+ 	return ret;
+ }
+ 
+-static int ocfs2_orphan_add(struct ocfs2_super *osb,
++int ocfs2_orphan_add(struct ocfs2_super *osb,
+ 			    handle_t *handle,
+ 			    struct inode *inode,
+ 			    struct buffer_head *fe_bh,
+diff -puN fs/ocfs2/namei.h~ocfs2-eliminate-the-static-flag-of-some-functions fs/ocfs2/namei.h
+--- a/fs/ocfs2/namei.h~ocfs2-eliminate-the-static-flag-of-some-functions
++++ a/fs/ocfs2/namei.h
+@@ -26,10 +26,23 @@
+ #ifndef OCFS2_NAMEI_H
+ #define OCFS2_NAMEI_H
+ 
++#include "dir.h"
++
+ extern const struct inode_operations ocfs2_dir_iops;
+ 
+ struct dentry *ocfs2_get_parent(struct dentry *child);
+-
++int ocfs2_prepare_orphan_dir(struct ocfs2_super *osb,
++		struct inode **ret_orphan_dir,
++		u64 blkno,
++		char *name,
++		struct ocfs2_dir_lookup_result *lookup);
++int ocfs2_orphan_add(struct ocfs2_super *osb,
++		handle_t *handle,
++		struct inode *inode,
++		struct buffer_head *fe_bh,
++		char *name,
++		struct ocfs2_dir_lookup_result *lookup,
++		struct inode *orphan_dir_inode);
+ int ocfs2_orphan_del(struct ocfs2_super *osb,
+ 		     handle_t *handle,
+ 		     struct inode *orphan_dir_inode,
 _
 
 Patches currently in -mm which might be from wangww631@huawei.com are
