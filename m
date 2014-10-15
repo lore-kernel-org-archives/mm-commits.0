@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch added
- to -mm tree
-Date: Wed, 15 Oct 2014 15:35:31 -0700
-Message-ID: <543ef6b3.pgeVynjewJBe48pt%akpm@linux-foundation.org>
+ ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch added to -mm tree
+Date: Wed, 15 Oct 2014 16:55:53 -0700
+Message-ID: <543f0989.0vAw0YZbGSt2G+Z5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38372 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751188AbaJOWfc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 18:35:32 -0400
+	with ESMTP id S1751232AbaJOXzy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 19:55:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@redhat.com, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, wangww631@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix
+     Subject: ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix
 has been added to the -mm tree.  Its filename is
-     ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+     ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,29 +40,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix
+Subject: ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix
 
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+don't emit a call to _moddi3 on i386
+
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Weiwei Wang <wangww631@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/aops.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix ipc/sem.c
---- a/ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix
-+++ a/ipc/sem.c
-@@ -330,7 +330,7 @@ static inline int sem_lock(struct sem_ar
- 			 * The ipc object lock check must be visible on all
- 			 * cores before rechecking the complex count.  Otherwise
- 			 * we can race with  another thread that does:
--			 * 	complex_count++++;
-+			 * 	complex_count++;
- 			 * 	spin_unlock(sem_perm.lock);
- 			 */
- 			smp_rmb();
+diff -puN fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix
++++ a/fs/ocfs2/aops.c
+@@ -29,6 +29,7 @@
+ #include <linux/mpage.h>
+ #include <linux/quotaops.h>
+ #include <linux/blkdev.h>
++#include <linux/math64.h>
+ 
+ #include <cluster/masklog.h>
+ 
+@@ -640,13 +641,20 @@ static ssize_t ocfs2_direct_IO_write(str
+ 	journal_t *journal = osb->journal->j_journal;
+ 	u32 p_cpos = 0;
+ 	u32 v_cpos = ocfs2_clusters_for_bytes(osb->sb, offset);
+-	u32 zero_len = offset % (1 << osb->s_clustersize_bits);
+-	int cluster_align = offset % (1 << osb->s_clustersize_bits) ? 0 : 1;
++	u32 zero_len;
++	int cluster_align;
++	loff_t final_size = offset + count;
+ 	int append_write = offset >= i_size_read(inode) ? 1 : 0;
+ 	unsigned int num_clusters = 0;
+ 	unsigned int ext_flags = 0;
+ 
+-	loff_t final_size = offset + count;
++	{
++		loff_t o = offset;
++
++		zero_len = do_div(o, 1 << osb->s_clustersize_bits);
++		cluster_align = !!zero_len;
++	}
++
+ 	/*
+ 	 * when final_size > inode->i_size, inode->i_size will be
+ 	 * updated after direct write, so add the inode to orphan
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +100,7 @@ kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
 input-route-kbd-leds-through-the-generic-leds-layer.patch
 o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
 ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
 ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
 mm.patch
 mm-memcontrol-lockless-page-counters-fix.patch
