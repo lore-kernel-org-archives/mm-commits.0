@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-an-error-test-for-no-space-before-comma.patch
+Subject: +
+ checkpatch-add-error-on-use-of-attributeweak-or-__weak-declarations.patch
  added to -mm tree
-Date: Wed, 15 Oct 2014 14:56:56 -0700
-Message-ID: <543eeda8.aZ+UrUq51hXqc31x%akpm@linux-foundation.org>
+Date: Wed, 15 Oct 2014 14:58:50 -0700
+Message-ID: <543eee1a.qdv3oj4rGhmwJ60k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37549 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750721AbaJOV44 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 17:56:56 -0400
+	with ESMTP id S1751183AbaJOV6u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 17:58:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, bhelgaas@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add an error test for no space before comma
+     Subject: checkpatch: add error on use of attribute((weak)) or __weak declarations
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-an-error-test-for-no-space-before-comma.patch
+     checkpatch-add-error-on-use-of-attributeweak-or-__weak-declarations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-an-error-test-for-no-space-before-comma.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-error-on-use-of-attributeweak-or-__weak-declarations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-an-error-test-for-no-space-before-comma.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-error-on-use-of-attributeweak-or-__weak-declarations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,64 +41,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add an error test for no space before comma
+Subject: checkpatch: add error on use of attribute((weak)) or __weak declarations
 
-Using code like:
+Using weak declarations can have unintended link defects.  The __weak on
+the declaration causes non-weak definitions to become weak.
 
-	int foo , bar;
-
-is not preferred to:
-
-	int foo, bar;
-
-so emit an error on this style.
+Emit an error on its use.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-an-error-test-for-no-space-before-comma scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-an-error-test-for-no-space-before-comma
+diff -puN scripts/checkpatch.pl~checkpatch-add-error-on-use-of-attributeweak-or-__weak-declarations scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-error-on-use-of-attributeweak-or-__weak-declarations
 +++ a/scripts/checkpatch.pl
-@@ -3563,14 +3563,33 @@ sub process {
- 						}
- 					}
+@@ -4671,6 +4671,15 @@ sub process {
+ 			}
+ 		}
  
--				# , must have a space on the right.
-+				# , must not have a space before and must have a space on the right.
- 				} elsif ($op eq ',') {
-+					my $rtrim_before = 0;
-+					my $space_after = 0;
-+					if ($ctx =~ /Wx./) {
-+						if (ERROR("SPACING",
-+							  "space prohibited before that '$op' $at\n" . $hereptr)) {
-+							$line_fixed = 1;
-+							$rtrim_before = 1;
-+						}
-+					}
- 					if ($ctx !~ /.x[WEC]/ && $cc !~ /^}/) {
- 						if (ERROR("SPACING",
- 							  "space required after that '$op' $at\n" . $hereptr)) {
--							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]) . " ";
- 							$line_fixed = 1;
- 							$last_after = $n;
-+							$space_after = 1;
-+						}
-+					}
-+					if ($rtrim_before || $space_after) {
-+						if ($rtrim_before) {
-+							$good = rtrim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
-+						} else {
-+							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]);
-+						}
-+						if ($space_after) {
-+							$good .= " ";
- 						}
- 					}
- 
++# Check for __attribute__ weak, or __weak declarations (may have link issues)
++		if ($^V && $^V ge 5.10.0 &&
++		    $line =~ /(?:$Declare|$DeclareMisordered)\s*$Ident\s*$balanced_parens\s*(?:$Attribute)?\s*;/ &&
++		    ($line =~ /\b__attribute__\s*\(\s*\(.*\bweak\b/ ||
++		     $line =~ /\b__weak\b/)) {
++			ERROR("WEAK_DECLARATION",
++			      "Using weak declarations can have unintended link defects\n" . $herecurr);
++		}
++
+ # check for sizeof(&)
+ 		if ($line =~ /\bsizeof\s*\(\s*\&/) {
+ 			WARN("SIZEOF_ADDRESS",
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -105,6 +82,7 @@ Patches currently in -mm which might be from joe@perches.com are
 origin.patch
 mm-utilc-add-kstrimdup.patch
 checkpatch-add-an-error-test-for-no-space-before-comma.patch
+checkpatch-add-error-on-use-of-attributeweak-or-__weak-declarations.patch
 fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
 linux-next.patch
 
