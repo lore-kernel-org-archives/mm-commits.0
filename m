@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch added to -mm tree
-Date: Wed, 15 Oct 2014 14:37:58 -0700
-Message-ID: <543ee936.Iyhyyn2NgtCLzpju%akpm@linux-foundation.org>
+Subject: + checkpatch-add-an-error-test-for-no-space-before-comma.patch
+ added to -mm tree
+Date: Wed, 15 Oct 2014 14:56:56 -0700
+Message-ID: <543eeda8.aZ+UrUq51hXqc31x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37444 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37546 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851AbaJOVh7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 17:37:59 -0400
+	with ESMTP id S1750721AbaJOV44 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 17:56:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, nicolas.dichtel@6wind.com, thierry.herbelot@6wind.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-proc-use-a-rb-tree-for-the-directory-entries-fix
+     Subject: checkpatch: add an error test for no space before comma
 has been added to the -mm tree.  Its filename is
-     fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+     checkpatch-add-an-error-test-for-no-space-before-comma.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-an-error-test-for-no-space-before-comma.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-an-error-test-for-no-space-before-comma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,68 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-proc-use-a-rb-tree-for-the-directory-entries-fix
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add an error test for no space before comma
 
-initialise proc_root.subdir at compile time
+Using code like:
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc: Thierry Herbelot <thierry.herbelot@6wind.com>.
+	int foo , bar;
+
+is not preferred to:
+
+	int foo, bar;
+
+so emit an error on this style.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/root.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/root.c~fs-proc-use-a-rb-tree-for-the-directory-entries-fix fs/proc/root.c
---- a/fs/proc/root.c~fs-proc-use-a-rb-tree-for-the-directory-entries-fix
-+++ a/fs/proc/root.c
-@@ -166,7 +166,6 @@ void __init proc_root_init(void)
- {
- 	int err;
+diff -puN scripts/checkpatch.pl~checkpatch-add-an-error-test-for-no-space-before-comma scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-an-error-test-for-no-space-before-comma
++++ a/scripts/checkpatch.pl
+@@ -3563,14 +3563,33 @@ sub process {
+ 						}
+ 					}
  
--	proc_root.subdir = RB_ROOT;
- 	proc_init_inodecache();
- 	err = register_filesystem(&proc_fs_type);
- 	if (err)
-@@ -252,6 +251,7 @@ struct proc_dir_entry proc_root = {
- 	.proc_iops	= &proc_root_inode_operations, 
- 	.proc_fops	= &proc_root_operations,
- 	.parent		= &proc_root,
-+	.subdir		= RB_ROOT,
- 	.name		= "/proc",
- };
+-				# , must have a space on the right.
++				# , must not have a space before and must have a space on the right.
+ 				} elsif ($op eq ',') {
++					my $rtrim_before = 0;
++					my $space_after = 0;
++					if ($ctx =~ /Wx./) {
++						if (ERROR("SPACING",
++							  "space prohibited before that '$op' $at\n" . $hereptr)) {
++							$line_fixed = 1;
++							$rtrim_before = 1;
++						}
++					}
+ 					if ($ctx !~ /.x[WEC]/ && $cc !~ /^}/) {
+ 						if (ERROR("SPACING",
+ 							  "space required after that '$op' $at\n" . $hereptr)) {
+-							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]) . " ";
+ 							$line_fixed = 1;
+ 							$last_after = $n;
++							$space_after = 1;
++						}
++					}
++					if ($rtrim_before || $space_after) {
++						if ($rtrim_before) {
++							$good = rtrim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
++						} else {
++							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]);
++						}
++						if ($space_after) {
++							$good .= " ";
+ 						}
+ 					}
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-add-an-error-test-for-no-space-before-comma.patch
+fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
 linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
