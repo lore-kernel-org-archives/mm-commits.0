@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
- added to -mm tree
-Date: Wed, 15 Oct 2014 15:04:34 -0700
-Message-ID: <543eef72.ORE6DjkLGVHOldmK%akpm@linux-foundation.org>
+Subject: + ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch added to -mm tree
+Date: Wed, 15 Oct 2014 15:04:35 -0700
+Message-ID: <543eef73.O8gVinhkXUe3Z+yM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37563 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37570 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750721AbaJOWEf (ORCPT
+	with ESMTP id S1751249AbaJOWEf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 18:04:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, aquini@redhat.com, dave@stgolabs.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aquini@redhat.com, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem.c: change memory barrier in sem_lock() to smp_rmb()
+     Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
 has been added to the -mm tree.  Its filename is
-     ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
+     ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,75 +38,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: change memory barrier in sem_lock() to smp_rmb()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
 
-When I fixed bugs in the sem_lock() logic, I was more conservative than
-necessary.  Therefore it is safe to replace the smp_mb() with smp_rmb(). 
-And: With smp_rmb(), semop() syscalls are up to 10% faster.
+update sem_lock() comment, from Davidlohr
 
-The race we must protect against is:
-
-	sem->lock is free
-	sma->complex_count = 0
-	sma->sem_perm.lock held by thread B
-
-thread A:
-
-A: spin_lock(&sem->lock)
-
-			B: sma->complex_count++; (now 1)
-			B: spin_unlock(&sma->sem_perm.lock);
-
-A: spin_is_locked(&sma->sem_perm.lock);
-A: XXXXX memory barrier
-A: if (sma->complex_count == 0)
-
-Thread A must read the increased complex_count value, i.e. the read must
-not be reordered with the read of sem_perm.lock done by spin_is_locked().
-
-Since it's about ordering of reads, smp_rmb() is sufficient.
-
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
-Acked-by: Rafael Aquini <aquini@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ ipc/sem.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb ipc/sem.c
---- a/ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb
+diff -puN ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
 +++ a/ipc/sem.c
-@@ -326,10 +326,16 @@ static inline int sem_lock(struct sem_ar
- 
+@@ -327,10 +327,11 @@ static inline int sem_lock(struct sem_ar
  		/* Then check that the global lock is free */
  		if (!spin_is_locked(&sma->sem_perm.lock)) {
--			/* spin_is_locked() is not a memory barrier */
--			smp_mb();
-+			/*
-+			 * The next test must happen after the test for
-+			 * sem_perm.lock, otherwise we can race with another
-+			 * thread that does
-+			 *	complex_count++;spin_unlock(sem_perm.lock);
-+			 */
-+			smp_rmb();
- 
--			/* Now repeat the test of complex_count:
-+			/*
-+			 * Now repeat the test of complex_count:
- 			 * It can't change anymore until we drop sem->lock.
- 			 * Thus: if is now 0, then it will stay 0.
+ 			/*
+-			 * The next test must happen after the test for
+-			 * sem_perm.lock, otherwise we can race with another
+-			 * thread that does
+-			 *	complex_count++;spin_unlock(sem_perm.lock);
++			 * The ipc object lock check must be visible on all
++			 * cores before rechecking the complex count.  Otherwise
++			 * we can race with  another thread that does:
++			 * 	complex_count++++;
++			 * 	spin_unlock(sem_perm.lock);
  			 */
+ 			smp_rmb();
+ 
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
+mm.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
 ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-increase-semmsl-semmni-semopm.patch
-ipc-msg-increase-msgmni-remove-scaling.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 
