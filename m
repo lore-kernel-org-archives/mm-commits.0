@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-always-update-cached-scanner-positions.patch
+Subject: + mm-compaction-more-focused-lru-and-pcplists-draining.patch
  added to -mm tree
-Date: Wed, 15 Oct 2014 13:50:10 -0700
-Message-ID: <543ede02.51M0nUhErWjKArk0%akpm@linux-foundation.org>
+Date: Wed, 15 Oct 2014 13:50:12 -0700
+Message-ID: <543ede04.QVueS7g0xjHzXWnM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37158 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37168 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751454AbaJOUuL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 16:50:11 -0400
+	with ESMTP id S1751882AbaJOUuN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 16:50:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: always update cached scanner positions
+     Subject: mm, compaction: more focused lru and pcplists draining
 has been added to the -mm tree.  Its filename is
-     mm-compaction-always-update-cached-scanner-positions.patch
+     mm-compaction-more-focused-lru-and-pcplists-draining.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-always-update-cached-scanner-positions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-more-focused-lru-and-pcplists-draining.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-always-update-cached-scanner-positions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-more-focused-lru-and-pcplists-draining.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +40,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: always update cached scanner positions
+Subject: mm, compaction: more focused lru and pcplists draining
 
-Compaction caches the migration and free scanner positions between
-compaction invocations, so that the whole zone gets eventually scanned and
-there is no bias towards the initial scanner positions at the
-beginning/end of the zone.
+The goal of memory compaction is to create high-order freepages through
+page migration.  Page migration however puts pages on the per-cpu lru_add
+cache, which is later flushed to per-cpu pcplists, and only after pcplists
+are drained the pages can actually merge.  This can happen due to the
+per-cpu caches becoming full through further freeing, or explicitly.
 
-The cached positions are continuously updated as scanners progress and the
-updating stops as soon as a page is successfully isolated.  The reasoning
-behind this is that a pageblock where isolation succeeded is likely to
-succeed again in near future and it should be worth revisiting it.
+During direct compaction, it is useful to do the draining explicitly so
+that pages merge as soon as possible and compaction can detect success
+immediately and keep the latency impact at minimum.  However the current
+implementation is far from ideal.  Draining is done only in
+__alloc_pages_direct_compact(), after all zones were already compacted,
+and the decisions to continue or stop compaction in individual zones was
+done without the last batch of migrations being merged.  It is also
+missing the draining of lru_add cache before the pcplists.
 
-However, the downside is that potentially many pages are rescanned without
-successful isolation.  At worst, there might be a page where isolation
-from LRU succeeds but migration fails (potentially always).  So upon
-encountering this page, cached position would always stop being updated
-for no good reason.  It might have been useful to let such page be
-rescanned with sync compaction after async one failed, but this is now
-handled by caching scanner position for async and sync mode separately
-since commit 35979ef33931 ("mm, compaction: add per-zone migration pfn
-cache for async compaction").
+This patch moves the draining for direct compaction into compact_zone(). 
+It adds the missing lru_cache draining and uses the newly introduced
+single zone pcplists draining to reduce overhead and avoid impact on
+unrelated zones.  Draining is only performed when it can actually lead to
+merging of a page of desired order (passed by cc->order).  This means it
+is only done when migration occurred in the previously scanned cc->order
+aligned block(s) and the migration scanner is now pointing to the next
+cc->order aligned block.
 
-After this patch, cached positions are updated unconditionally.  In
-stress-highalloc benchmark, this has decreased the numbers of scanned
-pages by few percent, without affecting allocation success rates.
+The patch has been tested with stress-highalloc benchmark from mmtests. 
+Although overal allocation success rates of the benchmark were not
+affected, the number of detected compaction successes has doubled.  This
+suggests that allocations were previously successful due to implicit
+merging caused by background activity, making a later allocation attempt
+succeed immediately, but not attributing the success to compaction.  Since
+stress-highalloc always tries to allocate almost the whole memory, it
+cannot show the improvement in its reported success rate metric.  However
+after this patch, compaction should detect success and terminate earlier,
+reducing the direct compaction latencies in a real scenario.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -78,62 +89,82 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   14 --------------
- mm/internal.h   |    5 -----
- 2 files changed, 19 deletions(-)
+ mm/compaction.c |   41 ++++++++++++++++++++++++++++++++++++++++-
+ mm/page_alloc.c |    4 ----
+ 2 files changed, 40 insertions(+), 5 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-always-update-cached-scanner-positions mm/compaction.c
---- a/mm/compaction.c~mm-compaction-always-update-cached-scanner-positions
+diff -puN mm/compaction.c~mm-compaction-more-focused-lru-and-pcplists-draining mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-more-focused-lru-and-pcplists-draining
 +++ a/mm/compaction.c
-@@ -195,16 +195,12 @@ static void update_pageblock_skip(struct
+@@ -1182,6 +1182,7 @@ static int compact_zone(struct zone *zon
+ 	while ((ret = compact_finished(zone, cc, migratetype)) ==
+ 						COMPACT_CONTINUE) {
+ 		int err;
++		unsigned long last_migrated_pfn = 0;
  
- 	/* Update where async and sync compaction should restart */
- 	if (migrate_scanner) {
--		if (cc->finished_update_migrate)
--			return;
- 		if (pfn > zone->compact_cached_migrate_pfn[0])
- 			zone->compact_cached_migrate_pfn[0] = pfn;
- 		if (cc->mode != MIGRATE_ASYNC &&
- 		    pfn > zone->compact_cached_migrate_pfn[1])
- 			zone->compact_cached_migrate_pfn[1] = pfn;
- 	} else {
--		if (cc->finished_update_free)
--			return;
- 		if (pfn < zone->compact_cached_free_pfn)
- 			zone->compact_cached_free_pfn = pfn;
+ 		switch (isolate_migratepages(zone, cc)) {
+ 		case ISOLATE_ABORT:
+@@ -1190,7 +1191,12 @@ static int compact_zone(struct zone *zon
+ 			cc->nr_migratepages = 0;
+ 			goto out;
+ 		case ISOLATE_NONE:
+-			continue;
++			/*
++			 * We haven't isolated and migrated anything, but
++			 * there might still be unflushed migrations from
++			 * previous cc->order aligned block.
++			 */
++			goto check_drain;
+ 		case ISOLATE_SUCCESS:
+ 			;
+ 		}
+@@ -1215,6 +1221,39 @@ static int compact_zone(struct zone *zon
+ 				goto out;
+ 			}
+ 		}
++
++		/*
++		 * Record where we have freed pages by migration and not yet
++		 * flushed them to buddy allocator. Subtract 1, because often
++		 * we finish a pageblock and migrate_pfn points to the first
++		 * page* of the next one. In that case we want the drain below
++		 * to happen immediately.
++		 */
++		if (!last_migrated_pfn)
++			last_migrated_pfn = cc->migrate_pfn - 1;
++
++check_drain:
++		/*
++		 * Have we moved away from the previous cc->order aligned block
++		 * where we migrated from? If yes, flush the pages that were
++		 * freed, so that they can merge and compact_finished() can
++		 * detect immediately if allocation should succeed.
++		 */
++		if (cc->order > 0 && last_migrated_pfn) {
++			int cpu;
++			unsigned long current_block_start =
++				cc->migrate_pfn & ~((1UL << cc->order) - 1);
++
++			if (last_migrated_pfn < current_block_start) {
++				cpu = get_cpu();
++				lru_add_drain_cpu(cpu);
++				drain_local_pages(zone);
++				put_cpu();
++				/* No more flushing until we migrate again */
++				last_migrated_pfn = 0;
++			}
++		}
++
  	}
-@@ -705,7 +701,6 @@ isolate_migratepages_block(struct compac
- 		del_page_from_lru_list(page, lruvec, page_lru(page));
  
- isolate_success:
--		cc->finished_update_migrate = true;
- 		list_add(&page->lru, migratelist);
- 		cc->nr_migratepages++;
- 		nr_isolated++;
-@@ -879,15 +874,6 @@ static void isolate_freepages(struct com
- 				block_start_pfn - pageblock_nr_pages;
+ out:
+diff -puN mm/page_alloc.c~mm-compaction-more-focused-lru-and-pcplists-draining mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-more-focused-lru-and-pcplists-draining
++++ a/mm/page_alloc.c
+@@ -2360,10 +2360,6 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 	 */
+ 	count_vm_event(COMPACTSTALL);
  
- 		/*
--		 * Set a flag that we successfully isolated in this pageblock.
--		 * In the next loop iteration, zone->compact_cached_free_pfn
--		 * will not be updated and thus it will effectively contain the
--		 * highest pageblock we isolated pages from.
--		 */
--		if (isolated)
--			cc->finished_update_free = true;
--
--		/*
- 		 * isolate_freepages_block() might have aborted due to async
- 		 * compaction being contended
- 		 */
-diff -puN mm/internal.h~mm-compaction-always-update-cached-scanner-positions mm/internal.h
---- a/mm/internal.h~mm-compaction-always-update-cached-scanner-positions
-+++ a/mm/internal.h
-@@ -136,11 +136,6 @@ struct compact_control {
- 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
- 	enum migrate_mode mode;		/* Async or sync migration mode */
- 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
--	bool finished_update_free;	/* True when the zone cached pfns are
--					 * no longer being updated
--					 */
--	bool finished_update_migrate;
+-	/* Page migration frees to the PCP lists but we want merging */
+-	drain_pages(get_cpu());
+-	put_cpu();
