@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch added to -mm tree
-Date: Wed, 15 Oct 2014 15:04:35 -0700
-Message-ID: <543eef73.O8gVinhkXUe3Z+yM%akpm@linux-foundation.org>
+Subject: + ipc-semc-increase-semmsl-semmni-semopm.patch added to -mm tree
+Date: Wed, 15 Oct 2014 15:04:36 -0700
+Message-ID: <543eef74.AjWsZRpU1cJsucA4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37572 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249AbaJOWEf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 18:04:35 -0400
+	with ESMTP id S1751249AbaJOWEh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 18:04:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@redhat.com, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, aquini@redhat.com, dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
+     Subject: ipc/sem.c: increase SEMMSL, SEMMNI, SEMOPM
 has been added to the -mm tree.  Its filename is
-     ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+     ipc-semc-increase-semmsl-semmni-semopm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-increase-semmsl-semmni-semopm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-increase-semmsl-semmni-semopm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,68 +38,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: increase SEMMSL, SEMMNI, SEMOPM
 
-update sem_lock() comment, from Davidlohr
+a)
 
+SysV can be abused to allocate locked kernel memory.  For most systems, a
+small limit doesn't make sense, see the discussion with regards to SHMMAX.
+
+Therefore: Increase the sysv sem limits so that all known applications
+will work with these defaults.
+
+b)
+
+With regards to the maximum supported:
+Some of the specified hard limits are not correct anymore, therefore the
+patch updates the documentation.
+
+- SEMMNI must stay below IPCMNI, which is 32768.
+  As for SHMMAX: Stay a bit below this limit.
+
+- SEMMSL was limited to 8k, to ensure that the kmalloc for the kernel array
+  was limited to 16 kB (order=2)
+
+  This doesn't apply anymore:
+   - the allocation size isn't sizeof(short)*nsems anymore.
+   - ipc_alloc falls back to vmalloc
+
+- SEMOPM should stay below 1000, to limit the kmalloc in semtimedop() to an
+  order=1 allocation.
+  Therefore: Leave it at 500 (order=0 allocation).
+
+Note:
+If an administrator must limit the memory allocations, then he can set the
+values as necessary.
+
+Or he can disable sysv entirely (as e.g. done by Android).
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ include/uapi/linux/sem.h |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix ipc/sem.c
---- a/ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
-+++ a/ipc/sem.c
-@@ -327,10 +327,11 @@ static inline int sem_lock(struct sem_ar
- 		/* Then check that the global lock is free */
- 		if (!spin_is_locked(&sma->sem_perm.lock)) {
- 			/*
--			 * The next test must happen after the test for
--			 * sem_perm.lock, otherwise we can race with another
--			 * thread that does
--			 *	complex_count++;spin_unlock(sem_perm.lock);
-+			 * The ipc object lock check must be visible on all
-+			 * cores before rechecking the complex count.  Otherwise
-+			 * we can race with  another thread that does:
-+			 * 	complex_count++++;
-+			 * 	spin_unlock(sem_perm.lock);
- 			 */
- 			smp_rmb();
+diff -puN include/uapi/linux/sem.h~ipc-semc-increase-semmsl-semmni-semopm include/uapi/linux/sem.h
+--- a/include/uapi/linux/sem.h~ipc-semc-increase-semmsl-semmni-semopm
++++ a/include/uapi/linux/sem.h
+@@ -63,10 +63,22 @@ struct  seminfo {
+ 	int semaem;
+ };
+ 
+-#define SEMMNI  128             /* <= IPCMNI  max # of semaphore identifiers */
+-#define SEMMSL  250             /* <= 8 000 max num of semaphores per id */
++/*
++ * SEMMNI, SEMMSL and SEMMNS are default values which can be
++ * modified by sysctl.
++ * The values has been chosen to be larger than necessary for any
++ * known configuration.
++ *
++ * SEMOPM should not be increased beyond 1000, otherwise there is the
++ * risk that semop()/semtimedop() fails due to kernel memory fragmentation when
++ * allocating the sop array.
++ */
++
++
++#define SEMMNI  32000           /* <= IPCMNI  max # of semaphore identifiers */
++#define SEMMSL  32000           /* <= INT_MAX max num of semaphores per id */
+ #define SEMMNS  (SEMMNI*SEMMSL) /* <= INT_MAX max # of semaphores in system */
+-#define SEMOPM  32	        /* <= 1 000 max num of ops per semop call */
++#define SEMOPM  500	        /* <= 1 000 max num of ops per semop call */
+ #define SEMVMX  32767           /* <= 32767 semaphore maximum value */
+ #define SEMAEM  SEMVMX          /* adjust on exit max value */
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
 ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
+ipc-semc-increase-semmsl-semmni-semopm.patch
+ipc-msg-increase-msgmni-remove-scaling.patch
 slab-leaks3-default-y.patch
 
