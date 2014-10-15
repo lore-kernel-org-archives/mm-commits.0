@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-count-only-dirty-pages-as-congested.patch added to
+Subject: +
+ drivers-of-add-return-value-to-of_reserved_mem_device_init.patch added to
  -mm tree
-Date: Wed, 15 Oct 2014 13:05:48 -0700
-Message-ID: <543ed39c.SZGu1UpmNkzE6MN+%akpm@linux-foundation.org>
+Date: Wed, 15 Oct 2014 13:08:09 -0700
+Message-ID: <543ed429.mzDHcBpe3PW8/Zwi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36653 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36663 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751183AbaJOUFs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 16:05:48 -0400
+	with ESMTP id S1751967AbaJOUIJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 16:08:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jamieliu@google.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mm-commits@vger.kernel.org
+To: m.szyprowski@samsung.com, arnd@arndb.de, grant.likely@linaro.org, iamjoonsoo.kim@lge.com, joshc@codeaurora.org, kyungmin.park@samsung.com, lauraa@codeaurora.org, mina86@mina86.com, rmk+kernel@arm.linux.org.uk, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: count only dirty pages as congested
+     Subject: drivers: of: add return value to of_reserved_mem_device_init()
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-count-only-dirty-pages-as-congested.patch
+     drivers-of-add-return-value-to-of_reserved_mem_device_init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-count-only-dirty-pages-as-congested.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-of-add-return-value-to-of_reserved_mem_device_init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-count-only-dirty-pages-as-congested.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-of-add-return-value-to-of_reserved_mem_device_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,43 +40,128 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jamie Liu <jamieliu@google.com>
-Subject: mm: vmscan: count only dirty pages as congested
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: drivers: of: add return value to of_reserved_mem_device_init()
 
-shrink_page_list() counts all pages with a mapping, including clean pages,
-toward nr_congested if they're on a write-congested BDI. 
-shrink_inactive_list() then sets ZONE_CONGESTED if nr_dirty ==
-nr_congested.  Fix this apples-to-oranges comparison by only counting
-pages for nr_congested if they count for nr_dirty.
+Driver calling of_reserved_mem_device_init() might be interested if the
+initialization has been successful or not, so add support for returning
+error code.
 
-Signed-off-by: Jamie Liu <jamieliu@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
+This fixes a build warining caused by 7bfa5ab6fa1b ("drivers:
+dma-coherent: add initialization from device tree"), which has been merged
+without this change and without fixing function return value.
+
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Josh Cartwright <joshc@codeaurora.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/base/dma-contiguous.c   |    3 ++-
+ drivers/of/of_reserved_mem.c    |   14 +++++++++-----
+ include/linux/of_reserved_mem.h |    9 ++++++---
+ 3 files changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-count-only-dirty-pages-as-congested mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-count-only-dirty-pages-as-congested
-+++ a/mm/vmscan.c
-@@ -874,7 +874,8 @@ static unsigned long shrink_page_list(st
- 		 * end of the LRU a second time.
- 		 */
- 		mapping = page_mapping(page);
--		if ((mapping && bdi_write_congested(mapping->backing_dev_info)) ||
-+		if (((dirty || writeback) && mapping &&
-+		     bdi_write_congested(mapping->backing_dev_info)) ||
- 		    (writeback && PageReclaim(page)))
- 			nr_congested++;
+diff -puN drivers/base/dma-contiguous.c~drivers-of-add-return-value-to-of_reserved_mem_device_init drivers/base/dma-contiguous.c
+--- a/drivers/base/dma-contiguous.c~drivers-of-add-return-value-to-of_reserved_mem_device_init
++++ a/drivers/base/dma-contiguous.c
+@@ -223,9 +223,10 @@ bool dma_release_from_contiguous(struct
+ #undef pr_fmt
+ #define pr_fmt(fmt) fmt
  
+-static void rmem_cma_device_init(struct reserved_mem *rmem, struct device *dev)
++static int rmem_cma_device_init(struct reserved_mem *rmem, struct device *dev)
+ {
+ 	dev_set_cma_area(dev, rmem->priv);
++	return 0;
+ }
+ 
+ static void rmem_cma_device_release(struct reserved_mem *rmem,
+diff -puN drivers/of/of_reserved_mem.c~drivers-of-add-return-value-to-of_reserved_mem_device_init drivers/of/of_reserved_mem.c
+--- a/drivers/of/of_reserved_mem.c~drivers-of-add-return-value-to-of_reserved_mem_device_init
++++ a/drivers/of/of_reserved_mem.c
+@@ -243,23 +243,27 @@ static inline struct reserved_mem *__fin
+  * This function assign memory region pointed by "memory-region" device tree
+  * property to the given device.
+  */
+-void of_reserved_mem_device_init(struct device *dev)
++int of_reserved_mem_device_init(struct device *dev)
+ {
+ 	struct reserved_mem *rmem;
+ 	struct device_node *np;
++	int ret;
+ 
+ 	np = of_parse_phandle(dev->of_node, "memory-region", 0);
+ 	if (!np)
+-		return;
++		return -ENODEV;
+ 
+ 	rmem = __find_rmem(np);
+ 	of_node_put(np);
+ 
+ 	if (!rmem || !rmem->ops || !rmem->ops->device_init)
+-		return;
++		return -EINVAL;
+ 
+-	rmem->ops->device_init(rmem, dev);
+-	dev_info(dev, "assigned reserved memory node %s\n", rmem->name);
++	ret = rmem->ops->device_init(rmem, dev);
++	if (ret == 0)
++		dev_info(dev, "assigned reserved memory node %s\n", rmem->name);
++
++	return ret;
+ }
+ 
+ /**
+diff -puN include/linux/of_reserved_mem.h~drivers-of-add-return-value-to-of_reserved_mem_device_init include/linux/of_reserved_mem.h
+--- a/include/linux/of_reserved_mem.h~drivers-of-add-return-value-to-of_reserved_mem_device_init
++++ a/include/linux/of_reserved_mem.h
+@@ -16,7 +16,7 @@ struct reserved_mem {
+ };
+ 
+ struct reserved_mem_ops {
+-	void	(*device_init)(struct reserved_mem *rmem,
++	int	(*device_init)(struct reserved_mem *rmem,
+ 			       struct device *dev);
+ 	void	(*device_release)(struct reserved_mem *rmem,
+ 				  struct device *dev);
+@@ -28,14 +28,17 @@ typedef int (*reservedmem_of_init_fn)(st
+ 	_OF_DECLARE(reservedmem, name, compat, init, reservedmem_of_init_fn)
+ 
+ #ifdef CONFIG_OF_RESERVED_MEM
+-void of_reserved_mem_device_init(struct device *dev);
++int of_reserved_mem_device_init(struct device *dev);
+ void of_reserved_mem_device_release(struct device *dev);
+ 
+ void fdt_init_reserved_mem(void);
+ void fdt_reserved_mem_save_node(unsigned long node, const char *uname,
+ 			       phys_addr_t base, phys_addr_t size);
+ #else
+-static inline void of_reserved_mem_device_init(struct device *dev) { }
++static inline int of_reserved_mem_device_init(struct device *dev)
++{
++	return -ENOSYS;
++}
+ static inline void of_reserved_mem_device_release(struct device *pdev) { }
+ 
+ static inline void fdt_init_reserved_mem(void) { }
 _
 
-Patches currently in -mm which might be from jamieliu@google.com are
+Patches currently in -mm which might be from m.szyprowski@samsung.com are
 
 origin.patch
-mm-vmscan-count-only-dirty-pages-as-congested.patch
+drivers-of-add-return-value-to-of_reserved_mem_device_init.patch
+mm-introduce-single-zone-pcplists-drain.patch
+mm-page_isolation-drain-single-zone-pcplists.patch
+mm-cma-drain-single-zone-pcplists.patch
+mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
+cma-make-default-cma-area-size-zero-for-x86.patch
+linux-next.patch
 
