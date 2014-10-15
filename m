@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-add-two-functions-of-add-and-remove-inode-in-orphan-dir.patch added
- to -mm tree
-Date: Wed, 15 Oct 2014 13:34:17 -0700
-Message-ID: <543eda49.h3ge6ZATzs2jdUgR%akpm@linux-foundation.org>
+ ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch added to
+ -mm tree
+Date: Wed, 15 Oct 2014 13:34:19 -0700
+Message-ID: <543eda4b.7hzlwSH2WG8zfluC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36872 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309AbaJOUeR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 16:34:17 -0400
+	with ESMTP id S1751480AbaJOUeT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Oct 2014 16:34:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wangww631@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: add two functions of add and remove inode in orphan dir
+     Subject: ocfs2: add and remove inode in orphan dir in ocfs2_direct_IO
 has been added to the -mm tree.  Its filename is
-     ocfs2-add-two-functions-of-add-and-remove-inode-in-orphan-dir.patch
+     ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-two-functions-of-add-and-remove-inode-in-orphan-dir.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-two-functions-of-add-and-remove-inode-in-orphan-dir.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,11 +41,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: WeiWei Wang <wangww631@huawei.com>
-Subject: ocfs2: add two functions of add and remove inode in orphan dir
+Subject: ocfs2: add and remove inode in orphan dir in ocfs2_direct_IO
 
-Add two functions to add inode to orphan dir and remove inode from orphan
-dir.  Here the original functions ocfs2_orphan_add and ocfs2_orphan_del
-are called respectively.
+Add the inode to orphan dir first, and then delete it once append O_DIRECT
+finished.  This is to make sure block allocation and inode size are
+consistent.
 
 Signed-off-by: Weiwei Wang <wangww631@huawei.com>
 Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
@@ -54,198 +54,227 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.h |    5 +
- fs/ocfs2/namei.c   |  147 +++++++++++++++++++++++++++++++++++++++++++
- fs/ocfs2/namei.h   |    5 +
- 3 files changed, 157 insertions(+)
+ fs/ocfs2/aops.c |  178 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 172 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/journal.h~ocfs2-add-two-functions-of-add-and-remove-inode-in-orphan-dir fs/ocfs2/journal.h
---- a/fs/ocfs2/journal.h~ocfs2-add-two-functions-of-add-and-remove-inode-in-orphan-dir
-+++ a/fs/ocfs2/journal.h
-@@ -472,6 +472,11 @@ static inline int ocfs2_unlink_credits(s
-  * orphan dir index leaf */
- #define OCFS2_DELETE_INODE_CREDITS (3 * OCFS2_INODE_UPDATE_CREDITS + 4)
+diff -puN fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io
++++ a/fs/ocfs2/aops.c
+@@ -28,6 +28,7 @@
+ #include <linux/pipe_fs_i.h>
+ #include <linux/mpage.h>
+ #include <linux/quotaops.h>
++#include <linux/blkdev.h>
  
-+/* dinode + orphan dir dinode + extent tree leaf block + orphan dir entry +
-+ * orphan dir index root + orphan dir index leaf */
-+#define OCFS2_INODE_ADD_TO_ORPHAN_CREDITS  (2 * OCFS2_INODE_UPDATE_CREDITS + 4)
-+#define OCFS2_INODE_DEL_FROM_ORPHAN_CREDITS  OCFS2_INODE_ADD_TO_ORPHAN_CREDITS
-+
- /* dinode update, old dir dinode update, new dir dinode update, old
-  * dir dir entry, new dir dir entry, dir entry update for renaming
-  * directory + target unlink + 3 x dir index leaves */
-diff -puN fs/ocfs2/namei.c~ocfs2-add-two-functions-of-add-and-remove-inode-in-orphan-dir fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-add-two-functions-of-add-and-remove-inode-in-orphan-dir
-+++ a/fs/ocfs2/namei.c
-@@ -2486,6 +2486,153 @@ leave:
- 	return status;
+ #include <cluster/masklog.h>
+ 
+@@ -47,6 +48,9 @@
+ #include "ocfs2_trace.h"
+ 
+ #include "buffer_head_io.h"
++#include "dir.h"
++#include "namei.h"
++#include "sysfile.h"
+ 
+ static int ocfs2_symlink_get_block(struct inode *inode, sector_t iblock,
+ 				   struct buffer_head *bh_result, int create)
+@@ -597,6 +601,159 @@ static int ocfs2_releasepage(struct page
+ 	return try_to_free_buffers(page);
  }
  
-+/* An orphan dir name is an 8 byte value, printed as a hex string */
-+#define OCFS2_ORPHAN_NAMELEN ((int)(2 * sizeof(u64)))
-+int ocfs2_add_inode_to_orphan(struct ocfs2_super *osb,
-+		struct inode *inode)
++static int ocfs2_is_overwrite(struct ocfs2_super *osb,
++		struct inode *inode , loff_t offset)
 +{
-+	char orphan_name[OCFS2_ORPHAN_NAMELEN + 1];
-+	struct inode *orphan_dir_inode = NULL;
-+	struct ocfs2_dir_lookup_result orphan_insert = { NULL, };
-+	struct buffer_head *di_bh = NULL;
-+	int status = 0;
-+	handle_t *handle = NULL;
++	ssize_t ret = 0;
++	u32 v_cpos = 0;
++	u32 p_cpos = 0;
++	unsigned int num_clusters = 0;
++	unsigned int ext_flags = 0;
 +
-+	status = ocfs2_inode_lock(inode, &di_bh, 1);
-+	if (status < 0) {
-+		mlog_errno(status);
-+		goto bail;
++	v_cpos = ocfs2_clusters_for_bytes(osb->sb, offset);
++
++	ret = ocfs2_get_clusters(inode, v_cpos, &p_cpos,
++			&num_clusters, &ext_flags);
++	if (ret < 0) {
++		mlog_errno(ret);
++		return ret;
 +	}
 +
-+	status = ocfs2_prepare_orphan_dir(osb, &orphan_dir_inode,
-+			OCFS2_I(inode)->ip_blkno,
-+			orphan_name,
-+			&orphan_insert);
-+	if (status < 0) {
-+		mlog_errno(status);
-+		goto bail_unlock_inode;
-+	}
++	if (p_cpos && !(ext_flags & OCFS2_EXT_UNWRITTEN))
++		return 1;
 +
-+	handle = ocfs2_start_trans(osb, OCFS2_INODE_ADD_TO_ORPHAN_CREDITS);
-+	if (IS_ERR(handle)) {
-+		status = PTR_ERR(handle);
-+		goto bail_unlock_orphan;
-+	}
-+
-+	status = ocfs2_orphan_add(osb, handle, inode, di_bh, orphan_name,
-+			&orphan_insert, orphan_dir_inode);
-+	if (status)
-+		mlog_errno(status);
-+
-+	ocfs2_commit_trans(osb, handle);
-+
-+bail_unlock_orphan:
-+	ocfs2_inode_unlock(orphan_dir_inode, 1);
-+	mutex_unlock(&orphan_dir_inode->i_mutex);
-+	iput(orphan_dir_inode);
-+
-+	ocfs2_free_dir_lookup_result(&orphan_insert);
-+
-+bail_unlock_inode:
-+	ocfs2_inode_unlock(inode, 1);
-+	brelse(di_bh);
-+
-+bail:
-+	return status;
++	return 0;
 +}
 +
-+int ocfs2_del_inode_from_orphan(struct ocfs2_super *osb,
-+		struct inode *inode, int update_isize,
-+		loff_t end)
++static ssize_t ocfs2_direct_IO_write(struct kiocb *iocb,
++		struct iov_iter *iter,
++		loff_t offset)
 +{
-+	struct inode *orphan_dir_inode = NULL;
-+	struct buffer_head *orphan_dir_bh = NULL;
++	ssize_t ret = 0;
++	int orphan = 0;
++	int is_overwrite = 0;
++	struct file *file = iocb->ki_filp;
++	struct inode *inode = file->f_path.dentry->d_inode->i_mapping->host;
++	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
 +	struct buffer_head *di_bh = NULL;
-+	struct ocfs2_dinode *di = NULL;
-+	handle_t *handle = NULL;
-+	int status = 0;
++	size_t count = iter->count;
++	journal_t *journal = osb->journal->j_journal;
++	u32 p_cpos = 0;
++	u32 v_cpos = ocfs2_clusters_for_bytes(osb->sb, offset);
++	u32 zero_len = offset % (1 << osb->s_clustersize_bits);
++	int cluster_align = offset % (1 << osb->s_clustersize_bits) ? 0 : 1;
++	int append_write = offset >= i_size_read(inode) ? 1 : 0;
++	unsigned int num_clusters = 0;
++	unsigned int ext_flags = 0;
 +
-+	status = ocfs2_inode_lock(inode, &di_bh, 1);
-+	if (status < 0) {
-+		mlog_errno(status);
-+		goto bail;
-+	}
-+	di = (struct ocfs2_dinode *) di_bh->b_data;
-+
-+	orphan_dir_inode = ocfs2_get_system_file_inode(osb,
-+			ORPHAN_DIR_SYSTEM_INODE,
-+			osb->slot_num);
-+	if (!orphan_dir_inode) {
-+		status = -EEXIST;
-+		mlog_errno(status);
-+		goto bail_unlock_inode;
-+	}
-+
-+	mutex_lock(&orphan_dir_inode->i_mutex);
-+	status = ocfs2_inode_lock(orphan_dir_inode, &orphan_dir_bh, 1);
-+	if (status < 0) {
-+		mutex_unlock(&orphan_dir_inode->i_mutex);
-+		iput(orphan_dir_inode);
-+		mlog_errno(status);
-+		goto bail_unlock_inode;
-+	}
-+
-+	handle = ocfs2_start_trans(osb, OCFS2_INODE_DEL_FROM_ORPHAN_CREDITS);
-+	if (IS_ERR(handle)) {
-+		status = PTR_ERR(handle);
-+		goto bail_unlock_orphan;
-+	}
-+
-+	status = ocfs2_orphan_del(osb, handle, orphan_dir_inode,
-+			inode, orphan_dir_bh);
-+	if (status < 0) {
-+		mlog_errno(status);
-+		goto bail_commit;
-+	}
-+
++	loff_t final_size = offset + count;
 +	/*
-+	 * We're going to journal the change of i_flags and i_orphaned_slot.
-+	 * It's safe anyway, though some callers may duplicate the journaling.
-+	 * Journaling within the func just make the logic look more
-+	 * straightforward.
++	 * when final_size > inode->i_size, inode->i_size will be
++	 * updated after direct write, so add the inode to orphan
++	 * dir first.
 +	 */
-+	status = ocfs2_journal_access_di(handle,
-+			INODE_CACHE(inode),
-+			di_bh,
-+			OCFS2_JOURNAL_ACCESS_WRITE);
-+	if (status < 0) {
-+		mlog_errno(status);
-+		goto bail_commit;
++	if (final_size > i_size_read(inode)) {
++		ret = ocfs2_add_inode_to_orphan(osb, inode);
++		if (ret < 0)
++			goto out;
++		orphan = 1;
 +	}
 +
-+	di->i_flags &= ~cpu_to_le32(OCFS2_ORPHANED_FL);
-+	OCFS2_I(inode)->ip_flags |= OCFS2_INODE_SKIP_ORPHAN_DIR;
-+	di->i_orphaned_slot = 0;
++	if (append_write) {
++		ret = ocfs2_inode_lock(inode, &di_bh, 1);
++		if (ret < 0) {
++			mlog_errno(ret);
++			goto clean_orphan;
++		}
 +
-+	if (update_isize) {
-+		status = ocfs2_set_inode_size(handle, inode, di_bh, end);
-+		if (status)
-+			mlog_errno(status);
-+	} else
-+		ocfs2_journal_dirty(handle, di_bh);
++		if (ocfs2_sparse_alloc(OCFS2_SB(inode->i_sb)))
++			ret = ocfs2_zero_extend(inode, di_bh, offset);
++		else
++			ret = ocfs2_extend_no_holes(inode, di_bh,
++					offset, offset);
++		if (ret < 0) {
++			mlog_errno(ret);
++			ocfs2_inode_unlock(inode, 1);
++			brelse(di_bh);
++			goto clean_orphan;
++		}
 +
-+bail_commit:
-+	ocfs2_commit_trans(osb, handle);
++		is_overwrite = ocfs2_is_overwrite(osb, inode, offset);
++		if (is_overwrite < 0) {
++			mlog_errno(is_overwrite);
++			ocfs2_inode_unlock(inode, 1);
++			brelse(di_bh);
++			goto clean_orphan;
++		}
 +
-+bail_unlock_orphan:
-+	ocfs2_inode_unlock(orphan_dir_inode, 1);
-+	mutex_unlock(&orphan_dir_inode->i_mutex);
-+	brelse(orphan_dir_bh);
-+	iput(orphan_dir_inode);
++		ocfs2_inode_unlock(inode, 1);
++		brelse(di_bh);
++	}
 +
-+bail_unlock_inode:
-+	ocfs2_inode_unlock(inode, 1);
-+	brelse(di_bh);
++	ret = blockdev_direct_IO(WRITE, iocb,
++			inode, iter, offset,
++			ocfs2_direct_IO_get_blocks);
++	if (unlikely(ret < 0)) {
++		loff_t isize = i_size_read(inode);
 +
-+bail:
-+	return status;
++		if (offset + count > isize) {
++			ret = ocfs2_inode_lock(inode, &di_bh, 1);
++			if (ret < 0) {
++				mlog_errno(ret);
++				goto clean_orphan;
++			}
++			if (isize == i_size_read(inode)) {
++				ret = ocfs2_truncate_file(inode, di_bh,
++						isize);
++				if (ret < 0) {
++					if (ret != -ENOSPC)
++						mlog_errno(ret);
++				}
++			}
++			ocfs2_inode_unlock(inode, 1);
++			brelse(di_bh);
++
++			ret = jbd2_journal_force_commit(journal);
++			if (ret < 0)
++				mlog_errno(ret);
++		}
++	} else if (append_write && !is_overwrite && !cluster_align) {
++		ret = ocfs2_get_clusters(inode, v_cpos, &p_cpos,
++				&num_clusters, &ext_flags);
++		if (ret < 0) {
++			mlog_errno(ret);
++			goto clean_orphan;
++		}
++
++		BUG_ON(!p_cpos || (ext_flags & OCFS2_EXT_UNWRITTEN));
++
++		ret = blkdev_issue_zeroout(osb->sb->s_bdev,
++				p_cpos << (osb->s_clustersize_bits - 9),
++				zero_len >> 9,
++				GFP_KERNEL);
++		if (ret < 0)
++			mlog_errno(ret);
++	}
++
++clean_orphan:
++	if (orphan) {
++		int update_isize = ret > 0 ? 1 : 0;
++		loff_t end = update_isize ? (offset + ret) : 0;
++
++		ret = ocfs2_del_inode_from_orphan(osb, inode,
++				update_isize, end);
++		if (ret < 0)
++			goto out;
++
++		ret = jbd2_journal_force_commit(journal);
++		if (ret < 0)
++			mlog_errno(ret);
++	}
++
++out:
++	return ret;
 +}
 +
- int ocfs2_mv_orphaned_inode_to_new(struct inode *dir,
- 				   struct inode *inode,
- 				   struct dentry *dentry)
-diff -puN fs/ocfs2/namei.h~ocfs2-add-two-functions-of-add-and-remove-inode-in-orphan-dir fs/ocfs2/namei.h
---- a/fs/ocfs2/namei.h~ocfs2-add-two-functions-of-add-and-remove-inode-in-orphan-dir
-+++ a/fs/ocfs2/namei.h
-@@ -51,6 +51,11 @@ int ocfs2_orphan_del(struct ocfs2_super
- int ocfs2_create_inode_in_orphan(struct inode *dir,
- 				 int mode,
- 				 struct inode **new_inode);
-+int ocfs2_add_inode_to_orphan(struct ocfs2_super *osb,
-+		struct inode *inode);
-+int ocfs2_del_inode_from_orphan(struct ocfs2_super *osb,
-+		struct inode *inode, int update_isize,
-+		loff_t end);
- int ocfs2_mv_orphaned_inode_to_new(struct inode *dir,
- 				   struct inode *new_inode,
- 				   struct dentry *new_dentry);
+ static ssize_t ocfs2_direct_IO(int rw,
+ 			       struct kiocb *iocb,
+ 			       struct iov_iter *iter,
+@@ -604,6 +761,9 @@ static ssize_t ocfs2_direct_IO(int rw,
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file_inode(file)->i_mapping->host;
++	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
++	int full_coherency = !(osb->s_mount_opt &
++			OCFS2_MOUNT_COHERENCY_BUFFERED);
+ 
+ 	/*
+ 	 * Fallback to buffered I/O if we see an inode without
+@@ -612,14 +772,20 @@ static ssize_t ocfs2_direct_IO(int rw,
+ 	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL)
+ 		return 0;
+ 
+-	/* Fallback to buffered I/O if we are appending. */
+-	if (i_size_read(inode) <= offset)
++	/* Fallback to buffered I/O if we are appending and
++	 * concurrent O_DIRECT writes are allowed.
++	 */
++	if (i_size_read(inode) <= offset && !full_coherency)
+ 		return 0;
+ 
+-	return __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev,
+-				    iter, offset,
+-				    ocfs2_direct_IO_get_blocks,
+-				    ocfs2_dio_end_io, NULL, 0);
++	if (rw == READ)
++		return __blockdev_direct_IO(rw, iocb, inode,
++				inode->i_sb->s_bdev,
++				iter, offset,
++				ocfs2_direct_IO_get_blocks,
++				ocfs2_dio_end_io, NULL, 0);
++	else
++		return ocfs2_direct_IO_write(iocb, iter, offset);
+ }
+ 
+ static void ocfs2_figure_cluster_boundaries(struct ocfs2_super *osb,
 _
 
 Patches currently in -mm which might be from wangww631@huawei.com are
