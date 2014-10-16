@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch added to -mm
+Subject: + mm-numa-balancing-rearrange-kconfig-entry.patch added to -mm
  tree
-Date: Thu, 16 Oct 2014 13:02:33 -0700
-Message-ID: <54402459.3gCsgalMBxs3cN8F%akpm@linux-foundation.org>
+Date: Thu, 16 Oct 2014 13:05:27 -0700
+Message-ID: <54402507.ba2IwepIZ6EjhQSP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48173 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48182 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751907AbaJPUCd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 16:02:33 -0400
+	with ESMTP id S1751539AbaJPUF1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 16:05:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, dan.carpenter@oracle.com, joshc@codeaurora.org, sboyd@codeaurora.org, svarbanov@mm-sol.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-pm8xxx-rework-to-support-pm8941-rtc-fix
+     Subject: mm/numa balancing: rearrange Kconfig entry
 has been added to the -mm tree.  Its filename is
-     rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
+     mm-numa-balancing-rearrange-kconfig-entry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-balancing-rearrange-kconfig-entry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-balancing-rearrange-kconfig-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-pm8xxx-rework-to-support-pm8941-rtc-fix
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/numa balancing: rearrange Kconfig entry
 
-simplify and fix locking in pm8xxx_rtc_set_time()
+Add the default enable config option after the NUMA_BALANCING option so
+that it appears related in the nconfig interface.
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Josh Cartwright <joshc@codeaurora.org>
-Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pm8xxx.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ init/Kconfig |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-pm8xxx-rework-to-support-pm8941-rtc-fix drivers/rtc/Kconfig
-diff -puN drivers/rtc/rtc-pm8xxx.c~rtc-pm8xxx-rework-to-support-pm8941-rtc-fix drivers/rtc/rtc-pm8xxx.c
---- a/drivers/rtc/rtc-pm8xxx.c~rtc-pm8xxx-rework-to-support-pm8941-rtc-fix
-+++ a/drivers/rtc/rtc-pm8xxx.c
-@@ -113,8 +113,6 @@ static int pm8xxx_rtc_set_time(struct de
- 			dev_err(dev, "Write to RTC control register failed\n");
- 			goto rtc_rw_fail;
- 		}
--	} else {
--		spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
- 	}
+diff -puN init/Kconfig~mm-numa-balancing-rearrange-kconfig-entry init/Kconfig
+--- a/init/Kconfig~mm-numa-balancing-rearrange-kconfig-entry
++++ a/init/Kconfig
+@@ -900,14 +900,6 @@ config ARCH_SUPPORTS_INT128
+ config ARCH_WANT_NUMA_VARIABLE_LOCALITY
+ 	bool
  
- 	/* Write 0 to Byte[0] */
-@@ -149,8 +147,7 @@ static int pm8xxx_rtc_set_time(struct de
- 	}
+-config NUMA_BALANCING_DEFAULT_ENABLED
+-	bool "Automatically enable NUMA aware memory/task placement"
+-	default y
+-	depends on NUMA_BALANCING
+-	help
+-	  If set, automatic NUMA balancing will be enabled if running on a NUMA
+-	  machine.
+-
+ config NUMA_BALANCING
+ 	bool "Memory placement aware NUMA scheduler"
+ 	depends on ARCH_SUPPORTS_NUMA_BALANCING
+@@ -920,6 +912,14 @@ config NUMA_BALANCING
  
- rtc_rw_fail:
--	if (alarm_enabled)
--		spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
-+	spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
+ 	  This system will be inactive on UMA systems.
  
- 	return rc;
- }
++config NUMA_BALANCING_DEFAULT_ENABLED
++	bool "Automatically enable NUMA aware memory/task placement"
++	default y
++	depends on NUMA_BALANCING
++	help
++	  If set, automatic NUMA balancing will be enabled if running on a NUMA
++	  machine.
++
+ menuconfig CGROUPS
+ 	boolean "Control Group support"
+ 	select KERNFS
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-numa-balancing-rearrange-kconfig-entry.patch
 
