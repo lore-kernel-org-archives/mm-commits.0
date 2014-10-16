@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-res_counter-remove-the-unused-api-fix.patch added to -mm tree
-Date: Thu, 16 Oct 2014 11:56:32 -0700
-Message-ID: <544014e0.LPPnqHJDtBR848U4%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-lockless-page-counters-fix-2.patch added to -mm
+ tree
+Date: Thu, 16 Oct 2014 12:16:26 -0700
+Message-ID: <5440198a.dSSuA/+lGrWn9e5s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47865 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751472AbaJPS4c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 14:56:32 -0400
+	with ESMTP id S1751414AbaJPTQ0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 15:16:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, pebolle@tiscali.nl, rientjes@google.com, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, fengguang.wu@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-res_counter-remove-the-unused-api-fix
+     Subject: mm: memcontrol: lockless page counters fix
 has been added to the -mm tree.  Its filename is
-     kernel-res_counter-remove-the-unused-api-fix.patch
+     mm-memcontrol-lockless-page-counters-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-res_counter-remove-the-unused-api-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-lockless-page-counters-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-res_counter-remove-the-unused-api-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-lockless-page-counters-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,71 +39,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-res_counter-remove-the-unused-api-fix
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: lockless page counters fix
 
-update Documentation/cgroups/memory.txt
+include/linux/page_counter.h:19:27: error: 'LONG_MAX' undeclared (first use in this function)
+include/linux/page_counter.h:19:38: error: 'PAGE_SIZE' undeclared (first use in this function)
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Reported-by: Paul Bolle <pebolle@tiscali.nl>
+Include <linux/kernel.h> for LONG_MAX and <asm/page.h> for PAGE_SIZE.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/page_counter.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN Documentation/cgroups/memory.txt~kernel-res_counter-remove-the-unused-api-fix Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~kernel-res_counter-remove-the-unused-api-fix
-+++ a/Documentation/cgroups/memory.txt
-@@ -352,9 +352,8 @@ set:
- 0. Configuration
+diff -puN include/linux/page_counter.h~mm-memcontrol-lockless-page-counters-fix-2 include/linux/page_counter.h
+--- a/include/linux/page_counter.h~mm-memcontrol-lockless-page-counters-fix-2
++++ a/include/linux/page_counter.h
+@@ -2,6 +2,8 @@
+ #define _LINUX_PAGE_COUNTER_H
  
- a. Enable CONFIG_CGROUPS
--b. Enable CONFIG_RESOURCE_COUNTERS
--c. Enable CONFIG_MEMCG
--d. Enable CONFIG_MEMCG_SWAP (to use swap extension)
-+b. Enable CONFIG_MEMCG
-+c. Enable CONFIG_MEMCG_SWAP (to use swap extension)
- d. Enable CONFIG_MEMCG_KMEM (to use kmem extension)
+ #include <linux/atomic.h>
++#include <linux/kernel.h>
++#include <asm/page.h>
  
- 1. Prepare the cgroups (see cgroups.txt, Why are cgroups needed?)
+ struct page_counter {
+ 	atomic_long_t count;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
-mm.patch
+cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
+mm-memcontrol-lockless-page-counters.patch
 mm-memcontrol-lockless-page-counters-fix.patch
 mm-memcontrol-lockless-page-counters-fix-fix.patch
+mm-memcontrol-lockless-page-counters-fix-2.patch
+mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+kernel-res_counter-remove-the-unused-api.patch
 kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
+mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
+mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
+mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+mm-memcontrol-remove-synchroneous-stock-draining-code.patch
+mm-vmscan-count-only-dirty-pages-as-congested.patch
 debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
