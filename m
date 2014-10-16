@@ -1,121 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 16 Oct 2014 11:16:24 -0700
-Message-ID: <54400b78.IofV5al4V4PX+yMe%akpm@linux-foundation.org>
+Subject: [merged]
+ efi-bgrt-add-error-handling-inform-the-user-when-ignoring-the-bgrt.patch
+ removed from -mm tree
+Date: Thu, 16 Oct 2014 11:43:29 -0700
+Message-ID: <544011d1.SAtrUWbyavKYt80W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47657 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309AbaJPSQY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 14:16:24 -0400
+	with ESMTP id S1751309AbaJPSna (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 14:43:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: josh@joshtriplett.org, hpa@zytor.com, linux.bug.reporting@gmail.com, matt.fleming@intel.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: efi-bgrt: add error handling; inform the user when ignoring the BGRT
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     efi-bgrt-add-error-handling-inform-the-user-when-ignoring-the-bgrt.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: efi-bgrt: add error handling; inform the user when ignoring the BGRT
 
+Gracefully handle failures to allocate memory for the image, which might
+be arbitrarily large.
+
+efi_bgrt_init can fail in various ways as well, usually because the
+BIOS-provided BGRT structure does not match expectations.  Add appropriate
+error messages rather than failing silently.
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=81321
+
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Reported-by: Srihari Vijayaraghavan <linux.bug.reporting@gmail.com>
+Tested-by: Srihari Vijayaraghavan <linux.bug.reporting@gmail.com>
+Cc: Matt Fleming <matt.fleming@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/reset/Kconfig |   16 ----------------
- 1 file changed, 16 deletions(-)
+ arch/x86/platform/efi/efi-bgrt.c |   36 ++++++++++++++++++++++++-----
+ 1 file changed, 30 insertions(+), 6 deletions(-)
 
-diff -puN drivers/power/reset/Kconfig~linux-next-git-rejects drivers/power/reset/Kconfig
---- a/drivers/power/reset/Kconfig~linux-next-git-rejects
-+++ a/drivers/power/reset/Kconfig
-@@ -59,11 +59,7 @@ config POWER_RESET_GPIO
+diff -puN arch/x86/platform/efi/efi-bgrt.c~efi-bgrt-add-error-handling-inform-the-user-when-ignoring-the-bgrt arch/x86/platform/efi/efi-bgrt.c
+--- a/arch/x86/platform/efi/efi-bgrt.c~efi-bgrt-add-error-handling-inform-the-user-when-ignoring-the-bgrt
++++ a/arch/x86/platform/efi/efi-bgrt.c
+@@ -40,20 +40,40 @@ void __init efi_bgrt_init(void)
+ 	if (ACPI_FAILURE(status))
+ 		return;
  
- config POWER_RESET_GPIO_RESTART
- 	bool "GPIO restart driver"
--<<<<<<< HEAD
--	depends on OF_GPIO
--=======
- 	depends on OF_GPIO && POWER_RESET
-->>>>>>> linux-next/akpm-base
- 	help
- 	  This driver supports restarting your board via a GPIO line.
- 	  If your board needs a GPIO high/low to restart, say Y and
-@@ -83,11 +79,7 @@ config POWER_RESET_MSM
+-	if (bgrt_tab->header.length < sizeof(*bgrt_tab))
++	if (bgrt_tab->header.length < sizeof(*bgrt_tab)) {
++		pr_err("Ignoring BGRT: invalid length %u (expected %zu)\n",
++		       bgrt_tab->header.length, sizeof(*bgrt_tab));
+ 		return;
+-	if (bgrt_tab->version != 1 || bgrt_tab->status != 1)
++	}
++	if (bgrt_tab->version != 1) {
++		pr_err("Ignoring BGRT: invalid version %u (expected 1)\n",
++		       bgrt_tab->version);
+ 		return;
+-	if (bgrt_tab->image_type != 0 || !bgrt_tab->image_address)
++	}
++	if (bgrt_tab->status != 1) {
++		pr_err("Ignoring BGRT: invalid status %u (expected 1)\n",
++		       bgrt_tab->status);
+ 		return;
++	}
++	if (bgrt_tab->image_type != 0) {
++		pr_err("Ignoring BGRT: invalid image type %u (expected 0)\n",
++		       bgrt_tab->image_type);
++		return;
++	}
++	if (!bgrt_tab->image_address) {
++		pr_err("Ignoring BGRT: null image address\n");
++		return;
++	}
  
- config POWER_RESET_LTC2952
- 	bool "LTC2952 PowerPath power-off driver"
--<<<<<<< HEAD
--	depends on OF_GPIO
--=======
- 	depends on OF_GPIO && POWER_RESET
-->>>>>>> linux-next/akpm-base
- 	help
- 	  This driver supports an external powerdown trigger and board power
- 	  down via the LTC2952. Bindings are made in the device tree.
-@@ -117,11 +109,7 @@ config POWER_RESET_SUN6I
+ 	image = efi_lookup_mapped_addr(bgrt_tab->image_address);
+ 	if (!image) {
+ 		image = early_memremap(bgrt_tab->image_address,
+ 				       sizeof(bmp_header));
+ 		ioremapped = true;
+-		if (!image)
++		if (!image) {
++			pr_err("Ignoring BGRT: failed to map image header memory\n");
+ 			return;
++		}
+ 	}
  
- config POWER_RESET_ST
- 	bool "ST restart power-off driver"
--<<<<<<< HEAD
--	depends on ARCH_STI
--=======
- 	depends on POWER_RESET && ARCH_STI
-->>>>>>> linux-next/akpm-base
- 	help
- 	  Power off and reset support for STMicroelectronics boards.
+ 	memcpy_fromio(&bmp_header, image, sizeof(bmp_header));
+@@ -61,14 +81,18 @@ void __init efi_bgrt_init(void)
+ 		early_iounmap(image, sizeof(bmp_header));
+ 	bgrt_image_size = bmp_header.size;
  
-@@ -157,11 +145,7 @@ config POWER_RESET_KEYSTONE
+-	bgrt_image = kmalloc(bgrt_image_size, GFP_KERNEL);
+-	if (!bgrt_image)
++	bgrt_image = kmalloc(bgrt_image_size, GFP_KERNEL | __GFP_NOWARN);
++	if (!bgrt_image) {
++		pr_err("Ignoring BGRT: failed to allocate memory for image (wanted %zu bytes)\n",
++		       bgrt_image_size);
+ 		return;
++	}
  
- config POWER_RESET_SYSCON
- 	bool "Generic SYSCON regmap reset driver"
--<<<<<<< HEAD
--	depends on OF
--=======
- 	depends on POWER_RESET && OF
-->>>>>>> linux-next/akpm-base
- 	select MFD_SYSCON
- 	help
- 	  Reboot support for generic SYSCON mapped register reset.
+ 	if (ioremapped) {
+ 		image = early_memremap(bgrt_tab->image_address,
+ 				       bmp_header.size);
+ 		if (!image) {
++			pr_err("Ignoring BGRT: failed to map image memory\n");
+ 			kfree(bgrt_image);
+ 			bgrt_image = NULL;
+ 			return;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
