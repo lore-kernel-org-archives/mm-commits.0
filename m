@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + gcov-enable-gcov_profile_all-from-arch-kconfigs.patch added to
  -mm tree
-Date: Thu, 16 Oct 2014 12:25:43 -0700
-Message-ID: <54401bb7.sgUqxDWdwGA5QrxW%akpm@linux-foundation.org>
+Date: Thu, 16 Oct 2014 12:25:59 -0700
+Message-ID: <54401bc7.DrtzisIvUqh5Bij5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48017 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603AbaJPTZn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 15:25:43 -0400
+	with ESMTP id S1751603AbaJPT0A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 15:26:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: riku.voipio@linaro.org, oberpar@linux.vnet.ibm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
@@ -51,7 +51,7 @@ set ARCH_HAS_GCOV_PROFILE_ALL on Architectures where it was
 previously allowed + ARM64 which I tested.
 
 Signed-off-by: Riku Voipio <riku.voipio@linaro.org>
-Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com
+Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
