@@ -1,129 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- efi-bgrt-add-error-handling-inform-the-user-when-ignoring-the-bgrt.patch
+Subject: [merged] maintainers-update-santosh-shilimkars-email-id.patch
  removed from -mm tree
-Date: Thu, 16 Oct 2014 11:43:29 -0700
-Message-ID: <544011d1.SAtrUWbyavKYt80W%akpm@linux-foundation.org>
+Date: Thu, 16 Oct 2014 11:43:32 -0700
+Message-ID: <544011d4.FFtlOmMy9tHQW9oV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47657 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47661 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309AbaJPSna (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 14:43:30 -0400
+	with ESMTP id S1751309AbaJPSnc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 14:43:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josh@joshtriplett.org, hpa@zytor.com, linux.bug.reporting@gmail.com, matt.fleming@intel.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: santosh.shilimkar@gmail.com, ssantosh@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: efi-bgrt: add error handling; inform the user when ignoring the BGRT
+     Subject: MAINTAINERS: update Santosh Shilimkar's email id
 has been removed from the -mm tree.  Its filename was
-     efi-bgrt-add-error-handling-inform-the-user-when-ignoring-the-bgrt.patch
+     maintainers-update-santosh-shilimkars-email-id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: efi-bgrt: add error handling; inform the user when ignoring the BGRT
+From: Santosh Shilimkar <santosh.shilimkar@gmail.com>
+Subject: MAINTAINERS: update Santosh Shilimkar's email id
 
-Gracefully handle failures to allocate memory for the image, which might
-be arbitrarily large.
-
-efi_bgrt_init can fail in various ways as well, usually because the
-BIOS-provided BGRT structure does not match expectations.  Add appropriate
-error messages rather than failing silently.
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=81321
-
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Reported-by: Srihari Vijayaraghavan <linux.bug.reporting@gmail.com>
-Tested-by: Srihari Vijayaraghavan <linux.bug.reporting@gmail.com>
-Cc: Matt Fleming <matt.fleming@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Santosh Shilimkar <ssantosh@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/efi/efi-bgrt.c |   36 ++++++++++++++++++++++++-----
- 1 file changed, 30 insertions(+), 6 deletions(-)
+ MAINTAINERS |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86/platform/efi/efi-bgrt.c~efi-bgrt-add-error-handling-inform-the-user-when-ignoring-the-bgrt arch/x86/platform/efi/efi-bgrt.c
---- a/arch/x86/platform/efi/efi-bgrt.c~efi-bgrt-add-error-handling-inform-the-user-when-ignoring-the-bgrt
-+++ a/arch/x86/platform/efi/efi-bgrt.c
-@@ -40,20 +40,40 @@ void __init efi_bgrt_init(void)
- 	if (ACPI_FAILURE(status))
- 		return;
+diff -puN MAINTAINERS~maintainers-update-santosh-shilimkars-email-id MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-santosh-shilimkars-email-id
++++ a/MAINTAINERS
+@@ -1088,33 +1088,33 @@ L:	linux-arm-kernel@lists.infradead.org
+ S:	Maintained
  
--	if (bgrt_tab->header.length < sizeof(*bgrt_tab))
-+	if (bgrt_tab->header.length < sizeof(*bgrt_tab)) {
-+		pr_err("Ignoring BGRT: invalid length %u (expected %zu)\n",
-+		       bgrt_tab->header.length, sizeof(*bgrt_tab));
- 		return;
--	if (bgrt_tab->version != 1 || bgrt_tab->status != 1)
-+	}
-+	if (bgrt_tab->version != 1) {
-+		pr_err("Ignoring BGRT: invalid version %u (expected 1)\n",
-+		       bgrt_tab->version);
- 		return;
--	if (bgrt_tab->image_type != 0 || !bgrt_tab->image_address)
-+	}
-+	if (bgrt_tab->status != 1) {
-+		pr_err("Ignoring BGRT: invalid status %u (expected 1)\n",
-+		       bgrt_tab->status);
- 		return;
-+	}
-+	if (bgrt_tab->image_type != 0) {
-+		pr_err("Ignoring BGRT: invalid image type %u (expected 0)\n",
-+		       bgrt_tab->image_type);
-+		return;
-+	}
-+	if (!bgrt_tab->image_address) {
-+		pr_err("Ignoring BGRT: null image address\n");
-+		return;
-+	}
+ ARM/TEXAS INSTRUMENT KEYSTONE ARCHITECTURE
+-M:	Santosh Shilimkar <santosh.shilimkar@ti.com>
++M:	Santosh Shilimkar <ssantosh@kernel.org>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+ F:	arch/arm/mach-keystone/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux-keystone.git
  
- 	image = efi_lookup_mapped_addr(bgrt_tab->image_address);
- 	if (!image) {
- 		image = early_memremap(bgrt_tab->image_address,
- 				       sizeof(bmp_header));
- 		ioremapped = true;
--		if (!image)
-+		if (!image) {
-+			pr_err("Ignoring BGRT: failed to map image header memory\n");
- 			return;
-+		}
- 	}
+ ARM/TEXAS INSTRUMENT KEYSTONE CLOCK FRAMEWORK
+-M:	Santosh Shilimkar <santosh.shilimkar@ti.com>
++M:	Santosh Shilimkar <ssantosh@kernel.org>
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ F:	drivers/clk/keystone/
  
- 	memcpy_fromio(&bmp_header, image, sizeof(bmp_header));
-@@ -61,14 +81,18 @@ void __init efi_bgrt_init(void)
- 		early_iounmap(image, sizeof(bmp_header));
- 	bgrt_image_size = bmp_header.size;
+ ARM/TEXAS INSTRUMENT KEYSTONE ClOCKSOURCE
+-M:	Santosh Shilimkar <santosh.shilimkar@ti.com>
++M:	Santosh Shilimkar <ssantosh@kernel.org>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ F:	drivers/clocksource/timer-keystone.c
  
--	bgrt_image = kmalloc(bgrt_image_size, GFP_KERNEL);
--	if (!bgrt_image)
-+	bgrt_image = kmalloc(bgrt_image_size, GFP_KERNEL | __GFP_NOWARN);
-+	if (!bgrt_image) {
-+		pr_err("Ignoring BGRT: failed to allocate memory for image (wanted %zu bytes)\n",
-+		       bgrt_image_size);
- 		return;
-+	}
+ ARM/TEXAS INSTRUMENT KEYSTONE RESET DRIVER
+-M:	Santosh Shilimkar <santosh.shilimkar@ti.com>
++M:	Santosh Shilimkar <ssantosh@kernel.org>
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ F:	drivers/power/reset/keystone-reset.c
  
- 	if (ioremapped) {
- 		image = early_memremap(bgrt_tab->image_address,
- 				       bmp_header.size);
- 		if (!image) {
-+			pr_err("Ignoring BGRT: failed to map image memory\n");
- 			kfree(bgrt_image);
- 			bgrt_image = NULL;
- 			return;
+ ARM/TEXAS INSTRUMENT AEMIF/EMIF DRIVERS
+-M:	Santosh Shilimkar <santosh.shilimkar@ti.com>
++M:	Santosh Shilimkar <ssantosh@kernel.org>
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ F:	drivers/memory/*emif*
+@@ -6696,7 +6696,7 @@ F:	arch/arm/*omap*/usb*
+ 
+ OMAP GPIO DRIVER
+ M:	Javier Martinez Canillas <javier@dowhile0.org>
+-M:	Santosh Shilimkar <santosh.shilimkar@ti.com>
++M:	Santosh Shilimkar <ssantosh@kernel.org>
+ M:	Kevin Hilman <khilman@deeprootsystems.com>
+ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+@@ -9283,7 +9283,7 @@ F:	drivers/mmc/host/tifm_sd.c
+ F:	include/linux/tifm.h
+ 
+ TI KEYSTONE MULTICORE NAVIGATOR DRIVERS
+-M:	Santosh Shilimkar <santosh.shilimkar@ti.com>
++M:	Santosh Shilimkar <ssantosh@kernel.org>
+ L:	linux-kernel@vger.kernel.org
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from santosh.shilimkar@gmail.com are
 
-origin.patch
 linux-next.patch
 
