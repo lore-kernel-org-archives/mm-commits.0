@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + gcov-enable-gcov_profile_all-from-arch-kconfigs.patch added to
+Subject: + kernel-res_counter-remove-the-unused-api-fix-2.patch added to
  -mm tree
-Date: Thu, 16 Oct 2014 12:25:59 -0700
-Message-ID: <54401bc7.DrtzisIvUqh5Bij5%akpm@linux-foundation.org>
+Date: Thu, 16 Oct 2014 12:32:05 -0700
+Message-ID: <54401d35./naOx45FAWDe5Nuv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48017 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48030 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603AbaJPT0A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 15:26:00 -0400
+	with ESMTP id S1751334AbaJPTcF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Oct 2014 15:32:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riku.voipio@linaro.org, oberpar@linux.vnet.ibm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, hannes@cmpxchg.org, pebolle@tiscali.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gcov: enable GCOV_PROFILE_ALL from ARCH Kconfigs
+     Subject: kernel-res_counter-remove-the-unused-api-fix-2
 has been added to the -mm tree.  Its filename is
-     gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
+     kernel-res_counter-remove-the-unused-api-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-res_counter-remove-the-unused-api-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-res_counter-remove-the-unused-api-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,132 +39,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Riku Voipio <riku.voipio@linaro.org>
-Subject: gcov: enable GCOV_PROFILE_ALL from ARCH Kconfigs
+From: Michal Hocko <mhocko@suse.cz>
+Subject: kernel-res_counter-remove-the-unused-api-fix-2
 
-Following the suggestions from Andrew Morton and Stephen Rothwell,
-Dont expand the ARCH list in kernel/gcov/Kconfig. Instead,
-define a ARCH_HAS_GCOV_PROFILE_ALL bool which architectures
-can enable.
+ditch the last remainings of res_counter
 
-set ARCH_HAS_GCOV_PROFILE_ALL on Architectures where it was
-previously allowed + ARM64 which I tested.
-
-Signed-off-by: Riku Voipio <riku.voipio@linaro.org>
-Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig        |    1 +
- arch/arm64/Kconfig      |    1 +
- arch/microblaze/Kconfig |    1 +
- arch/powerpc/Kconfig    |    1 +
- arch/s390/Kconfig       |    1 +
- arch/sh/Kconfig         |    1 +
- arch/x86/Kconfig        |    1 +
- kernel/gcov/Kconfig     |    5 ++++-
- 8 files changed, 11 insertions(+), 1 deletion(-)
+ Documentation/cgroups/memory.txt |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/arm/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/arm/Kconfig
---- a/arch/arm/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/arm/Kconfig
-@@ -5,6 +5,7 @@ config ARM
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_HAVE_CUSTOM_GPIO_H
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_USE_BUILTIN_BSWAP
-diff -puN arch/arm64/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/arm64/Kconfig
-@@ -1,6 +1,7 @@
- config ARM64
- 	def_bool y
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAS_SG_CHAIN
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_USE_CMPXCHG_LOCKREF
-diff -puN arch/microblaze/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/microblaze/Kconfig
---- a/arch/microblaze/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/microblaze/Kconfig
-@@ -1,5 +1,6 @@
- config MICROBLAZE
- 	def_bool y
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
-diff -puN arch/powerpc/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/powerpc/Kconfig
-@@ -128,6 +128,7 @@ config PPC
- 	select HAVE_BPF_JIT if PPC64
- 	select HAVE_ARCH_JUMP_LABEL
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select GENERIC_SMP_IDLE_THREAD
- 	select GENERIC_CMOS_UPDATE
- 	select GENERIC_TIME_VSYSCALL_OLD
-diff -puN arch/s390/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/s390/Kconfig
---- a/arch/s390/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/s390/Kconfig
-@@ -65,6 +65,7 @@ config S390
- 	def_bool y
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select ARCH_INLINE_READ_LOCK
- 	select ARCH_INLINE_READ_LOCK_BH
-diff -puN arch/sh/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/sh/Kconfig
---- a/arch/sh/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/sh/Kconfig
-@@ -16,6 +16,7 @@ config SUPERH
- 	select HAVE_DEBUG_BUGVERBOSE
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (GUSA_RB || CPU_SH4A)
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select PERF_USE_VMALLOC
- 	select HAVE_DEBUG_KMEMLEAK
- 	select HAVE_KERNEL_GZIP
-diff -puN arch/x86/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/x86/Kconfig
---- a/arch/x86/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/x86/Kconfig
-@@ -24,6 +24,7 @@ config X86
- 	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
- 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
- 	select ARCH_HAS_FAST_MULTIPLIER
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_MIGHT_HAVE_PC_SERIO
- 	select HAVE_AOUT if X86_32
-diff -puN kernel/gcov/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs kernel/gcov/Kconfig
---- a/kernel/gcov/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/kernel/gcov/Kconfig
-@@ -32,10 +32,13 @@ config GCOV_KERNEL
- 	Note that the debugfs filesystem has to be mounted to access
- 	profiling data.
+diff -puN Documentation/cgroups/memory.txt~kernel-res_counter-remove-the-unused-api-fix-2 Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~kernel-res_counter-remove-the-unused-api-fix-2
++++ a/Documentation/cgroups/memory.txt
+@@ -116,16 +116,16 @@ The memory controller is the first contr
  
-+config ARCH_HAS_GCOV_PROFILE_ALL
-+	def_bool n
-+
- config GCOV_PROFILE_ALL
- 	bool "Profile entire Kernel"
- 	depends on GCOV_KERNEL
--	depends on SUPERH || S390 || X86 || PPC || MICROBLAZE || ARM || ARM64
-+	depends on ARCH_HAS_GCOV_PROFILE_ALL
- 	default n
- 	---help---
- 	This options activates profiling for the entire kernel.
+ 2.1. Design
+ 
+-The core of the design is a counter called the res_counter. The res_counter
+-tracks the current memory usage and limit of the group of processes associated
+-with the controller. Each cgroup has a memory controller specific data
+-structure (mem_cgroup) associated with it.
++The core of the design is a counter called the page_counter. The
++page_counter tracks the current memory usage and limit of the group of
++processes associated with the controller. Each cgroup has a memory controller
++specific data structure (mem_cgroup) associated with it.
+ 
+ 2.2. Accounting
+ 
+ 		+--------------------+
+-		|  mem_cgroup     |
+-		|  (res_counter)     |
++		|  mem_cgroup        |
++		|  (page_counter)    |
+ 		+--------------------+
+ 		 /            ^      \
+ 		/             |       \
 _
 
-Patches currently in -mm which might be from riku.voipio@linaro.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-gcov-add-arm64-to-gcov_profile_all.patch
-gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
+cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
+mm-memcontrol-lockless-page-counters.patch
+mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+kernel-res_counter-remove-the-unused-api.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+kernel-res_counter-remove-the-unused-api-fix-2.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
+mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
+mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
+mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+mm-memcontrol-remove-synchroneous-stock-draining-code.patch
+freezer-check-oom-kill-while-being-frozen.patch
+freezer-remove-obsolete-comments-in-__thaw_task.patch
+oom-pm-oom-killed-task-cannot-escape-pm-suspend.patch
 
