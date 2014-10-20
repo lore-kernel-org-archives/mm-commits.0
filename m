@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2.patch added to
- -mm tree
-Date: Mon, 20 Oct 2014 14:14:30 -0700
-Message-ID: <54457b36.+sDHGIG1yirYCGOu%akpm@linux-foundation.org>
+ usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch added to -mm tree
+Date: Mon, 20 Oct 2014 14:14:53 -0700
+Message-ID: <54457b4d.lcIK8st+sl4/nS/X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56863 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56867 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753254AbaJTVOa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Oct 2014 17:14:30 -0400
+	with ESMTP id S1753435AbaJTVOx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Oct 2014 17:14:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: schwidefsky@de.ibm.com, oleg@redhat.com, penguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
+To: oleg@redhat.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2
+     Subject: usermodehelper: don't use CLONE_VFORK for ____call_usermodehelper()
 has been added to the -mm tree.  Its filename is
-     kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2.patch
+     usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,63 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Subject: kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: usermodehelper: don't use CLONE_VFORK for ____call_usermodehelper()
 
-Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+After "kernel/kmod: fix use-after-free of the sub_infostructure"
+CLONE_VFORK in __call_usermodehelper() buys nothing, we rely on on
+umh_complete() in ____call_usermodehelper() anyway.
+
+Remove it.  This also eliminates the unnecessary sleep/wakeup in the
+likely case, and this allows the next change.
+
+While at it, kill the "int wait" locals in ____call_usermodehelper() and
+__call_usermodehelper(), they can safely use sub_info->wait.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ kernel/kmod.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN kernel/kmod.c~kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2 kernel/kmod.c
---- a/kernel/kmod.c~kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2
+diff -puN kernel/kmod.c~usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper kernel/kmod.c
+--- a/kernel/kmod.c~usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper
 +++ a/kernel/kmod.c
-@@ -208,7 +208,8 @@ static void umh_complete(struct subproce
- 	struct completion *comp = xchg(&sub_info->complete, NULL);
- 	/*
- 	 * See call_usermodehelper_exec(). If xchg() returns NULL
--	 * we own sub_info, the UMH_KILLABLE caller has gone away.
-+	 * we own sub_info, the UMH_KILLABLE caller has gone away
-+	 * or the caller used UMH_NO_WAIT.
- 	 */
- 	if (comp)
- 		complete(comp);
-@@ -265,12 +266,12 @@ static int ____call_usermodehelper(void
- 			   (const char __user *const __user *)sub_info->envp);
+@@ -223,7 +223,6 @@ static void umh_complete(struct subproce
+ static int ____call_usermodehelper(void *data)
+ {
+ 	struct subprocess_info *sub_info = data;
+-	int wait = sub_info->wait & ~UMH_KILLABLE;
+ 	struct cred *new;
+ 	int retval;
+ 
+@@ -267,7 +266,7 @@ static int ____call_usermodehelper(void
  out:
  	sub_info->retval = retval;
-+	/* wait_for_helper() will call umh_complete if UHM_WAIT_PROC. */
- 	if (wait != UMH_WAIT_PROC)
--		/* For UMH_WAIT_PROC wait_for_helper calls umh_complete */
+ 	/* wait_for_helper() will call umh_complete if UHM_WAIT_PROC. */
+-	if (wait != UMH_WAIT_PROC)
++	if (!(sub_info->wait & UMH_WAIT_PROC))
  		umh_complete(sub_info);
--	if (retval)
--		do_exit(0);
--	return 0;
-+	if (!retval)
-+		return 0;
-+	do_exit(0);
- }
+ 	if (!retval)
+ 		return 0;
+@@ -323,18 +322,13 @@ static void __call_usermodehelper(struct
+ {
+ 	struct subprocess_info *sub_info =
+ 		container_of(work, struct subprocess_info, work);
+-	int wait = sub_info->wait & ~UMH_KILLABLE;
+ 	pid_t pid;
  
- static int call_helper(void *data)
-@@ -580,6 +581,11 @@ int call_usermodehelper_exec(struct subp
- 		goto out;
+-	/* CLONE_VFORK: wait until the usermode helper has execve'd
+-	 * successfully We need the data structures to stay around
+-	 * until that is done.  */
+-	if (wait == UMH_WAIT_PROC)
++	if (sub_info->wait & UMH_WAIT_PROC)
+ 		pid = kernel_thread(wait_for_helper, sub_info,
+ 				    CLONE_FS | CLONE_FILES | SIGCHLD);
+ 	else {
+-		pid = kernel_thread(call_helper, sub_info,
+-				    CLONE_VFORK | SIGCHLD);
++		pid = kernel_thread(call_helper, sub_info, SIGCHLD);
+ 		/* Worker thread stopped blocking khelper thread. */
+ 		kmod_thread_locker = NULL;
  	}
- 
-+	/*
-+	 * Set the completion pointer only if there is a waiter.
-+	 * This makes it possible to use umh_complete to free
-+	 * the data structure in case of UMH_NO_WAIT.
-+	 */
- 	sub_info->complete = (wait == UMH_NO_WAIT) ? NULL : &done;
- 	sub_info->wait = wait;
- 
 _
 
-Patches currently in -mm which might be from schwidefsky@de.ibm.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 kernel-kmod-fix-use-after-free-of-the-sub_info-structure.patch
 kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2.patch
