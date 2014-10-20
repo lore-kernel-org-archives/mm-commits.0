@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
- added to -mm tree
-Date: Mon, 20 Oct 2014 14:59:57 -0700
-Message-ID: <544585dd.ZfUr9+LIRfkVx00o%akpm@linux-foundation.org>
+Subject: + init-remove-config_init_fallback.patch added to -mm tree
+Date: Mon, 20 Oct 2014 15:10:40 -0700
+Message-ID: <54458860.p/yRlyf+74Z1p71B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57370 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57398 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753580AbaJTV75 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Oct 2014 17:59:57 -0400
+	with ESMTP id S1751680AbaJTWKk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Oct 2014 18:10:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: luto@amacapital.net, cebbert.lkml@gmail.com, frowand.list@gmail.com, josh@joshtriplett.org, rdunlap@infradead.org, rob@landley.net, rusty@rustcorp.com.au, shuah.kh@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: remove unnecessary PCG_USED pc->mem_cgroup valid flag
+     Subject: init: remove CONFIG_INIT_FALLBACK
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
+     init-remove-config_init_fallback.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/init-remove-config_init_fallback.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/init-remove-config_init_fallback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,405 +38,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: remove unnecessary PCG_USED pc->mem_cgroup valid flag
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: init: remove CONFIG_INIT_FALLBACK
 
-pc->mem_cgroup had to be left intact after uncharge for the final LRU
-removal, and !PCG_USED indicated whether the page was uncharged.  But
-since 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API") pages are
-uncharged after the final LRU removal.  Uncharge can simply clear the
-pointer and the PCG_USED/PageCgroupUsed sites can test that instead.
+CONFIG_INIT_FALLBACK adds config bloat without an obvious use case that
+makes it worth keeping around.  Delete it.
 
-Because this is the last page_cgroup flag, this patch reduces the memcg
-per-page overhead to a single pointer.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Signed-off-by: Andy Lutomirski <luto@amacapital.net>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Chuck Ebbert <cebbert.lkml@gmail.com>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Rob Landley <rob@landley.net>
+Cc: Shuah Khan <shuah.kh@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_cgroup.h |   10 ---
- mm/memcontrol.c             |  107 +++++++++++++---------------------
- 2 files changed, 41 insertions(+), 76 deletions(-)
+ init/Kconfig |   16 ----------------
+ init/main.c  |    5 -----
+ 2 files changed, 21 deletions(-)
 
-diff -puN include/linux/page_cgroup.h~mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag
-+++ a/include/linux/page_cgroup.h
-@@ -1,11 +1,6 @@
- #ifndef __LINUX_PAGE_CGROUP_H
- #define __LINUX_PAGE_CGROUP_H
+diff -puN init/Kconfig~init-remove-config_init_fallback init/Kconfig
+--- a/init/Kconfig~init-remove-config_init_fallback
++++ a/init/Kconfig
+@@ -1299,22 +1299,6 @@ source "usr/Kconfig"
  
--enum {
--	/* flags for mem_cgroup */
--	PCG_USED = 0x01,	/* This page is charged to a memcg */
--};
+ endif
+ 
+-config INIT_FALLBACK
+-	bool "Fall back to defaults if init= parameter is bad"
+-	default y
+-	help
+-	  If enabled, the kernel will try the default init binaries if an
+-	  explicit request from the init= parameter fails.
 -
- struct pglist_data;
- 
- #ifdef CONFIG_MEMCG
-@@ -19,7 +14,6 @@ struct mem_cgroup;
-  * then the page cgroup for pfn always exists.
-  */
- struct page_cgroup {
--	unsigned long flags;
- 	struct mem_cgroup *mem_cgroup;
- };
- 
-@@ -39,10 +33,6 @@ static inline void page_cgroup_init(void
- 
- struct page_cgroup *lookup_page_cgroup(struct page *page);
- 
--static inline int PageCgroupUsed(struct page_cgroup *pc)
--{
--	return !!(pc->flags & PCG_USED);
--}
- #else /* !CONFIG_MEMCG */
- struct page_cgroup;
- 
-diff -puN mm/memcontrol.c~mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag
-+++ a/mm/memcontrol.c
-@@ -1284,14 +1284,12 @@ struct lruvec *mem_cgroup_page_lruvec(st
- 
- 	pc = lookup_page_cgroup(page);
- 	memcg = pc->mem_cgroup;
+-	  This can have unexpected effects.  For example, booting
+-	  with init=/sbin/kiosk_app will run /sbin/init or even /bin/sh
+-	  if /sbin/kiosk_app cannot be executed.
 -
- 	/*
- 	 * Swapcache readahead pages are added to the LRU - and
--	 * possibly migrated - before they are charged.  Ensure
--	 * pc->mem_cgroup is sane.
-+	 * possibly migrated - before they are charged.
- 	 */
--	if (!PageLRU(page) && !PageCgroupUsed(pc) && memcg != root_mem_cgroup)
--		pc->mem_cgroup = memcg = root_mem_cgroup;
-+	if (!memcg)
-+		memcg = root_mem_cgroup;
- 
- 	mz = mem_cgroup_page_zoneinfo(memcg, page);
- 	lruvec = &mz->lruvec;
-@@ -2141,7 +2139,7 @@ void __mem_cgroup_begin_update_page_stat
- 	pc = lookup_page_cgroup(page);
- again:
- 	memcg = pc->mem_cgroup;
--	if (unlikely(!memcg || !PageCgroupUsed(pc)))
-+	if (unlikely(!memcg))
- 		return;
- 	/*
- 	 * If this memory cgroup is not under account moving, we don't
-@@ -2154,7 +2152,7 @@ again:
- 		return;
- 
- 	move_lock_mem_cgroup(memcg, flags);
--	if (memcg != pc->mem_cgroup || !PageCgroupUsed(pc)) {
-+	if (memcg != pc->mem_cgroup) {
- 		move_unlock_mem_cgroup(memcg, flags);
- 		goto again;
+-	  The default value of Y is consistent with historical behavior.
+-	  Selecting N is likely to be more appropriate for most uses,
+-	  especially on kiosks and on kernels that are intended to be
+-	  run under the control of a script.
+-
+ config CC_OPTIMIZE_FOR_SIZE
+ 	bool "Optimize for size"
+ 	help
+diff -puN init/main.c~init-remove-config_init_fallback init/main.c
+--- a/init/main.c~init-remove-config_init_fallback
++++ a/init/main.c
+@@ -959,13 +959,8 @@ static int __ref kernel_init(void *unuse
+ 		ret = run_init_process(execute_command);
+ 		if (!ret)
+ 			return 0;
+-#ifndef CONFIG_INIT_FALLBACK
+ 		panic("Requested init %s failed (error %d).",
+ 		      execute_command, ret);
+-#else
+-		pr_err("Failed to execute %s (error %d).  Attempting defaults...\n",
+-		       execute_command, ret);
+-#endif
  	}
-@@ -2186,7 +2184,7 @@ void mem_cgroup_update_page_stat(struct
- 
- 	pc = lookup_page_cgroup(page);
- 	memcg = pc->mem_cgroup;
--	if (unlikely(!memcg || !PageCgroupUsed(pc)))
-+	if (unlikely(!memcg))
- 		return;
- 
- 	this_cpu_add(memcg->stat->count[idx], val);
-@@ -2525,9 +2523,10 @@ struct mem_cgroup *try_get_mem_cgroup_fr
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 
- 	pc = lookup_page_cgroup(page);
--	if (PageCgroupUsed(pc)) {
--		memcg = pc->mem_cgroup;
--		if (memcg && !css_tryget_online(&memcg->css))
-+	memcg = pc->mem_cgroup;
-+
-+	if (memcg) {
-+		if (!css_tryget_online(&memcg->css))
- 			memcg = NULL;
- 	} else if (PageSwapCache(page)) {
- 		ent.val = page_private(page);
-@@ -2578,7 +2577,7 @@ static void commit_charge(struct page *p
- 	struct page_cgroup *pc = lookup_page_cgroup(page);
- 	int isolated;
- 
--	VM_BUG_ON_PAGE(PageCgroupUsed(pc), page);
-+	VM_BUG_ON_PAGE(pc->mem_cgroup, page);
- 	/*
- 	 * we don't need page_cgroup_lock about tail pages, becase they are not
- 	 * accessed by any other context at this point.
-@@ -2593,7 +2592,7 @@ static void commit_charge(struct page *p
- 
- 	/*
- 	 * Nobody should be changing or seriously looking at
--	 * pc->mem_cgroup and pc->flags at this point:
-+	 * pc->mem_cgroup at this point:
- 	 *
- 	 * - the page is uncharged
- 	 *
-@@ -2606,7 +2605,6 @@ static void commit_charge(struct page *p
- 	 *   have the page locked
- 	 */
- 	pc->mem_cgroup = memcg;
--	pc->flags = PCG_USED;
- 
- 	if (lrucare)
- 		unlock_page_lru(page, isolated);
-@@ -3118,37 +3116,22 @@ void __memcg_kmem_commit_charge(struct p
- 		memcg_uncharge_kmem(memcg, 1 << order);
- 		return;
- 	}
--	/*
--	 * The page is freshly allocated and not visible to any
--	 * outside callers yet.  Set up pc non-atomically.
--	 */
- 	pc = lookup_page_cgroup(page);
- 	pc->mem_cgroup = memcg;
--	pc->flags = PCG_USED;
- }
- 
- void __memcg_kmem_uncharge_pages(struct page *page, int order)
- {
--	struct mem_cgroup *memcg = NULL;
--	struct page_cgroup *pc;
--
--
--	pc = lookup_page_cgroup(page);
--	if (!PageCgroupUsed(pc))
--		return;
--
--	memcg = pc->mem_cgroup;
--	pc->flags = 0;
-+	struct page_cgroup *pc = lookup_page_cgroup(page);
-+	struct mem_cgroup *memcg = pc->mem_cgroup;
- 
--	/*
--	 * We trust that only if there is a memcg associated with the page, it
--	 * is a valid allocation
--	 */
- 	if (!memcg)
- 		return;
- 
- 	VM_BUG_ON_PAGE(mem_cgroup_is_root(memcg), page);
-+
- 	memcg_uncharge_kmem(memcg, 1 << order);
-+	pc->mem_cgroup = NULL;
- }
- #else
- static inline void memcg_unregister_all_caches(struct mem_cgroup *memcg)
-@@ -3166,23 +3149,16 @@ static inline void memcg_unregister_all_
-  */
- void mem_cgroup_split_huge_fixup(struct page *head)
- {
--	struct page_cgroup *head_pc;
--	struct page_cgroup *pc;
--	struct mem_cgroup *memcg;
-+	struct page_cgroup *pc = lookup_page_cgroup(head);
- 	int i;
- 
- 	if (mem_cgroup_disabled())
- 		return;
- 
--	head_pc = lookup_page_cgroup(head);
-+	for (i = 1; i < HPAGE_PMD_NR; i++)
-+		pc[i].mem_cgroup = pc[0].mem_cgroup;
- 
--	memcg = head_pc->mem_cgroup;
--	for (i = 1; i < HPAGE_PMD_NR; i++) {
--		pc = head_pc + i;
--		pc->mem_cgroup = memcg;
--		pc->flags = head_pc->flags;
--	}
--	__this_cpu_sub(memcg->stat->count[MEM_CGROUP_STAT_RSS_HUGE],
-+	__this_cpu_sub(pc[0].mem_cgroup->stat->count[MEM_CGROUP_STAT_RSS_HUGE],
- 		       HPAGE_PMD_NR);
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-@@ -3232,7 +3208,7 @@ static int mem_cgroup_move_account(struc
- 		goto out;
- 
- 	ret = -EINVAL;
--	if (!PageCgroupUsed(pc) || pc->mem_cgroup != from)
-+	if (pc->mem_cgroup != from)
- 		goto out_unlock;
- 
- 	move_lock_mem_cgroup(from, &flags);
-@@ -3342,7 +3318,7 @@ static struct page_cgroup *lookup_page_c
- 	 * the first time, i.e. during boot or memory hotplug;
- 	 * or when mem_cgroup_disabled().
- 	 */
--	if (likely(pc) && PageCgroupUsed(pc))
-+	if (likely(pc) && pc->mem_cgroup)
- 		return pc;
- 	return NULL;
- }
-@@ -3360,10 +3336,8 @@ void mem_cgroup_print_bad_page(struct pa
- 	struct page_cgroup *pc;
- 
- 	pc = lookup_page_cgroup_used(page);
--	if (pc) {
--		pr_alert("pc:%p pc->flags:%lx pc->mem_cgroup:%p\n",
--			 pc, pc->flags, pc->mem_cgroup);
--	}
-+	if (pc)
-+		pr_alert("pc:%p pc->mem_cgroup:%p\n", pc, pc->mem_cgroup);
- }
- #endif
- 
-@@ -5300,7 +5274,7 @@ static enum mc_target_type get_mctgt_typ
- 		 * mem_cgroup_move_account() checks the pc is valid or
- 		 * not under LRU exclusion.
- 		 */
--		if (PageCgroupUsed(pc) && pc->mem_cgroup == mc.from) {
-+		if (pc->mem_cgroup == mc.from) {
- 			ret = MC_TARGET_PAGE;
- 			if (target)
- 				target->page = page;
-@@ -5336,7 +5310,7 @@ static enum mc_target_type get_mctgt_typ
- 	if (!move_anon())
- 		return ret;
- 	pc = lookup_page_cgroup(page);
--	if (PageCgroupUsed(pc) && pc->mem_cgroup == mc.from) {
-+	if (pc->mem_cgroup == mc.from) {
- 		ret = MC_TARGET_PAGE;
- 		if (target) {
- 			get_page(page);
-@@ -5780,18 +5754,17 @@ void mem_cgroup_swapout(struct page *pag
- 		return;
- 
- 	pc = lookup_page_cgroup(page);
-+	memcg = pc->mem_cgroup;
- 
- 	/* Readahead page, never charged */
--	if (!PageCgroupUsed(pc))
-+	if (!memcg)
- 		return;
- 
--	memcg = pc->mem_cgroup;
--
- 	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
- 	VM_BUG_ON_PAGE(oldid, page);
- 	mem_cgroup_swap_statistics(memcg, true);
- 
--	pc->flags = 0;
-+	pc->mem_cgroup = NULL;
- 
- 	if (!mem_cgroup_is_root(memcg))
- 		page_counter_uncharge(&memcg->memory, 1);
-@@ -5865,7 +5838,7 @@ int mem_cgroup_try_charge(struct page *p
- 		 * the page lock, which serializes swap cache removal, which
- 		 * in turn serializes uncharging.
- 		 */
--		if (PageCgroupUsed(pc))
-+		if (pc->mem_cgroup)
- 			goto out;
- 	}
- 
-@@ -6027,13 +6000,13 @@ static void uncharge_list(struct list_he
- 		VM_BUG_ON_PAGE(page_count(page), page);
- 
- 		pc = lookup_page_cgroup(page);
--		if (!PageCgroupUsed(pc))
-+		if (!pc->mem_cgroup)
- 			continue;
- 
- 		/*
- 		 * Nobody should be changing or seriously looking at
--		 * pc->mem_cgroup and pc->flags at this point, we have
--		 * fully exclusive access to the page.
-+		 * pc->mem_cgroup at this point, we have fully
-+		 * exclusive access to the page.
- 		 */
- 
- 		if (memcg != pc->mem_cgroup) {
-@@ -6056,7 +6029,7 @@ static void uncharge_list(struct list_he
- 		else
- 			nr_file += nr_pages;
- 
--		pc->flags = 0;
-+		pc->mem_cgroup = NULL;
- 
- 		pgpgout++;
- 	} while (next != page_list);
-@@ -6082,7 +6055,7 @@ void mem_cgroup_uncharge(struct page *pa
- 
- 	/* Don't touch page->lru of any random page, pre-check: */
- 	pc = lookup_page_cgroup(page);
--	if (!PageCgroupUsed(pc))
-+	if (!pc->mem_cgroup)
- 		return;
- 
- 	INIT_LIST_HEAD(&page->lru);
-@@ -6118,6 +6091,7 @@ void mem_cgroup_uncharge_list(struct lis
- void mem_cgroup_migrate(struct page *oldpage, struct page *newpage,
- 			bool lrucare)
- {
-+	struct mem_cgroup *memcg;
- 	struct page_cgroup *pc;
- 	int isolated;
- 
-@@ -6134,7 +6108,7 @@ void mem_cgroup_migrate(struct page *old
- 
- 	/* Page cache replacement: new page already charged? */
- 	pc = lookup_page_cgroup(newpage);
--	if (PageCgroupUsed(pc))
-+	if (pc->mem_cgroup)
- 		return;
- 
- 	/*
-@@ -6144,18 +6118,19 @@ void mem_cgroup_migrate(struct page *old
- 	 * reclaim just put back on the LRU but has not released yet.
- 	 */
- 	pc = lookup_page_cgroup(oldpage);
--	if (!PageCgroupUsed(pc))
-+	memcg = pc->mem_cgroup;
-+	if (!memcg)
- 		return;
- 
- 	if (lrucare)
- 		lock_page_lru(oldpage, &isolated);
- 
--	pc->flags = 0;
-+	pc->mem_cgroup = NULL;
- 
- 	if (lrucare)
- 		unlock_page_lru(oldpage, isolated);
- 
--	commit_charge(newpage, pc->mem_cgroup, lrucare);
-+	commit_charge(newpage, memcg, lrucare);
- }
- 
- /*
+ 	if (!try_to_run_init_process("/sbin/init") ||
+ 	    !try_to_run_init_process("/etc/init") ||
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from luto@amacapital.net are
 
-cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
-mm-memcontrol-lockless-page-counters.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-mm-memcontrol-lockless-page-counters-fix-2.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-kernel-res_counter-remove-the-unused-api-fix-2.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
-mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
-mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
-mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
-mm-memcontrol-remove-synchroneous-stock-draining-code.patch
-mm-vmscan-count-only-dirty-pages-as-congested.patch
-memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
-mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
-mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
-memcg-remove-activate_kmem_mutex.patch
-mm-memcontrol-micro-optimize-mem_cgroup_update_page_stat.patch
-mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
-mm-memcontrol-uncharge-pages-on-swapout.patch
-mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-debugging-keep-track-of-page-owners.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+init-remove-config_init_fallback.patch
 
