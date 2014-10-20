@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + slab-fix-cpuset-check-in-fallback_alloc.patch added to -mm tree
-Date: Mon, 20 Oct 2014 15:36:24 -0700
-Message-ID: <54458e68.w5lAYZazz0w1qF3l%akpm@linux-foundation.org>
+Subject: + slub-fix-cpuset-check-in-get_any_partial.patch added to -mm
+ tree
+Date: Mon, 20 Oct 2014 15:36:25 -0700
+Message-ID: <54458e69.fmtAGsJ119JcDif3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57557 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57566 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753388AbaJTWgY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Oct 2014 18:36:24 -0400
+	with ESMTP id S1753527AbaJTWgZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Oct 2014 18:36:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, iamjoonsoo.kim@lge.com, lizefan@huawei.com, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: fix cpuset check in fallback_alloc
+     Subject: slub: fix cpuset check in get_any_partial
 has been added to the -mm tree.  Its filename is
-     slab-fix-cpuset-check-in-fallback_alloc.patch
+     slub-fix-cpuset-check-in-get_any_partial.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-fix-cpuset-check-in-fallback_alloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-fix-cpuset-check-in-get_any_partial.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-fix-cpuset-check-in-fallback_alloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-fix-cpuset-check-in-get_any_partial.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,27 +40,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slab: fix cpuset check in fallback_alloc
+Subject: slub: fix cpuset check in get_any_partial
 
-fallback_alloc is called on kmalloc if the preferred node doesn't have
-free or partial slabs and there's no pages on the node's free list
-(GFP_THISNODE allocations fail).  Before invoking the reclaimer it tries
-to locate a free or partial slab on other allowed nodes' lists.  While
-iterating over the preferred node's zonelist it skips those zones which
-hardwall cpuset check returns false for.  That means that for a task bound
-to a specific node using cpusets fallback_alloc will always ignore free
-slabs on other nodes and go directly to the reclaimer, which, however, may
-allocate from other nodes if cpuset.mem_hardwall is unset (default).  As a
-result, we may get lists of free slabs grow without bounds on other nodes,
-which is bad, because inactive slabs are only evicted by cache_reap at a
-very slow rate and cannot be dropped forcefully.
+If we fail to allocate from the current node's stock, we look for free
+objects on other nodes before calling the page allocator (see
+get_any_partial).  While checking other nodes we respect cpuset
+constraints by calling cpuset_zone_allowed.  We enforce hardwall check. 
+As a result, we will fallback to the page allocator even if there are some
+pages cached on other nodes, but the current cpuset doesn't have them set.
+ However, the page allocator uses softwall check for kernel allocations,
+so it may allocate from one of the other nodes in this case.
 
-To reproduce the issue, run a process that will walk over a directory tree
-with lots of files inside a cpuset bound to a node that constantly
-experiences memory pressure.  Look at num_slabs vs active_slabs growth as
-reported by /proc/slabinfo.
-
-To avoid this we should use softwall cpuset check in fallback_alloc.
+Therefore we should use softwall cpuset check in get_any_partial to
+conform with the cpuset check in the page allocator.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Acked-by: Zefan Li <lizefan@huawei.com>
@@ -71,21 +64,22 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/slab.c~slab-fix-cpuset-check-in-fallback_alloc mm/slab.c
---- a/mm/slab.c~slab-fix-cpuset-check-in-fallback_alloc
-+++ a/mm/slab.c
-@@ -3012,7 +3012,7 @@ retry:
- 	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
- 		nid = zone_to_nid(zone);
+diff -puN mm/slub.c~slub-fix-cpuset-check-in-get_any_partial mm/slub.c
+--- a/mm/slub.c~slub-fix-cpuset-check-in-get_any_partial
++++ a/mm/slub.c
+@@ -1662,8 +1662,7 @@ static void *get_any_partial(struct kmem
  
--		if (cpuset_zone_allowed(zone, flags | __GFP_HARDWALL) &&
-+		if (cpuset_zone_allowed(zone, flags) &&
- 			get_node(cache, nid) &&
- 			get_node(cache, nid)->free_objects) {
- 				obj = ____cache_alloc_node(cache,
+ 			n = get_node(s, zone_to_nid(zone));
+ 
+-			if (n && cpuset_zone_allowed(zone,
+-						     flags | __GFP_HARDWALL) &&
++			if (n && cpuset_zone_allowed(zone, flags) &&
+ 					n->nr_partial > s->min_partial) {
+ 				object = get_partial_node(s, n, c, flags);
+ 				if (object) {
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
