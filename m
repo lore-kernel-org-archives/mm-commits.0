@@ -1,76 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-d_splice_alias-return-code-checking.patch added to
- -mm tree
-Date: Mon, 20 Oct 2014 16:12:26 -0700
-Message-ID: <544596da.jFPPwGQHUs5vqKrs%akpm@linux-foundation.org>
+Subject: [nacked]
+ kernel-sysctl-resolve-missing-field-initializers-warnings.patch removed
+ from -mm tree
+Date: Tue, 21 Oct 2014 12:05:57 -0700
+Message-ID: <5446ae95.gmVZueNCqyIDq3tD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57741 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39810 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753858AbaJTXM0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Oct 2014 19:12:26 -0400
+	with ESMTP id S1755357AbaJUTF5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Oct 2014 15:05:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@nod.at, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: mark.d.rustad@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix d_splice_alias() return code checking
-has been added to the -mm tree.  Its filename is
-     ocfs2-fix-d_splice_alias-return-code-checking.patch
+     Subject: kernel/sysctl: Resolve missing-field-initializers warnings
+has been removed from the -mm tree.  Its filename was
+     kernel-sysctl-resolve-missing-field-initializers-warnings.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-d_splice_alias-return-code-checking.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-d_splice_alias-return-code-checking.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Richard Weinberger <richard@nod.at>
-Subject: ocfs2: fix d_splice_alias() return code checking
+From: Mark Rustad <mark.d.rustad@intel.com>
+Subject: kernel/sysctl: Resolve missing-field-initializers warnings
 
-d_splice_alias() can return a valid dentry, NULL or an ERR_PTR.  Currently
-the code checks not for ERR_PTR and my oops in ocfs2_dentry_attach_lock().
-Fix this by using IS_ERR_OR_NULL().
+Resolve missing-field-initializers warnings in W=2 builds by
+using designated initialization.
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Mark Rustad <mark.d.rustad@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sysctl.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-fix-d_splice_alias-return-code-checking fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-fix-d_splice_alias-return-code-checking
-+++ a/fs/ocfs2/namei.c
-@@ -158,7 +158,7 @@ bail_add:
- 		 * NOTE: This dentry already has ->d_op set from
- 		 * ocfs2_get_parent() and ocfs2_get_dentry()
- 		 */
--		if (ret)
-+		if (!IS_ERR_OR_NULL(ret))
- 			dentry = ret;
+diff -puN kernel/sysctl.c~kernel-sysctl-resolve-missing-field-initializers-warnings kernel/sysctl.c
+--- a/kernel/sysctl.c~kernel-sysctl-resolve-missing-field-initializers-warnings
++++ a/kernel/sysctl.c
+@@ -257,7 +257,7 @@ static struct ctl_table sysctl_base_tabl
+ 		.mode		= 0555,
+ 		.child		= dev_table,
+ 	},
+-	{ }
++	{ .procname = NULL }
+ };
  
- 		status = ocfs2_dentry_attach_lock(dentry, inode,
+ #ifdef CONFIG_SCHED_DEBUG
+@@ -1103,7 +1103,7 @@ static struct ctl_table kern_table[] = {
+ 		.proc_handler	= proc_dointvec,
+ 	},
+ #endif
+-	{ }
++	{ .procname = NULL }
+ };
+ 
+ static struct ctl_table vm_table[] = {
+@@ -1485,12 +1485,12 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_doulongvec_minmax,
+ 	},
+-	{ }
++	{ .procname = NULL }
+ };
+ 
+ #if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
+ static struct ctl_table binfmt_misc_table[] = {
+-	{ }
++	{ .procname = NULL }
+ };
+ #endif
+ 
+@@ -1658,7 +1658,7 @@ static struct ctl_table fs_table[] = {
+ 		.proc_handler	= &pipe_proc_fn,
+ 		.extra1		= &pipe_min_size,
+ 	},
+-	{ }
++	{ .procname = NULL }
+ };
+ 
+ static struct ctl_table debug_table[] = {
+@@ -1682,11 +1682,11 @@ static struct ctl_table debug_table[] =
+ 		.extra2		= &one,
+ 	},
+ #endif
+-	{ }
++	{ .procname = NULL }
+ };
+ 
+ static struct ctl_table dev_table[] = {
+-	{ }
++	{ .procname = NULL }
+ };
+ 
+ int __init sysctl_init(void)
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from mark.d.rustad@intel.com are
 
-ocfs2-fix-d_splice_alias-return-code-checking.patch
 linux-next.patch
 
