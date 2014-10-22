@@ -1,98 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked]
- mm-memcontrol-micro-optimize-mem_cgroup_update_page_stat.patch removed from -mm tree
-Date: Wed, 22 Oct 2014 15:28:06 -0700
-Message-ID: <54482f76.dlypbTBci5GCjYX6%akpm@linux-foundation.org>
+Subject: + procfs-fix-error-handling-of-proc_register.patch added to -mm
+ tree
+Date: Wed, 22 Oct 2014 15:40:38 -0700
+Message-ID: <54483266.vgWIYv+j5ItJ9kfq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59551 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59891 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932962AbaJVW2H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 18:28:07 -0400
+	with ESMTP id S933227AbaJVWkh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 18:40:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: dbanerje@akamai.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: micro-optimize mem_cgroup_update_page_stat()
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-micro-optimize-mem_cgroup_update_page_stat.patch
+     Subject: procfs: fix error handling of proc_register()
+has been added to the -mm tree.  Its filename is
+     procfs-fix-error-handling-of-proc_register.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/procfs-fix-error-handling-of-proc_register.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-fix-error-handling-of-proc_register.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: micro-optimize mem_cgroup_update_page_stat()
+From: Debabrata Banerjee <dbanerje@akamai.com>
+Subject: procfs: fix error handling of proc_register()
 
-Do not look up the page_cgroup when the memory controller is
-runtime-disabled, but do assert that the locking protocol is followed
-under DEBUG_VM regardless.  Also remove the unused flags variable.
+proc_register() error paths are leaking inodes and directory refcounts.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Signed-off-by: Debabrata Banerjee <dbanerje@akamai.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/proc/generic.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-micro-optimize-mem_cgroup_update_page_stat mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-micro-optimize-mem_cgroup_update_page_stat
-+++ a/mm/memcontrol.c
-@@ -2177,13 +2177,14 @@ void mem_cgroup_update_page_stat(struct
- 				 enum mem_cgroup_stat_index idx, int val)
- {
- 	struct mem_cgroup *memcg;
--	struct page_cgroup *pc = lookup_page_cgroup(page);
--	unsigned long uninitialized_var(flags);
-+	struct page_cgroup *pc;
-+
-+	VM_BUG_ON(!rcu_read_lock_held());
+diff -puN fs/proc/generic.c~procfs-fix-error-handling-of-proc_register fs/proc/generic.c
+--- a/fs/proc/generic.c~procfs-fix-error-handling-of-proc_register
++++ a/fs/proc/generic.c
+@@ -369,14 +369,21 @@ static int proc_register(struct proc_dir
+ 		dp->proc_iops = &proc_file_inode_operations;
+ 	} else {
+ 		WARN_ON(1);
++		proc_free_inum(dp->low_ino);
+ 		return -EINVAL;
+ 	}
  
- 	if (mem_cgroup_disabled())
- 		return;
+ 	spin_lock(&proc_subdir_lock);
+ 	dp->parent = dir;
+-	if (pde_subdir_insert(dir, dp) == false)
++	if (pde_subdir_insert(dir, dp) == false) {
+ 		WARN(1, "proc_dir_entry '%s/%s' already registered\n",
+ 		     dir->name, dp->name);
++		spin_unlock(&proc_subdir_lock);
++		if (S_ISDIR(dp->mode))
++			dir->nlink--;
++		proc_free_inum(dp->low_ino);
++		return -EEXIST;
++	}
+ 	spin_unlock(&proc_subdir_lock);
  
--	VM_BUG_ON(!rcu_read_lock_held());
-+	pc = lookup_page_cgroup(page);
- 	memcg = pc->mem_cgroup;
- 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
- 		return;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from dbanerje@akamai.com are
 
-cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
-mm-page-writeback-inline-account_page_dirtied-into-single-caller.patch
-mm-memcontrol-fix-missed-end-writeback-page-accounting.patch
-mm-memcontrol-lockless-page-counters.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-mm-memcontrol-lockless-page-counters-fix-2.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-kernel-res_counter-remove-the-unused-api-fix-2.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
-mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
-mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
-mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
-mm-memcontrol-remove-synchroneous-stock-draining-code.patch
-mm-vmscan-count-only-dirty-pages-as-congested.patch
-memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
-mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
-mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
-memcg-remove-activate_kmem_mutex.patch
-mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
-mm-memcontrol-uncharge-pages-on-swapout.patch
-mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-debugging-keep-track-of-page-owners.patch
+procfs-fix-error-handling-of-proc_register.patch
 
