@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + decompress_bunzip2-off-by-one-in-get_next_block.patch added to
+Subject: + ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch added to
  -mm tree
-Date: Wed, 22 Oct 2014 12:16:41 -0700
-Message-ID: <54480299.eNu4TSJ2ID60atFh%akpm@linux-foundation.org>
+Date: Wed, 22 Oct 2014 12:18:09 -0700
+Message-ID: <544802f1.RkynyUFgwuWk9oPE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56711 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932242AbaJVTQl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:16:41 -0400
+	with ESMTP id S1753816AbaJVTSK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:18:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, alain@knaff.lu, hpa@zytor.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: decompress_bunzip2: off by one in get_next_block()
+     Subject: ocfs2: Fix xattr check in ocfs2_get_xattr_nolock()
 has been added to the -mm tree.  Its filename is
-     decompress_bunzip2-off-by-one-in-get_next_block.patch
+     ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/decompress_bunzip2-off-by-one-in-get_next_block.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/decompress_bunzip2-off-by-one-in-get_next_block.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +39,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: decompress_bunzip2: off by one in get_next_block()
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: Fix xattr check in ocfs2_get_xattr_nolock()
 
-"origPtr" is used as an offset into the bd->dbuf[] array.  That array is
-allocated in start_bunzip() and has "bd->dbufSize" number of elements so
-the test here should be >= instead of >.
+ocfs2_get_xattr_nolock() checks whether inode has any extended attributes
+(OCFS2_HAS_XATTR_FL).  If not, it just sets 'ret' to -ENODATA but
+continues with checking inline and external attributes anyway (which is
+pointless although it does not harm).  Just return immediately when we
+know there are no extended attributes in the inode.
 
-Later we check "origPtr" again before using it as an offset so I don't
-know if this bug can be triggered in real life.
+Coverity id: 1226906.
 
-Fixes: bc22c17e12c1 ('bzip2/lzma: library support for gzip, bzip2 and lzma decompression')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Alain Knaff <alain@knaff.lu>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_bunzip2.c |    2 +-
+ fs/ocfs2/xattr.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/decompress_bunzip2.c~decompress_bunzip2-off-by-one-in-get_next_block lib/decompress_bunzip2.c
---- a/lib/decompress_bunzip2.c~decompress_bunzip2-off-by-one-in-get_next_block
-+++ a/lib/decompress_bunzip2.c
-@@ -184,7 +184,7 @@ static int INIT get_next_block(struct bu
- 	if (get_bits(bd, 1))
- 		return RETVAL_OBSOLETE_INPUT;
- 	origPtr = get_bits(bd, 24);
--	if (origPtr > dbufSize)
-+	if (origPtr >= dbufSize)
- 		return RETVAL_DATA_ERROR;
- 	/* mapping table: if some byte values are never used (encoding things
- 	   like ascii text), the compression code removes the gaps to have fewer
+diff -puN fs/ocfs2/xattr.c~ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock
++++ a/fs/ocfs2/xattr.c
+@@ -1284,7 +1284,7 @@ int ocfs2_xattr_get_nolock(struct inode
+ 		return -EOPNOTSUPP;
+ 
+ 	if (!(oi->ip_dyn_features & OCFS2_HAS_XATTR_FL))
+-		ret = -ENODATA;
++		return -ENODATA;
+ 
+ 	xis.inode_bh = xbs.inode_bh = di_bh;
+ 	di = (struct ocfs2_dinode *)di_bh->b_data;
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
-ocfs2-fix-an-off-by-one-bug_on-statement.patch
-decompress_bunzip2-off-by-one-in-get_next_block.patch
-linux-next.patch
+origin.patch
+fallocate-create-fan_modify-and-in_modify-events.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+mm-add-strictlimit-knob-v2.patch
 
