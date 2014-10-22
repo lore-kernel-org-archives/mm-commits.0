@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-include-cma-info-in-proc-meminfo.patch added to -mm
- tree
-Date: Wed, 22 Oct 2014 13:00:56 -0700
-Message-ID: <54480cf8.HBugO7mBYoFYtAEC%akpm@linux-foundation.org>
+Subject: + mm-cma-split-cma-reserved-in-dmesg-log.patch added to -mm tree
+Date: Wed, 22 Oct 2014 13:00:55 -0700
+Message-ID: <54480cf7.GJla4Cy+/9S00+ss%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57125 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932583AbaJVUA4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 16:00:56 -0400
+	with ESMTP id S932242AbaJVUAz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 16:00:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: pintu.k@samsung.com, aquini@redhat.com, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, m.szyprowski@samsung.com, mina86@mina86.com, vishnu.ps@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: proc: include cma info in proc/meminfo
+     Subject: mm: cma: split cma-reserved in dmesg log
 has been added to the -mm tree.  Its filename is
-     fs-proc-include-cma-info-in-proc-meminfo.patch
+     mm-cma-split-cma-reserved-in-dmesg-log.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-include-cma-info-in-proc-meminfo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-split-cma-reserved-in-dmesg-log.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-include-cma-info-in-proc-meminfo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-split-cma-reserved-in-dmesg-log.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,46 +39,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pintu Kumar <pintu.k@samsung.com>
-Subject: fs: proc: include cma info in proc/meminfo
+Subject: mm: cma: split cma-reserved in dmesg log
 
-This patch include CMA info (CMATotal, CMAFree) in /proc/meminfo. 
-Currently, in a CMA enabled system, if somebody wants to know the total
-CMA size declared, there is no way to tell, other than the dmesg or
-/var/log/messages logs.
+When the system boots up, in the dmesg logs we can see the memory
+statistics along with total reserved as below.  Memory: 458840k/458840k
+available, 65448k reserved, 0K highmem
 
-With this patch we are showing the CMA info as part of meminfo, so that it
-can be determined at any point of time.  This will be populated only when
-CMA is enabled.
+When CMA is enabled, still the total reserved memory remains the same. 
+However, the CMA memory is not considered as reserved.  But, when we see
+/proc/meminfo, the CMA memory is part of free memory.  This creates
+confusion.  This patch corrects the problem by properly subtracting the
+CMA reserved memory from the total reserved memory in dmesg logs.
 
-Below is the sample output from a ARM based device with RAM:512MB and CMA:16MB.
+Below is the dmesg snapshot from an arm based device with 512MB RAM and
+12MB single CMA region.
 
-MemTotal:         471172 kB
-MemFree:          111712 kB
-MemAvailable:     271172 kB
-.
-.
-.
-CmaTotal:          16384 kB
-CmaFree:            6144 kB
+Before this change:
+Memory: 458840k/458840k available, 65448k reserved, 0K highmem
 
-This patch also fix below checkpatch errors that were found during these changes.
-
-ERROR: space required after that ',' (ctx:ExV)
-199: FILE: fs/proc/meminfo.c:199:
-+       ,atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
-        ^
-
-ERROR: space required after that ',' (ctx:ExV)
-202: FILE: fs/proc/meminfo.c:202:
-+       ,K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
-        ^
-
-ERROR: space required after that ',' (ctx:ExV)
-206: FILE: fs/proc/meminfo.c:206:
-+       ,K(totalcma_pages)
-        ^
-
-total: 3 errors, 0 warnings, 2 checks, 236 lines checked
+After this change:
+Memory: 458840k/458840k available, 53160k reserved, 12288k cma-reserved, 0K highmem
 
 Signed-off-by: Pintu Kumar <pintu.k@samsung.com>
 Signed-off-by: Vishnu Pratap Singh <vishnu.ps@samsung.com>
@@ -91,52 +70,63 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ include/linux/cma.h |    1 +
+ mm/cma.c            |    1 +
+ mm/page_alloc.c     |    6 ++++--
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/meminfo.c~fs-proc-include-cma-info-in-proc-meminfo fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~fs-proc-include-cma-info-in-proc-meminfo
-+++ a/fs/proc/meminfo.c
-@@ -12,6 +12,9 @@
- #include <linux/vmstat.h>
- #include <linux/atomic.h>
- #include <linux/vmalloc.h>
-+#ifdef CONFIG_CMA
-+#include <linux/cma.h>
-+#endif
- #include <asm/page.h>
- #include <asm/pgtable.h>
- #include "internal.h"
-@@ -138,6 +141,10 @@ static int meminfo_proc_show(struct seq_
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 		"AnonHugePages:  %8lu kB\n"
- #endif
-+#ifdef CONFIG_CMA
-+		"CmaTotal:       %8lu kB\n"
-+		"CmaFree:        %8lu kB\n"
-+#endif
- 		,
- 		K(i.totalram),
- 		K(i.freeram),
-@@ -187,12 +194,16 @@ static int meminfo_proc_show(struct seq_
- 		vmi.used >> 10,
- 		vmi.largest_chunk >> 10
- #ifdef CONFIG_MEMORY_FAILURE
--		,atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
-+		, atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
- #endif
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		,K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
-+		, K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
- 		   HPAGE_PMD_NR)
- #endif
-+#ifdef CONFIG_CMA
-+		, K(totalcma_pages)
-+		, K(global_page_state(NR_FREE_CMA_PAGES))
-+#endif
- 		);
+diff -puN include/linux/cma.h~mm-cma-split-cma-reserved-in-dmesg-log include/linux/cma.h
+--- a/include/linux/cma.h~mm-cma-split-cma-reserved-in-dmesg-log
++++ a/include/linux/cma.h
+@@ -15,6 +15,7 @@
  
- 	hugetlb_report_meminfo(m);
+ struct cma;
+ 
++extern unsigned long totalcma_pages;
+ extern phys_addr_t cma_get_base(struct cma *cma);
+ extern unsigned long cma_get_size(struct cma *cma);
+ 
+diff -puN mm/cma.c~mm-cma-split-cma-reserved-in-dmesg-log mm/cma.c
+--- a/mm/cma.c~mm-cma-split-cma-reserved-in-dmesg-log
++++ a/mm/cma.c
+@@ -288,6 +288,7 @@ int __init cma_declare_contiguous(phys_a
+ 	if (ret)
+ 		goto err;
+ 
++	totalcma_pages += (size / PAGE_SIZE);
+ 	pr_info("Reserved %ld MiB at %08lx\n", (unsigned long)size / SZ_1M,
+ 		(unsigned long)base);
+ 	return 0;
+diff -puN mm/page_alloc.c~mm-cma-split-cma-reserved-in-dmesg-log mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-cma-split-cma-reserved-in-dmesg-log
++++ a/mm/page_alloc.c
+@@ -110,6 +110,7 @@ static DEFINE_SPINLOCK(managed_page_coun
+ 
+ unsigned long totalram_pages __read_mostly;
+ unsigned long totalreserve_pages __read_mostly;
++unsigned long totalcma_pages __read_mostly;
+ /*
+  * When calculating the number of globally allowed dirty pages, there
+  * is a certain number of per-zone reserves that should not be
+@@ -5520,7 +5521,7 @@ void __init mem_init_print_info(const ch
+ 
+ 	pr_info("Memory: %luK/%luK available "
+ 	       "(%luK kernel code, %luK rwdata, %luK rodata, "
+-	       "%luK init, %luK bss, %luK reserved"
++	       "%luK init, %luK bss, %luK reserved, %luK cma-reserved"
+ #ifdef	CONFIG_HIGHMEM
+ 	       ", %luK highmem"
+ #endif
+@@ -5528,7 +5529,8 @@ void __init mem_init_print_info(const ch
+ 	       nr_free_pages() << (PAGE_SHIFT-10), physpages << (PAGE_SHIFT-10),
+ 	       codesize >> 10, datasize >> 10, rosize >> 10,
+ 	       (init_data_size + init_code_size) >> 10, bss_size >> 10,
+-	       (physpages - totalram_pages) << (PAGE_SHIFT-10),
++	       (physpages - totalram_pages - totalcma_pages) << (PAGE_SHIFT-10),
++	       totalcma_pages << (PAGE_SHIFT-10),
+ #ifdef	CONFIG_HIGHMEM
+ 	       totalhigh_pages << (PAGE_SHIFT-10),
+ #endif
 _
 
 Patches currently in -mm which might be from pintu.k@samsung.com are
