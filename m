@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-fix-error-handling-of-proc_register.patch added to -mm
- tree
-Date: Wed, 22 Oct 2014 15:40:38 -0700
-Message-ID: <54483266.vgWIYv+j5ItJ9kfq%akpm@linux-foundation.org>
+Subject: + checkpatch-improve-warning-message-for-needless-if-case.patch
+ added to -mm tree
+Date: Wed, 22 Oct 2014 16:21:49 -0700
+Message-ID: <54483c0d.gPQP0uOai3fNerFv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59891 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60192 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933227AbaJVWkh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 18:40:37 -0400
+	with ESMTP id S932850AbaJVXVs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 19:21:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbanerje@akamai.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: fabio.estevam@freescale.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: fix error handling of proc_register()
+     Subject: checkpatch: improve warning message for "needless if" case
 has been added to the -mm tree.  Its filename is
-     procfs-fix-error-handling-of-proc_register.patch
+     checkpatch-improve-warning-message-for-needless-if-case.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/procfs-fix-error-handling-of-proc_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-warning-message-for-needless-if-case.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-fix-error-handling-of-proc_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-warning-message-for-needless-if-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Debabrata Banerjee <dbanerje@akamai.com>
-Subject: procfs: fix error handling of proc_register()
+From: Fabio Estevam <fabio.estevam@freescale.com>
+Subject: checkpatch: improve warning message for "needless if" case
 
-proc_register() error paths are leaking inodes and directory refcounts.
+Add an 'and' to the sentence so that it looks better:
 
-Signed-off-by: Debabrata Banerjee <dbanerje@akamai.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+WARNING: debugfs_remove(NULL) is safe and this check is probably not required
+
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/generic.c~procfs-fix-error-handling-of-proc_register fs/proc/generic.c
---- a/fs/proc/generic.c~procfs-fix-error-handling-of-proc_register
-+++ a/fs/proc/generic.c
-@@ -369,14 +369,21 @@ static int proc_register(struct proc_dir
- 		dp->proc_iops = &proc_file_inode_operations;
- 	} else {
- 		WARN_ON(1);
-+		proc_free_inum(dp->low_ino);
- 		return -EINVAL;
- 	}
+diff -puN scripts/checkpatch.pl~checkpatch-improve-warning-message-for-needless-if-case scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-warning-message-for-needless-if-case
++++ a/scripts/checkpatch.pl
+@@ -4426,7 +4426,7 @@ sub process {
+ 			my $expr = '\s*\(\s*' . quotemeta($1) . '\s*\)\s*;';
+ 			if ($line =~ /\b(kfree|usb_free_urb|debugfs_remove(?:_recursive)?)$expr/) {
+ 				WARN('NEEDLESS_IF',
+-				     "$1(NULL) is safe this check is probably not required\n" . $hereprev);
++				     "$1(NULL) is safe and this check is probably not required\n" . $hereprev);
+ 			}
+ 		}
  
- 	spin_lock(&proc_subdir_lock);
- 	dp->parent = dir;
--	if (pde_subdir_insert(dir, dp) == false)
-+	if (pde_subdir_insert(dir, dp) == false) {
- 		WARN(1, "proc_dir_entry '%s/%s' already registered\n",
- 		     dir->name, dp->name);
-+		spin_unlock(&proc_subdir_lock);
-+		if (S_ISDIR(dp->mode))
-+			dir->nlink--;
-+		proc_free_inum(dp->low_ino);
-+		return -EEXIST;
-+	}
- 	spin_unlock(&proc_subdir_lock);
- 
- 	return 0;
 _
 
-Patches currently in -mm which might be from dbanerje@akamai.com are
+Patches currently in -mm which might be from fabio.estevam@freescale.com are
 
-procfs-fix-error-handling-of-proc_register.patch
+origin.patch
+checkpatch-improve-warning-message-for-needless-if-case.patch
+linux-next.patch
 
