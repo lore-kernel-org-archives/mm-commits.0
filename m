@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-omap-silence-bogus-power-up-reset-message-at-probe.patch
- added to -mm tree
-Date: Wed, 22 Oct 2014 12:04:39 -0700
-Message-ID: <5447ffc7.rLYygv1qYPUWlO6j%akpm@linux-foundation.org>
+Subject: + rtc-omap-add-helper-to-read-raw-bcd-time.patch added to -mm
+ tree
+Date: Wed, 22 Oct 2014 12:04:40 -0700
+Message-ID: <5447ffc8.MglyJI07tYMHWN6+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56458 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932279AbaJVTEj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:04:39 -0400
+	with ESMTP id S932279AbaJVTEk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:04:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: johan@kernel.org, a.zummo@towertech.it, balbi@ti.com, bcousson@baylibre.com, j-keerthy@ti.com, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: omap: silence bogus power-up reset message at probe
+     Subject: rtc: omap: add helper to read raw bcd time
 has been added to the -mm tree.  Its filename is
-     rtc-omap-silence-bogus-power-up-reset-message-at-probe.patch
+     rtc-omap-add-helper-to-read-raw-bcd-time.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-omap-silence-bogus-power-up-reset-message-at-probe.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-omap-add-helper-to-read-raw-bcd-time.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-omap-silence-bogus-power-up-reset-message-at-probe.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-omap-add-helper-to-read-raw-bcd-time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +40,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johan Hovold <johan@kernel.org>
-Subject: rtc: omap: silence bogus power-up reset message at probe
+Subject: rtc: omap: add helper to read raw bcd time
 
-Some legacy RTC IP revisions has a power-up reset flag in the status
-register that later revisions lack.
-
-As this flag is always read back as set on later revisions (or is
-overloaded with a different flag), make sure to only clear the flag and
-print the info message on legacy platforms.
+Add helper to read raw BCD time that can be used in interrupt context.
 
 Signed-off-by: Johan Hovold <johan@kernel.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -62,60 +57,45 @@ Cc: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-omap.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-omap-silence-bogus-power-up-reset-message-at-probe drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-omap-silence-bogus-power-up-reset-message-at-probe
+diff -puN drivers/rtc/rtc-omap.c~rtc-omap-add-helper-to-read-raw-bcd-time drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-omap-add-helper-to-read-raw-bcd-time
 +++ a/drivers/rtc/rtc-omap.c
-@@ -106,6 +106,7 @@ struct omap_rtc_device_type {
- 	bool has_32kclk_en;
- 	bool has_kicker;
- 	bool has_irqwakeen;
-+	bool has_power_up_reset;
- };
+@@ -234,22 +234,24 @@ static void bcd2tm(struct rtc_time *tm)
+ 	tm->tm_year = bcd2bin(tm->tm_year) + 100;
+ }
  
- struct omap_rtc {
-@@ -346,6 +347,7 @@ static struct rtc_class_ops omap_rtc_ops
- };
- 
- static const struct omap_rtc_device_type omap_rtc_default_type = {
-+	.has_power_up_reset = true,
- };
- 
- static const struct omap_rtc_device_type omap_rtc_am3352_type = {
-@@ -391,7 +393,7 @@ static int __init omap_rtc_probe(struct
+-
+-static int omap_rtc_read_time(struct device *dev, struct rtc_time *tm)
++static void omap_rtc_read_time_raw(struct omap_rtc *rtc, struct rtc_time *tm)
  {
- 	struct omap_rtc		*rtc;
- 	struct resource		*res;
--	u8			reg, new_ctrl;
-+	u8			reg, mask, new_ctrl;
- 	const struct platform_device_id *id_entry;
- 	const struct of_device_id *of_id;
- 	int ret;
-@@ -448,12 +450,17 @@ static int __init omap_rtc_probe(struct
+-	struct omap_rtc *rtc = dev_get_drvdata(dev);
+-
+-	/* we don't report wday/yday/isdst ... */
+-	local_irq_disable();
+-	rtc_wait_not_busy(rtc);
+-
+ 	tm->tm_sec = rtc_read(rtc, OMAP_RTC_SECONDS_REG);
+ 	tm->tm_min = rtc_read(rtc, OMAP_RTC_MINUTES_REG);
+ 	tm->tm_hour = rtc_read(rtc, OMAP_RTC_HOURS_REG);
+ 	tm->tm_mday = rtc_read(rtc, OMAP_RTC_DAYS_REG);
+ 	tm->tm_mon = rtc_read(rtc, OMAP_RTC_MONTHS_REG);
+ 	tm->tm_year = rtc_read(rtc, OMAP_RTC_YEARS_REG);
++}
++
++static int omap_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct omap_rtc *rtc = dev_get_drvdata(dev);
  
- 	/* clear old status */
- 	reg = rtc_read(rtc, OMAP_RTC_STATUS_REG);
--	if (reg & (u8) OMAP_RTC_STATUS_POWER_UP) {
--		dev_info(&pdev->dev, "RTC power up reset detected\n");
--		rtc_write(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_POWER_UP);
-+
-+	mask = OMAP_RTC_STATUS_ALARM;
-+
-+	if (rtc->type->has_power_up_reset) {
-+		mask |= OMAP_RTC_STATUS_POWER_UP;
-+		if (reg & OMAP_RTC_STATUS_POWER_UP)
-+			dev_info(&pdev->dev, "RTC power up reset detected\n");
- 	}
--	if (reg & (u8) OMAP_RTC_STATUS_ALARM)
--		rtc_write(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_ALARM);
-+
-+	if (reg & mask)
-+		rtc_write(rtc, OMAP_RTC_STATUS_REG, reg & mask);
++	/* we don't report wday/yday/isdst ... */
++	local_irq_disable();
++	rtc_wait_not_busy(rtc);
++	omap_rtc_read_time_raw(rtc, tm);
+ 	local_irq_enable();
  
- 	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
- 	reg = rtc_read(rtc, OMAP_RTC_CTRL_REG);
+ 	bcd2tm(tm);
 _
 
 Patches currently in -mm which might be from johan@kernel.org are
