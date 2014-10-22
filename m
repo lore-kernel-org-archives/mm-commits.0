@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
- added to -mm tree
-Date: Wed, 22 Oct 2014 14:00:02 -0700
-Message-ID: <54481ad2.ANVGsU8xJup8KjMx%akpm__4287.34881938926$1414011623$gmane$org@linux-foundation.org>
+Subject: + mm-slab_common-dont-check-for-duplicate-cache-names.patch added to -mm tree
+Date: Wed, 22 Oct 2014 14:03:47 -0700
+Message-ID: <54481bb3.6HBc5cizALpsI5RH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58137 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932270AbaJVVAH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 17:00:07 -0400
+	with ESMTP id S932270AbaJVVDr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 17:03:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, petr@vandrovec.name, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mpatocka@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ncpfs: return proper error from NCP_IOC_SETROOT ioctl
+     Subject: mm/slab_common: don't check for duplicate cache names
 has been added to the -mm tree.  Its filename is
-     ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
+     mm-slab_common-dont-check-for-duplicate-cache-names.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab_common-dont-check-for-duplicate-cache-names.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_common-dont-check-for-duplicate-cache-names.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,49 +38,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ncpfs: return proper error from NCP_IOC_SETROOT ioctl
+From: Mikulas Patocka <mpatocka@redhat.com>
+Subject: mm/slab_common: don't check for duplicate cache names
 
-If some error happens in NCP_IOC_SETROOT ioctl, the appropriate error
-return value is then (in most cases) just overwritten before we return. 
-This can result in reporting success to userspace although error happened.
-This bug was introduced by commit 2e54eb96e2c8 ("BKL: Remove BKL from
-ncpfs").  Propagate the errors correctly.
+The SLUB cache merges caches with the same size and alignment and there
+was long standing bug with this behavior:
+* create the cache named "foo"
+* create the cache named "bar" (which is merged with "foo")
+* delete the cache named "foo" (but it stays allocated because "bar" uses
+  it)
+* create the cache named "foo" again - it fails because the name "foo" is
+  already used
 
-Coverity id: 1226925.
+That bug was fixed in commit 694617474e33b860 ("slab_common: fix the check
+for duplicate slab names") by not warning on duplicate cache names when
+the SLUB subsystem is used.
 
-Fixes: 2e54eb96e2c80 ("BKL: Remove BKL from ncpfs")
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Petr Vandrovec <petr@vandrovec.name>
-Cc: <stable@vger.kernel.org>
+Recently, cache merging was implemented the with SLAB subsystem too, in
+12220dea07f1a ("mm/slab: support slab merge")).  Therefore we need stop
+checking for duplicate names even for the SLAB subsystem.  This patch
+fixes the bug by removing the check.
+
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/slab_common.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN fs/ncpfs/ioctl.c~ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl
-+++ a/fs/ncpfs/ioctl.c
-@@ -447,7 +447,6 @@ static long __ncp_ioctl(struct inode *in
- 						result = -EIO;
- 					}
- 				}
--				result = 0;
- 			}
- 			mutex_unlock(&server->root_setup_lock);
- 
-_
-
-Patches currently in -mm which might be from jack@suse.cz are
-
-origin.patch
-bitmap-fix-undefined-shift-in-__bitmap_shift_leftright.patch
-fallocate-create-fan_modify-and-in_modify-events.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
-ocfs2-remove-bogus-test-from-ocfs2_read_locked_inode.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
-mm-add-strictlimit-knob-v2.patch
-
+diff -puN mm/slab_common.c~mm-slab_common-dont-check-for-duplicate-cache-names mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab_common-dont-check-for-duplicate-cache-names
++++ a/mm/slab_common.c
+@@ -93,16 +93,6 @@ static int kmem_cache_sanity_check(const
+ 			       s->object_size);
+ 			continue;
+ 		}
