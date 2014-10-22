@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2.patch added to -mm tree
-Date: Wed, 22 Oct 2014 12:08:29 -0700
-Message-ID: <544800ad.pw8lD2pzMLZ4ZqM1%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-an-off-by-one-bug_on-statement.patch added to -mm
+ tree
+Date: Wed, 22 Oct 2014 12:12:34 -0700
+Message-ID: <544801a2.uVa3+B06l0prn2j0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56673 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56690 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932071AbaJVTI3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:08:29 -0400
+	with ESMTP id S1754333AbaJVTMe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:12:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: isimatu.yasuaki@jp.fujitsu.com, dave.hansen@intel.com, rientjes@google.com, tangchen@cn.fujitsu.com, toshi.kani@hp.com, wangnan0@huawei.com, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2
+     Subject: ocfs2: fix an off-by-one BUG_ON() statement
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2.patch
+     ocfs2-fix-an-off-by-one-bug_on-statement.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-an-off-by-one-bug_on-statement.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-an-off-by-one-bug_on-statement.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: ocfs2: fix an off-by-one BUG_ON() statement
 
-v2: remove check of pgdat_page
+The ->si_slots[] array is allocated in ocfs2_init_slot_info() it has
+"->max_slots" number of elements so this test should be >= instead of >.
 
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Cc: Wang Nan <wangnan0@huawei.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: David Rientjes <rientjes@google.com>
+Static checker work.  Compile tested only.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 ------
- 1 file changed, 6 deletions(-)
+ fs/ocfs2/slot_map.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2 mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2
-+++ a/mm/memory_hotplug.c
-@@ -1912,7 +1912,6 @@ void try_offline_node(int nid)
- 	unsigned long start_pfn = pgdat->node_start_pfn;
- 	unsigned long end_pfn = start_pfn + pgdat->node_spanned_pages;
- 	unsigned long pfn;
--	struct page *pgdat_page = virt_to_page(pgdat);
- 	int i;
+diff -puN fs/ocfs2/slot_map.c~ocfs2-fix-an-off-by-one-bug_on-statement fs/ocfs2/slot_map.c
+--- a/fs/ocfs2/slot_map.c~ocfs2-fix-an-off-by-one-bug_on-statement
++++ a/fs/ocfs2/slot_map.c
+@@ -306,7 +306,7 @@ int ocfs2_slot_to_node_num_locked(struct
+ 	assert_spin_locked(&osb->osb_lock);
  
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
-@@ -1941,10 +1940,6 @@ void try_offline_node(int nid)
- 	node_set_offline(nid);
- 	unregister_one_node(nid);
+ 	BUG_ON(slot_num < 0);
+-	BUG_ON(slot_num > osb->max_slots);
++	BUG_ON(slot_num >= osb->max_slots);
  
--	if (!PageSlab(pgdat_page) && !PageCompound(pgdat_page))
--		/* node data is allocated from boot memory */
--		goto out;
+ 	if (!si->si_slots[slot_num].sl_valid)
+ 		return -ENOENT;
+_
+
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
+
+rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
+ocfs2-fix-an-off-by-one-bug_on-statement.patch
+linux-next.patch
+
