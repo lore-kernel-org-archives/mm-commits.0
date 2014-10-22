@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-omap-add-helper-to-read-32-bit-registers.patch added to -mm tree
-Date: Wed, 22 Oct 2014 12:04:41 -0700
-Message-ID: <5447ffc9.2rqpFRdWaHnrxBqi%akpm@linux-foundation.org>
+Subject: + rtc-omap-remove-driver_name-macro.patch added to -mm tree
+Date: Wed, 22 Oct 2014 12:04:36 -0700
+Message-ID: <5447ffc4.DpF3u7U2hdEvLFf3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56463 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56441 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932279AbaJVTEl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:04:41 -0400
+	with ESMTP id S932253AbaJVTEg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:04:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: johan@kernel.org, a.zummo@towertech.it, balbi@ti.com, bcousson@baylibre.com, j-keerthy@ti.com, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: omap: add helper to read 32-bit registers
+     Subject: rtc: omap: remove DRIVER_NAME macro
 has been added to the -mm tree.  Its filename is
-     rtc-omap-add-helper-to-read-32-bit-registers.patch
+     rtc-omap-remove-driver_name-macro.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-omap-add-helper-to-read-32-bit-registers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-omap-remove-driver_name-macro.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-omap-add-helper-to-read-32-bit-registers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-omap-remove-driver_name-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,9 +39,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johan Hovold <johan@kernel.org>
-Subject: rtc: omap: add helper to read 32-bit registers
+Subject: rtc: omap: remove DRIVER_NAME macro
 
-Add helper to read full register width.
+Remove DRIVER_NAME macro which was used for unrelated strings (e.g.
+id-table entry and module name), but not for related ones (e.g. module
+name and alias).
+
+Also move the module alias to the other module-info entries.
 
 Signed-off-by: Johan Hovold <johan@kernel.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -56,24 +60,51 @@ Cc: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/rtc/rtc-omap.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-omap-add-helper-to-read-32-bit-registers drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-omap-add-helper-to-read-32-bit-registers
+diff -puN drivers/rtc/rtc-omap.c~rtc-omap-remove-driver_name-macro drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-omap-remove-driver_name-macro
 +++ a/drivers/rtc/rtc-omap.c
-@@ -123,6 +123,11 @@ static inline u8 rtc_read(struct omap_rt
- 	return readb(rtc->base + reg);
+@@ -39,8 +39,6 @@
+  * the SoC). See the BOARD-SPECIFIC CUSTOMIZATION comment.
+  */
+ 
+-#define	DRIVER_NAME			"omap_rtc"
+-
+ /* RTC registers */
+ #define OMAP_RTC_SECONDS_REG		0x00
+ #define OMAP_RTC_MINUTES_REG		0x04
+@@ -360,7 +358,7 @@ static struct rtc_class_ops omap_rtc_ops
+ 
+ static const struct platform_device_id omap_rtc_devtype[] = {
+ 	{
+-		.name	= DRIVER_NAME,
++		.name	= "omap_rtc",
+ 	},
+ 	[OMAP_RTC_DATA_AM3352_IDX] = {
+ 		.name	= "am3352-rtc",
+@@ -587,12 +585,11 @@ static void omap_rtc_shutdown(struct pla
+ 	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, 0);
  }
  
-+static inline u32 rtc_readl(struct omap_rtc *rtc, unsigned int reg)
-+{
-+	return readl(rtc->base + reg);
-+}
-+
- static inline void rtc_write(struct omap_rtc *rtc, unsigned int reg, u8 val)
- {
- 	writeb(val, rtc->base + reg);
+-MODULE_ALIAS("platform:omap_rtc");
+ static struct platform_driver omap_rtc_driver = {
+ 	.remove		= __exit_p(omap_rtc_remove),
+ 	.shutdown	= omap_rtc_shutdown,
+ 	.driver		= {
+-		.name	= DRIVER_NAME,
++		.name	= "omap_rtc",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= &omap_rtc_pm_ops,
+ 		.of_match_table = omap_rtc_of_match,
+@@ -602,5 +599,6 @@ static struct platform_driver omap_rtc_d
+ 
+ module_platform_driver_probe(omap_rtc_driver, omap_rtc_probe);
+ 
++MODULE_ALIAS("platform:omap_rtc");
+ MODULE_AUTHOR("George G. Davis (and others)");
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from johan@kernel.org are
