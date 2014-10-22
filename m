@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-an-off-by-one-bug_on-statement.patch added to -mm
- tree
-Date: Wed, 22 Oct 2014 12:12:34 -0700
-Message-ID: <544801a2.uVa3+B06l0prn2j0%akpm@linux-foundation.org>
+Subject: + decompress_bunzip2-off-by-one-in-get_next_block.patch added to
+ -mm tree
+Date: Wed, 22 Oct 2014 12:16:41 -0700
+Message-ID: <54480299.eNu4TSJ2ID60atFh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56690 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56711 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754333AbaJVTMe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:12:34 -0400
+	with ESMTP id S932242AbaJVTQl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, alain@knaff.lu, hpa@zytor.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix an off-by-one BUG_ON() statement
+     Subject: decompress_bunzip2: off by one in get_next_block()
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-an-off-by-one-bug_on-statement.patch
+     decompress_bunzip2-off-by-one-in-get_next_block.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-an-off-by-one-bug_on-statement.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/decompress_bunzip2-off-by-one-in-get_next_block.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-an-off-by-one-bug_on-statement.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/decompress_bunzip2-off-by-one-in-get_next_block.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,39 +40,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: ocfs2: fix an off-by-one BUG_ON() statement
+Subject: decompress_bunzip2: off by one in get_next_block()
 
-The ->si_slots[] array is allocated in ocfs2_init_slot_info() it has
-"->max_slots" number of elements so this test should be >= instead of >.
+"origPtr" is used as an offset into the bd->dbuf[] array.  That array is
+allocated in start_bunzip() and has "bd->dbufSize" number of elements so
+the test here should be >= instead of >.
 
-Static checker work.  Compile tested only.
+Later we check "origPtr" again before using it as an offset so I don't
+know if this bug can be triggered in real life.
 
+Fixes: bc22c17e12c1 ('bzip2/lzma: library support for gzip, bzip2 and lzma decompression')
 Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/slot_map.c |    2 +-
+ lib/decompress_bunzip2.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/slot_map.c~ocfs2-fix-an-off-by-one-bug_on-statement fs/ocfs2/slot_map.c
---- a/fs/ocfs2/slot_map.c~ocfs2-fix-an-off-by-one-bug_on-statement
-+++ a/fs/ocfs2/slot_map.c
-@@ -306,7 +306,7 @@ int ocfs2_slot_to_node_num_locked(struct
- 	assert_spin_locked(&osb->osb_lock);
- 
- 	BUG_ON(slot_num < 0);
--	BUG_ON(slot_num > osb->max_slots);
-+	BUG_ON(slot_num >= osb->max_slots);
- 
- 	if (!si->si_slots[slot_num].sl_valid)
- 		return -ENOENT;
+diff -puN lib/decompress_bunzip2.c~decompress_bunzip2-off-by-one-in-get_next_block lib/decompress_bunzip2.c
+--- a/lib/decompress_bunzip2.c~decompress_bunzip2-off-by-one-in-get_next_block
++++ a/lib/decompress_bunzip2.c
+@@ -184,7 +184,7 @@ static int INIT get_next_block(struct bu
+ 	if (get_bits(bd, 1))
+ 		return RETVAL_OBSOLETE_INPUT;
+ 	origPtr = get_bits(bd, 24);
+-	if (origPtr > dbufSize)
++	if (origPtr >= dbufSize)
+ 		return RETVAL_DATA_ERROR;
+ 	/* mapping table: if some byte values are never used (encoding things
+ 	   like ascii text), the compression code removes the gaps to have fewer
 _
 
 Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
 ocfs2-fix-an-off-by-one-bug_on-statement.patch
+decompress_bunzip2-off-by-one-in-get_next_block.patch
 linux-next.patch
 
