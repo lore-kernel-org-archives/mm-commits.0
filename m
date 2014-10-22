@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch added to -mm tree
-Date: Wed, 22 Oct 2014 13:11:41 -0700
-Message-ID: <54480f7d.AFPILefpd6LLPvDS%akpm@linux-foundation.org>
+ mm-page-writeback-inline-account_page_dirtied-into-single-caller.patch
+ added to -mm tree
+Date: Wed, 22 Oct 2014 13:40:37 -0700
+Message-ID: <54481645.8bYGGcqEYoKyCeOB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57245 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57715 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932234AbaJVULl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 16:11:41 -0400
+	with ESMTP id S1751342AbaJVUkh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 16:40:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, stable@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix
+     Subject: mm: page-writeback: inline account_page_dirtied() into single caller
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+     mm-page-writeback-inline-account_page_dirtied-into-single-caller.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page-writeback-inline-account_page_dirtied-into-single-caller.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writeback-inline-account_page_dirtied-into-single-caller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +40,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page-writeback: inline account_page_dirtied() into single caller
 
-remove unneeded initialization of `memcg', per Michal
+A follow-up patch would have changed the call signature.  To save the
+trouble, just fold it instead.
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: <stable@kernel.org>		[3.17.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h  |    1 -
+ mm/page-writeback.c |   23 ++++-------------------
+ 2 files changed, 4 insertions(+), 20 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix
-+++ a/mm/memcontrol.c
-@@ -2515,7 +2515,7 @@ static struct mem_cgroup *mem_cgroup_loo
-  */
- struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
- {
--	struct mem_cgroup *memcg = NULL;
-+	struct mem_cgroup *memcg;
- 	struct page_cgroup *pc;
- 	unsigned short id;
- 	swp_entry_t ent;
+diff -puN include/linux/mm.h~mm-page-writeback-inline-account_page_dirtied-into-single-caller include/linux/mm.h
+--- a/include/linux/mm.h~mm-page-writeback-inline-account_page_dirtied-into-single-caller
++++ a/include/linux/mm.h
+@@ -1235,7 +1235,6 @@ int __set_page_dirty_no_writeback(struct
+ int redirty_page_for_writepage(struct writeback_control *wbc,
+ 				struct page *page);
+ void account_page_dirtied(struct page *page, struct address_space *mapping);
+-void account_page_writeback(struct page *page);
+ int set_page_dirty(struct page *page);
+ int set_page_dirty_lock(struct page *page);
+ int clear_page_dirty_for_io(struct page *page);
+diff -puN mm/page-writeback.c~mm-page-writeback-inline-account_page_dirtied-into-single-caller mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page-writeback-inline-account_page_dirtied-into-single-caller
++++ a/mm/page-writeback.c
+@@ -2116,23 +2116,6 @@ void account_page_dirtied(struct page *p
+ EXPORT_SYMBOL(account_page_dirtied);
+ 
+ /*
+- * Helper function for set_page_writeback family.
+- *
+- * The caller must hold mem_cgroup_begin/end_update_page_stat() lock
+- * while calling this function.
+- * See test_set_page_writeback for example.
+- *
+- * NOTE: Unlike account_page_dirtied this does not rely on being atomic
+- * wrt interrupts.
+- */
+-void account_page_writeback(struct page *page)
+-{
+-	mem_cgroup_inc_page_stat(page, MEM_CGROUP_STAT_WRITEBACK);
+-	inc_zone_page_state(page, NR_WRITEBACK);
+-}
+-EXPORT_SYMBOL(account_page_writeback);
+-
+-/*
+  * For address_spaces which do not use buffers.  Just tag the page as dirty in
+  * its radix tree.
+  *
+@@ -2410,8 +2393,10 @@ int __test_set_page_writeback(struct pag
+ 	} else {
+ 		ret = TestSetPageWriteback(page);
+ 	}
+-	if (!ret)
+-		account_page_writeback(page);
++	if (!ret) {
++		mem_cgroup_inc_page_stat(page, MEM_CGROUP_STAT_WRITEBACK);
++		inc_zone_page_state(page, NR_WRITEBACK);
++	}
+ 	mem_cgroup_end_update_page_stat(page, &locked, &memcg_flags);
+ 	return ret;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
-mm.patch
+cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
+mm-page-writeback-inline-account_page_dirtied-into-single-caller.patch
+mm-memcontrol-fix-missed-end-writeback-page-accounting.patch
+mm-memcontrol-lockless-page-counters.patch
 mm-memcontrol-lockless-page-counters-fix.patch
 mm-memcontrol-lockless-page-counters-fix-fix.patch
+mm-memcontrol-lockless-page-counters-fix-2.patch
+mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+kernel-res_counter-remove-the-unused-api.patch
 kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
+kernel-res_counter-remove-the-unused-api-fix-2.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
+mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
+mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
+mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+mm-memcontrol-remove-synchroneous-stock-draining-code.patch
+mm-vmscan-count-only-dirty-pages-as-congested.patch
+memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
+mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
+mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
+memcg-remove-activate_kmem_mutex.patch
+mm-memcontrol-micro-optimize-mem_cgroup_update_page_stat.patch
+mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
+mm-memcontrol-uncharge-pages-on-swapout.patch
+mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
 mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
 debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
