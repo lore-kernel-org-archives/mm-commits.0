@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-terminate-strings-also-on-r.patch added to -mm tree
-Date: Wed, 22 Oct 2014 16:25:11 -0700
-Message-ID: <54483cd7.Nz43M2poc2adsEDu%akpm@linux-foundation.org>
+Subject: + sysctl-terminate-strings-also-on-r-fix.patch added to -mm tree
+Date: Wed, 22 Oct 2014 16:25:12 -0700
+Message-ID: <54483cd8.DQNKFzaJhplttx1i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60212 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932666AbaJVXZL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 19:25:11 -0400
+	with ESMTP id S932850AbaJVXZM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 19:25:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pabs3@bonedaddy.net, atomlin@redhat.com, keescook@chromium.org, paulmck@linux.vnet.ibm.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, atomlin@redhat.com, keescook@chromium.org, pabs3@bonedaddy.net, paulmck@linux.vnet.ibm.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl: terminate strings also on \r
+     Subject: sysctl-terminate-strings-also-on-r-fix
 has been added to the -mm tree.  Its filename is
-     sysctl-terminate-strings-also-on-r.patch
+     sysctl-terminate-strings-also-on-r-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-terminate-strings-also-on-r.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-terminate-strings-also-on-r-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-terminate-strings-also-on-r.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-terminate-strings-also-on-r-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,42 +38,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul Wise <pabs3@bonedaddy.net>
-Subject: sysctl: terminate strings also on \r
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sysctl-terminate-strings-also-on-r-fix
 
-This partially mitigates a common strategy used by attackers for hiding
-the full contents of strings in procfs from naive sysadmins who use cat,
-more or sysctl to inspect the contents of strings in procfs.
+add missing comment
 
-See http://www.jakoblell.com/blog/2014/05/07/hacking-contest-hiding-stuff-from-the-terminal/
-
-Signed-off-by: Paul Wise <pabs3@bonedaddy.net>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Aaron Tomlin <atomlin@redhat.com>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Paul Wise <pabs3@bonedaddy.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sysctl.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN kernel/sysctl.c~sysctl-terminate-strings-also-on-r kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-terminate-strings-also-on-r
+diff -puN kernel/sysctl.c~sysctl-terminate-strings-also-on-r-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-terminate-strings-also-on-r-fix
 +++ a/kernel/sysctl.c
-@@ -1739,7 +1739,7 @@ static int _proc_do_string(char *data, i
+@@ -1739,6 +1739,10 @@ static int _proc_do_string(char *data, i
  		while ((p - buffer) < *lenp && len < maxlen - 1) {
  			if (get_user(c, p++))
  				return -EFAULT;
--			if (c == 0 || c == '\n')
-+			if (c == 0 || c == '\n' || c == '\r')
++			/*
++			 * \r terminates input to partially prevent attackers
++			 * from hiding info from sysadmins who use cat
++			 */
+ 			if (c == 0 || c == '\n' || c == '\r')
  				break;
  			data[len++] = c;
- 		}
 _
 
-Patches currently in -mm which might be from pabs3@bonedaddy.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sysctl-terminate-strings-also-on-r.patch
+origin.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
+mm.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
 sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
