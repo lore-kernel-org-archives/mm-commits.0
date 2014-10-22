@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-omap-fix-class-device-registration.patch added to -mm tree
-Date: Wed, 22 Oct 2014 12:04:30 -0700
-Message-ID: <5447ffbe.YpFlXyhcs61sH2s/%akpm@linux-foundation.org>
+Subject: + rtc-omap-fix-missing-wakealarm-attribute.patch added to -mm
+ tree
+Date: Wed, 22 Oct 2014 12:04:27 -0700
+Message-ID: <5447ffbb.hhUGHHwB8Jbh6tqh%akpm__23145.8338247196$1414004685$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56417 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56390 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932249AbaJVTEa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:04:30 -0400
+	with ESMTP id S932242AbaJVTE2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:04:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johan@kernel.org, a.zummo@towertech.it, balbi@ti.com, bcousson@baylibre.com, j-keerthy@ti.com, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: johan@kernel.org, a.zummo@towertech.it, balbi@ti.com, bcousson@baylibre.com, j-keerthy@ti.com, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, stable@vger.kernel.org, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: omap: fix class-device registration
+     Subject: rtc: omap: fix missing wakealarm attribute
 has been added to the -mm tree.  Its filename is
-     rtc-omap-fix-class-device-registration.patch
+     rtc-omap-fix-missing-wakealarm-attribute.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-omap-fix-class-device-registration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-omap-fix-missing-wakealarm-attribute.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-omap-fix-class-device-registration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-omap-fix-missing-wakealarm-attribute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +40,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johan Hovold <johan@kernel.org>
-Subject: rtc: omap: fix class-device registration
+Subject: rtc: omap: fix missing wakealarm attribute
 
-Make sure not to register the class device until after the device has
-been configured.
+The platform device must be registered as wakeup capable before
+registering the class device, or the wakealarm attribute will not be
+created.
 
-Currently, the device is not fully configured (e.g. 24-hour mode) when
-the class device is registered, something which involves driver
-callbacks for example to read the current time.
+Also make sure to unregister the wakeup source on probe errors.
 
+Fixes: 1d2e2b65d098 ("rtc: omap: restore back (hard-code) wakeup support")
 Signed-off-by: Johan Hovold <johan@kernel.org>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Benot Cousson <bcousson@baylibre.com>
@@ -57,83 +59,42 @@ Cc: Guenter Roeck <linux@roeck-us.net>
 Cc: Sekhar Nori <nsekhar@ti.com>
 Cc: Tero Kristo <t-kristo@ti.com>
 Cc: Keerthy J <j-keerthy@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |   46 +++++++++++++++++++--------------------
- 1 file changed, 23 insertions(+), 23 deletions(-)
+ drivers/rtc/rtc-omap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-omap-fix-class-device-registration drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-omap-fix-class-device-registration
+diff -puN drivers/rtc/rtc-omap.c~rtc-omap-fix-missing-wakealarm-attribute drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-omap-fix-missing-wakealarm-attribute
 +++ a/drivers/rtc/rtc-omap.c
-@@ -413,16 +413,6 @@ static int __init omap_rtc_probe(struct
+@@ -416,6 +416,8 @@ static int __init omap_rtc_probe(struct
  		rtc_writel(KICK1_VALUE, OMAP_RTC_KICK1_REG);
  	}
  
--	device_init_wakeup(&pdev->dev, true);
--
--	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
--			&omap_rtc_ops, THIS_MODULE);
--	if (IS_ERR(rtc)) {
--		ret = PTR_ERR(rtc);
--		goto err;
--	}
--	platform_set_drvdata(pdev, rtc);
--
- 	/*
- 	 * disable interrupts
- 	 *
-@@ -446,19 +436,6 @@ static int __init omap_rtc_probe(struct
- 	if (reg & (u8) OMAP_RTC_STATUS_ALARM)
- 		rtc_write(OMAP_RTC_STATUS_ALARM, OMAP_RTC_STATUS_REG);
- 
--	/* handle periodic and alarm irqs */
--	ret = devm_request_irq(&pdev->dev, omap_rtc_timer, rtc_irq, 0,
--			dev_name(&rtc->dev), rtc);
--	if (ret)
--		goto err;
--
--	if (omap_rtc_timer != omap_rtc_alarm) {
--		ret = devm_request_irq(&pdev->dev, omap_rtc_alarm, rtc_irq, 0,
--				dev_name(&rtc->dev), rtc);
--		if (ret)
--			goto err;
--	}
--
- 	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
- 	reg = rtc_read(OMAP_RTC_CTRL_REG);
- 	if (reg & (u8) OMAP_RTC_CTRL_STOP)
-@@ -488,6 +465,29 @@ static int __init omap_rtc_probe(struct
- 	if (reg != new_ctrl)
- 		rtc_write(new_ctrl, OMAP_RTC_CTRL_REG);
- 
 +	device_init_wakeup(&pdev->dev, true);
 +
-+	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-+			&omap_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc)) {
-+		ret = PTR_ERR(rtc);
-+		goto err;
-+	}
-+	platform_set_drvdata(pdev, rtc);
-+
-+	/* handle periodic and alarm irqs */
-+	ret = devm_request_irq(&pdev->dev, omap_rtc_timer, rtc_irq, 0,
-+			dev_name(&rtc->dev), rtc);
-+	if (ret)
-+		goto err;
-+
-+	if (omap_rtc_timer != omap_rtc_alarm) {
-+		ret = devm_request_irq(&pdev->dev, omap_rtc_alarm, rtc_irq, 0,
-+				dev_name(&rtc->dev), rtc);
-+		if (ret)
-+			goto err;
-+	}
-+
+ 	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 			&omap_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+@@ -484,8 +486,6 @@ static int __init omap_rtc_probe(struct
+ 	 *    is write-only, and always reads as zero...)
+ 	 */
+ 
+-	device_init_wakeup(&pdev->dev, true);
+-
+ 	if (new_ctrl & (u8) OMAP_RTC_CTRL_SPLIT)
+ 		pr_info("%s: split power mode\n", pdev->name);
+ 
+@@ -495,6 +495,7 @@ static int __init omap_rtc_probe(struct
  	return 0;
  
- err:
+ fail0:
++	device_init_wakeup(&pdev->dev, false);
+ 	if (id_entry->driver_data & OMAP_RTC_HAS_KICKER)
+ 		rtc_writel(0, OMAP_RTC_KICK0_REG);
+ 	pm_runtime_put_sync(&pdev->dev);
 _
 
 Patches currently in -mm which might be from johan@kernel.org are
