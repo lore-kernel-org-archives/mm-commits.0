@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arm-dts-am335x-boneblack-enable-power-off-and-rtc-wake-up.patch added to -mm tree
-Date: Wed, 22 Oct 2014 12:04:48 -0700
-Message-ID: <5447ffd0.31w5160cvjcJLsL5%akpm@linux-foundation.org>
+Subject: +
+ memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2.patch added to -mm tree
+Date: Wed, 22 Oct 2014 12:08:29 -0700
+Message-ID: <544800ad.pw8lD2pzMLZ4ZqM1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56509 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56673 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932306AbaJVTEs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:04:48 -0400
+	with ESMTP id S932071AbaJVTI3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Oct 2014 15:08:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johan@kernel.org, a.zummo@towertech.it, balbi@ti.com, bcousson@baylibre.com, j-keerthy@ti.com, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: isimatu.yasuaki@jp.fujitsu.com, dave.hansen@intel.com, rientjes@google.com, tangchen@cn.fujitsu.com, toshi.kani@hp.com, wangnan0@huawei.com, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: dts: am335x-boneblack: enable power off and rtc wake up
+     Subject: memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2
 has been added to the -mm tree.  Its filename is
-     arm-dts-am335x-boneblack-enable-power-off-and-rtc-wake-up.patch
+     memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-dts-am335x-boneblack-enable-power-off-and-rtc-wake-up.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-dts-am335x-boneblack-enable-power-off-and-rtc-wake-up.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,69 +39,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johan Hovold <johan@kernel.org>
-Subject: ARM: dts: am335x-boneblack: enable power off and rtc wake up
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2
 
-Configure the RTC as system-power controller, which allows the system to
-be powered off as well as woken up again on subsequent RTC alarms.
+v2: remove check of pgdat_page
 
-Note that the PMIC needs to be put in SLEEP (rather than OFF) mode to
-maintain RTC power.  Specifically, this means that the PMIC
-ti,pmic-shutdown-controller property must be left unset in order to be
-able to wake up on RTC alarms.
-
-Tested on BeagleBone Black (rev A5).
-
-Signed-off-by: Johan Hovold <johan@kernel.org>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Benot Cousson <bcousson@baylibre.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Sekhar Nori <nsekhar@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Keerthy J <j-keerthy@ti.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Cc: Wang Nan <wangnan0@huawei.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/dts/am335x-boneblack.dts |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/memory_hotplug.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN arch/arm/boot/dts/am335x-boneblack.dts~arm-dts-am335x-boneblack-enable-power-off-and-rtc-wake-up arch/arm/boot/dts/am335x-boneblack.dts
---- a/arch/arm/boot/dts/am335x-boneblack.dts~arm-dts-am335x-boneblack-enable-power-off-and-rtc-wake-up
-+++ a/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -80,3 +80,7 @@
- 		status = "okay";
- 	};
- };
-+
-+&rtc {
-+	ti,system-power-controller;
-+};
-_
-
-Patches currently in -mm which might be from johan@kernel.org are
-
-rtc-omap-fix-clock-source-configuration.patch
-rtc-omap-fix-missing-wakealarm-attribute.patch
-rtc-omap-fix-interrupt-disable-at-probe.patch
-rtc-omap-clean-up-probe-error-handling.patch
-rtc-omap-fix-class-device-registration.patch
-rtc-omap-remove-unused-register-base-define.patch
-rtc-omap-use-dev_info.patch
-rtc-omap-make-platform-device-id-table-const.patch
-rtc-omap-add-device-abstraction.patch
-rtc-omap-remove-driver_name-macro.patch
-rtc-omap-add-structured-device-type-info.patch
-rtc-omap-silence-bogus-power-up-reset-message-at-probe.patch
-rtc-omap-add-helper-to-read-raw-bcd-time.patch
-rtc-omap-add-helper-to-read-32-bit-registers.patch
-rtc-omap-add-support-for-pmic_power_en.patch
-rtc-omap-enable-wake-up-from-power-off.patch
-rtc-omap-fix-minor-coding-style-issues.patch
-rtc-omap-add-copyright-entry.patch
-arm-dts-am33xx-update-rtc-node-compatible-property.patch
-arm-dts-am335x-boneblack-enable-power-off-and-rtc-wake-up.patch
-linux-next.patch
-
+diff -puN mm/memory_hotplug.c~memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2 mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2
++++ a/mm/memory_hotplug.c
+@@ -1912,7 +1912,6 @@ void try_offline_node(int nid)
+ 	unsigned long start_pfn = pgdat->node_start_pfn;
+ 	unsigned long end_pfn = start_pfn + pgdat->node_spanned_pages;
+ 	unsigned long pfn;
+-	struct page *pgdat_page = virt_to_page(pgdat);
+ 	int i;
+ 
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+@@ -1941,10 +1940,6 @@ void try_offline_node(int nid)
+ 	node_set_offline(nid);
+ 	unregister_one_node(nid);
+ 
+-	if (!PageSlab(pgdat_page) && !PageCompound(pgdat_page))
+-		/* node data is allocated from boot memory */
+-		goto out;
