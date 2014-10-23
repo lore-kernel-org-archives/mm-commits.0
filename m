@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-remove-bio-parameter-from-zram_bvec_rw.patch added to -mm
+Subject: + zram-implement-rw_page-operation-of-zram.patch added to -mm
  tree
-Date: Thu, 23 Oct 2014 12:53:48 -0700
-Message-ID: <54495ccc.JFQA7e748MbVB5Xl%akpm@linux-foundation.org>
+Date: Thu, 23 Oct 2014 12:53:50 -0700
+Message-ID: <54495cce.QoxJQcdHSfqti7jI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45703 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753121AbaJWTxs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 15:53:48 -0400
+	with ESMTP id S1754024AbaJWTxu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 15:53:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: karam.lee@lge.com, jmarchan@redhat.com, matthew.r.wilcox@intel.com, minchan@kernel.org, ngupta@vflare.org, seungho1.park@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: remove bio parameter from zram_bvec_rw()
+     Subject: zram: implement rw_page operation of zram
 has been added to the -mm tree.  Its filename is
-     zram-remove-bio-parameter-from-zram_bvec_rw.patch
+     zram-implement-rw_page-operation-of-zram.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-remove-bio-parameter-from-zram_bvec_rw.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-implement-rw_page-operation-of-zram.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-remove-bio-parameter-from-zram_bvec_rw.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-implement-rw_page-operation-of-zram.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,18 +40,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "karam.lee" <karam.lee@lge.com>
-Subject: zram: remove bio parameter from zram_bvec_rw()
+Subject: zram: implement rw_page operation of zram
 
-Recently rw_page block device operation has been added.  This patchset
-implements rw_page operation for zram block device and does some clean-up.
+This patch implements rw_page operation for zram block device.
 
+I implemented the feature in zram and tested it.  Test bed was the G2, LG
+electronic mobile device, whtich has msm8974 processor and 2GB memory.
 
-This patch (of 3):
+With a memory allocation test program consuming memory, the system
+generates swap.
 
-Remove an unnecessary parameter(bio) from zram_bvec_rw() and
-zram_bvec_read().  zram_bvec_read() doesn't use a bio parameter, so remove
-it.  zram_bvec_rw() calls a read/write operation not using bio, so a rw
-parameter replaces a bio parameter.
+Operating time of swap_write_page() was measured.
+
+--------------------------------------------------
+|             |   operating time   | improvement |
+|             |  (20 runs average) |             |
+--------------------------------------------------
+|with patch   |    1061.15 us      |    +2.4%    |
+--------------------------------------------------
+|without patch|    1087.35 us      |             |
+--------------------------------------------------
+
+Each test(with paged_io,with BIO) result set shows normal distribution and
+has equal variance.  I mean the two values are valid result to compare.  I
+can say operation with paged I/O(without BIO) is faster 2.4% with
+confidence level 95%.
 
 Signed-off-by: karam.lee <karam.lee@lge.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
@@ -62,74 +75,59 @@ Cc: <seungho1.park@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/block/zram/zram_drv.c |   38 ++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-remove-bio-parameter-from-zram_bvec_rw drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-remove-bio-parameter-from-zram_bvec_rw
+diff -puN drivers/block/zram/zram_drv.c~zram-implement-rw_page-operation-of-zram drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-implement-rw_page-operation-of-zram
 +++ a/drivers/block/zram/zram_drv.c
-@@ -451,7 +451,7 @@ static int zram_decompress_page(struct z
+@@ -942,8 +942,46 @@ static void zram_slot_free_notify(struct
+ 	atomic64_inc(&zram->stats.notify_free);
  }
  
- static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
--			  u32 index, int offset, struct bio *bio)
-+			  u32 index, int offset)
- {
- 	int ret;
- 	struct page *page;
-@@ -642,14 +642,13 @@ out:
- }
++static int zram_rw_page(struct block_device *bdev, sector_t sector,
++		       struct page *page, int rw)
++{
++	int offset, ret;
++	u32 index;
++	struct zram *zram;
++	struct bio_vec bv;
++
++	zram = bdev->bd_disk->private_data;
++	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
++		atomic64_inc(&zram->stats.invalid_io);
++		ret = -EINVAL;
++		goto out;
++	}
++
++	down_read(&zram->init_lock);
++	if (unlikely(!init_done(zram))) {
++		ret = -EIO;
++		goto out_unlock;
++	}
++
++	index = sector >> SECTORS_PER_PAGE_SHIFT;
++	offset = sector & (SECTORS_PER_PAGE - 1) << SECTOR_SHIFT;
++
++	bv.bv_page = page;
++	bv.bv_len = PAGE_SIZE;
++	bv.bv_offset = 0;
++
++	ret = zram_bvec_rw(zram, &bv, index, offset, rw);
++
++out_unlock:
++	up_read(&zram->init_lock);
++out:
++	page_endio(page, rw, ret);
++	return ret;
++}
++
+ static const struct block_device_operations zram_devops = {
+ 	.swap_slot_free_notify = zram_slot_free_notify,
++	.rw_page = zram_rw_page,
+ 	.owner = THIS_MODULE
+ };
  
- static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
--			int offset, struct bio *bio)
-+			int offset, int rw)
- {
- 	int ret;
--	int rw = bio_data_dir(bio);
- 
- 	if (rw == READ) {
- 		atomic64_inc(&zram->stats.num_reads);
--		ret = zram_bvec_read(zram, bvec, index, offset, bio);
-+		ret = zram_bvec_read(zram, bvec, index, offset);
- 	} else {
- 		atomic64_inc(&zram->stats.num_writes);
- 		ret = zram_bvec_write(zram, bvec, index, offset);
-@@ -850,7 +849,7 @@ out:
- 
- static void __zram_make_request(struct zram *zram, struct bio *bio)
- {
--	int offset;
-+	int offset, rw;
- 	u32 index;
- 	struct bio_vec bvec;
- 	struct bvec_iter iter;
-@@ -865,6 +864,7 @@ static void __zram_make_request(struct z
- 		return;
- 	}
- 
-+	rw = bio_data_dir(bio);
- 	bio_for_each_segment(bvec, bio, iter) {
- 		int max_transfer_size = PAGE_SIZE - offset;
- 
-@@ -879,15 +879,15 @@ static void __zram_make_request(struct z
- 			bv.bv_len = max_transfer_size;
- 			bv.bv_offset = bvec.bv_offset;
- 
--			if (zram_bvec_rw(zram, &bv, index, offset, bio) < 0)
-+			if (zram_bvec_rw(zram, &bv, index, offset, rw) < 0)
- 				goto out;
- 
- 			bv.bv_len = bvec.bv_len - max_transfer_size;
- 			bv.bv_offset += max_transfer_size;
--			if (zram_bvec_rw(zram, &bv, index + 1, 0, bio) < 0)
-+			if (zram_bvec_rw(zram, &bv, index + 1, 0, rw) < 0)
- 				goto out;
- 		} else
--			if (zram_bvec_rw(zram, &bvec, index, offset, bio) < 0)
-+			if (zram_bvec_rw(zram, &bvec, index, offset, rw) < 0)
- 				goto out;
- 
- 		update_position(&index, &offset, &bvec);
 _
 
 Patches currently in -mm which might be from karam.lee@lge.com are
