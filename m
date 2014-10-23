@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-use-%pa-to-avoid-truncating-the-physical-address.patch
+Subject: + ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
  added to -mm tree
-Date: Thu, 23 Oct 2014 13:03:56 -0700
-Message-ID: <54495f2c.QdKe2Gfllx0xCfLd%akpm@linux-foundation.org>
+Date: Thu, 23 Oct 2014 13:06:40 -0700
+Message-ID: <54495fd0.XBQIJiAXW6HmDJvK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45857 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45867 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752137AbaJWUD4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 16:03:56 -0400
+	with ESMTP id S1753859AbaJWUGk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 16:06:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cernekee@gmail.com, aneesh.kumar@linux.vnet.ibm.com, gregory.0xf0@gmail.com, iamjoonsoo.kim@lge.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: use %pa to avoid truncating the physical address
+     Subject: ocfs2: report error from o2hb_do_disk_heartbeat() to user
 has been added to the -mm tree.  Its filename is
-     mm-cma-use-%pa-to-avoid-truncating-the-physical-address.patch
+     ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-use-%pa-to-avoid-truncating-the-physical-address.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-use-%pa-to-avoid-truncating-the-physical-address.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +39,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kevin Cernekee <cernekee@gmail.com>
-Subject: mm: cma: use %pa to avoid truncating the physical address
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: report error from o2hb_do_disk_heartbeat() to user
 
-[gregory.0xf0@gmail.com: rebased from 3.14 and updated commit message]
-Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
-Signed-off-by: Gregory Fong <gregory.0xf0@gmail.com>
-Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Report return value of o2hb_do_disk_heartbeat() as a part of ML_HEARTBEAT
+message so that we know whether a heartbeat actually happened or not. 
+This also makes assigned but otherwise unused 'ret' variable used.
+
+Coverity id: 1227053.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 ++--
+ fs/ocfs2/cluster/heartbeat.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/cma.c~mm-cma-use-%pa-to-avoid-truncating-the-physical-address mm/cma.c
---- a/mm/cma.c~mm-cma-use-%pa-to-avoid-truncating-the-physical-address
-+++ a/mm/cma.c
-@@ -289,8 +289,8 @@ int __init cma_declare_contiguous(phys_a
- 		goto err;
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -1127,10 +1127,10 @@ static int o2hb_thread(void *data)
+ 		elapsed_msec = o2hb_elapsed_msecs(&before_hb, &after_hb);
  
- 	totalcma_pages += (size / PAGE_SIZE);
--	pr_info("Reserved %ld MiB at %08lx\n", (unsigned long)size / SZ_1M,
--		(unsigned long)base);
-+	pr_info("Reserved %ld MiB at %pa\n", (unsigned long)size / SZ_1M,
-+		&base);
- 	return 0;
+ 		mlog(ML_HEARTBEAT,
+-		     "start = %lu.%lu, end = %lu.%lu, msec = %u\n",
++		     "start = %lu.%lu, end = %lu.%lu, msec = %u, ret = %d\n",
+ 		     before_hb.tv_sec, (unsigned long) before_hb.tv_usec,
+ 		     after_hb.tv_sec, (unsigned long) after_hb.tv_usec,
+-		     elapsed_msec);
++		     elapsed_msec, ret);
  
- err:
+ 		if (!kthread_should_stop() &&
+ 		    elapsed_msec < reg->hr_timeout_ms) {
 _
 
-Patches currently in -mm which might be from cernekee@gmail.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-cma-use-%pa-to-avoid-truncating-the-physical-address.patch
+origin.patch
+bitmap-fix-undefined-shift-in-__bitmap_shift_leftright.patch
+fallocate-create-fan_modify-and-in_modify-events.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
+ocfs2-remove-bogus-test-from-ocfs2_read_locked_inode.patch
+ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
+ocfs2-remove-pointless-assignment-in-ocfs2_init.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
+befs-remove-dead-code.patch
+linux-next.patch
+mm-add-strictlimit-knob-v2.patch
 
