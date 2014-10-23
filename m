@@ -1,90 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-remove-pointless-assignment-in-ocfs2_init.patch added to
- -mm tree
-Date: Thu, 23 Oct 2014 13:06:41 -0700
-Message-ID: <54495fd1.DyuSd/W2qgv1joYC%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
+ removed from -mm tree
+Date: Thu, 23 Oct 2014 13:10:22 -0700
+Message-ID: <544960ae.scFo22O1hwHyCgUS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45872 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755282AbaJWUGl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 16:06:41 -0400
+	with ESMTP id S1751014AbaJWUKV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 16:10:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: liwanp@linux.vnet.ibm.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove pointless assignment in ocfs2_init()
-has been added to the -mm tree.  Its filename is
-     ocfs2-remove-pointless-assignment-in-ocfs2_init.patch
+     Subject: mm/migrate.c: fix set cpupid on page migration twice against thp
+has been removed from the -mm tree.  Its filename was
+     mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-pointless-assignment-in-ocfs2_init.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-pointless-assignment-in-ocfs2_init.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: remove pointless assignment in ocfs2_init()
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/migrate.c: fix set cpupid on page migration twice against thp
 
-Remove assignment which is never used.
+7851a45cd3 (mm: numa: Copy cpupid on page migration) copies over the
+cpupid at page migration time.  It is unnecessary to set it again in
+migrate_misplaced_transhuge_page().
 
-Coverity id: 1227009.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/migrate.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/ocfs2/super.c~ocfs2-remove-pointless-assignment-in-ocfs2_init fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-remove-pointless-assignment-in-ocfs2_init
-+++ a/fs/ocfs2/super.c
-@@ -1621,10 +1621,8 @@ static int __init ocfs2_init(void)
- 	}
+diff -puN mm/migrate.c~mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp mm/migrate.c
+--- a/mm/migrate.c~mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp
++++ a/mm/migrate.c
+@@ -1753,8 +1753,6 @@ int migrate_misplaced_transhuge_page(str
+ 	if (!new_page)
+ 		goto out_fail;
  
- 	ocfs2_debugfs_root = debugfs_create_dir("ocfs2", NULL);
--	if (!ocfs2_debugfs_root) {
--		status = -EFAULT;
-+	if (!ocfs2_debugfs_root)
- 		mlog(ML_ERROR, "Unable to create ocfs2 debugfs root.\n");
--	}
- 
- 	ocfs2_set_locking_protocol();
- 
-_
-
-Patches currently in -mm which might be from jack@suse.cz are
-
-origin.patch
-bitmap-fix-undefined-shift-in-__bitmap_shift_leftright.patch
-fallocate-create-fan_modify-and-in_modify-events.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
-ocfs2-remove-bogus-test-from-ocfs2_read_locked_inode.patch
-ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
-ocfs2-remove-pointless-assignment-in-ocfs2_init.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
-befs-remove-dead-code.patch
-linux-next.patch
-mm-add-strictlimit-knob-v2.patch
-
+-	page_cpupid_xchg_last(new_page, page_cpupid_last(page));
