@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-uncharge-pages-on-swapout-fix.patch added to -mm
- tree
-Date: Thu, 23 Oct 2014 12:22:30 -0700
-Message-ID: <54495576.jI5tA9ZXY8GQaiPi%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-inline-memcg-move_lock-locking.patch added to -mm tree
+Date: Thu, 23 Oct 2014 12:23:37 -0700
+Message-ID: <544955b9.lcMznP21OoaeRVEM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45367 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45374 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752354AbaJWTW3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 15:22:29 -0400
+	with ESMTP id S1751700AbaJWTXg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 15:23:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: uncharge pages on swapout fix
+     Subject: mm: memcontrol: inline memcg->move_lock locking
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-uncharge-pages-on-swapout-fix.patch
+     mm-memcontrol-inline-memcg-move_lock-locking.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-uncharge-pages-on-swapout-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-inline-memcg-move_lock-locking.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-uncharge-pages-on-swapout-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-inline-memcg-move_lock-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,50 +39,87 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: uncharge pages on swapout fix
+Subject: mm: memcontrol: inline memcg->move_lock locking
 
-Vladimir notes:
+The wrappers around taking and dropping the memcg->move_lock spinlock add
+nothing of value.  Inline the spinlock calls into the callsites.
 
-> > +   local_irq_disable();
-> > +   mem_cgroup_charge_statistics(memcg, page, -1);
-> > +   memcg_check_events(memcg, page);
-> > +   local_irq_enable();
->
-> AFAICT mem_cgroup_swapout() is called under mapping->tree_lock with irqs
-> disabled, so we should use irq_save/restore here.
-
-Simply remove the irq-disabling altogether and rely on the caller
-holding the mapping->tree_lock for now.
-
-Reported-by: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   28 ++++++----------------------
+ 1 file changed, 6 insertions(+), 22 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-uncharge-pages-on-swapout-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-uncharge-pages-on-swapout-fix
+diff -puN mm/memcontrol.c~mm-memcontrol-inline-memcg-move_lock-locking mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-inline-memcg-move_lock-locking
 +++ a/mm/memcontrol.c
-@@ -5786,10 +5786,11 @@ void mem_cgroup_swapout(struct page *pag
- 	if (!mem_cgroup_is_root(memcg))
- 		page_counter_uncharge(&memcg->memory, 1);
- 
--	local_irq_disable();
-+	/* XXX: caller holds IRQ-safe mapping->tree_lock */
-+	VM_BUG_ON(!irqs_disabled());
-+
- 	mem_cgroup_charge_statistics(memcg, page, -1);
- 	memcg_check_events(memcg, page);
--	local_irq_enable();
+@@ -1522,23 +1522,6 @@ static bool mem_cgroup_wait_acct_move(st
+ 	return false;
  }
  
+-/*
+- * Take this lock when
+- * - a code tries to modify page's memcg while it's USED.
+- * - a code tries to modify page state accounting in a memcg.
+- */
+-static void move_lock_mem_cgroup(struct mem_cgroup *memcg,
+-				  unsigned long *flags)
+-{
+-	spin_lock_irqsave(&memcg->move_lock, *flags);
+-}
+-
+-static void move_unlock_mem_cgroup(struct mem_cgroup *memcg,
+-				unsigned long *flags)
+-{
+-	spin_unlock_irqrestore(&memcg->move_lock, *flags);
+-}
+-
+ #define K(x) ((x) << (PAGE_SHIFT-10))
  /**
+  * mem_cgroup_print_oom_info: Print OOM information relevant to memory controller.
+@@ -2151,9 +2134,9 @@ again:
+ 	if (atomic_read(&memcg->moving_account) <= 0)
+ 		return memcg;
+ 
+-	move_lock_mem_cgroup(memcg, flags);
++	spin_lock_irqsave(&memcg->move_lock, *flags);
+ 	if (memcg != pc->mem_cgroup) {
+-		move_unlock_mem_cgroup(memcg, flags);
++		spin_unlock_irqrestore(&memcg->move_lock, *flags);
+ 		goto again;
+ 	}
+ 	*locked = true;
+@@ -2165,7 +2148,7 @@ void mem_cgroup_end_page_stat(struct mem
+ 			      unsigned long flags)
+ {
+ 	if (memcg && locked)
+-		move_unlock_mem_cgroup(memcg, &flags);
++		spin_unlock_irqrestore(&memcg->move_lock, flags);
+ 
+ 	rcu_read_unlock();
+ }
+@@ -3200,7 +3183,7 @@ static int mem_cgroup_move_account(struc
+ 	if (pc->mem_cgroup != from)
+ 		goto out_unlock;
+ 
+-	move_lock_mem_cgroup(from, &flags);
++	spin_lock_irqsave(&from->move_lock, flags);
+ 
+ 	if (!PageAnon(page) && page_mapped(page)) {
+ 		__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED],
+@@ -3224,7 +3207,8 @@ static int mem_cgroup_move_account(struc
+ 
+ 	/* caller should have done css_get */
+ 	pc->mem_cgroup = to;
+-	move_unlock_mem_cgroup(from, &flags);
++	spin_unlock_irqrestore(&from->move_lock, flags);
++
+ 	ret = 0;
+ 
+ 	local_irq_disable();
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -117,5 +153,6 @@ mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
 mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
 mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
 mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-inline-memcg-move_lock-locking.patch
 debugging-keep-track-of-page-owners.patch
 
