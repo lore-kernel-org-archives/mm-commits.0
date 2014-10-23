@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-make-kmemleak-ignore-cma-regions-fix.patch added to -mm
- tree
-Date: Thu, 23 Oct 2014 13:22:45 -0700
-Message-ID: <54496395.wr+ShLuQpZnFsAub%akpm@linux-foundation.org>
+Subject: + mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch added to
+ -mm tree
+Date: Thu, 23 Oct 2014 14:15:13 -0700
+Message-ID: <54496fe1.WR859VXoseV4ekbS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46014 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46546 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932303AbaJWUWq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 16:22:46 -0400
+	with ESMTP id S1750930AbaJWVPN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 17:15:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, iamjoonsoo.kim@lge.com, m.szyprowski@samsung.com, mina86@mina86.com, treding@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-make-kmemleak-ignore-cma-regions-fix
+     Subject: mm-cma-make-kmemleak-ignore-cma-regions-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-cma-make-kmemleak-ignore-cma-regions-fix.patch
+     mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-make-kmemleak-ignore-cma-regions-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-make-kmemleak-ignore-cma-regions-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,9 +40,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-cma-make-kmemleak-ignore-cma-regions-fix
+Subject: mm-cma-make-kmemleak-ignore-cma-regions-fix-fix
 
-add comment
+fix comment, per Catalin
 
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -53,23 +53,24 @@ Cc: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/cma.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix mm/cma.c
---- a/mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix
+diff -puN mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix-fix mm/cma.c
+--- a/mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix-fix
 +++ a/mm/cma.c
-@@ -280,6 +280,10 @@ int __init cma_declare_contiguous(phys_a
- 			ret = -ENOMEM;
+@@ -281,8 +281,9 @@ int __init cma_declare_contiguous(phys_a
  			goto err;
  		} else {
-+			/*
-+			 * kmemleak writes metadata to the tracked objects, but
-+			 * this address isn't mapped and accessible.
-+			 */
+ 			/*
+-			 * kmemleak writes metadata to the tracked objects, but
+-			 * this address isn't mapped and accessible.
++			 * kmemleak scans/reads tracked objects for pointers to
++			 * other objects but this address isn't mapped and
++			 * accessible
+ 			 */
  			kmemleak_ignore(phys_to_virt(addr));
  			base = addr;
- 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,4 +113,5 @@ journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
+mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch
 
