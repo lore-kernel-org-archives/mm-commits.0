@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
- added to -mm tree
-Date: Thu, 23 Oct 2014 13:06:40 -0700
-Message-ID: <54495fd0.XBQIJiAXW6HmDJvK%akpm@linux-foundation.org>
+Subject: + ocfs2-remove-pointless-assignment-in-ocfs2_init.patch added to
+ -mm tree
+Date: Thu, 23 Oct 2014 13:06:41 -0700
+Message-ID: <54495fd1.DyuSd/W2qgv1joYC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45867 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45872 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753859AbaJWUGk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 16:06:40 -0400
+	with ESMTP id S1755282AbaJWUGl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 16:06:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: report error from o2hb_do_disk_heartbeat() to user
+     Subject: ocfs2: remove pointless assignment in ocfs2_init()
 has been added to the -mm tree.  Its filename is
-     ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
+     ocfs2-remove-pointless-assignment-in-ocfs2_init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-pointless-assignment-in-ocfs2_init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-pointless-assignment-in-ocfs2_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: report error from o2hb_do_disk_heartbeat() to user
+Subject: ocfs2: remove pointless assignment in ocfs2_init()
 
-Report return value of o2hb_do_disk_heartbeat() as a part of ML_HEARTBEAT
-message so that we know whether a heartbeat actually happened or not. 
-This also makes assigned but otherwise unused 'ret' variable used.
+Remove assignment which is never used.
 
-Coverity id: 1227053.
+Coverity id: 1227009.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -54,25 +52,24 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/super.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -1127,10 +1127,10 @@ static int o2hb_thread(void *data)
- 		elapsed_msec = o2hb_elapsed_msecs(&before_hb, &after_hb);
+diff -puN fs/ocfs2/super.c~ocfs2-remove-pointless-assignment-in-ocfs2_init fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-remove-pointless-assignment-in-ocfs2_init
++++ a/fs/ocfs2/super.c
+@@ -1621,10 +1621,8 @@ static int __init ocfs2_init(void)
+ 	}
  
- 		mlog(ML_HEARTBEAT,
--		     "start = %lu.%lu, end = %lu.%lu, msec = %u\n",
-+		     "start = %lu.%lu, end = %lu.%lu, msec = %u, ret = %d\n",
- 		     before_hb.tv_sec, (unsigned long) before_hb.tv_usec,
- 		     after_hb.tv_sec, (unsigned long) after_hb.tv_usec,
--		     elapsed_msec);
-+		     elapsed_msec, ret);
+ 	ocfs2_debugfs_root = debugfs_create_dir("ocfs2", NULL);
+-	if (!ocfs2_debugfs_root) {
+-		status = -EFAULT;
++	if (!ocfs2_debugfs_root)
+ 		mlog(ML_ERROR, "Unable to create ocfs2 debugfs root.\n");
+-	}
  
- 		if (!kthread_should_stop() &&
- 		    elapsed_msec < reg->hr_timeout_ms) {
+ 	ocfs2_set_locking_protocol();
+ 
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
