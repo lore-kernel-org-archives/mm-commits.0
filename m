@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch added to -mm tree
-Date: Thu, 23 Oct 2014 12:25:20 -0700
-Message-ID: <54495620.n9MuJbCDh8tu5Blx%akpm@linux-foundation.org>
+ mm-memcontrol-fix-missed-end-writeback-page-accounting-fix.patch added to
+ -mm tree
+Date: Thu, 23 Oct 2014 12:28:36 -0700
+Message-ID: <544956e4.LbpGjENN8bg8RGc5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45383 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45389 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753121AbaJWTZU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 15:25:20 -0400
+	with ESMTP id S1751700AbaJWT2f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Oct 2014 15:28:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fold mem_cgroup_start_move()/mem_cgroup_end_move()
+     Subject: mm: memcontrol: fix missed end-writeback page accounting fix
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
+     mm-memcontrol-fix-missed-end-writeback-page-accounting-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-missed-end-writeback-page-accounting-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-missed-end-writeback-page-accounting-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,87 +41,106 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: fold mem_cgroup_start_move()/mem_cgroup_end_move()
+Subject: mm: memcontrol: fix missed end-writeback page accounting fix
 
-Having these functions and their documentation split out and somewhere
-makes it harder, not easier, to follow what's going on.
-
-Inline them directly where charge moving is prepared and finished, and put
-an explanation right next to it.
+Add kernel-doc to page state accounting functions.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   40 ++++++++++++----------------------------
- 1 file changed, 12 insertions(+), 28 deletions(-)
+ mm/memcontrol.c |   51 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 35 insertions(+), 16 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-missed-end-writeback-page-accounting-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-missed-end-writeback-page-accounting-fix
 +++ a/mm/memcontrol.c
-@@ -1447,32 +1447,6 @@ int mem_cgroup_swappiness(struct mem_cgr
+@@ -2198,21 +2198,31 @@ cleanup:
+ 	return true;
  }
  
- /*
-- * memcg->moving_account is used for checking possibility that some thread is
-- * calling move_account(). When a thread on CPU-A starts moving pages under
-- * a memcg, other threads should check memcg->moving_account under
-- * rcu_read_lock(), like this:
-- *
-- *         CPU-A                                    CPU-B
-- *                                              rcu_read_lock()
-- *         memcg->moving_account+1              if (memcg->mocing_account)
-- *                                                   take heavy locks.
-- *         synchronize_rcu()                    update something.
-- *                                              rcu_read_unlock()
-- *         start move here.
-- */
--
--static void mem_cgroup_start_move(struct mem_cgroup *memcg)
--{
--	atomic_inc(&memcg->moving_account);
--	synchronize_rcu();
--}
--
--static void mem_cgroup_end_move(struct mem_cgroup *memcg)
--{
--	atomic_dec(&memcg->moving_account);
--}
--
 -/*
-  * A routine for checking "mem" is under move_account() or not.
+- * Used to update mapped file or writeback or other statistics.
++/**
++ * mem_cgroup_begin_page_stat - begin a page state statistics transaction
++ * @page: page that is going to change accounted state
++ * @locked: &memcg->move_lock slowpath was taken
++ * @flags: IRQ-state flags for &memcg->move_lock
   *
-  * Checking a cgroup is mc.from or mc.to or under hierarchy of
-@@ -5412,7 +5386,8 @@ static void mem_cgroup_clear_mc(void)
- 	mc.from = NULL;
- 	mc.to = NULL;
- 	spin_unlock(&mc.lock);
--	mem_cgroup_end_move(from);
+- * Notes: Race condition
++ * This function must mark the beginning of an accounted page state
++ * change to prevent double accounting when the page is concurrently
++ * being moved to another memcg:
+  *
+- * Charging occurs during page instantiation, while the page is
+- * unmapped and locked in page migration, or while the page table is
+- * locked in THP migration.  No race is possible.
++ *   memcg = mem_cgroup_begin_page_stat(page, &locked, &flags);
++ *   if (TestClearPageState(page))
++ *     mem_cgroup_update_page_stat(memcg, state, -1);
++ *   mem_cgroup_end_page_stat(memcg, locked, flags);
+  *
+- * Uncharge happens to pages with zero references, no race possible.
++ * The RCU lock is held throughout the transaction.  The fast path can
++ * get away without acquiring the memcg->move_lock (@locked is false)
++ * because page moving starts with an RCU grace period.
+  *
+- * Charge moving between groups is protected by checking mm->moving
+- * account and taking the move_lock in the slowpath.
++ * The RCU lock also protects the memcg from being freed when the page
++ * state that is going to change is the only thing preventing the page
++ * from being uncharged.  E.g. end-writeback clearing PageWriteback(),
++ * which allows migration to go ahead and uncharge the page before the
++ * account transaction might be complete.
+  */
+-
+ struct mem_cgroup *mem_cgroup_begin_page_stat(struct page *page,
+ 					      bool *locked,
+ 					      unsigned long *flags)
+@@ -2230,12 +2240,7 @@ again:
+ 	memcg = pc->mem_cgroup;
+ 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
+ 		return NULL;
+-	/*
+-	 * If this memory cgroup is not under account moving, we don't
+-	 * need to take move_lock_mem_cgroup(). Because we already hold
+-	 * rcu_read_lock(), any calls to move_account will be delayed until
+-	 * rcu_read_unlock().
+-	 */
 +
-+	atomic_dec(&memcg->moving_account);
+ 	*locked = false;
+ 	if (atomic_read(&memcg->moving_account) <= 0)
+ 		return memcg;
+@@ -2250,6 +2255,12 @@ again:
+ 	return memcg;
  }
  
- static int mem_cgroup_can_attach(struct cgroup_subsys_state *css,
-@@ -5445,7 +5420,16 @@ static int mem_cgroup_can_attach(struct
- 			VM_BUG_ON(mc.precharge);
- 			VM_BUG_ON(mc.moved_charge);
- 			VM_BUG_ON(mc.moved_swap);
--			mem_cgroup_start_move(from);
-+
-+			/*
-+			 * Signal mem_cgroup_begin_page_stat() to take
-+			 * the memcg's move_lock while we're moving
-+			 * its pages to another memcg.  Then wait for
-+			 * already started RCU-only updates to finish.
-+			 */
-+			atomic_inc(&memcg->moving_account);
-+			synchronize_rcu();
-+
- 			spin_lock(&mc.lock);
- 			mc.from = from;
- 			mc.to = memcg;
++/**
++ * mem_cgroup_end_page_stat - finish a page state statistics transaction
++ * @memcg: the memcg that was accounted against
++ * @locked: value received from mem_cgroup_begin_page_stat()
++ * @flags: value received from mem_cgroup_begin_page_stat()
++ */
+ void mem_cgroup_end_page_stat(struct mem_cgroup *memcg, bool locked,
+ 			      unsigned long flags)
+ {
+@@ -2259,6 +2270,14 @@ void mem_cgroup_end_page_stat(struct mem
+ 	rcu_read_unlock();
+ }
+ 
++/**
++ * mem_cgroup_update_page_stat - update page state statistics
++ * @memcg: memcg to account against
++ * @idx: page state item to account
++ * @val: number of pages (positive or negative)
++ *
++ * See mem_cgroup_begin_page_stat() for locking requirements.
++ */
+ void mem_cgroup_update_page_stat(struct mem_cgroup *memcg,
+ 				 enum mem_cgroup_stat_index idx, int val)
+ {
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -128,6 +148,7 @@ Patches currently in -mm which might be from hannes@cmpxchg.org are
 cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
 mm-page-writeback-inline-account_page_dirtied-into-single-caller.patch
 mm-memcontrol-fix-missed-end-writeback-page-accounting.patch
+mm-memcontrol-fix-missed-end-writeback-page-accounting-fix.patch
 mm-memcontrol-lockless-page-counters.patch
 mm-memcontrol-lockless-page-counters-fix.patch
 mm-memcontrol-lockless-page-counters-fix-fix.patch
