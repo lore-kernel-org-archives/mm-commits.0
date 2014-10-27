@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + arch-powerpc-switch-to-generic-rcu-get_user_pages_fast.patch
- added to -mm tree
-Date: Mon, 27 Oct 2014 16:05:02 -0700
-Message-ID: <544ecf9e.df+9RdDnlvf64TvQ%akpm@linux-foundation.org>
+Subject: + sh-fix-sh770x-scif-memory-regions.patch added to -mm tree
+Date: Mon, 27 Oct 2014 16:08:24 -0700
+Message-ID: <544ed068.KFMMyOmthlbRwnBR%akpm__44018.2502069094$1414451316$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41089 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41104 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751024AbaJ0XFH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Oct 2014 19:05:07 -0400
+	with ESMTP id S1751490AbaJ0XIY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Oct 2014 19:08:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, benh@kernel.crashing.org, mpe@ellerman.id.au, steve.capper@linaro.org, mm-commits@vger.kernel.org
+To: askulysh@gmail.com, laurent.pinchart+renesas@ideasonboard.com, laurent.pinchart@ideasonboard.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/powerpc: switch to generic RCU get_user_pages_fast
+     Subject: sh: fix sh770x SCIF memory regions
 has been added to the -mm tree.  Its filename is
-     arch-powerpc-switch-to-generic-rcu-get_user_pages_fast.patch
+     sh-fix-sh770x-scif-memory-regions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-powerpc-switch-to-generic-rcu-get_user_pages_fast.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-fix-sh770x-scif-memory-regions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-powerpc-switch-to-generic-rcu-get_user_pages_fast.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-fix-sh770x-scif-memory-regions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,484 +38,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: arch/powerpc: switch to generic RCU get_user_pages_fast
+From: Andriy Skulysh <askulysh@gmail.com>
+Subject: sh: fix sh770x SCIF memory regions
 
-Switch the ppc arch to use the generic RCU based gup implementation.
+Resources scif1_resources & scif2_resources overlap.  Actual SCIF region
+size is 0x10.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Steve Capper <steve.capper@linaro.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+This is regression from:
+
+Author: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Date:   Fri Dec 6 10:59:48 2013 +0100
+sh: Declare SCIF register base and IRQ as resources
+
+Signed-off-by: Andriy Skulysh <askulysh@gmail.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig                     |    1 
- arch/powerpc/include/asm/hugetlb.h       |    8 
- arch/powerpc/include/asm/page.h          |    3 
- arch/powerpc/include/asm/pgtable-ppc64.h |    1 
- arch/powerpc/include/asm/pgtable.h       |    5 
- arch/powerpc/mm/Makefile                 |    2 
- arch/powerpc/mm/gup.c                    |  235 ---------------------
- arch/powerpc/mm/hugetlbpage.c            |   27 +-
- 8 files changed, 21 insertions(+), 261 deletions(-)
+ arch/sh/kernel/cpu/sh3/setup-sh770x.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast
-+++ a/arch/powerpc/Kconfig
-@@ -148,6 +148,7 @@ config PPC
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select DCACHE_WORD_ACCESS if PPC64 && CPU_LITTLE_ENDIAN
-+	select HAVE_GENERIC_RCU_GUP
+diff -puN arch/sh/kernel/cpu/sh3/setup-sh770x.c~sh-fix-sh770x-scif-memory-regions arch/sh/kernel/cpu/sh3/setup-sh770x.c
+--- a/arch/sh/kernel/cpu/sh3/setup-sh770x.c~sh-fix-sh770x-scif-memory-regions
++++ a/arch/sh/kernel/cpu/sh3/setup-sh770x.c
+@@ -118,7 +118,7 @@ static struct plat_sci_port scif0_platfo
+ };
  
- config GENERIC_CSUM
- 	def_bool CPU_LITTLE_ENDIAN
-diff -puN arch/powerpc/include/asm/hugetlb.h~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast arch/powerpc/include/asm/hugetlb.h
---- a/arch/powerpc/include/asm/hugetlb.h~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast
-+++ a/arch/powerpc/include/asm/hugetlb.h
-@@ -48,7 +48,7 @@ static inline unsigned int hugepd_shift(
- #endif /* CONFIG_PPC_BOOK3S_64 */
+ static struct resource scif0_resources[] = {
+-	DEFINE_RES_MEM(0xfffffe80, 0x100),
++	DEFINE_RES_MEM(0xfffffe80, 0x10),
+ 	DEFINE_RES_IRQ(evt2irq(0x4e0)),
+ };
  
+@@ -143,7 +143,7 @@ static struct plat_sci_port scif1_platfo
+ };
  
--static inline pte_t *hugepte_offset(hugepd_t *hpdp, unsigned long addr,
-+static inline pte_t *hugepte_offset(hugepd_t hpd, unsigned long addr,
- 				    unsigned pdshift)
- {
- 	/*
-@@ -58,9 +58,9 @@ static inline pte_t *hugepte_offset(huge
- 	 */
- 	unsigned long idx = 0;
+ static struct resource scif1_resources[] = {
+-	DEFINE_RES_MEM(0xa4000150, 0x100),
++	DEFINE_RES_MEM(0xa4000150, 0x10),
+ 	DEFINE_RES_IRQ(evt2irq(0x900)),
+ };
  
--	pte_t *dir = hugepd_page(*hpdp);
-+	pte_t *dir = hugepd_page(hpd);
- #ifndef CONFIG_PPC_FSL_BOOK3E
--	idx = (addr & ((1UL << pdshift) - 1)) >> hugepd_shift(*hpdp);
-+	idx = (addr & ((1UL << pdshift) - 1)) >> hugepd_shift(hpd);
- #endif
+@@ -169,7 +169,7 @@ static struct plat_sci_port scif2_platfo
+ };
  
- 	return dir + idx;
-@@ -193,7 +193,7 @@ static inline void flush_hugetlb_page(st
- }
+ static struct resource scif2_resources[] = {
+-	DEFINE_RES_MEM(0xa4000140, 0x100),
++	DEFINE_RES_MEM(0xa4000140, 0x10),
+ 	DEFINE_RES_IRQ(evt2irq(0x880)),
+ };
  
- #define hugepd_shift(x) 0
--static inline pte_t *hugepte_offset(hugepd_t *hpdp, unsigned long addr,
-+static inline pte_t *hugepte_offset(hugepd_t hpd, unsigned long addr,
- 				    unsigned pdshift)
- {
- 	return 0;
-diff -puN arch/powerpc/include/asm/page.h~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast arch/powerpc/include/asm/page.h
---- a/arch/powerpc/include/asm/page.h~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast
-+++ a/arch/powerpc/include/asm/page.h
-@@ -379,13 +379,14 @@ static inline int hugepd_ok(hugepd_t hpd
- }
- #endif
- 
--#define is_hugepd(pdep)               (hugepd_ok(*((hugepd_t *)(pdep))))
-+#define is_hugepd(hpd)               (hugepd_ok(hpd))
- #define pgd_huge pgd_huge
- int pgd_huge(pgd_t pgd);
- #else /* CONFIG_HUGETLB_PAGE */
- #define is_hugepd(pdep)			0
- #define pgd_huge(pgd)			0
- #endif /* CONFIG_HUGETLB_PAGE */
-+#define __hugepd(x) ((hugepd_t) { (x) })
- 
- struct page;
- extern void clear_user_page(void *page, unsigned long vaddr, struct page *pg);
-diff -puN arch/powerpc/include/asm/pgtable-ppc64.h~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast arch/powerpc/include/asm/pgtable-ppc64.h
---- a/arch/powerpc/include/asm/pgtable-ppc64.h~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast
-+++ a/arch/powerpc/include/asm/pgtable-ppc64.h
-@@ -575,6 +575,5 @@ static inline int pmd_move_must_withdraw
- 	 */
- 	return true;
- }
--
- #endif /* __ASSEMBLY__ */
- #endif /* _ASM_POWERPC_PGTABLE_PPC64_H_ */
-diff -puN arch/powerpc/include/asm/pgtable.h~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast arch/powerpc/include/asm/pgtable.h
---- a/arch/powerpc/include/asm/pgtable.h~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast
-+++ a/arch/powerpc/include/asm/pgtable.h
-@@ -274,11 +274,6 @@ extern void paging_init(void);
-  */
- extern void update_mmu_cache(struct vm_area_struct *, unsigned long, pte_t *);
- 
--extern int gup_hugepd(hugepd_t *hugepd, unsigned pdshift, unsigned long addr,
--		      unsigned long end, int write, struct page **pages, int *nr);
--
--extern int gup_hugepte(pte_t *ptep, unsigned long sz, unsigned long addr,
--		       unsigned long end, int write, struct page **pages, int *nr);
- #ifndef CONFIG_TRANSPARENT_HUGEPAGE
- #define pmd_large(pmd)		0
- #define has_transparent_hugepage() 0
-diff -puN arch/powerpc/mm/Makefile~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast arch/powerpc/mm/Makefile
---- a/arch/powerpc/mm/Makefile~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast
-+++ a/arch/powerpc/mm/Makefile
-@@ -6,7 +6,7 @@ subdir-ccflags-$(CONFIG_PPC_WERROR) := -
- 
- ccflags-$(CONFIG_PPC64)	:= $(NO_MINIMAL_TOC)
- 
--obj-y				:= fault.o mem.o pgtable.o gup.o mmap.o \
-+obj-y				:= fault.o mem.o pgtable.o mmap.o \
- 				   init_$(CONFIG_WORD_SIZE).o \
- 				   pgtable_$(CONFIG_WORD_SIZE).o
- obj-$(CONFIG_PPC_MMU_NOHASH)	+= mmu_context_nohash.o tlb_nohash.o \
-diff -puN arch/powerpc/mm/gup.c~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast /dev/null
---- a/arch/powerpc/mm/gup.c
-+++ /dev/null
-@@ -1,235 +0,0 @@
--/*
-- * Lockless get_user_pages_fast for powerpc
-- *
-- * Copyright (C) 2008 Nick Piggin
-- * Copyright (C) 2008 Novell Inc.
-- */
--#undef DEBUG
--
--#include <linux/sched.h>
--#include <linux/mm.h>
--#include <linux/hugetlb.h>
--#include <linux/vmstat.h>
--#include <linux/pagemap.h>
--#include <linux/rwsem.h>
--#include <asm/pgtable.h>
--
--#ifdef __HAVE_ARCH_PTE_SPECIAL
--
--/*
-- * The performance critical leaf functions are made noinline otherwise gcc
-- * inlines everything into a single function which results in too much
-- * register pressure.
-- */
--static noinline int gup_pte_range(pmd_t pmd, unsigned long addr,
--		unsigned long end, int write, struct page **pages, int *nr)
--{
--	unsigned long mask, result;
--	pte_t *ptep;
--
--	result = _PAGE_PRESENT|_PAGE_USER;
--	if (write)
--		result |= _PAGE_RW;
--	mask = result | _PAGE_SPECIAL;
--
--	ptep = pte_offset_kernel(&pmd, addr);
--	do {
--		pte_t pte = ACCESS_ONCE(*ptep);
--		struct page *page;
--		/*
--		 * Similar to the PMD case, NUMA hinting must take slow path
--		 */
--		if (pte_numa(pte))
--			return 0;
--
--		if ((pte_val(pte) & mask) != result)
--			return 0;
--		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
--		page = pte_page(pte);
--		if (!page_cache_get_speculative(page))
--			return 0;
--		if (unlikely(pte_val(pte) != pte_val(*ptep))) {
--			put_page(page);
--			return 0;
--		}
--		pages[*nr] = page;
--		(*nr)++;
--
--	} while (ptep++, addr += PAGE_SIZE, addr != end);
--
--	return 1;
--}
--
--static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
--		int write, struct page **pages, int *nr)
--{
--	unsigned long next;
--	pmd_t *pmdp;
--
--	pmdp = pmd_offset(&pud, addr);
--	do {
--		pmd_t pmd = ACCESS_ONCE(*pmdp);
--
--		next = pmd_addr_end(addr, end);
--		/*
--		 * If we find a splitting transparent hugepage we
--		 * return zero. That will result in taking the slow
--		 * path which will call wait_split_huge_page()
--		 * if the pmd is still in splitting state
--		 */
--		if (pmd_none(pmd) || pmd_trans_splitting(pmd))
--			return 0;
--		if (pmd_huge(pmd) || pmd_large(pmd)) {
--			/*
--			 * NUMA hinting faults need to be handled in the GUP
--			 * slowpath for accounting purposes and so that they
--			 * can be serialised against THP migration.
--			 */
--			if (pmd_numa(pmd))
--				return 0;
--
--			if (!gup_hugepte((pte_t *)pmdp, PMD_SIZE, addr, next,
--					 write, pages, nr))
--				return 0;
--		} else if (is_hugepd(pmdp)) {
--			if (!gup_hugepd((hugepd_t *)pmdp, PMD_SHIFT,
--					addr, next, write, pages, nr))
--				return 0;
--		} else if (!gup_pte_range(pmd, addr, next, write, pages, nr))
--			return 0;
--	} while (pmdp++, addr = next, addr != end);
--
--	return 1;
--}
--
--static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
--		int write, struct page **pages, int *nr)
--{
--	unsigned long next;
--	pud_t *pudp;
--
--	pudp = pud_offset(&pgd, addr);
--	do {
--		pud_t pud = ACCESS_ONCE(*pudp);
--
--		next = pud_addr_end(addr, end);
--		if (pud_none(pud))
--			return 0;
--		if (pud_huge(pud)) {
--			if (!gup_hugepte((pte_t *)pudp, PUD_SIZE, addr, next,
--					 write, pages, nr))
--				return 0;
--		} else if (is_hugepd(pudp)) {
--			if (!gup_hugepd((hugepd_t *)pudp, PUD_SHIFT,
--					addr, next, write, pages, nr))
--				return 0;
--		} else if (!gup_pmd_range(pud, addr, next, write, pages, nr))
--			return 0;
--	} while (pudp++, addr = next, addr != end);
--
--	return 1;
--}
--
--int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
--			  struct page **pages)
--{
--	struct mm_struct *mm = current->mm;
--	unsigned long addr, len, end;
--	unsigned long next;
--	unsigned long flags;
--	pgd_t *pgdp;
--	int nr = 0;
--
--	pr_devel("%s(%lx,%x,%s)\n", __func__, start, nr_pages, write ? "write" : "read");
--
--	start &= PAGE_MASK;
--	addr = start;
--	len = (unsigned long) nr_pages << PAGE_SHIFT;
--	end = start + len;
--
--	if (unlikely(!access_ok(write ? VERIFY_WRITE : VERIFY_READ,
--					start, len)))
--		return 0;
--
--	pr_devel("  aligned: %lx .. %lx\n", start, end);
--
--	/*
--	 * XXX: batch / limit 'nr', to avoid large irq off latency
--	 * needs some instrumenting to determine the common sizes used by
--	 * important workloads (eg. DB2), and whether limiting the batch size
--	 * will decrease performance.
--	 *
--	 * It seems like we're in the clear for the moment. Direct-IO is
--	 * the main guy that batches up lots of get_user_pages, and even
--	 * they are limited to 64-at-a-time which is not so many.
--	 */
--	/*
--	 * This doesn't prevent pagetable teardown, but does prevent
--	 * the pagetables from being freed on powerpc.
--	 *
--	 * So long as we atomically load page table pointers versus teardown,
--	 * we can follow the address down to the the page and take a ref on it.
--	 */
--	local_irq_save(flags);
--
--	pgdp = pgd_offset(mm, addr);
--	do {
--		pgd_t pgd = ACCESS_ONCE(*pgdp);
--
--		pr_devel("  %016lx: normal pgd %p\n", addr,
--			 (void *)pgd_val(pgd));
--		next = pgd_addr_end(addr, end);
--		if (pgd_none(pgd))
--			break;
--		if (pgd_huge(pgd)) {
--			if (!gup_hugepte((pte_t *)pgdp, PGDIR_SIZE, addr, next,
--					 write, pages, &nr))
--				break;
--		} else if (is_hugepd(pgdp)) {
--			if (!gup_hugepd((hugepd_t *)pgdp, PGDIR_SHIFT,
--					addr, next, write, pages, &nr))
--				break;
--		} else if (!gup_pud_range(pgd, addr, next, write, pages, &nr))
--			break;
--	} while (pgdp++, addr = next, addr != end);
--
--	local_irq_restore(flags);
--
--	return nr;
--}
--
--int get_user_pages_fast(unsigned long start, int nr_pages, int write,
--			struct page **pages)
--{
--	struct mm_struct *mm = current->mm;
--	int nr, ret;
--
--	start &= PAGE_MASK;
--	nr = __get_user_pages_fast(start, nr_pages, write, pages);
--	ret = nr;
--
--	if (nr < nr_pages) {
--		pr_devel("  slow path ! nr = %d\n", nr);
--
--		/* Try to get the remaining pages with get_user_pages */
--		start += nr << PAGE_SHIFT;
--		pages += nr;
--
--		down_read(&mm->mmap_sem);
--		ret = get_user_pages(current, mm, start,
--				     nr_pages - nr, write, 0, pages, NULL);
--		up_read(&mm->mmap_sem);
--
--		/* Have to be a bit careful with return values */
--		if (nr > 0) {
--			if (ret < 0)
--				ret = nr;
--			else
--				ret += nr;
--		}
--	}
--
--	return ret;
--}
--
--#endif /* __HAVE_ARCH_PTE_SPECIAL */
-diff -puN arch/powerpc/mm/hugetlbpage.c~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~arch-powerpc-switch-to-generic-rcu-get_user_pages_fast
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -230,7 +230,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 	if (hugepd_none(*hpdp) && __hugepte_alloc(mm, hpdp, addr, pdshift, pshift))
- 		return NULL;
- 
--	return hugepte_offset(hpdp, addr, pdshift);
-+	return hugepte_offset(*hpdp, addr, pdshift);
- }
- 
- #else
-@@ -270,7 +270,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 	if (hugepd_none(*hpdp) && __hugepte_alloc(mm, hpdp, addr, pdshift, pshift))
- 		return NULL;
- 
--	return hugepte_offset(hpdp, addr, pdshift);
-+	return hugepte_offset(*hpdp, addr, pdshift);
- }
- #endif
- 
-@@ -538,7 +538,7 @@ static void hugetlb_free_pmd_range(struc
- 	do {
- 		pmd = pmd_offset(pud, addr);
- 		next = pmd_addr_end(addr, end);
--		if (!is_hugepd(pmd)) {
-+		if (!is_hugepd(__hugepd(pmd_val(*pmd)))) {
- 			/*
- 			 * if it is not hugepd pointer, we should already find
- 			 * it cleared.
-@@ -587,7 +587,7 @@ static void hugetlb_free_pud_range(struc
- 	do {
- 		pud = pud_offset(pgd, addr);
- 		next = pud_addr_end(addr, end);
--		if (!is_hugepd(pud)) {
-+		if (!is_hugepd(__hugepd(pud_val(*pud)))) {
- 			if (pud_none_or_clear_bad(pud))
- 				continue;
- 			hugetlb_free_pmd_range(tlb, pud, addr, next, floor,
-@@ -653,7 +653,7 @@ void hugetlb_free_pgd_range(struct mmu_g
- 	do {
- 		next = pgd_addr_end(addr, end);
- 		pgd = pgd_offset(tlb->mm, addr);
--		if (!is_hugepd(pgd)) {
-+		if (!is_hugepd(__hugepd(pgd_val(*pgd)))) {
- 			if (pgd_none_or_clear_bad(pgd))
- 				continue;
- 			hugetlb_free_pud_range(tlb, pgd, addr, next, floor, ceiling);
-@@ -713,18 +713,17 @@ static unsigned long hugepte_addr_end(un
- 	return (__boundary - 1 < end - 1) ? __boundary : end;
- }
- 
--int gup_hugepd(hugepd_t *hugepd, unsigned pdshift,
--	       unsigned long addr, unsigned long end,
--	       int write, struct page **pages, int *nr)
-+int gup_huge_pd(hugepd_t hugepd, unsigned long addr, unsigned pdshift,
-+		unsigned long end, int write, struct page **pages, int *nr)
- {
- 	pte_t *ptep;
--	unsigned long sz = 1UL << hugepd_shift(*hugepd);
-+	unsigned long sz = 1UL << hugepd_shift(hugepd);
- 	unsigned long next;
- 
- 	ptep = hugepte_offset(hugepd, addr, pdshift);
- 	do {
- 		next = hugepte_addr_end(addr, end, sz);
--		if (!gup_hugepte(ptep, sz, addr, end, write, pages, nr))
-+		if (!gup_huge_pte(*ptep, ptep, addr, sz, end, write, pages, nr))
- 			return 0;
- 	} while (ptep++, addr = next, addr != end);
- 
-@@ -961,7 +960,7 @@ pte_t *find_linux_pte_or_hugepte(pgd_t *
- 	else if (pgd_huge(pgd)) {
- 		ret_pte = (pte_t *) pgdp;
- 		goto out;
--	} else if (is_hugepd(&pgd))
-+	} else if (is_hugepd(__hugepd(pgd_val(pgd))))
- 		hpdp = (hugepd_t *)&pgd;
- 	else {
- 		/*
-@@ -978,7 +977,7 @@ pte_t *find_linux_pte_or_hugepte(pgd_t *
- 		else if (pud_huge(pud)) {
- 			ret_pte = (pte_t *) pudp;
- 			goto out;
--		} else if (is_hugepd(&pud))
-+		} else if (is_hugepd(__hugepd(pud_val(pud))))
- 			hpdp = (hugepd_t *)&pud;
- 		else {
- 			pdshift = PMD_SHIFT;
-@@ -999,7 +998,7 @@ pte_t *find_linux_pte_or_hugepte(pgd_t *
- 			if (pmd_huge(pmd) || pmd_large(pmd)) {
- 				ret_pte = (pte_t *) pmdp;
- 				goto out;
--			} else if (is_hugepd(&pmd))
-+			} else if (is_hugepd(__hugepd(pmd_val(pmd))))
- 				hpdp = (hugepd_t *)&pmd;
- 			else
- 				return pte_offset_kernel(&pmd, ea);
-@@ -1008,7 +1007,7 @@ pte_t *find_linux_pte_or_hugepte(pgd_t *
- 	if (!hpdp)
- 		return NULL;
- 
--	ret_pte = hugepte_offset(hpdp, ea, pdshift);
-+	ret_pte = hugepte_offset(*hpdp, ea, pdshift);
- 	pdshift = hugepd_shift(*hpdp);
- out:
- 	if (shift)
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from askulysh@gmail.com are
 
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-mm-cma-make-kmemleak-ignore-cma-regions-fix.patch
-mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch
-mm-numa-balancing-rearrange-kconfig-entry.patch
-mm-cma-use-%pa-to-avoid-truncating-the-physical-address.patch
-mm-update-generic-gup-implementation-to-handle-hugepage-directory.patch
-arch-powerpc-switch-to-generic-rcu-get_user_pages_fast.patch
+sh-fix-sh770x-scif-memory-regions.patch
 
