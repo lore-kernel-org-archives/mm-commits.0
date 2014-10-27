@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-omap-add-support-for-pmic_power_en-v3.patch added to -mm
- tree
-Date: Mon, 27 Oct 2014 15:40:47 -0700
-Message-ID: <544ec9ef.FD2uq0ji6ruNvad7%akpm@linux-foundation.org>
+Subject: + rtc-omap-add-support-for-pmic_power_en-v3-fix.patch added to
+ -mm tree
+Date: Mon, 27 Oct 2014 15:40:48 -0700
+Message-ID: <544ec9f0.Fy97CjPyKtx52oyM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41003 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41012 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752501AbaJ0Wkr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Oct 2014 18:40:47 -0400
+	with ESMTP id S1752501AbaJ0Wks (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Oct 2014 18:40:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johan@kernel.org, a.zummo@towertech.it, anilkumar@ti.com, balbi@ti.com, bcousson@baylibre.com, colin.foeparker@logicpd.com, j-keerthy@ti.com, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, anilkumar@ti.com, balbi@ti.com, bcousson@baylibre.com, colin.foeparker@logicpd.com, j-keerthy@ti.com, johan@kernel.org, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: omap: add support for pmic_power_en
+     Subject: rtc-omap-add-support-for-pmic_power_en-v3-fix
 has been added to the -mm tree.  Its filename is
-     rtc-omap-add-support-for-pmic_power_en-v3.patch
+     rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-omap-add-support-for-pmic_power_en-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-omap-add-support-for-pmic_power_en-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +39,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johan Hovold <johan@kernel.org>
-Subject: rtc: omap: add support for pmic_power_en
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-omap-add-support-for-pmic_power_en-v3-fix
 
-Signed-off-by: Johan Hovold <johan@kernel.org>
-Tested-by: Felipe Balbi <balbi@ti.com>
-Cc: Colin Foe-Parker <colin.foeparker@logicpd.com>
-Cc: AnilKumar Ch <anilkumar@ti.com>
+add comment
+
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Tony Lindgren <tony@atomide.com>
+Cc: AnilKumar Ch <anilkumar@ti.com>
 Cc: Benot Cousson <bcousson@baylibre.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Colin Foe-Parker <colin.foeparker@logicpd.com>
+Cc: Felipe Balbi <balbi@ti.com>
 Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Johan Hovold <johan@kernel.org>
+Cc: Keerthy J <j-keerthy@ti.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>
 Cc: Sekhar Nori <nsekhar@ti.com>
 Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Keerthy J <j-keerthy@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-omap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-omap-add-support-for-pmic_power_en-v3 drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-omap-add-support-for-pmic_power_en-v3
+diff -puN drivers/rtc/rtc-omap.c~rtc-omap-add-support-for-pmic_power_en-v3-fix drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-omap-add-support-for-pmic_power_en-v3-fix
 +++ a/drivers/rtc/rtc-omap.c
-@@ -416,6 +416,8 @@ static void omap_rtc_power_off(void)
- 	val = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
+@@ -417,6 +417,7 @@ static void omap_rtc_power_off(void)
  	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
  			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
-+
-+	mdelay(2000);
+ 
++	/* Allow alarm to trigger before returning */
+ 	mdelay(2000);
  }
  
- static struct rtc_class_ops omap_rtc_ops = {
 _
 
-Patches currently in -mm which might be from johan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-omap-fix-clock-source-configuration.patch
-rtc-omap-fix-missing-wakealarm-attribute.patch
-rtc-omap-fix-interrupt-disable-at-probe.patch
-rtc-omap-clean-up-probe-error-handling.patch
-rtc-omap-fix-class-device-registration.patch
-rtc-omap-remove-unused-register-base-define.patch
-rtc-omap-use-dev_info.patch
-rtc-omap-make-platform-device-id-table-const.patch
-rtc-omap-add-device-abstraction.patch
-rtc-omap-remove-driver_name-macro.patch
-rtc-omap-add-structured-device-type-info.patch
-rtc-omap-silence-bogus-power-up-reset-message-at-probe.patch
-rtc-omap-add-helper-to-read-raw-bcd-time.patch
-rtc-omap-add-helper-to-read-32-bit-registers.patch
-rtc-omap-add-support-for-pmic_power_en.patch
-rtc-omap-add-support-for-pmic_power_en-v3.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
+mm-cma-make-kmemleak-ignore-cma-regions-fix.patch
+mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
+ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix-fix.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
+mm.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
 rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-rtc-omap-enable-wake-up-from-power-off.patch
-rtc-omap-fix-minor-coding-style-issues.patch
-rtc-omap-add-copyright-entry.patch
-arm-dts-am33xx-update-rtc-node-compatible-property.patch
-arm-dts-am335x-boneblack-enable-power-off-and-rtc-wake-up.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
