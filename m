@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + thp-do-not-mark-zero-page-pmd-write-protected-explicitly.patch
- added to -mm tree
-Date: Tue, 28 Oct 2014 13:41:27 -0700
-Message-ID: <544fff77.LrwJFaCVt5ciXX/J%akpm@linux-foundation.org>
+Subject: + mremap-take-anon_vma-lock-in-shared-mode.patch added to -mm
+ tree
+Date: Tue, 28 Oct 2014 13:47:33 -0700
+Message-ID: <545000e5.T0+/Kw+QkwGzyjQT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32996 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33159 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753919AbaJ1Ul0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 16:41:26 -0400
+	with ESMTP id S1750810AbaJ1Urc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 16:47:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, dbueso@suse.de, riel@redhat.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: do not mark zero-page pmd write-protected explicitly
+     Subject: mremap: take anon_vma lock in shared mode
 has been added to the -mm tree.  Its filename is
-     thp-do-not-mark-zero-page-pmd-write-protected-explicitly.patch
+     mremap-take-anon_vma-lock-in-shared-mode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-do-not-mark-zero-page-pmd-write-protected-explicitly.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mremap-take-anon_vma-lock-in-shared-mode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-do-not-mark-zero-page-pmd-write-protected-explicitly.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mremap-take-anon_vma-lock-in-shared-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,33 +40,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: do not mark zero-page pmd write-protected explicitly
+Subject: mremap: take anon_vma lock in shared mode
 
-Zero pages can be used only in anonymous mappings, which never have
-writable vma->vm_page_prot: see protection_map in mm/mmap.c and __PX1X
-definitions.
-
-Let's drop redundant pmd_wrprotect() in set_huge_zero_page().
+There's no modification to anon_vma interval tree.  We only need to
+serialize against exclusive rmap walker who wants to catch all ptes the
+page is mapped with.  Shared lock is enough for that.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Suggested-by: Davidlohr Bueso <dbueso@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Michel Lespinasse <walken@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/mremap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-do-not-mark-zero-page-pmd-write-protected-explicitly mm/huge_memory.c
---- a/mm/huge_memory.c~thp-do-not-mark-zero-page-pmd-write-protected-explicitly
-+++ a/mm/huge_memory.c
-@@ -789,7 +789,6 @@ static bool set_huge_zero_page(pgtable_t
- 	if (!pmd_none(*pmd))
- 		return false;
- 	entry = mk_pmd(zero_page, vma->vm_page_prot);
--	entry = pmd_wrprotect(entry);
- 	entry = pmd_mkhuge(entry);
- 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 	set_pmd_at(mm, haddr, pmd, entry);
+diff -puN mm/mremap.c~mremap-take-anon_vma-lock-in-shared-mode mm/mremap.c
+--- a/mm/mremap.c~mremap-take-anon_vma-lock-in-shared-mode
++++ a/mm/mremap.c
+@@ -123,7 +123,7 @@ static void move_ptes(struct vm_area_str
+ 		}
+ 		if (vma->anon_vma) {
+ 			anon_vma = vma->anon_vma;
+-			anon_vma_lock_write(anon_vma);
++			anon_vma_lock_read(anon_vma);
+ 		}
+ 	}
+ 
+@@ -154,7 +154,7 @@ static void move_ptes(struct vm_area_str
+ 	pte_unmap(new_pte - 1);
+ 	pte_unmap_unlock(old_pte - 1, old_ptl);
+ 	if (anon_vma)
+-		anon_vma_unlock_write(anon_vma);
++		anon_vma_unlock_read(anon_vma);
+ 	if (mapping)
+ 		mutex_unlock(&mapping->i_mmap_mutex);
+ }
+@@ -199,12 +199,12 @@ unsigned long move_page_tables(struct vm
+ 					      vma);
+ 				/* See comment in move_ptes() */
+ 				if (need_rmap_locks)
+-					anon_vma_lock_write(vma->anon_vma);
++					anon_vma_lock_read(vma->anon_vma);
+ 				err = move_huge_pmd(vma, new_vma, old_addr,
+ 						    new_addr, old_end,
+ 						    old_pmd, new_pmd);
+ 				if (need_rmap_locks)
+-					anon_vma_unlock_write(vma->anon_vma);
++					anon_vma_unlock_read(vma->anon_vma);
+ 			}
+ 			if (err > 0) {
+ 				need_flush = true;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -75,6 +101,7 @@ mm-free-compound-page-with-correct-order.patch
 mm-thp-fix-collapsing-of-hugepages-on-madvise.patch
 mm-verify-compound-order-when-freeing-a-page.patch
 thp-do-not-mark-zero-page-pmd-write-protected-explicitly.patch
+mremap-take-anon_vma-lock-in-shared-mode.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
