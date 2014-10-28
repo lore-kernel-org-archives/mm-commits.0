@@ -1,97 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + sh-fix-sh770x-scif-memory-regions.patch added to -mm tree
-Date: Mon, 27 Oct 2014 16:08:24 -0700
-Message-ID: <544ed068.KFMMyOmthlbRwnBR%akpm__44018.2502069094$1414451316$gmane$org@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-cma-use-%pa-to-avoid-truncating-the-physical-address.patch removed from
+ -mm tree
+Date: Mon, 27 Oct 2014 21:35:29 -0700
+Message-ID: <544f1d11./K02oqtliuHGFepF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41104 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48328 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490AbaJ0XIY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Oct 2014 19:08:24 -0400
+	with ESMTP id S1751099AbaJ1EfM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 00:35:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: askulysh@gmail.com, laurent.pinchart+renesas@ideasonboard.com, laurent.pinchart@ideasonboard.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: cernekee@gmail.com, aneesh.kumar@linux.vnet.ibm.com, gregory.0xf0@gmail.com, iamjoonsoo.kim@lge.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: fix sh770x SCIF memory regions
-has been added to the -mm tree.  Its filename is
-     sh-fix-sh770x-scif-memory-regions.patch
+     Subject: mm: cma: use %pa to avoid truncating the physical address
+has been removed from the -mm tree.  Its filename was
+     mm-cma-use-%pa-to-avoid-truncating-the-physical-address.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-fix-sh770x-scif-memory-regions.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-fix-sh770x-scif-memory-regions.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andriy Skulysh <askulysh@gmail.com>
-Subject: sh: fix sh770x SCIF memory regions
+From: Kevin Cernekee <cernekee@gmail.com>
+Subject: mm: cma: use %pa to avoid truncating the physical address
 
-Resources scif1_resources & scif2_resources overlap.  Actual SCIF region
-size is 0x10.
-
-This is regression from:
-
-Author: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Date:   Fri Dec 6 10:59:48 2013 +0100
-sh: Declare SCIF register base and IRQ as resources
-
-Signed-off-by: Andriy Skulysh <askulysh@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: <stable@vger.kernel.org>
+[gregory.0xf0@gmail.com: rebased from 3.14 and updated commit message]
+Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
+Signed-off-by: Gregory Fong <gregory.0xf0@gmail.com>
+Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/cpu/sh3/setup-sh770x.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/cma.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/sh/kernel/cpu/sh3/setup-sh770x.c~sh-fix-sh770x-scif-memory-regions arch/sh/kernel/cpu/sh3/setup-sh770x.c
---- a/arch/sh/kernel/cpu/sh3/setup-sh770x.c~sh-fix-sh770x-scif-memory-regions
-+++ a/arch/sh/kernel/cpu/sh3/setup-sh770x.c
-@@ -118,7 +118,7 @@ static struct plat_sci_port scif0_platfo
- };
+diff -puN mm/cma.c~mm-cma-use-%pa-to-avoid-truncating-the-physical-address mm/cma.c
+--- a/mm/cma.c~mm-cma-use-%pa-to-avoid-truncating-the-physical-address
++++ a/mm/cma.c
+@@ -294,8 +294,8 @@ int __init cma_declare_contiguous(phys_a
+ 		goto err;
  
- static struct resource scif0_resources[] = {
--	DEFINE_RES_MEM(0xfffffe80, 0x100),
-+	DEFINE_RES_MEM(0xfffffe80, 0x10),
- 	DEFINE_RES_IRQ(evt2irq(0x4e0)),
- };
+ 	totalcma_pages += (size / PAGE_SIZE);
+-	pr_info("Reserved %ld MiB at %08lx\n", (unsigned long)size / SZ_1M,
+-		(unsigned long)base);
++	pr_info("Reserved %ld MiB at %pa\n", (unsigned long)size / SZ_1M,
++		&base);
+ 	return 0;
  
-@@ -143,7 +143,7 @@ static struct plat_sci_port scif1_platfo
- };
- 
- static struct resource scif1_resources[] = {
--	DEFINE_RES_MEM(0xa4000150, 0x100),
-+	DEFINE_RES_MEM(0xa4000150, 0x10),
- 	DEFINE_RES_IRQ(evt2irq(0x900)),
- };
- 
-@@ -169,7 +169,7 @@ static struct plat_sci_port scif2_platfo
- };
- 
- static struct resource scif2_resources[] = {
--	DEFINE_RES_MEM(0xa4000140, 0x100),
-+	DEFINE_RES_MEM(0xa4000140, 0x10),
- 	DEFINE_RES_IRQ(evt2irq(0x880)),
- };
- 
+ err:
 _
 
-Patches currently in -mm which might be from askulysh@gmail.com are
+Patches currently in -mm which might be from cernekee@gmail.com are
 
-sh-fix-sh770x-scif-memory-regions.patch
 
