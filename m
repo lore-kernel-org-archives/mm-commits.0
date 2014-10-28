@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
- added to -mm tree
-Date: Tue, 28 Oct 2014 15:50:35 -0700
-Message-ID: <54501dbb.B7lh/8Eij9t1htvS%akpm@linux-foundation.org>
+Subject: + fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch added
+ to -mm tree
+Date: Tue, 28 Oct 2014 15:58:58 -0700
+Message-ID: <54501fb2.nkGYF29RQaHvDikC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34330 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34344 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751353AbaJ1Wue (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 18:50:34 -0400
+	with ESMTP id S1754805AbaJ1W65 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 18:58:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joe@perches.com, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/char_dev.c: remove pointless assignment from __register_chrdev_region()
+     Subject: fs/binfmt_misc.c: use GFP_KERNEL instead of GFP_USER
 has been added to the -mm tree.  Its filename is
-     char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
+     fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,50 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fs/char_dev.c: remove pointless assignment from __register_chrdev_region()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/binfmt_misc.c: use GFP_KERNEL instead of GFP_USER
 
-At one place we assign major number we found to ret.  That assignment is
-then never used and actually doesn't make any sense given how the code is
-currently structured (the assignment comes from pre-git times).  Just
-remove it.
+GFP_USER means "honour cpuset nodes-allowed beancounting".  These are
+regular old kernel objects and there seems no reason to give them this
+treatment.
 
-Coverity id: 1226852.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/char_dev.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/binfmt_misc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/char_dev.c~char_dev-remove-pointless-assignment-from-__register_chrdev_region fs/char_dev.c
---- a/fs/char_dev.c~char_dev-remove-pointless-assignment-from-__register_chrdev_region
-+++ a/fs/char_dev.c
-@@ -117,7 +117,6 @@ __register_chrdev_region(unsigned int ma
- 			goto out;
- 		}
- 		major = i;
--		ret = major;
- 	}
+diff -puN fs/binfmt_misc.c~fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user
++++ a/fs/binfmt_misc.c
+@@ -308,7 +308,7 @@ static Node *create_entry(const char __u
  
- 	cd->major = major;
+ 	err = -ENOMEM;
+ 	memsize = sizeof(Node) + count + 8;
+-	e = kmalloc(memsize, GFP_USER);
++	e = kmalloc(memsize, GFP_KERNEL);
+ 	if (!e)
+ 		goto out;
+ 
+@@ -416,7 +416,7 @@ static Node *create_entry(const char __u
+ 
+ 			if (e->mask) {
+ 				int i;
+-				char *masked = kmalloc(e->size, GFP_USER);
++				char *masked = kmalloc(e->size, GFP_KERNEL);
+ 
+ 				print_hex_dump_bytes(
+ 					KBUILD_MODNAME ": register:  mask[decoded]: ",
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-bitmap-fix-undefined-shift-in-__bitmap_shift_leftright.patch
-fallocate-create-fan_modify-and-in_modify-events.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
-ocfs2-remove-bogus-test-from-ocfs2_read_locked_inode.patch
-ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
-ocfs2-remove-pointless-assignment-in-ocfs2_init.patch
-char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
-befs-remove-dead-code.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
+rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
+kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+mm.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
-mm-add-strictlimit-knob-v2.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
