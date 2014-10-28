@@ -1,36 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mmu_notifier-add-the-call-back-for-mmu_notifier_invalidate_range.patch
- added to -mm tree
-Date: Tue, 28 Oct 2014 14:38:17 -0700
-Message-ID: <54500cc9.jH+v6x6/TXoyDJ3b%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch added to -mm tree
+Date: Tue, 28 Oct 2014 14:41:44 -0700
+Message-ID: <54500d98.pBenQK13JVuRo/8l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33669 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33676 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755761AbaJ1ViR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 17:38:17 -0400
+	with ESMTP id S1753255AbaJ1Vln (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 17:41:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jroedel@suse.de, Jay.Cornwall@amd.com, Oded.Gabbay@amd.com, Suravee.Suthikulpanit@amd.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, dwmw2@infradead.org, hughd@google.com, jbarnes@virtuousgeek.org, jglisse@redhat.com, jweiner@redhat.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmu_notifier: add the callback for mmu_notifier_invalidat=
-e_range()
+     Subject: mm: memcontrol: shorten the page statistics update slowpath
 has been added to the -mm tree.  Its filename is
-     mmu_notifier-add-the-call-back-for-mmu_notifier_invalidate_range.p=
-atch
+     mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmu_notifier-add-the-call-=
-back-for-mmu_notifier_invalidate_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmu_notifier-add-the-call-=
-back-for-mmu_notifier_invalidate_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,167 +32,136 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Joerg Roedel <jroedel@suse.de>
-Subject: mmu_notifier: add the callback for mmu_notifier_invalidate_ran=
-ge()
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: shorten the page statistics update slowpath
 
-Now that the mmu_notifier_invalidate_range() calls are in place, add th=
-e
-callback to allow subsystems to register against it.
+While moving charges from one memcg to another, page stat updates must
+acquire the old memcg's move_lock to prevent double accounting.  That
+situation is denoted by an increased memcg->move_accounting.  However, the
+charge moving code declares this way too early for now, even before
+summing up the RSS and pre-allocating destination charges.
 
-Signed-off-by: Joerg Roedel <jroedel@suse.de>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: J=E9r=F4me Glisse <jglisse@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Jay Cornwall <Jay.Cornwall@amd.com>
-Cc: Oded Gabbay <Oded.Gabbay@amd.com>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Shorten this slowpath mode by increasing memcg->move_accounting only right
+before walking the task's address space with the intention of actually
+moving the pages.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   37 ++++++++++++++++++++++++++++-----
- mm/mmu_notifier.c            |   25 ++++++++++++++++++++++
- 2 files changed, 57 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/mmu_notifier.h~mmu_notifier-add-the-call-back-f=
-or-mmu_notifier_invalidate_range include/linux/mmu_notifier.h
---- a/include/linux/mmu_notifier.h~mmu_notifier-add-the-call-back-for-m=
-mu_notifier_invalidate_range
-+++ a/include/linux/mmu_notifier.h
-@@ -98,11 +98,11 @@ struct mmu_notifier_ops {
+diff -puN mm/memcontrol.c~mm-memcontrol-shorten-the-page-statistics-update-slowpath mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-shorten-the-page-statistics-update-slowpath
++++ a/mm/memcontrol.c
+@@ -5246,8 +5246,6 @@ static void __mem_cgroup_clear_mc(void)
+ 
+ static void mem_cgroup_clear_mc(void)
+ {
+-	struct mem_cgroup *from = mc.from;
+-
  	/*
- 	 * invalidate_range_start() and invalidate_range_end() must be
- 	 * paired and are called only when the mmap_sem and/or the
--	 * locks protecting the reverse maps are held. The subsystem
--	 * must guarantee that no additional references are taken to
--	 * the pages in the range established between the call to
--	 * invalidate_range_start() and the matching call to
--	 * invalidate_range_end().
-+	 * locks protecting the reverse maps are held. If the subsystem
-+	 * can't guarantee that no additional references are taken to
-+	 * the pages in the range, it has to implement the
-+	 * invalidate_range() notifier to remove any references taken
-+	 * after invalidate_range_start().
- 	 *
- 	 * Invalidation of multiple concurrent ranges may be
- 	 * optionally permitted by the driver. Either way the
-@@ -144,6 +144,29 @@ struct mmu_notifier_ops {
- 	void (*invalidate_range_end)(struct mmu_notifier *mn,
- 				     struct mm_struct *mm,
- 				     unsigned long start, unsigned long end);
-+
+ 	 * we must clear moving_task before waking up waiters at the end of
+ 	 * task migration.
+@@ -5258,8 +5256,6 @@ static void mem_cgroup_clear_mc(void)
+ 	mc.from = NULL;
+ 	mc.to = NULL;
+ 	spin_unlock(&mc.lock);
+-
+-	atomic_dec(&from->moving_account);
+ }
+ 
+ static int mem_cgroup_can_attach(struct cgroup_subsys_state *css,
+@@ -5293,15 +5289,6 @@ static int mem_cgroup_can_attach(struct
+ 			VM_BUG_ON(mc.moved_charge);
+ 			VM_BUG_ON(mc.moved_swap);
+ 
+-			/*
+-			 * Signal mem_cgroup_begin_page_stat() to take
+-			 * the memcg's move_lock while we're moving
+-			 * its pages to another memcg.  Then wait for
+-			 * already started RCU-only updates to finish.
+-			 */
+-			atomic_inc(&from->moving_account);
+-			synchronize_rcu();
+-
+ 			spin_lock(&mc.lock);
+ 			mc.from = from;
+ 			mc.to = memcg;
+@@ -5433,6 +5420,13 @@ static void mem_cgroup_move_charge(struc
+ 	struct vm_area_struct *vma;
+ 
+ 	lru_add_drain_all();
 +	/*
-+	 * invalidate_range() is either called between
-+	 * invalidate_range_start() and invalidate_range_end() when the
-+	 * VM has to free pages that where unmapped, but before the
-+	 * pages are actually freed, or outside of _start()/_end() when
-+	 * a (remote) TLB is necessary.
-+	 *
-+	 * If invalidate_range() is used to manage a non-CPU TLB with
-+	 * shared page-tables, it not necessary to implement the
-+	 * invalidate_range_start()/end() notifiers, as
-+	 * invalidate_range() alread catches the points in time when an
-+	 * external TLB range needs to be flushed.
-+	 *
-+	 * The invalidate_range() function is called under the ptl
-+	 * spin-lock and not allowed to sleep.
-+	 *
-+	 * Note that this function might be called with just a sub-range
-+	 * of what was passed to invalidate_range_start()/end(), if
-+	 * called between those functions.
++	 * Signal mem_cgroup_begin_page_stat() to take the memcg's
++	 * move_lock while we're moving its pages to another memcg.
++	 * Then wait for already started RCU-only updates to finish.
 +	 */
-+	void (*invalidate_range)(struct mmu_notifier *mn, struct mm_struct *m=
-m,
-+				 unsigned long start, unsigned long end);
- };
-=20
- /*
-@@ -190,6 +213,8 @@ extern void __mmu_notifier_invalidate_ra
- 				  unsigned long start, unsigned long end);
- extern void __mmu_notifier_invalidate_range_end(struct mm_struct *mm,
- 				  unsigned long start, unsigned long end);
-+extern void __mmu_notifier_invalidate_range(struct mm_struct *mm,
-+				  unsigned long start, unsigned long end);
-=20
- static inline void mmu_notifier_release(struct mm_struct *mm)
- {
-@@ -245,6 +270,8 @@ static inline void mmu_notifier_invalida
- static inline void mmu_notifier_invalidate_range(struct mm_struct *mm,
- 				  unsigned long start, unsigned long end)
- {
-+	if (mm_has_notifiers(mm))
-+		__mmu_notifier_invalidate_range(mm, start, end);
- }
-=20
- static inline void mmu_notifier_mm_init(struct mm_struct *mm)
-diff -puN mm/mmu_notifier.c~mmu_notifier-add-the-call-back-for-mmu_noti=
-fier_invalidate_range mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~mmu_notifier-add-the-call-back-for-mmu_notifier=
-_invalidate_range
-+++ a/mm/mmu_notifier.c
-@@ -193,6 +193,16 @@ void __mmu_notifier_invalidate_range_end
-=20
- 	id =3D srcu_read_lock(&srcu);
- 	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist) {
-+		/*
-+		 * Call invalidate_range here too to avoid the need for the
-+		 * subsystem of having to register an invalidate_range_end
-+		 * call-back when there is invalidate_range already. Usually a
-+		 * subsystem registers either invalidate_range_start()/end() or
-+		 * invalidate_range(), so this will be no additional overhead
-+		 * (besides the pointer check).
-+		 */
-+		if (mn->ops->invalidate_range)
-+			mn->ops->invalidate_range(mn, mm, start, end);
- 		if (mn->ops->invalidate_range_end)
- 			mn->ops->invalidate_range_end(mn, mm, start, end);
++	atomic_inc(&mc.from->moving_account);
++	synchronize_rcu();
+ retry:
+ 	if (unlikely(!down_read_trylock(&mm->mmap_sem))) {
+ 		/*
+@@ -5465,6 +5459,7 @@ retry:
+ 			break;
  	}
-@@ -200,6 +210,21 @@ void __mmu_notifier_invalidate_range_end
+ 	up_read(&mm->mmap_sem);
++	atomic_dec(&mc.from->moving_account);
  }
- EXPORT_SYMBOL_GPL(__mmu_notifier_invalidate_range_end);
-=20
-+void __mmu_notifier_invalidate_range(struct mm_struct *mm,
-+				  unsigned long start, unsigned long end)
-+{
-+	struct mmu_notifier *mn;
-+	int id;
-+
-+	id =3D srcu_read_lock(&srcu);
-+	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist) {
-+		if (mn->ops->invalidate_range)
-+			mn->ops->invalidate_range(mn, mm, start, end);
-+	}
-+	srcu_read_unlock(&srcu, id);
-+}
-+EXPORT_SYMBOL_GPL(__mmu_notifier_invalidate_range);
-+
- static int do_mmu_notifier_register(struct mmu_notifier *mn,
- 				    struct mm_struct *mm,
- 				    int take_mmap_sem)
+ 
+ static void mem_cgroup_move_task(struct cgroup_subsys_state *css,
 _
 
-Patches currently in -mm which might be from jroedel@suse.de are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mmu_notifier-add-mmu_notifier_invalidate_range.patch
-mmu_notifier-call-mmu_notifier_invalidate_range-from-vmm.patch
-mmu_notifier-add-the-call-back-for-mmu_notifier_invalidate_range.patch
-linux-next.patch
+cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
+mm-page-writeback-inline-account_page_dirtied-into-single-caller.patch
+mm-memcontrol-fix-missed-end-writeback-page-accounting.patch
+mm-memcontrol-fix-missed-end-writeback-page-accounting-fix.patch
+mm-rmap-split-out-page_remove_file_rmap.patch
+slab-print-slabinfo-header-in-seq-show.patch
+mm-memcontrol-lockless-page-counters.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+mm-memcontrol-lockless-page-counters-fix-2.patch
+mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+kernel-res_counter-remove-the-unused-api.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+kernel-res_counter-remove-the-unused-api-fix-2.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
+mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
+mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
+mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+mm-memcontrol-remove-synchroneous-stock-draining-code.patch
+mm-vmscan-count-only-dirty-pages-as-congested.patch
+memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
+mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
+mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
+memcg-remove-activate_kmem_mutex.patch
+mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
+mm-memcontrol-uncharge-pages-on-swapout.patch
+mm-memcontrol-uncharge-pages-on-swapout-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-inline-memcg-move_lock-locking.patch
+mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
+mm-memcontrol-do-not-filter-reclaimable-nodes-in-numa-round-robin.patch
+memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
+mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
+debugging-keep-track-of-page-owners.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
