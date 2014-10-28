@@ -1,121 +1,178 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
- removed from -mm tree
-Date: Tue, 28 Oct 2014 13:50:46 -0700
-Message-ID: <545001a6.JJeWbIEGuCGAEc+8%akpm@linux-foundation.org>
+ ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch removed from
+ -mm tree
+Date: Tue, 28 Oct 2014 13:50:52 -0700
+Message-ID: <545001ac.GyRaBPsO6rekDg6Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33185 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33196 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753438AbaJ1Uup (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 16:50:45 -0400
+	with ESMTP id S1753730AbaJ1Uuv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 16:50:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, wangww631@huawei.com, mm-commits@vger.kernel.org
+To: wangww631@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix
+     Subject: ocfs2: do not fall back to buffer I/O write if fill holes
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
+     ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix
+From: WeiWei Wang <wangww631@huawei.com>
+Subject: ocfs2: do not fall back to buffer I/O write if fill holes
 
-don't emit a call to _moddi3 on i386
+Now append O_DIRECT write to a hole will try direct io first, then
+fallback to buffered IO if fails.
 
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Weiwei Wang <wangww631@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Weiwei Wang <wangww631@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ fs/ocfs2/file.c |   93 ++++++++++++++++++++--------------------------
+ 1 file changed, 42 insertions(+), 51 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix
-+++ a/fs/ocfs2/aops.c
-@@ -29,6 +29,7 @@
- #include <linux/mpage.h>
- #include <linux/quotaops.h>
- #include <linux/blkdev.h>
-+#include <linux/math64.h>
+diff -puN fs/ocfs2/file.c~ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes
++++ a/fs/ocfs2/file.c
+@@ -1352,44 +1352,6 @@ out:
+ 	return ret;
+ }
  
- #include <cluster/masklog.h>
+-/*
+- * Will look for holes and unwritten extents in the range starting at
+- * pos for count bytes (inclusive).
+- */
+-static int ocfs2_check_range_for_holes(struct inode *inode, loff_t pos,
+-				       size_t count)
+-{
+-	int ret = 0;
+-	unsigned int extent_flags;
+-	u32 cpos, clusters, extent_len, phys_cpos;
+-	struct super_block *sb = inode->i_sb;
+-
+-	cpos = pos >> OCFS2_SB(sb)->s_clustersize_bits;
+-	clusters = ocfs2_clusters_for_bytes(sb, pos + count) - cpos;
+-
+-	while (clusters) {
+-		ret = ocfs2_get_clusters(inode, cpos, &phys_cpos, &extent_len,
+-					 &extent_flags);
+-		if (ret < 0) {
+-			mlog_errno(ret);
+-			goto out;
+-		}
+-
+-		if (phys_cpos == 0 || (extent_flags & OCFS2_EXT_UNWRITTEN)) {
+-			ret = 1;
+-			break;
+-		}
+-
+-		if (extent_len > clusters)
+-			extent_len = clusters;
+-
+-		clusters -= extent_len;
+-		cpos += extent_len;
+-	}
+-out:
+-	return ret;
+-}
+-
+ static int ocfs2_write_remove_suid(struct inode *inode)
+ {
+ 	int ret;
+@@ -2205,18 +2167,6 @@ static int ocfs2_prepare_inode_for_write
+ 			break;
+ 		}
  
-@@ -640,13 +641,20 @@ static ssize_t ocfs2_direct_IO_write(str
- 	journal_t *journal = osb->journal->j_journal;
- 	u32 p_cpos = 0;
- 	u32 v_cpos = ocfs2_clusters_for_bytes(osb->sb, offset);
--	u32 zero_len = offset % (1 << osb->s_clustersize_bits);
--	int cluster_align = offset % (1 << osb->s_clustersize_bits) ? 0 : 1;
-+	u32 zero_len;
-+	int cluster_align;
-+	loff_t final_size = offset + count;
- 	int append_write = offset >= i_size_read(inode) ? 1 : 0;
- 	unsigned int num_clusters = 0;
- 	unsigned int ext_flags = 0;
+-		/*
+-		 * We don't fill holes during direct io, so
+-		 * check for them here. If any are found, the
+-		 * caller will have to retake some cluster
+-		 * locks and initiate the io as buffered.
+-		 */
+-		ret = ocfs2_check_range_for_holes(inode, saved_pos, count);
+-		if (ret == 1) {
+-			*direct_io = 0;
+-			ret = 0;
+-		} else if (ret < 0)
+-			mlog_errno(ret);
+ 		break;
+ 	}
  
--	loff_t final_size = offset + count;
-+	{
-+		loff_t o = offset;
+@@ -2246,6 +2196,7 @@ static ssize_t ocfs2_file_write_iter(str
+ 	u32 old_clusters;
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file_inode(file);
++	struct address_space *mapping = file->f_mapping;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	int full_coherency = !(osb->s_mount_opt &
+ 			       OCFS2_MOUNT_COHERENCY_BUFFERED);
+@@ -2360,11 +2311,51 @@ relock:
+ 
+ 	iov_iter_truncate(from, count);
+ 	if (direct_io) {
++		loff_t endbyte;
++		ssize_t written_buffered;
+ 		written = generic_file_direct_write(iocb, from, *ppos);
+-		if (written < 0) {
++		if (written < 0 || written == count) {
+ 			ret = written;
+ 			goto out_dio;
+ 		}
++		/*
++		 * direct-io write to a hole: fall through to buffered I/O
++		 * for completing the rest of the request.
++		 */
++		*ppos += written;
++		count -= written;
++		written_buffered = generic_perform_write(file, from, *ppos);
++		/*
++		 * If generic_file_buffered_write() retuned a synchronous error
++		 * then we want to return the number of bytes which were
++		 * direct-written, or the error code if that was zero.  Note
++		 * that this differs from normal direct-io semantics, which
++		 * will return -EFOO even if some bytes were written.
++		 */
++		if (written_buffered < 0) {
++			ret = written_buffered;
++			goto out;
++		}
 +
-+		zero_len = do_div(o, 1 << osb->s_clustersize_bits);
-+		cluster_align = !!zero_len;
-+	}
-+
- 	/*
- 	 * when final_size > inode->i_size, inode->i_size will be
- 	 * updated after direct write, so add the inode to orphan
++		/*
++		 * We need to ensure that the page cache pages are written to
++		 * disk and invalidated to preserve the expected O_DIRECT
++		 * semantics.
++		 */
++		endbyte = *ppos + written_buffered - written - 1;
++		ret = filemap_write_and_wait_range(file->f_mapping, *ppos,
++				endbyte);
++		if (ret == 0) {
++			written = written_buffered;
++			invalidate_mapping_pages(mapping,
++					*ppos >> PAGE_CACHE_SHIFT,
++					endbyte >> PAGE_CACHE_SHIFT);
++		} else {
++			/*
++			 * We don't know how much we wrote, so just return
++			 * the number of bytes which were direct-written
++			 */
++		}
+ 	} else {
+ 		current->backing_dev_info = file->f_mapping->backing_dev_info;
+ 		written = generic_perform_write(file, from, *ppos);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangww631@huawei.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix-fix.patch
 ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
