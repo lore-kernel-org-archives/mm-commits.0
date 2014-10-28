@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
+ mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
  added to -mm tree
-Date: Tue, 28 Oct 2014 14:44:24 -0700
-Message-ID: <54500e38.gT6nk+5X2upxEilL%akpm@linux-foundation.org>
+Date: Tue, 28 Oct 2014 14:44:23 -0700
+Message-ID: <54500e37.Hs7Qo2pd4dZkwEW8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33804 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33800 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755431AbaJ1VoY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 17:44:24 -0400
+	with ESMTP id S1755421AbaJ1VoX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 17:44:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: pull the NULL check from __mem_cgroup_same_or_subtree()
+     Subject: mm: memcontrol: remove bogus NULL check after mem_cgroup_from_task()
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
+     mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,54 +41,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: pull the NULL check from __mem_cgroup_same_or_subtree()
+Subject: mm: memcontrol: remove bogus NULL check after mem_cgroup_from_task()
 
-The NULL in mm_match_cgroup() comes from a possibly exiting mm->owner.  It
-makes a lot more sense to check where it's looked up, rather than check
-for it in __mem_cgroup_same_or_subtree() where it's unexpected.
-
-No other callsite passes NULL to __mem_cgroup_same_or_subtree().
+That function acts like a typecast - unless NULL is passed in, no NULL can
+come out.  task_in_mem_cgroup() callers don't pass NULL tasks.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.cz
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 +++--
- mm/memcontrol.c            |    2 +-
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree
-+++ a/include/linux/memcontrol.h
-@@ -83,11 +83,12 @@ static inline
- bool mm_match_cgroup(const struct mm_struct *mm, const struct mem_cgroup *memcg)
- {
- 	struct mem_cgroup *task_memcg;
--	bool match;
-+	bool match = false;
- 
- 	rcu_read_lock();
- 	task_memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
--	match = __mem_cgroup_same_or_subtree(memcg, task_memcg);
-+	if (task_memcg)
-+		match = __mem_cgroup_same_or_subtree(memcg, task_memcg);
- 	rcu_read_unlock();
- 	return match;
- }
-diff -puN mm/memcontrol.c~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree
+diff -puN mm/memcontrol.c~mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task
 +++ a/mm/memcontrol.c
-@@ -1316,7 +1316,7 @@ bool __mem_cgroup_same_or_subtree(const
+@@ -1335,7 +1335,7 @@ static bool mem_cgroup_same_or_subtree(c
+ bool task_in_mem_cgroup(struct task_struct *task,
+ 			const struct mem_cgroup *memcg)
  {
- 	if (root_memcg == memcg)
- 		return true;
--	if (!root_memcg->use_hierarchy || !memcg)
-+	if (!root_memcg->use_hierarchy)
- 		return false;
- 	return cgroup_is_descendant(memcg->css.cgroup, root_memcg->css.cgroup);
- }
+-	struct mem_cgroup *curr = NULL;
++	struct mem_cgroup *curr;
+ 	struct task_struct *p;
+ 	bool ret;
+ 
+@@ -1351,8 +1351,7 @@ bool task_in_mem_cgroup(struct task_stru
+ 		 */
+ 		rcu_read_lock();
+ 		curr = mem_cgroup_from_task(task);
+-		if (curr)
+-			css_get(&curr->css);
++		css_get(&curr->css);
+ 		rcu_read_unlock();
+ 	}
+ 	/*
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
