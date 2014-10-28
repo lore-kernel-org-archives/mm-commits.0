@@ -1,102 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch removed from -mm tree
-Date: Tue, 28 Oct 2014 13:22:10 -0700
-Message-ID: <544ffaf2.THsO7dhbKJ3nowU/%akpm@linux-foundation.org>
+ mm-cma-make-kmemleak-ignore-cma-regions-fix-fix-fix.patch removed from -mm
+ tree
+Date: Tue, 28 Oct 2014 13:23:01 -0700
+Message-ID: <544ffb25.mz4wfwIJ0FsCSumc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60913 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32908 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752617AbaJ1UWK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 16:22:10 -0400
+	with ESMTP id S1752831AbaJ1UXP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 16:23:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, iamjoonsoo.kim@lge.com, m.szyprowski@samsung.com, mina86@mina86.com, treding@nvidia.com, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, treding@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-make-kmemleak-ignore-cma-regions-fix-fix
+     Subject: mm/cma: include linux/io.h for phys_to_virt()
 has been removed from the -mm tree.  Its filename was
-     mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch
+     mm-cma-make-kmemleak-ignore-cma-regions-fix-fix-fix.patch
 
 This patch was dropped because it was folded into mm-cma-make-kmemleak-ignore-cma-regions.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-cma-make-kmemleak-ignore-cma-regions-fix-fix
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: mm/cma: include linux/io.h for phys_to_virt()
 
-fix comment, per Catalin
-
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/cma.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix-fix mm/cma.c
---- a/mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix-fix
+diff -puN mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix-fix-fix mm/cma.c
+--- a/mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix-fix-fix
 +++ a/mm/cma.c
-@@ -302,8 +302,8 @@ int __init cma_declare_contiguous(phys_a
- 		}
+@@ -33,6 +33,7 @@
+ #include <linux/log2.h>
+ #include <linux/cma.h>
+ #include <linux/highmem.h>
++#include <linux/io.h>
  
- 		/*
--		 * kmemleak writes metadata to the tracked objects, but
--		 * this address isn't mapped and accessible.
-+		 * kmemleak scans/reads tracked objects for pointers to other
-+		 * objects but this address isn't mapped and accessible
- 		 */
- 		kmemleak_ignore(phys_to_virt(addr));
- 		base = addr;
+ struct cma {
+ 	unsigned long	base_pfn;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix.patch
-ocfs2-add-and-remove-inode-in-orphan-dir-in-ocfs2_direct_io-fix-fix.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes-checkpatch-fixes.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
+drivers-of-add-return-value-to-of_reserved_mem_device_init.patch
+mm-memcontrol-lockless-page-counters-fix-2.patch
+gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
 mm-cma-make-kmemleak-ignore-cma-regions.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
