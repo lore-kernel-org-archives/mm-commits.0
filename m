@@ -1,33 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mmu_notifier-add-mmu_notifier_invalidate_range.patch added to
- -mm tree
-Date: Tue, 28 Oct 2014 14:38:15 -0700
-Message-ID: <54500cc7.Z/sLC7FO9bTSqsIj%akpm@linux-foundation.org>
+Subject: +
+ mmu_notifier-add-the-call-back-for-mmu_notifier_invalidate_range.patch
+ added to -mm tree
+Date: Tue, 28 Oct 2014 14:38:17 -0700
+Message-ID: <54500cc9.jH+v6x6/TXoyDJ3b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33650 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33669 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755756AbaJ1ViP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 17:38:15 -0400
+	with ESMTP id S1755761AbaJ1ViR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 17:38:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jroedel@suse.de, Jay.Cornwall@amd.com, Oded.Gabbay@amd.com, Suravee.Suthikulpanit@amd.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, dwmw2@infradead.org, hughd@google.com, jbarnes@virtuousgeek.org, jglisse@redhat.com, jweiner@redhat.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmu_notifier: add mmu_notifier_invalidate_range()
+     Subject: mmu_notifier: add the callback for mmu_notifier_invalidat=
+e_range()
 has been added to the -mm tree.  Its filename is
-     mmu_notifier-add-mmu_notifier_invalidate_range.patch
+     mmu_notifier-add-the-call-back-for-mmu_notifier_invalidate_range.p=
+atch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmu_notifier-add-mmu_notif=
-ier_invalidate_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmu_notifier-add-the-call-=
+back-for-mmu_notifier_invalidate_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmu_notifier-add-mmu_notif=
-ier_invalidate_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmu_notifier-add-the-call-=
+back-for-mmu_notifier_invalidate_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,77 +46,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Joerg Roedel <jroedel@suse.de>
-Subject: mmu_notifier: add mmu_notifier_invalidate_range()
+Subject: mmu_notifier: add the callback for mmu_notifier_invalidate_ran=
+ge()
 
-This notifier closes an important gap in the current mmu_notifier
-implementation, the existing callbacks are called too early or too late=
- to
-reliably manage a non-CPU TLB.  Specifically, invalidate_range_start() =
-is
-called when all pages are still mapped and invalidate_range_end() when =
-all
-pages are unmapped and potentially freed.
-
-This is fine when the users of the mmu_notifiers manage their own SoftT=
-LB,
-like KVM does.  When the TLB is managed in software it is easy to wipe =
-out
-entries for a given range and prevent new entries to be established unt=
-il
-invalidate_range_end is called.
-
-But when the user of mmu_notifiers has to manage a hardware TLB it can
-still wipe out TLB entries in invalidate_range_start, but it can't make
-sure that no new TLB entries in the given range are established between
-invalidate_range_start and invalidate_range_end.
-
-To avoid silent data corruption the entries in the non-CPU TLB need to =
-be
-flushed when the pages are unmapped (at this point in time no _new_ TLB
-entries can be established in the non-CPU TLB) but not yet freed (as th=
+Now that the mmu_notifier_invalidate_range() calls are in place, add th=
 e
-non-CPU TLB may still have _existing_ entries pointing to the pages abo=
-ut
-to be freed).
-
-To fix this problem we need to catch the moment when the Linux VMM flus=
-hes
-remote TLBs (as a non-CPU TLB is not very CPU TLB), as this is the poin=
-t
-in time when the pages are unmapped but _not_ yet freed.
-
-The mmu_notifier_invalidate_range() function aims to catch that moment.
-
-IOMMU code will be one user of the notifier-callback.  Currently this i=
-s
-only the AMD IOMMUv2 driver, but its code is about to be more generaliz=
-ed
-and converted to a generic IOMMU-API extension to fit the needs of simi=
-lar
-functionality in other IOMMUs as well.
-
-The current attempt in the AMD IOMMUv2 driver to work around the
-invalidate_range_start/end() shortcoming is to assign an empty page tab=
-le
-to the non-CPU TLB between any invalidata_range_start/end calls.  With =
-the
-empty page-table assigned, every page-table walk to re-fill the non-CPU
-TLB will cause a page-fault reported to the IOMMU driver via an interru=
-pt,
-possibly causing interrupt storms.
-
-The page-fault handler in the AMD IOMMUv2 driver doesn't handle the fau=
-lt
-if an invalidate_range_start/end pair is active, it just reports back
-SUCESS to the device and let it refault the page.  But existing hardwar=
-e
-(newer Radeon GPUs) that makes use of this feature don't re-fault
-indefinitly, after a certain number of faults for the same address the
-device enters a failure state and needs to be resetted.
-
-To avoid the GPUs entering a failure state we need to get rid of the
-empty-page-table workaround and use the mmu_notifier_invalidate_range()
-function introduced with this patch.
+callback to allow subsystems to register against it.
 
 Signed-off-by: Joerg Roedel <jroedel@suse.de>
 Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
@@ -131,38 +69,125 @@ Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ include/linux/mmu_notifier.h |   37 ++++++++++++++++++++++++++++-----
+ mm/mmu_notifier.c            |   25 ++++++++++++++++++++++
+ 2 files changed, 57 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mmu_notifier.h~mmu_notifier-add-mmu_notifier_in=
-validate_range include/linux/mmu_notifier.h
---- a/include/linux/mmu_notifier.h~mmu_notifier-add-mmu_notifier_invali=
-date_range
+diff -puN include/linux/mmu_notifier.h~mmu_notifier-add-the-call-back-f=
+or-mmu_notifier_invalidate_range include/linux/mmu_notifier.h
+--- a/include/linux/mmu_notifier.h~mmu_notifier-add-the-call-back-for-m=
+mu_notifier_invalidate_range
 +++ a/include/linux/mmu_notifier.h
-@@ -242,6 +242,11 @@ static inline void mmu_notifier_invalida
- 		__mmu_notifier_invalidate_range_end(mm, start, end);
- }
-=20
-+static inline void mmu_notifier_invalidate_range(struct mm_struct *mm,
-+				  unsigned long start, unsigned long end)
-+{
-+}
+@@ -98,11 +98,11 @@ struct mmu_notifier_ops {
+ 	/*
+ 	 * invalidate_range_start() and invalidate_range_end() must be
+ 	 * paired and are called only when the mmap_sem and/or the
+-	 * locks protecting the reverse maps are held. The subsystem
+-	 * must guarantee that no additional references are taken to
+-	 * the pages in the range established between the call to
+-	 * invalidate_range_start() and the matching call to
+-	 * invalidate_range_end().
++	 * locks protecting the reverse maps are held. If the subsystem
++	 * can't guarantee that no additional references are taken to
++	 * the pages in the range, it has to implement the
++	 * invalidate_range() notifier to remove any references taken
++	 * after invalidate_range_start().
+ 	 *
+ 	 * Invalidation of multiple concurrent ranges may be
+ 	 * optionally permitted by the driver. Either way the
+@@ -144,6 +144,29 @@ struct mmu_notifier_ops {
+ 	void (*invalidate_range_end)(struct mmu_notifier *mn,
+ 				     struct mm_struct *mm,
+ 				     unsigned long start, unsigned long end);
 +
- static inline void mmu_notifier_mm_init(struct mm_struct *mm)
++	/*
++	 * invalidate_range() is either called between
++	 * invalidate_range_start() and invalidate_range_end() when the
++	 * VM has to free pages that where unmapped, but before the
++	 * pages are actually freed, or outside of _start()/_end() when
++	 * a (remote) TLB is necessary.
++	 *
++	 * If invalidate_range() is used to manage a non-CPU TLB with
++	 * shared page-tables, it not necessary to implement the
++	 * invalidate_range_start()/end() notifiers, as
++	 * invalidate_range() alread catches the points in time when an
++	 * external TLB range needs to be flushed.
++	 *
++	 * The invalidate_range() function is called under the ptl
++	 * spin-lock and not allowed to sleep.
++	 *
++	 * Note that this function might be called with just a sub-range
++	 * of what was passed to invalidate_range_start()/end(), if
++	 * called between those functions.
++	 */
++	void (*invalidate_range)(struct mmu_notifier *mn, struct mm_struct *m=
+m,
++				 unsigned long start, unsigned long end);
+ };
+=20
+ /*
+@@ -190,6 +213,8 @@ extern void __mmu_notifier_invalidate_ra
+ 				  unsigned long start, unsigned long end);
+ extern void __mmu_notifier_invalidate_range_end(struct mm_struct *mm,
+ 				  unsigned long start, unsigned long end);
++extern void __mmu_notifier_invalidate_range(struct mm_struct *mm,
++				  unsigned long start, unsigned long end);
+=20
+ static inline void mmu_notifier_release(struct mm_struct *mm)
  {
- 	mm->mmu_notifier_mm =3D NULL;
-@@ -341,6 +346,11 @@ static inline void mmu_notifier_invalida
+@@ -245,6 +270,8 @@ static inline void mmu_notifier_invalida
+ static inline void mmu_notifier_invalidate_range(struct mm_struct *mm,
  				  unsigned long start, unsigned long end)
  {
++	if (mm_has_notifiers(mm))
++		__mmu_notifier_invalidate_range(mm, start, end);
  }
-+
-+static inline void mmu_notifier_invalidate_range(struct mm_struct *mm,
-+				  unsigned long start, unsigned long end)
-+{
-+}
 =20
  static inline void mmu_notifier_mm_init(struct mm_struct *mm)
- {
+diff -puN mm/mmu_notifier.c~mmu_notifier-add-the-call-back-for-mmu_noti=
+fier_invalidate_range mm/mmu_notifier.c
+--- a/mm/mmu_notifier.c~mmu_notifier-add-the-call-back-for-mmu_notifier=
+_invalidate_range
++++ a/mm/mmu_notifier.c
+@@ -193,6 +193,16 @@ void __mmu_notifier_invalidate_range_end
+=20
+ 	id =3D srcu_read_lock(&srcu);
+ 	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist) {
++		/*
++		 * Call invalidate_range here too to avoid the need for the
++		 * subsystem of having to register an invalidate_range_end
++		 * call-back when there is invalidate_range already. Usually a
++		 * subsystem registers either invalidate_range_start()/end() or
++		 * invalidate_range(), so this will be no additional overhead
++		 * (besides the pointer check).
++		 */
++		if (mn->ops->invalidate_range)
++			mn->ops->invalidate_range(mn, mm, start, end);
+ 		if (mn->ops->invalidate_range_end)
+ 			mn->ops->invalidate_range_end(mn, mm, start, end);
+ 	}
+@@ -200,6 +210,21 @@ void __mmu_notifier_invalidate_range_end
+ }
+ EXPORT_SYMBOL_GPL(__mmu_notifier_invalidate_range_end);
+=20
++void __mmu_notifier_invalidate_range(struct mm_struct *mm,
++				  unsigned long start, unsigned long end)
++{
++	struct mmu_notifier *mn;
++	int id;
++
++	id =3D srcu_read_lock(&srcu);
++	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist) {
++		if (mn->ops->invalidate_range)
++			mn->ops->invalidate_range(mn, mm, start, end);
++	}
++	srcu_read_unlock(&srcu, id);
++}
++EXPORT_SYMBOL_GPL(__mmu_notifier_invalidate_range);
++
+ static int do_mmu_notifier_register(struct mmu_notifier *mn,
+ 				    struct mm_struct *mm,
+ 				    int take_mmap_sem)
 _
 
 Patches currently in -mm which might be from jroedel@suse.de are
