@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
- added to -mm tree
-Date: Tue, 28 Oct 2014 13:59:24 -0700
-Message-ID: <545003ac.fRMj4W43di1ydDZ+%akpm@linux-foundation.org>
+Subject: + rtc-pcf8563-remove-leftover-code.patch added to -mm tree
+Date: Tue, 28 Oct 2014 14:26:09 -0700
+Message-ID: <545009f1.tvtR6ekrLzK/pWti%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33538 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754644AbaJ1U7Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 16:59:24 -0400
+	with ESMTP id S1754502AbaJ1V0J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 17:26:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wangww631@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: jan.kardell@telliq.com, a.zummo@towertech.it, dan.carpenter@oracle.com, grant.likely@linaro.org, robh+dt@kernel.org, vdonnefort@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: do not fallback to buffer I/O write if fill holes
+     Subject: rtc: pcf8563: remove leftover code
 has been added to the -mm tree.  Its filename is
-     ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
+     rtc-pcf8563-remove-leftover-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-pcf8563-remove-leftover-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-pcf8563-remove-leftover-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,158 +38,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Weiwei Wang <wangww631@huawei.com>
-Subject: ocfs2: do not fallback to buffer I/O write if fill holes
+From: Jan Kardell <jan.kardell@telliq.com>
+Subject: rtc: pcf8563: remove leftover code
 
-Now append O_DIRECT write to a hole will try direct io first, then
-fallback to buffered IO if fails.
+Remove some code that was left from before block read/write was used.
 
-Signed-off-by: Weiwei Wang <wangww631@huawei.com>
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Jan Kardell <jan.kardell@telliq.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Vincent Donnefort <vdonnefort@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |   92 ++++++++++++++++++++--------------------------
- 1 file changed, 41 insertions(+), 51 deletions(-)
+ drivers/rtc/rtc-pcf8563.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes
-+++ a/fs/ocfs2/file.c
-@@ -1359,44 +1359,6 @@ out:
- 	return ret;
- }
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-remove-leftover-code drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-remove-leftover-code
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -118,22 +118,21 @@ static int pcf8563_write_block_data(stru
  
--/*
-- * Will look for holes and unwritten extents in the range starting at
-- * pos for count bytes (inclusive).
-- */
--static int ocfs2_check_range_for_holes(struct inode *inode, loff_t pos,
--				       size_t count)
--{
--	int ret = 0;
--	unsigned int extent_flags;
--	u32 cpos, clusters, extent_len, phys_cpos;
--	struct super_block *sb = inode->i_sb;
--
--	cpos = pos >> OCFS2_SB(sb)->s_clustersize_bits;
--	clusters = ocfs2_clusters_for_bytes(sb, pos + count) - cpos;
--
--	while (clusters) {
--		ret = ocfs2_get_clusters(inode, cpos, &phys_cpos, &extent_len,
--					 &extent_flags);
--		if (ret < 0) {
--			mlog_errno(ret);
--			goto out;
--		}
--
--		if (phys_cpos == 0 || (extent_flags & OCFS2_EXT_UNWRITTEN)) {
--			ret = 1;
--			break;
--		}
--
--		if (extent_len > clusters)
--			extent_len = clusters;
--
--		clusters -= extent_len;
--		cpos += extent_len;
--	}
--out:
--	return ret;
--}
--
- static int ocfs2_write_remove_suid(struct inode *inode)
+ static int pcf8563_set_alarm_mode(struct i2c_client *client, bool on)
  {
- 	int ret;
-@@ -2212,18 +2174,6 @@ static int ocfs2_prepare_inode_for_write
- 			break;
- 		}
+-	unsigned char buf[2];
++	unsigned char buf;
+ 	int err;
  
--		/*
--		 * We don't fill holes during direct io, so
--		 * check for them here. If any are found, the
--		 * caller will have to retake some cluster
--		 * locks and initiate the io as buffered.
--		 */
--		ret = ocfs2_check_range_for_holes(inode, saved_pos, count);
--		if (ret == 1) {
--			*direct_io = 0;
--			ret = 0;
--		} else if (ret < 0)
--			mlog_errno(ret);
- 		break;
- 	}
+-	err = pcf8563_read_block_data(client, PCF8563_REG_ST2, 1, buf + 1);
++	err = pcf8563_read_block_data(client, PCF8563_REG_ST2, 1, &buf);
+ 	if (err < 0)
+ 		return err;
  
-@@ -2253,6 +2203,7 @@ static ssize_t ocfs2_file_write_iter(str
- 	u32 old_clusters;
- 	struct file *file = iocb->ki_filp;
- 	struct inode *inode = file_inode(file);
-+	struct address_space *mapping = file->f_mapping;
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 	int full_coherency = !(osb->s_mount_opt &
- 			       OCFS2_MOUNT_COHERENCY_BUFFERED);
-@@ -2367,11 +2318,50 @@ relock:
+ 	if (on)
+-		buf[1] |= PCF8563_BIT_AIE;
++		buf |= PCF8563_BIT_AIE;
+ 	else
+-		buf[1] &= ~PCF8563_BIT_AIE;
++		buf &= ~PCF8563_BIT_AIE;
  
- 	iov_iter_truncate(from, count);
- 	if (direct_io) {
-+		loff_t endbyte;
-+		ssize_t written_buffered;
- 		written = generic_file_direct_write(iocb, from, *ppos);
--		if (written < 0) {
-+		if (written < 0 || written == count) {
- 			ret = written;
- 			goto out_dio;
- 		}
-+
-+		/*
-+		 * direct-io write to a hole: fall through to buffered I/O
-+		 * for completing the rest of the request.
-+		 */
-+		count -= written;
-+		written_buffered = generic_perform_write(file, from, *ppos);
-+		/*
-+		 * If generic_file_buffered_write() returned a synchronous error
-+		 * then we want to return the number of bytes which were
-+		 * direct-written, or the error code if that was zero. Note
-+		 * that this differs from normal direct-io semantics, which
-+		 * will return -EFOO even if some bytes were written.
-+		 */
-+		if (written_buffered < 0) {
-+			ret = written_buffered;
-+			goto out;
-+		}
-+
-+		/* We need to ensure that the page cache pages are written to
-+		 * disk and invalidated to preserve the expected O_DIRECT
-+		 * semantics.
-+		 */
-+		endbyte = *ppos + written_buffered - written - 1;
-+		ret = filemap_write_and_wait_range(file->f_mapping, *ppos,
-+				endbyte);
-+		if (ret == 0) {
-+			written = written_buffered;
-+			invalidate_mapping_pages(mapping,
-+					*ppos >> PAGE_CACHE_SHIFT,
-+					endbyte >> PAGE_CACHE_SHIFT);
-+		} else {
-+			/*
-+			 * We don't know how much we wrote, so just return
-+			 * the number of bytes which were direct-written
-+			 */
-+		}
- 	} else {
- 		current->backing_dev_info = file->f_mapping->backing_dev_info;
- 		written = generic_perform_write(file, from, *ppos);
+-	buf[1] &= ~PCF8563_BIT_AF;
+-	buf[0] = PCF8563_REG_ST2;
++	buf &= ~PCF8563_BIT_AF;
+ 
+-	err = pcf8563_write_block_data(client, PCF8563_REG_ST2, 1, buf + 1);
++	err = pcf8563_write_block_data(client, PCF8563_REG_ST2, 1, &buf);
+ 	if (err < 0) {
+ 		dev_err(&client->dev, "%s: write error\n", __func__);
+ 		return -EIO;
 _
 
-Patches currently in -mm which might be from wangww631@huawei.com are
+Patches currently in -mm which might be from jan.kardell@telliq.com are
 
-ocfs2-eliminate-the-static-flag-of-some-functions.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
-ocfs2-implement-ocfs2_direct_io_write.patch
-ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
+rtc-pcf8563-remove-leftover-code.patch
+rtc-pcf8563-fix-write-of-invalid-bits-to-st2-reg.patch
+rtc-pcf8563-fix-wrong-time-from-read_alarm.patch
+rtc-pcf8563-handle-consequeces-of-lacking-second-alarm-reg.patch
+rtc-pcf8563-save-battery-power.patch
+rtc-pcf8563-clear-expired-alarm-at-boot-time.patch
 
