@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch added to -mm tree
-Date: Tue, 28 Oct 2014 14:41:44 -0700
-Message-ID: <54500d98.pBenQK13JVuRo/8l%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
+ added to -mm tree
+Date: Tue, 28 Oct 2014 14:44:24 -0700
+Message-ID: <54500e38.gT6nk+5X2upxEilL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33676 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33804 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753255AbaJ1Vln (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 17:41:43 -0400
+	with ESMTP id S1755431AbaJ1VoY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 17:44:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: shorten the page statistics update slowpath
+     Subject: mm: memcontrol: pull the NULL check from __mem_cgroup_same_or_subtree()
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
+     mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,86 +41,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: shorten the page statistics update slowpath
+Subject: mm: memcontrol: pull the NULL check from __mem_cgroup_same_or_subtree()
 
-While moving charges from one memcg to another, page stat updates must
-acquire the old memcg's move_lock to prevent double accounting.  That
-situation is denoted by an increased memcg->move_accounting.  However, the
-charge moving code declares this way too early for now, even before
-summing up the RSS and pre-allocating destination charges.
+The NULL in mm_match_cgroup() comes from a possibly exiting mm->owner.  It
+makes a lot more sense to check where it's looked up, rather than check
+for it in __mem_cgroup_same_or_subtree() where it's unexpected.
 
-Shorten this slowpath mode by increasing memcg->move_accounting only right
-before walking the task's address space with the intention of actually
-moving the pages.
+No other callsite passes NULL to __mem_cgroup_same_or_subtree().
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
 Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+ include/linux/memcontrol.h |    5 +++--
+ mm/memcontrol.c            |    2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-shorten-the-page-statistics-update-slowpath mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-shorten-the-page-statistics-update-slowpath
-+++ a/mm/memcontrol.c
-@@ -5246,8 +5246,6 @@ static void __mem_cgroup_clear_mc(void)
- 
- static void mem_cgroup_clear_mc(void)
+diff -puN include/linux/memcontrol.h~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree
++++ a/include/linux/memcontrol.h
+@@ -83,11 +83,12 @@ static inline
+ bool mm_match_cgroup(const struct mm_struct *mm, const struct mem_cgroup *memcg)
  {
--	struct mem_cgroup *from = mc.from;
--
- 	/*
- 	 * we must clear moving_task before waking up waiters at the end of
- 	 * task migration.
-@@ -5258,8 +5256,6 @@ static void mem_cgroup_clear_mc(void)
- 	mc.from = NULL;
- 	mc.to = NULL;
- 	spin_unlock(&mc.lock);
--
--	atomic_dec(&from->moving_account);
+ 	struct mem_cgroup *task_memcg;
+-	bool match;
++	bool match = false;
+ 
+ 	rcu_read_lock();
+ 	task_memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
+-	match = __mem_cgroup_same_or_subtree(memcg, task_memcg);
++	if (task_memcg)
++		match = __mem_cgroup_same_or_subtree(memcg, task_memcg);
+ 	rcu_read_unlock();
+ 	return match;
  }
- 
- static int mem_cgroup_can_attach(struct cgroup_subsys_state *css,
-@@ -5293,15 +5289,6 @@ static int mem_cgroup_can_attach(struct
- 			VM_BUG_ON(mc.moved_charge);
- 			VM_BUG_ON(mc.moved_swap);
- 
--			/*
--			 * Signal mem_cgroup_begin_page_stat() to take
--			 * the memcg's move_lock while we're moving
--			 * its pages to another memcg.  Then wait for
--			 * already started RCU-only updates to finish.
--			 */
--			atomic_inc(&from->moving_account);
--			synchronize_rcu();
--
- 			spin_lock(&mc.lock);
- 			mc.from = from;
- 			mc.to = memcg;
-@@ -5433,6 +5420,13 @@ static void mem_cgroup_move_charge(struc
- 	struct vm_area_struct *vma;
- 
- 	lru_add_drain_all();
-+	/*
-+	 * Signal mem_cgroup_begin_page_stat() to take the memcg's
-+	 * move_lock while we're moving its pages to another memcg.
-+	 * Then wait for already started RCU-only updates to finish.
-+	 */
-+	atomic_inc(&mc.from->moving_account);
-+	synchronize_rcu();
- retry:
- 	if (unlikely(!down_read_trylock(&mm->mmap_sem))) {
- 		/*
-@@ -5465,6 +5459,7 @@ retry:
- 			break;
- 	}
- 	up_read(&mm->mmap_sem);
-+	atomic_dec(&mc.from->moving_account);
+diff -puN mm/memcontrol.c~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree
++++ a/mm/memcontrol.c
+@@ -1316,7 +1316,7 @@ bool __mem_cgroup_same_or_subtree(const
+ {
+ 	if (root_memcg == memcg)
+ 		return true;
+-	if (!root_memcg->use_hierarchy || !memcg)
++	if (!root_memcg->use_hierarchy)
+ 		return false;
+ 	return cgroup_is_descendant(memcg->css.cgroup, root_memcg->css.cgroup);
  }
- 
- static void mem_cgroup_move_task(struct cgroup_subsys_state *css,
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -163,5 +133,8 @@ memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
 mm-memcontrol-do-not-filter-reclaimable-nodes-in-numa-round-robin.patch
 memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
 mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
+mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
+mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
+mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
 debugging-keep-track-of-page-owners.patch
 
