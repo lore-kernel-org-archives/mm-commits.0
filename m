@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch added
- to -mm tree
-Date: Tue, 28 Oct 2014 15:58:58 -0700
-Message-ID: <54501fb2.nkGYF29RQaHvDikC%akpm@linux-foundation.org>
+Subject: + o2dlm-fix-a-race-between-purge-and-master-query.patch added to
+ -mm tree
+Date: Tue, 28 Oct 2014 15:59:58 -0700
+Message-ID: <54501fee.9F6BSUelAQSqf3vk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34344 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34346 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754805AbaJ1W65 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 18:58:57 -0400
+	with ESMTP id S1752103AbaJ1W75 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 18:59:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: srinivas.eeda@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/binfmt_misc.c: use GFP_KERNEL instead of GFP_USER
+     Subject: ocfs2: o2dlm: fix a race between purge and master query
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+     o2dlm-fix-a-race-between-purge-and-master-query.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/o2dlm-fix-a-race-between-purge-and-master-query.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/o2dlm-fix-a-race-between-purge-and-master-query.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/binfmt_misc.c: use GFP_KERNEL instead of GFP_USER
+From: Srinivas Eeda <srinivas.eeda@oracle.com>
+Subject: ocfs2: o2dlm: fix a race between purge and master query
 
-GFP_USER means "honour cpuset nodes-allowed beancounting".  These are
-regular old kernel objects and there seems no reason to give them this
-treatment.
+Node A sends master query request to node B which is the master.  At this
+time lockres happens to be on purgelist.  dlm_master_request_handler gets
+the dlm spinlock, finds the resource and releases the dlm spin lock. 
+Right at this dlm_thread on this node could purge the lockres. 
+dlm_master_request_handler can then acquire lockres spinlock and reply to
+Node A that node B is the master even though lockres on node B is purged.
 
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Joe Perches <joe@perches.com>
+The above scenario will now make node A falsely think node B is the master
+which is inconsistent.  Further if another node C tries to master the same
+resource, every node will respond they are not the master.  Node C then
+masters the resource and sends assert master to all nodes.  This will now
+make node A crash with the following message.
+
+dlm_assert_master_handler:1831 ERROR: DIE! Mastery assert from 9, but current
+owner is 10!
+
+Signed-off-by: Srinivas Eeda <srinivas.eeda@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN fs/binfmt_misc.c~fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user
-+++ a/fs/binfmt_misc.c
-@@ -308,7 +308,7 @@ static Node *create_entry(const char __u
+diff -puN fs/ocfs2/dlm/dlmmaster.c~o2dlm-fix-a-race-between-purge-and-master-query fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~o2dlm-fix-a-race-between-purge-and-master-query
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -1460,6 +1460,18 @@ way_up_top:
  
- 	err = -ENOMEM;
- 	memsize = sizeof(Node) + count + 8;
--	e = kmalloc(memsize, GFP_USER);
-+	e = kmalloc(memsize, GFP_KERNEL);
- 	if (!e)
- 		goto out;
- 
-@@ -416,7 +416,7 @@ static Node *create_entry(const char __u
- 
- 			if (e->mask) {
- 				int i;
--				char *masked = kmalloc(e->size, GFP_USER);
-+				char *masked = kmalloc(e->size, GFP_KERNEL);
- 
- 				print_hex_dump_bytes(
- 					KBUILD_MODNAME ": register:  mask[decoded]: ",
+ 		/* take care of the easy cases up front */
+ 		spin_lock(&res->spinlock);
++
++		/*
++		 * Right after dlm spinlock was released, dlm_thread could have
++		 * purged the lockres. Check if lockres got unhashed. If so
++		 * start over.
++		 */
++		if (hlist_unhashed(&res->hash_node)) {
++			spin_unlock(&res->spinlock);
++			dlm_lockres_put(res);
++			goto way_up_top;
++		}
++
+ 		if (res->state & (DLM_LOCK_RES_RECOVERING|
+ 				  DLM_LOCK_RES_MIGRATING)) {
+ 			spin_unlock(&res->spinlock);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from srinivas.eeda@oracle.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-checkpatch-fixes.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-a-race-between-purge-and-master-query.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
 o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
