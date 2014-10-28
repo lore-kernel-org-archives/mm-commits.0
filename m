@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-cma-make-kmemleak-ignore-cma-regions-fix.patch removed from -mm tree
-Date: Tue, 28 Oct 2014 13:22:08 -0700
-Message-ID: <544ffaf0.7RrHRs58qBnvRF/6%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch removed from -mm tree
+Date: Tue, 28 Oct 2014 13:22:10 -0700
+Message-ID: <544ffaf2.THsO7dhbKJ3nowU/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60900 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60913 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751419AbaJ1UWI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 16:22:08 -0400
+	with ESMTP id S1752617AbaJ1UWK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Oct 2014 16:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, iamjoonsoo.kim@lge.com, m.szyprowski@samsung.com, mina86@mina86.com, treding@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-make-kmemleak-ignore-cma-regions-fix
+     Subject: mm-cma-make-kmemleak-ignore-cma-regions-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-cma-make-kmemleak-ignore-cma-regions-fix.patch
+     mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch
 
 This patch was dropped because it was folded into mm-cma-make-kmemleak-ignore-cma-regions.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-cma-make-kmemleak-ignore-cma-regions-fix
+Subject: mm-cma-make-kmemleak-ignore-cma-regions-fix-fix
 
-add comment
+fix comment, per Catalin
 
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -38,23 +39,23 @@ Cc: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/cma.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix mm/cma.c
---- a/mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix
+diff -puN mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix-fix mm/cma.c
+--- a/mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions-fix-fix
 +++ a/mm/cma.c
-@@ -301,6 +301,10 @@ int __init cma_declare_contiguous(phys_a
- 			}
+@@ -302,8 +302,8 @@ int __init cma_declare_contiguous(phys_a
  		}
  
-+		/*
-+		 * kmemleak writes metadata to the tracked objects, but
-+		 * this address isn't mapped and accessible.
-+		 */
+ 		/*
+-		 * kmemleak writes metadata to the tracked objects, but
+-		 * this address isn't mapped and accessible.
++		 * kmemleak scans/reads tracked objects for pointers to other
++		 * objects but this address isn't mapped and accessible
+ 		 */
  		kmemleak_ignore(phys_to_virt(addr));
  		base = addr;
- 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,7 +91,6 @@ ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 mm-cma-make-kmemleak-ignore-cma-regions.patch
-mm-cma-make-kmemleak-ignore-cma-regions-fix-fix.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
 debugging-keep-track-of-page-owners.patch
 debugging-keep-track-of-page-owners-fix.patch
