@@ -1,63 +1,176 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2.patch removed from -mm tree
-Date: Wed, 29 Oct 2014 14:47:18 -0700
-Message-ID: <54516066.oL1x3e8jvQSwG+au%akpm@linux-foundation.org>
+ mm-memcontrol-fix-missed-end-writeback-page-accounting-fix.patch removed
+ from -mm tree
+Date: Wed, 29 Oct 2014 14:47:35 -0700
+Message-ID: <54516077.vMAGoJkRvvfovO4Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52902 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52910 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755312AbaJ2VrS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Oct 2014 17:47:18 -0400
+	with ESMTP id S1755698AbaJ2Vre (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Oct 2014 17:47:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: isimatu.yasuaki@jp.fujitsu.com, dave.hansen@intel.com, rientjes@google.com, tangchen@cn.fujitsu.com, toshi.kani@hp.com, wangnan0@huawei.com, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2
+     Subject: mm: memcontrol: fix missed end-writeback page accounting fix
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2.patch
+     mm-memcontrol-fix-missed-end-writeback-page-accounting-fix.patch
 
-This patch was dropped because it was folded into memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node.patch
+This patch was dropped because it was folded into mm-memcontrol-fix-missed-end-writeback-page-accounting.patch
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: fix missed end-writeback page accounting fix
 
-v2: remove check of pgdat_page
+Add kernel-doc to page state accounting functions.
 
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Cc: Wang Nan <wangnan0@huawei.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 ------
- 1 file changed, 6 deletions(-)
+ mm/memcontrol.c |   51 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 35 insertions(+), 16 deletions(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2 mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-clear-pgdat-which-is-allocated-by-bootmem-in-try_offline_node-v2
-+++ a/mm/memory_hotplug.c
-@@ -1912,7 +1912,6 @@ void try_offline_node(int nid)
- 	unsigned long start_pfn = pgdat->node_start_pfn;
- 	unsigned long end_pfn = start_pfn + pgdat->node_spanned_pages;
- 	unsigned long pfn;
--	struct page *pgdat_page = virt_to_page(pgdat);
- 	int i;
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-missed-end-writeback-page-accounting-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-missed-end-writeback-page-accounting-fix
++++ a/mm/memcontrol.c
+@@ -2198,21 +2198,31 @@ cleanup:
+ 	return true;
+ }
  
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
-@@ -1941,10 +1940,6 @@ void try_offline_node(int nid)
- 	node_set_offline(nid);
- 	unregister_one_node(nid);
+-/*
+- * Used to update mapped file or writeback or other statistics.
++/**
++ * mem_cgroup_begin_page_stat - begin a page state statistics transaction
++ * @page: page that is going to change accounted state
++ * @locked: &memcg->move_lock slowpath was taken
++ * @flags: IRQ-state flags for &memcg->move_lock
+  *
+- * Notes: Race condition
++ * This function must mark the beginning of an accounted page state
++ * change to prevent double accounting when the page is concurrently
++ * being moved to another memcg:
+  *
+- * Charging occurs during page instantiation, while the page is
+- * unmapped and locked in page migration, or while the page table is
+- * locked in THP migration.  No race is possible.
++ *   memcg = mem_cgroup_begin_page_stat(page, &locked, &flags);
++ *   if (TestClearPageState(page))
++ *     mem_cgroup_update_page_stat(memcg, state, -1);
++ *   mem_cgroup_end_page_stat(memcg, locked, flags);
+  *
+- * Uncharge happens to pages with zero references, no race possible.
++ * The RCU lock is held throughout the transaction.  The fast path can
++ * get away without acquiring the memcg->move_lock (@locked is false)
++ * because page moving starts with an RCU grace period.
+  *
+- * Charge moving between groups is protected by checking mm->moving
+- * account and taking the move_lock in the slowpath.
++ * The RCU lock also protects the memcg from being freed when the page
++ * state that is going to change is the only thing preventing the page
++ * from being uncharged.  E.g. end-writeback clearing PageWriteback(),
++ * which allows migration to go ahead and uncharge the page before the
++ * account transaction might be complete.
+  */
+-
+ struct mem_cgroup *mem_cgroup_begin_page_stat(struct page *page,
+ 					      bool *locked,
+ 					      unsigned long *flags)
+@@ -2230,12 +2240,7 @@ again:
+ 	memcg = pc->mem_cgroup;
+ 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
+ 		return NULL;
+-	/*
+-	 * If this memory cgroup is not under account moving, we don't
+-	 * need to take move_lock_mem_cgroup(). Because we already hold
+-	 * rcu_read_lock(), any calls to move_account will be delayed until
+-	 * rcu_read_unlock().
+-	 */
++
+ 	*locked = false;
+ 	if (atomic_read(&memcg->moving_account) <= 0)
+ 		return memcg;
+@@ -2250,6 +2255,12 @@ again:
+ 	return memcg;
+ }
  
--	if (!PageSlab(pgdat_page) && !PageCompound(pgdat_page))
--		/* node data is allocated from boot memory */
--		goto out;
++/**
++ * mem_cgroup_end_page_stat - finish a page state statistics transaction
++ * @memcg: the memcg that was accounted against
++ * @locked: value received from mem_cgroup_begin_page_stat()
++ * @flags: value received from mem_cgroup_begin_page_stat()
++ */
+ void mem_cgroup_end_page_stat(struct mem_cgroup *memcg, bool locked,
+ 			      unsigned long flags)
+ {
+@@ -2259,6 +2270,14 @@ void mem_cgroup_end_page_stat(struct mem
+ 	rcu_read_unlock();
+ }
+ 
++/**
++ * mem_cgroup_update_page_stat - update page state statistics
++ * @memcg: memcg to account against
++ * @idx: page state item to account
++ * @val: number of pages (positive or negative)
++ *
++ * See mem_cgroup_begin_page_stat() for locking requirements.
++ */
+ void mem_cgroup_update_page_stat(struct mem_cgroup *memcg,
+ 				 enum mem_cgroup_stat_index idx, int val)
+ {
+_
+
+Patches currently in -mm which might be from hannes@cmpxchg.org are
+
+cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
+mm-page-writeback-inline-account_page_dirtied-into-single-caller.patch
+mm-memcontrol-fix-missed-end-writeback-page-accounting.patch
+mm-rmap-split-out-page_remove_file_rmap.patch
+slab-print-slabinfo-header-in-seq-show.patch
+mm-memcontrol-lockless-page-counters.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+mm-memcontrol-lockless-page-counters-fix-2.patch
+mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+kernel-res_counter-remove-the-unused-api.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+kernel-res_counter-remove-the-unused-api-fix-2.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
+mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
+mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
+mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+mm-memcontrol-remove-synchroneous-stock-draining-code.patch
+mm-vmscan-count-only-dirty-pages-as-congested.patch
+memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
+mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
+mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
+memcg-remove-activate_kmem_mutex.patch
+mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
+mm-memcontrol-uncharge-pages-on-swapout.patch
+mm-memcontrol-uncharge-pages-on-swapout-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-inline-memcg-move_lock-locking.patch
+mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
+memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
+mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
+mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
+mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
+mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
+debugging-keep-track-of-page-owners.patch
+
