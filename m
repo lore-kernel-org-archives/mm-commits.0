@@ -1,468 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpuset-convert-callback_mutex-to-a-spinlock.patch
- removed from -mm tree
-Date: Wed, 29 Oct 2014 11:23:03 -0700
-Message-ID: <54513087.rOsfJyaFNNMdRrrJ%akpm@linux-foundation.org>
+Subject: +
+ mm-balloon_compaction-fix-deflation-when-compaction-is-disabled.patch added to -mm tree
+Date: Wed, 29 Oct 2014 12:16:41 -0700
+Message-ID: <54513d19.A3KcNPR2YnBFbo9S%akpm__42447.6504013457$1414610210$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48397 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49256 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755836AbaJ2SXD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Oct 2014 14:23:03 -0400
+	with ESMTP id S1754881AbaJ2TQk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Oct 2014 15:16:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, iamjoonsoo.kim@lge.com, lizefan@huawei.com, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: k.khlebnikov@samsung.com, mmullins@mmlx.us, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpuset: convert callback_mutex to a spinlock
-has been removed from the -mm tree.  Its filename was
-     cpuset-convert-callback_mutex-to-a-spinlock.patch
+     Subject: mm/balloon_compaction: fix deflation when compaction is disabled
+has been added to the -mm tree.  Its filename is
+     mm-balloon_compaction-fix-deflation-when-compaction-is-disabled.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon_compaction-fix-deflation-when-compaction-is-disabled.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon_compaction-fix-deflation-when-compaction-is-disabled.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: cpuset: convert callback_mutex to a spinlock
+From: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+Subject: mm/balloon_compaction: fix deflation when compaction is disabled
 
-SLAB and SLUB use hardwall cpuset check on fallback alloc, while the page
-allocator uses softwall check for all kernel allocations.  This may result
-in falling into the page allocator even if there are free objects on other
-nodes.  SLAB algorithm is especially affected: the number of objects
-allocated in vain is unlimited, so that they theoretically can eat up a
-whole NUMA node.  For more details see comments to patches 3, 4.
+If CONFIG_BALLOON_COMPACTION=n balloon_page_insert() does not link pages
+with balloon and doesn't set PagePrivate flag, as a result
+balloon_page_dequeue() cannot get any pages because it thinks that all of
+them are isolated.  Without balloon compaction nobody can isolate
+ballooned pages.  It's safe to remove this check.
 
-When I last sent a fix (https://lkml.org/lkml/2014/8/10/100), David found
-the whole cpuset API being cumbersome and proposed to simplify it before
-getting to fixing its users.  So this patch set addresses both David's
-complain (patches 1, 2) and the SL[AU]B issues (patches 3, 4).
-
-
-
-This patch (of 4):
-
-The callback_mutex is only used to synchronize reads/updates of cpusets'
-flags and cpu/node masks.  These operations should always proceed fast so
-there's no reason why we can't use a spinlock instead of the mutex.
-
-Converting the callback_mutex into a spinlock will let us call
-cpuset_zone_allowed_softwall from atomic context.  This, in turn, makes it
-possible to simplify the code by merging the hardwall and asoftwall checks
-into the same function, which is the business of the next patch.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Suggested-by: Zefan Li <lizefan@huawei.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Zefan Li <lizefan@huawei.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Tejun Heo <tj@kernel.org>
+Fixes: d6d86c0a7f8ddc ("mm/balloon_compaction: redesign ballooned pages management").
+Signed-off-by: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+Reported-by: Matt Mullins <mmullins@mmlx.us>
+Cc: <stable@vger.kernel.org>	[3.17]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |  107 +++++++++++++++++++++++-----------------------
- 1 file changed, 55 insertions(+), 52 deletions(-)
+ mm/balloon_compaction.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/cpuset.c~cpuset-convert-callback_mutex-to-a-spinlock kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-convert-callback_mutex-to-a-spinlock
-+++ a/kernel/cpuset.c
-@@ -248,34 +248,34 @@ static struct cpuset top_cpuset = {
- 		if (is_cpuset_online(((des_cs) = css_cs((pos_css)))))
- 
- /*
-- * There are two global mutexes guarding cpuset structures - cpuset_mutex
-- * and callback_mutex.  The latter may nest inside the former.  We also
-- * require taking task_lock() when dereferencing a task's cpuset pointer.
-- * See "The task_lock() exception", at the end of this comment.
-+ * There are two global locks guarding cpuset structures - cpuset_mutex and
-+ * callback_lock. We also require taking task_lock() when dereferencing a
-+ * task's cpuset pointer. See "The task_lock() exception", at the end of this
-+ * comment.
-  *
-- * A task must hold both mutexes to modify cpusets.  If a task holds
-+ * A task must hold both locks to modify cpusets.  If a task holds
-  * cpuset_mutex, then it blocks others wanting that mutex, ensuring that it
-- * is the only task able to also acquire callback_mutex and be able to
-+ * is the only task able to also acquire callback_lock and be able to
-  * modify cpusets.  It can perform various checks on the cpuset structure
-  * first, knowing nothing will change.  It can also allocate memory while
-  * just holding cpuset_mutex.  While it is performing these checks, various
-- * callback routines can briefly acquire callback_mutex to query cpusets.
-- * Once it is ready to make the changes, it takes callback_mutex, blocking
-+ * callback routines can briefly acquire callback_lock to query cpusets.
-+ * Once it is ready to make the changes, it takes callback_lock, blocking
-  * everyone else.
-  *
-  * Calls to the kernel memory allocator can not be made while holding
-- * callback_mutex, as that would risk double tripping on callback_mutex
-+ * callback_lock, as that would risk double tripping on callback_lock
-  * from one of the callbacks into the cpuset code from within
-  * __alloc_pages().
-  *
-- * If a task is only holding callback_mutex, then it has read-only
-+ * If a task is only holding callback_lock, then it has read-only
-  * access to cpusets.
-  *
-  * Now, the task_struct fields mems_allowed and mempolicy may be changed
-  * by other task, we use alloc_lock in the task_struct fields to protect
-  * them.
-  *
-- * The cpuset_common_file_read() handlers only hold callback_mutex across
-+ * The cpuset_common_file_read() handlers only hold callback_lock across
-  * small pieces of code, such as when reading out possibly multi-word
-  * cpumasks and nodemasks.
-  *
-@@ -284,7 +284,7 @@ static struct cpuset top_cpuset = {
-  */
- 
- static DEFINE_MUTEX(cpuset_mutex);
--static DEFINE_MUTEX(callback_mutex);
-+static DEFINE_SPINLOCK(callback_lock);
- 
- /*
-  * CPU / memory hotplug is handled asynchronously.
-@@ -329,7 +329,7 @@ static struct file_system_type cpuset_fs
-  * One way or another, we guarantee to return some non-empty subset
-  * of cpu_online_mask.
-  *
-- * Call with callback_mutex held.
-+ * Call with callback_lock or cpuset_mutex held.
-  */
- static void guarantee_online_cpus(struct cpuset *cs, struct cpumask *pmask)
- {
-@@ -347,7 +347,7 @@ static void guarantee_online_cpus(struct
-  * One way or another, we guarantee to return some non-empty subset
-  * of node_states[N_MEMORY].
-  *
-- * Call with callback_mutex held.
-+ * Call with callback_lock or cpuset_mutex held.
-  */
- static void guarantee_online_mems(struct cpuset *cs, nodemask_t *pmask)
- {
-@@ -359,7 +359,7 @@ static void guarantee_online_mems(struct
- /*
-  * update task's spread flag if cpuset's page/slab spread flag is set
-  *
-- * Called with callback_mutex/cpuset_mutex held
-+ * Call with callback_lock or cpuset_mutex held.
-  */
- static void cpuset_update_task_spread_flag(struct cpuset *cs,
- 					struct task_struct *tsk)
-@@ -876,9 +876,9 @@ static void update_cpumasks_hier(struct
- 			continue;
- 		rcu_read_unlock();
- 
--		mutex_lock(&callback_mutex);
-+		spin_lock_irq(&callback_lock);
- 		cpumask_copy(cp->effective_cpus, new_cpus);
--		mutex_unlock(&callback_mutex);
-+		spin_unlock_irq(&callback_lock);
- 
- 		WARN_ON(!cgroup_on_dfl(cp->css.cgroup) &&
- 			!cpumask_equal(cp->cpus_allowed, cp->effective_cpus));
-@@ -943,9 +943,9 @@ static int update_cpumask(struct cpuset
- 	if (retval < 0)
- 		return retval;
- 
--	mutex_lock(&callback_mutex);
-+	spin_lock_irq(&callback_lock);
- 	cpumask_copy(cs->cpus_allowed, trialcs->cpus_allowed);
--	mutex_unlock(&callback_mutex);
-+	spin_unlock_irq(&callback_lock);
- 
- 	/* use trialcs->cpus_allowed as a temp variable */
- 	update_cpumasks_hier(cs, trialcs->cpus_allowed);
-@@ -1132,9 +1132,9 @@ static void update_nodemasks_hier(struct
- 			continue;
- 		rcu_read_unlock();
- 
--		mutex_lock(&callback_mutex);
-+		spin_lock_irq(&callback_lock);
- 		cp->effective_mems = *new_mems;
--		mutex_unlock(&callback_mutex);
-+		spin_unlock_irq(&callback_lock);
- 
- 		WARN_ON(!cgroup_on_dfl(cp->css.cgroup) &&
- 			!nodes_equal(cp->mems_allowed, cp->effective_mems));
-@@ -1155,7 +1155,7 @@ static void update_nodemasks_hier(struct
-  * mempolicies and if the cpuset is marked 'memory_migrate',
-  * migrate the tasks pages to the new memory.
-  *
-- * Call with cpuset_mutex held.  May take callback_mutex during call.
-+ * Call with cpuset_mutex held. May take callback_lock during call.
-  * Will take tasklist_lock, scan tasklist for tasks in cpuset cs,
-  * lock each such tasks mm->mmap_sem, scan its vma's and rebind
-  * their mempolicies to the cpusets new mems_allowed.
-@@ -1202,9 +1202,9 @@ static int update_nodemask(struct cpuset
- 	if (retval < 0)
- 		goto done;
- 
--	mutex_lock(&callback_mutex);
-+	spin_lock_irq(&callback_lock);
- 	cs->mems_allowed = trialcs->mems_allowed;
--	mutex_unlock(&callback_mutex);
-+	spin_unlock_irq(&callback_lock);
- 
- 	/* use trialcs->mems_allowed as a temp variable */
- 	update_nodemasks_hier(cs, &cs->mems_allowed);
-@@ -1295,9 +1295,9 @@ static int update_flag(cpuset_flagbits_t
- 	spread_flag_changed = ((is_spread_slab(cs) != is_spread_slab(trialcs))
- 			|| (is_spread_page(cs) != is_spread_page(trialcs)));
- 
--	mutex_lock(&callback_mutex);
-+	spin_lock_irq(&callback_lock);
- 	cs->flags = trialcs->flags;
--	mutex_unlock(&callback_mutex);
-+	spin_unlock_irq(&callback_lock);
- 
- 	if (!cpumask_empty(trialcs->cpus_allowed) && balance_flag_changed)
- 		rebuild_sched_domains_locked();
-@@ -1713,7 +1713,7 @@ static int cpuset_common_seq_show(struct
- 	count = seq_get_buf(sf, &buf);
- 	s = buf;
- 
--	mutex_lock(&callback_mutex);
-+	spin_lock_irq(&callback_lock);
- 
- 	switch (type) {
- 	case FILE_CPULIST:
-@@ -1740,7 +1740,7 @@ static int cpuset_common_seq_show(struct
- 		seq_commit(sf, -1);
- 	}
- out_unlock:
--	mutex_unlock(&callback_mutex);
-+	spin_unlock_irq(&callback_lock);
- 	return ret;
- }
- 
-@@ -1957,12 +1957,12 @@ static int cpuset_css_online(struct cgro
- 
- 	cpuset_inc();
- 
--	mutex_lock(&callback_mutex);
-+	spin_lock_irq(&callback_lock);
- 	if (cgroup_on_dfl(cs->css.cgroup)) {
- 		cpumask_copy(cs->effective_cpus, parent->effective_cpus);
- 		cs->effective_mems = parent->effective_mems;
- 	}
--	mutex_unlock(&callback_mutex);
-+	spin_unlock_irq(&callback_lock);
- 
- 	if (!test_bit(CGRP_CPUSET_CLONE_CHILDREN, &css->cgroup->flags))
- 		goto out_unlock;
-@@ -1989,10 +1989,10 @@ static int cpuset_css_online(struct cgro
- 	}
- 	rcu_read_unlock();
- 
--	mutex_lock(&callback_mutex);
-+	spin_lock_irq(&callback_lock);
- 	cs->mems_allowed = parent->mems_allowed;
- 	cpumask_copy(cs->cpus_allowed, parent->cpus_allowed);
--	mutex_unlock(&callback_mutex);
-+	spin_lock_irq(&callback_lock);
- out_unlock:
- 	mutex_unlock(&cpuset_mutex);
- 	return 0;
-@@ -2031,7 +2031,7 @@ static void cpuset_css_free(struct cgrou
- static void cpuset_bind(struct cgroup_subsys_state *root_css)
- {
- 	mutex_lock(&cpuset_mutex);
--	mutex_lock(&callback_mutex);
-+	spin_lock_irq(&callback_lock);
- 
- 	if (cgroup_on_dfl(root_css->cgroup)) {
- 		cpumask_copy(top_cpuset.cpus_allowed, cpu_possible_mask);
-@@ -2042,7 +2042,7 @@ static void cpuset_bind(struct cgroup_su
- 		top_cpuset.mems_allowed = top_cpuset.effective_mems;
- 	}
- 
--	mutex_unlock(&callback_mutex);
-+	spin_unlock_irq(&callback_lock);
- 	mutex_unlock(&cpuset_mutex);
- }
- 
-@@ -2127,12 +2127,12 @@ hotplug_update_tasks_legacy(struct cpuse
- {
- 	bool is_empty;
- 
--	mutex_lock(&callback_mutex);
-+	spin_lock_irq(&callback_lock);
- 	cpumask_copy(cs->cpus_allowed, new_cpus);
- 	cpumask_copy(cs->effective_cpus, new_cpus);
- 	cs->mems_allowed = *new_mems;
- 	cs->effective_mems = *new_mems;
--	mutex_unlock(&callback_mutex);
-+	spin_unlock_irq(&callback_lock);
- 
- 	/*
- 	 * Don't call update_tasks_cpumask() if the cpuset becomes empty,
-@@ -2169,10 +2169,10 @@ hotplug_update_tasks(struct cpuset *cs,
- 	if (nodes_empty(*new_mems))
- 		*new_mems = parent_cs(cs)->effective_mems;
- 
--	mutex_lock(&callback_mutex);
-+	spin_lock_irq(&callback_lock);
- 	cpumask_copy(cs->effective_cpus, new_cpus);
- 	cs->effective_mems = *new_mems;
--	mutex_unlock(&callback_mutex);
-+	spin_unlock_irq(&callback_lock);
- 
- 	if (cpus_updated)
- 		update_tasks_cpumask(cs);
-@@ -2258,21 +2258,21 @@ static void cpuset_hotplug_workfn(struct
- 
- 	/* synchronize cpus_allowed to cpu_active_mask */
- 	if (cpus_updated) {
--		mutex_lock(&callback_mutex);
-+		spin_lock_irq(&callback_lock);
- 		if (!on_dfl)
- 			cpumask_copy(top_cpuset.cpus_allowed, &new_cpus);
- 		cpumask_copy(top_cpuset.effective_cpus, &new_cpus);
--		mutex_unlock(&callback_mutex);
-+		spin_unlock_irq(&callback_lock);
- 		/* we don't mess with cpumasks of tasks in top_cpuset */
- 	}
- 
- 	/* synchronize mems_allowed to N_MEMORY */
- 	if (mems_updated) {
--		mutex_lock(&callback_mutex);
-+		spin_lock_irq(&callback_lock);
- 		if (!on_dfl)
- 			top_cpuset.mems_allowed = new_mems;
- 		top_cpuset.effective_mems = new_mems;
--		mutex_unlock(&callback_mutex);
-+		spin_unlock_irq(&callback_lock);
- 		update_tasks_nodemask(&top_cpuset);
- 	}
- 
-@@ -2365,11 +2365,13 @@ void __init cpuset_init_smp(void)
- 
- void cpuset_cpus_allowed(struct task_struct *tsk, struct cpumask *pmask)
- {
--	mutex_lock(&callback_mutex);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&callback_lock, flags);
- 	rcu_read_lock();
- 	guarantee_online_cpus(task_cs(tsk), pmask);
- 	rcu_read_unlock();
--	mutex_unlock(&callback_mutex);
-+	spin_unlock_irqrestore(&callback_lock, flags);
- }
- 
- void cpuset_cpus_allowed_fallback(struct task_struct *tsk)
-@@ -2415,12 +2417,13 @@ void cpuset_init_current_mems_allowed(vo
- nodemask_t cpuset_mems_allowed(struct task_struct *tsk)
- {
- 	nodemask_t mask;
-+	unsigned long flags;
- 
--	mutex_lock(&callback_mutex);
-+	spin_lock_irqsave(&callback_lock, flags);
- 	rcu_read_lock();
- 	guarantee_online_mems(task_cs(tsk), &mask);
- 	rcu_read_unlock();
--	mutex_unlock(&callback_mutex);
-+	spin_unlock_irqrestore(&callback_lock, flags);
- 
- 	return mask;
- }
-@@ -2439,7 +2442,7 @@ int cpuset_nodemask_valid_mems_allowed(n
- /*
-  * nearest_hardwall_ancestor() - Returns the nearest mem_exclusive or
-  * mem_hardwall ancestor to the specified cpuset.  Call holding
-- * callback_mutex.  If no ancestor is mem_exclusive or mem_hardwall
-+ * callback_lock.  If no ancestor is mem_exclusive or mem_hardwall
-  * (an unusual configuration), then returns the root cpuset.
-  */
- static struct cpuset *nearest_hardwall_ancestor(struct cpuset *cs)
-@@ -2481,13 +2484,12 @@ static struct cpuset *nearest_hardwall_a
-  * GFP_KERNEL allocations are not so marked, so can escape to the
-  * nearest enclosing hardwalled ancestor cpuset.
-  *
-- * Scanning up parent cpusets requires callback_mutex.  The
-+ * Scanning up parent cpusets requires callback_lock.  The
-  * __alloc_pages() routine only calls here with __GFP_HARDWALL bit
-  * _not_ set if it's a GFP_KERNEL allocation, and all nodes in the
-  * current tasks mems_allowed came up empty on the first pass over
-  * the zonelist.  So only GFP_KERNEL allocations, if all nodes in the
-- * cpuset are short of memory, might require taking the callback_mutex
-- * mutex.
-+ * cpuset are short of memory, might require taking the callback_lock.
-  *
-  * The first call here from mm/page_alloc:get_page_from_freelist()
-  * has __GFP_HARDWALL set in gfp_mask, enforcing hardwall cpusets,
-@@ -2514,6 +2516,7 @@ int __cpuset_node_allowed_softwall(int n
- {
- 	struct cpuset *cs;		/* current cpuset ancestors */
- 	int allowed;			/* is allocation in zone z allowed? */
-+	unsigned long flags;
- 
- 	if (in_interrupt() || (gfp_mask & __GFP_THISNODE))
- 		return 1;
-@@ -2533,14 +2536,14 @@ int __cpuset_node_allowed_softwall(int n
- 		return 1;
- 
- 	/* Not hardwall and node outside mems_allowed: scan up cpusets */
--	mutex_lock(&callback_mutex);
-+	spin_lock_irqsave(&callback_lock, flags);
- 
- 	rcu_read_lock();
- 	cs = nearest_hardwall_ancestor(task_cs(current));
- 	allowed = node_isset(node, cs->mems_allowed);
- 	rcu_read_unlock();
- 
--	mutex_unlock(&callback_mutex);
-+	spin_unlock_irqrestore(&callback_lock, flags);
- 	return allowed;
- }
- 
+diff -puN mm/balloon_compaction.c~mm-balloon_compaction-fix-deflation-when-compaction-is-disabled mm/balloon_compaction.c
+--- a/mm/balloon_compaction.c~mm-balloon_compaction-fix-deflation-when-compaction-is-disabled
++++ a/mm/balloon_compaction.c
+@@ -68,11 +68,13 @@ struct page *balloon_page_dequeue(struct
+ 		 * to be released by the balloon driver.
+ 		 */
+ 		if (trylock_page(page)) {
++#ifdef CONFIG_BALLOON_COMPACTION
+ 			if (!PagePrivate(page)) {
+ 				/* raced with isolation */
+ 				unlock_page(page);
+ 				continue;
+ 			}
++#endif
+ 			spin_lock_irqsave(&b_dev_info->pages_lock, flags);
+ 			balloon_page_delete(page);
+ 			__count_vm_event(BALLOON_DEFLATE);
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from k.khlebnikov@samsung.com are
 
-mm-page-writeback-inline-account_page_dirtied-into-single-caller.patch
-mm-memcontrol-fix-missed-end-writeback-page-accounting.patch
-mm-memcontrol-fix-missed-end-writeback-page-accounting-fix.patch
-mm-rmap-split-out-page_remove_file_rmap.patch
-slab-print-slabinfo-header-in-seq-show.patch
-mm-memcontrol-lockless-page-counters.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
-mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
-mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
-mm-memcontrol-remove-synchroneous-stock-draining-code.patch
-mm-introduce-single-zone-pcplists-drain.patch
-mm-page_isolation-drain-single-zone-pcplists.patch
-mm-cma-drain-single-zone-pcplists.patch
-mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
-memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
-memcg-remove-activate_kmem_mutex.patch
-mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
-mm-memcontrol-uncharge-pages-on-swapout.patch
-mm-memcontrol-uncharge-pages-on-swapout-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-inline-memcg-move_lock-locking.patch
-mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
-memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
-mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
-mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
-mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
-mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
-linux-next.patch
-slab-fix-cpuset-check-in-fallback_alloc.patch
-slub-fix-cpuset-check-in-get_any_partial.patch
+mm-balloon_compaction-fix-deflation-when-compaction-is-disabled.patch
 
