@@ -1,107 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch removed from -mm tree
-Date: Wed, 29 Oct 2014 14:46:15 -0700
-Message-ID: <54516027.ybu4Tby/PPrpVbYU%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2.patch removed
+ from -mm tree
+Date: Wed, 29 Oct 2014 14:46:58 -0700
+Message-ID: <54516052.UTe/dKM9bpKRgKEt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52896 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755312AbaJ2VqO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Oct 2014 17:46:14 -0400
+	with ESMTP id S1755312AbaJ2Vq5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Oct 2014 17:46:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, dan.carpenter@oracle.com, joshc@codeaurora.org, sboyd@codeaurora.org, svarbanov@mm-sol.com, mm-commits@vger.kernel.org
+To: schwidefsky@de.ibm.com, oleg@redhat.com, penguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-pm8xxx-rework-to-support-pm8941-rtc-fix
+     Subject: kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2
 has been removed from the -mm tree.  Its filename was
-     rtc-pm8xxx-rework-to-support-pm8941-rtc-fix.patch
+     kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2.patch
 
-This patch was dropped because it was folded into rtc-pm8xxx-rework-to-support-pm8941-rtc.patch
+This patch was dropped because it was folded into kernel-kmod-fix-use-after-free-of-the-sub_info-structure.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-pm8xxx-rework-to-support-pm8941-rtc-fix
+From: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Subject: kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2
 
-simplify and fix locking in pm8xxx_rtc_set_time()
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Josh Cartwright <joshc@codeaurora.org>
-Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pm8xxx.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ kernel/kmod.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-pm8xxx.c~rtc-pm8xxx-rework-to-support-pm8941-rtc-fix drivers/rtc/rtc-pm8xxx.c
---- a/drivers/rtc/rtc-pm8xxx.c~rtc-pm8xxx-rework-to-support-pm8941-rtc-fix
-+++ a/drivers/rtc/rtc-pm8xxx.c
-@@ -113,8 +113,6 @@ static int pm8xxx_rtc_set_time(struct de
- 			dev_err(dev, "Write to RTC control register failed\n");
- 			goto rtc_rw_fail;
- 		}
--	} else {
--		spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
- 	}
- 
- 	/* Write 0 to Byte[0] */
-@@ -149,8 +147,7 @@ static int pm8xxx_rtc_set_time(struct de
- 	}
- 
- rtc_rw_fail:
--	if (alarm_enabled)
--		spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
-+	spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
- 
- 	return rc;
+diff -puN kernel/kmod.c~kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2 kernel/kmod.c
+--- a/kernel/kmod.c~kernel-kmod-fix-use-after-free-of-the-sub_info-structure-v2
++++ a/kernel/kmod.c
+@@ -208,7 +208,8 @@ static void umh_complete(struct subproce
+ 	struct completion *comp = xchg(&sub_info->complete, NULL);
+ 	/*
+ 	 * See call_usermodehelper_exec(). If xchg() returns NULL
+-	 * we own sub_info, the UMH_KILLABLE caller has gone away.
++	 * we own sub_info, the UMH_KILLABLE caller has gone away
++	 * or the caller used UMH_NO_WAIT.
+ 	 */
+ 	if (comp)
+ 		complete(comp);
+@@ -265,12 +266,12 @@ static int ____call_usermodehelper(void
+ 			   (const char __user *const __user *)sub_info->envp);
+ out:
+ 	sub_info->retval = retval;
++	/* wait_for_helper() will call umh_complete if UHM_WAIT_PROC. */
+ 	if (wait != UMH_WAIT_PROC)
+-		/* For UMH_WAIT_PROC wait_for_helper calls umh_complete */
+ 		umh_complete(sub_info);
+-	if (retval)
+-		do_exit(0);
+-	return 0;
++	if (!retval)
++		return 0;
++	do_exit(0);
  }
+ 
+ static int call_helper(void *data)
+@@ -580,6 +581,11 @@ int call_usermodehelper_exec(struct subp
+ 		goto out;
+ 	}
+ 
++	/*
++	 * Set the completion pointer only if there is a waiter.
++	 * This makes it possible to use umh_complete to free
++	 * the data structure in case of UMH_NO_WAIT.
++	 */
+ 	sub_info->complete = (wait == UMH_NO_WAIT) ? NULL : &done;
+ 	sub_info->wait = wait;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from schwidefsky@de.ibm.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-rtc-pm8xxx-rework-to-support-pm8941-rtc.patch
-kernel-posix-timersc-code-clean-up-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+kernel-kmod-fix-use-after-free-of-the-sub_info-structure.patch
+usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
+usermodehelper-kill-the-kmod_thread_locker-logic.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
-arch-x86-include-asm-io_apich-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
