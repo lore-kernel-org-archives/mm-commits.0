@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-vdso-vmac-fix-build-with-older-gcc.patch added to -mm
- tree
-Date: Wed, 29 Oct 2014 12:36:09 -0700
-Message-ID: <545141a9.XcS17EWc3zmlsObk%akpm@linux-foundation.org>
+Subject: + arch-x86-include-asm-io_apich-fix-build.patch added to -mm tree
+Date: Wed, 29 Oct 2014 13:40:03 -0700
+Message-ID: <545150a3.mzcz9uWDJyvwGVdw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51850 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752224AbaJ2TgI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Oct 2014 15:36:08 -0400
+	with ESMTP id S1754084AbaJ2UkH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Oct 2014 16:40:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, luto@amacapital.net, mingo@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, JBeulich@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/vdso/vma.c: fix build with older gcc
+     Subject: arch/x86/include/asm/io_apic.h: fix build
 has been added to the -mm tree.  Its filename is
-     arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
+     arch-x86-include-asm-io_apich-fix-build.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-include-asm-io_apich-fix-build.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-include-asm-io_apich-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,81 +39,72 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/x86/vdso/vma.c: fix build with older gcc
+Subject: arch/x86/include/asm/io_apic.h: fix build
 
-gcc-4.4.4:
+i386 allnoconfig:
 
-arch/x86/vdso/vma.c: In function 'vgetcpu_cpu_init':
-arch/x86/vdso/vma.c:247: error: unknown field 'limit0' specified in initializer
-arch/x86/vdso/vma.c:247: warning: missing braces around initializer
-arch/x86/vdso/vma.c:247: warning: (near initialization for '(anonymous).<anonymous>')
-arch/x86/vdso/vma.c:248: error: unknown field 'limit' specified in initializer
-arch/x86/vdso/vma.c:248: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:248: warning: (near initialization for '(anonymous)')
-arch/x86/vdso/vma.c:249: error: unknown field 'type' specified in initializer
-arch/x86/vdso/vma.c:249: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:249: warning: (near initialization for '(anonymous)')
-arch/x86/vdso/vma.c:250: error: unknown field 'dpl' specified in initializer
-arch/x86/vdso/vma.c:250: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:250: warning: (near initialization for '(anonymous)')
-arch/x86/vdso/vma.c:251: error: unknown field 's' specified in initializer
-arch/x86/vdso/vma.c:251: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:251: warning: (near initialization for '(anonymous)')
-arch/x86/vdso/vma.c:252: error: unknown field 'p' specified in initializer
-arch/x86/vdso/vma.c:252: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:252: warning: (near initialization for '(anonymous)')
-arch/x86/vdso/vma.c:253: error: unknown field 'd' specified in initializer
-arch/x86/vdso/vma.c:253: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:253: warning: (near initialization for '(anonymous)')
+In file included from arch/x86/kernel/x86_init.c:21:
+./arch/x86/include/asm/io_apic.h:240: error: static declaration of 'mp_should_keep_irq' follows non-static declaration
+./arch/x86/include/asm/pci_x86.h:96: note: previous declaration of 'mp_should_keep_irq' was here
 
-I couldn't find any way of tricking it into accepting an initializer
-format :(
+Fix it by moving the mp_should_keep_irq() definition out of
+arch/x86/include/asm/pci_x86.h and into the appropriate ifdef section within
+arch/x86/include/asm/io_apic.h.
 
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Also tidy up the CONFIG_X86_IO_APIC ifdeffery.
+
+(Seems that a fix for this is in the works but hasn't yet propagated into
+-next)
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jan Beulich <JBeulich@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/vdso/vma.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ arch/x86/include/asm/io_apic.h |    5 +++--
+ arch/x86/include/asm/pci_x86.h |    2 --
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/vdso/vma.c~arch-x86-vdso-vmac-fix-build-with-older-gcc arch/x86/vdso/vma.c
---- a/arch/x86/vdso/vma.c~arch-x86-vdso-vmac-fix-build-with-older-gcc
-+++ a/arch/x86/vdso/vma.c
-@@ -230,7 +230,7 @@ __setup("vdso=", vdso_setup);
- static void vgetcpu_cpu_init(void *arg)
- {
- 	int cpu = smp_processor_id();
--	struct desc_struct d;
-+	struct desc_struct d = { };
- 	unsigned long node = 0;
- #ifdef CONFIG_NUMA
- 	node = cpu_to_node(cpu);
-@@ -243,15 +243,13 @@ static void vgetcpu_cpu_init(void *arg)
- 	 * quickly in user space in vgetcpu. (12 bits for the CPU
- 	 * and 8 bits for the node)
- 	 */
--	d = (struct desc_struct) {
--		.limit0 = cpu | ((node & 0xf) << 12),
--		.limit = node >> 4,
--		.type = 5,		/* RO data, expand down, accessed */
--		.dpl = 3,		/* Visible to user code */
--		.s = 1,			/* Not a system segment */
--		.p = 1,			/* Present */
--		.d = 1,			/* 32-bit */
--	};
-+	d.limit0 = cpu | ((node & 0xf) << 12);
-+	d.limit = node >> 4;
-+	d.type = 5;		/* RO data, expand down, accessed */
-+	d.dpl = 3;		/* Visible to user code */
-+	d.s = 1;		/* Not a system segment */
-+	d.p = 1;		/* Present */
-+	d.d = 1;		/* 32-bit */
+diff -puN arch/x86/include/asm/pci_x86.h~arch-x86-include-asm-io_apich-fix-build arch/x86/include/asm/pci_x86.h
+--- a/arch/x86/include/asm/pci_x86.h~arch-x86-include-asm-io_apich-fix-build
++++ a/arch/x86/include/asm/pci_x86.h
+@@ -93,8 +93,6 @@ extern raw_spinlock_t pci_config_lock;
+ extern int (*pcibios_enable_irq)(struct pci_dev *dev);
+ extern void (*pcibios_disable_irq)(struct pci_dev *dev);
  
- 	write_gdt_entry(get_cpu_gdt_table(cpu), GDT_ENTRY_PER_CPU, &d, DESCTYPE_S);
- }
-diff -puN arch/x86/include/asm/desc_defs.h~arch-x86-vdso-vmac-fix-build-with-older-gcc arch/x86/include/asm/desc_defs.h
+-extern bool mp_should_keep_irq(struct device *dev);
+-
+ struct pci_raw_ops {
+ 	int (*read)(unsigned int domain, unsigned int bus, unsigned int devfn,
+ 						int reg, int len, u32 *val);
+diff -puN arch/x86/include/asm/io_apic.h~arch-x86-include-asm-io_apich-fix-build arch/x86/include/asm/io_apic.h
+--- a/arch/x86/include/asm/io_apic.h~arch-x86-include-asm-io_apich-fix-build
++++ a/arch/x86/include/asm/io_apic.h
+@@ -197,6 +197,7 @@ extern int mp_set_gsi_attr(u32 gsi, int 
+ extern void __init pre_init_apic_IRQ0(void);
+ 
+ extern void mp_save_irq(struct mpc_intsrc *m);
++extern bool mp_should_keep_irq(struct device *dev);
+ 
+ extern void disable_ioapic_support(void);
+ 
+@@ -227,7 +228,7 @@ static inline void io_apic_modify(unsign
+ 
+ extern void io_apic_eoi(unsigned int apic, unsigned int vector);
+ 
+-#else  /* !CONFIG_X86_IO_APIC */
++#else	/* CONFIG_X86_IO_APIC */
+ 
+ #define io_apic_assign_pci_irqs 0
+ #define setup_ioapic_ids_from_mpc x86_init_noop
+@@ -262,6 +263,6 @@ static inline void disable_ioapic_suppor
+ #define native_setup_ioapic_entry	NULL
+ #define native_compose_msi_msg		NULL
+ #define native_eoi_ioapic_pin		NULL
+-#endif
++#endif	/* CONFIG_X86_IO_APIC */
+ 
+ #endif /* _ASM_X86_IO_APIC_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -148,6 +138,7 @@ ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
+arch-x86-include-asm-io_apich-fix-build.patch
 mm-cma-make-kmemleak-ignore-cma-regions.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
 debugging-keep-track-of-page-owners.patch
