@@ -1,374 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpuset-simplify-cpuset_node_allowed-api.patch removed
- from -mm tree
-Date: Wed, 29 Oct 2014 11:23:05 -0700
-Message-ID: <54513089.703N44E2Tc5zaWkj%akpm@linux-foundation.org>
+Subject: [merged]
+ x86-cma-reserve-dma-contiguous-area-after-initmem_init.patch removed from
+ -mm tree
+Date: Wed, 29 Oct 2014 11:23:09 -0700
+Message-ID: <5451308d.q8/DqpJK5NFavgoR%akpm__45086.3309008584$1414607009$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48406 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48412 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755859AbaJ2SXE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Oct 2014 14:23:04 -0400
+	with ESMTP id S1755836AbaJ2SXI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Oct 2014 14:23:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, iamjoonsoo.kim@lge.com, lizefan@huawei.com, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: weijie.yang@samsung.com, fengguang.wu@intel.com, m.szyprowski@samsung.com, mina86@mina86.com, mingo@elte.hu, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpuset: simplify cpuset_node_allowed API
+     Subject: x86, cma: reserve dma contiguous area after initmem_init()
 has been removed from the -mm tree.  Its filename was
-     cpuset-simplify-cpuset_node_allowed-api.patch
+     x86-cma-reserve-dma-contiguous-area-after-initmem_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: cpuset: simplify cpuset_node_allowed API
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: x86, cma: reserve dma contiguous area after initmem_init()
 
-Current cpuset API for checking if a zone/node is allowed to allocate from
-looks rather awkward.  We have hardwall and softwall versions of
-cpuset_node_allowed with the softwall version doing literally the same as
-the hardwall version if __GFP_HARDWALL is passed to it in gfp flags.  If
-it isn't, the softwall version may check the given node against the
-enclosing hardwall cpuset, which it needs to take the callback lock to do.
+Fengguang Wu reported a BUG: Int 6: CR2 (null) on x86 platform in
+0-day Linux Kernel Performance Test:
 
-Such a distinction was introduced by commit 02a0e53d8227 ("cpuset: rework
-cpuset_zone_allowed api").  Before, we had the only version with the
-__GFP_HARDWALL flag determining its behavior.  The purpose of the commit
-was to avoid sleep-in-atomic bugs when someone would mistakenly call the
-function without the __GFP_HARDWALL flag for an atomic allocation.  The
-suffixes introduced were intended to make the callers think before using
-the function.
+[    0.000000] BRK [0x025ee000, 0x025eefff] PGTABLE
+[    0.000000] cma: dma_contiguous_reserve(limit 13ffe000)
+[    0.000000] cma: dma_contiguous_reserve: reserving 31 MiB for global area
+[    0.000000] BUG: Int 6: CR2   (null)
+[    0.000000]      EDI c0000000  ESI   (null)  EBP 41c11ea4  EBX 425cc101
+[    0.000000]      ESP 41c11e98   ES 0000007b   DS 0000007b
+[    0.000000]      EDX 00000001  ECX   (null)  EAX 41cd8150
+[    0.000000]      vec 00000006  err   (null)  EIP 41072227   CS 00000060  flg 00210002
+[    0.000000] Stack: 425cc150   (null)   (null) 41c11ef4 41d4ee4d   (null) 13ffe000 41c11ec4
+[    0.000000]        41c2d900   (null) 13ffe000   (null) 4185793e 0000002e 410c2982 41c11f00
+[    0.000000]        410c2df5   (null)   (null)   (null) 425cc150 00013efe   (null) 41c11f28
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 3.17.0-next-20141008 #815
+[    0.000000]  00000000 425cc101 41c11e48 41850786 41c11ea4 41d2b1db 41d95f71 00000006
+[    0.000000]  00000000 c0000000 00000000 41c11ea4 425cc101 41c11e98 0000007b 0000007b
+[    0.000000]  00000001 00000000 41cd8150 00000006 00000000 41072227 00000060 00210002
+[    0.000000] Call Trace:
+[    0.000000]  [<41850786>] dump_stack+0x16/0x18
+[    0.000000]  [<41d2b1db>] early_idt_handler+0x6b/0x6b
+[    0.000000]  [<41072227>] ? __phys_addr+0x2e/0xca
+[    0.000000]  [<41d4ee4d>] cma_declare_contiguous+0x3c/0x2d7
+[    0.000000]  [<4185793e>] ? _raw_spin_unlock_irqrestore+0x59/0x91
+[    0.000000]  [<410c2982>] ? wake_up_klogd+0x8/0x33
+[    0.000000]  [<410c2df5>] ? console_unlock+0x448/0x461
+[    0.000000]  [<41d6d359>] dma_contiguous_reserve_area+0x27/0x47
+[    0.000000]  [<41d6d4d1>] dma_contiguous_reserve+0x158/0x163
+[    0.000000]  [<41d33e0f>] setup_arch+0x79b/0xc68
+[    0.000000]  [<4184c0b4>] ? printk+0x1c/0x1e
+[    0.000000]  [<41d2b7cf>] start_kernel+0x9c/0x456
+[    0.000000]  [<41d2b2ca>] i386_start_kernel+0x79/0x7d
 
-However, since the callback lock was converted from mutex to spinlock by
-the previous patch, the softwall check function cannot sleep, and these
-precautions are no longer necessary.
+see detail: https://lkml.org/lkml/2014/10/8/708
 
-So let's simplify the API back to the single check.
+It is because dma_contiguous_reserve() is called before initmem_init() in x86,
+the variable high_memory is not initialized but accessed by __pa(high_memory)
+in dma_contiguous_reserve().
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Suggested-by: David Rientjes <rientjes@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Zefan Li <lizefan@huawei.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Tejun Heo <tj@kernel.org>
+This patch moves dma_contiguous_reserve() after initmem_init() so that
+high_memory is initialized before accessed.
+
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h |   37 ++++----------------------
- kernel/cpuset.c        |   55 +--------------------------------------
- mm/hugetlb.c           |    2 -
- mm/oom_kill.c          |    2 -
- mm/page_alloc.c        |    6 ++--
- mm/slab.c              |    2 -
- mm/slub.c              |    3 +-
- mm/vmscan.c            |    5 ++-
- 8 files changed, 20 insertions(+), 92 deletions(-)
+ arch/x86/kernel/setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cpuset.h~cpuset-simplify-cpuset_node_allowed-api include/linux/cpuset.h
---- a/include/linux/cpuset.h~cpuset-simplify-cpuset_node_allowed-api
-+++ a/include/linux/cpuset.h
-@@ -48,29 +48,16 @@ extern nodemask_t cpuset_mems_allowed(st
- void cpuset_init_current_mems_allowed(void);
- int cpuset_nodemask_valid_mems_allowed(nodemask_t *nodemask);
+diff -puN arch/x86/kernel/setup.c~x86-cma-reserve-dma-contiguous-area-after-initmem_init arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~x86-cma-reserve-dma-contiguous-area-after-initmem_init
++++ a/arch/x86/kernel/setup.c
+@@ -1128,7 +1128,6 @@ void __init setup_arch(char **cmdline_p)
+ 	setup_real_mode();
  
--extern int __cpuset_node_allowed_softwall(int node, gfp_t gfp_mask);
--extern int __cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask);
-+extern int __cpuset_node_allowed(int node, gfp_t gfp_mask);
- 
--static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
-+static inline int cpuset_node_allowed(int node, gfp_t gfp_mask)
- {
--	return nr_cpusets() <= 1 ||
--		__cpuset_node_allowed_softwall(node, gfp_mask);
-+	return nr_cpusets() <= 1 || __cpuset_node_allowed(node, gfp_mask);
- }
- 
--static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
-+static inline int cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
- {
--	return nr_cpusets() <= 1 ||
--		__cpuset_node_allowed_hardwall(node, gfp_mask);
--}
--
--static inline int cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
--{
--	return cpuset_node_allowed_softwall(zone_to_nid(z), gfp_mask);
--}
--
--static inline int cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
--{
--	return cpuset_node_allowed_hardwall(zone_to_nid(z), gfp_mask);
-+	return cpuset_node_allowed(zone_to_nid(z), gfp_mask);
- }
- 
- extern int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
-@@ -179,22 +166,12 @@ static inline int cpuset_nodemask_valid_
- 	return 1;
- }
- 
--static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
--{
--	return 1;
--}
--
--static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
--{
--	return 1;
--}
--
--static inline int cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
-+static inline int cpuset_node_allowed(int node, gfp_t gfp_mask)
- {
- 	return 1;
- }
- 
--static inline int cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
-+static inline int cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
- {
- 	return 1;
- }
-diff -puN kernel/cpuset.c~cpuset-simplify-cpuset_node_allowed-api kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-simplify-cpuset_node_allowed-api
-+++ a/kernel/cpuset.c
-@@ -2453,7 +2453,7 @@ static struct cpuset *nearest_hardwall_a
- }
- 
- /**
-- * cpuset_node_allowed_softwall - Can we allocate on a memory node?
-+ * cpuset_node_allowed - Can we allocate on a memory node?
-  * @node: is this an allowed node?
-  * @gfp_mask: memory allocation flags
-  *
-@@ -2465,13 +2465,6 @@ static struct cpuset *nearest_hardwall_a
-  * flag, yes.
-  * Otherwise, no.
-  *
-- * If __GFP_HARDWALL is set, cpuset_node_allowed_softwall() reduces to
-- * cpuset_node_allowed_hardwall().  Otherwise, cpuset_node_allowed_softwall()
-- * might sleep, and might allow a node from an enclosing cpuset.
-- *
-- * cpuset_node_allowed_hardwall() only handles the simpler case of hardwall
-- * cpusets, and never sleeps.
-- *
-  * The __GFP_THISNODE placement logic is really handled elsewhere,
-  * by forcibly using a zonelist starting at a specified node, and by
-  * (in get_page_from_freelist()) refusing to consider the zones for
-@@ -2506,13 +2499,8 @@ static struct cpuset *nearest_hardwall_a
-  *	TIF_MEMDIE   - any node ok
-  *	GFP_KERNEL   - any node in enclosing hardwalled cpuset ok
-  *	GFP_USER     - only nodes in current tasks mems allowed ok.
-- *
-- * Rule:
-- *    Don't call cpuset_node_allowed_softwall if you can't sleep, unless you
-- *    pass in the __GFP_HARDWALL flag set in gfp_flag, which disables
-- *    the code that might scan up ancestor cpusets and sleep.
-  */
--int __cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
-+int __cpuset_node_allowed(int node, gfp_t gfp_mask)
- {
- 	struct cpuset *cs;		/* current cpuset ancestors */
- 	int allowed;			/* is allocation in zone z allowed? */
-@@ -2520,7 +2508,6 @@ int __cpuset_node_allowed_softwall(int n
- 
- 	if (in_interrupt() || (gfp_mask & __GFP_THISNODE))
- 		return 1;
--	might_sleep_if(!(gfp_mask & __GFP_HARDWALL));
- 	if (node_isset(node, current->mems_allowed))
- 		return 1;
- 	/*
-@@ -2547,44 +2534,6 @@ int __cpuset_node_allowed_softwall(int n
- 	return allowed;
- }
- 
--/*
-- * cpuset_node_allowed_hardwall - Can we allocate on a memory node?
-- * @node: is this an allowed node?
-- * @gfp_mask: memory allocation flags
-- *
-- * If we're in interrupt, yes, we can always allocate.  If __GFP_THISNODE is
-- * set, yes, we can always allocate.  If node is in our task's mems_allowed,
-- * yes.  If the task has been OOM killed and has access to memory reserves as
-- * specified by the TIF_MEMDIE flag, yes.
-- * Otherwise, no.
-- *
-- * The __GFP_THISNODE placement logic is really handled elsewhere,
-- * by forcibly using a zonelist starting at a specified node, and by
-- * (in get_page_from_freelist()) refusing to consider the zones for
-- * any node on the zonelist except the first.  By the time any such
-- * calls get to this routine, we should just shut up and say 'yes'.
-- *
-- * Unlike the cpuset_node_allowed_softwall() variant, above,
-- * this variant requires that the node be in the current task's
-- * mems_allowed or that we're in interrupt.  It does not scan up the
-- * cpuset hierarchy for the nearest enclosing mem_exclusive cpuset.
-- * It never sleeps.
-- */
--int __cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
--{
--	if (in_interrupt() || (gfp_mask & __GFP_THISNODE))
--		return 1;
--	if (node_isset(node, current->mems_allowed))
--		return 1;
--	/*
--	 * Allow tasks that have access to memory reserves because they have
--	 * been OOM killed to get memory anywhere.
--	 */
--	if (unlikely(test_thread_flag(TIF_MEMDIE)))
--		return 1;
--	return 0;
--}
--
- /**
-  * cpuset_mem_spread_node() - On which node to begin search for a file page
-  * cpuset_slab_spread_node() - On which node to begin search for a slab page
-diff -puN mm/hugetlb.c~cpuset-simplify-cpuset_node_allowed-api mm/hugetlb.c
---- a/mm/hugetlb.c~cpuset-simplify-cpuset_node_allowed-api
-+++ a/mm/hugetlb.c
-@@ -582,7 +582,7 @@ retry_cpuset:
- 
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 						MAX_NR_ZONES - 1, nodemask) {
--		if (cpuset_zone_allowed_softwall(zone, htlb_alloc_mask(h))) {
-+		if (cpuset_zone_allowed(zone, htlb_alloc_mask(h))) {
- 			page = dequeue_huge_page_node(h, zone_to_nid(zone));
- 			if (page) {
- 				if (avoid_reserve)
-diff -puN mm/oom_kill.c~cpuset-simplify-cpuset_node_allowed-api mm/oom_kill.c
---- a/mm/oom_kill.c~cpuset-simplify-cpuset_node_allowed-api
-+++ a/mm/oom_kill.c
-@@ -233,7 +233,7 @@ static enum oom_constraint constrained_a
- 	/* Check this allocation failure is caused by cpuset's wall function */
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 			high_zoneidx, nodemask)
--		if (!cpuset_zone_allowed_softwall(zone, gfp_mask))
-+		if (!cpuset_zone_allowed(zone, gfp_mask))
- 			cpuset_limited = true;
- 
- 	if (cpuset_limited) {
-diff -puN mm/page_alloc.c~cpuset-simplify-cpuset_node_allowed-api mm/page_alloc.c
---- a/mm/page_alloc.c~cpuset-simplify-cpuset_node_allowed-api
-+++ a/mm/page_alloc.c
-@@ -1962,7 +1962,7 @@ zonelist_scan:
+ 	memblock_set_current_limit(get_max_mapped());
+-	dma_contiguous_reserve(max_pfn_mapped << PAGE_SHIFT);
  
  	/*
- 	 * Scan zonelist, looking for a zone with enough free.
--	 * See also __cpuset_node_allowed_softwall() comment in kernel/cpuset.c.
-+	 * See also __cpuset_node_allowed() comment in kernel/cpuset.c.
- 	 */
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 						high_zoneidx, nodemask) {
-@@ -1973,7 +1973,7 @@ zonelist_scan:
- 				continue;
- 		if (cpusets_enabled() &&
- 			(alloc_flags & ALLOC_CPUSET) &&
--			!cpuset_zone_allowed_softwall(zone, gfp_mask))
-+			!cpuset_zone_allowed(zone, gfp_mask))
- 				continue;
- 		/*
- 		 * Distribute pages in proportion to the individual
-@@ -2506,7 +2506,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 			alloc_flags |= ALLOC_HARDER;
- 		/*
- 		 * Ignore cpuset mems for GFP_ATOMIC rather than fail, see the
--		 * comment for __cpuset_node_allowed_softwall().
-+		 * comment for __cpuset_node_allowed().
- 		 */
- 		alloc_flags &= ~ALLOC_CPUSET;
- 	} else if (unlikely(rt_task(current)) && !in_interrupt())
-diff -puN mm/slab.c~cpuset-simplify-cpuset_node_allowed-api mm/slab.c
---- a/mm/slab.c~cpuset-simplify-cpuset_node_allowed-api
-+++ a/mm/slab.c
-@@ -3012,7 +3012,7 @@ retry:
- 	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
- 		nid = zone_to_nid(zone);
+ 	 * NOTE: On x86-32, only from this point on, fixmaps are ready for use.
+@@ -1159,6 +1158,7 @@ void __init setup_arch(char **cmdline_p)
+ 	early_acpi_boot_init();
  
--		if (cpuset_zone_allowed_hardwall(zone, flags) &&
-+		if (cpuset_zone_allowed(zone, flags | __GFP_HARDWALL) &&
- 			get_node(cache, nid) &&
- 			get_node(cache, nid)->free_objects) {
- 				obj = ____cache_alloc_node(cache,
-diff -puN mm/slub.c~cpuset-simplify-cpuset_node_allowed-api mm/slub.c
---- a/mm/slub.c~cpuset-simplify-cpuset_node_allowed-api
-+++ a/mm/slub.c
-@@ -1662,7 +1662,8 @@ static void *get_any_partial(struct kmem
+ 	initmem_init();
++	dma_contiguous_reserve(max_pfn_mapped << PAGE_SHIFT);
  
- 			n = get_node(s, zone_to_nid(zone));
- 
--			if (n && cpuset_zone_allowed_hardwall(zone, flags) &&
-+			if (n && cpuset_zone_allowed(zone,
-+						     flags | __GFP_HARDWALL) &&
- 					n->nr_partial > s->min_partial) {
- 				object = get_partial_node(s, n, c, flags);
- 				if (object) {
-diff -puN mm/vmscan.c~cpuset-simplify-cpuset_node_allowed-api mm/vmscan.c
---- a/mm/vmscan.c~cpuset-simplify-cpuset_node_allowed-api
-+++ a/mm/vmscan.c
-@@ -2405,7 +2405,8 @@ static bool shrink_zones(struct zonelist
- 		 * to global LRU.
- 		 */
- 		if (global_reclaim(sc)) {
--			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
-+			if (!cpuset_zone_allowed(zone,
-+						 GFP_KERNEL | __GFP_HARDWALL))
- 				continue;
- 
- 			lru_pages += zone_reclaimable_pages(zone);
-@@ -3388,7 +3389,7 @@ void wakeup_kswapd(struct zone *zone, in
- 	if (!populated_zone(zone))
- 		return;
- 
--	if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
-+	if (!cpuset_zone_allowed(zone, GFP_KERNEL | __GFP_HARDWALL))
- 		return;
- 	pgdat = zone->zone_pgdat;
- 	if (pgdat->kswapd_max_order < order) {
+ 	/*
+ 	 * Reserve memory for crash kernel after SRAT is parsed so that it
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
-mm-page-writeback-inline-account_page_dirtied-into-single-caller.patch
-mm-memcontrol-fix-missed-end-writeback-page-accounting.patch
-mm-memcontrol-fix-missed-end-writeback-page-accounting-fix.patch
-mm-rmap-split-out-page_remove_file_rmap.patch
-slab-print-slabinfo-header-in-seq-show.patch
-mm-memcontrol-lockless-page-counters.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
-mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
-mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
-mm-memcontrol-remove-synchroneous-stock-draining-code.patch
-mm-introduce-single-zone-pcplists-drain.patch
-mm-page_isolation-drain-single-zone-pcplists.patch
-mm-cma-drain-single-zone-pcplists.patch
-mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
-memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
-memcg-remove-activate_kmem_mutex.patch
-mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
-mm-memcontrol-uncharge-pages-on-swapout.patch
-mm-memcontrol-uncharge-pages-on-swapout-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-inline-memcg-move_lock-locking.patch
-mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
-memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
-mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
-mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
-mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
-mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
+zram-avoid-null-pointer-access-in-concurrent-situation.patch
 linux-next.patch
-slab-fix-cpuset-check-in-fallback_alloc.patch
-slub-fix-cpuset-check-in-get_any_partial.patch
 
