@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-add-panic_on_warn-checkpatch-fixes.patch added to -mm
+Subject: + rtc-omap-add-support-for-pmic_power_en-v4.patch added to -mm
  tree
-Date: Thu, 30 Oct 2014 15:24:30 -0700
-Message-ID: <5452ba9e.MuJOn/GSXtUEj//v%akpm@linux-foundation.org>
+Date: Thu, 30 Oct 2014 15:28:27 -0700
+Message-ID: <5452bb8b.CFC0aoWxoWsdAOx9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41472 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41485 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161292AbaJ3WY3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 18:24:29 -0400
+	with ESMTP id S1161370AbaJ3W21 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 18:28:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, prarit@redhat.com, mm-commits@vger.kernel.org
+To: johan@kernel.org, a.zummo@towertech.it, balbi@ti.com, bcousson@baylibre.com, j-keerthy@ti.com, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-add-panic_on_warn-checkpatch-fixes
+     Subject: rtc: omap: add support for pmic_power_en v4
 has been added to the -mm tree.  Its filename is
-     kernel-add-panic_on_warn-checkpatch-fixes.patch
+     rtc-omap-add-support-for-pmic_power_en-v4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-add-panic_on_warn-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-omap-add-support-for-pmic_power_en-v4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-add-panic_on_warn-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-omap-add-support-for-pmic_power_en-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,87 +39,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-add-panic_on_warn-checkpatch-fixes
+From: Johan Hovold <johan@kernel.org>
+Subject: rtc: omap: add support for pmic_power_en v4
 
-ERROR: spaces required around that '=' (ctx:VxV)
-#188: FILE: include/uapi/linux/sysctl.h:156:
-+	KERN_PANIC_ON_WARN=77, /* int: call panic() in WARN() functions */
- 	                  ^
+Here's an updated patch, which adds a comment on why there is a delay
+after activating the alarm.
 
-WARNING: unnecessary whitespace before a quoted newline
-#222: FILE: kernel/panic.c:438:
-+		panic("panic_on_warn set ... \n");
+Note that I also increased the delay to include a margin for external
+latencies. For example, on Beaglebone Black, the PMIC has a 50ms
+deglitch time on the PWR_EN pin (which is connected to pmic_power_en).
 
-total: 1 errors, 1 warnings, 158 lines checked
+Such margins should probably eventually be specified through device
+tree, for instance, as an attribute to accompany the
+system-power-controller attribute and be handled by the power-off call
+chain infrastructure.
 
-./patches/kernel-add-panic_on_warn.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Prarit Bhargava <prarit@redhat.com>
+Signed-off-by: Johan Hovold <johan@kernel.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Benot Cousson <bcousson@baylibre.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Sekhar Nori <nsekhar@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Keerthy J <j-keerthy@ti.com>
+Tested-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-omap.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN kernel/panic.c~kernel-add-panic_on_warn-checkpatch-fixes kernel/panic.c
---- a/kernel/panic.c~kernel-add-panic_on_warn-checkpatch-fixes
-+++ a/kernel/panic.c
-@@ -435,7 +435,7 @@ static void warn_slowpath_common(const c
- 		 * from panicking the system.
- 		 */
- 		panic_on_warn = 0;
--		panic("panic_on_warn set ... \n");
-+		panic("panic_on_warn set ...\n");
- 	}
+diff -puN drivers/rtc/rtc-omap.c~rtc-omap-add-support-for-pmic_power_en-v4 drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-omap-add-support-for-pmic_power_en-v4
++++ a/drivers/rtc/rtc-omap.c
+@@ -373,7 +373,7 @@ static struct omap_rtc *omap_rtc_power_o
+  * The two-second alarm offset is the shortest offset possible as the alarm
+  * registers must be set before the next timer update and the offset
+  * calculation is too heavy for everything to be done within a single access
+- * period (~15us).
++ * period (~15 us).
+  *
+  * Called with local interrupts disabled.
+  */
+@@ -417,8 +417,12 @@ static void omap_rtc_power_off(void)
+ 	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
+ 			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
  
- 	print_modules();
+-	/* Allow alarm to trigger before returning */
+-	mdelay(2000);
++	/*
++	 * Wait for alarm to trigger (within two seconds) and external PMIC to
++	 * power off the system. Add a 500 ms margin for external latencies
++	 * (e.g. debounce circuits).
++	 */
++	mdelay(2500);
+ }
+ 
+ static struct rtc_class_ops omap_rtc_ops = {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from johan@kernel.org are
 
-origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-kernel-add-panic_on_warn-checkpatch-fixes.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-fix-clock-source-configuration.patch
+rtc-omap-fix-missing-wakealarm-attribute.patch
+rtc-omap-fix-interrupt-disable-at-probe.patch
+rtc-omap-clean-up-probe-error-handling.patch
+rtc-omap-fix-class-device-registration.patch
+rtc-omap-remove-unused-register-base-define.patch
+rtc-omap-use-dev_info.patch
+rtc-omap-make-platform-device-id-table-const.patch
+rtc-omap-add-device-abstraction.patch
+rtc-omap-remove-driver_name-macro.patch
+rtc-omap-add-structured-device-type-info.patch
+rtc-omap-silence-bogus-power-up-reset-message-at-probe.patch
+rtc-omap-add-helper-to-read-raw-bcd-time.patch
+rtc-omap-add-helper-to-read-32-bit-registers.patch
+rtc-omap-add-support-for-pmic_power_en.patch
+rtc-omap-add-support-for-pmic_power_en-v3.patch
 rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v4.patch
+rtc-omap-enable-wake-up-from-power-off.patch
+rtc-omap-fix-minor-coding-style-issues.patch
+rtc-omap-add-copyright-entry.patch
+arm-dts-am33xx-update-rtc-node-compatible-property.patch
+arm-dts-am335x-boneblack-enable-power-off-and-rtc-wake-up.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-a.patch
 
