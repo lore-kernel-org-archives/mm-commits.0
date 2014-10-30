@@ -1,63 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gcov-add-arm64-to-gcov_profile_all.patch removed from
- -mm tree
-Date: Thu, 30 Oct 2014 13:27:17 -0700
-Message-ID: <54529f25.f3RJFKWM8t73sIgR%akpm@linux-foundation.org>
+Subject: [merged] mm-free-compound-page-with-correct-order.patch removed
+ from -mm tree
+Date: Thu, 30 Oct 2014 13:27:20 -0700
+Message-ID: <54529f28.704e5xisP3uA7G80%akpm__5591.8073667728$1414700855$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40473 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161109AbaJ3U1Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 16:27:16 -0400
+	with ESMTP id S1161109AbaJ3U1U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 16:27:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riku.voipio@linaro.org, oberpar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: yuzhao@google.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, lliubbo@gmail.com, mel@csn.ul.ie, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gcov: add ARM64 to GCOV_PROFILE_ALL
+     Subject: mm: free compound page with correct order
 has been removed from the -mm tree.  Its filename was
-     gcov-add-arm64-to-gcov_profile_all.patch
+     mm-free-compound-page-with-correct-order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Riku Voipio <riku.voipio@linaro.org>
-Subject: gcov: add ARM64 to GCOV_PROFILE_ALL
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: free compound page with correct order
 
-Following up the arm testing of gcov, turns out gcov on ARM64 works fine
-as well.  Only change needed is adding ARM64 to Kconfig depends.
+Compound page should be freed by put_page() or free_pages() with correct
+order.  Not doing so will cause tail pages leaked.
 
-Tested with qemu and mach-virt
+The compound order can be obtained by compound_order() or use
+HPAGE_PMD_ORDER in our case.  Some people would argue the latter is faster
+but I prefer the former which is more general.
 
-Signed-off-by: Riku Voipio <riku.voipio@linaro.org>
-Acked-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+This bug was observed not just on our servers (the worst case we saw is
+11G leaked on a 48G machine) but also on our workstations running
+Ubuntu based distro.
+
+$ cat /proc/vmstat  | grep thp_zero_page_alloc
+thp_zero_page_alloc 55
+thp_zero_page_alloc_failed 0
+
+This means there is (thp_zero_page_alloc - 1) * (2M - 4K) memory leaked.
+
+Fixes: 97ae17497e99 ("thp: implement refcounting for huge zero page")
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Bob Liu <lliubbo@gmail.com>
+Cc: <stable@vger.kernel.org>	[3.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/gcov/Kconfig~gcov-add-arm64-to-gcov_profile_all kernel/gcov/Kconfig
---- a/kernel/gcov/Kconfig~gcov-add-arm64-to-gcov_profile_all
-+++ a/kernel/gcov/Kconfig
-@@ -35,7 +35,7 @@ config GCOV_KERNEL
- config GCOV_PROFILE_ALL
- 	bool "Profile entire Kernel"
- 	depends on GCOV_KERNEL
--	depends on SUPERH || S390 || X86 || PPC || MICROBLAZE || ARM
-+	depends on SUPERH || S390 || X86 || PPC || MICROBLAZE || ARM || ARM64
- 	default n
- 	---help---
- 	This options activates profiling for the entire kernel.
+diff -puN mm/huge_memory.c~mm-free-compound-page-with-correct-order mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-free-compound-page-with-correct-order
++++ a/mm/huge_memory.c
+@@ -200,7 +200,7 @@ retry:
+ 	preempt_disable();
+ 	if (cmpxchg(&huge_zero_page, NULL, zero_page)) {
+ 		preempt_enable();
+-		__free_page(zero_page);
++		__free_pages(zero_page, compound_order(zero_page));
+ 		goto retry;
+ 	}
+ 
+@@ -232,7 +232,7 @@ static unsigned long shrink_huge_zero_pa
+ 	if (atomic_cmpxchg(&huge_zero_refcount, 1, 0) == 1) {
+ 		struct page *zero_page = xchg(&huge_zero_page, NULL);
+ 		BUG_ON(zero_page == NULL);
+-		__free_page(zero_page);
++		__free_pages(zero_page, compound_order(zero_page));
+ 		return HPAGE_PMD_NR;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from riku.voipio@linaro.org are
+Patches currently in -mm which might be from yuzhao@google.com are
 
 origin.patch
-gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
-linux-next.patch
+mm-verify-compound-order-when-freeing-a-page.patch
 
