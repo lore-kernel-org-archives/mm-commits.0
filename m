@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + tile-use-pr_warn-instead-of-pr_warning.patch added to -mm tree
-Date: Thu, 30 Oct 2014 14:55:33 -0700
-Message-ID: <5452b3d5.S2Bw4/IqG23fItCK%akpm@linux-foundation.org>
+Subject: + printk-remove-used-once-early_vprintk.patch added to -mm tree
+Date: Thu, 30 Oct 2014 14:55:29 -0700
+Message-ID: <5452b3d1.oDfO1VdX5JP8bo2x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41129 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41123 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161324AbaJ3Vzc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 17:55:32 -0400
+	with ESMTP id S1161234AbaJ3Vz3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 17:55:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, cmetcalf@tilera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tile: use pr_warn instead of pr_warning
+     Subject: printk: remove used-once early_vprintk
 has been added to the -mm tree.  Its filename is
-     tile-use-pr_warn-instead-of-pr_warning.patch
+     printk-remove-used-once-early_vprintk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tile-use-pr_warn-instead-of-pr_warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-remove-used-once-early_vprintk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tile-use-pr_warn-instead-of-pr_warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-remove-used-once-early_vprintk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,105 +39,103 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: tile: use pr_warn instead of pr_warning
+Subject: printk: remove used-once early_vprintk
 
-Use the more common pr_warn.
+Eliminate the unlikely possibility of message interleaving for
+early_printk/early_vprintk use.
 
-Coalesce formats, realign arguments.
+early_vprintk can be done via the %pV extension so remove this unnecessary
+function and change early_printk to have the equivalent vprintk code.
+
+All uses of early_printk already end with a newline so also remove the
+unnecessary newline from the early_printk function.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/kernel/setup.c |   33 +++++++++++++++------------------
- 1 file changed, 15 insertions(+), 18 deletions(-)
+ arch/tile/kernel/early_printk.c |   19 +++++++++++++------
+ include/linux/printk.h          |    1 -
+ kernel/printk/printk.c          |   19 ++++++++-----------
+ 3 files changed, 21 insertions(+), 18 deletions(-)
 
-diff -puN arch/tile/kernel/setup.c~tile-use-pr_warn-instead-of-pr_warning arch/tile/kernel/setup.c
---- a/arch/tile/kernel/setup.c~tile-use-pr_warn-instead-of-pr_warning
-+++ a/arch/tile/kernel/setup.c
-@@ -534,11 +534,10 @@ static void __init setup_memory(void)
- 			}
- 		}
- 		physpages -= dropped_pages;
--		pr_warning("Only using %ldMB memory;"
--		       " ignoring %ldMB.\n",
--		       physpages >> (20 - PAGE_SHIFT),
--		       dropped_pages >> (20 - PAGE_SHIFT));
--		pr_warning("Consider using a larger page size.\n");
-+		pr_warn("Only using %ldMB memory - ignoring %ldMB\n",
-+			physpages >> (20 - PAGE_SHIFT),
-+			dropped_pages >> (20 - PAGE_SHIFT));
-+		pr_warn("Consider using a larger page size\n");
- 	}
- #endif
+diff -puN arch/tile/kernel/early_printk.c~printk-remove-used-once-early_vprintk arch/tile/kernel/early_printk.c
+--- a/arch/tile/kernel/early_printk.c~printk-remove-used-once-early_vprintk
++++ a/arch/tile/kernel/early_printk.c
+@@ -43,13 +43,20 @@ static struct console early_hv_console =
  
-@@ -566,9 +565,8 @@ static void __init setup_memory(void)
- 
- #ifndef __tilegx__
- 	if (node_end_pfn[0] > MAXMEM_PFN) {
--		pr_warning("Only using %ldMB LOWMEM.\n",
--		       MAXMEM>>20);
--		pr_warning("Use a HIGHMEM enabled kernel.\n");
-+		pr_warn("Only using %ldMB LOWMEM\n", MAXMEM >> 20);
-+		pr_warn("Use a HIGHMEM enabled kernel\n");
- 		max_low_pfn = MAXMEM_PFN;
- 		max_pfn = MAXMEM_PFN;
- 		node_end_pfn[0] = MAXMEM_PFN;
-@@ -1112,8 +1110,8 @@ static void __init load_hv_initrd(void)
- 	fd = hv_fs_findfile((HV_VirtAddr) initramfs_file);
- 	if (fd == HV_ENOENT) {
- 		if (set_initramfs_file) {
--			pr_warning("No such hvfs initramfs file '%s'\n",
--				   initramfs_file);
-+			pr_warn("No such hvfs initramfs file '%s'\n",
-+				initramfs_file);
- 			return;
- 		} else {
- 			/* Try old backwards-compatible name. */
-@@ -1126,8 +1124,8 @@ static void __init load_hv_initrd(void)
- 	stat = hv_fs_fstat(fd);
- 	BUG_ON(stat.size < 0);
- 	if (stat.flags & HV_FS_ISDIR) {
--		pr_warning("Ignoring hvfs file '%s': it's a directory.\n",
--			   initramfs_file);
-+		pr_warn("Ignoring hvfs file '%s': it's a directory\n",
-+			initramfs_file);
- 		return;
- 	}
- 	initrd = alloc_bootmem_pages(stat.size);
-@@ -1185,9 +1183,8 @@ static void __init validate_hv(void)
- 	HV_Topology topology = hv_inquire_topology();
- 	BUG_ON(topology.coord.x != 0 || topology.coord.y != 0);
- 	if (topology.width != 1 || topology.height != 1) {
--		pr_warning("Warning: booting UP kernel on %dx%d grid;"
--			   " will ignore all but first tile.\n",
--			   topology.width, topology.height);
-+		pr_warn("Warning: booting UP kernel on %dx%d grid; will ignore all but first tile\n",
-+			topology.width, topology.height);
- 	}
- #endif
- 
-@@ -1393,7 +1390,7 @@ static void __init setup_cpu_maps(void)
- 
- static int __init dataplane(char *str)
+ void early_panic(const char *fmt, ...)
  {
--	pr_warning("WARNING: dataplane support disabled in this kernel\n");
-+	pr_warn("WARNING: dataplane support disabled in this kernel\n");
- 	return 0;
+-	va_list ap;
++	struct va_format vaf;
++	va_list args;
++
+ 	arch_local_irq_disable_all();
+-	va_start(ap, fmt);
+-	early_printk("Kernel panic - not syncing: ");
+-	early_vprintk(fmt, ap);
+-	early_printk("\n");
+-	va_end(ap);
++
++	va_start(args, fmt);
++
++	vaf.fmt = fmt;
++	vaf.va = &args;
++
++	early_printk("Kernel panic - not syncing: %pV", &vaf);
++
++	va_end(args);
++
+ 	dump_stack();
+ 	hv_halt();
  }
- 
-@@ -1411,8 +1408,8 @@ void __init setup_arch(char **cmdline_p)
- 	len = hv_get_command_line((HV_VirtAddr) boot_command_line,
- 				  COMMAND_LINE_SIZE);
- 	if (boot_command_line[0])
--		pr_warning("WARNING: ignoring dynamic command line \"%s\"\n",
--			   boot_command_line);
-+		pr_warn("WARNING: ignoring dynamic command line \"%s\"\n",
-+			boot_command_line);
- 	strlcpy(boot_command_line, builtin_cmdline, COMMAND_LINE_SIZE);
+diff -puN include/linux/printk.h~printk-remove-used-once-early_vprintk include/linux/printk.h
+--- a/include/linux/printk.h~printk-remove-used-once-early_vprintk
++++ a/include/linux/printk.h
+@@ -118,7 +118,6 @@ int no_printk(const char *fmt, ...)
+ #ifdef CONFIG_EARLY_PRINTK
+ extern asmlinkage __printf(1, 2)
+ void early_printk(const char *fmt, ...);
+-void early_vprintk(const char *fmt, va_list ap);
  #else
- 	char *hv_cmdline;
+ static inline __printf(1, 2) __cold
+ void early_printk(const char *s, ...) { }
+diff -puN kernel/printk/printk.c~printk-remove-used-once-early_vprintk kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-remove-used-once-early_vprintk
++++ a/kernel/printk/printk.c
+@@ -1881,23 +1881,20 @@ static size_t cont_print_text(char *text
+ #ifdef CONFIG_EARLY_PRINTK
+ struct console *early_console;
+ 
+-void early_vprintk(const char *fmt, va_list ap)
+-{
+-	if (early_console) {
+-		char buf[512];
+-		int n = vscnprintf(buf, sizeof(buf), fmt, ap);
+-
+-		early_console->write(early_console, buf, n);
+-	}
+-}
+-
+ asmlinkage __visible void early_printk(const char *fmt, ...)
+ {
+ 	va_list ap;
++	char buf[512];
++	int n;
++
++	if (!early_console)
++		return;
+ 
+ 	va_start(ap, fmt);
+-	early_vprintk(fmt, ap);
++	n = vscnprintf(buf, sizeof(buf), fmt, ap);
+ 	va_end(ap);
++
++	early_console->write(early_console, buf, n);
+ }
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
