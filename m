@@ -1,105 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-avoid-premature-range-skip-in-isolate_migratepages_range.patch removed from -mm tree
-Date: Thu, 30 Oct 2014 13:27:11 -0700
-Message-ID: <54529f1f.iZMQRaxCG6a8LEly%akpm@linux-foundation.org>
+Subject: [merged] gcov-add-arm64-to-gcov_profile_all.patch removed from
+ -mm tree
+Date: Thu, 30 Oct 2014 13:27:17 -0700
+Message-ID: <54529f25.f3RJFKWM8t73sIgR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40461 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40470 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161107AbaJ3U1L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 16:27:11 -0400
+	with ESMTP id S1161109AbaJ3U1Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 16:27:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, cl@linux.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: riku.voipio@linaro.org, oberpar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction.c: avoid premature range skip in isolate_migratepages_range
+     Subject: gcov: add ARM64 to GCOV_PROFILE_ALL
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-avoid-premature-range-skip-in-isolate_migratepages_range.patch
+     gcov-add-arm64-to-gcov_profile_all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/compaction.c: avoid premature range skip in isolate_migratepages_range
+From: Riku Voipio <riku.voipio@linaro.org>
+Subject: gcov: add ARM64 to GCOV_PROFILE_ALL
 
-commit edc2ca612496 ("mm, compaction: move pageblock checks up from
-isolate_migratepages_range()") commonizes isolate_migratepages variants
-and make them use isolate_migratepages_block().
+Following up the arm testing of gcov, turns out gcov on ARM64 works fine
+as well.  Only change needed is adding ARM64 to Kconfig depends.
 
-isolate_migratepages_block() could stop the execution when enough pages
-are isolated, but, there is no code in isolate_migratepages_range() to
-handle this case.  In the result, even if isolate_migratepages_block()
-returns prematurely without checking all pages in the range,
+Tested with qemu and mach-virt
 
-isolate_migratepages_block() is called repeately on the following
-pageblock and some pages in the previous range are skipped to check.
-Then, CMA is failed frequently due to this fact.
-
-To fix this problem, this patch let isolate_migratepages_range() know the
-situation that enough pages are isolated and stop the isolation in that
-case.
-
-Note that isolate_migratepages() has no such problem, because, it always
-stops the isolation after just one call of isolate_migratepages_block().
-
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Riku Voipio <riku.voipio@linaro.org>
+Acked-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/gcov/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-avoid-premature-range-skip-in-isolate_migratepages_range mm/compaction.c
---- a/mm/compaction.c~mm-compaction-avoid-premature-range-skip-in-isolate_migratepages_range
-+++ a/mm/compaction.c
-@@ -784,6 +784,9 @@ isolate_migratepages_range(struct compac
- 			cc->nr_migratepages = 0;
- 			break;
- 		}
-+
-+		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
-+			break;
- 	}
- 	acct_isolated(cc->zone, cc);
- 
+diff -puN kernel/gcov/Kconfig~gcov-add-arm64-to-gcov_profile_all kernel/gcov/Kconfig
+--- a/kernel/gcov/Kconfig~gcov-add-arm64-to-gcov_profile_all
++++ a/kernel/gcov/Kconfig
+@@ -35,7 +35,7 @@ config GCOV_KERNEL
+ config GCOV_PROFILE_ALL
+ 	bool "Profile entire Kernel"
+ 	depends on GCOV_KERNEL
+-	depends on SUPERH || S390 || X86 || PPC || MICROBLAZE || ARM
++	depends on SUPERH || S390 || X86 || PPC || MICROBLAZE || ARM || ARM64
+ 	default n
+ 	---help---
+ 	This options activates profiling for the entire kernel.
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from riku.voipio@linaro.org are
 
 origin.patch
-mm-slab-slub-coding-style-whitespaces-and-tabs-mixture.patch
-slab-print-slabinfo-header-in-seq-show.patch
-mm-introduce-single-zone-pcplists-drain.patch
-mm-page_isolation-drain-single-zone-pcplists.patch
-mm-cma-drain-single-zone-pcplists.patch
-mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
-mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
-mm-compaction-simplify-deferred-compaction.patch
-mm-compaction-defer-only-on-compact_complete.patch
-mm-compaction-always-update-cached-scanner-positions.patch
-mm-compaction-more-focused-lru-and-pcplists-draining.patch
-memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
-zsmalloc-merge-size_class-to-reduce-fragmentation.patch
+gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
 linux-next.patch
-slab-fix-cpuset-check-in-fallback_alloc.patch
-slub-fix-cpuset-check-in-get_any_partial.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-mm-cma-split-cma-reserved-in-dmesg-log.patch
-fs-proc-include-cma-info-in-proc-meminfo.patch
-page-owners-correct-page-order-when-to-free-page.patch
 
