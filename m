@@ -1,111 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch removed
+Subject: [obsolete] arch-x86-include-asm-io_apich-fix-build.patch removed
  from -mm tree
-Date: Thu, 30 Oct 2014 13:27:08 -0700
-Message-ID: <54529f1c.8TkIT0js+tk3XzS8%akpm@linux-foundation.org>
+Date: Thu, 30 Oct 2014 13:26:59 -0700
+Message-ID: <54529f13.JX1/Tk0vm8HsnXnV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40450 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40446 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932513AbaJ3U1H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 16:27:07 -0400
+	with ESMTP id S932513AbaJ3U06 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 16:26:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wangnan0@huawei.com, hannes@cmpxchg.org, mhocko@suse.cz, rostedt@goodmis.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, JBeulich@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup/kmemleak: add kmemleak_free() for cgroup deallocations.
+     Subject: arch/x86/include/asm/io_apic.h: fix build
 has been removed from the -mm tree.  Its filename was
-     cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations.patch
+     arch-x86-include-asm-io_apich-fix-build.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Wang Nan <wangnan0@huawei.com>
-Subject: cgroup/kmemleak: add kmemleak_free() for cgroup deallocations.
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/x86/include/asm/io_apic.h: fix build
 
-Commit ff7ee93f4 ("cgroup/kmemleak: Annotate alloc_page() for cgroup
-allocations") introduces kmemleak_alloc() for alloc_page_cgroup(), but
-corresponding kmemleak_free() is missing, which makes kmemleak be wrongly
-disabled after memory offlining.  Log is pasted at the end of this commit
-message.
+i386 allnoconfig:
 
-This patch add kmemleak_free() into free_page_cgroup().  During page
-offlining, this patch removes corresponding entries in kmemleak rbtree. 
-After that, the freed memory can be allocated again by other subsystems
-without killing kmemleak.
+In file included from arch/x86/kernel/x86_init.c:21:
+./arch/x86/include/asm/io_apic.h:240: error: static declaration of 'mp_should_keep_irq' follows non-static declaration
+./arch/x86/include/asm/pci_x86.h:96: note: previous declaration of 'mp_should_keep_irq' was here
 
-bash # for x in 1 2 3 4; do echo offline > /sys/devices/system/memory/memory$x/state ; sleep 1; done ; dmesg | grep leak
-[   45.537934] Offlined Pages 32768
-[   46.617892] kmemleak: Cannot insert 0xffff880016969000 into the object search tree (overlaps existing)
-[   46.617892] CPU: 0 PID: 412 Comm: sleep Not tainted 3.17.0-rc5+ #86
-[   46.617892] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
-[   46.617892]  ffff880016823d10 ffff880018bdfc38 ffffffff81725d2c ffff88001780e950
-[   46.617892]  ffff880016969000 ffff880018bdfc88 ffffffff8117a9e6 ffff880018bdfc78
-[   46.617892]  0000000000000096 ffff880017812800 ffffffff81c2eda0 ffff880016969000
-[   46.617892] Call Trace:
-[   46.617892]  [<ffffffff81725d2c>] dump_stack+0x46/0x58
-[   46.617892]  [<ffffffff8117a9e6>] create_object+0x266/0x2c0
-[   46.617892]  [<ffffffff8171d2f6>] kmemleak_alloc+0x26/0x50
-[   46.617892]  [<ffffffff8116a3a3>] kmem_cache_alloc+0xd3/0x160
-[   46.617892]  [<ffffffff81058e59>] __sigqueue_alloc+0x49/0xd0
-[   46.617892]  [<ffffffff8105a41b>] __send_signal+0xcb/0x410
-[   46.617892]  [<ffffffff8105a7a5>] send_signal+0x45/0x90
-[   46.617892]  [<ffffffff8105a803>] __group_send_sig_info+0x13/0x20
-[   46.617892]  [<ffffffff8105bd0b>] do_notify_parent+0x1bb/0x260
-[   46.617892]  [<ffffffff81077e7a>] ? sched_move_task+0xaa/0x130
-[   46.617892]  [<ffffffff81050917>] do_exit+0x767/0xa40
-[   46.617892]  [<ffffffff81050c84>] do_group_exit+0x44/0xa0
-[   46.617892]  [<ffffffff81050cf7>] SyS_exit_group+0x17/0x20
-[   46.617892]  [<ffffffff8172cd12>] system_call_fastpath+0x16/0x1b
-[   46.617892] kmemleak: Kernel memory leak detector disabled
-[   46.617892] kmemleak: Object 0xffff880016900000 (size 524288):
-[   46.617892] kmemleak:   comm "swapper/0", pid 0, jiffies 4294667296
-[   46.617892] kmemleak:   min_count = 0
-[   46.617892] kmemleak:   count = 0
-[   46.617892] kmemleak:   flags = 0x1
-[   46.617892] kmemleak:   checksum = 0
-[   46.617892] kmemleak:   backtrace:
-[   46.617892]      [<ffffffff81d0a7f0>] log_early+0x63/0x77
-[   46.617892]      [<ffffffff8171d31b>] kmemleak_alloc+0x4b/0x50
-[   46.617892]      [<ffffffff81720e4f>] init_section_page_cgroup+0x7f/0xf5
-[   46.617892]      [<ffffffff81d0a6f0>] page_cgroup_init+0xc5/0xd0
-[   46.617892]      [<ffffffff81ce4ed9>] start_kernel+0x333/0x408
-[   46.617892]      [<ffffffff81ce45b2>] x86_64_start_reservations+0x2a/0x2c
-[   46.617892]      [<ffffffff81ce46a9>] x86_64_start_kernel+0xf5/0xfc
-[   46.617892]      [<ffffffffffffffff>] 0xffffffffffffffff
+Fix it by moving the mp_should_keep_irq() definition out of
+arch/x86/include/asm/pci_x86.h and into the appropriate ifdef section within
+arch/x86/include/asm/io_apic.h.
 
-Fixes: ff7ee93f4 (cgroup/kmemleak: Annotate alloc_page() for cgroup allocations)
-Signed-off-by: Wang Nan <wangnan0@huawei.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: <stable@vger.kernel.org>	[3.2+]
+Also tidy up the CONFIG_X86_IO_APIC ifdeffery.
+
+(Seems that a fix for this is in the works but hasn't yet propagated into
+-next)
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jan Beulich <JBeulich@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/include/asm/io_apic.h |    5 +++--
+ arch/x86/include/asm/pci_x86.h |    2 --
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_cgroup.c~cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations mm/page_cgroup.c
---- a/mm/page_cgroup.c~cgroup-kmemleak-add-kmemleak_free-for-cgroup-deallocations
-+++ a/mm/page_cgroup.c
-@@ -171,6 +171,7 @@ static void free_page_cgroup(void *addr)
- 			sizeof(struct page_cgroup) * PAGES_PER_SECTION;
+diff -puN arch/x86/include/asm/io_apic.h~arch-x86-include-asm-io_apich-fix-build arch/x86/include/asm/io_apic.h
+--- a/arch/x86/include/asm/io_apic.h~arch-x86-include-asm-io_apich-fix-build
++++ a/arch/x86/include/asm/io_apic.h
+@@ -197,6 +197,7 @@ extern int mp_set_gsi_attr(u32 gsi, int
+ extern void __init pre_init_apic_IRQ0(void);
  
- 		BUG_ON(PageReserved(page));
-+		kmemleak_free(addr);
- 		free_pages_exact(addr, table_size);
- 	}
- }
+ extern void mp_save_irq(struct mpc_intsrc *m);
++extern bool mp_should_keep_irq(struct device *dev);
+ 
+ extern void disable_ioapic_support(void);
+ 
+@@ -227,7 +228,7 @@ static inline void io_apic_modify(unsign
+ 
+ extern void io_apic_eoi(unsigned int apic, unsigned int vector);
+ 
+-#else  /* !CONFIG_X86_IO_APIC */
++#else	/* CONFIG_X86_IO_APIC */
+ 
+ #define io_apic_assign_pci_irqs 0
+ #define setup_ioapic_ids_from_mpc x86_init_noop
+@@ -262,6 +263,6 @@ static inline void disable_ioapic_suppor
+ #define native_setup_ioapic_entry	NULL
+ #define native_compose_msi_msg		NULL
+ #define native_eoi_ioapic_pin		NULL
+-#endif
++#endif	/* CONFIG_X86_IO_APIC */
+ 
+ #endif /* _ASM_X86_IO_APIC_H */
+diff -puN arch/x86/include/asm/pci_x86.h~arch-x86-include-asm-io_apich-fix-build arch/x86/include/asm/pci_x86.h
+--- a/arch/x86/include/asm/pci_x86.h~arch-x86-include-asm-io_apich-fix-build
++++ a/arch/x86/include/asm/pci_x86.h
+@@ -93,8 +93,6 @@ extern raw_spinlock_t pci_config_lock;
+ extern int (*pcibios_enable_irq)(struct pci_dev *dev);
+ extern void (*pcibios_disable_irq)(struct pci_dev *dev);
+ 
+-extern bool mp_should_keep_irq(struct device *dev);
+-
+ struct pci_raw_ops {
+ 	int (*read)(unsigned int domain, unsigned int bus, unsigned int devfn,
+ 						int reg, int len, u32 *val);
 _
 
-Patches currently in -mm which might be from wangnan0@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+a.patch
 
