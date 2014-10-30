@@ -1,64 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-rtc-fix-s3c-rtc-initialization-failure-without-rtc-source-clock.patch removed from -mm tree
-Date: Thu, 30 Oct 2014 13:27:34 -0700
-Message-ID: <54529f36.PPNcQIcjDydb6zFd%akpm@linux-foundation.org>
+Subject: [merged] rtc-bq3000-fix-register-value.patch removed from -mm
+ tree
+Date: Thu, 30 Oct 2014 13:27:40 -0700
+Message-ID: <54529f3c.AvxdIffQpvk9hU+8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40504 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40514 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161109AbaJ3U1d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 16:27:33 -0400
+	with ESMTP id S1161172AbaJ3U1j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 16:27:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.szyprowski@samsung.com, cw00.choi@samsung.com, mm-commits@vger.kernel.org
+To: pavel@ucw.cz, mike@bfo.com, pavel@denx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-s3c.c: fix initialization failure without rtc source clock
+     Subject: drivers/rtc/rtc-bq32k.c: fix register value
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-fix-s3c-rtc-initialization-failure-without-rtc-source-clock.patch
+     rtc-bq3000-fix-register-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: drivers/rtc/rtc-s3c.c: fix initialization failure without rtc source clock
+From: Pavel Machek <pavel@ucw.cz>
+Subject: drivers/rtc/rtc-bq32k.c: fix register value
 
-Fix unconditional initialization failure on non-exynos3250 SoCs.  Commit
-df9e26d093d33a097 ("rtc: s3c: add support for RTC of Exynos3250 SoC")
-introduced rtc source clock support, but also added initialization failure
-on SoCs, which doesn't need such clock.
+Fix register value in bq32000 trickle charging.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Chanwoo Choi <cw00.choi@samsung.com>
+Mike reported that I'm using wrong value in one trickle-charging case, and
+after checking docs, I must admit he's right.
+
+Signed-off-by: Pavel Machek <pavel@denx.de>
+Reported-by: Mike Bremford <mike@bfo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-bq32k.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-s3c.c~drivers-rtc-fix-s3c-rtc-initialization-failure-without-rtc-source-clock drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~drivers-rtc-fix-s3c-rtc-initialization-failure-without-rtc-source-clock
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -535,13 +535,15 @@ static int s3c_rtc_probe(struct platform
- 	}
- 	clk_prepare_enable(info->rtc_clk);
+diff -puN drivers/rtc/rtc-bq32k.c~rtc-bq3000-fix-register-value drivers/rtc/rtc-bq32k.c
+--- a/drivers/rtc/rtc-bq32k.c~rtc-bq3000-fix-register-value
++++ a/drivers/rtc/rtc-bq32k.c
+@@ -160,7 +160,7 @@ static int trickle_charger_of_init(struc
+ 			dev_err(dev, "bq32k: diode and resistor mismatch\n");
+ 			return -EINVAL;
+ 		}
+-		reg = 0x25;
++		reg = 0x45;
+ 		break;
  
--	info->rtc_src_clk = devm_clk_get(&pdev->dev, "rtc_src");
--	if (IS_ERR(info->rtc_src_clk)) {
--		dev_err(&pdev->dev, "failed to find rtc source clock\n");
--		return PTR_ERR(info->rtc_src_clk);
-+	if (info->data->needs_src_clk) {
-+		info->rtc_src_clk = devm_clk_get(&pdev->dev, "rtc_src");
-+		if (IS_ERR(info->rtc_src_clk)) {
-+			dev_err(&pdev->dev,
-+				"failed to find rtc source clock\n");
-+			return PTR_ERR(info->rtc_src_clk);
-+		}
-+		clk_prepare_enable(info->rtc_src_clk);
- 	}
--	clk_prepare_enable(info->rtc_src_clk);
+ 	default:
+_
+
+Patches currently in -mm which might be from pavel@ucw.cz are
+
+origin.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+lib-vsprintf-add-%pt-format-specifier.patch
+linux-next.patch
+
