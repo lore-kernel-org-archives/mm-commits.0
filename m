@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-reduce-maintainers-update-message-frequency.patch
- added to -mm tree
-Date: Thu, 30 Oct 2014 14:53:28 -0700
-Message-ID: <5452b358.RbhCRV1uCqbvO+V8%akpm@linux-foundation.org>
+Subject: + tile-use-pr_warn-instead-of-pr_warning.patch added to -mm tree
+Date: Thu, 30 Oct 2014 14:55:33 -0700
+Message-ID: <5452b3d5.S2Bw4/IqG23fItCK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41129 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161019AbaJ3Vx1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 17:53:27 -0400
+	with ESMTP id S1161324AbaJ3Vzc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Oct 2014 17:55:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, cmetcalf@tilera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: reduce MAINTAINERS update message frequency
+     Subject: tile: use pr_warn instead of pr_warning
 has been added to the -mm tree.  Its filename is
-     checkpatch-reduce-maintainers-update-message-frequency.patch
+     tile-use-pr_warn-instead-of-pr_warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-reduce-maintainers-update-message-frequency.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tile-use-pr_warn-instead-of-pr_warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-reduce-maintainers-update-message-frequency.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tile-use-pr_warn-instead-of-pr_warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +39,113 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: reduce MAINTAINERS update message frequency
+Subject: tile: use pr_warn instead of pr_warning
 
-When files are being added/moved/deleted and a patch contains an update to
-the MAINTAINERS file, assume it's to update the MAINTAINERS file correctly
-and do not emit the "does MAINTAINERS need updating?" message.
+Use the more common pr_warn.
 
-Reported by many people.
+Coalesce formats, realign arguments.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/tile/kernel/setup.c |   33 +++++++++++++++------------------
+ 1 file changed, 15 insertions(+), 18 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-reduce-maintainers-update-message-frequency scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-reduce-maintainers-update-message-frequency
-+++ a/scripts/checkpatch.pl
-@@ -2082,6 +2082,12 @@ sub process {
- 			$in_commit_log = 0;
+diff -puN arch/tile/kernel/setup.c~tile-use-pr_warn-instead-of-pr_warning arch/tile/kernel/setup.c
+--- a/arch/tile/kernel/setup.c~tile-use-pr_warn-instead-of-pr_warning
++++ a/arch/tile/kernel/setup.c
+@@ -534,11 +534,10 @@ static void __init setup_memory(void)
+ 			}
  		}
+ 		physpages -= dropped_pages;
+-		pr_warning("Only using %ldMB memory;"
+-		       " ignoring %ldMB.\n",
+-		       physpages >> (20 - PAGE_SHIFT),
+-		       dropped_pages >> (20 - PAGE_SHIFT));
+-		pr_warning("Consider using a larger page size.\n");
++		pr_warn("Only using %ldMB memory - ignoring %ldMB\n",
++			physpages >> (20 - PAGE_SHIFT),
++			dropped_pages >> (20 - PAGE_SHIFT));
++		pr_warn("Consider using a larger page size\n");
+ 	}
+ #endif
  
-+# Check if MAINTAINERS is being updated.  If so, there's probably no need to
-+# emit the "does MAINTAINERS need updating?" message on file add/move/delete
-+		if ($line =~ /^\s*MAINTAINERS\s*\|/) {
-+			$reported_maintainer_file = 1;
-+		}
-+
- # Check signature styles
- 		if (!$in_header_lines &&
- 		    $line =~ /^(\s*)([a-z0-9_-]+by:|$signature_tags)(\s*)(.*)/i) {
+@@ -566,9 +565,8 @@ static void __init setup_memory(void)
+ 
+ #ifndef __tilegx__
+ 	if (node_end_pfn[0] > MAXMEM_PFN) {
+-		pr_warning("Only using %ldMB LOWMEM.\n",
+-		       MAXMEM>>20);
+-		pr_warning("Use a HIGHMEM enabled kernel.\n");
++		pr_warn("Only using %ldMB LOWMEM\n", MAXMEM >> 20);
++		pr_warn("Use a HIGHMEM enabled kernel\n");
+ 		max_low_pfn = MAXMEM_PFN;
+ 		max_pfn = MAXMEM_PFN;
+ 		node_end_pfn[0] = MAXMEM_PFN;
+@@ -1112,8 +1110,8 @@ static void __init load_hv_initrd(void)
+ 	fd = hv_fs_findfile((HV_VirtAddr) initramfs_file);
+ 	if (fd == HV_ENOENT) {
+ 		if (set_initramfs_file) {
+-			pr_warning("No such hvfs initramfs file '%s'\n",
+-				   initramfs_file);
++			pr_warn("No such hvfs initramfs file '%s'\n",
++				initramfs_file);
+ 			return;
+ 		} else {
+ 			/* Try old backwards-compatible name. */
+@@ -1126,8 +1124,8 @@ static void __init load_hv_initrd(void)
+ 	stat = hv_fs_fstat(fd);
+ 	BUG_ON(stat.size < 0);
+ 	if (stat.flags & HV_FS_ISDIR) {
+-		pr_warning("Ignoring hvfs file '%s': it's a directory.\n",
+-			   initramfs_file);
++		pr_warn("Ignoring hvfs file '%s': it's a directory\n",
++			initramfs_file);
+ 		return;
+ 	}
+ 	initrd = alloc_bootmem_pages(stat.size);
+@@ -1185,9 +1183,8 @@ static void __init validate_hv(void)
+ 	HV_Topology topology = hv_inquire_topology();
+ 	BUG_ON(topology.coord.x != 0 || topology.coord.y != 0);
+ 	if (topology.width != 1 || topology.height != 1) {
+-		pr_warning("Warning: booting UP kernel on %dx%d grid;"
+-			   " will ignore all but first tile.\n",
+-			   topology.width, topology.height);
++		pr_warn("Warning: booting UP kernel on %dx%d grid; will ignore all but first tile\n",
++			topology.width, topology.height);
+ 	}
+ #endif
+ 
+@@ -1393,7 +1390,7 @@ static void __init setup_cpu_maps(void)
+ 
+ static int __init dataplane(char *str)
+ {
+-	pr_warning("WARNING: dataplane support disabled in this kernel\n");
++	pr_warn("WARNING: dataplane support disabled in this kernel\n");
+ 	return 0;
+ }
+ 
+@@ -1411,8 +1408,8 @@ void __init setup_arch(char **cmdline_p)
+ 	len = hv_get_command_line((HV_VirtAddr) boot_command_line,
+ 				  COMMAND_LINE_SIZE);
+ 	if (boot_command_line[0])
+-		pr_warning("WARNING: ignoring dynamic command line \"%s\"\n",
+-			   boot_command_line);
++		pr_warn("WARNING: ignoring dynamic command line \"%s\"\n",
++			boot_command_line);
+ 	strlcpy(boot_command_line, builtin_cmdline, COMMAND_LINE_SIZE);
+ #else
+ 	char *hv_cmdline;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+printk-remove-used-once-early_vprintk.patch
+tile-neaten-early_printk-uses.patch
+tile-use-pr_warn-instead-of-pr_warning.patch
 maintainers-update-ivtv-mailing-lists-as-subscriber-only.patch
 mm-utilc-add-kstrimdup.patch
 checkpatch-add-an-error-test-for-no-space-before-comma.patch
