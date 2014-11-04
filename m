@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch added to
- -mm tree
-Date: Tue, 04 Nov 2014 13:15:34 -0800
-Message-ID: <545941f6.9Rb1fppuO90gLiDo%akpm@linux-foundation.org>
+ mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch added to -mm tree
+Date: Tue, 04 Nov 2014 13:15:57 -0800
+Message-ID: <5459420d.bcanVOz9s+J8EKIr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47826 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47834 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751778AbaKDVPe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 16:15:34 -0500
+	with ESMTP id S1751176AbaKDVP5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 16:15:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, davem@davemloft.net, iamjoonsoo.kim@lge.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mhocko@suse.cz, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move page->mem_cgroup bad page handling into generic code
+     Subject: mm: move page->mem_cgroup bad page handling into generic code fix
 has been added to the -mm tree.  Its filename is
-     mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+     mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,14 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: move page->mem_cgroup bad page handling into generic code
+Subject: mm: move page->mem_cgroup bad page handling into generic code fix
 
-Now that the external page_cgroup data structure and its lookup is
-gone, let the generic bad_page() check for page->mem_cgroup sanity.
+Remove unneeded !CONFIG_MEMCG memcg bad_page() dummies as well.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Acked-by: David S. Miller <davem@davemloft.net>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
@@ -57,95 +55,32 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ----
- mm/debug.c                 |    5 ++++-
- mm/memcontrol.c            |   15 ---------------
- mm/page_alloc.c            |   12 ++++++++----
- 4 files changed, 12 insertions(+), 24 deletions(-)
+ include/linux/memcontrol.h |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
+diff -puN include/linux/memcontrol.h~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix
 +++ a/include/linux/memcontrol.h
-@@ -173,10 +173,6 @@ static inline void mem_cgroup_count_vm_e
- void mem_cgroup_split_huge_fixup(struct page *head);
- #endif
- 
--#ifdef CONFIG_DEBUG_VM
--bool mem_cgroup_bad_page_check(struct page *page);
--void mem_cgroup_print_bad_page(struct page *page);
--#endif
- #else /* CONFIG_MEMCG */
- struct mem_cgroup;
- 
-diff -puN mm/debug.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code mm/debug.c
---- a/mm/debug.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
-+++ a/mm/debug.c
-@@ -95,7 +95,10 @@ void dump_page_badflags(struct page *pag
- 		dump_flags(page->flags & badflags,
- 				pageflag_names, ARRAY_SIZE(pageflag_names));
- 	}
--	mem_cgroup_print_bad_page(page);
-+#ifdef CONFIG_MEMCG
-+	if (page->mem_cgroup)
-+		pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
-+#endif
+@@ -342,19 +342,6 @@ void mem_cgroup_count_vm_event(struct mm
  }
+ #endif /* CONFIG_MEMCG */
  
- void dump_page(struct page *page, const char *reason)
-diff -puN mm/memcontrol.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code mm/memcontrol.c
---- a/mm/memcontrol.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
-+++ a/mm/memcontrol.c
-@@ -3157,21 +3157,6 @@ static inline int mem_cgroup_move_swap_a
- }
- #endif
- 
--#ifdef CONFIG_DEBUG_VM
--bool mem_cgroup_bad_page_check(struct page *page)
+-#if !defined(CONFIG_MEMCG) || !defined(CONFIG_DEBUG_VM)
+-static inline bool
+-mem_cgroup_bad_page_check(struct page *page)
 -{
--	if (mem_cgroup_disabled())
--		return false;
--
--	return page->mem_cgroup != NULL;
+-	return false;
 -}
 -
--void mem_cgroup_print_bad_page(struct page *page)
+-static inline void
+-mem_cgroup_print_bad_page(struct page *page)
 -{
--	pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
 -}
 -#endif
 -
- static DEFINE_MUTEX(memcg_limit_mutex);
- 
- static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
-diff -puN mm/page_alloc.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code mm/page_alloc.c
---- a/mm/page_alloc.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
-+++ a/mm/page_alloc.c
-@@ -638,8 +638,10 @@ static inline int free_pages_check(struc
- 		bad_reason = "PAGE_FLAGS_CHECK_AT_FREE flag(s) set";
- 		bad_flags = PAGE_FLAGS_CHECK_AT_FREE;
- 	}
--	if (unlikely(mem_cgroup_bad_page_check(page)))
--		bad_reason = "cgroup check failed";
-+#ifdef CONFIG_MEMCG
-+	if (unlikely(page->mem_cgroup))
-+		bad_reason = "page still charged to cgroup";
-+#endif
- 	if (unlikely(bad_reason)) {
- 		bad_page(page, bad_reason, bad_flags);
- 		return 1;
-@@ -898,8 +900,10 @@ static inline int check_new_page(struct
- 		bad_reason = "PAGE_FLAGS_CHECK_AT_PREP flag set";
- 		bad_flags = PAGE_FLAGS_CHECK_AT_PREP;
- 	}
--	if (unlikely(mem_cgroup_bad_page_check(page)))
--		bad_reason = "cgroup check failed";
-+#ifdef CONFIG_MEMCG
-+	if (unlikely(page->mem_cgroup))
-+		bad_reason = "page still charged to cgroup";
-+#endif
- 	if (unlikely(bad_reason)) {
- 		bad_page(page, bad_reason, bad_flags);
- 		return 1;
+ enum {
+ 	UNDER_LIMIT,
+ 	SOFT_LIMIT,
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
