@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mmfs-introduce-helpers-around-the-i_mmap_mutex.patch added to
- -mm tree
-Date: Tue, 04 Nov 2014 15:04:39 -0800
-Message-ID: <54595b87.dihd2Xbx9a8QfuR+%akpm@linux-foundation.org>
+Subject: + mm-xip-share-the-i_mmap_rwsem.patch added to -mm tree
+Date: Tue, 04 Nov 2014 15:04:52 -0800
+Message-ID: <54595b94.r1ZbUOdJ4AJDdMrl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48602 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752363AbaKDXEj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:04:39 -0500
+	with ESMTP id S1752575AbaKDXEv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:04:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, dbueso@suse.de, hughd@google.com, kirill.shutemov@intel.linux.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,fs: introduce helpers around the i_mmap_mutex
+     Subject: mm/xip: share the i_mmap_rwsem
 has been added to the -mm tree.  Its filename is
-     mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+     mm-xip-share-the-i_mmap_rwsem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-xip-share-the-i_mmap_rwsem.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-xip-share-the-i_mmap_rwsem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,156 +39,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: mm,fs: introduce helpers around the i_mmap_mutex
+Subject: mm/xip: share the i_mmap_rwsem
 
-This series is a continuation of the conversion of the i_mmap_mutex to
-rwsem, following what we have for the anon memory counterpart.  With
-Hugh's feedback from the first iteration.
+__xip_unmap() will remove the xip sparse page from the cache and take down
+pte mapping, without altering the interval tree, thus share the
+i_mmap_rwsem when searching for the ptes to unmap.
 
-Ultimately, the most obvious paths that require exclusive ownership of the
-lock is when we modify the VMA interval tree, via
-vma_interval_tree_insert() and vma_interval_tree_remove() families.  Cases
-such as unmapping, where the ptes content is changed but the tree remains
-untouched should make it safe to share the i_mmap_rwsem.
-
-As such, the code of course is straightforward, however the devil is very
-much in the details.  While its been tested on a number of workloads
-without anything exploding, I would not be surprised if there are some
-less documented/known assumptions about the lock that could suffer from
-these changes.  Or maybe I'm just missing something, but either way I
-believe its at the point where it could use more eyes and hopefully some
-time in linux-next.
-
-Because the lock type conversion is the heart of this patchset,
-its worth noting a few comparisons between mutex vs rwsem (xadd):
-
-  (i) Same size, no extra footprint.
-
-  (ii) Both have CONFIG_XXX_SPIN_ON_OWNER capabilities for
-       exclusive lock ownership.
-
-  (iii) Both can be slightly unfair wrt exclusive ownership, with
-        writer lock stealing properties, not necessarily respecting
-        FIFO order for granting the lock when contended.
-
-  (iv) Mutexes can be slightly faster than rwsems when
-       the lock is non-contended.
-
-  (v) Both suck at performance for debug (slowpaths), which
-      shouldn't matter anyway.
-
-Sharing the lock is obviously beneficial, and sem writer ownership is
-close enough to mutexes.  The biggest winner of these changes is
-migration.
-
-As for concrete numbers, the following performance results are for a
-4-socket 60-core IvyBridge-EX with 130Gb of RAM.
-
-Both alltests and disk (xfs+ramdisk) workloads of aim7 suite do quite well
-with this set, with a steady ~60% throughput (jpm) increase for alltests
-and up to ~30% for disk for high amounts of concurrency.  Lower counts of
-workload users (< 100) does not show much difference at all, so at least
-no regressions.
-
-                    3.18-rc1            3.18-rc1-i_mmap_rwsem
-alltests-100     17918.72 (  0.00%)    28417.97 ( 58.59%)
-alltests-200     16529.39 (  0.00%)    26807.92 ( 62.18%)
-alltests-300     16591.17 (  0.00%)    26878.08 ( 62.00%)
-alltests-400     16490.37 (  0.00%)    26664.63 ( 61.70%)
-alltests-500     16593.17 (  0.00%)    26433.72 ( 59.30%)
-alltests-600     16508.56 (  0.00%)    26409.20 ( 59.97%)
-alltests-700     16508.19 (  0.00%)    26298.58 ( 59.31%)
-alltests-800     16437.58 (  0.00%)    26433.02 ( 60.81%)
-alltests-900     16418.35 (  0.00%)    26241.61 ( 59.83%)
-alltests-1000    16369.00 (  0.00%)    26195.76 ( 60.03%)
-alltests-1100    16330.11 (  0.00%)    26133.46 ( 60.03%)
-alltests-1200    16341.30 (  0.00%)    26084.03 ( 59.62%)
-alltests-1300    16304.75 (  0.00%)    26024.74 ( 59.61%)
-alltests-1400    16231.08 (  0.00%)    25952.35 ( 59.89%)
-alltests-1500    16168.06 (  0.00%)    25850.58 ( 59.89%)
-alltests-1600    16142.56 (  0.00%)    25767.42 ( 59.62%)
-alltests-1700    16118.91 (  0.00%)    25689.58 ( 59.38%)
-alltests-1800    16068.06 (  0.00%)    25599.71 ( 59.32%)
-alltests-1900    16046.94 (  0.00%)    25525.92 ( 59.07%)
-alltests-2000    16007.26 (  0.00%)    25513.07 ( 59.38%)
-
-disk-100          7582.14 (  0.00%)     7257.48 ( -4.28%)
-disk-200          6962.44 (  0.00%)     7109.15 (  2.11%)
-disk-300          6435.93 (  0.00%)     6904.75 (  7.28%)
-disk-400          6370.84 (  0.00%)     6861.26 (  7.70%)
-disk-500          6353.42 (  0.00%)     6846.71 (  7.76%)
-disk-600          6368.82 (  0.00%)     6806.75 (  6.88%)
-disk-700          6331.37 (  0.00%)     6796.01 (  7.34%)
-disk-800          6324.22 (  0.00%)     6788.00 (  7.33%)
-disk-900          6253.52 (  0.00%)     6750.43 (  7.95%)
-disk-1000         6242.53 (  0.00%)     6855.11 (  9.81%)
-disk-1100         6234.75 (  0.00%)     6858.47 ( 10.00%)
-disk-1200         6312.76 (  0.00%)     6845.13 (  8.43%)
-disk-1300         6309.95 (  0.00%)     6834.51 (  8.31%)
-disk-1400         6171.76 (  0.00%)     6787.09 (  9.97%)
-disk-1500         6139.81 (  0.00%)     6761.09 ( 10.12%)
-disk-1600         4807.12 (  0.00%)     6725.33 ( 39.90%)
-disk-1700         4669.50 (  0.00%)     5985.38 ( 28.18%)
-disk-1800         4663.51 (  0.00%)     5972.99 ( 28.08%)
-disk-1900         4674.31 (  0.00%)     5949.94 ( 27.29%)
-disk-2000         4668.36 (  0.00%)     5834.93 ( 24.99%)
-
-In addition, a 67.5% increase in successfully migrated NUMA pages, thus
-improving node locality.
-
-The patch layout is simple but designed for bisection (in case reversion
-is needed if the changes break upstream) and easier review:
-
-o Patches 1-4 convert the i_mmap lock from mutex to rwsem.
-o Patches 5-10 share the lock in specific paths, each patch
-  details the rationale behind why it should be safe.
-
-This patchset has been tested with: postgres 9.4 (with brand new hugetlb
-support), hugetlbfs test suite (all tests pass, in fact more tests pass
-with these changes than with an upstream kernel), ltp, aim7 benchmarks,
-memcached and iozone with the -B option for mmap'ing.  *Untested* paths
-are nommu, memory-failure, uprobes and xip.
-
-
-This patch (of 8):
-
-Various parts of the kernel acquire and release this mutex, so add
-i_mmap_lock_write() and immap_unlock_write() helper functions that will
-encapsulate this logic.  The next patch will make use of these.
+Additionally, tidy up the function a bit and make variables only local to
+the interval tree walk loop.
 
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@intel.linux.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/filemap_xip.c |   23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/fs.h~mmfs-introduce-helpers-around-the-i_mmap_mutex include/linux/fs.h
---- a/include/linux/fs.h~mmfs-introduce-helpers-around-the-i_mmap_mutex
-+++ a/include/linux/fs.h
-@@ -467,6 +467,16 @@ struct block_device {
+diff -puN mm/filemap_xip.c~mm-xip-share-the-i_mmap_rwsem mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-xip-share-the-i_mmap_rwsem
++++ a/mm/filemap_xip.c
+@@ -155,22 +155,14 @@ xip_file_read(struct file *filp, char __
+ EXPORT_SYMBOL_GPL(xip_file_read);
  
- int mapping_tagged(struct address_space *mapping, int tag);
- 
-+static inline void i_mmap_lock_write(struct address_space *mapping)
-+{
-+	mutex_lock(&mapping->i_mmap_mutex);
-+}
-+
-+static inline void i_mmap_unlock_write(struct address_space *mapping)
-+{
-+	mutex_unlock(&mapping->i_mmap_mutex);
-+}
-+
  /*
-  * Might pages of this file be mapped into userspace?
+- * __xip_unmap is invoked from xip_unmap and
+- * xip_write
++ * __xip_unmap is invoked from xip_unmap and xip_write
+  *
+  * This function walks all vmas of the address_space and unmaps the
+  * __xip_sparse_page when found at pgoff.
   */
+-static void
+-__xip_unmap (struct address_space * mapping,
+-		     unsigned long pgoff)
++static void __xip_unmap(struct address_space * mapping, unsigned long pgoff)
+ {
+ 	struct vm_area_struct *vma;
+-	struct mm_struct *mm;
+-	unsigned long address;
+-	pte_t *pte;
+-	pte_t pteval;
+-	spinlock_t *ptl;
+ 	struct page *page;
+ 	unsigned count;
+ 	int locked = 0;
+@@ -182,11 +174,14 @@ __xip_unmap (struct address_space * mapp
+ 		return;
+ 
+ retry:
+-	i_mmap_lock_write(mapping);
++	i_mmap_lock_read(mapping);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+-		mm = vma->vm_mm;
+-		address = vma->vm_start +
++		pte_t *pte, pteval;
++		spinlock_t *ptl;
++		struct mm_struct *mm = vma->vm_mm;
++		unsigned long address = vma->vm_start +
+ 			((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
++
+ 		BUG_ON(address < vma->vm_start || address >= vma->vm_end);
+ 		pte = page_check_address(page, mm, address, &ptl, 1);
+ 		if (pte) {
+@@ -202,7 +197,7 @@ retry:
+ 			page_cache_release(page);
+ 		}
+ 	}
+-	i_mmap_unlock_write(mapping);
++	i_mmap_unlock_read(mapping);
+ 
+ 	if (locked) {
+ 		mutex_unlock(&xip_sparse_mutex);
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
