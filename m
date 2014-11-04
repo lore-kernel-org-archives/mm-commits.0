@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory-failure-share-the-i_mmap_rwsem.patch added to -mm
- tree
-Date: Tue, 04 Nov 2014 15:04:54 -0800
-Message-ID: <54595b96.jmSi3mMCPSb9QHmW%akpm@linux-foundation.org>
+Subject: + mm-nommu-share-the-i_mmap_rwsem.patch added to -mm tree
+Date: Tue, 04 Nov 2014 15:04:56 -0800
+Message-ID: <54595b98.6TDnQK7p2vNoanJJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48610 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48617 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575AbaKDXEx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:04:53 -0500
+	with ESMTP id S1752575AbaKDXEz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:04:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, dbueso@suse.de, hughd@google.com, kirill.shutemov@intel.linux.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: share the i_mmap_rwsem
+     Subject: mm/nommu: share the i_mmap_rwsem
 has been added to the -mm tree.  Its filename is
-     mm-memory-failure-share-the-i_mmap_rwsem.patch
+     mm-nommu-share-the-i_mmap_rwsem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failure-share-the-i_mmap_rwsem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-nommu-share-the-i_mmap_rwsem.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failure-share-the-i_mmap_rwsem.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-nommu-share-the-i_mmap_rwsem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +39,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: mm/memory-failure: share the i_mmap_rwsem
+Subject: mm/nommu: share the i_mmap_rwsem
 
-No brainer conversion: collect_procs_file() only schedules a process for
-later kill, share the lock, similarly to the anon vma variant.
+Shrinking/truncate logic can call nommu_shrink_inode_mappings() to verify
+that any shared mappings of the inode in question aren't broken (dead
+zone).  afaict the only user being ramfs to handle the size change
+attribute.
+
+Pretty much a no-brainer to share the lock.
 
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@intel.linux.com>
@@ -55,30 +58,48 @@ Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/nommu.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failure-share-the-i_mmap_rwsem mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-share-the-i_mmap_rwsem
-+++ a/mm/memory-failure.c
-@@ -466,7 +466,7 @@ static void collect_procs_file(struct pa
- 	struct task_struct *tsk;
- 	struct address_space *mapping = page->mapping;
+diff -puN mm/nommu.c~mm-nommu-share-the-i_mmap_rwsem mm/nommu.c
+--- a/mm/nommu.c~mm-nommu-share-the-i_mmap_rwsem
++++ a/mm/nommu.c
+@@ -2094,14 +2094,14 @@ int nommu_shrink_inode_mappings(struct i
+ 	high = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
  
--	i_mmap_lock_write(mapping);
-+	i_mmap_lock_read(mapping);
- 	read_lock(&tasklist_lock);
- 	for_each_process(tsk) {
- 		pgoff_t pgoff = page_to_pgoff(page);
-@@ -488,7 +488,7 @@ static void collect_procs_file(struct pa
+ 	down_write(&nommu_region_sem);
+-	i_mmap_lock_write(inode->i_mapping);
++	i_mmap_lock_read(inode->i_mapping);
+ 
+ 	/* search for VMAs that fall within the dead zone */
+ 	vma_interval_tree_foreach(vma, &inode->i_mapping->i_mmap, low, high) {
+ 		/* found one - only interested if it's shared out of the page
+ 		 * cache */
+ 		if (vma->vm_flags & VM_SHARED) {
+-			i_mmap_unlock_write(inode->i_mapping);
++			i_mmap_unlock_read(inode->i_mapping);
+ 			up_write(&nommu_region_sem);
+ 			return -ETXTBSY; /* not quite true, but near enough */
+ 		}
+@@ -2113,8 +2113,7 @@ int nommu_shrink_inode_mappings(struct i
+ 	 * we don't check for any regions that start beyond the EOF as there
+ 	 * shouldn't be any
+ 	 */
+-	vma_interval_tree_foreach(vma, &inode->i_mapping->i_mmap,
+-				  0, ULONG_MAX) {
++	vma_interval_tree_foreach(vma, &inode->i_mapping->i_mmap, 0, ULONG_MAX) {
+ 		if (!(vma->vm_flags & VM_SHARED))
+ 			continue;
+ 
+@@ -2129,7 +2128,7 @@ int nommu_shrink_inode_mappings(struct i
  		}
  	}
- 	read_unlock(&tasklist_lock);
--	i_mmap_unlock_write(mapping);
-+	i_mmap_unlock_read(mapping);
- }
  
- /*
+-	i_mmap_unlock_write(inode->i_mapping);
++	i_mmap_unlock_read(inode->i_mapping);
+ 	up_write(&nommu_region_sem);
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
