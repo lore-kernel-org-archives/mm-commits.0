@@ -1,115 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-filec-adding-support-to-o_direct.patch added to -mm
- tree
-Date: Tue, 04 Nov 2014 15:23:27 -0800
-Message-ID: <54595fef.LUSJUFIwRDabubQq%akpm@linux-foundation.org>
+Subject: [wrecked] single_open-seq_release-leak-diagnostics.patch removed
+ from -mm tree
+Date: Tue, 04 Nov 2014 15:36:51 -0800
+Message-ID: <54596313.1vAo2qtqnDZtQdhZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48790 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48908 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751502AbaKDXX0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:23:26 -0500
+	with ESMTP id S1751435AbaKDXgu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:36:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs/file.c: add support to O_DIRECT
-has been added to the -mm tree.  Its filename is
-     fs-affs-filec-adding-support-to-o_direct.patch
+     Subject: single_open/seq_release leak diagnostics
+has been removed from the -mm tree.  Its filename was
+     single_open-seq_release-leak-diagnostics.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-filec-adding-support-to-o_direct.patch
-		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-filec-adding-support-to-o_direct.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/file.c: add support to O_DIRECT
+From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: single_open/seq_release leak diagnostics
 
-Based on ext2_direct_IO
+"[PATCH] Fix leaks on /proc/{*/sched,sched_debug,timer_list,timer_stats}" and
+"[PATCH] Fix leak on /proc/lockdep_stats" fixed 5 leaks which happen if one
+uses single_open() as .open function and seq_release() as .release function.
 
-Tested with O_DIRECT file open and sysbench/mariadb with 1% written
-queries improvement (update_non_index test) on a volume created with
-mkaffs.
+Let's add small amount of runtime checking.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Sample output is:
+
+	memory leak: 'timer_list'
+	WARNING: at fs/seq_file.c:289 seq_release()
+	 [<c015e311>] seq_release+0x53/0x68
+	 [<c0171bd8>] proc_reg_release+0x63/0x74
+	 [<c0149877>] __fput+0x28/0xd3
+	 [<c0147681>] filp_close+0x48/0x4f
+	 [<c014876a>] sys_close+0x74/0xbe
+	 [<c010248e>] sysenter_past_esp+0x5f/0x85
+	 =======================
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ fs/seq_file.c            |   25 ++++++++++++++++++++-----
+ include/linux/seq_file.h |    1 +
+ 2 files changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN fs/affs/file.c~fs-affs-filec-adding-support-to-o_direct fs/affs/file.c
---- a/fs/affs/file.c~fs-affs-filec-adding-support-to-o_direct
-+++ a/fs/affs/file.c
-@@ -12,6 +12,7 @@
-  *  affs regular file handling primitives
-  */
- 
-+#include <linux/aio.h>
- #include "affs.h"
- 
- #if PAGE_SIZE < 4096
-@@ -392,6 +393,22 @@ static void affs_write_failed(struct add
+diff -puN fs/seq_file.c~single_open-seq_release-leak-diagnostics fs/seq_file.c
+--- a/fs/seq_file.c~single_open-seq_release-leak-diagnostics
++++ a/fs/seq_file.c
+@@ -362,6 +362,13 @@ EXPORT_SYMBOL(seq_lseek);
+ int seq_release(struct inode *inode, struct file *file)
+ {
+ 	struct seq_file *m = file->private_data;
++
++	if (m->seq_ops_allocated) {
++		struct dentry *dentry = file->f_dentry;
++		printk("memory leak: '%.*s'\n",
++			dentry->d_name.len, dentry->d_name.name);
++		WARN_ON(1);
++	}
+ 	kvfree(m->buf);
+ 	kfree(m);
+ 	return 0;
+@@ -605,9 +612,12 @@ int single_open(struct file *file, int (
+ 		op->stop = single_stop;
+ 		op->show = show;
+ 		res = seq_open(file, op);
+-		if (!res)
+-			((struct seq_file *)file->private_data)->private = data;
+-		else
++		if (!res) {
++			struct seq_file *seq = file->private_data;
++
++			seq->private = data;
++			seq->seq_ops_allocated = 1;
++		} else
+ 			kfree(op);
  	}
- }
+ 	return res;
+@@ -634,8 +644,13 @@ EXPORT_SYMBOL(single_open_size);
  
-+static ssize_t
-+affs_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
-+	       loff_t offset)
-+{
-+	struct file *file = iocb->ki_filp;
-+	struct address_space *mapping = file->f_mapping;
-+	struct inode *inode = mapping->host;
-+	size_t count = iov_iter_count(iter);
-+	ssize_t ret;
+ int single_release(struct inode *inode, struct file *file)
+ {
+-	const struct seq_operations *op = ((struct seq_file *)file->private_data)->op;
+-	int res = seq_release(inode, file);
++	struct seq_file *seq = file->private_data;
++	const struct seq_operations *op = seq->op;
++	int res;
 +
-+	ret = blockdev_direct_IO(rw, iocb, inode, iter, offset, affs_get_block);
-+	if (ret < 0 && (rw & WRITE))
-+		affs_write_failed(mapping, offset + count);
-+	return ret;
-+}
-+
- static int affs_write_begin(struct file *file, struct address_space *mapping,
- 			loff_t pos, unsigned len, unsigned flags,
- 			struct page **pagep, void **fsdata)
-@@ -418,6 +435,7 @@ const struct address_space_operations af
- 	.writepage = affs_writepage,
- 	.write_begin = affs_write_begin,
- 	.write_end = generic_write_end,
-+	.direct_IO = affs_direct_IO,
- 	.bmap = _affs_bmap
++	/* All roads lead to seq_release(), so... */
++	seq->seq_ops_allocated = 0;
++	res = seq_release(inode, file);
+ 	kfree(op);
+ 	return res;
+ }
+diff -puN include/linux/seq_file.h~single_open-seq_release-leak-diagnostics include/linux/seq_file.h
+--- a/include/linux/seq_file.h~single_open-seq_release-leak-diagnostics
++++ a/include/linux/seq_file.h
+@@ -31,6 +31,7 @@ struct seq_file {
+ 	struct user_namespace *user_ns;
+ #endif
+ 	void *private;
++	unsigned int seq_ops_allocated:1;
  };
  
+ struct seq_operations {
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
-fs-cifs-remove-obsolete-__constant.patch
-fs-cifs-filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-kernel-add-panic_on_warn.patch
-kernel-add-panic_on_warn-v7.patch
-fs-affs-filec-forward-declaration-clean-up.patch
-fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
-fs-affs-filec-adding-support-to-o_direct.patch
-linux-next.patch
 
