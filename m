@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-reverse-iteration-on-find_mergeable.patch added to -mm
- tree
-Date: Tue, 04 Nov 2014 12:24:22 -0800
-Message-ID: <545935f6.z43mCGmlJEtRtvxQ%akpm@linux-foundation.org>
+Subject: +
+ mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat.patch
+ added to -mm tree
+Date: Tue, 04 Nov 2014 12:37:04 -0800
+Message-ID: <545938f0.gYsmLF1YeNuAdrcc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47348 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47614 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751118AbaKDUYV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 15:24:21 -0500
+	with ESMTP id S1751118AbaKDUhD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 15:37:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: tangchen@cn.fujitsu.com, grygorii.strashko@ti.com, guz.fnst@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, phacht@linux.vnet.ibm.com, qiuxishi@huawei.com, santosh.shilimkar@ti.com, wangnan0@huawei.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: reverse iteration on find_mergeable()
+     Subject: mem-hotplug: reset node managed pages when hot-adding a new pgdat
 has been added to the -mm tree.  Its filename is
-     mm-slab-reverse-iteration-on-find_mergeable.patch
+     mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-reverse-iteration-on-find_mergeable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-reverse-iteration-on-find_mergeable.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,76 +40,156 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: reverse iteration on find_mergeable()
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: mem-hotplug: reset node managed pages when hot-adding a new pgdat
 
-Unlike SLUB, sometimes, object isn't started at the beginning of the slab
-in the SLAB.  This causes the unalignment problem when after slab merging
-is supported by commit 12220dea07f1 ("mm/slab: support slab merge"). 
-Alignment mismatch check is introduced ("mm/slab: fix unalignment problem
-on Malta with EVA due to slab merge") to prevent merge in this case.
+In free_area_init_core(), zone->managed_pages is set to an approximate
+value for lowmem, and will be adjusted when the bootmem allocator frees
+pages into the buddy system.  But free_area_init_core() is also called by
+hotadd_new_pgdat() when hot-adding memory.  As a result,
+zone->managed_pages of the newly added node's pgdat is set to an
+approximate value in the very beginning.  Even if the memory on that node
+has node been onlined, /sys/device/system/node/nodeXXX/meminfo has wrong
+value.
 
-This causes undesirable result that merging happens between infrequently
-used kmem_caches if there are kmem_caches with same size and is 256 bytes,
-are merged into pool_workqueue rather than kmalloc-256, because
-kmem_caches for kmalloc are at the tail of the list.
+hot-add node2 (memory not onlined)
+cat /sys/device/system/node/node2/meminfo
+Node 2 MemTotal:       33554432 kB
+Node 2 MemFree:               0 kB
+Node 2 MemUsed:        33554432 kB
+Node 2 Active:                0 kB
 
-To prevent this situation, this patch reverses iteration order in
-find_mergeable() to find frequently used kmem_caches.  This change helps
-to merge kmem_cache to frequently used kmem_caches, such as kmalloc
-kmem_caches.
+This patch fixes this problem by resetting node managed pages to 0 after
+hot-adding a new node.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+1. Move reset_managed_pages_done from reset_node_managed_pages() to reset_all_zones_managed_pages()
+2. Make reset_node_managed_pages() non-static
+3. Call reset_node_managed_pages() in hotadd_new_pgdat() after pgdat is initialized
+
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Wang Nan <wangnan0@huawei.com>
+Cc: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bootmem.h |    1 +
+ mm/bootmem.c            |    9 +++++----
+ mm/memory_hotplug.c     |    9 +++++++++
+ mm/nobootmem.c          |    8 +++++---
+ 4 files changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN mm/slab_common.c~mm-slab-reverse-iteration-on-find_mergeable mm/slab_common.c
---- a/mm/slab_common.c~mm-slab-reverse-iteration-on-find_mergeable
-+++ a/mm/slab_common.c
-@@ -240,7 +240,7 @@ struct kmem_cache *find_mergeable(size_t
- 	size = ALIGN(size, align);
- 	flags = kmem_cache_flags(size, flags, name, NULL);
+diff -puN include/linux/bootmem.h~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
++++ a/include/linux/bootmem.h
+@@ -46,6 +46,7 @@ extern unsigned long init_bootmem_node(p
+ extern unsigned long init_bootmem(unsigned long addr, unsigned long memend);
  
--	list_for_each_entry(s, &slab_caches, list) {
-+	list_for_each_entry_reverse(s, &slab_caches, list) {
- 		if (slab_unmergeable(s))
- 			continue;
+ extern unsigned long free_all_bootmem(void);
++extern void reset_node_managed_pages(pg_data_t *pgdat);
+ extern void reset_all_zones_managed_pages(void);
+ 
+ extern void free_bootmem_node(pg_data_t *pgdat,
+diff -puN mm/bootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat mm/bootmem.c
+--- a/mm/bootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
++++ a/mm/bootmem.c
+@@ -243,13 +243,10 @@ static unsigned long __init free_all_boo
+ 
+ static int reset_managed_pages_done __initdata;
+ 
+-static inline void __init reset_node_managed_pages(pg_data_t *pgdat)
++void reset_node_managed_pages(pg_data_t *pgdat)
+ {
+ 	struct zone *z;
+ 
+-	if (reset_managed_pages_done)
+-		return;
+-
+ 	for (z = pgdat->node_zones; z < pgdat->node_zones + MAX_NR_ZONES; z++)
+ 		z->managed_pages = 0;
+ }
+@@ -258,8 +255,12 @@ void __init reset_all_zones_managed_page
+ {
+ 	struct pglist_data *pgdat;
+ 
++	if (reset_managed_pages_done)
++		return;
++
+ 	for_each_online_pgdat(pgdat)
+ 		reset_node_managed_pages(pgdat);
++
+ 	reset_managed_pages_done = 1;
+ }
+ 
+diff -puN mm/memory_hotplug.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
++++ a/mm/memory_hotplug.c
+@@ -31,6 +31,7 @@
+ #include <linux/stop_machine.h>
+ #include <linux/hugetlb.h>
+ #include <linux/memblock.h>
++#include <linux/bootmem.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -1096,6 +1097,14 @@ static pg_data_t __ref *hotadd_new_pgdat
+ 	build_all_zonelists(pgdat, NULL);
+ 	mutex_unlock(&zonelists_mutex);
+ 
++	/*
++	 *  zone->managed_pages is set to an approximate value in
++	 *  free_area_init_core(), which will cause
++	 *  /sys/device/system/node/nodeX/meminfo has wrong data.
++	 *  So reset it to 0 before any memory is onlined.
++	 */
++	reset_node_managed_pages(pgdat);
++
+ 	return pgdat;
+ }
+ 
+diff -puN mm/nobootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat mm/nobootmem.c
+--- a/mm/nobootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
++++ a/mm/nobootmem.c
+@@ -145,12 +145,10 @@ static unsigned long __init free_low_mem
+ 
+ static int reset_managed_pages_done __initdata;
+ 
+-static inline void __init reset_node_managed_pages(pg_data_t *pgdat)
++void reset_node_managed_pages(pg_data_t *pgdat)
+ {
+ 	struct zone *z;
+ 
+-	if (reset_managed_pages_done)
+-		return;
+ 	for (z = pgdat->node_zones; z < pgdat->node_zones + MAX_NR_ZONES; z++)
+ 		z->managed_pages = 0;
+ }
+@@ -159,8 +157,12 @@ void __init reset_all_zones_managed_page
+ {
+ 	struct pglist_data *pgdat;
+ 
++	if (reset_managed_pages_done)
++		return;
++
+ 	for_each_online_pgdat(pgdat)
+ 		reset_node_managed_pages(pgdat);
++
+ 	reset_managed_pages_done = 1;
+ }
  
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
-mm-compaction-skip-the-range-until-proper-target-pageblock-is-met.patch
 mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype.patch
 mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list.patch
 mm-page_alloc-move-freepage-counting-logic-to-__free_one_page.patch
 mm-page_alloc-restrict-max-order-of-merging-on-isolated-pageblock.patch
-mm-slab-fix-unalignment-problem-on-malta-with-eva-due-to-slab-merge.patch
-mm-slab-slub-coding-style-whitespaces-and-tabs-mixture.patch
-slab-print-slabinfo-header-in-seq-show.patch
-mm-slab-reverse-iteration-on-find_mergeable.patch
-mm-introduce-single-zone-pcplists-drain.patch
-mm-page_isolation-drain-single-zone-pcplists.patch
-mm-cma-drain-single-zone-pcplists.patch
-mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
-mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
-mm-compaction-simplify-deferred-compaction.patch
-mm-compaction-defer-only-on-compact_complete.patch
-mm-compaction-always-update-cached-scanner-positions.patch
-mm-compaction-more-focused-lru-and-pcplists-draining.patch
-memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
-zsmalloc-merge-size_class-to-reduce-fragmentation.patch
-slab-fix-cpuset-check-in-fallback_alloc.patch
-slub-fix-cpuset-check-in-get_any_partial.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-mm-cma-split-cma-reserved-in-dmesg-log.patch
-fs-proc-include-cma-info-in-proc-meminfo.patch
-page-owners-correct-page-order-when-to-free-page.patch
+mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat.patch
+mem-hotplug-fix-wrong-check-for-zone-pageset-initialization-in-online_pages.patch
 
