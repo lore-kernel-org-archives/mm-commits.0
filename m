@@ -1,97 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mremap-take-anon_vma-lock-in-shared-mode.patch
+Subject: [obsolete] kernel-add-panic_on_warn-checkpatch-fixes.patch
  removed from -mm tree
-Date: Tue, 04 Nov 2014 14:38:27 -0800
-Message-ID: <54595563.ZmaAUfP1niF5Ell/%akpm@linux-foundation.org>
+Date: Tue, 04 Nov 2014 14:43:39 -0800
+Message-ID: <5459569b.FlnQWwi9XkXDU5kH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48507 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751303AbaKDWi1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 17:38:27 -0500
+	with ESMTP id S1751129AbaKDWni (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 17:43:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, dbueso@suse.de, hughd@google.com, riel@redhat.com, walken@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, prarit@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mremap: take anon_vma lock in shared mode
+     Subject: kernel-add-panic_on_warn-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mremap-take-anon_vma-lock-in-shared-mode.patch
+     kernel-add-panic_on_warn-checkpatch-fixes.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mremap: take anon_vma lock in shared mode
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-add-panic_on_warn-checkpatch-fixes
 
-There's no modification to anon_vma interval tree.  We only need to
-serialize against exclusive rmap walker who wants to catch all ptes the
-page is mapped with.  Shared lock is enough for that.
+ERROR: spaces required around that '=' (ctx:VxV)
+#188: FILE: include/uapi/linux/sysctl.h:156:
++	KERN_PANIC_ON_WARN=77, /* int: call panic() in WARN() functions */
+ 	                  ^
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Suggested-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+WARNING: unnecessary whitespace before a quoted newline
+#222: FILE: kernel/panic.c:438:
++		panic("panic_on_warn set ... \n");
+
+total: 1 errors, 1 warnings, 158 lines checked
+
+./patches/kernel-add-panic_on_warn.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Prarit Bhargava <prarit@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/panic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mremap.c~mremap-take-anon_vma-lock-in-shared-mode mm/mremap.c
---- a/mm/mremap.c~mremap-take-anon_vma-lock-in-shared-mode
-+++ a/mm/mremap.c
-@@ -123,7 +123,7 @@ static void move_ptes(struct vm_area_str
- 		}
- 		if (vma->anon_vma) {
- 			anon_vma = vma->anon_vma;
--			anon_vma_lock_write(anon_vma);
-+			anon_vma_lock_read(anon_vma);
- 		}
+diff -puN kernel/panic.c~kernel-add-panic_on_warn-checkpatch-fixes kernel/panic.c
+--- a/kernel/panic.c~kernel-add-panic_on_warn-checkpatch-fixes
++++ a/kernel/panic.c
+@@ -435,7 +435,7 @@ static void warn_slowpath_common(const c
+ 		 * from panicking the system.
+ 		 */
+ 		panic_on_warn = 0;
+-		panic("panic_on_warn set ... \n");
++		panic("panic_on_warn set ...\n");
  	}
  
-@@ -154,7 +154,7 @@ static void move_ptes(struct vm_area_str
- 	pte_unmap(new_pte - 1);
- 	pte_unmap_unlock(old_pte - 1, old_ptl);
- 	if (anon_vma)
--		anon_vma_unlock_write(anon_vma);
-+		anon_vma_unlock_read(anon_vma);
- 	if (mapping)
- 		mutex_unlock(&mapping->i_mmap_mutex);
- }
-@@ -199,12 +199,12 @@ unsigned long move_page_tables(struct vm
- 					      vma);
- 				/* See comment in move_ptes() */
- 				if (need_rmap_locks)
--					anon_vma_lock_write(vma->anon_vma);
-+					anon_vma_lock_read(vma->anon_vma);
- 				err = move_huge_pmd(vma, new_vma, old_addr,
- 						    new_addr, old_end,
- 						    old_pmd, new_pmd);
- 				if (need_rmap_locks)
--					anon_vma_unlock_write(vma->anon_vma);
-+					anon_vma_unlock_read(vma->anon_vma);
- 			}
- 			if (err > 0) {
- 				need_flush = true;
+ 	print_modules();
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype.patch
-mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list.patch
-mm-page_alloc-move-freepage-counting-logic-to-__free_one_page.patch
-mm-page_alloc-restrict-max-order-of-merging-on-isolated-pageblock.patch
-mm-verify-compound-order-when-freeing-a-page.patch
-thp-do-not-mark-zero-page-pmd-write-protected-explicitly.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
