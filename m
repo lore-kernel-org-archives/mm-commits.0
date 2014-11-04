@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype.patch added to -mm tree
-Date: Tue, 04 Nov 2014 12:21:56 -0800
-Message-ID: <54593564.qLuzNFaSuq0UeRry%akpm__29217.5249931917$1415132529$gmane$org@linux-foundation.org>
+ mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list.patch added to -mm tree
+Date: Tue, 04 Nov 2014 12:21:59 -0800
+Message-ID: <54593567.2aA0g3DTcRC1uNGH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47286 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47305 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751778AbaKDUV4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 15:21:56 -0500
+	with ESMTP id S1751778AbaKDUV7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 15:21:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, b.zolnierkie@samsung.com, gioh.kim@lge.com, hannes@cmpxchg.org, heesub.shin@samsung.com, isimatu.yasuaki@jp.fujitsu.com, kirill.shutemov@linux.intel.com, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, ritesh.list@gmail.com, stable@vger.kernel.org, tangchen@cn.fujitsu.com, vbabka@suse.cz, wency@cn.fujitsu.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: fix incorrect isolation behavior by rechecking migratetype
+     Subject: mm/page_alloc: add freepage on isolate pageblock to correct buddy list
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype.patch
+     mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,106 +40,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_alloc: fix incorrect isolation behavior by rechecking migratetype
+Subject: mm/page_alloc: add freepage on isolate pageblock to correct buddy list
 
-Before describing bugs itself, I first explain definition of freepage.
+In free_pcppages_bulk(), we use cached migratetype of freepage to
+determine type of buddy list where freepage will be added.  This
+information is stored when freepage is added to pcp list, so if isolation
+of pageblock of this freepage begins after storing, this cached
+information could be stale.  In other words, it has original migratetype
+rather than MIGRATE_ISOLATE.
 
-1. pages on buddy list are counted as freepage.
-2. pages on isolate migratetype buddy list are *not* counted as freepage.
-3. pages on cma buddy list are counted as CMA freepage, too.
+There are two problems caused by this stale information.  One is that we
+can't keep these freepages from being allocated.  Although this pageblock
+is isolated, freepage will be added to normal buddy list so that it could
+be allocated without any restriction.  And the other problem is incorrect
+freepage accounting.  Freepages on isolate pageblock should not be counted
+for number of freepage.
 
-Now, I describe problems and related patch.
+Following is the code snippet in free_pcppages_bulk().
 
-Patch 1: There is race conditions on getting pageblock migratetype that it
-results in misplacement of freepages on buddy list, incorrect freepage
-count and un-availability of freepage.
+/* MIGRATE_MOVABLE list may include MIGRATE_RESERVEs */
+__free_one_page(page, page_to_pfn(page), zone, 0, mt);
+trace_mm_page_pcpu_drain(page, 0, mt);
+if (likely(!is_migrate_isolate_page(page))) {
+	__mod_zone_page_state(zone, NR_FREE_PAGES, 1);
+	if (is_migrate_cma(mt))
+		__mod_zone_page_state(zone, NR_FREE_CMA_PAGES, 1);
+}
 
-Patch 2: Freepages on pcp list could have stale cached information to
-determine migratetype of buddy list to go.  This causes misplacement of
-freepages on buddy list and incorrect freepage count.
+As you can see above snippet, current code already handle second problem,
+incorrect freepage accounting, by re-fetching pageblock migratetype
+through is_migrate_isolate_page(page).  But, because this re-fetched
+information isn't used for __free_one_page(), first problem would not be
+solved.  This patch try to solve this situation to re-fetch pageblock
+migratetype before __free_one_page() and to use it for __free_one_page().
 
-Patch 4: Merging between freepages on different migratetype of pageblocks
-will cause freepages accouting problem.  This patch fixes it.
+In addition to move up position of this re-fetch, this patch use
+optimization technique, re-fetching migratetype only if there is isolate
+pageblock.  Pageblock isolation is rare event, so we can avoid re-fetching
+in common case with this optimization.
 
-Without patchset [3], above problem doesn't happens on my CMA allocation
-test, because CMA reserved pages aren't used at all.  So there is no
-chance for above race.
-
-With patchset [3], I did simple CMA allocation test and get below result.
-
-- Virtual machine, 4 cpus, 1024 MB memory, 256 MB CMA reservation
-- run kernel build (make -j16) on background
-- 30 times CMA allocation(8MB * 30 = 240MB) attempts in 5 sec interval
-- Result: more than 5000 freepage count are missed
-
-With patchset [3] and this patchset, I found that no freepage count are
-missed so that I conclude that problems are solved.
-
-On my simple memory offlining test, these problems also occur on that
-environment, too.
-
-
-
-This patch (of 4):
-
-There are two paths to reach core free function of buddy allocator,
-__free_one_page(), one is free_one_page()->__free_one_page() and the other
-is free_hot_cold_page()->free_pcppages_bulk()->__free_one_page().  Each
-paths has race condition causing serious problems.  At first, this patch
-is focused on first type of freepath.  And then, following patch will
-solve the problem in second type of freepath.
-
-In the first type of freepath, we got migratetype of freeing page without
-holding the zone lock, so it could be racy.  There are two cases of this
-race.
-
-1. pages are added to isolate buddy list after restoring orignal
-migratetype
-
-CPU1                                   CPU2
-
-get migratetype => return MIGRATE_ISOLATE
-call free_one_page() with MIGRATE_ISOLATE
-
-				grab the zone lock
-				unisolate pageblock
-				release the zone lock
-
-grab the zone lock
-call __free_one_page() with MIGRATE_ISOLATE
-freepage go into isolate buddy list,
-although pageblock is already unisolated
-
-This may cause two problems.  One is that we can't use this page anymore
-until next isolation attempt of this pageblock, because freepage is on
-isolate buddy list.  The other is that freepage accouting could be wrong
-due to merging between different buddy list.  Freepages on isolate buddy
-list aren't counted as freepage, but ones on normal buddy list are counted
-as freepage.  If merge happens, buddy freepage on normal buddy list is
-inevitably moved to isolate buddy list without any consideration of
-freepage accouting so it could be incorrect.
-
-2. pages are added to normal buddy list while pageblock is isolated.
-It is similar with above case.
-
-This also may cause two problems.  One is that we can't keep these
-freepages from being allocated.  Although this pageblock is isolated,
-freepage would be added to normal buddy list so that it could be allocated
-without any restriction.  And the other problem is same as case 1, that
-it, incorrect freepage accouting.
-
-This race condition would be prevented by checking migratetype again with
-holding the zone lock.  Because it is somewhat heavy operation and it
-isn't needed in common case, we want to avoid rechecking as much as
-possible.  So this patch introduce new variable, nr_isolate_pageblock in
-struct zone to check if there is isolated pageblock.  With this, we can
-avoid to re-check migratetype in common case and do it only if there is
-isolated pageblock or migratetype is MIGRATE_ISOLATE.  This solve above
-mentioned problems.
-
-Changes from v3:
-Add one more check in free_one_page() that checks whether migratetype is
-MIGRATE_ISOLATE or not. Without this, abovementioned case 1 could happens.
+This patch also correct migratetype of the tracepoint output.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
@@ -164,97 +104,35 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h         |    9 +++++++++
- include/linux/page-isolation.h |    8 ++++++++
- mm/page_alloc.c                |   11 +++++++++--
- mm/page_isolation.c            |    2 ++
- 4 files changed, 28 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype
-+++ a/include/linux/mmzone.h
-@@ -431,6 +431,15 @@ struct zone {
- 	 */
- 	int			nr_migrate_reserve_block;
- 
-+#ifdef CONFIG_MEMORY_ISOLATION
-+	/*
-+	 * Number of isolated pageblock. It is used to solve incorrect
-+	 * freepage counting problem due to racy retrieving migratetype
-+	 * of pageblock. Protected by zone->lock.
-+	 */
-+	unsigned long		nr_isolate_pageblock;
-+#endif
-+
- #ifdef CONFIG_MEMORY_HOTPLUG
- 	/* see spanned/present_pages for more description */
- 	seqlock_t		span_seqlock;
-diff -puN include/linux/page-isolation.h~mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype include/linux/page-isolation.h
---- a/include/linux/page-isolation.h~mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype
-+++ a/include/linux/page-isolation.h
-@@ -2,6 +2,10 @@
- #define __LINUX_PAGEISOLATION_H
- 
- #ifdef CONFIG_MEMORY_ISOLATION
-+static inline bool has_isolate_pageblock(struct zone *zone)
-+{
-+	return zone->nr_isolate_pageblock;
-+}
- static inline bool is_migrate_isolate_page(struct page *page)
- {
- 	return get_pageblock_migratetype(page) == MIGRATE_ISOLATE;
-@@ -11,6 +15,10 @@ static inline bool is_migrate_isolate(in
- 	return migratetype == MIGRATE_ISOLATE;
- }
- #else
-+static inline bool has_isolate_pageblock(struct zone *zone)
-+{
-+	return false;
-+}
- static inline bool is_migrate_isolate_page(struct page *page)
- {
- 	return false;
-diff -puN mm/page_alloc.c~mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype
+diff -puN mm/page_alloc.c~mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list
 +++ a/mm/page_alloc.c
-@@ -739,9 +739,16 @@ static void free_one_page(struct zone *z
- 	if (nr_scanned)
- 		__mod_zone_page_state(zone, NR_PAGES_SCANNED, -nr_scanned);
- 
-+	if (unlikely(has_isolate_pageblock(zone) ||
-+		is_migrate_isolate(migratetype))) {
-+		migratetype = get_pfnblock_migratetype(page, pfn);
-+		if (is_migrate_isolate(migratetype))
-+			goto skip_counting;
-+	}
-+	__mod_zone_freepage_state(zone, 1 << order, migratetype);
+@@ -715,14 +715,17 @@ static void free_pcppages_bulk(struct zo
+ 			/* must delete as __free_one_page list manipulates */
+ 			list_del(&page->lru);
+ 			mt = get_freepage_migratetype(page);
++			if (unlikely(has_isolate_pageblock(zone))) {
++				mt = get_pageblock_migratetype(page);
++				if (is_migrate_isolate(mt))
++					goto skip_counting;
++			}
++			__mod_zone_freepage_state(zone, 1, mt);
 +
 +skip_counting:
- 	__free_one_page(page, pfn, zone, order, migratetype);
--	if (unlikely(!is_migrate_isolate(migratetype)))
--		__mod_zone_freepage_state(zone, 1 << order, migratetype);
+ 			/* MIGRATE_MOVABLE list may include MIGRATE_RESERVEs */
+ 			__free_one_page(page, page_to_pfn(page), zone, 0, mt);
+ 			trace_mm_page_pcpu_drain(page, 0, mt);
+-			if (likely(!is_migrate_isolate_page(page))) {
+-				__mod_zone_page_state(zone, NR_FREE_PAGES, 1);
+-				if (is_migrate_cma(mt))
+-					__mod_zone_page_state(zone, NR_FREE_CMA_PAGES, 1);
+-			}
+ 		} while (--to_free && --batch_free && !list_empty(list));
+ 	}
  	spin_unlock(&zone->lock);
- }
- 
-diff -puN mm/page_isolation.c~mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype
-+++ a/mm/page_isolation.c
-@@ -60,6 +60,7 @@ out:
- 		int migratetype = get_pageblock_migratetype(page);
- 
- 		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
-+		zone->nr_isolate_pageblock++;
- 		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE);
- 
- 		__mod_zone_freepage_state(zone, -nr_pages, migratetype);
-@@ -83,6 +84,7 @@ void unset_migratetype_isolate(struct pa
- 	nr_pages = move_freepages_block(zone, page, migratetype);
- 	__mod_zone_freepage_state(zone, nr_pages, migratetype);
- 	set_pageblock_migratetype(page, migratetype);
-+	zone->nr_isolate_pageblock--;
- out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
