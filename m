@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-do-not-destroy-kmem-caches-on-css-offline.patch added to
- -mm tree
-Date: Tue, 04 Nov 2014 15:22:28 -0800
-Message-ID: <54595fb4.0oT+QV/v09mzab/R%akpm@linux-foundation.org>
+Subject: + memcg-free-kmem-cache-id-on-css-offline.patch added to -mm tree
+Date: Tue, 04 Nov 2014 15:22:36 -0800
+Message-ID: <54595fbc.l7c2VjvgTfF+plTt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48763 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751502AbaKDXW1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:22:27 -0500
+	with ESMTP id S1752365AbaKDXWf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:22:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: do not destroy kmem caches on css offline
+     Subject: memcg: free kmem cache id on css offline
 has been added to the -mm tree.  Its filename is
-     memcg-do-not-destroy-kmem-caches-on-css-offline.patch
+     memcg-free-kmem-cache-id-on-css-offline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-do-not-destroy-kmem-caches-on-css-offline.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-free-kmem-cache-id-on-css-offline.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memcg-do-not-destroy-kmem-caches-on-css-offline.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memcg-free-kmem-cache-id-on-css-offline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,62 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: do not destroy kmem caches on css offline
+Subject: memcg: free kmem cache id on css offline
 
-Currently, each kmem active memory cgroup has its own set of kmem caches. 
-The caches are only used by the memory cgroup they were created for, so
-when the cgroup is taken offline they must be destroyed.  However, we
-can't easily destroy all the caches on css offline, because they still may
-contain objects accounted to the cgroup.  Actually, we don't bother
-destroying busy caches on css offline at all, effectively leaking them. 
-To make this scheme work as it was intended to, we have to introduce a
-kind of asynchronous caches destruction, which is going to be quite a
-complex stuff, because we'd have to handle a lot of various race
-conditions.  And even if we manage to solve them all, kmem caches created
-for memory cgroups that are now dead will be dangling indefinitely long
-wasting memory.
-
-In this patch set I implement a different approach, which can be
-described by the following statements:
-
- 1. Never destroy per memcg kmem caches (except the root cache is
-    destroyed, of course).
-
- 2. Reuse kmemcg_id and therefore the set of per memcg kmem caches left
-    from a dead memory cgroup.
-
- 3. After allocating a kmem object, check if the slab is accounted to
-    the proper (i.e. current) memory cgroup. If it doesn't recharge it.
-
-The benefits are:
-
- - It's much simpler than what we have now, even though the current
-   implementation is incomplete.
-
- - The number of per cgroup caches of the same kind cannot be be greater
-   than the maximal number of online kmem active memory cgroups that
-   have ever existed simultaneously. Currently it is unlimited, which is
-   really bad.
-
- - Once a new memory cgroup starts using a cache that was used by a dead
-   cgroup before, it will be recharging slabs accounted to the dead
-   cgroup while allocating objects from the cache. Therefore all
-   references to the old cgroup will be put sooner or later, and it will
-   be freed. Currently, cgroups that have kmem objects accounted to them
-   on css offline leak for good.
-
-
-
-This patch (of 8):
-
-Currently, we try to destroy per memcg kmem caches on css offline.  Since
-a cache can contain active objects when the memory cgroup is removed, we
-can't destroy all caches immediately and therefore should introduce
-asynchronous destruction for this scheme to work properly.  However, this
-requires a lot of trickery and complex synchronization stuff, so I'm
-planning to go another way.  I'm going to reuse caches left from dead
-memory cgroups instead of recreating them.  This patch makes the first
-step in this direction: it removes caches destruction from css offline.
+This will allow new kmem active cgroups to reuse the id and therefore the
+caches used by the dead memory cgroup.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -107,162 +54,40 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    4 ---
- mm/memcontrol.c      |   52 +----------------------------------------
- 2 files changed, 2 insertions(+), 54 deletions(-)
+ mm/memcontrol.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/slab.h~memcg-do-not-destroy-kmem-caches-on-css-offline include/linux/slab.h
---- a/include/linux/slab.h~memcg-do-not-destroy-kmem-caches-on-css-offline
-+++ a/include/linux/slab.h
-@@ -491,9 +491,7 @@ static __always_inline void *kmalloc_nod
-  * Child caches will hold extra metadata needed for its operation. Fields are:
-  *
-  * @memcg: pointer to the memcg this cache belongs to
-- * @list: list_head for the list of all caches in this memcg
-  * @root_cache: pointer to the global, root cache, this cache was derived from
-- * @nr_pages: number of pages that belongs to this cache.
-  */
- struct memcg_cache_params {
- 	bool is_root_cache;
-@@ -504,9 +502,7 @@ struct memcg_cache_params {
- 		};
- 		struct {
- 			struct mem_cgroup *memcg;
--			struct list_head list;
- 			struct kmem_cache *root_cache;
--			atomic_t nr_pages;
- 		};
- 	};
- };
-diff -puN mm/memcontrol.c~memcg-do-not-destroy-kmem-caches-on-css-offline mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-do-not-destroy-kmem-caches-on-css-offline
+diff -puN mm/memcontrol.c~memcg-free-kmem-cache-id-on-css-offline mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-free-kmem-cache-id-on-css-offline
 +++ a/mm/memcontrol.c
-@@ -344,9 +344,6 @@ struct mem_cgroup {
- 	struct cg_proto tcp_mem;
- #endif
- #if defined(CONFIG_MEMCG_KMEM)
--	/* analogous to slab_common's slab_caches list, but per-memcg;
--	 * protected by memcg_slab_mutex */
--	struct list_head memcg_slab_caches;
-         /* Index in the kmem_cache->memcg_params->memcg_caches array */
- 	int kmemcg_id;
- #endif
-@@ -2489,23 +2486,10 @@ static void commit_charge(struct page *p
- #ifdef CONFIG_MEMCG_KMEM
- /*
-  * The memcg_slab_mutex is held whenever a per memcg kmem cache is created or
-- * destroyed. It protects memcg_caches arrays and memcg_slab_caches lists.
-+ * destroyed. It protects memcg_caches arrays.
-  */
- static DEFINE_MUTEX(memcg_slab_mutex);
+@@ -605,14 +605,10 @@ int memcg_limited_groups_array_size;
+ struct static_key memcg_kmem_enabled_key;
+ EXPORT_SYMBOL(memcg_kmem_enabled_key);
  
--/*
-- * This is a bit cumbersome, but it is rarely used and avoids a backpointer
-- * in the memcg_cache_params struct.
-- */
--static struct kmem_cache *memcg_params_to_cache(struct memcg_cache_params *p)
--{
--	struct kmem_cache *cachep;
+-static void memcg_free_cache_id(int id);
 -
--	VM_BUG_ON(p->is_root_cache);
--	cachep = p->root_cache;
--	return cache_from_memcg_idx(cachep, memcg_cache_id(p->memcg));
--}
--
- static int memcg_charge_kmem(struct mem_cgroup *memcg, gfp_t gfp,
- 			     unsigned long nr_pages)
+ static void disarm_kmem_keys(struct mem_cgroup *memcg)
  {
-@@ -2647,7 +2631,6 @@ static void memcg_register_cache(struct
- 		return;
- 
- 	css_get(&memcg->css);
--	list_add(&cachep->memcg_params->list, &memcg->memcg_slab_caches);
- 
- 	/*
- 	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
-@@ -2677,8 +2660,6 @@ static void memcg_unregister_cache(struc
- 	BUG_ON(root_cache->memcg_params->memcg_caches[id] != cachep);
- 	root_cache->memcg_params->memcg_caches[id] = NULL;
- 
--	list_del(&cachep->memcg_params->list);
--
- 	kmem_cache_destroy(cachep);
- 
- 	/* drop the reference taken in memcg_register_cache */
-@@ -2736,24 +2717,6 @@ int __memcg_cleanup_cache_params(struct
- 	return failed;
- }
- 
--static void memcg_unregister_all_caches(struct mem_cgroup *memcg)
--{
--	struct kmem_cache *cachep;
--	struct memcg_cache_params *params, *tmp;
--
--	if (!memcg_kmem_is_active(memcg))
--		return;
--
--	mutex_lock(&memcg_slab_mutex);
--	list_for_each_entry_safe(params, tmp, &memcg->memcg_slab_caches, list) {
--		cachep = memcg_params_to_cache(params);
--		kmem_cache_shrink(cachep);
--		if (atomic_read(&cachep->memcg_params->nr_pages) == 0)
--			memcg_unregister_cache(cachep);
+-	if (memcg_kmem_is_active(memcg)) {
++	if (memcg_kmem_is_active(memcg))
+ 		static_key_slow_dec(&memcg_kmem_enabled_key);
+-		memcg_free_cache_id(memcg->kmemcg_id);
 -	}
--	mutex_unlock(&memcg_slab_mutex);
--}
--
- struct memcg_register_cache_work {
- 	struct mem_cgroup *memcg;
- 	struct kmem_cache *cachep;
-@@ -2818,12 +2781,8 @@ static void memcg_schedule_register_cach
- int __memcg_charge_slab(struct kmem_cache *cachep, gfp_t gfp, int order)
- {
- 	unsigned int nr_pages = 1 << order;
--	int res;
- 
--	res = memcg_charge_kmem(cachep->memcg_params->memcg, gfp, nr_pages);
--	if (!res)
--		atomic_add(nr_pages, &cachep->memcg_params->nr_pages);
--	return res;
-+	return memcg_charge_kmem(cachep->memcg_params->memcg, gfp, nr_pages);
- }
- 
- void __memcg_uncharge_slab(struct kmem_cache *cachep, int order)
-@@ -2831,7 +2790,6 @@ void __memcg_uncharge_slab(struct kmem_c
- 	unsigned int nr_pages = 1 << order;
- 
- 	memcg_uncharge_kmem(cachep->memcg_params->memcg, nr_pages);
--	atomic_sub(nr_pages, &cachep->memcg_params->nr_pages);
- }
- 
- /*
-@@ -2985,10 +2943,6 @@ void __memcg_kmem_uncharge_pages(struct
- 	memcg_uncharge_kmem(memcg, 1 << order);
- 	page->mem_cgroup = NULL;
- }
--#else
--static inline void memcg_unregister_all_caches(struct mem_cgroup *memcg)
--{
--}
- #endif /* CONFIG_MEMCG_KMEM */
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -3571,7 +3525,6 @@ static int memcg_activate_kmem(struct me
- 	}
- 
- 	memcg->kmemcg_id = memcg_id;
--	INIT_LIST_HEAD(&memcg->memcg_slab_caches);
- 
  	/*
- 	 * We couldn't have accounted to this cgroup, because it hasn't got the
-@@ -4885,7 +4838,6 @@ static void mem_cgroup_css_offline(struc
- 	}
+ 	 * This check can't live in kmem destruction function,
+ 	 * since the charges will outlive the cgroup
+@@ -4730,6 +4726,11 @@ static void mem_cgroup_css_offline(struc
  	spin_unlock(&memcg->event_list_lock);
  
--	memcg_unregister_all_caches(memcg);
  	vmpressure_cleanup(&memcg->vmpressure);
++
++#ifdef CONFIG_MEMCG_KMEM
++	if (memcg_kmem_is_active(memcg))
++		memcg_free_cache_id(memcg_cache_id(memcg));
++#endif
  }
  
+ static void mem_cgroup_css_free(struct cgroup_subsys_state *css)
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
