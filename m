@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
+ printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents.patch
  added to -mm tree
-Date: Tue, 04 Nov 2014 13:16:05 -0800
-Message-ID: <54594215.IpXmSJUNjjSYR9+M%akpm@linux-foundation.org>
+Date: Tue, 04 Nov 2014 13:57:48 -0800
+Message-ID: <54594bdc.mWoOAMUwsF+KKdLI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47844 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48230 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751688AbaKDVQF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 16:16:05 -0500
+	with ESMTP id S1751430AbaKDV5r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 16:57:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, davem@davemloft.net, iamjoonsoo.kim@lge.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mhocko@suse.cz, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: joe@perches.com, gregkh@linuxfoundation.org, jbaron@akamai.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2
+     Subject: printk: add and use LOGLEVEL_<level> defines for KERN_<LEVEL> equivalents
 has been added to the -mm tree.  Its filename is
-     mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
+     printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,100 +40,205 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2
+From: Joe Perches <joe@perches.com>
+Subject: printk: add and use LOGLEVEL_<level> defines for KERN_<LEVEL> equivalents
 
-Remove obsolete memory saving recommendations from the MEMCG Kconfig
-help text.
+Use #defines instead of magic values.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jason Baron <jbaron@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   12 ------------
- 1 file changed, 12 deletions(-)
+ drivers/usb/storage/debug.c |    2 +-
+ include/linux/kern_levels.h |   13 +++++++++++++
+ kernel/printk/printk.c      |   28 +++++++++++++---------------
+ lib/dynamic_debug.c         |    4 ++--
+ 4 files changed, 29 insertions(+), 18 deletions(-)
 
-diff -puN init/Kconfig~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2 init/Kconfig
---- a/init/Kconfig~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2
-+++ a/init/Kconfig
-@@ -990,18 +990,6 @@ config MEMCG
- 	  Provides a memory resource controller that manages both anonymous
- 	  memory and page cache. (See Documentation/cgroups/memory.txt)
+diff -puN drivers/usb/storage/debug.c~printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents drivers/usb/storage/debug.c
+--- a/drivers/usb/storage/debug.c~printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents
++++ a/drivers/usb/storage/debug.c
+@@ -186,7 +186,7 @@ int usb_stor_dbg(const struct us_data *u
  
--	  Note that setting this option increases fixed memory overhead
--	  associated with each page of memory in the system. By this,
--	  8(16)bytes/PAGE_SIZE on 32(64)bit system will be occupied by memory
--	  usage tracking struct at boot. Total amount of this is printed out
--	  at boot.
+ 	va_start(args, fmt);
+ 
+-	r = dev_vprintk_emit(7, &us->pusb_dev->dev, fmt, args);
++	r = dev_vprintk_emit(LOGLEVEL_DEBUG, &us->pusb_dev->dev, fmt, args);
+ 
+ 	va_end(args);
+ 
+diff -puN include/linux/kern_levels.h~printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents include/linux/kern_levels.h
+--- a/include/linux/kern_levels.h~printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents
++++ a/include/linux/kern_levels.h
+@@ -22,4 +22,17 @@
+  */
+ #define KERN_CONT	""
+ 
++/* integer equivalents of KERN_<LEVEL> */
++#define LOGLEVEL_SCHED		-2	/* Deferred messages from sched code
++					 * are set to this special level */
++#define LOGLEVEL_DEFAULT	-1	/* default (or last) loglevel */
++#define LOGLEVEL_EMERG		0	/* system is unusable */
++#define LOGLEVEL_ALERT		1	/* action must be taken immediately */
++#define LOGLEVEL_CRIT		2	/* critical conditions */
++#define LOGLEVEL_ERR		3	/* error conditions */
++#define LOGLEVEL_WARNING	4	/* warning conditions */
++#define LOGLEVEL_NOTICE		5	/* normal but significant condition */
++#define LOGLEVEL_INFO		6	/* informational */
++#define LOGLEVEL_DEBUG		7	/* debug-level messages */
++
+ #endif
+diff -puN kernel/printk/printk.c~printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents
++++ a/kernel/printk/printk.c
+@@ -62,9 +62,6 @@ int console_printk[4] = {
+ 	CONSOLE_LOGLEVEL_DEFAULT,	/* default_console_loglevel */
+ };
+ 
+-/* Deferred messaged from sched code are marked by this special level */
+-#define SCHED_MESSAGE_LOGLEVEL -2
 -
--	  Only enable when you're ok with these trade offs and really
--	  sure you need the memory resource controller. Even when you enable
--	  this, you can set "cgroup_disable=memory" at your boot option to
--	  disable memory resource controller and you can avoid overheads.
--	  (and lose benefits of memory resource controller)
--
- config MEMCG_SWAP
- 	bool "Memory Resource Controller Swap Extension"
- 	depends on MEMCG && SWAP
+ /*
+  * Low level drivers may need that to know if they can schedule in
+  * their unblank() callback or not. So let's export it.
+@@ -1259,7 +1256,7 @@ static int syslog_print_all(char __user
+ int do_syslog(int type, char __user *buf, int len, bool from_file)
+ {
+ 	bool clear = false;
+-	static int saved_console_loglevel = -1;
++	static int saved_console_loglevel = LOGLEVEL_DEFAULT;
+ 	int error;
+ 
+ 	error = check_syslog_permissions(type, from_file);
+@@ -1316,15 +1313,15 @@ int do_syslog(int type, char __user *buf
+ 		break;
+ 	/* Disable logging to console */
+ 	case SYSLOG_ACTION_CONSOLE_OFF:
+-		if (saved_console_loglevel == -1)
++		if (saved_console_loglevel == LOGLEVEL_DEFAULT)
+ 			saved_console_loglevel = console_loglevel;
+ 		console_loglevel = minimum_console_loglevel;
+ 		break;
+ 	/* Enable logging to console */
+ 	case SYSLOG_ACTION_CONSOLE_ON:
+-		if (saved_console_loglevel != -1) {
++		if (saved_console_loglevel != LOGLEVEL_DEFAULT) {
+ 			console_loglevel = saved_console_loglevel;
+-			saved_console_loglevel = -1;
++			saved_console_loglevel = LOGLEVEL_DEFAULT;
+ 		}
+ 		break;
+ 	/* Set level of messages printed to console */
+@@ -1336,7 +1333,7 @@ int do_syslog(int type, char __user *buf
+ 			len = minimum_console_loglevel;
+ 		console_loglevel = len;
+ 		/* Implicitly re-enable logging to console */
+-		saved_console_loglevel = -1;
++		saved_console_loglevel = LOGLEVEL_DEFAULT;
+ 		error = 0;
+ 		break;
+ 	/* Number of chars in the log buffer */
+@@ -1629,8 +1626,8 @@ asmlinkage int vprintk_emit(int facility
+ 	/* cpu currently holding logbuf_lock in this function */
+ 	static volatile unsigned int logbuf_cpu = UINT_MAX;
+ 
+-	if (level == SCHED_MESSAGE_LOGLEVEL) {
+-		level = -1;
++	if (level == LOGLEVEL_SCHED) {
++		level = LOGLEVEL_DEFAULT;
+ 		in_sched = true;
+ 	}
+ 
+@@ -1695,8 +1692,9 @@ asmlinkage int vprintk_emit(int facility
+ 			const char *end_of_header = printk_skip_level(text);
+ 			switch (kern_level) {
+ 			case '0' ... '7':
+-				if (level == -1)
++				if (level == LOGLEVEL_DEFAULT)
+ 					level = kern_level - '0';
++				/* fallthrough */
+ 			case 'd':	/* KERN_DEFAULT */
+ 				lflags |= LOG_PREFIX;
+ 			}
+@@ -1710,7 +1708,7 @@ asmlinkage int vprintk_emit(int facility
+ 		}
+ 	}
+ 
+-	if (level == -1)
++	if (level == LOGLEVEL_DEFAULT)
+ 		level = default_message_loglevel;
+ 
+ 	if (dict)
+@@ -1788,7 +1786,7 @@ EXPORT_SYMBOL(vprintk_emit);
+ 
+ asmlinkage int vprintk(const char *fmt, va_list args)
+ {
+-	return vprintk_emit(0, -1, NULL, 0, fmt, args);
++	return vprintk_emit(0, LOGLEVEL_DEFAULT, NULL, 0, fmt, args);
+ }
+ EXPORT_SYMBOL(vprintk);
+ 
+@@ -1842,7 +1840,7 @@ asmlinkage __visible int printk(const ch
+ 	}
+ #endif
+ 	va_start(args, fmt);
+-	r = vprintk_emit(0, -1, NULL, 0, fmt, args);
++	r = vprintk_emit(0, LOGLEVEL_DEFAULT, NULL, 0, fmt, args);
+ 	va_end(args);
+ 
+ 	return r;
+@@ -2631,7 +2629,7 @@ int printk_deferred(const char *fmt, ...
+ 
+ 	preempt_disable();
+ 	va_start(args, fmt);
+-	r = vprintk_emit(0, SCHED_MESSAGE_LOGLEVEL, NULL, 0, fmt, args);
++	r = vprintk_emit(0, LOGLEVEL_SCHED, NULL, 0, fmt, args);
+ 	va_end(args);
+ 
+ 	__this_cpu_or(printk_pending, PRINTK_PENDING_OUTPUT);
+diff -puN lib/dynamic_debug.c~printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents lib/dynamic_debug.c
+--- a/lib/dynamic_debug.c~printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents
++++ a/lib/dynamic_debug.c
+@@ -576,7 +576,7 @@ void __dynamic_dev_dbg(struct _ddebug *d
+ 	} else {
+ 		char buf[PREFIX_SIZE];
+ 
+-		dev_printk_emit(7, dev, "%s%s %s: %pV",
++		dev_printk_emit(LOGLEVEL_DEBUG, dev, "%s%s %s: %pV",
+ 				dynamic_emit_prefix(descriptor, buf),
+ 				dev_driver_string(dev), dev_name(dev),
+ 				&vaf);
+@@ -605,7 +605,7 @@ void __dynamic_netdev_dbg(struct _ddebug
+ 	if (dev && dev->dev.parent) {
+ 		char buf[PREFIX_SIZE];
+ 
+-		dev_printk_emit(7, dev->dev.parent,
++		dev_printk_emit(LOGLEVEL_DEBUG, dev->dev.parent,
+ 				"%s%s %s %s%s: %pV",
+ 				dynamic_emit_prefix(descriptor, buf),
+ 				dev_driver_string(dev->dev.parent),
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype.patch
-mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list.patch
-mm-page_alloc-move-freepage-counting-logic-to-__free_one_page.patch
-mm-page_alloc-restrict-max-order-of-merging-on-isolated-pageblock.patch
-slab-print-slabinfo-header-in-seq-show.patch
-mm-memcontrol-lockless-page-counters.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-mm-memcontrol-lockless-page-counters-fix-2.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-kernel-res_counter-remove-the-unused-api-fix-2.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
-mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
-mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
-mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
-mm-memcontrol-remove-synchroneous-stock-draining-code.patch
-mm-vmscan-count-only-dirty-pages-as-congested.patch
-memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
-mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
-mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
-memcg-remove-activate_kmem_mutex.patch
-mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
-mm-memcontrol-uncharge-pages-on-swapout.patch
-mm-memcontrol-uncharge-pages-on-swapout-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-inline-memcg-move_lock-locking.patch
-mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
-memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
-mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
-mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
-mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
-mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
-mm-memcg-fix-potential-undefined-when-for-page-stat-accounting.patch
-mm-memcontrol-remove-stale-page_cgroup_lock-comment.patch
-mm-embed-the-memcg-pointer-directly-into-struct-page.patch
-mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch
-mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
-debugging-keep-track-of-page-owners.patch
+printk-remove-used-once-early_vprintk.patch
+tile-neaten-early_printk-uses.patch
+tile-use-pr_warn-instead-of-pr_warning.patch
+printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents.patch
+maintainers-update-ivtv-mailing-lists-as-subscriber-only.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-add-an-error-test-for-no-space-before-comma.patch
+checkpatch-add-error-on-use-of-attributeweak-or-__weak-declarations.patch
+checkpatch-improve-test-for-no-space-after-cast.patch
+checkpatch-improve-warning-message-for-needless-if-case.patch
+checkpatch-fix-use-via-symlink-make-missing-spelling-file-non-fatal.patch
+checkpatch-try-to-avoid-mask-and-shift-errors.patch
+checkpatch-reduce-maintainers-update-message-frequency.patch
+binfmt_misc-add-comments-debug-logs.patch
+binfmt_misc-clean-up-code-style-a-bit.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
+linux-next.patch
 
