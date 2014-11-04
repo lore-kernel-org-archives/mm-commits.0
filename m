@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch added to -mm tree
-Date: Tue, 04 Nov 2014 13:15:57 -0800
-Message-ID: <5459420d.bcanVOz9s+J8EKIr%akpm@linux-foundation.org>
+ mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
+ added to -mm tree
+Date: Tue, 04 Nov 2014 13:16:05 -0800
+Message-ID: <54594215.IpXmSJUNjjSYR9+M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47834 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47844 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176AbaKDVP5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 16:15:57 -0500
+	with ESMTP id S1751688AbaKDVQF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 16:16:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, davem@davemloft.net, iamjoonsoo.kim@lge.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mhocko@suse.cz, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move page->mem_cgroup bad page handling into generic code fix
+     Subject: mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
+     mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +41,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: move page->mem_cgroup bad page handling into generic code fix
+Subject: mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2
 
-Remove unneeded !CONFIG_MEMCG memcg bad_page() dummies as well.
+Remove obsolete memory saving recommendations from the MEMCG Kconfig
+help text.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Cc: David Miller <davem@davemloft.net>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Tejun Heo <tj@kernel.org>
@@ -55,32 +57,31 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   13 -------------
- 1 file changed, 13 deletions(-)
+ init/Kconfig |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix
-+++ a/include/linux/memcontrol.h
-@@ -342,19 +342,6 @@ void mem_cgroup_count_vm_event(struct mm
- }
- #endif /* CONFIG_MEMCG */
+diff -puN init/Kconfig~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2 init/Kconfig
+--- a/init/Kconfig~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2
++++ a/init/Kconfig
+@@ -990,18 +990,6 @@ config MEMCG
+ 	  Provides a memory resource controller that manages both anonymous
+ 	  memory and page cache. (See Documentation/cgroups/memory.txt)
  
--#if !defined(CONFIG_MEMCG) || !defined(CONFIG_DEBUG_VM)
--static inline bool
--mem_cgroup_bad_page_check(struct page *page)
--{
--	return false;
--}
+-	  Note that setting this option increases fixed memory overhead
+-	  associated with each page of memory in the system. By this,
+-	  8(16)bytes/PAGE_SIZE on 32(64)bit system will be occupied by memory
+-	  usage tracking struct at boot. Total amount of this is printed out
+-	  at boot.
 -
--static inline void
--mem_cgroup_print_bad_page(struct page *page)
--{
--}
--#endif
+-	  Only enable when you're ok with these trade offs and really
+-	  sure you need the memory resource controller. Even when you enable
+-	  this, you can set "cgroup_disable=memory" at your boot option to
+-	  disable memory resource controller and you can avoid overheads.
+-	  (and lose benefits of memory resource controller)
 -
- enum {
- 	UNDER_LIMIT,
- 	SOFT_LIMIT,
+ config MEMCG_SWAP
+ 	bool "Memory Resource Controller Swap Extension"
+ 	depends on MEMCG && SWAP
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
