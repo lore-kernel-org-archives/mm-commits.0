@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + slab-introduce-slab_free-helper.patch added to -mm tree
-Date: Tue, 04 Nov 2014 15:22:40 -0800
-Message-ID: <54595fc0.VIwrcxnb3zPSQIG4%akpm@linux-foundation.org>
+Subject: + slab-recharge-slab-pages-to-the-allocating-memory-cgroup.patch
+ added to -mm tree
+Date: Tue, 04 Nov 2014 15:22:42 -0800
+Message-ID: <54595fc2.J344Dlj0tfcJ1odL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48776 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48787 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752016AbaKDXWj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:22:39 -0500
+	with ESMTP id S1752485AbaKDXWl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:22:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: introduce slab_free helper
+     Subject: slab: recharge slab pages to the allocating memory cgroup
 has been added to the -mm tree.  Its filename is
-     slab-introduce-slab_free-helper.patch
+     slab-recharge-slab-pages-to-the-allocating-memory-cgroup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-introduce-slab_free-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/slab-introduce-slab_free-helper.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slab: introduce slab_free helper
+Subject: slab: recharge slab pages to the allocating memory cgroup
+
+Since we now reuse per cgroup kmem caches, the slab we allocate an object
+from may be accounted to a dead memory cgroup.  If we leave such a slab
+accounted to a dead cgroup, we risk pinning the cgroup forever, so we
+introduce a new function, memcg_kmem_recharge_slab, which is to be called
+in the end of kmalloc.  It recharges the new object's slab to the current
+cgroup unless it is already charged to it.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -51,72 +59,181 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   30 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ include/linux/memcontrol.h |   15 ++++++++
+ mm/memcontrol.c            |   62 +++++++++++++++++++++++++++++++++++
+ mm/slab.c                  |   10 +++++
+ mm/slub.c                  |    8 ++++
+ 4 files changed, 95 insertions(+)
 
-diff -puN mm/slab.c~slab-introduce-slab_free-helper mm/slab.c
---- a/mm/slab.c~slab-introduce-slab_free-helper
-+++ a/mm/slab.c
-@@ -3521,6 +3521,18 @@ void *__kmalloc_track_caller(size_t size
- }
- EXPORT_SYMBOL(__kmalloc_track_caller);
+diff -puN include/linux/memcontrol.h~slab-recharge-slab-pages-to-the-allocating-memory-cgroup include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~slab-recharge-slab-pages-to-the-allocating-memory-cgroup
++++ a/include/linux/memcontrol.h
+@@ -395,6 +395,7 @@ bool __memcg_kmem_newpage_charge(gfp_t g
+ void __memcg_kmem_commit_charge(struct page *page,
+ 				       struct mem_cgroup *memcg, int order);
+ void __memcg_kmem_uncharge_pages(struct page *page, int order);
++int __memcg_kmem_recharge_slab(void *obj, gfp_t gfp);
  
-+static __always_inline void slab_free(struct kmem_cache *cachep, void *objp)
+ int memcg_cache_id(struct mem_cgroup *memcg);
+ 
+@@ -488,6 +489,15 @@ memcg_kmem_get_cache(struct kmem_cache *
+ 		return cachep;
+ 	return __memcg_kmem_get_cache(cachep, gfp);
+ }
++
++static __always_inline int memcg_kmem_recharge_slab(void *obj, gfp_t gfp)
 +{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	debug_check_no_locks_freed(objp, cachep->object_size);
-+	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
-+		debug_check_no_obj_freed(objp, cachep->object_size);
-+	__cache_free(cachep, objp, _RET_IP_);
-+	local_irq_restore(flags);
++	if (!memcg_kmem_enabled())
++		return 0;
++	if (!memcg_kmem_should_charge(gfp))
++		return 0;
++	return __memcg_kmem_recharge_slab(obj, gfp);
 +}
+ #else
+ #define for_each_memcg_cache_index(_idx)	\
+ 	for (; NULL; )
+@@ -522,6 +532,11 @@ memcg_kmem_get_cache(struct kmem_cache *
+ {
+ 	return cachep;
+ }
 +
- /**
-  * kmem_cache_free - Deallocate an object
-  * @cachep: The cache the allocation was from.
-@@ -3531,18 +3543,10 @@ EXPORT_SYMBOL(__kmalloc_track_caller);
-  */
- void kmem_cache_free(struct kmem_cache *cachep, void *objp)
- {
--	unsigned long flags;
- 	cachep = cache_from_obj(cachep, objp);
- 	if (!cachep)
- 		return;
--
--	local_irq_save(flags);
--	debug_check_no_locks_freed(objp, cachep->object_size);
--	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
--		debug_check_no_obj_freed(objp, cachep->object_size);
--	__cache_free(cachep, objp, _RET_IP_);
--	local_irq_restore(flags);
--
-+	slab_free(cachep, objp);
- 	trace_kmem_cache_free(_RET_IP_, objp);
- }
- EXPORT_SYMBOL(kmem_cache_free);
-@@ -3559,20 +3563,14 @@ EXPORT_SYMBOL(kmem_cache_free);
- void kfree(const void *objp)
- {
- 	struct kmem_cache *c;
--	unsigned long flags;
++static inline int memcg_kmem_recharge_slab(void *obj, gfp_t gfp)
++{
++	return 0;
++}
+ #endif /* CONFIG_MEMCG_KMEM */
+ #endif /* _LINUX_MEMCONTROL_H */
  
- 	trace_kfree(_RET_IP_, objp);
- 
- 	if (unlikely(ZERO_OR_NULL_PTR(objp)))
- 		return;
--	local_irq_save(flags);
- 	kfree_debugcheck(objp);
- 	c = virt_to_cache(objp);
--	debug_check_no_locks_freed(objp, c->object_size);
--
--	debug_check_no_obj_freed(objp, c->object_size);
--	__cache_free(c, (void *)objp, _RET_IP_);
--	local_irq_restore(flags);
-+	slab_free(c, (void *)objp);
+diff -puN mm/memcontrol.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup
++++ a/mm/memcontrol.c
+@@ -2828,6 +2828,68 @@ void __memcg_kmem_uncharge_pages(struct
+ 	memcg_uncharge_kmem(memcg, 1 << order);
+ 	page->mem_cgroup = NULL;
  }
- EXPORT_SYMBOL(kfree);
++
++/*
++ * Since we reuse per cgroup kmem caches, the slab we allocate an object from
++ * may be accounted to a dead memory cgroup. If we leave such a slab accounted
++ * to a dead cgroup, we risk pinning the cgroup forever, so this function is
++ * called in the end of kmalloc to recharge the new object's slab to the
++ * current cgroup unless it is already charged to it.
++ */
++int __memcg_kmem_recharge_slab(void *obj, gfp_t gfp)
++{
++	struct mem_cgroup *page_memcg, *memcg;
++	struct page *page;
++	int nr_pages;
++	int ret = 0;
++
++	if (current->memcg_kmem_skip_account)
++		goto out;
++
++	page = virt_to_head_page(obj);
++	page_memcg = ACCESS_ONCE(page->mem_cgroup);
++
++	rcu_read_lock();
++
++	memcg = mem_cgroup_from_task(rcu_dereference(current->mm->owner));
++	if (!memcg_kmem_is_active(memcg))
++		memcg = NULL;
++	if (likely(memcg == page_memcg))
++		goto out_unlock;
++	if (memcg && !css_tryget(&memcg->css))
++		goto out_unlock;
++
++	rcu_read_unlock();
++
++	nr_pages = 1 << compound_order(page);
++
++	if (memcg && memcg_charge_kmem(memcg, gfp, nr_pages)) {
++		ret = -ENOMEM;
++		goto out_put_memcg;
++	}
++
++	/*
++	 * We use cmpxchg to synchronize against concurrent threads allocating
++	 * from the same slab. If it fails, it means that some other thread
++	 * recharged the slab before us, and we are done.
++	 */
++	if (cmpxchg(&page->mem_cgroup, page_memcg, memcg) == page_memcg) {
++		if (page_memcg)
++			memcg_uncharge_kmem(page_memcg, nr_pages);
++	} else {
++		if (memcg)
++			memcg_uncharge_kmem(memcg, nr_pages);
++	}
++
++out_put_memcg:
++	if (memcg)
++		css_put(&memcg->css);
++	goto out;
++out_unlock:
++	rcu_read_unlock();
++out:
++	return ret;
++}
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+diff -puN mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup mm/slab.c
+--- a/mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup
++++ a/mm/slab.c
+@@ -3133,6 +3133,8 @@ done:
+ 	return obj;
+ }
+ 
++static __always_inline void slab_free(struct kmem_cache *cachep, void *objp);
++
+ static __always_inline void *
+ slab_alloc_node(struct kmem_cache *cachep, gfp_t flags, int nodeid,
+ 		   unsigned long caller)
+@@ -3185,6 +3187,10 @@ slab_alloc_node(struct kmem_cache *cache
+ 		kmemcheck_slab_alloc(cachep, flags, ptr, cachep->object_size);
+ 		if (unlikely(flags & __GFP_ZERO))
+ 			memset(ptr, 0, cachep->object_size);
++		if (unlikely(memcg_kmem_recharge_slab(ptr, flags))) {
++			slab_free(cachep, ptr);
++			ptr = NULL;
++		}
+ 	}
+ 
+ 	return ptr;
+@@ -3250,6 +3256,10 @@ slab_alloc(struct kmem_cache *cachep, gf
+ 		kmemcheck_slab_alloc(cachep, flags, objp, cachep->object_size);
+ 		if (unlikely(flags & __GFP_ZERO))
+ 			memset(objp, 0, cachep->object_size);
++		if (unlikely(memcg_kmem_recharge_slab(objp, flags))) {
++			slab_free(cachep, objp);
++			objp = NULL;
++		}
+ 	}
+ 
+ 	return objp;
+diff -puN mm/slub.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup mm/slub.c
+--- a/mm/slub.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup
++++ a/mm/slub.c
+@@ -2360,6 +2360,9 @@ new_slab:
+ 	return freelist;
+ }
+ 
++static __always_inline void slab_free(struct kmem_cache *s,
++			struct page *page, void *x, unsigned long addr);
++
+ /*
+  * Inlined fastpath so that allocation functions (kmalloc, kmem_cache_alloc)
+  * have the fastpath folded into their functions. So no function call
+@@ -2445,6 +2448,11 @@ redo:
+ 
+ 	slab_post_alloc_hook(s, gfpflags, object);
+ 
++	if (object && unlikely(memcg_kmem_recharge_slab(object, gfpflags))) {
++		slab_free(s, virt_to_head_page(object), object, _RET_IP_);
++		object = NULL;
++	}
++
+ 	return object;
+ }
  
 _
 
