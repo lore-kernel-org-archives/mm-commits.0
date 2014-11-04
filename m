@@ -1,112 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments.patch
- added to -mm tree
-Date: Tue, 04 Nov 2014 14:20:32 -0800
-Message-ID: <54595130.7RDLMxNLPkNtf7bL%akpm@linux-foundation.org>
+Subject: [withdrawn] mremap-take-anon_vma-lock-in-shared-mode.patch
+ removed from -mm tree
+Date: Tue, 04 Nov 2014 14:38:27 -0800
+Message-ID: <54595563.ZmaAUfP1niF5Ell/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48500 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753270AbaKDWUb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 17:20:31 -0500
+	with ESMTP id S1751303AbaKDWi1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 17:38:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@linux.intel.com, davidlohr@hp.com, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, dbueso@suse.de, hughd@google.com, riel@redhat.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/shm.c: fix overly aggressive shmdt() when calls span multiple segments
-has been added to the -mm tree.  Its filename is
-     mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments.patch
+     Subject: mremap: take anon_vma lock in shared mode
+has been removed from the -mm tree.  Its filename was
+     mremap-take-anon_vma-lock-in-shared-mode.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments.patch
-		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: ipc/shm.c: fix overly aggressive shmdt() when calls span multiple segments
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mremap: take anon_vma lock in shared mode
 
-This is a highly-contrived scenario.  But, a single shmdt() call can be
-induced in to unmapping memory from mulitple shm segments.  Example code
-is here:
+There's no modification to anon_vma interval tree.  We only need to
+serialize against exclusive rmap walker who wants to catch all ptes the
+page is mapped with.  Shared lock is enough for that.
 
-	http://www.sr71.net/~dave/intel/shmfun.c
-
-The fix is pretty simple: Record the 'struct file' for the first VMA we
-encounter and then stick to it.  Decline to unmap anything not from the
-same file and thus the same segment.
-
-I found this by inspection and the odds of anyone hitting this in practice
-are pretty darn small.
-
-Lightly tested, but it's a pretty small patch.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <davidlohr@hp.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Suggested-by: Davidlohr Bueso <dbueso@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ mm/mremap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN ipc/shm.c~mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments ipc/shm.c
---- a/ipc/shm.c~mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments
-+++ a/ipc/shm.c
-@@ -1229,6 +1229,7 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- 	int retval = -EINVAL;
- #ifdef CONFIG_MMU
- 	loff_t size = 0;
-+	struct file *file;
- 	struct vm_area_struct *next;
- #endif
+diff -puN mm/mremap.c~mremap-take-anon_vma-lock-in-shared-mode mm/mremap.c
+--- a/mm/mremap.c~mremap-take-anon_vma-lock-in-shared-mode
++++ a/mm/mremap.c
+@@ -123,7 +123,7 @@ static void move_ptes(struct vm_area_str
+ 		}
+ 		if (vma->anon_vma) {
+ 			anon_vma = vma->anon_vma;
+-			anon_vma_lock_write(anon_vma);
++			anon_vma_lock_read(anon_vma);
+ 		}
+ 	}
  
-@@ -1245,7 +1246,8 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- 	 *   started at address shmaddr. It records it's size and then unmaps
- 	 *   it.
- 	 * - Then it unmaps all shm vmas that started at shmaddr and that
--	 *   are within the initially determined size.
-+	 *   are within the initially determined size and that are from the
-+	 *   same shm segment from which we determined the size.
- 	 * Errors from do_munmap are ignored: the function only fails if
- 	 * it's called with invalid parameters or if it's called to unmap
- 	 * a part of a vma. Both calls in this function are for full vmas,
-@@ -1271,8 +1273,14 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- 		if ((vma->vm_ops == &shm_vm_ops) &&
- 			(vma->vm_start - addr)/PAGE_SIZE == vma->vm_pgoff) {
- 
--
--			size = file_inode(vma->vm_file)->i_size;
-+			/*
-+			 * Record the file of the shm segment being
-+			 * unmapped.  With mremap(), someone could place
-+			 * page from another segment but with equal offsets
-+			 * in the range we are unmapping.
-+			 */
-+			file = vma->vm_file;
-+			size = file_inode(file)->i_size;
- 			do_munmap(mm, vma->vm_start, vma->vm_end - vma->vm_start);
- 			/*
- 			 * We discovered the size of the shm segment, so
-@@ -1298,8 +1306,8 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- 
- 		/* finding a matching vma now does not alter retval */
- 		if ((vma->vm_ops == &shm_vm_ops) &&
--			(vma->vm_start - addr)/PAGE_SIZE == vma->vm_pgoff)
+@@ -154,7 +154,7 @@ static void move_ptes(struct vm_area_str
+ 	pte_unmap(new_pte - 1);
+ 	pte_unmap_unlock(old_pte - 1, old_ptl);
+ 	if (anon_vma)
+-		anon_vma_unlock_write(anon_vma);
++		anon_vma_unlock_read(anon_vma);
+ 	if (mapping)
+ 		mutex_unlock(&mapping->i_mmap_mutex);
+ }
+@@ -199,12 +199,12 @@ unsigned long move_page_tables(struct vm
+ 					      vma);
+ 				/* See comment in move_ptes() */
+ 				if (need_rmap_locks)
+-					anon_vma_lock_write(vma->anon_vma);
++					anon_vma_lock_read(vma->anon_vma);
+ 				err = move_huge_pmd(vma, new_vma, old_addr,
+ 						    new_addr, old_end,
+ 						    old_pmd, new_pmd);
+ 				if (need_rmap_locks)
+-					anon_vma_unlock_write(vma->anon_vma);
++					anon_vma_unlock_read(vma->anon_vma);
+ 			}
+ 			if (err > 0) {
+ 				need_flush = true;
+_
+
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+
+mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype.patch
+mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list.patch
+mm-page_alloc-move-freepage-counting-logic-to-__free_one_page.patch
+mm-page_alloc-restrict-max-order-of-merging-on-isolated-pageblock.patch
+mm-verify-compound-order-when-freeing-a-page.patch
+thp-do-not-mark-zero-page-pmd-write-protected-explicitly.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+
