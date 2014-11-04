@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-nommu-share-the-i_mmap_rwsem.patch added to -mm tree
-Date: Tue, 04 Nov 2014 15:04:56 -0800
-Message-ID: <54595b98.6TDnQK7p2vNoanJJ%akpm@linux-foundation.org>
+Subject: + memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg.patch
+ added to -mm tree
+Date: Tue, 04 Nov 2014 15:22:32 -0800
+Message-ID: <54595fb8.4T9o48CgEFgy5wBm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48617 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48748 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575AbaKDXEz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:04:55 -0500
+	with ESMTP id S1752365AbaKDXWb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2014 18:22:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, hughd@google.com, kirill.shutemov@intel.linux.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/nommu: share the i_mmap_rwsem
+     Subject: memcg: decouple per memcg kmem cache from the owner memcg
 has been added to the -mm tree.  Its filename is
-     mm-nommu-share-the-i_mmap_rwsem.patch
+     memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-nommu-share-the-i_mmap_rwsem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-nommu-share-the-i_mmap_rwsem.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,84 +39,236 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: mm/nommu: share the i_mmap_rwsem
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: memcg: decouple per memcg kmem cache from the owner memcg
 
-Shrinking/truncate logic can call nommu_shrink_inode_mappings() to verify
-that any shared mappings of the inode in question aren't broken (dead
-zone).  afaict the only user being ramfs to handle the size change
-attribute.
+Basically, we substitute the reference to the owner memory cgroup in
+memcg_cache_params with the index in the memcg_caches array.  This
+decouples kmem cache from the memcg it was created for and will allow to
+reuse it for another cgroup after css offline.
 
-Pretty much a no-brainer to share the lock.
-
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@intel.linux.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/slab.h |    7 +++----
+ mm/memcontrol.c      |   18 +++++-------------
+ mm/slab_common.c     |   12 +++++-------
+ 3 files changed, 13 insertions(+), 24 deletions(-)
 
-diff -puN mm/nommu.c~mm-nommu-share-the-i_mmap_rwsem mm/nommu.c
---- a/mm/nommu.c~mm-nommu-share-the-i_mmap_rwsem
-+++ a/mm/nommu.c
-@@ -2094,14 +2094,14 @@ int nommu_shrink_inode_mappings(struct i
- 	high = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+diff -puN include/linux/slab.h~memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg include/linux/slab.h
+--- a/include/linux/slab.h~memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg
++++ a/include/linux/slab.h
+@@ -117,8 +117,7 @@ struct kmem_cache *kmem_cache_create(con
+ 			void (*)(void *));
+ #ifdef CONFIG_MEMCG_KMEM
+ struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *,
+-					   struct kmem_cache *,
+-					   const char *);
++					   struct kmem_cache *);
+ #endif
+ void kmem_cache_destroy(struct kmem_cache *);
+ int kmem_cache_shrink(struct kmem_cache *);
+@@ -490,7 +489,7 @@ static __always_inline void *kmalloc_nod
+  *
+  * Child caches will hold extra metadata needed for its operation. Fields are:
+  *
+- * @memcg: pointer to the memcg this cache belongs to
++ * @id: the index in the root_cache's memcg_caches array.
+  * @root_cache: pointer to the global, root cache, this cache was derived from
+  */
+ struct memcg_cache_params {
+@@ -501,7 +500,7 @@ struct memcg_cache_params {
+ 			struct kmem_cache *memcg_caches[0];
+ 		};
+ 		struct {
+-			struct mem_cgroup *memcg;
++			int id;
+ 			struct kmem_cache *root_cache;
+ 		};
+ 	};
+diff -puN mm/memcontrol.c~memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg
++++ a/mm/memcontrol.c
+@@ -2603,8 +2603,6 @@ void memcg_update_array_size(int num)
+ static void memcg_register_cache(struct mem_cgroup *memcg,
+ 				 struct kmem_cache *root_cache)
+ {
+-	static char memcg_name_buf[NAME_MAX + 1]; /* protected by
+-						     memcg_slab_mutex */
+ 	struct kmem_cache *cachep;
+ 	int id;
  
- 	down_write(&nommu_region_sem);
--	i_mmap_lock_write(inode->i_mapping);
-+	i_mmap_lock_read(inode->i_mapping);
+@@ -2620,8 +2618,7 @@ static void memcg_register_cache(struct
+ 	if (cache_from_memcg_idx(root_cache, id))
+ 		return;
  
- 	/* search for VMAs that fall within the dead zone */
- 	vma_interval_tree_foreach(vma, &inode->i_mapping->i_mmap, low, high) {
- 		/* found one - only interested if it's shared out of the page
- 		 * cache */
- 		if (vma->vm_flags & VM_SHARED) {
--			i_mmap_unlock_write(inode->i_mapping);
-+			i_mmap_unlock_read(inode->i_mapping);
- 			up_write(&nommu_region_sem);
- 			return -ETXTBSY; /* not quite true, but near enough */
- 		}
-@@ -2113,8 +2113,7 @@ int nommu_shrink_inode_mappings(struct i
- 	 * we don't check for any regions that start beyond the EOF as there
- 	 * shouldn't be any
- 	 */
--	vma_interval_tree_foreach(vma, &inode->i_mapping->i_mmap,
--				  0, ULONG_MAX) {
-+	vma_interval_tree_foreach(vma, &inode->i_mapping->i_mmap, 0, ULONG_MAX) {
- 		if (!(vma->vm_flags & VM_SHARED))
- 			continue;
+-	cgroup_name(memcg->css.cgroup, memcg_name_buf, NAME_MAX + 1);
+-	cachep = memcg_create_kmem_cache(memcg, root_cache, memcg_name_buf);
++	cachep = memcg_create_kmem_cache(memcg, root_cache);
+ 	/*
+ 	 * If we could not create a memcg cache, do not complain, because
+ 	 * that's not critical at all as we can always proceed with the root
+@@ -2630,8 +2627,6 @@ static void memcg_register_cache(struct
+ 	if (!cachep)
+ 		return;
  
-@@ -2129,7 +2128,7 @@ int nommu_shrink_inode_mappings(struct i
- 		}
- 	}
+-	css_get(&memcg->css);
+-
+ 	/*
+ 	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
+ 	 * barrier here to ensure nobody will see the kmem_cache partially
+@@ -2646,7 +2641,6 @@ static void memcg_register_cache(struct
+ static void memcg_unregister_cache(struct kmem_cache *cachep)
+ {
+ 	struct kmem_cache *root_cache;
+-	struct mem_cgroup *memcg;
+ 	int id;
  
--	i_mmap_unlock_write(inode->i_mapping);
-+	i_mmap_unlock_read(inode->i_mapping);
- 	up_write(&nommu_region_sem);
+ 	lockdep_assert_held(&memcg_slab_mutex);
+@@ -2654,16 +2648,12 @@ static void memcg_unregister_cache(struc
+ 	BUG_ON(is_root_cache(cachep));
+ 
+ 	root_cache = cachep->memcg_params->root_cache;
+-	memcg = cachep->memcg_params->memcg;
+-	id = memcg_cache_id(memcg);
++	id = cachep->memcg_params->id;
+ 
+ 	BUG_ON(root_cache->memcg_params->memcg_caches[id] != cachep);
+ 	root_cache->memcg_params->memcg_caches[id] = NULL;
+ 
+ 	kmem_cache_destroy(cachep);
+-
+-	/* drop the reference taken in memcg_register_cache */
+-	css_put(&memcg->css);
+ }
+ 
+ /*
+@@ -4198,7 +4188,6 @@ static int memcg_init_kmem(struct mem_cg
+ {
+ 	int ret;
+ 
+-	memcg->kmemcg_id = -1;
+ 	ret = memcg_propagate_kmem(memcg);
+ 	if (ret)
+ 		return ret;
+@@ -4743,6 +4732,9 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	vmpressure_init(&memcg->vmpressure);
+ 	INIT_LIST_HEAD(&memcg->event_list);
+ 	spin_lock_init(&memcg->event_list_lock);
++#ifdef CONFIG_MEMCG_KMEM
++	memcg->kmemcg_id = -1;
++#endif
+ 
+ 	return &memcg->css;
+ 
+diff -puN mm/slab_common.c~memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg mm/slab_common.c
+--- a/mm/slab_common.c~memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg
++++ a/mm/slab_common.c
+@@ -125,7 +125,7 @@ static int memcg_alloc_cache_params(stru
+ 		return -ENOMEM;
+ 
+ 	if (memcg) {
+-		s->memcg_params->memcg = memcg;
++		s->memcg_params->id = memcg_cache_id(memcg);
+ 		s->memcg_params->root_cache = root_cache;
+ 	} else
+ 		s->memcg_params->is_root_cache = true;
+@@ -430,15 +430,13 @@ EXPORT_SYMBOL(kmem_cache_create);
+  * memcg_create_kmem_cache - Create a cache for a memory cgroup.
+  * @memcg: The memory cgroup the new cache is for.
+  * @root_cache: The parent of the new cache.
+- * @memcg_name: The name of the memory cgroup (used for naming the new cache).
+  *
+  * This function attempts to create a kmem cache that will serve allocation
+  * requests going from @memcg to @root_cache. The new cache inherits properties
+  * from its parent.
+  */
+ struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *memcg,
+-					   struct kmem_cache *root_cache,
+-					   const char *memcg_name)
++					   struct kmem_cache *root_cache)
+ {
+ 	struct kmem_cache *s = NULL;
+ 	char *cache_name;
+@@ -448,8 +446,8 @@ struct kmem_cache *memcg_create_kmem_cac
+ 
+ 	mutex_lock(&slab_mutex);
+ 
+-	cache_name = kasprintf(GFP_KERNEL, "%s(%d:%s)", root_cache->name,
+-			       memcg_cache_id(memcg), memcg_name);
++	cache_name = kasprintf(GFP_KERNEL, "%s(%d)", root_cache->name,
++			       memcg_cache_id(memcg));
+ 	if (!cache_name)
+ 		goto out_unlock;
+ 
+@@ -916,7 +914,7 @@ int memcg_slab_show(struct seq_file *m,
+ 
+ 	if (p == slab_caches.next)
+ 		print_slabinfo_header(m);
+-	if (!is_root_cache(s) && s->memcg_params->memcg == memcg)
++	if (!is_root_cache(s) && s->memcg_params->id == memcg_cache_id(memcg))
+ 		cache_show(s, m);
  	return 0;
  }
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
-mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
-mm-convert-i_mmap_mutex-to-rwsem.patch
-mm-rmap-share-the-i_mmap_rwsem.patch
-uprobes-share-the-i_mmap_rwsem.patch
-mm-xip-share-the-i_mmap_rwsem.patch
-mm-memory-failure-share-the-i_mmap_rwsem.patch
-mm-nommu-share-the-i_mmap_rwsem.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-semc-increase-semmsl-semmni-semopm.patch
-ipc-msg-increase-msgmni-remove-scaling.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+slab-print-slabinfo-header-in-seq-show.patch
+mm-memcontrol-lockless-page-counters.patch
+mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+kernel-res_counter-remove-the-unused-api.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
+mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
+mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+mm-memcontrol-remove-synchroneous-stock-draining-code.patch
+mm-introduce-single-zone-pcplists-drain.patch
+mm-page_isolation-drain-single-zone-pcplists.patch
+mm-cma-drain-single-zone-pcplists.patch
+mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
+memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
+memcg-remove-activate_kmem_mutex.patch
+mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
+mm-memcontrol-uncharge-pages-on-swapout.patch
+mm-memcontrol-uncharge-pages-on-swapout-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-inline-memcg-move_lock-locking.patch
+mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
+memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
+mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
+mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
+mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
+mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
+mm-embed-the-memcg-pointer-directly-into-struct-page.patch
+mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch
+mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
+memcg-do-not-destroy-kmem-caches-on-css-offline.patch
+slab-charge-slab-pages-to-the-current-memory-cgroup.patch
+memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg.patch
+memcg-zap-memcg_unregister_cache.patch
+memcg-free-kmem-cache-id-on-css-offline.patch
+memcg-introduce-memcg_kmem_should_charge-helper.patch
+slab-introduce-slab_free-helper.patch
+slab-recharge-slab-pages-to-the-allocating-memory-cgroup.patch
+linux-next.patch
+slab-fix-cpuset-check-in-fallback_alloc.patch
+slub-fix-cpuset-check-in-get_any_partial.patch
 
