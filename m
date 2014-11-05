@@ -1,83 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Wed, 05 Nov 2014 12:41:15 -0800
-Message-ID: <545a8b6b.NjEhGgzeYUwhta6z%akpm@linux-foundation.org>
+Subject: [merged] arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
+ removed from -mm tree
+Date: Wed, 05 Nov 2014 12:41:32 -0800
+Message-ID: <545a8b7c.hQML80Qsd1JalP8+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34918 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34921 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751095AbaKEUlO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 15:41:14 -0500
+	with ESMTP id S1750702AbaKEUlc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 15:41:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hpa@zytor.com, luto@amacapital.net, mingo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     Subject: arch/x86/vdso/vma.c: fix build with older gcc
+has been removed from the -mm tree.  Its filename was
+     arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
-		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: arch/x86/vdso/vma.c: fix build with older gcc
 
+gcc-4.4.4:
+
+arch/x86/vdso/vma.c: In function 'vgetcpu_cpu_init':
+arch/x86/vdso/vma.c:247: error: unknown field 'limit0' specified in initializer
+arch/x86/vdso/vma.c:247: warning: missing braces around initializer
+arch/x86/vdso/vma.c:247: warning: (near initialization for '(anonymous).<anonymous>')
+arch/x86/vdso/vma.c:248: error: unknown field 'limit' specified in initializer
+arch/x86/vdso/vma.c:248: warning: excess elements in struct initializer
+arch/x86/vdso/vma.c:248: warning: (near initialization for '(anonymous)')
+arch/x86/vdso/vma.c:249: error: unknown field 'type' specified in initializer
+arch/x86/vdso/vma.c:249: warning: excess elements in struct initializer
+arch/x86/vdso/vma.c:249: warning: (near initialization for '(anonymous)')
+arch/x86/vdso/vma.c:250: error: unknown field 'dpl' specified in initializer
+arch/x86/vdso/vma.c:250: warning: excess elements in struct initializer
+arch/x86/vdso/vma.c:250: warning: (near initialization for '(anonymous)')
+arch/x86/vdso/vma.c:251: error: unknown field 's' specified in initializer
+arch/x86/vdso/vma.c:251: warning: excess elements in struct initializer
+arch/x86/vdso/vma.c:251: warning: (near initialization for '(anonymous)')
+arch/x86/vdso/vma.c:252: error: unknown field 'p' specified in initializer
+arch/x86/vdso/vma.c:252: warning: excess elements in struct initializer
+arch/x86/vdso/vma.c:252: warning: (near initialization for '(anonymous)')
+arch/x86/vdso/vma.c:253: error: unknown field 'd' specified in initializer
+arch/x86/vdso/vma.c:253: warning: excess elements in struct initializer
+arch/x86/vdso/vma.c:253: warning: (near initialization for '(anonymous)')
+
+I couldn't find any way of tricking it into accepting an initializer
+format :(
+
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/debug.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ arch/x86/vdso/vma.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN drivers/usb/storage/debug.c~linux-next-rejects drivers/usb/storage/debug.c
---- a/drivers/usb/storage/debug.c~linux-next-rejects
-+++ a/drivers/usb/storage/debug.c
-@@ -175,21 +175,20 @@ void usb_stor_show_sense(const struct us
- 		what = "(unknown ASC/ASCQ)";
- 
- 	usb_stor_dbg(us, "%s: ", keystr);
--	US_DEBUGPX(what, ascq);
--	US_DEBUGPX("\n");
-+	if (fmt)
-+		US_DEBUGPX(what, ascq);
-+	else
-+		US_DEBUGPX("%s\n", what);
- }
- 
--int usb_stor_dbg(const struct us_data *us, const char *fmt, ...)
-+void usb_stor_dbg(const struct us_data *us, const char *fmt, ...)
+diff -puN arch/x86/vdso/vma.c~arch-x86-vdso-vmac-fix-build-with-older-gcc arch/x86/vdso/vma.c
+--- a/arch/x86/vdso/vma.c~arch-x86-vdso-vmac-fix-build-with-older-gcc
++++ a/arch/x86/vdso/vma.c
+@@ -230,7 +230,7 @@ __setup("vdso=", vdso_setup);
+ static void vgetcpu_cpu_init(void *arg)
  {
- 	va_list args;
--	int r;
+ 	int cpu = smp_processor_id();
+-	struct desc_struct d;
++	struct desc_struct d = { };
+ 	unsigned long node = 0;
+ #ifdef CONFIG_NUMA
+ 	node = cpu_to_node(cpu);
+@@ -243,15 +243,13 @@ static void vgetcpu_cpu_init(void *arg)
+ 	 * quickly in user space in vgetcpu. (12 bits for the CPU
+ 	 * and 8 bits for the node)
+ 	 */
+-	d = (struct desc_struct) {
+-		.limit0 = cpu | ((node & 0xf) << 12),
+-		.limit = node >> 4,
+-		.type = 5,		/* RO data, expand down, accessed */
+-		.dpl = 3,		/* Visible to user code */
+-		.s = 1,			/* Not a system segment */
+-		.p = 1,			/* Present */
+-		.d = 1,			/* 32-bit */
+-	};
++	d.limit0 = cpu | ((node & 0xf) << 12);
++	d.limit = node >> 4;
++	d.type = 5;		/* RO data, expand down, accessed */
++	d.dpl = 3;		/* Visible to user code */
++	d.s = 1;		/* Not a system segment */
++	d.p = 1;		/* Present */
++	d.d = 1;		/* 32-bit */
  
- 	va_start(args, fmt);
- 
--	r = dev_vprintk_emit(LOGLEVEL_DEBUG, &us->pusb_dev->dev, fmt, args);
-+	dev_vprintk_emit(LOGLEVEL_DEBUG, &us->pusb_dev->dev, fmt, args);
- 
- 	va_end(args);
--
--	return r;
+ 	write_gdt_entry(get_cpu_gdt_table(cpu), GDT_ENTRY_PER_CPU, &d, DESCTYPE_S);
  }
- EXPORT_SYMBOL_GPL(usb_stor_dbg);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,7 +130,6 @@ ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
 linux-next-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
-arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
 mm-cma-make-kmemleak-ignore-cma-regions.patch
 lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
