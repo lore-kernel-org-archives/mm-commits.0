@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch added to
- -mm tree
-Date: Wed, 05 Nov 2014 14:31:50 -0800
-Message-ID: <545aa556.V1J9e5IwdS7dWot4%akpm@linux-foundation.org>
+Subject: + memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch added to -mm tree
+Date: Wed, 05 Nov 2014 14:31:54 -0800
+Message-ID: <545aa55a.Ws2dIFBCb/mIOyiO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35940 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35951 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027AbaKEWbt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 17:31:49 -0500
+	with ESMTP id S1750894AbaKEWbx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 17:31:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: don't check mm in __memcg_kmem_{get_cache,newpage_charge}
+     Subject: memcg: turn memcg_kmem_skip_account into a bit field
 has been added to the -mm tree.  Its filename is
-     memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
+     memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,10 +39,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: don't check mm in __memcg_kmem_{get_cache,newpage_charge}
+Subject: memcg: turn memcg_kmem_skip_account into a bit field
 
-We already assured the current task has mm in memcg_kmem_should_charge,
-no need to double check.
+It isn't supposed to stack, so turn it into a bit-field to save 4 bytes on
+the task_struct.
+
+Also, remove the memcg_stop/resume_kmem_account helpers - it is clearer to
+set/clear the flag inline.  Regarding the overwhelming comment to the
+helpers, which is removed by this patch too, we already have a compact yet
+accurate explanation in memcg_schedule_cache_create, no need in yet
+another one.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -52,30 +56,87 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/sched.h |    7 +++++--
+ mm/memcontrol.c       |   35 ++---------------------------------
+ 2 files changed, 7 insertions(+), 35 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge
+diff -puN include/linux/sched.h~memcg-turn-memcg_kmem_skip_account-into-a-bit-field include/linux/sched.h
+--- a/include/linux/sched.h~memcg-turn-memcg_kmem_skip_account-into-a-bit-field
++++ a/include/linux/sched.h
+@@ -1325,6 +1325,10 @@ struct task_struct {
+ 	unsigned sched_reset_on_fork:1;
+ 	unsigned sched_contributes_to_load:1;
+ 
++#ifdef CONFIG_MEMCG_KMEM
++	unsigned memcg_kmem_skip_account:1;
++#endif
++
+ 	unsigned long atomic_flags; /* Flags needing atomic access. */
+ 
+ 	pid_t pid;
+@@ -1645,8 +1649,7 @@ struct task_struct {
+ 	/* bitmask and counter of trace recursion */
+ 	unsigned long trace_recursion;
+ #endif /* CONFIG_TRACING */
+-#ifdef CONFIG_MEMCG /* memcg uses this to do batch job */
+-	unsigned int memcg_kmem_skip_account;
++#ifdef CONFIG_MEMCG
+ 	struct memcg_oom_info {
+ 		struct mem_cgroup *memcg;
+ 		gfp_t gfp_mask;
+diff -puN mm/memcontrol.c~memcg-turn-memcg_kmem_skip_account-into-a-bit-field mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-turn-memcg_kmem_skip_account-into-a-bit-field
 +++ a/mm/memcontrol.c
-@@ -2687,7 +2687,7 @@ struct kmem_cache *__memcg_kmem_get_cach
- 	VM_BUG_ON(!cachep->memcg_params);
- 	VM_BUG_ON(!cachep->memcg_params->is_root_cache);
+@@ -2575,37 +2575,6 @@ void memcg_update_array_size(int num)
+ 	memcg_limited_groups_array_size = num;
+ }
  
--	if (!current->mm || current->memcg_kmem_skip_account)
-+	if (current->memcg_kmem_skip_account)
- 		return cachep;
- 
- 	rcu_read_lock();
-@@ -2773,7 +2773,7 @@ __memcg_kmem_newpage_charge(gfp_t gfp, s
- 	 * allocations are extremely rare but can happen, for instance, for the
- 	 * cache arrays. We bring this test here.
+-/*
+- * During the creation a new cache, we need to disable our accounting mechanism
+- * altogether. This is true even if we are not creating, but rather just
+- * enqueing new caches to be created.
+- *
+- * This is because that process will trigger allocations; some visible, like
+- * explicit kmallocs to auxiliary data structures, name strings and internal
+- * cache structures; some well concealed, like INIT_WORK() that can allocate
+- * objects during debug.
+- *
+- * If any allocation happens during memcg_kmem_get_cache, we will recurse back
+- * to it. This may not be a bounded recursion: since the first cache creation
+- * failed to complete (waiting on the allocation), we'll just try to create the
+- * cache again, failing at the same point.
+- *
+- * memcg_kmem_get_cache is prepared to abort after seeing a positive count of
+- * memcg_kmem_skip_account. So we enclose anything that might allocate memory
+- * inside the following two functions.
+- */
+-static inline void memcg_stop_kmem_account(void)
+-{
+-	VM_BUG_ON(!current->mm);
+-	current->memcg_kmem_skip_account++;
+-}
+-
+-static inline void memcg_resume_kmem_account(void)
+-{
+-	VM_BUG_ON(!current->mm);
+-	current->memcg_kmem_skip_account--;
+-}
+-
+ struct memcg_cache_create_work {
+ 	struct mem_cgroup *memcg;
+ 	struct kmem_cache *cachep;
+@@ -2660,9 +2629,9 @@ static void memcg_schedule_cache_create(
+ 	 * this point we can't allow ourselves back into memcg_kmem_get_cache,
+ 	 * the safest choice is to do it like this, wrapping the whole function.
  	 */
--	if (!current->mm || current->memcg_kmem_skip_account)
-+	if (current->memcg_kmem_skip_account)
- 		return true;
+-	memcg_stop_kmem_account();
++	current->memcg_kmem_skip_account = 1;
+ 	__memcg_schedule_cache_create(memcg, cachep);
+-	memcg_resume_kmem_account();
++	current->memcg_kmem_skip_account = 0;
+ }
  
- 	memcg = get_mem_cgroup_from_mm(current->mm);
+ /*
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
