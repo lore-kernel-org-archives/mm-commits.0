@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch added to -mm tree
-Date: Wed, 05 Nov 2014 14:31:48 -0800
-Message-ID: <545aa554.cLP+X0K8Ni0HPZr5%akpm@linux-foundation.org>
+Subject: + memcg-zap-kmem_account_flags.patch added to -mm tree
+Date: Wed, 05 Nov 2014 14:31:46 -0800
+Message-ID: <545aa552.XgIdYvwKBRPJtW0y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35936 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35931 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750887AbaKEWbr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 17:31:47 -0500
+	with ESMTP id S1750834AbaKEWbp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 17:31:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: __mem_cgroup_free: remove stale disarm_static_keys comment
+     Subject: memcg: zap kmem_account_flags
 has been added to the -mm tree.  Its filename is
-     memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
+     memcg-zap-kmem_account_flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-zap-kmem_account_flags.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memcg-zap-kmem_account_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,9 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: __mem_cgroup_free: remove stale disarm_static_keys comment
+Subject: memcg: zap kmem_account_flags
 
-cpuset code stopped using cgroup_lock in favor of cpuset_mutex long ago.
+The only such flag is KMEM_ACCOUNTED_ACTIVE, but it's set iff
+mem_cgroup->kmemcg_id >= 0, so we can check kmemcg_id instead of having a
+separate flags field.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -50,30 +51,72 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ mm/memcontrol.c |   25 ++++++-------------------
+ 1 file changed, 6 insertions(+), 19 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment
+diff -puN mm/memcontrol.c~memcg-zap-kmem_account_flags mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-zap-kmem_account_flags
 +++ a/mm/memcontrol.c
-@@ -4610,17 +4610,6 @@ static void __mem_cgroup_free(struct mem
+@@ -296,7 +296,6 @@ struct mem_cgroup {
+ 	 * Should the accounting and control be hierarchical, per subtree?
+ 	 */
+ 	bool use_hierarchy;
+-	unsigned long kmem_account_flags; /* See KMEM_ACCOUNTED_*, below */
  
- 	free_percpu(memcg->stat);
+ 	bool		oom_lock;
+ 	atomic_t	under_oom;
+@@ -363,22 +362,11 @@ struct mem_cgroup {
+ 	/* WARNING: nodeinfo must be the last member here */
+ };
  
--	/*
--	 * We need to make sure that (at least for now), the jump label
--	 * destruction code runs outside of the cgroup lock. This is because
--	 * get_online_cpus(), which is called from the static_branch update,
--	 * can't be called inside the cgroup_lock. cpusets are the ones
--	 * enforcing this dependency, so if they ever change, we might as well.
--	 *
--	 * schedule_work() will guarantee this happens. Be careful if you need
--	 * to move this code around, and make sure it is outside
--	 * the cgroup_lock.
--	 */
- 	disarm_static_keys(memcg);
- 	kfree(memcg);
+-/* internal only representation about the status of kmem accounting. */
+-enum {
+-	KMEM_ACCOUNTED_ACTIVE, /* accounted by this cgroup itself */
+-};
+-
+ #ifdef CONFIG_MEMCG_KMEM
+-static inline void memcg_kmem_set_active(struct mem_cgroup *memcg)
+-{
+-	set_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags);
+-}
+-
+ static bool memcg_kmem_is_active(struct mem_cgroup *memcg)
+ {
+-	return test_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags);
++	return memcg->kmemcg_id >= 0;
  }
+-
+ #endif
+ 
+ /* Stuffs for move charges at task migration. */
+@@ -3471,22 +3459,21 @@ static int memcg_activate_kmem(struct me
+ 		goto out;
+ 	}
+ 
+-	memcg->kmemcg_id = memcg_id;
+-
+ 	/*
+-	 * We couldn't have accounted to this cgroup, because it hasn't got the
+-	 * active bit set yet, so this should succeed.
++	 * We couldn't have accounted to this cgroup, because it hasn't got
++	 * activated yet, so this should succeed.
+ 	 */
+ 	err = page_counter_limit(&memcg->kmem, nr_pages);
+ 	VM_BUG_ON(err);
+ 
+ 	static_key_slow_inc(&memcg_kmem_enabled_key);
+ 	/*
+-	 * Setting the active bit after enabling static branching will
++	 * A memory cgroup is considered kmem-active as soon as it gets
++	 * kmemcg_id. Setting the id after enabling static branching will
+ 	 * guarantee no one starts accounting before all call sites are
+ 	 * patched.
+ 	 */
+-	memcg_kmem_set_active(memcg);
++	memcg->kmemcg_id = memcg_id;
+ out:
+ 	memcg_resume_kmem_account();
+ 	return err;
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
