@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fanotify-ignore-marks-not-respected-fix.patch added to -mm tree
-Date: Wed, 05 Nov 2014 13:57:35 -0800
-Message-ID: <545a9d4f.LHJQSlbqT7RC+/HJ%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-add-strict-test-for-function-pointer-calling-style.patch added
+ to -mm tree
+Date: Wed, 05 Nov 2014 14:10:33 -0800
+Message-ID: <545aa059.eaG+HbSL7fG8TUcN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35583 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35781 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751847AbaKEV5e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 16:57:34 -0500
+	with ESMTP id S1751317AbaKEWKc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 17:10:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
+To: joe@perches.com, peter@hurleysoftware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fanotify-ignore-marks-not-respected-fix
+     Subject: checkpatch: Add --strict test for function pointer calling style
 has been added to the -mm tree.  Its filename is
-     fanotify-ignore-marks-not-respected-fix.patch
+     checkpatch-add-strict-test-for-function-pointer-calling-style.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fanotify-ignore-marks-not-respected-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-strict-test-for-function-pointer-calling-style.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/fanotify-ignore-marks-not-respected-fix.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-strict-test-for-function-pointer-calling-style.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,85 +40,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fanotify-ignore-marks-not-respected-fix
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: Add --strict test for function pointer calling style
 
-fix typo in comment, tweak code layout
+Peter Hurley wrote:
 
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+The use of older function ptr calling style, (*fn)(), makes static
+analysis more error-prone; replace with modern fn() style.
+
+So make checkpatch emit a --strict test for that condition.
+
+Update the unnecessary parentheses test for dereferencing
+objects at the same time and create a $fix mechanism too.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Peter Hurley <peter@hurleysoftware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fsnotify.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ scripts/checkpatch.pl |   24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-diff -puN fs/notify/fsnotify.c~fanotify-ignore-marks-not-respected-fix fs/notify/fsnotify.c
---- a/fs/notify/fsnotify.c~fanotify-ignore-marks-not-respected-fix
-+++ a/fs/notify/fsnotify.c
-@@ -188,7 +188,7 @@ static int send_to_group(struct inode *t
-  * out to all of the registered fsnotify_group.  Those groups can then use the
-  * notification event in whatever means they feel necessary.
-  *
-- * To correctly interprete the ignore mask it is necessary to pass the inode
-+ * To correctly interpret the ignore mask it is necessary to pass the inode
-  * mark and the vfsmount mark of the same notification group in a single call
-  * to send_to_group().
-  *
-@@ -265,12 +265,11 @@ int fsnotify(struct inode *to_tell, __u3
- 		else if (vfsmount_group == NULL)
- 			vfsmount_mark = NULL;
- 		else {
--			if (inode_group->priority
--			    > vfsmount_group->priority) {
-+			if (inode_group->priority > vfsmount_group->priority) {
- 				vfsmount_mark = NULL;
- 				vfsmount_group = NULL;
--			} else if (inode_group->priority
--				   < vfsmount_group->priority) {
-+			} else if (inode_group->priority <
-+					vfsmount_group->priority) {
- 				inode_mark = NULL;
- 				inode_group = NULL;
- 			} else if (inode_group > vfsmount_group) {
+diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-function-pointer-calling-style scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-function-pointer-calling-style
++++ a/scripts/checkpatch.pl
+@@ -3844,9 +3844,27 @@ sub process {
+ # ie: &(foo->bar) should be &foo->bar and *(foo->bar) should be *foo->bar
+ 
+ 		while ($line =~ /(?:[^&]&\s*|\*)\(\s*($Ident\s*(?:$Member\s*)+)\s*\)/g) {
+-			CHK("UNNECESSARY_PARENTHESES",
+-			    "Unnecessary parentheses around $1\n" . $herecurr);
+-		    }
++			my $var = $1;
++			if (CHK("UNNECESSARY_PARENTHESES",
++				"Unnecessary parentheses around $var\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$fixlinenr] =~ s/\(\s*\Q$var\E\s*\)/$var/;
++			}
++		}
++
++# check for unnecessary parentheses around function pointer uses
++# ie: (foo->bar)(); should be foo->bar();
++# but not "if (foo->bar) (" to avoid some false positives
++		if ($line =~ /(\bif\s*|)(\(\s*$Ident\s*(?:$Member\s*)+\))[ \t]*\(/ && $1 !~ /^if/) {
++			my $var = $2;
++			if (CHK("UNNECESSARY_PARENTHESES",
++				"Unnecessary parentheses around function pointer $var\n" . $herecurr) &&
++			    $fix) {
++				my $var2 = deparenthesize($var);
++				$var2 =~ s/\s//g;
++				$fixed[$fixlinenr] =~ s/\Q$var\E/$var2/;
++			}
++		}
+ 
+ #goto labels aren't indented, allow a single space however
+ 		if ($line=~/^.\s+[A-Za-z\d_]+:(?![0-9]+)/ and
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-ignore-marks-not-respected-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+printk-remove-used-once-early_vprintk.patch
+tile-neaten-early_printk-uses.patch
+tile-use-pr_warn-instead-of-pr_warning.patch
+printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents.patch
+maintainers-update-ivtv-mailing-lists-as-subscriber-only.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-add-an-error-test-for-no-space-before-comma.patch
+checkpatch-add-error-on-use-of-attributeweak-or-__weak-declarations.patch
+checkpatch-improve-test-for-no-space-after-cast.patch
+checkpatch-improve-warning-message-for-needless-if-case.patch
+checkpatch-fix-use-via-symlink-make-missing-spelling-file-non-fatal.patch
+checkpatch-try-to-avoid-mask-and-shift-errors.patch
+checkpatch-reduce-maintainers-update-message-frequency.patch
+checkpatch-add-strict-test-for-function-pointer-calling-style.patch
+binfmt_misc-add-comments-debug-logs.patch
+binfmt_misc-clean-up-code-style-a-bit.patch
 fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
