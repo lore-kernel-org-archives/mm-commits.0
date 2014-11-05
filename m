@@ -1,149 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mem-hotplug-fix-wrong-check-for-zone-pageset-initialization-in-online_pages.patch removed from -mm tree
-Date: Wed, 05 Nov 2014 13:02:29 -0800
-Message-ID: <545a9065.KC6SMrAVHKAJcmDN%akpm@linux-foundation.org>
+Subject: + mm-memoryc-share-the-i_mmap_rwsem.patch added to -mm tree
+Date: Wed, 05 Nov 2014 13:17:16 -0800
+Message-ID: <545a93dc./7t7NXDgkf+A6Yrp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35061 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35240 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751609AbaKEVC2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 16:02:28 -0500
+	with ESMTP id S1751831AbaKEVRP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 16:17:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tangchen@cn.fujitsu.com, grygorii.strashko@ti.com, guz.fnst@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, phacht@linux.vnet.ibm.com, qiuxishi@huawei.com, santosh.shilimkar@ti.com, wangnan0@huawei.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, hughd@google.com, kirill@shutemov.name, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: Fix wrong check for zone->pageset initialization in online_pages().
-has been removed from the -mm tree.  Its filename was
-     mem-hotplug-fix-wrong-check-for-zone-pageset-initialization-in-online_pages.patch
+     Subject: mm/memory.c: share the i_mmap_rwsem
+has been added to the -mm tree.  Its filename is
+     mm-memoryc-share-the-i_mmap_rwsem.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memoryc-share-the-i_mmap_rwsem.patch
+		echo and later at
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-memoryc-share-the-i_mmap_rwsem.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mem-hotplug: Fix wrong check for zone->pageset initialization in online_pages().
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: mm/memory.c: share the i_mmap_rwsem
 
-When we are doing memory hot-add, the following functions are called:
+The unmap_mapping_range family of functions do the unmapping of user pages
+(ultimately via zap_page_range_single) without touching the actual
+interval tree, thus share the lock.
 
-add_memory()
-|--> hotadd_new_pgdat()
-     |--> free_area_init_node()
-          |--> free_area_init_core()
-               |--> zone->present_pages = realsize;           /* 1. zone is populated */
-                    |--> zone_pcp_init()
-                         |--> zone->pageset = &boot_pageset;  /* 2. zone->pageset is set to boot_pageset */
-
-There are two problems here:
-1. Zones could be populated before any memory is onlined.
-2. All the zones on a newly added node have the same pageset pointing to boot_pageset.
-
-The above two problems will result in the following problem:
-When we online memory on one node, e.g node2, the following code is executed:
-
-online_pages()
-{
-        ......
-        if (!populated_zone(zone)) {
-                need_zonelists_rebuild = 1;
-                build_all_zonelists(NULL, zone);
-        }
-        ......
-}
-
-Because of problem 1, the zone has been populated, and the build_all_zonelists()
-                      will never called. zone->pageset won't be updated.
-Because of problem 2, All the zones on a newly added node have the same pageset
-                      pointing to boot_pageset.
-And as a result, when we online memory on node2, node3's meminfo will corrupt.
-Pages on node2 may be freed to node3.
-
-# for ((i = 2048; i < 2064; i++)); do echo online_movable > /sys/devices/system/node/node2/memory$i/state; done
-# cat /sys/devices/system/node/node2/meminfo
-Node 2 MemTotal:       33554432 kB
-Node 2 MemFree:        33549092 kB
-Node 2 MemUsed:            5340 kB
-......
-# cat /sys/devices/system/node/node3/meminfo
-Node 3 MemTotal:              0 kB
-Node 3 MemFree:               248 kB                    /* corrupted */
-Node 3 MemUsed:               0 kB
-......
-
-We have to populate some zones before onlining memory, otherwise no memory could be onlined.
-So when onlining pages, we should also check if zone->pageset is pointing to boot_pageset.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Wang Nan <wangnan0@huawei.com>
-Cc: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |    1 +
- mm/memory_hotplug.c |    6 +++++-
- mm/page_alloc.c     |    5 +++++
- 3 files changed, 11 insertions(+), 1 deletion(-)
+ mm/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mem-hotplug-fix-wrong-check-for-zone-pageset-initialization-in-online_pages include/linux/mm.h
---- a/include/linux/mm.h~mem-hotplug-fix-wrong-check-for-zone-pageset-initialization-in-online_pages
-+++ a/include/linux/mm.h
-@@ -1732,6 +1732,7 @@ void warn_alloc_failed(gfp_t gfp_mask, i
+diff -puN mm/memory.c~mm-memoryc-share-the-i_mmap_rwsem mm/memory.c
+--- a/mm/memory.c~mm-memoryc-share-the-i_mmap_rwsem
++++ a/mm/memory.c
+@@ -2392,12 +2392,12 @@ void unmap_mapping_range(struct address_
+ 		details.last_index = ULONG_MAX;
  
- extern void setup_per_cpu_pageset(void);
  
-+extern bool zone_pcp_initialized(struct zone *zone);
- extern void zone_pcp_update(struct zone *zone);
- extern void zone_pcp_reset(struct zone *zone);
- 
-diff -puN mm/memory_hotplug.c~mem-hotplug-fix-wrong-check-for-zone-pageset-initialization-in-online_pages mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mem-hotplug-fix-wrong-check-for-zone-pageset-initialization-in-online_pages
-+++ a/mm/memory_hotplug.c
-@@ -1013,9 +1013,13 @@ int __ref online_pages(unsigned long pfn
- 	 * If this zone is not populated, then it is not in zonelist.
- 	 * This means the page allocator ignores this zone.
- 	 * So, zonelist must be updated after online.
-+	 *
-+	 * If this zone is populated, zone->pageset could be initialized
-+	 * to boot_pageset for the first time a node is added. If so,
-+	 * zone->pageset should be allocated.
- 	 */
- 	mutex_lock(&zonelists_mutex);
--	if (!populated_zone(zone)) {
-+	if (!populated_zone(zone) || !zone_pcp_initialized(zone)) {
- 		need_zonelists_rebuild = 1;
- 		build_all_zonelists(NULL, zone);
- 	}
-diff -puN mm/page_alloc.c~mem-hotplug-fix-wrong-check-for-zone-pageset-initialization-in-online_pages mm/page_alloc.c
---- a/mm/page_alloc.c~mem-hotplug-fix-wrong-check-for-zone-pageset-initialization-in-online_pages
-+++ a/mm/page_alloc.c
-@@ -6453,6 +6453,11 @@ void __meminit zone_pcp_update(struct zo
+-	i_mmap_lock_write(mapping);
++	i_mmap_lock_read(mapping);
+ 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
+ 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
+ 	if (unlikely(!list_empty(&mapping->i_mmap_nonlinear)))
+ 		unmap_mapping_range_list(&mapping->i_mmap_nonlinear, &details);
+-	i_mmap_unlock_write(mapping);
++	i_mmap_unlock_read(mapping);
  }
- #endif
+ EXPORT_SYMBOL(unmap_mapping_range);
  
-+bool zone_pcp_initialized(struct zone *zone)
-+{
-+	return (zone->pageset != &boot_pageset);
-+}
-+
- void zone_pcp_reset(struct zone *zone)
- {
- 	unsigned long flags;
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype.patch
-mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list.patch
-mm-page_alloc-move-freepage-counting-logic-to-__free_one_page.patch
-mm-page_alloc-restrict-max-order-of-merging-on-isolated-pageblock.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-semc-increase-semmsl-semmni-semopm.patch
+ipc-msg-increase-msgmni-remove-scaling.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+linux-next.patch
 
