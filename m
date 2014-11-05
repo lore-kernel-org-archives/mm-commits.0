@@ -1,143 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
+Subject: [to-be-updated]
+ mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat.patch
  removed from -mm tree
-Date: Wed, 05 Nov 2014 12:41:32 -0800
-Message-ID: <545a8b7c.hQML80Qsd1JalP8+%akpm@linux-foundation.org>
+Date: Wed, 05 Nov 2014 13:02:26 -0800
+Message-ID: <545a9062.zTwxiYqlzf99dY7M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34921 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35054 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750702AbaKEUlc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 15:41:32 -0500
+	with ESMTP id S1751329AbaKEVCZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 16:02:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, luto@amacapital.net, mingo@kernel.org, mm-commits@vger.kernel.org
+To: tangchen@cn.fujitsu.com, grygorii.strashko@ti.com, guz.fnst@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, phacht@linux.vnet.ibm.com, qiuxishi@huawei.com, santosh.shilimkar@ti.com, wangnan0@huawei.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/vdso/vma.c: fix build with older gcc
+     Subject: mem-hotplug: reset node managed pages when hot-adding a new pgdat
 has been removed from the -mm tree.  Its filename was
-     arch-x86-vdso-vmac-fix-build-with-older-gcc.patch
+     mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/x86/vdso/vma.c: fix build with older gcc
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: mem-hotplug: reset node managed pages when hot-adding a new pgdat
 
-gcc-4.4.4:
+In free_area_init_core(), zone->managed_pages is set to an approximate
+value for lowmem, and will be adjusted when the bootmem allocator frees
+pages into the buddy system.  But free_area_init_core() is also called by
+hotadd_new_pgdat() when hot-adding memory.  As a result,
+zone->managed_pages of the newly added node's pgdat is set to an
+approximate value in the very beginning.  Even if the memory on that node
+has node been onlined, /sys/device/system/node/nodeXXX/meminfo has wrong
+value.
 
-arch/x86/vdso/vma.c: In function 'vgetcpu_cpu_init':
-arch/x86/vdso/vma.c:247: error: unknown field 'limit0' specified in initializer
-arch/x86/vdso/vma.c:247: warning: missing braces around initializer
-arch/x86/vdso/vma.c:247: warning: (near initialization for '(anonymous).<anonymous>')
-arch/x86/vdso/vma.c:248: error: unknown field 'limit' specified in initializer
-arch/x86/vdso/vma.c:248: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:248: warning: (near initialization for '(anonymous)')
-arch/x86/vdso/vma.c:249: error: unknown field 'type' specified in initializer
-arch/x86/vdso/vma.c:249: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:249: warning: (near initialization for '(anonymous)')
-arch/x86/vdso/vma.c:250: error: unknown field 'dpl' specified in initializer
-arch/x86/vdso/vma.c:250: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:250: warning: (near initialization for '(anonymous)')
-arch/x86/vdso/vma.c:251: error: unknown field 's' specified in initializer
-arch/x86/vdso/vma.c:251: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:251: warning: (near initialization for '(anonymous)')
-arch/x86/vdso/vma.c:252: error: unknown field 'p' specified in initializer
-arch/x86/vdso/vma.c:252: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:252: warning: (near initialization for '(anonymous)')
-arch/x86/vdso/vma.c:253: error: unknown field 'd' specified in initializer
-arch/x86/vdso/vma.c:253: warning: excess elements in struct initializer
-arch/x86/vdso/vma.c:253: warning: (near initialization for '(anonymous)')
+hot-add node2 (memory not onlined)
+cat /sys/device/system/node/node2/meminfo
+Node 2 MemTotal:       33554432 kB
+Node 2 MemFree:               0 kB
+Node 2 MemUsed:        33554432 kB
+Node 2 Active:                0 kB
 
-I couldn't find any way of tricking it into accepting an initializer
-format :(
+This patch fixes this problem by resetting node managed pages to 0 after
+hot-adding a new node.
 
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+1. Move reset_managed_pages_done from reset_node_managed_pages() to reset_all_zones_managed_pages()
+2. Make reset_node_managed_pages() non-static
+3. Call reset_node_managed_pages() in hotadd_new_pgdat() after pgdat is initialized
+
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Wang Nan <wangnan0@huawei.com>
+Cc: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/vdso/vma.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ include/linux/bootmem.h |    1 +
+ mm/bootmem.c            |    9 +++++----
+ mm/memory_hotplug.c     |    9 +++++++++
+ mm/nobootmem.c          |    8 +++++---
+ 4 files changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86/vdso/vma.c~arch-x86-vdso-vmac-fix-build-with-older-gcc arch/x86/vdso/vma.c
---- a/arch/x86/vdso/vma.c~arch-x86-vdso-vmac-fix-build-with-older-gcc
-+++ a/arch/x86/vdso/vma.c
-@@ -230,7 +230,7 @@ __setup("vdso=", vdso_setup);
- static void vgetcpu_cpu_init(void *arg)
- {
- 	int cpu = smp_processor_id();
--	struct desc_struct d;
-+	struct desc_struct d = { };
- 	unsigned long node = 0;
- #ifdef CONFIG_NUMA
- 	node = cpu_to_node(cpu);
-@@ -243,15 +243,13 @@ static void vgetcpu_cpu_init(void *arg)
- 	 * quickly in user space in vgetcpu. (12 bits for the CPU
- 	 * and 8 bits for the node)
- 	 */
--	d = (struct desc_struct) {
--		.limit0 = cpu | ((node & 0xf) << 12),
--		.limit = node >> 4,
--		.type = 5,		/* RO data, expand down, accessed */
--		.dpl = 3,		/* Visible to user code */
--		.s = 1,			/* Not a system segment */
--		.p = 1,			/* Present */
--		.d = 1,			/* 32-bit */
--	};
-+	d.limit0 = cpu | ((node & 0xf) << 12);
-+	d.limit = node >> 4;
-+	d.type = 5;		/* RO data, expand down, accessed */
-+	d.dpl = 3;		/* Visible to user code */
-+	d.s = 1;		/* Not a system segment */
-+	d.p = 1;		/* Present */
-+	d.d = 1;		/* 32-bit */
+diff -puN include/linux/bootmem.h~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
++++ a/include/linux/bootmem.h
+@@ -46,6 +46,7 @@ extern unsigned long init_bootmem_node(p
+ extern unsigned long init_bootmem(unsigned long addr, unsigned long memend);
  
- 	write_gdt_entry(get_cpu_gdt_table(cpu), GDT_ENTRY_PER_CPU, &d, DESCTYPE_S);
+ extern unsigned long free_all_bootmem(void);
++extern void reset_node_managed_pages(pg_data_t *pgdat);
+ extern void reset_all_zones_managed_pages(void);
+ 
+ extern void free_bootmem_node(pg_data_t *pgdat,
+diff -puN mm/bootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat mm/bootmem.c
+--- a/mm/bootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
++++ a/mm/bootmem.c
+@@ -243,13 +243,10 @@ static unsigned long __init free_all_boo
+ 
+ static int reset_managed_pages_done __initdata;
+ 
+-static inline void __init reset_node_managed_pages(pg_data_t *pgdat)
++void reset_node_managed_pages(pg_data_t *pgdat)
+ {
+ 	struct zone *z;
+ 
+-	if (reset_managed_pages_done)
+-		return;
+-
+ 	for (z = pgdat->node_zones; z < pgdat->node_zones + MAX_NR_ZONES; z++)
+ 		z->managed_pages = 0;
  }
+@@ -258,8 +255,12 @@ void __init reset_all_zones_managed_page
+ {
+ 	struct pglist_data *pgdat;
+ 
++	if (reset_managed_pages_done)
++		return;
++
+ 	for_each_online_pgdat(pgdat)
+ 		reset_node_managed_pages(pgdat);
++
+ 	reset_managed_pages_done = 1;
+ }
+ 
+diff -puN mm/memory_hotplug.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
++++ a/mm/memory_hotplug.c
+@@ -31,6 +31,7 @@
+ #include <linux/stop_machine.h>
+ #include <linux/hugetlb.h>
+ #include <linux/memblock.h>
++#include <linux/bootmem.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -1096,6 +1097,14 @@ static pg_data_t __ref *hotadd_new_pgdat
+ 	build_all_zonelists(pgdat, NULL);
+ 	mutex_unlock(&zonelists_mutex);
+ 
++	/*
++	 *  zone->managed_pages is set to an approximate value in
++	 *  free_area_init_core(), which will cause
++	 *  /sys/device/system/node/nodeX/meminfo has wrong data.
++	 *  So reset it to 0 before any memory is onlined.
++	 */
++	reset_node_managed_pages(pgdat);
++
+ 	return pgdat;
+ }
+ 
+diff -puN mm/nobootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat mm/nobootmem.c
+--- a/mm/nobootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
++++ a/mm/nobootmem.c
+@@ -145,12 +145,10 @@ static unsigned long __init free_low_mem
+ 
+ static int reset_managed_pages_done __initdata;
+ 
+-static inline void __init reset_node_managed_pages(pg_data_t *pgdat)
++void reset_node_managed_pages(pg_data_t *pgdat)
+ {
+ 	struct zone *z;
+ 
+-	if (reset_managed_pages_done)
+-		return;
+ 	for (z = pgdat->node_zones; z < pgdat->node_zones + MAX_NR_ZONES; z++)
+ 		z->managed_pages = 0;
+ }
+@@ -159,8 +157,12 @@ void __init reset_all_zones_managed_page
+ {
+ 	struct pglist_data *pgdat;
+ 
++	if (reset_managed_pages_done)
++		return;
++
+ 	for_each_online_pgdat(pgdat)
+ 		reset_node_managed_pages(pgdat);
++
+ 	reset_managed_pages_done = 1;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype.patch
+mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list.patch
+mm-page_alloc-move-freepage-counting-logic-to-__free_one_page.patch
+mm-page_alloc-restrict-max-order-of-merging-on-isolated-pageblock.patch
+mem-hotplug-fix-wrong-check-for-zone-pageset-initialization-in-online_pages.patch
 
