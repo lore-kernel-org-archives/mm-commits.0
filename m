@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-do-not-abuse-memcg_kmem_skip_account.patch added to -mm
- tree
-Date: Wed, 05 Nov 2014 14:31:52 -0800
-Message-ID: <545aa558.TGegwXgnTYb5/SxF%akpm@linux-foundation.org>
+Subject: +
+ memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
+ added to -mm tree
+Date: Wed, 05 Nov 2014 14:31:56 -0800
+Message-ID: <545aa55c.ao1zmkZwT3AjNtxV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35945 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35956 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894AbaKEWbv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 17:31:51 -0500
+	with ESMTP id S1750894AbaKEWbz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2014 17:31:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: do not abuse memcg_kmem_skip_account
+     Subject: memcg: only check memcg_kmem_skip_account in __memcg_kmem_get_cache
 has been added to the -mm tree.  Its filename is
-     memcg-do-not-abuse-memcg_kmem_skip_account.patch
+     memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-do-not-abuse-memcg_kmem_skip_account.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memcg-do-not-abuse-memcg_kmem_skip_account.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,27 +41,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: do not abuse memcg_kmem_skip_account
+Subject: memcg: only check memcg_kmem_skip_account in __memcg_kmem_get_cache
 
-task_struct->memcg_kmem_skip_account was initially introduced to avoid
-recursion during kmem cache creation: memcg_kmem_get_cache, which is
-called by kmem_cache_alloc to determine the per-memcg cache to account
-allocation to, may issue lazy cache creation if the needed cache doesn't
-exist, which means issuing yet another kmem_cache_alloc.  We can't just
-pass a flag to the nested kmem_cache_alloc disabling kmem accounting,
-because there are hidden allocations, e.g.  in INIT_WORK.  So we
-introduced a flag on the task_struct, memcg_kmem_skip_account, making
-memcg_kmem_get_cache return immediately.
+__memcg_kmem_get_cache can recurse if it calls kmalloc (which it does if
+the cgroup's kmem cache doesn't exist), because kmalloc may call
+__memcg_kmem_get_cache internally again.  To avoid the recursion, we use
+the task_struct->memcg_kmem_skip_account flag.
 
-By its nature, the flag may also be used to disable accounting for
-allocations shared among different cgroups, and currently it is used this
-way in memcg_activate_kmem.  Using it like this looks like abusing it to
-me.  If we want to disable accounting for some allocations (which we will
-definitely want one day), we should either add GFP_NO_MEMCG or GFP_MEMCG
-flag in order to blacklist/whitelist some allocations.
-
-For now, let's simply remove memcg_stop/resume_kmem_account from
-memcg_activate_kmem.
+However, there's no need in checking the flag in memcg_kmem_newpage_charge
+or memcg_kmem_recharge_slab, because there's no way how these two
+functions could result in recursion, if called from memcg_kmem_get_cache. 
+So let's remove the redundant code.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -68,32 +59,56 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/memcontrol.c |   31 -------------------------------
+ 1 file changed, 31 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-do-not-abuse-memcg_kmem_skip_account mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-do-not-abuse-memcg_kmem_skip_account
+diff -puN mm/memcontrol.c~memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache
 +++ a/mm/memcontrol.c
-@@ -3428,12 +3428,6 @@ static int memcg_activate_kmem(struct me
- 		return 0;
+@@ -2717,34 +2717,6 @@ __memcg_kmem_newpage_charge(gfp_t gfp, s
  
- 	/*
--	 * We are going to allocate memory for data shared by all memory
--	 * cgroups so let's stop accounting here.
--	 */
--	memcg_stop_kmem_account();
--
+ 	*_memcg = NULL;
+ 
 -	/*
- 	 * For simplicity, we won't allow this to be disabled.  It also can't
- 	 * be changed if the cgroup has children already, or if tasks had
- 	 * already joined.
-@@ -3475,7 +3469,6 @@ static int memcg_activate_kmem(struct me
- 	 */
- 	memcg->kmemcg_id = memcg_id;
- out:
--	memcg_resume_kmem_account();
- 	return err;
- }
+-	 * Disabling accounting is only relevant for some specific memcg
+-	 * internal allocations. Therefore we would initially not have such
+-	 * check here, since direct calls to the page allocator that are
+-	 * accounted to kmemcg (alloc_kmem_pages and friends) only happen
+-	 * outside memcg core. We are mostly concerned with cache allocations,
+-	 * and by having this test at memcg_kmem_get_cache, we are already able
+-	 * to relay the allocation to the root cache and bypass the memcg cache
+-	 * altogether.
+-	 *
+-	 * There is one exception, though: the SLUB allocator does not create
+-	 * large order caches, but rather service large kmallocs directly from
+-	 * the page allocator. Therefore, the following sequence when backed by
+-	 * the SLUB allocator:
+-	 *
+-	 *	memcg_stop_kmem_account();
+-	 *	kmalloc(<large_number>)
+-	 *	memcg_resume_kmem_account();
+-	 *
+-	 * would effectively ignore the fact that we should skip accounting,
+-	 * since it will drive us directly to this function without passing
+-	 * through the cache selector memcg_kmem_get_cache. Such large
+-	 * allocations are extremely rare but can happen, for instance, for the
+-	 * cache arrays. We bring this test here.
+-	 */
+-	if (current->memcg_kmem_skip_account)
+-		return true;
+-
+ 	memcg = get_mem_cgroup_from_mm(current->mm);
+ 
+ 	if (!memcg_kmem_is_active(memcg)) {
+@@ -2800,9 +2772,6 @@ int __memcg_kmem_recharge_slab(void *obj
+ 	int nr_pages;
+ 	int ret = 0;
+ 
+-	if (current->memcg_kmem_skip_account)
+-		goto out;
+-
+ 	page = virt_to_head_page(obj);
+ 	page_memcg = ACCESS_ONCE(page->mem_cgroup);
  
 _
 
