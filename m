@@ -1,75 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-comment-before-truncate_setsize.patch removed
- from -mm tree
-Date: Mon, 10 Nov 2014 13:41:07 -0800
-Message-ID: <546130f3.mPUsmvJ1fFzenB+D%akpm@linux-foundation.org>
+Subject: +
+ slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix.patch added to -mm tree
+Date: Mon, 10 Nov 2014 14:07:38 -0800
+Message-ID: <5461372a.UbROGxkPLyE1xuvK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44429 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306AbaKJVlG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 16:41:06 -0500
+	with ESMTP id S1751385AbaKJWHh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:07:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, JBeulich@suse.com, mm-commits@vger.kernel.org
+To: treding@nvidia.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix comment before truncate_setsize()
-has been removed from the -mm tree.  Its filename was
-     mm-fix-comment-before-truncate_setsize.patch
+     Subject: mm/slab: Always predeclare slab_free()
+has been added to the -mm tree.  Its filename is
+     slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix.patch
+		echo and later at
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: fix comment before truncate_setsize()
+From: Thierry Reding <treding@nvidia.com>
+Subject: mm/slab: Always predeclare slab_free()
 
-XFS doesn't always hold i_mutex when calling truncate_setsize() and it
-uses a different lock to serialize truncates and writes.  So fix the
-comment before truncate_setsize().
+Commit 5da1c3c725ab ("slab: recharge slab pages to the allocating memory
+cgroup") added a predeclaration of the new slab_free() helper so that it
+can be used in slab_alloc_node() and slab_alloc().  However the prototype
+is added in an #ifdef CONFIG_NUMA protected section of code, which works
+fine for slab_alloc_node() but fails for slab_alloc().
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Jan Beulich <JBeulich@suse.com>
+Fixes the following build warnings and errors:
+
+	mm/slab.c: In function 'slab_alloc':
+	mm/slab.c:3260:4: error: implicit declaration of function 'slab_free' [-Werror=implicit-function-declaration]
+	    slab_free(cachep, objp);
+	    ^
+	mm/slab.c: At top level:
+	mm/slab.c:3534:29: warning: conflicting types for 'slab_free'
+	 static __always_inline void slab_free(struct kmem_cache *cachep, void *objp)
+				     ^
+	mm/slab.c:3534:29: error: static declaration of 'slab_free' follows non-static declaration
+	mm/slab.c:3260:4: note: previous implicit declaration of 'slab_free' was here
+	    slab_free(cachep, objp);
+	    ^
+
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/slab.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/truncate.c~mm-fix-comment-before-truncate_setsize mm/truncate.c
---- a/mm/truncate.c~mm-fix-comment-before-truncate_setsize
-+++ a/mm/truncate.c
-@@ -715,8 +715,9 @@ EXPORT_SYMBOL(truncate_pagecache);
-  * necessary) to @newsize. It will be typically be called from the filesystem's
-  * setattr function when ATTR_SIZE is passed in.
-  *
-- * Must be called with inode_mutex held and before all filesystem specific
-- * block truncation has been performed.
-+ * Must be called with a lock serializing truncates and writes (generally
-+ * i_mutex but e.g. xfs uses a different lock) and before all filesystem
-+ * specific block truncation has been performed.
-  */
- void truncate_setsize(struct inode *inode, loff_t newsize)
- {
-_
-
-Patches currently in -mm which might be from jack@suse.cz are
-
-fallocate-create-fan_modify-and-in_modify-events.patch
-fanotify-ignore-marks-not-respected.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
-ocfs2-remove-bogus-test-from-ocfs2_read_locked_inode.patch
-ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
-ocfs2-remove-pointless-assignment-in-ocfs2_init.patch
-char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
-befs-remove-dead-code.patch
-linux-next.patch
-mm-add-strictlimit-knob-v2.patch
-
+diff -puN mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix mm/slab.c
+--- a/mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix
++++ a/mm/slab.c
+@@ -2961,6 +2961,8 @@ out:
+ 	return objp;
+ }
+ 
++static __always_inline void slab_free(struct kmem_cache *cachep, void *objp);
++
+ #ifdef CONFIG_NUMA
+ /*
+  * Try allocating on another node if PFA_SPREAD_SLAB is a mempolicy is set.
+@@ -3133,8 +3135,6 @@ done:
+ 	return obj;
+ }
+ 
+-static __always_inline void slab_free(struct kmem_cache *cachep, void *objp);
