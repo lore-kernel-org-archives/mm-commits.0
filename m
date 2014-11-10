@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2.patch added
- to -mm tree
-Date: Mon, 10 Nov 2014 14:09:20 -0800
-Message-ID: <54613790.4Q4/O6FYSe1lZf14%akpm@linux-foundation.org>
+ slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 10 Nov 2014 14:10:06 -0800
+Message-ID: <546137be.9DMKqDL2fLc2hPA8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44437 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44440 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750833AbaKJWJT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:09:19 -0500
+	with ESMTP id S1750833AbaKJWKF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:10:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: treding@nvidia.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, treding@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: shuffle code around to avoid a predeclaration
+     Subject: slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2.patch
+     slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,236 +39,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thierry Reding <treding@nvidia.com>
-Subject: mm/slab: shuffle code around to avoid a predeclaration
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes
 
-Instead of providing a predeclaration for the slab_free() helper, move
-the helper and its dependencies before any of their users.
+WARNING: Missing a blank line after declarations
+#39: FILE: mm/slab.c:2981:
++		int max = shared_array->limit - shared_array->avail;
++		if (max) {
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
+total: 0 errors, 1 warnings, 218 lines checked
+
+./patches/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |  200 +++++++++++++++++++++++++---------------------------
- 1 file changed, 99 insertions(+), 101 deletions(-)
+ mm/slab.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2 mm/slab.c
---- a/mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2
+diff -puN mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes mm/slab.c
+--- a/mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes
 +++ a/mm/slab.c
-@@ -2961,7 +2961,105 @@ out:
- 	return objp;
- }
- 
--static __always_inline void slab_free(struct kmem_cache *cachep, void *objp);
-+static void cache_flusharray(struct kmem_cache *cachep, struct array_cache *ac)
-+{
-+	int batchcount;
-+	struct kmem_cache_node *n;
-+	int node = numa_mem_id();
-+	LIST_HEAD(list);
+@@ -2978,6 +2978,7 @@ static void cache_flusharray(struct kmem
+ 	if (n->shared) {
+ 		struct array_cache *shared_array = n->shared;
+ 		int max = shared_array->limit - shared_array->avail;
 +
-+	batchcount = ac->batchcount;
-+#if DEBUG
-+	BUG_ON(!batchcount || batchcount > ac->avail);
-+#endif
-+	check_irq_off();
-+	n = get_node(cachep, node);
-+	spin_lock(&n->list_lock);
-+	if (n->shared) {
-+		struct array_cache *shared_array = n->shared;
-+		int max = shared_array->limit - shared_array->avail;
-+		if (max) {
-+			if (batchcount > max)
-+				batchcount = max;
-+			memcpy(&(shared_array->entry[shared_array->avail]),
-+			       ac->entry, sizeof(void *) * batchcount);
-+			shared_array->avail += batchcount;
-+			goto free_done;
-+		}
-+	}
-+
-+	free_block(cachep, ac->entry, batchcount, node, &list);
-+free_done:
-+#if STATS
-+	{
-+		int i = 0;
-+		struct list_head *p;
-+
-+		p = n->slabs_free.next;
-+		while (p != &(n->slabs_free)) {
-+			struct page *page;
-+
-+			page = list_entry(p, struct page, lru);
-+			BUG_ON(page->active);
-+
-+			i++;
-+			p = p->next;
-+		}
-+		STATS_SET_FREEABLE(cachep, i);
-+	}
-+#endif
-+	spin_unlock(&n->list_lock);
-+	slabs_destroy(cachep, &list);
-+	ac->avail -= batchcount;
-+	memmove(ac->entry, &(ac->entry[batchcount]), sizeof(void *)*ac->avail);
-+}
-+
-+/*
-+ * Release an obj back to its cache. If the obj has a constructed state, it must
-+ * be in this state _before_ it is released.  Called with disabled ints.
-+ */
-+static inline void __cache_free(struct kmem_cache *cachep, void *objp,
-+				unsigned long caller)
-+{
-+	struct array_cache *ac = cpu_cache_get(cachep);
-+
-+	check_irq_off();
-+	kmemleak_free_recursive(objp, cachep->flags);
-+	objp = cache_free_debugcheck(cachep, objp, caller);
-+
-+	kmemcheck_slab_free(cachep, objp, cachep->object_size);
-+
-+	/*
-+	 * Skip calling cache_free_alien() when the platform is not numa.
-+	 * This will avoid cache misses that happen while accessing slabp (which
-+	 * is per page memory  reference) to get nodeid. Instead use a global
-+	 * variable to skip the call, which is mostly likely to be present in
-+	 * the cache.
-+	 */
-+	if (nr_online_nodes > 1 && cache_free_alien(cachep, objp))
-+		return;
-+
-+	if (ac->avail < ac->limit) {
-+		STATS_INC_FREEHIT(cachep);
-+	} else {
-+		STATS_INC_FREEMISS(cachep);
-+		cache_flusharray(cachep, ac);
-+	}
-+
-+	ac_put_obj(cachep, ac, objp);
-+}
-+
-+static __always_inline void slab_free(struct kmem_cache *cachep, void *objp)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	debug_check_no_locks_freed(objp, cachep->object_size);
-+	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
-+		debug_check_no_obj_freed(objp, cachep->object_size);
-+	__cache_free(cachep, objp, _RET_IP_);
-+	local_irq_restore(flags);
-+}
- 
- #ifdef CONFIG_NUMA
- /*
-@@ -3307,94 +3405,6 @@ static void free_block(struct kmem_cache
- 	}
- }
- 
--static void cache_flusharray(struct kmem_cache *cachep, struct array_cache *ac)
--{
--	int batchcount;
--	struct kmem_cache_node *n;
--	int node = numa_mem_id();
--	LIST_HEAD(list);
--
--	batchcount = ac->batchcount;
--#if DEBUG
--	BUG_ON(!batchcount || batchcount > ac->avail);
--#endif
--	check_irq_off();
--	n = get_node(cachep, node);
--	spin_lock(&n->list_lock);
--	if (n->shared) {
--		struct array_cache *shared_array = n->shared;
--		int max = shared_array->limit - shared_array->avail;
--		if (max) {
--			if (batchcount > max)
--				batchcount = max;
--			memcpy(&(shared_array->entry[shared_array->avail]),
--			       ac->entry, sizeof(void *) * batchcount);
--			shared_array->avail += batchcount;
--			goto free_done;
--		}
--	}
--
--	free_block(cachep, ac->entry, batchcount, node, &list);
--free_done:
--#if STATS
--	{
--		int i = 0;
--		struct list_head *p;
--
--		p = n->slabs_free.next;
--		while (p != &(n->slabs_free)) {
--			struct page *page;
--
--			page = list_entry(p, struct page, lru);
--			BUG_ON(page->active);
--
--			i++;
--			p = p->next;
--		}
--		STATS_SET_FREEABLE(cachep, i);
--	}
--#endif
--	spin_unlock(&n->list_lock);
--	slabs_destroy(cachep, &list);
--	ac->avail -= batchcount;
--	memmove(ac->entry, &(ac->entry[batchcount]), sizeof(void *)*ac->avail);
--}
--
--/*
-- * Release an obj back to its cache. If the obj has a constructed state, it must
-- * be in this state _before_ it is released.  Called with disabled ints.
-- */
--static inline void __cache_free(struct kmem_cache *cachep, void *objp,
--				unsigned long caller)
--{
--	struct array_cache *ac = cpu_cache_get(cachep);
--
--	check_irq_off();
--	kmemleak_free_recursive(objp, cachep->flags);
--	objp = cache_free_debugcheck(cachep, objp, caller);
--
--	kmemcheck_slab_free(cachep, objp, cachep->object_size);
--
--	/*
--	 * Skip calling cache_free_alien() when the platform is not numa.
--	 * This will avoid cache misses that happen while accessing slabp (which
--	 * is per page memory  reference) to get nodeid. Instead use a global
--	 * variable to skip the call, which is mostly likely to be present in
--	 * the cache.
--	 */
--	if (nr_online_nodes > 1 && cache_free_alien(cachep, objp))
--		return;
--
--	if (ac->avail < ac->limit) {
--		STATS_INC_FREEHIT(cachep);
--	} else {
--		STATS_INC_FREEMISS(cachep);
--		cache_flusharray(cachep, ac);
--	}
--
--	ac_put_obj(cachep, ac, objp);
--}
--
- /**
-  * kmem_cache_alloc - Allocate an object
-  * @cachep: The cache to allocate from.
-@@ -3531,18 +3541,6 @@ void *__kmalloc_track_caller(size_t size
- }
- EXPORT_SYMBOL(__kmalloc_track_caller);
- 
--static __always_inline void slab_free(struct kmem_cache *cachep, void *objp)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	debug_check_no_locks_freed(objp, cachep->object_size);
--	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
--		debug_check_no_obj_freed(objp, cachep->object_size);
--	__cache_free(cachep, objp, _RET_IP_);
--	local_irq_restore(flags);
--}
+ 		if (max) {
+ 			if (batchcount > max)
+ 				batchcount = max;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fanotify-ignore-marks-not-respected-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+
