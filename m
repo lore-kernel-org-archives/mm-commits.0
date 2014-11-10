@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-refactor-functions-to-set-clear-memblock_hotplug.patch added to -mm tree
-Date: Mon, 10 Nov 2014 14:41:58 -0800
-Message-ID: <54613f36.DwFAYwjWQOI9DuaQ%akpm@linux-foundation.org>
+Subject: + mm-compaction-prevent-infinite-loop-in-compact_zone.patch added to -mm tree
+Date: Mon, 10 Nov 2014 15:10:39 -0800
+Message-ID: <546145ef.9FAnRaRq6ZiGYi7S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44701 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44975 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751178AbaKJWl5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:41:57 -0500
+	with ESMTP id S1751449AbaKJXKj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 18:10:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tony.luck@intel.com, Emilian.Medve@freescale.com, grygorii.strashko@ti.com, phacht@linux.vnet.ibm.com, santosh.shilimkar@ti.com, tangchen@cn.fujitsu.com, yinghai@kernel.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mel@csn.ul.ie, pavel@ucw.cz, preining@logic.at, rientjes@google.com, xrg@linux.gr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: refactor functions to set/clear MEMBLOCK_HOTPLUG
+     Subject: mm, compaction: prevent infinite loop in compact_zone
 has been added to the -mm tree.  Its filename is
-     memblock-refactor-functions-to-set-clear-memblock_hotplug.patch
+     mm-compaction-prevent-infinite-loop-in-compact_zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memblock-refactor-functions-to-set-clear-memblock_hotplug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-prevent-infinite-loop-in-compact_zone.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memblock-refactor-functions-to-set-clear-memblock_hotplug.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-prevent-infinite-loop-in-compact_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,100 +38,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tony Luck <tony.luck@intel.com>
-Subject: mm/memblock.c: refactor functions to set/clear MEMBLOCK_HOTPLUG
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: prevent infinite loop in compact_zone
 
-There is a lot of duplication in the rubric around actually setting or
-clearing a mem region flag.  Create a new helper function to do this and
-reduce each of memblock_mark_hotplug() and memblock_clear_hotplug() to a
-single line.
+Several people have reported occasionally seeing processes stuck in
+compact_zone(), even triggering soft lockups, in 3.18-rc2+.
 
-This will be useful if someone were to add a new mem region flag - which
-I hope to be doing some day soon. But it looks like a plausible cleanup
-even without that - so I'd like to get it out of the way now.
+Testing a revert of e14c720efdd7 ("mm, compaction: remember position
+within pageblock in free pages scanner") fixed the issue, although the
+stuck processes do not appear to involve the free scanner.  Finally, by
+code inspection, the bug was found in isolate_migratepages() which uses a
+slightly different condition to detect if the migration and free scanners
+have met, than compact_finished().  That has not been a problem until
+commit e14c720efdd7 allowed the free scanner position between individual
+invocations to be in the middle of a pageblock.
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Emil Medve <Emilian.Medve@freescale.com>
+In a relatively rare case, the migration scanner position can end up at
+the beginning of a pageblock, with the free scanner position in the middle
+of the same pageblock.  If it's the migration scanner's turn,
+isolate_migratepages() exits immediately (without updating the position),
+while compact_finished() decides to continue compaction, resulting in a
+potentially infinite loop.  The system can recover only if another process
+creates enough high-order pages to make the watermark checks in
+compact_finished() pass.
+
+This patch fixes the immediate problem by bumping the migration scanner's
+position to meet the free scanner in isolate_migratepages(), when both are
+within the same pageblock.  This causes compact_finished() to terminate
+properly.  A more robust check in compact_finished() is planned as a
+cleanup for better future maintainability.
+
+Fixes: e14c720efdd73 ("mm, compaction: remember position within pageblock in free pages scanner)
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: P. Christeas <xrg@linux.gr>
+Tested-by: P. Christeas <xrg@linux.gr>
+Link: http://marc.info/?l=linux-mm&m=141508604232522&w=2
+Reported-by: Norbert Preining <preining@logic.at>
+Tested-by: Norbert Preining <preining@logic.at>
+Link: https://lkml.org/lkml/2014/11/4/904
+Reported-by: Pavel Machek <pavel@ucw.cz>
+Link: https://lkml.org/lkml/2014/11/7/164
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   43 ++++++++++++++++++++-----------------------
- 1 file changed, 20 insertions(+), 23 deletions(-)
+ mm/compaction.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/memblock.c~memblock-refactor-functions-to-set-clear-memblock_hotplug mm/memblock.c
---- a/mm/memblock.c~memblock-refactor-functions-to-set-clear-memblock_hotplug
-+++ a/mm/memblock.c
-@@ -715,16 +715,13 @@ int __init_memblock memblock_reserve(phy
+diff -puN mm/compaction.c~mm-compaction-prevent-infinite-loop-in-compact_zone mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-prevent-infinite-loop-in-compact_zone
++++ a/mm/compaction.c
+@@ -1039,8 +1039,12 @@ static isolate_migrate_t isolate_migrate
+ 	}
+ 
+ 	acct_isolated(zone, cc);
+-	/* Record where migration scanner will be restarted */
+-	cc->migrate_pfn = low_pfn;
++	/*
++	 * Record where migration scanner will be restarted. If we end up in
++	 * the same pageblock as the free scanner, make the scanners fully
++	 * meet so that compact_finished() terminates compaction.
++	 */
++	cc->migrate_pfn = (end_pfn <= cc->free_pfn) ? low_pfn : cc->free_pfn;
+ 
+ 	return cc->nr_migratepages ? ISOLATE_SUCCESS : ISOLATE_NONE;
  }
- 
- /**
-- * memblock_mark_hotplug - Mark hotpluggable memory with flag MEMBLOCK_HOTPLUG.
-- * @base: the base phys addr of the region
-- * @size: the size of the region
-  *
-- * This function isolates region [@base, @base + @size), and mark it with flag
-- * MEMBLOCK_HOTPLUG.
-+ * This function isolates region [@base, @base + @size), and sets/clears flag
-  *
-  * Return 0 on succees, -errno on failure.
-  */
--int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
-+static int __init_memblock memblock_setclr_flag(phys_addr_t base,
-+				phys_addr_t size, int set, int flag)
- {
- 	struct memblock_type *type = &memblock.memory;
- 	int i, ret, start_rgn, end_rgn;
-@@ -734,37 +731,37 @@ int __init_memblock memblock_mark_hotplu
- 		return ret;
- 
- 	for (i = start_rgn; i < end_rgn; i++)
--		memblock_set_region_flags(&type->regions[i], MEMBLOCK_HOTPLUG);
-+		if (set)
-+			memblock_set_region_flags(&type->regions[i], flag);
-+		else
-+			memblock_clear_region_flags(&type->regions[i], flag);
- 
- 	memblock_merge_regions(type);
- 	return 0;
- }
- 
- /**
-- * memblock_clear_hotplug - Clear flag MEMBLOCK_HOTPLUG for a specified region.
-+ * memblock_mark_hotplug - Mark hotpluggable memory with flag MEMBLOCK_HOTPLUG.
-  * @base: the base phys addr of the region
-  * @size: the size of the region
-  *
-- * This function isolates region [@base, @base + @size), and clear flag
-- * MEMBLOCK_HOTPLUG for the isolated regions.
-+ * Return 0 on succees, -errno on failure.
-+ */
-+int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
-+{
-+	return memblock_setclr_flag(base, size, 1, MEMBLOCK_HOTPLUG);
-+}
-+
-+/**
-+ * memblock_clear_hotplug - Clear flag MEMBLOCK_HOTPLUG for a specified region.
-+ * @base: the base phys addr of the region
-+ * @size: the size of the region
-  *
-  * Return 0 on succees, -errno on failure.
-  */
- int __init_memblock memblock_clear_hotplug(phys_addr_t base, phys_addr_t size)
- {
--	struct memblock_type *type = &memblock.memory;
--	int i, ret, start_rgn, end_rgn;
--
--	ret = memblock_isolate_range(type, base, size, &start_rgn, &end_rgn);
--	if (ret)
--		return ret;
--
--	for (i = start_rgn; i < end_rgn; i++)
--		memblock_clear_region_flags(&type->regions[i],
--					    MEMBLOCK_HOTPLUG);
+_
+
+Patches currently in -mm which might be from vbabka@suse.cz are
+
+mm-compaction-skip-the-range-until-proper-target-pageblock-is-met.patch
+mm-page_alloc-fix-incorrect-isolation-behavior-by-rechecking-migratetype.patch
+mm-page_alloc-add-freepage-on-isolate-pageblock-to-correct-buddy-list.patch
+mm-page_alloc-move-freepage-counting-logic-to-__free_one_page.patch
+mm-page_alloc-restrict-max-order-of-merging-on-isolated-pageblock.patch
+mm-compaction-prevent-infinite-loop-in-compact_zone.patch
+mm-introduce-single-zone-pcplists-drain.patch
+mm-page_isolation-drain-single-zone-pcplists.patch
+mm-cma-drain-single-zone-pcplists.patch
+mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
+mm-compaction-simplify-deferred-compaction.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-compaction-defer-only-on-compact_complete.patch
+mm-compaction-always-update-cached-scanner-positions.patch
+mm-compaction-more-focused-lru-and-pcplists-draining.patch
+
