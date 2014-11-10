@@ -1,133 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 10 Nov 2014 13:40:48 -0800
-Message-ID: <546130e0.vXt+T1SFtmABsNhD%akpm@linux-foundation.org>
+Subject: [merged] mm-fix-comment-before-truncate_setsize.patch removed
+ from -mm tree
+Date: Mon, 10 Nov 2014 13:41:07 -0800
+Message-ID: <546130f3.mPUsmvJ1fFzenB+D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44122 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44124 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306AbaKJVkr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 16:40:47 -0500
+	with ESMTP id S1751306AbaKJVlG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 16:41:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, JBeulich@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: mm: fix comment before truncate_setsize()
+has been removed from the -mm tree.  Its filename was
+     mm-fix-comment-before-truncate_setsize.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Jan Kara <jack@suse.cz>
+Subject: mm: fix comment before truncate_setsize()
 
+XFS doesn't always hold i_mutex when calling truncate_setsize() and it
+uses a different lock to serialize truncates and writes.  So fix the
+comment before truncate_setsize().
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Jan Beulich <JBeulich@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/of/base.c  |    3 ---
- include/linux/of.h |    3 ---
- 2 files changed, 6 deletions(-)
+ mm/truncate.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/of/base.c~linux-next-git-rejects drivers/of/base.c
---- a/drivers/of/base.c~linux-next-git-rejects
-+++ a/drivers/of/base.c
-@@ -1292,8 +1292,6 @@ int of_property_read_u64_array(const str
- }
- 
- /**
--<<<<<<< HEAD
--=======
-  * of_property_read_string - Find and read a string from a property
-  * @np:		device node from which the property value is to be read.
-  * @propname:	name of the property to be searched.
-@@ -1324,7 +1322,6 @@ int of_property_read_string(struct devic
- EXPORT_SYMBOL_GPL(of_property_read_string);
- 
- /**
-->>>>>>> linux-next/akpm-base
-  * of_property_match_string() - Find string in a list and return index
-  * @np: pointer to node containing string list property
-  * @propname: string list property name
-diff -puN include/linux/of.h~linux-next-git-rejects include/linux/of.h
---- a/include/linux/of.h~linux-next-git-rejects
-+++ a/include/linux/of.h
-@@ -512,8 +512,6 @@ static inline int of_property_read_u64_a
- 	return -ENOSYS;
- }
- 
--<<<<<<< HEAD
--=======
- static inline int of_property_read_string(struct device_node *np,
- 					  const char *propname,
- 					  const char **out_string)
-@@ -521,7 +519,6 @@ static inline int of_property_read_strin
- 	return -ENOSYS;
- }
- 
-->>>>>>> linux-next/akpm-base
- static inline int of_property_read_string_helper(struct device_node *np,
- 						 const char *propname,
- 						 const char **out_strs, size_t sz, int index)
+diff -puN mm/truncate.c~mm-fix-comment-before-truncate_setsize mm/truncate.c
+--- a/mm/truncate.c~mm-fix-comment-before-truncate_setsize
++++ a/mm/truncate.c
+@@ -715,8 +715,9 @@ EXPORT_SYMBOL(truncate_pagecache);
+  * necessary) to @newsize. It will be typically be called from the filesystem's
+  * setattr function when ATTR_SIZE is passed in.
+  *
+- * Must be called with inode_mutex held and before all filesystem specific
+- * block truncation has been performed.
++ * Must be called with a lock serializing truncates and writes (generally
++ * i_mutex but e.g. xfs uses a different lock) and before all filesystem
++ * specific block truncation has been performed.
+  */
+ void truncate_setsize(struct inode *inode, loff_t newsize)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-ignore-marks-not-respected-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+fallocate-create-fan_modify-and-in_modify-events.patch
+fanotify-ignore-marks-not-respected.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
+ocfs2-remove-bogus-test-from-ocfs2_read_locked_inode.patch
+ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
+ocfs2-remove-pointless-assignment-in-ocfs2_init.patch
+char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
+befs-remove-dead-code.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
+mm-add-strictlimit-knob-v2.patch
 
