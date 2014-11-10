@@ -1,37 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- slab-charge-slab-pages-to-the-current-memory-cgroup.patch removed from -mm
- tree
-Date: Mon, 10 Nov 2014 14:15:40 -0800
-Message-ID: <5461390c.695dMTKEb+IIqsu5%akpm@linux-foundation.org>
+Subject: [withdrawn] memcg-do-not-destroy-kmem-caches-on-css-offline.patch removed from -mm tree
+Date: Mon, 10 Nov 2014 14:15:37 -0800
+Message-ID: <54613909.SXd603rP+3WYNFzC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44507 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44497 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751138AbaKJWPk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:15:40 -0500
+	with ESMTP id S1751138AbaKJWPh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:15:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: charge slab pages to the current memory cgroup
+     Subject: memcg: do not destroy kmem caches on css offline
 has been removed from the -mm tree.  Its filename was
-     slab-charge-slab-pages-to-the-current-memory-cgroup.patch
+     memcg-do-not-destroy-kmem-caches-on-css-offline.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slab: charge slab pages to the current memory cgroup
+Subject: memcg: do not destroy kmem caches on css offline
 
-Currently, new slabs are charged to the memory cgroup that owns the cache
-(kmem_cache->memcg_params->memcg), but I'm going to decouple kmem caches
-from memory cgroups so I make them charged to the current cgroup.
+Currently, each kmem active memory cgroup has its own set of kmem caches. 
+The caches are only used by the memory cgroup they were created for, so
+when the cgroup is taken offline they must be destroyed.  However, we
+can't easily destroy all the caches on css offline, because they still may
+contain objects accounted to the cgroup.  Actually, we don't bother
+destroying busy caches on css offline at all, effectively leaking them. 
+To make this scheme work as it was intended to, we have to introduce a
+kind of asynchronous caches destruction, which is going to be quite a
+complex stuff, because we'd have to handle a lot of various race
+conditions.  And even if we manage to solve them all, kmem caches created
+for memory cgroups that are now dead will be dangling indefinitely long
+wasting memory.
+
+In this patch set I implement a different approach, which can be
+described by the following statements:
+
+ 1. Never destroy per memcg kmem caches (except the root cache is
+    destroyed, of course).
+
+ 2. Reuse kmemcg_id and therefore the set of per memcg kmem caches left
+    from a dead memory cgroup.
+
+ 3. After allocating a kmem object, check if the slab is accounted to
+    the proper (i.e. current) memory cgroup. If it doesn't recharge it.
+
+The benefits are:
+
+ - It's much simpler than what we have now, even though the current
+   implementation is incomplete.
+
+ - The number of per cgroup caches of the same kind cannot be be greater
+   than the maximal number of online kmem active memory cgroups that
+   have ever existed simultaneously. Currently it is unlimited, which is
+   really bad.
+
+ - Once a new memory cgroup starts using a cache that was used by a dead
+   cgroup before, it will be recharging slabs accounted to the dead
+   cgroup while allocating objects from the cache. Therefore all
+   references to the old cgroup will be put sooner or later, and it will
+   be freed. Currently, cgroups that have kmem objects accounted to them
+   on css offline leak for good.
+
+
+
+This patch (of 8):
+
+Currently, we try to destroy per memcg kmem caches on css offline.  Since
+a cache can contain active objects when the memory cgroup is removed, we
+can't destroy all caches immediately and therefore should introduce
+asynchronous destruction for this scheme to work properly.  However, this
+requires a lot of trickery and complex synchronization stuff, so I'm
+planning to go another way.  I'm going to reuse caches left from dead
+memory cgroups instead of recreating them.  This patch makes the first
+step in this direction: it removes caches destruction from css offline.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -43,213 +92,162 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 -----
- mm/memcontrol.c            |   14 --------------
- mm/slab.c                  |   22 +++++++++++++++-------
- mm/slab.h                  |   28 ----------------------------
- mm/slub.c                  |   18 ++++++++----------
- 5 files changed, 23 insertions(+), 64 deletions(-)
+ include/linux/slab.h |    4 ---
+ mm/memcontrol.c      |   52 +----------------------------------------
+ 2 files changed, 2 insertions(+), 54 deletions(-)
 
-diff -puN include/linux/memcontrol.h~slab-charge-slab-pages-to-the-current-memory-cgroup include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~slab-charge-slab-pages-to-the-current-memory-cgroup
-+++ a/include/linux/memcontrol.h
-@@ -403,9 +403,6 @@ void memcg_update_array_size(int num_gro
- struct kmem_cache *
- __memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp);
- 
--int __memcg_charge_slab(struct kmem_cache *cachep, gfp_t gfp, int order);
--void __memcg_uncharge_slab(struct kmem_cache *cachep, int order);
--
- int __memcg_cleanup_cache_params(struct kmem_cache *s);
- 
- /**
-@@ -477,8 +474,6 @@ memcg_kmem_commit_charge(struct page *pa
-  * memcg_kmem_get_cache: selects the correct per-memcg cache for allocation
-  * @cachep: the original global kmem cache
-  * @gfp: allocation flags.
-- *
-- * All memory allocated from a per-memcg cache is charged to the owner memcg.
+diff -puN include/linux/slab.h~memcg-do-not-destroy-kmem-caches-on-css-offline include/linux/slab.h
+--- a/include/linux/slab.h~memcg-do-not-destroy-kmem-caches-on-css-offline
++++ a/include/linux/slab.h
+@@ -491,9 +491,7 @@ static __always_inline void *kmalloc_nod
+  * Child caches will hold extra metadata needed for its operation. Fields are:
+  *
+  * @memcg: pointer to the memcg this cache belongs to
+- * @list: list_head for the list of all caches in this memcg
+  * @root_cache: pointer to the global, root cache, this cache was derived from
+- * @nr_pages: number of pages that belongs to this cache.
   */
- static __always_inline struct kmem_cache *
- memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
-diff -puN mm/memcontrol.c~slab-charge-slab-pages-to-the-current-memory-cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~slab-charge-slab-pages-to-the-current-memory-cgroup
+ struct memcg_cache_params {
+ 	bool is_root_cache;
+@@ -504,9 +502,7 @@ struct memcg_cache_params {
+ 		};
+ 		struct {
+ 			struct mem_cgroup *memcg;
+-			struct list_head list;
+ 			struct kmem_cache *root_cache;
+-			atomic_t nr_pages;
+ 		};
+ 	};
+ };
+diff -puN mm/memcontrol.c~memcg-do-not-destroy-kmem-caches-on-css-offline mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-do-not-destroy-kmem-caches-on-css-offline
 +++ a/mm/memcontrol.c
-@@ -2778,20 +2778,6 @@ static void memcg_schedule_register_cach
- 	memcg_resume_kmem_account();
- }
- 
--int __memcg_charge_slab(struct kmem_cache *cachep, gfp_t gfp, int order)
--{
--	unsigned int nr_pages = 1 << order;
--
--	return memcg_charge_kmem(cachep->memcg_params->memcg, gfp, nr_pages);
--}
--
--void __memcg_uncharge_slab(struct kmem_cache *cachep, int order)
--{
--	unsigned int nr_pages = 1 << order;
--
--	memcg_uncharge_kmem(cachep->memcg_params->memcg, nr_pages);
--}
--
- /*
-  * Return the kmem_cache we're supposed to use for a slab allocation.
-  * We try to use the current memcg's version of the cache.
-diff -puN mm/slab.c~slab-charge-slab-pages-to-the-current-memory-cgroup mm/slab.c
---- a/mm/slab.c~slab-charge-slab-pages-to-the-current-memory-cgroup
-+++ a/mm/slab.c
-@@ -1559,6 +1559,19 @@ slab_out_of_memory(struct kmem_cache *ca
+@@ -344,9 +344,6 @@ struct mem_cgroup {
+ 	struct cg_proto tcp_mem;
  #endif
- }
- 
-+static inline struct page *alloc_slab_page(gfp_t flags, int nodeid, int order)
-+{
-+	struct mem_cgroup *memcg = NULL;
-+	struct page *page;
-+
-+	flags |= __GFP_NOTRACK;
-+	if (!memcg_kmem_newpage_charge(flags, &memcg, order))
-+		return NULL;
-+	page = alloc_pages_exact_node(nodeid, flags, order);
-+	memcg_kmem_commit_charge(page, memcg, order);
-+	return page;
-+}
-+
- /*
-  * Interface to system's page allocator. No need to hold the
-  * kmem_cache_node ->list_lock.
-@@ -1577,12 +1590,8 @@ static struct page *kmem_getpages(struct
- 	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
- 		flags |= __GFP_RECLAIMABLE;
- 
--	if (memcg_charge_slab(cachep, flags, cachep->gfporder))
--		return NULL;
--
--	page = alloc_pages_exact_node(nodeid, flags | __GFP_NOTRACK, cachep->gfporder);
-+	page = alloc_slab_page(flags, nodeid, cachep->gfporder);
- 	if (!page) {
--		memcg_uncharge_slab(cachep, cachep->gfporder);
- 		slab_out_of_memory(cachep, flags, nodeid);
- 		return NULL;
- 	}
-@@ -1638,8 +1647,7 @@ static void kmem_freepages(struct kmem_c
- 
- 	if (current->reclaim_state)
- 		current->reclaim_state->reclaimed_slab += nr_freed;
--	__free_pages(page, cachep->gfporder);
--	memcg_uncharge_slab(cachep, cachep->gfporder);
-+	__free_kmem_pages(page, cachep->gfporder);
- }
- 
- static void kmem_rcu_free(struct rcu_head *head)
-diff -puN mm/slab.h~slab-charge-slab-pages-to-the-current-memory-cgroup mm/slab.h
---- a/mm/slab.h~slab-charge-slab-pages-to-the-current-memory-cgroup
-+++ a/mm/slab.h
-@@ -227,25 +227,6 @@ static inline struct kmem_cache *memcg_r
- 		return s;
- 	return s->memcg_params->root_cache;
- }
--
--static __always_inline int memcg_charge_slab(struct kmem_cache *s,
--					     gfp_t gfp, int order)
--{
--	if (!memcg_kmem_enabled())
--		return 0;
--	if (is_root_cache(s))
--		return 0;
--	return __memcg_charge_slab(s, gfp, order);
--}
--
--static __always_inline void memcg_uncharge_slab(struct kmem_cache *s, int order)
--{
--	if (!memcg_kmem_enabled())
--		return;
--	if (is_root_cache(s))
--		return;
--	__memcg_uncharge_slab(s, order);
--}
- #else
- static inline bool is_root_cache(struct kmem_cache *s)
- {
-@@ -273,15 +254,6 @@ static inline struct kmem_cache *memcg_r
- {
- 	return s;
- }
--
--static inline int memcg_charge_slab(struct kmem_cache *s, gfp_t gfp, int order)
--{
--	return 0;
--}
--
--static inline void memcg_uncharge_slab(struct kmem_cache *s, int order)
--{
--}
+ #if defined(CONFIG_MEMCG_KMEM)
+-	/* analogous to slab_common's slab_caches list, but per-memcg;
+-	 * protected by memcg_slab_mutex */
+-	struct list_head memcg_slab_caches;
+         /* Index in the kmem_cache->memcg_params->memcg_caches array */
+ 	int kmemcg_id;
  #endif
- 
- static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
-diff -puN mm/slub.c~slab-charge-slab-pages-to-the-current-memory-cgroup mm/slub.c
---- a/mm/slub.c~slab-charge-slab-pages-to-the-current-memory-cgroup
-+++ a/mm/slub.c
-@@ -1276,15 +1276,16 @@ static inline void slab_free_hook(struct
+@@ -2489,23 +2486,10 @@ static void commit_charge(struct page *p
+ #ifdef CONFIG_MEMCG_KMEM
  /*
-  * Slab allocation and freeing
+  * The memcg_slab_mutex is held whenever a per memcg kmem cache is created or
+- * destroyed. It protects memcg_caches arrays and memcg_slab_caches lists.
++ * destroyed. It protects memcg_caches arrays.
   */
--static inline struct page *alloc_slab_page(struct kmem_cache *s,
--		gfp_t flags, int node, struct kmem_cache_order_objects oo)
-+static inline struct page *alloc_slab_page(gfp_t flags, int node,
-+					   struct kmem_cache_order_objects oo)
- {
-+	struct mem_cgroup *memcg = NULL;
- 	struct page *page;
- 	int order = oo_order(oo);
+ static DEFINE_MUTEX(memcg_slab_mutex);
  
- 	flags |= __GFP_NOTRACK;
- 
--	if (memcg_charge_slab(s, flags, order))
-+	if (!memcg_kmem_newpage_charge(flags, &memcg, order))
- 		return NULL;
- 
- 	if (node == NUMA_NO_NODE)
-@@ -1292,9 +1293,7 @@ static inline struct page *alloc_slab_pa
- 	else
- 		page = alloc_pages_exact_node(node, flags, order);
- 
--	if (!page)
--		memcg_uncharge_slab(s, order);
+-/*
+- * This is a bit cumbersome, but it is rarely used and avoids a backpointer
+- * in the memcg_cache_params struct.
+- */
+-static struct kmem_cache *memcg_params_to_cache(struct memcg_cache_params *p)
+-{
+-	struct kmem_cache *cachep;
 -
-+	memcg_kmem_commit_charge(page, memcg, order);
- 	return page;
+-	VM_BUG_ON(p->is_root_cache);
+-	cachep = p->root_cache;
+-	return cache_from_memcg_idx(cachep, memcg_cache_id(p->memcg));
+-}
+-
+ static int memcg_charge_kmem(struct mem_cgroup *memcg, gfp_t gfp,
+ 			     unsigned long nr_pages)
+ {
+@@ -2647,7 +2631,6 @@ static void memcg_register_cache(struct
+ 		return;
+ 
+ 	css_get(&memcg->css);
+-	list_add(&cachep->memcg_params->list, &memcg->memcg_slab_caches);
+ 
+ 	/*
+ 	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
+@@ -2677,8 +2660,6 @@ static void memcg_unregister_cache(struc
+ 	BUG_ON(root_cache->memcg_params->memcg_caches[id] != cachep);
+ 	root_cache->memcg_params->memcg_caches[id] = NULL;
+ 
+-	list_del(&cachep->memcg_params->list);
+-
+ 	kmem_cache_destroy(cachep);
+ 
+ 	/* drop the reference taken in memcg_register_cache */
+@@ -2736,24 +2717,6 @@ int __memcg_cleanup_cache_params(struct
+ 	return failed;
  }
  
-@@ -1317,7 +1316,7 @@ static struct page *allocate_slab(struct
- 	 */
- 	alloc_gfp = (flags | __GFP_NOWARN | __GFP_NORETRY) & ~__GFP_NOFAIL;
+-static void memcg_unregister_all_caches(struct mem_cgroup *memcg)
+-{
+-	struct kmem_cache *cachep;
+-	struct memcg_cache_params *params, *tmp;
+-
+-	if (!memcg_kmem_is_active(memcg))
+-		return;
+-
+-	mutex_lock(&memcg_slab_mutex);
+-	list_for_each_entry_safe(params, tmp, &memcg->memcg_slab_caches, list) {
+-		cachep = memcg_params_to_cache(params);
+-		kmem_cache_shrink(cachep);
+-		if (atomic_read(&cachep->memcg_params->nr_pages) == 0)
+-			memcg_unregister_cache(cachep);
+-	}
+-	mutex_unlock(&memcg_slab_mutex);
+-}
+-
+ struct memcg_register_cache_work {
+ 	struct mem_cgroup *memcg;
+ 	struct kmem_cache *cachep;
+@@ -2818,12 +2781,8 @@ static void memcg_schedule_register_cach
+ int __memcg_charge_slab(struct kmem_cache *cachep, gfp_t gfp, int order)
+ {
+ 	unsigned int nr_pages = 1 << order;
+-	int res;
  
--	page = alloc_slab_page(s, alloc_gfp, node, oo);
-+	page = alloc_slab_page(alloc_gfp, node, oo);
- 	if (unlikely(!page)) {
- 		oo = s->min;
- 		alloc_gfp = flags;
-@@ -1325,7 +1324,7 @@ static struct page *allocate_slab(struct
- 		 * Allocation may have failed due to fragmentation.
- 		 * Try a lower order alloc if possible
- 		 */
--		page = alloc_slab_page(s, alloc_gfp, node, oo);
-+		page = alloc_slab_page(alloc_gfp, node, oo);
- 
- 		if (page)
- 			stat(s, ORDER_FALLBACK);
-@@ -1438,8 +1437,7 @@ static void __free_slab(struct kmem_cach
- 	page_mapcount_reset(page);
- 	if (current->reclaim_state)
- 		current->reclaim_state->reclaimed_slab += pages;
--	__free_pages(page, order);
--	memcg_uncharge_slab(s, order);
-+	__free_kmem_pages(page, order);
+-	res = memcg_charge_kmem(cachep->memcg_params->memcg, gfp, nr_pages);
+-	if (!res)
+-		atomic_add(nr_pages, &cachep->memcg_params->nr_pages);
+-	return res;
++	return memcg_charge_kmem(cachep->memcg_params->memcg, gfp, nr_pages);
  }
  
- #define need_reserve_slab_rcu						\
+ void __memcg_uncharge_slab(struct kmem_cache *cachep, int order)
+@@ -2831,7 +2790,6 @@ void __memcg_uncharge_slab(struct kmem_c
+ 	unsigned int nr_pages = 1 << order;
+ 
+ 	memcg_uncharge_kmem(cachep->memcg_params->memcg, nr_pages);
+-	atomic_sub(nr_pages, &cachep->memcg_params->nr_pages);
+ }
+ 
+ /*
+@@ -2985,10 +2943,6 @@ void __memcg_kmem_uncharge_pages(struct
+ 	memcg_uncharge_kmem(memcg, 1 << order);
+ 	page->mem_cgroup = NULL;
+ }
+-#else
+-static inline void memcg_unregister_all_caches(struct mem_cgroup *memcg)
+-{
+-}
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+@@ -3571,7 +3525,6 @@ static int memcg_activate_kmem(struct me
+ 	}
+ 
+ 	memcg->kmemcg_id = memcg_id;
+-	INIT_LIST_HEAD(&memcg->memcg_slab_caches);
+ 
+ 	/*
+ 	 * We couldn't have accounted to this cgroup, because it hasn't got the
+@@ -4885,7 +4838,6 @@ static void mem_cgroup_css_offline(struc
+ 	}
+ 	spin_unlock(&memcg->event_list_lock);
+ 
+-	memcg_unregister_all_caches(memcg);
+ 	vmpressure_cleanup(&memcg->vmpressure);
+ }
+ 
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
@@ -293,6 +291,7 @@ mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
 mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
 mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
 mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
+slab-charge-slab-pages-to-the-current-memory-cgroup.patch
 memcg-decouple-per-memcg-kmem-cache-from-the-owner-memcg.patch
 memcg-zap-memcg_unregister_cache.patch
 memcg-free-kmem-cache-id-on-css-offline.patch
