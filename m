@@ -1,36 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] memcg-zap-kmem_account_flags.patch removed from -mm
- tree
-Date: Mon, 10 Nov 2014 14:17:01 -0800
-Message-ID: <5461395d.yL3B5tkPN6/cCA/m%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
+ removed from -mm tree
+Date: Mon, 10 Nov 2014 14:17:07 -0800
+Message-ID: <54613963.kd+RVkrP5iuvgZ1E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44571 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44579 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751138AbaKJWRB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:17:01 -0500
+	with ESMTP id S1751138AbaKJWRG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:17:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: zap kmem_account_flags
+     Subject: memcg: only check memcg_kmem_skip_account in __memcg_kmem_get_cache
 has been removed from the -mm tree.  Its filename was
-     memcg-zap-kmem_account_flags.patch
+     memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: zap kmem_account_flags
+Subject: memcg: only check memcg_kmem_skip_account in __memcg_kmem_get_cache
 
-The only such flag is KMEM_ACCOUNTED_ACTIVE, but it's set iff
-mem_cgroup->kmemcg_id >= 0, so we can check kmemcg_id instead of having a
-separate flags field.
+__memcg_kmem_get_cache can recurse if it calls kmalloc (which it does if
+the cgroup's kmem cache doesn't exist), because kmalloc may call
+__memcg_kmem_get_cache internally again.  To avoid the recursion, we use
+the task_struct->memcg_kmem_skip_account flag.
+
+However, there's no need in checking the flag in memcg_kmem_newpage_charge
+or memcg_kmem_recharge_slab, because there's no way how these two
+functions could result in recursion, if called from memcg_kmem_get_cache. 
+So let's remove the redundant code.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -38,72 +45,57 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   25 ++++++-------------------
- 1 file changed, 6 insertions(+), 19 deletions(-)
+ mm/memcontrol.c |   31 -------------------------------
+ 1 file changed, 31 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-zap-kmem_account_flags mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-zap-kmem_account_flags
+diff -puN mm/memcontrol.c~memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache
 +++ a/mm/memcontrol.c
-@@ -296,7 +296,6 @@ struct mem_cgroup {
- 	 * Should the accounting and control be hierarchical, per subtree?
- 	 */
- 	bool use_hierarchy;
--	unsigned long kmem_account_flags; /* See KMEM_ACCOUNTED_*, below */
+@@ -2717,34 +2717,6 @@ __memcg_kmem_newpage_charge(gfp_t gfp, s
  
- 	bool		oom_lock;
- 	atomic_t	under_oom;
-@@ -363,22 +362,11 @@ struct mem_cgroup {
- 	/* WARNING: nodeinfo must be the last member here */
- };
+ 	*_memcg = NULL;
  
--/* internal only representation about the status of kmem accounting. */
--enum {
--	KMEM_ACCOUNTED_ACTIVE, /* accounted by this cgroup itself */
--};
+-	/*
+-	 * Disabling accounting is only relevant for some specific memcg
+-	 * internal allocations. Therefore we would initially not have such
+-	 * check here, since direct calls to the page allocator that are
+-	 * accounted to kmemcg (alloc_kmem_pages and friends) only happen
+-	 * outside memcg core. We are mostly concerned with cache allocations,
+-	 * and by having this test at memcg_kmem_get_cache, we are already able
+-	 * to relay the allocation to the root cache and bypass the memcg cache
+-	 * altogether.
+-	 *
+-	 * There is one exception, though: the SLUB allocator does not create
+-	 * large order caches, but rather service large kmallocs directly from
+-	 * the page allocator. Therefore, the following sequence when backed by
+-	 * the SLUB allocator:
+-	 *
+-	 *	memcg_stop_kmem_account();
+-	 *	kmalloc(<large_number>)
+-	 *	memcg_resume_kmem_account();
+-	 *
+-	 * would effectively ignore the fact that we should skip accounting,
+-	 * since it will drive us directly to this function without passing
+-	 * through the cache selector memcg_kmem_get_cache. Such large
+-	 * allocations are extremely rare but can happen, for instance, for the
+-	 * cache arrays. We bring this test here.
+-	 */
+-	if (current->memcg_kmem_skip_account)
+-		return true;
 -
- #ifdef CONFIG_MEMCG_KMEM
--static inline void memcg_kmem_set_active(struct mem_cgroup *memcg)
--{
--	set_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags);
--}
--
- static bool memcg_kmem_is_active(struct mem_cgroup *memcg)
- {
--	return test_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags);
-+	return memcg->kmemcg_id >= 0;
- }
--
- #endif
+ 	memcg = get_mem_cgroup_from_mm(current->mm);
  
- /* Stuffs for move charges at task migration. */
-@@ -3471,22 +3459,21 @@ static int memcg_activate_kmem(struct me
- 		goto out;
- 	}
+ 	if (!memcg_kmem_is_active(memcg)) {
+@@ -2800,9 +2772,6 @@ int __memcg_kmem_recharge_slab(void *obj
+ 	int nr_pages;
+ 	int ret = 0;
  
--	memcg->kmemcg_id = memcg_id;
+-	if (current->memcg_kmem_skip_account)
+-		goto out;
 -
- 	/*
--	 * We couldn't have accounted to this cgroup, because it hasn't got the
--	 * active bit set yet, so this should succeed.
-+	 * We couldn't have accounted to this cgroup, because it hasn't got
-+	 * activated yet, so this should succeed.
- 	 */
- 	err = page_counter_limit(&memcg->kmem, nr_pages);
- 	VM_BUG_ON(err);
+ 	page = virt_to_head_page(obj);
+ 	page_memcg = ACCESS_ONCE(page->mem_cgroup);
  
- 	static_key_slow_inc(&memcg_kmem_enabled_key);
- 	/*
--	 * Setting the active bit after enabling static branching will
-+	 * A memory cgroup is considered kmem-active as soon as it gets
-+	 * kmemcg_id. Setting the id after enabling static branching will
- 	 * guarantee no one starts accounting before all call sites are
- 	 * patched.
- 	 */
--	memcg_kmem_set_active(memcg);
-+	memcg->kmemcg_id = memcg_id;
- out:
- 	memcg_resume_kmem_account();
- 	return err;
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
@@ -150,8 +142,6 @@ mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
 memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
 memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
 memcg-do-not-abuse-memcg_kmem_skip_account.patch
-memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch
-memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
 linux-next.patch
 slab-fix-cpuset-check-in-fallback_alloc.patch
 slub-fix-cpuset-check-in-get_any_partial.patch
