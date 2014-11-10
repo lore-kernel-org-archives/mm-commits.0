@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 10 Nov 2014 14:10:06 -0800
-Message-ID: <546137be.9DMKqDL2fLc2hPA8%akpm@linux-foundation.org>
+ slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix.patch added to -mm tree
+Date: Mon, 10 Nov 2014 14:13:06 -0800
+Message-ID: <54613872.Tjggd+8IXAAz3A/L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44440 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44469 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750833AbaKJWKF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:10:05 -0500
+	with ESMTP id S1751996AbaKJWNF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:13:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, treding@nvidia.com, mm-commits@vger.kernel.org
+To: treding@nvidia.com, sfr@canb.auug.org.au, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes
+     Subject: mm/slab: Always predeclare slab_free()
 has been added to the -mm tree.  Its filename is
-     slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes.patch
+     slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,82 +39,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes
+From: Thierry Reding <treding@nvidia.com>
+Subject: mm/slab: Always predeclare slab_free()
 
-WARNING: Missing a blank line after declarations
-#39: FILE: mm/slab.c:2981:
-+		int max = shared_array->limit - shared_array->avail;
-+		if (max) {
+Commit 5da1c3c725ab ("slab: recharge slab pages to the allocating memory
+cgroup") added a predeclaration of the new slab_free() helper so that it
+can be used in slab_alloc_node() and slab_alloc().  However the prototype
+is added in an #ifdef CONFIG_NUMA protected section of code, which works
+fine for slab_alloc_node() but fails for slab_alloc().
 
-total: 0 errors, 1 warnings, 218 lines checked
+Fixes the following build warnings and errors:
 
-./patches/slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2.patch has style problems, please review.
+	mm/slab.c: In function 'slab_alloc':
+	mm/slab.c:3260:4: error: implicit declaration of function 'slab_free' [-Werror=implicit-function-declaration]
+	    slab_free(cachep, objp);
+	    ^
+	mm/slab.c: At top level:
+	mm/slab.c:3534:29: warning: conflicting types for 'slab_free'
+	 static __always_inline void slab_free(struct kmem_cache *cachep, void *objp)
+				     ^
+	mm/slab.c:3534:29: error: static declaration of 'slab_free' follows non-static declaration
+	mm/slab.c:3260:4: note: previous implicit declaration of 'slab_free' was here
+	    slab_free(cachep, objp);
+	    ^
 
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Thierry Reding <treding@nvidia.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slab.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes mm/slab.c
---- a/mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes
+diff -puN mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix mm/slab.c
+--- a/mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix
 +++ a/mm/slab.c
-@@ -2978,6 +2978,7 @@ static void cache_flusharray(struct kmem
- 	if (n->shared) {
- 		struct array_cache *shared_array = n->shared;
- 		int max = shared_array->limit - shared_array->avail;
+@@ -2961,6 +2961,8 @@ out:
+ 	return objp;
+ }
+ 
++static __always_inline void slab_free(struct kmem_cache *cachep, void *objp);
 +
- 		if (max) {
- 			if (batchcount > max)
- 				batchcount = max;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-ignore-marks-not-respected-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2-checkpatch-fixes.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-
+ #ifdef CONFIG_NUMA
+ /*
+  * Try allocating on another node if PFA_SPREAD_SLAB is a mempolicy is set.
+@@ -3133,8 +3135,6 @@ done:
+ 	return obj;
+ }
+ 
+-static __always_inline void slab_free(struct kmem_cache *cachep, void *objp);
