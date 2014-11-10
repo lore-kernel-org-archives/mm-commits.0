@@ -1,262 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [withdrawn]
- slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2.patch
- removed from -mm tree
-Date: Mon, 10 Nov 2014 14:16:05 -0800
-Message-ID: <54613925.pMOOaraHFlmTo7jr%akpm@linux-foundation.org>
+ slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix.patch removed
+ from -mm tree
+Date: Mon, 10 Nov 2014 14:16:02 -0800
+Message-ID: <54613922.b2f+8kEPOfon5qAW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44561 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44558 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193AbaKJWQD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:16:03 -0500
+	with ESMTP id S1751193AbaKJWQA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 17:16:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: treding@nvidia.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: treding@nvidia.com, sfr@canb.auug.org.au, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: shuffle code around to avoid a predeclaration
+     Subject: mm/slab: Always predeclare slab_free()
 has been removed from the -mm tree.  Its filename was
-     slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2.patch
+     slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Thierry Reding <treding@nvidia.com>
-Subject: mm/slab: shuffle code around to avoid a predeclaration
+Subject: mm/slab: Always predeclare slab_free()
 
-Instead of providing a predeclaration for the slab_free() helper, move
-the helper and its dependencies before any of their users.
+Commit 5da1c3c725ab ("slab: recharge slab pages to the allocating memory
+cgroup") added a predeclaration of the new slab_free() helper so that it
+can be used in slab_alloc_node() and slab_alloc().  However the prototype
+is added in an #ifdef CONFIG_NUMA protected section of code, which works
+fine for slab_alloc_node() but fails for slab_alloc().
 
+Fixes the following build warnings and errors:
+
+	mm/slab.c: In function 'slab_alloc':
+	mm/slab.c:3260:4: error: implicit declaration of function 'slab_free' [-Werror=implicit-function-declaration]
+	    slab_free(cachep, objp);
+	    ^
+	mm/slab.c: At top level:
+	mm/slab.c:3534:29: warning: conflicting types for 'slab_free'
+	 static __always_inline void slab_free(struct kmem_cache *cachep, void *objp)
+				     ^
+	mm/slab.c:3534:29: error: static declaration of 'slab_free' follows non-static declaration
+	mm/slab.c:3260:4: note: previous implicit declaration of 'slab_free' was here
+	    slab_free(cachep, objp);
+	    ^
+
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Thierry Reding <treding@nvidia.com>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |  200 +++++++++++++++++++++++++---------------------------
- 1 file changed, 99 insertions(+), 101 deletions(-)
+ mm/slab.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2 mm/slab.c
---- a/mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix-2
+diff -puN mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix mm/slab.c
+--- a/mm/slab.c~slab-recharge-slab-pages-to-the-allocating-memory-cgroup-fix
 +++ a/mm/slab.c
-@@ -2961,7 +2961,105 @@ out:
+@@ -2961,6 +2961,8 @@ out:
  	return objp;
  }
  
--static __always_inline void slab_free(struct kmem_cache *cachep, void *objp);
-+static void cache_flusharray(struct kmem_cache *cachep, struct array_cache *ac)
-+{
-+	int batchcount;
-+	struct kmem_cache_node *n;
-+	int node = numa_mem_id();
-+	LIST_HEAD(list);
++static __always_inline void slab_free(struct kmem_cache *cachep, void *objp);
 +
-+	batchcount = ac->batchcount;
-+#if DEBUG
-+	BUG_ON(!batchcount || batchcount > ac->avail);
-+#endif
-+	check_irq_off();
-+	n = get_node(cachep, node);
-+	spin_lock(&n->list_lock);
-+	if (n->shared) {
-+		struct array_cache *shared_array = n->shared;
-+		int max = shared_array->limit - shared_array->avail;
-+		if (max) {
-+			if (batchcount > max)
-+				batchcount = max;
-+			memcpy(&(shared_array->entry[shared_array->avail]),
-+			       ac->entry, sizeof(void *) * batchcount);
-+			shared_array->avail += batchcount;
-+			goto free_done;
-+		}
-+	}
-+
-+	free_block(cachep, ac->entry, batchcount, node, &list);
-+free_done:
-+#if STATS
-+	{
-+		int i = 0;
-+		struct list_head *p;
-+
-+		p = n->slabs_free.next;
-+		while (p != &(n->slabs_free)) {
-+			struct page *page;
-+
-+			page = list_entry(p, struct page, lru);
-+			BUG_ON(page->active);
-+
-+			i++;
-+			p = p->next;
-+		}
-+		STATS_SET_FREEABLE(cachep, i);
-+	}
-+#endif
-+	spin_unlock(&n->list_lock);
-+	slabs_destroy(cachep, &list);
-+	ac->avail -= batchcount;
-+	memmove(ac->entry, &(ac->entry[batchcount]), sizeof(void *)*ac->avail);
-+}
-+
-+/*
-+ * Release an obj back to its cache. If the obj has a constructed state, it must
-+ * be in this state _before_ it is released.  Called with disabled ints.
-+ */
-+static inline void __cache_free(struct kmem_cache *cachep, void *objp,
-+				unsigned long caller)
-+{
-+	struct array_cache *ac = cpu_cache_get(cachep);
-+
-+	check_irq_off();
-+	kmemleak_free_recursive(objp, cachep->flags);
-+	objp = cache_free_debugcheck(cachep, objp, caller);
-+
-+	kmemcheck_slab_free(cachep, objp, cachep->object_size);
-+
-+	/*
-+	 * Skip calling cache_free_alien() when the platform is not numa.
-+	 * This will avoid cache misses that happen while accessing slabp (which
-+	 * is per page memory  reference) to get nodeid. Instead use a global
-+	 * variable to skip the call, which is mostly likely to be present in
-+	 * the cache.
-+	 */
-+	if (nr_online_nodes > 1 && cache_free_alien(cachep, objp))
-+		return;
-+
-+	if (ac->avail < ac->limit) {
-+		STATS_INC_FREEHIT(cachep);
-+	} else {
-+		STATS_INC_FREEMISS(cachep);
-+		cache_flusharray(cachep, ac);
-+	}
-+
-+	ac_put_obj(cachep, ac, objp);
-+}
-+
-+static __always_inline void slab_free(struct kmem_cache *cachep, void *objp)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	debug_check_no_locks_freed(objp, cachep->object_size);
-+	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
-+		debug_check_no_obj_freed(objp, cachep->object_size);
-+	__cache_free(cachep, objp, _RET_IP_);
-+	local_irq_restore(flags);
-+}
- 
  #ifdef CONFIG_NUMA
  /*
-@@ -3307,94 +3405,6 @@ static void free_block(struct kmem_cache
- 	}
+  * Try allocating on another node if PFA_SPREAD_SLAB is a mempolicy is set.
+@@ -3133,8 +3135,6 @@ done:
+ 	return obj;
  }
  
--static void cache_flusharray(struct kmem_cache *cachep, struct array_cache *ac)
--{
--	int batchcount;
--	struct kmem_cache_node *n;
--	int node = numa_mem_id();
--	LIST_HEAD(list);
--
--	batchcount = ac->batchcount;
--#if DEBUG
--	BUG_ON(!batchcount || batchcount > ac->avail);
--#endif
--	check_irq_off();
--	n = get_node(cachep, node);
--	spin_lock(&n->list_lock);
--	if (n->shared) {
--		struct array_cache *shared_array = n->shared;
--		int max = shared_array->limit - shared_array->avail;
--		if (max) {
--			if (batchcount > max)
--				batchcount = max;
--			memcpy(&(shared_array->entry[shared_array->avail]),
--			       ac->entry, sizeof(void *) * batchcount);
--			shared_array->avail += batchcount;
--			goto free_done;
--		}
--	}
--
--	free_block(cachep, ac->entry, batchcount, node, &list);
--free_done:
--#if STATS
--	{
--		int i = 0;
--		struct list_head *p;
--
--		p = n->slabs_free.next;
--		while (p != &(n->slabs_free)) {
--			struct page *page;
--
--			page = list_entry(p, struct page, lru);
--			BUG_ON(page->active);
--
--			i++;
--			p = p->next;
--		}
--		STATS_SET_FREEABLE(cachep, i);
--	}
--#endif
--	spin_unlock(&n->list_lock);
--	slabs_destroy(cachep, &list);
--	ac->avail -= batchcount;
--	memmove(ac->entry, &(ac->entry[batchcount]), sizeof(void *)*ac->avail);
--}
--
--/*
-- * Release an obj back to its cache. If the obj has a constructed state, it must
-- * be in this state _before_ it is released.  Called with disabled ints.
-- */
--static inline void __cache_free(struct kmem_cache *cachep, void *objp,
--				unsigned long caller)
--{
--	struct array_cache *ac = cpu_cache_get(cachep);
--
--	check_irq_off();
--	kmemleak_free_recursive(objp, cachep->flags);
--	objp = cache_free_debugcheck(cachep, objp, caller);
--
--	kmemcheck_slab_free(cachep, objp, cachep->object_size);
--
--	/*
--	 * Skip calling cache_free_alien() when the platform is not numa.
--	 * This will avoid cache misses that happen while accessing slabp (which
--	 * is per page memory  reference) to get nodeid. Instead use a global
--	 * variable to skip the call, which is mostly likely to be present in
--	 * the cache.
--	 */
--	if (nr_online_nodes > 1 && cache_free_alien(cachep, objp))
--		return;
--
--	if (ac->avail < ac->limit) {
--		STATS_INC_FREEHIT(cachep);
--	} else {
--		STATS_INC_FREEMISS(cachep);
--		cache_flusharray(cachep, ac);
--	}
--
--	ac_put_obj(cachep, ac, objp);
--}
--
- /**
-  * kmem_cache_alloc - Allocate an object
-  * @cachep: The cache to allocate from.
-@@ -3531,18 +3541,6 @@ void *__kmalloc_track_caller(size_t size
- }
- EXPORT_SYMBOL(__kmalloc_track_caller);
- 
--static __always_inline void slab_free(struct kmem_cache *cachep, void *objp)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	debug_check_no_locks_freed(objp, cachep->object_size);
--	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
--		debug_check_no_obj_freed(objp, cachep->object_size);
--	__cache_free(cachep, objp, _RET_IP_);
--	local_irq_restore(flags);
--}
+-static __always_inline void slab_free(struct kmem_cache *cachep, void *objp);
