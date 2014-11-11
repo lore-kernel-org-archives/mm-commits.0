@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-strict-preference-for-defines-using-bitfoo.patch added to -mm tree
-Date: Mon, 10 Nov 2014 15:37:00 -0800
-Message-ID: <54614c1c.7jRAwSCk+U8fxTjC%akpm@linux-foundation.org>
+Subject: + mm-slub-fix-format-mismatches-in-slab_err-callers.patch added
+ to -mm tree
+Date: Tue, 11 Nov 2014 13:14:19 -0800
+Message-ID: <54627c2b.pJ+Lps5WQEGZ+W0S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45307 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55928 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752540AbaKJXg7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Nov 2014 18:36:59 -0500
+	with ESMTP id S1751347AbaKKVOU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 16:14:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, davem@davemloft.net, jiri@resnulli.us, mm-commits@vger.kernel.org
+To: a.ryabinin@samsung.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add --strict preference for #defines using BIT(foo)
+     Subject: mm: slub: fix format mismatches in slab_err() callers
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-strict-preference-for-defines-using-bitfoo.patch
+     mm-slub-fix-format-mismatches-in-slab_err-callers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-strict-preference-for-defines-using-bitfoo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-format-mismatches-in-slab_err-callers.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-strict-preference-for-defines-using-bitfoo.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-format-mismatches-in-slab_err-callers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,67 +39,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add --strict preference for #defines using BIT(foo)
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: mm: slub: fix format mismatches in slab_err() callers
 
-Using BIT(foo) and BIT_ULL(bar) is more common now.  Suggest using these
-macros over #defines with 1<<value.
+Adding __printf(3, 4) to slab_err exposed following:
 
-Add a --fix option too.
+mm/slub.c: In function `check_slab':
+mm/slub.c:852:4: warning: format `%u' expects argument of type `unsigned int', but argument 4 has type `const char *' [-Wformat=]
+    s->name, page->objects, maxobj);
+    ^
+mm/slub.c:852:4: warning: too many arguments for format [-Wformat-extra-args]
+mm/slub.c:857:4: warning: format `%u' expects argument of type `unsigned int', but argument 4 has type `const char *' [-Wformat=]
+    s->name, page->inuse, page->objects);
+    ^
+mm/slub.c:857:4: warning: too many arguments for format [-Wformat-extra-args]
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Jiri Pirko <jiri@resnulli.us>
+mm/slub.c: In function `on_freelist':
+mm/slub.c:905:4: warning: format `%d' expects argument of type `int', but argument 5 has type `long unsigned int' [-Wformat=]
+    "should be %d", page->objects, max_objects);
+
+Fix first two warnings by removing redundant s->name.
+Fix the last by changing type of max_object from unsigned long to int.
+
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/slub.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-strict-preference-for-defines-using-bitfoo scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-strict-preference-for-defines-using-bitfoo
-+++ a/scripts/checkpatch.pl
-@@ -4975,6 +4975,17 @@ sub process {
- 			}
- 		}
+diff -puN mm/slub.c~mm-slub-fix-format-mismatches-in-slab_err-callers mm/slub.c
+--- a/mm/slub.c~mm-slub-fix-format-mismatches-in-slab_err-callers
++++ a/mm/slub.c
+@@ -849,12 +849,12 @@ static int check_slab(struct kmem_cache
+ 	maxobj = order_objects(compound_order(page), s->size, s->reserved);
+ 	if (page->objects > maxobj) {
+ 		slab_err(s, page, "objects %u > max %u",
+-			s->name, page->objects, maxobj);
++			page->objects, maxobj);
+ 		return 0;
+ 	}
+ 	if (page->inuse > page->objects) {
+ 		slab_err(s, page, "inuse %u > max %u",
+-			s->name, page->inuse, page->objects);
++			page->inuse, page->objects);
+ 		return 0;
+ 	}
+ 	/* Slab_pad_check fixes things up after itself */
+@@ -871,7 +871,7 @@ static int on_freelist(struct kmem_cache
+ 	int nr = 0;
+ 	void *fp;
+ 	void *object = NULL;
+-	unsigned long max_objects;
++	int max_objects;
  
-+# check for #defines like: 1 << <digit> that could be BIT(digit)
-+		if ($line =~ /#\s*define\s+\w+\s+\(?\s*1\s*([ulUL]*)\s*\<\<\s*(?:\d+|$Ident)\s*\)?/) {
-+			my $ull = "";
-+			$ull = "_ULL" if (defined($1) && $1 =~ /ll/i);
-+			if (CHK("BIT_MACRO",
-+				"Prefer using the BIT$ull macro\n" . $herecurr) &&
-+			    $fix) {
-+				$fixed[$fixlinenr] =~ s/\(?\s*1\s*[ulUL]*\s*<<\s*(\d+|$Ident)\s*\)?/BIT${ull}($1)/;
-+			}
-+		}
-+
- # check for case / default statements not preceded by break/fallthrough/switch
- 		if ($line =~ /^.\s*(?:case\s+(?:$Ident|$Constant)\s*|default):/) {
- 			my $has_break = 0;
+ 	fp = page->freelist;
+ 	while (fp && nr <= page->objects) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
-printk-remove-used-once-early_vprintk.patch
-tile-neaten-early_printk-uses.patch
-tile-use-pr_warn-instead-of-pr_warning.patch
-printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents.patch
-maintainers-update-ivtv-mailing-lists-as-subscriber-only.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-add-an-error-test-for-no-space-before-comma.patch
-checkpatch-add-error-on-use-of-attributeweak-or-__weak-declarations.patch
-checkpatch-improve-test-for-no-space-after-cast.patch
-checkpatch-improve-warning-message-for-needless-if-case.patch
-checkpatch-fix-use-via-symlink-make-missing-spelling-file-non-fatal.patch
-checkpatch-try-to-avoid-mask-and-shift-errors.patch
-checkpatch-reduce-maintainers-update-message-frequency.patch
-checkpatch-add-strict-test-for-function-pointer-calling-style.patch
-checkpatch-allow-certain-si-units-with-three-characters.patch
-checkpatch-add-strict-preference-for-defines-using-bitfoo.patch
-binfmt_misc-add-comments-debug-logs.patch
-binfmt_misc-clean-up-code-style-a-bit.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
+mm-slub-fix-format-mismatches-in-slab_err-callers.patch
+mm-hugetlb-correct-bit-shift-in-hstate_sizelog.patch
 linux-next.patch
 
