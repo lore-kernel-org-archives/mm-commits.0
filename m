@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fsnotify-remove-destroy_list-from-fsnotify_mark.patch added to
- -mm tree
-Date: Tue, 11 Nov 2014 14:29:43 -0800
-Message-ID: <54628dd7.6U7HL2LQexplRY9I%akpm@linux-foundation.org>
+Subject: + fsnotify-remove-free_list-list_head-from-fsnotify_mark.patch
+ added to -mm tree
+Date: Tue, 11 Nov 2014 14:29:41 -0800
+Message-ID: <54628dd5.rjyorRZ18Kb2vovO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56713 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56709 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752015AbaKKW3o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 17:29:44 -0500
+	with ESMTP id S1752015AbaKKW3n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 17:29:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, eparis@redhat.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: remove destroy_list from fsnotify_mark
+     Subject: fsnotify: remove free_list list_head from fsnotify_mark
 has been added to the -mm tree.  Its filename is
-     fsnotify-remove-destroy_list-from-fsnotify_mark.patch
+     fsnotify-remove-free_list-list_head-from-fsnotify_mark.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-remove-destroy_list-from-fsnotify_mark.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-remove-free_list-list_head-from-fsnotify_mark.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-remove-destroy_list-from-fsnotify_mark.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-remove-free_list-list_head-from-fsnotify_mark.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: fsnotify: remove destroy_list from fsnotify_mark
+Subject: fsnotify: remove free_list list_head from fsnotify_mark
 
-destroy_list is used to track marks which still need waiting for srcu
-period end before they can be freed.  However by the time mark is added to
-destroy_list it isn't in group's list of marks anymore and thus we can
-reuse fsnotify_mark->g_list for queueing into destroy_list.  This saves
-two pointers for each fsnotify_mark.
+free_list list head is used only when all marks for an inode / mount need
+to be destroyed.  However we can just use obj_list for this temporary
+tracking thus saving two pointers for each fsnotify_mark.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
@@ -54,53 +52,98 @@ Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/mark.c                 |    8 ++++----
+ fs/notify/fsnotify.h             |    2 +-
+ fs/notify/inode_mark.c           |    6 +++---
+ fs/notify/mark.c                 |    7 ++++---
+ fs/notify/vfsmount_mark.c        |    6 +++---
  include/linux/fsnotify_backend.h |    1 -
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ 5 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN fs/notify/mark.c~fsnotify-remove-destroy_list-from-fsnotify_mark fs/notify/mark.c
---- a/fs/notify/mark.c~fsnotify-remove-destroy_list-from-fsnotify_mark
+diff -puN fs/notify/fsnotify.h~fsnotify-remove-free_list-list_head-from-fsnotify_mark fs/notify/fsnotify.h
+--- a/fs/notify/fsnotify.h~fsnotify-remove-free_list-list_head-from-fsnotify_mark
++++ a/fs/notify/fsnotify.h
+@@ -36,7 +36,7 @@ extern void fsnotify_destroy_vfsmount_ma
+ /* inode specific destruction of a mark */
+ extern void fsnotify_destroy_inode_mark(struct fsnotify_mark *mark);
+ /* Destroy all marks in the given list */
+-extern void fsnotify_destroy_marks(struct list_head *to_free);
++extern void fsnotify_destroy_marks(struct hlist_head *to_free);
+ /* Find mark belonging to given group in the list of marks */
+ extern struct fsnotify_mark *fsnotify_find_mark(struct hlist_head *head,
+ 						struct fsnotify_group *group);
+diff -puN fs/notify/inode_mark.c~fsnotify-remove-free_list-list_head-from-fsnotify_mark fs/notify/inode_mark.c
+--- a/fs/notify/inode_mark.c~fsnotify-remove-free_list-list_head-from-fsnotify_mark
++++ a/fs/notify/inode_mark.c
+@@ -87,14 +87,14 @@ void fsnotify_clear_marks_by_inode(struc
+ {
+ 	struct fsnotify_mark *mark;
+ 	struct hlist_node *n;
+-	LIST_HEAD(free_list);
++	HLIST_HEAD(free_list);
+ 
++	/* Detach list from inode and grab us reference to each mark */
+ 	spin_lock(&inode->i_lock);
+ 	hlist_for_each_entry_safe(mark, n, &inode->i_fsnotify_marks, obj_list) {
+-		list_add(&mark->free_list, &free_list);
+-		hlist_del_init_rcu(&mark->obj_list);
+ 		fsnotify_get_mark(mark);
+ 	}
++	hlist_move_list(&inode->i_fsnotify_marks, &free_list);
+ 	spin_unlock(&inode->i_lock);
+ 
+ 	fsnotify_destroy_marks(&free_list);
+diff -puN fs/notify/mark.c~fsnotify-remove-free_list-list_head-from-fsnotify_mark fs/notify/mark.c
+--- a/fs/notify/mark.c~fsnotify-remove-free_list-list_head-from-fsnotify_mark
 +++ a/fs/notify/mark.c
-@@ -150,7 +150,7 @@ void fsnotify_destroy_mark_locked(struct
- 	mutex_unlock(&group->mark_mutex);
+@@ -196,12 +196,13 @@ void fsnotify_destroy_mark(struct fsnoti
+  * Destroy all marks in the given list. The marks must be already detached from
+  * the original inode / vfsmount.
+  */
+-void fsnotify_destroy_marks(struct list_head *to_free)
++void fsnotify_destroy_marks(struct hlist_head *to_free)
+ {
+-	struct fsnotify_mark *mark, *lmark;
++	struct fsnotify_mark *mark;
++	struct hlist_node *next;
+ 	struct fsnotify_group *group;
  
- 	spin_lock(&destroy_lock);
--	list_add(&mark->destroy_list, &destroy_list);
-+	list_add(&mark->g_list, &destroy_list);
- 	spin_unlock(&destroy_lock);
- 	wake_up(&destroy_waitq);
- 	/*
-@@ -360,7 +360,7 @@ err:
- 	spin_unlock(&mark->lock);
+-	list_for_each_entry_safe(mark, lmark, to_free, free_list) {
++	hlist_for_each_entry_safe(mark, next, to_free, obj_list) {
+ 		spin_lock(&mark->lock);
+ 		fsnotify_get_group(mark->group);
+ 		group = mark->group;
+diff -puN fs/notify/vfsmount_mark.c~fsnotify-remove-free_list-list_head-from-fsnotify_mark fs/notify/vfsmount_mark.c
+--- a/fs/notify/vfsmount_mark.c~fsnotify-remove-free_list-list_head-from-fsnotify_mark
++++ a/fs/notify/vfsmount_mark.c
+@@ -35,14 +35,14 @@ void fsnotify_clear_marks_by_mount(struc
+ 	struct fsnotify_mark *mark;
+ 	struct hlist_node *n;
+ 	struct mount *m = real_mount(mnt);
+-	LIST_HEAD(free_list);
++	HLIST_HEAD(free_list);
  
- 	spin_lock(&destroy_lock);
--	list_add(&mark->destroy_list, &destroy_list);
-+	list_add(&mark->g_list, &destroy_list);
- 	spin_unlock(&destroy_lock);
- 	wake_up(&destroy_waitq);
++	/* Detach list from mount and grab us reference to each mark */
+ 	spin_lock(&mnt->mnt_root->d_lock);
+ 	hlist_for_each_entry_safe(mark, n, &m->mnt_fsnotify_marks, obj_list) {
+-		list_add(&mark->free_list, &free_list);
+-		hlist_del_init_rcu(&mark->obj_list);
+ 		fsnotify_get_mark(mark);
+ 	}
++	hlist_move_list(&m->mnt_fsnotify_marks, &free_list);
+ 	spin_unlock(&mnt->mnt_root->d_lock);
  
-@@ -459,8 +459,8 @@ static int fsnotify_mark_destroy(void *i
- 
- 		synchronize_srcu(&fsnotify_mark_srcu);
- 
--		list_for_each_entry_safe(mark, next, &private_destroy_list, destroy_list) {
--			list_del_init(&mark->destroy_list);
-+		list_for_each_entry_safe(mark, next, &private_destroy_list, g_list) {
-+			list_del_init(&mark->g_list);
- 			fsnotify_put_mark(mark);
- 		}
- 
-diff -puN include/linux/fsnotify_backend.h~fsnotify-remove-destroy_list-from-fsnotify_mark include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-remove-destroy_list-from-fsnotify_mark
+ 	fsnotify_destroy_marks(&free_list);
+diff -puN include/linux/fsnotify_backend.h~fsnotify-remove-free_list-list_head-from-fsnotify_mark include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fsnotify-remove-free_list-list_head-from-fsnotify_mark
 +++ a/include/linux/fsnotify_backend.h
-@@ -226,7 +226,6 @@ struct fsnotify_mark {
- #define FSNOTIFY_MARK_FLAG_IGNORED_SURV_MODIFY	0x08
- #define FSNOTIFY_MARK_FLAG_ALIVE		0x10
- 	unsigned int flags;		/* vfsmount or inode mark? */
--	struct list_head destroy_list;
- 	void (*free_mark)(struct fsnotify_mark *mark); /* called on final put+free */
- };
- 
+@@ -215,7 +215,6 @@ struct fsnotify_mark {
+ 	struct list_head g_list;	/* list of marks by group->i_fsnotify_marks */
+ 	spinlock_t lock;		/* protect group and inode */
+ 	struct hlist_node obj_list;	/* list of marks for inode / vfsmount */
+-	struct list_head free_list;	/* tmp list used when freeing this mark */
+ 	union {
+ 		struct inode *inode;	/* inode this mark is associated with */
+ 		struct vfsmount *mnt;	/* vfsmount this mark is associated with */
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
