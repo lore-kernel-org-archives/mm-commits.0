@@ -1,109 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slub-fix-format-mismatches-in-slab_err-callers.patch added
- to -mm tree
-Date: Tue, 11 Nov 2014 13:14:19 -0800
-Message-ID: <54627c2b.pJ+Lps5WQEGZ+W0S%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 11 Nov 2014 13:18:24 -0800
+Message-ID: <54627d20.nsHjxmcz0RbQAU9g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55928 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56031 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347AbaKKVOU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 16:14:20 -0500
+	with ESMTP id S1751347AbaKKVSZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 16:18:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.ryabinin@samsung.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: slub: fix format mismatches in slab_err() callers
-has been added to the -mm tree.  Its filename is
-     mm-slub-fix-format-mismatches-in-slab_err-callers.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-format-mismatches-in-slab_err-callers.patch
-		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-format-mismatches-in-slab_err-callers.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: mm: slub: fix format mismatches in slab_err() callers
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Adding __printf(3, 4) to slab_err exposed following:
-
-mm/slub.c: In function `check_slab':
-mm/slub.c:852:4: warning: format `%u' expects argument of type `unsigned int', but argument 4 has type `const char *' [-Wformat=]
-    s->name, page->objects, maxobj);
-    ^
-mm/slub.c:852:4: warning: too many arguments for format [-Wformat-extra-args]
-mm/slub.c:857:4: warning: format `%u' expects argument of type `unsigned int', but argument 4 has type `const char *' [-Wformat=]
-    s->name, page->inuse, page->objects);
-    ^
-mm/slub.c:857:4: warning: too many arguments for format [-Wformat-extra-args]
-
-mm/slub.c: In function `on_freelist':
-mm/slub.c:905:4: warning: format `%d' expects argument of type `int', but argument 5 has type `long unsigned int' [-Wformat=]
-    "should be %d", page->objects, max_objects);
-
-Fix first two warnings by removing redundant s->name.
-Fix the last by changing type of max_object from unsigned long to int.
-
-Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/of/base.c  |    3 ---
+ include/linux/of.h |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN mm/slub.c~mm-slub-fix-format-mismatches-in-slab_err-callers mm/slub.c
---- a/mm/slub.c~mm-slub-fix-format-mismatches-in-slab_err-callers
-+++ a/mm/slub.c
-@@ -849,12 +849,12 @@ static int check_slab(struct kmem_cache
- 	maxobj = order_objects(compound_order(page), s->size, s->reserved);
- 	if (page->objects > maxobj) {
- 		slab_err(s, page, "objects %u > max %u",
--			s->name, page->objects, maxobj);
-+			page->objects, maxobj);
- 		return 0;
- 	}
- 	if (page->inuse > page->objects) {
- 		slab_err(s, page, "inuse %u > max %u",
--			s->name, page->inuse, page->objects);
-+			page->inuse, page->objects);
- 		return 0;
- 	}
- 	/* Slab_pad_check fixes things up after itself */
-@@ -871,7 +871,7 @@ static int on_freelist(struct kmem_cache
- 	int nr = 0;
- 	void *fp;
- 	void *object = NULL;
--	unsigned long max_objects;
-+	int max_objects;
+diff -puN drivers/of/base.c~linux-next-git-rejects drivers/of/base.c
+--- a/drivers/of/base.c~linux-next-git-rejects
++++ a/drivers/of/base.c
+@@ -1292,8 +1292,6 @@ int of_property_read_u64_array(const str
+ }
  
- 	fp = page->freelist;
- 	while (fp && nr <= page->objects) {
+ /**
+-<<<<<<< HEAD
+-=======
+  * of_property_read_string - Find and read a string from a property
+  * @np:		device node from which the property value is to be read.
+  * @propname:	name of the property to be searched.
+@@ -1324,7 +1322,6 @@ int of_property_read_string(struct devic
+ EXPORT_SYMBOL_GPL(of_property_read_string);
+ 
+ /**
+->>>>>>> linux-next/akpm-base
+  * of_property_match_string() - Find string in a list and return index
+  * @np: pointer to node containing string list property
+  * @propname: string list property name
+diff -puN include/linux/of.h~linux-next-git-rejects include/linux/of.h
+--- a/include/linux/of.h~linux-next-git-rejects
++++ a/include/linux/of.h
+@@ -512,8 +512,6 @@ static inline int of_property_read_u64_a
+ 	return -ENOSYS;
+ }
+ 
+-<<<<<<< HEAD
+-=======
+ static inline int of_property_read_string(struct device_node *np,
+ 					  const char *propname,
+ 					  const char **out_string)
+@@ -521,7 +519,6 @@ static inline int of_property_read_strin
+ 	return -ENOSYS;
+ }
+ 
+->>>>>>> linux-next/akpm-base
+ static inline int of_property_read_string_helper(struct device_node *np,
+ 						 const char *propname,
+ 						 const char **out_strs, size_t sz, int index)
 _
 
-Patches currently in -mm which might be from a.ryabinin@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-slub-fix-format-mismatches-in-slab_err-callers.patch
-mm-hugetlb-correct-bit-shift-in-hstate_sizelog.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fanotify-ignore-marks-not-respected-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
