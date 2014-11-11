@@ -1,31 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_isolation-check-pfn-validity-before-access.patch added
- to -mm tree
-Date: Tue, 11 Nov 2014 14:21:27 -0800
-Message-ID: <54628be7.3XqgPHmJwnM0ftgR%akpm@linux-foundation.org>
+Subject: + iommu-amd-use-new-invalidate_range-mmu-notifier.patch added to
+ -mm tree
+Date: Tue, 11 Nov 2014 14:25:27 -0800
+Message-ID: <54628cd7.DALNZ2MhFPtEiiyK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56696 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752071AbaKKWVa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 17:21:30 -0500
+	with ESMTP id S1752148AbaKKWZ3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 17:25:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: weijie.yang@samsung.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: jroedel@suse.de, Jay.Cornwall@amd.com, Suravee.Suthikulpanit@amd.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, dwmw2@infradead.org, hughd@google.com, jbarnes@virtuousgeek.org, jglisse@redhat.com, jweiner@redhat.com, mgorman@suse.de, oded.gabbay@amd.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_isolation: check pfn validity before access
+     Subject: iommu/amd: use new invalidate_range mmu-notifier
 has been added to the -mm tree.  Its filename is
-     mm-page_isolation-check-pfn-validity-before-access.patch
+     iommu-amd-use-new-invalidate_range-mmu-notifier.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_isolation-check-pfn-validity-before-access.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/iommu-amd-use-new-invalida=
+te_range-mmu-notifier.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_isolation-check-pfn-validity-before-access.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/iommu-amd-use-new-inva=
+lidate_range-mmu-notifier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +35,145 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Weijie Yang <weijie.yang@samsung.com>
-Subject: mm: page_isolation: check pfn validity before access
+=46rom: Joerg Roedel <jroedel@suse.de>
+Subject: iommu/amd: use new invalidate_range mmu-notifier
 
-In the undo path of start_isolate_page_range(), we need to check the pfn
-validity before access its page, or it will trigger an addressing
-exception if there is hole in the zone.
+Make use of the new invalidate_range mmu_notifier call-back and remove =
+the
+old logic of assigning an empty page-table between invalidate_range_sta=
+rt
+and invalidate_range_end.
 
-Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Joerg Roedel <jroedel@suse.de>
+Tested-by: Oded Gabbay <oded.gabbay@amd.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: J=E9r=F4me Glisse <jglisse@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Jay Cornwall <Jay.Cornwall@amd.com>
+Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/iommu/amd_iommu_v2.c |   61 ++++-----------------------------
+ 1 file changed, 9 insertions(+), 52 deletions(-)
 
-diff -puN mm/page_isolation.c~mm-page_isolation-check-pfn-validity-before-access mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_isolation-check-pfn-validity-before-access
-+++ a/mm/page_isolation.c
-@@ -176,8 +176,11 @@ int start_isolate_page_range(unsigned lo
- undo:
- 	for (pfn = start_pfn;
- 	     pfn < undo_pfn;
--	     pfn += pageblock_nr_pages)
--		unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
-+	     pfn += pageblock_nr_pages) {
-+		page = __first_valid_page(pfn, pageblock_nr_pages);
-+		if (page)
-+			unset_migratetype_isolate(page, migratetype);
-+	}
- 
- 	return -EBUSY;
+diff -puN drivers/iommu/amd_iommu_v2.c~iommu-amd-use-new-invalidate_ran=
+ge-mmu-notifier drivers/iommu/amd_iommu_v2.c
+--- a/drivers/iommu/amd_iommu_v2.c~iommu-amd-use-new-invalidate_range-m=
+mu-notifier
++++ a/drivers/iommu/amd_iommu_v2.c
+@@ -92,13 +92,6 @@ static spinlock_t state_lock;
+=20
+ static struct workqueue_struct *iommu_wq;
+=20
+-/*
+- * Empty page table - Used between
+- * mmu_notifier_invalidate_range_start and
+- * mmu_notifier_invalidate_range_end
+- */
+-static u64 *empty_page_table;
+-
+ static void free_pasid_states(struct device_state *dev_state);
+=20
+ static u16 device_id(struct pci_dev *pdev)
+@@ -418,46 +411,21 @@ static void mn_invalidate_page(struct mm
+ 	__mn_flush_page(mn, address);
  }
-_
-
-Patches currently in -mm which might be from weijie.yang@samsung.com are
-
-zram-avoid-kunmap_atomic-a-null-pointer.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-
+=20
+-static void mn_invalidate_range_start(struct mmu_notifier *mn,
+-				      struct mm_struct *mm,
+-				      unsigned long start, unsigned long end)
+-{
+-	struct pasid_state *pasid_state;
+-	struct device_state *dev_state;
+-	unsigned long flags;
+-
+-	pasid_state =3D mn_to_state(mn);
+-	dev_state   =3D pasid_state->device_state;
+-
+-	spin_lock_irqsave(&pasid_state->lock, flags);
+-	if (pasid_state->mmu_notifier_count =3D=3D 0) {
+-		amd_iommu_domain_set_gcr3(dev_state->domain,
+-					  pasid_state->pasid,
+-					  __pa(empty_page_table));
+-	}
+-	pasid_state->mmu_notifier_count +=3D 1;
+-	spin_unlock_irqrestore(&pasid_state->lock, flags);
+-}
+-
+-static void mn_invalidate_range_end(struct mmu_notifier *mn,
+-				    struct mm_struct *mm,
+-				    unsigned long start, unsigned long end)
++static void mn_invalidate_range(struct mmu_notifier *mn,
++				struct mm_struct *mm,
++				unsigned long start, unsigned long end)
+ {
+ 	struct pasid_state *pasid_state;
+ 	struct device_state *dev_state;
+-	unsigned long flags;
+=20
+ 	pasid_state =3D mn_to_state(mn);
+ 	dev_state   =3D pasid_state->device_state;
+=20
+-	spin_lock_irqsave(&pasid_state->lock, flags);
+-	pasid_state->mmu_notifier_count -=3D 1;
+-	if (pasid_state->mmu_notifier_count =3D=3D 0) {
+-		amd_iommu_domain_set_gcr3(dev_state->domain,
+-					  pasid_state->pasid,
+-					  __pa(pasid_state->mm->pgd));
+-	}
+-	spin_unlock_irqrestore(&pasid_state->lock, flags);
++	if ((start ^ (end - 1)) < PAGE_SIZE)
++		amd_iommu_flush_page(dev_state->domain, pasid_state->pasid,
++				     start);
++	else
++		amd_iommu_flush_tlb(dev_state->domain, pasid_state->pasid);
+ }
+=20
+ static void mn_release(struct mmu_notifier *mn, struct mm_struct *mm)
+@@ -482,8 +450,7 @@ static struct mmu_notifier_ops iommu_mn
+ 	.release		=3D mn_release,
+ 	.clear_flush_young      =3D mn_clear_flush_young,
+ 	.invalidate_page        =3D mn_invalidate_page,
+-	.invalidate_range_start =3D mn_invalidate_range_start,
+-	.invalidate_range_end   =3D mn_invalidate_range_end,
++	.invalidate_range       =3D mn_invalidate_range,
+ };
+=20
+ static void set_pri_tag_status(struct pasid_state *pasid_state,
+@@ -954,18 +921,10 @@ static int __init amd_iommu_v2_init(void
+ 	if (iommu_wq =3D=3D NULL)
+ 		goto out;
+=20
+-	ret =3D -ENOMEM;
+-	empty_page_table =3D (u64 *)get_zeroed_page(GFP_KERNEL);
+-	if (empty_page_table =3D=3D NULL)
+-		goto out_destroy_wq;
+-
+ 	amd_iommu_register_ppr_notifier(&ppr_nb);
+=20
+ 	return 0;
+=20
+-out_destroy_wq:
+-	destroy_workqueue(iommu_wq);
+-
+ out:
+ 	return ret;
+ }
+@@ -999,8 +958,6 @@ static void __exit amd_iommu_v2_exit(voi
+ 	}
+=20
+ 	destroy_workqueue(iommu_wq);
