@@ -1,97 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init.patch
- added to -mm tree
-Date: Tue, 11 Nov 2014 13:23:04 -0800
-Message-ID: <54627e38.R9+TexAIk6S9tjGb%akpm@linux-foundation.org>
+Subject: [alternative-merged] fanotify-ignore-marks-not-respected.patch
+ removed from -mm tree
+Date: Tue, 11 Nov 2014 13:23:46 -0800
+Message-ID: <54627e62.+O2zuBtxa43yyn1v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56047 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751839AbaKKVXF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 16:23:05 -0500
+	with ESMTP id S1751793AbaKKVXs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 16:23:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: xypron.glpk@gmx.de, eparis@redhat.com, hch@lst.de, hughd@google.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix error handling when creating debugfs root in ocfs2_init()
-has been added to the -mm tree.  Its filename is
-     ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init.patch
+     Subject: fanotify: ignore marks not respected
+has been removed from the -mm tree.  Its filename was
+     fanotify-ignore-marks-not-respected.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init.patch
-		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: fix error handling when creating debugfs root in ocfs2_init()
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: fanotify: ignore marks not respected
 
-Error handling if creation of root of debugfs in ocfs2_init() fails is
-broken.  Although error code is set we fail to exit ocfs2_init() with
-error and thus initialization ends with success.  Later when mounting a
-filesystem, ocfs2 debugfs entries end up being created in the root of
-debugfs filesystem which is confusing.
+The fanotify API allows to mark mounts, directories, and files for
+notification. Furthermore it allows to create marks with an ignore mask to
+indicate which events shall be ignored.
 
-Fix the error handling to bail out.
+Function fsnotify_add_inode_mark() stores marks for inodes as list in attribute
+i_list of the inode. The list is sorted by priority and group.
 
-Coverity id: 1227009.
+Function fsnotify_add_vfsmount_mark() stores marks for mounts as list in
+attribute m_list of the vfsmount. The list is sorted by priority and group.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+If an event occurs function fsnotify() is called. This function loops over all
+mount and inode marks and sends the event to the respective groups using
+function send_to_group().
+
+For an event and a group both an inode mark and a vfsmount mark may coexist.
+E.g. a user program may want to monitor one mount for FAN_MODIFY events but
+wants to ignore FAN_MODIFY events for some file.
+
+If for an event and a group both an inode mark and a vfsmount mark exist, it is
+important to call send_to_group() for both marks as once. Otherwise ignore mask
+bits set on the one mark cannot be considered for the other mark.
+
+Function fsnotify() assumes that m_list and i_list are sorted by group and
+ignores the sorting by priority. Hence some ignore marks may not be correctly
+considered.
+
+Bug report 87721 provides an example code demonstrating the error.
+https://bugzilla.kernel.org/show_bug.cgi?id=87721
+
+The appended patch changes fsnotify() to assume sorting by priority and group.
+Furthermore some comments are added to render the function more legible.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/notify/fsnotify.c |   56 ++++++++++++++++++++++++++++++-----------
+ 1 file changed, 42 insertions(+), 14 deletions(-)
 
-diff -puN fs/ocfs2/super.c~ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init
-+++ a/fs/ocfs2/super.c
-@@ -1622,8 +1622,9 @@ static int __init ocfs2_init(void)
+diff -puN fs/notify/fsnotify.c~fanotify-ignore-marks-not-respected fs/notify/fsnotify.c
+--- a/fs/notify/fsnotify.c~fanotify-ignore-marks-not-respected
++++ a/fs/notify/fsnotify.c
+@@ -187,6 +187,13 @@ static int send_to_group(struct inode *t
+  * in linux/fsnotify.h.  Those functions then in turn call here.  Here will call
+  * out to all of the registered fsnotify_group.  Those groups can then use the
+  * notification event in whatever means they feel necessary.
++ *
++ * To correctly interprete the ignore mask it is necessary to pass the inode
++ * mark and the vfsmount mark of the same notification group in a single call
++ * to send_to_group().
++ *
++ * The marks of each inode and each vfsmount are sorted by group-priority and
++ * group (see fsnotify_add_inode_mark() and fsnotify_add_vfsmount_mark()).
+  */
+ int fsnotify(struct inode *to_tell, __u32 mask, void *data, int data_is,
+ 	     const unsigned char *file_name, u32 cookie)
+@@ -232,6 +239,9 @@ int fsnotify(struct inode *to_tell, __u3
+ 	while (inode_node || vfsmount_node) {
+ 		inode_group = vfsmount_group = NULL;
  
- 	ocfs2_debugfs_root = debugfs_create_dir("ocfs2", NULL);
- 	if (!ocfs2_debugfs_root) {
--		status = -EFAULT;
-+		status = -ENOMEM;
- 		mlog(ML_ERROR, "Unable to create ocfs2 debugfs root.\n");
-+		goto out4;
- 	}
++		/*
++		 * Read current marks and groups.
++		 */
+ 		if (inode_node) {
+ 			inode_mark = hlist_entry(srcu_dereference(inode_node, &fsnotify_mark_srcu),
+ 						 struct fsnotify_mark, i.i_list);
+@@ -244,25 +254,43 @@ int fsnotify(struct inode *to_tell, __u3
+ 			vfsmount_group = vfsmount_mark->group;
+ 		}
  
- 	ocfs2_set_locking_protocol();
+-		if (inode_group > vfsmount_group) {
+-			/* handle inode */
+-			ret = send_to_group(to_tell, inode_mark, NULL, mask,
+-					    data, data_is, cookie, file_name);
+-			/* we didn't use the vfsmount_mark */
+-			vfsmount_group = NULL;
+-		} else if (vfsmount_group > inode_group) {
+-			ret = send_to_group(to_tell, NULL, vfsmount_mark, mask,
+-					    data, data_is, cookie, file_name);
+-			inode_group = NULL;
+-		} else {
+-			ret = send_to_group(to_tell, inode_mark, vfsmount_mark,
+-					    mask, data, data_is, cookie,
+-					    file_name);
++		/*
++		 * Determine if the inode group or the vfsmount group is
++		 * first in the sorting order.
++		 * Only the mark for the group that is first will be passed to
++		 * send_to_group().
++		 */
++		if (inode_group == NULL)
++			inode_mark = NULL;
++		else if (vfsmount_group == NULL)
++			vfsmount_mark = NULL;
++		else {
++			if (inode_group->priority
++			    > vfsmount_group->priority) {
++				vfsmount_mark = NULL;
++				vfsmount_group = NULL;
++			} else if (inode_group->priority
++				   < vfsmount_group->priority) {
++				inode_mark = NULL;
++				inode_group = NULL;
++			} else if (inode_group > vfsmount_group) {
++				vfsmount_mark = NULL;
++				vfsmount_group = NULL;
++			} else if (inode_group < vfsmount_group) {
++				inode_mark = NULL;
++				inode_group = NULL;
++			}
+ 		}
++		ret = send_to_group(to_tell, inode_mark, vfsmount_mark,
++				    mask, data, data_is, cookie,
++				    file_name);
+ 
+ 		if (ret && (mask & ALL_FSNOTIFY_PERM_EVENTS))
+ 			goto out;
+ 
++		/*
++		 * Point to the next marks.
++		 */
+ 		if (inode_group)
+ 			inode_node = srcu_dereference(inode_node->next,
+ 						      &fsnotify_mark_srcu);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from xypron.glpk@gmx.de are
 
 fallocate-create-fan_modify-and-in_modify-events.patch
-fanotify-ignore-marks-not-respected.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
-ocfs2-remove-bogus-test-from-ocfs2_read_locked_inode.patch
-ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
-ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init.patch
-char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
-befs-remove-dead-code.patch
-linux-next.patch
-mm-add-strictlimit-knob-v2.patch
+fanotify-ignore-marks-not-respected-fix.patch
 
