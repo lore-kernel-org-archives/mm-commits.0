@@ -1,33 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + iommu-amd-use-new-invalidate_range-mmu-notifier.patch added to
+Subject: + fsnotify-remove-destroy_list-from-fsnotify_mark.patch added to
  -mm tree
-Date: Tue, 11 Nov 2014 14:25:27 -0800
-Message-ID: <54628cd7.DALNZ2MhFPtEiiyK%akpm@linux-foundation.org>
+Date: Tue, 11 Nov 2014 14:29:43 -0800
+Message-ID: <54628dd7.6U7HL2LQexplRY9I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56696 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56713 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752148AbaKKWZ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 17:25:29 -0500
+	with ESMTP id S1752015AbaKKW3o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 17:29:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jroedel@suse.de, Jay.Cornwall@amd.com, Suravee.Suthikulpanit@amd.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, dwmw2@infradead.org, hughd@google.com, jbarnes@virtuousgeek.org, jglisse@redhat.com, jweiner@redhat.com, mgorman@suse.de, oded.gabbay@amd.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, eparis@redhat.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iommu/amd: use new invalidate_range mmu-notifier
+     Subject: fsnotify: remove destroy_list from fsnotify_mark
 has been added to the -mm tree.  Its filename is
-     iommu-amd-use-new-invalidate_range-mmu-notifier.patch
+     fsnotify-remove-destroy_list-from-fsnotify_mark.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/iommu-amd-use-new-invalida=
-te_range-mmu-notifier.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-remove-destroy_list-from-fsnotify_mark.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/iommu-amd-use-new-inva=
-lidate_range-mmu-notifier.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-remove-destroy_list-from-fsnotify_mark.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,145 +33,92 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Joerg Roedel <jroedel@suse.de>
-Subject: iommu/amd: use new invalidate_range mmu-notifier
+From: Jan Kara <jack@suse.cz>
+Subject: fsnotify: remove destroy_list from fsnotify_mark
 
-Make use of the new invalidate_range mmu_notifier call-back and remove =
-the
-old logic of assigning an empty page-table between invalidate_range_sta=
-rt
-and invalidate_range_end.
+destroy_list is used to track marks which still need waiting for srcu
+period end before they can be freed.  However by the time mark is added to
+destroy_list it isn't in group's list of marks anymore and thus we can
+reuse fsnotify_mark->g_list for queueing into destroy_list.  This saves
+two pointers for each fsnotify_mark.
 
-Signed-off-by: Joerg Roedel <jroedel@suse.de>
-Tested-by: Oded Gabbay <oded.gabbay@amd.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: J=E9r=F4me Glisse <jglisse@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Jay Cornwall <Jay.Cornwall@amd.com>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/amd_iommu_v2.c |   61 ++++-----------------------------
- 1 file changed, 9 insertions(+), 52 deletions(-)
+ fs/notify/mark.c                 |    8 ++++----
+ include/linux/fsnotify_backend.h |    1 -
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/iommu/amd_iommu_v2.c~iommu-amd-use-new-invalidate_ran=
-ge-mmu-notifier drivers/iommu/amd_iommu_v2.c
---- a/drivers/iommu/amd_iommu_v2.c~iommu-amd-use-new-invalidate_range-m=
-mu-notifier
-+++ a/drivers/iommu/amd_iommu_v2.c
-@@ -92,13 +92,6 @@ static spinlock_t state_lock;
-=20
- static struct workqueue_struct *iommu_wq;
-=20
--/*
-- * Empty page table - Used between
-- * mmu_notifier_invalidate_range_start and
-- * mmu_notifier_invalidate_range_end
-- */
--static u64 *empty_page_table;
--
- static void free_pasid_states(struct device_state *dev_state);
-=20
- static u16 device_id(struct pci_dev *pdev)
-@@ -418,46 +411,21 @@ static void mn_invalidate_page(struct mm
- 	__mn_flush_page(mn, address);
- }
-=20
--static void mn_invalidate_range_start(struct mmu_notifier *mn,
--				      struct mm_struct *mm,
--				      unsigned long start, unsigned long end)
--{
--	struct pasid_state *pasid_state;
--	struct device_state *dev_state;
--	unsigned long flags;
--
--	pasid_state =3D mn_to_state(mn);
--	dev_state   =3D pasid_state->device_state;
--
--	spin_lock_irqsave(&pasid_state->lock, flags);
--	if (pasid_state->mmu_notifier_count =3D=3D 0) {
--		amd_iommu_domain_set_gcr3(dev_state->domain,
--					  pasid_state->pasid,
--					  __pa(empty_page_table));
--	}
--	pasid_state->mmu_notifier_count +=3D 1;
--	spin_unlock_irqrestore(&pasid_state->lock, flags);
--}
--
--static void mn_invalidate_range_end(struct mmu_notifier *mn,
--				    struct mm_struct *mm,
--				    unsigned long start, unsigned long end)
-+static void mn_invalidate_range(struct mmu_notifier *mn,
-+				struct mm_struct *mm,
-+				unsigned long start, unsigned long end)
- {
- 	struct pasid_state *pasid_state;
- 	struct device_state *dev_state;
--	unsigned long flags;
-=20
- 	pasid_state =3D mn_to_state(mn);
- 	dev_state   =3D pasid_state->device_state;
-=20
--	spin_lock_irqsave(&pasid_state->lock, flags);
--	pasid_state->mmu_notifier_count -=3D 1;
--	if (pasid_state->mmu_notifier_count =3D=3D 0) {
--		amd_iommu_domain_set_gcr3(dev_state->domain,
--					  pasid_state->pasid,
--					  __pa(pasid_state->mm->pgd));
--	}
--	spin_unlock_irqrestore(&pasid_state->lock, flags);
-+	if ((start ^ (end - 1)) < PAGE_SIZE)
-+		amd_iommu_flush_page(dev_state->domain, pasid_state->pasid,
-+				     start);
-+	else
-+		amd_iommu_flush_tlb(dev_state->domain, pasid_state->pasid);
- }
-=20
- static void mn_release(struct mmu_notifier *mn, struct mm_struct *mm)
-@@ -482,8 +450,7 @@ static struct mmu_notifier_ops iommu_mn
- 	.release		=3D mn_release,
- 	.clear_flush_young      =3D mn_clear_flush_young,
- 	.invalidate_page        =3D mn_invalidate_page,
--	.invalidate_range_start =3D mn_invalidate_range_start,
--	.invalidate_range_end   =3D mn_invalidate_range_end,
-+	.invalidate_range       =3D mn_invalidate_range,
+diff -puN fs/notify/mark.c~fsnotify-remove-destroy_list-from-fsnotify_mark fs/notify/mark.c
+--- a/fs/notify/mark.c~fsnotify-remove-destroy_list-from-fsnotify_mark
++++ a/fs/notify/mark.c
+@@ -150,7 +150,7 @@ void fsnotify_destroy_mark_locked(struct
+ 	mutex_unlock(&group->mark_mutex);
+ 
+ 	spin_lock(&destroy_lock);
+-	list_add(&mark->destroy_list, &destroy_list);
++	list_add(&mark->g_list, &destroy_list);
+ 	spin_unlock(&destroy_lock);
+ 	wake_up(&destroy_waitq);
+ 	/*
+@@ -360,7 +360,7 @@ err:
+ 	spin_unlock(&mark->lock);
+ 
+ 	spin_lock(&destroy_lock);
+-	list_add(&mark->destroy_list, &destroy_list);
++	list_add(&mark->g_list, &destroy_list);
+ 	spin_unlock(&destroy_lock);
+ 	wake_up(&destroy_waitq);
+ 
+@@ -459,8 +459,8 @@ static int fsnotify_mark_destroy(void *i
+ 
+ 		synchronize_srcu(&fsnotify_mark_srcu);
+ 
+-		list_for_each_entry_safe(mark, next, &private_destroy_list, destroy_list) {
+-			list_del_init(&mark->destroy_list);
++		list_for_each_entry_safe(mark, next, &private_destroy_list, g_list) {
++			list_del_init(&mark->g_list);
+ 			fsnotify_put_mark(mark);
+ 		}
+ 
+diff -puN include/linux/fsnotify_backend.h~fsnotify-remove-destroy_list-from-fsnotify_mark include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fsnotify-remove-destroy_list-from-fsnotify_mark
++++ a/include/linux/fsnotify_backend.h
+@@ -226,7 +226,6 @@ struct fsnotify_mark {
+ #define FSNOTIFY_MARK_FLAG_IGNORED_SURV_MODIFY	0x08
+ #define FSNOTIFY_MARK_FLAG_ALIVE		0x10
+ 	unsigned int flags;		/* vfsmount or inode mark? */
+-	struct list_head destroy_list;
+ 	void (*free_mark)(struct fsnotify_mark *mark); /* called on final put+free */
  };
-=20
- static void set_pri_tag_status(struct pasid_state *pasid_state,
-@@ -954,18 +921,10 @@ static int __init amd_iommu_v2_init(void
- 	if (iommu_wq =3D=3D NULL)
- 		goto out;
-=20
--	ret =3D -ENOMEM;
--	empty_page_table =3D (u64 *)get_zeroed_page(GFP_KERNEL);
--	if (empty_page_table =3D=3D NULL)
--		goto out_destroy_wq;
--
- 	amd_iommu_register_ppr_notifier(&ppr_nb);
-=20
- 	return 0;
-=20
--out_destroy_wq:
--	destroy_workqueue(iommu_wq);
--
- out:
- 	return ret;
- }
-@@ -999,8 +958,6 @@ static void __exit amd_iommu_v2_exit(voi
- 	}
-=20
- 	destroy_workqueue(iommu_wq);
+ 
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+fanotify-fix-notification-of-groups-with-inode-mount-marks.patch
+fallocate-create-fan_modify-and-in_modify-events.patch
+fsnotify-unify-inode-and-mount-marks-handling.patch
+fsnotify-remove-free_list-list_head-from-fsnotify_mark.patch
+fsnotify-remove-destroy_list-from-fsnotify_mark.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
+ocfs2-remove-bogus-test-from-ocfs2_read_locked_inode.patch
+ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
+ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init.patch
+char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
+befs-remove-dead-code.patch
+linux-next.patch
+mm-add-strictlimit-knob-v2.patch
+
