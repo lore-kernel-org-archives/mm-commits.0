@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fsnotify-unify-inode-and-mount-marks-handling.patch added to
- -mm tree
-Date: Tue, 11 Nov 2014 14:29:39 -0800
-Message-ID: <54628dd3.vTNKmtG7d6uh76Np%akpm@linux-foundation.org>
+Subject: + slab-improve-checking-for-invalid-gfp_flags.patch added to -mm
+ tree
+Date: Tue, 11 Nov 2014 15:32:21 -0800
+Message-ID: <54629c85.VR9F/ErhnW3sPNAz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56705 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57143 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933AbaKKW3l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 17:29:41 -0500
+	with ESMTP id S1752448AbaKKXcW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 18:32:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, eparis@redhat.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: unify inode and mount marks handling
+     Subject: slab: improve checking for invalid gfp_flags
 has been added to the -mm tree.  Its filename is
-     fsnotify-unify-inode-and-mount-marks-handling.patch
+     slab-improve-checking-for-invalid-gfp_flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-unify-inode-and-mount-marks-handling.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-improve-checking-for-invalid-gfp_flags.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-unify-inode-and-mount-marks-handling.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/slab-improve-checking-for-invalid-gfp_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,740 +39,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fsnotify: unify inode and mount marks handling
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: slab: improve checking for invalid gfp_flags
 
-There's lot of common code in inode and mount marks handling.  Factor it
-out to common helper function.
+- The code goes BUG, but doesn't tell us which bits were unexpectedly
+  set.  Print that out.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Eric Paris <eparis@redhat.com>
+- The code goes BUG when it could jsut fix things up and proceed.  Do that.
+
+- ~__GFP_BITS_MASK already includes __GFP_DMA32 and __GFP_HIGHMEM, so
+  remove those from the GFP_SLAB_BUG_MASK definition.
+
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/dnotify/dnotify.c          |    4 -
- fs/notify/fdinfo.c                   |    6 -
- fs/notify/fsnotify.c                 |    4 -
- fs/notify/fsnotify.h                 |    9 ++
- fs/notify/inode_mark.c               |   93 ++++---------------------
- fs/notify/inotify/inotify_fsnotify.c |    2 
- fs/notify/inotify/inotify_user.c     |   10 +-
- fs/notify/mark.c                     |   78 ++++++++++++++++++++
- fs/notify/vfsmount_mark.c            |   85 +++-------------------
- include/linux/fsnotify_backend.h     |   24 +-----
- kernel/audit_tree.c                  |   16 ++--
- 11 files changed, 139 insertions(+), 192 deletions(-)
+ include/linux/gfp.h |    2 +-
+ mm/slab.c           |    5 ++++-
+ mm/slub.c           |    5 ++++-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN fs/notify/dnotify/dnotify.c~fsnotify-unify-inode-and-mount-marks-handling fs/notify/dnotify/dnotify.c
---- a/fs/notify/dnotify/dnotify.c~fsnotify-unify-inode-and-mount-marks-handling
-+++ a/fs/notify/dnotify/dnotify.c
-@@ -69,8 +69,8 @@ static void dnotify_recalc_inode_mask(st
- 	if (old_mask == new_mask)
- 		return;
+diff -puN include/linux/gfp.h~slab-improve-checking-for-invalid-gfp_flags include/linux/gfp.h
+--- a/include/linux/gfp.h~slab-improve-checking-for-invalid-gfp_flags
++++ a/include/linux/gfp.h
+@@ -145,7 +145,7 @@ struct vm_area_struct;
+ #define GFP_CONSTRAINT_MASK (__GFP_HARDWALL|__GFP_THISNODE)
  
--	if (fsn_mark->i.inode)
--		fsnotify_recalc_inode_mask(fsn_mark->i.inode);
-+	if (fsn_mark->inode)
-+		fsnotify_recalc_inode_mask(fsn_mark->inode);
- }
+ /* Do not use these with a slab allocator */
+-#define GFP_SLAB_BUG_MASK (__GFP_DMA32|__GFP_HIGHMEM|~__GFP_BITS_MASK)
++#define GFP_SLAB_BUG_MASK (~__GFP_BITS_MASK)
  
- /*
-diff -puN fs/notify/fdinfo.c~fsnotify-unify-inode-and-mount-marks-handling fs/notify/fdinfo.c
---- a/fs/notify/fdinfo.c~fsnotify-unify-inode-and-mount-marks-handling
-+++ a/fs/notify/fdinfo.c
-@@ -85,7 +85,7 @@ static int inotify_fdinfo(struct seq_fil
- 		return 0;
- 
- 	inode_mark = container_of(mark, struct inotify_inode_mark, fsn_mark);
--	inode = igrab(mark->i.inode);
-+	inode = igrab(mark->inode);
- 	if (inode) {
- 		ret = seq_printf(m, "inotify wd:%x ino:%lx sdev:%x "
- 				 "mask:%x ignored_mask:%x ",
-@@ -122,7 +122,7 @@ static int fanotify_fdinfo(struct seq_fi
- 		mflags |= FAN_MARK_IGNORED_SURV_MODIFY;
- 
- 	if (mark->flags & FSNOTIFY_MARK_FLAG_INODE) {
--		inode = igrab(mark->i.inode);
-+		inode = igrab(mark->inode);
- 		if (!inode)
- 			goto out;
- 		ret = seq_printf(m, "fanotify ino:%lx sdev:%x "
-@@ -133,7 +133,7 @@ static int fanotify_fdinfo(struct seq_fi
- 		ret |= seq_putc(m, '\n');
- 		iput(inode);
- 	} else if (mark->flags & FSNOTIFY_MARK_FLAG_VFSMOUNT) {
--		struct mount *mnt = real_mount(mark->m.mnt);
-+		struct mount *mnt = real_mount(mark->mnt);
- 
- 		ret = seq_printf(m, "fanotify mnt_id:%x mflags:%x mask:%x "
- 				 "ignored_mask:%x\n", mnt->mnt_id, mflags,
-diff -puN fs/notify/fsnotify.c~fsnotify-unify-inode-and-mount-marks-handling fs/notify/fsnotify.c
---- a/fs/notify/fsnotify.c~fsnotify-unify-inode-and-mount-marks-handling
-+++ a/fs/notify/fsnotify.c
-@@ -242,13 +242,13 @@ int fsnotify(struct inode *to_tell, __u3
- 
- 		if (inode_node) {
- 			inode_mark = hlist_entry(srcu_dereference(inode_node, &fsnotify_mark_srcu),
--						 struct fsnotify_mark, i.i_list);
-+						 struct fsnotify_mark, obj_list);
- 			inode_group = inode_mark->group;
- 		}
- 
- 		if (vfsmount_node) {
- 			vfsmount_mark = hlist_entry(srcu_dereference(vfsmount_node, &fsnotify_mark_srcu),
--							struct fsnotify_mark, m.m_list);
-+						    struct fsnotify_mark, obj_list);
- 			vfsmount_group = vfsmount_mark->group;
- 		}
- 
-diff -puN fs/notify/fsnotify.h~fsnotify-unify-inode-and-mount-marks-handling fs/notify/fsnotify.h
---- a/fs/notify/fsnotify.h~fsnotify-unify-inode-and-mount-marks-handling
-+++ a/fs/notify/fsnotify.h
-@@ -18,6 +18,10 @@ extern int fsnotify_compare_groups(struc
- 
- extern void fsnotify_set_inode_mark_mask_locked(struct fsnotify_mark *fsn_mark,
- 						__u32 mask);
-+/* Add mark to a proper place in mark list */
-+extern int fsnotify_add_mark_list(struct hlist_head *head,
-+				  struct fsnotify_mark *mark,
-+				  int allow_dups);
- /* add a mark to an inode */
- extern int fsnotify_add_inode_mark(struct fsnotify_mark *mark,
- 				   struct fsnotify_group *group, struct inode *inode,
-@@ -31,6 +35,11 @@ extern int fsnotify_add_vfsmount_mark(st
- extern void fsnotify_destroy_vfsmount_mark(struct fsnotify_mark *mark);
- /* inode specific destruction of a mark */
- extern void fsnotify_destroy_inode_mark(struct fsnotify_mark *mark);
-+/* Destroy all marks in the given list */
-+extern void fsnotify_destroy_marks(struct list_head *to_free);
-+/* Find mark belonging to given group in the list of marks */
-+extern struct fsnotify_mark *fsnotify_find_mark(struct hlist_head *head,
-+						struct fsnotify_group *group);
- /* run the list of all marks associated with inode and flag them to be freed */
- extern void fsnotify_clear_marks_by_inode(struct inode *inode);
- /* run the list of all marks associated with vfsmount and flag them to be freed */
-diff -puN fs/notify/inode_mark.c~fsnotify-unify-inode-and-mount-marks-handling fs/notify/inode_mark.c
---- a/fs/notify/inode_mark.c~fsnotify-unify-inode-and-mount-marks-handling
-+++ a/fs/notify/inode_mark.c
-@@ -40,7 +40,7 @@ static void fsnotify_recalc_inode_mask_l
- 
- 	assert_spin_locked(&inode->i_lock);
- 
--	hlist_for_each_entry(mark, &inode->i_fsnotify_marks, i.i_list)
-+	hlist_for_each_entry(mark, &inode->i_fsnotify_marks, obj_list)
- 		new_mask |= mark->mask;
- 	inode->i_fsnotify_mask = new_mask;
- }
-@@ -60,15 +60,15 @@ void fsnotify_recalc_inode_mask(struct i
- 
- void fsnotify_destroy_inode_mark(struct fsnotify_mark *mark)
- {
--	struct inode *inode = mark->i.inode;
-+	struct inode *inode = mark->inode;
- 
- 	BUG_ON(!mutex_is_locked(&mark->group->mark_mutex));
- 	assert_spin_locked(&mark->lock);
- 
- 	spin_lock(&inode->i_lock);
- 
--	hlist_del_init_rcu(&mark->i.i_list);
--	mark->i.inode = NULL;
-+	hlist_del_init_rcu(&mark->obj_list);
-+	mark->inode = NULL;
- 
- 	/*
- 	 * this mark is now off the inode->i_fsnotify_marks list and we
-@@ -85,30 +85,19 @@ void fsnotify_destroy_inode_mark(struct
-  */
- void fsnotify_clear_marks_by_inode(struct inode *inode)
- {
--	struct fsnotify_mark *mark, *lmark;
-+	struct fsnotify_mark *mark;
- 	struct hlist_node *n;
- 	LIST_HEAD(free_list);
- 
- 	spin_lock(&inode->i_lock);
--	hlist_for_each_entry_safe(mark, n, &inode->i_fsnotify_marks, i.i_list) {
--		list_add(&mark->i.free_i_list, &free_list);
--		hlist_del_init_rcu(&mark->i.i_list);
-+	hlist_for_each_entry_safe(mark, n, &inode->i_fsnotify_marks, obj_list) {
-+		list_add(&mark->free_list, &free_list);
-+		hlist_del_init_rcu(&mark->obj_list);
- 		fsnotify_get_mark(mark);
- 	}
- 	spin_unlock(&inode->i_lock);
- 
--	list_for_each_entry_safe(mark, lmark, &free_list, i.free_i_list) {
--		struct fsnotify_group *group;
--
--		spin_lock(&mark->lock);
--		fsnotify_get_group(mark->group);
--		group = mark->group;
--		spin_unlock(&mark->lock);
--
--		fsnotify_destroy_mark(mark, group);
--		fsnotify_put_mark(mark);
--		fsnotify_put_group(group);
--	}
-+	fsnotify_destroy_marks(&free_list);
- }
- 
- /*
-@@ -123,34 +112,13 @@ void fsnotify_clear_inode_marks_by_group
-  * given a group and inode, find the mark associated with that combination.
-  * if found take a reference to that mark and return it, else return NULL
-  */
--static struct fsnotify_mark *fsnotify_find_inode_mark_locked(
--		struct fsnotify_group *group,
--		struct inode *inode)
--{
--	struct fsnotify_mark *mark;
--
--	assert_spin_locked(&inode->i_lock);
--
--	hlist_for_each_entry(mark, &inode->i_fsnotify_marks, i.i_list) {
--		if (mark->group == group) {
--			fsnotify_get_mark(mark);
--			return mark;
--		}
--	}
--	return NULL;
--}
--
--/*
-- * given a group and inode, find the mark associated with that combination.
-- * if found take a reference to that mark and return it, else return NULL
-- */
- struct fsnotify_mark *fsnotify_find_inode_mark(struct fsnotify_group *group,
- 					       struct inode *inode)
- {
- 	struct fsnotify_mark *mark;
- 
- 	spin_lock(&inode->i_lock);
--	mark = fsnotify_find_inode_mark_locked(group, inode);
-+	mark = fsnotify_find_mark(&inode->i_fsnotify_marks, group);
- 	spin_unlock(&inode->i_lock);
- 
- 	return mark;
-@@ -168,10 +136,10 @@ void fsnotify_set_inode_mark_mask_locked
- 	assert_spin_locked(&mark->lock);
- 
- 	if (mask &&
--	    mark->i.inode &&
-+	    mark->inode &&
- 	    !(mark->flags & FSNOTIFY_MARK_FLAG_OBJECT_PINNED)) {
- 		mark->flags |= FSNOTIFY_MARK_FLAG_OBJECT_PINNED;
--		inode = igrab(mark->i.inode);
-+		inode = igrab(mark->inode);
- 		/*
- 		 * we shouldn't be able to get here if the inode wasn't
- 		 * already safely held in memory.  But bug in case it
-@@ -192,9 +160,7 @@ int fsnotify_add_inode_mark(struct fsnot
- 			    struct fsnotify_group *group, struct inode *inode,
- 			    int allow_dups)
- {
--	struct fsnotify_mark *lmark, *last = NULL;
--	int ret = 0;
--	int cmp;
-+	int ret;
- 
- 	mark->flags |= FSNOTIFY_MARK_FLAG_INODE;
- 
-@@ -202,36 +168,9 @@ int fsnotify_add_inode_mark(struct fsnot
- 	assert_spin_locked(&mark->lock);
- 
- 	spin_lock(&inode->i_lock);
--
--	mark->i.inode = inode;
--
--	/* is mark the first mark? */
--	if (hlist_empty(&inode->i_fsnotify_marks)) {
--		hlist_add_head_rcu(&mark->i.i_list, &inode->i_fsnotify_marks);
--		goto out;
--	}
--
--	/* should mark be in the middle of the current list? */
--	hlist_for_each_entry(lmark, &inode->i_fsnotify_marks, i.i_list) {
--		last = lmark;
--
--		if ((lmark->group == group) && !allow_dups) {
--			ret = -EEXIST;
--			goto out;
--		}
--
--		cmp = fsnotify_compare_groups(lmark->group, mark->group);
--		if (cmp < 0)
--			continue;
--
--		hlist_add_before_rcu(&mark->i.i_list, &lmark->i.i_list);
--		goto out;
--	}
--
--	BUG_ON(last == NULL);
--	/* mark should be the last entry.  last is the current last entry */
--	hlist_add_behind_rcu(&mark->i.i_list, &last->i.i_list);
--out:
-+	mark->inode = inode;
-+	ret = fsnotify_add_mark_list(&inode->i_fsnotify_marks, mark,
-+				     allow_dups);
- 	fsnotify_recalc_inode_mask_locked(inode);
- 	spin_unlock(&inode->i_lock);
- 
-diff -puN fs/notify/inotify/inotify_fsnotify.c~fsnotify-unify-inode-and-mount-marks-handling fs/notify/inotify/inotify_fsnotify.c
---- a/fs/notify/inotify/inotify_fsnotify.c~fsnotify-unify-inode-and-mount-marks-handling
-+++ a/fs/notify/inotify/inotify_fsnotify.c
-@@ -156,7 +156,7 @@ static int idr_callback(int id, void *p,
+ /* Flag - indicates that the buffer will be suitable for DMA.  Ignored on some
+    platforms, used as appropriate on others */
+diff -puN mm/slab.c~slab-improve-checking-for-invalid-gfp_flags mm/slab.c
+--- a/mm/slab.c~slab-improve-checking-for-invalid-gfp_flags
++++ a/mm/slab.c
+@@ -2590,7 +2590,10 @@ static int cache_grow(struct kmem_cache
+ 	 * Be lazy and only check for valid flags here,  keeping it out of the
+ 	 * critical path in kmem_cache_alloc().
  	 */
- 	if (fsn_mark)
- 		printk(KERN_WARNING "fsn_mark->group=%p inode=%p wd=%d\n",
--			fsn_mark->group, fsn_mark->i.inode, i_mark->wd);
-+			fsn_mark->group, fsn_mark->inode, i_mark->wd);
- 	return 0;
- }
- 
-diff -puN fs/notify/inotify/inotify_user.c~fsnotify-unify-inode-and-mount-marks-handling fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~fsnotify-unify-inode-and-mount-marks-handling
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -434,7 +434,7 @@ static void inotify_remove_from_idr(stru
- 	if (wd == -1) {
- 		WARN_ONCE(1, "%s: i_mark=%p i_mark->wd=%d i_mark->group=%p"
- 			" i_mark->inode=%p\n", __func__, i_mark, i_mark->wd,
--			i_mark->fsn_mark.group, i_mark->fsn_mark.i.inode);
-+			i_mark->fsn_mark.group, i_mark->fsn_mark.inode);
- 		goto out;
- 	}
- 
-@@ -443,7 +443,7 @@ static void inotify_remove_from_idr(stru
- 	if (unlikely(!found_i_mark)) {
- 		WARN_ONCE(1, "%s: i_mark=%p i_mark->wd=%d i_mark->group=%p"
- 			" i_mark->inode=%p\n", __func__, i_mark, i_mark->wd,
--			i_mark->fsn_mark.group, i_mark->fsn_mark.i.inode);
-+			i_mark->fsn_mark.group, i_mark->fsn_mark.inode);
- 		goto out;
- 	}
- 
-@@ -457,9 +457,9 @@ static void inotify_remove_from_idr(stru
- 			"mark->inode=%p found_i_mark=%p found_i_mark->wd=%d "
- 			"found_i_mark->group=%p found_i_mark->inode=%p\n",
- 			__func__, i_mark, i_mark->wd, i_mark->fsn_mark.group,
--			i_mark->fsn_mark.i.inode, found_i_mark, found_i_mark->wd,
-+			i_mark->fsn_mark.inode, found_i_mark, found_i_mark->wd,
- 			found_i_mark->fsn_mark.group,
--			found_i_mark->fsn_mark.i.inode);
-+			found_i_mark->fsn_mark.inode);
- 		goto out;
- 	}
- 
-@@ -471,7 +471,7 @@ static void inotify_remove_from_idr(stru
- 	if (unlikely(atomic_read(&i_mark->fsn_mark.refcnt) < 3)) {
- 		printk(KERN_ERR "%s: i_mark=%p i_mark->wd=%d i_mark->group=%p"
- 			" i_mark->inode=%p\n", __func__, i_mark, i_mark->wd,
--			i_mark->fsn_mark.group, i_mark->fsn_mark.i.inode);
-+			i_mark->fsn_mark.group, i_mark->fsn_mark.inode);
- 		/* we can't really recover with bad ref cnting.. */
- 		BUG();
- 	}
-diff -puN fs/notify/mark.c~fsnotify-unify-inode-and-mount-marks-handling fs/notify/mark.c
---- a/fs/notify/mark.c~fsnotify-unify-inode-and-mount-marks-handling
-+++ a/fs/notify/mark.c
-@@ -133,7 +133,7 @@ void fsnotify_destroy_mark_locked(struct
- 	mark->flags &= ~FSNOTIFY_MARK_FLAG_ALIVE;
- 
- 	if (mark->flags & FSNOTIFY_MARK_FLAG_INODE) {
--		inode = mark->i.inode;
-+		inode = mark->inode;
- 		fsnotify_destroy_inode_mark(mark);
- 	} else if (mark->flags & FSNOTIFY_MARK_FLAG_VFSMOUNT)
- 		fsnotify_destroy_vfsmount_mark(mark);
-@@ -192,6 +192,27 @@ void fsnotify_destroy_mark(struct fsnoti
- 	mutex_unlock(&group->mark_mutex);
- }
- 
-+/*
-+ * Destroy all marks in the given list. The marks must be already detached from
-+ * the original inode / vfsmount.
-+ */
-+void fsnotify_destroy_marks(struct list_head *to_free)
-+{
-+	struct fsnotify_mark *mark, *lmark;
-+	struct fsnotify_group *group;
-+
-+	list_for_each_entry_safe(mark, lmark, to_free, free_list) {
-+		spin_lock(&mark->lock);
-+		fsnotify_get_group(mark->group);
-+		group = mark->group;
-+		spin_unlock(&mark->lock);
-+
-+		fsnotify_destroy_mark(mark, group);
-+		fsnotify_put_mark(mark);
-+		fsnotify_put_group(group);
+-	BUG_ON(flags & GFP_SLAB_BUG_MASK);
++	if (WARN_ON(flags & GFP_SLAB_BUG_MASK)) {
++		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
++		flags &= ~GFP_SLAB_BUG_MASK;
 +	}
-+}
-+
- void fsnotify_set_mark_mask_locked(struct fsnotify_mark *mark, __u32 mask)
- {
- 	assert_spin_locked(&mark->lock);
-@@ -245,6 +266,39 @@ int fsnotify_compare_groups(struct fsnot
- 	return -1;
- }
+ 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
  
-+/* Add mark into proper place in given list of marks */
-+int fsnotify_add_mark_list(struct hlist_head *head, struct fsnotify_mark *mark,
-+			   int allow_dups)
-+{
-+	struct fsnotify_mark *lmark, *last = NULL;
-+	int cmp;
-+
-+	/* is mark the first mark? */
-+	if (hlist_empty(head)) {
-+		hlist_add_head_rcu(&mark->obj_list, head);
-+		return 0;
+ 	/* Take the node list lock to change the colour_next on this node */
+diff -puN mm/slub.c~slab-improve-checking-for-invalid-gfp_flags mm/slub.c
+--- a/mm/slub.c~slab-improve-checking-for-invalid-gfp_flags
++++ a/mm/slub.c
+@@ -1377,7 +1377,10 @@ static struct page *new_slab(struct kmem
+ 	int order;
+ 	int idx;
+ 
+-	BUG_ON(flags & GFP_SLAB_BUG_MASK);
++	if (WARN_ON(flags & GFP_SLAB_BUG_MASK)) {
++		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
++		flags &= ~GFP_SLAB_BUG_MASK;
 +	}
-+
-+	/* should mark be in the middle of the current list? */
-+	hlist_for_each_entry(lmark, head, obj_list) {
-+		last = lmark;
-+
-+		if ((lmark->group == mark->group) && !allow_dups)
-+			return -EEXIST;
-+
-+		cmp = fsnotify_compare_groups(lmark->group, mark->group);
-+		if (cmp >= 0) {
-+			hlist_add_before_rcu(&mark->obj_list, &lmark->obj_list);
-+			return 0;
-+		}
-+	}
-+
-+	BUG_ON(last == NULL);
-+	/* mark should be the last entry.  last is the current last entry */
-+	hlist_add_behind_rcu(&mark->obj_list, &last->obj_list);
-+	return 0;
-+}
-+
- /*
-  * Attach an initialized mark to a given group and fs object.
-  * These marks may be used for the fsnotify backend to determine which
-@@ -323,6 +377,24 @@ int fsnotify_add_mark(struct fsnotify_ma
- }
  
- /*
-+ * Given a list of marks, find the mark associated with given group. If found
-+ * take a reference to that mark and return it, else return NULL.
-+ */
-+struct fsnotify_mark *fsnotify_find_mark(struct hlist_head *head,
-+					 struct fsnotify_group *group)
-+{
-+	struct fsnotify_mark *mark;
-+
-+	hlist_for_each_entry(mark, head, obj_list) {
-+		if (mark->group == group) {
-+			fsnotify_get_mark(mark);
-+			return mark;
-+		}
-+	}
-+	return NULL;
-+}
-+
-+/*
-  * clear any marks in a group in which mark->flags & flags is true
-  */
- void fsnotify_clear_marks_by_group_flags(struct fsnotify_group *group,
-@@ -352,8 +424,8 @@ void fsnotify_clear_marks_by_group(struc
- void fsnotify_duplicate_mark(struct fsnotify_mark *new, struct fsnotify_mark *old)
- {
- 	assert_spin_locked(&old->lock);
--	new->i.inode = old->i.inode;
--	new->m.mnt = old->m.mnt;
-+	new->inode = old->inode;
-+	new->mnt = old->mnt;
- 	if (old->group)
- 		fsnotify_get_group(old->group);
- 	new->group = old->group;
-diff -puN fs/notify/vfsmount_mark.c~fsnotify-unify-inode-and-mount-marks-handling fs/notify/vfsmount_mark.c
---- a/fs/notify/vfsmount_mark.c~fsnotify-unify-inode-and-mount-marks-handling
-+++ a/fs/notify/vfsmount_mark.c
-@@ -32,31 +32,20 @@
- 
- void fsnotify_clear_marks_by_mount(struct vfsmount *mnt)
- {
--	struct fsnotify_mark *mark, *lmark;
-+	struct fsnotify_mark *mark;
- 	struct hlist_node *n;
- 	struct mount *m = real_mount(mnt);
- 	LIST_HEAD(free_list);
- 
- 	spin_lock(&mnt->mnt_root->d_lock);
--	hlist_for_each_entry_safe(mark, n, &m->mnt_fsnotify_marks, m.m_list) {
--		list_add(&mark->m.free_m_list, &free_list);
--		hlist_del_init_rcu(&mark->m.m_list);
-+	hlist_for_each_entry_safe(mark, n, &m->mnt_fsnotify_marks, obj_list) {
-+		list_add(&mark->free_list, &free_list);
-+		hlist_del_init_rcu(&mark->obj_list);
- 		fsnotify_get_mark(mark);
- 	}
- 	spin_unlock(&mnt->mnt_root->d_lock);
- 
--	list_for_each_entry_safe(mark, lmark, &free_list, m.free_m_list) {
--		struct fsnotify_group *group;
--
--		spin_lock(&mark->lock);
--		fsnotify_get_group(mark->group);
--		group = mark->group;
--		spin_unlock(&mark->lock);
--
--		fsnotify_destroy_mark(mark, group);
--		fsnotify_put_mark(mark);
--		fsnotify_put_group(group);
--	}
-+	fsnotify_destroy_marks(&free_list);
- }
- 
- void fsnotify_clear_vfsmount_marks_by_group(struct fsnotify_group *group)
-@@ -75,7 +64,7 @@ static void fsnotify_recalc_vfsmount_mas
- 
- 	assert_spin_locked(&mnt->mnt_root->d_lock);
- 
--	hlist_for_each_entry(mark, &m->mnt_fsnotify_marks, m.m_list)
-+	hlist_for_each_entry(mark, &m->mnt_fsnotify_marks, obj_list)
- 		new_mask |= mark->mask;
- 	m->mnt_fsnotify_mask = new_mask;
- }
-@@ -93,38 +82,21 @@ void fsnotify_recalc_vfsmount_mask(struc
- 
- void fsnotify_destroy_vfsmount_mark(struct fsnotify_mark *mark)
- {
--	struct vfsmount *mnt = mark->m.mnt;
-+	struct vfsmount *mnt = mark->mnt;
- 
- 	BUG_ON(!mutex_is_locked(&mark->group->mark_mutex));
- 	assert_spin_locked(&mark->lock);
- 
- 	spin_lock(&mnt->mnt_root->d_lock);
- 
--	hlist_del_init_rcu(&mark->m.m_list);
--	mark->m.mnt = NULL;
-+	hlist_del_init_rcu(&mark->obj_list);
-+	mark->mnt = NULL;
- 
- 	fsnotify_recalc_vfsmount_mask_locked(mnt);
- 
- 	spin_unlock(&mnt->mnt_root->d_lock);
- }
- 
--static struct fsnotify_mark *fsnotify_find_vfsmount_mark_locked(struct fsnotify_group *group,
--								struct vfsmount *mnt)
--{
--	struct mount *m = real_mount(mnt);
--	struct fsnotify_mark *mark;
--
--	assert_spin_locked(&mnt->mnt_root->d_lock);
--
--	hlist_for_each_entry(mark, &m->mnt_fsnotify_marks, m.m_list) {
--		if (mark->group == group) {
--			fsnotify_get_mark(mark);
--			return mark;
--		}
--	}
--	return NULL;
--}
--
- /*
-  * given a group and vfsmount, find the mark associated with that combination.
-  * if found take a reference to that mark and return it, else return NULL
-@@ -132,10 +104,11 @@ static struct fsnotify_mark *fsnotify_fi
- struct fsnotify_mark *fsnotify_find_vfsmount_mark(struct fsnotify_group *group,
- 						  struct vfsmount *mnt)
- {
-+	struct mount *m = real_mount(mnt);
- 	struct fsnotify_mark *mark;
- 
- 	spin_lock(&mnt->mnt_root->d_lock);
--	mark = fsnotify_find_vfsmount_mark_locked(group, mnt);
-+	mark = fsnotify_find_mark(&m->mnt_fsnotify_marks, group);
- 	spin_unlock(&mnt->mnt_root->d_lock);
- 
- 	return mark;
-@@ -151,9 +124,7 @@ int fsnotify_add_vfsmount_mark(struct fs
- 			       int allow_dups)
- {
- 	struct mount *m = real_mount(mnt);
--	struct fsnotify_mark *lmark, *last = NULL;
--	int ret = 0;
--	int cmp;
-+	int ret;
- 
- 	mark->flags |= FSNOTIFY_MARK_FLAG_VFSMOUNT;
- 
-@@ -161,36 +132,8 @@ int fsnotify_add_vfsmount_mark(struct fs
- 	assert_spin_locked(&mark->lock);
- 
- 	spin_lock(&mnt->mnt_root->d_lock);
--
--	mark->m.mnt = mnt;
--
--	/* is mark the first mark? */
--	if (hlist_empty(&m->mnt_fsnotify_marks)) {
--		hlist_add_head_rcu(&mark->m.m_list, &m->mnt_fsnotify_marks);
--		goto out;
--	}
--
--	/* should mark be in the middle of the current list? */
--	hlist_for_each_entry(lmark, &m->mnt_fsnotify_marks, m.m_list) {
--		last = lmark;
--
--		if ((lmark->group == group) && !allow_dups) {
--			ret = -EEXIST;
--			goto out;
--		}
--
--		cmp = fsnotify_compare_groups(lmark->group, mark->group);
--		if (cmp < 0)
--			continue;
--
--		hlist_add_before_rcu(&mark->m.m_list, &lmark->m.m_list);
--		goto out;
--	}
--
--	BUG_ON(last == NULL);
--	/* mark should be the last entry.  last is the current last entry */
--	hlist_add_behind_rcu(&mark->m.m_list, &last->m.m_list);
--out:
-+	mark->mnt = mnt;
-+	ret = fsnotify_add_mark_list(&m->mnt_fsnotify_marks, mark, allow_dups);
- 	fsnotify_recalc_vfsmount_mask_locked(mnt);
- 	spin_unlock(&mnt->mnt_root->d_lock);
- 
-diff -puN include/linux/fsnotify_backend.h~fsnotify-unify-inode-and-mount-marks-handling include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-unify-inode-and-mount-marks-handling
-+++ a/include/linux/fsnotify_backend.h
-@@ -197,24 +197,6 @@ struct fsnotify_group {
- #define FSNOTIFY_EVENT_INODE	2
- 
- /*
-- * Inode specific fields in an fsnotify_mark
-- */
--struct fsnotify_inode_mark {
--	struct inode *inode;		/* inode this mark is associated with */
--	struct hlist_node i_list;	/* list of marks by inode->i_fsnotify_marks */
--	struct list_head free_i_list;	/* tmp list used when freeing this mark */
--};
--
--/*
-- * Mount point specific fields in an fsnotify_mark
-- */
--struct fsnotify_vfsmount_mark {
--	struct vfsmount *mnt;		/* vfsmount this mark is associated with */
--	struct hlist_node m_list;	/* list of marks by inode->i_fsnotify_marks */
--	struct list_head free_m_list;	/* tmp list used when freeing this mark */
--};
--
--/*
-  * a mark is simply an object attached to an in core inode which allows an
-  * fsnotify listener to indicate they are either no longer interested in events
-  * of a type matching mask or only interested in those events.
-@@ -232,9 +214,11 @@ struct fsnotify_mark {
- 	struct fsnotify_group *group;	/* group this mark is for */
- 	struct list_head g_list;	/* list of marks by group->i_fsnotify_marks */
- 	spinlock_t lock;		/* protect group and inode */
-+	struct hlist_node obj_list;	/* list of marks for inode / vfsmount */
-+	struct list_head free_list;	/* tmp list used when freeing this mark */
- 	union {
--		struct fsnotify_inode_mark i;
--		struct fsnotify_vfsmount_mark m;
-+		struct inode *inode;	/* inode this mark is associated with */
-+		struct vfsmount *mnt;	/* vfsmount this mark is associated with */
- 	};
- 	__u32 ignored_mask;		/* events types to ignore */
- #define FSNOTIFY_MARK_FLAG_INODE		0x01
-diff -puN kernel/audit_tree.c~fsnotify-unify-inode-and-mount-marks-handling kernel/audit_tree.c
---- a/kernel/audit_tree.c~fsnotify-unify-inode-and-mount-marks-handling
-+++ a/kernel/audit_tree.c
-@@ -173,9 +173,9 @@ static void insert_hash(struct audit_chu
- 	struct fsnotify_mark *entry = &chunk->mark;
- 	struct list_head *list;
- 
--	if (!entry->i.inode)
-+	if (!entry->inode)
- 		return;
--	list = chunk_hash(entry->i.inode);
-+	list = chunk_hash(entry->inode);
- 	list_add_rcu(&chunk->hash, list);
- }
- 
-@@ -187,7 +187,7 @@ struct audit_chunk *audit_tree_lookup(co
- 
- 	list_for_each_entry_rcu(p, list, hash) {
- 		/* mark.inode may have gone NULL, but who cares? */
--		if (p->mark.i.inode == inode) {
-+		if (p->mark.inode == inode) {
- 			atomic_long_inc(&p->refs);
- 			return p;
- 		}
-@@ -230,7 +230,7 @@ static void untag_chunk(struct node *p)
- 		new = alloc_chunk(size);
- 
- 	spin_lock(&entry->lock);
--	if (chunk->dead || !entry->i.inode) {
-+	if (chunk->dead || !entry->inode) {
- 		spin_unlock(&entry->lock);
- 		if (new)
- 			free_chunk(new);
-@@ -257,7 +257,7 @@ static void untag_chunk(struct node *p)
- 		goto Fallback;
- 
- 	fsnotify_duplicate_mark(&new->mark, entry);
--	if (fsnotify_add_mark(&new->mark, new->mark.group, new->mark.i.inode, NULL, 1)) {
-+	if (fsnotify_add_mark(&new->mark, new->mark.group, new->mark.inode, NULL, 1)) {
- 		fsnotify_put_mark(&new->mark);
- 		goto Fallback;
- 	}
-@@ -385,7 +385,7 @@ static int tag_chunk(struct inode *inode
- 	chunk_entry = &chunk->mark;
- 
- 	spin_lock(&old_entry->lock);
--	if (!old_entry->i.inode) {
-+	if (!old_entry->inode) {
- 		/* old_entry is being shot, lets just lie */
- 		spin_unlock(&old_entry->lock);
- 		fsnotify_put_mark(old_entry);
-@@ -394,7 +394,7 @@ static int tag_chunk(struct inode *inode
- 	}
- 
- 	fsnotify_duplicate_mark(chunk_entry, old_entry);
--	if (fsnotify_add_mark(chunk_entry, chunk_entry->group, chunk_entry->i.inode, NULL, 1)) {
-+	if (fsnotify_add_mark(chunk_entry, chunk_entry->group, chunk_entry->inode, NULL, 1)) {
- 		spin_unlock(&old_entry->lock);
- 		fsnotify_put_mark(chunk_entry);
- 		fsnotify_put_mark(old_entry);
-@@ -610,7 +610,7 @@ void audit_trim_trees(void)
- 		list_for_each_entry(node, &tree->chunks, list) {
- 			struct audit_chunk *chunk = find_chunk(node);
- 			/* this could be NULL if the watch is dying else where... */
--			struct inode *inode = chunk->mark.i.inode;
-+			struct inode *inode = chunk->mark.inode;
- 			node->index |= 1U<<31;
- 			if (iterate_mounts(compare_root, inode, root_mnt))
- 				node->index &= ~(1U<<31);
+ 	page = allocate_slab(s,
+ 		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fanotify-fix-notification-of-groups-with-inode-mount-marks.patch
-fallocate-create-fan_modify-and-in_modify-events.patch
-fsnotify-unify-inode-and-mount-marks-handling.patch
-fsnotify-remove-free_list-list_head-from-fsnotify_mark.patch
-fsnotify-remove-destroy_list-from-fsnotify_mark.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
-ocfs2-remove-bogus-test-from-ocfs2_read_locked_inode.patch
-ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
-ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init.patch
-char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
-befs-remove-dead-code.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
-mm-add-strictlimit-knob-v2.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
