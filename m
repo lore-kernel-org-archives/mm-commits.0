@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + slab-improve-checking-for-invalid-gfp_flags.patch added to -mm
- tree
-Date: Tue, 11 Nov 2014 15:32:21 -0800
-Message-ID: <54629c85.VR9F/ErhnW3sPNAz%akpm@linux-foundation.org>
+Subject: +
+ mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch added
+ to -mm tree
+Date: Tue, 11 Nov 2014 16:09:02 -0800
+Message-ID: <5462a51e.wzROrxc3PKoQUJh4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57143 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57518 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752448AbaKKXcW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 18:32:22 -0500
+	with ESMTP id S1751712AbaKLAJE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 19:09:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mel@csn.ul.ie, ming.lei@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: improve checking for invalid gfp_flags
+     Subject: mm/page_alloc.c:__alloc_pages_nodemask(): don't alter arg gfp_mask
 has been added to the -mm tree.  Its filename is
-     slab-improve-checking-for-invalid-gfp_flags.patch
+     mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-improve-checking-for-invalid-gfp_flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/slab-improve-checking-for-invalid-gfp_flags.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,70 +41,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slab: improve checking for invalid gfp_flags
+Subject: mm/page_alloc.c:__alloc_pages_nodemask(): don't alter arg gfp_mask
 
-- The code goes BUG, but doesn't tell us which bits were unexpectedly
-  set.  Print that out.
+__alloc_pages_nodemask() strips __GFP_IO when retrying the page
+allocation.  But it does this by altering the function-wide variable
+gfp_mask.  This will cause subsequent allocation attempts to inadvertently
+use the modified gfp_mask.
 
-- The code goes BUG when it could jsut fix things up and proceed.  Do that.
-
-- ~__GFP_BITS_MASK already includes __GFP_DMA32 and __GFP_HIGHMEM, so
-  remove those from the GFP_SLAB_BUG_MASK definition.
-
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Ming Lei <ming.lei@canonical.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- mm/slab.c           |    5 ++++-
- mm/slub.c           |    5 ++++-
- 3 files changed, 9 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/gfp.h~slab-improve-checking-for-invalid-gfp_flags include/linux/gfp.h
---- a/include/linux/gfp.h~slab-improve-checking-for-invalid-gfp_flags
-+++ a/include/linux/gfp.h
-@@ -145,7 +145,7 @@ struct vm_area_struct;
- #define GFP_CONSTRAINT_MASK (__GFP_HARDWALL|__GFP_THISNODE)
- 
- /* Do not use these with a slab allocator */
--#define GFP_SLAB_BUG_MASK (__GFP_DMA32|__GFP_HIGHMEM|~__GFP_BITS_MASK)
-+#define GFP_SLAB_BUG_MASK (~__GFP_BITS_MASK)
- 
- /* Flag - indicates that the buffer will be suitable for DMA.  Ignored on some
-    platforms, used as appropriate on others */
-diff -puN mm/slab.c~slab-improve-checking-for-invalid-gfp_flags mm/slab.c
---- a/mm/slab.c~slab-improve-checking-for-invalid-gfp_flags
-+++ a/mm/slab.c
-@@ -2590,7 +2590,10 @@ static int cache_grow(struct kmem_cache
- 	 * Be lazy and only check for valid flags here,  keeping it out of the
- 	 * critical path in kmem_cache_alloc().
- 	 */
--	BUG_ON(flags & GFP_SLAB_BUG_MASK);
-+	if (WARN_ON(flags & GFP_SLAB_BUG_MASK)) {
-+		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
-+		flags &= ~GFP_SLAB_BUG_MASK;
-+	}
- 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
- 
- 	/* Take the node list lock to change the colour_next on this node */
-diff -puN mm/slub.c~slab-improve-checking-for-invalid-gfp_flags mm/slub.c
---- a/mm/slub.c~slab-improve-checking-for-invalid-gfp_flags
-+++ a/mm/slub.c
-@@ -1377,7 +1377,10 @@ static struct page *new_slab(struct kmem
- 	int order;
- 	int idx;
- 
--	BUG_ON(flags & GFP_SLAB_BUG_MASK);
-+	if (WARN_ON(flags & GFP_SLAB_BUG_MASK)) {
-+		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
-+		flags &= ~GFP_SLAB_BUG_MASK;
-+	}
- 
- 	page = allocate_slab(s,
- 		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
+diff -puN mm/page_alloc.c~mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask
++++ a/mm/page_alloc.c
+@@ -2854,8 +2854,8 @@ retry_cpuset:
+ 		 * can deadlock because I/O on the device might not
+ 		 * complete.
+ 		 */
+-		gfp_mask = memalloc_noio_flags(gfp_mask);
+-		page = __alloc_pages_slowpath(gfp_mask, order,
++		gfp_t mask = memalloc_noio_flags(gfp_mask);
++		page = __alloc_pages_slowpath(mask, order,
+ 				zonelist, high_zoneidx, nodemask,
+ 				preferred_zone, classzone_idx, migratetype);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +89,7 @@ kernel-res_counter-remove-the-unused-api-fix.patch
 mm-compaction-simplify-deferred-compaction-fix.patch
 mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
 mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
