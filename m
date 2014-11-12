@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2.patch
- added to -mm tree
-Date: Wed, 12 Nov 2014 13:46:17 -0800
-Message-ID: <5463d529.Xn4umhyVffZnUzez%akpm@linux-foundation.org>
+Subject: + syscallsx86-implement-execveat-system-call.patch added to -mm
+ tree
+Date: Wed, 12 Nov 2014 14:08:28 -0800
+Message-ID: <5463da5c.d+K2ZyssYktdLmdp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49410 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49476 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309AbaKLVqT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Nov 2014 16:46:19 -0500
+	with ESMTP id S1751865AbaKLWI3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Nov 2014 17:08:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: drysdale@google.com, arnd@arndb.de, dalias@aerifal.cx, ebiederm@xmission.com, hch@infradead.org, hpa@zytor.com, keescook@chromium.org, luto@amacapital.net, meredydd@senatehouse.org, mingo@redhat.com, mtk.manpages@gmail.com, shuahkh@osg.samsung.com, tglx@linutronix.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2
+     Subject: syscalls,x86: implement execveat() system call
 has been added to the -mm tree.  Its filename is
-     fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2.patch
+     syscallsx86-implement-execveat-system-call.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/syscallsx86-implement-execveat-system-call.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/syscallsx86-implement-execveat-system-call.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +39,587 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2
+From: David Drysdale <drysdale@google.com>
+Subject: syscalls,x86: implement execveat() system call
 
-Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
-Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+This patchset adds execveat(2) for x86, and is derived from Meredydd
+Luff's patch from Sept 2012 (https://lkml.org/lkml/2012/9/11/528).
+
+The primary aim of adding an execveat syscall is to allow an
+implementation of fexecve(3) that does not rely on the /proc filesystem,
+at least for executables (rather than scripts).  The current glibc version
+of fexecve(3) is implemented via /proc, which causes problems in sandboxed
+or otherwise restricted environments.
+
+Given the desire for a /proc-free fexecve() implementation, HPA suggested
+(https://lkml.org/lkml/2006/7/11/556) that an execveat(2) syscall would be
+an appropriate generalization.
+
+Also, having a new syscall means that it can take a flags argument without
+back-compatibility concerns.  The current implementation just defines the
+AT_EMPTY_PATH and AT_SYMLINK_NOFOLLOW flags, but other flags could be
+added in future -- for example, flags for new namespaces (as suggested at
+https://lkml.org/lkml/2006/7/11/474).
+
+Related history:
+ - https://lkml.org/lkml/2006/12/27/123 is an example of someone
+   realizing that fexecve() is likely to fail in a chroot environment.
+ - http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=514043 covered
+   documenting the /proc requirement of fexecve(3) in its manpage, to
+   "prevent other people from wasting their time".
+ - https://bugzilla.redhat.com/show_bug.cgi?id=241609 described a
+   problem where a process that did setuid() could not fexecve()
+   because it no longer had access to /proc/self/fd; this has since
+   been fixed.
+
+
+
+This patch (of 2):
+
+Add a new execveat(2) system call.  execveat() is to execve() as openat()
+is to open(): it takes a file descriptor that refers to a directory, and
+resolves the filename relative to that.
+
+In addition, if the filename is empty and AT_EMPTY_PATH is specified,
+execveat() executes the file to which the file descriptor refers.  This
+replicates the functionality of fexecve(), which is a system call in other
+UNIXen, but in Linux glibc it depends on opening "/proc/self/fd/<fd>" (and
+so relies on /proc being mounted).
+
+The filename fed to the executed program as argv[0] (or the name of the
+script fed to a script interpreter) will be of the form "/dev/fd/<fd>"
+(for an empty filename) or "/dev/fd/<fd>/<filename>", effectively
+reflecting how the executable was found.  This does however mean that
+execution of a script in a /proc-less environment won't work; also, script
+execution via an O_CLOEXEC file descriptor fails (as the file will not be
+accessible after exec).
+
+Only x86-64, i386 and x32 ABIs are supported in this patch.
+
+Based on patches by Meredydd Luff.
+
+Signed-off-by: David Drysdale <drysdale@google.com>
+Cc: Meredydd Luff <meredydd@senatehouse.org>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Rich Felker <dalias@aerifal.cx>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/file.c  |    5 +++--
- fs/fat/inode.c |    2 +-
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ arch/x86/ia32/audit.c             |    1 
+ arch/x86/ia32/ia32entry.S         |    1 
+ arch/x86/kernel/audit_64.c        |    1 
+ arch/x86/kernel/entry_64.S        |   28 +++++++
+ arch/x86/syscalls/syscall_32.tbl  |    1 
+ arch/x86/syscalls/syscall_64.tbl  |    2 
+ arch/x86/um/sys_call_table_64.c   |    1 
+ fs/binfmt_em86.c                  |    4 +
+ fs/binfmt_misc.c                  |    4 +
+ fs/binfmt_script.c                |   10 ++
+ fs/exec.c                         |  110 ++++++++++++++++++++++++----
+ fs/namei.c                        |    2 
+ include/linux/binfmts.h           |    4 +
+ include/linux/compat.h            |    3 
+ include/linux/fs.h                |    1 
+ include/linux/sched.h             |    4 +
+ include/linux/syscalls.h          |    4 +
+ include/uapi/asm-generic/unistd.h |    4 -
+ kernel/sys_ni.c                   |    3 
+ lib/audit.c                       |    3 
+ 20 files changed, 176 insertions(+), 15 deletions(-)
 
-diff -puN fs/fat/file.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2 fs/fat/file.c
---- a/fs/fat/file.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2
-+++ a/fs/fat/file.c
-@@ -508,11 +508,12 @@ int fat_setattr(struct dentry *dentry, s
- 	}
+diff -puN arch/x86/ia32/audit.c~syscallsx86-implement-execveat-system-call arch/x86/ia32/audit.c
+--- a/arch/x86/ia32/audit.c~syscallsx86-implement-execveat-system-call
++++ a/arch/x86/ia32/audit.c
+@@ -35,6 +35,7 @@ int ia32_classify_syscall(unsigned sysca
+ 	case __NR_socketcall:
+ 		return 4;
+ 	case __NR_execve:
++	case __NR_execveat:
+ 		return 5;
+ 	default:
+ 		return 1;
+diff -puN arch/x86/ia32/ia32entry.S~syscallsx86-implement-execveat-system-call arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~syscallsx86-implement-execveat-system-call
++++ a/arch/x86/ia32/ia32entry.S
+@@ -480,6 +480,7 @@ GLOBAL(\label)
+ 	PTREGSCALL stub32_rt_sigreturn, sys32_rt_sigreturn
+ 	PTREGSCALL stub32_sigreturn, sys32_sigreturn
+ 	PTREGSCALL stub32_execve, compat_sys_execve
++	PTREGSCALL stub32_execveat, compat_sys_execveat
+ 	PTREGSCALL stub32_fork, sys_fork
+ 	PTREGSCALL stub32_vfork, sys_vfork
  
- 	if (attr->ia_valid & ATTR_SIZE) {
-+		error = fat_block_truncate_page(inode, attr->ia_size);
-+		if (error)
-+			goto out;
- 		down_write(&MSDOS_I(inode)->truncate_lock);
- 		truncate_setsize(inode, attr->ia_size);
- 		fat_truncate_blocks(inode, attr->ia_size);
--		if (inode->i_size & (inode->i_sb->s_blocksize - 1))
--			fat_block_truncate_page(inode, inode->i_size);
- 		up_write(&MSDOS_I(inode)->truncate_lock);
- 	}
+diff -puN arch/x86/kernel/audit_64.c~syscallsx86-implement-execveat-system-call arch/x86/kernel/audit_64.c
+--- a/arch/x86/kernel/audit_64.c~syscallsx86-implement-execveat-system-call
++++ a/arch/x86/kernel/audit_64.c
+@@ -50,6 +50,7 @@ int audit_classify_syscall(int abi, unsi
+ 	case __NR_openat:
+ 		return 3;
+ 	case __NR_execve:
++	case __NR_execveat:
+ 		return 5;
+ 	default:
+ 		return 0;
+diff -puN arch/x86/kernel/entry_64.S~syscallsx86-implement-execveat-system-call arch/x86/kernel/entry_64.S
+--- a/arch/x86/kernel/entry_64.S~syscallsx86-implement-execveat-system-call
++++ a/arch/x86/kernel/entry_64.S
+@@ -652,6 +652,20 @@ ENTRY(stub_execve)
+ 	CFI_ENDPROC
+ END(stub_execve)
  
-diff -puN fs/fat/inode.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2 fs/fat/inode.c
---- a/fs/fat/inode.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2
-+++ a/fs/fat/inode.c
-@@ -333,7 +333,7 @@ static sector_t _fat_bmap(struct address
++ENTRY(stub_execveat)
++	CFI_STARTPROC
++	addq $8, %rsp
++	PARTIAL_FRAME 0
++	SAVE_REST
++	FIXUP_TOP_OF_STACK %r11
++	call sys_execveat
++	RESTORE_TOP_OF_STACK %r11
++	movq %rax,RAX(%rsp)
++	RESTORE_REST
++	jmp int_ret_from_sys_call
++	CFI_ENDPROC
++END(stub_execveat)
++
  /*
-  * fat_block_truncate_page() zeroes out a mapping from file offset `from'
-  * up to the end of the block which corresponds to `from'.
-- * This is required during truncate to physically zero out the tail end
-+ * This is required during truncate to physically zeroout the tail end
-  * of that block so it doesn't yield old data if the file is later grown.
-  * Also, avoid causing failure from fsx for cases of "data past EOF"
+  * sigreturn is special because it needs to restore all registers on return.
+  * This cannot be done with SYSRET, so use the IRET return path instead.
+@@ -697,6 +711,20 @@ ENTRY(stub_x32_execve)
+ 	CFI_ENDPROC
+ END(stub_x32_execve)
+ 
++ENTRY(stub_x32_execveat)
++	CFI_STARTPROC
++	addq $8, %rsp
++	PARTIAL_FRAME 0
++	SAVE_REST
++	FIXUP_TOP_OF_STACK %r11
++	call compat_sys_execveat
++	RESTORE_TOP_OF_STACK %r11
++	movq %rax,RAX(%rsp)
++	RESTORE_REST
++	jmp int_ret_from_sys_call
++	CFI_ENDPROC
++END(stub_x32_execveat)
++
+ #endif
+ 
+ /*
+diff -puN arch/x86/syscalls/syscall_32.tbl~syscallsx86-implement-execveat-system-call arch/x86/syscalls/syscall_32.tbl
+--- a/arch/x86/syscalls/syscall_32.tbl~syscallsx86-implement-execveat-system-call
++++ a/arch/x86/syscalls/syscall_32.tbl
+@@ -364,3 +364,4 @@
+ 355	i386	getrandom		sys_getrandom
+ 356	i386	memfd_create		sys_memfd_create
+ 357	i386	bpf			sys_bpf
++358	i386	execveat		sys_execveat			stub32_execveat
+diff -puN arch/x86/syscalls/syscall_64.tbl~syscallsx86-implement-execveat-system-call arch/x86/syscalls/syscall_64.tbl
+--- a/arch/x86/syscalls/syscall_64.tbl~syscallsx86-implement-execveat-system-call
++++ a/arch/x86/syscalls/syscall_64.tbl
+@@ -328,6 +328,7 @@
+ 319	common	memfd_create		sys_memfd_create
+ 320	common	kexec_file_load		sys_kexec_file_load
+ 321	common	bpf			sys_bpf
++322	64	execveat		stub_execveat
+ 
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+@@ -366,3 +367,4 @@
+ 542	x32	getsockopt		compat_sys_getsockopt
+ 543	x32	io_setup		compat_sys_io_setup
+ 544	x32	io_submit		compat_sys_io_submit
++545	x32	execveat		stub_x32_execveat
+diff -puN arch/x86/um/sys_call_table_64.c~syscallsx86-implement-execveat-system-call arch/x86/um/sys_call_table_64.c
+--- a/arch/x86/um/sys_call_table_64.c~syscallsx86-implement-execveat-system-call
++++ a/arch/x86/um/sys_call_table_64.c
+@@ -31,6 +31,7 @@
+ #define stub_fork sys_fork
+ #define stub_vfork sys_vfork
+ #define stub_execve sys_execve
++#define stub_execveat sys_execveat
+ #define stub_rt_sigreturn sys_rt_sigreturn
+ 
+ #define __SYSCALL_COMMON(nr, sym, compat) __SYSCALL_64(nr, sym, compat)
+diff -puN fs/binfmt_em86.c~syscallsx86-implement-execveat-system-call fs/binfmt_em86.c
+--- a/fs/binfmt_em86.c~syscallsx86-implement-execveat-system-call
++++ a/fs/binfmt_em86.c
+@@ -42,6 +42,10 @@ static int load_em86(struct linux_binprm
+ 			return -ENOEXEC;
+ 	}
+ 
++	/* Need to be able to load the file after exec */
++	if (bprm->interp_flags & BINPRM_FLAGS_PATH_INACCESSIBLE)
++		return -ENOENT;
++
+ 	allow_write_access(bprm->file);
+ 	fput(bprm->file);
+ 	bprm->file = NULL;
+diff -puN fs/binfmt_misc.c~syscallsx86-implement-execveat-system-call fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~syscallsx86-implement-execveat-system-call
++++ a/fs/binfmt_misc.c
+@@ -144,6 +144,10 @@ static int load_misc_binary(struct linux
+ 	if (!fmt)
+ 		goto ret;
+ 
++	/* Need to be able to load the file after exec */
++	if (bprm->interp_flags & BINPRM_FLAGS_PATH_INACCESSIBLE)
++		return -ENOENT;
++
+ 	if (!(fmt->flags & MISC_FMT_PRESERVE_ARGV0)) {
+ 		retval = remove_arg_zero(bprm);
+ 		if (retval)
+diff -puN fs/binfmt_script.c~syscallsx86-implement-execveat-system-call fs/binfmt_script.c
+--- a/fs/binfmt_script.c~syscallsx86-implement-execveat-system-call
++++ a/fs/binfmt_script.c
+@@ -24,6 +24,16 @@ static int load_script(struct linux_binp
+ 
+ 	if ((bprm->buf[0] != '#') || (bprm->buf[1] != '!'))
+ 		return -ENOEXEC;
++
++	/*
++	 * If the script filename will be inaccessible after exec, typically
++	 * because it is a "/dev/fd/<fd>/.." path against an O_CLOEXEC fd, give
++	 * up now (on the assumption that the interpreter will want to load
++	 * this file).
++	 */
++	if (bprm->interp_flags & BINPRM_FLAGS_PATH_INACCESSIBLE)
++		return -ENOENT;
++
+ 	/*
+ 	 * This section does the #! interpretation.
+ 	 * Sorta complicated, but hopefully it will work.  -TYT
+diff -puN fs/exec.c~syscallsx86-implement-execveat-system-call fs/exec.c
+--- a/fs/exec.c~syscallsx86-implement-execveat-system-call
++++ a/fs/exec.c
+@@ -747,18 +747,25 @@ EXPORT_SYMBOL(setup_arg_pages);
+ 
+ #endif /* CONFIG_MMU */
+ 
+-static struct file *do_open_exec(struct filename *name)
++static struct file *do_open_execat(int fd, struct filename *name, int flags)
+ {
+ 	struct file *file;
+ 	int err;
+-	static const struct open_flags open_exec_flags = {
++	struct open_flags open_exec_flags = {
+ 		.open_flag = O_LARGEFILE | O_RDONLY | __FMODE_EXEC,
+ 		.acc_mode = MAY_EXEC | MAY_OPEN,
+ 		.intent = LOOKUP_OPEN,
+ 		.lookup_flags = LOOKUP_FOLLOW,
+ 	};
+ 
+-	file = do_filp_open(AT_FDCWD, name, &open_exec_flags);
++	if ((flags & ~(AT_SYMLINK_NOFOLLOW | AT_EMPTY_PATH)) != 0)
++		return ERR_PTR(-EINVAL);
++	if (flags & AT_SYMLINK_NOFOLLOW)
++		open_exec_flags.lookup_flags &= ~LOOKUP_FOLLOW;
++	if (flags & AT_EMPTY_PATH)
++		open_exec_flags.lookup_flags |= LOOKUP_EMPTY;
++
++	file = do_filp_open(fd, name, &open_exec_flags);
+ 	if (IS_ERR(file))
+ 		goto out;
+ 
+@@ -769,12 +776,13 @@ static struct file *do_open_exec(struct
+ 	if (file->f_path.mnt->mnt_flags & MNT_NOEXEC)
+ 		goto exit;
+ 
+-	fsnotify_open(file);
+-
+ 	err = deny_write_access(file);
+ 	if (err)
+ 		goto exit;
+ 
++	if (name->name[0] != '\0')
++		fsnotify_open(file);
++
+ out:
+ 	return file;
+ 
+@@ -786,7 +794,7 @@ exit:
+ struct file *open_exec(const char *name)
+ {
+ 	struct filename tmp = { .name = name };
+-	return do_open_exec(&tmp);
++	return do_open_execat(AT_FDCWD, &tmp, 0);
+ }
+ EXPORT_SYMBOL(open_exec);
+ 
+@@ -1427,10 +1435,12 @@ static int exec_binprm(struct linux_binp
+ /*
+  * sys_execve() executes a new program.
   */
+-static int do_execve_common(struct filename *filename,
+-				struct user_arg_ptr argv,
+-				struct user_arg_ptr envp)
++static int do_execveat_common(int fd, struct filename *filename,
++			      struct user_arg_ptr argv,
++			      struct user_arg_ptr envp,
++			      int flags)
+ {
++	char *pathbuf = NULL;
+ 	struct linux_binprm *bprm;
+ 	struct file *file;
+ 	struct files_struct *displaced;
+@@ -1471,7 +1481,7 @@ static int do_execve_common(struct filen
+ 	check_unsafe_exec(bprm);
+ 	current->in_execve = 1;
+ 
+-	file = do_open_exec(filename);
++	file = do_open_execat(fd, filename, flags);
+ 	retval = PTR_ERR(file);
+ 	if (IS_ERR(file))
+ 		goto out_unmark;
+@@ -1479,7 +1489,26 @@ static int do_execve_common(struct filen
+ 	sched_exec();
+ 
+ 	bprm->file = file;
+-	bprm->filename = bprm->interp = filename->name;
++	if (fd == AT_FDCWD || filename->name[0] == '/') {
++		bprm->filename = filename->name;
++	} else {
++		if (filename->name[0] == '\0')
++			pathbuf = kasprintf(GFP_TEMPORARY, "/dev/fd/%d", fd);
++		else
++			pathbuf = kasprintf(GFP_TEMPORARY, "/dev/fd/%d/%s",
++					    fd, filename->name);
++		if (!pathbuf) {
++			retval = -ENOMEM;
++			goto out_unmark;
++		}
++		/* Record that a name derived from an O_CLOEXEC fd will be
++		 * inaccessible after exec. Relies on having exclusive access to
++		 * current->files (due to unshare_files above). */
++		if (close_on_exec(fd, current->files->fdt))
++			bprm->interp_flags |= BINPRM_FLAGS_PATH_INACCESSIBLE;
++		bprm->filename = pathbuf;
++	}
++	bprm->interp = bprm->filename;
+ 
+ 	retval = bprm_mm_init(bprm);
+ 	if (retval)
+@@ -1537,6 +1566,7 @@ out_unmark:
+ 
+ out_free:
+ 	free_bprm(bprm);
++	kfree(pathbuf);
+ 
+ out_files:
+ 	if (displaced)
+@@ -1552,7 +1582,18 @@ int do_execve(struct filename *filename,
+ {
+ 	struct user_arg_ptr argv = { .ptr.native = __argv };
+ 	struct user_arg_ptr envp = { .ptr.native = __envp };
+-	return do_execve_common(filename, argv, envp);
++	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
++}
++
++int do_execveat(int fd, struct filename *filename,
++		const char __user *const __user *__argv,
++		const char __user *const __user *__envp,
++		int flags)
++{
++	struct user_arg_ptr argv = { .ptr.native = __argv };
++	struct user_arg_ptr envp = { .ptr.native = __envp };
++
++	return do_execveat_common(fd, filename, argv, envp, flags);
+ }
+ 
+ #ifdef CONFIG_COMPAT
+@@ -1568,7 +1609,23 @@ static int compat_do_execve(struct filen
+ 		.is_compat = true,
+ 		.ptr.compat = __envp,
+ 	};
+-	return do_execve_common(filename, argv, envp);
++	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
++}
++
++static int compat_do_execveat(int fd, struct filename *filename,
++			      const compat_uptr_t __user *__argv,
++			      const compat_uptr_t __user *__envp,
++			      int flags)
++{
++	struct user_arg_ptr argv = {
++		.is_compat = true,
++		.ptr.compat = __argv,
++	};
++	struct user_arg_ptr envp = {
++		.is_compat = true,
++		.ptr.compat = __envp,
++	};
++	return do_execveat_common(fd, filename, argv, envp, flags);
+ }
+ #endif
+ 
+@@ -1608,6 +1665,20 @@ SYSCALL_DEFINE3(execve,
+ {
+ 	return do_execve(getname(filename), argv, envp);
+ }
++
++SYSCALL_DEFINE5(execveat,
++		int, fd, const char __user *, filename,
++		const char __user *const __user *, argv,
++		const char __user *const __user *, envp,
++		int, flags)
++{
++	int lookup_flags = (flags & AT_EMPTY_PATH) ? LOOKUP_EMPTY : 0;
++
++	return do_execveat(fd,
++			   getname_flags(filename, lookup_flags, NULL),
++			   argv, envp, flags);
++}
++
+ #ifdef CONFIG_COMPAT
+ COMPAT_SYSCALL_DEFINE3(execve, const char __user *, filename,
+ 	const compat_uptr_t __user *, argv,
+@@ -1615,4 +1686,17 @@ COMPAT_SYSCALL_DEFINE3(execve, const cha
+ {
+ 	return compat_do_execve(getname(filename), argv, envp);
+ }
++
++COMPAT_SYSCALL_DEFINE5(execveat, int, fd,
++		       const char __user *, filename,
++		       const compat_uptr_t __user *, argv,
++		       const compat_uptr_t __user *, envp,
++		       int,  flags)
++{
++	int lookup_flags = (flags & AT_EMPTY_PATH) ? LOOKUP_EMPTY : 0;
++
++	return compat_do_execveat(fd,
++				  getname_flags(filename, lookup_flags, NULL),
++				  argv, envp, flags);
++}
+ #endif
+diff -puN fs/namei.c~syscallsx86-implement-execveat-system-call fs/namei.c
+--- a/fs/namei.c~syscallsx86-implement-execveat-system-call
++++ a/fs/namei.c
+@@ -130,7 +130,7 @@ void final_putname(struct filename *name
+ 
+ #define EMBEDDED_NAME_MAX	(PATH_MAX - sizeof(struct filename))
+ 
+-static struct filename *
++struct filename *
+ getname_flags(const char __user *filename, int flags, int *empty)
+ {
+ 	struct filename *result, *err;
+diff -puN include/linux/binfmts.h~syscallsx86-implement-execveat-system-call include/linux/binfmts.h
+--- a/include/linux/binfmts.h~syscallsx86-implement-execveat-system-call
++++ a/include/linux/binfmts.h
+@@ -53,6 +53,10 @@ struct linux_binprm {
+ #define BINPRM_FLAGS_EXECFD_BIT 1
+ #define BINPRM_FLAGS_EXECFD (1 << BINPRM_FLAGS_EXECFD_BIT)
+ 
++/* filename of the binary will be inaccessible after exec */
++#define BINPRM_FLAGS_PATH_INACCESSIBLE_BIT 2
++#define BINPRM_FLAGS_PATH_INACCESSIBLE (1 << BINPRM_FLAGS_PATH_INACCESSIBLE_BIT)
++
+ /* Function parameter for binfmt->coredump */
+ struct coredump_params {
+ 	const siginfo_t *siginfo;
+diff -puN include/linux/compat.h~syscallsx86-implement-execveat-system-call include/linux/compat.h
+--- a/include/linux/compat.h~syscallsx86-implement-execveat-system-call
++++ a/include/linux/compat.h
+@@ -357,6 +357,9 @@ asmlinkage long compat_sys_lseek(unsigne
+ 
+ asmlinkage long compat_sys_execve(const char __user *filename, const compat_uptr_t __user *argv,
+ 		     const compat_uptr_t __user *envp);
++asmlinkage long compat_sys_execveat(int dfd, const char __user *filename,
++		     const compat_uptr_t __user *argv,
++		     const compat_uptr_t __user *envp, int flags);
+ 
+ asmlinkage long compat_sys_select(int n, compat_ulong_t __user *inp,
+ 		compat_ulong_t __user *outp, compat_ulong_t __user *exp,
+diff -puN include/linux/fs.h~syscallsx86-implement-execveat-system-call include/linux/fs.h
+--- a/include/linux/fs.h~syscallsx86-implement-execveat-system-call
++++ a/include/linux/fs.h
+@@ -2093,6 +2093,7 @@ extern int vfs_open(const struct path *,
+ extern struct file * dentry_open(const struct path *, int, const struct cred *);
+ extern int filp_close(struct file *, fl_owner_t id);
+ 
++extern struct filename *getname_flags(const char __user *, int, int *);
+ extern struct filename *getname(const char __user *);
+ extern struct filename *getname_kernel(const char *);
+ 
+diff -puN include/linux/sched.h~syscallsx86-implement-execveat-system-call include/linux/sched.h
+--- a/include/linux/sched.h~syscallsx86-implement-execveat-system-call
++++ a/include/linux/sched.h
+@@ -2441,6 +2441,10 @@ extern void do_group_exit(int);
+ extern int do_execve(struct filename *,
+ 		     const char __user * const __user *,
+ 		     const char __user * const __user *);
++extern int do_execveat(int, struct filename *,
++		       const char __user * const __user *,
++		       const char __user * const __user *,
++		       int);
+ extern long do_fork(unsigned long, unsigned long, unsigned long, int __user *, int __user *);
+ struct task_struct *fork_idle(int);
+ extern pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags);
+diff -puN include/linux/syscalls.h~syscallsx86-implement-execveat-system-call include/linux/syscalls.h
+--- a/include/linux/syscalls.h~syscallsx86-implement-execveat-system-call
++++ a/include/linux/syscalls.h
+@@ -877,4 +877,8 @@ asmlinkage long sys_seccomp(unsigned int
+ asmlinkage long sys_getrandom(char __user *buf, size_t count,
+ 			      unsigned int flags);
+ asmlinkage long sys_bpf(int cmd, union bpf_attr *attr, unsigned int size);
++asmlinkage long sys_execveat(int dfd, const char __user *filename,
++			const char __user *const __user *argv,
++			const char __user *const __user *envp, int flags);
++
+ #endif
+diff -puN include/uapi/asm-generic/unistd.h~syscallsx86-implement-execveat-system-call include/uapi/asm-generic/unistd.h
+--- a/include/uapi/asm-generic/unistd.h~syscallsx86-implement-execveat-system-call
++++ a/include/uapi/asm-generic/unistd.h
+@@ -707,9 +707,11 @@ __SYSCALL(__NR_getrandom, sys_getrandom)
+ __SYSCALL(__NR_memfd_create, sys_memfd_create)
+ #define __NR_bpf 280
+ __SYSCALL(__NR_bpf, sys_bpf)
++#define __NR_execveat 281
++__SC_COMP(__NR_execveat, sys_execveat, compat_sys_execveat)
+ 
+ #undef __NR_syscalls
+-#define __NR_syscalls 281
++#define __NR_syscalls 282
+ 
+ /*
+  * All syscalls below here should go away really,
+diff -puN kernel/sys_ni.c~syscallsx86-implement-execveat-system-call kernel/sys_ni.c
+--- a/kernel/sys_ni.c~syscallsx86-implement-execveat-system-call
++++ a/kernel/sys_ni.c
+@@ -224,3 +224,6 @@ cond_syscall(sys_seccomp);
+ 
+ /* access BPF programs and maps */
+ cond_syscall(sys_bpf);
++
++/* execveat */
++cond_syscall(sys_execveat);
+diff -puN lib/audit.c~syscallsx86-implement-execveat-system-call lib/audit.c
+--- a/lib/audit.c~syscallsx86-implement-execveat-system-call
++++ a/lib/audit.c
+@@ -54,6 +54,9 @@ int audit_classify_syscall(int abi, unsi
+ 	case __NR_socketcall:
+ 		return 4;
+ #endif
++#ifdef __NR_execveat
++	case __NR_execveat:
++#endif
+ 	case __NR_execve:
+ 		return 5;
+ 	default:
 _
 
-Patches currently in -mm which might be from namjae.jeon@samsung.com are
+Patches currently in -mm which might be from drysdale@google.com are
 
-fat-add-fat_fallocate-operation.patch
-fat-skip-cluster-allocation-on-fallocated-region.patch
-fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
-documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
-fat-fix-data-past-eof-resulting-from-fsx-testsuite.patch
-fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2.patch
+syscallsx86-implement-execveat-system-call.patch
+syscallsx86-implement-execveat-system-call-fix.patch
+syscallsx86-add-selftest-for-execveat2.patch
 
