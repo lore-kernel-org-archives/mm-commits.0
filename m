@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch added to -mm tree
-Date: Wed, 12 Nov 2014 14:56:26 -0800
-Message-ID: <5463e59a.HLGChXhX1pVx5Feh%akpm@linux-foundation.org>
+Subject: + exit-reparent-cleanup-the-changing-of-parent.patch added to -mm tree
+Date: Wed, 12 Nov 2014 14:56:28 -0800
+Message-ID: <5463e59c.y1TlW0zFlMWD7eTM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49803 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49804 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752273AbaKLW41 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Nov 2014 17:56:27 -0500
+	with ESMTP id S1752273AbaKLW43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Nov 2014 17:56:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, adobriyan@gmail.com, atomlin@redhat.com, ebiederm@xmission.com, peterz@infradead.org, roland@hack.frob.com, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit: reparent: use ->ptrace_entry rather than ->sibling for EXIT_DEAD tasks
+     Subject: exit: reparent: cleanup the changing of ->parent
 has been added to the -mm tree.  Its filename is
-     exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch
+     exit-reparent-cleanup-the-changing-of-parent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exit-reparent-cleanup-the-changing-of-parent.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-reparent-cleanup-the-changing-of-parent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,32 +39,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exit: reparent: use ->ptrace_entry rather than ->sibling for EXIT_DEAD tasks
+Subject: exit: reparent: cleanup the changing of ->parent
 
-reparent_leader() reuses ->sibling as a list node to add an EXIT_DEAD task
-into dead_children list we are going to release.  This obviously removes
-the dead task from its real_parent->children list and this is even good;
-the parent can do nothing with the EXIT_DEAD reparented zombie, it only
-makes do_wait() slower.
+1. Cosmetic, but "if (t->parent == father)" looks a bit confusing.
+   We need to change t->parent if and only if t is not traced.
 
-But, this also means that it can not be reparented once again, so if its
-new parent dies too nobody will update ->parent/real_parent, they can
-point to the freed memory even before release_task() we are going to call,
-this breaks the code which relies on pid_alive() to access
-->real_parent/parent.
+2. If we actually want this BUG_ON() to ensure that parent/ptrace
+   match each other, then we should also take ptrace_reparented()
+   case into account too.
 
-Fortunately this is mostly theoretical, this can only happen if init or
-PR_SET_CHILD_SUBREAPER process ignores SIGCHLD and the new parent
-sub-thread exits right after we drop tasklist_lock.
-
-Change this code to use ->ptrace_entry instead, we know that the child is
-not traced so nobody can ever use this member.  This also allows to unify
-this logic with exit_ptrace(), see the next changes.
-
-Note: we really need to change release_task() to nullify real_parent/
-parent/group_leader pointers, but we need to change the current users
-first somehow.  And it would be better to reap this zombie immediately but
-release_task_locked() we need is complicated by proc_flush_task().
+3. Change this code to use for_each_thread() instead of deprecated
+   while_each_thread().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Aaron Tomlin <atomlin@redhat.com>
@@ -77,32 +61,44 @@ Cc: Roland McGrath <roland@hack.frob.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/exit.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN kernel/exit.c~exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks kernel/exit.c
---- a/kernel/exit.c~exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks
+diff -puN kernel/exit.c~exit-reparent-cleanup-the-changing-of-parent kernel/exit.c
+--- a/kernel/exit.c~exit-reparent-cleanup-the-changing-of-parent
 +++ a/kernel/exit.c
-@@ -548,7 +548,7 @@ static void reparent_leader(struct task_
- 	    p->exit_state == EXIT_ZOMBIE && thread_group_empty(p)) {
- 		if (do_notify_parent(p, p->exit_signal)) {
- 			p->exit_state = EXIT_DEAD;
--			list_move_tail(&p->sibling, dead);
-+			list_add(&p->ptrace_entry, dead);
- 		}
+@@ -557,7 +557,7 @@ static void reparent_leader(struct task_
+ 
+ static void forget_original_parent(struct task_struct *father)
+ {
+-	struct task_struct *p, *n, *reaper;
++	struct task_struct *p, *t, *n, *reaper;
+ 	LIST_HEAD(dead_children);
+ 
+ 	write_lock_irq(&tasklist_lock);
+@@ -569,18 +569,15 @@ static void forget_original_parent(struc
+ 	reaper = find_new_reaper(father);
+ 
+ 	list_for_each_entry_safe(p, n, &father->children, sibling) {
+-		struct task_struct *t = p;
+-
+-		do {
++		for_each_thread(p, t) {
+ 			t->real_parent = reaper;
+-			if (t->parent == father) {
+-				BUG_ON(t->ptrace);
++			BUG_ON(!t->ptrace != (t->parent == father));
++			if (likely(!t->ptrace))
+ 				t->parent = t->real_parent;
+-			}
+ 			if (t->pdeath_signal)
+ 				group_send_sig_info(t->pdeath_signal,
+ 						    SEND_SIG_NOINFO, t);
+-		} while_each_thread(p, t);
++		}
+ 		reparent_leader(father, p, &dead_children);
  	}
- 
-@@ -587,8 +587,8 @@ static void forget_original_parent(struc
- 
- 	BUG_ON(!list_empty(&father->children));
- 
--	list_for_each_entry_safe(p, n, &dead_children, sibling) {
--		list_del_init(&p->sibling);
-+	list_for_each_entry_safe(p, n, &dead_children, ptrace_entry) {
-+		list_del_init(&p->ptrace_entry);
- 		release_task(p);
- 	}
- }
+ 	write_unlock_irq(&tasklist_lock);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
