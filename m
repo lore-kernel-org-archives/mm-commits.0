@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + slab-improve-checking-for-invalid-gfp_flags.patch added to -mm
  tree
-Date: Tue, 11 Nov 2014 16:49:22 -0800
-Message-ID: <5462ae92.n5uuZyc5ANQGGjw6%akpm@linux-foundation.org>
+Date: Tue, 11 Nov 2014 16:53:36 -0800
+Message-ID: <5462af90.hz66L5kl9oTwQ4vx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57958 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58078 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063AbaKLAtY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 19:49:24 -0500
+	with ESMTP id S1751063AbaKLAxi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Nov 2014 19:53:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
@@ -45,8 +45,6 @@ Subject: slab: improve checking for invalid gfp_flags
 - The code goes BUG, but doesn't tell us which bits were unexpectedly
   set.  Print that out.
 
-- The code goes BUG when it could jsut fix things up and proceed.  Do that.
-
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
@@ -67,9 +65,9 @@ diff -puN mm/slab.c~slab-improve-checking-for-invalid-gfp_flags mm/slab.c
  	 * critical path in kmem_cache_alloc().
  	 */
 -	BUG_ON(flags & GFP_SLAB_BUG_MASK);
-+	if (WARN_ON(flags & GFP_SLAB_BUG_MASK)) {
++	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
 +		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
-+		flags &= ~GFP_SLAB_BUG_MASK;
++		BUG();
 +	}
  	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
  
@@ -82,9 +80,9 @@ diff -puN mm/slub.c~slab-improve-checking-for-invalid-gfp_flags mm/slub.c
  	int idx;
  
 -	BUG_ON(flags & GFP_SLAB_BUG_MASK);
-+	if (WARN_ON(flags & GFP_SLAB_BUG_MASK)) {
++	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
 +		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
-+		flags &= ~GFP_SLAB_BUG_MASK;
++		BUG();
 +	}
  
  	page = allocate_slab(s,
