@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-debug-pagealloc-correct-freepage-accounting-and-order-resetting.patch
- added to -mm tree
-Date: Wed, 12 Nov 2014 13:25:33 -0800
-Message-ID: <5463d04d.gvtU908K5YlqQYaM%akpm@linux-foundation.org>
+Subject: + mm-debug-pagealloc-cleanup-page-guard-code.patch added to -mm
+ tree
+Date: Wed, 12 Nov 2014 13:26:08 -0800
+Message-ID: <5463d070.Dk5lgDRp7qxrwUuu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49264 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49269 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753307AbaKLVZe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Nov 2014 16:25:34 -0500
+	with ESMTP id S1753307AbaKLV0J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Nov 2014 16:26:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, gioh.kim@lge.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug-pagealloc: correct freepage accounting and order resetting
+     Subject: mm/debug-pagealloc: cleanup page guard code
 has been added to the -mm tree.  Its filename is
-     mm-debug-pagealloc-correct-freepage-accounting-and-order-resetting.patch
+     mm-debug-pagealloc-cleanup-page-guard-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug-pagealloc-correct-freepage-accounting-and-order-resetting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug-pagealloc-cleanup-page-guard-code.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug-pagealloc-correct-freepage-accounting-and-order-resetting.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug-pagealloc-cleanup-page-guard-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,21 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/debug-pagealloc: correct freepage accounting and order resetting
+Subject: mm/debug-pagealloc: cleanup page guard code
 
-One thing I did in this patch is fixing freepage accounting.  If we clear
-guard page and link it onto isolate buddy list, we should not increase
-freepage count.  This patch adds conditional branch to skip counting in
-this case.  Without this patch, this overcounting happens frequently if
-guard order is set and CMA is used.
+Page guard is used by debug-pagealloc feature.  Currently, it is
+open-coded, but, I think that more abstraction of it makes core page
+allocator code more readable.
 
-Another thing fixed in this patch is the target to reset order.  In
-__free_one_page(), we check the buddy page whether it is a guard page or
-not.  And, if so, we should clear guard attribute on the buddy page and
-reset order of it to 0.  But, current code resets original page's order
-rather than buddy one's.  Maybe, this doesn't have any problem, because
-whole merged page's order will be re-assigned soon.  But, it is better to
-correct code.
+There is no functional difference.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -63,27 +54,87 @@ Cc: Gioh Kim <gioh.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   38 +++++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-debug-pagealloc-correct-freepage-accounting-and-order-resetting mm/page_alloc.c
---- a/mm/page_alloc.c~mm-debug-pagealloc-correct-freepage-accounting-and-order-resetting
+diff -puN mm/page_alloc.c~mm-debug-pagealloc-cleanup-page-guard-code mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-debug-pagealloc-cleanup-page-guard-code
 +++ a/mm/page_alloc.c
-@@ -583,9 +583,11 @@ static inline void __free_one_page(struc
+@@ -439,18 +439,29 @@ static int __init debug_guardpage_minord
+ }
+ __setup("debug_guardpage_minorder=", debug_guardpage_minorder_setup);
+ 
+-static inline void set_page_guard_flag(struct page *page)
++static inline void set_page_guard(struct zone *zone, struct page *page,
++				unsigned int order, int migratetype)
+ {
+ 	__set_bit(PAGE_DEBUG_FLAG_GUARD, &page->debug_flags);
++	INIT_LIST_HEAD(&page->lru);
++	set_page_private(page, order);
++	/* Guard pages are not available for any usage */
++	__mod_zone_freepage_state(zone, -(1 << order), migratetype);
+ }
+ 
+-static inline void clear_page_guard_flag(struct page *page)
++static inline void clear_page_guard(struct zone *zone, struct page *page,
++				unsigned int order, int migratetype)
+ {
+ 	__clear_bit(PAGE_DEBUG_FLAG_GUARD, &page->debug_flags);
++	set_page_private(page, 0);
++	if (!is_migrate_isolate(migratetype))
++		__mod_zone_freepage_state(zone, (1 << order), migratetype);
+ }
+ #else
+-static inline void set_page_guard_flag(struct page *page) { }
+-static inline void clear_page_guard_flag(struct page *page) { }
++static inline void set_page_guard(struct zone *zone, struct page *page,
++				unsigned int order, int migratetype) {}
++static inline void clear_page_guard(struct zone *zone, struct page *page,
++				unsigned int order, int migratetype) {}
+ #endif
+ 
+ static inline void set_page_order(struct page *page, unsigned int order)
+@@ -581,12 +592,7 @@ static inline void __free_one_page(struc
+ 		 * merge with it and move up one order.
  		 */
  		if (page_is_guard(buddy)) {
- 			clear_page_guard_flag(buddy);
--			set_page_private(page, 0);
--			__mod_zone_freepage_state(zone, 1 << order,
--						  migratetype);
-+			set_page_private(buddy, 0);
-+			if (!is_migrate_isolate(migratetype)) {
-+				__mod_zone_freepage_state(zone, 1 << order,
-+							  migratetype);
-+			}
+-			clear_page_guard_flag(buddy);
+-			set_page_private(buddy, 0);
+-			if (!is_migrate_isolate(migratetype)) {
+-				__mod_zone_freepage_state(zone, 1 << order,
+-							  migratetype);
+-			}
++			clear_page_guard(zone, buddy, order, migratetype);
  		} else {
  			list_del(&buddy->lru);
  			zone->free_area[order].nr_free--;
+@@ -861,23 +867,17 @@ static inline void expand(struct zone *z
+ 		size >>= 1;
+ 		VM_BUG_ON_PAGE(bad_range(zone, &page[size]), &page[size]);
+ 
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-		if (high < debug_guardpage_minorder()) {
++		if (IS_ENABLED(CONFIG_DEBUG_PAGEALLOC) &&
++			high < debug_guardpage_minorder()) {
+ 			/*
+ 			 * Mark as guard pages (or page), that will allow to
+ 			 * merge back to allocator when buddy will be freed.
+ 			 * Corresponding page table entries will not be touched,
+ 			 * pages will stay not present in virtual address space
+ 			 */
+-			INIT_LIST_HEAD(&page[size].lru);
+-			set_page_guard_flag(&page[size]);
+-			set_page_private(&page[size], high);
+-			/* Guard pages are not available for any usage */
+-			__mod_zone_freepage_state(zone, -(1 << high),
+-						  migratetype);
++			set_page_guard(zone, &page[size], high, migratetype);
+ 			continue;
+ 		}
+-#endif
+ 		list_add(&page[size].lru, &area->free_list[migratetype]);
+ 		area->nr_free++;
+ 		set_page_order(&page[size], high);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
