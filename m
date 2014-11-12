@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + exit-reparent-cleanup-the-changing-of-parent.patch added to -mm tree
-Date: Wed, 12 Nov 2014 14:56:28 -0800
-Message-ID: <5463e59c.y1TlW0zFlMWD7eTM%akpm@linux-foundation.org>
+Subject: + exit-reparent-cleanup-the-usage-of-reparent_leader.patch added
+ to -mm tree
+Date: Wed, 12 Nov 2014 14:56:30 -0800
+Message-ID: <5463e59e.zoo7sbeZQWlx3eo4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49804 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49810 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752273AbaKLW43 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Nov 2014 17:56:29 -0500
+	with ESMTP id S1752352AbaKLW4c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Nov 2014 17:56:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, adobriyan@gmail.com, atomlin@redhat.com, ebiederm@xmission.com, peterz@infradead.org, roland@hack.frob.com, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit: reparent: cleanup the changing of ->parent
+     Subject: exit: reparent: cleanup the usage of reparent_leader()
 has been added to the -mm tree.  Its filename is
-     exit-reparent-cleanup-the-changing-of-parent.patch
+     exit-reparent-cleanup-the-usage-of-reparent_leader.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exit-reparent-cleanup-the-changing-of-parent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exit-reparent-cleanup-the-usage-of-reparent_leader.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-reparent-cleanup-the-changing-of-parent.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-reparent-cleanup-the-usage-of-reparent_leader.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,17 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exit: reparent: cleanup the changing of ->parent
+Subject: exit: reparent: cleanup the usage of reparent_leader()
 
-1. Cosmetic, but "if (t->parent == father)" looks a bit confusing.
-   We need to change t->parent if and only if t is not traced.
+1. Now that reparent_leader() doesn't abuse ->sibling we can shift
+   list_move_tail() from reparent_leader() to forget_original_parent()
+   and turn it into a single list_splice_tail_init(). This also makes
+   BUG_ON(!list_empty()) and list_for_each_entry_safe() unnecessary.
 
-2. If we actually want this BUG_ON() to ensure that parent/ptrace
-   match each other, then we should also take ptrace_reparented()
-   case into account too.
-
-3. Change this code to use for_each_thread() instead of deprecated
-   while_each_thread().
+2. This also allows to shift the same_thread_group() check, it looks
+   a bit more clear in the caller.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Aaron Tomlin <atomlin@redhat.com>
@@ -61,44 +60,58 @@ Cc: Roland McGrath <roland@hack.frob.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ kernel/exit.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN kernel/exit.c~exit-reparent-cleanup-the-changing-of-parent kernel/exit.c
---- a/kernel/exit.c~exit-reparent-cleanup-the-changing-of-parent
+diff -puN kernel/exit.c~exit-reparent-cleanup-the-usage-of-reparent_leader kernel/exit.c
+--- a/kernel/exit.c~exit-reparent-cleanup-the-usage-of-reparent_leader
 +++ a/kernel/exit.c
-@@ -557,7 +557,7 @@ static void reparent_leader(struct task_
- 
- static void forget_original_parent(struct task_struct *father)
+@@ -529,15 +529,7 @@ static struct task_struct *find_new_reap
+ static void reparent_leader(struct task_struct *father, struct task_struct *p,
+ 				struct list_head *dead)
  {
--	struct task_struct *p, *n, *reaper;
-+	struct task_struct *p, *t, *n, *reaper;
- 	LIST_HEAD(dead_children);
+-	list_move_tail(&p->sibling, &p->real_parent->children);
+-
+-	if (p->exit_state == EXIT_DEAD)
+-		return;
+-	/*
+-	 * If this is a threaded reparent there is no need to
+-	 * notify anyone anything has happened.
+-	 */
+-	if (same_thread_group(p->real_parent, father))
++	if (unlikely(p->exit_state == EXIT_DEAD))
+ 		return;
  
- 	write_lock_irq(&tasklist_lock);
-@@ -569,18 +569,15 @@ static void forget_original_parent(struc
+ 	/* We don't want people slaying init. */
+@@ -568,7 +560,7 @@ static void forget_original_parent(struc
+ 	exit_ptrace(father);
  	reaper = find_new_reaper(father);
  
- 	list_for_each_entry_safe(p, n, &father->children, sibling) {
--		struct task_struct *t = p;
--
--		do {
-+		for_each_thread(p, t) {
+-	list_for_each_entry_safe(p, n, &father->children, sibling) {
++	list_for_each_entry(p, &father->children, sibling) {
+ 		for_each_thread(p, t) {
  			t->real_parent = reaper;
--			if (t->parent == father) {
--				BUG_ON(t->ptrace);
-+			BUG_ON(!t->ptrace != (t->parent == father));
-+			if (likely(!t->ptrace))
- 				t->parent = t->real_parent;
--			}
- 			if (t->pdeath_signal)
+ 			BUG_ON(!t->ptrace != (t->parent == father));
+@@ -578,12 +570,16 @@ static void forget_original_parent(struc
  				group_send_sig_info(t->pdeath_signal,
  						    SEND_SIG_NOINFO, t);
--		} while_each_thread(p, t);
-+		}
- 		reparent_leader(father, p, &dead_children);
+ 		}
+-		reparent_leader(father, p, &dead_children);
++		/*
++		 * If this is a threaded reparent there is no need to
++		 * notify anyone anything has happened.
++		 */
++		if (!same_thread_group(reaper, father))
++			reparent_leader(father, p, &dead_children);
  	}
++	list_splice_tail_init(&father->children, &reaper->children);
  	write_unlock_irq(&tasklist_lock);
+ 
+-	BUG_ON(!list_empty(&father->children));
+-
+ 	list_for_each_entry_safe(p, n, &dead_children, ptrace_entry) {
+ 		list_del_init(&p->ptrace_entry);
+ 		release_task(p);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
