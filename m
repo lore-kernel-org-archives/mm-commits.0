@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
- added to -mm tree
-Date: Wed, 12 Nov 2014 14:56:20 -0800
-Message-ID: <5463e594.MBXYqZQCyCaMZ++J%akpm@linux-foundation.org>
+Subject: + proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch added to -mm tree
+Date: Wed, 12 Nov 2014 14:56:22 -0800
+Message-ID: <5463e596.NHtpchTvpnu3bBYq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49785 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49792 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752273AbaKLW4V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Nov 2014 17:56:21 -0500
+	with ESMTP id S1752273AbaKLW4X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Nov 2014 17:56:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, adobriyan@gmail.com, atomlin@redhat.com, ebiederm@xmission.com, peterz@infradead.org, roland@hack.frob.com, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: task_state: move the main seq_printf() outside of rcu_read_lock()
+     Subject: proc: task_state: ptrace_parent() doesn't need pid_alive() check
 has been added to the -mm tree.  Its filename is
-     proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
+     proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,11 +39,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: proc: task_state: move the main seq_printf() outside of rcu_read_lock()
+Subject: proc: task_state: ptrace_parent() doesn't need pid_alive() check
 
-task_state() does seq_printf() under rcu_read_lock(), but this is only
-needed for task_tgid_nr_ns() and task_numa_group_id().  We can calculate
-tgid/ngid and drop rcu lock.
+p->ptrace != 0 means that release_task(p) was not called, so pid_alive()
+buys nothing and we can remove this check.  Other callers already use it
+directly without additional checks.
+
+Note: with or without this patch ptrace_parent() can return the pointer to
+the freed task, this will be explained/fixed later.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Aaron Tomlin <atomlin@redhat.com>
@@ -57,58 +58,38 @@ Cc: Roland McGrath <roland@hack.frob.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/proc/array.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN fs/proc/array.c~proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock fs/proc/array.c
---- a/fs/proc/array.c~proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock
+diff -puN fs/proc/array.c~proc-task_state-ptrace_parent-doesnt-need-pid_alive-check fs/proc/array.c
+--- a/fs/proc/array.c~proc-task_state-ptrace_parent-doesnt-need-pid_alive-check
 +++ a/fs/proc/array.c
-@@ -158,7 +158,7 @@ static inline void task_state(struct seq
+@@ -157,19 +157,18 @@ static inline void task_state(struct seq
+ 	struct user_namespace *user_ns = seq_user_ns(m);
  	struct group_info *group_info;
  	int g;
++	struct task_struct *tracer;
  	const struct cred *cred;
--	pid_t ppid, tpid;
-+	pid_t ppid, tpid, tgid, ngid;
+-	pid_t ppid, tpid, tgid, ngid;
++	pid_t ppid, tpid = 0, tgid, ngid;
  	unsigned int max_fds = 0;
  
  	rcu_read_lock();
-@@ -170,12 +170,16 @@ static inline void task_state(struct seq
- 		if (tracer)
- 			tpid = task_pid_nr_ns(tracer, ns);
- 	}
+ 	ppid = pid_alive(p) ?
+ 		task_tgid_nr_ns(rcu_dereference(p->real_parent), ns) : 0;
+-	tpid = 0;
+-	if (pid_alive(p)) {
+-		struct task_struct *tracer = ptrace_parent(p);
+-		if (tracer)
+-			tpid = task_pid_nr_ns(tracer, ns);
+-	}
 +
-+	tgid = task_tgid_nr_ns(p, ns);
-+	ngid = task_numa_group_id(p);
- 	cred = get_task_cred(p);
++	tracer = ptrace_parent(p);
++	if (tracer)
++		tpid = task_pid_nr_ns(tracer, ns);
  
- 	task_lock(p);
- 	if (p->files)
- 		max_fds = files_fdtable(p->files)->max_fds;
- 	task_unlock(p);
-+	rcu_read_unlock();
- 
- 	seq_printf(m,
- 		"State:\t%s\n"
-@@ -188,10 +192,7 @@ static inline void task_state(struct seq
- 		"Gid:\t%d\t%d\t%d\t%d\n"
- 		"FDSize:\t%d\nGroups:\t",
- 		get_task_state(p),
--		task_tgid_nr_ns(p, ns),
--		task_numa_group_id(p),
--		pid_nr_ns(pid, ns),
--		ppid, tpid,
-+		tgid, ngid, pid_nr_ns(pid, ns), ppid, tpid,
- 		from_kuid_munged(user_ns, cred->uid),
- 		from_kuid_munged(user_ns, cred->euid),
- 		from_kuid_munged(user_ns, cred->suid),
-@@ -201,7 +202,6 @@ static inline void task_state(struct seq
- 		from_kgid_munged(user_ns, cred->sgid),
- 		from_kgid_munged(user_ns, cred->fsgid),
- 		max_fds);
--	rcu_read_unlock();
- 
- 	group_info = cred->group_info;
- 	for (g = 0; g < group_info->ngroups; g++)
+ 	tgid = task_tgid_nr_ns(p, ns);
+ 	ngid = task_numa_group_id(p);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
