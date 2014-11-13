@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fat-skip-cluster-allocation-on-fallocated-region.patch added to -mm tree
-Date: Thu, 13 Nov 2014 13:37:51 -0800
-Message-ID: <546524af.ifz6yblTOW7No/jT%akpm@linux-foundation.org>
+Subject: +
+ documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch added to -mm tree
+Date: Thu, 13 Nov 2014 13:37:55 -0800
+Message-ID: <546524b3.LfZ1jZQhcwb6Rk2m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40549 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40555 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934784AbaKMVhw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Nov 2014 16:37:52 -0500
+	with ESMTP id S934784AbaKMVh5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Nov 2014 16:37:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: skip cluster allocation on fallocated region
+     Subject: Documentation/filesystems/vfat.txt: update the limitation for fat fallocate
 has been added to the -mm tree.  Its filename is
-     fat-skip-cluster-allocation-on-fallocated-region.patch
+     documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fat-skip-cluster-allocation-on-fallocated-region.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/fat-skip-cluster-allocation-on-fallocated-region.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,10 +40,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: skip cluster allocation on fallocated region
+Subject: Documentation/filesystems/vfat.txt: update the limitation for fat fallocate
 
-Skip new cluster allocation after checking i_blocks limit in _fat_get_block,
-because the blocks are already allocated in fallocated region.
+Update the limitation for fat fallocate.
 
 Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
 Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
@@ -50,37 +50,29 @@ Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ Documentation/filesystems/vfat.txt |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/fat/inode.c~fat-skip-cluster-allocation-on-fallocated-region fs/fat/inode.c
---- a/fs/fat/inode.c~fat-skip-cluster-allocation-on-fallocated-region
-+++ a/fs/fat/inode.c
-@@ -123,7 +123,7 @@ static inline int __fat_get_block(struct
- 	struct super_block *sb = inode->i_sb;
- 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
- 	unsigned long mapped_blocks;
--	sector_t phys;
-+	sector_t phys, last_block;
- 	int err, offset;
+diff -puN Documentation/filesystems/vfat.txt~documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate Documentation/filesystems/vfat.txt
+--- a/Documentation/filesystems/vfat.txt~documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate
++++ a/Documentation/filesystems/vfat.txt
+@@ -180,6 +180,16 @@ dos1xfloppy  -- If set, use a fallback d
  
- 	err = fat_bmap(inode, iblock, &phys, &mapped_blocks, create);
-@@ -143,8 +143,14 @@ static inline int __fat_get_block(struct
- 		return -EIO;
- 	}
+ <bool>: 0,1,yes,no,true,false
  
-+	last_block = inode->i_blocks >> (sb->s_blocksize_bits - 9);
- 	offset = (unsigned long)iblock & (sbi->sec_per_clus - 1);
--	if (!offset) {
-+	/*
-+	 * allocate a cluster according to the following.
-+	 * 1) no more available blocks
-+	 * 2) not part of fallocate region
-+	 */
-+	if (!offset && !(iblock < last_block)) {
- 		/* TODO: multiple cluster allocation would be desirable. */
- 		err = fat_add_cluster(inode);
- 		if (err)
++LIMITATION
++---------------------------------------------------------------------
++* The fallocated region of file is discarded at umount/evict time
++  when using fallocate with FALLOC_FL_KEEP_SIZE.
++  So, User should assume that fallocated region can be discarded at
++  last close if there is memory pressure resulting in eviction of
++  the inode from the memory. As a result, for any dependency on
++  the fallocated region, user should make sure to recheck fallocate
++  after reopening the file.
++
+ TODO
+ ----------------------------------------------------------------------
+ * Need to get rid of the raw scanning stuff.  Instead, always use
 _
 
 Patches currently in -mm which might be from namjae.jeon@samsung.com are
