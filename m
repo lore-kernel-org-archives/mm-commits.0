@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fsnotify-remove-destroy_list-from-fsnotify_mark.patch added to
- -mm tree
-Date: Thu, 13 Nov 2014 14:04:45 -0800
-Message-ID: <54652afd.xu68dHfaqCYEX+Ho%akpm@linux-foundation.org>
+Subject: + memory-hotplug-remove-redundant-call-of-page_to_pfn.patch added to -mm tree
+Date: Thu, 13 Nov 2014 14:12:11 -0800
+Message-ID: <54652cbb.oQMDptkRZz0Kc8tH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40725 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40896 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933065AbaKMWEq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Nov 2014 17:04:46 -0500
+	with ESMTP id S933765AbaKMWMM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Nov 2014 17:12:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, eparis@redhat.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
+To: zhenzhang.zhang@huawei.com, dave@sr71.net, isimatu.yasuaki@jp.fujitsu.com, rientjes@google.com, wangnan0@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: remove destroy_list from fsnotify_mark
+     Subject: memory-hotplug: remove redundant call of page_to_pfn
 has been added to the -mm tree.  Its filename is
-     fsnotify-remove-destroy_list-from-fsnotify_mark.patch
+     memory-hotplug-remove-redundant-call-of-page_to_pfn.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-remove-destroy_list-from-fsnotify_mark.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-remove-redundant-call-of-page_to_pfn.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-remove-destroy_list-from-fsnotify_mark.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-remove-redundant-call-of-page_to_pfn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,98 +38,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fsnotify: remove destroy_list from fsnotify_mark
+From: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Subject: memory-hotplug: remove redundant call of page_to_pfn
 
-destroy_list is used to track marks which still need waiting for srcu
-period end before they can be freed.  However by the time mark is added to
-destroy_list it isn't in group's list of marks anymore and thus we can
-reuse fsnotify_mark->g_list for queueing into destroy_list.  This saves
-two pointers for each fsnotify_mark.
+This is just a small optimization.  The start_pfn can be obtained directly
+by phys_index << PFN_SECTION_SHIFT.  So the call of page_to_pfn() is
+redundant and remove it.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Eric Paris <eparis@redhat.com>
+Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dave Hansen <dave@sr71.net>
+Cc: Wang Nan <wangnan0@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/mark.c                 |    8 ++++----
- include/linux/fsnotify_backend.h |    7 +++++--
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/base/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/notify/mark.c~fsnotify-remove-destroy_list-from-fsnotify_mark fs/notify/mark.c
---- a/fs/notify/mark.c~fsnotify-remove-destroy_list-from-fsnotify_mark
-+++ a/fs/notify/mark.c
-@@ -160,7 +160,7 @@ void fsnotify_destroy_mark_locked(struct
- 	mutex_unlock(&group->mark_mutex);
+diff -puN drivers/base/memory.c~memory-hotplug-remove-redundant-call-of-page_to_pfn drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-remove-redundant-call-of-page_to_pfn
++++ a/drivers/base/memory.c
+@@ -228,8 +228,8 @@ memory_block_action(unsigned long phys_i
+ 	struct page *first_page;
+ 	int ret;
  
- 	spin_lock(&destroy_lock);
--	list_add(&mark->destroy_list, &destroy_list);
-+	list_add(&mark->g_list, &destroy_list);
- 	spin_unlock(&destroy_lock);
- 	wake_up(&destroy_waitq);
- 	/*
-@@ -369,7 +369,7 @@ err:
- 	spin_unlock(&mark->lock);
+-	first_page = pfn_to_page(phys_index << PFN_SECTION_SHIFT);
+-	start_pfn = page_to_pfn(first_page);
++	start_pfn = phys_index << PFN_SECTION_SHIFT;
++	first_page = pfn_to_page(start_pfn);
  
- 	spin_lock(&destroy_lock);
--	list_add(&mark->destroy_list, &destroy_list);
-+	list_add(&mark->g_list, &destroy_list);
- 	spin_unlock(&destroy_lock);
- 	wake_up(&destroy_waitq);
- 
-@@ -468,8 +468,8 @@ static int fsnotify_mark_destroy(void *i
- 
- 		synchronize_srcu(&fsnotify_mark_srcu);
- 
--		list_for_each_entry_safe(mark, next, &private_destroy_list, destroy_list) {
--			list_del_init(&mark->destroy_list);
-+		list_for_each_entry_safe(mark, next, &private_destroy_list, g_list) {
-+			list_del_init(&mark->g_list);
- 			fsnotify_put_mark(mark);
- 		}
- 
-diff -puN include/linux/fsnotify_backend.h~fsnotify-remove-destroy_list-from-fsnotify_mark include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-remove-destroy_list-from-fsnotify_mark
-+++ a/include/linux/fsnotify_backend.h
-@@ -212,7 +212,11 @@ struct fsnotify_mark {
- 	 * in kernel that found and may be using this mark. */
- 	atomic_t refcnt;		/* active things looking at this mark */
- 	struct fsnotify_group *group;	/* group this mark is for */
--	struct list_head g_list;	/* list of marks by group->i_fsnotify_marks */
-+	struct list_head g_list;	/* list of marks by group->i_fsnotify_marks
-+					 * Also reused for queueing mark into
-+					 * destroy_list when it's waiting for
-+					 * the end of SRCU period before it can
-+					 * be freed */
- 	spinlock_t lock;		/* protect group and inode */
- 	struct hlist_node obj_list;	/* list of marks for inode / vfsmount */
- 	struct list_head free_list;	/* tmp list used when freeing this mark */
-@@ -227,7 +231,6 @@ struct fsnotify_mark {
- #define FSNOTIFY_MARK_FLAG_IGNORED_SURV_MODIFY	0x08
- #define FSNOTIFY_MARK_FLAG_ALIVE		0x10
- 	unsigned int flags;		/* vfsmount or inode mark? */
--	struct list_head destroy_list;
- 	void (*free_mark)(struct fsnotify_mark *mark); /* called on final put+free */
- };
- 
+ 	switch (action) {
+ 		case MEM_ONLINE:
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
 
-fanotify-fix-notification-of-groups-with-inode-mount-marks.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-ocfs2-fix-xattr-check-in-ocfs2_get_xattr_nolock.patch
-ocfs2-remove-bogus-test-from-ocfs2_read_locked_inode.patch
-ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
-ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init.patch
-char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-ncpfs-return-proper-error-from-ncp_ioc_setroot-ioctl.patch
-befs-remove-dead-code.patch
-linux-next.patch
-fallocate-create-fan_modify-and-in_modify-events.patch
-fsnotify-unify-inode-and-mount-marks-handling.patch
-fsnotify-remove-destroy_list-from-fsnotify_mark.patch
-mm-add-strictlimit-knob-v2.patch
+memory-hotplug-remove-redundant-call-of-page_to_pfn.patch
 
