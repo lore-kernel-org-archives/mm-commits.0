@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-iio-include-files.patch added to -mm tree
-Date: Thu, 13 Nov 2014 12:04:09 -0800
-Message-ID: <54650eb9.RZUknfyOnIP/3ZfC%akpm@linux-foundation.org>
+Subject: + mm-mincore-add-hwpoison-page-handle.patch added to -mm tree
+Date: Thu, 13 Nov 2014 12:08:28 -0800
+Message-ID: <54650fbc.7IWWKYQNIqZ4pKra%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39108 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933146AbaKMUEL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Nov 2014 15:04:11 -0500
+	with ESMTP id S933383AbaKMUIa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Nov 2014 15:08:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.baluta@intel.com, cristina.ciocan@intel.com, jg1.han@samsung.com, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, mm-commits@vger.kernel.org
+To: weijie.yang@samsung.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.com, n-horiguchi@ah.jp.nec.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add IIO include files
+     Subject: mm: mincore: add hwpoison page handle
 has been added to the -mm tree.  Its filename is
-     maintainers-add-iio-include-files.patch
+     mm-mincore-add-hwpoison-page-handle.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-iio-include-files.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mincore-add-hwpoison-page-handle.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-iio-include-files.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-mincore-add-hwpoison-page-handle.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,39 +38,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Baluta <daniel.baluta@intel.com>
-Subject: MAINTAINERS: add IIO include files
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: mm: mincore: add hwpoison page handle
 
-Files under include/linux/iio were not reported as part of the IIO
-subsystem.
+When the encountered pte is a swap entry, the current code handles two
+cases: migration and normal swapentry, but we have a third case: hwpoison
+page.
 
-Signed-off-by: Daniel Baluta <daniel.baluta@intel.com>
-Reported-by: Cristina Ciocan <cristina.ciocan@intel.com>
-Reviewed-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Hartmut Knaack <knaack.h@gmx.de>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Peter Meerwald <pmeerw@pmeerw.net>
+This patch adds hwpoison page handle, consider hwpoison page incore as
+same as migration.
+
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mincore.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-iio-include-files MAINTAINERS
---- a/MAINTAINERS~maintainers-add-iio-include-files
-+++ a/MAINTAINERS
-@@ -4716,6 +4716,7 @@ L:	linux-iio@vger.kernel.org
- S:	Maintained
- F:	drivers/iio/
- F:	drivers/staging/iio/
-+F:	include/linux/iio/
+diff -puN mm/mincore.c~mm-mincore-add-hwpoison-page-handle mm/mincore.c
+--- a/mm/mincore.c~mm-mincore-add-hwpoison-page-handle
++++ a/mm/mincore.c
+@@ -137,8 +137,8 @@ static void mincore_pte_range(struct vm_
+ 		} else { /* pte is a swap entry */
+ 			swp_entry_t entry = pte_to_swp_entry(pte);
  
- IKANOS/ADI EAGLE ADSL USB DRIVER
- M:	Matthieu Castet <castet.matthieu@free.fr>
+-			if (is_migration_entry(entry)) {
+-				/* migration entries are always uptodate */
++			if (non_swap_entry(entry)) {
++			/* migration or hwpoison entries are always uptodate */
+ 				*vec = 1;
+ 			} else {
+ #ifdef CONFIG_SWAP
 _
 
-Patches currently in -mm which might be from daniel.baluta@intel.com are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
-maintainers-add-iio-include-files.patch
-linux-next.patch
+zram-avoid-kunmap_atomic-a-null-pointer.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-mincore-add-hwpoison-page-handle.patch
 
