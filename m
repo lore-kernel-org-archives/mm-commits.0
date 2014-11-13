@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
- added to -mm tree
-Date: Thu, 13 Nov 2014 13:37:53 -0800
-Message-ID: <546524b1.qtoI4KS9JufZzpX+%akpm@linux-foundation.org>
+ drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety.patch added to -mm tree
+Date: Thu, 13 Nov 2014 13:39:02 -0800
+Message-ID: <546524f6.VIGPQ2ggN3TEPOE+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40551 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40556 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934784AbaKMVhy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Nov 2014 16:37:54 -0500
+	with ESMTP id S934866AbaKMVjD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Nov 2014 16:39:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: Baohua.Song@csr.com, a.zummo@towertech.it, hao.liu@csr.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: permit to return phy block number by fibmap in fallocated region
+     Subject: drivers/rtc/rtc-sirfsoc.c: replace local_irq_disable by spin_lock_irq for SMP safety
 has been added to the -mm tree.  Its filename is
-     fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
+     drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,153 +39,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: permit to return phy block number by fibmap in fallocated region
+From: Barry Song <Baohua.Song@csr.com>
+Subject: drivers/rtc/rtc-sirfsoc.c: replace local_irq_disable by spin_lock_irq for SMP safety
 
-Make the fibmap call return the proper physical block number for any
-offset request in the fallocated range.
-
-Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
-Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Barry Song <Baohua.Song@csr.com>
+Cc: hao liu <hao.liu@csr.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/cache.c |   38 +++++++++++++++++++++++++-------------
- fs/fat/fat.h   |    3 +++
- fs/fat/inode.c |   33 ++++++++++++++++++++++++++++++++-
- 3 files changed, 60 insertions(+), 14 deletions(-)
+ drivers/rtc/rtc-sirfsoc.c |   27 +++++++++++++++++++--------
+ 1 file changed, 19 insertions(+), 8 deletions(-)
 
-diff -puN fs/fat/cache.c~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region fs/fat/cache.c
---- a/fs/fat/cache.c~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region
-+++ a/fs/fat/cache.c
-@@ -303,6 +303,29 @@ static int fat_bmap_cluster(struct inode
- 	return dclus;
+diff -puN drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety drivers/rtc/rtc-sirfsoc.c
+--- a/drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety
++++ a/drivers/rtc/rtc-sirfsoc.c
+@@ -47,6 +47,7 @@ struct sirfsoc_rtc_drv {
+ 	unsigned		irq_wake;
+ 	/* Overflow for every 8 years extra time */
+ 	u32			overflow_rtc;
++	spinlock_t		lock;
+ #ifdef CONFIG_PM
+ 	u32		saved_counter;
+ 	u32		saved_overflow_rtc;
+@@ -61,7 +62,7 @@ static int sirfsoc_rtc_read_alarm(struct
+ 
+ 	rtcdrv = dev_get_drvdata(dev);
+ 
+-	local_irq_disable();
++	spin_lock_irq(&rtcdrv->lock);
+ 
+ 	rtc_count = sirfsoc_rtc_iobrg_readl(rtcdrv->rtc_base + RTC_CN);
+ 
+@@ -84,7 +85,8 @@ static int sirfsoc_rtc_read_alarm(struct
+ 	if (sirfsoc_rtc_iobrg_readl(
+ 			rtcdrv->rtc_base + RTC_STATUS) & SIRFSOC_RTC_AL0E)
+ 		alrm->enabled = 1;
+-	local_irq_enable();
++
++	spin_unlock_irq(&rtcdrv->lock);
+ 
+ 	return 0;
  }
+@@ -99,7 +101,7 @@ static int sirfsoc_rtc_set_alarm(struct
+ 	if (alrm->enabled) {
+ 		rtc_tm_to_time(&(alrm->time), &rtc_alarm);
  
-+int fat_get_mapped_cluster(struct inode *inode, sector_t sector,
-+			   sector_t last_block,
-+			   unsigned long *mapped_blocks, sector_t *bmap)
-+{
-+	struct super_block *sb = inode->i_sb;
-+	struct msdos_sb_info *sbi = MSDOS_SB(sb);
-+	int cluster, offset;
-+
-+	cluster = sector >> (sbi->cluster_bits - sb->s_blocksize_bits);
-+	offset  = sector & (sbi->sec_per_clus - 1);
-+	cluster = fat_bmap_cluster(inode, cluster);
-+	if (cluster < 0)
-+		return cluster;
-+	else if (cluster) {
-+		*bmap = fat_clus_to_blknr(sbi, cluster) + offset;
-+		*mapped_blocks = sbi->sec_per_clus - offset;
-+		if (*mapped_blocks > last_block - sector)
-+			*mapped_blocks = last_block - sector;
-+	}
-+
-+	return 0;
-+}
-+
- int fat_bmap(struct inode *inode, sector_t sector, sector_t *phys,
- 	     unsigned long *mapped_blocks, int create)
- {
-@@ -311,7 +334,6 @@ int fat_bmap(struct inode *inode, sector
- 	const unsigned long blocksize = sb->s_blocksize;
- 	const unsigned char blocksize_bits = sb->s_blocksize_bits;
- 	sector_t last_block;
--	int cluster, offset;
+-		local_irq_disable();
++		spin_lock_irq(&rtcdrv->lock);
  
- 	*phys = 0;
- 	*mapped_blocks = 0;
-@@ -338,16 +360,6 @@ int fat_bmap(struct inode *inode, sector
- 			return 0;
+ 		rtc_status_reg = sirfsoc_rtc_iobrg_readl(
+ 				rtcdrv->rtc_base + RTC_STATUS);
+@@ -123,14 +125,15 @@ static int sirfsoc_rtc_set_alarm(struct
+ 		rtc_status_reg |= SIRFSOC_RTC_AL0E;
+ 		sirfsoc_rtc_iobrg_writel(
+ 			rtc_status_reg, rtcdrv->rtc_base + RTC_STATUS);
+-		local_irq_enable();
++
++		spin_unlock_irq(&rtcdrv->lock);
+ 	} else {
+ 		/*
+ 		 * if this function was called with enabled=0
+ 		 * then it could mean that the application is
+ 		 * trying to cancel an ongoing alarm
+ 		 */
+-		local_irq_disable();
++		spin_lock_irq(&rtcdrv->lock);
+ 
+ 		rtc_status_reg = sirfsoc_rtc_iobrg_readl(
+ 				rtcdrv->rtc_base + RTC_STATUS);
+@@ -146,7 +149,7 @@ static int sirfsoc_rtc_set_alarm(struct
+ 					rtcdrv->rtc_base + RTC_STATUS);
+ 		}
+ 
+-		local_irq_enable();
++		spin_unlock_irq(&rtcdrv->lock);
  	}
  
--	cluster = sector >> (sbi->cluster_bits - sb->s_blocksize_bits);
--	offset  = sector & (sbi->sec_per_clus - 1);
--	cluster = fat_bmap_cluster(inode, cluster);
--	if (cluster < 0)
--		return cluster;
--	else if (cluster) {
--		*phys = fat_clus_to_blknr(sbi, cluster) + offset;
--		*mapped_blocks = sbi->sec_per_clus - offset;
--		if (*mapped_blocks > last_block - sector)
--			*mapped_blocks = last_block - sector;
--	}
--	return 0;
-+	return fat_get_mapped_cluster(inode, sector, last_block, mapped_blocks,
-+				      phys);
- }
-diff -puN fs/fat/fat.h~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region fs/fat/fat.h
---- a/fs/fat/fat.h~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region
-+++ a/fs/fat/fat.h
-@@ -288,6 +288,9 @@ static inline void fatwchar_to16(__u8 *d
- extern void fat_cache_inval_inode(struct inode *inode);
- extern int fat_get_cluster(struct inode *inode, int cluster,
- 			   int *fclus, int *dclus);
-+extern int fat_get_mapped_cluster(struct inode *inode, sector_t sector,
-+				  sector_t last_block,
-+				  unsigned long *mapped_blocks, sector_t *bmap);
- extern int fat_bmap(struct inode *inode, sector_t sector, sector_t *phys,
- 		    unsigned long *mapped_blocks, int create);
+ 	return 0;
+@@ -217,7 +220,7 @@ static int sirfsoc_rtc_alarm_irq_enable(
  
-diff -puN fs/fat/inode.c~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region fs/fat/inode.c
---- a/fs/fat/inode.c~fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region
-+++ a/fs/fat/inode.c
-@@ -288,13 +288,44 @@ static ssize_t fat_direct_IO(int rw, str
- 	return ret;
- }
+ 	rtcdrv = dev_get_drvdata(dev);
  
-+static int fat_get_block_bmap(struct inode *inode, sector_t iblock,
-+		struct buffer_head *bh_result, int create)
-+{
-+	struct super_block *sb = inode->i_sb;
-+	unsigned long max_blocks = bh_result->b_size >> inode->i_blkbits;
-+	int err;
-+	sector_t bmap, last_block;
-+	unsigned long mapped_blocks;
-+
-+	BUG_ON(create != 0);
-+
-+	last_block = inode->i_blocks >> (sb->s_blocksize_bits - 9);
-+
-+	if (iblock >= last_block)
-+		return 0;
-+
-+	err = fat_get_mapped_cluster(inode, iblock, last_block, &mapped_blocks,
-+		&bmap);
-+	if (err)
-+		return err;
-+
-+	if (bmap) {
-+		map_bh(bh_result, sb, bmap);
-+		max_blocks = min(mapped_blocks, max_blocks);
-+	}
-+
-+	bh_result->b_size = max_blocks << sb->s_blocksize_bits;
-+
-+	return 0;
-+}
-+
- static sector_t _fat_bmap(struct address_space *mapping, sector_t block)
- {
- 	sector_t blocknr;
+-	local_irq_disable();
++	spin_lock_irq(&rtcdrv->lock);
  
- 	/* fat_get_cluster() assumes the requested blocknr isn't truncated. */
- 	down_read(&MSDOS_I(mapping->host)->truncate_lock);
--	blocknr = generic_block_bmap(mapping, block, fat_get_block);
-+	blocknr = generic_block_bmap(mapping, block, fat_get_block_bmap);
- 	up_read(&MSDOS_I(mapping->host)->truncate_lock);
+ 	rtc_status_reg = sirfsoc_rtc_iobrg_readl(
+ 				rtcdrv->rtc_base + RTC_STATUS);
+@@ -227,7 +230,8 @@ static int sirfsoc_rtc_alarm_irq_enable(
+ 		rtc_status_reg &= ~SIRFSOC_RTC_AL0E;
  
- 	return blocknr;
+ 	sirfsoc_rtc_iobrg_writel(rtc_status_reg, rtcdrv->rtc_base + RTC_STATUS);
+-	local_irq_enable();
++
++	spin_unlock_irq(&rtcdrv->lock);
+ 
+ 	return 0;
+ 
+@@ -248,6 +252,8 @@ static irqreturn_t sirfsoc_rtc_irq_handl
+ 	unsigned long rtc_status_reg = 0x0;
+ 	unsigned long events = 0x0;
+ 
++	spin_lock(&rtcdrv->lock);
++
+ 	rtc_status_reg = sirfsoc_rtc_iobrg_readl(rtcdrv->rtc_base + RTC_STATUS);
+ 	/* this bit will be set ONLY if an alarm was active
+ 	 * and it expired NOW
+@@ -265,6 +271,9 @@ static irqreturn_t sirfsoc_rtc_irq_handl
+ 		rtc_status_reg &= ~(SIRFSOC_RTC_AL0E);
+ 	}
+ 	sirfsoc_rtc_iobrg_writel(rtc_status_reg, rtcdrv->rtc_base + RTC_STATUS);
++
++	spin_unlock(&rtcdrv->lock);
++
+ 	/* this should wake up any apps polling/waiting on the read
+ 	 * after setting the alarm
+ 	 */
+@@ -292,6 +301,8 @@ static int sirfsoc_rtc_probe(struct plat
+ 	if (rtcdrv == NULL)
+ 		return -ENOMEM;
+ 
++	spin_lock_init(&rtcdrv->lock);
++
+ 	err = of_property_read_u32(np, "reg", &rtcdrv->rtc_base);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "unable to find base address of rtc node in dtb\n");
 _
 
-Patches currently in -mm which might be from namjae.jeon@samsung.com are
+Patches currently in -mm which might be from Baohua.Song@csr.com are
 
-fat-add-fat_fallocate-operation.patch
-fat-skip-cluster-allocation-on-fallocated-region.patch
-fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
-documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
-fat-fix-data-past-eof-resulting-from-fsx-testsuite.patch
-fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
+drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety.patch
 
