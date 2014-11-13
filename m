@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety.patch added to -mm tree
-Date: Thu, 13 Nov 2014 13:39:02 -0800
-Message-ID: <546524f6.VIGPQ2ggN3TEPOE+%akpm@linux-foundation.org>
+ ksm-replace-smp_read_barrier_depends-with-lockless_dereference.patch added
+ to -mm tree
+Date: Thu, 13 Nov 2014 13:40:44 -0800
+Message-ID: <5465255c.gb14IzhgAJUBZ+tf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40563 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934866AbaKMVjD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Nov 2014 16:39:03 -0500
+	with ESMTP id S934603AbaKMVkp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Nov 2014 16:40:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Baohua.Song@csr.com, a.zummo@towertech.it, hao.liu@csr.com, mm-commits@vger.kernel.org
+To: bobby.prani@gmail.com, hughd@google.com, paulmck@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-sirfsoc.c: replace local_irq_disable by spin_lock_irq for SMP safety
+     Subject: ksm: replace smp_read_barrier_depends() with lockless_dereference()
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety.patch
+     ksm-replace-smp_read_barrier_depends-with-lockless_dereference.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ksm-replace-smp_read_barrier_depends-with-lockless_dereference.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/ksm-replace-smp_read_barrier_depends-with-lockless_dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,136 +40,28 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Barry Song <Baohua.Song@csr.com>
-Subject: drivers/rtc/rtc-sirfsoc.c: replace local_irq_disable by spin_lock_irq for SMP safety
+From: Pranith Kumar <bobby.prani@gmail.com>
+Subject: ksm: replace smp_read_barrier_depends() with lockless_dereference()
 
-Signed-off-by: Barry Song <Baohua.Song@csr.com>
-Cc: hao liu <hao.liu@csr.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Recently lockless_dereference() was added which can be used in place of
+hard-coding smp_read_barrier_depends().  The following PATCH makes the
+change.
+
+Signed-off-by: Pranith Kumar <bobby.prani@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sirfsoc.c |   27 +++++++++++++++++++--------
- 1 file changed, 19 insertions(+), 8 deletions(-)
+ mm/ksm.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety drivers/rtc/rtc-sirfsoc.c
---- a/drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety
-+++ a/drivers/rtc/rtc-sirfsoc.c
-@@ -47,6 +47,7 @@ struct sirfsoc_rtc_drv {
- 	unsigned		irq_wake;
- 	/* Overflow for every 8 years extra time */
- 	u32			overflow_rtc;
-+	spinlock_t		lock;
- #ifdef CONFIG_PM
- 	u32		saved_counter;
- 	u32		saved_overflow_rtc;
-@@ -61,7 +62,7 @@ static int sirfsoc_rtc_read_alarm(struct
- 
- 	rtcdrv = dev_get_drvdata(dev);
- 
--	local_irq_disable();
-+	spin_lock_irq(&rtcdrv->lock);
- 
- 	rtc_count = sirfsoc_rtc_iobrg_readl(rtcdrv->rtc_base + RTC_CN);
- 
-@@ -84,7 +85,8 @@ static int sirfsoc_rtc_read_alarm(struct
- 	if (sirfsoc_rtc_iobrg_readl(
- 			rtcdrv->rtc_base + RTC_STATUS) & SIRFSOC_RTC_AL0E)
- 		alrm->enabled = 1;
--	local_irq_enable();
-+
-+	spin_unlock_irq(&rtcdrv->lock);
- 
- 	return 0;
- }
-@@ -99,7 +101,7 @@ static int sirfsoc_rtc_set_alarm(struct
- 	if (alrm->enabled) {
- 		rtc_tm_to_time(&(alrm->time), &rtc_alarm);
- 
--		local_irq_disable();
-+		spin_lock_irq(&rtcdrv->lock);
- 
- 		rtc_status_reg = sirfsoc_rtc_iobrg_readl(
- 				rtcdrv->rtc_base + RTC_STATUS);
-@@ -123,14 +125,15 @@ static int sirfsoc_rtc_set_alarm(struct
- 		rtc_status_reg |= SIRFSOC_RTC_AL0E;
- 		sirfsoc_rtc_iobrg_writel(
- 			rtc_status_reg, rtcdrv->rtc_base + RTC_STATUS);
--		local_irq_enable();
-+
-+		spin_unlock_irq(&rtcdrv->lock);
- 	} else {
- 		/*
- 		 * if this function was called with enabled=0
- 		 * then it could mean that the application is
- 		 * trying to cancel an ongoing alarm
- 		 */
--		local_irq_disable();
-+		spin_lock_irq(&rtcdrv->lock);
- 
- 		rtc_status_reg = sirfsoc_rtc_iobrg_readl(
- 				rtcdrv->rtc_base + RTC_STATUS);
-@@ -146,7 +149,7 @@ static int sirfsoc_rtc_set_alarm(struct
- 					rtcdrv->rtc_base + RTC_STATUS);
- 		}
- 
--		local_irq_enable();
-+		spin_unlock_irq(&rtcdrv->lock);
- 	}
- 
- 	return 0;
-@@ -217,7 +220,7 @@ static int sirfsoc_rtc_alarm_irq_enable(
- 
- 	rtcdrv = dev_get_drvdata(dev);
- 
--	local_irq_disable();
-+	spin_lock_irq(&rtcdrv->lock);
- 
- 	rtc_status_reg = sirfsoc_rtc_iobrg_readl(
- 				rtcdrv->rtc_base + RTC_STATUS);
-@@ -227,7 +230,8 @@ static int sirfsoc_rtc_alarm_irq_enable(
- 		rtc_status_reg &= ~SIRFSOC_RTC_AL0E;
- 
- 	sirfsoc_rtc_iobrg_writel(rtc_status_reg, rtcdrv->rtc_base + RTC_STATUS);
--	local_irq_enable();
-+
-+	spin_unlock_irq(&rtcdrv->lock);
- 
- 	return 0;
- 
-@@ -248,6 +252,8 @@ static irqreturn_t sirfsoc_rtc_irq_handl
- 	unsigned long rtc_status_reg = 0x0;
- 	unsigned long events = 0x0;
- 
-+	spin_lock(&rtcdrv->lock);
-+
- 	rtc_status_reg = sirfsoc_rtc_iobrg_readl(rtcdrv->rtc_base + RTC_STATUS);
- 	/* this bit will be set ONLY if an alarm was active
- 	 * and it expired NOW
-@@ -265,6 +271,9 @@ static irqreturn_t sirfsoc_rtc_irq_handl
- 		rtc_status_reg &= ~(SIRFSOC_RTC_AL0E);
- 	}
- 	sirfsoc_rtc_iobrg_writel(rtc_status_reg, rtcdrv->rtc_base + RTC_STATUS);
-+
-+	spin_unlock(&rtcdrv->lock);
-+
- 	/* this should wake up any apps polling/waiting on the read
- 	 * after setting the alarm
- 	 */
-@@ -292,6 +301,8 @@ static int sirfsoc_rtc_probe(struct plat
- 	if (rtcdrv == NULL)
- 		return -ENOMEM;
- 
-+	spin_lock_init(&rtcdrv->lock);
-+
- 	err = of_property_read_u32(np, "reg", &rtcdrv->rtc_base);
- 	if (err) {
- 		dev_err(&pdev->dev, "unable to find base address of rtc node in dtb\n");
-_
-
-Patches currently in -mm which might be from Baohua.Song@csr.com are
-
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
-drivers-rtc-rtc-sirfsocc-replace-local_irq_disable-by-spin_lock_irq-for-smp-safety.patch
-
+diff -puN mm/ksm.c~ksm-replace-smp_read_barrier_depends-with-lockless_dereference mm/ksm.c
+--- a/mm/ksm.c~ksm-replace-smp_read_barrier_depends-with-lockless_dereference
++++ a/mm/ksm.c
+@@ -542,15 +542,14 @@ static struct page *get_ksm_page(struct
+ 	expected_mapping = (void *)stable_node +
+ 				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
+ again:
+-	kpfn = ACCESS_ONCE(stable_node->kpfn);
+-	page = pfn_to_page(kpfn);
