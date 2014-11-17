@@ -1,78 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-remove-redundant-call-of-page_to_pfn.patch added to -mm tree
-Date: Thu, 13 Nov 2014 14:12:11 -0800
-Message-ID: <54652cbb.oQMDptkRZz0Kc8tH%akpm@linux-foundation.org>
+Subject: [merged] zram-avoid-kunmap_atomic-a-null-pointer.patch removed
+ from -mm tree
+Date: Mon, 17 Nov 2014 12:50:29 -0800
+Message-ID: <546a5f95./6MEMLCo4iHhyejm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40896 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50934 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933765AbaKMWMM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Nov 2014 17:12:12 -0500
+	with ESMTP id S1752411AbaKQUub (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Nov 2014 15:50:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhenzhang.zhang@huawei.com, dave@sr71.net, isimatu.yasuaki@jp.fujitsu.com, rientjes@google.com, wangnan0@huawei.com, mm-commits@vger.kernel.org
+To: weijie.yang@samsung.com, ddstreet@ieee.org, jmarchan@redhat.com, ngupta@vflare.org, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, weijie.yang.kh@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: remove redundant call of page_to_pfn
-has been added to the -mm tree.  Its filename is
-     memory-hotplug-remove-redundant-call-of-page_to_pfn.patch
+     Subject: zram: avoid kunmap_atomic() of a NULL pointer
+has been removed from the -mm tree.  Its filename was
+     zram-avoid-kunmap_atomic-a-null-pointer.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-remove-redundant-call-of-page_to_pfn.patch
-		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-remove-redundant-call-of-page_to_pfn.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Subject: memory-hotplug: remove redundant call of page_to_pfn
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: zram: avoid kunmap_atomic() of a NULL pointer
 
-This is just a small optimization.  The start_pfn can be obtained directly
-by phys_index << PFN_SECTION_SHIFT.  So the call of page_to_pfn() is
-redundant and remove it.
+zram could kunmap_atomic() a NULL pointer in a rare situation: a zram page
+becomes a full-zeroed page after a partial write io.  The current code
+doesn't handle this case and performs kunmap_atomic() on a NULL pointer,
+which panics the kernel.
 
-Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Wang Nan <wangnan0@huawei.com>
+This patch fixes this issue.
+
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Weijie Yang <weijie.yang.kh@gmail.com>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/memory.c~memory-hotplug-remove-redundant-call-of-page_to_pfn drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-remove-redundant-call-of-page_to_pfn
-+++ a/drivers/base/memory.c
-@@ -228,8 +228,8 @@ memory_block_action(unsigned long phys_i
- 	struct page *first_page;
- 	int ret;
+diff -puN drivers/block/zram/zram_drv.c~zram-avoid-kunmap_atomic-a-null-pointer drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-avoid-kunmap_atomic-a-null-pointer
++++ a/drivers/block/zram/zram_drv.c
+@@ -560,7 +560,8 @@ static int zram_bvec_write(struct zram *
+ 	}
  
--	first_page = pfn_to_page(phys_index << PFN_SECTION_SHIFT);
--	start_pfn = page_to_pfn(first_page);
-+	start_pfn = phys_index << PFN_SECTION_SHIFT;
-+	first_page = pfn_to_page(start_pfn);
- 
- 	switch (action) {
- 		case MEM_ONLINE:
+ 	if (page_zero_filled(uncmem)) {
+-		kunmap_atomic(user_mem);
++		if (user_mem)
++			kunmap_atomic(user_mem);
+ 		/* Free memory associated with this sector now. */
+ 		bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
+ 		zram_free_page(zram, index);
 _
 
-Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
-memory-hotplug-remove-redundant-call-of-page_to_pfn.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-mincore-add-hwpoison-page-handle.patch
+mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
 
