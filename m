@@ -1,172 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat.patch
- removed from -mm tree
-Date: Mon, 17 Nov 2014 12:50:59 -0800
-Message-ID: <546a5fb3.GlE/xsnPTiprxH4y%akpm@linux-foundation.org>
+ mm-compaction-prevent-infinite-loop-in-compact_zone.patch removed from -mm
+ tree
+Date: Mon, 17 Nov 2014 12:50:52 -0800
+Message-ID: <546a5fac.ZTmGu+xTQ5wBGwox%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51035 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51022 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752755AbaKQUvA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Nov 2014 15:51:00 -0500
+	with ESMTP id S1752755AbaKQUux (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Nov 2014 15:50:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mel@csn.ul.ie, pavel@ucw.cz, preining@logic.at, rientjes@google.com, xrg@linux.gr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: reset node managed pages when hot-adding a new pgdat
+     Subject: mm, compaction: prevent infinite loop in compact_zone
 has been removed from the -mm tree.  Its filename was
-     mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat.patch
+     mm-compaction-prevent-infinite-loop-in-compact_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mem-hotplug: reset node managed pages when hot-adding a new pgdat
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: prevent infinite loop in compact_zone
 
-In free_area_init_core(), zone->managed_pages is set to an approximate
-value for lowmem, and will be adjusted when the bootmem allocator frees
-pages into the buddy system.  But free_area_init_core() is also called by
-hotadd_new_pgdat() when hot-adding memory.  As a result,
-zone->managed_pages of the newly added node's pgdat is set to an
-approximate value in the very beginning.  Even if the memory on that node
-has node been onlined, /sys/device/system/node/nodeXXX/meminfo has wrong
-value.
+Several people have reported occasionally seeing processes stuck in
+compact_zone(), even triggering soft lockups, in 3.18-rc2+.
 
-hot-add node2 (memory not onlined)
-cat /sys/device/system/node/node2/meminfo
-Node 2 MemTotal:       33554432 kB
-Node 2 MemFree:               0 kB
-Node 2 MemUsed:        33554432 kB
-Node 2 Active:                0 kB
+Testing a revert of e14c720efdd7 ("mm, compaction: remember position
+within pageblock in free pages scanner") fixed the issue, although the
+stuck processes do not appear to involve the free scanner.  Finally, by
+code inspection, the bug was found in isolate_migratepages() which uses a
+slightly different condition to detect if the migration and free scanners
+have met, than compact_finished().  That has not been a problem until
+commit e14c720efdd7 allowed the free scanner position between individual
+invocations to be in the middle of a pageblock.
 
-This patch fixes this problem by reset node managed pages to 0 after
-hot-adding a new node.
+In a relatively rare case, the migration scanner position can end up at
+the beginning of a pageblock, with the free scanner position in the middle
+of the same pageblock.  If it's the migration scanner's turn,
+isolate_migratepages() exits immediately (without updating the position),
+while compact_finished() decides to continue compaction, resulting in a
+potentially infinite loop.  The system can recover only if another process
+creates enough high-order pages to make the watermark checks in
+compact_finished() pass.
 
-1. Move reset_managed_pages_done from reset_node_managed_pages() to
-   reset_all_zones_managed_pages()
-2. Make reset_node_managed_pages() non-static
-3. Call reset_node_managed_pages() in hotadd_new_pgdat() after pgdat
-   is initialized
+This patch fixes the immediate problem by bumping the migration scanner's
+position to meet the free scanner in isolate_migratepages(), when both are
+within the same pageblock.  This causes compact_finished() to terminate
+properly.  A more robust check in compact_finished() is planned as a
+cleanup for better future maintainability.
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: <stable@vger.kernel.org>	[3.16+]
+Fixes: e14c720efdd73 ("mm, compaction: remember position within pageblock in free pages scanner)
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: P. Christeas <xrg@linux.gr>
+Tested-by: P. Christeas <xrg@linux.gr>
+Link: http://marc.info/?l=linux-mm&m=141508604232522&w=2
+Reported-by: Norbert Preining <preining@logic.at>
+Tested-by: Norbert Preining <preining@logic.at>
+Link: https://lkml.org/lkml/2014/11/4/904
+Reported-by: Pavel Machek <pavel@ucw.cz>
+Link: https://lkml.org/lkml/2014/11/7/164
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    1 +
- mm/bootmem.c            |    9 +++++----
- mm/memory_hotplug.c     |    9 +++++++++
- mm/nobootmem.c          |    8 +++++---
- 4 files changed, 20 insertions(+), 7 deletions(-)
+ mm/compaction.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/bootmem.h~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat include/linux/bootmem.h
---- a/include/linux/bootmem.h~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
-+++ a/include/linux/bootmem.h
-@@ -46,6 +46,7 @@ extern unsigned long init_bootmem_node(p
- extern unsigned long init_bootmem(unsigned long addr, unsigned long memend);
+diff -puN mm/compaction.c~mm-compaction-prevent-infinite-loop-in-compact_zone mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-prevent-infinite-loop-in-compact_zone
++++ a/mm/compaction.c
+@@ -1039,8 +1039,12 @@ static isolate_migrate_t isolate_migrate
+ 	}
  
- extern unsigned long free_all_bootmem(void);
-+extern void reset_node_managed_pages(pg_data_t *pgdat);
- extern void reset_all_zones_managed_pages(void);
- 
- extern void free_bootmem_node(pg_data_t *pgdat,
-diff -puN mm/bootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat mm/bootmem.c
---- a/mm/bootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
-+++ a/mm/bootmem.c
-@@ -243,13 +243,10 @@ static unsigned long __init free_all_boo
- 
- static int reset_managed_pages_done __initdata;
- 
--static inline void __init reset_node_managed_pages(pg_data_t *pgdat)
-+void reset_node_managed_pages(pg_data_t *pgdat)
- {
- 	struct zone *z;
- 
--	if (reset_managed_pages_done)
--		return;
--
- 	for (z = pgdat->node_zones; z < pgdat->node_zones + MAX_NR_ZONES; z++)
- 		z->managed_pages = 0;
- }
-@@ -258,8 +255,12 @@ void __init reset_all_zones_managed_page
- {
- 	struct pglist_data *pgdat;
- 
-+	if (reset_managed_pages_done)
-+		return;
-+
- 	for_each_online_pgdat(pgdat)
- 		reset_node_managed_pages(pgdat);
-+
- 	reset_managed_pages_done = 1;
- }
- 
-diff -puN mm/memory_hotplug.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
-+++ a/mm/memory_hotplug.c
-@@ -31,6 +31,7 @@
- #include <linux/stop_machine.h>
- #include <linux/hugetlb.h>
- #include <linux/memblock.h>
-+#include <linux/bootmem.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -1096,6 +1097,14 @@ static pg_data_t __ref *hotadd_new_pgdat
- 	build_all_zonelists(pgdat, NULL);
- 	mutex_unlock(&zonelists_mutex);
- 
+ 	acct_isolated(zone, cc);
+-	/* Record where migration scanner will be restarted */
+-	cc->migrate_pfn = low_pfn;
 +	/*
-+	 * zone->managed_pages is set to an approximate value in
-+	 * free_area_init_core(), which will cause
-+	 * /sys/device/system/node/nodeX/meminfo has wrong data.
-+	 * So reset it to 0 before any memory is onlined.
++	 * Record where migration scanner will be restarted. If we end up in
++	 * the same pageblock as the free scanner, make the scanners fully
++	 * meet so that compact_finished() terminates compaction.
 +	 */
-+	reset_node_managed_pages(pgdat);
-+
- 	return pgdat;
++	cc->migrate_pfn = (end_pfn <= cc->free_pfn) ? low_pfn : cc->free_pfn;
+ 
+ 	return cc->nr_migratepages ? ISOLATE_SUCCESS : ISOLATE_NONE;
  }
- 
-diff -puN mm/nobootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat mm/nobootmem.c
---- a/mm/nobootmem.c~mem-hotplug-reset-node-managed-pages-when-hot-adding-a-new-pgdat
-+++ a/mm/nobootmem.c
-@@ -145,12 +145,10 @@ static unsigned long __init free_low_mem
- 
- static int reset_managed_pages_done __initdata;
- 
--static inline void __init reset_node_managed_pages(pg_data_t *pgdat)
-+void reset_node_managed_pages(pg_data_t *pgdat)
- {
- 	struct zone *z;
- 
--	if (reset_managed_pages_done)
--		return;
- 	for (z = pgdat->node_zones; z < pgdat->node_zones + MAX_NR_ZONES; z++)
- 		z->managed_pages = 0;
- }
-@@ -159,8 +157,12 @@ void __init reset_all_zones_managed_page
- {
- 	struct pglist_data *pgdat;
- 
-+	if (reset_managed_pages_done)
-+		return;
-+
- 	for_each_online_pgdat(pgdat)
- 		reset_node_managed_pages(pgdat);
-+
- 	reset_managed_pages_done = 1;
- }
- 
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-memblock-refactor-functions-to-set-clear-memblock_hotplug.patch
+mm-introduce-single-zone-pcplists-drain.patch
+mm-page_isolation-drain-single-zone-pcplists.patch
+mm-cma-drain-single-zone-pcplists.patch
+mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
+mm-compaction-simplify-deferred-compaction.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-compaction-defer-only-on-compact_complete.patch
+mm-compaction-always-update-cached-scanner-positions.patch
+mm-compaction-more-focused-lru-and-pcplists-draining.patch
+mm-debug-pagealloc-cleanup-page-guard-code.patch
 
